@@ -108,15 +108,15 @@ void MAN_5t_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
 
     // Initialize the steering subsystem (specify the steering subsystem's frame relative to the chassis reference
     // frame).
-    ChVector<> offset = ChVector<>(0, 0, 0.0);  // 0.4 0 0.4
+    ChVector3d offset = ChVector3d(0, 0, 0.0);  // 0.4 0 0.4
     ChQuaternion<> rotation = ChQuaternion<>(1, 0, 0, 0);
     m_steerings[0]->Initialize(m_chassis, offset, rotation);
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector<>(0, 0, 0), ChVector<>(0), 0.0, m_omega[0],
+    m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector3d(0, 0, 0), ChVector3d(0), 0.0, m_omega[0],
                            m_omega[1]);
     const double twin_tire_dist = 0.0;  // Michelin for 305/85 R22.5
-    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-4.5, 0, 0), ChVector<>(0), twin_tire_dist,
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(-4.5, 0, 0), ChVector3d(0), twin_tire_dist,
                            m_omega[2], m_omega[3]);
 
     // Initialize the driveline subsystem (RWD)
@@ -135,19 +135,15 @@ void MAN_5t_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
 // subsystems (display in inches)
 // -----------------------------------------------------------------------------
 void MAN_5t_Vehicle::LogHardpointLocations() {
-    GetLog().SetNumFormat("%7.3f");
-
-    GetLog() << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
+    std::cout << "\n---- FRONT suspension hardpoint locations (LEFT side)\n";
     std::static_pointer_cast<ChSolidBellcrankThreeLinkAxle>(m_axles[0]->m_suspension)
-        ->LogHardpointLocations(ChVector<>(0, 0, 0), false);
+        ->LogHardpointLocations(ChVector3d(0, 0, 0), false);
 
-    GetLog() << "\n---- REAR suspension hardpoint locations (LEFT side)\n";
+    std::cout << "\n---- REAR suspension hardpoint locations (LEFT side)\n";
     std::static_pointer_cast<ChSolidThreeLinkAxle>(m_axles[1]->m_suspension)
-        ->LogHardpointLocations(ChVector<>(0, 0, 0), false);
+        ->LogHardpointLocations(ChVector3d(0, 0, 0), false);
 
-    GetLog() << "\n\n";
-
-    GetLog().SetNumFormat("%g");
+    std::cout << "\n\n";
 }
 
 // -----------------------------------------------------------------------------
@@ -158,17 +154,15 @@ void MAN_5t_Vehicle::LogHardpointLocations() {
 // Lengths are reported in inches, velocities in inches/s, and forces in lbf
 // -----------------------------------------------------------------------------
 void MAN_5t_Vehicle::DebugLog(int what) {
-    GetLog().SetNumFormat("%10.2f");
-
     if (what & OUT_SPRINGS || what & OUT_SHOCKS) {
-        GetLog() << "\n---- Spring and Shock information\n\n";
+        std::cout << "\n---- Spring and Shock information\n\n";
         for (int axle = 0; axle < 2; axle++) {
             std::string axlePosition = (axle == 0) ? "Front" : "Rear ";
             for (int side = LEFT; side <= RIGHT; side++) {
                 for (auto& forceTSDA :
                      m_axles[axle]->m_suspension->ReportSuspensionForce(static_cast<VehicleSide>(side))) {
-                    GetLog() << axlePosition << " " << (side == LEFT ? "Left " : "Right") << " ";
-                    GetLog() << forceTSDA.name << std::string(10 - std::max(0, (int)forceTSDA.name.size()), ' ')
+                    std::cout << axlePosition << " " << (side == LEFT ? "Left " : "Right") << " ";
+                    std::cout << forceTSDA.name << std::string(10 - std::max(0, (int)forceTSDA.name.size()), ' ')
                              << " Length: " << forceTSDA.length << " m, Force: " << forceTSDA.force << " N\n";
                 }
             }
@@ -179,8 +173,6 @@ void MAN_5t_Vehicle::DebugLog(int what) {
         // Report constraint violations for all joints
         LogConstraintViolations();
     }
-
-    GetLog().SetNumFormat("%g");
 }
 
 }  // namespace man

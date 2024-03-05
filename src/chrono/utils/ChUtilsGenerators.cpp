@@ -39,10 +39,10 @@ MixtureIngredient::MixtureIngredient(Generator* generator, MixtureType type, dou
       m_type(type),
       m_ratio(ratio),
       m_cumRatio(0),
-      m_defMaterialNSC(chrono_types::make_shared<ChMaterialSurfaceNSC>()),
-      m_defMaterialSMC(chrono_types::make_shared<ChMaterialSurfaceSMC>()),
+      m_defMaterialNSC(chrono_types::make_shared<ChContactMaterialNSC>()),
+      m_defMaterialSMC(chrono_types::make_shared<ChContactMaterialSMC>()),
       m_defDensity(1),
-      m_defSize(ChVector<>(1, 1, 1)),
+      m_defSize(ChVector3d(1, 1, 1)),
       m_frictionDist(nullptr),
       m_cohesionDist(nullptr),
       m_youngDist(nullptr),
@@ -60,13 +60,13 @@ MixtureIngredient::~MixtureIngredient() {
 }
 
 // Set constant material properties for all objects based on this ingredient.
-void MixtureIngredient::setDefaultMaterial(std::shared_ptr<ChMaterialSurface> mat) {
+void MixtureIngredient::setDefaultMaterial(std::shared_ptr<ChContactMaterial> mat) {
     assert(mat->GetContactMethod() == m_generator->m_system->GetContactMethod());
 
     if (mat->GetContactMethod() == ChContactMethod::NSC) {
-        m_defMaterialNSC = std::static_pointer_cast<ChMaterialSurfaceNSC>(mat);
+        m_defMaterialNSC = std::static_pointer_cast<ChContactMaterialNSC>(mat);
     } else {
-        m_defMaterialSMC = std::static_pointer_cast<ChMaterialSurfaceSMC>(mat);
+        m_defMaterialSMC = std::static_pointer_cast<ChContactMaterialSMC>(mat);
     }
 
     freeMaterialDist();
@@ -78,7 +78,7 @@ void MixtureIngredient::setDefaultDensity(double density) {
     m_densityDist = nullptr;
 }
 
-void MixtureIngredient::setDefaultSize(const ChVector<>& size) {
+void MixtureIngredient::setDefaultSize(const ChVector3d& size) {
     m_defSize = size;
     delete m_sizeDist;
     m_sizeDist = nullptr;
@@ -142,8 +142,8 @@ void MixtureIngredient::setDistributionDensity(double density_mean,
 
 void MixtureIngredient::setDistributionSize(double size_mean,
                                             double size_stddev,
-                                            const ChVector<>& size_min,
-                                            const ChVector<>& size_max) {
+                                            const ChVector3d& size_min,
+                                            const ChVector3d& size_max) {
     m_sizeDist = new std::normal_distribution<double>(size_mean, size_stddev);
     m_minSize = size_min;
     m_maxSize = size_max;
@@ -165,7 +165,7 @@ void MixtureIngredient::freeMaterialDist() {
 }
 
 // Modify the specified NSC material surface based on attributes of this ingredient.
-void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurfaceNSC> mat) {
+void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChContactMaterialNSC> mat) {
     // Copy properties from the default material.
     *mat = *m_defMaterialNSC;
 
@@ -178,7 +178,7 @@ void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurfaceN
 }
 
 // Modify the specified SMC material surface based on attributes of this ingredient.
-void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurfaceSMC> mat) {
+void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChContactMaterialSMC> mat) {
     // Copy properties from the default material.
     *mat = *m_defMaterialSMC;
 
@@ -200,9 +200,9 @@ void MixtureIngredient::setMaterialProperties(std::shared_ptr<ChMaterialSurfaceS
 }
 
 // Return a size for an object created based on attributes of this ingredient.
-ChVector<> MixtureIngredient::getSize() {
+ChVector3d MixtureIngredient::getSize() {
     if (m_sizeDist)
-        return ChVector<>(sampleTruncatedDist<double>(*m_sizeDist, m_minSize.x(), m_maxSize.x()),
+        return ChVector3d(sampleTruncatedDist<double>(*m_sizeDist, m_minSize.x(), m_maxSize.x()),
                           sampleTruncatedDist<double>(*m_sizeDist, m_minSize.y(), m_maxSize.y()),
                           sampleTruncatedDist<double>(*m_sizeDist, m_minSize.z(), m_maxSize.z()));
 
@@ -219,31 +219,31 @@ double MixtureIngredient::getDensity() {
 
 // Calculate the volume and gyration tensor of an object of given size created
 // from this ingredient type.
-void MixtureIngredient::calcGeometricProps(const ChVector<>& size, double& volume, ChVector<>& gyration) {
+void MixtureIngredient::calcGeometricProps(const ChVector3d& size, double& volume, ChVector3d& gyration) {
     switch (m_type) {
         case MixtureType::SPHERE:
-            volume = geometry::ChSphere::GetVolume(size.x());
-            gyration = geometry::ChSphere::GetGyration(size.x()).diagonal();
+            volume = ChSphere::GetVolume(size.x());
+            gyration = ChSphere::GetGyration(size.x()).diagonal();
             break;
         case MixtureType::ELLIPSOID:
-            volume = geometry::ChEllipsoid::GetVolume(size);
-            gyration = geometry::ChEllipsoid::GetGyration(size).diagonal();
+            volume = ChEllipsoid::GetVolume(size);
+            gyration = ChEllipsoid::GetGyration(size).diagonal();
             break;
         case MixtureType::BOX:
-            volume = geometry::ChBox::GetVolume(size);
-            gyration = geometry::ChBox::GetGyration(size).diagonal();
+            volume = ChBox::GetVolume(size);
+            gyration = ChBox::GetGyration(size).diagonal();
             break;
         case MixtureType::CYLINDER:
-            volume = geometry::ChCylinder::GetVolume(size.x(), size.y());
-            gyration = geometry::ChCylinder::GetGyration(size.x(), size.y()).diagonal();
+            volume = ChCylinder::GetVolume(size.x(), size.y());
+            gyration = ChCylinder::GetGyration(size.x(), size.y()).diagonal();
             break;
         case MixtureType::CONE:
-            volume = geometry::ChCone::GetVolume(size.x(), size.y());
-            gyration = geometry::ChCone::GetGyration(size.x(), size.y()).diagonal();
+            volume = ChCone::GetVolume(size.x(), size.y());
+            gyration = ChCone::GetGyration(size.x(), size.y()).diagonal();
             break;
         case MixtureType::CAPSULE:
-            volume = geometry::ChCapsule::GetVolume(size.x(), size.y());
-            gyration = geometry::ChCapsule::GetGyration(size.x(), size.y()).diagonal();
+            volume = ChCapsule::GetVolume(size.x(), size.y());
+            gyration = ChCapsule::GetGyration(size.x(), size.y()).diagonal();
             break;
     }
 }
@@ -282,9 +282,9 @@ std::shared_ptr<MixtureIngredient> Generator::AddMixtureIngredient(MixtureType t
 // The types of objects created are selected randomly with probability
 // proportional to the ratio of that ingredient in the mixture.
 void Generator::CreateObjectsBox(Sampler<double>& sampler,
-                                 const ChVector<>& pos,
-                                 const ChVector<>& hdims,
-                                 const ChVector<>& vel) {
+                                 const ChVector3d& pos,
+                                 const ChVector3d& hdims,
+                                 const ChVector3d& vel) {
     // Normalize the mixture ratios
     normalizeMixture();
 
@@ -302,15 +302,15 @@ void Generator::CreateObjectsBox(Sampler<double>& sampler,
 // specified separation distances and using the current mixture settings.
 // The types of objects created are selected randomly with probability
 // proportional to the ratio of that ingredient in the mixture.
-void Generator::CreateObjectsBox(const ChVector<>& dist,
-                                 const ChVector<>& pos,
-                                 const ChVector<>& hdims,
-                                 const ChVector<>& vel) {
+void Generator::CreateObjectsBox(const ChVector3d& dist,
+                                 const ChVector3d& pos,
+                                 const ChVector3d& hdims,
+                                 const ChVector3d& vel) {
     // Normalize the mixture ratios
     normalizeMixture();
 
     // When using SMC, make sure there is no shape overlap.
-    ChVector<> distv;
+    ChVector3d distv;
     if (m_system->GetContactMethod() == ChContactMethod::SMC)
         distv = calcMinSeparation(dist);
     else
@@ -329,10 +329,10 @@ void Generator::CreateObjectsBox(const ChVector<>& dist,
 // The types of objects created are selected randomly with probability
 // proportional to the ratio of that ingredient in the mixture.
 void Generator::CreateObjectsCylinderX(Sampler<double>& sampler,
-                                       const ChVector<>& pos,
+                                       const ChVector3d& pos,
                                        float radius,
                                        float halfHeight,
-                                       const ChVector<>& vel) {
+                                       const ChVector3d& vel) {
     // Normalize the mixture ratios
     normalizeMixture();
 
@@ -347,10 +347,10 @@ void Generator::CreateObjectsCylinderX(Sampler<double>& sampler,
 }
 
 void Generator::CreateObjectsCylinderY(Sampler<double>& sampler,
-                                       const ChVector<>& pos,
+                                       const ChVector3d& pos,
                                        float radius,
                                        float halfHeight,
-                                       const ChVector<>& vel) {
+                                       const ChVector3d& vel) {
     // Normalize the mixture ratios
     normalizeMixture();
 
@@ -365,10 +365,10 @@ void Generator::CreateObjectsCylinderY(Sampler<double>& sampler,
 }
 
 void Generator::CreateObjectsCylinderZ(Sampler<double>& sampler,
-                                       const ChVector<>& pos,
+                                       const ChVector3d& pos,
                                        float radius,
                                        float halfHeight,
-                                       const ChVector<>& vel) {
+                                       const ChVector3d& vel) {
     // Normalize the mixture ratios
     normalizeMixture();
 
@@ -383,9 +383,9 @@ void Generator::CreateObjectsCylinderZ(Sampler<double>& sampler,
 }
 
 void Generator::CreateObjectsSphere(Sampler<double>& sampler,
-                                    const ChVector<>& pos,
+                                    const ChVector3d& pos,
                                     float radius,
-                                    const ChVector<>& vel) {
+                                    const ChVector3d& vel) {
     // Normalize the mixture ratios
     normalizeMixture();
 
@@ -442,8 +442,8 @@ double Generator::calcMinSeparation(double sep) {
     return sep;
 }
 
-ChVector<> Generator::calcMinSeparation(const ChVector<>& sep) {
-    ChVector<> res;
+ChVector3d Generator::calcMinSeparation(const ChVector3d& sep) {
+    ChVector3d res;
 
     for (int i = 0; i < m_mixture.size(); i++) {
         double mix_sep = m_mixture[i]->calcMinSeparation();
@@ -456,7 +456,7 @@ ChVector<> Generator::calcMinSeparation(const ChVector<>& sep) {
 }
 
 // Create objects at the specified locations using the current mixture settings.
-void Generator::createObjects(const PointVector& points, const ChVector<>& vel) {
+void Generator::createObjects(const PointVector& points, const ChVector3d& vel) {
     bool check = false;
     std::vector<bool> flags;
     if (m_callback) {
@@ -474,16 +474,16 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
 
         // Create a contact material consistent with the associated system and modify it based on attributes of the
         // current ingredient.
-        std::shared_ptr<ChMaterialSurface> mat;
+        std::shared_ptr<ChContactMaterial> mat;
         switch (m_system->GetContactMethod()) {
             case ChContactMethod::NSC: {
-                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+                auto matNSC = chrono_types::make_shared<ChContactMaterialNSC>();
                 m_mixture[index]->setMaterialProperties(matNSC);
                 mat = matNSC;
                 break;
             }
             case ChContactMethod::SMC: {
-                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+                auto matSMC = chrono_types::make_shared<ChContactMaterialSMC>();
                 m_mixture[index]->setMaterialProperties(matSMC);
                 mat = matSMC;
                 break;
@@ -499,15 +499,15 @@ void Generator::createObjects(const PointVector& points, const ChVector<>& vel) 
         // Set position and orientation
         body->SetPos(points[i]);
         body->SetRot(ChQuaternion<>(1, 0, 0, 0));
-        body->SetPos_dt(vel);
+        body->SetPosDer(vel);
         body->SetBodyFixed(false);
         body->SetCollide(true);
 
         // Get size and density; calculate geometric properties
-        ChVector<> size = m_mixture[index]->getSize();
+        ChVector3d size = m_mixture[index]->getSize();
         double density = m_mixture[index]->getDensity();
         double volume;
-        ChVector<> gyration;
+        ChVector3d gyration;
         m_mixture[index]->calcGeometricProps(size, volume, gyration);
         double mass = density * volume;
 

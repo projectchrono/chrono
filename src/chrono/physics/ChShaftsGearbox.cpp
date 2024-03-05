@@ -42,7 +42,7 @@ ChShaftsGearbox::ChShaftsGearbox(const ChShaftsGearbox& other) : ChPhysicsItem(o
 bool ChShaftsGearbox::Initialize(std::shared_ptr<ChShaft> mshaft1,   // first (input) shaft to join
                                  std::shared_ptr<ChShaft> mshaft2,   // second  (output) shaft to join
                                  std::shared_ptr<ChBodyFrame> mbody, // 3D body to use as truss
-                                 ChVector<>& mdir                    // direction of the shaft on 3D body
+                                 ChVector3d& mdir                    // direction of the shaft on 3D body
                                  ) {
     ChShaft* mm1 = mshaft1.get();
     ChShaft* mm2 = mshaft2.get();
@@ -100,7 +100,7 @@ void ChShaftsGearbox::IntLoadConstraint_C(const unsigned int off_L,
     double cnstr_violation = c * res;
 
     if (do_clamp) {
-        cnstr_violation = ChMin(ChMax(cnstr_violation, -recovery_clamp), recovery_clamp);
+        cnstr_violation = std::min(std::max(cnstr_violation, -recovery_clamp), recovery_clamp);
     }
 
     Qc(off_L) += cnstr_violation;
@@ -151,8 +151,8 @@ void ChShaftsGearbox::ConstraintsLoadJacobians() {
     constraint.Get_Cq_a()(0) = r1;
     constraint.Get_Cq_b()(0) = r2;
 
-    // ChVector<> jacw = body->TransformDirectionParentToLocal(shaft_dir);
-    ChVector<> jacw = shaft_dir;
+    // ChVector3d jacw = body->TransformDirectionParentToLocal(shaft_dir);
+    ChVector3d jacw = shaft_dir;
 
     constraint.Get_Cq_c()(0) = 0;
     constraint.Get_Cq_c()(1) = 0;
@@ -169,39 +169,39 @@ void ChShaftsGearbox::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsGearbox::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsGearbox::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsGearbox>();
+    archive_out.VersionWrite<ChShaftsGearbox>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(r1);
-    marchive << CHNVP(r2);
-    marchive << CHNVP(r3);
-    marchive << CHNVP(shaft_dir);
-    marchive << CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    marchive << CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    marchive << CHNVP(body); //***TODO*** serialize with shared ptr
+    archive_out << CHNVP(r1);
+    archive_out << CHNVP(r2);
+    archive_out << CHNVP(r3);
+    archive_out << CHNVP(shaft_dir);
+    archive_out << CHNVP(shaft1); //// TODO  serialize with shared ptr
+    archive_out << CHNVP(shaft2); //// TODO  serialize with shared ptr
+    archive_out << CHNVP(body); //// TODO  serialize with shared ptr
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsGearbox::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsGearbox::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsGearbox>();
+    /*int version =*/ archive_in.VersionRead<ChShaftsGearbox>();
 
     // deserialize parent class:
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(r1);
-    marchive >> CHNVP(r2);
-    marchive >> CHNVP(r3);
-    marchive >> CHNVP(shaft_dir);
-    marchive >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    marchive >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    marchive >> CHNVP(body); //***TODO*** serialize with shared ptr
+    archive_in >> CHNVP(r1);
+    archive_in >> CHNVP(r2);
+    archive_in >> CHNVP(r3);
+    archive_in >> CHNVP(shaft_dir);
+    archive_in >> CHNVP(shaft1); //// TODO  serialize with shared ptr
+    archive_in >> CHNVP(shaft2); //// TODO  serialize with shared ptr
+    archive_in >> CHNVP(body); //// TODO  serialize with shared ptr
     constraint.SetVariables(&shaft1->Variables(), &shaft2->Variables(), &body->Variables());
 
 }

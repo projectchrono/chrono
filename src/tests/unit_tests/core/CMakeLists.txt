@@ -3,6 +3,7 @@ INCLUDE_DIRECTORIES( ${CH_INCLUDES} )
 
 SET(TESTS
     utest_CH_archive
+    utest_CH_ChFunctions
     utest_CH_ChVector
     utest_CH_ChQuaternion
     utest_CH_ChState
@@ -11,14 +12,8 @@ SET(TESTS
     utest_CH_math
     utest_CH_sparsematrix
     utest_CH_ISO2631
-    #utest_CH_stream
 )
 
-
-if(CH_CXX14)
-   set(TESTS ${TESTS}
-       utest_CH_ChFunction_Lambda)
-endif()
 
 
 MESSAGE(STATUS "Unit test programs for CORE module...")

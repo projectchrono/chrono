@@ -43,7 +43,7 @@ void HMMWV_AutomaticTransmissionShafts::SetGearRatios(std::vector<double>& fwd, 
     fwd.push_back(0.8);  // 3rd gear;
 }
 
-void HMMWV_AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void HMMWV_AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunctionInterp>& map) {
     map->AddPoint(0.0, 15);
     map->AddPoint(0.25, 15);
     map->AddPoint(0.50, 15);
@@ -66,7 +66,7 @@ void HMMWV_AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std:
     */
 }
 
-void HMMWV_AutomaticTransmissionShafts::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void HMMWV_AutomaticTransmissionShafts::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunctionInterp>& map) {
     map->AddPoint(0.0, 2.00);
     map->AddPoint(0.25, 1.80);
     map->AddPoint(0.50, 1.50);

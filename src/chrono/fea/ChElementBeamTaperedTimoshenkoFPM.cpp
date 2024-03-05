@@ -313,11 +313,11 @@ void ChElementBeamTaperedTimoshenkoFPM::SetupInitial(ChSystem* system) {
 
     // Compute initial rotation
     ChMatrix33<> A0;
-    ChVector<> mXele = nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos();
-    ChVector<> myele =
-        (nodes[0]->GetX0().GetA().Get_A_Yaxis() + nodes[1]->GetX0().GetA().Get_A_Yaxis()).GetNormalized();
-    A0.Set_A_Xdir(mXele, myele);
-    q_element_ref_rot = A0.Get_A_quaternion();
+    ChVector3d mXele = nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos();
+    ChVector3d myele =
+        (nodes[0]->GetX0().GetRotMat().GetAxisY() + nodes[1]->GetX0().GetRotMat().GetAxisY()).GetNormalized();
+    A0.SetFromAxisX(mXele, myele);
+    q_element_ref_rot = A0.GetQuaternion();
 
     // Compute transformation matrix
     ComputeTransformMatrix();
@@ -336,8 +336,8 @@ void ChElementBeamTaperedTimoshenkoFPM::SetupInitial(ChSystem* system) {
 }
 
 void ChElementBeamTaperedTimoshenkoFPM::EvaluateSectionDisplacement(const double eta,
-                                                                    ChVector<>& u_displ,
-                                                                    ChVector<>& u_rotaz) {
+                                                                    ChVector3d& u_displ,
+                                                                    ChVector3d& u_rotaz) {
     ChVectorDynamic<> displ(this->GetNdofs());
     this->GetStateBlock(displ);
     // No transformation for the displacement of two nodes,
@@ -360,8 +360,8 @@ void ChElementBeamTaperedTimoshenkoFPM::EvaluateSectionDisplacement(const double
 }
 
 void ChElementBeamTaperedTimoshenkoFPM::EvaluateSectionForceTorque(const double eta,
-                                                                   ChVector<>& Fforce,
-                                                                   ChVector<>& Mtorque) {
+                                                                   ChVector3d& Fforce,
+                                                                   ChVector3d& Mtorque) {
     assert(tapered_section_fpm);
 
     ChVectorDynamic<> displ(this->GetNdofs());
@@ -396,8 +396,8 @@ void ChElementBeamTaperedTimoshenkoFPM::EvaluateSectionForceTorque(const double 
 }
 
 void ChElementBeamTaperedTimoshenkoFPM::EvaluateSectionStrain(const double eta,
-                                                              ChVector<>& StrainV_trans,
-                                                              ChVector<>& StrainV_rot) {
+                                                              ChVector3d& StrainV_trans,
+                                                              ChVector3d& StrainV_rot) {
     assert(tapered_section_fpm);
 
     ChVectorDynamic<> displ(this->GetNdofs());

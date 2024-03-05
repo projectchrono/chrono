@@ -20,36 +20,36 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTexture)
 
-ChTexture::ChTexture() : m_filename(""), m_scale(ChVector2<float>(1, 1)) {}
+ChTexture::ChTexture() : m_filename(""), m_scale(ChVector2f(1, 1)) {}
 
-ChTexture::ChTexture(const char* filename) : m_filename(filename), m_scale(ChVector2<float>(1, 1)) {}
+ChTexture::ChTexture(const char* filename) : m_filename(filename), m_scale(ChVector2f(1, 1)) {}
 
 ChTexture::ChTexture(const std::string& filename, float scale_x, float scale_y)
-    : m_filename(filename), m_scale(ChVector2<float>(scale_x, scale_y)) {}
+    : m_filename(filename), m_scale(ChVector2f(scale_x, scale_y)) {}
 
 void ChTexture::SetScale(float sx, float sy) {
     m_scale.x() = sx;
     m_scale.y() = sy;
 }
 
-void ChTexture::SetScale(const ChVector2<float>& scale) {
+void ChTexture::SetScale(const ChVector2f& scale) {
     m_scale = scale;
 }
 
-void ChTexture::ArchiveOut(ChArchiveOut& marchive) {
+void ChTexture::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChTexture>();
+    archive_out.VersionWrite<ChTexture>();
     // serialize all member data:
-    marchive << CHNVP(m_filename);
-    marchive << CHNVP(m_scale);
+    archive_out << CHNVP(m_filename);
+    archive_out << CHNVP(m_scale);
 }
 
-void ChTexture::ArchiveIn(ChArchiveIn& marchive) {
+void ChTexture::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChTexture>();
+    /*int version =*/archive_in.VersionRead<ChTexture>();
     // stream in all member data:
-    marchive >> CHNVP(m_filename);
-    marchive >> CHNVP(m_scale);
+    archive_in >> CHNVP(m_filename);
+    archive_in >> CHNVP(m_scale);
 }
 
 }  // end namespace chrono

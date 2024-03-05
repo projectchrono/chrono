@@ -123,7 +123,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
     // returns false, if section could not be found
     bool FindSectionStart(const std::string& sectName, FILE* fp);
 
-    ChFunction_Recorder m_bott_map;
+    ChFunctionInterp m_bott_map;
 
     /// Set the parameters in the Pac02 model.
     virtual void SetMFParams() = 0;
@@ -398,7 +398,7 @@ class CH_VEHICLE_API ChPac02Tire : public ChForceElementTire {
         double dpi;              // normalized inflation pressure
         double brx{0};           // bristle deformation x
         double bry{0};           // bristle deformation y
-        ChVector<> disc_normal;  //(temporary for debug)
+        ChVector3d disc_normal;  //(temporary for debug)
     };
 
     TireStates m_states;

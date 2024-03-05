@@ -30,9 +30,9 @@ namespace fea {
 /// Generic finite element node with 9 degrees of freedom representing curvature.
 class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
   public:
-    ChNodeFEAcurv(const ChVector<>& rxx = VNULL,  ///< initial value of xx 2nd derivative of position vector
-                  const ChVector<>& ryy = VNULL,  ///< initial value of yy 2nd derivative of position vector
-                  const ChVector<>& rzz = VNULL   ///< initial value of zz 2nd derivative of position vector
+    ChNodeFEAcurv(const ChVector3d& rxx = VNULL,  ///< initial value of xx 2nd derivative of position vector
+                  const ChVector3d& ryy = VNULL,  ///< initial value of yy 2nd derivative of position vector
+                  const ChVector3d& rzz = VNULL   ///< initial value of zz 2nd derivative of position vector
                   );
     ChNodeFEAcurv(const ChNodeFEAcurv& other);
     ~ChNodeFEAcurv();
@@ -40,34 +40,34 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     ChNodeFEAcurv& operator=(const ChNodeFEAcurv& other);
 
     /// Set the xx 2nd derivative of position vector.
-    void SetCurvatureXX(const ChVector<>& rxx) { m_rxx = rxx; }
+    void SetCurvatureXX(const ChVector3d& rxx) { m_rxx = rxx; }
     /// Get the xx 2nd derivative of position vector.
-    const ChVector<>& GetCurvatureXX() const { return m_rxx; }
+    const ChVector3d& GetCurvatureXX() const { return m_rxx; }
 
     /// Set the yy 2nd derivative of position vector.
-    void SetCurvatureYY(const ChVector<>& ryy) { m_ryy = ryy; }
+    void SetCurvatureYY(const ChVector3d& ryy) { m_ryy = ryy; }
     /// Get the yy 2nd derivative of position vector.
-    const ChVector<>& GetCurvatureYY() const { return m_ryy; }
+    const ChVector3d& GetCurvatureYY() const { return m_ryy; }
 
     /// Set the zz 2nd derivative of position vector.
-    void SetCurvatureZZ(const ChVector<>& rzz) { m_rzz = rzz; }
+    void SetCurvatureZZ(const ChVector3d& rzz) { m_rzz = rzz; }
     /// Get the zz 2nd derivative of position vector.
-    const ChVector<>& GetCurvatureZZ() const { return m_rzz; }
+    const ChVector3d& GetCurvatureZZ() const { return m_rzz; }
 
     /// Set the time derivative of the xx 2nd derivative of position vector.
-    void SetCurvatureXX_dt(const ChVector<>& rxx_dt) { m_rxx_dt = rxx_dt; }
+    void SetCurvatureXX_dt(const ChVector3d& rxx_dt) { m_rxx_dt = rxx_dt; }
     /// Get the time derivative of the xx 2nd derivative of position vector.
-    const ChVector<>& GetCurvatureXX_dt() const { return m_rxx_dt; }
+    const ChVector3d& GetCurvatureXX_dt() const { return m_rxx_dt; }
 
     /// Set the time derivative of the yy 2nd derivative of position vector.
-    void SetCurvatureYY_dt(const ChVector<>& ryy_dt) { m_ryy_dt = ryy_dt; }
+    void SetCurvatureYY_dt(const ChVector3d& ryy_dt) { m_ryy_dt = ryy_dt; }
     /// Get the time derivative of the yy 2nd derivative of position vector.
-    const ChVector<>& GetCurvatureYY_dt() const { return m_ryy_dt; }
+    const ChVector3d& GetCurvatureYY_dt() const { return m_ryy_dt; }
 
     /// Set the time derivative of the zz 2nd derivative of position vector.
-    void SetCurvatureZZ_dt(const ChVector<>& rzz_dt) { m_rzz_dt = rzz_dt; }
+    void SetCurvatureZZ_dt(const ChVector3d& rzz_dt) { m_rzz_dt = rzz_dt; }
     /// Get the time derivative of the zz 2nd derivative of position vector.
-    const ChVector<>& GetCurvatureZZ_dt() const { return m_rzz_dt; }
+    const ChVector3d& GetCurvatureZZ_dt() const { return m_rzz_dt; }
 
     /// Get mass of the node.
     //// TODO  is this even meaningful/needed for this type of node?
@@ -149,26 +149,26 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     ChVariablesGenericDiagonalMass* m_variables;
 
-    ChVector<> m_rxx;
-    ChVector<> m_ryy;
-    ChVector<> m_rzz;
+    ChVector3d m_rxx;
+    ChVector3d m_ryy;
+    ChVector3d m_rzz;
 
-    ChVector<> m_rxx_dt;
-    ChVector<> m_ryy_dt;
-    ChVector<> m_rzz_dt;
+    ChVector3d m_rxx_dt;
+    ChVector3d m_ryy_dt;
+    ChVector3d m_rzz_dt;
 
     //// TODO do we really need these?
-    ChVector<> m_rxx_dtdt;
-    ChVector<> m_ryy_dtdt;
-    ChVector<> m_rzz_dtdt;
+    ChVector3d m_rxx_dtdt;
+    ChVector3d m_ryy_dtdt;
+    ChVector3d m_rzz_dtdt;
 };
 
 /// @} fea_nodes

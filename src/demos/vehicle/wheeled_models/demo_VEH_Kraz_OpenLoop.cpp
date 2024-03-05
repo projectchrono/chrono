@@ -34,7 +34,7 @@ using namespace chrono::vehicle;
 using namespace chrono::vehicle::kraz;
 
 // Initial vehicle position
-ChVector<> initLoc(0, 0, 0.6);
+ChVector3d initLoc(0, 0, 0.6);
 
 // Initial vehicle orientation
 double initYaw = 0;  //// CH_C_PI / 6;
@@ -51,14 +51,14 @@ double tire_step_size = 1e-3;
 double render_step_size = 1.0 / 50;  // FPS = 50
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 int main(int argc, char* argv[]) {
     // Create the semi-trailer truck
     Kraz truck;
     truck.SetContactMethod(ChContactMethod::NSC);
     truck.SetChassisFixed(false);
-    truck.SetInitPosition(ChCoordsys<>(initLoc, Q_from_AngZ(initYaw)));
+    truck.SetInitPosition(ChCoordsys<>(initLoc, QuatFromAngleZ(initYaw)));
     truck.SetTireStepSize(tire_step_size);
     truck.SetInitFwdVel(0.0);
 
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
 
     // Create the terrain
     RigidTerrain terrain(truck.GetSystem());
-    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto patch_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
     auto patch = terrain.AddPatch(patch_mat, CSYSNORM, terrainLength, terrainWidth);

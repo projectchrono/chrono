@@ -34,7 +34,6 @@
 
 #include <numeric>
 
-
 namespace chrono {
 
 ChSystemMulticore::ChSystemMulticore() : ChSystem() {
@@ -251,7 +250,7 @@ void ChSystemMulticore::AddShaft(std::shared_ptr<ChShaft> shaft) {
 }
 
 void ChSystemMulticore::AddLink(std::shared_ptr<ChLinkBase> link) {
-    if (link->GetDOF() == 1) {
+    if (link->GetNumCoordinatesPos() == 1) {
         if (auto mot = std::dynamic_pointer_cast<ChLinkMotorLinearSpeed>(link)) {
             linmotorlist.push_back(mot.get());
             data_manager->num_linmotors++;
@@ -356,7 +355,7 @@ void ChSystemMulticore::UpdateRigidBodies() {
 
         ChVectorRef body_qb = body->Variables().Get_qb();
         ChVectorRef body_fb = body->Variables().Get_fb();
-        ChVector<>& body_pos = body->GetPos();
+        ChVector3d& body_pos = body->GetPos();
         ChQuaternion<>& body_rot = body->GetRot();
 
         data_manager->host_data.v[i * 6 + 0] = body_qb(0);
@@ -466,7 +465,7 @@ void ChSystemMulticore::UpdateLinks() {
 
         link->InjectConstraints(*descriptor);
 
-        for (int j = 0; j < link->GetDOC_c(); j++)
+        for (int j = 0; j < link->GetNumConstraintsBilateral(); j++)
             data_manager->host_data.bilateral_type.push_back(BilateralType::BODY_BODY);
     }
 }
@@ -477,7 +476,7 @@ void ChSystemMulticore::UpdateLinks() {
 // bilateral constraints or if it is unsupported.
 //
 BilateralType GetBilateralType(ChPhysicsItem* item) {
-    if (item->GetDOC_c() == 0)
+    if (item->GetNumConstraintsBilateral() == 0)
         return BilateralType::UNKNOWN;
 
     if (dynamic_cast<ChShaftsCouple*>(item))
@@ -493,7 +492,7 @@ BilateralType GetBilateralType(ChPhysicsItem* item) {
         return BilateralType::SHAFT_BODY;
 
     // Debug check - do we ignore any constraints?
-    assert(item->GetDOC_c() == 0);
+    assert(item->GetNumConstraintsBilateral() == 0);
 
     return BilateralType::UNKNOWN;
 }
@@ -532,7 +531,7 @@ void ChSystemMulticore::UpdateOtherPhysics() {
 
         item->InjectConstraints(*descriptor);
 
-        for (int j = 0; j < item->GetDOC_c(); j++)
+        for (int j = 0; j < item->GetNumConstraintsBilateral(); j++)
             data_manager->host_data.bilateral_type.push_back(type);
     }
 }
@@ -587,23 +586,19 @@ void ChSystemMulticore::Setup() {
                             data_manager->num_fluid_bodies * 3;
 
     // Set variables that are stored in the ChSystem class
-    assembly.nbodies = data_manager->num_rigid_bodies;
-    assembly.nlinks = 0;
-    assembly.nphysicsitems = 0;
-    ncoords = 0;
-    ndoc = 0;
-    nsysvars = 0;
-    ncoords_w = 0;
-    ndoc_w = 0;
-    nsysvars_w = 0;
-    ndof = data_manager->num_dof;
-    ndoc_w_C = 0;
-    ndoc_w_D = 0;
+    assembly.m_num_bodies = data_manager->num_rigid_bodies;
+    assembly.m_num_links = 0;
+    assembly.m_num_otherphysicsitems = 0;
+    m_num_coords_pos = 0;
+    m_num_coords_vel = 0;
+    m_num_constr = 0;
+    m_num_constr_bil = 0;
+    m_num_constr_uni = 0;
     if (data_manager->cd_data)
         ncontacts = data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_fluid_contacts +
                     data_manager->cd_data->num_fluid_contacts;
-    assembly.nbodies_sleep = 0;
-    assembly.nbodies_fixed = 0;
+    assembly.m_num_bodies_sleep = 0;
+    assembly.m_num_bodies_fixed = 0;
 }
 
 void ChSystemMulticore::RecomputeThreads() {
@@ -643,7 +638,7 @@ void ChSystemMulticore::RecomputeThreads() {
 }
 
 void ChSystemMulticore::SetCollisionSystemType(ChCollisionSystem::Type type) {
-    assert(assembly.GetNbodies() == 0);
+    assert(assembly.GetNumBodies() == 0);
 
     if (type != ChCollisionSystem::Type::MULTICORE) {
         std::cout << "Only the Chrono multicore collision detection system is supported!" << std::endl;
@@ -761,26 +756,27 @@ void ChSystemMulticore::EnableThreadTuning(int min_threads, int max_threads) {
 
 // -------------------------------------------------------------
 
-void ChSystemMulticore::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) {
+void ChSystemMulticore::SetMaterialCompositionStrategy(
+    std::unique_ptr<ChContactMaterialCompositionStrategy>&& strategy) {
     data_manager->composition_strategy = std::move(strategy);
 }
 
 // -------------------------------------------------------------
 
-ChVector<> ChSystemMulticore::GetBodyAppliedForce(ChBody* body) {
+ChVector3d ChSystemMulticore::GetBodyAppliedForce(ChBody* body) {
     auto h = data_manager->settings.step_size;
     auto fx = data_manager->host_data.hf[body->GetId() * 6 + 0] / h;
     auto fy = data_manager->host_data.hf[body->GetId() * 6 + 1] / h;
     auto fz = data_manager->host_data.hf[body->GetId() * 6 + 2] / h;
-    return ChVector<>((double)fx, (double)fy, (double)fz);
+    return ChVector3d((double)fx, (double)fy, (double)fz);
 }
 
-ChVector<> ChSystemMulticore::GetBodyAppliedTorque(ChBody* body) {
+ChVector3d ChSystemMulticore::GetBodyAppliedTorque(ChBody* body) {
     auto h = data_manager->settings.step_size;
     auto tx = data_manager->host_data.hf[body->GetId() * 6 + 3] / h;
     auto ty = data_manager->host_data.hf[body->GetId() * 6 + 4] / h;
     auto tz = data_manager->host_data.hf[body->GetId() * 6 + 5] / h;
-    return ChVector<>((double)tx, (double)ty, (double)tz);
+    return ChVector3d((double)tx, (double)ty, (double)tz);
 }
 
 }  // end namespace chrono

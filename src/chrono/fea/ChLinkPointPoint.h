@@ -33,7 +33,7 @@ namespace fea {
 /// as finite elements.
 class ChApi ChLinkPointPoint : public ChLinkBase {
   private:
-    ChVector<> react;
+    ChVector3d react;
 
     // used as an interface to the solver.
     ChConstraintTwoGeneric constraint1;
@@ -55,10 +55,10 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
     virtual int GetNumCoords() override { return 3 + 3; }
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() override { return 3; }
+    virtual int GetNumConstraintsBilateral() override { return 3; }
 
     /// To get reaction force, expressed in link coordinate system:
-    virtual ChVector<> Get_react_force() override { return GetReactionOnNode(); }
+    virtual ChVector3d Get_react_force() override { return GetReactionOnNode(); }
 
     // Get constraint violations
     virtual ChVectorDynamic<> GetConstraintViolation() const override;
@@ -119,7 +119,7 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
     std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeB() const { return this->mnodeB; }
 
     /// Get the reaction force considered as applied to ChShaft.
-    ChVector<> GetReactionOnNode() const { return -react; }
+    ChVector3d GetReactionOnNode() const { return -react; }
 
     //
     // UPDATE FUNCTIONS
@@ -133,10 +133,10 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 /// @} fea_constraints

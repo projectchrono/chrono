@@ -69,7 +69,7 @@ ChApiIrr irr::scene::IMesh* createConeMesh(irr::f32 radius_low, irr::f32 height,
 ///
 /// ***OBSOLETE***
 ///
-ChApiIrr void fillChTrimeshFromIrlichtMesh(geometry::ChTriangleMesh* chTrimesh, irr::scene::IMesh* pMesh);
+ChApiIrr void fillChTrimeshFromIrlichtMesh(ChTriangleMesh* chTrimesh, irr::scene::IMesh* pMesh);
 
 /// Given a ChTriangleMesh object, computes an Irrlicht mesh.
 /// Note: the ChTriangleMesh is a 'triangle soup', so no connectivity is used.
@@ -79,7 +79,7 @@ ChApiIrr void fillChTrimeshFromIrlichtMesh(geometry::ChTriangleMesh* chTrimesh, 
 /// ***OBSOLETE***
 ///
 ChApiIrr void fillIrlichtMeshFromChTrimesh(irr::scene::IMesh* pMesh,
-                                           geometry::ChTriangleMesh* chTrimesh,
+                                           ChTriangleMesh* chTrimesh,
                                            irr::video::SColor clr = irr::video::SColor(255, 255, 255, 255));
 
 /// @} irrlicht_module

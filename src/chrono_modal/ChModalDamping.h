@@ -148,7 +148,7 @@ public:
     ChModalDampingReductionR(ChModalAssembly& massembly);
 
     /// Constructor for the case where you want to pass an R matrix from an external source: R=Rcustom.
-    /// The Rcustom matrix must be of proper size, a square matrix of size (n_boundary_coords_w + n_internal_coords_w)
+    /// The Rcustom matrix must be of proper size, a square matrix of size (m_num_coords_vel_boundary + m_num_coords_vel_internal)
     ChModalDampingReductionR(ChSparseMatrix& Rcustom) {
         full_R = Rcustom;  
     }
@@ -169,11 +169,11 @@ public:
 /// Class for damping defined with an user-defined matrix that could be obtained via external
 /// tools such as Matlab or FEA. This is the most generic case.
 ///    R^ = Rcustom  
-/// where Rcustom is a square matrix of size (n_boundary_coords_w + n_modes_coords_w)
+/// where Rcustom is a square matrix of size (m_num_coords_vel_boundary + m_num_modes_coords_vel)
 class ChApiModal ChModalDampingCustom : public ChModalDamping {
 public:
     /// Constructor where you pass a custom damping matrix Rcustom, related to the coordinates of the already reduced assembly. 
-    /// The Rcustom matrix must be of proper size, i.e. a square matrix of size (n_boundary_coords_w + n_modes_coords_w)
+    /// The Rcustom matrix must be of proper size, i.e. a square matrix of size (m_num_coords_vel_boundary + m_num_modes_coords_vel)
     ChModalDampingCustom(ChSparseMatrix& Rcustom) {
         reduced_R = Rcustom;
     }

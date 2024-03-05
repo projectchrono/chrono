@@ -38,7 +38,7 @@ TrackShoeBandBushing::TrackShoeBandBushing(const std::string& filename)
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 TrackShoeBandBushing::TrackShoeBandBushing(const rapidjson::Document& d)
@@ -112,7 +112,7 @@ void TrackShoeBandBushing::Create(const rapidjson::Document& d) {
 void TrackShoeBandBushing::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
         auto trimesh =
-            geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_meshFile), true, true);
+            ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_meshFile), true, true);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(m_meshFile).stem());

@@ -12,11 +12,11 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/core/ChMathematics.h"
 #include "chrono/collision/bullet/ChCollisionAlgorithmsBullet.h"
 #include "chrono/collision/bullet/ChCollisionModelBullet.h"
 #include "chrono/collision/bullet/ChCollisionUtilsBullet.h"
 #include "chrono/utils/ChUtilsGeometry.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtSphereShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCylinderShape.h"
@@ -665,7 +665,7 @@ void cbtArcSegmentCollisionAlgorithm::processCollision(const cbtCollisionObjectW
     // Shapes on two planes that are not so parallel? no collisions!
     cbtVector3 Zarc = m44Tarc.getBasis().getColumn(2);
     cbtVector3 Zsegment = m44Tsegment.getBasis().getColumn(2);
-    if (fabs(Zarc.dot(Zsegment)) < 0.99)  //***TODO*** threshold as setting
+    if (fabs(Zarc.dot(Zsegment)) < 0.99)  //// TODO  threshold as setting
         return;
 
     // Shapes on two planes that are too far? no collisions!
@@ -838,7 +838,7 @@ void cbtArcArcCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapp
     // Shapes on two planes that are not so parallel? no collisions!
     cbtVector3 Zarc1 = m44Tarc1.getBasis().getColumn(2);
     cbtVector3 Zarc2 = m44Tarc2.getBasis().getColumn(2);
-    if (fabs(Zarc1.dot(Zarc2)) < 0.99)  //***TODO*** threshold as setting
+    if (fabs(Zarc1.dot(Zarc2)) < 0.99)  //// TODO  threshold as setting
         return;
 
     // Shapes on two planes that are too far? no collisions!
@@ -1085,7 +1085,7 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
     // these intervals are used to reject distances, where the distance here is assumed for the naked triangles, i.e. WITHOUT the shpereswept_r inflating!
     double max_allowed_dist = triModelA->GetEnvelope() + triModelB->GetEnvelope() + triA->sphereswept_r() + triB->sphereswept_r();
     double min_allowed_dist = triA->sphereswept_r() + triB->sphereswept_r() - (triModelA->GetSafeMargin() + triModelB->GetSafeMargin());
-    double max_edge_dist_earlyout = ChMax(max_allowed_dist, std::fabs(min_allowed_dist));
+    double max_edge_dist_earlyout = std::max(max_allowed_dist, std::fabs(min_allowed_dist));
 
     // Offsets for knowing where the contact points are respect to the points on the naked triangles
     //  - add the sphereswept_r values because one might want to work on the "inflated" triangles for robustness
@@ -1110,7 +1110,7 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
     mRa(2, 0) = mcbtRa[2][0];
     mRa(2, 1) = mcbtRa[2][1];
     mRa(2, 2) = mcbtRa[2][2];
-    ChVector<> mOa(m44Ta.getOrigin().x(), m44Ta.getOrigin().y(), m44Ta.getOrigin().z());
+    ChVector3d mOa(m44Ta.getOrigin().x(), m44Ta.getOrigin().y(), m44Ta.getOrigin().z());
 
     ChMatrix33<> mRb;
     mRb(0, 0) = mcbtRb[0][0];
@@ -1122,37 +1122,37 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
     mRb(2, 0) = mcbtRb[2][0];
     mRb(2, 1) = mcbtRb[2][1];
     mRb(2, 2) = mcbtRb[2][2];
-    ChVector<> mOb(m44Tb.getOrigin().x(), m44Tb.getOrigin().y(), m44Tb.getOrigin().z());
+    ChVector3d mOb(m44Tb.getOrigin().x(), m44Tb.getOrigin().y(), m44Tb.getOrigin().z());
 
     // transform points to absolute coords, since models might be roto-translated
-    ChVector<> pA1 = mOa + mRa * (*triA->get_p1());
-    ChVector<> pA2 = mOa + mRa * (*triA->get_p2());
-    ChVector<> pA3 = mOa + mRa * (*triA->get_p3());
-    ChVector<> pB1 = mOb + mRb * (*triB->get_p1());
-    ChVector<> pB2 = mOb + mRb * (*triB->get_p2());
-    ChVector<> pB3 = mOb + mRb * (*triB->get_p3());
+    ChVector3d pA1 = mOa + mRa * (*triA->get_p1());
+    ChVector3d pA2 = mOa + mRa * (*triA->get_p2());
+    ChVector3d pA3 = mOa + mRa * (*triA->get_p3());
+    ChVector3d pB1 = mOb + mRb * (*triB->get_p1());
+    ChVector3d pB2 = mOb + mRb * (*triB->get_p2());
+    ChVector3d pB3 = mOb + mRb * (*triB->get_p3());
 
     // edges
-    ChVector<> eA1 = pA2 - pA1;
-    ChVector<> eA2 = pA3 - pA2;
-    ChVector<> eA3 = pA1 - pA3;
-    ChVector<> eB1 = pB2 - pB1;
-    ChVector<> eB2 = pB3 - pB2;
-    ChVector<> eB3 = pB1 - pB3;
+    ChVector3d eA1 = pA2 - pA1;
+    ChVector3d eA2 = pA3 - pA2;
+    ChVector3d eA3 = pA1 - pA3;
+    ChVector3d eB1 = pB2 - pB1;
+    ChVector3d eB2 = pB3 - pB2;
+    ChVector3d eB3 = pB1 - pB3;
 
     // normals
-    ChVector<> nA = Vcross(eA1, eA2).GetNormalized();
-    ChVector<> nB = Vcross(eB1, eB2).GetNormalized();
+    ChVector3d nA = Vcross(eA1, eA2).GetNormalized();
+    ChVector3d nB = Vcross(eB1, eB2).GetNormalized();
 
     double dist = 1e20;
     bool is_into;
-    ChVector<> p_projected;
+    ChVector3d p_projected;
     double mu, mv;
 
     // Shortcut: if two degenerate 'skinny' triangles with points 2&3 coincident (ex. used to
     // represent chunks of beams) just do an edge-edge test (as capsule-capsule) and return:
     if ((pA2 == pA3) && (pB2 == pB3) && triA->owns_e1() && triB->owns_e1()) {
-        ChVector<> cA, cB, D;
+        ChVector3d cA, cB, D;
         if (utils::LineLineIntersect(pA1, pA2, pB1, pB2, &cA, &cB, &mu, &mv)) {
             D = cB - cA;
             dist = D.Length();
@@ -1216,8 +1216,8 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
         }
     }
     double beta_A1 = 0, beta_A2 = 0, beta_A3 = 0, beta_B1 = 0, beta_B2 = 0, beta_B3 = 0;  // defaults for free edge
-    ChVector<> tA1, tA2, tA3, tB1, tB2, tB3;
-    ChVector<> lA1, lA2, lA3, lB1, lB2, lB3;
+    ChVector3d tA1, tA2, tA3, tB1, tB2, tB3;
+    ChVector3d lA1, lA2, lA3, lB1, lB2, lB3;
 
     //  edges-edges tests
 
@@ -1282,7 +1282,7 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
             beta_B3 += CH_C_2PI;
     }
 
-    ChVector<> cA, cB, D;
+    ChVector3d cA, cB, D;
 
     double edge_tol = 1e-3;
     //  + edge_tol to discard flat edges with some tolerance:
@@ -1535,8 +1535,8 @@ void cbtCEtriangleShapeCollisionAlgorithm::getAllContactManifolds(cbtManifoldArr
     }
 }
 
-void cbtCEtriangleShapeCollisionAlgorithm::_add_contact(const ChVector<>& candid_pA,
-                                                        const ChVector<>& candid_pB,
+void cbtCEtriangleShapeCollisionAlgorithm::_add_contact(const ChVector3d& candid_pA,
+                                                        const ChVector3d& candid_pB,
                                                         const double dist,
                                                         cbtManifoldResult* resultOut,
                                                         const double offsetA,
@@ -1544,7 +1544,7 @@ void cbtCEtriangleShapeCollisionAlgorithm::_add_contact(const ChVector<>& candid
     // convert to Bullet vectors. Note: in absolute csys.
     cbtVector3 absA((cbtScalar)candid_pA.x(), (cbtScalar)candid_pA.y(), (cbtScalar)candid_pA.z());
     cbtVector3 absB((cbtScalar)candid_pB.x(), (cbtScalar)candid_pB.y(), (cbtScalar)candid_pB.z());
-    ChVector<> dabsN_onB((candid_pA - candid_pB).GetNormalized());
+    ChVector3d dabsN_onB((candid_pA - candid_pB).GetNormalized());
     cbtVector3 absN_onB((cbtScalar)dabsN_onB.x(), (cbtScalar)dabsN_onB.y(), (cbtScalar)dabsN_onB.z());
     if (dist < 0)
         absN_onB = -absN_onB;  // flip norm to be coherent with dist sign

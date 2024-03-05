@@ -39,7 +39,7 @@ class CH_MODELS_API Generic_Wheel : public ChWheel {
     ~Generic_Wheel() {}
 
     virtual double GetWheelMass() const override { return m_mass; }
-    virtual const ChVector<>& GetWheelInertia() const override { return m_inertia; }
+    virtual const ChVector3d& GetWheelInertia() const override { return m_inertia; }
 
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
@@ -52,7 +52,7 @@ class CH_MODELS_API Generic_Wheel : public ChWheel {
 
   private:
     static const double m_mass;
-    static const ChVector<> m_inertia;
+    static const ChVector3d m_inertia;
     static const double m_radius;
     static const double m_width;
 };

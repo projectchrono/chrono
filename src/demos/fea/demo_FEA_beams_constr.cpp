@@ -40,35 +40,35 @@ using namespace chrono::irrlicht;
 const std::string out_dir = GetChronoOutputPath() + "BEAM_BUCKLING";
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
     /*
-    //***TEST***
-        ChVector<> mFi, mTi;
-        ChVector<> mWvel = (1, 2, 3);
-        ChVector<> mWacc =  (0.3, -0.2, 0.4);
-        ChVector<> mXacc =  (0.5, 0.6, -0.9); // ok
+    //// TEST 
+        ChVector3d mFi, mTi;
+        ChVector3d mWvel = (1, 2, 3);
+        ChVector3d mWacc =  (0.3, -0.2, 0.4);
+        ChVector3d mXacc =  (0.5, 0.6, -0.9); // ok
         ChMatrixNM<double,6,6> mMi, mKi, mRi;
         ChMatrixNM<double,6,6> mKi_num, mRi_num;
         auto minertia1 = chrono_types::make_shared<ChInertiaCosseratAdvanced>(270.0, 0.1, 0.2, 5, 8, 0.5);
         minertia1->ComputeQuadraticTerms(mFi, mTi, mWvel);
-        GetLog() << "ComputeQuadraticTerms: \n";
-        GetLog() << " Fi_v= " << mFi;
-        GetLog() << " Ti_v = " << mTi;
+        std::cout << "ComputeQuadraticTerms:" << std::endl;
+        std::cout << " Fi_v= " << mFi;
+        std::cout << " Ti_v = " << mTi;
         minertia1->ComputeInertialForce(mFi, mTi, mWvel, mWacc, mXacc);
-        GetLog() << "ComputeInertialForce: \n";
-        GetLog() << " Fi = " << mFi;
-        GetLog() << " Ti = " << mTi;
+        std::cout << "ComputeInertialForce:" << std::endl;
+        std::cout << " Fi = " << mFi;
+        std::cout << " Ti = " << mTi;
         minertia1->ComputeInertiaMatrix(mMi);
-        GetLog() << " Mi: \n" << mMi << "\n";
+        std::cout << " Mi:\n"<< mMi << std::endl;
         minertia1->ComputeInertiaDampingMatrix(mRi,mWvel);
-        GetLog() << " Ri: \n" << mRi << "\n";
+        std::cout << " Ri:\n"<< mRi << std::endl;
         minertia1->ComputeInertiaStiffnessMatrix(mKi,mWvel,mWacc,mXacc);
-        GetLog() << " Ki: \n" << mKi << "\n";
+        std::cout << " Ki:\n"<< mKi << std::endl;
         minertia1->compute_Ri_Ki_by_num_diff = true;
         minertia1->ComputeInertiaDampingMatrix(mRi_num,mWvel);
-        GetLog() << " Ri_num: \n" << mRi_num << "\n";
+        std::cout << " Ri_num:\n"<< mRi_num << std::endl;
         minertia1->ComputeInertiaStiffnessMatrix(mKi_num,mWvel,mWacc,mXacc);
-        GetLog() << " Ki_num: \n" << mKi_num << "\n";
+        std::cout << " Ki_num:\n"<< mKi_num << std::endl;
      return 1;
      */
     // Create a Chrono::Engine physical system
@@ -77,11 +77,11 @@ int main(int argc, char* argv[]) {
     double L = 1;
     double H = 0.25;
     double K = 0.05;
-    ChVector<> vA(0, 0, 0);
-    ChVector<> vC(L, 0, 0);
-    ChVector<> vB(L, -H, 0);
-    ChVector<> vG(L - K, -H, 0);
-    ChVector<> vd(0, 0, 0.0001);
+    ChVector3d vA(0, 0, 0);
+    ChVector3d vC(L, 0, 0);
+    ChVector3d vB(L, -H, 0);
+    ChVector3d vG(L - K, -H, 0);
+    ChVector3d vd(0, 0, 0.0001);
 
     // Create a truss:
     auto body_truss = chrono_types::make_shared<ChBody>();
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
 
     // Attach a 'box' shape asset for visualization.
     auto mboxtruss = chrono_types::make_shared<ChVisualShapeBox>(0.02, 0.2, 0.1);
-    body_truss->AddVisualShape(mboxtruss, ChFrame<>(ChVector<>(-0.01, 0, 0)));
+    body_truss->AddVisualShape(mboxtruss, ChFrame<>(ChVector3d(-0.01, 0, 0)));
 
     // Create body for crank
     auto body_crank = chrono_types::make_shared<ChBody>();
@@ -104,11 +104,11 @@ int main(int argc, char* argv[]) {
     body_crank->AddVisualShape(mboxcrank, ChFrame<>());
 
     // Create a motor between the truss and the crank:
-    class ChFunction_myf : public ChFunction {
+    class ChFunctionMyFun : public ChFunction {
       public:
-        virtual ChFunction_myf* Clone() const override { return new ChFunction_myf(); }
+        virtual ChFunctionMyFun* Clone() const override { return new ChFunctionMyFun(); }
 
-        virtual double Get_y(double x) const override {
+        virtual double GetVal(double x) const override {
             if (x > 0.4)
                 return CH_C_PI;
             else
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
 
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->Initialize(body_truss, body_crank, ChFrame<>(vG));
-    motor->SetAngleFunction(chrono_types::make_shared<ChFunction_myf>());
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunctionMyFun>());
     sys.Add(motor);
 
     // Create a FEM mesh, that is a container for groups
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
     msection2->SetDensity(2700);
     msection2->SetYoungModulus(73.0e9);
     msection2->SetGwithPoissonRatio(0.3);
-    msection2->SetBeamRaleyghDamping(0.000);
+    msection2->SetBeamRayleighDamping(0.000);
     msection2->SetAsCircularSection(hbeam_d);
 
     ChBuilderBeamEuler builder;
@@ -175,17 +175,14 @@ int main(int argc, char* argv[]) {
                       3,                     // the number of ChElementBeamEuler to create
                       vC + vd,               // the 'A' point in space (beginning of beam)
                       vB + vd,               // the 'B' point in space (end of beam)
-                      ChVector<>(1, 0, 0));  // the 'Y' up direction of the section for the beam
+                      ChVector3d(1, 0, 0));  // the 'Y' up direction of the section for the beam
     auto node_top = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().front());
     auto node_down = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().back());
 
     // Create a constraint between the vertical and horizontal beams:
-    auto constr_bb = chrono_types::make_shared<ChLinkMateGeneric>();
+    auto constr_bb = chrono_types::make_shared<ChLinkMateSpherical>();
     constr_bb->Initialize(node_top, node_tip, false, node_top->Frame(), node_top->Frame());
     sys.Add(constr_bb);
-
-    constr_bb->SetConstrainedCoords(true, true, true,      // x, y, z
-                                    false, false, false);  // Rx, Ry, Rz
 
     // For example, attach small shape to show the constraint
     auto msphereconstr2 = chrono_types::make_shared<ChVisualShapeSphere>(0.01);
@@ -198,7 +195,7 @@ int main(int argc, char* argv[]) {
     msection3->SetDensity(2700);
     msection3->SetYoungModulus(73.0e9);
     msection3->SetGwithPoissonRatio(0.3);
-    msection3->SetBeamRaleyghDamping(0.000);
+    msection3->SetBeamRayleighDamping(0.000);
     msection3->SetAsCircularSection(crankbeam_d);
 
     builder.BuildBeam(my_mesh,               // the mesh where to put the created nodes and elements
@@ -206,25 +203,19 @@ int main(int argc, char* argv[]) {
                       3,                     // the number of ChElementBeamEuler to create
                       vG + vd,               // the 'A' point in space (beginning of beam)
                       vB + vd,               // the 'B' point in space (end of beam)
-                      ChVector<>(0, 1, 0));  // the 'Y' up direction of the section for the beam
+                      ChVector3d(0, 1, 0));  // the 'Y' up direction of the section for the beam
 
     auto node_crankG = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().front());
     auto node_crankB = std::shared_ptr<ChNodeFEAxyzrot>(builder.GetLastBeamNodes().back());
     // Create a constraint between the crank beam and body crank:
-    auto constr_cbd = chrono_types::make_shared<ChLinkMateGeneric>();
+    auto constr_cbd = chrono_types::make_shared<ChLinkMateFix>();
     constr_cbd->Initialize(node_crankG, body_crank, false, node_crankG->Frame(), node_crankG->Frame());
     sys.Add(constr_cbd);
 
-    constr_cbd->SetConstrainedCoords(true, true, true,   // x, y, z
-                                     true, true, true);  // Rx, Ry, Rz
-
     // Create a constraint between the vertical beam and the crank beam:
-    auto constr_bc = chrono_types::make_shared<ChLinkMateGeneric>();
+    auto constr_bc = chrono_types::make_shared<ChLinkMateRevolute>();
     constr_bc->Initialize(node_down, node_crankB, false, node_crankB->Frame(), node_crankB->Frame());
     sys.Add(constr_bc);
-
-    constr_bc->SetConstrainedCoords(true, true, true,    // x, y, z
-                                    true, true, false);  // Rx, Ry, Rz
 
     // For example, attach small shape to show the constraint
     auto msphereconstr3 = chrono_types::make_shared<ChVisualShapeSphere>(0.01);
@@ -269,7 +260,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0.0, 0.6, -1.0));
+    vis->AddCamera(ChVector3d(0.0, 0.6, -1.0));
     vis->AttachSystem(&sys);
 
     // SIMULATION LOOP
@@ -291,7 +282,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    chrono::ChStreamOutAsciiFile file_out1(out_dir + "/buckling_mid.dat");
+    std::ofstream file_out1(out_dir + "/buckling_mid.dat");
 
     while (vis->Run()) {
         vis->BeginScene();
@@ -304,7 +295,7 @@ int main(int argc, char* argv[]) {
 
         // Save output for the first 0.4 seconds
         if (sys.GetChTime() <= 0.4) {
-            file_out1 << sys.GetChTime() << " " << node_mid->GetPos().z() << " " << node_mid->GetWvel_par().x() << "\n";
+            file_out1 << sys.GetChTime() << " " << node_mid->GetPos().z() << " " << node_mid->GetAngVelParent().x() << std::endl;
         }
 
         vis->EndScene();

@@ -22,16 +22,16 @@
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
+#include "chrono/core/ChRandom.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 // Use the namespaces of Chrono
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono physical system
     ChSystemNSC sys;
@@ -42,9 +42,9 @@ int main(int argc, char* argv[]) {
 
     // - Create a floor
 
-    auto floor_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(5, 2, 5, 1000, true, true, floor_mat);
-    floor->SetPos(ChVector<>(0, -1, 0));
+    floor->SetPos(ChVector3d(0, -1, 0));
     floor->SetBodyFixed(true);
     floor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
     sys.Add(floor);
@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
     // - Create a falling item with triangle mesh shape
 
     // Shared contact material for all meshes
-    auto mesh_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mesh_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     // Note: one can create easily a colliding shape using the following
     // piece of code:
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
     //	  0.005			                                        // radius of 'inflating' of mesh (for more robust
     //collision detection)
     //	  );
-    // falling->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(-0.9 + ChRandom() * 1.4, 0.4 + j * 0.12, -0.9 + ChRandom()
+    // falling->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(-0.9 + ChRandom::Get() * 1.4, 0.4 + j * 0.12, -0.9 + ChRandom::Get()
     // * 1.4))); sys.Add(falling);
     //
     // but here we want to show a more low-level control of this process, for
@@ -78,17 +78,17 @@ int main(int argc, char* argv[]) {
 
     auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/bulldozer/shoe_view.obj"),
                                                                  false, true);
-    mesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1.2));  // scale to a different size
+    mesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1.2));  // scale to a different size
     mesh->RepairDuplicateVertexes(1e-9);                      // if meshes are not watertight
 
     // compute mass inertia from mesh
     double mass;
-    ChVector<> cog;
+    ChVector3d cog;
     ChMatrix33<> inertia;
     double density = 1000;
     mesh->ComputeMassProperties(true, mass, cog, inertia);
     ChMatrix33<> principal_inertia_rot;
-    ChVector<> principal_I;
+    ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(inertia, principal_I, principal_inertia_rot);
 
     // Create a shared visual model containing a visualizatoin mesh
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
 
         // Set the absolute position of the body:
         falling->SetFrame_REF_to_abs(
-            ChFrame<>(ChVector<>(-0.9 + ChRandom() * 1.4, 0.4 + j * 0.12, -0.9 + ChRandom() * 1.4)));
+            ChFrame<>(ChVector3d(-0.9 + ChRandom::Get() * 1.4, 0.4 + j * 0.12, -0.9 + ChRandom::Get() * 1.4)));
         sys.Add(falling);
 
         falling->AddVisualModel(vis_model);
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Shared contact material for falling objects
-    auto obj_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto obj_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     obj_mat->SetFriction(0.2f);
 
     // Create a falling rigid bodies
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
                                                                       true,      // visualization?
                                                                       true,      // collision?
                                                                       obj_mat);  // contact material
-        sphereBody->SetPos(ChVector<>(-0.5 + ChRandom() * 1, 1.4, -0.5 + ChRandom()));
+        sphereBody->SetPos(ChVector3d(-0.5 + ChRandom::Get() * 1, 1.4, -0.5 + ChRandom::Get()));
         sphereBody->GetVisualShape(0)->SetColor(ChColor(0.3f, 0.3f, 0.6f));
         sys.Add(sphereBody);
     }
@@ -147,9 +147,9 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 1, -1));
+    vis->AddCamera(ChVector3d(0, 1, -1));
     vis->AddTypicalLights();
-    vis->AddLightWithShadow(ChVector<>(1.5, 5.5, -2.5), ChVector<>(0, 0, 0), 3, 2.2, 7.2, 40, 512,
+    vis->AddLightWithShadow(ChVector3d(1.5, 5.5, -2.5), ChVector3d(0, 0, 0), 3, 2.2, 7.2, 40, 512,
                            ChColor(0.8f, 0.8f, 1.0f));
     vis->EnableShadows();
 

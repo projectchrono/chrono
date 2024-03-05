@@ -16,8 +16,8 @@
 //
 // =============================================================================
 
-#ifndef CHMATRIXMBD_H
-#define CHMATRIXMBD_H
+#ifndef CH_MATRIX_MBD_H
+#define CH_MATRIX_MBD_H
 
 #include "chrono/core/ChMatrix.h"
 #include "chrono/core/ChCoordsys.h"
@@ -118,19 +118,19 @@ class ChGlMatrix34 : public ChMatrix34<Real> {
 
     /// Computes the product v=[Gl(mq)]*qb  without the need of having
     /// the [Gl] matrix (just pass the mq quaternion, since Gl is function of mq)
-    static ChVector<Real> Gl_times_q(const ChQuaternion<Real>& mq, const ChQuaternion<Real>& q) {
+    static ChVector3<Real> Gl_times_q(const ChQuaternion<Real>& mq, const ChQuaternion<Real>& q) {
         Real de0 = 2 * mq.e0();
         Real de1 = 2 * mq.e1();
         Real de2 = 2 * mq.e2();
         Real de3 = 2 * mq.e3();
-        return ChVector<Real>(-de1 * q.e0() + de0 * q.e1() + de3 * q.e2() - de2 * q.e3(),   //
-                              -de2 * q.e0() - de3 * q.e1() + de0 * q.e2() + de1 * q.e3(),   //
-                              -de3 * q.e0() + de2 * q.e1() - de1 * q.e2() + de0 * q.e3());  //
+        return ChVector3<Real>(-de1 * q.e0() + de0 * q.e1() + de3 * q.e2() - de2 * q.e3(),   //
+                               -de2 * q.e0() - de3 * q.e1() + de0 * q.e2() + de1 * q.e3(),   //
+                               -de3 * q.e0() + de2 * q.e1() - de1 * q.e2() + de0 * q.e3());  //
     }
 
     /// Computes the product q=[Gl(mq)]*v  without the need of having
     /// the [Gl] matrix (just pass the mq quaternion, since Gl is function of mq)
-    static ChQuaternion<Real> GlT_times_v(const ChQuaternion<Real>& mq, const ChVector<Real>& v) {
+    static ChQuaternion<Real> GlT_times_v(const ChQuaternion<Real>& mq, const ChVector3<Real>& v) {
         Real de0 = 2 * mq.e0();
         Real de1 = 2 * mq.e1();
         Real de2 = 2 * mq.e2();
@@ -178,7 +178,7 @@ class ChStarMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
   public:
     /// Construct a 3x3 "star matrix" (aka "tilde matrix") for matrix form of cross product.
     /// If a and b are 3d vectors, then a x b = [Astar(a)] * b.
-    ChStarMatrix33(const ChVector<Real>& v) {
+    ChStarMatrix33(const ChVector3<Real>& v) {
         (*this)(0, 0) = 0;
         (*this)(0, 1) = -v.z();
         (*this)(0, 2) = v.y();
@@ -191,7 +191,7 @@ class ChStarMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
     }
 
     /// Construct a 3x3 "star matrix" representing a double cross product.
-    ChStarMatrix33(const ChVector<Real>& vA, const ChVector<Real>& vB) {
+    ChStarMatrix33(const ChVector3<Real>& vA, const ChVector3<Real>& vB) {
         (*this)(0, 0) = -vA.y() * vB.y() - vA.z() * vB.z();
         (*this)(1, 0) = vA.x() * vB.y();
         (*this)(2, 0) = vA.x() * vB.z();
@@ -207,10 +207,10 @@ class ChStarMatrix33 : public Eigen::Matrix<Real, 3, 3, Eigen::RowMajor> {
     using Eigen::Matrix<Real, 3, 3, Eigen::RowMajor>::operator*;
 
     /// Multiply this matrix by a 3d vector.
-    ChVector<Real> operator*(const ChVector<Real>& v) const {
-        return ChVector<Real>((*this)(0, 0) * v.x() + (*this)(0, 1) * v.y() + (*this)(0, 2) * v.z(),
-                              (*this)(1, 0) * v.x() + (*this)(1, 1) * v.y() + (*this)(1, 2) * v.z(),
-                              (*this)(2, 0) * v.x() + (*this)(2, 1) * v.y() + (*this)(2, 2) * v.z());
+    ChVector3<Real> operator*(const ChVector3<Real>& v) const {
+        return ChVector3<Real>((*this)(0, 0) * v.x() + (*this)(0, 1) * v.y() + (*this)(0, 2) * v.z(),
+                               (*this)(1, 0) * v.x() + (*this)(1, 1) * v.y() + (*this)(1, 2) * v.z(),
+                               (*this)(2, 0) * v.x() + (*this)(2, 1) * v.y() + (*this)(2, 2) * v.z());
     }
 };
 
@@ -265,15 +265,15 @@ class ChStarMatrix44 : public ChMatrix44<Real> {
 
 /// Multiply a 3x4 matrix with a quaternion and return a 3d vector.
 template <typename T, typename U>
-ChVector<T> operator*(const ChMatrix34<T>& A, const ChQuaternion<U>& q) {
-    return ChVector<T>(A(0, 0) * (T)q.e0() + A(0, 1) * (T)q.e1() + A(0, 2) * (T)q.e2() + A(0, 3) * (T)q.e3(),
-                       A(1, 0) * (T)q.e0() + A(1, 1) * (T)q.e1() + A(1, 2) * (T)q.e2() + A(1, 3) * (T)q.e3(),
-                       A(2, 0) * (T)q.e0() + A(2, 1) * (T)q.e1() + A(2, 2) * (T)q.e2() + A(2, 3) * (T)q.e3());
+ChVector3<T> operator*(const ChMatrix34<T>& A, const ChQuaternion<U>& q) {
+    return ChVector3<T>(A(0, 0) * (T)q.e0() + A(0, 1) * (T)q.e1() + A(0, 2) * (T)q.e2() + A(0, 3) * (T)q.e3(),
+                        A(1, 0) * (T)q.e0() + A(1, 1) * (T)q.e1() + A(1, 2) * (T)q.e2() + A(1, 3) * (T)q.e3(),
+                        A(2, 0) * (T)q.e0() + A(2, 1) * (T)q.e1() + A(2, 2) * (T)q.e2() + A(2, 3) * (T)q.e3());
 }
 
 /// Multiply a 4x3 matrix with a 3d vector and return a quaternion.
 template <typename T, typename U>
-ChQuaternion<T> operator*(const ChMatrix43<T>& A, const ChVector<U>& v) {
+ChQuaternion<T> operator*(const ChMatrix43<T>& A, const ChVector3<U>& v) {
     return ChQuaternion<T>(A(0, 0) * (T)v.x() + A(0, 1) * (T)v.y() + A(0, 2) * (T)v.z(),
                            A(1, 0) * (T)v.x() + A(1, 1) * (T)v.y() + A(1, 2) * (T)v.z(),
                            A(2, 0) * (T)v.x() + A(2, 1) * (T)v.y() + A(2, 2) * (T)v.z(),
@@ -282,7 +282,7 @@ ChQuaternion<T> operator*(const ChMatrix43<T>& A, const ChVector<U>& v) {
 
 /// Multiply the transpose of a 3x4 matrix with a 3d vector and return a quaternion.
 template <typename T, typename U>
-ChQuaternion<T> operator*(const Eigen::Transpose<Eigen::Matrix<T, 3, 4, Eigen::RowMajor>>& A, const ChVector<U>& v) {
+ChQuaternion<T> operator*(const Eigen::Transpose<Eigen::Matrix<T, 3, 4, Eigen::RowMajor>>& A, const ChVector3<U>& v) {
     return ChQuaternion<T>(A(0, 0) * (T)v.x() + A(0, 1) * (T)v.y() + A(0, 2) * (T)v.z(),
                            A(1, 0) * (T)v.x() + A(1, 1) * (T)v.y() + A(1, 2) * (T)v.z(),
                            A(2, 0) * (T)v.x() + A(2, 1) * (T)v.y() + A(2, 2) * (T)v.z(),

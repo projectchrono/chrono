@@ -36,7 +36,6 @@
 #include <unordered_map>
 #include <memory>
 
-#include "chrono/core/ChLog.h"
 #include "chrono/core/ChTemplateExpressions.h"
 
 namespace chrono {
@@ -73,14 +72,14 @@ class ChApi ChClassRegistrationBase {
 
     /// Call the ArchiveInConstructor(ChArchiveIn&) function if available (deserializes constructor params and return
     /// new()), otherwise just call new().
-    virtual void* archive_in_create(ChArchiveIn& marchive) = 0;
+    virtual void* archive_in_create(ChArchiveIn& archive_in) = 0;
 
     /// Call the ArchiveIn(ChArchiveIn&) function if available, populating an already existing object
-    virtual void archive_in(ChArchiveIn& marchive, void* ptr) = 0;
+    virtual void archive_in(ChArchiveIn& archive_in, void* ptr) = 0;
 
-    virtual void archive_out_constructor(ChArchiveOut& marchive, void* ptr) = 0;
+    virtual void archive_out_constructor(ChArchiveOut& archive_out, void* ptr) = 0;
 
-    virtual void archive_out(ChArchiveOut& marchive, void* ptr) = 0;
+    virtual void archive_out(ChArchiveOut& archive_out, void* ptr) = 0;
 
     /// Get the type_index of the class
     virtual std::type_index get_type_index() = 0;
@@ -271,31 +270,31 @@ class ChApi ChClassFactory {
     /// If a static T* ArchiveInConstructor(ChArchiveIn&) function is available, call it instead.
     /// The created object is returned in "ptr"
     template <class T>
-    static void create(const std::string& keyName, ChArchiveIn& marchive, T** ptr) {
+    static void create(const std::string& keyName, ChArchiveIn& archive_in, T** ptr) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
         *ptr = reinterpret_cast<T*>(ChCastingMap::Convert(keyName, std::type_index(typeid(T*)),
-                                                          global_factory->_archive_in_create(keyName, marchive)));
+                                                          global_factory->_archive_in_create(keyName, archive_in)));
     }
 
     /// Populate an already existing object with its ArchiveIn
     template <class T>
-    static void archive_in(const std::string& keyName, ChArchiveIn& marchive, T* ptr) {
+    static void archive_in(const std::string& keyName, ChArchiveIn& archive_in, T* ptr) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
-        global_factory->_archive_in(keyName, marchive, getVoidPointer<T>(ptr));
+        global_factory->_archive_in(keyName, archive_in, getVoidPointer<T>(ptr));
     }
 
     /// Archive out the most derived object pointed by \a ptr
     template <class T>
-    static void archive_out(const std::string& keyName, ChArchiveOut& marchive, T* ptr) {
+    static void archive_out(const std::string& keyName, ChArchiveOut& archive_out, T* ptr) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
-        global_factory->_archive_out(keyName, marchive, getVoidPointer<T>(ptr));
+        global_factory->_archive_out(keyName, archive_out, getVoidPointer<T>(ptr));
     }
 
     /// Populate an already existing object with its ArchiveIn
     template <class T>
-    static void archive_out_constructor(const std::string& keyName, ChArchiveOut& marchive, T* ptr) {
+    static void archive_out_constructor(const std::string& keyName, ChArchiveOut& archive_out, T* ptr) {
         ChClassFactory* global_factory = GetGlobalClassFactory();
-        global_factory->_archive_out_constructor(keyName, marchive, getVoidPointer<T>(ptr));
+        global_factory->_archive_out_constructor(keyName, archive_out, getVoidPointer<T>(ptr));
     }
 
   private:
@@ -312,8 +311,6 @@ class ChApi ChClassFactory {
     }
 
     void _ClassUnregister(const std::string& keyName) {
-        // GetLog() << " unregister class: " << keyName << "  map n." << class_map.size() << "  map_typeids n." <<
-        // class_map_typeids.size() << "\n";
         class_map_typeids.erase(class_map[keyName]->get_type_index());
         class_map.erase(keyName);
     }
@@ -339,7 +336,7 @@ class ChApi ChClassFactory {
         if (it != class_map_typeids.end()) {
             return it->second->get_tag_name();
         }
-        throw(ChException("ChClassFactory::GetClassTagName() cannot find the class with type_index::name: " +
+        throw(std::runtime_error("ChClassFactory::GetClassTagName() cannot find the class with type_index::name: " +
                           std::string(mtypeid.name()) + ". Please register it.\n"));
     }
 
@@ -350,43 +347,43 @@ class ChApi ChClassFactory {
         if (it != class_map.end()) {
             return it->second->create();
         }
-        throw(ChException("ChClassFactory::create() cannot find the class with name " + keyName +
+        throw(std::runtime_error("ChClassFactory::create() cannot find the class with name " + keyName +
                           ". Please register it.\n"));
     }
 
-    void* _archive_in_create(const std::string& keyName, ChArchiveIn& marchive) {
+    void* _archive_in_create(const std::string& keyName, ChArchiveIn& archive_in) {
         const auto& it = class_map.find(keyName);
         if (it != class_map.end()) {
-            return it->second->archive_in_create(marchive);
+            return it->second->archive_in_create(archive_in);
         }
-        throw(ChException("ChClassFactory::create() cannot find the class with name " + keyName +
+        throw(std::runtime_error("ChClassFactory::create() cannot find the class with name " + keyName +
                           ". Please register it.\n"));
     }
 
-    void _archive_in(const std::string& keyName, ChArchiveIn& marchive, void* ptr) {
+    void _archive_in(const std::string& keyName, ChArchiveIn& archive_in, void* ptr) {
         const auto& it = class_map.find(keyName);
         if (it != class_map.end()) {
-            it->second->archive_in(marchive, ptr);
+            it->second->archive_in(archive_in, ptr);
         } else
-            throw(ChException("ChClassFactory::archive_in() cannot find the class with name " + keyName +
+            throw(std::runtime_error("ChClassFactory::archive_in() cannot find the class with name " + keyName +
                               ". Please register it.\n"));
     }
 
-    void _archive_out(const std::string& keyName, ChArchiveOut& marchive, void* ptr) {
+    void _archive_out(const std::string& keyName, ChArchiveOut& archive_out, void* ptr) {
         const auto& it = class_map.find(keyName);
         if (it != class_map.end()) {
-            it->second->archive_out(marchive, ptr);
+            it->second->archive_out(archive_out, ptr);
         } else
-            throw(ChException("ChClassFactory::archive_out() cannot find the class with name " + keyName +
+            throw(std::runtime_error("ChClassFactory::archive_out() cannot find the class with name " + keyName +
                               ". Please register it.\n"));
     }
 
-    void _archive_out_constructor(const std::string& keyName, ChArchiveOut& marchive, void* ptr) {
+    void _archive_out_constructor(const std::string& keyName, ChArchiveOut& archive_out, void* ptr) {
         const auto& it = class_map.find(keyName);
         if (it != class_map.end()) {
-            it->second->archive_out_constructor(marchive, ptr);
+            it->second->archive_out_constructor(archive_out, ptr);
         } else
-            throw(ChException("ChClassFactory::archive_out() cannot find the class with name " + keyName +
+            throw(std::runtime_error("ChClassFactory::archive_out() cannot find the class with name " + keyName +
                               ". Please register it.\n"));
     }
 
@@ -455,15 +452,15 @@ class ChClassRegistration : public ChClassRegistrationBase {
 
     virtual void* create() override { return _create(); }
 
-    virtual void* archive_in_create(ChArchiveIn& marchive) override { return _archive_in_create(marchive); }
+    virtual void* archive_in_create(ChArchiveIn& archive_in) override { return _archive_in_create(archive_in); }
 
-    virtual void archive_in(ChArchiveIn& marchive, void* ptr) override { _archive_in(marchive, ptr); }
+    virtual void archive_in(ChArchiveIn& archive_in, void* ptr) override { _archive_in(archive_in, ptr); }
 
-    virtual void archive_out_constructor(ChArchiveOut& marchive, void* ptr) override {
-        _archive_out_constructor(marchive, ptr);
+    virtual void archive_out_constructor(ChArchiveOut& archive_out, void* ptr) override {
+        _archive_out_constructor(archive_out, ptr);
     }
 
-    virtual void archive_out(ChArchiveOut& marchive, void* ptr) override { _archive_out(marchive, ptr); }
+    virtual void archive_out(ChArchiveOut& archive_out, void* ptr) override { _archive_out(archive_out, ptr); }
 
     virtual std::type_index get_type_index() override { return std::type_index(typeid(t)); }
 
@@ -490,43 +487,43 @@ class ChClassRegistration : public ChClassRegistrationBase {
 
     template <class Tc = t>
     typename enable_if<ChDetect_ArchiveInConstructor<Tc>::value, void*>::type _archive_in_create(
-        ChArchiveIn& marchive) {
-        return reinterpret_cast<void*>(Tc::ArchiveInConstructor(marchive));
+        ChArchiveIn& archive_in) {
+        return reinterpret_cast<void*>(Tc::ArchiveInConstructor(archive_in));
     }
     template <class Tc = t>
     typename enable_if<!ChDetect_ArchiveInConstructor<Tc>::value, void*>::type _archive_in_create(
-        ChArchiveIn& marchive) {
+        ChArchiveIn& archive_in) {
         // rolling back to simple creation
         return _create();
     }
 
     template <class Tc = t>
-    typename enable_if<ChDetect_ArchiveIn<Tc>::value, void>::type _archive_in(ChArchiveIn& marchive, void* ptr) {
-        reinterpret_cast<Tc*>(ptr)->ArchiveIn(marchive);
+    typename enable_if<ChDetect_ArchiveIn<Tc>::value, void>::type _archive_in(ChArchiveIn& archive_in, void* ptr) {
+        reinterpret_cast<Tc*>(ptr)->ArchiveIn(archive_in);
     }
     template <class Tc = t>
-    typename enable_if<!ChDetect_ArchiveIn<Tc>::value, void>::type _archive_in(ChArchiveIn& marchive, void* ptr) {
+    typename enable_if<!ChDetect_ArchiveIn<Tc>::value, void>::type _archive_in(ChArchiveIn& archive_in, void* ptr) {
         // do nothing, ArchiveIn does not esist for this type
     }
 
     template <class Tc = t>
-    typename enable_if<ChDetect_ArchiveOut<Tc>::value, void>::type _archive_out(ChArchiveOut& marchive, void* ptr) {
-        reinterpret_cast<Tc*>(ptr)->ArchiveOut(marchive);
+    typename enable_if<ChDetect_ArchiveOut<Tc>::value, void>::type _archive_out(ChArchiveOut& archive_out, void* ptr) {
+        reinterpret_cast<Tc*>(ptr)->ArchiveOut(archive_out);
     }
     template <class Tc = t>
-    typename enable_if<!ChDetect_ArchiveOut<Tc>::value, void>::type _archive_out(ChArchiveOut& marchive, void* ptr) {
+    typename enable_if<!ChDetect_ArchiveOut<Tc>::value, void>::type _archive_out(ChArchiveOut& archive_out, void* ptr) {
         // do nothing, ArchiveIn does not esist for this type
     }
 
     template <class Tc = t>
     typename enable_if<ChDetect_ArchiveOutConstructor<Tc>::value, void>::type _archive_out_constructor(
-        ChArchiveOut& marchive,
+        ChArchiveOut& archive_out,
         void* ptr) {
-        reinterpret_cast<Tc*>(ptr)->ArchiveOutConstructor(marchive);
+        reinterpret_cast<Tc*>(ptr)->ArchiveOutConstructor(archive_out);
     }
     template <class Tc = t>
     typename enable_if<!ChDetect_ArchiveOutConstructor<Tc>::value, void>::type _archive_out_constructor(
-        ChArchiveOut& marchive,
+        ChArchiveOut& archive_out,
         void* ptr) {
         // do nothing, ArchiveOutConstructor does not esist for this type
     }

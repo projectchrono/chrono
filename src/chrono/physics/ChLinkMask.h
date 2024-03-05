@@ -18,7 +18,7 @@
 #include <cmath>
 #include <vector>
 
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/solver/ChConstraintTwoBodies.h"
 
 namespace chrono {
@@ -95,10 +95,10 @@ class ChApi ChLinkMask {
     int SetAllBroken(bool mdis);
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 };
 
 CH_CLASS_VERSION(ChLinkMask, 0)
@@ -131,10 +131,10 @@ class ChApi ChLinkMaskLF : public ChLinkMask {
     ChConstraintTwoBodies& Constr_E3() { return *constraints[6]; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 CH_CLASS_VERSION(ChLinkMaskLF, 0)

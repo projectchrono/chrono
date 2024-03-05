@@ -48,12 +48,12 @@ ChLinkRSDA::ChLinkRSDA(const ChLinkRSDA& other) : ChLink(other), m_turns(0), m_t
 // -----------------------------------------------------------------------------
 // Link initialization functions
 
-void ChLinkRSDA::Initialize(std::shared_ptr<ChBody> body1, std::shared_ptr<ChBody> body2, const ChCoordsys<>& csys) {
+void ChLinkRSDA::Initialize(std::shared_ptr<ChBody> body1, std::shared_ptr<ChBody> body2, const ChFrame<>& frame) {
     Body1 = body1.get();
     Body2 = body2.get();
 
-    m_csys1 = Body1->GetCoord().TransformParentToLocal(csys);
-    m_csys2 = Body2->GetCoord().TransformParentToLocal(csys);
+    m_csys1 = Body1->GetCsys().TransformParentToLocal(frame.GetCsys());
+    m_csys2 = Body2->GetCsys().TransformParentToLocal(frame.GetCsys());
 
     CalcAngle();
     m_last_angle = m_angle;
@@ -64,17 +64,17 @@ void ChLinkRSDA::Initialize(std::shared_ptr<ChBody> body1, std::shared_ptr<ChBod
 void ChLinkRSDA::Initialize(std::shared_ptr<ChBody> body1,
                             std::shared_ptr<ChBody> body2,
                             bool local,
-                            const ChCoordsys<>& csys1,
-                            const ChCoordsys<>& csys2) {
+                            const ChFrame<>& frame1,
+                            const ChFrame<>& frame2) {
     Body1 = body1.get();
     Body2 = body2.get();
 
     if (local) {
-        m_csys1 = csys1;
-        m_csys2 = csys2;
+        m_csys1 = frame1.GetCsys();
+        m_csys2 = frame2.GetCsys();
     } else {
-        m_csys1 = Body1->GetCoord().TransformParentToLocal(csys1);
-        m_csys2 = Body2->GetCoord().TransformParentToLocal(csys2);
+        m_csys1 = Body1->GetCsys().TransformParentToLocal(frame1.GetCsys());
+        m_csys2 = Body2->GetCsys().TransformParentToLocal(frame2.GetCsys());
     }
 
     CalcAngle();
@@ -121,7 +121,7 @@ ChCoordsys<> ChLinkRSDA::GetLinkRelativeCoords() {
 }
 
 ChFrame<> ChLinkRSDA::GetVisualModelFrame(unsigned int nclone) {
-    return ChFrame<>(m_csys1 >> Body1->GetCoord());
+    return ChFrame<>(m_csys1 >> Body1->GetCsys());
 }
 
 // -----------------------------------------------------------------------------
@@ -132,9 +132,9 @@ void ChLinkRSDA::CalcAngle() {
     ChQuaternion<> rot2 = Body2->GetRot() * m_csys2.rot;
 
     // Extract unit vectors
-    auto f1 = rot1.GetXaxis();
-    auto g1 = rot1.GetYaxis();
-    auto f2 = rot2.GetXaxis();
+    auto f1 = rot1.GetAxisX();
+    auto g1 = rot1.GetAxisY();
+    auto f2 = rot2.GetAxisX();
 
     // Calculate sine and cosine of rotation angle
     double s = Vdot(g1, f2);
@@ -149,8 +149,8 @@ void ChLinkRSDA::CalcAngle() {
     }
 
     // Get angle rate of change
-    m_axis = rot1.GetZaxis();
-    m_angle_dt = Vdot(m_axis, Body2->GetWvel_par() - Body1->GetWvel_par());
+    m_axis = rot1.GetAxisZ();
+    m_angle_dt = Vdot(m_axis, Body2->GetAngVelParent() - Body1->GetAngVelParent());
 }
 
 void ChLinkRSDA::AdjustAngle() {
@@ -209,7 +209,7 @@ void ChLinkRSDA::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R,
         return;
 
     // Applied torque in absolute frame
-    ChVector<> torque = m_torque * m_axis;
+    ChVector3d torque = m_torque * m_axis;
 
     // Load torques in 'R' vector accumulator (torques in local coords)
     if (Body1->Variables().IsActive()) {
@@ -225,36 +225,36 @@ void ChLinkRSDA::ConstraintsFbLoadForces(double factor) {
         return;
 
     // Applied torque in absolute frame
-    ChVector<> torque = m_torque * m_axis;
+    ChVector3d torque = m_torque * m_axis;
 
     // Load torques in 'fb' vector accumulator of body variables (torques in local coords)
     Body1->Variables().Get_fb().segment(3, 3) -= factor * Body1->TransformDirectionParentToLocal(torque).eigen();
     Body2->Variables().Get_fb().segment(3, 3) += factor * Body2->TransformDirectionParentToLocal(torque).eigen();
 }
 
-void ChLinkRSDA::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkRSDA::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkRSDA>();
+    archive_out.VersionWrite<ChLinkRSDA>();
 
     // serialize parent class
-    ChLink::ArchiveOut(marchive);
+    ChLink::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(m_csys1);
-    marchive << CHNVP(m_csys2);
+    archive_out << CHNVP(m_csys1);
+    archive_out << CHNVP(m_csys2);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkRSDA::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkRSDA::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChLinkRSDA>();
+    /*int version =*/archive_in.VersionRead<ChLinkRSDA>();
 
     // deserialize parent class
-    ChLink::ArchiveIn(marchive);
+    ChLink::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(m_csys1);
-    marchive >> CHNVP(m_csys2);
+    archive_in >> CHNVP(m_csys1);
+    archive_in >> CHNVP(m_csys2);
 }
 
 }  // end namespace chrono

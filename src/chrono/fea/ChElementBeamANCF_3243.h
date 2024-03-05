@@ -161,11 +161,11 @@ class ChApi ChElementBeamANCF_3243 : public ChElementANCF,
 
     /// Get the Green-Lagrange strain tensor at the normalized element coordinates (xi, eta, zeta) at the current state
     /// of the element.  Normalized element coordinates span from -1 to 1.
-    ChMatrix33<> GetGreenLagrangeStrain(const double xi, const double eta, const double zeta);
+    ChMatrix33d GetGreenLagrangeStrain(const double xi, const double eta, const double zeta);
 
     /// Get the 2nd Piola-Kirchoff stress tensor at the normalized element coordinates (xi, eta, zeta) at the current
     /// state of the element.  Normalized element coordinates span from -1 to 1.
-    ChMatrix33<> GetPK2Stress(const double xi, const double eta, const double zeta);
+    ChMatrix33d GetPK2Stress(const double xi, const double eta, const double zeta);
 
     /// Get the von Mises stress value at the normalized element coordinates (xi, eta, zeta) at the current state
     /// of the element.  Normalized element coordinates span from -1 to 1.
@@ -202,36 +202,36 @@ class ChApi ChElementBeamANCF_3243 : public ChElementANCF,
                                           double Mfactor = 0) override;
 
     /// Compute the generalized force vector due to gravity using the efficient ANCF specific method
-    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) override;
 
     // Interface to ChElementBeam base class (and similar methods)
     // --------------------------------------
 
     // Dummy method definition - Does not translate to an ANCF continuum mechanics based beam element
-    virtual void EvaluateSectionStrain(const double, chrono::ChVector<double>&) override {}
+    virtual void EvaluateSectionStrain(const double, chrono::ChVector3d&) override {}
 
     // Dummy method definition - Does not translate to an ANCF continuum mechanics based beam element
     virtual void EvaluateSectionForceTorque(const double,
-                                            chrono::ChVector<double>&,
-                                            chrono::ChVector<double>&) override {}
+                                            chrono::ChVector3d&,
+                                            chrono::ChVector3d&) override {}
 
     /// Gets the xyz displacement of a point on the beam line,
     /// and the rotation RxRyRz of section plane, at abscissa '(xi,0,0)'.
     /// xi = -1 at node A and xi = 1 at node B
-    virtual void EvaluateSectionDisplacement(const double xi, ChVector<>& u_displ, ChVector<>& u_rotaz) override {}
+    virtual void EvaluateSectionDisplacement(const double xi, ChVector3d& u_displ, ChVector3d& u_rotaz) override {}
 
     /// Gets the absolute xyz position of a point on the beam line,
     /// and the absolute rotation of section plane, at abscissa '(xi,0,0)'.
     /// xi = -1 at node A and xi = 1 at node B
-    virtual void EvaluateSectionFrame(const double xi, ChVector<>& point, ChQuaternion<>& rot) override;
+    virtual void EvaluateSectionFrame(const double xi, ChVector3d& point, ChQuaternion<>& rot) override;
 
     /// Gets the absolute xyz position of a point on the beam line specified in normalized coordinates
     /// xi = -1 at node A and xi = 1 at node B
-    void EvaluateSectionPoint(const double xi, ChVector<>& point);
+    void EvaluateSectionPoint(const double xi, ChVector3d& point);
 
     /// Gets the absolute xyz velocity of a point on the beam line specified in normalized coordinates
     /// xi = -1 at node A and xi = 1 at node B
-    void EvaluateSectionVel(const double xi, ChVector<>& Result);
+    void EvaluateSectionVel(const double xi, ChVector3d& Result);
 
     // Functions for ChLoadable interface
     // ----------------------------------
@@ -310,7 +310,7 @@ class ChApi ChElementBeamANCF_3243 : public ChElementANCF,
 
     /// Gets the tangent to the beam axis at the parametric coordinate xi.
     /// xi = -1 at node A and xi = 1 at node B
-    ChVector<> ComputeTangent(const double xi);
+    ChVector3d ComputeTangent(const double xi);
 
   private:
     /// Initial setup. This is used to precompute matrices that do not change during the simulation, such as the local

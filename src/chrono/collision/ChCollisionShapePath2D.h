@@ -35,26 +35,26 @@ namespace chrono {
 class ChApi ChCollisionShapePath2D : public ChCollisionShape {
   public:
     ChCollisionShapePath2D();
-    ChCollisionShapePath2D(std::shared_ptr<ChMaterialSurface> material,
-                           std::shared_ptr<geometry::ChLinePath> path,
+    ChCollisionShapePath2D(std::shared_ptr<ChContactMaterial> material,
+                           std::shared_ptr<ChLinePath> path,
                            double radius = 0.001);
 
     ~ChCollisionShapePath2D() {}
 
     /// Access the path geometry.
-    std::shared_ptr<geometry::ChLinePath> GetGeometry() { return gpath; }
+    std::shared_ptr<ChLinePath> GetGeometry() { return gpath; }
 
     /// Get the path thickness (the radius of a sweeping sphere).
     double GetSRadius() const { return radius; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    std::shared_ptr<geometry::ChLinePath> gpath;
+    std::shared_ptr<ChLinePath> gpath;
     double radius;
 };
 

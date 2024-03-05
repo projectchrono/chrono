@@ -37,12 +37,12 @@ Creating/Setting up a ChBody object typically involves the following steps:
 2. Set its mass and inertia tensor properties
    ~~~{.cpp}
    body_b->SetMass(10);
-   body_b->SetInertiaXX( ChVector<>(4,4,4) );
+   body_b->SetInertiaXX( ChVector3<>(4,4,4) );
    ~~~
 3. Set its position and its velocity, if needed
    ~~~{.cpp}
-   body_b->SetPos( ChVector<>(0.2,0.4,2) );
-   body_b->SetPos_dt( ChVector<>(0.1,0,0) );
+   body_b->SetPos( ChVector3<>(0.2,0.4,2) );
+   body_b->SetPos_dt( ChVector3<>(0.1,0,0) );
    ~~~
 4. Add the body to a @ref chrono::ChSystem "ChSystem"
    ~~~{.cpp}

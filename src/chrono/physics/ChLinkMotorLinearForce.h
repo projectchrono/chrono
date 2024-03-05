@@ -19,7 +19,7 @@
 
 namespace chrono {
 
-/// A linear motor that applies a force between two frames on two bodies.
+/// A linear motor that applies a force between two frames on two bodies along Z axis.
 /// Differently from the ChLinkMotorLinearPosition and ChLinkMotorLinearSpeed,
 /// this does not enforce precise motion via constraint.
 /// Example of application:
@@ -44,7 +44,7 @@ class ChApi ChLinkMotorLinearForce : public ChLinkMotorLinear {
     std::shared_ptr<ChFunction> GetForceFunction() const { return GetMotorFunction(); }
 
     /// Get the current actuator reaction force.
-    virtual double GetMotorForce() const override { return m_func->Get_y(GetChTime()); }
+    virtual double GetMotorForce() const override { return m_func->GetVal(GetChTime()); }
 
     void Update(double mytime, bool update_assets) override;
 
@@ -59,10 +59,10 @@ class ChApi ChLinkMotorLinearForce : public ChLinkMotorLinear {
     virtual void ConstraintsFbLoadForces(double factor = 1) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 CH_CLASS_VERSION(ChLinkMotorLinearForce, 0)

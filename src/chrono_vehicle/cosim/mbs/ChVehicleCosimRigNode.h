@@ -50,16 +50,16 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimWheeledMBSNode
 
     /// Set the initial rig position, relative to the center of the terrain top-surface.
     /// This is the initial location of the spindle.
-    void SetInitialLocation(const ChVector<>& init_loc) { m_init_loc = init_loc; }
+    void SetInitialLocation(const ChVector3d& init_loc) { m_init_loc = init_loc; }
 
   private:
     /// Initialize the vehicle MBS and any associated subsystems.
-    virtual void InitializeMBS(const ChVector2<>& terrain_size,  ///< terrain length x width
+    virtual void InitializeMBS(const ChVector2d& terrain_size,  ///< terrain length x width
                                double terrain_height             ///< initial terrain height
                                ) override;
 
     /// Apply tire info (mass, radius, width).
-    virtual void ApplyTireInfo(const std::vector<ChVector<>>& tire_info) override;
+    virtual void ApplyTireInfo(const std::vector<ChVector3d>& tire_info) override;
 
     // Output rig data.
     virtual void OnOutputData(int frame) override;
@@ -90,7 +90,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimWheeledMBSNode
     std::shared_ptr<ChBody> m_chassis;  ///< chassis body
     std::shared_ptr<ChBody> m_spindle;  ///< spindle body
 
-    ChVector<> m_init_loc;  ///< initial rig location (relative to center of terrain top surface)
+    ChVector3d m_init_loc;  ///< initial rig location (relative to center of terrain top surface)
     double m_total_mass;    ///< total equivalent wheel mass
     double m_toe_angle;     ///< toe angle (controls tire slip angle)
 

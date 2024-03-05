@@ -41,7 +41,7 @@ std::string ShapeTypeName(ShapeType type) {
 
 std::shared_ptr<ChCollisionShape> CreateSphereShape(ShapeType type,
                                                     double radius,
-                                                    std::shared_ptr<ChMaterialSurfaceSMC> mat) {
+                                                    std::shared_ptr<ChContactMaterialSMC> mat) {
     std::shared_ptr<ChCollisionShape> shape;
 
     switch (type) {
@@ -50,16 +50,16 @@ std::shared_ptr<ChCollisionShape> CreateSphereShape(ShapeType type,
             break;
         }
         case ShapeType::HULL: {
-            auto mesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+            auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
                 GetChronoDataFile("models/sphere.obj"), false, true);
-            mesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(radius));
+            mesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(radius));
             shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(mat, mesh->getCoordsVertices());
             break;
         }
         case ShapeType::MESH: {
-            auto mesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+            auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
                 GetChronoDataFile("models/sphere.obj"), false, true);
-            mesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(radius));
+            mesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(radius));
             shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, mesh, false, false, 0.005);
             break;
         }
@@ -91,11 +91,11 @@ class SphereSphereTest : public ::testing::TestWithParam<std::tuple<ShapeType, S
         float adDMT = 0.0f;        // Magnitude of the adhesion in the DMT adhesion model
         float adSPerko = 0.0f;     // Magnitude of the adhesion in the SPerko adhesion model
 
-        auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+        auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
         mat->SetYoungModulus(y_modulus);
         mat->SetPoissonRatio(p_ratio);
-        mat->SetSfriction(s_frict);
-        mat->SetKfriction(k_frict);
+        mat->SetStaticFriction(s_frict);
+        mat->SetSlidingFriction(k_frict);
         mat->SetRollingFriction(roll_frict);
         mat->SetSpinningFriction(spin_frict);
         mat->SetRestitution(cor_in);
@@ -105,7 +105,7 @@ class SphereSphereTest : public ::testing::TestWithParam<std::tuple<ShapeType, S
 
         // Create a multicore SMC system and set the system parameters
         sys = new ChSystemSMC();
-        SetSimParameters(sys, ChVector<>(0, 0, 0), ChSystemSMC::ContactForceModel::Hertz);
+        SetSimParameters(sys, ChVector3d(0, 0, 0), ChSystemSMC::ContactForceModel::Hertz);
 
         // Add the spheres to the system
         radius = 0.5;
@@ -116,16 +116,16 @@ class SphereSphereTest : public ::testing::TestWithParam<std::tuple<ShapeType, S
 
         body1 = chrono_types::make_shared<ChBody>();
         body1->SetMass(mass);
-        body1->SetPos(ChVector<>(+init_pos, 0, 0));
-        body1->SetPos_dt(ChVector<>(-init_vel, 0, 0));
+        body1->SetPos(ChVector3d(+init_pos, 0, 0));
+        body1->SetPosDer(ChVector3d(-init_vel, 0, 0));
         body1->SetCollide(true);
         body1->AddCollisionShape(CreateSphereShape(type1, radius, mat));
         sys->AddBody(body1);
 
         body2 = chrono_types::make_shared<ChBody>();
         body2->SetMass(mass);
-        body2->SetPos(ChVector<>(-init_pos, 0, 0));
-        body2->SetPos_dt(ChVector<>(+init_vel, 0, 0));
+        body2->SetPos(ChVector3d(-init_pos, 0, 0));
+        body2->SetPosDer(ChVector3d(+init_vel, 0, 0));
         body2->SetCollide(true);
         body2->AddCollisionShape(CreateSphereShape(type2, radius, mat));
         sys->AddBody(body2);
@@ -146,25 +146,25 @@ TEST_P(SphereSphereTest, impact) {
     double time_step = 3e-5;
 
     std::cout << ShapeTypeName(std::get<0>(GetParam())) << " - " << ShapeTypeName(std::get<1>(GetParam())) << std::endl;
-    std::cout << "init pos/vel 1: " << body1->GetPos().x() << " " << body1->GetPos_dt().x() << std::endl;
-    std::cout << "init pos/vel 2: " << body2->GetPos().x() << " " << body2->GetPos_dt().x() << std::endl;
+    std::cout << "init pos/vel 1: " << body1->GetPos().x() << " " << body1->GetPosDer().x() << std::endl;
+    std::cout << "init pos/vel 2: " << body2->GetPos().x() << " " << body2->GetPosDer().x() << std::endl;
 
     bool contact = false;
     while (sys->GetChTime() < t_end) {
         sys->DoStepDynamics(time_step);
-        ////std::cout << sys->GetChTime() << " " << body1->GetPos().x() << "  " << body1->GetPos_dt().x() << std::endl;
-        if (!contact && sys->GetNcontacts() > 0)
+        ////std::cout << sys->GetChTime() << " " << body1->GetPos().x() << "  " << body1->GetPosDer().x() << std::endl;
+        if (!contact && sys->GetNumContacts() > 0)
             contact = true;
     }
 
-    std::cout << "final pos/vel 1: " << body1->GetPos().x() << " " << body1->GetPos_dt().x() << std::endl;
-    std::cout << "final pos/vel 2: " << body2->GetPos().x() << " " << body2->GetPos_dt().x() << std::endl;
+    std::cout << "final pos/vel 1: " << body1->GetPos().x() << " " << body1->GetPosDer().x() << std::endl;
+    std::cout << "final pos/vel 2: " << body2->GetPos().x() << " " << body2->GetPosDer().x() << std::endl;
 
     ASSERT_TRUE(contact);
     ASSERT_GT(body1->GetPos().x(), radius + 0.1);
     ASSERT_LT(body2->GetPos().x(), radius - 0.1);
-    ASSERT_GT(body1->GetPos_dt().x(), 0.0);
-    ASSERT_LT(body2->GetPos_dt().x(), 0.0);
+    ASSERT_GT(body1->GetPosDer().x(), 0.0);
+    ASSERT_LT(body2->GetPosDer().x(), 0.0);
 }
 
 INSTANTIATE_TEST_SUITE_P(

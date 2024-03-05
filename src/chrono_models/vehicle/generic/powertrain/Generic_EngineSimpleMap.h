@@ -37,7 +37,7 @@ class CH_MODELS_API Generic_EngineSimpleMap : public ChEngineSimpleMap {
   public:
     Generic_EngineSimpleMap(const std::string& name);
     double GetMaxEngineSpeed() override;
-    void SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) override;
+    void SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) override;
 };
 
 /// @} vehicle_models_generic

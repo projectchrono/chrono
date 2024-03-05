@@ -15,29 +15,29 @@
 #include "chrono/geometry/ChSurfaceNurbs.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSurfaceNurbs)
 
 ChSurfaceNurbs::ChSurfaceNurbs() {
-    ChMatrixDynamic<ChVector<>> mpoints(2, 2);
-    mpoints(0, 0) = ChVector<>(-1, -1, 0);
-    mpoints(1, 0) = ChVector<>(1, -1, 0);
-    mpoints(0, 1) = ChVector<>(-1, 1, 0);
-    mpoints(1, 1) = ChVector<>(1, 1, 0);
-    this->SetupData(1, 1, mpoints);
+    ChMatrixDynamic<ChVector3d> mpoints(2, 2);
+    mpoints(0, 0) = ChVector3d(-1, -1, 0);
+    mpoints(1, 0) = ChVector3d(1, -1, 0);
+    mpoints(0, 1) = ChVector3d(-1, 1, 0);
+    mpoints(1, 1) = ChVector3d(1, 1, 0);
+    this->Setup(1, 1, mpoints);
 }
 
 ChSurfaceNurbs::ChSurfaceNurbs(
     int morder_u,                          // order pu: 1= linear, 2=quadratic, etc.
     int morder_v,                          // order pv: 1= linear, 2=quadratic, etc.
-    ChMatrixDynamic<ChVector<>>& mpoints,  // control points, size nuxnv. Required: at least nu >= pu+1, same for v
+    ChMatrixDynamic<ChVector3d>& mpoints,  // control points, size nuxnv. Required: at least nu >= pu+1, same for v
     ChVectorDynamic<>* mknots_u,  // knots, size ku. Required ku=nu+pu+1. If not provided, initialized to uniform.
     ChVectorDynamic<>* mknots_v,  // knots, size kv. Required ku=nu+pu+1. If not provided, initialized to uniform.
     ChMatrixDynamic<>* weights    // weights, size nuxnv. If not provided, all weights as 1.
 ) {
-    this->SetupData(morder_u, morder_v, mpoints, mknots_u, mknots_v, weights);
+    this->Setup(morder_u, morder_v, mpoints, mknots_u, mknots_v, weights);
 }
 
 ChSurfaceNurbs::ChSurfaceNurbs(const ChSurfaceNurbs& source) : ChSurface(source) {
@@ -49,7 +49,7 @@ ChSurfaceNurbs::ChSurfaceNurbs(const ChSurfaceNurbs& source) : ChSurface(source)
     this->weights = source.weights;
 }
 
-ChVector<> ChSurfaceNurbs::Evaluate(double parU, double parV) const {
+ChVector3d ChSurfaceNurbs::Evaluate(double parU, double parV) const {
     double u = ComputeKnotUfromU(parU);
     double v = ComputeKnotVfromV(parV);
 
@@ -59,7 +59,7 @@ ChVector<> ChSurfaceNurbs::Evaluate(double parU, double parV) const {
     int spanU = ChBasisToolsBspline::FindSpan(p_u, u, knots_u);
     int spanV = ChBasisToolsBspline::FindSpan(p_v, v, knots_v);
 
-    ChVector<> pos = VNULL;
+    ChVector3d pos = VNULL;
     int uind = spanU - p_u;
     int vind = spanV - p_v;
     for (int iu = 0; iu <= this->p_u; iu++) {
@@ -71,32 +71,32 @@ ChVector<> ChSurfaceNurbs::Evaluate(double parU, double parV) const {
     return pos;
 }
 
-void ChSurfaceNurbs::SetupData(
+void ChSurfaceNurbs::Setup(
     int morder_u,                          // order pu: 1= linear, 2=quadratic, etc.
     int morder_v,                          // order pv: 1= linear, 2=quadratic, etc.
-    ChMatrixDynamic<ChVector<>>& mpoints,  // control points, size nuxnv. Required: at least nu >= pu+1, same for v
+    ChMatrixDynamic<ChVector3d>& mpoints,  // control points, size nuxnv. Required: at least nu >= pu+1, same for v
     ChVectorDynamic<>* mknots_u,  // knots u, size ku. Required ku=nu+pu+1. If not provided, initialized to uniform.
     ChVectorDynamic<>* mknots_v,  // knots v, size kv. Required ku=nu+pu+1. If not provided, initialized to uniform.
     ChMatrixDynamic<>* weights    // weights, size nuxnv. If not provided, all weights as 1.
 ) {
     if (morder_u < 1)
-        throw ChException("ChSurfaceNurbs::SetupData requires u order >= 1.");
+        throw std::invalid_argument("ChSurfaceNurbs::Setup requires u order >= 1.");
 
     if (morder_v < 1)
-        throw ChException("ChSurfaceNurbs::SetupData requires v order >= 1.");
+        throw std::invalid_argument("ChSurfaceNurbs::Setup requires v order >= 1.");
 
     if (mpoints.rows() < morder_u + 1)
-        throw ChException("ChSurfaceNurbs::SetupData requires at least (order_u+1)x(order_v+1) control points.");
+        throw std::invalid_argument("ChSurfaceNurbs::Setup requires at least (order_u+1)x(order_v+1) control points.");
     if (mpoints.cols() < morder_v + 1)
-        throw ChException("ChSurfaceNurbs::SetupData requires at least (order_u+1)x(order_v+1) control points.");
+        throw std::invalid_argument("ChSurfaceNurbs::Setup requires at least (order_u+1)x(order_v+1) control points.");
 
     if (mknots_u && mknots_u->size() != (mpoints.rows() + morder_u + 1))
-        throw ChException("ChSurfaceNurbs::SetupData: knots_u must have size=n_points_u+order_u+1");
+        throw std::invalid_argument("ChSurfaceNurbs::Setup: knots_u must have size=n_points_u+order_u+1");
     if (mknots_v && mknots_v->size() != (mpoints.cols() + morder_v + 1))
-        throw ChException("ChSurfaceNurbs::SetupData: knots_v must have size=n_points_v+order_v+1");
+        throw std::invalid_argument("ChSurfaceNurbs::Setup: knots_v must have size=n_points_v+order_v+1");
 
     if (weights && (weights->rows() != mpoints.rows() || weights->cols() != mpoints.cols()))
-        throw ChException("ChSurfaceNurbs::SetupData: weights matrix must have size as point matrix");
+        throw std::invalid_argument("ChSurfaceNurbs::Setup: weights matrix must have size as point matrix");
 
     this->p_u = morder_u;
     this->p_v = morder_v;
@@ -123,33 +123,33 @@ void ChSurfaceNurbs::SetupData(
         this->weights.setConstant(n_u, n_v, 1.0);
 }
 
-void ChSurfaceNurbs::ArchiveOut(ChArchiveOut& marchive) {
+void ChSurfaceNurbs::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSurfaceNurbs>();
+    archive_out.VersionWrite<ChSurfaceNurbs>();
     // serialize parent class
-    ChSurface::ArchiveOut(marchive);
+    ChSurface::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(points);
-    marchive << CHNVP(weights);
-    marchive << CHNVP(knots_u);
-    marchive << CHNVP(knots_v);
-    marchive << CHNVP(p_u);
-    marchive << CHNVP(p_v);
+    archive_out << CHNVP(points);
+    archive_out << CHNVP(weights);
+    archive_out << CHNVP(knots_u);
+    archive_out << CHNVP(knots_v);
+    archive_out << CHNVP(p_u);
+    archive_out << CHNVP(p_v);
 }
 
-void ChSurfaceNurbs::ArchiveIn(ChArchiveIn& marchive) {
+void ChSurfaceNurbs::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChSurfaceNurbs>();
+    /*int version =*/ archive_in.VersionRead<ChSurfaceNurbs>();
     // deserialize parent class
-    ChSurface::ArchiveIn(marchive);
+    ChSurface::ArchiveIn(archive_in);
     // stream in all member data:
-    ////marchive >> CHNVP(points);
-    ////marchive >> CHNVP(weights);
-    ////marchive >> CHNVP(knots_u);
-    ////marchive >> CHNVP(knots_v);
-    marchive >> CHNVP(p_u);
-    marchive >> CHNVP(p_v);
+    ////archive_in >> CHNVP(points);
+    ////archive_in >> CHNVP(weights);
+    ////archive_in >> CHNVP(knots_u);
+    ////archive_in >> CHNVP(knots_v);
+    archive_in >> CHNVP(p_u);
+    archive_in >> CHNVP(p_v);
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

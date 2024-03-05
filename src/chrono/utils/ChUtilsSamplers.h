@@ -40,7 +40,7 @@
 #include <vector>
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 namespace chrono {
 namespace utils {
@@ -79,8 +79,8 @@ inline T sampleTruncatedDist(std::normal_distribution<T>& distribution, T minVal
 // "share" a typedef across different template classes, we use this structure.
 template <typename T>
 struct Types {
-    typedef std::vector<ChVector<T>> PointVector;
-    typedef std::list<ChVector<T>> PointList;
+    typedef std::vector<ChVector3<T>> PointVector;
+    typedef std::list<ChVector3<T>> PointList;
 };
 
 // Convenience shortcuts
@@ -109,37 +109,37 @@ class Sampler {
     virtual ~Sampler() {}
 
     /// Return points sampled from the specified box volume.
-    PointVector SampleBox(const ChVector<T>& center, const ChVector<T>& halfDim) {
+    PointVector SampleBox(const ChVector3<T>& center, const ChVector3<T>& halfDim) {
         m_center = center;
         m_size = halfDim;
         return Sample(BOX);
     }
 
     /// Return points sampled from the specified spherical volume.
-    PointVector SampleSphere(const ChVector<T>& center, T radius) {
+    PointVector SampleSphere(const ChVector3<T>& center, T radius) {
         m_center = center;
-        m_size = ChVector<T>(radius, radius, radius);
+        m_size = ChVector3<T>(radius, radius, radius);
         return Sample(SPHERE);
     }
 
     /// Return points sampled from the specified X-aligned cylindrical volume.
-    PointVector SampleCylinderX(const ChVector<T>& center, T radius, T halfHeight) {
+    PointVector SampleCylinderX(const ChVector3<T>& center, T radius, T halfHeight) {
         m_center = center;
-        m_size = ChVector<T>(halfHeight, radius, radius);
+        m_size = ChVector3<T>(halfHeight, radius, radius);
         return Sample(CYLINDER_X);
     }
 
     /// Return points sampled from the specified Y-aligned cylindrical volume.
-    PointVector SampleCylinderY(const ChVector<T>& center, T radius, T halfHeight) {
+    PointVector SampleCylinderY(const ChVector3<T>& center, T radius, T halfHeight) {
         m_center = center;
-        m_size = ChVector<T>(radius, halfHeight, radius);
+        m_size = ChVector3<T>(radius, halfHeight, radius);
         return Sample(CYLINDER_Y);
     }
 
     /// Return points sampled from the specified Z-aligned cylindrical volume.
-    PointVector SampleCylinderZ(const ChVector<T>& center, T radius, T halfHeight) {
+    PointVector SampleCylinderZ(const ChVector3<T>& center, T radius, T halfHeight) {
         m_center = center;
-        m_size = ChVector<T>(radius, radius, halfHeight);
+        m_size = ChVector3<T>(radius, radius, halfHeight);
         return Sample(CYLINDER_Z);
     }
 
@@ -159,8 +159,8 @@ class Sampler {
     virtual PointVector Sample(VolumeType t) = 0;
 
     /// Utility function to check if a point is inside the sampling volume.
-    bool accept(VolumeType t, const ChVector<T>& p) const {
-        ChVector<T> vec = p - m_center;
+    bool accept(VolumeType t, const ChVector3<T>& p) const {
+        ChVector3<T> vec = p - m_center;
         T fuzz = (m_size.x() < 1) ? (T)1e-6 * m_size.x() : (T)1e-6;
 
         switch (t) {
@@ -184,12 +184,12 @@ class Sampler {
     }
 
     T m_separation;        ///< inter-particle separation
-    ChVector<T> m_center;  ///< center of the sampling volume
-    ChVector<T> m_size;    ///< half dimensions of the bounding box of the sampling volume
+    ChVector3<T> m_center;  ///< center of the sampling volume
+    ChVector3<T> m_size;    ///< half dimensions of the bounding box of the sampling volume
 };
 
 /// Simple 3D grid utility class for use by the Poisson Disk sampler.
-template <typename Point = ChVector<double>>
+template <typename Point = ChVector3d>
 class PDGrid {
   public:
     typedef std::pair<Point, bool> Content;
@@ -319,7 +319,7 @@ class PDSampler : public Sampler<T> {
 
     /// Add the first point in the volume (selected randomly).
     void AddFirstPoint(VolumeType t, PointVector& out_points) {
-        ChVector<T> p;
+        ChVector3<T> p;
 
         // Generate a random point in the domain
         do {
@@ -338,10 +338,10 @@ class PDSampler : public Sampler<T> {
     }
 
     /// Attempt to add a new point, close to the specified one.
-    bool AddNextPoint(VolumeType t, const ChVector<T>& point, PointVector& out_points) {
+    bool AddNextPoint(VolumeType t, const ChVector3<T>& point, PointVector& out_points) {
         // Generate a random candidate point in the neighborhood of the
         // specified point.
-        ChVector<T> q = GenerateRandomNeighbor(point);
+        ChVector3<T> q = GenerateRandomNeighbor(point);
 
         // Check if point is in the domain.
         if (!this->accept(t, q))
@@ -356,7 +356,7 @@ class PDSampler : public Sampler<T> {
                 for (int k = m_gridLoc[2] - 2; k < m_gridLoc[2] + 3; k++) {
                     if (m_grid.IsCellEmpty(i, j, k))
                         continue;
-                    ChVector<T> dist = q - m_grid.GetCellPoint(i, j, k);
+                    ChVector3<T> dist = q - m_grid.GetCellPoint(i, j, k);
                     if (dist.Length2() < this->m_separation * this->m_separation)
                         return false;
                 }
@@ -374,7 +374,7 @@ class PDSampler : public Sampler<T> {
     }
 
     /// Return a random point in spherical anulus between sep and 2*sep centered at given point.
-    ChVector<T> GenerateRandomNeighbor(const ChVector<T>& point) {
+    ChVector3<T> GenerateRandomNeighbor(const ChVector3<T>& point) {
         T x, y, z;
 
         switch (m_2D) {
@@ -410,22 +410,22 @@ class PDSampler : public Sampler<T> {
             } break;
         }
 
-        return ChVector<T>(x, y, z);
+        return ChVector3<T>(x, y, z);
     }
 
     /// Map point location to a 3D grid location.
-    void MapToGrid(ChVector<T> point) {
+    void MapToGrid(ChVector3<T> point) {
         m_gridLoc[0] = (int)((point.x() - m_bl.x()) / m_cellSize);
         m_gridLoc[1] = (int)((point.y() - m_bl.y()) / m_cellSize);
         m_gridLoc[2] = (int)((point.z() - m_bl.z()) / m_cellSize);
     }
 
-    PDGrid<ChVector<T>> m_grid;
+    PDGrid<ChVector3<T>> m_grid;
     PointList m_active;
 
     Direction2D m_2D;  ///< 2D or 3D sampling
-    ChVector<T> m_bl;  ///< bottom-left corner of sampling domain
-    ChVector<T> m_tr;  ///< top-right corner of sampling domain      REMOVE?
+    ChVector3<T> m_bl;  ///< bottom-left corner of sampling domain
+    ChVector3<T> m_tr;  ///< top-right corner of sampling domain      REMOVE?
     T m_cellSize;      ///< grid cell size
 
     std::vector<int> m_gridLoc;
@@ -443,8 +443,8 @@ class PDSampler : public Sampler<T> {
 /// distance (padding_factor * diam). This significantly improves computational efficiency of the sampling but at the
 /// cost of discarding the PD uniform distribution properties in the direction orthogonal to the layers.
 template <typename T>
-std::vector<ChVector<T>> PDLayerSampler_BOX(ChVector<T> center,       ///< Center of axis-aligned box to fill
-                                            ChVector<T> hdims,        ///< Half-dimensions along the x, y, and z axes
+std::vector<ChVector3<T>> PDLayerSampler_BOX(ChVector3<T> center,       ///< Center of axis-aligned box to fill
+                                            ChVector3<T> hdims,        ///< Half-dimensions along the x, y, and z axes
                                             T diam,                   ///< Particle diameter
                                             T padding_factor = 1.02,  ///< Multiplier on particle diameter for spacing
                                             bool verbose = false      ///< Output progress during generation
@@ -458,7 +458,7 @@ std::vector<ChVector<T>> PDLayerSampler_BOX(ChVector<T> center,       ///< Cente
     hdims.z() = 0;
 
     chrono::utils::PDSampler<T> sampler(diam * padding_factor);
-    std::vector<ChVector<T>> points_full;
+    std::vector<ChVector3<T>> points_full;
     while (center.z() < fill_top) {
         if (verbose) {
             std::cout << "Create layer at " << center.z() << std::endl;
@@ -479,17 +479,17 @@ class GridSampler : public Sampler<T> {
     typedef typename Sampler<T>::VolumeType VolumeType;
 
     GridSampler(T separation) : Sampler<T>(separation), m_sep3D(separation, separation, separation) {}
-    GridSampler(const ChVector<T>& separation) : Sampler<T>(separation.x()), m_sep3D(separation) {}
+    GridSampler(const ChVector3<T>& separation) : Sampler<T>(separation.x()), m_sep3D(separation) {}
 
     /// Change the minimum separation for subsequent calls to Sample.
-    virtual void SetSeparation(T separation) override { m_sep3D = ChVector<T>(separation, separation, separation); }
+    virtual void SetSeparation(T separation) override { m_sep3D = ChVector3<T>(separation, separation, separation); }
 
   private:
     /// Worker function for sampling the given domain.
     virtual PointVector Sample(VolumeType t) override {
         PointVector out_points;
 
-        ChVector<T> bl = this->m_center - this->m_size;
+        ChVector3<T> bl = this->m_center - this->m_size;
 
         int nx = (int)(2 * this->m_size.x() / m_sep3D.x()) + 1;
         int ny = (int)(2 * this->m_size.y() / m_sep3D.y()) + 1;
@@ -498,7 +498,7 @@ class GridSampler : public Sampler<T> {
         for (int i = 0; i < nx; i++) {
             for (int j = 0; j < ny; j++) {
                 for (int k = 0; k < nz; k++) {
-                    ChVector<T> p = bl + ChVector<T>(i * m_sep3D.x(), j * m_sep3D.y(), k * m_sep3D.z());
+                    ChVector3<T> p = bl + ChVector3<T>(i * m_sep3D.x(), j * m_sep3D.y(), k * m_sep3D.z());
                     if (this->accept(t, p))
                         out_points.push_back(p);
                 }
@@ -508,7 +508,7 @@ class GridSampler : public Sampler<T> {
         return out_points;
     }
 
-    ChVector<T> m_sep3D;
+    ChVector3<T> m_sep3D;
 };
 
 /// Sampler for 3D volumes using a Hexagonally Close Packed structure.
@@ -525,7 +525,7 @@ class HCPSampler : public Sampler<T> {
     virtual PointVector Sample(VolumeType t) override {
         PointVector out_points;
 
-        ChVector<T> bl = this->m_center - this->m_size;  // start corner of sampling domain
+        ChVector3<T> bl = this->m_center - this->m_size;  // start corner of sampling domain
 
         T dx = this->m_separation;                              // distance between two points in X direction
         T dy = this->m_separation * (T)(std::sqrt(3.0) / 2);    // distance between two rows in Y direction
@@ -542,7 +542,7 @@ class HCPSampler : public Sampler<T> {
                 // X offset for current row and layer
                 T offset_x = ((j + k) % 2 == 0) ? 0 : dx / 2;
                 for (int i = 0; i < nx; i++) {
-                    ChVector<T> p = bl + ChVector<T>(offset_x + i * dx, offset_y + j * dy, k * dz);
+                    ChVector3<T> p = bl + ChVector3<T>(offset_x + i * dx, offset_y + j * dy, k * dz);
                     if (this->accept(t, p))
                         out_points.push_back(p);
                 }

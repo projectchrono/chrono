@@ -73,10 +73,10 @@ double ANCF_test(ChSystem& sys, double tip_load, int nelements) {
     auto material = chrono_types::make_shared<ChMaterialBeamANCF>(rho, E_mod, nu_rat, E_mod * nu_rat, k1, k2);
 
     ChBuilderBeamANCF builder;
-    builder.BuildBeam(mesh, material, nelements, ChVector<>(0, 0, 0), ChVector<>(beamL, 0, 0), beam_wy, beam_wz, VECT_Y,
+    builder.BuildBeam(mesh, material, nelements, ChVector3d(0, 0, 0), ChVector3d(beamL, 0, 0), beam_wy, beam_wz, VECT_Y,
                       VECT_Z);
     builder.GetLastBeamNodes().front()->SetFixed(true);
-    builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0, tip_load, 0));
+    builder.GetLastBeamNodes().back()->SetForce(ChVector3d(0, tip_load, 0));
 
     double y_init = builder.GetLastBeamNodes().back()->GetPos().y();
 
@@ -113,12 +113,12 @@ double IGA_test(ChSystem& sys, double tip_load, int nsections, int order) {
     builder.BuildBeam(mesh,                     // the mesh to put the elements in
                       section,                  // section of the beam
                       nsections,                // number of sections (spans)
-                      ChVector<>(0, 0, 0),      // start point
-                      ChVector<>(beamL, 0, 0),  // end point
+                      ChVector3d(0, 0, 0),      // start point
+                      ChVector3d(beamL, 0, 0),  // end point
                       VECT_Y,                   // suggested Y direction of section
                       order);                   // order (3 = cubic, etc)
     builder.GetLastBeamNodes().front()->SetFixed(true);
-    builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0, tip_load, 0));
+    builder.GetLastBeamNodes().back()->SetForce(ChVector3d(0, tip_load, 0));
 
     double y_init = builder.GetLastBeamNodes().back()->GetX0().GetPos().y();
 
@@ -128,7 +128,7 @@ double IGA_test(ChSystem& sys, double tip_load, int nsections, int order) {
     double numerical_displ = builder.GetLastBeamNodes().back()->GetPos().y() - y_init;
 
     /*
-    ChVector<> mforce, mtorque;
+    ChVector3d mforce, mtorque;
     builder.GetLastBeamElements().front()->EvaluateSectionForceTorque(0, mforce, mtorque);
     std::cout << "        IGA sect torque = " << mtorque << std::endl;
     */
@@ -157,9 +157,9 @@ double EULER_test(ChSystem& sys, double tip_load, int nelements) {
 		);
 
     ChBuilderBeamEuler builder;
-    builder.BuildBeam(mesh, material, nelements, ChVector<>(0, 0, 0), ChVector<>(beamL, 0, 0), VECT_Y);
+    builder.BuildBeam(mesh, material, nelements, ChVector3d(0, 0, 0), ChVector3d(beamL, 0, 0), VECT_Y);
     builder.GetLastBeamNodes().front()->SetFixed(true);
-    builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0, tip_load, 0));
+    builder.GetLastBeamNodes().back()->SetForce(ChVector3d(0, tip_load, 0));
 
     double y_init = builder.GetLastBeamNodes().back()->GetPos().y();
 
@@ -169,7 +169,7 @@ double EULER_test(ChSystem& sys, double tip_load, int nelements) {
     double numerical_displ = builder.GetLastBeamNodes().back()->GetPos().y() - y_init;
 
     /*
-    ChVector<> mforce, mtorque;
+    ChVector3d mforce, mtorque;
     builder.GetLastBeamElements().front()->EvaluateSectionForceTorque(0.9999, mforce, mtorque);
     std::cout << "        EULER sect force  = " << mforce  << std::endl;
     std::cout << "        EULER sect torque = " << mtorque << std::endl;
@@ -214,10 +214,10 @@ double EULER_test_offset(ChSystem& sys, double tip_load_y, int nelements) {
 		);
 
     ChBuilderBeamEuler builder;
-    builder.BuildBeam(mesh, material, nelements, ChVector<>(0, 0, 0), ChVector<>(beamL, 0, 0), VECT_Y);
+    builder.BuildBeam(mesh, material, nelements, ChVector3d(0, 0, 0), ChVector3d(beamL, 0, 0), VECT_Y);
     builder.GetLastBeamNodes().front()->SetFixed(true);
-    builder.GetLastBeamNodes().back()->SetForce(ChVector<>(tip_axial, tip_load_y, tip_load_z));
-    builder.GetLastBeamNodes().back()->SetTorque(ChVector<>(-tip_load_y*Sz + tip_load_z*Sy, tip_axial*Cz, -tip_axial*Cy)); // to cancel the effect of offsets - now should deflect on Y as normal cantilever.
+    builder.GetLastBeamNodes().back()->SetForce(ChVector3d(tip_axial, tip_load_y, tip_load_z));
+    builder.GetLastBeamNodes().back()->SetTorque(ChVector3d(-tip_load_y*Sz + tip_load_z*Sy, tip_axial*Cz, -tip_axial*Cy)); // to cancel the effect of offsets - now should deflect on Y as normal cantilever.
 
     double y_init = builder.GetLastBeamNodes().back()->GetPos().y();
 
@@ -227,7 +227,7 @@ double EULER_test_offset(ChSystem& sys, double tip_load_y, int nelements) {
     double numerical_displ = builder.GetLastBeamNodes().back()->GetPos().y() - y_init;
 
     /*
-    ChVector<> mforce, mtorque;
+    ChVector3d mforce, mtorque;
     builder.GetLastBeamElements().front()->EvaluateSectionForceTorque(0, mforce, mtorque);
     std::cout << "        EULER off sect force  = " << mforce  << std::endl;
     std::cout << "        EULER off sect torque = " << mtorque << std::endl;
@@ -285,13 +285,13 @@ double IGA_test_offset(ChSystem& sys, double tip_load_y, int nsections, int orde
     builder.BuildBeam(mesh,                     // the mesh to put the elements in
                       section,                  // section of the beam
                       nsections,                // number of sections (spans)
-                      ChVector<>(0, 0, 0),      // start point
-                      ChVector<>(beamL, 0, 0),  // end point
+                      ChVector3d(0, 0, 0),      // start point
+                      ChVector3d(beamL, 0, 0),  // end point
                       VECT_Y,                   // suggested Y direction of section
                       order);                   // order (3 = cubic, etc)
     builder.GetLastBeamNodes().front()->SetFixed(true);
-    builder.GetLastBeamNodes().back()->SetForce(ChVector<>(tip_axial, tip_load_y, tip_load_z));
-    builder.GetLastBeamNodes().back()->SetTorque(ChVector<>(-tip_load_y*Sz + tip_load_z*Sy, tip_axial*Cz, -tip_axial*Cy)); // to cancel the effect of offsets - now should deflect on Y as normal cantilever.
+    builder.GetLastBeamNodes().back()->SetForce(ChVector3d(tip_axial, tip_load_y, tip_load_z));
+    builder.GetLastBeamNodes().back()->SetTorque(ChVector3d(-tip_load_y*Sz + tip_load_z*Sy, tip_axial*Cz, -tip_axial*Cy)); // to cancel the effect of offsets - now should deflect on Y as normal cantilever.
 
     double y_init = builder.GetLastBeamNodes().back()->GetPos().y();
 
@@ -301,7 +301,7 @@ double IGA_test_offset(ChSystem& sys, double tip_load_y, int nsections, int orde
     double numerical_displ = builder.GetLastBeamNodes().back()->GetPos().y() - y_init;
 
     /*
-    ChVector<> mforce, mtorque;
+    ChVector3d mforce, mtorque;
     builder.GetLastBeamElements().front()->EvaluateSectionForceTorque(0, mforce, mtorque);
     std::cout << "        IGA sect torque = " << mtorque << std::endl;
     */
@@ -354,13 +354,13 @@ double IGA_test_offset_rigidity(ChSystem& sys, double tip_load_y, int nsections,
     builder.BuildBeam(mesh,                     // the mesh to put the elements in
                       section,                  // section of the beam
                       nsections,                // number of sections (spans)
-                      ChVector<>(0, 0, 0),      // start point
-                      ChVector<>(beamL, 0, 0),  // end point
+                      ChVector3d(0, 0, 0),      // start point
+                      ChVector3d(beamL, 0, 0),  // end point
                       VECT_Y,                   // suggested Y direction of section
                       order);                   // order (3 = cubic, etc)
     builder.GetLastBeamNodes().front()->SetFixed(true);
-    builder.GetLastBeamNodes().back()->SetForce(ChVector<>(tip_axial, tip_load_y, tip_load_z));
-    builder.GetLastBeamNodes().back()->SetTorque(ChVector<>(-tip_load_y*Sz + tip_load_z*Sy, tip_axial*Cz, -tip_axial*Cy)); // to cancel the effect of offsets - now should deflect on Y as normal cantilever.
+    builder.GetLastBeamNodes().back()->SetForce(ChVector3d(tip_axial, tip_load_y, tip_load_z));
+    builder.GetLastBeamNodes().back()->SetTorque(ChVector3d(-tip_load_y*Sz + tip_load_z*Sy, tip_axial*Cz, -tip_axial*Cy)); // to cancel the effect of offsets - now should deflect on Y as normal cantilever.
 
     double y_init = builder.GetLastBeamNodes().back()->GetPos().y();
 
@@ -370,7 +370,7 @@ double IGA_test_offset_rigidity(ChSystem& sys, double tip_load_y, int nsections,
     double numerical_displ = builder.GetLastBeamNodes().back()->GetPos().y() - y_init;
 
     /*
-    ChVector<> mforce, mtorque;
+    ChVector3d mforce, mtorque;
     builder.GetLastBeamElements().front()->EvaluateSectionForceTorque(0, mforce, mtorque);
     std::cout << "        IGA sect torque = " << mtorque << std::endl;
     */
@@ -380,7 +380,7 @@ double IGA_test_offset_rigidity(ChSystem& sys, double tip_load_y, int nsections,
 
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono::Engine physical system
     ChSystemNSC sys;

@@ -90,7 +90,7 @@ void ChShaft::IntStateScatter(const unsigned int off_x,  // offset in x state ve
                               bool full_update           // perform complete update
 ) {
     SetPos(x(off_x));
-    SetPos_dt(v(off_v));
+    SetPosDer(v(off_v));
     Update(T, full_update);
 }
 
@@ -99,7 +99,7 @@ void ChShaft::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta&
 }
 
 void ChShaft::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    SetPos_dtdt(a(off_a));
+    SetPosDer2(a(off_a));
 }
 
 void ChShaft::IntLoadResidual_F(const unsigned int off,  // offset in R residual
@@ -188,7 +188,7 @@ void ChShaft::VariablesQbIncrementPosition(double dt_step) {
         return;
 
     // Updates position with incremental action of speed contained in the
-    // 'qb' vector:  pos' = pos + dt * speed   , like in an Eulero step.
+    // 'qb' vector:  pos' = pos + dt * speed   , like in an Euler step.
 
     double newspeed = variables.Get_qb()(0);
 
@@ -240,53 +240,53 @@ void ChShaft::Update(double mytime, bool update_assets) {
 
 //////// FILE I/O
 
-void ChShaft::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaft::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaft>();
+    archive_out.VersionWrite<ChShaft>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(torque);
-    marchive << CHNVP(pos);
-    marchive << CHNVP(pos_dt);
-    marchive << CHNVP(pos_dtdt);
-    marchive << CHNVP(inertia);
-    marchive << CHNVP(fixed);
-    marchive << CHNVP(limitspeed);
-    marchive << CHNVP(max_speed);
-    marchive << CHNVP(sleep_time);
-    marchive << CHNVP(sleep_starttime);
-    marchive << CHNVP(sleep_minspeed);
-    marchive << CHNVP(sleep_minwvel);
-    marchive << CHNVP(sleeping);
-    marchive << CHNVP(use_sleeping);
+    archive_out << CHNVP(torque);
+    archive_out << CHNVP(pos);
+    archive_out << CHNVP(pos_dt);
+    archive_out << CHNVP(pos_dtdt);
+    archive_out << CHNVP(inertia);
+    archive_out << CHNVP(fixed);
+    archive_out << CHNVP(limitspeed);
+    archive_out << CHNVP(max_speed);
+    archive_out << CHNVP(sleep_time);
+    archive_out << CHNVP(sleep_starttime);
+    archive_out << CHNVP(sleep_minspeed);
+    archive_out << CHNVP(sleep_minwvel);
+    archive_out << CHNVP(sleeping);
+    archive_out << CHNVP(use_sleeping);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaft::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaft::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaft>();
+    /*int version =*/ archive_in.VersionRead<ChShaft>();
 
     // deserialize parent class:
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(torque);
-    marchive >> CHNVP(pos);
-    marchive >> CHNVP(pos_dt);
-    marchive >> CHNVP(pos_dtdt);
-    marchive >> CHNVP(inertia);
-    marchive >> CHNVP(fixed);
-    marchive >> CHNVP(limitspeed);
-    marchive >> CHNVP(max_speed);
-    marchive >> CHNVP(sleep_time);
-    marchive >> CHNVP(sleep_starttime);
-    marchive >> CHNVP(sleep_minspeed);
-    marchive >> CHNVP(sleep_minwvel);
-    marchive >> CHNVP(sleeping);
-    marchive >> CHNVP(use_sleeping);
+    archive_in >> CHNVP(torque);
+    archive_in >> CHNVP(pos);
+    archive_in >> CHNVP(pos_dt);
+    archive_in >> CHNVP(pos_dtdt);
+    archive_in >> CHNVP(inertia);
+    archive_in >> CHNVP(fixed);
+    archive_in >> CHNVP(limitspeed);
+    archive_in >> CHNVP(max_speed);
+    archive_in >> CHNVP(sleep_time);
+    archive_in >> CHNVP(sleep_starttime);
+    archive_in >> CHNVP(sleep_minspeed);
+    archive_in >> CHNVP(sleep_minwvel);
+    archive_in >> CHNVP(sleeping);
+    archive_in >> CHNVP(use_sleeping);
 }
 
 }  // end namespace chrono

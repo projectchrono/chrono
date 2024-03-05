@@ -17,6 +17,8 @@
 //
 // =============================================================================
 
+#include <iomanip>
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMate.h"
@@ -106,13 +108,13 @@ class EigenSolver {
 
     void ShowAllEigenvalues() {
         if (all_eigen_vectors_and_values.size() == 0)
-            GetLog() << "There is not any eigenvalue found for the system.\n";
+            std::cerr << "There is not any eigenvalue found for the system." << std::endl;
         else {
-            GetLog() << "The eigenvalues of the system are:\n";
+            std::cout << "The eigenvalues of the system are:" << std::endl;
             for (int i = 0; i < all_eigen_vectors_and_values.size(); i++) {
-                GetLog() << "Eigenvalue " << std::to_string(i + 1).c_str()
-                         << ":\tReal: " << all_eigen_vectors_and_values.at(i).eigen_val.real()
-                         << "\tImag: " << all_eigen_vectors_and_values.at(i).eigen_val.imag() << "\n";
+                std::cout << "Eigenvalue " << std::to_string(i + 1).c_str()
+                          << ":\tReal: " << all_eigen_vectors_and_values.at(i).eigen_val.real()
+                          << "\tImag: " << all_eigen_vectors_and_values.at(i).eigen_val.imag() << std::endl;
             }
         }
     }
@@ -126,8 +128,9 @@ class EigenSolver {
         eig_o.eigen_vect = all_eigen_vectors_and_values.at(nmodes + imode - 1).eigen_vect;
         eig_o.eigen_vect = eig_o.eigen_vect / eig_o.eigen_vect.cwiseAbs().maxCoeff();  // normalized to unit
 
-        GetLog() << "\nThe eigenvalue of mode " << imode << " is: "
-                 << ":\tReal: " << eig_o.eigen_val.real() << ":\tImag: " << eig_o.eigen_val.imag() << "\n";
+        std::cout << std::endl
+                  << "The eigenvalue of mode " << imode << " is: "
+                  << ":\tReal: " << eig_o.eigen_val.real() << ":\tImag: " << eig_o.eigen_val.imag() << std::endl;
 
         return eig_o;
     }
@@ -140,8 +143,8 @@ class EigenSolver {
 // First example: Pendulum
 //====================================
 void test_pendulum() {
-    GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: static and eigenvalue analysis of a pendulum\n\n";
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: static and eigenvalue analysis of a pendulum\n" << std::endl;
 
     // Some variables to parameterize the model
     // The length of the pendulum, m
@@ -170,30 +173,30 @@ void test_pendulum() {
     sys.Add(load_container);
 
     auto my_root = chrono_types::make_shared<ChBody>();
-    my_root->SetCoord(VNULL, QUNIT);
+    my_root->SetCsys(VNULL, QUNIT);
     my_root->SetMass(1e6);
-    my_root->SetInertiaXX(ChVector<>(1, 1, 1));
+    my_root->SetInertiaXX(ChVector3d(1, 1, 1));
     my_root->SetNameString("base");
     my_root->SetBodyFixed(true);
     my_root->SetCollide(false);
     sys.AddBody(my_root);
 
     auto cyl_rev = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, 0.4);
-    my_root->AddVisualShape(cyl_rev, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
+    my_root->AddVisualShape(cyl_rev, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
 
     auto my_mass = chrono_types::make_shared<ChBody>();
-    ChVector<> mass_pos = ChVector<>(length * std::sin(offset_angle), 0, -length * std::cos(offset_angle));
-    ChVector<> Zdir = (my_root->GetPos() - mass_pos).GetNormalized();
-    ChVector<> Ydir = my_root->GetRot().GetYaxis().GetNormalized();
-    ChVector<> Xdir = Ydir.Cross(Zdir).GetNormalized();
-    ChVector<> mX;
-    ChVector<> mY;
-    ChVector<> mZ;
-    Xdir.DirToDxDyDz(mX, mY, mZ, Ydir);
-    ChQuaternion<> mass_rot = ChMatrix33<>(mX, mY, mZ).Get_A_quaternion();
-    my_mass->SetCoord(mass_pos, mass_rot);
+    ChVector3d mass_pos = ChVector3d(length * std::sin(offset_angle), 0, -length * std::cos(offset_angle));
+    ChVector3d Zdir = (my_root->GetPos() - mass_pos).GetNormalized();
+    ChVector3d Ydir = my_root->GetRot().GetAxisY().GetNormalized();
+    ChVector3d Xdir = Ydir.Cross(Zdir).GetNormalized();
+    ChVector3d mX;
+    ChVector3d mY;
+    ChVector3d mZ;
+    Xdir.GetDirectionAxesAsX(mX, mY, mZ, Ydir);
+    ChQuaternion<> mass_rot = ChMatrix33<>(mX, mY, mZ).GetQuaternion();
+    my_mass->SetCsys(mass_pos, mass_rot);
     my_mass->SetMass(tip_mass);
-    my_mass->SetInertiaXX(ChVector<>(0, 0, 0));
+    my_mass->SetInertiaXX(ChVector3d(0, 0, 0));
     my_mass->SetNameString("mass");
     my_mass->SetCollide(false);
     sys.AddBody(my_mass);
@@ -202,9 +205,8 @@ void test_pendulum() {
     sph->SetColor(ChColor(0.7f, 0.8f, 0.8f));
     my_mass->AddVisualShape(sph);
 
-    ChFrameMoving<> rel_frame;
-    my_mass->TransformParentToLocal(my_root->GetFrame_COG_to_abs(), rel_frame);
-    geometry::ChLineSegment seg(VNULL, rel_frame.GetPos());
+    ChFrameMoving<> rel_frame = my_mass->TransformParentToLocal(my_root->GetFrame_COG_to_abs());
+    ChLineSegment seg(VNULL, rel_frame.GetPos());
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.05, seg.GetLength());
     cyl->SetColor(ChColor(0.7f, 0.8f, 0.8f));
     my_mass->AddVisualShape(cyl, seg.GetFrame());
@@ -227,7 +229,7 @@ void test_pendulum() {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(3, 1, 3));
+    vis->AddCamera(ChVector3d(3, 1, 3));
     vis->AddTypicalLights();
     vis->EnableBodyFrameDrawing(false);
     vis->EnableLinkFrameDrawing(false);
@@ -252,9 +254,10 @@ void test_pendulum() {
     // ====================================
     // Static analysis
     // ====================================
-    GetLog() << "\nThe initial position of the end mass is:\n"
-             << "\tx:  " << my_mass->GetPos().x() << "\ty:  " << my_mass->GetPos().y()
-             << "\tz:  " << my_mass->GetPos().z() << "\n";
+    std::cout << std::endl
+              << "The initial position of the end mass is:\n"
+              << "\tx:  " << my_mass->GetPos().x() << "\ty:  " << my_mass->GetPos().y()
+              << "\tz:  " << my_mass->GetPos().z() << std::endl;
 
     // Firstly, we call DoFullAssembly() to calculate the reaction forces/torques at the initial configuration of
     // system.
@@ -269,16 +272,16 @@ void test_pendulum() {
         vis->EndScene();
     }
 
-    GetLog() << "\nAfter doing the nonlinear static analysis:\n";
-    GetLog() << "\tThe final position of the end mass is:\n"
-             << "\t\tx:  " << my_mass->GetPos().x() << "\ty:  " << my_mass->GetPos().y()
-             << "\tz:  " << my_mass->GetPos().z() << "\n";
-    GetLog() << "\tThe reaction forces at the root are:\n"
-             << "\t\tfx:  " << my_joint->Get_react_force().x() << "\tfy:  " << my_joint->Get_react_force().y()
-             << "\tfz:  " << my_joint->Get_react_force().z() << "\n";
-    GetLog() << "\tThe reaction torques at the root are:\n"
-             << "\t\tmx:  " << my_joint->Get_react_torque().x() << "\tmy:  " << my_joint->Get_react_torque().y()
-             << "\tmz:  " << my_joint->Get_react_torque().z() << "\n";
+    std::cout << "\nAfter doing the nonlinear static analysis:" << std::endl;
+    std::cout << "\tThe final position of the end mass is:\n"
+              << "\t\tx:  " << my_mass->GetPos().x() << "\ty:  " << my_mass->GetPos().y()
+              << "\tz:  " << my_mass->GetPos().z() << std::endl;
+    std::cout << "\tThe reaction forces at the root are:\n"
+              << "\t\tfx:  " << my_joint->Get_react_force().x() << "\tfy:  " << my_joint->Get_react_force().y()
+              << "\tfz:  " << my_joint->Get_react_force().z() << std::endl;
+    std::cout << "\tThe reaction torques at the root are:\n"
+              << "\t\tmx:  " << my_joint->Get_react_torque().x() << "\tmy:  " << my_joint->Get_react_torque().y()
+              << "\tmz:  " << my_joint->Get_react_torque().z() << std::endl;
 
     // ====================================
     // Eigenvalue analysis
@@ -286,7 +289,8 @@ void test_pendulum() {
     EigenSolver eig_solver(sys);
     eig_solver.ShowAllEigenvalues();
 
-    GetLog() << "\nThe theoretical oscillation frequency is:\t" << std::sqrt(gacc / length) << " rad/s\n";
+    std::cout << std::endl
+              << "The theoretical oscillation frequency is:\t" << std::sqrt(gacc / length) << " rad/s" << std::endl;
 }
 
 // ====================================
@@ -294,8 +298,8 @@ void test_pendulum() {
 // Second example: Anchor chain
 // ====================================
 void test_anchorchain() {
-    GetLog() << "\n-------------------------------------------------\n";
-    GetLog() << "TEST: static and eigenvalue analysis of an anchor chain\n\n";
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: static and eigenvalue analysis of an anchor chain\n" << std::endl;
 
     // The mass and inertia properties of every link in the anchor chain
     double mass = 10;
@@ -344,7 +348,7 @@ void test_anchorchain() {
     auto anchorA = chrono_types::make_shared<ChBody>();
     anchorA->SetNameString("anchorA");
     anchorA->SetPos({xA, 0, 0});
-    anchorA->SetRot(Q_from_AngY(CH_C_PI_4));
+    anchorA->SetRot(QuatFromAngleY(CH_C_PI_4));
     anchorA->SetMass(mass);
     anchorA->SetInertiaXX({Jxx, Jyy, Jzz});
     anchorA->AddVisualShape(box);
@@ -365,7 +369,7 @@ void test_anchorchain() {
     auto anchorB = chrono_types::make_shared<ChBody>();
     anchorB->SetNameString("anchorB");
     anchorB->SetPos({xB, 0, 0});
-    anchorB->SetRot(Q_from_AngY(-CH_C_PI_4));
+    anchorB->SetRot(QuatFromAngleY(-CH_C_PI_4));
     anchorB->SetMass(mass);
     anchorB->SetInertiaXX({Jxx, Jyy, Jzz});
     anchorB->AddVisualShape(box);
@@ -390,18 +394,18 @@ void test_anchorchain() {
         double len_tot = (pA->GetPos() - pB->GetPos()).Length();
         double len = len_tot / (double)(mN + 1);
 
-        ChVector<> Xdir = (pB->GetPos() - pA->GetPos()).GetNormalized();
-        ChVector<> Ydir = {0, 1, 0};
-        ChVector<> Zdir = Xdir.Cross(Ydir).GetNormalized();
-        ChVector<> mX;
-        ChVector<> mY;
-        ChVector<> mZ;
-        Xdir.DirToDxDyDz(mX, mY, mZ, Ydir);
-        ChQuaternion<> knot_rot = ChMatrix33<>(mX, mY, mZ).Get_A_quaternion();
+        ChVector3d Xdir = (pB->GetPos() - pA->GetPos()).GetNormalized();
+        ChVector3d Ydir = {0, 1, 0};
+        ChVector3d Zdir = Xdir.Cross(Ydir).GetNormalized();
+        ChVector3d mX;
+        ChVector3d mY;
+        ChVector3d mZ;
+        Xdir.GetDirectionAxesAsX(mX, mY, mZ, Ydir);
+        ChQuaternion<> knot_rot = ChMatrix33<>(mX, mY, mZ).GetQuaternion();
 
         for (int i_body = 0; i_body < mN; i_body++) {
             auto knot = chrono_types::make_shared<ChBody>();
-            ChVector<> deltaP = (pB->GetPos() - pA->GetPos()) / (double)(mN + 1);
+            ChVector3d deltaP = (pB->GetPos() - pA->GetPos()) / (double)(mN + 1);
             knot->SetPos(pA->GetPos() + deltaP * (i_body + 1));
             knot->SetRot(knot_rot);
             knot->SetMass(mass);
@@ -409,7 +413,7 @@ void test_anchorchain() {
 
             auto cyl_rev = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, len * 0.8);
             cyl_rev->SetColor(ChColor(0, 0, 1));
-            knot->AddVisualShape(cyl_rev, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
+            knot->AddVisualShape(cyl_rev, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
 
             knot_list.push_back(knot);
             sys.AddBody(knot);
@@ -447,10 +451,10 @@ void test_anchorchain() {
 
     // Create output directory and output file
     std::string out_dir = GetChronoOutputPath() + "ANCHOR_CHAIN";
-    GetLog() << "out_dir is:\n" << out_dir << "\n";
+    std::cout << "out_dir is:\n" << out_dir << std::endl;
 
     if (true) {  // static analysis
-        GetLog() << "\n\n ******** Static analysis ******** \n\n";
+        std::cout << "\n\n******** Static analysis ******** \n" << std::endl;
 
         // Set solver for static analysis
         ChStaticNonLinearRigidMotion rigid_static_analysis;
@@ -468,9 +472,9 @@ void test_anchorchain() {
         // The mass per unit length of the anchor chain
         double mass_per_unit_length = total_mass / total_length;
 
-        GetLog() << "\nAt the initial configuration:\n";
-        GetLog() << "anchorC position:\t" << anchorC->GetPos().x() << "\t" << anchorC->GetPos().y() << "\t"
-                 << anchorC->GetPos().z() << "\n";
+        std::cout << "\nAt the initial configuration:" << std::endl;
+        std::cout << "anchorC position:\t" << anchorC->GetPos().x() << "\t" << anchorC->GetPos().y() << "\t"
+                  << anchorC->GetPos().z() << std::endl;
 
         // Firstly, we call DoFullAssembly() to calculate the reaction forces/torques at the initial configuration of
         // system.
@@ -478,17 +482,17 @@ void test_anchorchain() {
         // Secondly, we perform the static analysis using the solver ChStaticNonLinearRigidMotion().
         sys.DoStaticAnalysis(rigid_static_analysis);
 
-        GetLog() << "\nAfter doing the static nonlinear analysis:\n";
-        GetLog() << "anchorC position:\t" << anchorC->GetPos().x() << "\t" << anchorC->GetPos().y() << "\t"
-                 << anchorC->GetPos().z() << "\n";
+        std::cout << "\nAfter doing the static nonlinear analysis:" << std::endl;
+        std::cout << "anchorC position:\t" << anchorC->GetPos().x() << "\t" << anchorC->GetPos().y() << "\t"
+                  << anchorC->GetPos().z() << std::endl;
 
         // The coordiantes of the rigid bodies in the equilibrium configuration
         ChMatrixDynamic<> coords;
-        coords.resize(sys.Get_bodylist().size(), 3);
-        for (int i_body = 0; i_body < sys.Get_bodylist().size(); i_body++) {
-            coords(i_body, 0) = sys.Get_bodylist().at(i_body)->GetPos().x();
-            coords(i_body, 1) = sys.Get_bodylist().at(i_body)->GetPos().y();
-            coords(i_body, 2) = sys.Get_bodylist().at(i_body)->GetPos().z();
+        coords.resize(sys.GetBodies().size(), 3);
+        for (int i_body = 0; i_body < sys.GetBodies().size(); i_body++) {
+            coords(i_body, 0) = sys.GetBodies().at(i_body)->GetPos().x();
+            coords(i_body, 1) = sys.GetBodies().at(i_body)->GetPos().y();
+            coords(i_body, 2) = sys.GetBodies().at(i_body)->GetPos().z();
         }
         // sort according to the X coordinate (horizontal coordinate)
         std::sort(coords.rowwise().begin(), coords.rowwise().end(),
@@ -496,18 +500,18 @@ void test_anchorchain() {
 
         // The reaction forces and torques of the joints in the equilibrium configuration
         ChMatrixDynamic<> reactions;
-        reactions.resize(sys.Get_linklist().size(), 7);
-        for (int i_link = 0; i_link < sys.Get_linklist().size(); i_link++) {
-            reactions(i_link, 0) = sys.Get_linklist().at(i_link)->GetLinkAbsoluteCoords().pos.x();
+        reactions.resize(sys.GetLinks().size(), 7);
+        for (int i_link = 0; i_link < sys.GetLinks().size(); i_link++) {
+            reactions(i_link, 0) = sys.GetLinks().at(i_link)->GetLinkAbsoluteCoords().pos.x();
 
-            ChVector<> f_loc = sys.Get_linklist().at(i_link)->Get_react_force();
-            ChVector<> m_loc = sys.Get_linklist().at(i_link)->Get_react_torque();
-            ChQuaternion<> q_link = sys.Get_linklist().at(i_link)->GetLinkAbsoluteCoords().rot;
+            ChVector3d f_loc = sys.GetLinks().at(i_link)->Get_react_force();
+            ChVector3d m_loc = sys.GetLinks().at(i_link)->Get_react_torque();
+            ChQuaternion<> q_link = sys.GetLinks().at(i_link)->GetLinkAbsoluteCoords().rot;
             // Transform the reaction forces and torques of the joints from local frame to the absolute frame.
             // The horizontal reaction forces (along X direction) should be equal among all joints for the catenary
             // curve.
-            ChVector<> f_out = q_link.Rotate(f_loc);
-            ChVector<> m_out = q_link.Rotate(m_loc);
+            ChVector3d f_out = q_link.Rotate(f_loc);
+            ChVector3d m_out = q_link.Rotate(m_loc);
 
             reactions(i_link, 1) = f_out.x();  // it should be a constant value
             reactions(i_link, 2) = f_out.y();
@@ -529,8 +533,8 @@ void test_anchorchain() {
         double x_offset = xC;
         // catenary curve comparison with the analytical formula
         ChMatrixDynamic<> catenary_cmp;
-        catenary_cmp.resize(sys.Get_bodylist().size(), 3);
-        for (int i_body = 0; i_body < sys.Get_bodylist().size(); i_body++) {
+        catenary_cmp.resize(sys.GetBodies().size(), 3);
+        for (int i_body = 0; i_body < sys.GetBodies().size(); i_body++) {
             catenary_cmp(i_body, 0) = coords(i_body, 0);  // X coordinate
             catenary_cmp(i_body, 1) = coords(i_body, 2);  // Z coordiante from simulation
             // Z coordiante from the theoretical catinary curve
@@ -539,26 +543,26 @@ void test_anchorchain() {
 
         if (create_directory(path(out_dir))) {
             // coordinates of rigid bodies
-            ChStreamOutAsciiFile file_coords(out_dir + "/equilibrium_coords.dat");
-            file_coords.SetNumFormat("%.12g");
+            std::ofstream file_coords(out_dir + "/equilibrium_coords.dat");
+            file_coords << std::setprecision(12) << std::scientific;
             StreamOutDenseMatlabFormat(coords, file_coords);
 
             // catinary curve for comparison with the analytical formula
-            ChStreamOutAsciiFile file_catenary(out_dir + "/catenary_cmp.dat");
-            file_catenary.SetNumFormat("%.12g");
+            std::ofstream file_catenary(out_dir + "/catenary_cmp.dat");
+            file_catenary << std::setprecision(12) << std::scientific;
             StreamOutDenseMatlabFormat(catenary_cmp, file_catenary);
 
             // reaction forces and torques of all joints
-            ChStreamOutAsciiFile file_reactions(out_dir + "/equilibrium_reactions.dat");
-            file_reactions.SetNumFormat("%.12g");
+            std::ofstream file_reactions(out_dir + "/equilibrium_reactions.dat");
+            file_reactions << std::setprecision(12) << std::scientific;
             StreamOutDenseMatlabFormat(reactions, file_reactions);
         } else {
-            GetLog() << "  ...Error creating subdirectories\n";
+            std::cerr << "  ...Error creating subdirectories" << std::endl;
         }
     }
 
     if (true) {  // eigenvalue analysis
-        GetLog() << "\n\n ******** Eigenvalue analysis ******** \n\n";
+        std::cout << "\n\n******** Eigenvalue analysis ******** \n" << std::endl;
 
         // solve the eigenvalues at the equilibrium status
         EigenSolver eig_solver(sys);
@@ -572,9 +576,9 @@ void test_anchorchain() {
             modal_freq(imode - 1, 1) = eig_i.eigen_val.imag();
             modal_freq(imode - 1, 2) = eig_i.eigen_val.imag() / CH_C_2PI;
 
-            ChMatrixDynamic<> modal_shape_i(sys.GetNbodies(), 10);
+            ChMatrixDynamic<> modal_shape_i(sys.GetNumBodies(), 10);
             int r = 0;
-            for (auto ibody : sys.Get_bodylist()) {
+            for (auto ibody : sys.GetBodies()) {
                 if (ibody->IsActive()) {
                     modal_shape_i(r, 0) = r + 1;  // index of rigid body in the system
                     modal_shape_i(r, 1) = ibody->GetPos().x();
@@ -592,25 +596,25 @@ void test_anchorchain() {
                       [](auto const& r1, auto const& r2) { return r1(1) < r2(1); });
 
             if (create_directory(path(out_dir))) {
-                ChStreamOutAsciiFile file_shape(out_dir + "/modal_shape_" + std::to_string(imode) + ".dat");
-                file_shape.SetNumFormat("%.12g");
+                std::ofstream file_shape(out_dir + "/modal_shape_" + std::to_string(imode) + ".dat");
+                file_shape << std::setprecision(12) << std::scientific;
                 StreamOutDenseMatlabFormat(modal_shape_i, file_shape);
             } else {
-                GetLog() << "  ...Error creating subdirectories\n";
+                std::cerr << "  ...Error creating subdirectories" << std::endl;
             }
         }
 
         if (create_directory(path(out_dir))) {
-            ChStreamOutAsciiFile file_freq(out_dir + "/modal_freq.dat");
-            file_freq.SetNumFormat("%.12g");
+            std::ofstream file_freq(out_dir + "/modal_freq.dat");
+            file_freq << std::setprecision(12) << std::scientific;
             StreamOutDenseMatlabFormat(modal_freq, file_freq);
         } else {
-            GetLog() << "  ...Error creating subdirectories\n";
+            std::cerr << "  ...Error creating subdirectories" << std::endl;
         }
     }
 
     if (true) {  // dynamic analysis
-        GetLog() << "\n\n ******** Dynamic analysis ******** \n\n";
+        std::cout << "\n\n******** Dynamic analysis ******** \n" << std::endl;
 
         // use HHT second order integrator (but slower)
         sys.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -622,7 +626,7 @@ void test_anchorchain() {
             hht_stepper->SetModifiedNewton(false);
         }
 
-        auto DoDynamicsUnderImpulse = [&](const ChVector<>& vec_f, const std::string& filename) {
+        auto DoDynamicsUnderImpulse = [&](const ChVector3d& vec_f, const std::string& filename) {
             // Add the excitation at the middle point C
             auto push_force =
                 chrono_types::make_shared<ChLoadBodyForce>(knot_list.at(Nrig + 1), vec_f, false, VNULL, true);
@@ -645,7 +649,7 @@ void test_anchorchain() {
             vis->Initialize();
             vis->AddLogo();
             vis->AddSkyBox();
-            vis->AddCamera(anchorC->GetPos() + ChVector<>(1, -10, 5), anchorC->GetPos() + ChVector<>(1, 0, 3));
+            vis->AddCamera(anchorC->GetPos() + ChVector3d(1, -10, 5), anchorC->GetPos() + ChVector3d(1, 0, 3));
             vis->AddTypicalLights();
             vis->EnableBodyFrameDrawing(false);
             vis->EnableLinkFrameDrawing(false);
@@ -669,19 +673,19 @@ void test_anchorchain() {
                 vibration(frame, 3) = anchorC->GetPos().z();
 
                 if (frame % 20 == 0) {
-                    GetLog() << "t: " << sys.GetChTime() << "\t";
-                    GetLog() << "anchorC position:\t" << anchorC->GetPos().x() << "\t" << anchorC->GetPos().y() << "\t"
-                             << anchorC->GetPos().z() << "\n";
+                    std::cout << "t: " << sys.GetChTime() << "\t";
+                    std::cout << "anchorC position:\t" << anchorC->GetPos().x() << "\t" << anchorC->GetPos().y() << "\t"
+                              << anchorC->GetPos().z() << std::endl;
                 }
                 frame++;
             }
 
             if (create_directory(path(out_dir))) {
-                ChStreamOutAsciiFile file_vibration(out_dir + "/" + filename + ".dat");
-                file_vibration.SetNumFormat("%.12g");
+                std::ofstream file_vibration(out_dir + "/" + filename + ".dat");
+                file_vibration << std::setprecision(12) << std::scientific;
                 StreamOutDenseMatlabFormat(vibration, file_vibration);
             } else {
-                GetLog() << "  ...Error creating subdirectories\n";
+                std::cout << "  ...Error creating subdirectories" << std::endl;
             }
         };
 
@@ -694,12 +698,12 @@ void test_anchorchain() {
         sys.StateSetup(X0, V0, A0);
         sys.StateGather(X0, V0, T0);
         sys.StateGatherAcceleration(A0);
-        L0.resize(sys.GetNconstr());
+        L0.resize(sys.GetNumConstraints());
         sys.StateGatherReactions(L0);
 
         // excitation in X direction (In-plane horizontal motion is expected)
-        GetLog() << "\n\nExcitation in +X direction\n\n";
-        ChVector<> vec_fx = ChVector<>(mass * gacc * 5, 0, 0);
+        std::cout << "\nExcitation in +X direction\n" << std::endl;
+        ChVector3d vec_fx = ChVector3d(mass * gacc * 5, 0, 0);
         DoDynamicsUnderImpulse(vec_fx, "vibration_x");
 
         // recover the system to the exactly same equilibrium status
@@ -707,8 +711,8 @@ void test_anchorchain() {
         sys.StateScatterAcceleration(A0);
         sys.StateScatterReactions(L0);
         // excitation in Y direction (Out-of-plane motion is expected)
-        GetLog() << "\n\nExcitation in +Y direction\n\n";
-        ChVector<> vec_fy = ChVector<>(0, mass * gacc * 5, 0);
+        std::cout << "\nExcitation in +Y direction\n" << std::endl;
+        ChVector3d vec_fy = ChVector3d(0, mass * gacc * 5, 0);
         DoDynamicsUnderImpulse(vec_fy, "vibration_y");
 
         // recover the system to the exactly same equilibrium status
@@ -716,14 +720,15 @@ void test_anchorchain() {
         sys.StateScatterAcceleration(A0);
         sys.StateScatterReactions(L0);
         // excitation in Z direction (In-plane vertical motion is expected)
-        GetLog() << "\n\nExcitation in -Z direction\n\n";
-        ChVector<> vec_fz = ChVector<>(0, 0, -mass * gacc * 5);
+        std::cout << "\nExcitation in -Z direction\n" << std::endl;
+        ChVector3d vec_fz = ChVector3d(0, 0, -mass * gacc * 5);
         DoDynamicsUnderImpulse(vec_fz, "vibration_z");
     }
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\n"
+              << "Chrono version: " << CHRONO_VERSION << std::endl;
 
     // test_pendulum();
 

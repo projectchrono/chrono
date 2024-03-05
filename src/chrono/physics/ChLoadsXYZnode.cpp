@@ -27,21 +27,21 @@ ChLoadXYZnodeForce::ChLoadXYZnodeForce(std::shared_ptr<ChNodeXYZ> node) : ChLoad
 void ChLoadXYZnodeForce::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     auto node = std::dynamic_pointer_cast<ChNodeXYZ>(this->loadable);
 
-    ChVector<> nodeApos;
-    ChVector<> nodeApos_dt;
+    ChVector3d nodeApos;
+    ChVector3d nodeApos_dt;
 
     if (state_x) {
         // the numerical jacobian algo might change state_x
-        nodeApos = ChVector<>(state_x->segment(0, 3));
+        nodeApos = ChVector3d(state_x->segment(0, 3));
     } else {
         nodeApos = node->GetPos();
     }
 
     if (state_w) {
         // the numerical jacobian algo might change state_w
-        nodeApos_dt = ChVector<>(state_w->segment(0, 3));
+        nodeApos_dt = ChVector3d(state_w->segment(0, 3));
     } else {
-        nodeApos_dt = node->GetPos_dt();
+        nodeApos_dt = node->GetPosDer();
     }
 
     ComputeForce(nodeApos, nodeApos_dt, computed_abs_force);
@@ -58,30 +58,30 @@ void ChLoadXYZnodeForce::Update(double time) {
 // ChLoadXYZnodeForceAbsolute
 // -----------------------------------------------------------------------------
 
-ChLoadXYZnodeForceAbsolute::ChLoadXYZnodeForceAbsolute(std::shared_ptr<ChNodeXYZ> body, const ChVector<>& force)
+ChLoadXYZnodeForceAbsolute::ChLoadXYZnodeForceAbsolute(std::shared_ptr<ChNodeXYZ> body, const ChVector3d& force)
     : ChLoadXYZnodeForce(body), m_force_base(force), m_scale(1) {
-    m_modulation = chrono_types::make_shared<ChFunction_Const>(1.0);
+    m_modulation = chrono_types::make_shared<ChFunctionConst>(1.0);
 }
 
 /// Compute the force on the node, in absolute coordsystem,
 /// given position of node as abs_pos.
-void ChLoadXYZnodeForceAbsolute::ComputeForce(const ChVector<>& abs_pos,
-                                              const ChVector<>& abs_vel,
-                                              ChVector<>& abs_force) {
+void ChLoadXYZnodeForceAbsolute::ComputeForce(const ChVector3d& abs_pos,
+                                              const ChVector3d& abs_vel,
+                                              ChVector3d& abs_force) {
     abs_force = GetForce();
 }
 
 void ChLoadXYZnodeForceAbsolute::Update(double time) {
     m_modulation->Update(time);
-    m_scale = m_modulation->Get_y(time);
+    m_scale = m_modulation->GetVal(time);
     ChLoadXYZnodeForce::Update(time);
 }
 
-void ChLoadXYZnodeForceAbsolute::SetForceBase(const ChVector<>& force) {
+void ChLoadXYZnodeForceAbsolute::SetForceBase(const ChVector3d& force) {
     m_force_base = force;
 }
 
-ChVector<> ChLoadXYZnodeForceAbsolute::GetForce() const {
+ChVector3d ChLoadXYZnodeForceAbsolute::GetForce() const {
     return m_force_base * m_scale;
 }
 
@@ -98,10 +98,10 @@ void ChLoadXYZnodeXYZnode::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     auto mnodeA = std::dynamic_pointer_cast<ChNodeXYZ>(this->loadables[0]);
     auto mnodeB = std::dynamic_pointer_cast<ChNodeXYZ>(this->loadables[1]);
 
-    ChVector<> nodeApos;
-    ChVector<> nodeApos_dt;
-    ChVector<> nodeBpos;
-    ChVector<> nodeBpos_dt;
+    ChVector3d nodeApos;
+    ChVector3d nodeApos_dt;
+    ChVector3d nodeBpos;
+    ChVector3d nodeBpos_dt;
 
     if (state_x) {
         // the numerical jacobian algo might change state_x
@@ -117,8 +117,8 @@ void ChLoadXYZnodeXYZnode::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
         nodeApos_dt = state_w->segment(0, 3);
         nodeBpos_dt = state_w->segment(3, 3);
     } else {
-        nodeApos_dt = mnodeA->GetPos_dt();
-        nodeBpos_dt = mnodeB->GetPos_dt();
+        nodeApos_dt = mnodeA->GetPosDer();
+        nodeBpos_dt = mnodeB->GetPosDer();
     }
 
     ComputeForce((nodeApos - nodeBpos), (nodeApos_dt - nodeBpos_dt), computed_abs_force);
@@ -145,10 +145,10 @@ ChLoadXYZnodeXYZnodeSpring::ChLoadXYZnodeXYZnodeSpring(std::shared_ptr<ChNodeXYZ
 
 /// Compute the force on the node, in absolute coordsystem,
 /// given position of node as abs_pos.
-void ChLoadXYZnodeXYZnodeSpring::ComputeForce(const ChVector<>& rel_pos,
-                                              const ChVector<>& rel_vel,
-                                              ChVector<>& abs_force) {
-    ChVector<> BA = rel_pos.GetNormalized();
+void ChLoadXYZnodeXYZnodeSpring::ComputeForce(const ChVector3d& rel_pos,
+                                              const ChVector3d& rel_vel,
+                                              ChVector3d& abs_force) {
+    ChVector3d BA = rel_pos.GetNormalized();
     double d = rel_pos.Length() - d0;
     double d_dt = Vdot(rel_vel, BA);
     abs_force = (-K * d - R * d_dt) * BA;
@@ -161,19 +161,19 @@ void ChLoadXYZnodeXYZnodeSpring::ComputeForce(const ChVector<>& rel_pos,
 ChLoadXYZnodeXYZnodeBushing::ChLoadXYZnodeXYZnodeBushing(std::shared_ptr<ChNodeXYZ> nodeA,
                                                          std::shared_ptr<ChNodeXYZ> nodeB)
     : ChLoadXYZnodeXYZnode(nodeA, nodeB), R(VNULL), is_stiff(false) {
-    force_dX = chrono_types::make_shared<ChFunction_Const>(0.0);
-    force_dY = chrono_types::make_shared<ChFunction_Const>(0.0);
-    force_dZ = chrono_types::make_shared<ChFunction_Const>(0.0);
+    force_dX = chrono_types::make_shared<ChFunctionConst>(0.0);
+    force_dY = chrono_types::make_shared<ChFunctionConst>(0.0);
+    force_dZ = chrono_types::make_shared<ChFunctionConst>(0.0);
 }
 
 /// Compute the force on the node, in absolute coordsystem,
 /// given position of node as abs_pos.
-void ChLoadXYZnodeXYZnodeBushing::ComputeForce(const ChVector<>& rel_pos,
-                                               const ChVector<>& rel_vel,
-                                               ChVector<>& abs_force) {
-    abs_force = ChVector<>(force_dX->Get_y(rel_pos.x()) - R.x() * rel_vel.x(),
-                           force_dY->Get_y(rel_pos.y()) - R.y() * rel_vel.y(),
-                           force_dZ->Get_y(rel_pos.z()) - R.z() * rel_vel.z());
+void ChLoadXYZnodeXYZnodeBushing::ComputeForce(const ChVector3d& rel_pos,
+                                               const ChVector3d& rel_vel,
+                                               ChVector3d& abs_force) {
+    abs_force = ChVector3d(force_dX->GetVal(rel_pos.x()) - R.x() * rel_vel.x(),
+                           force_dY->GetVal(rel_pos.y()) - R.y() * rel_vel.y(),
+                           force_dZ->GetVal(rel_pos.z()) - R.z() * rel_vel.z());
 }
 
 // -----------------------------------------------------------------------------
@@ -183,7 +183,7 @@ void ChLoadXYZnodeXYZnodeBushing::ComputeForce(const ChVector<>& rel_pos,
 ChLoadXYZnodeBody::ChLoadXYZnodeBody(std::shared_ptr<ChNodeXYZ> nodeA, std::shared_ptr<ChBody> bodyB)
     : ChLoadCustomMultiple(nodeA, bodyB) {
     ChFrame<> abs_application(nodeA->GetPos());
-    bodyB->ChFrame::TransformParentToLocal(abs_application, loc_application_B);
+    loc_application_B = bodyB->ChFrame::TransformParentToLocal(abs_application);
     computed_loc_force = VNULL;
 }
 
@@ -195,20 +195,20 @@ void ChLoadXYZnodeBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     if (state_x) {
         // the numerical jacobian algo might change state_x
         bodycoordA.SetPos(state_x->segment(0, 3));
-        bodycoordB.SetCoord(state_x->segment(3, 7));
+        bodycoordB.SetCsys(state_x->segment(3, 7));
     } else {
         bodycoordA.SetPos(nodeA->pos);
-        bodycoordB.SetCoord(bodyB->coord);
+        bodycoordB.SetCsys(bodyB->GetCsys());
     }
 
     if (state_w) {
         // the numerical jacobian algo might change state_w
-        bodycoordA.SetPos_dt(state_w->segment(0, 3));
-        bodycoordB.SetPos_dt(state_w->segment(3, 3));
-        bodycoordB.SetWvel_loc(state_w->segment(6, 3));
+        bodycoordA.SetPosDer(state_w->segment(0, 3));
+        bodycoordB.SetPosDer(state_w->segment(3, 3));
+        bodycoordB.SetAngVelLocal(state_w->segment(6, 3));
     } else {
-        bodycoordA.SetPos_dt(nodeA->GetPos_dt());
-        bodycoordB.SetCoord_dt(bodyB->GetCoord_dt());
+        bodycoordA.SetPosDer(nodeA->GetPosDer());
+        bodycoordB.SetCsysDer(bodyB->GetCsysDer());
     }
 
     frame_Aw = bodycoordA;
@@ -219,12 +219,12 @@ void ChLoadXYZnodeBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 
     ComputeForce(rel_AB, computed_loc_force);
 
-    ChVector<> abs_force = frame_Bw.TransformDirectionLocalToParent(computed_loc_force);
+    ChVector3d abs_force = frame_Bw.TransformDirectionLocalToParent(computed_loc_force);
 
     // Compute Q
     load_Q.segment(0, 3) = abs_force.eigen();
 
-    ChVector<> loc_ftorque = bodycoordB.GetRot().RotateBack(((frame_Bw.GetPos() - bodycoordB.GetPos()) % abs_force));
+    ChVector3d loc_ftorque = bodycoordB.GetRot().RotateBack(((frame_Bw.GetPos() - bodycoordB.GetPos()) % abs_force));
     load_Q.segment(3, 3) = -abs_force.eigen();
     load_Q.segment(6, 3) = -loc_ftorque.eigen();
 }
@@ -252,10 +252,10 @@ ChLoadXYZnodeBodySpring::ChLoadXYZnodeBodySpring(std::shared_ptr<ChNodeXYZ> node
 
 /// Compute the force on the node, in absolute coordsystem,
 /// given position of node as abs_pos.
-void ChLoadXYZnodeBodySpring::ComputeForce(const ChFrameMoving<>& rel_AB, ChVector<>& loc_force) {
-    ChVector<> BA = rel_AB.GetPos().GetNormalized();
+void ChLoadXYZnodeBodySpring::ComputeForce(const ChFrameMoving<>& rel_AB, ChVector3d& loc_force) {
+    ChVector3d BA = rel_AB.GetPos().GetNormalized();
     double d = rel_AB.GetPos().Length() - d0;
-    double d_dt = Vdot(rel_AB.GetPos_dt(), BA);
+    double d_dt = Vdot(rel_AB.GetPosDer(), BA);
     loc_force = (-K * d - R * d_dt) * BA;
 }
 
@@ -265,19 +265,19 @@ void ChLoadXYZnodeBodySpring::ComputeForce(const ChFrameMoving<>& rel_AB, ChVect
 
 ChLoadXYZnodeBodyBushing::ChLoadXYZnodeBodyBushing(std::shared_ptr<ChNodeXYZ> nodeA, std::shared_ptr<ChBody> bodyB)
     : ChLoadXYZnodeBody(nodeA, bodyB) {
-    force_dX = chrono_types::make_shared<ChFunction_Const>(0.0);
-    force_dY = chrono_types::make_shared<ChFunction_Const>(0.0);
-    force_dZ = chrono_types::make_shared<ChFunction_Const>(0.0);
+    force_dX = chrono_types::make_shared<ChFunctionConst>(0.0);
+    force_dY = chrono_types::make_shared<ChFunctionConst>(0.0);
+    force_dZ = chrono_types::make_shared<ChFunctionConst>(0.0);
     R = VNULL;
     is_stiff = false;
 }
 
 /// Compute the force on the node, in absolute coordsystem,
 /// given position of node as abs_pos.
-void ChLoadXYZnodeBodyBushing::ComputeForce(const ChFrameMoving<>& rel_AB, ChVector<>& loc_force) {
-    loc_force = ChVector<>(force_dX->Get_y(rel_AB.GetPos().x()) - R.x() * rel_AB.GetPos_dt().x(),
-                           force_dY->Get_y(rel_AB.GetPos().y()) - R.y() * rel_AB.GetPos_dt().y(),
-                           force_dZ->Get_y(rel_AB.GetPos().z()) - R.z() * rel_AB.GetPos_dt().z());
+void ChLoadXYZnodeBodyBushing::ComputeForce(const ChFrameMoving<>& rel_AB, ChVector3d& loc_force) {
+    loc_force = ChVector3d(force_dX->GetVal(rel_AB.GetPos().x()) - R.x() * rel_AB.GetPosDer().x(),
+                           force_dY->GetVal(rel_AB.GetPos().y()) - R.y() * rel_AB.GetPosDer().y(),
+                           force_dZ->GetVal(rel_AB.GetPos().z()) - R.z() * rel_AB.GetPosDer().z());
 }
 
 }  // end namespace chrono

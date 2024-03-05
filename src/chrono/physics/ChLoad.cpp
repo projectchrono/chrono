@@ -333,7 +333,7 @@ void ChLoadCustomMultiple::LoadIntLoadResidual_F(ChVectorDynamic<>& R, const dou
             mQoffset += loadables[k]->GetSubBlockSize(i);
         }
     }
-    // GetLog() << " debug: R=" << R << "\n";
+    // std::cout << " debug: R=" << R << std::endl;
 }
 
 void ChLoadCustomMultiple::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {

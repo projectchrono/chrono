@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
     bool output = (0);  // Determines whether it tests (0) or generates golden file (1)
     ChMatrixDynamic<> FileInputMat(15000, 3);
     if (output) {
-        GetLog() << "Output file: ../TEST_Brick/tip_position.txt\n";
+        std::cout << "Output file: ../TEST_Brick/tip_position.txt\n";
     } else {
         // Utils to open/read files: Load reference solution ("golden") file
         std::string EASBrick_val_file = GetChronoDataPath() + "testing/fea/UT_EASBrickIso.txt";
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
             fileMid >> FileInputMat(x, 0) >> FileInputMat(x, 1) >> FileInputMat(x, 2);
         }
         fileMid.close();
-        GetLog() << "Running in unit test mode.\n";
+        std::cout << "Running in unit test mode.\n";
     }
 
     // --------------------------
@@ -74,9 +74,9 @@ int main(int argc, char* argv[]) {
     // --------------------------
     ChSystemNSC sys;
 
-    GetLog() << "-----------------------------------------------------------\n";
-    GetLog() << "     Brick Element Unit Test \n";
-    GetLog() << "-----------------------------------------------------------\n";
+    std::cout << "-----------------------------------------------------------\n";
+    std::cout << "     Brick Element Unit Test \n";
+    std::cout << "-----------------------------------------------------------\n";
 
     // The physical system: it contains all physical objects.
     // Create a mesh, that is a container for groups
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
     int i = 0;
     while (i < TotalNumNodes) {
         auto node =
-            chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
+            chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
         node->SetMass(0.0);
         // Fix nodes clamped to the ground
         my_mesh->AddNode(node);
@@ -246,7 +246,7 @@ int main(int argc, char* argv[]) {
     if (output) {
         // Create output directory (if it does not already exist).
         if (!filesystem::create_directory(filesystem::path("../TEST_Brick"))) {
-            GetLog() << "Error creating directory ../TEST_Brick\n";
+            std::cout << "Error creating directory ../TEST_Brick\n";
             return 1;
         }
 
@@ -259,13 +259,13 @@ int main(int argc, char* argv[]) {
         while (sys.GetChTime() < sim_time) {
             t_sim = sys.GetChTime();
             if (t_sim < T_F)
-                nodetip->SetForce(ChVector<>(0, 0, -50 / 2 * (1 - cos((t_sim / T_F) * 3.1415926535))));
+                nodetip->SetForce(ChVector3d(0, 0, -50 / 2 * (1 - cos((t_sim / T_F) * 3.1415926535))));
             else {
-                nodetip->SetForce(ChVector<>(0, 0, -50));
+                nodetip->SetForce(ChVector3d(0, 0, -50));
             }
             sys.DoStepDynamics(step_size);
             out << sys.GetChTime() << nodetip->GetPos().z() << nodetip->GetForce().z() << std::endl;
-            GetLog() << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << "\t"
+            std::cout << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << "\t"
                      << nodetip->GetForce().z() << "\n";
         }
         // Write results to output file.
@@ -280,13 +280,13 @@ int main(int argc, char* argv[]) {
         while (sys.GetChTime() < sim_time_UT) {
             t_sim = sys.GetChTime();
             if (t_sim < T_F)
-                nodetip->SetForce(ChVector<>(0, 0, -50 / 2 * (1 - cos((t_sim / T_F) * 3.1415926535))));
+                nodetip->SetForce(ChVector3d(0, 0, -50 / 2 * (1 - cos((t_sim / T_F) * 3.1415926535))));
             else {
-                nodetip->SetForce(ChVector<>(0, 0, -50));
+                nodetip->SetForce(ChVector3d(0, 0, -50));
             }
             sys.DoStepDynamics(step_size);
             AbsVal = std::abs(nodetip->GetPos().z() - FileInputMat(stepNo, 1));
-            GetLog() << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << "\n";
+            std::cout << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << "\n";
             if (AbsVal > precision) {
                 std::cout << "Unit test check failed \n";
                 return 1;
@@ -296,7 +296,7 @@ int main(int argc, char* argv[]) {
         }
         // Report run time and total number of iterations.
         double duration = (std::clock() - start) / (double)CLOCKS_PER_SEC;
-        GetLog() << "Computation Time: " << duration << "   Number of iterations: " << Iterations << "\n";
+        std::cout << "Computation Time: " << duration << "   Number of iterations: " << Iterations << "\n";
         std::cout << "Unit test check succeeded \n";
     }
 

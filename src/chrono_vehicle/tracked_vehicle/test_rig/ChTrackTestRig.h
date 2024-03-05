@@ -136,7 +136,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     /// Return estimated resistive torque on the specified sprocket.
     /// This torque is available only if monitoring of contacts for that sprocket is enabled.
-    ChVector<> GetSprocketResistiveTorque(VehicleSide side) const {
+    ChVector3d GetSprocketResistiveTorque(VehicleSide side) const {
         return m_contact_manager->GetSprocketResistiveTorque(side);
     }
 

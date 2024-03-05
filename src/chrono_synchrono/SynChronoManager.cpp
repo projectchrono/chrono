@@ -327,7 +327,7 @@ void SynChronoManager::CreateAgentsFromDescriptions() {
                 }
                 it = messages.erase(it);
 
-            } catch (const ChException&) {
+            } catch (const std::exception&) {
                 ++it;
             }
         }

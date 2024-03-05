@@ -95,7 +95,7 @@ std::string out_dir = GetChronoOutputPath() + "HMMWV_ACCELERATION";
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     if (terrain_type == TerrainType::FLAT &&
         (tire_model == TireModelType::RIGID || tire_model == TireModelType::RIGID_MESH)) {
@@ -115,11 +115,11 @@ int main(int argc, char* argv[]) {
     // Create systems
     // --------------
 
-    ChQuaternion<> yaw_rot = Q_from_AngZ(yaw_angle);
+    ChQuaternion<> yaw_rot = QuatFromAngleZ(yaw_angle);
     ChCoordsys<> patch_sys(VNULL, yaw_rot);
-    ChVector<> init_loc = patch_sys.TransformPointLocalToParent(ChVector<>(-terrainLength / 2 + 5, 0, 0.7));
-    ChVector<> path_start = patch_sys.TransformPointLocalToParent(ChVector<>(-terrainLength / 2, 0, 0.5));
-    ChVector<> path_end = patch_sys.TransformPointLocalToParent(ChVector<>(+terrainLength / 2, 0, 0.5));
+    ChVector3d init_loc = patch_sys.TransformPointLocalToParent(ChVector3d(-terrainLength / 2 + 5, 0, 0.7));
+    ChVector3d path_start = patch_sys.TransformPointLocalToParent(ChVector3d(-terrainLength / 2, 0, 0.5));
+    ChVector3d path_end = patch_sys.TransformPointLocalToParent(ChVector3d(+terrainLength / 2, 0, 0.5));
 
     // Create the HMMWV vehicle, set parameters, and initialize.
     // Typical aerodynamic drag for HMMWV: Cd = 0.5 and area ~5 m2
@@ -151,12 +151,12 @@ int main(int argc, char* argv[]) {
         case TerrainType::RIGID:
         default: {
             auto rigid_terrain = chrono_types::make_shared<RigidTerrain>(hmmwv.GetSystem());
-            auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+            auto patch_mat = chrono_types::make_shared<ChContactMaterialSMC>();
             patch_mat->SetFriction(0.9f);
             patch_mat->SetRestitution(0.01f);
             patch_mat->SetYoungModulus(2e7f);
             patch_mat->SetPoissonRatio(0.3f);
-            auto patch = rigid_terrain->AddPatch(patch_mat, ChCoordsys<>(ChVector<>(0), yaw_rot), terrainLength, 5);
+            auto patch = rigid_terrain->AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0), yaw_rot), terrainLength, 5);
             patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
             patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 5);
             rigid_terrain->Initialize();
@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_IRRLICHT
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle("HMMWV acceleration test");
-            vis_irr->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+            vis_irr->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
             vis_irr->Initialize();
             vis_irr->AddLightDirectional();
             vis_irr->AddSkyBox();
@@ -211,13 +211,14 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("HMMWV acceleration test");
-            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
-            vis_vsg->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 10.0, 0.5);
+            vis_vsg->SetShadows(true);
+            vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 10.0, 0.5);
             vis_vsg->AttachVehicle(&hmmwv.GetVehicle());
             vis_vsg->Initialize();
 
@@ -241,7 +242,7 @@ int main(int argc, char* argv[]) {
     double last_speed = -1;
 
     // Record vehicle speed
-    ChFunction_Recorder speed_recorder;
+    ChFunctionInterp speed_recorder;
 
     // Initialize simulation frame counter and simulation time
     int step_number = 0;

@@ -33,7 +33,7 @@ SimpleDrivelineXWD::SimpleDrivelineXWD(const std::string& filename) : ChSimpleDr
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 SimpleDrivelineXWD::SimpleDrivelineXWD(const rapidjson::Document& d) : ChSimpleDrivelineXWD("") {

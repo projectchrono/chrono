@@ -98,7 +98,7 @@ double ChMBTire::GetWidth() const {
 
 void ChMBTire::CreateContactMaterial() {
     m_contact_mat =
-        std::static_pointer_cast<ChMaterialSurfaceSMC>(m_contact_mat_data.CreateMaterial(ChContactMethod::SMC));
+        std::static_pointer_cast<ChContactMaterialSMC>(m_contact_mat_data.CreateMaterial(ChContactMethod::SMC));
 }
 
 void ChMBTire::Initialize(std::shared_ptr<ChWheel> wheel) {
@@ -140,7 +140,7 @@ TerrainForce ChMBTire::ReportTireForce(ChTerrain* terrain) const {
 
 TerrainForce ChMBTire::ReportTireForceLocal(ChTerrain* terrain, ChCoordsys<>& tire_frame) const {
     std::cerr << "ChMBTire::ReportTireForceLocal not implemented." << std::endl;
-    throw ChException("ChMBTire::ReportTireForceLocal not implemented.");
+    throw std::runtime_error("ChMBTire::ReportTireForceLocal not implemented.");
 }
 
 void ChMBTire::AddVisualizationAssets(VisualizationType vis) {
@@ -155,7 +155,7 @@ void ChMBTire::InitializeInertiaProperties() {
     if (!IsInitialized())
         return;
 
-    ChVector<> com;
+    ChVector3d com;
     m_model->CalculateInertiaProperties(com, m_inertia);
     m_com = ChFrame<>(com, QUNIT);
 }
@@ -164,7 +164,7 @@ void ChMBTire::UpdateInertiaProperties() {
     if (!IsInitialized())
         return;
 
-    ChVector<> com;
+    ChVector3d com;
     m_model->CalculateInertiaProperties(com, m_inertia);
     m_com = ChFrame<>(com, QUNIT);
 }
@@ -198,7 +198,7 @@ int MBTireModel::RimNodeIndex(int ir, int id) {
     return ir_local * m_num_divs + (id % m_num_divs);
 }
 
-void MBTireModel::CalcNormal(int ir, int id, ChVector<>& normal, double& area) {
+void MBTireModel::CalcNormal(int ir, int id, ChVector3d& normal, double& area) {
     // Get locations of previous and next nodes in the two directions
     const auto& posS = m_nodes[NodeIndex(ir, id - 1)]->GetPos();
     const auto& posN = m_nodes[NodeIndex(ir, id + 1)]->GetPos();
@@ -211,7 +211,7 @@ void MBTireModel::CalcNormal(int ir, int id, ChVector<>& normal, double& area) {
     // 1. normal could be approximated better, by averaging the normals of the 4 incident triangular faces
     // 2. if using the current approximation, might as well return the scaled direction (if only used for pressure
     // forces)
-    ChVector<> dir = Vcross(posN - posS, posE - posW);
+    ChVector3d dir = Vcross(posN - posS, posE - posW);
     area = dir.Length();
     normal = dir / area;
 }
@@ -262,8 +262,8 @@ void MBTireModel::EdgeSpring2::Initialize(bool stiff, bool full_jac) {
 void MBTireModel::Spring2::CalculateForce() {
     const auto& pos1 = node1->GetPos();
     const auto& pos2 = node2->GetPos();
-    const auto& vel1 = node1->GetPos_dt();
-    const auto& vel2 = node2->GetPos_dt();
+    const auto& vel1 = node1->GetPosDer();
+    const auto& vel2 = node2->GetPosDer();
 
     auto d = pos2 - pos1;
     double l = d.Length();
@@ -273,7 +273,7 @@ void MBTireModel::Spring2::CalculateForce() {
 
     double f = k * (l - l0) + c * ld;
 
-    ChVector<> vforce = f * d;
+    ChVector3d vforce = f * d;
     force1 = +vforce;
     force2 = -vforce;
 }
@@ -282,8 +282,8 @@ void MBTireModel::Spring2::CalculateForce() {
 ChMatrix33<> MBTireModel::Spring2::CalculateJacobianBlock(double Kfactor, double Rfactor) {
     const auto& pos1 = node1->GetPos();
     const auto& pos2 = node2->GetPos();
-    const auto& vel1 = node1->GetPos_dt();
-    const auto& vel2 = node2->GetPos_dt();
+    const auto& vel1 = node1->GetPosDer();
+    const auto& vel2 = node2->GetPosDer();
 
     auto d = pos2 - pos1;
     double l = d.Length();
@@ -711,7 +711,7 @@ void MBTireModel::Construct() {
             double phi = id * dphi;
             double x = r * std::cos(phi);
             double z = r * std::sin(phi);
-            vertices[k] = m_wheel->TransformPointLocalToParent(ChVector<>(x, y, z));
+            vertices[k] = m_wheel->TransformPointLocalToParent(ChVector3d(x, y, z));
             m_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(vertices[k]);
             m_nodes[k]->SetMass(m_node_mass);
             m_nodes[k]->m_TotalMass = m_node_mass;
@@ -728,7 +728,7 @@ void MBTireModel::Construct() {
             double phi = id * dphi;
             double x = m_rim_radius * std::cos(phi);
             double z = m_rim_radius * std::sin(phi);
-            auto loc = m_wheel->TransformPointLocalToParent(ChVector<>(x, y, z));
+            auto loc = m_wheel->TransformPointLocalToParent(ChVector3d(x, y, z));
             m_rim_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(loc);
             m_rim_nodes[k]->SetMass(m_node_mass);
             m_rim_nodes[k]->m_TotalMass = m_node_mass;
@@ -741,7 +741,7 @@ void MBTireModel::Construct() {
             double phi = id * dphi;
             double x = m_rim_radius * std::cos(phi);
             double z = m_rim_radius * std::sin(phi);
-            auto loc = m_wheel->TransformPointLocalToParent(ChVector<>(x, y, z));
+            auto loc = m_wheel->TransformPointLocalToParent(ChVector3d(x, y, z));
             m_rim_nodes[k] = chrono_types::make_shared<fea::ChNodeFEAxyz>(loc);
             m_rim_nodes[k]->SetMass(m_node_mass);
             m_rim_nodes[k]->m_TotalMass = m_node_mass;
@@ -843,7 +843,7 @@ void MBTireModel::Construct() {
             spring.node_c = m_nodes[inode_c].get();
             spring.node_n = m_nodes[inode_n].get();
             spring.wheel = m_wheel.get();
-            spring.t0 = ChVector<>(0, 1, 0);
+            spring.t0 = ChVector3d(0, 1, 0);
             spring.k = m_kB;
             spring.c = m_cB;
 
@@ -855,7 +855,7 @@ void MBTireModel::Construct() {
     // Create transversal rotational springs (node-node and node-rim)
     for (int id = 0; id < m_num_divs; id++) {
         double phi = id * dphi;
-        ChVector<> t0(-std::sin(phi), 0, std::cos(phi));
+        ChVector3d t0(-std::sin(phi), 0, std::cos(phi));
 
         // torsional springs connected to the rim at first ring
         {
@@ -928,9 +928,9 @@ void MBTireModel::Construct() {
 
     // Auxiliary face information (for possible collision mesh)
     struct FaceAuxData {
-        ChVector<int> nbr_node;    // neighbor (opposite) vertex/node for each face vertex
-        ChVector<bool> owns_node;  // vertex/node owned by the face?
-        ChVector<bool> owns_edge;  // edge owned by the face?
+        ChVector3i nbr_node;   // neighbor (opposite) vertex/node for each face vertex
+        ChVector3b owns_node;  // vertex/node owned by the face?
+        ChVector3b owns_edge;  // edge owned by the face?
     };
     std::vector<FaceAuxData> auxdata(m_num_faces);
 
@@ -998,13 +998,13 @@ void MBTireModel::Construct() {
 
     // Initialize mesh colors and vertex normals
     colors.resize(m_num_nodes, ChColor(1, 0, 0));
-    normals.resize(m_num_nodes, ChVector<>(0, 0, 0));
+    normals.resize(m_num_nodes, ChVector3d(0, 0, 0));
 
     // Calculate face normals, accumulate vertex normals, and count number of faces adjacent to each vertex
     std::vector<int> accumulators(m_num_nodes, 0);
     for (int it = 0; it < m_num_faces; it++) {
         // Calculate the triangle normal as a normalized cross product.
-        ChVector<> nrm = Vcross(vertices[idx_vertices[it][1]] - vertices[idx_vertices[it][0]],
+        ChVector3d nrm = Vcross(vertices[idx_vertices[it][1]] - vertices[idx_vertices[it][0]],
                                 vertices[idx_vertices[it][2]] - vertices[idx_vertices[it][0]]);
         nrm.Normalize();
         // Increment the normals of all incident vertices by the face normal
@@ -1023,7 +1023,7 @@ void MBTireModel::Construct() {
     }
 }
 
-void MBTireModel::CalculateInertiaProperties(ChVector<>& com, ChMatrix33<>& inertia) {
+void MBTireModel::CalculateInertiaProperties(ChVector3d& com, ChMatrix33<>& inertia) {
     //// TODO
 }
 
@@ -1038,9 +1038,9 @@ void MBTireModel::SetRimNodeStates() {
 
             double x = m_rim_radius * std::cos(phi);
             double z = m_rim_radius * std::sin(phi);
-            auto pos_loc = ChVector<>(x, y, z);
+            auto pos_loc = ChVector3d(x, y, z);
             m_rim_nodes[k]->SetPos(m_wheel->TransformPointLocalToParent(pos_loc));
-            m_rim_nodes[k]->SetPos_dt(m_wheel->PointSpeedLocalToParent(pos_loc));
+            m_rim_nodes[k]->SetPosDer(m_wheel->PointSpeedLocalToParent(pos_loc));
             k++;
         }
     }
@@ -1051,9 +1051,9 @@ void MBTireModel::SetRimNodeStates() {
 
             double x = m_rim_radius * std::cos(phi);
             double z = m_rim_radius * std::sin(phi);
-            auto pos_loc = ChVector<>(x, y, z);
+            auto pos_loc = ChVector3d(x, y, z);
             m_rim_nodes[k]->SetPos(m_wheel->TransformPointLocalToParent(pos_loc));
-            m_rim_nodes[k]->SetPos_dt(m_wheel->PointSpeedLocalToParent(pos_loc));
+            m_rim_nodes[k]->SetPosDer(m_wheel->PointSpeedLocalToParent(pos_loc));
             k++;
         }
     }
@@ -1063,7 +1063,7 @@ void MBTireModel::SetRimNodeStates() {
 // Note: the positions and velocities of nodes attached to the wheel are assumed to be updated.
 void MBTireModel::CalculateForces() {
     // Initialize nodal force accumulators
-    std::vector<ChVector<>> nodal_forces(m_num_nodes, VNULL);
+    std::vector<ChVector3d> nodal_forces(m_num_nodes, VNULL);
 
     // Initialize wheel force and moment accumulators
     //// TODO: update wheel torque
@@ -1072,10 +1072,10 @@ void MBTireModel::CalculateForces() {
 
     // ------------ Gravitational and pressure forces
 
-    ChVector<> gforce = m_node_mass * GetSystem()->Get_G_acc();
+    ChVector3d gforce = m_node_mass * GetSystem()->Get_G_acc();
     bool pressure_enabled = m_tire->IsPressureEnabled();
     double pressure = m_tire->GetPressure();
-    ChVector<> normal;
+    ChVector3d normal;
     double area;
     for (int ir = 0; ir < m_num_rings; ir++) {
         for (int id = 0; id < m_num_divs; id++) {

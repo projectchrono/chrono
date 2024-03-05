@@ -38,9 +38,9 @@ static const std::string ref_dir = "testing/joints/revsph_constraint/";
 // =============================================================================
 // Prototypes of local functions
 //
-bool TestRevSpherical(const ChVector<>& jointLocGnd,
-                      const ChVector<>& jointRevAxis,
-                      const ChVector<>& jointLocPend,
+bool TestRevSpherical(const ChVector3d& jointLocGnd,
+                      const ChVector3d& jointRevAxis,
+                      const ChVector3d& jointLocPend,
                       const ChCoordsys<>& PendCSYS,
                       double simTimeStep,
                       double outTimeStep,
@@ -76,8 +76,8 @@ int main(int argc, char* argv[]) {
     //   Spherical joint at one end of a horizontal pendulum (2,0,0) with CG at (2,2,0)
 
     test_name = "RevSpherical_Case01";
-    TestRevSpherical(ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), ChVector<>(2, 0, 0),
-                     ChCoordsys<>(ChVector<>(2, 2, 0), QUNIT), sim_step, out_step, test_name);
+    TestRevSpherical(ChVector3d(0, 0, 0), ChVector3d(0, 0, 1), ChVector3d(2, 0, 0),
+                     ChCoordsys<>(ChVector3d(2, 2, 0), QUNIT), sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-4);
     test_passed &= ValidateReference(test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(test_name, "Acc", 1e-1);
@@ -95,8 +95,8 @@ int main(int argc, char* argv[]) {
     //   Spherical joint at one end of a horizontal pendulum (3,2,3) with CG at (3,4,3)
 
     test_name = "RevSpherical_Case02";
-    TestRevSpherical(ChVector<>(1, 2, 3), ChVector<>(0, 1, 1), ChVector<>(3, 2, 3),
-                     ChCoordsys<>(ChVector<>(3, 4, 3), QUNIT), sim_step, out_step, test_name);
+    TestRevSpherical(ChVector3d(1, 2, 3), ChVector3d(0, 1, 1), ChVector3d(3, 2, 3),
+                     ChCoordsys<>(ChVector3d(3, 4, 3), QUNIT), sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-4);
     test_passed &= ValidateReference(test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(test_name, "Acc", 1e-1);
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
     test_passed &= ValidateConstraints(test_name, 1e-5);
 
     // Return 0 if all tests passed and 1 otherwise
-    std::cout << std::endl << "UNIT TEST: " << (test_passed ? "PASSED" : "FAILED") << std::endl;
+    std::cout << "\nUNIT TEST: " << (test_passed ? "PASSED" : "FAILED") << std::endl;
     return !test_passed;
 }
 
@@ -120,9 +120,9 @@ int main(int argc, char* argv[]) {
 // Worker function for performing the simulation with specified parameters.
 //
 bool TestRevSpherical(
-    const ChVector<>& jointLocGnd,   // absolute location of the RevSpherical constrain ground attachment point
-    const ChVector<>& jointRevAxis,  // absolute vector for the revolute axis of the RevSpherical constrain
-    const ChVector<>& jointLocPend,  // absolute location of the distance constrain pendulum attachment point
+    const ChVector3d& jointLocGnd,   // absolute location of the RevSpherical constrain ground attachment point
+    const ChVector3d& jointRevAxis,  // absolute vector for the revolute axis of the RevSpherical constrain
+    const ChVector3d& jointLocPend,  // absolute location of the distance constrain pendulum attachment point
     const ChCoordsys<>& PendCSYS,    // Coordinate system for the pendulum
     double simTimeStep,              // simulation time step
     double outTimeStep,              // output time step
@@ -137,7 +137,7 @@ bool TestRevSpherical(
     // (MKS is used in this example)
 
     double mass = 1.0;                     // mass of pendulum
-    ChVector<> inertiaXX(0.1, 0.04, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
+    ChVector3d inertiaXX(0.1, 0.04, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
     double g = 9.80665;
 
     double timeRecord = 5;  // simulation length
@@ -149,7 +149,7 @@ bool TestRevSpherical(
     // handled by this ChSystem object.
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0.0, 0.0, -g));
+    sys.Set_G_acc(ChVector3d(0.0, 0.0, -g));
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverType(ChSolver::Type::PSOR);
@@ -277,8 +277,8 @@ bool TestRevSpherical(
 
     // Total energy at initial time.
     ChMatrix33<> inertia = pendulum->GetInertia();
-    ChVector<> angVelLoc = pendulum->GetWvel_loc();
-    double transKE = 0.5 * mass * pendulum->GetPos_dt().Length2();
+    ChVector3d angVelLoc = pendulum->GetAngVelLocal();
+    double transKE = 0.5 * mass * pendulum->GetPosDer().Length2();
     double rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
     double deltaPE = mass * g * (pendulum->GetPos().z() - PendCSYS.pos.z());
     double totalE0 = transKE + rotKE + deltaPE;
@@ -292,17 +292,17 @@ bool TestRevSpherical(
         // Ensure that the final data point is recorded.
         if (simTime >= outTime - simTimeStep / 2) {
             // CM position, velocity, and acceleration (expressed in global frame).
-            const ChVector<>& position = pendulum->GetPos();
-            const ChVector<>& velocity = pendulum->GetPos_dt();
+            const ChVector3d& position = pendulum->GetPos();
+            const ChVector3d& velocity = pendulum->GetPosDer();
             out_pos << simTime << position << std::endl;
             out_vel << simTime << velocity << std::endl;
-            out_acc << simTime << pendulum->GetPos_dtdt() << std::endl;
+            out_acc << simTime << pendulum->GetPosDer2() << std::endl;
 
             // Orientation, angular velocity, and angular acceleration (expressed in
             // global frame).
             out_quat << simTime << pendulum->GetRot() << std::endl;
-            out_avel << simTime << pendulum->GetWvel_par() << std::endl;
-            out_aacc << simTime << pendulum->GetWacc_par() << std::endl;
+            out_avel << simTime << pendulum->GetAngVelParent() << std::endl;
+            out_aacc << simTime << pendulum->GetAngAccParent() << std::endl;
 
             // Chrono returns the reaction force and torque on body 2 (as specified in
             // the joint Initialize() function), as applied at the joint location and
@@ -313,18 +313,18 @@ bool TestRevSpherical(
 
             //    reaction force and torque on pendulum, expressed in joint frame
             //       at the joint frame origin (center of the revolute)
-            ChVector<> reactForce = revSphericalConstraint->Get_react_force();
-            ChVector<> reactTorque = revSphericalConstraint->Get_react_torque();
+            ChVector3d reactForce = revSphericalConstraint->Get_react_force();
+            ChVector3d reactTorque = revSphericalConstraint->Get_react_torque();
 
             //    reaction force and torque on the ground, expressed in joint frame
             //       at the revolute joint center (joint frame origin)
-            ChVector<> reactForceB1 = revSphericalConstraint->Get_react_force_body1();
-            ChVector<> reactTorqueB1 = revSphericalConstraint->Get_react_torque_body1();
+            ChVector3d reactForceB1 = revSphericalConstraint->Get_react_force_body1();
+            ChVector3d reactTorqueB1 = revSphericalConstraint->Get_react_torque_body1();
 
             //    reaction force and torque on the ground, expressed in joint frame
             //       at the spherical joint center
-            ChVector<> reactForceB2 = revSphericalConstraint->Get_react_force_body2();
-            ChVector<> reactTorqueB2 = revSphericalConstraint->Get_react_torque_body2();
+            ChVector3d reactForceB2 = revSphericalConstraint->Get_react_force_body2();
+            ChVector3d reactTorqueB2 = revSphericalConstraint->Get_react_torque_body2();
 
             //    Transform from the joint frame into the pendulum frame
             reactForce = linkCoordsys.TransformDirectionLocalToParent(reactForce);
@@ -353,7 +353,7 @@ bool TestRevSpherical(
             // Translational Kinetic Energy (1/2*m*||v||^2)
             // Rotational Kinetic Energy (1/2 w'*I*w)
             // Delta Potential Energy (m*g*dz)
-            angVelLoc = pendulum->GetWvel_loc();
+            angVelLoc = pendulum->GetAngVelLocal();
             transKE = 0.5 * mass * velocity.Length2();
             rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
             deltaPE = mass * g * (position.z() - PendCSYS.pos.z());

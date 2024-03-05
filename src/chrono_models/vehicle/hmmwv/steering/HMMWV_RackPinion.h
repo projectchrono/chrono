@@ -37,7 +37,7 @@ class CH_MODELS_API HMMWV_RackPinion : public ChRackPinion {
     ~HMMWV_RackPinion() {}
 
     virtual double GetSteeringLinkMass() const override { return m_steeringLinkMass; }
-    virtual ChVector<> GetSteeringLinkInertia() const override { return m_steeringLinkInertia; }
+    virtual ChVector3d GetSteeringLinkInertia() const override { return m_steeringLinkInertia; }
     virtual double GetSteeringLinkCOM() const override { return m_steeringLinkCOM; }
     virtual double GetSteeringLinkRadius() const override { return m_steeringLinkRadius; }
     virtual double GetSteeringLinkLength() const override { return m_steeringLinkLength; }
@@ -48,7 +48,7 @@ class CH_MODELS_API HMMWV_RackPinion : public ChRackPinion {
 
   private:
     static const double m_steeringLinkMass;
-    static const ChVector<> m_steeringLinkInertia;
+    static const ChVector3d m_steeringLinkInertia;
     static const double m_steeringLinkCOM;
     static const double m_steeringLinkRadius;
     static const double m_steeringLinkLength;

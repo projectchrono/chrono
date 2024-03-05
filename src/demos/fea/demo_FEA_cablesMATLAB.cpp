@@ -29,7 +29,7 @@ using namespace chrono;
 using namespace fea;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono::Engine physical system
     ChSystemSMC sys;
@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0.0, 0.6, -1.0));
+    vis->AddCamera(ChVector3d(0.0, 0.6, -1.0));
     vis->AttachSystem(&sys);
 
     // Change solver to Matlab external linear solver.

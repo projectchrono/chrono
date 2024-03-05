@@ -18,8 +18,7 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
-#include "chrono/core/ChMathematics.h"
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #ifdef CHRONO_POSTPROCESS
@@ -34,8 +33,8 @@ using namespace chrono;
 
 // -----------------------------------------------------------------------------
 
-std::string actuator_unpack_directory = ACTUATOR_FMU_DIRECTORY + std::string("/.") + ACTUATOR_FMU_MODEL_IDENTIFIER;
-std::string crane_unpack_directory = CRANE_FMU_DIRECTORY + std::string("/.") + CRANE_FMU_MODEL_IDENTIFIER;
+std::string actuator_unpack_directory = ACTUATOR_FMU_DIRECTORY + std::string("/tmp_unpack/");
+std::string crane_unpack_directory = CRANE_FMU_DIRECTORY + std::string("/tmp_unpack/");
 
 // -----------------------------------------------------------------------------
 
@@ -46,8 +45,6 @@ void CreateCraneFMU(FmuChronoUnit& crane_fmu,
     try {
         crane_fmu.Load(CRANE_FMU_FILENAME, crane_unpack_directory);
         // crane_fmu.Load(CRANE_FMU_FILENAME); // will go in TEMP/_fmu_temp
-        crane_fmu.BuildVariablesTree();
-        crane_fmu.BuildVisualizersList(&crane_fmu.tree_variables);
     } catch (std::exception& e) {
         throw e;
     }
@@ -88,8 +85,6 @@ void CreateActuatorFMU(FmuChronoUnit& actuator_fmu,
     try {
         actuator_fmu.Load(ACTUATOR_FMU_FILENAME, actuator_unpack_directory);
         // actuator_fmu.Load(ACTUATOR_FMU_FILENAME); // will go in TEMP/_fmu_temp
-        actuator_fmu.BuildVariablesTree();
-        actuator_fmu.BuildVisualizersList(&actuator_fmu.tree_variables);
     } catch (std::exception& e) {
         throw e;
     }
@@ -167,13 +162,13 @@ int main(int argc, char* argv[]) {
     actuator_fmu.ExitInitializationMode();
 
     // Hydraulic actuation
-    auto f_segment = chrono_types::make_shared<ChFunction_Sequence>();
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Const>(0), 0.5);         // 0.0
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(0, 0.4), 1.5);     // 0.0 -> 0.6
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Const>(0.6), 5.0);       // 0.6
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(0.6, -0.8), 2.0);  // 0.6 -> -1.0
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(-1.0, 1.0), 1.0);  // -1.0 -> 0.0
-    auto actuation = chrono_types::make_shared<ChFunction_Repeat>(f_segment, 0, 10, 10);
+    auto f_segment = chrono_types::make_shared<ChFunctionSequence>();
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionConst>(0), 0.5);         // 0.0
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionRamp>(0, 0.4), 1.5);     // 0.0 -> 0.6
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionConst>(0.6), 5.0);       // 0.6
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionRamp>(0.6, -0.8), 2.0);  // 0.6 -> -1.0
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionRamp>(-1.0, 1.0), 1.0);  // -1.0 -> 0.0
+    auto actuation = chrono_types::make_shared<ChFunctionRepeat>(f_segment, 0, 10, 10);
 
     // Initialize combined output
     utils::CSV_writer csv;
@@ -198,7 +193,7 @@ int main(int argc, char* argv[]) {
         actuator_fmu.SetVariable("sd", sd, FmuVariable::Type::Real);
 
         // ----------- Actuator input signal -> [actuator]
-        fmi2Real Uref = actuation->Get_y(time);
+        fmi2Real Uref = actuation->GetVal(time);
         actuator_fmu.SetVariable("Uref", Uref, FmuVariable::Type::Real);
 
         // ----------- Current actuator state information

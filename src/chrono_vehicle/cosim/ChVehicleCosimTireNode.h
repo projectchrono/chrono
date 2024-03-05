@@ -120,7 +120,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
 
     /// Initialize the tire by attaching it to the provided ChWheel.
     /// A derived class must load m_geometry (collision shape and contact material).
-    virtual void InitializeTire(std::shared_ptr<ChWheel>, const ChVector<>& init_loc) = 0;
+    virtual void InitializeTire(std::shared_ptr<ChWheel>, const ChVector3d& init_loc) = 0;
 
     /// Apply the spindle state.
     /// The BodyState struct contains the spindle body state as received from the MBS node.
@@ -131,7 +131,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
     /// provided TerrainForce struct to be sent to the MBS node.
     virtual void LoadSpindleForce(TerrainForce& spindle_force) {
         if (GetInterfaceType() == InterfaceType::MESH) {
-            throw ChException("Current tire does not properly implement the MESH communication interface!");
+            throw std::runtime_error("Current tire does not properly implement the MESH communication interface!");
         }
     }
  
@@ -144,7 +144,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
     /// provided MeshState struct to be sent to the TERRAIN node.
     virtual void LoadMeshState(MeshState& mesh_state) {
         if (GetInterfaceType() == InterfaceType::MESH) {
-            throw ChException("Current tire does not properly implement the MESH communication interface!");
+            throw std::runtime_error("Current tire does not properly implement the MESH communication interface!");
         }
     }
 
@@ -153,7 +153,7 @@ class CH_VEHICLE_API ChVehicleCosimTireNode : public ChVehicleCosimBaseNode {
     /// MeshContact struct received from the TERRAIN node.
     virtual void ApplyMeshForces(const MeshContact& mesh_contact) {
         if (GetInterfaceType() == InterfaceType::MESH) {
-            throw ChException("Current tire does not properly implement the MESH communication interface!");
+            throw std::runtime_error("Current tire does not properly implement the MESH communication interface!");
         }
     }
 

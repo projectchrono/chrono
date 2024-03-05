@@ -42,24 +42,24 @@ class ChApi ChIndexedNodes : public ChPhysicsItem {
 
     /// Add a new node to the particle cluster, passing a
     /// vector as initial position.
-    //	virtual void AddNode(ChVector<double> initial_state) =0;
+    //	virtual void AddNode(ChVector3d initial_state) =0;
 
     /// Resize the node cluster. Also clear the state of
     /// previously created particles, if any.
     //	virtual void ResizeNnodes(int newsize) =0;
 
     /// Number of coordinates of the node cluster
-    //	virtual int GetDOF  ()   {return 3*GetNnodes();}
+    //	virtual int GetNumCoordinatesPos  ()   {return 3*GetNnodes();}
 
     //
     // SERIALIZATION
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 CH_CLASS_VERSION(ChIndexedNodes,0)

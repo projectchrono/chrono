@@ -29,6 +29,8 @@
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChInertiaUtils.h"
 #include "chrono/utils/ChUtilsCreators.h"
+#include "chrono/core/ChRandom.h"
+
 #include "chrono_thirdparty/filesystem/path.h"
 
 #include "chrono_sensor/sensors/ChCameraSensor.h"
@@ -49,7 +51,6 @@
 #include "chrono_sensor/filters/ChFilterVisualizePointCloud.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 int num_cameras = 2 - 1;
@@ -64,12 +65,12 @@ float time_step = 0.002f;
 float end_time = 30.0f;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------
     // Create the system
     // -----------------
-    auto phys_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto phys_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     phys_mat->SetFriction(0.2f);
 
     ChSystemNSC sys;
@@ -80,7 +81,7 @@ int main(int argc, char* argv[]) {
                                                           true,             // collide enable?
                                                           true, phys_mat);  // visualization?
     floor->SetPos({0, 0, -1.0});
-    floor->SetRot(Q_from_AngZ(CH_C_PI / 2.0));
+    floor->SetRot(QuatFromAngleZ(CH_C_PI / 2.0));
     floor->SetBodyFixed(true);
     sys.Add(floor);
 
@@ -126,20 +127,19 @@ int main(int argc, char* argv[]) {
         bottom_mirror->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
     }
 
-
     // add a mesh
     auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
         GetChronoDataFile("models/bulldozer/shoe_collision.obj"), false, true);
-    mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
+    mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
     mmesh->RepairDuplicateVertexes(1e-9);
 
     double mmass;
-    ChVector<> mcog;
+    ChVector3d mcog;
     ChMatrix33<> minertia;
     double mdensity = 1000;
     mmesh->ComputeMassProperties(true, mmass, mcog, minertia);
     ChMatrix33<> principal_inertia_rot;
-    ChVector<> principal_I;
+    ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(mmesh);
@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
         texsphere->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
     }
 
-    auto texcyl = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,  //
+    auto texcyl = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,  //
                                                                 .5, 1,                // size
                                                                 1000,                 // density
                                                                 true,                 // vis enable?
@@ -219,18 +219,18 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < num_bodies; i++) {
         // add a box
-        auto box =
-            chrono_types::make_shared<ChBodyEasyBox>(ChRandom() / 2.0 + 0.1, ChRandom() / 2.0 + 0.1,
-                                                     ChRandom() / 2.0 + 0.1,  // x,y,z size
-                                                     1000,                           // density
-                                                     true,                           // collide enable?
-                                                     true, phys_mat);                // visualization?
-        box->SetPos({ChRandom(), ChRandom(), 2.0 + i});
-        box->SetRot(Q_from_Euler123({ChRandom(), ChRandom(), ChRandom()}));
+        auto box = chrono_types::make_shared<ChBodyEasyBox>(ChRandom::Get() / 2.0 + 0.1, ChRandom::Get() / 2.0 + 0.1,
+                                                            ChRandom::Get() / 2.0 + 0.1,  // x,y,z size
+                                                            1000,                    // density
+                                                            true,                    // collide enable?
+                                                            true, phys_mat);         // visualization?
+        box->SetPos({ChRandom::Get(), ChRandom::Get(), 2.0 + i});
+        box->SetRot(
+            QuatFromAngleSet({RotRepresentation::EULER_ANGLES_ZXZ, ChVector3d(ChRandom::Get(), ChRandom::Get(), ChRandom::Get())}));
         sys.Add(box);
         {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-            vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
+            vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
             vis_mat->SetSpecularColor({.2f, .2f, .2f});
             box->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
         }
@@ -239,29 +239,28 @@ int main(int argc, char* argv[]) {
             imu_parent = box;
         }
 
-        auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,            //
-                                                                 ChRandom() / 2.0 + 0.1,  // radius
-                                                                 ChRandom() / 2.0 + 0.1,  // height
-                                                                 1000,                           // density
-                                                                 true,                           // collide enable?
-                                                                 true, phys_mat);                // visualization?
-        cyl->SetPos({ChRandom(), ChRandom(), 2.0 + i});
-        cyl->SetRot(Q_from_Euler123({ChRandom(), ChRandom(), ChRandom()}));
+        auto cyl = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,     //
+                                                                 ChRandom::Get() / 2.0 + 0.1,  // radius
+                                                                 ChRandom::Get() / 2.0 + 0.1,  // height
+                                                                 1000,                    // density
+                                                                 true,                    // collide enable?
+                                                                 true, phys_mat);         // visualization?
+        cyl->SetPos({ChRandom::Get(), ChRandom::Get(), 2.0 + i});
+        cyl->SetRot(
+            QuatFromAngleSet({RotRepresentation::EULER_ANGLES_ZXZ, ChVector3d(ChRandom::Get(), ChRandom::Get(), ChRandom::Get())}));
         sys.Add(cyl);
         {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
-            vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
+            vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
             vis_mat->SetSpecularColor({.2f, .2f, .2f});
             cyl->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
         }
 
-        auto sphere = chrono_types::make_shared<ChBodyEasySphere>((float)ChRandom() / 2.0 + 0.1,  // radius
+        auto sphere = chrono_types::make_shared<ChBodyEasySphere>((float)ChRandom::Get() / 2.0 + 0.1,  // radius
                                                                   1000,                           // density
                                                                   true,                           // collide enable?
                                                                   true, phys_mat);                // visualization?
-        sphere->SetPos({ChRandom(), ChRandom(), 2.0 + i});
-        // sphere->SetRot(Q_from_Euler123({(float)ChRandom(), (float)ChRandom(), (float)rand() /
-        // RAND_MAX}));
+        sphere->SetPos({ChRandom::Get(), ChRandom::Get(), 2.0 + i});
         sys.Add(sphere);
         if (!gps_parent) {
             gps_parent = sphere;
@@ -269,7 +268,7 @@ int main(int argc, char* argv[]) {
         {
             auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
             vis_mat->SetAmbientColor({0.f, 0.f, 0.f});
-            vis_mat->SetDiffuseColor({(float)ChRandom(), (float)ChRandom(), (float)ChRandom()});
+            vis_mat->SetDiffuseColor({(float)ChRandom::Get(), (float)ChRandom::Get(), (float)ChRandom::Get()});
             vis_mat->SetSpecularColor({.2f, .2f, .2f});
             sphere->GetVisualModel()->GetShapes()[0].first->AddMaterial(vis_mat);
         }
@@ -278,14 +277,15 @@ int main(int argc, char* argv[]) {
         mesh_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
         mesh_body->SetMass(mmass * mdensity);
         mesh_body->SetInertiaXX(mdensity * principal_I);
-        mesh_body->SetFrame_REF_to_abs(ChFrame<>(ChVector<>(ChRandom(), ChRandom(), 2.0 + i)));
+        mesh_body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(ChRandom::Get(), ChRandom::Get(), 2.0 + i)));
         sys.Add(mesh_body);
 
-        auto mesh_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(phys_mat, mmesh, false, false, 0.005);
+        auto mesh_ct_shape =
+            chrono_types::make_shared<ChCollisionShapeTriangleMesh>(phys_mat, mmesh, false, false, 0.005);
         mesh_body->AddCollisionShape(mesh_ct_shape);
         mesh_body->SetCollide(true);
 
-        mesh_body->AddVisualShape(trimesh_shape,ChFrame<>());
+        mesh_body->AddVisualShape(trimesh_shape, ChFrame<>());
     }
 
     std::cout << "sensor manager being made\n";
@@ -310,12 +310,12 @@ int main(int argc, char* argv[]) {
     manager->scene->SetBackground(b);
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
-        floor,                                                               // body camera is attached to
-        60.0f,                                                               // update rate in Hz
-        chrono::ChFrame<double>({-10, 0, 1}, Q_from_AngAxis(0, {0, 0, 1})),  // offset pose
-        1920,                                                                // image width
-        1080,                                                                // image height
-        (float)CH_C_PI / 4,                                                  // field of view
+        floor,                                                    // body camera is attached to
+        60.0f,                                                    // update rate in Hz
+        chrono::ChFrame<double>({-10, 0, 1}, QuatFromAngleZ(0)),  // offset pose
+        1920,                                                     // image width
+        1080,                                                     // image height
+        (float)CH_C_PI / 4,                                       // field of view
         2, CameraLensModelType::FOV_LENS, false);
 
     std::string color_data_path = "SENSOR_OUTPUT/cam_color/";
@@ -361,13 +361,13 @@ int main(int argc, char* argv[]) {
 
     // add a lidar to the floor facing the falling objects
     auto lidar = chrono_types::make_shared<ChLidarSensor>(
-        floor,                                                              // body to which the IMU is attached
-        10.0f,                                                              // update rate
-        chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose from body
-        923,                                                                // horizontal samples
-        23,                                                                 // vertical samples/channels
-        2.f * (float)CH_C_PI / 3.0f,                                        // horizontal field of view
-        (float)CH_C_PI / 8.0f, -(float)CH_C_PI / 8.0f, 100.0f               // vertical field of view
+        floor,                                                   // body to which the IMU is attached
+        10.0f,                                                   // update rate
+        chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleX(0)),  // offset pose from body
+        923,                                                     // horizontal samples
+        23,                                                      // vertical samples/channels
+        2.f * (float)CH_C_PI / 3.0f,                             // horizontal field of view
+        (float)CH_C_PI / 8.0f, -(float)CH_C_PI / 8.0f, 100.0f    // vertical field of view
     );
     lidar->SetName("Lidar Sensor");
     lidar->SetLag(.1f);
@@ -389,20 +389,20 @@ int main(int argc, char* argv[]) {
 
     // add a lidar to the floor facing the falling objects
     auto lidar2 = chrono_types::make_shared<ChLidarSensor>(
-        floor,                                                              // body to which the IMU is attached
-        10.0f,                                                              // update rate
-        chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose from body
-        923,                                                                // horizontal samples
-        23,                                                                 // vertical samples/channels
-        2.f * (float)CH_C_PI / 3.0f,                                        // horizontal field of view
-        (float)CH_C_PI / 8.0f,                                              // max vert angle
-        -(float)CH_C_PI / 8.0f,                                             // min vert angle
-        100.0f,                                                             // max range
-        LidarBeamShape::RECTANGULAR,                                        // beam shape
-        3,                                                                  // beam sample radius
-        .003,                                                               // vert divergence angle
-        .003,                                                               // horizontal divergence angle
-        LidarReturnMode::STRONGEST_RETURN                                   // return type
+        floor,                                                   // body to which the IMU is attached
+        10.0f,                                                   // update rate
+        chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleX(0)),  // offset pose from body
+        923,                                                     // horizontal samples
+        23,                                                      // vertical samples/channels
+        2.f * (float)CH_C_PI / 3.0f,                             // horizontal field of view
+        (float)CH_C_PI / 8.0f,                                   // max vert angle
+        -(float)CH_C_PI / 8.0f,                                  // min vert angle
+        100.0f,                                                  // max range
+        LidarBeamShape::RECTANGULAR,                             // beam shape
+        3,                                                       // beam sample radius
+        .003,                                                    // vert divergence angle
+        .003,                                                    // horizontal divergence angle
+        LidarReturnMode::STRONGEST_RETURN                        // return type
     );
     lidar2->SetName("Lidar Sensor 2");
     lidar2->SetLag(.1f);
@@ -419,7 +419,7 @@ int main(int argc, char* argv[]) {
     // manager->AddSensor(lidar2);
 
     // add an IMU sensor to one of the boxes
-    auto imu_offset_pose = chrono::ChFrame<double>({0, 0, 0}, Q_from_AngAxis(0, {1, 0, 0}));
+    auto imu_offset_pose = chrono::ChFrame<double>({0, 0, 0}, QuatFromAngleX(0));
     auto noise_none = chrono_types::make_shared<ChNoiseNone>();
     auto acc = chrono_types::make_shared<ChAccelerometerSensor>(imu_parent,       // body to which the IMU is
                                                                                   // attached
@@ -442,20 +442,19 @@ int main(int argc, char* argv[]) {
                                                                100,              // update rate
                                                                imu_offset_pose,  // offset pose from body
                                                                noise_none,       // IMU noise model
-                                                               ChVector<double>(43.300, -89.000, 260.0));
+                                                               ChVector3d(43.300, -89.000, 260.0));
     mag->SetName("IMU - Accelerometer");
     mag->PushFilter(chrono_types::make_shared<ChFilterMagnetAccess>());  // Add a filter to access the imu data
     manager->AddSensor(mag);                                             // Add the IMU sensor to the sensor manager
 
     // add an IMU sensor to one of the boxes
-    auto noise_model =
-        chrono_types::make_shared<ChNoiseNormal>(ChVector<float>(0.f, 0.f, 0.f), ChVector<float>(1.f, 1.f, 1.f));
+    auto noise_model = chrono_types::make_shared<ChNoiseNormal>(ChVector3f(0.f, 0.f, 0.f), ChVector3f(1.f, 1.f, 1.f));
     auto gps = chrono_types::make_shared<ChGPSSensor>(
-        gps_parent,                                                        // body to which the GPS is attached
-        10,                                                                // update rate
-        chrono::ChFrame<double>({0, 0, 0}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose from body
-        ChVector<double>(43.300, -89.000, 260.0),  // reference GPS location (GPS coordinates of simulation origin)
-        noise_model                                // noise model to use for adding GPS noise (NOT THREAD SAFE)
+        gps_parent,                                             // body to which the GPS is attached
+        10,                                                     // update rate
+        chrono::ChFrame<double>({0, 0, 0}, QuatFromAngleX(0)),  // offset pose from body
+        ChVector3d(43.300, -89.000, 260.0),  // reference GPS location (GPS coordinates of simulation origin)
+        noise_model                          // noise model to use for adding GPS noise (NOT THREAD SAFE)
     );
     gps->SetName("GPS");
     gps->PushFilter(chrono_types::make_shared<ChFilterGPSAccess>());
@@ -465,11 +464,11 @@ int main(int argc, char* argv[]) {
 
     for (int i = 0; i < num_cameras; i++) {
         auto cam1 = chrono_types::make_shared<ChCameraSensor>(
-            floor,                                                              // body camera is attached to
-            10.0f + 10.0f * (i % 4 + 1),                                        // 30 + i, // update rate in Hz
-            chrono::ChFrame<double>({-3, 0, 2}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose
-            1280,                                                               // image width
-            720,                                                                // image height
+            floor,                                                   // body camera is attached to
+            10.0f + 10.0f * (i % 4 + 1),                             // 30 + i, // update rate in Hz
+            chrono::ChFrame<double>({-3, 0, 2}, QuatFromAngleX(0)),  // offset pose
+            1280,                                                    // image width
+            720,                                                     // image height
             (float)CH_C_PI / 3);
         cams.push_back(cam1);
 
@@ -516,9 +515,9 @@ int main(int argc, char* argv[]) {
         std::chrono::high_resolution_clock::time_point r0 = std::chrono::high_resolution_clock::now();
         cam->SetOffsetPose(chrono::ChFrame<double>(
             {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate), 3},
-            Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1})));
+            QuatFromAngleZ(ch_time * orbit_rate)));
 
-        scalebox->SetRot(Q_from_AngY(ch_time * .3));
+        scalebox->SetRot(QuatFromAngleY(ch_time * .3));
 
         p0.pos = {-orbit_radius * cos(ch_time * orbit_rate * 2), -orbit_radius * sin(ch_time * orbit_rate * 2), 10};
         manager->scene->ModifyPointLight(0, p0);
@@ -534,7 +533,7 @@ int main(int argc, char* argv[]) {
         }
         manager->scene->ModifyPointLight(1, p1);
 
-        // origin->SetRot(Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1}));
+        // origin->SetRot(QuatFromAngleZ(ch_time * orbit_rate));
         // origin->SetPos({0, 0, 3 * sin(ch_time * orbit_rate)});
 
         manager->Update();

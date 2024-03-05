@@ -58,7 +58,7 @@ std::string out_dir = GetChronoOutputPath() + "DEMO_HYDRAULIC_CRANE";
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create (if needed) output directory
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -67,20 +67,20 @@ int main(int argc, char* argv[]) {
     }
 
     ChSystemSMC sys;
-    ChVector<> Gacc(0, 0, -9.8);
+    ChVector3d Gacc(0, 0, -9.8);
     sys.Set_G_acc(Gacc);
 
-    ChVector<> attachment_ground(std::sqrt(3.0) / 2, 0, 0);
-    ChVector<> attachment_crane(0, 0, 0);
+    ChVector3d attachment_ground(std::sqrt(3.0) / 2, 0, 0);
+    ChVector3d attachment_crane(0, 0, 0);
 
     double crane_mass = 500;
     double crane_length = 1.0;
     double crane_angle = CH_C_PI / 6;
-    ChVector<> crane_pos(0.5 * crane_length * std::cos(crane_angle), 0, 0.5 * crane_length * std::sin(crane_angle));
+    ChVector3d crane_pos(0.5 * crane_length * std::cos(crane_angle), 0, 0.5 * crane_length * std::sin(crane_angle));
 
     double pend_length = 0.3;
     double pend_mass = 100;
-    ChVector<> pend_pos = 2.0 * crane_pos + ChVector<>(0, 0, -pend_length);
+    ChVector3d pend_pos = 2.0 * crane_pos + ChVector3d(0, 0, -pend_length);
 
     auto connection_sph = chrono_types::make_shared<ChVisualShapeSphere>(0.02);
     connection_sph->SetColor(ChColor(0.7f, 0.3f, 0.3f));
@@ -100,11 +100,11 @@ int main(int argc, char* argv[]) {
     auto crane = chrono_types::make_shared<ChBody>();
     crane->SetMass(crane_mass);
     crane->SetPos(crane_pos);
-    crane->SetRot(Q_from_AngY(-crane_angle));
+    crane->SetRot(QuatFromAngleY(-crane_angle));
     crane->AddVisualShape(connection_sph, ChFrame<>(attachment_crane, QUNIT));
-    crane->AddVisualShape(connection_sph, ChFrame<>(ChVector<>(crane_length / 2, 0, 0), QUNIT));
+    crane->AddVisualShape(connection_sph, ChFrame<>(ChVector3d(crane_length / 2, 0, 0), QUNIT));
     auto crane_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.015, crane_length);
-    crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
+    crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
     sys.AddBody(crane);
 
     auto ball = chrono_types::make_shared<ChBody>();
@@ -113,25 +113,25 @@ int main(int argc, char* argv[]) {
     auto ball_sph = chrono_types::make_shared<ChVisualShapeSphere>(0.04);
     ball->AddVisualShape(ball_sph);
     auto ball_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.005, pend_length);
-    ball->AddVisualShape(ball_cyl, ChFrame<>(ChVector<>(0, 0, pend_length / 2), QUNIT));
+    ball->AddVisualShape(ball_cyl, ChFrame<>(ChVector3d(0, 0, pend_length / 2), QUNIT));
     sys.AddBody(ball);
 
     auto rev_joint = chrono_types::make_shared<ChLinkRevolute>();
-    rev_joint->Initialize(ground, crane, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    rev_joint->Initialize(ground, crane, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
     sys.AddLink(rev_joint);
 
     auto sph_joint = chrono_types::make_shared<ChLinkLockSpherical>();
-    sph_joint->Initialize(crane, ball, ChCoordsys<>(2.0 * crane_pos, QUNIT));
+    sph_joint->Initialize(crane, ball, ChFrame<>(2.0 * crane_pos, QUNIT));
     sys.AddLink(sph_joint);
 
     // Hydraulic actuation
-    auto f_segment = chrono_types::make_shared<ChFunction_Sequence>();
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Const>(0), 0.5);         // 0.0
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(0, 0.4), 1.5);     // 0.0 -> 0.6
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Const>(0.6), 5.0);       // 0.6
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(0.6, -0.8), 2.0);  // 0.6 -> -1.0
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(-1.0, 1.0), 1.0);  // -1.0 -> 0.0
-    auto actuation = chrono_types::make_shared<ChFunction_Repeat>(f_segment, 0, 10, 10);
+    auto f_segment = chrono_types::make_shared<ChFunctionSequence>();
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionConst>(0), 0.5);         // 0.0
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionRamp>(0, 0.4), 1.5);     // 0.0 -> 0.6
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionConst>(0.6), 5.0);       // 0.6
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionRamp>(0.6, -0.8), 2.0);  // 0.6 -> -1.0
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionRamp>(-1.0, 1.0), 1.0);  // -1.0 -> 0.0
+    auto actuation = chrono_types::make_shared<ChFunctionRepeat>(f_segment, 0, 10, 10);
 
     auto actuator = chrono_types::make_shared<ChHydraulicActuator2>();
     actuator->SetInputFunction(actuation);
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
             vis_irr->SetWindowTitle("Hydraulic actuator demo");
             vis_irr->SetCameraVertical(CameraVerticalDir::Z);
             vis_irr->Initialize();
-            vis_irr->AddCamera(ChVector<>(0.5, -1, 0.5), ChVector<>(0.5, 0, 0.5));
+            vis_irr->AddCamera(ChVector3d(0.5, -1, 0.5), ChVector3d(0.5, 0, 0.5));
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
             vis_irr->AddTypicalLights();
@@ -181,14 +181,15 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachSystem(&sys);
             vis_vsg->SetWindowTitle("Hydraulic actuator demo");
             vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
-            vis_vsg->AddCamera(ChVector<>(0.5, -2, 0.5), ChVector<>(0.5, 0, 0.5));
-            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+            vis_vsg->AddCamera(ChVector3d(0.5, -2, 0.5), ChVector3d(0.5, 0, 0.5));
+            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 100));
             vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->SetWireFrameMode(false);
             vis_vsg->Initialize();
 
@@ -234,7 +235,7 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
 
         sys.DoStepDynamics(t_step);
-        auto Uref = actuation->Get_y(t);
+        auto Uref = actuation->GetVal(t);
         auto U = actuator->GetValvePosition();
         auto p = actuator->GetCylinderPressures();
         auto F = actuator->GetActuatorForce();

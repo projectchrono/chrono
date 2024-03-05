@@ -38,7 +38,7 @@ MultiLink::MultiLink(const std::string& filename) : ChMultiLink(""), m_springFor
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 MultiLink::MultiLink(const rapidjson::Document& d) : ChMultiLink(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
@@ -139,7 +139,7 @@ void MultiLink::Create(const rapidjson::Document& d) {
     } else {
         m_tierodMass = 0;
         m_tierodRadius = 0;
-        m_tierodInertia = ChVector<>(0);
+        m_tierodInertia = ChVector3d(0);
         m_use_tierod_bodies = false;
     }
 

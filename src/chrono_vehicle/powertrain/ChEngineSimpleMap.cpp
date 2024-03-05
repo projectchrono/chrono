@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/powertrain/ChEngineSimpleMap.h"
 
@@ -30,8 +30,8 @@ void ChEngineSimpleMap::Initialize(std::shared_ptr<ChChassis> chassis) {
 
     // Let the derived class set the engine maps
     SetEngineTorqueMaps(m_zero_throttle_map, m_full_throttle_map);
-    assert(m_zero_throttle_map.GetPoints().size() > 0);
-    assert(m_full_throttle_map.GetPoints().size() > 0);
+    assert(m_zero_throttle_map.GetTable().size() > 0);
+    assert(m_full_throttle_map.GetTable().size() > 0);
 }
 
 void ChEngineSimpleMap::Synchronize(double time, const DriverInputs& driver_inputs, double motorshaft_speed) {
@@ -40,8 +40,8 @@ void ChEngineSimpleMap::Synchronize(double time, const DriverInputs& driver_inpu
 
     // Motor torque is linearly interpolated by throttle value
     double throttle = driver_inputs.m_throttle;
-    double fullThrottleTorque = m_full_throttle_map.Get_y(m_motor_speed);
-    double zeroThrottleTorque = m_zero_throttle_map.Get_y(m_motor_speed);
+    double fullThrottleTorque = m_full_throttle_map.GetVal(m_motor_speed);
+    double zeroThrottleTorque = m_zero_throttle_map.GetVal(m_motor_speed);
     m_motor_torque = zeroThrottleTorque * (1 - throttle) + fullThrottleTorque * (throttle);
 }
 

@@ -74,7 +74,7 @@ float cr_t = 0.1f;
 float mu_t = 0.8f;
 
 // Initial vehicle position and orientation
-ChVector<> initLoc(-5, -2, 0.6);
+ChVector3d initLoc(-5, -2, 0.6);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // -----------------------------------------------------------------------------
@@ -108,7 +108,7 @@ double step_size = 3e-3;
 double render_step_size = 1.0 / 100;
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Output directories
 const std::string out_dir = GetChronoOutputPath() + "HMMWV_DEF_SOIL";
@@ -162,9 +162,9 @@ class MyDriver : public ChDriver {
 
 // =============================================================================
 
-void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<ChMaterialSurfaceSMC> wheel_material) {
+void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<ChContactMaterialSMC> wheel_material) {
     std::string lugged_file("hmmwv/lugged_wheel_section.obj");
-    geometry::ChTriangleMeshConnected lugged_mesh;
+    ChTriangleMeshConnected lugged_mesh;
     ChConvexDecompositionHACDv2 lugged_convex;
     utils::LoadConvexMesh(vehicle::GetDataFile(lugged_file), lugged_mesh, lugged_convex);
     int num_hulls = lugged_convex.GetHullCount();
@@ -172,9 +172,9 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     // Assemble the tire contact from 15 segments, properly offset.
     // Each segment is further decomposed in convex hulls.
     for (int iseg = 0; iseg < 15; iseg++) {
-        ChQuaternion<> rot = Q_from_AngAxis(iseg * 24 * CH_C_DEG_TO_RAD, VECT_Y);
+        ChQuaternion<> rot = QuatFromAngleAxis(iseg * 24 * CH_C_DEG_TO_RAD, VECT_Y);
         for (int ihull = 0; ihull < num_hulls; ihull++) {
-            std::vector<ChVector<> > convexhull;
+            std::vector<ChVector3d > convexhull;
             lugged_convex.GetConvexHullResult(ihull, convexhull);
             auto ct_shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(wheel_material, convexhull);
             wheel_body->AddCollisionShape(ct_shape, ChFrame<>(VNULL, rot));
@@ -183,10 +183,10 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
 
     // Add a cylinder to represent the wheel hub.
     auto cyl_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(wheel_material, 0.223, 0.252);
-    wheel_body->AddCollisionShape(cyl_shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+    wheel_body->AddCollisionShape(cyl_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
 
     // Visualization
-    auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
         vehicle::GetDataFile("hmmwv/lugged_wheel.obj"), false, false);
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
@@ -204,7 +204,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // --------------------
     // Create HMMWV vehicle
@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
     // -----------------------------------------------------------
     // Set tire contact material, contact model, and visualization
     // -----------------------------------------------------------
-    auto wheel_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto wheel_material = chrono_types::make_shared<ChContactMaterialSMC>();
     wheel_material->SetFriction(mu_t);
     wheel_material->SetYoungModulus(Y_t);
     wheel_material->SetRestitution(cr_t);
@@ -279,12 +279,12 @@ int main(int argc, char* argv[]) {
     ////                                10);  // number of concentric vertex selections subject to erosion
 
     // Optionally, enable moving patch feature (single patch around vehicle chassis)
-    terrain.AddMovingPatch(my_hmmwv.GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(5, 3, 1));
+    terrain.AddMovingPatch(my_hmmwv.GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(5, 3, 1));
 
     // Optionally, enable moving patch feature (multiple patches around each wheel)
     ////for (auto& axle : my_hmmwv.GetVehicle().GetAxles()) {
-    ////    terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
-    ////    terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector<>(0, 0, 0), ChVector<>(1, 0.5, 1));
+    ////    terrain.AddMovingPatch(axle->m_wheels[0]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
+    ////    terrain.AddMovingPatch(axle->m_wheels[1]->GetSpindle(), ChVector3d(0, 0, 0), ChVector3d(1, 0.5, 1));
     ////}
 
     ////terrain.SetTexture(vehicle::GetDataFile("terrain/textures/grass.jpg"), 80, 16);
@@ -334,7 +334,7 @@ int main(int argc, char* argv[]) {
     manager->scene->AddPointLight({20, 20, 30}, {intensity, intensity, intensity}, 5000);
     
     // Set up Camera
-    chrono::ChFrame<double> offset_pose1({-8, 0, 3}, Q_from_AngAxis(.2, {0, 1, 0}));
+    chrono::ChFrame<double> offset_pose1({-8, 0, 3}, QuatFromAngleAxis(.2, {0, 1, 0}));
     auto cam =
         chrono_types::make_shared<ChCameraSensor>(my_hmmwv.GetChassisBody(), update_rate, offset_pose1, image_width,
                                                   image_height, fov, 1, CameraLensModelType::PINHOLE, false);

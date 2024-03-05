@@ -37,7 +37,7 @@ TrackShoeDoublePin::TrackShoeDoublePin(const std::string& filename)
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 TrackShoeDoublePin::TrackShoeDoublePin(const rapidjson::Document& d)
@@ -112,23 +112,23 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
             m_ground_geometry.m_has_collision = true;
 
         if (type.compare("SPHERE") == 0) {
-            ChVector<> pos = ReadVectorJSON(shape["Location"]);
+            ChVector3d pos = ReadVectorJSON(shape["Location"]);
             double radius = shape["Radius"].GetDouble();
             ChVehicleGeometry::SphereShape sphere(pos, radius, matID);
             m_geometry.m_coll_spheres.push_back(sphere);
             if (ground_geometry)
                 m_ground_geometry.m_coll_spheres.push_back(sphere);
         } else if (type.compare("BOX") == 0) {
-            ChVector<> pos = ReadVectorJSON(shape["Location"]);
+            ChVector3d pos = ReadVectorJSON(shape["Location"]);
             ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
-            ChVector<> dims = ReadVectorJSON(shape["Dimensions"]);
+            ChVector3d dims = ReadVectorJSON(shape["Dimensions"]);
             ChVehicleGeometry::BoxShape box(pos, rot, dims, matID);
             m_geometry.m_coll_boxes.push_back(box);
             if (ground_geometry)
                 m_ground_geometry.m_coll_boxes.push_back(box);
         } else if (type.compare("CYLINDER") == 0) {
-            ChVector<> pos = ReadVectorJSON(shape["Location"]);
-            ChVector<> axis = ReadVectorJSON(shape["Axis"]);
+            ChVector3d pos = ReadVectorJSON(shape["Location"]);
+            ChVector3d axis = ReadVectorJSON(shape["Axis"]);
             double radius = shape["Radius"].GetDouble();
             double length = shape["Length"].GetDouble();
             ChVehicleGeometry::CylinderShape cylinder(pos, axis, radius, length, matID);
@@ -143,7 +143,7 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
                 m_ground_geometry.m_coll_hulls.push_back(hull);
         } else if (type.compare("MESH") == 0) {
             std::string filename = shape["Filename"].GetString();
-            ChVector<> pos = ReadVectorJSON(shape["Location"]);
+            ChVector3d pos = ReadVectorJSON(shape["Location"]);
             double radius = shape["Contact Radius"].GetDouble();
             ChVehicleGeometry::TrimeshShape mesh(pos, filename, radius, matID);
             m_geometry.m_coll_meshes.push_back(mesh);
@@ -168,17 +168,17 @@ void TrackShoeDoublePin::Create(const rapidjson::Document& d) {
                 const Value& shape = d["Visualization"]["Primitives"][i];
                 std::string type = shape["Type"].GetString();
                 if (type.compare("SPHERE") == 0) {
-                    ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                    ChVector3d pos = ReadVectorJSON(shape["Location"]);
                     double radius = shape["Radius"].GetDouble();
                     m_geometry.m_vis_spheres.push_back(ChVehicleGeometry::SphereShape(pos, radius));
                 } else if (type.compare("BOX") == 0) {
-                    ChVector<> pos = ReadVectorJSON(shape["Location"]);
+                    ChVector3d pos = ReadVectorJSON(shape["Location"]);
                     ChQuaternion<> rot = ReadQuaternionJSON(shape["Orientation"]);
-                    ChVector<> dims = ReadVectorJSON(shape["Dimensions"]);
+                    ChVector3d dims = ReadVectorJSON(shape["Dimensions"]);
                     m_geometry.m_vis_boxes.push_back(ChVehicleGeometry::BoxShape(pos, rot, dims));
                 } else if (type.compare("CYLINDER") == 0) {
-                    ChVector<> pos = ReadVectorJSON(shape["Location"]);
-                    ChVector<> axis = ReadVectorJSON(shape["Axis"]);
+                    ChVector3d pos = ReadVectorJSON(shape["Location"]);
+                    ChVector3d axis = ReadVectorJSON(shape["Axis"]);
                     double radius = shape["Radius"].GetDouble();
                     double length = shape["Length"].GetDouble();
                     m_geometry.m_vis_cylinders.push_back(ChVehicleGeometry::CylinderShape(pos, axis, radius, length));

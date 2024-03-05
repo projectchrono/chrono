@@ -25,7 +25,7 @@ namespace chrono {
 namespace vehicle {
 
 ChTrackBrakeSimple::ChTrackBrakeSimple(const std::string& name) : ChTrackBrake(name), m_braking(0) {
-    m_brake = chrono_types::make_shared<ChLinkBrake>();
+    m_brake = chrono_types::make_shared<ChLinkLockBrake>();
 }
 
 ChTrackBrakeSimple::~ChTrackBrakeSimple() {
@@ -52,7 +52,7 @@ void ChTrackBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis, std::sha
     auto mb1 = std::dynamic_pointer_cast<ChBody>(mbf1);
     auto mb2 = std::dynamic_pointer_cast<ChBody>(mbf2);
 
-    m_brake->Initialize(mb1, mb2, true, hub->GetMarker1()->GetCoord(), hub->GetMarker2()->GetCoord());
+    m_brake->Initialize(mb1, mb2, true, *hub->GetMarker1(), *hub->GetMarker2());
     sys->AddLink(m_brake);
 }
 

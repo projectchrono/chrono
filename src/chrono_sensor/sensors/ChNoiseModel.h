@@ -17,7 +17,7 @@
 #ifndef CHNOISEMODEL_H
 #define CHNOISEMODEL_H
 #include "chrono_sensor/ChApiSensor.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include <random>
 
 namespace chrono {
@@ -36,8 +36,8 @@ class CH_SENSOR_API ChNoiseModel {
 
     /// Function for adding noise to data
     /// @param data data to augment
-    virtual void AddNoise(ChVector<double>& data) = 0;
-    // virtual void AddNoise(chrono::ChVector<float>& gyro, chrono::ChVector<float>& acc) = 0;
+    virtual void AddNoise(ChVector3d& data) = 0;
+    // virtual void AddNoise(chrono::ChVector3f& gyro, chrono::ChVector3f& acc) = 0;
 };  // class ChNoiseModel
 
 /// Noise model: no noise
@@ -50,7 +50,7 @@ class CH_SENSOR_API ChNoiseNone : public ChNoiseModel {
 
     /// Function for adding noise to a set of values. This is empty and adds no noise.
     /// @param data data to augment
-    virtual void AddNoise(ChVector<double>& data) {}
+    virtual void AddNoise(ChVector3d& data) {}
 };
 
 class CH_SENSOR_API ChNoiseNormal : public ChNoiseModel {
@@ -58,19 +58,19 @@ class CH_SENSOR_API ChNoiseNormal : public ChNoiseModel {
     /// Class constructor
     /// @param mean The mean of the normal distribution
     /// @param stdev The standard deviation of the normal distribution
-    ChNoiseNormal(ChVector<double> mean, ChVector<double> stdev);
+    ChNoiseNormal(ChVector3d mean, ChVector3d stdev);
     // ChNoiseNormal();
     /// Class destructor
     ~ChNoiseNormal() {}
 
     /// Noise addition function. Adds no noise for this model.
     /// @param data data to augment
-    virtual void AddNoise(ChVector<double>& data);
+    virtual void AddNoise(ChVector3d& data);
 
   private:
     std::minstd_rand m_generator;  ///< random number generator
-    ChVector<double> m_mean;       ///< mean of the normal distribution
-    ChVector<double> m_stdev;      ///< standard deviation of the normal distribution
+    ChVector3d m_mean;       ///< mean of the normal distribution
+    ChVector3d m_stdev;      ///< standard deviation of the normal distribution
 };
 
 /// IMU Noise model: gaussian drifting noise with noncorrelated equal distributions
@@ -78,8 +78,8 @@ class CH_SENSOR_API ChNoiseNormalDrift : public ChNoiseModel {
   public:
     /// Class constructor
     ChNoiseNormalDrift(double updateRate,
-                       ChVector<double> mean,
-                       ChVector<double> stdev,
+                       ChVector3d mean,
+                       ChVector3d stdev,
                        double drift_bias,
                        double tau_drift);
     // ChNoiseNormalDrift();
@@ -88,15 +88,15 @@ class CH_SENSOR_API ChNoiseNormalDrift : public ChNoiseModel {
 
     /// Function for adding noise to data
     /// @param data data to augment
-    virtual void AddNoise(ChVector<double>& data);
+    virtual void AddNoise(ChVector3d& data);
 
   private:
     std::minstd_rand m_generator;  ///< random number generator
-    ChVector<double> m_bias_prev;
+    ChVector3d m_bias_prev;
 
     double m_updateRate;       ///< holding the sensor update rate for use in drift
-    ChVector<double> m_mean;   ///< mean of normal distribution for gyroscope
-    ChVector<double> m_stdev;  ///< standard deviation of normal distribution for gyroscope
+    ChVector3d m_mean;   ///< mean of normal distribution for gyroscope
+    ChVector3d m_stdev;  ///< standard deviation of normal distribution for gyroscope
     double m_drift_bias;       ///< bias component of gyroscope drift
     double m_tau_drift;        ///< time constant for gyroscope drift
 };

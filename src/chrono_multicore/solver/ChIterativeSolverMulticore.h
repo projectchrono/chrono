@@ -63,7 +63,7 @@ class CH_MULTICORE_API ChIterativeSolverMulticore : public ChIterativeSolverVI {
   protected:
     ChIterativeSolverMulticore(ChMulticoreDataManager* dc);
 
-    ChShurProductBilateral ShurProductBilateral;
+    ChSchurProductBilateral SchurProductBilateral;
     ChProjectNone ProjectNone;
 };
 
@@ -81,7 +81,7 @@ class CH_MULTICORE_API ChIterativeSolverMulticoreNSC : public ChIterativeSolverM
     void ComputeE();
     /// Compute the RHS vector. This will not change depending on the solve.
     void ComputeR();
-    /// Compute the Shur matrix N.
+    /// Compute the Schur matrix N.
     void ComputeN();
     /// Set the RHS vector depending on the local solver mode.
     void SetR();
@@ -91,7 +91,7 @@ class CH_MULTICORE_API ChIterativeSolverMulticoreNSC : public ChIterativeSolverM
     void ChangeSolverType(SolverType type);
 
   private:
-    ChShurProduct ShurProductFull;
+    ChSchurProduct SchurProductFull;
     ChProjectConstraints ProjectFull;
 };
 
@@ -126,4 +126,4 @@ class CH_MULTICORE_API ChIterativeSolverMulticoreSMC : public ChIterativeSolverM
 
 /// @} multicore_solver
 
-} // end namespace chrono
+}  // end namespace chrono

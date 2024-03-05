@@ -35,8 +35,8 @@ class GroundGranular {
   protected:
     virtual void Initialize(double x_min, double z_max, double step_size) = 0;
 
-    std::shared_ptr<chrono::ChMaterialSurface> m_material_c;
-    std::shared_ptr<chrono::ChMaterialSurface> m_material_g;
+    std::shared_ptr<chrono::ChContactMaterial> m_material_c;
+    std::shared_ptr<chrono::ChContactMaterial> m_material_g;
 
     chrono::ChSystemMulticore* m_sys;  // associated system
 
@@ -49,7 +49,7 @@ class GroundGranular {
     double m_width;             // path width
     unsigned int m_num_layers;  // number of particle layers
 
-    chrono::ChVector<> m_center;   // center of bottom boundary
+    chrono::ChVector3d m_center;   // center of bottom boundary
     double m_radius1;              // inflated particle radius
     unsigned int m_num_particles;  // number of generated particles
 

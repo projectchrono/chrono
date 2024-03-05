@@ -21,7 +21,7 @@
 
 #include "chrono/assets/ChColor.h"
 #include "chrono/core/ChQuaternion.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/physics/ChBody.h"
 //
 #include "chrono_sensor/sensors/ChSensor.h"
@@ -51,14 +51,14 @@ CH_SENSOR_API void ReadFileJSON(const std::string& filename, rapidjson::Document
 
 // -----------------------------------------------------------------------------
 
-/// Load and return a ChVector from the specified JSON array
+/// Load and return a ChVector3d from the specified JSON array
 /// @param a The value to be read
-/// @return A ChVector containing the values in ChVector format
-CH_SENSOR_API ChVector<> ReadVectorJSON(const rapidjson::Value& a);
+/// @return A ChVector3d containing the values in ChVector format
+CH_SENSOR_API ChVector3d ReadVectorJSON(const rapidjson::Value& a);
 
 /// Load and return a ChQuaternion from the specified JSON array
 /// @param a The value to be read
-/// @return A ChQuatertion generated from the JSON value
+/// @return A ChQuaternion generated from the JSON value
 CH_SENSOR_API ChQuaternion<> ReadQuaternionJSON(const rapidjson::Value& a);
 
 ///  Load and return a ChFrame from the specified JSON array

@@ -23,7 +23,7 @@ ChLinkMotorRotationSpeed::ChLinkMotorRotationSpeed() {
     variable.GetMass()(0, 0) = 1.0;
     variable.GetInvMass()(0, 0) = 1.0;
 
-    m_func = chrono_types::make_shared<ChFunction_Const>(1.0);
+    m_func = chrono_types::make_shared<ChFunctionConst>(1.0);
 
     rot_offset = 0;
 
@@ -59,30 +59,28 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
         if (this->avoid_angle_drift) {
             aux_rotation = this->aux_dt + this->rot_offset;
         } else {
-            ChFrame<> aframe12;
-            aframe2.TransformParentToLocal(aframe1, aframe12);
+            ChFrame<> aframe12 = aframe2.TransformParentToLocal(aframe1);
 
             // to have it aligned to current rot, to allow C=0.
-            aux_rotation = aframe12.GetRot().Q_to_Rotv().z();
+            aux_rotation = aframe12.GetRot().GetRotVec().z();
         }
 
         ChFrame<> aframe1rotating;
         aframe1rotating.SetPos(aframe1.GetPos());  // for safe
-        aframe1rotating.SetRot(aframe1.GetRot() * Q_from_AngAxis(aux_rotation, VECT_Z).GetConjugate());
+        aframe1rotating.SetRot(aframe1.GetRot() * QuatFromAngleZ(aux_rotation).GetConjugate());
 
-        ChFrame<> aframe1rotating2;
-        aframe2.TransformParentToLocal(aframe1rotating, aframe1rotating2);
+        ChFrame<> aframe1rotating2 = aframe2.TransformParentToLocal(aframe1rotating);
 
         // Premultiply by Jw1 and Jw2 by  0.5*[Fp(q_resid)]' to get residual as imaginary part of a quaternion.
         this->P = 0.5 * (ChMatrix33<>(aframe1rotating2.GetRot().e0()) +
                          ChStarMatrix33<>(aframe1rotating2.GetRot().GetVector()));
 
-        ChMatrix33<> Jw1 = this->P.transpose() * aframe2.GetA().transpose() * Body1->GetA();
-        ChMatrix33<> Jw2 = -this->P.transpose() * aframe2.GetA().transpose() * Body2->GetA();
+        ChMatrix33<> Jw1 = this->P.transpose() * aframe2.GetRotMat().transpose() * Body1->GetRotMat();
+        ChMatrix33<> Jw2 = -this->P.transpose() * aframe2.GetRotMat().transpose() * Body2->GetRotMat();
 
         // Another equivalent expression:
-        // ChMatrix33<> Jw1 = this->P * aframe1rotating.GetA().transpose() * Body1->GetA();
-        // ChMatrix33<> Jw2 = -this->P * aframe1rotating.GetA().transpose() * Body2->GetA();
+        // ChMatrix33<> Jw1 = this->P * aframe1rotating.GetRotMat().transpose() * Body1->GetRotMat();
+        // ChMatrix33<> Jw2 = -this->P * aframe1rotating.GetRotMat().transpose() * Body2->GetRotMat();
 
         int nc = 0;
 
@@ -127,20 +125,19 @@ void ChLinkMotorRotationSpeed::KRMmatricesLoad(double Kfactor, double Rfactor, d
         return;
 
     if (this->Kmatr) {
-        ChMatrix33<> R_B1_W = Body1->GetA();
-        ChMatrix33<> R_B2_W = Body2->GetA();
-        // ChMatrix33<> R_F1_B1 = frame1.GetA();
-        // ChMatrix33<> R_F2_B2 = frame2.GetA();
+        ChMatrix33<> R_B1_W = Body1->GetRotMat();
+        ChMatrix33<> R_B2_W = Body2->GetRotMat();
+        // ChMatrix33<> R_F1_B1 = frame1.GetRotMat();
+        // ChMatrix33<> R_F2_B2 = frame2.GetRotMat();
         ChFrame<> F1_W = this->frame1 >> (*this->Body1);
         ChFrame<> F2_W = this->frame2 >> (*this->Body2);
-        ChMatrix33<> R_F1_W = F1_W.GetA();
-        ChMatrix33<> R_F2_W = F2_W.GetA();
-        ChVector<> P12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
-        // ChFrame<> F1_wrt_F2;
-        // F2_W.TransformParentToLocal(F1_W, F1_wrt_F2);
+        ChMatrix33<> R_F1_W = F1_W.GetRotMat();
+        ChMatrix33<> R_F2_W = F2_W.GetRotMat();
+        ChVector3d P12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
+        // ChFrame<> F1_wrt_F2 = F2_W.TransformParentToLocal(F1_W);
 
-        ChVector<> r_F1_B1 = this->frame1.GetPos();
-        ChVector<> r_F2_B2 = this->frame2.GetPos();
+        ChVector3d r_F1_B1 = this->frame1.GetPos();
+        ChVector3d r_F2_B2 = this->frame2.GetPos();
         ChStarMatrix33<> rtilde_F1_B1(r_F1_B1);
         ChStarMatrix33<> rtilde_F2_B2(r_F2_B2);
 
@@ -170,7 +167,7 @@ void ChLinkMotorRotationSpeed::KRMmatricesLoad(double Kfactor, double Rfactor, d
         q_F1M_F2.e2() = 2.0 * this->P(0, 2);
         q_F1M_F2.e3() = -2.0 * this->P(0, 1);
         double s_F1M_F2 = q_F1M_F2.e0();
-        ChVector<> v_F1M_F2 = q_F1M_F2.GetVector();
+        ChVector3d v_F1M_F2 = q_F1M_F2.GetVector();
         ChMatrix33<> I33;
         I33.setIdentity();
         ChMatrix33<> G = -0.25 * TensorProduct(gamma_m, v_F1M_F2) -
@@ -191,7 +188,7 @@ void ChLinkMotorRotationSpeed::KRMmatricesLoad(double Kfactor, double Rfactor, d
 }
 
 void ChLinkMotorRotationSpeed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
-    double mCt = -0.5 * m_func->Get_y(this->GetChTime());
+    double mCt = -0.5 * m_func->GetVal(this->GetChTime());
 
     int ncrz = mask.nconstr - 1;
     if (mask.Constr_N(ncrz).IsActive()) {
@@ -203,7 +200,7 @@ void ChLinkMotorRotationSpeed::ConstraintsBiLoad_Ct(double factor) {
     if (!this->IsActive())
         return;
 
-    double mCt = -0.5 * m_func->Get_y(this->GetChTime());
+    double mCt = -0.5 * m_func->GetVal(this->GetChTime());
     int ncrz = mask.nconstr - 1;
     if (mask.Constr_N(ncrz).IsActive()) {
         mask.Constr_N(ncrz).Set_b_i(mask.Constr_N(ncrz).Get_b_i() + factor * mCt);
@@ -248,7 +245,7 @@ void ChLinkMotorRotationSpeed::IntLoadResidual_F(const unsigned int off,  // off
                                                  ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                                  const double c           // a scaling factor
 ) {
-    double imposed_speed = m_func->Get_y(this->GetChTime());
+    double imposed_speed = m_func->GetVal(this->GetChTime());
     R(off) += imposed_speed * c;
 }
 
@@ -303,7 +300,7 @@ void ChLinkMotorRotationSpeed::VariablesFbReset() {
 }
 
 void ChLinkMotorRotationSpeed::VariablesFbLoadForces(double factor) {
-    double imposed_speed = m_func->Get_y(this->GetChTime());
+    double imposed_speed = m_func->GetVal(this->GetChTime());
     variable.Get_fb()(0) += imposed_speed * factor;
 }
 
@@ -323,29 +320,29 @@ void ChLinkMotorRotationSpeed::VariablesQbSetSpeed(double step) {
     // Compute accel. by BDF (approximate by differentiation); not needed
 }
 
-void ChLinkMotorRotationSpeed::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMotorRotationSpeed::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMotorRotationSpeed>();
+    archive_out.VersionWrite<ChLinkMotorRotationSpeed>();
 
     // serialize parent class
-    ChLinkMotorRotation::ArchiveOut(marchive);
+    ChLinkMotorRotation::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(rot_offset);
-    marchive << CHNVP(avoid_angle_drift);
+    archive_out << CHNVP(rot_offset);
+    archive_out << CHNVP(avoid_angle_drift);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorRotationSpeed::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMotorRotationSpeed::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMotorRotationSpeed>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMotorRotationSpeed>();
 
     // deserialize parent class
-    ChLinkMotorRotation::ArchiveIn(marchive);
+    ChLinkMotorRotation::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(rot_offset);
-    marchive >> CHNVP(avoid_angle_drift);
+    archive_in >> CHNVP(rot_offset);
+    archive_in >> CHNVP(avoid_angle_drift);
 }
 
 }  // end namespace chrono

@@ -62,17 +62,17 @@ std::string out_dir = GetChronoOutputPath() + "DEMO_HYDRAULIC_CRANE_COSIM";
 class Crane {
   public:
     Crane(ChSystem& sys) : m_sys(sys) {
-        m_point_ground = ChVector<>(std::sqrt(3.0) / 2, 0, 0);
-        m_point_crane = ChVector<>(0, 0, 0);
+        m_point_ground = ChVector3d(std::sqrt(3.0) / 2, 0, 0);
+        m_point_crane = ChVector3d(0, 0, 0);
 
         double crane_mass = 500;
         double crane_length = 1.0;
         double crane_angle = CH_C_PI / 6;
-        ChVector<> crane_pos(0.5 * crane_length * std::cos(crane_angle), 0, 0.5 * crane_length * std::sin(crane_angle));
+        ChVector3d crane_pos(0.5 * crane_length * std::cos(crane_angle), 0, 0.5 * crane_length * std::sin(crane_angle));
 
         double pend_length = 0.3;
         double pend_mass = 100;
-        ChVector<> pend_pos = 2.0 * crane_pos + ChVector<>(0, 0, -pend_length);
+        ChVector3d pend_pos = 2.0 * crane_pos + ChVector3d(0, 0, -pend_length);
 
         auto connection_sph = chrono_types::make_shared<ChVisualShapeSphere>(0.02);
         connection_sph->SetColor(ChColor(0.7f, 0.3f, 0.3f));
@@ -93,11 +93,11 @@ class Crane {
         m_crane = chrono_types::make_shared<ChBody>();
         m_crane->SetMass(crane_mass);
         m_crane->SetPos(crane_pos);
-        m_crane->SetRot(Q_from_AngY(-crane_angle));
+        m_crane->SetRot(QuatFromAngleY(-crane_angle));
         m_crane->AddVisualShape(connection_sph, ChFrame<>(m_point_crane, QUNIT));
-        m_crane->AddVisualShape(connection_sph, ChFrame<>(ChVector<>(crane_length / 2, 0, 0), QUNIT));
+        m_crane->AddVisualShape(connection_sph, ChFrame<>(ChVector3d(crane_length / 2, 0, 0), QUNIT));
         auto crane_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.015, crane_length);
-        m_crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, Q_from_AngY(CH_C_PI_2)));
+        m_crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
         sys.AddBody(m_crane);
 
         auto ball = chrono_types::make_shared<ChBody>();
@@ -106,16 +106,16 @@ class Crane {
         auto ball_sph = chrono_types::make_shared<ChVisualShapeSphere>(0.04);
         ball->AddVisualShape(ball_sph);
         auto ball_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.005, pend_length);
-        ball->AddVisualShape(ball_cyl, ChFrame<>(ChVector<>(0, 0, pend_length / 2), QUNIT));
+        ball->AddVisualShape(ball_cyl, ChFrame<>(ChVector3d(0, 0, pend_length / 2), QUNIT));
         sys.AddBody(ball);
 
         // Create joints
         auto rev_joint = chrono_types::make_shared<ChLinkRevolute>();
-        rev_joint->Initialize(ground, m_crane, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+        rev_joint->Initialize(ground, m_crane, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
         sys.AddLink(rev_joint);
 
         auto sph_joint = chrono_types::make_shared<ChLinkLockSpherical>();
-        sph_joint->Initialize(m_crane, ball, ChCoordsys<>(2.0 * crane_pos, QUNIT));
+        sph_joint->Initialize(m_crane, ball, ChFrame<>(2.0 * crane_pos, QUNIT));
         sys.AddLink(sph_joint);
 
         // Create an external force load on crane
@@ -152,7 +152,7 @@ class Crane {
         auto P2 = m_crane->TransformPointLocalToParent(m_point_crane);
         auto V2 = m_crane->PointSpeedLocalToParent(m_point_crane);
 
-        ChVector<> dir = (P2 - P1).GetNormalized();
+        ChVector3d dir = (P2 - P1).GetNormalized();
 
         s = (P2 - P1).Length();
         sd = Vdot(dir, V2 - V1);
@@ -161,8 +161,8 @@ class Crane {
     void SetActuatorForce(double f) {
         const auto& P1 = m_point_ground;
         auto P2 = m_crane->TransformPointLocalToParent(m_point_crane);
-        ChVector<> dir = (P2 - P1).GetNormalized();
-        ChVector<> force = f * dir;
+        ChVector3d dir = (P2 - P1).GetNormalized();
+        ChVector3d force = f * dir;
 
         m_external_load->SetForce(force, false);
         m_external_load->SetApplicationPoint(P2, false);
@@ -183,8 +183,8 @@ class Crane {
     ChSystem& m_sys;
     std::shared_ptr<ChBody> m_crane;
     std::shared_ptr<ChLoadBodyForce> m_external_load;
-    ChVector<> m_point_ground;
-    ChVector<> m_point_crane;
+    ChVector3d m_point_ground;
+    ChVector3d m_point_crane;
     double m_F0;
     utils::CSV_writer m_csv;
 };
@@ -192,7 +192,7 @@ class Crane {
 class Actuator {
     public:
       Actuator(ChSystem& sys, double s0, double F0) : m_sys(sys) {
-        m_actuation = chrono_types::make_shared<ChFunction_Setpoint>();
+        m_actuation = chrono_types::make_shared<ChFunctionSetpoint>();
 
         // Construct the hydraulic actuator
         m_actuator = chrono_types::make_shared<ChHydraulicActuator2>();
@@ -234,7 +234,7 @@ class Actuator {
         double time = m_sys.GetChTime();
 
         Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-        auto Uref = m_actuation->Get_y(time);
+        auto Uref = m_actuation->GetVal(time);
         auto U = m_actuator->GetValvePosition();
         auto p = m_actuator->GetCylinderPressures();
         auto F = m_actuator->GetActuatorForce();
@@ -247,14 +247,14 @@ class Actuator {
     private:
       ChSystem& m_sys;
       std::shared_ptr<ChHydraulicActuator2> m_actuator;
-      std::shared_ptr<ChFunction_Setpoint> m_actuation;
+      std::shared_ptr<ChFunctionSetpoint> m_actuation;
       utils::CSV_writer m_csv;
 };
 
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create (if needed) output directory
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -265,8 +265,8 @@ int main(int argc, char* argv[]) {
     // Create the two Chrono systems 
     ChSystemSMC sysMBS;
     ChSystemSMC sysHYD;
-    sysMBS.Set_G_acc(ChVector<>(0, 0, -9.8));
-    sysHYD.Set_G_acc(ChVector<>(0, 0, -9.8));
+    sysMBS.Set_G_acc(ChVector3d(0, 0, -9.8));
+    sysHYD.Set_G_acc(ChVector3d(0, 0, -9.8));
 
     // Construct the crane multibody system
     Crane crane(sysMBS); 
@@ -278,13 +278,13 @@ int main(int argc, char* argv[]) {
     Actuator actuator(sysHYD, s0, F0);
 
     // Hydraulic actuation
-    auto f_segment = chrono_types::make_shared<ChFunction_Sequence>();
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Const>(0), 0.5);         // 0.0
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(0, 0.4), 1.5);     // 0.0 -> 0.6
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Const>(0.6), 5.0);       // 0.6
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(0.6, -0.8), 2.0);  // 0.6 -> -1.0
-    f_segment->InsertFunct(chrono_types::make_shared<ChFunction_Ramp>(-1.0, 1.0), 1.0);  // -1.0 -> 0.0
-    auto actuation = chrono_types::make_shared<ChFunction_Repeat>(f_segment, 0, 10, 10);
+    auto f_segment = chrono_types::make_shared<ChFunctionSequence>();
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionConst>(0), 0.5);         // 0.0
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionRamp>(0, 0.4), 1.5);     // 0.0 -> 0.6
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionConst>(0.6), 5.0);       // 0.6
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionRamp>(0.6, -0.8), 2.0);  // 0.6 -> -1.0
+    f_segment->InsertFunct(chrono_types::make_shared<ChFunctionRamp>(-1.0, 1.0), 1.0);  // -1.0 -> 0.0
+    auto actuation = chrono_types::make_shared<ChFunctionRepeat>(f_segment, 0, 10, 10);
 
     // Create the run-time visualization system
 #ifndef CHRONO_IRRLICHT
@@ -305,7 +305,7 @@ int main(int argc, char* argv[]) {
             vis_irr->SetWindowTitle("Hydraulic actuator co-simulation demo");
             vis_irr->SetCameraVertical(CameraVerticalDir::Z);
             vis_irr->Initialize();
-            vis_irr->AddCamera(ChVector<>(0.5, -1, 0.5), ChVector<>(0.5, 0, 0.5));
+            vis_irr->AddCamera(ChVector3d(0.5, -1, 0.5), ChVector3d(0.5, 0, 0.5));
             vis_irr->AddLogo();
             vis_irr->AddSkyBox();
             vis_irr->AddTypicalLights();
@@ -323,14 +323,15 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachSystem(&sysHYD);
             vis_vsg->SetWindowTitle("Hydraulic actuator co-simulation demo");
             vis_vsg->SetCameraVertical(CameraVerticalDir::Z);
-            vis_vsg->AddCamera(ChVector<>(0.5, -2, 0.5), ChVector<>(0.5, 0, 0.5));
-            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+            vis_vsg->AddCamera(ChVector3d(0.5, -2, 0.5), ChVector3d(0.5, 0, 0.5));
+            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 100));
             vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->SetWireFrameMode(false);
             vis_vsg->Initialize();
 
@@ -354,7 +355,7 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
 
         // Apply actuation
-        double Uref = actuation->Get_y(t);
+        double Uref = actuation->GetVal(t);
         actuator.SetActuation(t, Uref);
 
         // Exchange information between systems

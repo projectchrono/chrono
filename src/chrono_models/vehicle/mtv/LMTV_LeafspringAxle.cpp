@@ -38,8 +38,8 @@ const double LMTV_LeafspringAxle::m_axleTubeRadius = 0.06;
 const double LMTV_LeafspringAxle::m_spindleRadius = 0.10;
 const double LMTV_LeafspringAxle::m_spindleWidth = 0.06;
 
-const ChVector<> LMTV_LeafspringAxle::m_axleTubeInertia(240.8417938, 1.2906, 240.8417938);
-const ChVector<> LMTV_LeafspringAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
+const ChVector3d LMTV_LeafspringAxle::m_axleTubeInertia(240.8417938, 1.2906, 240.8417938);
+const ChVector3d LMTV_LeafspringAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
 
 const double LMTV_LeafspringAxle::m_springDesignLength = 0.2;
 const double LMTV_LeafspringAxle::m_springCoefficient = 366991.3701;
@@ -69,7 +69,7 @@ class LMTV_SpringForceRear : public ChLinkTSDA::ForceFunctor {
     double m_min_length;
     double m_max_length;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionInterp m_bump;
 };
 
 LMTV_SpringForceRear::LMTV_SpringForceRear(double spring_constant, double min_length, double max_length)
@@ -106,7 +106,7 @@ double LMTV_SpringForceRear::evaluate(double time,
         defl_rebound = length - m_max_length;
     }
 
-    force = defl_spring * m_spring_constant + m_bump.Get_y(defl_bump) - m_bump.Get_y(defl_rebound);
+    force = defl_spring * m_spring_constant + m_bump.GetVal(defl_bump) - m_bump.GetVal(defl_rebound);
 
     return force;
 }
@@ -174,20 +174,20 @@ LMTV_LeafspringAxle::LMTV_LeafspringAxle(const std::string& name) : ChLeafspring
 // -----------------------------------------------------------------------------
 LMTV_LeafspringAxle::~LMTV_LeafspringAxle() {}
 
-const ChVector<> LMTV_LeafspringAxle::getLocation(PointId which) {
+const ChVector3d LMTV_LeafspringAxle::getLocation(PointId which) {
     switch (which) {
         case SPRING_A:
-            return ChVector<>(0.0, 0.529, m_axleTubeRadius);
+            return ChVector3d(0.0, 0.529, m_axleTubeRadius);
         case SPRING_C:
-            return ChVector<>(0.0, 0.529, m_axleTubeRadius + m_springDesignLength);
+            return ChVector3d(0.0, 0.529, m_axleTubeRadius + m_springDesignLength);
         case SHOCK_A:
-            return ChVector<>(-0.15, 0.7075, m_axleTubeRadius - 0.05);
+            return ChVector3d(-0.15, 0.7075, m_axleTubeRadius - 0.05);
         case SHOCK_C:
-            return ChVector<>(0.0, 0.529, m_axleTubeRadius + m_springDesignLength + 0.2);
+            return ChVector3d(0.0, 0.529, m_axleTubeRadius + m_springDesignLength + 0.2);
         case SPINDLE:
-            return ChVector<>(0.0, 1.0025, 0.0);
+            return ChVector3d(0.0, 1.0025, 0.0);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

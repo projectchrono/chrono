@@ -19,9 +19,15 @@
 
 using namespace chrono;
 
-FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID)
-    : FmuChronoComponentBase(_instanceName, _fmuType, _fmuGUID) {
-    initializeType(_fmuType);
+FmuComponent::FmuComponent(fmi2String instanceName,
+                           fmi2Type fmuType,
+                           fmi2String fmuGUID,
+                           fmi2String fmuResourceLocation,
+                           const fmi2CallbackFunctions* functions,
+                           fmi2Boolean visible,
+                           fmi2Boolean loggingOn)
+    : FmuChronoComponentBase(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn) {
+    initializeType(fmuType);
 
     SetChronoDataPath(CHRONO_DATA_DIR);
 
@@ -52,17 +58,17 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
 
     auto pendulum = chrono_types::make_shared<ChBodyEasyBox>(0.025, pendulum_length, 0.01, 750, true, false);
     pendulum->SetMass(pendulum_mass);
-    pendulum->SetInertiaXX(ChVector<>(0.01, 0.01, 0.01));
+    pendulum->SetInertiaXX(ChVector3d(0.01, 0.01, 0.01));
     sys.Add(pendulum);
 
     auto cart_prism = chrono_types::make_shared<ChLinkLockPrismatic>();
-    cart_prism->Initialize(cart, ground, ChCoordsys<>(VNULL, Q_ROTATE_Z_TO_X));
+    cart_prism->Initialize(cart, ground, ChFrame<>(VNULL, Q_ROTATE_Z_TO_X));
     cart_prism->SetName("cart_prism");
     sys.Add(cart_prism);
 
     auto pendulum_rev = chrono_types::make_shared<ChLinkRevolute>();
     pendulum_rev->Initialize(pendulum, cart, true, ChFrame<>(VNULL, QUNIT),
-                             ChFrame<>(ChVector<>(0, +pendulum_length / 2, 0), QUNIT));
+                             ChFrame<>(ChVector3d(0, +pendulum_length / 2, 0), QUNIT));
     pendulum_rev->SetName("pendulum_rev");
     sys.Add(pendulum_rev);
 
@@ -76,14 +82,14 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(-0.5, -0.5, -1.0));
+    vis->AddCamera(ChVector3d(-0.5, -0.5, -1.0));
     vis->AddTypicalLights();
 #endif
 
     // Specify functions to calculate FMU outputs (at end of step)
-    postStepCallbacks.push_back([this]() { x_tt = this->sys.SearchBodyID(10)->GetPos_dtdt().x(); });
-    postStepCallbacks.push_back([this]() { x_t = this->sys.SearchBodyID(10)->GetPos_dt().x(); });
-    postStepCallbacks.push_back([this]() { x = this->sys.SearchBodyID(10)->GetPos().x(); });
+    m_postStepCallbacks.push_back([this]() { x_tt = this->sys.SearchBodyID(10)->GetLinAcc().x(); });
+    m_postStepCallbacks.push_back([this]() { x_t = this->sys.SearchBodyID(10)->GetLinVel().x(); });
+    m_postStepCallbacks.push_back([this]() { x = this->sys.SearchBodyID(10)->GetPos().x(); });
 };
 
 void FmuComponent::_preModelDescriptionExport() {
@@ -101,9 +107,9 @@ void FmuComponent::_exitInitializationMode() {
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
                                  fmi2Real communicationStepSize,
                                  fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
-    while (time < currentCommunicationPoint + communicationStepSize) {
-        fmi2Real _stepSize = std::min((currentCommunicationPoint + communicationStepSize - time),
-                                      std::min(communicationStepSize, stepSize));
+    while (m_time < currentCommunicationPoint + communicationStepSize) {
+        fmi2Real ste_size = std::min((currentCommunicationPoint + communicationStepSize - m_time),
+                                     std::min(communicationStepSize, m_stepSize));
 
 #ifdef CHRONO_IRRLICHT
         if (vis) {
@@ -114,14 +120,14 @@ fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
         }
 #endif
 
-        sys.DoStepDynamics(_stepSize);
-        sendToLog("Step at time: " + std::to_string(time) + " with timestep: " + std::to_string(_stepSize) +
+        sys.DoStepDynamics(ste_size);
+        sendToLog("Step at time: " + std::to_string(m_time) + " with timestep: " + std::to_string(ste_size) +
                       "ms succeeded.\n",
                   fmi2Status::fmi2OK, "logAll");
 
-        time = time + _stepSize;
+        m_time += ste_size;
 
-        realtime_timer.Spin(_stepSize);
+        realtime_timer.Spin(ste_size);
     }
 
     return fmi2Status::fmi2OK;

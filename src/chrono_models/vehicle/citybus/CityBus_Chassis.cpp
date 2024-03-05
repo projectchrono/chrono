@@ -31,10 +31,10 @@ namespace citybus {
 // Static variables
 // -----------------------------------------------------------------------------
 const double CityBus_Chassis::m_body_mass = 13000;
-const ChVector<> CityBus_Chassis::m_body_inertiaXX(13.5e3, 13.5e3, 115.1e3);
-const ChVector<> CityBus_Chassis::m_body_inertiaXY(0, 0, 0);
-const ChVector<> CityBus_Chassis::m_body_COM_loc(-4, 0, 0.86);
-const ChCoordsys<> CityBus_Chassis::m_driverCsys(ChVector<>(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
+const ChVector3d CityBus_Chassis::m_body_inertiaXX(13.5e3, 13.5e3, 115.1e3);
+const ChVector3d CityBus_Chassis::m_body_inertiaXY(0, 0, 0);
+const ChVector3d CityBus_Chassis::m_body_COM_loc(-4, 0, 0.86);
+const ChCoordsys<> CityBus_Chassis::m_driverCsys(ChVector3d(0.0, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
@@ -57,7 +57,7 @@ CityBus_Chassis::CityBus_Chassis(const std::string& name, bool fixed, CollisionT
 
     //// TODO:
     //// A more appropriate contact shape from primitives
-    ChVehicleGeometry::BoxShape box1(ChVector<>(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector<>(1.0, 0.5, 0.2));
+    ChVehicleGeometry::BoxShape box1(ChVector3d(0.0, 0.0, 0.1), ChQuaternion<>(1, 0, 0, 0), ChVector3d(1.0, 0.5, 0.2));
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box1);

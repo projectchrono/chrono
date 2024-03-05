@@ -3,8 +3,8 @@
     "Type": "GRANULAR_SPH",
 
     "Patch dimensions": {
-        "Length": 4,
-        "Width": 1,
+        "Length": 8,
+        "Width": 4,
         "Depth": 0.5
     },
 

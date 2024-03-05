@@ -18,8 +18,6 @@
 
 #include <algorithm>
 
-#include "chrono/core/ChLog.h"
-
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
@@ -38,7 +36,7 @@ TMeasyTire::TMeasyTire(const std::string& filename) : ChTMeasyTire(""), m_has_me
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 TMeasyTire::TMeasyTire(const rapidjson::Document& d) : ChTMeasyTire(""), m_has_mesh(false) {
@@ -84,10 +82,10 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
                 force.push_back(t_force);
             }
             SetVerticalStiffness(defl, force);
-            GetLog() << "Table set\n";
+            std::cout << "Table set\n";
         } else {
-            GetLog() << "FATAL: No Vertical Tire Stiffness Definition!\n";
-            exit(19);
+            std::cerr << "FATAL: No Vertical Tire Stiffness Definition!" << std::endl;
+            throw std::runtime_error("FATAL: No Vertical Tire Stiffness Definition!");
         }
 
         m_par.dz = d["Parameters"]["Vertical"]["Tire Vertical Damping [Ns/m]"].GetDouble();
@@ -181,8 +179,8 @@ void TMeasyTire::Create(const rapidjson::Document& d) {
                               p_li, p_use);
         }
     } else {
-        GetLog() << "ERROR: Incorrect TMeasy JSON specification.\n";
-        return;
+        std::cerr << "ERROR: Incorrect TMeasy JSON specification." << std::endl;
+        throw std::runtime_error("ERROR: Incorrect TMeasy JSON specification.");
     }
 
     // Coefficient of friction and rolling resistance coefficients.

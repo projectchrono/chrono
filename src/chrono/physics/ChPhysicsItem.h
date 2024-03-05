@@ -16,6 +16,8 @@
 #define CH_PHYSICSITEM_H
 
 #include "chrono/core/ChFrame.h"
+#include "chrono/core/ChRotation.h"
+
 #include "chrono/geometry/ChGeometry.h"
 #include "chrono/physics/ChObject.h"
 #include "chrono/assets/ChCamera.h"
@@ -123,20 +125,13 @@ class ChApi ChPhysicsItem : public ChObj {
     /// The AABB must enclose the collision models, if any.
     /// By default is infinite AABB.
     /// Should be overridden by child classes.
-    virtual geometry::ChAABB GetTotalAABB();
+    virtual ChAABB GetTotalAABB();
 
     /// Get a symbolic 'center' of the object. By default this
     /// function returns the center of the AABB.
     /// It could be overridden by child classes, anyway it must
     /// always get a point that must be inside AABB.
-    virtual void GetCenter(ChVector<>& mcenter);
-
-    /// Method to deserialize only the state (position, speed)
-    /// Must be implemented by child classes.
-    virtual void StreamInstate(ChStreamInBinary& mstream) {}
-    /// Method to serialize only the state (position, speed)
-    /// Must be implemented by child classes.
-    virtual void StreamOutstate(ChStreamOutBinary& mstream) {}
+    virtual void GetCenter(ChVector3d& mcenter);
 
     // UPDATING  - child classes may implement these functions
 
@@ -161,34 +156,26 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void Update(bool update_assets = true) { Update(ChTime, update_assets); }
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
-    /// Child classes should implement this function if GetDOF() > 0.
+    /// Child classes should implement this function if GetNumCoordinatesPos() > 0.
     /// It is used by owner ChSystem for some static analysis.
     virtual void SetNoSpeedNoAcceleration() {}
 
-    // STATE FUNCTIONS
-    //
-    // These functions are used for bookkeeping in ChSystem, so that states (position, speeds)
-    // of multiple physics items can be mapped in a single system state vector.
-    // These will be used to interface to time integrators.
-    // Note: these are not 'pure virtual' interfaces to avoid the burden of implementing all them
-    // when just few are needed, so here is a default fallback that represent a 0 DOF, 0 DOC item, but
-    // the children classes should override them.
+    /// Get the number of coordinates at the position level.
+    /// Might differ from coordinates at velocity level if quaternions are used for rotations.
+    virtual int GetNumCoordinatesPos() { return 0; }
 
-    /// Get the number of scalar coordinates (variables), if any, in this item.
-    /// Children classes must override this.
-    virtual int GetDOF() { return 0; }
-    /// Get the number of scalar coordinates of variables derivatives (usually = DOF, but might be
-    /// different than DOF, ex. DOF=4 for quaternions, but DOF_w = 3 for its Lie algebra, ex angular velocity)
-    /// Children classes might override this.
-    virtual int GetDOF_w() { return GetDOF(); }
-    /// Get the number of scalar constraints, if any, in this item
-    virtual int GetDOC() { return GetDOC_c() + GetDOC_d(); }
-    /// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
-    /// Children classes might override this.
-    virtual int GetDOC_c() { return 0; }
-    /// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
-    /// Children classes might override this.
-    virtual int GetDOC_d() { return 0; }
+    /// Get the number of coordinates at the velocity level.
+    /// Might differ from coordinates at position level if quaternions are used for rotations.
+    virtual int GetNumCoordinatesVel() { return GetNumCoordinatesPos(); }
+
+    /// Get the number of scalar constraints.
+    virtual int GetNumConstraints() { return GetNumConstraintsBilateral() + GetNumConstraintsUnilateral(); }
+
+    /// Get the number of bilateral scalar constraints.
+    virtual int GetNumConstraintsBilateral() { return 0; }
+
+    /// Get the number of unilateral scalar constraints.
+    virtual int GetNumConstraintsUnilateral() { return 0; }
 
     /// Get offset in the state vector (position part)
     unsigned int GetOffset_x() { return offset_x; }
@@ -256,7 +243,7 @@ class ChApi ChPhysicsItem : public ChObj {
                                    const unsigned int off_v,  ///< offset in v state vector
                                    const ChStateDelta& Dv     ///< state vector, increment
     ) {
-        for (int i = 0; i < GetDOF(); ++i) {
+        for (int i = 0; i < GetNumCoordinatesPos(); ++i) {
             x_new(off_x + i) = x(off_x + i) + Dv(off_v + i);
         }
     }
@@ -270,7 +257,7 @@ class ChApi ChPhysicsItem : public ChObj {
                                       const unsigned int off_v,  ///< offset in v state vector
                                       ChStateDelta& Dv           ///< state vector, increment. Here gets the result
     ) {
-        for (int i = 0; i < GetDOF(); ++i) {
+        for (int i = 0; i < GetNumCoordinatesPos(); ++i) {
             Dv(off_v + i) = x_new(off_x + i) - x(off_x + i);
         }
     }
@@ -376,7 +363,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// multiplied by a 'step' factor.
     ///     pos+=qb*step
     /// If qb is a speed, this behaves like a single step of 1-st order
-    /// numerical integration (Eulero integration).
+    /// numerical integration (Euler integration).
     virtual void VariablesQbIncrementPosition(double step) {}
 
     /// Tell to a system descriptor that there are variables of type
@@ -432,10 +419,10 @@ class ChApi ChPhysicsItem : public ChObj {
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   protected:
     ChSystem* system;  ///< parent system

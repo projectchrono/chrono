@@ -12,6 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 
+#include <iomanip>
 #include "chrono/solver/ChIterativeSolver.h"
 
 namespace chrono {
@@ -37,13 +38,13 @@ void ChIterativeSolver::SaveMatrix(ChSystemDescriptor& sysd) {
 
     // Save matrices to file
     {
-        ChStreamOutAsciiFile file("Z1.dat");
-        file.SetNumFormat("%.12g");
+        std::ofstream file("Z1.dat");
+        file << std::setprecision(12) << std::scientific;
         StreamOutSparseMatlabFormat(Z1, file);
     }
     {
-        ChStreamOutAsciiFile file("Z2.dat");
-        file.SetNumFormat("%.12g");
+        std::ofstream file("Z2.dat");
+        file << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(Z2, file);
     }
 
@@ -57,13 +58,13 @@ void ChIterativeSolver::SaveMatrix(ChSystemDescriptor& sysd) {
 
     // Save vectors to file
     {
-        ChStreamOutAsciiFile file("rhs1.dat");
-        file.SetNumFormat("%.12g");
+        std::ofstream file("rhs1.dat");
+        file << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(rhs1, file);
     }
     {
-        ChStreamOutAsciiFile file("rhs2.dat");
-        file.SetNumFormat("%.12g");
+        std::ofstream file("rhs2.dat");
+        file << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(rhs2, file);
     }
 }

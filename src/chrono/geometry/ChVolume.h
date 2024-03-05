@@ -17,11 +17,12 @@
 
 #include <cmath>
 
-#include "chrono/core/ChFilePS.h"
 #include "chrono/geometry/ChGeometry.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// Base class for all geometric objects representing tri-parametric surfaces in 3D space.
 /// This is the base for all U,V,W-parametric object, implementing Evaluate() that returns a point as a function of
@@ -44,7 +45,7 @@ class ChApi ChVolume : public ChGeometry {
     /// Return a point in the volume, given parametric coordinates U,V,W.
     /// Parameters U V W always work in 0..1 range.
     /// The default implementation always returns the volume center.
-    virtual ChVector<> Evaluate(double parU, double parV, double parW) const { return VNULL; }
+    virtual ChVector3d Evaluate(double parU, double parV, double parW) const { return VNULL; }
 
     /// Tell if the volume is closed (periodic) in parametric coordinate
     virtual bool Get_closed_U() const { return false; }
@@ -59,15 +60,15 @@ class ChApi ChVolume : public ChGeometry {
     virtual int GetManifoldDimension() const override final { return 3; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChVolume, 0)
+CH_CLASS_VERSION(ChVolume, 0)
 
 }  // end namespace chrono
 

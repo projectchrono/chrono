@@ -32,7 +32,7 @@ namespace vehicle {
 // could transfer pitch torque to the chassis.
 // -----------------------------------------------------------------------------
 ChShaftsDriveline6WD::ChShaftsDriveline6WD(const std::string& name)
-    : ChDrivelineWV(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
+    : ChDrivelineWV(name), m_dir_motor_block(ChVector3d(1, 0, 0)), m_dir_axle(ChVector3d(0, 1, 0)) {}
 
 ChShaftsDriveline6WD::~ChShaftsDriveline6WD() {
     auto sys = m_central_differential->GetSystem();
@@ -239,31 +239,31 @@ void ChShaftsDriveline6WD::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Front differential
     double omega_front_differentialbox = 0.5 * (omega_axle_FL + omega_axle_FR);
-    m_front_differentialbox->SetPos_dt(omega_front_differentialbox);
+    m_front_differentialbox->SetPosDer(omega_front_differentialbox);
 
     // Rear1 differential
     double omega_rear1_differentialbox = 0.5 * (omega_axle_RL1 + omega_axle_RR1);
-    m_rear1_differentialbox->SetPos_dt(omega_rear1_differentialbox);
+    m_rear1_differentialbox->SetPosDer(omega_rear1_differentialbox);
 
     // Rear2 differential
     double omega_rear2_differentialbox = 0.5 * (omega_axle_RL2 + omega_axle_RR2);
-    m_rear2_differentialbox->SetPos_dt(omega_rear2_differentialbox);
+    m_rear2_differentialbox->SetPosDer(omega_rear2_differentialbox);
 
     // Front conical gear
     double omega_front_shaft = omega_front_differentialbox / GetFrontConicalGearRatio();
-    m_front_shaft->SetPos_dt(omega_front_shaft);
+    m_front_shaft->SetPosDer(omega_front_shaft);
 
     // Rear1 conical gear
     double omega_rear1_shaft = omega_rear1_differentialbox / GetRearConicalGearRatio();
-    m_rear1_shaft->SetPos_dt(omega_rear1_shaft);
+    m_rear1_shaft->SetPosDer(omega_rear1_shaft);
 
     // Rear2 conical gear
     double omega_rear2_shaft = omega_rear2_differentialbox / GetRearConicalGearRatio();
-    m_rear2_shaft->SetPos_dt(omega_rear2_shaft);
+    m_rear2_shaft->SetPosDer(omega_rear2_shaft);
 
     // Central differential
     double omega_driveshaft = 0.5 * (omega_rear1_shaft + omega_rear2_shaft);
-    m_driveshaft->SetPos_dt(omega_driveshaft);
+    m_driveshaft->SetPosDer(omega_driveshaft);
 }
 
 // -----------------------------------------------------------------------------
@@ -289,9 +289,9 @@ void ChShaftsDriveline6WD::LockAxleDifferential(int axle, bool lock) {
         return;
     }
 
-    GetLog() << "WARNING: Incorrect axle specification in ChShaftsDriveline6WD::LockAxleDifferential.\n";
+    std::cerr << "WARNING: Incorrect axle specification in ChShaftsDriveline6WD::LockAxleDifferential." << std::endl;
     for (size_t i = 0; i < m_driven_axles.size(); i++) {
-        GetLog() << "         Driven axles are: " << m_driven_axles[i] << "\n";
+        std::cerr << "         Driven axles are: " << m_driven_axles[i] << std::endl;
     }
 }
 

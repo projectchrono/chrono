@@ -699,8 +699,8 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
 // It is used to convert an Irrlicht mesh into a ChTriangleMesh, which is used
 // for collision detection in Chrono::Engine.
 // -----------------------------------------------------------------------------
-void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, IMesh* pMesh) {
-    chrono::ChVector<> vertices[3];
+void fillChTrimeshFromIrlichtMesh(chrono::ChTriangleMesh* chTrimesh, IMesh* pMesh) {
+    chrono::ChVector3d vertices[3];
     u32 i, j, k, index, numVertices;
     u16* mb_indices;
 
@@ -718,9 +718,9 @@ void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, I
                 for (k = 0; k < 3; k++) {                   // three verts per triangle
                     index = mb_indices[j + k];
                     if (index > numVertices)
-                        throw(chrono::ChException(
-                            "Cannot convert corrupted Irrlicht mesh in ChronoEngine ChTriangleMesh."));
-                    vertices[k] = chrono::ChVector<>(mb_vertices[index].Pos.X, mb_vertices[index].Pos.Y,
+                        throw std::runtime_error(
+                            "Cannot convert corrupted Irrlicht mesh in ChronoEngine ChTriangleMesh.");
+                    vertices[k] = chrono::ChVector3d(mb_vertices[index].Pos.X, mb_vertices[index].Pos.Y,
                                                      mb_vertices[index].Pos.Z);
                 }
                 chTrimesh->addTriangle(vertices[0], vertices[1], vertices[2]);
@@ -734,9 +734,9 @@ void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, I
                 for (k = 0; k < 3; k++) {
                     index = mb_indices[j + k];
                     if (index > numVertices)
-                        throw(chrono::ChException(
-                            "Cannot convert corrupted Irrlicht mesh in ChronoEngine ChTriangleMesh."));
-                    vertices[k] = chrono::ChVector<>(mb_vertices[index].Pos.X, mb_vertices[index].Pos.Y,
+                        throw std::runtime_error(
+                            "Cannot convert corrupted Irrlicht mesh in ChronoEngine ChTriangleMesh.");
+                    vertices[k] = chrono::ChVector3d(mb_vertices[index].Pos.X, mb_vertices[index].Pos.Y,
                                                      mb_vertices[index].Pos.Z);
                 }
                 chTrimesh->addTriangle(vertices[0], vertices[1], vertices[2]);
@@ -754,7 +754,7 @@ void fillChTrimeshFromIrlichtMesh(chrono::geometry::ChTriangleMesh* chTrimesh, I
 //
 // ***OBSOLETE***
 // -----------------------------------------------------------------------------
-void fillIrlichtMeshFromChTrimesh(IMesh* pMesh, chrono::geometry::ChTriangleMesh* chTrimesh, irr::video::SColor clr) {
+void fillIrlichtMeshFromChTrimesh(IMesh* pMesh, chrono::ChTriangleMesh* chTrimesh, irr::video::SColor clr) {
     SMeshBuffer* buffer = new SMeshBuffer();
 
     // From index-less triangle soup
@@ -762,8 +762,8 @@ void fillIrlichtMeshFromChTrimesh(IMesh* pMesh, chrono::geometry::ChTriangleMesh
     buffer->Indices.set_used(chTrimesh->getNumTriangles() * 3);
 
     for (int i = 0; i < chTrimesh->getNumTriangles(); i++) {
-        chrono::ChVector<> normal = chTrimesh->getTriangle(i).GetNormal();
-        chrono::ChVector<> pos;
+        chrono::ChVector3d normal = chTrimesh->getTriangle(i).GetNormal();
+        chrono::ChVector3d pos;
         pos = chTrimesh->getTriangle(i).p1;
         buffer->Vertices[i * 3 + 0] = irr::video::S3DVertex((f32)pos.x(), (f32)pos.y(), (f32)pos.z(), (f32)normal.x(),
                                                             (f32)normal.y(), (f32)normal.z(), clr, 0, 0);

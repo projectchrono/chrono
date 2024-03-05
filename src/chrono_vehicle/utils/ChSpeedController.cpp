@@ -21,7 +21,7 @@
 
 #include <cstdio>
 
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/utils/ChSpeedController.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -49,7 +49,7 @@ ChSpeedController::ChSpeedController(const std::string& filename)
     m_Ki = d["Gains"]["Ki"].GetDouble();
     m_Kd = d["Gains"]["Kd"].GetDouble();
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 ChSpeedController::~ChSpeedController() {
@@ -57,7 +57,7 @@ ChSpeedController::~ChSpeedController() {
 }
 
 void ChSpeedController::Reset(const ChFrameMoving<>& ref_frame) {
-    m_speed = Vdot(ref_frame.GetPos_dt(), ref_frame.GetA().Get_A_Xaxis());
+    m_speed = Vdot(ref_frame.GetPosDer(), ref_frame.GetRotMat().GetAxisX());
     m_err = 0;
     m_erri = 0;
     m_errd = 0;
@@ -65,7 +65,7 @@ void ChSpeedController::Reset(const ChFrameMoving<>& ref_frame) {
 
 double ChSpeedController::Advance(const ChFrameMoving<>& ref_frame, double target_speed, double time, double step) {
     // Current vehicle speed.
-    m_speed = Vdot(ref_frame.GetPos_dt(), ref_frame.GetA().Get_A_Xaxis());
+    m_speed = Vdot(ref_frame.GetPosDer(), ref_frame.GetRotMat().GetAxisX());
 
     // If data collection is enabled, append current target and sentinel locations.
     if (m_collect) {

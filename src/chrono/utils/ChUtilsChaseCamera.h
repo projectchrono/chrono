@@ -53,12 +53,12 @@ class ChApi ChChaseCamera {
     ~ChChaseCamera() {}
 
     /// Initialize the chase camera.
-    void Initialize(const ChVector<>& ptOnChassis,       ///< target point on associated body
+    void Initialize(const ChVector3d& ptOnChassis,       ///< target point on associated body
                     const ChCoordsys<>& driverCoordsys,  ///< local driver position (for `Inside` mode)
                     double chaseDist,    ///< base value for distance behind target point on associated body
                     double chaseHeight,  ///< base value for height above target point on associated body
-                    const ChVector<>& up = ChVector<>(0, 0, 1),  ///< vertical direction of the world frame
-                    const ChVector<>& fwd = ChVector<>(1, 0, 0)  ///< forward direction of the world frame
+                    const ChVector3d& up = ChVector3d(0, 0, 1),  ///< vertical direction of the world frame
+                    const ChVector3d& fwd = ChVector3d(1, 0, 0)  ///< forward direction of the world frame
     );
 
     /// Update internal dynamics.
@@ -77,7 +77,7 @@ class ChApi ChChaseCamera {
     void SetState(State s);
 
     /// Overwrite chase camera position.
-    void SetCameraPos(const ChVector<>& pos);
+    void SetCameraPos(const ChVector3d& pos);
 
     /// Overwrite chase camera angle (in horizontal plane).
     void SetCameraAngle(double angle);
@@ -89,10 +89,10 @@ class ChApi ChChaseCamera {
     const std::string& GetStateName() const { return m_stateNames[m_state]; }
 
     /// Get current camera location (expressed in the world frame).
-    ChVector<> GetCameraPos() const;
+    ChVector3d GetCameraPos() const;
 
     /// Get current location of the target point (expressed in the world frame).
-    ChVector<> GetTargetPos() const;
+    ChVector3d GetTargetPos() const;
 
     /// Set internal dynamics gain for camera movement in the horizontal plane.
     void SetHorizGain(double g) { m_horizGain = g; }
@@ -107,7 +107,7 @@ class ChApi ChChaseCamera {
     void SetChassis(std::shared_ptr<ChBody> chassis);
 
     /// Set the target point on the associated body.
-    void SetTargetPoint(const ChVector<>& point) { m_ptOnChassis = point; }
+    void SetTargetPoint(const ChVector3d& point) { m_ptOnChassis = point; }
 
     /// Set the chase distance.
     void SetChaseDistance(double dist) { m_dist = dist; }
@@ -117,23 +117,23 @@ class ChApi ChChaseCamera {
 
   private:
     /// Calculate derivatives for internal dynamics ODE.
-    ChVector<> calcDeriv(const ChVector<>& loc);
+    ChVector3d calcDeriv(const ChVector3d& loc);
 
     State m_state;  ///< current camera operation mode
 
-    ChVector<> m_up;   ///< world up direction
-    ChVector<> m_fwd;  ///< world forward direction
+    ChVector3d m_up;   ///< world up direction
+    ChVector3d m_fwd;  ///< world forward direction
 
     std::shared_ptr<ChBody> m_chassis;  ///< associated body
-    ChVector<> m_ptOnChassis;           ///< target point on associated body (in local coordinates)
+    ChVector3d m_ptOnChassis;           ///< target point on associated body (in local coordinates)
     ChCoordsys<> m_driverCsys;          ///< "driver" position on associated body (for `Inside` mode)
     double m_dist;                      ///< chase distance (behind target point)
     double m_height;                    ///< chase height (above target point)
     double m_mult;                      ///< zoom multiplier
     double m_angle;                     ///< camera angle (in horizontal plane)
 
-    ChVector<> m_loc;      ///< current camera location
-    ChVector<> m_lastLoc;  ///< last cached camera location (used when switching modes)
+    ChVector3d m_loc;      ///< current camera location
+    ChVector3d m_lastLoc;  ///< last cached camera location (used when switching modes)
 
     double m_horizGain;  ///< internal dynamics gain for camera movement in horizontal plane
     double m_vertGain;   ///< internal dynamics gain for camera movement in vertical direction

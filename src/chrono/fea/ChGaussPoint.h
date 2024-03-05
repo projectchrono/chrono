@@ -15,7 +15,7 @@
 #ifndef CHGAUSSPOINT
 #define CHGAUSSPOINT
 
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/core/ChTensors.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 
@@ -34,19 +34,19 @@ class ChGaussPoint {
     ChStressTensor<> Stress;   ///< Stress tensor
 
     /// Create a Gauss point with given number, coordinates and weight.
-    ChGaussPoint(int number, ChVector<>* coord, double weight);
+    ChGaussPoint(int number, ChVector3d* coord, double weight);
 
     ~ChGaussPoint();
 
     /// Return local coordinates
-    ChVector<> GetLocalCoordinates() const { return m_local_coordinates; }
-    void SetLocalCoordinates(const ChVector<>& c) { m_local_coordinates = c; }
+    ChVector3d GetLocalCoordinates() const { return m_local_coordinates; }
+    void SetLocalCoordinates(const ChVector3d& c) { m_local_coordinates = c; }
 
     /// Return absolute coordinates
-    ChVector<> GetCoordinates() const;
+    ChVector3d GetCoordinates() const;
 
     /// Set absolute coordinates
-    void SetCoordinates(const ChVector<>& c);
+    void SetCoordinates(const ChVector3d& c);
 
     /// Return integration weight of receiver
     double GetWeight() const { return m_weight; }
@@ -57,8 +57,8 @@ class ChGaussPoint {
 
   private:
     int m_number;                    ///< number of this point
-    ChVector<> m_local_coordinates;  ///< local (natural) coordinates of the point
-    ChVector<>* m_coordinates;       ///< absolute point coordinates
+    ChVector3d m_local_coordinates;  ///< local (natural) coordinates of the point
+    ChVector3d* m_coordinates;       ///< absolute point coordinates
     double m_weight;                 ///< integration weight
 };
 

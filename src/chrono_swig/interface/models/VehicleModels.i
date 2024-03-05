@@ -4,7 +4,7 @@
 
 #include "chrono/core/ChCoordsys.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChContactMaterial.h"
 
 #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
@@ -44,6 +44,10 @@
 
 #include "chrono_models/vehicle/m113/M113.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
+
+#include "chrono_models/vehicle/kraz/Kraz.h"
+#include "chrono_models/vehicle/kraz/Kraz_tractor.h"
+#include "chrono_models/vehicle/kraz/Kraz_trailer.h"
 %}
 
 
@@ -86,12 +90,17 @@
 %shared_ptr(chrono::vehicle::m113::M113_Vehicle_BandBushing)
 %shared_ptr(chrono::vehicle::m113::M113_Vehicle_BandANCF)
 
+%shared_ptr(chrono::vehicle::kraz::kraz)
+%shared_ptr(chrono::vehicle::kraz::Kraz_tractor)
+%shared_ptr(chrono::vehicle::kraz::Kraz_trailer)
+
+
 #ifdef SWIGCSHARP
-%import "chrono_swig/interface/core/ChMaterialSurface.i"
+%import "chrono_swig/interface/core/ChContactMaterial.i"
 #endif
 
 #ifdef SWIGPYCHRONO
-%import(module = "pychrono.core") "chrono_swig/interface/core/ChMaterialSurface.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChContactMaterial.i"
 #endif
 
 %import "chrono_swig/interface/vehicle/ChSuspension.i"
@@ -142,3 +151,7 @@
 
 %include "../../../chrono_models/vehicle/m113/M113.h"
 %include "../../../chrono_models/vehicle/m113/M113_Vehicle.h"
+
+%include "../../../chrono_models/vehicle/kraz/Kraz.h"
+%include "../../../chrono_models/vehicle/kraz/Kraz_tractor.h"
+%include "../../../chrono_models/vehicle/kraz/Kraz_trailer.h"

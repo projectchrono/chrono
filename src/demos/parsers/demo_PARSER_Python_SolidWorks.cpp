@@ -18,8 +18,9 @@
 //
 // =============================================================================
 
-#include "chrono_parsers/ChParserPython.h"
 #include "chrono/core/ChRealtimeStep.h"
+
+#include "chrono_parsers/ChParserPython.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -28,7 +29,7 @@ using namespace chrono::parsers;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Cache current path to Chrono data files
     auto data_path = GetChronoDataPath();
@@ -51,8 +52,8 @@ int main(int argc, char* argv[]) {
         // In this example, we load a mechanical system that represents a (quite simplified and approximated) clock
         // escapement, that has been modeled in SolidWorks and saved using the Chrono SolidWorks add-in.
         my_python.ImportSolidWorksSystem(GetChronoDataFile("solidworks/swiss_escapement.py"), sys);
-    } catch (const ChException& myerror) {
-        GetLog() << myerror.what();
+    } catch (std::exception myerror) {
+        std::cerr << myerror.what() << std::endl;
     }
 
     // At this point, the ChSystem has been populated with objects and assets loaded from the .py files.
@@ -60,23 +61,23 @@ int main(int argc, char* argv[]) {
     // items to the ChSystem.
 
     // Log the names of all items inserted in the system
-    GetLog() << "SYSTEM ITEMS: \n";
-    sys.ShowHierarchy(GetLog());
+    std::cout << "SYSTEM ITEMS:" << std::endl;
+    sys.ShowHierarchy(std::cout);
 
     // Restore path to Chrono data files (modified by the Python importer)
     SetChronoDataPath(data_path);
 
-    for (auto body : sys.Get_bodylist()) {
-        GetLog() << "item:" << typeid(body).name() << "\n";
+    for (auto body : sys.GetBodies()) {
+        std::cout << "item:" << typeid(body).name() << std::endl;
     }
-    for (auto link : sys.Get_linklist()) {
-        GetLog() << "item:" << typeid(link).name() << "\n";
+    for (auto link : sys.GetLinks()) {
+        std::cout << "item:" << typeid(link).name() << std::endl;
     }
-    for (auto& mesh : sys.Get_meshlist()) {
-        GetLog() << "item:" << typeid(mesh).name() << "\n";
+    for (auto& mesh : sys.GetMeshes()) {
+        std::cout << "item:" << typeid(mesh).name() << std::endl;
     }
-    for (auto ph : sys.Get_otherphysicslist()) {
-        GetLog() << "item:" << typeid(ph).name() << "\n";
+    for (auto ph : sys.GetOtherPhysicsItems()) {
+        std::cout << "item:" << typeid(ph).name() << std::endl;
     }
 
     // Fetch some bodies, given their names, and apply forces, constraints, etc.
@@ -90,23 +91,23 @@ int main(int argc, char* argv[]) {
     auto manchor = std::dynamic_pointer_cast<ChBody>(myitemC);
 
     // Create a contact material with zero friction which will be shared by all parts
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0);
 
     if (mescape_wheel && mtruss && mbalance && manchor) {
         // Set a constant torque to escape wheel, in a very simple way
         mescape_wheel->Empty_forces_accumulators();
-        mescape_wheel->Accumulate_torque(ChVector<>(0, -0.03, 0), false);
+        mescape_wheel->Accumulate_torque(ChVector3d(0, -0.03, 0), false);
 
         // Add a torsional spring
         std::shared_ptr<ChLinkLockFree> mspring(new ChLinkLockFree);
-        mspring->Initialize(mtruss, mbalance, CSYSNORM);  // origin does not matter, it's only torque
+        mspring->Initialize(mtruss, mbalance, ChFrame<>());  // origin does not matter, it's only torque
         mspring->GetForce_Ry().SetK(0.24);
         mspring->GetForce_Ry().SetActive(1);
         sys.Add(mspring);
 
         // Set an initial angular velocity to the balance:
-        mbalance->SetWvel_par(ChVector<>(0, 5, 0));
+        mbalance->SetAngVelParent(ChVector3d(0, 5, 0));
 
         // Set no friction in all parts
         assert(mbalance->GetCollisionModel());
@@ -116,7 +117,10 @@ int main(int argc, char* argv[]) {
         mescape_wheel->GetCollisionModel()->SetAllShapesMaterial(mat);
         manchor->GetCollisionModel()->SetAllShapesMaterial(mat);
     } else
-        GetLog() << "\n\nERROR: cannot find one or more objects from their names in the Chrono system!\n\n";
+        std::cerr << std::endl
+                  << std::endl
+                  << "ERROR: cannot find one or more objects from their names in the Chrono system!\n"
+                  << std::endl;
 
     // Irrlicht run-time visualization
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
@@ -126,11 +130,11 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 0.25, 0.25), ChVector<>(0, 0, -0.1));
+    vis->AddCamera(ChVector3d(0, 0.25, 0.25), ChVector3d(0, 0, -0.1));
     vis->AddTypicalLights();
-    vis->AddLightWithShadow(ChVector<>(-0.5, 0.5, 0.0), ChVector<>(0, 0, 0), 1, 0.2, 1.2, 30, 512,
+    vis->AddLightWithShadow(ChVector3d(-0.5, 0.5, 0.0), ChVector3d(0, 0, 0), 1, 0.2, 1.2, 30, 512,
                             ChColor(1.0f, 0.9f, 0.9f));
-    vis->AddLightWithShadow(ChVector<>(+0.5, 0.5, 0.5), ChVector<>(0, 0, 0), 1, 0.2, 1.2, 30, 512,
+    vis->AddLightWithShadow(ChVector3d(+0.5, 0.5, 0.5), ChVector3d(0, 0, 0), 1, 0.2, 1.2, 30, 512,
                             ChColor(0.6f, 0.8f, 1.0f));
     vis->EnableShadows();
 

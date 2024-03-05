@@ -39,7 +39,7 @@ def main():
     hmmwv.SetContactMethod(contact_method)
     hmmwv.SetChassisCollisionType(chassis_collision_type)
     hmmwv.SetChassisFixed(False) 
-    hmmwv.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
+    hmmwv.SetInitPosition(chrono.ChCoordsysd(initLoc, initRot))
     hmmwv.SetEngineType(engine_model)
     hmmwv.SetTransmissionType(transmission_model)
     hmmwv.SetDriveType(drive_type)
@@ -60,11 +60,11 @@ def main():
 
     terrain = veh.RigidTerrain(hmmwv.GetSystem())
     if (contact_method == chrono.ChContactMethod_NSC):
-        patch_mat = chrono.ChMaterialSurfaceNSC()
+        patch_mat = chrono.ChContactMaterialNSC()
         patch_mat.SetFriction(0.9)
         patch_mat.SetRestitution(0.01)
     elif (contact_method == chrono.ChContactMethod_SMC):
-        patch_mat = chrono.ChMaterialSurfaceSMC()
+        patch_mat = chrono.ChContactMaterialSMC()
         patch_mat.SetFriction(0.9)
         patch_mat.SetRestitution(0.01)
         patch_mat.SetYoungModulus(2e7)
@@ -151,8 +151,8 @@ def main():
             print( "Time = ", time, "\n")
             #hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS)
 
-            marker_driver = hmmwv.GetChassis().GetMarkers()[0].GetAbsCoord().pos
-            marker_com = hmmwv.GetChassis().GetMarkers()[1].GetAbsCoord().pos
+            marker_driver = hmmwv.GetChassis().GetMarkers()[0].GetAbsCsys().pos
+            marker_com = hmmwv.GetChassis().GetMarkers()[1].GetAbsCsys().pos
             print( "\nMarkers\n")
             print( "  Driver loc:      " , marker_driver.x , " " , marker_driver.y , " " , marker_driver.z)
             print( "  Chassis COM loc: " , marker_com.x, " ", marker_com.y, " ",marker_com.z)
@@ -196,8 +196,8 @@ def main():
 veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location and orientation
-initLoc = chrono.ChVectorD(0, 0, 1.6)
-initRot = chrono.ChQuaternionD(1, 0, 0, 0)
+initLoc = chrono.ChVector3d(0, 0, 1.6)
+initRot = chrono.ChQuaterniond(1, 0, 0, 0)
 
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 chassis_vis_type = veh.VisualizationType_MESH
@@ -228,7 +228,7 @@ terrainLength = 100.0;  # size in X direction
 terrainWidth = 100.0;   # size in Y direction
 
 # Point on chassis tracked by the camera
-trackPoint = chrono.ChVectorD(0.0, 0.0, 1.75)
+trackPoint = chrono.ChVector3d(0.0, 0.0, 1.75)
 
 # Contact method
 contact_method = chrono.ChContactMethod_SMC

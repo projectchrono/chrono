@@ -18,7 +18,7 @@
 // With Modifications from:
 // Aki M Mikkola and Ahmed A Shabana. A non-incremental finite element procedure
 // for the analysis of large deformation of plates and shells in mechanical
-// system applications. Multibody System Dynamics, 9(3) : 283–309, 2003.
+// system applications. Multibody System Dynamics, 9(3) : 283ï¿½309, 2003.
 //
 // =============================================================================
 
@@ -76,7 +76,7 @@ class ANCFShellTest {
 
     void SimulateVis();
 
-    ChVector<> GetCornerPointPos() { return m_nodeCornerPoint->GetPos(); }
+    ChVector3d GetCornerPointPos() { return m_nodeCornerPoint->GetPos(); }
 
     void RunTimingTest(ChMatrixNM<double, 4, 19>& timing_stats, const std::string& test_name);
 
@@ -93,7 +93,7 @@ ANCFShellTest::ANCFShellTest(int num_elements, SolverType solver_type, int NumTh
     m_NumElements = 2 * num_elements * num_elements;
     m_NumThreads = NumThreads;
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector<>(0, 0, -9.80665));
+    m_system->Set_G_acc(ChVector3d(0, 0, -9.80665));
     m_system->SetNumThreads(NumThreads, 1, NumThreads);
 
     // Set solver parameters
@@ -223,8 +223,8 @@ ANCFShellTest::ANCFShellTest(int num_elements, SolverType solver_type, int NumTh
     double dy = width / (2 * num_elements);
 
     // Setup shell normals to initially align with the global z direction with no curvature
-    ChVector<> dir1(0, 0, 1);
-    ChVector<> Curv1(0, 0, 0);
+    ChVector3d dir1(0, 0, 1);
+    ChVector3d Curv1(0, 0, 0);
 
     // Create a grounded body to connect the 3D pendulum to
     auto grounded = chrono_types::make_shared<ChBody>();
@@ -236,14 +236,14 @@ ANCFShellTest::ANCFShellTest(int num_elements, SolverType solver_type, int NumTh
         for (auto j = 0; j <= 2 * num_elements; j++) {
             // Fix only the first node's position to ground (Spherical Joint constraint)
             if ((i == 0) && (j == 0)) {
-                auto node = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(dx * i, dy * j, 0.0), dir1, Curv1);
+                auto node = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(dx * i, dy * j, 0.0), dir1, Curv1);
                 mesh->AddNode(node);
 
                 auto pos_constraint = chrono_types::make_shared<ChLinkPointFrame>();
                 pos_constraint->Initialize(node, grounded);  // body to be connected to
                 m_system->Add(pos_constraint);
             } else if (((i % 2) == 0) || ((j % 2) == 0)) {
-                auto node = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(dx * i, dy * j, 0.0), dir1, Curv1);
+                auto node = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(dx * i, dy * j, 0.0), dir1, Curv1);
                 mesh->AddNode(node);
             }
         }
@@ -299,16 +299,16 @@ void ANCFShellTest::SimulateVis() {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(-0.4, 0.4, 0.4), ChVector<>(0, 0, 0));
+    vis->AddCamera(ChVector3d(-0.4, 0.4, 0.4), ChVector3d(0, 0, 0));
 
     while (vis->Run()) {
         std::cout << "Time(s): " << this->m_system->GetChTime() << "  Corner Pos(m): " << this->GetCornerPointPos()
                   << std::endl;
         vis->BeginScene();
         vis->Render();
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(1, 0, 0), ChColor(1, 0, 0));
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 1, 0), ChColor(0, 1, 0));
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 0, 1), ChColor(0, 0, 1));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(1, 0, 0), ChColor(1, 0, 0));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(0, 1, 0), ChColor(0, 1, 0));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(0, 0, 1), ChColor(0, 0, 1));
         ExecuteStep();
         vis->EndScene();
     }
@@ -346,7 +346,7 @@ void ANCFShellTest::RunTimingTest(ChMatrixNM<double, 4, 19>& timing_stats, const
 
     // Time the requested number of steps, collecting timing information (systems is not restarted between collections)
     auto LS = std::dynamic_pointer_cast<ChDirectSolverLS>(GetSystem()->GetSolver());
-    auto MeshList = GetSystem()->Get_meshlist();
+    auto MeshList = GetSystem()->GetMeshes();
     for (int r = 0; r < REPEATS; r++) {
         for (int i = 0; i < NUM_SIM_STEPS; i++) {
             for (auto& Mesh : MeshList) {

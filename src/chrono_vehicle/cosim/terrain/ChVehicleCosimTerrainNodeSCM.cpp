@@ -69,7 +69,7 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(double length, double
     m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Solver settings independent of method type
-    m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
+    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
 
     // Set default number of threads
     m_system->SetNumThreads(1, 1, 1);
@@ -86,7 +86,7 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& sp
     m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Solver settings independent of method type
-    m_system->Set_G_acc(ChVector<>(0, 0, m_gacc));
+    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
 
     // Set default number of threads
     m_system->SetNumThreads(1, 1, 1);
@@ -205,7 +205,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
             int x, y;
             double h;
             iss1 >> x >> y >> h;
-            nodes[i] = std::make_pair(ChVector2<>(x, y), h);
+            nodes[i] = std::make_pair(ChVector2d(x, y), h);
         }
 
         m_terrain->SetModifiedNodes(nodes);
@@ -217,10 +217,10 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
     // Add all rigid obstacles
     for (auto& b : m_obstacles) {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
-        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(b.m_mesh_filename),
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(b.m_mesh_filename),
                                                                                   true, true);
         double mass;
-        ChVector<> baricenter;
+        ChVector3d baricenter;
         ChMatrix33<> inertia;
         trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
 
@@ -375,11 +375,11 @@ void ChVehicleCosimTerrainNodeSCM::OnInitialize(unsigned int num_objects) {
         auto vsys_vsg = chrono_types::make_shared<vsg3d::ChVisualSystemVSG>();
         vsys_vsg->AttachSystem(m_system);
         vsys_vsg->SetWindowTitle("Terrain Node (SCM)");
-        vsys_vsg->SetWindowSize(ChVector2<int>(1280, 720));
-        vsys_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+        vsys_vsg->SetWindowSize(ChVector2i(1280, 720));
+        vsys_vsg->SetWindowPosition(ChVector2i(100, 100));
         vsys_vsg->SetUseSkyBox(false);
         vsys_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
-        vsys_vsg->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
+        vsys_vsg->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
         vsys_vsg->SetCameraAngleDeg(40);
         vsys_vsg->SetLightIntensity(1.0f);
         ////vsys_vsg->AddGuiColorbar("Sinkage (m)", 0.0, 0.1);
@@ -398,7 +398,7 @@ void ChVehicleCosimTerrainNodeSCM::OnInitialize(unsigned int num_objects) {
         vsys_irr->AddLogo();
         vsys_irr->AddSkyBox();
         vsys_irr->AddTypicalLights();
-        vsys_irr->AddCamera(m_cam_pos, ChVector<>(0, 0, 0));
+        vsys_irr->AddCamera(m_cam_pos, ChVector3d(0, 0, 0));
 
         m_vsys = vsys_irr;
 #endif
@@ -415,7 +415,7 @@ void ChVehicleCosimTerrainNodeSCM::UpdateMeshProxy(unsigned int i, MeshState& me
     for (int in = 0; in < num_vertices; in++) {
         auto& node = proxy->ind2ptr_map[in];
         node->SetPos(mesh_state.vpos[in]);
-        node->SetPos_dt(mesh_state.vvel[in]);
+        node->SetPosDer(mesh_state.vvel[in]);
     }
 }
 
@@ -423,9 +423,9 @@ void ChVehicleCosimTerrainNodeSCM::UpdateMeshProxy(unsigned int i, MeshState& me
 void ChVehicleCosimTerrainNodeSCM::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
     proxy->bodies[0]->SetPos(rigid_state.pos);
-    proxy->bodies[0]->SetPos_dt(rigid_state.lin_vel);
+    proxy->bodies[0]->SetPosDer(rigid_state.lin_vel);
     proxy->bodies[0]->SetRot(rigid_state.rot);
-    proxy->bodies[0]->SetWvel_par(rigid_state.ang_vel);
+    proxy->bodies[0]->SetAngVelParent(rigid_state.ang_vel);
 }
 
 // Collect contact forces on the (face) proxy bodies that are in contact.
@@ -433,7 +433,7 @@ void ChVehicleCosimTerrainNodeSCM::UpdateRigidProxy(unsigned int i, BodyState& r
 void ChVehicleCosimTerrainNodeSCM::GetForceMeshProxy(unsigned int i, MeshContact& mesh_contact) {
     auto proxy = std::static_pointer_cast<ProxyMesh>(m_proxies[i]);
 
-    ChVector<> force;
+    ChVector3d force;
     mesh_contact.nv = 0;
     for (const auto& node : proxy->ptr2ind_map) {
         bool in_contact = m_terrain->GetContactForceNode(node.first, force);
@@ -449,8 +449,8 @@ void ChVehicleCosimTerrainNodeSCM::GetForceMeshProxy(unsigned int i, MeshContact
 void ChVehicleCosimTerrainNodeSCM::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
     
-    ChVector<> force;
-    ChVector<>torque;
+    ChVector3d force;
+    ChVector3d torque;
     m_terrain->GetContactForceBody(proxy->bodies[0], force, torque);
 
     rigid_contact.point = proxy->bodies[0]->GetPos();
@@ -467,7 +467,7 @@ void ChVehicleCosimTerrainNodeSCM::OnRender() {
         MPI_Abort(MPI_COMM_WORLD, 1);
 
     if (m_track) {
-        ChVector<> cam_point;
+        ChVector3d cam_point;
         if (auto proxy_b = std::dynamic_pointer_cast<ProxyBodySet>(m_proxies[0])) {
             cam_point = proxy_b->bodies[0]->GetPos();
         } else if (auto proxy_m = std::dynamic_pointer_cast<ProxyMesh>(m_proxies[0])) {

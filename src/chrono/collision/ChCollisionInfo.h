@@ -15,7 +15,7 @@
 
 #include "chrono/collision/ChCollisionModel.h"
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 namespace chrono {
 
@@ -29,9 +29,9 @@ class ChApi ChCollisionInfo {
     ChCollisionModel* modelB;  ///< model B
     ChCollisionShape* shapeA;  ///< collision shape in model A
     ChCollisionShape* shapeB;  ///< collision shape in model B
-    ChVector<> vpA;            ///< coll.point on A, in abs coords
-    ChVector<> vpB;            ///< coll.point on B, in abs coords
-    ChVector<> vN;             ///< coll.normal, respect to A, in abs coords
+    ChVector3d vpA;            ///< coll.point on A, in abs coords
+    ChVector3d vpB;            ///< coll.point on B, in abs coords
+    ChVector3d vN;             ///< coll.normal, respect to A, in abs coords
     double distance;           ///< distance (negative for penetration)
     double eff_radius;         ///< effective radius of curvature at contact (SMC only)
     float* reaction_cache;     ///< pointer to some persistent user cache of reactions

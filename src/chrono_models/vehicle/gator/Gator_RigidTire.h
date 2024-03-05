@@ -39,7 +39,7 @@ class CH_MODELS_API Gator_RigidTire_Front : public ChRigidTire {
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
     virtual double GetTireMass() const override { return m_mass; }
-    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual ChVector3d GetTireInertia() const override { return m_inertia; }
 
   private:
     virtual void CreateContactMaterial(ChContactMethod contact_method) override;
@@ -49,7 +49,7 @@ class CH_MODELS_API Gator_RigidTire_Front : public ChRigidTire {
     static const double m_radius;
     static const double m_width;
     static const double m_mass;
-    static const ChVector<> m_inertia;
+    static const ChVector3d m_inertia;
 
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;
@@ -65,7 +65,7 @@ class CH_MODELS_API Gator_RigidTire_Rear : public ChRigidTire {
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
     virtual double GetTireMass() const override { return m_mass; }
-    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual ChVector3d GetTireInertia() const override { return m_inertia; }
 
   private:
     virtual void CreateContactMaterial(ChContactMethod contact_method) override;
@@ -75,7 +75,7 @@ class CH_MODELS_API Gator_RigidTire_Rear : public ChRigidTire {
     static const double m_radius;
     static const double m_width;
     static const double m_mass;
-    static const ChVector<> m_inertia;
+    static const ChVector3d m_inertia;
 
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;

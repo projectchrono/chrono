@@ -142,7 +142,7 @@ class MBTireModel : public ChPhysicsItem {
     void Construct();
 
     // Calculate COG and inertia, expressed relative to the frame of the associated wheel/spindle body.
-    void CalculateInertiaProperties(ChVector<>& com, ChMatrix33<>& inertia);
+    void CalculateInertiaProperties(ChVector3d& com, ChMatrix33<>& inertia);
 
     // Set position and velocity of rim nodes from wheel/spindle state.
     void SetRimNodeStates();
@@ -157,8 +157,8 @@ class MBTireModel : public ChPhysicsItem {
     virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
     virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
 
-    virtual int GetDOF() override { return m_dofs; }
-    virtual int GetDOF_w() override { return m_dofs_w; }
+    virtual int GetNumCoordinatesPos() override { return m_dofs; }
+    virtual int GetNumCoordinatesVel() override { return m_dofs_w; }
     virtual void SetupInitial() override;
     virtual void Setup() override;
     virtual void Update(double t, bool update_assets = true) override;
@@ -225,7 +225,7 @@ class MBTireModel : public ChPhysicsItem {
     int RimNodeIndex(int ir, int id);
 
     // Get normal and elemental area for the node with current ring and division indices.
-    void CalcNormal(int ir, int id, ChVector<>& normal, double& area);
+    void CalcNormal(int ir, int id, ChVector3d& normal, double& area);
 
     int m_dofs;    // total degrees of freedom
     int m_dofs_w;  // total degrees of freedom, derivative (Lie algebra)
@@ -271,8 +271,8 @@ class MBTireModel : public ChPhysicsItem {
         double k;         // spring coefficient
         double c;         // damping coefficient
 
-        ChVector<> force1;
-        ChVector<> force2;
+        ChVector3d force1;
+        ChVector3d force2;
 
         ChKblockGeneric KRM;
 
@@ -293,14 +293,14 @@ class MBTireModel : public ChPhysicsItem {
 
         ChBody* wheel;
 
-        ChVector<> t0;  // initial normal direction (in wheel frame)
+        ChVector3d t0;  // initial normal direction (in wheel frame)
         double a0;      // spring free angle
         double k;       // spring coefficient
         double c;       // damping coefficient
 
-        ChVector<> force_p;
-        ChVector<> force_c;
-        ChVector<> force_n;
+        ChVector3d force_p;
+        ChVector3d force_c;
+        ChVector3d force_n;
 
         ChKblockGeneric KRM;
 
@@ -334,8 +334,8 @@ class MBTireModel : public ChPhysicsItem {
     std::vector<EdgeSpring3> m_edge_rot_springs;  // node-rim torsional springs (first and last ring)
 
     std::shared_ptr<ChBody> m_wheel;  // associated wheel body
-    ChVector<> m_wheel_force;         // applied wheel spindle force (in global frame)
-    ChVector<> m_wheel_torque;        // applied wheel spindle torque (in body frame)
+    ChVector3d m_wheel_force;         // applied wheel spindle force (in global frame)
+    ChVector3d m_wheel_torque;        // applied wheel spindle torque (in body frame)
 
     bool m_stiff;     // true if loads are stiff (triggers Jacobian calculation)
     bool m_full_jac;  // true if calculating if including whel states and forces in Jacobian

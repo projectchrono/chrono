@@ -20,9 +20,9 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkMotorLinearForce)
 
 ChLinkMotorLinearForce::ChLinkMotorLinearForce() {
-    this->c_x = false;
+    this->c_z = false;
     SetupLinkMask();
-    m_func = chrono_types::make_shared<ChFunction_Const>(0.0);
+    m_func = chrono_types::make_shared<ChFunctionConst>(0.0);
 }
 
 ChLinkMotorLinearForce::ChLinkMotorLinearForce(const ChLinkMotorLinearForce& other) : ChLinkMotorLinear(other) {}
@@ -35,13 +35,13 @@ void ChLinkMotorLinearForce::Update(double mytime, bool update_assets) {
 
 void ChLinkMotorLinearForce::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) {
     // compute instant force
-    double mF = m_func->Get_y(this->GetChTime());
+    double mF = m_func->GetVal(this->GetChTime());
 
     ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
     ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
-    Vector m_abs_force = aframe2.GetA() * ChVector<>(mF, 0, 0);
-    Vector mbody_force;
-    Vector mbody_torque;
+    ChVector3d m_abs_force = aframe2.GetRotMat() * ChVector3d(0, 0, mF);
+    ChVector3d mbody_force;
+    ChVector3d mbody_torque;
 
     if (Body2->Variables().IsActive()) {
         Body2->To_abs_forcetorque(m_abs_force,
@@ -66,13 +66,13 @@ void ChLinkMotorLinearForce::IntLoadResidual_F(const unsigned int off, ChVectorD
 
 void ChLinkMotorLinearForce::ConstraintsFbLoadForces(double factor) {
     // compute instant force
-    double mF = m_func->Get_y(this->GetChTime());
+    double mF = m_func->GetVal(this->GetChTime());
 
     ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
     ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
-    Vector m_abs_force = aframe2.GetA() * ChVector<>(mF, 0, 0);
-    Vector mbody_force;
-    Vector mbody_torque;
+    ChVector3d m_abs_force = aframe2.GetRotMat() * ChVector3d(0, 0, mF);
+    ChVector3d mbody_force;
+    ChVector3d mbody_torque;
     Body2->To_abs_forcetorque(m_abs_force,
                               aframe1.GetPos(),            // absolute application point is always marker1
                               false,                       // from abs. space
@@ -88,23 +88,23 @@ void ChLinkMotorLinearForce::ConstraintsFbLoadForces(double factor) {
     Body1->Variables().Get_fb().segment(3, 3) += factor * Body1->TransformDirectionParentToLocal(mbody_torque).eigen();
 }
 
-void ChLinkMotorLinearForce::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMotorLinearForce::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMotorLinearForce>();
+    archive_out.VersionWrite<ChLinkMotorLinearForce>();
 
     // serialize parent class
-    ChLinkMotorLinear::ArchiveOut(marchive);
+    ChLinkMotorLinear::ArchiveOut(archive_out);
 
     // serialize all member data:
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorLinearForce::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMotorLinearForce::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMotorLinearForce>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMotorLinearForce>();
 
     // deserialize parent class
-    ChLinkMotorLinear::ArchiveIn(marchive);
+    ChLinkMotorLinear::ArchiveIn(archive_in);
 
     // deserialize all member data:
 }

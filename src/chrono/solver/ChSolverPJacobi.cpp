@@ -13,7 +13,6 @@
 // =============================================================================
 
 #include "chrono/solver/ChSolverPJacobi.h"
-#include "chrono/core/ChMathematics.h"
 
 namespace chrono {
 
@@ -108,7 +107,7 @@ double ChSolverPJacobi::Solve(ChSystemDescriptor& sysd) {
                     i_friction_comp++;
 
                     if (i_friction_comp == 1)
-                        candidate_violation = fabs(ChMin(0.0, mresidual));
+                        candidate_violation = fabs(std::min(0.0, mresidual));
 
                     if (i_friction_comp == 3) {
                         mconstraints[ic - 2]->Project();  // the N normal component will take care of N,U,V
@@ -131,9 +130,9 @@ double ChSolverPJacobi::Solve(ChSystemDescriptor& sysd) {
                         // mconstraints[xx]->Increment_q(true_delta_xx);
 
                         if (this->record_violation_history) {
-                            maxdeltalambda = ChMax(maxdeltalambda, fabs(delta_gammas[ic - 2]));
-                            maxdeltalambda = ChMax(maxdeltalambda, fabs(delta_gammas[ic - 1]));
-                            maxdeltalambda = ChMax(maxdeltalambda, fabs(delta_gammas[ic - 0]));
+                            maxdeltalambda = std::max(maxdeltalambda, fabs(delta_gammas[ic - 2]));
+                            maxdeltalambda = std::max(maxdeltalambda, fabs(delta_gammas[ic - 1]));
+                            maxdeltalambda = std::max(maxdeltalambda, fabs(delta_gammas[ic - 0]));
                         }
                         i_friction_comp = 0;
                     }
@@ -160,10 +159,10 @@ double ChSolverPJacobi::Solve(ChSystemDescriptor& sysd) {
                     delta_gammas[ic] = new_lambda - old_lambda;
 
                     if (this->record_violation_history)
-                        maxdeltalambda = ChMax(maxdeltalambda, fabs(delta_gammas[ic]));
+                        maxdeltalambda = std::max(maxdeltalambda, fabs(delta_gammas[ic]));
                 }
 
-                maxviolation = ChMax(maxviolation, fabs(candidate_violation));
+                maxviolation = std::max(maxviolation, fabs(candidate_violation));
             }
         }
 

@@ -93,7 +93,7 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     virtual ChContactContainerNSC* Clone() const override { return new ChContactContainerNSC(*this); }
 
     /// Report the number of added contacts.
-    virtual int GetNcontacts() const override {
+    virtual int GetNumContacts() const override {
         return n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
                n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666 + n_added_6_6_rolling;
     }
@@ -111,8 +111,8 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     /// A compositecontact material is created from the two given materials.
     /// In this case, the collision info object may have null pointers to collision shapes.
     virtual void AddContact(const ChCollisionInfo& cinfo,
-                            std::shared_ptr<ChMaterialSurface> mat1,
-                            std::shared_ptr<ChMaterialSurface> mat2) override;
+                            std::shared_ptr<ChContactMaterial> mat1,
+                            std::shared_ptr<ChContactMaterial> mat2) override;
 
     /// Add a contact between two collision shapes, storing it into this container.
     /// The collision info object is assumed to contain valid pointers to the two colliding shapes.
@@ -139,13 +139,13 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
         /// Callback used to report contact points already added to the container.
         /// If it returns false, the contact scanning will be stopped.
         virtual bool OnReportContact(
-            const ChVector<>& pA,             ///< contact pA
-            const ChVector<>& pB,             ///< contact pB
+            const ChVector3d& pA,             ///< contact pA
+            const ChVector3d& pB,             ///< contact pB
             const ChMatrix33<>& plane_coord,  ///< contact plane coordsystem (A column 'X' is contact normal)
             const double& distance,           ///< contact distance
             const double& eff_radius,         ///< effective radius of curvature at contact
-            const ChVector<>& react_forces,   ///< react.forces (if already computed). In coordsystem 'plane_coord'
-            const ChVector<>& react_torques,  ///< react.torques, if rolling friction (if already computed).
+            const ChVector3d& react_forces,   ///< react.forces (if already computed). In coordsystem 'plane_coord'
+            const ChVector3d& react_torques,  ///< react.torques, if rolling friction (if already computed).
             ChContactable* contactobjA,  ///< model A (note: some containers may not support it and could be nullptr)
             ChContactable* contactobjB,  ///< model B (note: some containers may not support it and could be nullptr)
             const int offset  ///< offset of the first constraint (the normal component) in the vector of lagrangian multipliers, if already book-keeped
@@ -158,7 +158,7 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
 
     /// Report the number of scalar unilateral constraints.
     /// Note: friction constraints aren't exactly unilaterals, but they are still counted.
-    virtual int GetDOC_d() override {
+    virtual int GetNumConstraintsUnilateral() override {
         return 3 * (n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
                     n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666) +
                6 * (n_added_6_6_rolling);
@@ -173,10 +173,10 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     virtual void ComputeContactForces() override;
 
     /// Return the resultant contact force acting on the specified contactable object.
-    virtual ChVector<> GetContactableForce(ChContactable* contactable) override;
+    virtual ChVector3d GetContactableForce(ChContactable* contactable) override;
 
     /// Return the resultant contact torque acting on the specified contactable object.
-    virtual ChVector<> GetContactableTorque(ChContactable* contactable) override;
+    virtual ChVector3d GetContactableTorque(ChContactable* contactable) override;
 
     //
     // STATE FUNCTIONS
@@ -219,13 +219,13 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    void InsertContact(const ChCollisionInfo& cinfo, const ChMaterialCompositeNSC& cmat);
+    void InsertContact(const ChCollisionInfo& cinfo, const ChContactMaterialCompositeNSC& cmat);
 };
 
 CH_CLASS_VERSION(ChContactContainerNSC, 0)

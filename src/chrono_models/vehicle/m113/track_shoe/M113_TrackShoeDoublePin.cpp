@@ -35,15 +35,15 @@ namespace m113 {
 // -----------------------------------------------------------------------------
 
 const double M113_TrackShoeDoublePin::m_shoe_mass = 18.02;
-const ChVector<> M113_TrackShoeDoublePin::m_shoe_inertia(0.22, 0.04, 0.25);
+const ChVector3d M113_TrackShoeDoublePin::m_shoe_inertia(0.22, 0.04, 0.25);
 const double M113_TrackShoeDoublePin::m_shoe_length = 0.0984;  // 3.875''
 const double M113_TrackShoeDoublePin::m_shoe_width = 0.2781;   // 10.95''
 const double M113_TrackShoeDoublePin::m_shoe_height = 0.06;
 
-const ChVector<> M113_TrackShoeDoublePin::m_pin_center(0.045, 0, 0.0375);
+const ChVector3d M113_TrackShoeDoublePin::m_pin_center(0.045, 0, 0.0375);
 
 const double M113_TrackShoeDoublePin::m_connector_mass = 2.0;                  //// TODO
-const ChVector<> M113_TrackShoeDoublePin::m_connector_inertia(0.1, 0.1, 0.1);  //// TODO
+const ChVector3d M113_TrackShoeDoublePin::m_connector_inertia(0.1, 0.1, 0.1);  //// TODO
 const double M113_TrackShoeDoublePin::m_connector_radius = 0.02;               // 0.88''
 const double M113_TrackShoeDoublePin::m_connector_length = 0.054;              // 2.125''
 const double M113_TrackShoeDoublePin::m_connector_width = 0.02;
@@ -89,13 +89,13 @@ M113_TrackShoeDoublePin::M113_TrackShoeDoublePin(const std::string& name, Double
     // Geometry
 
     // Collision box: pad bottom (ground contact)
-    ChVehicleGeometry::BoxShape box_bottom(ChVector<>(0, 0, -0.015), QUNIT, ChVector<>(0.11, 0.19, 0.03), 0);
+    ChVehicleGeometry::BoxShape box_bottom(ChVector3d(0, 0, -0.015), QUNIT, ChVector3d(0.11, 0.19, 0.03), 0);
 
     // Collision box: pad top (wheel contact)
-    ChVehicleGeometry::BoxShape box_top(ChVector<>(0, 0, +0.015), QUNIT, ChVector<>(0.10, 0.18, 0.03), 1);
+    ChVehicleGeometry::BoxShape box_top(ChVector3d(0, 0, +0.015), QUNIT, ChVector3d(0.10, 0.18, 0.03), 1);
 
     // Collision box: guide pin (wheel contact)
-    ChVehicleGeometry::BoxShape box_guide(ChVector<>(0.045, 0, 0.0375), QUNIT, ChVector<>(0.0284, 0.0114, 0.075), 2);
+    ChVehicleGeometry::BoxShape box_guide(ChVector3d(0.045, 0, 0.0375), QUNIT, ChVector3d(0.0284, 0.0114, 0.075), 2);
 
     m_geometry.m_has_collision = true;
     m_geometry.m_coll_boxes.push_back(box_bottom);
@@ -113,9 +113,9 @@ M113_TrackShoeDoublePin::M113_TrackShoeDoublePin(const std::string& name, Double
 
     // Visualization cylinder: pin revolute joints
     m_geometry.m_vis_cylinders.push_back(
-        ChVehicleGeometry::CylinderShape(ChVector<>(+0.0492, 0, 0), ChVector<>(0, 1, 0), 0.01, 0.3, -1));
+        ChVehicleGeometry::CylinderShape(ChVector3d(+0.0492, 0, 0), ChVector3d(0, 1, 0), 0.01, 0.3, -1));
     m_geometry.m_vis_cylinders.push_back(
-        ChVehicleGeometry::CylinderShape(ChVector<>(-0.0492, 0, 0), ChVector<>(0, 1, 0), 0.01, 0.3, -1));
+        ChVehicleGeometry::CylinderShape(ChVector3d(-0.0492, 0, 0), ChVector3d(0, 1, 0), 0.01, 0.3, -1));
 
     m_geometry.m_has_mesh = false;
     m_geometry.m_vis_mesh_file = "M113/meshes/TrackShoeDoublePin.obj";

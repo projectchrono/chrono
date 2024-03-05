@@ -40,8 +40,8 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
     thrust::host_vector<Real3> torquesH = m_sysFSI.fsiGeneralData->rigid_FSI_TorquesD;
 
     for (size_t i = 0; i < numRigids; i++) {
-        ChVector<> mforce = utils::ToChVector(forcesH[i]);
-        ChVector<> mtorque = utils::ToChVector(torquesH[i]);
+        ChVector3d mforce = utils::ToChVector(forcesH[i]);
+        ChVector3d mtorque = utils::ToChVector(torquesH[i]);
 
         std::shared_ptr<ChBody> body = m_fsi_bodies[i];
 
@@ -59,11 +59,11 @@ void ChFsiInterface::Copy_FsiBodies_ChSystem_to_FsiSystem(std::shared_ptr<FsiBod
         std::shared_ptr<ChBody> bodyPtr = m_fsi_bodies[i];
         m_sysFSI.fsiBodiesH->posRigid_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetPos());
         m_sysFSI.fsiBodiesH->velMassRigid_fsiBodies_H[i] =
-            utils::ToReal4(bodyPtr->GetPos_dt(), bodyPtr->GetMass());
-        m_sysFSI.fsiBodiesH->accRigid_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetPos_dtdt());
+            utils::ToReal4(bodyPtr->GetPosDer(), bodyPtr->GetMass());
+        m_sysFSI.fsiBodiesH->accRigid_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetPosDer2());
         m_sysFSI.fsiBodiesH->q_fsiBodies_H[i] = utils::ToReal4(bodyPtr->GetRot());
-        m_sysFSI.fsiBodiesH->omegaVelLRF_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetWvel_loc());
-        m_sysFSI.fsiBodiesH->omegaAccLRF_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetWacc_loc());
+        m_sysFSI.fsiBodiesH->omegaVelLRF_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetAngVelLocal());
+        m_sysFSI.fsiBodiesH->omegaAccLRF_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetAngAccLocal());
     }
     fsiBodiesD->CopyFromH(*m_sysFSI.fsiBodiesH);
 }
@@ -76,7 +76,7 @@ void ChFsiInterface::Add_Flex_Forces_To_ChSystem() {
     thrust::host_vector<Real3> forcesH = m_sysFSI.fsiGeneralData->Flex_FSI_ForcesD;
 
     for (size_t i = 0; i < num_nodes; i++) {
-        ChVector<> force = utils::ToChVector(forcesH[i]);
+        ChVector3d force = utils::ToChVector(forcesH[i]);
         auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(m_fsi_mesh->GetNode((unsigned int)i));
         node->SetForce(force);
     }
@@ -88,8 +88,8 @@ void ChFsiInterface::Copy_FsiNodes_ChSystem_to_FsiSystem(std::shared_ptr<FsiMesh
     for (size_t i = 0; i < num_nodes; i++) {
         const auto& node = m_fsi_nodes[i];
         m_sysFSI.fsiMeshH->pos_fsi_fea_H[i] = utils::ToReal3(node->GetPos());
-        m_sysFSI.fsiMeshH->vel_fsi_fea_H[i] = utils::ToReal3(node->GetPos_dt());
-        m_sysFSI.fsiMeshH->acc_fsi_fea_H[i] = utils::ToReal3(node->GetPos_dtdt());
+        m_sysFSI.fsiMeshH->vel_fsi_fea_H[i] = utils::ToReal3(node->GetPosDer());
+        m_sysFSI.fsiMeshH->acc_fsi_fea_H[i] = utils::ToReal3(node->GetPosDer2());
         m_sysFSI.fsiMeshH->dir_fsi_fea_H[i] = utils::ToReal3(node->GetD());
     }
     FsiMeshD->CopyFromH(*m_sysFSI.fsiMeshH);

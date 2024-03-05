@@ -35,7 +35,7 @@ ANCFToroidalTire::ANCFToroidalTire(const std::string& name)
       m_default_pressure(320.0e3),
       m_alpha(0.15) {
     // default contact material
-    m_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    m_mat = chrono_types::make_shared<ChContactMaterialSMC>();
 }
 
 void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
@@ -54,12 +54,12 @@ void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSid
             double x = (m_rim_radius + m_height * cos(theta)) * cos(phi);
             double y = m_height * sin(theta);
             double z = (m_rim_radius + m_height * cos(theta)) * sin(phi);
-            ChVector<> loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+            ChVector3d loc = wheel_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
 
             double nx = cos(theta) * cos(phi);
             double ny = sin(theta);
             double nz = cos(theta) * sin(phi);
-            ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(ChVector<>(nx, ny, nz));
+            ChVector3d dir = wheel_frame.TransformDirectionLocalToParent(ChVector3d(nx, ny, nz));
 
             auto node = chrono_types::make_shared<ChNodeFEAxyzD>(loc, dir);
             node->SetMass(0);

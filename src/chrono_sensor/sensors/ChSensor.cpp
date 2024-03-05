@@ -16,10 +16,12 @@
 //
 // =============================================================================
 
+#include <iostream>
+
 #include "chrono_sensor/sensors/ChSensor.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono/physics/ChSystem.h"
-#include <iostream>
+#include "chrono/utils/ChUtils.h"
 
 namespace chrono {
 namespace sensor {

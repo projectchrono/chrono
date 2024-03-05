@@ -55,7 +55,7 @@ using namespace chrono::vehicle::uaz;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 0.4);
+ChVector3d initLoc(0, 0, 0.4);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
@@ -69,7 +69,7 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 TireModelType tire_model = TireModelType::PAC02;
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Simulation step sizes
 double step_size = 3e-3;
@@ -89,7 +89,7 @@ bool povray_output = false;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // --------------
     // Create systems
@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
     // ------------------
 
     RigidTerrain terrain(uaz.GetSystem());
-    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto patch_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
     auto patch = terrain.AddPatch(patch_mat, CSYSNORM, 300, 300);
@@ -201,13 +201,14 @@ int main(int argc, char* argv[]) {
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Gator Demo");
             vis_vsg->AttachVehicle(&uaz.GetVehicle());
-            vis_vsg->SetChaseCamera(trackPoint, 6.0, 0.5);
-            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+            vis_vsg->SetChaseCamera(trackPoint, 8.0, 0.5);
+            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
             // Create the interactive VSG driver system

@@ -35,7 +35,7 @@ ANCFTire::ANCFTire(const std::string& filename) : ChANCFTire(""), m_ANCF8(false)
 
     ProcessJSON(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 ANCFTire::ANCFTire(const rapidjson::Document& d) : ChANCFTire("") {
@@ -75,9 +75,9 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
             m_materials[i] = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
         } else if (type.compare("Orthotropic") == 0) {
             double rho = d["Materials"][i]["Density"].GetDouble();
-            ChVector<> E = ReadVectorJSON(d["Materials"][i]["E"]);
-            ChVector<> nu = ReadVectorJSON(d["Materials"][i]["nu"]);
-            ChVector<> G = ReadVectorJSON(d["Materials"][i]["G"]);
+            ChVector3d E = ReadVectorJSON(d["Materials"][i]["E"]);
+            ChVector3d nu = ReadVectorJSON(d["Materials"][i]["nu"]);
+            ChVector3d G = ReadVectorJSON(d["Materials"][i]["G"]);
             m_materials[i] = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
         }
     }
@@ -173,7 +173,7 @@ void ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) 
 }
 
 void ANCFTire::CreateContactMaterial() {
-    m_contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    m_contact_mat = chrono_types::make_shared<ChContactMaterialSMC>();
     m_contact_mat->SetFriction(m_mat_info.mu);
     m_contact_mat->SetRestitution(m_mat_info.cr);
     m_contact_mat->SetYoungModulus(m_mat_info.Y);

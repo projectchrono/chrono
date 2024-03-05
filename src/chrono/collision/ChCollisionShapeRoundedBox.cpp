@@ -22,44 +22,44 @@ CH_UPCASTING(ChCollisionShapeRoundedBox, ChCollisionShape)
 
 ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox() : ChCollisionShape(Type::ROUNDEDBOX) {}
 
-ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChMaterialSurface> material,
+ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material,
                                                        double length_x,
                                                        double length_y,
                                                        double length_z,
                                                        double sradius)
     : ChCollisionShape(Type::ROUNDEDBOX, material) {
-    gbox.SetLengths(ChVector<>(length_x, length_y, length_z));
+    gbox.SetLengths(ChVector3d(length_x, length_y, length_z));
     gbox.SetSphereRadius(sradius);
 }
 
-ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChMaterialSurface> material,
-                                                       const ChVector<>& lengths,
+ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material,
+                                                       const ChVector3d& lengths,
                                                        double sradius)
     : ChCollisionShape(Type::ROUNDEDBOX, material) {
     gbox.SetLengths(lengths);
     gbox.SetSphereRadius(sradius);
 }
 
-ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChMaterialSurface> material,
-                                                       const geometry::ChRoundedBox& box)
+ChCollisionShapeRoundedBox::ChCollisionShapeRoundedBox(std::shared_ptr<ChContactMaterial> material,
+                                                       const ChRoundedBox& box)
     : ChCollisionShape(Type::ROUNDEDBOX, material), gbox(box) {}
 
-void ChCollisionShapeRoundedBox::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapeRoundedBox::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapeRoundedBox>();
+    archive_out.VersionWrite<ChCollisionShapeRoundedBox>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gbox);
+    archive_out << CHNVP(gbox);
 }
 
-void ChCollisionShapeRoundedBox::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapeRoundedBox::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapeRoundedBox>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeRoundedBox>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gbox);
+    archive_in >> CHNVP(gbox);
 }
 
 }  // end namespace chrono

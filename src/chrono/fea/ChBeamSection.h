@@ -15,8 +15,8 @@
 #ifndef CHBEAMSECTION_H
 #define CHBEAMSECTION_H
 
-#include "chrono/core/ChMathematics.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
+#include "chrono/utils/ChConstants.h"
 #include "chrono/fea/ChBeamSectionShape.h"
 
 namespace chrono {
@@ -77,7 +77,7 @@ class ChApi ChBeamSection {
         this->draw_shape = chrono_types::make_shared<ChBeamSectionShapeCircular>(draw_rad);
     }
 
-    ///***OBSOLETE*** only for backward compability
+    /// OBSOLETE only for backward compability
     void SetCircular(bool ic) {}
 
   private:

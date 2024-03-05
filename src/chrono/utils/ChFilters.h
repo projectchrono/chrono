@@ -23,10 +23,10 @@
 #include <valarray>
 #include <vector>
 
-#include <chrono/motion_functions/ChFunction_Recorder.h>
+#include "chrono/functions/ChFunctionInterp.h"
+#include "chrono/functions/ChFunctionSineStep.h"
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMathematics.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 namespace chrono {
 
@@ -440,7 +440,7 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     ChISO2631_Vibration_SeatCushionLogger(double step);
     void Config(double step);
     void AddData(double speed, double acc_x, double acc_y, double acc_z);
-    void AddData(double speed, ChVector<>& acc_v) { AddData(speed, acc_v.x(), acc_v.y(), acc_v.z()); }
+    void AddData(double speed, ChVector3d& acc_v) { AddData(speed, acc_v.x(), acc_v.y(), acc_v.z()); }
     void Reset();
     double GetExposureTime() const { return m_logging_time; }
     double GetInputRMS_X() const;
@@ -463,6 +463,8 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     const double m_tstart2 = 0.5;
     double m_logging_time;
     double m_step;
+
+    std::unique_ptr<ChFunctionSineStep> m_sinestep;
 
     // raw input data series
     std::vector<double> m_data_speed;
@@ -527,7 +529,7 @@ class ChApi ChISO2631_Shock_SeatCushionLogger {
     ChISO2631_Shock_SeatCushionLogger(double step);
     void Config(double step);
     void AddData(double acc_x, double acc_y, double acc_z);
-    void AddData(ChVector<>& acc_v) { AddData(acc_v.x(), acc_v.y(), acc_v.z()); }
+    void AddData(ChVector3d& acc_v) { AddData(acc_v.x(), acc_v.y(), acc_v.z()); }
     void Reset();
     // Se = equivalent static spine compressive stress [MPa]
     // Se < 0.5 MPa : low risk of severe health effect
@@ -548,6 +550,8 @@ class ChApi ChISO2631_Shock_SeatCushionLogger {
 
     double m_logging_time;
 
+    std::unique_ptr<ChFunctionSineStep> m_sinestep;
+
     // results
     double m_dkx;
     double m_dky;
@@ -566,9 +570,9 @@ class ChApi ChISO2631_Shock_SeatCushionLogger {
     ChButterworth_Lowpass m_legacy_lpz;
 
     // buffers for raw but antialiased input data
-    ChFunction_Recorder m_raw_inp_x;
-    ChFunction_Recorder m_raw_inp_y;
-    ChFunction_Recorder m_raw_inp_z;
+    ChFunctionInterp m_raw_inp_x;
+    ChFunctionInterp m_raw_inp_y;
+    ChFunctionInterp m_raw_inp_z;
 
     // buffers for resampled input data
     std::vector<double> m_inp_x;

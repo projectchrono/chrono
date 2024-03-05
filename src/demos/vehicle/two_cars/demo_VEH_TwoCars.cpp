@@ -49,7 +49,7 @@ double step_size = 0.005;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // --------------
     // Create systems
@@ -58,14 +58,14 @@ int main(int argc, char* argv[]) {
     // Chrono system
     ChSystemNSC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
     sys.SetSolverMaxIterations(150);
     sys.SetMaxPenetrationRecoverySpeed(4.0);
 
     // Create the terrain
     RigidTerrain terrain(&sys);
-    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto patch_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
     auto patch = terrain.AddPatch(patch_mat, CSYSNORM, 200, 100);
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
 
     // Create and initialize the first vehicle
     HMMWV_Reduced hmmwv_1(&sys);
-    hmmwv_1.SetInitPosition(ChCoordsys<>(ChVector<>(0, -1.5, 1.0), QUNIT));
+    hmmwv_1.SetInitPosition(ChCoordsys<>(ChVector3d(0, -1.5, 1.0), QUNIT));
     hmmwv_1.SetEngineType(EngineModelType::SIMPLE);
     hmmwv_1.SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
     hmmwv_1.SetDriveType(DrivelineTypeWV::RWD);
@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
 
     // Create and initialize the second vehicle
     HMMWV_Reduced hmmwv_2(&sys);
-    hmmwv_2.SetInitPosition(ChCoordsys<>(ChVector<>(7, 1.5, 1.0), QUNIT));
+    hmmwv_2.SetInitPosition(ChCoordsys<>(ChVector3d(7, 1.5, 1.0), QUNIT));
     hmmwv_2.SetEngineType(EngineModelType::SIMPLE);
     hmmwv_2.SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
     hmmwv_2.SetDriveType(DrivelineTypeWV::RWD);
@@ -136,9 +136,9 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_IRRLICHT
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
             vis_irr->SetWindowTitle("Two cars demo");
-            vis_irr->SetChaseCamera(ChVector<>(0.0, 0.0, .75), 6.0, 0.5);
+            vis_irr->SetChaseCamera(ChVector3d(0.0, 0.0, .75), 6.0, 0.5);
             vis_irr->SetChaseCameraState(utils::ChChaseCamera::Track);
-            vis_irr->SetChaseCameraPosition(ChVector<>(-15, 0, 2.0));
+            vis_irr->SetChaseCameraPosition(ChVector3d(-15, 0, 2.0));
             vis_irr->Initialize();
             vis_irr->AddSkyBox();
             vis_irr->AddLogo();
@@ -154,16 +154,17 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Two cars demo");
-            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
-            vis_vsg->SetChaseCamera(ChVector<>(0.0, 0.0, .75), 6.0, 0.5);
+            vis_vsg->SetWindowSize(ChVector2i(1200, 800));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
+            vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, .75), 6.0, 0.5);
             vis_vsg->SetChaseCameraState(utils::ChChaseCamera::Track);
-            vis_vsg->SetChaseCameraPosition(ChVector<>(-15, 0, 2.0));
+            vis_vsg->SetChaseCameraPosition(ChVector3d(-15, 0, 2.0));
             vis_vsg->AttachVehicle(&hmmwv_1.GetVehicle());
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
             vis = vis_vsg;

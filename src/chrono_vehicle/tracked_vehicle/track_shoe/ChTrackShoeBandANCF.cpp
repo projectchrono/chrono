@@ -80,20 +80,20 @@ void ChTrackShoeBandANCF::SetWebMeshProperties(std::shared_ptr<fea::ChMaterialSh
 
 // -----------------------------------------------------------------------------
 void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                                     const ChVector<>& location,
+                                     const ChVector3d& location,
                                      const ChQuaternion<>& rotation) {
     // Initialize base class (create tread body)
     ChTrackShoeBand::Initialize(chassis, location, rotation);
 
     // Express the tread body location and orientation in global frame.
-    ChVector<> loc = chassis->TransformPointLocalToParent(location);
+    ChVector3d loc = chassis->TransformPointLocalToParent(location);
     ChQuaternion<> rot = chassis->GetRot() * rotation;
-    ChVector<> xdir = rot.GetXaxis();
-    ChVector<> ydir = rot.GetYaxis();
-    ChVector<> zdir = rot.GetZaxis();
+    ChVector3d xdir = rot.GetAxisX();
+    ChVector3d ydir = rot.GetAxisY();
+    ChVector3d zdir = rot.GetAxisZ();
 
     // Reference point for creating the mesh nodes for this track shoe
-    ChVector<> seg_loc = loc + (0.5 * GetToothBaseLength()) * xdir - (0.5 * GetBeltWidth()) * ydir;
+    ChVector3d seg_loc = loc + (0.5 * GetToothBaseLength()) * xdir - (0.5 * GetBeltWidth()) * ydir;
 
     // Get starting index for mesh nodes contributed by the track shoe
     assert(m_web_mesh);
@@ -185,7 +185,7 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                     // Node direction
                     auto node_dir = zdir;
                     // Node direction derivative
-                    auto node_curv = ChVector<>(0.0, 0.0, 0.0);
+                    auto node_curv = ChVector3d(0.0, 0.0, 0.0);
                     // Create the node
                     auto node = chrono_types::make_shared<ChNodeFEAxyzDD>(node_loc, node_dir, node_curv);
                     // No additional mass assigned to nodes
@@ -267,11 +267,11 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Overwrite absolute node locations and orientations.
 
     auto rot = chassis->GetRot() * component_pos[1].rot;
-    ChVector<> xdir = rot.GetXaxis();
-    ChVector<> ydir = rot.GetYaxis();
-    ChVector<> zdir = rot.GetZaxis();
+    ChVector3d xdir = rot.GetAxisX();
+    ChVector3d ydir = rot.GetAxisY();
+    ChVector3d zdir = rot.GetAxisZ();
 
-    ChVector<> seg_loc = chassis->TransformPointLocalToParent(component_pos[1].pos) - (0.5 * GetWebLength()) * xdir -
+    ChVector3d seg_loc = chassis->TransformPointLocalToParent(component_pos[1].pos) - (0.5 * GetWebLength()) * xdir -
                          (0.5 * GetBeltWidth()) * ydir;
 
     int num_elements_length = GetNumElementsLength();
@@ -344,7 +344,7 @@ void ChTrackShoeBandANCF::UpdateInertiaProperties() {
 
     // Calculate web mesh inertia properties
     double mesh_mass;
-    ChVector<> mesh_com;
+    ChVector3d mesh_com;
     ChMatrix33<> mesh_inertia;
     m_web_mesh->ComputeMassProperties(mesh_mass, mesh_com, mesh_inertia);
 
@@ -354,10 +354,10 @@ void ChTrackShoeBandANCF::UpdateInertiaProperties() {
     composite.AddComponent(ChFrame<>(mesh_com, QUNIT), mesh_mass, mesh_inertia);
 
     // Express COM and inertia in subsystem reference frame
-    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
-    m_com.coord.rot = QUNIT;
+    m_com.GetPos() = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.GetRot() = QUNIT;
 
-    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
+    m_inertia = m_xform.GetRotMat().transpose() * composite.GetInertia() * m_xform.GetRotMat();
 }
 
 // -----------------------------------------------------------------------------
@@ -394,7 +394,7 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next,
                 int node_idx = m_starting_node_index + y_idx + 0 * N_y;
                 auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node_idx));
 
-                node->SetD(rot_cur_shoe.GetZaxis());
+                node->SetD(rot_cur_shoe.GetAxisZ());
 
                 auto constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
                 constraintxyz->Initialize(node, m_shoe);
@@ -413,7 +413,7 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next,
                 int node_idx = m_starting_node_index + y_idx + num_elements_length * N_y;
                 auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node_idx));
 
-                node->SetD(rot_next_shoe.GetZaxis());
+                node->SetD(rot_next_shoe.GetAxisZ());
 
                 auto constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
                 constraintxyz->Initialize(node, next->GetShoeBody());
@@ -441,7 +441,7 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next,
                 int node_idx = m_starting_node_index + y_idx;
                 auto node = std::dynamic_pointer_cast<ChNodeFEAxyzDD>(m_web_mesh->GetNode(node_idx));
 
-                node->SetD(rot_cur_shoe.GetZaxis());
+                node->SetD(rot_cur_shoe.GetAxisZ());
 
                 auto constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
                 constraintxyz->Initialize(node, m_shoe);
@@ -462,7 +462,7 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next,
                 int node_idx = m_starting_node_index + y_idx + num_elements_length * (N_y_edge + N_y_mid);
                 auto node = std::dynamic_pointer_cast<ChNodeFEAxyzDD>(m_web_mesh->GetNode(node_idx));
 
-                node->SetD(rot_next_shoe.GetZaxis());
+                node->SetD(rot_next_shoe.GetAxisZ());
 
                 auto constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
                 constraintxyz->Initialize(node, next->GetShoeBody());
@@ -482,7 +482,7 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next,
     }  // end switch
 }
 
-ChVector<> ChTrackShoeBandANCF::GetTension() const {
+ChVector3d ChTrackShoeBandANCF::GetTension() const {
     return m_connections[0]->Get_react_force();
 }
 

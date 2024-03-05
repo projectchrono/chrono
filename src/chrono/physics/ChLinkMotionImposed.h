@@ -16,8 +16,8 @@
 #define CHLINKMOTIONIMPOSED_H
 
 #include "chrono/physics/ChLinkMate.h"
-#include "chrono/motion_functions/ChFunctionPosition.h"
-#include "chrono/motion_functions/ChFunctionRotation.h"
+#include "chrono/functions/ChFunctionPosition.h"
+#include "chrono/functions/ChFunctionRotation.h"
 
 namespace chrono {
 
@@ -29,7 +29,7 @@ namespace chrono {
 /// so you move/rotate Body 1 in space according to the provided functions; this is the case for example where
 /// you have some data coming from a motion capture hardware following the motion, say, of a human head,
 /// and you want to replicate the motion of that head in 3D space.
-/// This joint imposes all the 6 DOFs of a body, including rotations, differently from the ChLinkTrajectory
+/// This joint imposes all the 6 DOFs of a body, including rotations, differently from the ChLinkLockTrajectory
 /// that imposes only the position but leaves rotation free.
 /// Note that if you are interested in simply imposing a straight motion, just use  ChLinkMotorLinearPosition,
 /// and if you just need to impose a rotation on a shaft, just use the ChLinkMotorRotationAngle.
@@ -82,7 +82,7 @@ class ChApi ChLinkMotionImposed : public ChLinkMateGeneric {
 	/// in this case we use the "moving" auxiliary frame M whose motion is concatenated to frame2 (in absolute coordinates,
 	/// such moving frame will be cohincident with frame1 if the constraint is well assembled - in fact this makes constraint
 	/// forces more intuitive, as one will get reaction forces and torques as applied to the frame1 of moving body 1).
-    virtual ChCoordsys<> GetLinkRelativeCoords() override { return (frameMb2).GetCoord(); }
+    virtual ChCoordsys<> GetLinkRelativeCoords() override { return (frameMb2).GetCsys(); }
 
     void Update(double mytime, bool update_assets) override;
 
@@ -101,10 +101,10 @@ class ChApi ChLinkMotionImposed : public ChLinkMateGeneric {
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
 

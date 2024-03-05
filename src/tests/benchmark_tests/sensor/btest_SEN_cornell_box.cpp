@@ -36,7 +36,6 @@
 #include "chrono_sensor/filters/ChFilterImageOps.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 // -----------------------------------------------------------------------------
@@ -93,7 +92,7 @@ bool vis = true;
 const std::string out_dir = "SENSOR_OUTPUT/";
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2020 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2020 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------
     // Create the system
@@ -119,7 +118,7 @@ int main(int argc, char* argv[]) {
 
     // auto box_body = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
     // // auto box_body = chrono_types::make_shared<ChBodyEasySphere>(.5, 1000, true, false);
-    // // auto box_body = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, .25, 1, 1000, true, false);
+    // // auto box_body = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, .25, 1, 1000, true, false);
     // box_body->SetPos({0, 0, 2});
     // box_body->SetBodyFixed(true);
     // sys.Add(box_body);
@@ -177,7 +176,7 @@ int main(int argc, char* argv[]) {
     //double box1_height = 2.5;
     //auto box1 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, box1_height, 1000, true, false);
     //box1->SetPos({.75, .75, box1_height / 2});
-    //box1->SetRot(Q_from_AngZ(CH_C_PI / 3));
+    //box1->SetRot(QuatFromAngleZ(CH_C_PI / 3));
     //box1->SetBodyFixed(true);
     //sys.Add(box1);
     // box1->GetVisualModel()->GetShapes()[0].first->AddMaterial(grey);
@@ -186,7 +185,7 @@ int main(int argc, char* argv[]) {
     //double box2_height = 1.5;
     //auto box2 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, box2_height, 1000, true, false);
     //box2->SetPos({-.75, -.75, box2_height / 2});
-    //box2->SetRot(Q_from_AngZ(-CH_C_PI / 3));
+    //box2->SetRot(QuatFromAngleZ(-CH_C_PI / 3));
     //box2->SetBodyFixed(true);
     //sys.Add(box2);
     // box2->GetVisualModel()->GetShapes()[0].first->AddMaterial(grey);

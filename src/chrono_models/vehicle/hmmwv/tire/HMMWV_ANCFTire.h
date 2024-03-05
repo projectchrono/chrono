@@ -75,17 +75,17 @@ class CH_MODELS_API HMMWV_ANCFTire : public ChANCFTire {
     static const double m_default_pressure;
 
     static const double m_rho_0;
-    static const ChVector<> m_E_0;
-    static const ChVector<> m_nu_0;
-    static const ChVector<> m_G_0;
+    static const ChVector3d m_E_0;
+    static const ChVector3d m_nu_0;
+    static const ChVector3d m_G_0;
     static const double m_rho_1;
-    static const ChVector<> m_E_1;
-    static const ChVector<> m_nu_1;
-    static const ChVector<> m_G_1;
+    static const ChVector3d m_E_1;
+    static const ChVector3d m_nu_1;
+    static const ChVector3d m_G_1;
     static const double m_rho_2;
-    static const ChVector<> m_E_2;
-    static const ChVector<> m_nu_2;
-    static const ChVector<> m_G_2;
+    static const ChVector3d m_E_2;
+    static const ChVector3d m_nu_2;
+    static const ChVector3d m_G_2;
     std::vector<std::shared_ptr<fea::ChMaterialShellANCF>> m_materials;
 
     static const int m_num_elements_b;

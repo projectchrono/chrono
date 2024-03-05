@@ -33,22 +33,22 @@ void ChSharedMassBody::SetBodyMass(const double mmass) {
     inv_mass = 1.0 / mass;
 }
 
-void ChSharedMassBody::ArchiveOut(ChArchiveOut& marchive) {
+void ChSharedMassBody::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSharedMassBody>();
+    archive_out.VersionWrite<ChSharedMassBody>();
 
     // serialize all member data:
-    marchive << CHNVP(mass);
-    ////marchive << CHNVP(inertia);
+    archive_out << CHNVP(mass);
+    ////archive_out << CHNVP(inertia);
 }
 
-void ChSharedMassBody::ArchiveIn(ChArchiveIn& marchive) {
+void ChSharedMassBody::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChSharedMassBody>();
+    /*int version =*/ archive_in.VersionRead<ChSharedMassBody>();
 
     // stream in all member data:
-    marchive >> CHNVP(mass);
-    ////marchive >> CHNVP(inertia);
+    archive_in >> CHNVP(mass);
+    ////archive_in >> CHNVP(inertia);
     SetBodyMass(mass);
     ////SetBodyInertia(inertia);
 }
@@ -169,22 +169,22 @@ void ChVariablesBodySharedMass::Build_M(ChSparseMatrix& storage, int insrow, int
     PasteMatrix(storage, scaledJ, insrow + 3, inscol + 3);
 }
 
-void ChVariablesBodySharedMass::ArchiveOut(ChArchiveOut& marchive) {
+void ChVariablesBodySharedMass::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVariablesBodySharedMass>();
+    archive_out.VersionWrite<ChVariablesBodySharedMass>();
     // serialize parent class
-    ChVariablesBody::ArchiveOut(marchive);
+    ChVariablesBody::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(sharedmass);
+    archive_out << CHNVP(sharedmass);
 }
 
-void ChVariablesBodySharedMass::ArchiveIn(ChArchiveIn& marchive) {
+void ChVariablesBodySharedMass::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChVariablesBodySharedMass>();
+    /*int version =*/ archive_in.VersionRead<ChVariablesBodySharedMass>();
     // deserialize parent class
-    ChVariablesBody::ArchiveIn(marchive);
+    ChVariablesBody::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(sharedmass);
+    archive_in >> CHNVP(sharedmass);
 }
 
 }  // end namespace chrono

@@ -15,8 +15,8 @@
 //
 // =============================================================================
 
+#include "chrono/utils/ChUtils.h"
 #include "chrono_sensor/optix/ChOptixGeometry.h"
-
 #include "chrono_sensor/optix/ChOptixDefinitions.h"
 
 #include <cuda.h>
@@ -97,7 +97,7 @@ void ChOptixGeometry::Cleanup() {
 void ChOptixGeometry::AddGenericObject(unsigned int mat_id,
                                        std::shared_ptr<ChBody> body,
                                        ChFrame<double> asset_frame,
-                                       ChVector<double> scale,
+                                       ChVector3d scale,
                                        OptixTraversableHandle gas_handle) {
     // add to list of box instances
     m_obj_mat_ids.push_back(mat_id);
@@ -127,7 +127,7 @@ void ChOptixGeometry::AddGenericObject(unsigned int mat_id,
 
 void ChOptixGeometry::AddBox(std::shared_ptr<ChBody> body,
                              ChFrame<double> asset_frame,
-                             ChVector<double> scale,
+                             ChVector3d scale,
                              unsigned int mat_id) {
     if (!m_box_inst) {
         // create first box instance
@@ -209,7 +209,7 @@ void ChOptixGeometry::AddBox(std::shared_ptr<ChBody> body,
 
 void ChOptixGeometry::AddSphere(std::shared_ptr<ChBody> body,
                                 ChFrame<double> asset_frame,
-                                ChVector<double> scale,
+                                ChVector3d scale,
                                 unsigned int mat_id) {
     if (!m_sphere_inst) {
         // create first sphere instance
@@ -286,7 +286,7 @@ void ChOptixGeometry::AddSphere(std::shared_ptr<ChBody> body,
 
 void ChOptixGeometry::AddCylinder(std::shared_ptr<ChBody> body,
                                   ChFrame<double> asset_frame,
-                                  ChVector<double> scale,
+                                  ChVector3d scale,
                                   unsigned int mat_id) {
     if (!m_cyl_inst) {
         // create first cylinder instance
@@ -365,7 +365,7 @@ unsigned int ChOptixGeometry::AddRigidMesh(CUdeviceptr d_vertices,
                                            std::shared_ptr<ChVisualShapeTriangleMesh> mesh_shape,
                                            std::shared_ptr<ChBody> body,
                                            ChFrame<double> asset_frame,
-                                           ChVector<double> scale,
+                                           ChVector3d scale,
                                            unsigned int mat_id) {
     // std::cout << "Adding rigid mesh to optix!\n";
     bool mesh_found = false;
@@ -399,7 +399,7 @@ void ChOptixGeometry::AddDeformableMesh(CUdeviceptr d_vertices,
                                         std::shared_ptr<ChVisualShapeTriangleMesh> mesh_shape,
                                         std::shared_ptr<ChBody> body,
                                         ChFrame<double> asset_frame,
-                                        ChVector<double> scale,
+                                        ChVector3d scale,
                                         unsigned int mat_id) {
     unsigned int mesh_gas_id = BuildTrianglesGAS(mesh_shape, d_vertices, d_indices, false);
     AddGenericObject(mat_id, body, asset_frame, scale, m_gas_handles[mesh_gas_id]);
@@ -608,12 +608,12 @@ void ChOptixGeometry::RebuildRootStructure() {
     for (int i = 0; i < m_motion_transforms.size(); i++) {
         // update the motion transforms
         const ChFrame<double> f_start = m_obj_body_frames_start[i] * m_obj_asset_frames[i];
-        const ChVector<double> pos_start = f_start.GetPos() - m_origin_offset;
-        const ChMatrix33<double> rot_mat_start = f_start.Amatrix;
+        const ChVector3d pos_start = f_start.GetPos() - m_origin_offset;
+        const ChMatrix33<double> rot_mat_start = f_start.GetRotMat();
 
         const ChFrame<double> f_end = m_obj_body_frames_end[i] * m_obj_asset_frames[i];
-        const ChVector<double> pos_end = f_end.GetPos() - m_origin_offset;
-        const ChMatrix33<double> rot_mat_end = f_end.Amatrix;
+        const ChVector3d pos_end = f_end.GetPos() - m_origin_offset;
+        const ChMatrix33<double> rot_mat_end = f_end.GetRotMat();
 
         m_motion_transforms[i].motionOptions.timeBegin = m_start_time;  // default at start, will be updated
         m_motion_transforms[i].motionOptions.timeEnd = m_end_time;      // default at start, will be updated
@@ -704,9 +704,9 @@ void ChOptixGeometry::UpdateBodyTransformsEnd(float t_end) {
     m_start_time = ChClamp(m_start_time, 0.f, m_end_time);
 }
 
-void ChOptixGeometry::GetT3x4FromSRT(const ChVector<double>& s,
+void ChOptixGeometry::GetT3x4FromSRT(const ChVector3d& s,
                                      const ChMatrix33<double>& a,
-                                     const ChVector<double>& b,
+                                     const ChVector3d& b,
                                      float* t) {
     t[0] = (float)(s.x() * a(0));
     t[1] = (float)(s.y() * a(1));
@@ -723,9 +723,9 @@ void ChOptixGeometry::GetT3x4FromSRT(const ChVector<double>& s,
     t[10] = (float)(s.z() * a(8));
     t[11] = (float)b.z();
 }
-void ChOptixGeometry::GetInvT3x4FromSRT(const ChVector<double>& s,
+void ChOptixGeometry::GetInvT3x4FromSRT(const ChVector3d& s,
                                         const ChMatrix33<double>& a,
-                                        const ChVector<double>& b,
+                                        const ChVector3d& b,
                                         float* t) {
     t[0] = (float)(a(0) / s.x());
     t[1] = (float)(a(3) / s.x());

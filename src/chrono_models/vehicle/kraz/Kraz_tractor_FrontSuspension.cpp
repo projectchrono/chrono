@@ -44,11 +44,11 @@ const double Kraz_tractor_FrontSuspension::m_knuckleRadius = 0.06;
 const double Kraz_tractor_FrontSuspension::m_tierodRadius = 0.02;
 const double Kraz_tractor_FrontSuspension::m_draglinkRadius = 0.02;
 
-const ChVector<> Kraz_tractor_FrontSuspension::m_axleTubeInertia(160.3141845, 1.0458, 160.3141845);
-const ChVector<> Kraz_tractor_FrontSuspension::m_spindleInertia(0.04117, 0.07352, 0.04117);
-const ChVector<> Kraz_tractor_FrontSuspension::m_knuckleInertia(0.1, 0.1, 0.1);
-const ChVector<> Kraz_tractor_FrontSuspension::m_tierodInertia(1.0, 0.1, 1.0);
-const ChVector<> Kraz_tractor_FrontSuspension::m_draglinkInertia(0.1, 1.0, 0.1);
+const ChVector3d Kraz_tractor_FrontSuspension::m_axleTubeInertia(160.3141845, 1.0458, 160.3141845);
+const ChVector3d Kraz_tractor_FrontSuspension::m_spindleInertia(0.04117, 0.07352, 0.04117);
+const ChVector3d Kraz_tractor_FrontSuspension::m_knuckleInertia(0.1, 0.1, 0.1);
+const ChVector3d Kraz_tractor_FrontSuspension::m_tierodInertia(1.0, 0.1, 1.0);
+const ChVector3d Kraz_tractor_FrontSuspension::m_draglinkInertia(0.1, 1.0, 0.1);
 
 const double Kraz_tractor_FrontSuspension::m_springDesignLength = 0.2;
 const double Kraz_tractor_FrontSuspension::m_springCoefficient = 592176.2641;
@@ -78,7 +78,7 @@ class Tractor_SpringForceFront : public ChLinkTSDA::ForceFunctor {
     double m_min_length;
     double m_max_length;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionInterp m_bump;
 };
 
 Tractor_SpringForceFront::Tractor_SpringForceFront(double spring_constant, double min_length, double max_length)
@@ -115,7 +115,7 @@ double Tractor_SpringForceFront::evaluate(double time,
         defl_rebound = length - m_max_length;
     }
 
-    force = defl_spring * m_spring_constant + m_bump.Get_y(defl_bump) - m_bump.Get_y(defl_rebound);
+    force = defl_spring * m_spring_constant + m_bump.GetVal(defl_bump) - m_bump.GetVal(defl_rebound);
 
     return force;
 }
@@ -179,33 +179,33 @@ Kraz_tractor_FrontSuspension::Kraz_tractor_FrontSuspension(const std::string& na
         m_damperCoefficient, m_damperDegressivityCompression, m_damperCoefficient, m_damperDegressivityExpansion);
 }
 
-const ChVector<> Kraz_tractor_FrontSuspension::getLocation(PointId which) {
+const ChVector3d Kraz_tractor_FrontSuspension::getLocation(PointId which) {
     const double ofs = 0.081;
     switch (which) {
         case SPRING_A:
-            return ChVector<>(0.0, 0.529, m_axleTubeRadius);
+            return ChVector3d(0.0, 0.529, m_axleTubeRadius);
         case SPRING_C:
-            return ChVector<>(0.0, 0.529, m_axleTubeRadius + m_springDesignLength);
+            return ChVector3d(0.0, 0.529, m_axleTubeRadius + m_springDesignLength);
         case SHOCK_A:
-            return ChVector<>(-0.15, 0.7075, m_axleTubeRadius - 0.05);
+            return ChVector3d(-0.15, 0.7075, m_axleTubeRadius - 0.05);
         case SHOCK_C:
-            return ChVector<>(0.0, 0.529, m_axleTubeRadius + m_springDesignLength + 0.2);
+            return ChVector3d(0.0, 0.529, m_axleTubeRadius + m_springDesignLength + 0.2);
         case SPINDLE:
-            return ChVector<>(0.0, 1.00 - ofs, 0.0);
+            return ChVector3d(0.0, 1.00 - ofs, 0.0);
         case KNUCKLE_CM:
-            return ChVector<>(0.0, 0.908341392 - ofs, 0.0);
+            return ChVector3d(0.0, 0.908341392 - ofs, 0.0);
         case KNUCKLE_L:
-            return ChVector<>(0.0, 0.92597409 - ofs, -0.1);
+            return ChVector3d(0.0, 0.92597409 - ofs, -0.1);
         case KNUCKLE_U:
-            return ChVector<>(0.0, 0.890708694 - ofs, 0.1);
+            return ChVector3d(0.0, 0.890708694 - ofs, 0.1);
         case KNUCKLE_DRL:
-            return ChVector<>(0.0, 0.708341392 - ofs, 0.1);
+            return ChVector3d(0.0, 0.708341392 - ofs, 0.1);
         case TIEROD_K:
-            return ChVector<>(-0.2, 0.862974035 - ofs, 0.1);
+            return ChVector3d(-0.2, 0.862974035 - ofs, 0.1);
         case DRAGLINK_C:
-            return ChVector<>(1.0, 0.708341392 - ofs, 0.1);
+            return ChVector3d(1.0, 0.708341392 - ofs, 0.1);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

@@ -22,13 +22,13 @@
 using namespace chrono;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Better put the Matlab stuff inside a try{}, since it may throw exception if
     // the engine is not started (because Matlab not properly installed)
     try {
-        GetLog() << "PERFORM TESTS OF MATLAB<->CHRONO INTERACTION\n\n";
-        GetLog() << "(please wait few seconds: Matlab engine must be loaded)\n\n";
+        std::cout << "PERFORM TESTS OF MATLAB<->CHRONO INTERACTION\n\n";
+        std::cout << "(please wait few seconds: Matlab engine must be loaded)\n\n";
 
         // This is the object that you can use to access the Matlab engine.
         // As soon as created, it loads the Matlab engine (if troubles happen, it
@@ -40,7 +40,7 @@ int main(int argc, char* argv[]) {
         // EXAMPLE 1: execute a Matlab command
         //
 
-        GetLog() << "- Execute plotting command from Chrono...\n\n";
+        std::cout << "- Execute plotting command from Chrono...\n\n";
 
         matlab_engine.Eval(
             "z=peaks(25); \
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
         // EXAMPLE 2: pass a Chrono matrix to Matlab
         //
 
-        GetLog() << "- Send some data to Matlab for operations and plotting...\n\n";
+        std::cout << "- Send some data to Matlab for operations and plotting...\n\n";
 
         ChMatrixDynamic<> m_time(30, 1);
         ChMatrixDynamic<> m_sine(30, 1);
@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
         // EXAMPLE 3: pass a Matlab matrix to Chrono
         //
 
-        GetLog() << "- Fetch some data from Matlab...\n\n";
+        std::cout << "- Fetch some data from Matlab...\n\n";
 
         matlab_engine.Eval("m_matr=[0:0.1:5]';");
 
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
         // EXAMPLE 4: pass a sparse matrix to Matlab
         //
 
-        GetLog() << "- Send a sparse matrix to Matlab...\n\n";
+        std::cout << "- Send a sparse matrix to Matlab...\n\n";
 
         ChSparseMatrix m_sparse(6, 7);
         m_sparse.SetElement(3, 5, 102);
@@ -95,8 +95,8 @@ int main(int argc, char* argv[]) {
 
         matlab_engine.Eval("pause(60)");
 
-    } catch (ChException mex) {
-        GetLog() << mex.what();  // Print error on console, if Matlab did not start.
+    } catch (std::exception mex) {
+        std::cerr << mex.what() << std::endl;  // Print error on console, if Matlab did not start.
     }
 
     system("pause");

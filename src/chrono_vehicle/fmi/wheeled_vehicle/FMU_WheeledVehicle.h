@@ -46,7 +46,13 @@
 
 class FmuComponent : public chrono::FmuChronoComponentBase {
   public:
-    FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID);
+    FmuComponent(fmi2String instanceName,
+                 fmi2Type fmuType,
+                 fmi2String fmuGUID,
+                 fmi2String fmuResourceLocation,
+                 const fmi2CallbackFunctions* functions,
+                 fmi2Boolean visible,
+                 fmi2Boolean loggingOn);
     ~FmuComponent() {}
 
     /// Advance dynamics.
@@ -95,14 +101,15 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
 #endif
 
     // FMU parameters
+    std::string data_path;          ///< path to vehicle data
     std::string vehicle_JSON;       ///< JSON vehicle specification file
     std::string engine_JSON;        ///< JSON engine specification file
     std::string transmission_JSON;  ///< JSON transmission specification file
     fmi2Boolean system_SMC;         ///< use SMC contact formulation (NSC otherwise)
     fmi2Boolean vis;                ///< enable/disable run-time visualization
-    chrono::ChVector<> init_loc;    ///< initial vehicle location
+    chrono::ChVector3d init_loc;    ///< initial vehicle location
     double init_yaw;                ///< initial vehicle orientation
-    chrono::ChVector<> g_acc;       ///< gravitational acceleration
+    chrono::ChVector3d g_acc;       ///< gravitational acceleration
     double step_size;               ///< integration step size
 
     // FMU continuous inputs and outputs for co-simulation
@@ -114,6 +121,12 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
 };
 
 // Create an instance of this FMU
-FmuComponentBase* fmi2Instantiate_getPointer(fmi2String instanceName, fmi2Type fmuType, fmi2String fmuGUID) {
-    return new FmuComponent(instanceName, fmuType, fmuGUID);
+FmuComponentBase* fmi2Instantiate_getPointer(fmi2String instanceName,
+                                             fmi2Type fmuType,
+                                             fmi2String fmuGUID,
+                                             fmi2String fmuResourceLocation,
+                                             const fmi2CallbackFunctions* functions,
+                                             fmi2Boolean visible,
+                                             fmi2Boolean loggingOn) {
+    return new FmuComponent(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn);
 }

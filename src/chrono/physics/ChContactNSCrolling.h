@@ -40,7 +40,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
     ChConstraintTwoTuplesRollingT<typecarr_a, typecarr_b> Ru;
     ChConstraintTwoTuplesRollingT<typecarr_a, typecarr_b> Rv;
 
-    ChVector<> react_torque;
+    ChVector3d react_torque;
 
     float complianceRoll;
     float complianceSpin;
@@ -56,7 +56,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
                         Ta* mobjA,                                ///< collidable object A
                         Tb* mobjB,                                ///< collidable object B
                         const ChCollisionInfo& cinfo,  ///< data for the collision pair
-                        const ChMaterialCompositeNSC& mat         ///< composite material
+                        const ChContactMaterialCompositeNSC& mat         ///< composite material
                         )
         : ChContactNSC<Ta, Tb>(mcontainer, mobjA, mobjB, cinfo, mat) {
         Rx.SetRollingConstraintU(&this->Ru);
@@ -72,7 +72,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
     virtual void Reset(Ta* mobjA,                                ///< collidable object A
                        Tb* mobjB,                                ///< collidable object B
                        const ChCollisionInfo& cinfo,  ///< data for the collision pair
-                       const ChMaterialCompositeNSC& mat         ///< composite material
+                       const ChContactMaterialCompositeNSC& mat         ///< composite material
                        ) override {
         // Invoke base class method to reset normal and sliding constraints
         ChContactNSC<Ta, Tb>::Reset(mobjA, mobjB, cinfo, mat);
@@ -105,7 +105,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
     }
 
     /// Get the contact force, if computed, in contact coordinate system
-    virtual ChVector<> GetContactTorque() { return react_torque; }
+    virtual ChVector3d GetContactTorque() { return react_torque; }
 
     /// Get the contact rolling friction coefficient
     virtual float GetRollingFriction() { return Rx.GetRollingFrictionCoefficient(); }
@@ -165,7 +165,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         // If rolling and spinning compliance, set the cfm terms
         double h = this->container->GetSystem()->GetStep();
 
-        //***TODO*** move to KRMmatricesLoad() the following, and only for !bounced case
+        //// TODO  move to KRMmatricesLoad() the following, and only for !bounced case
         double alpha = this->dampingf;              // [R]=alpha*[K]
         double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
@@ -227,7 +227,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         // If rolling and spinning compliance, set the cfm terms
         double h = this->container->GetSystem()->GetStep();
 
-        //***TODO*** move to KRMmatricesLoad() the following, and only for !bounced case
+        //// TODO  move to KRMmatricesLoad() the following, and only for !bounced case
         double alpha = this->dampingf;              // [R]=alpha*[K]
         double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 

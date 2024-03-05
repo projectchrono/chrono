@@ -25,7 +25,9 @@
 #include "chrono/geometry/ChLine.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// Geometric object representing a piecewise cubic Bezier curve in 3D.
 class ChApi ChLineBezier : public ChLine {
@@ -40,7 +42,7 @@ class ChApi ChLineBezier : public ChLine {
     virtual ChLineBezier* Clone() const override { return new ChLineBezier(*this); }
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::LINE_BEZIER; }
+    virtual Type GetType() const override { return Type::LINE_BEZIER; }
 
     virtual void Set_closed(bool mc) override {}
     virtual void Set_complexity(int mc) override {}
@@ -49,22 +51,22 @@ class ChApi ChLineBezier : public ChLine {
     virtual ChAABB GetBoundingBox() const override;
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
-    virtual ChVector<> Evaluate(double U) const override;
+    virtual ChVector3d Evaluate(double U) const override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     std::shared_ptr<ChBezierCurve> m_path;  ///< handle to a Bezier curve
 };
 
-}  // end of namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChLineBezier, 0)
+CH_CLASS_VERSION(ChLineBezier, 0)
 
-}  // end of namespace chrono
+}  // end namespace chrono
 
 #endif

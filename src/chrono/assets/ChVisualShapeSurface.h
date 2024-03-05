@@ -26,16 +26,16 @@ class ChApi ChVisualShapeSurface : public ChVisualShape {
   public:
     ChVisualShapeSurface() : wireframe(false), resolution_U(5), resolution_V(5) {}
 
-    ChVisualShapeSurface(std::shared_ptr<geometry::ChSurface> msurf)
+    ChVisualShapeSurface(std::shared_ptr<ChSurface> msurf)
         : gsurface(msurf), wireframe(false), resolution_U(5), resolution_V(5) {}
 
     ~ChVisualShapeSurface() {}
 
     /// Get the surface  geometry.
-    std::shared_ptr<geometry::ChSurface> GetSurfaceGeometry() { return gsurface; }
+    std::shared_ptr<ChSurface> GetSurfaceGeometry() { return gsurface; }
 
     /// Set the surface geometry.
-    void SetSurfaceGeometry(std::shared_ptr<geometry::ChSurface> ms) { gsurface = ms; }
+    void SetSurfaceGeometry(std::shared_ptr<ChSurface> ms) { gsurface = ms; }
 
     /// Tell if showing only UV isolines.
     bool IsWireframe() const { return wireframe; }
@@ -62,13 +62,13 @@ class ChApi ChVisualShapeSurface : public ChVisualShape {
     }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    std::shared_ptr<geometry::ChSurface> gsurface;
+    std::shared_ptr<ChSurface> gsurface;
 
     bool wireframe;
     int resolution_U;

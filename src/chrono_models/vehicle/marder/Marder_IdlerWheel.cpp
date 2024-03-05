@@ -33,7 +33,7 @@ namespace marder {
 // Static variables
 // -----------------------------------------------------------------------------
 const double Marder_IdlerWheel::m_wheel_mass = 25.76;
-const ChVector<> Marder_IdlerWheel::m_wheel_inertia(0.618, 1.12, 0.618);
+const ChVector3d Marder_IdlerWheel::m_wheel_inertia(0.618, 1.12, 0.618);
 const double Marder_IdlerWheel::m_wheel_radius = 0.334;
 const double Marder_IdlerWheel::m_wheel_width = 0.220;
 const double Marder_IdlerWheel::m_wheel_gap = 0.051;
@@ -57,7 +57,7 @@ void Marder_IdlerWheel::CreateContactMaterial(ChContactMethod contact_method) {
 // -----------------------------------------------------------------------------
 void Marder_IdlerWheel::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());

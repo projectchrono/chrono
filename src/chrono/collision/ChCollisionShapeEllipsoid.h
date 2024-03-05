@@ -27,29 +27,29 @@ namespace chrono {
 class ChApi ChCollisionShapeEllipsoid : public ChCollisionShape {
   public:
     ChCollisionShapeEllipsoid();
-    ChCollisionShapeEllipsoid(std::shared_ptr<ChMaterialSurface> material, double axis_x, double axis_y, double axis_z);
-    ChCollisionShapeEllipsoid(std::shared_ptr<ChMaterialSurface> material, const ChVector<>& axes);
-    ChCollisionShapeEllipsoid(std::shared_ptr<ChMaterialSurface> material, const geometry::ChEllipsoid& ellipsoid);
+    ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material, double axis_x, double axis_y, double axis_z);
+    ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material, const ChVector3d& axes);
+    ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material, const ChEllipsoid& ellipsoid);
 
     ~ChCollisionShapeEllipsoid() {}
 
     // Access the ellipsoid geometry.
-    geometry::ChEllipsoid& GetGeometry() { return gellipsoid; }
+    ChEllipsoid& GetGeometry() { return gellipsoid; }
 
     /// Get the ellipsoid semiaxes.
-    const ChVector<>& GetSemiaxes() const { return gellipsoid.GetSemiaxes(); }
+    const ChVector3d& GetSemiaxes() const { return gellipsoid.GetSemiaxes(); }
 
     /// Get the ellipsoid axes.
-    ChVector<> GetAxes() const { return gellipsoid.GetAxes(); }
+    ChVector3d GetAxes() const { return gellipsoid.GetAxes(); }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    geometry::ChEllipsoid gellipsoid;
+    ChEllipsoid gellipsoid;
 };
 
 /// @} chrono_collision

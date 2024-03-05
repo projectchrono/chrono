@@ -49,14 +49,14 @@ class ChApi ChElasticityReissner {
 
     /// Compute the generalized force and torque, given actual deformation and curvature.
 	/// This MUST be implemented by subclasses.
-    virtual void ComputeStress(ChVector<>& n_u,          ///< forces along \e u direction (per unit length)
-                               ChVector<>& n_v,          ///< forces along \e v direction (per unit length)
-                               ChVector<>& m_u,          ///< torques along \e u direction (per unit length)
-                               ChVector<>& m_v,          ///< torques along \e v direction (per unit length)
-                               const ChVector<>& eps_u,  ///< strains along \e u direction
-                               const ChVector<>& eps_v,  ///< strains along \e v direction
-                               const ChVector<>& kur_u,  ///< curvature along \e u direction
-                               const ChVector<>& kur_v,  ///< curvature along \e v direction
+    virtual void ComputeStress(ChVector3d& n_u,          ///< forces along \e u direction (per unit length)
+                               ChVector3d& n_v,          ///< forces along \e v direction (per unit length)
+                               ChVector3d& m_u,          ///< torques along \e u direction (per unit length)
+                               ChVector3d& m_v,          ///< torques along \e v direction (per unit length)
+                               const ChVector3d& eps_u,  ///< strains along \e u direction
+                               const ChVector3d& eps_v,  ///< strains along \e v direction
+                               const ChVector3d& kur_u,  ///< curvature along \e u direction
+                               const ChVector3d& kur_v,  ///< curvature along \e v direction
                                const double z_inf,       ///< layer lower z value (along thickness coord)
                                const double z_sup,       ///< layer upper z value (along thickness coord)
                                const double angle        ///< layer angle respect to x (if needed)
@@ -67,10 +67,10 @@ class ChApi ChElasticityReissner {
     /// By default, it is computed by backward differentiation from the ComputeStress() function,
     /// but inherited classes should better provide an analytical form, if possible.
     virtual void ComputeStiffnessMatrix(ChMatrixRef mC,           ///< tangent matrix
-                                 const ChVector<>& eps_u,  ///< strains along \e u direction
-                                 const ChVector<>& eps_v,  ///< strains along \e v direction
-                                 const ChVector<>& kur_u,  ///< curvature along \e u direction
-                                 const ChVector<>& kur_v,  ///< curvature along \e v direction
+                                 const ChVector3d& eps_u,  ///< strains along \e u direction
+                                 const ChVector3d& eps_v,  ///< strains along \e v direction
+                                 const ChVector3d& kur_u,  ///< curvature along \e u direction
+                                 const ChVector3d& kur_v,  ///< curvature along \e v direction
                                  const double z_inf,       ///< layer lower z value (along thickness coord)
                                  const double z_sup,       ///< layer upper z value (along thickness coord)
                                  const double angle        ///< layer angle respect to x (if needed)
@@ -109,14 +109,14 @@ class ChApi ChElasticityReissnerIsothropic : public ChElasticityReissner {
     /// The FE code will evaluate this function to compute
     /// per-unit-length forces/torques given the u,v strains/curvatures.
     virtual void ComputeStress(
-        ChVector<>& n_u,          ///< forces along \e u direction (per unit length)
-        ChVector<>& n_v,          ///< forces along \e v direction (per unit length)
-        ChVector<>& m_u,          ///< torques along \e u direction (per unit length)
-        ChVector<>& m_v,          ///< torques along \e v direction (per unit length)
-        const ChVector<>& eps_u,  ///< strains along \e u direction
-        const ChVector<>& eps_v,  ///< strains along \e v direction
-        const ChVector<>& kur_u,  ///< curvature along \e u direction
-        const ChVector<>& kur_v,  ///< curvature along \e v direction
+        ChVector3d& n_u,          ///< forces along \e u direction (per unit length)
+        ChVector3d& n_v,          ///< forces along \e v direction (per unit length)
+        ChVector3d& m_u,          ///< torques along \e u direction (per unit length)
+        ChVector3d& m_v,          ///< torques along \e v direction (per unit length)
+        const ChVector3d& eps_u,  ///< strains along \e u direction
+        const ChVector3d& eps_v,  ///< strains along \e v direction
+        const ChVector3d& kur_u,  ///< curvature along \e u direction
+        const ChVector3d& kur_v,  ///< curvature along \e v direction
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
@@ -126,10 +126,10 @@ class ChApi ChElasticityReissnerIsothropic : public ChElasticityReissner {
     /// per-unit-length forces/torques vs generalized strains.
     virtual void ComputeStiffnessMatrix(
         ChMatrixRef mC,           ///< tangent matrix
-        const ChVector<>& eps_u,  ///< strains along \e u direction
-        const ChVector<>& eps_v,  ///< strains along \e v direction
-        const ChVector<>& kur_u,  ///< curvature along \e u direction
-        const ChVector<>& kur_v,  ///< curvature along \e v direction
+        const ChVector3d& eps_u,  ///< strains along \e u direction
+        const ChVector3d& eps_v,  ///< strains along \e v direction
+        const ChVector3d& kur_u,  ///< curvature along \e u direction
+        const ChVector3d& kur_v,  ///< curvature along \e v direction
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
@@ -193,14 +193,14 @@ class ChApi ChElasticityReissnerOrthotropic : public ChElasticityReissner {
     /// The FE code will evaluate this function to compute
     /// per-unit-length forces/torques  given the u,v strains/curvatures.
     virtual void ComputeStress(
-        ChVector<>& n_u,          ///< forces along \e u direction (per unit length)
-        ChVector<>& n_v,          ///< forces along \e v direction (per unit length)
-        ChVector<>& m_u,          ///< torques along \e u direction (per unit length)
-        ChVector<>& m_v,          ///< torques along \e v direction (per unit length)
-        const ChVector<>& eps_u,  ///< strains along \e u direction
-        const ChVector<>& eps_v,  ///< strains along \e v direction
-        const ChVector<>& kur_u,  ///< curvature along \e u direction
-        const ChVector<>& kur_v,  ///< curvature along \e v direction
+        ChVector3d& n_u,          ///< forces along \e u direction (per unit length)
+        ChVector3d& n_v,          ///< forces along \e v direction (per unit length)
+        ChVector3d& m_u,          ///< torques along \e u direction (per unit length)
+        ChVector3d& m_v,          ///< torques along \e v direction (per unit length)
+        const ChVector3d& eps_u,  ///< strains along \e u direction
+        const ChVector3d& eps_v,  ///< strains along \e v direction
+        const ChVector3d& kur_u,  ///< curvature along \e u direction
+        const ChVector3d& kur_v,  ///< curvature along \e v direction
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
@@ -210,10 +210,10 @@ class ChApi ChElasticityReissnerOrthotropic : public ChElasticityReissner {
     /// stresses/strains. 
 	virtual void ComputeStiffnessMatrix(
         ChMatrixRef mC,           ///< tangent matrix
-        const ChVector<>& eps_u,  ///< strains along \e u direction
-        const ChVector<>& eps_v,  ///< strains along \e v direction
-        const ChVector<>& kur_u,  ///< curvature along \e u direction
-        const ChVector<>& kur_v,  ///< curvature along \e v direction
+        const ChVector3d& eps_u,  ///< strains along \e u direction
+        const ChVector3d& eps_v,  ///< strains along \e v direction
+        const ChVector3d& kur_u,  ///< curvature along \e u direction
+        const ChVector3d& kur_v,  ///< curvature along \e v direction
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
@@ -256,14 +256,14 @@ class ChApi ChElasticityReissnerGeneric : public ChElasticityReissner {
     /// The FE code will evaluate this function to compute
     /// per-unit-length forces/torques  given the u,v strains/curvatures.
     virtual void ComputeStress(
-        ChVector<>& n_u,          ///< forces along \e u direction (per unit length)
-        ChVector<>& n_v,          ///< forces along \e v direction (per unit length)
-        ChVector<>& m_u,          ///< torques along \e u direction (per unit length)
-        ChVector<>& m_v,          ///< torques along \e v direction (per unit length)
-        const ChVector<>& eps_u,  ///< strains along \e u direction
-        const ChVector<>& eps_v,  ///< strains along \e v direction
-        const ChVector<>& kur_u,  ///< curvature along \e u direction
-        const ChVector<>& kur_v,  ///< curvature along \e v direction
+        ChVector3d& n_u,          ///< forces along \e u direction (per unit length)
+        ChVector3d& n_v,          ///< forces along \e v direction (per unit length)
+        ChVector3d& m_u,          ///< torques along \e u direction (per unit length)
+        ChVector3d& m_v,          ///< torques along \e v direction (per unit length)
+        const ChVector3d& eps_u,  ///< strains along \e u direction
+        const ChVector3d& eps_v,  ///< strains along \e v direction
+        const ChVector3d& kur_u,  ///< curvature along \e u direction
+        const ChVector3d& kur_v,  ///< curvature along \e v direction
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
@@ -273,10 +273,10 @@ class ChApi ChElasticityReissnerGeneric : public ChElasticityReissner {
     /// stresses/strains. 
 	virtual void ComputeStiffnessMatrix(
         ChMatrixRef mC,           ///< tangent matrix
-        const ChVector<>& eps_u,  ///< strains along \e u direction
-        const ChVector<>& eps_v,  ///< strains along \e v direction
-        const ChVector<>& kur_u,  ///< curvature along \e u direction
-        const ChVector<>& kur_v,  ///< curvature along \e v direction
+        const ChVector3d& eps_u,  ///< strains along \e u direction
+        const ChVector3d& eps_v,  ///< strains along \e v direction
+        const ChVector3d& kur_u,  ///< curvature along \e u direction
+        const ChVector3d& kur_v,  ///< curvature along \e v direction
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
@@ -334,15 +334,15 @@ class ChApi ChPlasticityReissner {
     /// Returns true if it had to do return mapping, false if it was in elastic regime
 	/// This MUST be implemented by subclasses.
     virtual bool ComputeStressWithReturnMapping(
-		ChVector<>& n_u,          ///< forces along \e u direction (per unit length)
-        ChVector<>& n_v,          ///< forces along \e v direction (per unit length)
-        ChVector<>& m_u,          ///< torques along \e u direction (per unit length)
-        ChVector<>& m_v,          ///< torques along \e v direction (per unit length)
+		ChVector3d& n_u,          ///< forces along \e u direction (per unit length)
+        ChVector3d& n_v,          ///< forces along \e v direction (per unit length)
+        ChVector3d& m_u,          ///< torques along \e u direction (per unit length)
+        ChVector3d& m_v,          ///< torques along \e v direction (per unit length)
         ChShellReissnerInternalData& data_new,  ///< updated material internal variables, at this point, including {p_strain_e, p_strain_k, p_strain_acc}
-        const ChVector<>& eps_u_trial,  ///< trial strains along \e u direction
-        const ChVector<>& eps_v_trial,  ///< trial strains along \e v direction
-        const ChVector<>& kur_u_trial,  ///< trial curvature along \e u direction
-        const ChVector<>& kur_v_trial,  ///< trial curvature along \e v direction
+        const ChVector3d& eps_u_trial,  ///< trial strains along \e u direction
+        const ChVector3d& eps_v_trial,  ///< trial strains along \e v direction
+        const ChVector3d& kur_u_trial,  ///< trial curvature along \e u direction
+        const ChVector3d& kur_v_trial,  ///< trial curvature along \e v direction
         const ChShellReissnerInternalData& data,  ///< trial material internal variables, at this point, including {p_strain_e, p_strain_k, p_strain_acc}
 		const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
@@ -357,10 +357,10 @@ class ChApi ChPlasticityReissner {
     /// [Km] by numerical differentiation calling ComputeStressWithReturnMapping() multiple times.
     virtual void ComputeStiffnessMatrixElastoplastic(
         ChMatrixRef K,        ///< 12x12 material elastoplastic stiffness matrix values here
-        const ChVector<>& eps_u,  ///< strains along \e u direction
-        const ChVector<>& eps_v,  ///< strains along \e v direction
-        const ChVector<>& kur_u,  ///< curvature along \e u direction
-        const ChVector<>& kur_v,  ///< curvature along \e v direction
+        const ChVector3d& eps_u,  ///< strains along \e u direction
+        const ChVector3d& eps_v,  ///< strains along \e v direction
+        const ChVector3d& kur_u,  ///< curvature along \e u direction
+        const ChVector3d& kur_v,  ///< curvature along \e v direction
 		const ChShellReissnerInternalData& data,  ///< updated material internal variables, at this point including {p_strain_e, p_strain_k, p_strain_acc}
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
@@ -400,14 +400,14 @@ class ChApi ChDampingReissner {
     /// given actual deformation speed and curvature speed.
     /// This MUST be implemented by subclasses.
     virtual void ComputeStress(
-        ChVector<>& n_u,          ///< forces along \e u direction (per unit length)
-        ChVector<>& n_v,          ///< forces along \e v direction (per unit length)
-        ChVector<>& m_u,          ///< torques along \e u direction (per unit length)
-        ChVector<>& m_v,          ///< torques along \e v direction (per unit length)
-        const ChVector<>& deps_u,  ///< time derivative of strains along \e u direction
-        const ChVector<>& deps_v,  ///< time derivative of strains along \e v direction
-        const ChVector<>& dkur_u,  ///< time derivative of curvature along \e u direction
-        const ChVector<>& dkur_v,  ///< time derivative of curvature along \e v direction
+        ChVector3d& n_u,          ///< forces along \e u direction (per unit length)
+        ChVector3d& n_v,          ///< forces along \e v direction (per unit length)
+        ChVector3d& m_u,          ///< torques along \e u direction (per unit length)
+        ChVector3d& m_v,          ///< torques along \e v direction (per unit length)
+        const ChVector3d& deps_u,  ///< time derivative of strains along \e u direction
+        const ChVector3d& deps_v,  ///< time derivative of strains along \e v direction
+        const ChVector3d& dkur_u,  ///< time derivative of curvature along \e u direction
+        const ChVector3d& dkur_v,  ///< time derivative of curvature along \e v direction
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle        ///< layer angle respect to x (if needed) 
@@ -418,10 +418,10 @@ class ChApi ChDampingReissner {
     /// known (preferred for high performance), otherwise the base behaviour here is to compute
     /// [Rm] by numerical differentiation calling ComputeStress() multiple times.
     virtual void ComputeDampingMatrix(	ChMatrixRef R,      ///< 12x12 material damping matrix values here
-										const ChVector<>& deps_u,  ///< time derivative of strains along \e u direction
-										const ChVector<>& deps_v,  ///< time derivative of strains along \e v direction
-										const ChVector<>& dkur_u,  ///< time derivative of curvature along \e u direction
-										const ChVector<>& dkur_v,  ///< time derivative of curvature along \e v direction
+										const ChVector3d& deps_u,  ///< time derivative of strains along \e u direction
+										const ChVector3d& deps_v,  ///< time derivative of strains along \e v direction
+										const ChVector3d& dkur_u,  ///< time derivative of curvature along \e u direction
+										const ChVector3d& dkur_v,  ///< time derivative of curvature along \e v direction
 										const double z_inf,       ///< layer lower z value (along thickness coord)
 										const double z_sup,       ///< layer upper z value (along thickness coord)
 										const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
@@ -463,14 +463,14 @@ class ChApi ChDampingReissnerRayleigh : public ChDampingReissner {
 	/// Compute the generalized cut force and cut torque, caused by structural damping,
     /// given actual deformation speed and curvature speed.
 	virtual void ComputeStress(
-        ChVector<>& n_u,          ///< forces along \e u direction (per unit length)
-        ChVector<>& n_v,          ///< forces along \e v direction (per unit length)
-        ChVector<>& m_u,          ///< torques along \e u direction (per unit length)
-        ChVector<>& m_v,          ///< torques along \e v direction (per unit length)
-        const ChVector<>& deps_u,  ///< time derivative of strains along \e u direction
-        const ChVector<>& deps_v,  ///< time derivative of strains along \e v direction
-        const ChVector<>& dkur_u,  ///< time derivative of curvature along \e u direction
-        const ChVector<>& dkur_v,  ///< time derivative of curvature along \e v direction
+        ChVector3d& n_u,          ///< forces along \e u direction (per unit length)
+        ChVector3d& n_v,          ///< forces along \e v direction (per unit length)
+        ChVector3d& m_u,          ///< torques along \e u direction (per unit length)
+        ChVector3d& m_v,          ///< torques along \e v direction (per unit length)
+        const ChVector3d& deps_u,  ///< time derivative of strains along \e u direction
+        const ChVector3d& deps_v,  ///< time derivative of strains along \e v direction
+        const ChVector3d& dkur_u,  ///< time derivative of curvature along \e u direction
+        const ChVector3d& dkur_v,  ///< time derivative of curvature along \e v direction
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle        ///< layer angle respect to x (if needed) 
@@ -479,10 +479,10 @@ class ChApi ChDampingReissnerRayleigh : public ChDampingReissner {
     /// Compute the 6x6 tangent material damping matrix, ie the jacobian [Rm]=dstress/dstrainspeed.
     /// In this model, it is beta*[E] where [E] is the 12x12 stiffness matrix at material level, assumed constant
     virtual void ComputeDampingMatrix(	ChMatrixRef R,      ///< 12x12 material damping matrix values here
-										const ChVector<>& deps_u,  ///< time derivative of strains along \e u direction
-										const ChVector<>& deps_v,  ///< time derivative of strains along \e v direction
-										const ChVector<>& dkur_u,  ///< time derivative of curvature along \e u direction
-										const ChVector<>& dkur_v,  ///< time derivative of curvature along \e v direction
+										const ChVector3d& deps_u,  ///< time derivative of strains along \e u direction
+										const ChVector3d& deps_v,  ///< time derivative of strains along \e v direction
+										const ChVector3d& dkur_u,  ///< time derivative of curvature along \e u direction
+										const ChVector3d& dkur_v,  ///< time derivative of curvature along \e v direction
 										const double z_inf,       ///< layer lower z value (along thickness coord)
 										const double z_sup,       ///< layer upper z value (along thickness coord)
 										const double angle        ///< layer angle respect to x (if needed) -not used in this, isotropic
@@ -548,14 +548,14 @@ class ChApi ChMaterialShellReissner  {
     /// In sake of generality, if possible this is the function that should be used by beam finite elements
     /// to compute internal forces, ex.by some Gauss quadrature.
     virtual void ComputeStress(
-        ChVector<>& n_u,          ///< forces along \e u direction (per unit length)
-        ChVector<>& n_v,          ///< forces along \e v direction (per unit length)
-        ChVector<>& m_u,          ///< torques along \e u direction (per unit length)
-        ChVector<>& m_v,          ///< torques along \e v direction (per unit length)
-        const ChVector<>& eps_u,  ///< strains along \e u direction
-        const ChVector<>& eps_v,  ///< strains along \e v direction
-        const ChVector<>& kur_u,  ///< curvature along \e u direction
-        const ChVector<>& kur_v,  ///< curvature along \e v direction
+        ChVector3d& n_u,          ///< forces along \e u direction (per unit length)
+        ChVector3d& n_v,          ///< forces along \e v direction (per unit length)
+        ChVector3d& m_u,          ///< torques along \e u direction (per unit length)
+        ChVector3d& m_v,          ///< torques along \e v direction (per unit length)
+        const ChVector3d& eps_u,  ///< strains along \e u direction
+        const ChVector3d& eps_v,  ///< strains along \e v direction
+        const ChVector3d& kur_u,  ///< curvature along \e u direction
+        const ChVector3d& kur_v,  ///< curvature along \e v direction
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle,       ///< layer angle respect to x (if needed) 
@@ -570,10 +570,10 @@ class ChApi ChMaterialShellReissner  {
     /// computes only the elastic tangent stiffenss, regardless of plasticity).
     virtual void ComputeStiffnessMatrix(
         ChMatrixRef K,			  ///< 12x12 stiffness matrix
-        const ChVector<>& eps_u,  ///< strains along \e u direction
-        const ChVector<>& eps_v,  ///< strains along \e v direction
-        const ChVector<>& kur_u,  ///< curvature along \e u direction
-        const ChVector<>& kur_v,  ///< curvature along \e v direction
+        const ChVector3d& eps_u,  ///< strains along \e u direction
+        const ChVector3d& eps_v,  ///< strains along \e v direction
+        const ChVector3d& kur_u,  ///< curvature along \e u direction
+        const ChVector3d& kur_v,  ///< curvature along \e v direction
         const double z_inf,       ///< layer lower z value (along thickness coord)
         const double z_sup,       ///< layer upper z value (along thickness coord)
         const double angle,       ///< layer angle respect to x (if needed) 

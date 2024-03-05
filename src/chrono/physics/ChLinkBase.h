@@ -15,7 +15,6 @@
 #ifndef CHLINKBASE_H
 #define CHLINKBASE_H
 
-#include "chrono/core/ChLog.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
 namespace chrono {
@@ -69,9 +68,9 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     }
 
     /// To get reaction force, expressed in link coordinate system:
-    virtual ChVector<> Get_react_force() { return VNULL; }
+    virtual ChVector3d Get_react_force() { return VNULL; }
     /// To get reaction torque,  expressed in link coordinate system:
-    virtual ChVector<> Get_react_torque() { return VNULL; }
+    virtual ChVector3d Get_react_torque() { return VNULL; }
     // (Note, functions above might fit better in a specialized subclass, but here for easier GUI interface)
 
     /// Get the current constraint violations.
@@ -87,10 +86,10 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 CH_CLASS_VERSION(ChLinkBase,0)

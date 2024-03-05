@@ -23,7 +23,6 @@
 
 #include <vector>
 
-#include "chrono/core/ChStream.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -45,9 +44,6 @@ using namespace chrono::irrlicht;
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
 using namespace chrono::vsg3d;
 #endif
-
-// DEBUGGING:  Uncomment the following line to print suspension data
-// #define DEBUG_LOG
 
 using namespace chrono;
 using namespace chrono::vehicle;
@@ -71,7 +67,7 @@ TireModelType tire_type = TireModelType::PAC02;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle position
-ChVector<> initLoc(0, 0, 0.6);
+ChVector3d initLoc(0, 0, 0.6);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
@@ -95,7 +91,7 @@ double render_step_size = 1.0 / 50;  // FPS = 50
 double output_step_size = 1.0 / 1;  // once a second
 
 // Point on chassis tracked by the camera (Irrlicht only)
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Simulation length (Povray only)
 double tend = 20.0;
@@ -106,7 +102,7 @@ bool debug_log = false;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------------------
     // Create the vehicle subsystems
@@ -145,7 +141,7 @@ int main(int argc, char* argv[]) {
     // ----------------------
 
     RigidTerrain terrain(vehicle.GetSystem());
-    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto patch_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
     auto patch = terrain.AddPatch(patch_mat, CSYSNORM, terrainLength, terrainWidth);
@@ -212,6 +208,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
             // Create the interactive VSG driver system
@@ -250,7 +247,7 @@ int main(int argc, char* argv[]) {
             int output_steps = (int)std::ceil(output_step_size / step_size);
 
             if (step_number % output_steps == 0) {
-                GetLog() << "Time = " << time << "\n\n";
+                std::cout << "Time = " << time << std::endl;
                 vehicle.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
             }
         }

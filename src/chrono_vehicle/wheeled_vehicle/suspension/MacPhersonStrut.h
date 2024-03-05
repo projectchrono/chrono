@@ -55,11 +55,11 @@ class CH_VEHICLE_API MacPhersonStrut : public ChMacPhersonStrut {
     virtual double getUprightRadius() const override { return m_uprightRadius; }
     virtual double getTierodRadius() const override { return m_tierodRadius; }
 
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getStrutInertia() const override { return m_strutInertia; }
-    virtual const ChVector<>& getLCAInertia() const override { return m_LCAInertia; }
-    virtual const ChVector<>& getUprightInertia() const override { return m_uprightInertia; }
-    virtual const ChVector<> getTierodInertia() const override { return m_tierodInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getStrutInertia() const override { return m_strutInertia; }
+    virtual const ChVector3d& getLCAInertia() const override { return m_LCAInertia; }
+    virtual const ChVector3d& getUprightInertia() const override { return m_uprightInertia; }
+    virtual const ChVector3d getTierodInertia() const override { return m_tierodInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -72,14 +72,14 @@ class CH_VEHICLE_API MacPhersonStrut : public ChMacPhersonStrut {
     virtual std::shared_ptr<ChVehicleBushingData> getTierodBushingData() const override { return m_tierodBushingData; }
 
   private:
-    virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
+    virtual const ChVector3d getLocation(PointId which) override { return m_points[which]; }
 
     virtual void Create(const rapidjson::Document& d) override;
 
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_springForceCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
-    ChVector<> m_points[NUM_POINTS];
+    ChVector3d m_points[NUM_POINTS];
 
     bool m_use_tierod_bodies;
 
@@ -99,11 +99,11 @@ class CH_VEHICLE_API MacPhersonStrut : public ChMacPhersonStrut {
     double m_uprightRadius;
     double m_tierodRadius;
 
-    ChVector<> m_spindleInertia;
-    ChVector<> m_strutInertia;
-    ChVector<> m_LCAInertia;
-    ChVector<> m_uprightInertia;
-    ChVector<> m_tierodInertia;
+    ChVector3d m_spindleInertia;
+    ChVector3d m_strutInertia;
+    ChVector3d m_LCAInertia;
+    ChVector3d m_uprightInertia;
+    ChVector3d m_tierodInertia;
 
     double m_axleInertia;
 

@@ -359,7 +359,7 @@ void ChTrackedVehicle::InitializeInertiaProperties() {
 void ChTrackedVehicle::UpdateInertiaProperties() {
     // 1. Calculate the vehicle COM location relative to the global reference frame
     // 2. Calculate vehicle inertia relative to global reference frame
-    ChVector<> com(0);
+    ChVector3d com(0);
     ChMatrix33<> inertia(0);
     
     m_chassis->AddInertiaProperties(com, inertia);
@@ -371,13 +371,13 @@ void ChTrackedVehicle::UpdateInertiaProperties() {
     m_tracks[1]->AddInertiaProperties(com, inertia);
 
     // 3. Express vehicle COM frame relative to vehicle reference frame
-    m_com.coord.pos = GetTransform().TransformPointParentToLocal(com / GetMass());
-    m_com.coord.rot = GetTransform().GetRot();
+    m_com.GetPos() = GetTransform().TransformPointParentToLocal(com / GetMass());
+    m_com.GetRot() = GetTransform().GetRot();
 
     // 4. Express inertia relative to vehicle COM frame
     //    Notes: - vehicle COM frame aligned with vehicle frame
     //           - 'com' still scaled by total mass here
-    const ChMatrix33<>& A = GetTransform().GetA();
+    const ChMatrix33<>& A = GetTransform().GetRotMat();
     m_inertia = A.transpose() * (inertia - utils::CompositeInertia::InertiaShiftMatrix(com)) * A;
 }
 
@@ -385,15 +385,11 @@ void ChTrackedVehicle::UpdateInertiaProperties() {
 // Log constraint violations
 // -----------------------------------------------------------------------------
 void ChTrackedVehicle::LogConstraintViolations() {
-    GetLog().SetNumFormat("%16.4e");
-
     // Report constraint violations for the track assemblies.
-    GetLog() << "\n---- LEFT TRACK ASSEMBLY constraint violations\n\n";
+    std::cout << "\n---- LEFT TRACK ASSEMBLY constraint violations\n\n";
     m_tracks[0]->LogConstraintViolations();
-    GetLog() << "\n---- RIGHT TRACK ASSEMBLY constraint violations\n\n";
+    std::cout << "\n---- RIGHT TRACK ASSEMBLY constraint violations\n\n";
     m_tracks[1]->LogConstraintViolations();
-
-    GetLog().SetNumFormat("%g");
 }
 
 std::string ChTrackedVehicle::ExportComponentList() const {

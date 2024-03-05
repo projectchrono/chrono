@@ -24,7 +24,7 @@
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChEngine.h"
 
-#include "chrono/motion_functions/ChFunction_Recorder.h"
+#include "chrono/functions/ChFunctionInterp.h"
 
 namespace chrono {
 namespace vehicle {
@@ -55,9 +55,9 @@ class CH_VEHICLE_API ChEngineSimpleMap : public ChEngine {
 
     /// Set the engine speed-torque maps.
     /// A concrete class must add the speed-torque points to the provided maps, using the
-    /// ChFunction_Recorder::AddPoint() function.
-    virtual void SetEngineTorqueMaps(ChFunction_Recorder& map0,  ///< engine map at zero throttle
-                                     ChFunction_Recorder& mapF   ///< engine map at full throttle
+    /// ChFunctionInterp::AddPoint() function.
+    virtual void SetEngineTorqueMaps(ChFunctionInterp& map0,  ///< engine map at zero throttle
+                                     ChFunctionInterp& mapF   ///< engine map at full throttle
                                      ) = 0;
 
   private:
@@ -78,8 +78,8 @@ class CH_VEHICLE_API ChEngineSimpleMap : public ChEngine {
     double m_motor_speed;   ///< current engine speed
     double m_motor_torque;  ///< current engine torque
 
-    ChFunction_Recorder m_zero_throttle_map;  ///< engine map at zero throttle
-    ChFunction_Recorder m_full_throttle_map;  ///< engine map at full throttle
+    ChFunctionInterp m_zero_throttle_map;  ///< engine map at zero throttle
+    ChFunctionInterp m_full_throttle_map;  ///< engine map at full throttle
 };
 
 /// @} vehicle_powertrain

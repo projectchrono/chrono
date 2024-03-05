@@ -43,7 +43,7 @@ using namespace chrono::vehicle::hmmwv;
 // =============================================================================
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 1, 10);
+ChVector3d initLoc(0, 1, 10);
 double initYaw = 0;
 
 // Type of tire model (RIGID, RIGID_MESH, TMEASY, PAC89, PAC02, FIALA)
@@ -59,7 +59,7 @@ double render_step_size = 1.0 / 50;  // FPS = 50
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -------------------------
     // Set World Frame with Y up
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
     hmmwv.SetContactMethod(ChContactMethod::NSC);
     hmmwv.SetChassisFixed(false);
     hmmwv.SetChassisCollisionType(CollisionType::NONE);
-    hmmwv.SetInitPosition(ChCoordsys<>(initLoc, Q_from_AngY(initYaw)));
+    hmmwv.SetInitPosition(ChCoordsys<>(initLoc, QuatFromAngleY(initYaw)));
     hmmwv.SetEngineType(EngineModelType::SIMPLE);
     hmmwv.SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
     hmmwv.SetDriveType(DrivelineTypeWV::RWD);
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
 
     RigidTerrain terrain(hmmwv.GetSystem());
 
-    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto patch_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
 
@@ -109,7 +109,8 @@ int main(int argc, char* argv[]) {
     double terrainHeight = 0;
     double terrainLength = 300.0;  // size in "forward" direction
     double terrainWidth = 300.0;   // size in "lateral" direction
-    auto patch = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(0, terrainHeight, 0), Q_from_AngX(-CH_C_PI_2)),
+    auto patch =
+        terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, terrainHeight, 0), QuatFromAngleX(-CH_C_PI_2)),
                                   terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
@@ -131,11 +132,11 @@ int main(int argc, char* argv[]) {
     ////auto path = DoubleLaneChangePath(initLoc, 13.5, 4.0, 11.0, 20.0, true);
     ////auto path = CirclePath(initLoc, 20, 50, true, 5);
 
-    std::vector<ChVector<>> points = {
-        initLoc + ChVector<>(0, 0.2, 0),    //
-        initLoc + ChVector<>(20, 0.2, 0),   //
-        initLoc + ChVector<>(20, 0.2, 20),  //
-        initLoc + ChVector<>(0, 0.2, 20)    //
+    std::vector<ChVector3d> points = {
+        initLoc + ChVector3d(0, 0.2, 0),    //
+        initLoc + ChVector3d(20, 0.2, 0),   //
+        initLoc + ChVector3d(20, 0.2, 20),  //
+        initLoc + ChVector3d(0, 0.2, 20)    //
     };
     auto path = chrono_types::make_shared<ChBezierCurve>(points, true);
 
@@ -150,12 +151,12 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("HMMWV-9 YUP Demo");
     vis->SetCameraVertical(CameraVerticalDir::Y);
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->Initialize();
-    vis->AddLightDirectional();
+    vis->AddLightDirectional(-60, 300);
     vis->AddSkyBox();
     vis->AddLogo();
-    vis->AddGrid(1.0, 1.0, 20, 20, ChCoordsys<>(ChVector<>(0, 0.01, 0), ChWorldFrame::Quaternion()), ChColor(1, 0, 0));
+    vis->AddGrid(1.0, 1.0, 20, 20, ChCoordsys<>(ChVector3d(0, 0.01, 0), ChWorldFrame::Quaternion()), ChColor(1, 0, 0));
     vis->AttachVehicle(&hmmwv.GetVehicle());
 
 #ifdef USE_PATH_FOLLOWER

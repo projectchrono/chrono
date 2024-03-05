@@ -38,7 +38,7 @@ namespace fea {
 
 class ChApi ChLinkBeamIGAslider : public ChLinkBase {
   private:
-    ChVector<> m_react;
+    ChVector3d m_react;
 
     // used as an interface to the solver.
     // ChConstraintNgeneric constraint1;
@@ -70,10 +70,10 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
     virtual int GetNumCoords() override { return (int)m_nodes.size() * 3 + 7; }
 
     /// Number of scalar constraints.
-    virtual int GetDOC_c() override { return 2; }
+    virtual int GetNumConstraintsBilateral() override { return 2; }
 
     /// Reaction force on the body, at the attachment point, expressed in the link coordinate frame.
-    virtual ChVector<> Get_react_force() override { return GetReactionOnBody(); }
+    virtual ChVector3d Get_react_force() override { return GetReactionOnBody(); }
 
     //
     // STATE FUNCTIONS
@@ -123,7 +123,7 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
     virtual int Initialize(
         std::vector<std::shared_ptr<fea::ChElementBeamIGA>>& melements,  ///< elements that must slide
         std::shared_ptr<ChBodyFrame> body,  ///< body (frame) representing the slider outlet
-        ChVector<>* pos = 0                 ///< attachment position in absolute coordinates (X axis is outlet dir)
+        ChVector3d* pos = 0                 ///< attachment position in absolute coordinates (X axis is outlet dir)
     );
 
     /// Get the connected elements
@@ -133,18 +133,18 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
     std::shared_ptr<ChBodyFrame> GetConstrainedBodyFrame() { return m_body; }
 
     /// Get the attachment position, in the coordinates of the body.
-    const ChVector<>& GetAttachPosition() const { return m_csys.pos; }
+    const ChVector3d& GetAttachPosition() const { return m_csys.pos; }
 
     /// Get the attachment reference, in the coordinates of the body.
     const ChCoordsys<>& GetAttachReference() const { return m_csys; }
 
     /// Set the attachment position, expressed in the coordinates of the body.
     /// This function may be called only after initialization.
-    void SetAttachPositionInBodyCoords(const ChVector<>& pos_loc) { m_csys.pos = pos_loc; }
+    void SetAttachPositionInBodyCoords(const ChVector3d& pos_loc) { m_csys.pos = pos_loc; }
 
     /// Set the attachment position, expressed in absolute coordinates.
     /// This function may be called only after initialization.
-    void SetAttachPositionInAbsoluteCoords(const ChVector<>& pos_abs) {
+    void SetAttachPositionInAbsoluteCoords(const ChVector3d& pos_abs) {
         m_csys.pos = m_body->TransformPointParentToLocal(pos_abs);
     }
 
@@ -155,14 +155,14 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
     /// Set the attachment position, expressed in absolute coordinates.
     /// This function may be called only after initialization.
     void SetAttachReferenceInAbsoluteCoords(const ChCoordsys<>& csys_abs) {
-        m_csys = m_body->coord.TransformParentToLocal(csys_abs);
+        m_csys = m_body->GetCsys().TransformParentToLocal(csys_abs);
     }
 
     /// Get the reaction force on the node, expressed in the link coordinate system.
-    ChVector<> GetReactionOnSpline() const { return m_react; }
+    ChVector3d GetReactionOnSpline() const { return m_react; }
 
     /// Get the reaction force on the body, at the attachment point, expressed in the link coordinate system.
-    ChVector<> GetReactionOnBody() const { return -m_react; }
+    ChVector3d GetReactionOnBody() const { return -m_react; }
 
     //
     // UPDATE FUNCTIONS
@@ -176,10 +176,10 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     virtual void UpdateNodes();

@@ -66,9 +66,9 @@ void ChShaftsFreewheel::Update(double mytime, bool update_assets) {
 
     double relrot =  this->shaft1->GetPos() - this->shaft2->GetPos();
     if (this->free_forward)
-        alpha_max = ChMax(relrot, alpha_max);
+        alpha_max = std::max(relrot, alpha_max);
     else
-        alpha_max = ChMin(relrot, alpha_max);
+        alpha_max = std::min(relrot, alpha_max);
 }
 
 //// STATE BOOKKEEPING FUNCTIONS
@@ -112,9 +112,9 @@ void ChShaftsFreewheel::IntLoadConstraint_C(const unsigned int off_L,  // offset
 
     if (do_clamp) {
         if (this->free_forward)
-            cnstr_violation = ChMax(cnstr_violation, -recovery_clamp); 
+            cnstr_violation = std::max(cnstr_violation, -recovery_clamp); 
         else
-            cnstr_violation = ChMin(cnstr_violation,  recovery_clamp);
+            cnstr_violation = std::min(cnstr_violation,  recovery_clamp);
     }
 
     Qc(off_L) += cnstr_violation;
@@ -173,35 +173,35 @@ void ChShaftsFreewheel::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsFreewheel::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsFreewheel::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsFreewheel>();
+    archive_out.VersionWrite<ChShaftsFreewheel>();
 
     // serialize parent class
-    ChShaftsCouple::ArchiveOut(marchive);
+    ChShaftsCouple::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(step);
-    marchive << CHNVP(jamming_mode);
-    marchive << CHNVP(phase);
-    marchive << CHNVP(alpha_max);
-    marchive << CHNVP(free_forward);
+    archive_out << CHNVP(step);
+    archive_out << CHNVP(jamming_mode);
+    archive_out << CHNVP(phase);
+    archive_out << CHNVP(alpha_max);
+    archive_out << CHNVP(free_forward);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsFreewheel::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsFreewheel::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsFreewheel>();
+    /*int version =*/ archive_in.VersionRead<ChShaftsFreewheel>();
 
     // deserialize parent class:
-    ChShaftsCouple::ArchiveIn(marchive);
+    ChShaftsCouple::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(step);
-    marchive >> CHNVP(jamming_mode);
-    marchive >> CHNVP(phase);
-    marchive >> CHNVP(alpha_max);
-    marchive >> CHNVP(free_forward);
+    archive_in >> CHNVP(step);
+    archive_in >> CHNVP(jamming_mode);
+    archive_in >> CHNVP(phase);
+    archive_in >> CHNVP(alpha_max);
+    archive_in >> CHNVP(free_forward);
     constraint.SetVariables(&shaft1->Variables(), &shaft2->Variables());
 
 }

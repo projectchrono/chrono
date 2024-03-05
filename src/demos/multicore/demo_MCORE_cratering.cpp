@@ -27,7 +27,7 @@
 #include <cmath>
 
 #include "chrono/ChConfig.h"
-#include "chrono/core/ChStream.h"
+
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
@@ -69,7 +69,7 @@ static inline void progressbar(unsigned int x, unsigned int n, unsigned int w = 
 }
 
 // Utility function to print to console a few important step statistics
-static inline void TimingOutput(chrono::ChSystem* mSys, chrono::ChStreamOutAsciiFile* ofile = NULL) {
+static inline void TimingOutput(chrono::ChSystem* mSys, std::ostream* ofile = NULL) {
     double TIME = mSys->GetChTime();
     double STEP = mSys->GetTimerStep();
     double BROD = mSys->GetTimerCollisionBroad();
@@ -78,13 +78,13 @@ static inline void TimingOutput(chrono::ChSystem* mSys, chrono::ChStreamOutAscii
     double UPDT = mSys->GetTimerUpdate();
     double RESID = 0;
     int REQ_ITS = 0;
-    int BODS = mSys->GetNbodies();
-    int CNTC = mSys->GetNcontacts();
+    int BODS = mSys->GetNumBodies();
+    int CNTC = mSys->GetNumContacts();
     if (chrono::ChSystemMulticore* multicore_sys = dynamic_cast<chrono::ChSystemMulticore*>(mSys)) {
         RESID = std::static_pointer_cast<chrono::ChIterativeSolverMulticore>(mSys->GetSolver())->GetResidual();
         REQ_ITS = std::static_pointer_cast<chrono::ChIterativeSolverMulticore>(mSys->GetSolver())->GetIterations();
-        BODS = multicore_sys->GetNbodies();
-        CNTC = multicore_sys->GetNcontacts();
+        BODS = multicore_sys->GetNumBodies();
+        CNTC = multicore_sys->GetNumContacts();
     }
 
     if (ofile) {
@@ -102,18 +102,18 @@ static inline void TimingOutput(chrono::ChSystem* mSys, chrono::ChStreamOutAscii
 // Callback class for contact reporting
 class ContactReporter : public ChContactContainer::ReportContactCallback {
   public:
-    ContactReporter(ChSystemMulticore* system) : sys(system) { csv << sys->GetChTime() << sys->GetNcontacts() << endl; }
+    ContactReporter(ChSystemMulticore* system) : sys(system) { csv << sys->GetChTime() << sys->GetNumContacts() << endl; }
 
     void write(const std::string& filename) { csv.write_to_file(filename); }
 
   private:
-    virtual bool OnReportContact(const ChVector<>& pA,
-                                 const ChVector<>& pB,
+    virtual bool OnReportContact(const ChVector3d& pA,
+                                 const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
                                  const double& distance,
                                  const double& eff_radius,
-                                 const ChVector<>& cforce,
-                                 const ChVector<>& ctorque,
+                                 const ChVector3d& cforce,
+                                 const ChVector3d& ctorque,
                                  ChContactable* modA,
                                  ChContactable* modB) override {
         auto bodyA = static_cast<ChBody*>(modA);
@@ -121,7 +121,7 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
 
         csv << bodyA->GetIdentifier() << bodyB->GetIdentifier();
         csv << pA << pB;
-        csv << plane_coord.Get_A_Xaxis() << plane_coord.Get_A_Yaxis() << plane_coord.Get_A_Zaxis();
+        csv << plane_coord.GetAxisX() << plane_coord.GetAxisY() << plane_coord.GetAxisZ();
         csv << cforce << ctorque;
         csv << endl;
         return true;  // continue parsing
@@ -193,7 +193,7 @@ double r_g = 1e-3;
 double rho_g = 2500;
 double vol_g = (4.0 / 3) * CH_C_PI * r_g * r_g * r_g;
 double mass_g = rho_g * vol_g;
-ChVector<> inertia_g = 0.4 * mass_g * r_g * r_g * ChVector<>(1, 1, 1);
+ChVector3d inertia_g = 0.4 * mass_g * r_g * r_g * ChVector3d(1, 1, 1);
 
 float Y_g = 1e8f;
 float mu_g = 0.3f;
@@ -205,7 +205,7 @@ double R_b = 2.54e-2 / 2;
 double rho_b = 700;
 double vol_b = (4.0 / 3) * CH_C_PI * R_b * R_b * R_b;
 double mass_b = rho_b * vol_b;
-ChVector<> inertia_b = 0.4 * mass_b * R_b * R_b * ChVector<>(1, 1, 1);
+ChVector3d inertia_b = 0.4 * mass_b * R_b * R_b * ChVector3d(1, 1, 1);
 
 float Y_b = 1e8f;
 float mu_b = 0.3f;
@@ -241,27 +241,27 @@ double h = 10e-2;
 int CreateObjects(ChSystemMulticore* system) {
     // Create the containing bin
 #ifdef USE_SMC
-    auto mat_c = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat_c = chrono_types::make_shared<ChContactMaterialSMC>();
     mat_c->SetYoungModulus(Y_c);
     mat_c->SetFriction(mu_c);
     mat_c->SetRestitution(cr_c);
 
-    utils::CreateBoxContainer(system, binId, mat_c, ChVector<>(sizeX, sizeY, sizeZ), thickness);
+    utils::CreateBoxContainer(system, binId, mat_c, ChVector3d(sizeX, sizeY, sizeZ), thickness);
 #else
-    auto mat_c = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat_c = chrono_types::make_shared<ChContactMaterialNSC>();
     mat_c->SetFriction(mu_c);
 
-    utils::CreateBoxContainer(system, binId, mat_c, ChVector<>(sizeX, sizeY, sizeZ), thickness);
+    utils::CreateBoxContainer(system, binId, mat_c, ChVector3d(sizeX, sizeY, sizeZ), thickness);
 #endif
 
     // Create a material for the granular material
 #ifdef USE_SMC
-    auto mat_g = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat_g = chrono_types::make_shared<ChContactMaterialSMC>();
     mat_g->SetYoungModulus(Y_g);
     mat_g->SetFriction(mu_g);
     mat_g->SetRestitution(cr_g);
 #else
-    auto mat_g = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat_g = chrono_types::make_shared<ChContactMaterialNSC>();
     mat_g->SetFriction(mu_g);
 #endif
 
@@ -279,8 +279,8 @@ int CreateObjects(ChSystemMulticore* system) {
 
     for (int i = 0; i < numLayers; i++) {
         double center = r + layerHeight / 2 + i * (2 * r + layerHeight);
-        gen.CreateObjectsBox(sampler, ChVector<>(0, 0, center),
-                             ChVector<>(sizeX / 2 - r, sizeY / 2 - r, layerHeight / 2));
+        gen.CreateObjectsBox(sampler, ChVector3d(0, 0, center),
+                             ChVector3d(sizeX / 2 - r, sizeY / 2 - r, layerHeight / 2));
         cout << "Layer " << i << "  total bodies: " << gen.getTotalNumBodies() << endl;
     }
 
@@ -294,12 +294,12 @@ int CreateObjects(ChSystemMulticore* system) {
 void CreateFallingBall(ChSystemMulticore* system, double z, double vz) {
     // Create a material for the falling ball
 #ifdef USE_SMC
-    auto mat_b = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mat_b = chrono_types::make_shared<ChContactMaterialSMC>();
     mat_b->SetYoungModulus(1e8f);
     mat_b->SetFriction(0.4f);
     mat_b->SetRestitution(0.1f);
 #else
-    auto mat_b = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat_b = chrono_types::make_shared<ChContactMaterialNSC>();
     mat_b->SetFriction(mu_c);
 #endif
 
@@ -309,9 +309,9 @@ void CreateFallingBall(ChSystemMulticore* system, double z, double vz) {
     ball->SetIdentifier(Id_b);
     ball->SetMass(mass_b);
     ball->SetInertiaXX(inertia_b);
-    ball->SetPos(ChVector<>(0, 0, z + r_g + R_b));
+    ball->SetPos(ChVector3d(0, 0, z + r_g + R_b));
     ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    ball->SetPos_dt(ChVector<>(0, 0, -vz));
+    ball->SetPosDer(ChVector3d(0, 0, -vz));
     ball->SetCollide(true);
     ball->SetBodyFixed(false);
 
@@ -327,7 +327,7 @@ void CreateFallingBall(ChSystemMulticore* system, double z, double vz) {
 // -----------------------------------------------------------------------------
 double FindHighest(ChSystem* sys) {
     double highest = 0;
-    for (auto body : sys->Get_bodylist()) {
+    for (auto body : sys->GetBodies()) {
         if (body->GetIdentifier() > 0 && body->GetPos().z() > highest)
             highest = body->GetPos().z();
     }
@@ -336,7 +336,7 @@ double FindHighest(ChSystem* sys) {
 
 double FindLowest(ChSystem* sys) {
     double lowest = 1000;
-    for (auto body : sys->Get_bodylist()) {
+    for (auto body : sys->GetBodies()) {
         if (body->GetIdentifier() > 0 && body->GetPos().z() < lowest)
             lowest = body->GetPos().z();
     }
@@ -350,9 +350,9 @@ double FindLowest(ChSystem* sys) {
 bool CheckSettled(ChSystem* sys, double threshold) {
     double t2 = threshold * threshold;
 
-    for (auto body : sys->Get_bodylist()) {
+    for (auto body : sys->GetBodies()) {
         if (body->GetIdentifier() > 0) {
-            double vel2 = body->GetPos_dt().Length2();
+            double vel2 = body->GetPosDer().Length2();
             if (vel2 > t2)
                 return false;
         }
@@ -383,7 +383,7 @@ int main(int argc, char* argv[]) {
     cout << "Using " << threads << " threads" << endl;
 
     // Set gravitational acceleration
-    sys->Set_G_acc(ChVector<>(0, 0, -gravity));
+    sys->Set_G_acc(ChVector3d(0, 0, -gravity));
 
     // Edit system settings
     sys->GetSettings()->solver.use_full_inertia_tensor = false;
@@ -424,7 +424,7 @@ int main(int argc, char* argv[]) {
         cout << "Create granular material" << endl;
         // Create the fixed falling ball just below the granular material
         CreateFallingBall(sys, -3 * R_b, 0);
-        ball = sys->Get_bodylist().at(0);
+        ball = sys->GetBodies().at(0);
         ball->SetBodyFixed(true);
         CreateObjects(sys);
     } else {
@@ -440,17 +440,17 @@ int main(int argc, char* argv[]) {
         // Create the falling ball, the granular material, and the container from the checkpoint file.
         cout << "Read checkpoint data from " << checkpoint_file;
         utils::ReadCheckpoint(sys, checkpoint_file);
-        cout << "  done.  Read " << sys->Get_bodylist().size() << " bodies." << endl;
+        cout << "  done.  Read " << sys->GetBodies().size() << " bodies." << endl;
 
         // Move the falling ball just above the granular material with a velocity
         // given by free fall from the specified height and starting at rest.
         double z = FindHighest(sys);
         double vz = std::sqrt(2 * gravity * h);
         cout << "Move falling ball with center at " << z + R_b + r_g << " and velocity " << vz << endl;
-        ball = sys->Get_bodylist().at(0);
-        ball->SetPos(ChVector<>(0, 0, z + r_g + R_b));
+        ball = sys->GetBodies().at(0);
+        ball->SetPos(ChVector3d(0, 0, z + r_g + R_b));
         ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-        ball->SetPos_dt(ChVector<>(0, 0, -vz));
+        ball->SetPosDer(ChVector3d(0, 0, -vz));
         ball->SetBodyFixed(false);
     }
 
@@ -478,7 +478,7 @@ int main(int argc, char* argv[]) {
     int next_out_frame = 0;
     double exec_time = 0;
     int num_contacts = 0;
-    ChStreamOutAsciiFile hfile(height_file);
+    std::ofstream hfile(height_file);
 
 #ifdef CHRONO_OPENGL
     opengl::ChVisualSystemOpenGL vis;
@@ -487,7 +487,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::WIREFRAME);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(0, -5 * sizeY, sizeZ / 2), ChVector<>(0, 0, sizeZ / 2));
+    vis.AddCamera(ChVector3d(0, -5 * sizeY, sizeZ / 2), ChVector3d(0, 0, sizeZ / 2));
     vis.SetCameraVertical(CameraVerticalDir::Z);
     vis.SetCameraProperties(0.01f);
 #endif
@@ -513,12 +513,12 @@ int main(int argc, char* argv[]) {
             if (problem == ProblemPhase::SETTLING && intermediate_checkpoints) {
                 cout << "     Write checkpoint data " << flush;
                 utils::WriteCheckpoint(sys, checkpoint_file);
-                cout << sys->Get_bodylist().size() << " bodies" << endl;
+                cout << sys->GetBodies().size() << " bodies" << endl;
             }
 
             // Save current projectile height.
             if (problem == ProblemPhase::DROPPING) {
-                hfile << time << "  " << ball->GetPos().z() << "\n";
+                hfile << time << "  " << ball->GetPos().z() << std::endl;
                 cout << "     Ball height:    " << ball->GetPos().z() << endl;
             }
 
@@ -549,7 +549,7 @@ int main(int argc, char* argv[]) {
         time += time_step;
         sim_frame++;
         exec_time += sys->GetTimerStep();
-        num_contacts += sys->GetNcontacts();
+        num_contacts += sys->GetNumContacts();
     }
 
     // Report contact information
@@ -563,12 +563,12 @@ int main(int argc, char* argv[]) {
     if (problem == ProblemPhase::SETTLING) {
         cout << "Write checkpoint data to " << checkpoint_file;
         utils::WriteCheckpoint(sys, checkpoint_file);
-        cout << "  done.  Wrote " << sys->Get_bodylist().size() << " bodies." << endl;
+        cout << "  done.  Wrote " << sys->GetBodies().size() << " bodies." << endl;
     }
 
     // Final stats
     cout << "==================================" << endl;
-    cout << "Number of bodies:  " << sys->Get_bodylist().size() << endl;
+    cout << "Number of bodies:  " << sys->GetBodies().size() << endl;
     cout << "Lowest position:   " << FindLowest(sys) << endl;
     cout << "Simulation time:   " << exec_time << endl;
     cout << "Number of threads: " << threads << endl;

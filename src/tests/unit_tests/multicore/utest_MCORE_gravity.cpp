@@ -22,17 +22,17 @@
 using namespace chrono;
 
 TEST(ChronoMulticore, gravity) {
-  ChVector<> gravity = ChVector<>(0, -9.80665, 0);
+  ChVector3d gravity = ChVector3d(0, -9.80665, 0);
   ChSystemMulticoreNSC msystem;
   msystem.Set_G_acc(gravity);
   msystem.SetNumThreads(1);
 
   auto ball = chrono_types::make_shared<ChBody>();
-  ChVector<> pos = ChVector<>(0, 0, 0);
-  ChVector<> vel = ChVector<>(2, 2, 0);
+  ChVector3d pos = ChVector3d(0, 0, 0);
+  ChVector3d vel = ChVector3d(2, 2, 0);
   ball->SetMass(1);
   ball->SetPos(pos);
-  ball->SetPos_dt(vel);
+  ball->SetPosDer(vel);
   msystem.AddBody(ball);
 
   for (int i = 0; i < 1000; i++) {

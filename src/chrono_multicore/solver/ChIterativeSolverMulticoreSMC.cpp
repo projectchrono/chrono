@@ -32,7 +32,7 @@
 #include <stdexcept>
 
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/physics/ChContactMaterialSMC.h"
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
 
 #include <thrust/sort.h>
@@ -833,7 +833,7 @@ void ChIterativeSolverMulticoreSMC::RunTimeStep() {
         ComputeR();
         data_manager->system_timer.stop("ChIterativeSolverMulticore_Matrices");
 
-        ShurProductBilateral.Setup(data_manager);
+        SchurProductBilateral.Setup(data_manager);
 
         bilateral_solver->Setup(data_manager);
 

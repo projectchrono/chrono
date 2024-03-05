@@ -51,7 +51,7 @@ class ChApi ChTriangleOfXYZnodes : public ChVariableTupleCarrier_3vars<3, 3, 3> 
 
 class ChApi ChLinkPointTriface : public ChLinkBase {
   private:
-    ChVector<> react;
+    ChVector3d react;
 
     // used as an interface to the solver.
     ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZnodes> constraint1;
@@ -76,10 +76,10 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
     virtual int GetNumCoords() override { return 3 + 3 + 3 + 3; }
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() override { return 3; }
+    virtual int GetNumConstraintsBilateral() override { return 3; }
 
     /// To get reaction force, expressed in link coordinate system:
-    virtual ChVector<> Get_react_force() override { return GetReactionOnNode(); }
+    virtual ChVector3d Get_react_force() override { return GetReactionOnNode(); }
 
     //
     // STATE FUNCTIONS
@@ -166,7 +166,7 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
     }
 
     /// Get the reaction force considered as applied to node A, in abs coords.
-    ChVector<> GetReactionOnNode() const { return -react; }
+    ChVector3d GetReactionOnNode() const { return -react; }
 
     //
     // UPDATE FUNCTIONS
@@ -180,10 +180,10 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -209,7 +209,7 @@ class ChApi ChTriangleOfXYZROTnodes : public ChVariableTupleCarrier_3vars<6, 6, 
 /// The node can be offset respect to the face.
 class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
   private:
-    ChVector<> react;
+    ChVector3d react;
 
     // used as an interface to the solver.
     ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZROTnodes> constraint1;
@@ -234,10 +234,10 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
     virtual int GetNumCoords() override { return 3 + 6 + 6 + 6; }
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() override { return 3; }
+    virtual int GetNumConstraintsBilateral() override { return 3; }
 
     /// To get reaction force, expressed in link coordinate system:
-    virtual ChVector<> Get_react_force() override { return GetReactionOnNode(); }
+    virtual ChVector3d Get_react_force() override { return GetReactionOnNode(); }
 
     //
     // STATE FUNCTIONS
@@ -324,7 +324,7 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
     }
 
     /// Get the reaction force considered as applied to node A, in abs coords.
-    ChVector<> GetReactionOnNode() const { return -react; }
+    ChVector3d GetReactionOnNode() const { return -react; }
 
     //
     // UPDATE FUNCTIONS
@@ -338,10 +338,10 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 /// @} fea_constraints

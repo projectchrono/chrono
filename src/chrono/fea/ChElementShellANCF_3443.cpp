@@ -508,7 +508,7 @@ void ChElementShellANCF_3443::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfa
 }
 
 // Compute the generalized force vector due to gravity using the efficient ANCF specific method
-void ChElementShellANCF_3443::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+void ChElementShellANCF_3443::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
     assert(Fg.size() == GetNdofs());
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
@@ -527,7 +527,7 @@ void ChElementShellANCF_3443::ComputeGravityForces(ChVectorDynamic<>& Fg, const 
 
 void ChElementShellANCF_3443::EvaluateSectionFrame(const double xi,
                                                    const double eta,
-                                                   ChVector<>& point,
+                                                   ChVector3d& point,
                                                    ChQuaternion<>& rot) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, eta, 0, m_thicknessZ, m_midsurfoffset);
@@ -544,20 +544,20 @@ void ChElementShellANCF_3443::EvaluateSectionFrame(const double xi,
 
     // Since ANCF does not use rotations, calculate an approximate
     // rotation based off the position vector gradients
-    ChVector<double> MidsurfaceX = e_bar * Sxi_xi_compact * 2 / m_lenX;
-    ChVector<double> MidsurfaceY = e_bar * Sxi_eta_compact * 2 / m_lenY;
+    ChVector3d MidsurfaceX = e_bar * Sxi_xi_compact * 2 / m_lenX;
+    ChVector3d MidsurfaceY = e_bar * Sxi_eta_compact * 2 / m_lenY;
 
     // Since the position vector gradients are not in general orthogonal,
     // set the Dx direction tangent to the shell xi axis and
     // compute the Dy and Dz directions by using a
     // Gram-Schmidt orthonormalization, guided by the shell eta axis
     ChMatrix33<> msect;
-    msect.Set_A_Xdir(MidsurfaceX, MidsurfaceY);
+    msect.SetFromAxisX(MidsurfaceX, MidsurfaceY);
 
-    rot = msect.Get_A_quaternion();
+    rot = msect.GetQuaternion();
 }
 
-void ChElementShellANCF_3443::EvaluateSectionPoint(const double xi, const double eta, ChVector<>& point) {
+void ChElementShellANCF_3443::EvaluateSectionPoint(const double xi, const double eta, ChVector3d& point) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, eta, 0, m_thicknessZ, m_midsurfoffset);
 
@@ -568,7 +568,7 @@ void ChElementShellANCF_3443::EvaluateSectionPoint(const double xi, const double
     point = e_bar * Sxi_compact;
 }
 
-void ChElementShellANCF_3443::EvaluateSectionVelNorm(const double xi, const double eta, ChVector<>& Result) {
+void ChElementShellANCF_3443::EvaluateSectionVelNorm(const double xi, const double eta, ChVector3d& Result) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, eta, 0, m_thicknessZ, m_midsurfoffset);
 
@@ -610,22 +610,22 @@ void ChElementShellANCF_3443::LoadableGetStateBlock_x(int block_offset, ChState&
 // Gets all the DOFs packed in a single vector (velocity part).
 
 void ChElementShellANCF_3443::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos_dt().eigen();
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD_dt().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[0]->GetDD_dt().eigen();
     mD.segment(block_offset + 9, 3) = m_nodes[0]->GetDDD_dt().eigen();
 
-    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetPos_dt().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetPosDer().eigen();
     mD.segment(block_offset + 15, 3) = m_nodes[1]->GetD_dt().eigen();
     mD.segment(block_offset + 18, 3) = m_nodes[1]->GetDD_dt().eigen();
     mD.segment(block_offset + 21, 3) = m_nodes[1]->GetDDD_dt().eigen();
 
-    mD.segment(block_offset + 24, 3) = m_nodes[2]->GetPos_dt().eigen();
+    mD.segment(block_offset + 24, 3) = m_nodes[2]->GetPosDer().eigen();
     mD.segment(block_offset + 27, 3) = m_nodes[2]->GetD_dt().eigen();
     mD.segment(block_offset + 30, 3) = m_nodes[2]->GetDD_dt().eigen();
     mD.segment(block_offset + 33, 3) = m_nodes[2]->GetDDD_dt().eigen();
 
-    mD.segment(block_offset + 36, 3) = m_nodes[3]->GetPos_dt().eigen();
+    mD.segment(block_offset + 36, 3) = m_nodes[3]->GetPosDer().eigen();
     mD.segment(block_offset + 39, 3) = m_nodes[3]->GetD_dt().eigen();
     mD.segment(block_offset + 42, 3) = m_nodes[3]->GetDD_dt().eigen();
     mD.segment(block_offset + 45, 3) = m_nodes[3]->GetDDD_dt().eigen();
@@ -806,7 +806,7 @@ double ChElementShellANCF_3443::GetDensity() {
 
 // Calculate normal to the midsurface at coordinates (xi, eta).
 
-ChVector<> ChElementShellANCF_3443::ComputeNormal(const double xi, const double eta) {
+ChVector3d ChElementShellANCF_3443::ComputeNormal(const double xi, const double eta) {
     VectorN Sxi_zeta_compact;
     Calc_Sxi_zeta_compact(Sxi_zeta_compact, xi, eta, 0, m_thicknessZ, m_midsurfoffset);
 
@@ -814,7 +814,7 @@ ChVector<> ChElementShellANCF_3443::ComputeNormal(const double xi, const double 
     CalcCoordMatrix(e_bar);
 
     // Calculate the position vector gradient with respect to zeta at the current point (whose length may not equal 1)
-    ChVector<> r_zeta = e_bar * Sxi_zeta_compact;
+    ChVector3d r_zeta = e_bar * Sxi_zeta_compact;
 
     return r_zeta.GetNormalized();
 }
@@ -2636,44 +2636,44 @@ void ChElementShellANCF_3443::CalcCoordMatrix(Matrix3xN& ebar) {
 }
 
 void ChElementShellANCF_3443::CalcCoordDerivVector(Vector3N& edot) {
-    edot.segment(0, 3) = m_nodes[0]->GetPos_dt().eigen();
+    edot.segment(0, 3) = m_nodes[0]->GetPosDer().eigen();
     edot.segment(3, 3) = m_nodes[0]->GetD_dt().eigen();
     edot.segment(6, 3) = m_nodes[0]->GetDD_dt().eigen();
     edot.segment(9, 3) = m_nodes[0]->GetDDD_dt().eigen();
 
-    edot.segment(12, 3) = m_nodes[1]->GetPos_dt().eigen();
+    edot.segment(12, 3) = m_nodes[1]->GetPosDer().eigen();
     edot.segment(15, 3) = m_nodes[1]->GetD_dt().eigen();
     edot.segment(18, 3) = m_nodes[1]->GetDD_dt().eigen();
     edot.segment(21, 3) = m_nodes[1]->GetDDD_dt().eigen();
 
-    edot.segment(24, 3) = m_nodes[2]->GetPos_dt().eigen();
+    edot.segment(24, 3) = m_nodes[2]->GetPosDer().eigen();
     edot.segment(27, 3) = m_nodes[2]->GetD_dt().eigen();
     edot.segment(30, 3) = m_nodes[2]->GetDD_dt().eigen();
     edot.segment(33, 3) = m_nodes[2]->GetDDD_dt().eigen();
 
-    edot.segment(36, 3) = m_nodes[3]->GetPos_dt().eigen();
+    edot.segment(36, 3) = m_nodes[3]->GetPosDer().eigen();
     edot.segment(39, 3) = m_nodes[3]->GetD_dt().eigen();
     edot.segment(42, 3) = m_nodes[3]->GetDD_dt().eigen();
     edot.segment(45, 3) = m_nodes[3]->GetDDD_dt().eigen();
 }
 
 void ChElementShellANCF_3443::CalcCoordDerivMatrix(Matrix3xN& ebardot) {
-    ebardot.col(0) = m_nodes[0]->GetPos_dt().eigen();
+    ebardot.col(0) = m_nodes[0]->GetPosDer().eigen();
     ebardot.col(1) = m_nodes[0]->GetD_dt().eigen();
     ebardot.col(2) = m_nodes[0]->GetDD_dt().eigen();
     ebardot.col(3) = m_nodes[0]->GetDDD_dt().eigen();
 
-    ebardot.col(4) = m_nodes[1]->GetPos_dt().eigen();
+    ebardot.col(4) = m_nodes[1]->GetPosDer().eigen();
     ebardot.col(5) = m_nodes[1]->GetD_dt().eigen();
     ebardot.col(6) = m_nodes[1]->GetDD_dt().eigen();
     ebardot.col(7) = m_nodes[1]->GetDDD_dt().eigen();
 
-    ebardot.col(8) = m_nodes[2]->GetPos_dt().eigen();
+    ebardot.col(8) = m_nodes[2]->GetPosDer().eigen();
     ebardot.col(9) = m_nodes[2]->GetD_dt().eigen();
     ebardot.col(10) = m_nodes[2]->GetDD_dt().eigen();
     ebardot.col(11) = m_nodes[2]->GetDDD_dt().eigen();
 
-    ebardot.col(12) = m_nodes[3]->GetPos_dt().eigen();
+    ebardot.col(12) = m_nodes[3]->GetPosDer().eigen();
     ebardot.col(13) = m_nodes[3]->GetD_dt().eigen();
     ebardot.col(14) = m_nodes[3]->GetDD_dt().eigen();
     ebardot.col(15) = m_nodes[3]->GetDDD_dt().eigen();
@@ -2681,7 +2681,7 @@ void ChElementShellANCF_3443::CalcCoordDerivMatrix(Matrix3xN& ebardot) {
 
 void ChElementShellANCF_3443::CalcCombinedCoordMatrix(MatrixNx6& ebar_ebardot) {
     ebar_ebardot.template block<1, 3>(0, 0) = m_nodes[0]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(0, 3) = m_nodes[0]->GetPos_dt().eigen();
+    ebar_ebardot.template block<1, 3>(0, 3) = m_nodes[0]->GetPosDer().eigen();
     ebar_ebardot.template block<1, 3>(1, 0) = m_nodes[0]->GetD().eigen();
     ebar_ebardot.template block<1, 3>(1, 3) = m_nodes[0]->GetD_dt().eigen();
     ebar_ebardot.template block<1, 3>(2, 0) = m_nodes[0]->GetDD().eigen();
@@ -2690,7 +2690,7 @@ void ChElementShellANCF_3443::CalcCombinedCoordMatrix(MatrixNx6& ebar_ebardot) {
     ebar_ebardot.template block<1, 3>(3, 3) = m_nodes[0]->GetDDD_dt().eigen();
 
     ebar_ebardot.template block<1, 3>(4, 0) = m_nodes[1]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(4, 3) = m_nodes[1]->GetPos_dt().eigen();
+    ebar_ebardot.template block<1, 3>(4, 3) = m_nodes[1]->GetPosDer().eigen();
     ebar_ebardot.template block<1, 3>(5, 0) = m_nodes[1]->GetD().eigen();
     ebar_ebardot.template block<1, 3>(5, 3) = m_nodes[1]->GetD_dt().eigen();
     ebar_ebardot.template block<1, 3>(6, 0) = m_nodes[1]->GetDD().eigen();
@@ -2699,7 +2699,7 @@ void ChElementShellANCF_3443::CalcCombinedCoordMatrix(MatrixNx6& ebar_ebardot) {
     ebar_ebardot.template block<1, 3>(7, 3) = m_nodes[1]->GetDDD_dt().eigen();
 
     ebar_ebardot.template block<1, 3>(8, 0) = m_nodes[2]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(8, 3) = m_nodes[2]->GetPos_dt().eigen();
+    ebar_ebardot.template block<1, 3>(8, 3) = m_nodes[2]->GetPosDer().eigen();
     ebar_ebardot.template block<1, 3>(9, 0) = m_nodes[2]->GetD().eigen();
     ebar_ebardot.template block<1, 3>(9, 3) = m_nodes[2]->GetD_dt().eigen();
     ebar_ebardot.template block<1, 3>(10, 0) = m_nodes[2]->GetDD().eigen();
@@ -2708,7 +2708,7 @@ void ChElementShellANCF_3443::CalcCombinedCoordMatrix(MatrixNx6& ebar_ebardot) {
     ebar_ebardot.template block<1, 3>(11, 3) = m_nodes[2]->GetDDD_dt().eigen();
 
     ebar_ebardot.template block<1, 3>(12, 0) = m_nodes[3]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(12, 3) = m_nodes[3]->GetPos_dt().eigen();
+    ebar_ebardot.template block<1, 3>(12, 3) = m_nodes[3]->GetPosDer().eigen();
     ebar_ebardot.template block<1, 3>(13, 0) = m_nodes[3]->GetD().eigen();
     ebar_ebardot.template block<1, 3>(13, 3) = m_nodes[3]->GetD_dt().eigen();
     ebar_ebardot.template block<1, 3>(14, 0) = m_nodes[3]->GetDD().eigen();
@@ -2740,7 +2740,7 @@ double ChElementShellANCF_3443::Calc_det_J_0xi(double xi, double eta, double zet
     return (J_0xi.determinant());
 }
 
-void ChElementShellANCF_3443::RotateReorderStiffnessMatrix(ChMatrixNM<double, 6, 6>& D, double theta) {
+void ChElementShellANCF_3443::RotateReorderStiffnessMatrix(ChMatrix66d& D, double theta) {
     // Reorder the stiffness matrix from the order assumed in ChMaterialShellANCF.h
     //  E = [E11,E22,2*E12,E33,2*E13,2*E23]
     // to the order assumed in this element formulation

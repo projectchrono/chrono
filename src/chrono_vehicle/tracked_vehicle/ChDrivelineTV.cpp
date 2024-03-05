@@ -27,7 +27,7 @@ namespace vehicle {
 ChDrivelineTV::ChDrivelineTV(const std::string& name) : ChDriveline(name), m_gyration_mode(false) {}
 
 void ChDrivelineTV::LockDifferential(bool lock) {
-    GetLog() << "WARNING: Differential locking not yet implemented for " << GetTemplateName() << "\n";
+    std::cerr << "WARNING: Differential locking not yet implemented for " << GetTemplateName() << std::endl;
 }
 
 void ChDrivelineTV::CombineDriverInputs(const DriverInputs& driver_inputs,

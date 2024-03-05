@@ -32,19 +32,19 @@ class ChApi ChVisualShapeModelFile : public ChVisualShape {
     const std::string& GetFilename() const { return filename; }
     void SetFilename(const std::string& fname) { filename = fname; }
 
-    const ChVector<>& GetScale() const { return scale; }
-    void SetScale(const ChVector<>& s) { scale = s; }
-    void SetScale(double s) { scale = ChVector<>(s, s, s); }
+    const ChVector3d& GetScale() const { return scale; }
+    void SetScale(const ChVector3d& s) { scale = s; }
+    void SetScale(double s) { scale = ChVector3d(s, s, s); }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     std::string filename;
-    ChVector<> scale;
+    ChVector3d scale;
 };
 
 /// @} chrono_assets

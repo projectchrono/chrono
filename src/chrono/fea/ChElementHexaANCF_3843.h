@@ -230,7 +230,7 @@ class ChApi ChElementHexaANCF_3843 : public ChElementANCF,
                                           double Mfactor = 0) override;
 
     /// Compute the generalized force vector due to gravity using the efficient ANCF specific method
-    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) override;
+    virtual void ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) override;
 
     // --------------------------------------
 
@@ -239,8 +239,8 @@ class ChApi ChElementHexaANCF_3843 : public ChElementANCF,
     virtual void EvaluateElementDisplacement(const double xi,
                                              const double eta,
                                              const double zeta,
-                                             ChVector<>& u_displ,
-                                             ChVector<>& u_rotaz) {}
+                                             ChVector3d& u_displ,
+                                             ChVector3d& u_rotaz) {}
 
     /// Gets the absolute xyz position of a point in the element, and the approximate rotation RxRyRz at that point
     /// '(xi,eta,zeta)'. Note, nodeA = (xi=-1, eta=-1, zeta=-1) Note, nodeB = (xi=1, eta=-1, zeta=-1) Note, nodeC =
@@ -249,14 +249,14 @@ class ChApi ChElementHexaANCF_3843 : public ChElementANCF,
     virtual void EvaluateElementFrame(const double xi,
                                       const double eta,
                                       const double zeta,
-                                      ChVector<>& point,
+                                      ChVector3d& point,
                                       ChQuaternion<>& rot);
 
     /// Gets the absolute xyz position of a point in the element specified in normalized coordinates
-    virtual void EvaluateElementPoint(const double xi, const double eta, const double zeta, ChVector<>& point);
+    virtual void EvaluateElementPoint(const double xi, const double eta, const double zeta, ChVector3d& point);
 
     /// Gets the absolute xyz velocity of a point in the element specified in normalized coordinates
-    virtual void EvaluateElementVel(const double xi, const double eta, const double zeta, ChVector<>& Result);
+    virtual void EvaluateElementVel(const double xi, const double eta, const double zeta, ChVector3d& Result);
 
     // Functions for ChLoadable interface
     // ----------------------------------

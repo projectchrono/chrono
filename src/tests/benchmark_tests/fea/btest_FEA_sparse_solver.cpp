@@ -47,7 +47,7 @@ class SystemFixture : public ::benchmark::Fixture {
   public:
     void SetUp(const ::benchmark::State& st) override {
         m_system = new ChSystemSMC();
-        m_system->Set_G_acc(ChVector<>(0, -9.8, 0));
+        m_system->Set_G_acc(ChVector3d(0, -9.8, 0));
 
         // Mesh properties
         double length = 1;
@@ -55,9 +55,9 @@ class SystemFixture : public ::benchmark::Fixture {
         double thickness = 0.01;
 
         double rho = 500;
-        ChVector<> E(2.1e7, 2.1e7, 2.1e7);
-        ChVector<> nu(0.3, 0.3, 0.3);
-        ChVector<> G(8.0769231e6, 8.0769231e6, 8.0769231e6);
+        ChVector3d E(2.1e7, 2.1e7, 2.1e7);
+        ChVector3d nu(0.3, 0.3, 0.3);
+        ChVector3d G(8.0769231e6, 8.0769231e6, 8.0769231e6);
         auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
 
         // Create mesh nodes and elements
@@ -65,18 +65,18 @@ class SystemFixture : public ::benchmark::Fixture {
         m_system->Add(mesh);
 
         double dx = length / N;
-        ChVector<> dir(0, 1, 0);
+        ChVector3d dir(0, 1, 0);
 
-        auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, -width / 2), dir);
-        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(0, 0, +width / 2), dir);
+        auto nodeA = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, 0, -width / 2), dir);
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, 0, +width / 2), dir);
         nodeA->SetFixed(true);
         nodeB->SetFixed(true);
         mesh->AddNode(nodeA);
         mesh->AddNode(nodeB);
 
         for (int i = 1; i <= N; i++) {
-            auto nodeC = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(i * dx, 0, -width / 2), dir);
-            auto nodeD = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(i * dx, 0, +width / 2), dir);
+            auto nodeC = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(i * dx, 0, -width / 2), dir);
+            auto nodeD = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(i * dx, 0, +width / 2), dir);
             mesh->AddNode(nodeC);
             mesh->AddNode(nodeD);
 

@@ -114,7 +114,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     unsigned int GetId() const { return id; }
 
     /// Number of coordinates of the shaft
-    virtual int GetDOF() override { return 1; }
+    virtual int GetNumCoordinatesPos() override { return 1; }
 
     /// Returns reference to the encapsulated ChVariables,
     ChVariablesShaft& Variables() { return variables; }
@@ -201,7 +201,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
 	virtual int LoadableGet_ndof_x() override { return 1; }
     virtual int LoadableGet_ndof_w() override { return 1; }
     virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override { mD(block_offset) = this->GetPos(); }
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override { mD(block_offset) = this->GetPos_dt(); }
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override { mD(block_offset) = this->GetPosDer(); }
     virtual void LoadableStateIncrement(const unsigned int off_x,
                                         ChState& x_new,
                                         const ChState& x,
@@ -231,14 +231,14 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     double GetPos() const { return pos; }
 
     /// Set the angular velocity
-    void SetPos_dt(double mp) { pos_dt = mp; }
+    void SetPosDer(double mp) { pos_dt = mp; }
     /// Get the angular velocity
-    double GetPos_dt() const { return pos_dt; }
+    double GetPosDer() const { return pos_dt; }
 
     /// Set the angular acceleration
-    void SetPos_dtdt(double mp) { pos_dtdt = mp; }
+    void SetPosDer2(double mp) { pos_dtdt = mp; }
     /// Get the angular acceleration
-    double GetPos_dtdt() const { return pos_dtdt; }
+    double GetPosDer2() const { return pos_dtdt; }
 
     /// Inertia of the shaft. Must be positive.
     /// Try not to mix bodies with too high/too low values of mass, for numerical stability.
@@ -282,10 +282,10 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 CH_CLASS_VERSION(ChShaft,0)

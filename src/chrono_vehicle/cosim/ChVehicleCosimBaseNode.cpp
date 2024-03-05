@@ -276,7 +276,7 @@ void ChVehicleCosimBaseNode::EnablePostprocessVisualization(double render_fps) {
     }
 }
 
-void ChVehicleCosimBaseNode::SetCameraPosition(const ChVector<>& cam_pos, const ChVector<>& cam_target) {
+void ChVehicleCosimBaseNode::SetCameraPosition(const ChVector3d& cam_pos, const ChVector3d& cam_target) {
     m_cam_pos = cam_pos;
     m_cam_target = cam_target;
 }
@@ -456,9 +456,9 @@ void ChVehicleCosimBaseNode::RecvGeometry(ChVehicleGeometry& geom, int source) c
         double data[11];
         MPI_Recv(data, 11, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, &status);
         geom.m_coll_boxes.push_back(                                                         //
-            ChVehicleGeometry::BoxShape(ChVector<>(data[0], data[1], data[2]),               //
+            ChVehicleGeometry::BoxShape(ChVector3d(data[0], data[1], data[2]),               //
                                         ChQuaternion<>(data[3], data[4], data[5], data[6]),  //
-                                        ChVector<>(data[7], data[8], data[9]),               //
+                                        ChVector3d(data[7], data[8], data[9]),               //
                                         static_cast<int>(data[10]))                          //
         );
     }
@@ -467,7 +467,7 @@ void ChVehicleCosimBaseNode::RecvGeometry(ChVehicleGeometry& geom, int source) c
         double data[5];
         MPI_Recv(data, 5, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, &status);
         geom.m_coll_spheres.push_back(                                             //
-            ChVehicleGeometry::SphereShape(ChVector<>(data[0], data[1], data[2]),  //
+            ChVehicleGeometry::SphereShape(ChVector3d(data[0], data[1], data[2]),  //
                                            data[3],                                //
                                            static_cast<int>(data[4]))              //
         );
@@ -477,7 +477,7 @@ void ChVehicleCosimBaseNode::RecvGeometry(ChVehicleGeometry& geom, int source) c
         double data[10];
         MPI_Recv(data, 10, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, &status);
         geom.m_coll_cylinders.push_back(                                                          //
-            ChVehicleGeometry::CylinderShape(ChVector<>(data[0], data[1], data[2]),               //
+            ChVehicleGeometry::CylinderShape(ChVector3d(data[0], data[1], data[2]),               //
                                              ChQuaternion<>(data[3], data[4], data[5], data[6]),  //
                                              data[7], data[8],                                    //
                                              static_cast<int>(data[9]))                           //
@@ -491,9 +491,9 @@ void ChVehicleCosimBaseNode::RecvGeometry(ChVehicleGeometry& geom, int source) c
     for (int i = 0; i < num_meshes; i++) {
         double data[3];
         MPI_Recv(data, 3, MPI_DOUBLE, source, 0, MPI_COMM_WORLD, &status);
-        ChVector<> pos(data[0], data[1], data[2]);
+        ChVector3d pos(data[0], data[1], data[2]);
 
-        auto trimesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+        auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
         auto& vertices = trimesh->getCoordsVertices();
         auto& normals = trimesh->getCoordsNormals();
         auto& idx_vertices = trimesh->getIndicesVertexes();

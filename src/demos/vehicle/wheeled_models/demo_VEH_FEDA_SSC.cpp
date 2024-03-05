@@ -19,7 +19,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChStream.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChFilters.h"
 
@@ -57,7 +56,7 @@ using namespace chrono::vehicle::feda;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 1.6);
+ChVector3d initLoc(0, 0, 1.6);
 ChQuaternion<> initRot(1, 0, 0, 0);
 // ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
 // ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
@@ -105,7 +104,7 @@ double terrainLength = 200.0;  // size in X direction
 double terrainWidth = 200.0;   // size in Y direction
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Contact method
 ChContactMethod contact_method = ChContactMethod::SMC;
@@ -151,8 +150,8 @@ double t_end = t_hold + t_acc + 60.0;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
-    ChFunction_Recorder steeringGear;
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+    ChFunctionInterp steeringGear;
     steeringGear.AddPoint(-1.0, -648.0);
     steeringGear.AddPoint(0.0, 0.0);
     steeringGear.AddPoint(1.0, 648.0);
@@ -163,12 +162,12 @@ int main(int argc, char* argv[]) {
             case 'L':
             default:
                 turn_direction_left = true;
-                GetLog() << "Turn left selected\n";
+                std::cout << "Turn left selected\n";
                 break;
             case 'r':
             case 'R':
                 turn_direction_left = false;
-                GetLog() << "Turn right selected\n";
+                std::cout << "Turn right selected\n";
                 break;
         }
     } else if (argc == 3) {
@@ -177,12 +176,12 @@ int main(int argc, char* argv[]) {
             case 'L':
             default:
                 turn_direction_left = true;
-                GetLog() << "Turn left selected\n";
+                std::cout << "Turn left selected\n";
                 break;
             case 'r':
             case 'R':
                 turn_direction_left = false;
-                GetLog() << "Turn right selected\n";
+                std::cout << "Turn right selected\n";
                 break;
         }
         switch (argv[2][0]) {
@@ -196,10 +195,10 @@ int main(int argc, char* argv[]) {
                 tire_model = TireModelType::TMEASY;
                 break;
             default:
-                GetLog() << "Unsupported tire model selected\n";
-                GetLog() << " 1 : Pac02Tire\n";
-                GetLog() << " 2 : TMsimple\n";
-                GetLog() << " 3 : TMeasy\n";
+                std::cout << "Unsupported tire model selected\n";
+                std::cout << " 1 : Pac02Tire\n";
+                std::cout << " 2 : TMsimple\n";
+                std::cout << " 3 : TMeasy\n";
                 return 99;
         }
     }
@@ -324,7 +323,7 @@ int main(int argc, char* argv[]) {
 
     // Create the straight path and the driver system
     auto path = CirclePath(initLoc, turn_radius, run_in_length, turn_direction_left, circle_repeats);
-    // auto path = StraightLinePath(ChVector<>(-terrainLength / 2, 0, 0.5), ChVector<>(terrainLength / 2, 0, 0.5), 1);
+    // auto path = StraightLinePath(ChVector3d(-terrainLength / 2, 0, 0.5), ChVector3d(terrainLength / 2, 0, 0.5), 1);
     ChPathFollowerDriver driver(feda.GetVehicle(), path, "my_path", initial_speed);
     driver.GetSteeringController().SetLookAheadDistance(6.0);
     driver.GetSteeringController().SetGains(0.05, 0.005, 0.0);
@@ -357,12 +356,13 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle("FEDA Steady State Cornering Demo");
             vis_vsg->AttachVehicle(&feda.GetVehicle());
             vis_vsg->SetChaseCamera(trackPoint, 7.0, 0.5);
-            vis_vsg->SetWindowSize(ChVector2<int>(800, 600));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
             vis = vis_vsg;
 #endif
@@ -377,7 +377,7 @@ int main(int argc, char* argv[]) {
     feda.GetVehicle().LogSubsystemTypes();
 
     if (debug_output) {
-        GetLog() << "\n\n============ System Configuration ============\n";
+        std::cout << "\n\n============ System Configuration ============\n";
         feda.LogHardpointLocations();
     }
 
@@ -392,19 +392,19 @@ int main(int argc, char* argv[]) {
     feda.GetVehicle().EnableRealtime(true);
 
     double real_speed = feda.GetVehicle().GetChassis()->GetSpeed();
-    double real_accy1 = feda.GetVehicle().GetPointAcceleration(ChVector<>(0, 0, 0)).y();
+    double real_accy1 = feda.GetVehicle().GetPointAcceleration(ChVector3d(0, 0, 0)).y();
     double real_accy2 = pow(real_speed, 2) / turn_radius;
 
     driver.SetDesiredSpeed(initial_speed);  // hold speed until steady state reached on the turn circle
     while (vis->Run()) {
         double time = feda.GetSystem()->GetChTime();
         real_speed = feda.GetVehicle().GetSpeed();
-        real_accy1 = feda.GetVehicle().GetPointAcceleration(ChVector<>(0, 0, 0)).y();
+        real_accy1 = feda.GetVehicle().GetPointAcceleration(ChVector3d(0, 0, 0)).y();
         real_accy2 = pow(real_speed, 2) / turn_radius_ref;
         double real_throttle = driver.GetThrottle();
 
         if (time >= t_hold)
-            ssc_csv << time << steeringGear.Get_y(driver.GetSteering()) << real_speed << real_accy2 << std::endl;
+            ssc_csv << time << steeringGear.GetVal(driver.GetSteering()) << real_speed << real_accy2 << std::endl;
 
         if (time > t_hold) {
             // Increase speed
@@ -414,18 +414,18 @@ int main(int argc, char* argv[]) {
 
         // Engine Power Limit reached
         if (time > t_hold && real_throttle == 1.0) {
-            GetLog() << "Manoever ended because engine power limit is reached.\n";
+            std::cout << "Manoever ended because engine power limit is reached.\n";
             break;
         }
 
         // End simulation
         if (time >= t_end) {
-            GetLog() << "Manoever ended because max. time " << t_end << " s is reached.\n";
+            std::cout << "Manoever ended because max. time " << t_end << " s is reached.\n";
             break;
         }
 
         if (desired_speed > max_speed) {
-            GetLog() << "Manoever ended because max. speed " << max_speed << " m/s is reached.\n";
+            std::cout << "Manoever ended because max. speed " << max_speed << " m/s is reached.\n";
             break;
         }
 
@@ -447,13 +447,13 @@ int main(int argc, char* argv[]) {
 
         // Debug logging
         if (debug_output && step_number % debug_steps == 0) {
-            GetLog() << "\n\n============ System Information ============\n";
-            GetLog() << "Time = " << time << "\n\n";
+            std::cout << "\n\n============ System Information ============\n";
+            std::cout << "Time = " << time << "\n\n";
             feda.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
 
-            auto marker_driver = feda.GetChassis()->GetMarkers()[0]->GetAbsCoord().pos;
-            auto marker_com = feda.GetChassis()->GetMarkers()[1]->GetAbsCoord().pos;
-            GetLog() << "Markers\n";
+            auto marker_driver = feda.GetChassis()->GetMarkers()[0]->GetAbsCsys().pos;
+            auto marker_com = feda.GetChassis()->GetMarkers()[1]->GetAbsCsys().pos;
+            std::cout << "Markers\n";
             std::cout << "  Driver loc:      " << marker_driver.x() << " " << marker_driver.y() << " "
                       << marker_driver.z() << std::endl;
             std::cout << "  Chassis COM loc: " << marker_com.x() << " " << marker_com.y() << " " << marker_com.z()
@@ -484,7 +484,7 @@ int main(int argc, char* argv[]) {
     // data at manoever end
     double vel_kmh = real_speed * 3.6;
     double vel_mph = vel_kmh / 1.602;
-    GetLog() << "Reached vehicle speed = " << vel_kmh << " km/h (" << vel_mph << " mph)\n";
-    GetLog() << "Reached lateral acceleration = " << real_accy2 / 9.81 << " g\n";
+    std::cout << "Reached vehicle speed = " << vel_kmh << " km/h (" << vel_mph << " mph)\n";
+    std::cout << "Reached lateral acceleration = " << real_accy2 / 9.81 << " g\n";
     return 0;
 }

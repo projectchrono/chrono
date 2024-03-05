@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono/utils/ChBenchmark.h"
+#include "chrono/core/ChRandom.h"
 #include "chrono/physics/ChBodyEasy.h"
 
 #include "chrono_vehicle/ChVehicleModelData.h"
@@ -112,8 +113,8 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
     m_hmmwv->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_hmmwv->SetContactMethod(ChContactMethod::SMC);
     m_hmmwv->SetChassisFixed(false);
-    m_hmmwv->SetInitPosition(
-        ChCoordsys<>(ChVector<>(5.0 - patch_size / 2, 5.0 - patch_size / 2, 0.7), Q_from_AngZ(CH_C_PI / 4)));
+    m_hmmwv->SetInitPosition(ChCoordsys<>(ChVector3d(5.0 - patch_size / 2, 5.0 - patch_size / 2, 0.7),
+                                          QuatFromAngleZ(CH_C_PI / 4)));
     m_hmmwv->SetEngineType(engine_model);
     m_hmmwv->SetTransmissionType(transmission_model);
     m_hmmwv->SetDriveType(drive_type);
@@ -143,13 +144,13 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
     );
 
     m_terrain->AddMovingPatch(m_hmmwv->GetVehicle().GetAxle(0)->GetWheel(VehicleSide::LEFT)->GetSpindle(),
-                              ChVector<>(0, 0, 0), ChVector<>(1.0, 0.3, 1.0));
+                              ChVector3d(0, 0, 0), ChVector3d(1.0, 0.3, 1.0));
     m_terrain->AddMovingPatch(m_hmmwv->GetVehicle().GetAxle(0)->GetWheel(VehicleSide::RIGHT)->GetSpindle(),
-                              ChVector<>(0, 0, 0), ChVector<>(1.0, 0.3, 1.0));
+                              ChVector3d(0, 0, 0), ChVector3d(1.0, 0.3, 1.0));
     m_terrain->AddMovingPatch(m_hmmwv->GetVehicle().GetAxle(1)->GetWheel(VehicleSide::LEFT)->GetSpindle(),
-                              ChVector<>(0, 0, 0), ChVector<>(1.0, 0.3, 1.0));
+                              ChVector3d(0, 0, 0), ChVector3d(1.0, 0.3, 1.0));
     m_terrain->AddMovingPatch(m_hmmwv->GetVehicle().GetAxle(1)->GetWheel(VehicleSide::RIGHT)->GetSpindle(),
-                              ChVector<>(0, 0, 0), ChVector<>(1.0, 0.3, 1.0));
+                              ChVector3d(0, 0, 0), ChVector3d(1.0, 0.3, 1.0));
 
     m_terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.1);
 
@@ -161,7 +162,7 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
 
     // Create falling objects
     if (OBJECTS) {
-        auto sph_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+        auto sph_mat = chrono_types::make_shared<ChContactMaterialSMC>();
         sph_mat->SetFriction(0.2f);
         for (int i = 0; i < 20; i++) {
             auto sphere = chrono_types::make_shared<ChBodyEasySphere>(0.5,       // radius size
@@ -170,10 +171,10 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
                                                                       true,      // collision?
                                                                       sph_mat);  // contact material
             sphere->SetPos(
-                ChVector<>((2 * ChRandom() - 1) * 0.45 * patch_size, (2 * ChRandom() - 1) * 0.45 * patch_size, 1.0));
+                ChVector3d((2 * ChRandom::Get() - 1) * 0.45 * patch_size, (2 * ChRandom::Get() - 1) * 0.45 * patch_size, 1.0));
             m_hmmwv->GetSystem()->Add(sphere);
 
-            m_terrain->AddMovingPatch(sphere, ChVector<>(0, 0, 0), ChVector<>(0.6, 0.6, 0.6));
+            m_terrain->AddMovingPatch(sphere, ChVector3d(0, 0, 0), ChVector3d(0.6, 0.6, 0.6));
         }
     }
 }
@@ -209,7 +210,7 @@ void HmmwvScmTest<TIRE_TYPE, OBJECTS>::SimulateVis() {
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
     vis->AttachVehicle(&m_hmmwv->GetVehicle());
     vis->SetWindowTitle("HMMWV SMC benchmark");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->Initialize();
     vis->AddLightDirectional();
     vis->AddSkyBox();

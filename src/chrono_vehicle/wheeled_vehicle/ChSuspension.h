@@ -65,7 +65,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
 
     /// Get the location of the suspension subsystem relative to the associated chassis reference frame.
     /// The suspension reference frame is always aligned with the chassis reference frame.
-    const ChVector<>& GetRelPosition() const { return m_rel_loc; }
+    const ChVector3d& GetRelPosition() const { return m_rel_loc; }
 
     /// Get a handle to the spindle body on the specified side.
     std::shared_ptr<ChBody> GetSpindle(VehicleSide side) const { return m_spindle[side]; }
@@ -77,7 +77,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     std::shared_ptr<ChLinkLockRevolute> GetRevolute(VehicleSide side) const { return m_revolute[side]; }
 
     /// Get the global location of the spindle on the specified side.
-    const ChVector<>& GetSpindlePos(VehicleSide side) const { return m_spindle[side]->GetPos(); }
+    const ChVector3d& GetSpindlePos(VehicleSide side) const { return m_spindle[side]->GetPos(); }
 
     /// Get the orientation of the spindle body on the specified side.
     /// The spindle body orientation is returned as a quaternion representing a
@@ -87,15 +87,15 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Get the linear velocity of the spindle body on the specified side.
     /// Return the linear velocity of the spindle center, expressed in the global
     /// reference frame.
-    const ChVector<>& GetSpindleLinVel(VehicleSide side) const { return m_spindle[side]->GetPos_dt(); }
+    const ChVector3d& GetSpindleLinVel(VehicleSide side) const { return m_spindle[side]->GetPosDer(); }
 
     /// Get the angular velocity of the spindle body on the specified side.
     /// Return the angular velocity of the spindle frame, expressed in the global
     /// reference frame.
-    ChVector<> GetSpindleAngVel(VehicleSide side) const { return m_spindle[side]->GetWvel_par(); }
+    ChVector3d GetSpindleAngVel(VehicleSide side) const { return m_spindle[side]->GetAngVelParent(); }
 
     /// Get the angular speed of the axle on the specified side.
-    double GetAxleSpeed(VehicleSide side) const { return m_axle[side]->GetPos_dt(); }
+    double GetAxleSpeed(VehicleSide side) const { return m_axle[side]->GetPosDer(); }
 
     /// Synchronize this suspension subsystem.
     virtual void Synchronize();
@@ -118,7 +118,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
         std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
         std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
         std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
-        const ChVector<>& location,                ///< [in] location relative to the chassis frame
+        const ChVector3d& location,                ///< [in] location relative to the chassis frame
         double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
         double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
     );
@@ -163,7 +163,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Construct a suspension subsystem with given name.
     ChSuspension(const std::string& name);
 
-    ChVector<> m_rel_loc;                                ///< location relative to chassis
+    ChVector3d m_rel_loc;                                ///< location relative to chassis
     std::shared_ptr<ChBody> m_spindle[2];                ///< handles to spindle bodies
     std::shared_ptr<ChShaft> m_axle[2];                  ///< handles to axle shafts
     std::shared_ptr<ChShaftsBody> m_axle_to_spindle[2];  ///< handles to spindle-shaft connectors

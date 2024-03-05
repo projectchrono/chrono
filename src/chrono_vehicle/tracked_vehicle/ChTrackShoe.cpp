@@ -39,7 +39,7 @@ ChTrackShoe::~ChTrackShoe() {
 }
 
 void ChTrackShoe::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
-                             const ChVector<>& location,
+                             const ChVector3d& location,
                              const ChQuaternion<>& rotation) {
     // Mark as initialized
     m_initialized = true;

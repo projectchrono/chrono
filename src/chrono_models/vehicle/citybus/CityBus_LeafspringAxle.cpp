@@ -38,8 +38,8 @@ const double CityBus_LeafspringAxle::m_axleTubeRadius = 0.0476;
 const double CityBus_LeafspringAxle::m_spindleRadius = 0.10;
 const double CityBus_LeafspringAxle::m_spindleWidth = 0.06;
 
-const ChVector<> CityBus_LeafspringAxle::m_axleTubeInertia(22.21 * 6.56, 0.0775 * 6.56, 22.21 * 6.56);
-const ChVector<> CityBus_LeafspringAxle::m_spindleInertia(0.04117 * 6.56, 0.07352 * 6.56, 0.04117 * 6.56);
+const ChVector3d CityBus_LeafspringAxle::m_axleTubeInertia(22.21 * 6.56, 0.0775 * 6.56, 22.21 * 6.56);
+const ChVector3d CityBus_LeafspringAxle::m_spindleInertia(0.04117 * 6.56, 0.07352 * 6.56, 0.04117 * 6.56);
 
 const double CityBus_LeafspringAxle::m_springDesignLength = 0.4;
 const double CityBus_LeafspringAxle::m_springCoefficient = 565480 / 3.184 * 4.0;
@@ -71,7 +71,7 @@ class CityBus_SpringForceRear : public ChLinkTSDA::ForceFunctor {
     double m_min_length;
     double m_max_length;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionInterp m_bump;
 };
 
 CityBus_SpringForceRear::CityBus_SpringForceRear(double spring_constant, double min_length, double max_length)
@@ -108,7 +108,7 @@ double CityBus_SpringForceRear::evaluate(double time,
         defl_rebound = length - m_max_length;
     }
 
-    force = defl_spring * m_spring_constant + m_bump.Get_y(defl_bump) - m_bump.Get_y(defl_rebound);
+    force = defl_spring * m_spring_constant + m_bump.GetVal(defl_bump) - m_bump.GetVal(defl_rebound);
 
     return force;
 }
@@ -176,21 +176,21 @@ CityBus_LeafspringAxle::CityBus_LeafspringAxle(const std::string& name) : ChLeaf
 // -----------------------------------------------------------------------------
 CityBus_LeafspringAxle::~CityBus_LeafspringAxle() {}
 
-const ChVector<> CityBus_LeafspringAxle::getLocation(PointId which) {
+const ChVector3d CityBus_LeafspringAxle::getLocation(PointId which) {
     switch (which) {
         case SPRING_A:
-            return ChVector<>(0.0, 0.5142, m_axleTubeRadius);
+            return ChVector3d(0.0, 0.5142, m_axleTubeRadius);
         case SPRING_C:
-            return ChVector<>(0.0, 0.5142, m_axleTubeRadius + m_springDesignLength - 0.1);
+            return ChVector3d(0.0, 0.5142, m_axleTubeRadius + m_springDesignLength - 0.1);
         case SHOCK_A:
-            return ChVector<>(-0.125, 0.441, -0.0507);
+            return ChVector3d(-0.125, 0.441, -0.0507);
         case SHOCK_C:
-            return ChVector<>(-0.3648, 0.4193, 0.4298 - 0.1);
+            return ChVector3d(-0.3648, 0.4193, 0.4298 - 0.1);
         case SPINDLE:
-            // return ChVector<>(0.0, 0.7325+0.375, 0.0); axle with single wheels
-            return ChVector<>(0.0, 0.7325 + 0.375 - m_twin_tire_dist / 2.0, 0.0);  // axle with double wheels
+            // return ChVector3d(0.0, 0.7325+0.375, 0.0); axle with single wheels
+            return ChVector3d(0.0, 0.7325 + 0.375 - m_twin_tire_dist / 2.0, 0.0);  // axle with double wheels
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

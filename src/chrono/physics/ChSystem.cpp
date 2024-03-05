@@ -13,6 +13,8 @@
 // =============================================================================
 
 #include <algorithm>
+#include <iomanip>
+#include <fstream>
 
 #include "chrono/collision/bullet/ChCollisionSystemBullet.h"
 #ifdef CHRONO_COLLISION
@@ -40,18 +42,14 @@ namespace chrono {
 // -----------------------------------------------------------------------------
 
 ChSystem::ChSystem()
-    : G_acc(ChVector<>(0, -9.8, 0)),
+    : G_acc(ChVector3d(0, -9.8, 0)),
       is_initialized(false),
       is_updated(false),
-      ncoords(0),
-      ndoc(0),
-      nsysvars(0),
-      ncoords_w(0),
-      ndoc_w(0),
-      nsysvars_w(0),
-      ndof(0),
-      ndoc_w_C(0),
-      ndoc_w_D(0),
+      m_num_coords_pos(0),
+      m_num_coords_vel(0),
+      m_num_constr(0),
+      m_num_constr_bil(0),
+      m_num_constr_uni(0),
       ch_time(0),
       m_RTF(0),
       step(0.04),
@@ -65,7 +63,7 @@ ChSystem::ChSystem()
       solvecount(0),
       write_matrix(false),
       ncontacts(0),
-      composition_strategy(new ChMaterialCompositionStrategy),
+      composition_strategy(new ChContactMaterialCompositionStrategy),
       collision_system(nullptr),
       visual_system(nullptr),
       nthreads_chrono(ChOMP::GetNumProcs()),
@@ -89,15 +87,11 @@ ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr),
     assembly.system = this;
 
     G_acc = other.G_acc;
-    ncoords = other.ncoords;
-    ncoords_w = other.ncoords_w;
-    ndoc = other.ndoc;
-    ndoc_w = other.ndoc_w;
-    ndoc_w_C = other.ndoc_w_C;
-    ndoc_w_D = other.ndoc_w_D;
-    ndof = other.ndof;
-    nsysvars = other.nsysvars;
-    nsysvars_w = other.nsysvars_w;
+    m_num_coords_pos = other.m_num_coords_pos;
+    m_num_coords_vel = other.m_num_coords_vel;
+    m_num_constr = other.m_num_constr;
+    m_num_constr_bil = other.m_num_constr_bil;
+    m_num_constr_uni = other.m_num_constr_uni;
     ch_time = other.ch_time;
     step = other.step;
     stepcount = other.stepcount;
@@ -145,7 +139,7 @@ void ChSystem::Clear() {
 // -----------------------------------------------------------------------------
 
 void ChSystem::AddBody(std::shared_ptr<ChBody> body) {
-    body->SetId(static_cast<int>(Get_bodylist().size()));
+    body->SetId(static_cast<int>(GetBodies().size()));
     assembly.AddBody(body);
     body->SetSystem(this);
 }
@@ -325,7 +319,7 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
             solver = chrono_types::make_shared<ChSolverSparseQR>();
             break;
         default:
-            std::cout << "Unknown solver type. No solver was set.\n";
+            std::cout << "Unknown solver type. No solver was set." << std::endl;
             std::cout << "Use SetSolver()." << std::endl;
             break;
     }
@@ -373,14 +367,14 @@ void ChSystem::SetSolver(std::shared_ptr<ChSolver> newsolver) {
 }
 
 void ChSystem::SetCollisionSystemType(ChCollisionSystem::Type type) {
-    assert(assembly.GetNbodies() == 0);
+    assert(assembly.GetNumBodies() == 0);
 
     auto coll_sys_type = type;
 
 #ifndef CHRONO_COLLISION
     if (type == ChCollisionSystem::Type::MULTICORE) {
-        std::cout << "Chrono was not built with Thrust support. Multicore collision system not available.\n";
-        std::cout << "Using Bullet collision system." << std::endl;
+        std::cerr << "Chrono was not built with Thrust support. Multicore collision system not available." << std::endl;
+        std::cerr << "Using Bullet collision system." << std::endl;
         coll_sys_type = ChCollisionSystem::Type::BULLET;
     }
 #endif
@@ -395,8 +389,8 @@ void ChSystem::SetCollisionSystemType(ChCollisionSystem::Type type) {
 #endif
             break;
         default:
-            std::cout << "Unknown collision system type. No collision system was set.\n";
-            std::cout << "Use SetCollisionSystem()." << std::endl;
+            std::cerr << "Unknown collision system type. No collision system was set." << std::endl;
+            std::cerr << "Use SetCollisionSystem()." << std::endl;
             return;
     }
 
@@ -417,7 +411,7 @@ void ChSystem::SetContactContainer(std::shared_ptr<ChContactContainer> container
     contact_container->SetSystem(this);
 }
 
-void ChSystem::SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) {
+void ChSystem::SetMaterialCompositionStrategy(std::unique_ptr<ChContactMaterialCompositionStrategy>&& strategy) {
     composition_strategy = std::move(strategy);
 }
 
@@ -510,7 +504,7 @@ void ChSystem::SetTimestepperType(ChTimestepper::Type type) {
             timestepper = chrono_types::make_shared<ChTimestepperNewmark>(this);
             break;
         default:
-            throw ChException("SetTimestepperType: timestepper not supported");
+            throw std::invalid_argument("SetTimestepperType: timestepper not supported");
     }
 }
 
@@ -535,13 +529,13 @@ bool ChSystem::ManageSleepingBodies() {
         // Callback, used to report contact points already added to the container.
         // If returns false, the contact scanning will be stopped.
         virtual bool OnReportContact(
-            const ChVector<>& pA,             // get contact pA
-            const ChVector<>& pB,             // get contact pB
+            const ChVector3d& pA,             // get contact pA
+            const ChVector3d& pB,             // get contact pB
             const ChMatrix33<>& plane_coord,  // get contact plane coordsystem (A column 'X' is contact normal)
             const double& distance,           // get contact distance
             const double& eff_radius,         // effective radius of curvature at contact
-            const ChVector<>& react_forces,   // get react.forces (if already computed). In coordsystem 'plane_coord'
-            const ChVector<>& react_torques,  // get react.torques, if rolling friction (if already computed).
+            const ChVector3d& react_forces,   // get react.forces (if already computed). In coordsystem 'plane_coord'
+            const ChVector3d& react_torques,  // get react.torques, if rolling friction (if already computed).
             ChContactable* contactobjA,  // get model A (note: some containers may not support it and could be zero!)
             ChContactable* contactobjB   // get model B (note: some containers may not support it and could be zero!)
             ) override {
@@ -586,7 +580,7 @@ bool ChSystem::ManageSleepingBodies() {
 
     bool need_Setup_L = false;
 
-    for (int i = 0; i < 1; i++)  //***TO DO*** reconfigurable number of wakeup cycles
+    for (int i = 0; i < 1; i++)  //// TODO  reconfigurable number of wakeup cycles
     {
         my_waker->someone_sleeps = false;
 
@@ -673,32 +667,25 @@ void ChSystem::Setup() {
 
     timer_setup.start();
 
-    ncoords = 0;
-    ncoords_w = 0;
-    ndoc = 0;
-    ndoc_w = 0;
-    ndoc_w_C = 0;
-    ndoc_w_D = 0;
+    m_num_coords_pos = 0;
+    m_num_coords_vel = 0;
+    m_num_constr = 0;
+    m_num_constr_bil = 0;
+    m_num_constr_uni = 0;
 
     // Set up the underlying assembly (compute offsets of bodies, links, etc.)
     assembly.Setup();
-    ncoords += assembly.ncoords;
-    ncoords_w += assembly.ncoords_w;
-    ndoc_w += assembly.ndoc_w;
-    ndoc_w_C += assembly.ndoc_w_C;
-    ndoc_w_D += assembly.ndoc_w_D;
+    m_num_coords_pos += assembly.m_num_coords_pos;
+    m_num_coords_vel += assembly.m_num_coords_vel;
+    m_num_constr += assembly.m_num_constr;
+    m_num_constr_bil += assembly.m_num_constr_bil;
+    m_num_constr_uni += assembly.m_num_constr_uni;
 
     // Compute offsets for contact container
-    contact_container->SetOffset_L(assembly.offset_L + ndoc_w);
-    ndoc_w += contact_container->GetDOC();
-    ndoc_w_C += contact_container->GetDOC_c();
-    ndoc_w_D += contact_container->GetDOC_d();
-
-    ndoc = ndoc_w + assembly.nbodies;  // number of constraints including quaternion constraints.
-    nsysvars = ncoords + ndoc;         // total number of variables (coordinates + lagrangian multipliers)
-    nsysvars_w = ncoords_w + ndoc_w;   // total number of variables (with 6 dof per body)
-
-    ndof = ncoords - ndoc;  // number of degrees of freedom (approximate - does not consider constr. redundancy, etc)
+    contact_container->SetOffset_L(assembly.offset_L + m_num_constr);
+    m_num_constr += contact_container->GetNumConstraints();
+    m_num_constr_bil += contact_container->GetNumConstraintsBilateral();
+    m_num_constr_uni += contact_container->GetNumConstraintsUnilateral();
 
     timer_setup.stop();
 
@@ -709,10 +696,10 @@ void ChSystem::Setup() {
 
     bool check_bookkeeping = false;
     if (check_bookkeeping) {
-        ChState test_x(GetNcoords_x(), this);
-        ChStateDelta test_v(GetNcoords_w(), this);
-        ChStateDelta test_a(GetNcoords_w(), this);
-        ChVectorDynamic<> test_L(GetNconstr());
+        ChState test_x(GetNumCoordinatesPos(), this);
+        ChStateDelta test_v(GetNumCoordinatesVel(), this);
+        ChStateDelta test_a(GetNumCoordinatesVel(), this);
+        ChVectorDynamic<> test_L(GetNumConstraints());
         double poison_x = -8888.888;
         double poison_v = -9999.999;
         double poison_a = -7777.777;
@@ -1062,19 +1049,20 @@ void ChSystem::StateIncrementX(ChState& x_new, const ChState& x, const ChStateDe
 //  |-Dl|   [ Cq  0   ]      |-Qc|
 // for given residuals R and -Qc, and  H = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]
 // This function returns true if successful and false otherwise.
-bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: computed Dv
-                                    ChVectorDynamic<>& Dl,        // result: computed Dl lagrangian multipliers, if any. Note sign.
-                                    const ChVectorDynamic<>& R,   // the R residual
-                                    const ChVectorDynamic<>& Qc,  // the Qc residual. Note sign.
-                                    const double c_a,             // the factor in c_a*M
-                                    const double c_v,             // the factor in c_v*dF/dv
-                                    const double c_x,             // the factor in c_x*dF/dx
-                                    const ChState& x,             // current state, x part
-                                    const ChStateDelta& v,        // current state, v part
-                                    const double T,               // current time T
-                                    bool force_state_scatter,     // if false, x,v and T are not scattered to the system
-                                    bool full_update,             // if true, perform a full update during scatter
-                                    bool force_setup              // if true, call the solver's Setup() function
+bool ChSystem::StateSolveCorrection(
+    ChStateDelta& Dv,             // result: computed Dv
+    ChVectorDynamic<>& Dl,        // result: computed Dl lagrangian multipliers, if any. Note sign.
+    const ChVectorDynamic<>& R,   // the R residual
+    const ChVectorDynamic<>& Qc,  // the Qc residual. Note sign.
+    const double c_a,             // the factor in c_a*M
+    const double c_v,             // the factor in c_v*dF/dv
+    const double c_x,             // the factor in c_x*dF/dx
+    const ChState& x,             // current state, x part
+    const ChStateDelta& v,        // current state, v part
+    const double T,               // current time T
+    bool force_state_scatter,     // if false, x,v and T are not scattered to the system
+    bool full_update,             // if true, perform a full update during scatter
+    bool force_setup              // if true, call the solver's Setup() function
 ) {
     CH_PROFILE("StateSolveCorrection");
 
@@ -1104,7 +1092,6 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
     // Diagnostics:
     if (write_matrix) {
-        const char* numformat = "%.12g";
         std::string prefix = "solve_" + std::to_string(stepcount) + "_" + std::to_string(solvecount);
 
         if (std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
@@ -1114,12 +1101,12 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
             descriptor->WriteMatrixBlocks(output_dir, prefix);
         }
 
-        ChStreamOutAsciiFile file_x(output_dir + "/" + prefix + "_x_pre.dat");
-        file_x.SetNumFormat(numformat);
+        std::ofstream file_x(output_dir + "/" + prefix + "_x_pre.dat");
+        file_x << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(x, file_x);
 
-        ChStreamOutAsciiFile file_v(output_dir + "/" + prefix + "_v_pre.dat");
-        file_v.SetNumFormat(numformat);
+        std::ofstream file_v(output_dir + "/" + prefix + "_v_pre.dat");
+        file_v << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(v, file_v);
     }
 
@@ -1147,24 +1134,23 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
 
     // Diagnostics:
     if (write_matrix) {
-        const char* numformat = "%.12g";
         std::string prefix = "solve_" + std::to_string(stepcount) + "_" + std::to_string(solvecount) + "_";
 
-        ChStreamOutAsciiFile file_Dv(output_dir + "/" + prefix + "Dv.dat");
-        file_Dv.SetNumFormat(numformat);
+        std::ofstream file_Dv(output_dir + "/" + prefix + "Dv.dat");
+        file_Dv << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(Dv, file_Dv);
 
-        ChStreamOutAsciiFile file_Dl(output_dir + "/" + prefix + "Dl.dat");
-        file_Dl.SetNumFormat(numformat);
+        std::ofstream file_Dl(output_dir + "/" + prefix + "Dl.dat");
+        file_Dl << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(Dl, file_Dl);
 
         // Just for diagnostic, dump also unscaled loads (forces,torques),
         // since the .._f.dat vector dumped in WriteMatrixBlocks() might contain scaled loads, and also +M*v
-        ChVectorDynamic<> tempF(this->GetNcoords_v());
+        ChVectorDynamic<> tempF(this->GetNumCoordinatesVel());
         tempF.setZero();
         LoadResidual_F(tempF, 1.0);
-        ChStreamOutAsciiFile file_F(output_dir + "/" + prefix + "F_pre.dat");
-        file_F.SetNumFormat(numformat);
+        std::ofstream file_F(output_dir + "/" + prefix + "F_pre.dat");
+        file_F << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(tempF, file_F);
     }
 
@@ -1173,24 +1159,24 @@ bool ChSystem::StateSolveCorrection(ChStateDelta& Dv,             // result: com
     return true;
 }
 
-ChVector<> ChSystem::GetBodyAppliedForce(ChBody* body) {
+ChVector3d ChSystem::GetBodyAppliedForce(ChBody* body) {
     if (!is_initialized)
-        return ChVector<>(0, 0, 0);
+        return ChVector3d(0, 0, 0);
 
     if (!applied_forces_current) {
-        applied_forces.setZero(this->GetNcoords_v());
+        applied_forces.setZero(this->GetNumCoordinatesVel());
         LoadResidual_F(applied_forces, 1.0);
         applied_forces_current = true;
     }
     return applied_forces.segment(body->Variables().GetOffset() + 0, 3);
 }
 
-ChVector<> ChSystem::GetBodyAppliedTorque(ChBody* body) {
+ChVector3d ChSystem::GetBodyAppliedTorque(ChBody* body) {
     if (!is_initialized)
-        return ChVector<>(0, 0, 0);
+        return ChVector3d(0, 0, 0);
 
     if (!applied_forces_current) {
-        applied_forces.setZero(this->GetNcoords_v());
+        applied_forces.setZero(this->GetNumCoordinatesVel());
         LoadResidual_F(applied_forces, 1.0);
         applied_forces_current = true;
     }
@@ -1234,7 +1220,7 @@ void ChSystem::LoadLumpedMass_Md(ChVectorDynamic<>& Md, double& err, const doubl
 
     // Use also on contact container: [ does nothing anyway ]
     unsigned int displ_v = off - assembly.offset_w;
-    contact_container->IntLoadLumpedMass_Md(displ_v + contact_container->GetOffset_w(), Md, err, c); 
+    contact_container->IntLoadLumpedMass_Md(displ_v + contact_container->GetOffset_w(), Md, err, c);
 }
 
 // Increment a vectorR with the term Cq'*L:
@@ -1284,8 +1270,8 @@ void ChSystem::LoadConstraint_Ct(ChVectorDynamic<>& Qc, const double c) {
 //   COLLISION OPERATIONS
 // -----------------------------------------------------------------------------
 
-int ChSystem::GetNcontacts() {
-    return contact_container->GetNcontacts();
+int ChSystem::GetNumContacts() {
+    return contact_container->GetNumContacts();
 }
 
 double ChSystem::ComputeCollisions() {
@@ -1329,7 +1315,7 @@ double ChSystem::ComputeCollisions() {
         collision_callbacks[ic]->OnCustomCollision(this);
 
     // Cache the total number of contacts
-    ncontacts = contact_container->GetNcontacts();
+    ncontacts = contact_container->GetNumContacts();
 
     timer_collision.stop();
 
@@ -1421,37 +1407,35 @@ void ChSystem::GetConstraintJacobianMatrix(ChSparseMatrix* Cq) {
 }
 
 void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path) {
-    const char* numformat = "%.12g";
-
     // Prepare lists of variables and constraints, if not already prepared.
     DescriptorPrepareInject(*descriptor);
 
     if (save_M) {
         ChSparseMatrix mM;
         this->GetMassMatrix(&mM);
-        ChStreamOutAsciiFile file_M(path + "_M.dat");
-        file_M.SetNumFormat(numformat);
+        std::ofstream file_M(path + "_M.dat");
+        file_M << std::setprecision(12) << std::scientific;
         StreamOutSparseMatlabFormat(mM, file_M);
     }
     if (save_K) {
         ChSparseMatrix mK;
         this->GetStiffnessMatrix(&mK);
-        ChStreamOutAsciiFile file_K(path + "_K.dat");
-        file_K.SetNumFormat(numformat);
+        std::ofstream file_K(path + "_K.dat");
+        file_K << std::setprecision(12) << std::scientific;
         StreamOutSparseMatlabFormat(mK, file_K);
     }
     if (save_R) {
         ChSparseMatrix mR;
         this->GetDampingMatrix(&mR);
-        ChStreamOutAsciiFile file_R(path + "_R.dat");
-        file_R.SetNumFormat(numformat);
+        std::ofstream file_R(path + "_R.dat");
+        file_R << std::setprecision(12) << std::scientific;
         StreamOutSparseMatlabFormat(mR, file_R);
     }
     if (save_Cq) {
         ChSparseMatrix mCq;
         this->GetConstraintJacobianMatrix(&mCq);
-        ChStreamOutAsciiFile file_Cq(path + "_Cq.dat");
-        file_Cq.SetNumFormat(numformat);
+        std::ofstream file_Cq(path + "_Cq.dat");
+        file_Cq << std::setprecision(12) << std::scientific;
         StreamOutSparseMatlabFormat(mCq, file_Cq);
     }
 }
@@ -1493,19 +1477,20 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
         std::cout << "   - independent: " << independent_row_count << std::endl;
         std::cout << "   - dependent: " << Cq_rows - independent_row_count << std::endl;
         std::cout << "   Redundant constraints [Cq_global row idx , linkname, Cq_link row idx]:" << std::endl;
-        for (auto c_sel = 0; c_sel < redundant_constraints_idx.size(); ++c_sel){
+        for (auto c_sel = 0; c_sel < redundant_constraints_idx.size(); ++c_sel) {
             // find corresponding link
             std::shared_ptr<ChLinkBase> corr_link;
-            for (const auto& link : Get_linklist()){
-                if (redundant_constraints_idx[c_sel] >= link->GetOffset_L() && redundant_constraints_idx[c_sel] < link->GetOffset_L() + link->GetDOC()){
+            for (const auto& link : GetLinks()) {
+                if (redundant_constraints_idx[c_sel] >= link->GetOffset_L() &&
+                    redundant_constraints_idx[c_sel] < link->GetOffset_L() + link->GetNumConstraints()) {
                     corr_link = link;
                     break;
                 }
             }
 
-
-            std::cout << "      - [" << redundant_constraints_idx[c_sel] << "]: " << corr_link->GetName()
-                              << "[" << (redundant_constraints_idx[c_sel] - corr_link->GetOffset_L()) << "/" << corr_link->GetDOC() << "]" << std::endl;
+            std::cout << "      - [" << redundant_constraints_idx[c_sel] << "]: " << corr_link->GetName() << "["
+                      << (redundant_constraints_idx[c_sel] - corr_link->GetOffset_L()) << "/"
+                      << corr_link->GetNumConstraints() << "]" << std::endl;
         }
     }
 
@@ -1517,9 +1502,9 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
 
     // Remove Degrees of Constraint to ChLinkMate constraints
     std::map<int, std::shared_ptr<ChLinkBase>> constr_map;  // store an ordered list of constraints offsets
-    for (int i = 0; i < Get_linklist().size(); ++i) {
+    for (int i = 0; i < GetLinks().size(); ++i) {
         // store the link offset
-        auto link = Get_linklist()[i];
+        auto link = GetLinks()[i];
         constr_map[link->GetOffset_L()] = link;
     }
 
@@ -1578,9 +1563,9 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     // Actually REMOVE links now having DoC = 0 from system link list
     if (remove_zero_constr) {
         int i = 0;
-        while (i < Get_linklist().size()) {
-            if (Get_linklist()[i]->GetDOC() == 0)
-                RemoveLink(Get_linklist()[i]);
+        while (i < GetLinks().size()) {
+            if (GetLinks()[i]->GetNumConstraints() == 0)
+                RemoveLink(GetLinks()[i]);
             else
                 ++i;
         }
@@ -1783,14 +1768,14 @@ bool ChSystem::DoStaticLinear() {
 
         ChVectorDynamic<double> mx;
         GetSystemDescriptor()->FromUnknownsToVector(mx, true);  // x ={q,-l}
-        ChStreamOutAsciiFile file_x("solve_x.dat");
+        std::ofstream file_x("solve_x.dat");
         StreamOutDenseMatlabFormat(mx, file_x);
 
         ChVectorDynamic<double> mZx;
         GetSystemDescriptor()->SystemProduct(mZx, mx);  // Zx = Z*x
 
-        GetLog() << "CHECK: norm of solver residual: ||Z*x-d|| -------------------\n";
-        GetLog() << (mZx - md).lpNorm<Eigen::Infinity>() << "\n";
+        std::cout << "CHECK: norm of solver residual: ||Z*x-d|| -------------------" << std::endl;
+        std::cout << (mZx - md).lpNorm<Eigen::Infinity>() << std::endl;
     }
 
     // Update any attached visualization system
@@ -1911,7 +1896,10 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
 
     int err = 0;
 
-    if ((ncoords > 0) && (ndof >= 0)) {
+    // TODO: DARIOM the original check was on (m_num_coords_pos - ndoc >= 0)
+    // but should be more appropriate to have (m_num_coords_pos - m_num_constr >= 0)
+    // since there are no quaternion constraints anymore
+    if ((m_num_coords_pos > 0) && (m_num_coords_pos - m_num_constr >= 0)) {
         for (int m_iter = 0; m_iter < nsteps; m_iter++) {
             for (auto& body : assembly.bodylist) {
                 // Set no body speed and no body accel.
@@ -1943,7 +1931,7 @@ bool ChSystem::DoStaticRelaxing(int nsteps) {
 
     if (err) {
         last_err = true;
-        GetLog() << "WARNING: some constraints may be redundant, but couldn't be eliminated \n";
+        std::cerr << "WARNING: some constraints may be redundant, but couldn't be eliminated" << std::endl;
     }
 
     // Update any attached visualization system
@@ -2175,106 +2163,77 @@ bool ChSystem::DoFullAssembly() {
 // -----------------------------------------------------------------------------
 //  STREAMING - FILE HANDLING
 
-void ChSystem::ArchiveOut(ChArchiveOut& marchive) {
+void ChSystem::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSystem>();
+    archive_out.VersionWrite<ChSystem>();
 
     // serialize underlying assembly
-    marchive << CHNVP(assembly);
+    archive_out << CHNVP(assembly);
 
     // serialize all member data:
 
-    // marchive >> CHNVP(contact_container); // created by the constructor
+    // archive_in >> CHNVP(contact_container); // created by the constructor
 
-    marchive << CHNVP(G_acc);
-    marchive << CHNVP(ch_time);
-    marchive << CHNVP(step);
-    marchive << CHNVP(stepcount);
-    marchive << CHNVP(write_matrix);
+    archive_out << CHNVP(G_acc);
+    archive_out << CHNVP(ch_time);
+    archive_out << CHNVP(step);
+    archive_out << CHNVP(stepcount);
+    archive_out << CHNVP(write_matrix);
 
-    marchive << CHNVP(tol_force);
-    marchive << CHNVP(maxiter);
-    marchive << CHNVP(use_sleeping);
+    archive_out << CHNVP(tol_force);
+    archive_out << CHNVP(maxiter);
+    archive_out << CHNVP(use_sleeping);
 
-    marchive << CHNVP(descriptor);
-    marchive << CHNVP(solver);
+    archive_out << CHNVP(descriptor);
+    archive_out << CHNVP(solver);
 
-    marchive << CHNVP(min_bounce_speed);
-    marchive << CHNVP(max_penetration_recovery_speed);
+    archive_out << CHNVP(min_bounce_speed);
+    archive_out << CHNVP(max_penetration_recovery_speed);
 
-    marchive << CHNVP(composition_strategy);
+    archive_out << CHNVP(composition_strategy);
 
-    // marchive << CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
+    // archive_out << CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
 
-    //***TODO*** complete...
+    //// TODO  complete...
 }
 
 // Method to allow de serialization of transient data from archives.
-void ChSystem::ArchiveIn(ChArchiveIn& marchive) {
+void ChSystem::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChSystem>();
+    /*int version =*/archive_in.VersionRead<ChSystem>();
 
     // deserialize unerlying assembly
-    marchive >> CHNVP(assembly);
+    archive_in >> CHNVP(assembly);
 
     // stream in all member data:
 
-    // marchive >> CHNVP(contact_container); // created by the constructor
+    // archive_in >> CHNVP(contact_container); // created by the constructor
 
-    marchive >> CHNVP(G_acc);
-    marchive >> CHNVP(ch_time);
-    marchive >> CHNVP(step);
-    marchive >> CHNVP(stepcount);
-    marchive >> CHNVP(write_matrix);
+    archive_in >> CHNVP(G_acc);
+    archive_in >> CHNVP(ch_time);
+    archive_in >> CHNVP(step);
+    archive_in >> CHNVP(stepcount);
+    archive_in >> CHNVP(write_matrix);
 
-    marchive >> CHNVP(tol_force);
-    marchive >> CHNVP(maxiter);
-    marchive >> CHNVP(use_sleeping);
+    archive_in >> CHNVP(tol_force);
+    archive_in >> CHNVP(maxiter);
+    archive_in >> CHNVP(use_sleeping);
 
-    marchive >> CHNVP(descriptor);
-    marchive >> CHNVP(solver);
+    archive_in >> CHNVP(descriptor);
+    archive_in >> CHNVP(solver);
 
-    marchive >> CHNVP(min_bounce_speed);
-    marchive >> CHNVP(max_penetration_recovery_speed);
+    archive_in >> CHNVP(min_bounce_speed);
+    archive_in >> CHNVP(max_penetration_recovery_speed);
 
-    marchive >> CHNVP(composition_strategy);
+    archive_in >> CHNVP(composition_strategy);
 
-    // marchive >> CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
+    // archive_in >> CHNVP(timestepper);  // ChTimestepper should implement class factory for abstract create
     // timestepper->SetIntegrable(this);
 
-    //***TODO*** complete...
+    //// TODO  complete...
 
     // Recompute statistics, offsets, etc.
     Setup();
-}
-
-#define CH_CHUNK_START "Chrono binary file start"
-#define CH_CHUNK_END "Chrono binary file end"
-
-int ChSystem::FileProcessChR(ChStreamInBinary& m_file) {
-    std::string mchunk;
-
-    m_file >> mchunk;
-    if (mchunk != CH_CHUNK_START)
-        throw ChException("Not a ChR data file.");
-
-    // StreamInall(m_file);
-
-    m_file >> mchunk;
-    if (mchunk != CH_CHUNK_END)
-        throw ChException("The end of ChR data file is badly formatted.");
-
-    return 1;
-}
-
-int ChSystem::FileWriteChR(ChStreamOutBinary& m_file) {
-    m_file << CH_CHUNK_START;
-
-    // StreamOutall(m_file);
-
-    m_file << CH_CHUNK_END;
-
-    return 1;
 }
 
 }  // end namespace chrono

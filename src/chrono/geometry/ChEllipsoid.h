@@ -18,13 +18,15 @@
 #include "chrono/geometry/ChVolume.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// An ellipsoid geometric object for collisions and such.
 class ChApi ChEllipsoid : public ChVolume {
   public:
     ChEllipsoid() : rad(0) {}
-    ChEllipsoid(const ChVector<>&);
+    ChEllipsoid(const ChVector3d&);
     ChEllipsoid(double axis_x, double axis_y, double axis_z);
     ChEllipsoid(const ChEllipsoid& source);
     ~ChEllipsoid() {}
@@ -33,13 +35,13 @@ class ChApi ChEllipsoid : public ChVolume {
     virtual ChEllipsoid* Clone() const override { return new ChEllipsoid(*this); }
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::ELLIPSOID; }
+    virtual Type GetType() const override { return Type::ELLIPSOID; }
 
     /// Get the ellipsoid semiaxes.
-    const ChVector<>& GetSemiaxes() const { return rad; }
+    const ChVector3d& GetSemiaxes() const { return rad; }
 
     /// Get the x, y, and z axes of this allipsoid.
-    ChVector<> GetAxes() const { return 2.0 * rad; }
+    ChVector3d GetAxes() const { return 2.0 * rad; }
 
     /// Return the volume of this solid.
     virtual double GetVolume() const override;
@@ -53,38 +55,38 @@ class ChApi ChEllipsoid : public ChVolume {
     /// Returns the radius of a bounding sphere for this geometry.
     virtual double GetBoundingSphereRadius() const override;
 
-    virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
+    virtual ChVector3d Baricenter() const override { return ChVector3d(0); }
 
     /// Evaluate position in box volume.
-    virtual ChVector<> Evaluate(double parU, double parV, double parW) const override {
+    virtual ChVector3d Evaluate(double parU, double parV, double parW) const override {
         //// TODO
         return VNULL;
     }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
     /// Return the volume of this type of solid with given dimensions.
-    static double GetVolume(const ChVector<>& axes);
+    static double GetVolume(const ChVector3d& axes);
 
     /// Return the gyration matrix of this type of solid with given dimensions.
-    static ChMatrix33<> GetGyration(const ChVector<>& axes);
+    static ChMatrix33<> GetGyration(const ChVector3d& axes);
 
     /// Return the bounding box of this type of solid with given dimensions.
-    static ChAABB GetBoundingBox(const ChVector<>& axes);
+    static ChAABB GetBoundingBox(const ChVector3d& axes);
 
     /// Return the radius of a bounding sphere.
-    static double GetBoundingSphereRadius(const ChVector<>& axes);
+    static double GetBoundingSphereRadius(const ChVector3d& axes);
 
-    ChVector<> rad;  ///< ellipsoid semiaxes
+    ChVector3d rad;  ///< ellipsoid semiaxes
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChEllipsoid, 0)
+CH_CLASS_VERSION(ChEllipsoid, 0)
 
 }  // end namespace chrono
 

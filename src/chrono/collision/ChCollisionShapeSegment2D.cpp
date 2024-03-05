@@ -22,31 +22,31 @@ CH_UPCASTING(ChCollisionShapeSegment2D, ChCollisionShape)
 
 ChCollisionShapeSegment2D::ChCollisionShapeSegment2D() : ChCollisionShape(Type::SEGMENT2D) {}
 
-ChCollisionShapeSegment2D::ChCollisionShapeSegment2D(std::shared_ptr<ChMaterialSurface> material,
-                                                     const geometry::ChLineSegment& segment,
+ChCollisionShapeSegment2D::ChCollisionShapeSegment2D(std::shared_ptr<ChContactMaterial> material,
+                                                     const ChLineSegment& segment,
                                                      double radius)
     : ChCollisionShape(Type::SEGMENT2D, material), gsegment(segment) {
     this->radius = radius;
 }
 
-void ChCollisionShapeSegment2D::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapeSegment2D::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapeSegment2D>();
+    archive_out.VersionWrite<ChCollisionShapeSegment2D>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gsegment);
-    marchive << CHNVP(radius);
+    archive_out << CHNVP(gsegment);
+    archive_out << CHNVP(radius);
 }
 
-void ChCollisionShapeSegment2D::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapeSegment2D::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapeSegment2D>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeSegment2D>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gsegment);
-    marchive >> CHNVP(radius);
+    archive_in >> CHNVP(gsegment);
+    archive_in >> CHNVP(radius);
 }
 
 }  // end namespace chrono

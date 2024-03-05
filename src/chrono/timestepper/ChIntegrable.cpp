@@ -45,9 +45,9 @@ void ChIntegrable::StateIncrement(ChState& y_new, const ChState& y, const ChStat
 // -----------------------------------------------------------------------------
 
 void ChIntegrableIIorder::StateSetup(ChState& x, ChStateDelta& v, ChStateDelta& a) {
-    x.resize(GetNcoords_x());
-    v.resize(GetNcoords_v());
-    a.resize(GetNcoords_a());
+    x.resize(GetNumCoordinatesPos());
+    v.resize(GetNumCoordinatesVel());
+    a.resize(GetNumCoordinatesVel());
 }
 
 bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: computed a for a=dv/dt
@@ -63,10 +63,10 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: comp
     if (force_state_scatter)
         StateScatter(x, v, T, full_update);
 
-    ChVectorDynamic<> R(GetNcoords_v());
+    ChVectorDynamic<> R(GetNumCoordinatesVel());
 
     if (! lumping) {
-        ChVectorDynamic<> Qc(GetNconstr());
+        ChVectorDynamic<> Qc(GetNumConstraints());
         const double Delta = 1e-6;
 
         R.setZero();
@@ -95,19 +95,19 @@ bool ChIntegrableIIorder::StateSolveA(ChStateDelta& Dvdt,        // result: comp
         return success;
     } 
     else {
-        ChVectorDynamic<> Md(GetNcoords_v()); // diagonal mass
-        Md.setZero(GetNcoords_v());
+        ChVectorDynamic<> Md(GetNumCoordinatesVel()); // diagonal mass
+        Md.setZero(GetNumCoordinatesVel());
 
         // penalty terms from constraints
-        R.setZero(GetNcoords_v());
-        L.setZero(GetNconstr());
+        R.setZero(GetNumCoordinatesVel());
+        L.setZero(GetNumConstraints());
 
         LoadResidual_F(R, 1.0); // rhs, applied forces
 
         double err = 0;
         LoadLumpedMass_Md(Md, err, 1.0);
 
-        if (GetNconstr()) {
+        if (GetNumConstraints()) {
             LoadConstraint_C(L, -lumping->Ck_penalty);  // L  = -k*C     // to do: modulate  k  as constraint-dependent, k=lumping->Ck_penalty*Ck_i
             LoadResidual_CqL(R, L, 1.0);    // Fc =  Cq' * (-k*C)    = Cq' * L
             // to do: add c_penalty for speed proportional damping, as   Fc = - Cq' * (k*C + c*(dC/dt))  
@@ -134,32 +134,32 @@ void ChIntegrableIIorder::StateIncrementX(ChState& x_new, const ChState& x, cons
 }
 
 void ChIntegrableIIorder::StateGather(ChState& y, double& T)  {
-    ChState mx(GetNcoords_x(), y.GetIntegrable());
-    ChStateDelta mv(GetNcoords_v(), y.GetIntegrable());
+    ChState mx(GetNumCoordinatesPos(), y.GetIntegrable());
+    ChStateDelta mv(GetNumCoordinatesVel(), y.GetIntegrable());
     StateGather(mx, mv, T);
     y.segment(0, mx.size()) = mx;
-    y.segment(GetNcoords_x(), mv.size()) = mv;
+    y.segment(GetNumCoordinatesPos(), mv.size()) = mv;
 }
 
 void ChIntegrableIIorder::StateScatter(const ChState& y, const double T, bool full_update) {
-    ChState mx(GetNcoords_x(), y.GetIntegrable());
-    ChStateDelta mv(GetNcoords_v(), y.GetIntegrable());
-    mx = y.segment(0, GetNcoords_x());
-    mv = y.segment(GetNcoords_x(), GetNcoords_v());
+    ChState mx(GetNumCoordinatesPos(), y.GetIntegrable());
+    ChStateDelta mv(GetNumCoordinatesVel(), y.GetIntegrable());
+    mx = y.segment(0, GetNumCoordinatesPos());
+    mv = y.segment(GetNumCoordinatesPos(), GetNumCoordinatesVel());
     StateScatter(mx, mv, T, full_update);
 }
 
 void ChIntegrableIIorder::StateGatherDerivative(ChStateDelta& Dydt) {
-    ChStateDelta mv(GetNcoords_v(), Dydt.GetIntegrable());
-    ChStateDelta ma(GetNcoords_v(), Dydt.GetIntegrable());
+    ChStateDelta mv(GetNumCoordinatesVel(), Dydt.GetIntegrable());
+    ChStateDelta ma(GetNumCoordinatesVel(), Dydt.GetIntegrable());
     StateGatherAcceleration(ma);
-    Dydt.segment(0, GetNcoords_v()) = mv;
-    Dydt.segment(GetNcoords_v(), GetNcoords_v()) = ma;
+    Dydt.segment(0, GetNumCoordinatesVel()) = mv;
+    Dydt.segment(GetNumCoordinatesVel(), GetNumCoordinatesVel()) = ma;
 }
 
 void ChIntegrableIIorder::StateScatterDerivative(const ChStateDelta& Dydt) {
-    ChStateDelta ma(GetNcoords_v(), Dydt.GetIntegrable());
-    ma = Dydt.segment(GetNcoords_v(), GetNcoords_v());
+    ChStateDelta ma(GetNumCoordinatesVel(), Dydt.GetIntegrable());
+    ma = Dydt.segment(GetNumCoordinatesVel(), GetNumCoordinatesVel());
     StateScatterAcceleration(ma);
 }
 
@@ -167,39 +167,39 @@ void ChIntegrableIIorder::StateIncrement(ChState& y_new,         // resulting y_
                                          const ChState& y,       // initial state y
                                          const ChStateDelta& Dy  // state increment Dy
                                          ) {
-    if (y.size() == GetNcoords_x()) {
+    if (y.size() == GetNumCoordinatesPos()) {
         // Incrementing the x part only, user provided only x  in y={x, dx/dt}
         StateIncrementX(y_new, y, Dy);
 
         return;
     }
 
-    if (y.size() == GetNcoords_y()) {
+    if (y.size() == (GetNumCoordinatesPos() + GetNumCoordinatesVel())) {
         // Incrementing y in y={x, dx/dt}.
         // PERFORMANCE WARNING! temporary vectors allocated on heap.
         // This is only to support compatibility with 1st order integrators.
-        ChState mx(GetNcoords_x(), y.GetIntegrable());
-        ChStateDelta mv(GetNcoords_v(), y.GetIntegrable());
-        mx = y.segment(0, GetNcoords_x());
-        mv = y.segment(GetNcoords_x(), GetNcoords_v());
+        ChState mx(GetNumCoordinatesPos(), y.GetIntegrable());
+        ChStateDelta mv(GetNumCoordinatesVel(), y.GetIntegrable());
+        mx = y.segment(0, GetNumCoordinatesPos());
+        mv = y.segment(GetNumCoordinatesPos(), GetNumCoordinatesVel());
 
-        ChStateDelta mDx(GetNcoords_v(), y.GetIntegrable());
-        ChStateDelta mDv(GetNcoords_a(), y.GetIntegrable());
-        mDx = Dy.segment(0, GetNcoords_v());
-        mDv = Dy.segment(GetNcoords_v(), GetNcoords_a());
+        ChStateDelta mDx(GetNumCoordinatesVel(), y.GetIntegrable());
+        ChStateDelta mDv(GetNumCoordinatesVel(), y.GetIntegrable());
+        mDx = Dy.segment(0, GetNumCoordinatesVel());
+        mDv = Dy.segment(GetNumCoordinatesVel(), GetNumCoordinatesVel());
         
-        ChState mx_new(GetNcoords_x(), y.GetIntegrable());
-        ChStateDelta mv_new(GetNcoords_v(), y.GetIntegrable());
+        ChState mx_new(GetNumCoordinatesPos(), y.GetIntegrable());
+        ChStateDelta mv_new(GetNumCoordinatesVel(), y.GetIntegrable());
         StateIncrementX(mx_new, mx, mDx);  // increment positions
         mv_new = mv + mDv;                 // increment speeds
 
-        y_new.segment(0, GetNcoords_x()) = mx_new;
-        y_new.segment(GetNcoords_x(), GetNcoords_v()) = mv_new;
+        y_new.segment(0, GetNumCoordinatesPos()) = mx_new;
+        y_new.segment(GetNumCoordinatesPos(), GetNumCoordinatesVel()) = mv_new;
     
         return;
     }
 
-    throw ChException("StateIncrement() called with a wrong number of elements");
+    throw std::runtime_error("StateIncrement() called with a wrong number of elements");
 }
 
 bool ChIntegrableIIorder::StateSolve(ChStateDelta& dydt,        // result: computed dydt
@@ -211,19 +211,19 @@ bool ChIntegrableIIorder::StateSolve(ChStateDelta& dydt,        // result: compu
                                      bool full_update,          // if true, perform a full update during scatter
                                      ChLumpingParms* lumping    // if not null, uses lumped masses to avoid inverting a mass matrix, and uses penalty for constraints.
 ) {
-    ChState mx(GetNcoords_x(), y.GetIntegrable());
-    ChStateDelta mv(GetNcoords_v(), y.GetIntegrable());
-    mx = y.segment(0, GetNcoords_x());
-    mv = y.segment(GetNcoords_x(), GetNcoords_v());
+    ChState mx(GetNumCoordinatesPos(), y.GetIntegrable());
+    ChStateDelta mv(GetNumCoordinatesVel(), y.GetIntegrable());
+    mx = y.segment(0, GetNumCoordinatesPos());
+    mv = y.segment(GetNumCoordinatesPos(), GetNumCoordinatesVel());
 
     // Solve with custom II order solver
-    ChStateDelta ma(GetNcoords_v(), y.GetIntegrable());
+    ChStateDelta ma(GetNumCoordinatesVel(), y.GetIntegrable());
     if (!StateSolveA(ma, L, mx, mv, T, dt, force_state_scatter, full_update, lumping)) {
         return false;
     }
 
-    dydt.segment(0, GetNcoords_v()) = mv;
-    dydt.segment(GetNcoords_v(), GetNcoords_v()) = ma;
+    dydt.segment(0, GetNumCoordinatesVel()) = mv;
+    dydt.segment(GetNumCoordinatesVel(), GetNumCoordinatesVel()) = ma;
 
     return true;
 }

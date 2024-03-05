@@ -160,7 +160,7 @@ class CH_VEHICLE_API ChJSONWriter {
     ChJSONWriter& operator<<(const std::string& v);
     ChJSONWriter& operator<<(unsigned long v);
     ChJSONWriter& operator<<(unsigned long long v);
-    ChJSONWriter& operator<<(ChVector<> v);
+    ChJSONWriter& operator<<(ChVector3d v);
     ChJSONWriter& operator<<(ChQuaternion<> v);
     ChJSONWriter& operator<<(ChJSONWriter&) { return *this; }
 

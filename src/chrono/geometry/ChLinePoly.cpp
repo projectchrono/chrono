@@ -15,7 +15,7 @@
 #include "chrono/geometry/ChLinePoly.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinePoly)
@@ -37,14 +37,14 @@ int ChLinePoly::Get_degree() const {
     return degree;
 }
 
-ChVector<> ChLinePoly::Get_point(size_t mnum) const {
+ChVector3d ChLinePoly::Get_point(size_t mnum) const {
     if (mnum >= Get_numpoints())
         return VNULL;
 
     return points[mnum];
 }
 
-bool ChLinePoly::Set_point(int mnum, ChVector<> mpoint) {
+bool ChLinePoly::Set_point(int mnum, ChVector3d mpoint) {
     if (mnum >= Get_numpoints())
         return false;
 
@@ -57,7 +57,7 @@ bool ChLinePoly::Set_point(int mnum, ChVector<> mpoint) {
 // Curve evaluation.
 //
 
-ChVector<> ChLinePoly::Evaluate(double parU) const {
+ChVector3d ChLinePoly::Evaluate(double parU) const {
     double par = parU;
 
     if (par < 0)
@@ -90,55 +90,25 @@ double ChLinePoly::Length(int sampling) const {
     return ChLine::Length(1);
 }
 
-// Draw into the current graph viewport of a ChFile_ps file
-bool ChLinePoly::DrawPostscript(ChFile_ps* mfle, int markpoints, int bezier_interpolate) {
-    ChVector2<> mp1;
-    ChVector<> mv1;
-
-    mfle->GrSave();
-    mfle->ClipRectangle(mfle->Get_G_p(), mfle->Get_Gs_p(), ChFile_ps::Space::PAGE);
-    // start a line, move cursor to beginning
-    mfle->StartLine();
-    mp1.x() = Get_point(0).x();
-    mp1.y() = Get_point(0).y();
-    mp1 = mfle->To_page_from_graph(mp1);
-    mfle->MoveTo(mp1);
-    // add points into line
-    for (int i = 1; i < this->Get_numpoints(); i++) {
-        mv1 = Get_point(i);
-        mp1.x() = mv1.x();
-        mp1.y() = mv1.y();
-        mp1 = mfle->To_page_from_graph(mp1);
-        mfle->AddLinePoint(mp1);
-    }
-    if (this->Get_closed())
-        mfle->CloseLine();  // if periodic curve, close it
-
-    mfle->PaintStroke();  // draw it!
-    mfle->GrRestore();    // restore old modes, with old clipping
-
-    return true;
-}
-
-void ChLinePoly::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinePoly::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinePoly>();
+    archive_out.VersionWrite<ChLinePoly>();
     // serialize parent class
-    ChLine::ArchiveOut(marchive);
+    ChLine::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(points);
-    marchive << CHNVP(degree);
+    archive_out << CHNVP(points);
+    archive_out << CHNVP(degree);
 }
 
-void ChLinePoly::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinePoly::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinePoly>();
+    /*int version =*/ archive_in.VersionRead<ChLinePoly>();
     // deserialize parent class
-    ChLine::ArchiveIn(marchive);
+    ChLine::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(points);
-    marchive >> CHNVP(degree);
+    archive_in >> CHNVP(points);
+    archive_in >> CHNVP(degree);
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

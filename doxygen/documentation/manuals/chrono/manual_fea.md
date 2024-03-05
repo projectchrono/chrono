@@ -91,10 +91,10 @@ The following example illustrates it.
 ~~~{.cpp}
     // Create some point-like nodes with x,y,z degrees of freedom
     // While creating them, also set X0 undeformed positions.
-    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 0));
-    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0, 1));
-    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 1, 0));
-    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(1, 0, 0));
+    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3<>(0, 0, 0));
+    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3<>(0, 0, 1));
+    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3<>(0, 1, 0));
+    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3<>(1, 0, 0));
     
     // Remember to add nodes and elements to the mesh!
     my_mesh->AddNode(mnode1);
@@ -113,7 +113,7 @@ The following example illustrates it.
     mnode2->SetMass(0.01); 
 
     // For example, set an applied force to a node:
-    mnode2->SetForce(ChVector<>(0, 5, 0));
+    mnode2->SetForce(ChVector3<>(0, 5, 0));
 ~~~
 
 ## 3) Create a material

@@ -21,6 +21,7 @@
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono/core/ChMatrix33.h"
+#include "chrono/core/ChRotation.h"
 
 namespace chrono {
 namespace vehicle {
@@ -57,23 +58,23 @@ class CH_VEHICLE_API ChWorldFrame {
     static const ChQuaternion<>& Quaternion();
 
     /// Get the vertical direction of the world frame.
-    static const ChVector<>& Vertical();
+    static const ChVector3d& Vertical();
 
     /// Get the forward direction of the world frame.
-    static const ChVector<>& Forward();
+    static const ChVector3d& Forward();
 
     /// Re-express a vector from the current world frame into the ISO frame.
-    static ChVector<> ToISO(const ChVector<>& v);
+    static ChVector3d ToISO(const ChVector3d& v);
 
     /// Re-express a vector from the ISO frame to the current world frame.
-    static ChVector<> FromISO(const ChVector<>& v);
+    static ChVector3d FromISO(const ChVector3d& v);
 
     /// Get the height of a given vector in the current world frame (i.e., the projection of the vector onto the
     /// vertical direction).
-    static double Height(const ChVector<>& v);
+    static double Height(const ChVector3d& v);
 
     /// Project a given vector onto the horizontal plane of the world frame.
-    static void Project(ChVector<>& v);
+    static void Project(ChVector3d& v);
 
   private:
     /// Default world frame is ISO, corresonding to an identity rotation.
@@ -87,8 +88,8 @@ class CH_VEHICLE_API ChWorldFrame {
 
     ChMatrix33<> m_rot;     ///< world frame orientation (relative to ISO) as rotation matrix
     ChQuaternion<> m_quat;  ///< world frame orientation (relative to ISO) as quaternion
-    ChVector<> m_vertical;  ///< vertical direction of the world frame
-    ChVector<> m_forward;   ///< forward direction of the world frame
+    ChVector3d m_vertical;  ///< vertical direction of the world frame
+    ChVector3d m_forward;   ///< forward direction of the world frame
     bool m_ISO;             ///< flag indicating whther or not the world frame is ISO
 };
 

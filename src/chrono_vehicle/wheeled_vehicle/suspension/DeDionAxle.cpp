@@ -38,7 +38,7 @@ DeDionAxle::DeDionAxle(const std::string& filename) : ChDeDionAxle(""), m_spring
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 DeDionAxle::DeDionAxle(const rapidjson::Document& d) : ChDeDionAxle(""), m_springForceCB(NULL), m_shockForceCB(NULL) {

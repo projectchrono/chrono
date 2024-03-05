@@ -35,10 +35,10 @@ const double MAN_7t_Solid3LinkAxle::m_axleTubeRadius = 0.0476;
 const double MAN_7t_Solid3LinkAxle::m_spindleRadius = 0.10;
 const double MAN_7t_Solid3LinkAxle::m_spindleWidth = 0.06;
 
-const ChVector<> MAN_7t_Solid3LinkAxle::m_axleTubeInertia(329.00, 16.46, 330.00);
-const ChVector<> MAN_7t_Solid3LinkAxle::m_spindleInertia(0.04117 * 6.56, 0.07352 * 6.56, 0.04117 * 6.56);
-const ChVector<> MAN_7t_Solid3LinkAxle::m_triangleInertia(0.2, 0.2, 0.2);
-const ChVector<> MAN_7t_Solid3LinkAxle::m_linkInertia(0.05, 0.1, 0.1);
+const ChVector3d MAN_7t_Solid3LinkAxle::m_axleTubeInertia(329.00, 16.46, 330.00);
+const ChVector3d MAN_7t_Solid3LinkAxle::m_spindleInertia(0.04117 * 6.56, 0.07352 * 6.56, 0.04117 * 6.56);
+const ChVector3d MAN_7t_Solid3LinkAxle::m_triangleInertia(0.2, 0.2, 0.2);
+const ChVector3d MAN_7t_Solid3LinkAxle::m_linkInertia(0.05, 0.1, 0.1);
 
 const double MAN_7t_Solid3LinkAxle::m_springDesignLength = 0.499924994;
 const double MAN_7t_Solid3LinkAxle::m_springCoefficient1 = 178892.0;  // linear
@@ -74,7 +74,7 @@ class MAN_7t_SpringForceRear : public ChLinkTSDA::ForceFunctor {
     double m_max_length;
     double m_scale;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionInterp m_bump;
 };
 
 MAN_7t_SpringForceRear::MAN_7t_SpringForceRear(double spring_constant1,
@@ -119,7 +119,7 @@ double MAN_7t_SpringForceRear::evaluate(double time,
     }
 
     force = m_scale * (defl_spring * m_spring_constant1 + defl_spring * std::abs(defl_spring) * m_spring_constant2) +
-            m_bump.Get_y(defl_bump) - m_bump.Get_y(defl_rebound);
+            m_bump.GetVal(defl_bump) - m_bump.GetVal(defl_rebound);
 
     return force;
 }
@@ -137,28 +137,28 @@ MAN_7t_Solid3LinkAxle::MAN_7t_Solid3LinkAxle(const std::string& name) : ChSolidT
 // -----------------------------------------------------------------------------
 MAN_7t_Solid3LinkAxle::~MAN_7t_Solid3LinkAxle() {}
 
-const ChVector<> MAN_7t_Solid3LinkAxle::getLocation(PointId which) {
+const ChVector3d MAN_7t_Solid3LinkAxle::getLocation(PointId which) {
     switch (which) {
         case SPRING_A:
-            return ChVector<>(0.000, 0.655, 0.090);
+            return ChVector3d(0.000, 0.655, 0.090);
         case SPRING_C:
-            return ChVector<>(0.000, 0.585, 0.585);
+            return ChVector3d(0.000, 0.585, 0.585);
         case SHOCK_A:
-            return ChVector<>(-0.246, 0.688, -0.125);
+            return ChVector3d(-0.246, 0.688, -0.125);
         case SHOCK_C:
-            return ChVector<>(-0.250, 0.562, 0.570);
+            return ChVector3d(-0.250, 0.562, 0.570);
         case SPINDLE:
-            return ChVector<>(0.0, 2.07 / 2.0, 0.0);
+            return ChVector3d(0.0, 2.07 / 2.0, 0.0);
         case TRIANGLE_A:
-            return ChVector<>(0.000, 0.000, 0.260);
+            return ChVector3d(0.000, 0.000, 0.260);
         case TRIANGLE_C:
-            return ChVector<>(-0.762, 0.420, 0.100);
+            return ChVector3d(-0.762, 0.420, 0.100);
         case LINK_A:
-            return ChVector<>(0.115, 0.688, -0.090);
+            return ChVector3d(0.115, 0.688, -0.090);
         case LINK_C:
-            return ChVector<>(1.139, 0.400, 0.100);
+            return ChVector3d(1.139, 0.400, 0.100);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

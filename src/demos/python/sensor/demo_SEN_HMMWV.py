@@ -39,7 +39,7 @@ def main():
     hmmwv.SetContactMethod(contact_method)
     hmmwv.SetChassisCollisionType(chassis_collision_type)
     hmmwv.SetChassisFixed(False)
-    hmmwv.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
+    hmmwv.SetInitPosition(chrono.ChCoordsysd(initLoc, initRot))
     hmmwv.SetEngineType(engine_model)
     hmmwv.SetTransmissionType(transmission_model)
     hmmwv.SetDriveType(drive_type)
@@ -60,11 +60,11 @@ def main():
 
     terrain = veh.RigidTerrain(hmmwv.GetSystem())
     if (contact_method == chrono.ChContactMethod_NSC):
-        patch_mat = chrono.ChMaterialSurfaceNSC()
+        patch_mat = chrono.ChContactMaterialNSC()
         patch_mat.SetFriction(0.9)
         patch_mat.SetRestitution(0.01)
     elif (contact_method == chrono.ChContactMethod_SMC):
-        patch_mat = chrono.ChMaterialSurfaceSMC()
+        patch_mat = chrono.ChContactMaterialSMC()
         patch_mat.SetFriction(0.9)
         patch_mat.SetRestitution(0.01)
         patch_mat.SetYoungModulus(2e7)
@@ -133,7 +133,7 @@ def main():
     # Create a sensor manager and add a point light
     # ---------------------------------------------
     manager = sens.ChSensorManager(hmmwv.GetSystem())
-    manager.scene.AddPointLight(chrono.ChVectorF(
+    manager.scene.AddPointLight(chrono.ChVector3f(
         0, 0, 100), chrono.ChColor(2, 2, 2), 5000)
 
     # ------------------------------------------------
@@ -143,7 +143,7 @@ def main():
     lag = 0
     update_rate = 5
     exposure_time = 1/update_rate
-    offset_pose = chrono.ChFrameD(chrono.ChVectorD(-5, 0, 2))
+    offset_pose = chrono.ChFramed(chrono.ChVector3d(-5, 0, 2))
     cam = sens.ChCameraSensor(
         hmmwv.GetChassisBody(),              # body camera is attached to
         update_rate,            # update rate in Hz
@@ -171,8 +171,8 @@ def main():
     # ----------------------------------------------
     # Create an IMU sensor and add it to the manager
     # ----------------------------------------------
-    offset_pose = chrono.ChFrameD(
-        chrono.ChVectorD(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0)))
+    offset_pose = chrono.ChFramed(
+        chrono.ChVector3d(-8, 0, 1), chrono.QuatFromAngleAxis(0, chrono.ChVector3d(0, 1, 0)))
     imu = sens.ChAccelerometerSensor(hmmwv.GetChassisBody(),                     # body imu is attached to
                                      imu_update_rate,         # update rate in Hz
                                      offset_pose,             # offset pose
@@ -191,8 +191,8 @@ def main():
     # ----------------------------------------------
     # Create an GPS sensor and add it to the manager
     # ----------------------------------------------
-    offset_pose = chrono.ChFrameD(
-        chrono.ChVectorD(-8, 0, 1), chrono.Q_from_AngAxis(0, chrono.ChVectorD(0, 1, 0)))
+    offset_pose = chrono.ChFramed(
+        chrono.ChVector3d(-8, 0, 1), chrono.QuatFromAngleAxis(0, chrono.ChVector3d(0, 1, 0)))
     gps = sens.ChGPSSensor(hmmwv.GetChassisBody(),                     # body imu is attached to
                            gps_update_rate,       # update rate in Hz
                            offset_pose,             # offset pose
@@ -229,9 +229,9 @@ def main():
             # hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS)
 
             marker_driver = hmmwv.GetChassis().GetMarkers()[
-                0].GetAbsCoord().pos
+                0].GetAbsCsys().pos
             marker_com = hmmwv.GetChassis().GetMarkers()[
-                1].GetAbsCoord().pos
+                1].GetAbsCsys().pos
             print("Markers\n")
             print("  Driver loc:      ", marker_driver.x,
                   " ", marker_driver.y, " ", marker_driver.z)
@@ -291,7 +291,7 @@ gps_collection_time = 1. / float(gps_update_rate)
 
 # GPS reference point
 # Located in Madison, WI
-gps_reference = chrono.ChVectorD(-89.400, 43.070, 260.0)
+gps_reference = chrono.ChVector3d(-89.400, 43.070, 260.0)
 
 # IMU and GPS noise models
 # Setting to none (does not affect the data)
@@ -309,8 +309,8 @@ gps_noise_none = sens.ChNoiseNone()
 veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location and orientation
-initLoc = chrono.ChVectorD(0, 0, 1.6)
-initRot = chrono.ChQuaternionD(1, 0, 0, 0)
+initLoc = chrono.ChVector3d(0, 0, 1.6)
+initRot = chrono.ChQuaterniond(1, 0, 0, 0)
 
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 chassis_vis_type = veh.VisualizationType_MESH
@@ -342,7 +342,7 @@ terrainLength = 100.0  # size in X direction
 terrainWidth = 100.0   # size in Y direction
 
 # Point on chassis tracked by the camera
-trackPoint = chrono.ChVectorD(0.0, 0.0, 1.75)
+trackPoint = chrono.ChVector3d(0.0, 0.0, 1.75)
 
 # Contact method
 contact_method = chrono.ChContactMethod_SMC

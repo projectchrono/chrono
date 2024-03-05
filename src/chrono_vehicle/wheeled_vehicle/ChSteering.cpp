@@ -31,7 +31,7 @@ ChSteering::~ChSteering() {
 }
 
 void ChSteering::Initialize(std::shared_ptr<ChChassis> chassis,
-                            const ChVector<>& location,
+                            const ChVector3d& location,
                             const ChQuaternion<>& rotation) {
     // Mark as initialized
     m_initialized = true;

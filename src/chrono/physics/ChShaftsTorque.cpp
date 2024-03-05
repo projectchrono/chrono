@@ -28,23 +28,23 @@ double ChShaftsTorque::ComputeTorque() {
     return torque;
 }
 
-void ChShaftsTorque::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsTorque::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsTorque>();
+    archive_out.VersionWrite<ChShaftsTorque>();
 
     // serialize parent class
-    ChShaftsTorqueBase::ArchiveOut(marchive);
+    ChShaftsTorqueBase::ArchiveOut(archive_out);
 
     // serialize all member data:
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsTorque::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsTorque::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsTorque>();
+    /*int version =*/ archive_in.VersionRead<ChShaftsTorque>();
 
     // deserialize parent class:
-    ChShaftsTorqueBase::ArchiveIn(marchive);
+    ChShaftsTorqueBase::ArchiveIn(archive_in);
 
     // deserialize all member data:
 }

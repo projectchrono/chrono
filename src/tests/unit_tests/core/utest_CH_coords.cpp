@@ -18,8 +18,6 @@
 
 #include <cmath>
 
-#include "chrono/core/ChLog.h"
-#include "chrono/core/ChTransform.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/core/ChFrameMoving.h"
 #include "chrono/core/ChTimer.h"
@@ -32,23 +30,23 @@ using namespace chrono;
 
 const double ABS_ERR = 1e-10;
 
-void check_vector(const ChVector<>& v1, const ChVector<>& v2, double tol) {
+void check_vector(const ChVector3d& v1, const ChVector3d& v2, double tol) {
     ASSERT_NEAR(v1.x(), v2.x(), tol);
     ASSERT_NEAR(v1.y(), v2.y(), tol);
     ASSERT_NEAR(v1.z(), v2.z(), tol);
 }
 
 TEST(CoordsTest, local_to_global) {
-    ChVector<> vtraslA(5, 6, 7);         // origin of local frame w.r.t. global frame
+    ChVector3d vtraslA(5, 6, 7);         // origin of local frame w.r.t. global frame
     ChQuaternion<> qrotA(1, 3, 4, 5);    // rotation of local frame w.r.t. global frame
     qrotA.Normalize();                   // quaternion must be normalized to represent a rotation
     ChMatrix33<> mrotA(qrotA);           // corresponding rotation matrix
     ChCoordsys<> csysA(vtraslA, qrotA);  // corresponding coordinate system (translation + rotation)
     ChFrame<> frameA(vtraslA, qrotA);    // corresponding frame
 
-    ChVector<> vG_ref(7.5882352941, 9.0000000000, 10.6470588235);  // reference
-    ChVector<> vL(2, 3, 4);                                        // point in local frame
-    ChVector<> vG;                                                 // point in global frame (computed)
+    ChVector3d vG_ref(7.5882352941, 9.0000000000, 10.6470588235);  // reference
+    ChVector3d vL(2, 3, 4);                                        // point in local frame
+    ChVector3d vG;                                                 // point in global frame (computed)
 
     vG = vtraslA + mrotA * vL;  // like:  v2 = t + [A]*v1
     cout << vG << " ..using linear algebra \n";
@@ -58,19 +56,11 @@ TEST(CoordsTest, local_to_global) {
     cout << vG << " ..using quaternion rotation \n";
     check_vector(vG, vG_ref, ABS_ERR);
 
-    vG = ChTransform<>::TransformLocalToParent(vL, vtraslA, mrotA);
-    cout << vG << " ..using the ChTransform- vect and rot.matrix \n";
-    check_vector(vG, vG_ref, ABS_ERR);
-
-    vG = ChTransform<>::TransformLocalToParent(vL, vtraslA, qrotA);
-    cout << vG << " ..using the ChTransform- vect and quat \n";
-    check_vector(vG, vG_ref, ABS_ERR);
-
-    vG = csysA.TransformLocalToParent(vL);
+    vG = csysA.TransformPointLocalToParent(vL);
     cout << vG << " ..using a ChChCoordsys<> object \n";
     check_vector(vG, vG_ref, ABS_ERR);
 
-    vG = frameA.TransformLocalToParent(vL);
+    vG = frameA.TransformPointLocalToParent(vL);
     cout << vG << " ..using a ChFrame object function \n";
     check_vector(vG, vG_ref, ABS_ERR);
 
@@ -84,16 +74,16 @@ TEST(CoordsTest, local_to_global) {
 }
 
 TEST(CoordsTest, global_to_local) {
-    ChVector<> vtraslA(5, 6, 7);         // origin of local frame w.r.t. global frame
+    ChVector3d vtraslA(5, 6, 7);         // origin of local frame w.r.t. global frame
     ChQuaternion<> qrotA(1, 3, 4, 5);    // rotation of local frame w.r.t. global frame
     qrotA.Normalize();                   // quaternion must be normalized to represent a rotation
     ChMatrix33<> mrotA(qrotA);           // corresponding rotation matrix
     ChCoordsys<> csysA(vtraslA, qrotA);  // corresponding coordinate system (translation + rotation)
     ChFrame<> frameA(vtraslA, qrotA);    // corresponding frame
 
-    ChVector<> vL_ref(2, 3, 4);                // point in local frame
-    ChVector<> vG = vtraslA + mrotA * vL_ref;  // point in global frame
-    ChVector<> vL;                             // point in local frame (computed)
+    ChVector3d vL_ref(2, 3, 4);                // point in local frame
+    ChVector3d vG = vtraslA + mrotA * vL_ref;  // point in global frame
+    ChVector3d vL;                             // point in local frame (computed)
 
     vL = mrotA.transpose() * (vG - vtraslA);  // like:  v1 = [A]'*(v2-t)
     cout << vL << " ..inv, using linear algebra \n";
@@ -103,19 +93,11 @@ TEST(CoordsTest, global_to_local) {
     cout << vL << " ..inv, using quaternion rotation \n";
     check_vector(vL, vL_ref, ABS_ERR);
 
-    vL = ChTransform<>::TransformParentToLocal(vG, vtraslA, mrotA);
-    cout << vL << " ..inv, using the ChTransform- vect and rot.matrix \n";
-    check_vector(vL, vL_ref, ABS_ERR);
-
-    vL = ChTransform<>::TransformParentToLocal(vG, vtraslA, qrotA);
-    cout << vL << " ..inv, using the ChTransform- vect and quat \n";
-    check_vector(vL, vL_ref, ABS_ERR);
-
-    vL = csysA.TransformParentToLocal(vG);
+    vL = csysA.TransformPointParentToLocal(vG);
     cout << vL << " ..inv, using a ChChCoordsys<> object \n";
     check_vector(vL, vL_ref, ABS_ERR);
 
-    vL = frameA.TransformParentToLocal(vG);
+    vL = frameA.TransformPointParentToLocal(vG);
     cout << vL << " ..inv, using a ChFrame object function \n";
     check_vector(vL, vL_ref, ABS_ERR);
 
@@ -139,17 +121,17 @@ TEST(CoordsTest, global_to_local) {
 }
 
 TEST(CoordsTest, local_to_global_3frames) {
-    ChVector<> v10(5, 6, 7);
+    ChVector3d v10(5, 6, 7);
     ChQuaternion<> q10(1, 3, 4, 5);
     q10.Normalize();
     ChMatrix33<> m10(q10);
 
-    ChVector<> v21(4, 1, 3);
+    ChVector3d v21(4, 1, 3);
     ChQuaternion<> q21(3, 2, 1, 5);
     q21.Normalize();
     ChMatrix33<> m21(q21);
 
-    ChVector<> v32(1, 5, 1);
+    ChVector3d v32(1, 5, 1);
     ChQuaternion<> q32(4, 1, 3, 1);
     q32.Normalize();
     ChMatrix33<> m32(q32);
@@ -158,9 +140,9 @@ TEST(CoordsTest, local_to_global_3frames) {
     ChFrame<> f21(v21, q21);
     ChFrame<> f32(v32, q32);
 
-    ChVector<> mvect1(2, 3, 4);                                         // point in frame 1
-    ChVector<> mvect3_ref(14.7344468652, 11.5843621399, 7.5930767369);  // point in frame 3
-    ChVector<> mvect3;                                                  // point in frame 3 (computed)
+    ChVector3d mvect1(2, 3, 4);                                         // point in frame 1
+    ChVector3d mvect3_ref(14.7344468652, 11.5843621399, 7.5930767369);  // point in frame 3
+    ChVector3d mvect3;                                                  // point in frame 3 (computed)
 
     mvect3 = v10 + m10 * (v21 + m21 * (v32 + m32 * mvect1));
     printf("%16.10f  %16.10f  %16.10f\n", mvect3.x(), mvect3.y(), mvect3.z());
@@ -197,17 +179,17 @@ TEST(CoordsTest, local_to_global_3frames) {
 }
 
 TEST(CoordsTest, global_to_local_3frames) {
-    ChVector<> v10(5, 6, 7);
+    ChVector3d v10(5, 6, 7);
     ChQuaternion<> q10(1, 3, 4, 5);
     q10.Normalize();
     ChMatrix33<> m10(q10);
 
-    ChVector<> v21(4, 1, 3);
+    ChVector3d v21(4, 1, 3);
     ChQuaternion<> q21(3, 2, 1, 5);
     q21.Normalize();
     ChMatrix33<> m21(q21);
 
-    ChVector<> v32(1, 5, 1);
+    ChVector3d v32(1, 5, 1);
     ChQuaternion<> q32(4, 1, 3, 1);
     q32.Normalize();
     ChMatrix33<> m32(q32);
@@ -216,9 +198,9 @@ TEST(CoordsTest, global_to_local_3frames) {
     ChFrame<> f21(v21, q21);
     ChFrame<> f32(v32, q32);
 
-    ChVector<> mvect1_ref(2, 3, 4);                    // point in frame 1
-    ChVector<> mvect3 = f10 * f21 * f32 * mvect1_ref;  // point in frame 3
-    ChVector<> mvect1;                                 // point in frame 1 (computed)
+    ChVector3d mvect1_ref(2, 3, 4);                    // point in frame 1
+    ChVector3d mvect3 = f10 * f21 * f32 * mvect1_ref;  // point in frame 3
+    ChVector3d mvect1;                                 // point in frame 1 (computed)
 
     mvect1 = (f10 * f21 * f32).GetInverse() * mvect3;  // inverse transf.
     cout << mvect1 << " ..inv three transf \n";

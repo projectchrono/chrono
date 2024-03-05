@@ -53,7 +53,7 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     virtual ChCoordsys<> GetLocalDriverCoordsys() const = 0;
 
     /// Get the location (in the local frame of this chassis) of the connection to a rear chassis.
-    virtual const ChVector<> GetLocalPosRearConnector() const { return ChVector<>(0); }
+    virtual const ChVector3d GetLocalPosRearConnector() const { return ChVector3d(0); }
 
     /// Get a handle to the vehicle's chassis body.
     std::shared_ptr<ChBodyAuxRef> GetBody() const { return m_body; }
@@ -62,14 +62,14 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     ChSystem* GetSystem() const { return m_body->GetSystem(); }
 
     /// Get the global location of the chassis reference frame origin.
-    const ChVector<>& GetPos() const;
+    const ChVector3d& GetPos() const;
 
     /// Get the orientation of the chassis reference frame.
     /// Returns a rotation with respect to the global reference frame.
     ChQuaternion<> GetRot() const;
 
     /// Get the global location of the driver.
-    ChVector<> GetDriverPos() const;
+    ChVector3d GetDriverPos() const;
 
     /// Get the vehicle speed.
     /// Return the speed measured at the origin of the chassis reference frame.
@@ -98,17 +98,17 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Get the global position of the specified point.
     /// The point is assumed to be given relative to the chassis reference frame.
     /// The returned location is expressed in the global reference frame.
-    ChVector<> GetPointLocation(const ChVector<>& locpos) const;
+    ChVector3d GetPointLocation(const ChVector3d& locpos) const;
 
     /// Get the global velocity of the specified point.
     /// The point is assumed to be given relative to the chassis reference frame.
     /// The returned velocity is expressed in the global reference frame.
-    ChVector<> GetPointVelocity(const ChVector<>& locpos) const;
+    ChVector3d GetPointVelocity(const ChVector3d& locpos) const;
 
     /// Get the acceleration at the specified point.
     /// The point is assumed to be given relative to the chassis reference frame.
     /// The returned acceleration is expressed in the chassis reference frame.
-    ChVector<> GetPointAcceleration(const ChVector<>& locpos) const;
+    ChVector3d GetPointAcceleration(const ChVector3d& locpos) const;
 
     /// Initialize the chassis at the specified global position and orientation.
     /// The initial position and forward velocity are assumed to be given in the current world frame.
@@ -135,7 +135,7 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Add a marker on the chassis body at the specified position (relative to the chassis reference frame).
     /// If called before initialization, this function has no effect.
     void AddMarker(const std::string& name,  ///< [in] marker name
-                   const ChCoordsys<>& pos   ///< [in] marker position relative to chassis reference frame
+                   const ChFrame<>& frame    ///< [in] marker position relative to chassis reference frame
     );
 
     const std::vector<std::shared_ptr<ChMarker>>& GetMarkers() const { return m_markers; }
@@ -168,9 +168,9 @@ class CH_VEHICLE_API ChChassis : public ChPart {
         /// body, both assumed to be provided in the chassis body local frame.
         virtual void Update(double time,
                             const ChChassis& chassis,
-                            ChVector<>& force,
-                            ChVector<>& point,
-                            ChVector<>& torque) {}
+                            ChVector3d& force,
+                            ChVector3d& point,
+                            ChVector3d& torque) {}
 
         std::string m_name;
     };
@@ -213,7 +213,7 @@ class CH_VEHICLE_API ChChassisRear : public ChChassis {
     virtual ~ChChassisRear() {}
 
     /// Get the location (in the local frame of this chassis) of the connection to the front chassis.
-    virtual const ChVector<>& GetLocalPosFrontConnector() const = 0;
+    virtual const ChVector3d& GetLocalPosFrontConnector() const = 0;
 
     /// Initialize the rear chassis relative to the specified front chassis.
     /// The orientation is set to be the same as that of the front chassis while the location is based on the connector

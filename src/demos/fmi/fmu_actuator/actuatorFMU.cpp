@@ -24,10 +24,16 @@
 
 using namespace chrono;
 
-FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID)
-    : FmuChronoComponentBase(_instanceName, _fmuType, _fmuGUID) {
+FmuComponent::FmuComponent(fmi2String instanceName,
+                           fmi2Type fmuType,
+                           fmi2String fmuGUID,
+                           fmi2String fmuResourceLocation,
+                           const fmi2CallbackFunctions* functions,
+                           fmi2Boolean visible,
+                           fmi2Boolean loggingOn)
+    : FmuChronoComponentBase(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn) {
     // Initialize FMU type
-    initializeType(_fmuType);
+    initializeType(fmuType);
 
     // Set initial values for FMU input variables
     init_F = 0;
@@ -56,11 +62,11 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
                    FmuVariable::CausalityType::output, FmuVariable::VariabilityType::continuous);  //
 
     // Set gravitational acceleration
-    ChVector<> Gacc(0, 0, -9.8);
+    ChVector3d Gacc(0, 0, -9.8);
     sys.Set_G_acc(Gacc);
 
     // Create the actuation object
-    m_actuation = chrono_types::make_shared<ChFunction_Setpoint>();
+    m_actuation = chrono_types::make_shared<ChFunctionSetpoint>();
 
     // Construct the hydraulic actuator
     m_actuator = chrono_types::make_shared<ChHydraulicActuator2>();
@@ -71,13 +77,13 @@ FmuComponent::FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2Stri
     sys.Add(m_actuator);
 
     // Specify functions to process input variables (at beginning of step)
-    preStepCallbacks.push_back([this]() { this->m_actuator->SetActuatorLength(s, sd); });
-    preStepCallbacks.push_back([this]() { this->m_actuation->SetSetpoint(Uref, this->GetTime()); });
+    m_preStepCallbacks.push_back([this]() { this->m_actuator->SetActuatorLength(s, sd); });
+    m_preStepCallbacks.push_back([this]() { this->m_actuation->SetSetpoint(Uref, this->GetTime()); });
 
     // Specify functions to calculate FMU outputs (at end of step)
-    postStepCallbacks.push_back([this]() { this->CalculateActuatorForce(); });
-    postStepCallbacks.push_back([this]() { this->CalculatePistonPressures(); });
-    postStepCallbacks.push_back([this]() { this->CalculateValvePosition(); });
+    m_postStepCallbacks.push_back([this]() { this->CalculateActuatorForce(); });
+    m_postStepCallbacks.push_back([this]() { this->CalculatePistonPressures(); });
+    m_postStepCallbacks.push_back([this]() { this->CalculateValvePosition(); });
 }
 
 void FmuComponent::CalculateActuatorForce() {
@@ -121,14 +127,14 @@ void FmuComponent::_exitInitializationMode() {
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
                                  fmi2Real communicationStepSize,
                                  fmi2Boolean noSetFMUStatePriorToCurrentPoint) {
-    while (time < currentCommunicationPoint + communicationStepSize) {
-        fmi2Real _stepSize = std::min((currentCommunicationPoint + communicationStepSize - time),
-                                      std::min(communicationStepSize, stepSize));
+    while (m_time < currentCommunicationPoint + communicationStepSize) {
+        fmi2Real step_size = std::min((currentCommunicationPoint + communicationStepSize - m_time),
+                                      std::min(communicationStepSize, m_stepSize));
 
-        sys.DoStepDynamics(_stepSize);
-        sendToLog("time: " + std::to_string(time) + "\n", fmi2Status::fmi2OK, "logAll");
+        sys.DoStepDynamics(step_size);
+        sendToLog("time: " + std::to_string(m_time) + "\n", fmi2Status::fmi2OK, "logAll");
 
-        time = time + _stepSize;
+        m_time += step_size;
     }
 
     return fmi2Status::fmi2OK;

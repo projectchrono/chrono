@@ -21,7 +21,7 @@
 
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/physics/ChLinkRackpinion.h"
+#include "chrono/physics/ChLinkMate.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
 
@@ -39,7 +39,7 @@ static const std::string ref_dir = "testing/joints/rackpinion_joint/";
 // =============================================================================
 // Prototypes of local functions
 //
-bool TestRackPinion(const ChVector<>& jointLoc,
+bool TestRackPinion(const ChVector3d& jointLoc,
                     const ChQuaternion<>& jointRot,
                     double simTimeStep,
                     double outTimeStep,
@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     // Pendulum Falls due to gravity.
 
     test_name = "RackPinion_Case01";
-    TestRackPinion(ChVector<>(0, 0, 0), QUNIT, sim_step, out_step, test_name);
+    TestRackPinion(ChVector3d(0, 0, 0), QUNIT, sim_step, out_step, test_name);
     // test_passed &= ValidateReference(test_name, "Pinion_Pos", 2e-3);
     // test_passed &= ValidateReference(test_name, "Pinion_Vel", 1e-4);
     // test_passed &= ValidateReference(test_name, "Pinion_Acc", 2e-2);
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     // test_passed &= ValidateEnergy(test_name, 1e-2);
 
     // Return 0 if all tests passed and 1 otherwise
-    std::cout << std::endl << "UNIT TEST: " << (test_passed ? "PASSED" : "FAILED") << std::endl;
+    std::cout << "\nUNIT TEST: " << (test_passed ? "PASSED" : "FAILED") << std::endl;
     return !test_passed;
 }
 
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
 //
 // Worker function for performing the simulation with specified parameters.
 //
-bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joint
+bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joint
                     const ChQuaternion<>& jointRot,  // orientation of joint
                     double simTimeStep,              // simulation time step
                     double outTimeStep,              // output time step
@@ -115,10 +115,10 @@ bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joi
 
     double massPinion = 1.0;                      // mass of pinion
     double radiusPinion = 0.1;                    // radius of pinion
-    ChVector<> inertiaXX_Pinion(0.1, 0.1, 0.04);  // mass moments of inertia of pinion (centroidal frame)
+    ChVector3d inertiaXX_Pinion(0.1, 0.1, 0.04);  // mass moments of inertia of pinion (centroidal frame)
 
     double massRack = 1.0;                      // mass of pendulum
-    ChVector<> inertiaXX_Rack(0.1, 0.1, 0.04);  // mass moments of inertia of pendulum (centroidal frame)
+    ChVector3d inertiaXX_Rack(0.1, 0.1, 0.04);  // mass moments of inertia of pendulum (centroidal frame)
     double g = 9.80665;
 
     double timeRecord = 5;  // simulation length
@@ -130,7 +130,7 @@ bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joi
     // handled by this ChSystem object.
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0.0, 0.0, -g));
+    sys.Set_G_acc(ChVector3d(0.0, 0.0, -g));
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverType(ChSolver::Type::PSOR);
@@ -147,14 +147,14 @@ bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joi
     auto pinion = chrono_types::make_shared<ChBody>();
     sys.AddBody(pinion);
     pinion->SetPos(jointLoc);
-    pinion->SetRot(Q_from_AngY(CH_C_PI_2));
+    pinion->SetRot(QuatFromAngleY(CH_C_PI_2));
     pinion->SetMass(massPinion);
     pinion->SetInertiaXX(inertiaXX_Pinion);
 
     // Create the rack body in an initial configuration at rest
     auto rack = chrono_types::make_shared<ChBody>();
     sys.AddBody(rack);
-    rack->SetPos(jointLoc + ChVector<>(0, radiusPinion, 0));
+    rack->SetPos(jointLoc + ChVector3d(0, radiusPinion, 0));
     rack->SetRot(QUNIT);
     rack->SetMass(massRack);
     rack->SetInertiaXX(inertiaXX_Rack);
@@ -163,20 +163,20 @@ bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joi
     // reference frame. The revolute joint's axis of rotation (Z) will be the
     // global x axis.
     auto revoluteJoint = chrono_types::make_shared<ChLinkLockRevolute>();
-    revoluteJoint->Initialize(pinion, ground, ChCoordsys<>(jointLoc, Q_from_AngY(CH_C_PI_2)));
+    revoluteJoint->Initialize(pinion, ground, ChFrame<>(jointLoc, QuatFromAngleY(CH_C_PI_2)));
     sys.AddLink(revoluteJoint);
 
     // Create prismatic joint between rack and ground at "loc" - Pinion Radius in the global
     // reference frame. The prismatic joint's axis of translation will be the Z axis
     // of the specified rotation matrix.
     auto prismaticJoint = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismaticJoint->Initialize(rack, ground, ChCoordsys<>(jointLoc + ChVector<>(0, -radiusPinion, 0), QUNIT));
+    prismaticJoint->Initialize(rack, ground, ChFrame<>(jointLoc + ChVector3d(0, -radiusPinion, 0), QUNIT));
     sys.AddLink(prismaticJoint);
 
     // Create the Rack and Pinion joint
-    auto rackpinionJoint = chrono_types::make_shared<ChLinkRackpinion>();
-    rackpinionJoint->Initialize(pinion, rack, false, ChFrame<>(jointLoc, Q_from_AngY(-CH_C_PI_2)),
-                                ChFrame<>(jointLoc + ChVector<>(0, 0, 0), Q_from_AngY(-CH_C_PI_2)));
+    auto rackpinionJoint = chrono_types::make_shared<ChLinkMateRackPinion>();
+    rackpinionJoint->Initialize(pinion, rack, false, ChFrame<>(jointLoc, QuatFromAngleY(-CH_C_PI_2)),
+                                ChFrame<>(jointLoc + ChVector3d(0, 0, 0), QuatFromAngleY(-CH_C_PI_2)));
     rackpinionJoint->SetPinionRadius(-radiusPinion);
     rackpinionJoint->SetAlpha(CH_C_PI_4);
     rackpinionJoint->SetBeta(0);
@@ -272,10 +272,10 @@ bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joi
 
     // Total energy at initial time.
     ChMatrix33<> inertiaPinion = pinion->GetInertia();
-    ChVector<> angVelLocPinion = pinion->GetWvel_loc();
+    ChVector3d angVelLocPinion = pinion->GetAngVelLocal();
     ChMatrix33<> inertiaRack = rack->GetInertia();
-    ChVector<> angVelLocRack = rack->GetWvel_loc();
-    double transKE = 0.5 * massPinion * pinion->GetPos_dt().Length2() + 0.5 * massRack * rack->GetPos_dt().Length2();
+    ChVector3d angVelLocRack = rack->GetAngVelLocal();
+    double transKE = 0.5 * massPinion * pinion->GetPosDer().Length2() + 0.5 * massRack * rack->GetPosDer().Length2();
     double rotKE = 0.5 * Vdot(angVelLocPinion, inertiaPinion * angVelLocPinion) +
                    0.5 * Vdot(angVelLocRack, inertiaRack * angVelLocRack);
     double deltaPE =
@@ -290,35 +290,35 @@ bool TestRackPinion(const ChVector<>& jointLoc,      // absolute location of joi
         // Ensure that the final data point is recorded.
         if (simTime >= outTime - simTimeStep / 2) {
             // CM position, velocity, and acceleration (expressed in global frame).
-            const ChVector<>& positionPinion = pinion->GetPos();
-            const ChVector<>& velocityPinion = pinion->GetPos_dt();
-            const ChVector<>& positionRack = rack->GetPos();
-            const ChVector<>& velocityRack = rack->GetPos_dt();
+            const ChVector3d& positionPinion = pinion->GetPos();
+            const ChVector3d& velocityPinion = pinion->GetPosDer();
+            const ChVector3d& positionRack = rack->GetPos();
+            const ChVector3d& velocityRack = rack->GetPosDer();
             out_posPinion << simTime << positionPinion << std::endl;
             out_velPinion << simTime << velocityPinion << std::endl;
-            out_accPinion << simTime << pinion->GetPos_dtdt() << std::endl;
+            out_accPinion << simTime << pinion->GetPosDer2() << std::endl;
 
             out_posRack << simTime << positionRack << std::endl;
             out_velRack << simTime << velocityRack << std::endl;
-            out_accRack << simTime << rack->GetPos_dtdt() << std::endl;
+            out_accRack << simTime << rack->GetPosDer2() << std::endl;
 
             // Orientation, angular velocity, and angular acceleration (expressed in
             // global frame).
             out_quatPinion << simTime << pinion->GetRot() << std::endl;
-            out_avelPinion << simTime << pinion->GetWvel_par() << std::endl;
-            out_aaccPinion << simTime << pinion->GetWacc_par() << std::endl;
+            out_avelPinion << simTime << pinion->GetAngVelParent() << std::endl;
+            out_aaccPinion << simTime << pinion->GetAngAccParent() << std::endl;
 
             out_quatRack << simTime << rack->GetRot() << std::endl;
-            out_avelRack << simTime << rack->GetWvel_par() << std::endl;
-            out_aaccRack << simTime << rack->GetWacc_par() << std::endl;
+            out_avelRack << simTime << rack->GetAngVelParent() << std::endl;
+            out_aaccRack << simTime << rack->GetAngAccParent() << std::endl;
 
             // Conservation of Energy
             // Translational Kinetic Energy (1/2*m*||v||^2)
             // Rotational Kinetic Energy (1/2 w'*I*w)
             // Delta Potential Energy (m*g*dz)
-            angVelLocPinion = pinion->GetWvel_loc();
-            angVelLocRack = rack->GetWvel_loc();
-            transKE = 0.5 * massPinion * pinion->GetPos_dt().Length2() + 0.5 * massRack * rack->GetPos_dt().Length2();
+            angVelLocPinion = pinion->GetAngVelLocal();
+            angVelLocRack = rack->GetAngVelLocal();
+            transKE = 0.5 * massPinion * pinion->GetPosDer().Length2() + 0.5 * massRack * rack->GetPosDer().Length2();
             rotKE = 0.5 * Vdot(angVelLocPinion, inertiaPinion * angVelLocPinion) +
                     0.5 * Vdot(angVelLocRack, inertiaRack * angVelLocRack);
             deltaPE = massPinion * g * (pinion->GetPos().z() - jointLoc.z()) +

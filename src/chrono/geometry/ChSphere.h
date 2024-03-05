@@ -18,7 +18,9 @@
 #include "chrono/geometry/ChVolume.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// A spherical geometric object for collisions and visualization.
 class ChApi ChSphere : public ChVolume {
@@ -32,7 +34,7 @@ class ChApi ChSphere : public ChVolume {
     virtual ChSphere* Clone() const override { return new ChSphere(*this); }
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::SPHERE; }
+    virtual Type GetType() const override { return Type::SPHERE; }
 
     /// Get the sphere radius.
     double GetRadius() const { return rad; }
@@ -49,19 +51,19 @@ class ChApi ChSphere : public ChVolume {
     /// Return the radius of a bounding sphere for this geometry.
     virtual double GetBoundingSphereRadius() const override;
 
-    virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
+    virtual ChVector3d Baricenter() const override { return ChVector3d(0); }
 
     /// Evaluate position in box volume.
-    virtual ChVector<> Evaluate(double parU, double parV, double parW) const override {
+    virtual ChVector3d Evaluate(double parU, double parV, double parW) const override {
         //// TODO
         return VNULL;
     }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
     /// Return the volume of this type of solid with given dimensions.
     static double GetVolume(double radius);
@@ -78,9 +80,9 @@ class ChApi ChSphere : public ChVolume {
     double rad;  ///< sphere radius
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChSphere, 0)
+CH_CLASS_VERSION(ChSphere, 0)
 
 }  // end namespace chrono
 

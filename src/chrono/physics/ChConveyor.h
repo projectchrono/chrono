@@ -34,7 +34,7 @@ class ChApi ChConveyor : public ChPhysicsItem {
     ChLinkLockLock* internal_link;                    ///< link between this body and conveyor plate
     ChBody* conveyor_truss;                           ///< used for the conveyor truss
     ChBody* conveyor_plate;                           ///< used for the conveyor plate
-    std::shared_ptr<ChMaterialSurface> conveyor_mat;  ///< surface contact material for the conveyor plate
+    std::shared_ptr<ChContactMaterial> conveyor_mat;  ///< surface contact material for the conveyor plate
 
   public:
     /// Build a conveyor belt, with motion along x axis
@@ -65,30 +65,30 @@ class ChApi ChConveyor : public ChPhysicsItem {
     void SetBodyFixed(bool mev) { GetTruss()->SetBodyFixed(mev); }
     bool GetBodyFixed() { return GetTruss()->GetBodyFixed(); }
 
-    ChCoordsys<>& GetCoord() { return GetTruss()->GetCoord(); }
-    ChVector<>& GetPos() { return GetTruss()->GetPos(); }
+    ChCoordsys<>& GetCsys() { return GetTruss()->GetCsys(); }
+    ChVector3d& GetPos() { return GetTruss()->GetPos(); }
     ChQuaternion<>& GetRot() { return GetTruss()->GetRot(); }
-    void SetCoord(const ChCoordsys<>& mcoord) { return GetTruss()->SetCoord(mcoord); }
-    void SetCoord(const ChVector<>& mv, const ChQuaternion<>& mq) { GetTruss()->SetCoord(mv, mq); }
+    void SetCsys(const ChCoordsys<>& mcoord) { return GetTruss()->SetCsys(mcoord); }
+    void SetCsys(const ChVector3d& mv, const ChQuaternion<>& mq) { GetTruss()->SetCsys(mv, mq); }
     void SetRot(const ChQuaternion<>& mrot) { GetTruss()->SetRot(mrot); }
-    void SetPos(const ChVector<>& mpos) { GetTruss()->SetPos(mpos); }
+    void SetPos(const ChVector3d& mpos) { GetTruss()->SetPos(mpos); }
 
-    /// Set the material surface properties by passing a ChMaterialSurfaceNSC or ChMaterialSurfaceSMC object.
-    void SetMaterialSurface(std::shared_ptr<ChMaterialSurface> mat) { conveyor_mat = mat; }
+    /// Set the material surface properties by passing a ChContactMaterialNSC or ChContactMaterialSMC object.
+    void SetMaterialSurface(std::shared_ptr<ChContactMaterial> mat) { conveyor_mat = mat; }
 
     /// Access the material surface properties of the conveyor belt (shortcut)
-    std::shared_ptr<ChMaterialSurface> GetMaterialSurface() const { return conveyor_mat; }
+    std::shared_ptr<ChContactMaterial> GetMaterialSurface() const { return conveyor_mat; }
 
     //
     // STATE FUNCTIONS
     //
 
     /// Number of coordinates: this contains an auxiliary body, so it is 14 (with quaternions for rotations)
-    virtual int GetDOF() override { return 7 + 7; }
+    virtual int GetNumCoordinatesPos() override { return 7 + 7; }
     /// Number of coordinates of the particle cluster (for two bodies).
-    virtual int GetDOF_w() override { return 6 + 6; }
+    virtual int GetNumCoordinatesVel() override { return 6 + 6; }
     /// Get the number of scalar constraints. In this case, a lock constraint is embedded.
-    virtual int GetDOC_c() override { return 6; }
+    virtual int GetNumConstraintsBilateral() override { return 6; }
 
     // Override/implement interfaces for global state vectors (see ChPhysicsItem for details)
 
@@ -181,10 +181,10 @@ class ChApi ChConveyor : public ChPhysicsItem {
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 CH_CLASS_VERSION(ChConveyor, 0)

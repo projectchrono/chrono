@@ -116,16 +116,16 @@ class CH_FSI_API ChSystemFsi {
     void SetKernelLength(double length);
 
     /// Set the fluid container dimension
-    void SetContainerDim(const ChVector<>& boxDim);
+    void SetContainerDim(const ChVector3d& boxDim);
 
     /// Set periodic boundary condition for fluid.
-    void SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax);
+    void SetBoundaries(const ChVector3d& cMin, const ChVector3d& cMax);
 
     /// Set half-dimensions of the active domain.
     /// This value activates only those SPH particles that are within an AABB of the specified size from an object
     /// interacting with the "fluid" phase. Note that this setting should *not* be used for actual (CFD) simulations,
     /// but rather oinly when Chrono::FSI is used for continuum representation of granular dynamics (in terramechanics).
-    void SetActiveDomain(const ChVector<>& boxHalfDim);
+    void SetActiveDomain(const ChVector3d& boxHalfDim);
 
     /// Disable use of the active domain for the given duration at the beginning of the simulation (default: 0).
     /// This parameter is used for settling operations where all particles must be active through the settling process.
@@ -141,11 +141,11 @@ class CH_FSI_API ChSystemFsi {
     void SetInitPressure(const double fzDim);
 
     /// Set gravity for the FSI syatem.
-    void Set_G_acc(const ChVector<>& gravity);
+    void Set_G_acc(const ChVector3d& gravity);
 
     /// Set a constant force applied to the fluid.
     /// Solid bodies are not explicitly affected by this force, but they are affected indirectly through the fluid.
-    void SetBodyForce(const ChVector<>& force);
+    void SetBodyForce(const ChVector3d& force);
 
     /// Set FSI integration step size.
     void SetStepSize(double dT, double dT_Flex = 0);
@@ -197,7 +197,7 @@ class CH_FSI_API ChSystemFsi {
     int GetNumBoundaryLayers() const;
 
     /// Set the fluid container dimension
-    ChVector<> GetContainerDim() const;
+    ChVector3d GetContainerDim() const;
 
     /// Return density.
     double GetDensity() const;
@@ -212,13 +212,13 @@ class CH_FSI_API ChSystemFsi {
     double GetBasePressure() const;
 
     /// Return gravitational acceleration.
-    ChVector<> Get_G_acc() const;
+    ChVector3d Get_G_acc() const;
 
     /// Return the speed of sound in the fluid phase.
     double GetSoundSpeed() const;
 
     /// Return the constant force applied to the fluid (if any).
-    ChVector<> GetBodyForce() const;
+    ChVector3d GetBodyForce() const;
 
     /// Return the FSI integration step size.
     double GetStepSize() const;
@@ -248,20 +248,20 @@ class CH_FSI_API ChSystemFsi {
     double GetSimTime() const { return m_time; }
 
     /// Return the SPH particle positions.
-    std::vector<ChVector<>> GetParticlePositions() const;
+    std::vector<ChVector3d> GetParticlePositions() const;
 
     /// Return the SPH particle velocities.
-    std::vector<ChVector<>> GetParticleVelocities() const;
+    std::vector<ChVector3d> GetParticleVelocities() const;
 
     /// Return the forces acting on SPH particles.
-    std::vector<ChVector<>> GetParticleForces() const;
+    std::vector<ChVector3d> GetParticleForces() const;
 
     /// Return the accelerations of SPH particles.
-    std::vector<ChVector<>> GetParticleAccelerations() const;
+    std::vector<ChVector3d> GetParticleAccelerations() const;
 
     /// Return the SPH particle fluid properties.
     /// For each SPH particle, the 3-dimensional array contains density, pressure, and viscosity.
-    std::vector<ChVector<>> GetParticleFluidProperties() const;
+    std::vector<ChVector3d> GetParticleFluidProperties() const;
 
     /// Get a reference to the FSI bodies.
     /// FSI bodies are the ones seen by the fluid dynamics system.
@@ -300,23 +300,23 @@ class CH_FSI_API ChSystemFsi {
     // ----------- Functions for adding SPH particles
 
     /// Add an SPH particle with given properties to the FSI system.
-    void AddSPHParticle(const ChVector<>& point,
+    void AddSPHParticle(const ChVector3d& point,
                         double rho0,
                         double pres0,
                         double mu0,
-                        const ChVector<>& velocity = ChVector<>(0),
-                        const ChVector<>& tauXxYyZz = ChVector<>(0),
-                        const ChVector<>& tauXyXzYz = ChVector<>(0));
+                        const ChVector3d& velocity = ChVector3d(0),
+                        const ChVector3d& tauXxYyZz = ChVector3d(0),
+                        const ChVector3d& tauXyXzYz = ChVector3d(0));
 
     /// Add an SPH particle with current properties to the SPH system.
-    void AddSPHParticle(const ChVector<>& point,
-                        const ChVector<>& velocity = ChVector<>(0),
-                        const ChVector<>& tauXxYyZz = ChVector<>(0),
-                        const ChVector<>& tauXyXzYz = ChVector<>(0));
+    void AddSPHParticle(const ChVector3d& point,
+                        const ChVector3d& velocity = ChVector3d(0),
+                        const ChVector3d& tauXxYyZz = ChVector3d(0),
+                        const ChVector3d& tauXyXzYz = ChVector3d(0));
 
     /// Create SPH particles in the specified box volume.
     /// The SPH particles are created on a uniform grid with resolution equal to the FSI initial separation.
-    void AddBoxSPH(const ChVector<>& boxCenter, const ChVector<>& boxHalfDim);
+    void AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim);
 
     // ----------- Functions for adding BCE markers in various volumes
 
@@ -324,7 +324,7 @@ class CH_FSI_API ChSystemFsi {
     /// BCE markers are created in a number of layers corresponding to system parameters.
     /// X-Y BCE layers are created in the negative Z direction of the plate orientation frame.
     /// Such a plate is assumed to be used as boundary.
-    void AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector2<> size);
+    void AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector2d size);
 
     /// Add BCE markers for a box container of specified dimensions and associate them with the given body.
     /// The center of the box volume is at the origin of the given frame and the the container is aligned with the frame
@@ -335,14 +335,14 @@ class CH_FSI_API ChSystemFsi {
     /// BCE markers are created in a number of layers corresponding to system parameters.
     void AddBoxContainerBCE(std::shared_ptr<ChBody> body,
                             const ChFrame<>& frame,
-                            const ChVector<>& size,
-                            const ChVector<int> faces);
+                            const ChVector3d& size,
+                            const ChVector3i faces);
 
     /// Add BCE markers for a box of specified dimensions and associate them with the given body.
     /// The box is assumed to be centered at the origin of the provided frame and aligned with its axes.
     /// BCE markers are created inside the box if solid=true, and outside the box otherwise.
     /// BCE markers are created in a number of layers corresponding to system parameters.
-    size_t AddBoxBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector<>& size, bool solid);
+    size_t AddBoxBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector3d& size, bool solid);
 
     /// Add BCE markers for a sphere of specified radius and associate them with the given body.
     /// The sphere is assumed to be centered at the origin of the provided frame.
@@ -396,7 +396,7 @@ class CH_FSI_API ChSystemFsi {
     /// Add BCE markers from a set of points and associate them with the given body.
     /// The points are assumed to be provided relative to the specified frame.
     size_t AddPointsBCE(std::shared_ptr<ChBody> body,
-                        const std::vector<ChVector<>>& points,
+                        const std::vector<ChVector3d>& points,
                         const ChFrame<>& frame,
                         bool solid);
 
@@ -418,7 +418,7 @@ class CH_FSI_API ChSystemFsi {
     /// Utility function for finding indices of SPH particles inside a given OBB.
     /// The object-oriented box, of specified size, is assumed centered at the origin of the provided frame and aligned
     /// with the axes of that frame. The return value is a device thrust vector.
-    thrust::device_vector<int> FindParticlesInBox(const ChFrame<>& frame, const ChVector<>& size);
+    thrust::device_vector<int> FindParticlesInBox(const ChFrame<>& frame, const ChVector3d& size);
 
     /// Extract positions of all SPH particles with indices in the provided array.
     /// The return value is a device thrust vector.
@@ -506,9 +506,9 @@ class CH_FSI_API ChSystemFsi {
 
     /// Utility function for creating points filling a closed mesh.
     //// RADU TODO eliminate delta (use initspacing)
-    static void CreateMeshPoints(geometry::ChTriangleMeshConnected& mesh,
+    static void CreateMeshPoints(ChTriangleMeshConnected& mesh,
                                  double delta,
-                                 std::vector<ChVector<>>& point_cloud);
+                                 std::vector<ChVector3d>& point_cloud);
 
   private:
     /// Initialize simulation parameters with default values.

@@ -39,7 +39,7 @@ using namespace chrono::vehicle::gator;
 // =============================================================================
 
 // Initial vehicle location and orientation (m)
-ChVector<> initLoc(-40, 0, 0.5);
+ChVector3d initLoc(-40, 0, 0.5);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Brake type (SIMPLE or SHAFTS)
@@ -64,7 +64,7 @@ double step_size = 1e-3;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // --------------
     // Create systems
@@ -101,25 +101,25 @@ int main(int argc, char* argv[]) {
     minfo.Y = 2e7f;
     auto patch_mat = minfo.CreateMaterial(ChContactMethod::NSC);
 
-    auto patch1 = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(-25, 0, 0), QUNIT), 50.0, 20.0);
+    auto patch1 = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(-25, 0, 0), QUNIT), 50.0, 20.0);
     patch1->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 40);
     patch1->SetColor(ChColor(0.8f, 0.8f, 0.5f));
 
     double s = std::sin(slope);
     double c = std::cos(slope);
     auto patch2 =
-        terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(100 * c, 0, 100 * s), Q_from_AngY(-slope)), 200.0, 20.0);
+        terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(100 * c, 0, 100 * s), QuatFromAngleY(-slope)), 200.0, 20.0);
     patch2->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 40);
     patch2->SetColor(ChColor(0.8f, 0.5f, 0.8f));
 
-    auto patch3 = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector<>(200 * c + 25, 0, 200 * s), QUNIT), 50.0, 20.0);
+    auto patch3 = terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(200 * c + 25, 0, 200 * s), QUNIT), 50.0, 20.0);
     patch3->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 40);
     patch3->SetColor(ChColor(0.8f, 0.8f, 0.5f));
 
     terrain.Initialize();
 
     // Create the straight path and the driver system
-    auto path = StraightLinePath(ChVector<>(-50, 0, 0.5), ChVector<>(300, 0, 0.5), 1);
+    auto path = StraightLinePath(ChVector3d(-50, 0, 0.5), ChVector3d(300, 0, 0.5), 1);
     ChPathFollowerDriver driver(gator.GetVehicle(), path, "my_path", target_speed);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
     driver.GetSteeringController().SetGains(0.5, 0, 0);
@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht interface
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("Gator Acceleration");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 2.0), 5.0, 0.05);
     vis->Initialize();
     vis->AddLightDirectional();
     vis->AddSkyBox();

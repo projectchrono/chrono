@@ -40,13 +40,13 @@ class CH_MODELS_API UAZBUS_RotaryArm : public ChRotaryArm {
 
     virtual double getPitmanArmRadius() const override { return m_pitmanArmRadius; }
 
-    virtual const ChVector<>& getPitmanArmInertiaMoments() const override { return m_pitmanArmInertiaMoments; }
-    virtual const ChVector<>& getPitmanArmInertiaProducts() const override { return m_pitmanArmInertiaProducts; }
+    virtual const ChVector3d& getPitmanArmInertiaMoments() const override { return m_pitmanArmInertiaMoments; }
+    virtual const ChVector3d& getPitmanArmInertiaProducts() const override { return m_pitmanArmInertiaProducts; }
 
     virtual double getMaxAngle() const override { return m_maxAngle; }
 
-    virtual const ChVector<> getLocation(PointId which) override;
-    virtual const ChVector<> getDirection(DirectionId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
+    virtual const ChVector3d getDirection(DirectionId which) override;
 
   private:
     static const double m_pitmanArmMass;
@@ -55,8 +55,8 @@ class CH_MODELS_API UAZBUS_RotaryArm : public ChRotaryArm {
 
     static const double m_maxAngle;
 
-    static const ChVector<> m_pitmanArmInertiaMoments;
-    static const ChVector<> m_pitmanArmInertiaProducts;
+    static const ChVector3d m_pitmanArmInertiaMoments;
+    static const ChVector3d m_pitmanArmInertiaProducts;
 };
 
 /// @} vehicle_models_uaz

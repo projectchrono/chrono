@@ -65,7 +65,7 @@ void TrackAssemblyBandBushing::ReadSprocket(const std::string& filename, int out
         m_sprocket->SetOutput(output == +1);
     }
 
-    GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "  Loaded JSONL " << filename << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -96,7 +96,7 @@ void TrackAssemblyBandBushing::ReadTrackShoes(const std::string& filename, int n
         m_shoes[0]->SetOutput(output == +1);
     }
 
-    GetLog() << "  Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "  Loaded JSONL " << filename << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -109,7 +109,7 @@ TrackAssemblyBandBushing::TrackAssemblyBandBushing(const std::string& filename) 
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 TrackAssemblyBandBushing::TrackAssemblyBandBushing(const rapidjson::Document& d)

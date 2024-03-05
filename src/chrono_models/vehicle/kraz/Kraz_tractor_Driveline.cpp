@@ -44,8 +44,8 @@ const double Kraz_tractor_Driveline::m_central_differential_locking_limit = 1000
 // the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
 Kraz_tractor_Driveline::Kraz_tractor_Driveline(const std::string& name) : ChShaftsDriveline4WD(name) {
-    SetMotorBlockDirection(ChVector<>(1, 0, 0));
-    SetAxleDirection(ChVector<>(0, 1, 0));
+    SetMotorBlockDirection(ChVector3d(1, 0, 0));
+    SetAxleDirection(ChVector3d(0, 1, 0));
 }
 
 }  // end namespace kraz

@@ -29,8 +29,8 @@
 #include "chrono/physics/ChLinkTSDA.h"
 #include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLoadsBody.h"
-#include "chrono/physics/ChMaterialSurfaceNSC.h"
-#include "chrono/physics/ChMaterialSurfaceSMC.h"
+#include "chrono/physics/ChContactMaterialNSC.h"
+#include "chrono/physics/ChContactMaterialSMC.h"
 
 #include "chrono/utils/ChCompositeInertia.h"
 
@@ -118,8 +118,8 @@ class CH_VEHICLE_API ChPart {
     /// vehicle reference frame to an inertia matrix expressed in a centroidal body
     /// reference frame.
     static ChMatrix33<> TransformInertiaMatrix(
-        const ChVector<>& moments,        ///< moments of inertia in vehicle-aligned centroidal frame
-        const ChVector<>& products,       ///< products of inertia in vehicle-aligned centroidal frame
+        const ChVector3d& moments,        ///< moments of inertia in vehicle-aligned centroidal frame
+        const ChVector3d& products,       ///< products of inertia in vehicle-aligned centroidal frame
         const ChMatrix33<>& vehicle_rot,  ///< vehicle absolute orientation matrix
         const ChMatrix33<>& body_rot      ///< body absolute orientation matrix
     );
@@ -149,7 +149,7 @@ class CH_VEHICLE_API ChPart {
     /// subsystem to the provided quantities:
     /// - com:  COM expressed in the global frame (scaled by the subsystem mass)
     /// - inertia: inertia tensor relative to the global reference frame
-    void AddInertiaProperties(ChVector<>& com, ChMatrix33<>& inertia);
+    void AddInertiaProperties(ChVector3d& com, ChMatrix33<>& inertia);
 
     /// Create a vehicle subsystem from JSON data.
     /// A derived class must override this function and first invoke the base class implementation.

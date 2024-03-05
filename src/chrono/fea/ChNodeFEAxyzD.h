@@ -28,26 +28,26 @@ namespace fea {
 /// The direction D represents a derivative vector to be used in ANCF elements.
 class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
   public:
-    ChNodeFEAxyzD(ChVector<> initial_pos = VNULL, ChVector<> initial_dir = VECT_X);
+    ChNodeFEAxyzD(ChVector3d initial_pos = VNULL, ChVector3d initial_dir = VECT_X);
     ChNodeFEAxyzD(const ChNodeFEAxyzD& other);
     ~ChNodeFEAxyzD();
 
     ChNodeFEAxyzD& operator=(const ChNodeFEAxyzD& other);
 
     /// Set the derivative vector.
-    void SetD(const ChVector<>& d) { D = d; }
+    void SetD(const ChVector3d& d) { D = d; }
     /// Get the derivative vector.
-    const ChVector<>& GetD() const { return D; }
+    const ChVector3d& GetD() const { return D; }
 
     /// Set the speed of the derivative vector.
-    void SetD_dt(const ChVector<>& dt) { D_dt = dt; }
+    void SetD_dt(const ChVector3d& dt) { D_dt = dt; }
     /// Get the speed of the derivative vector.
-    const ChVector<>& GetD_dt() const { return D_dt; }
+    const ChVector3d& GetD_dt() const { return D_dt; }
 
     /// Set the acceleration of the derivative vector.
-    void SetD_dtdt(const ChVector<>& dtt) { D_dtdt = dtt; }
+    void SetD_dtdt(const ChVector3d& dtt) { D_dtdt = dtt; }
     /// Get the  acceleration of the derivative vector.
-    const ChVector<>& GetD_dtdt() const { return D_dtdt; }
+    const ChVector3d& GetD_dtdt() const { return D_dtdt; }
 
     ChVariables& Variables_D() { return *variables_D; }
 
@@ -187,9 +187,9 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
 
   private:
     ChVariablesGenericDiagonalMass* variables_D;  ///< derivative vector
-    ChVector<> D;
-    ChVector<> D_dt;
-    ChVector<> D_dtdt;
+    ChVector3d D;
+    ChVector3d D_dt;
+    ChVector3d D_dtdt;
 };
 
 /// @} fea_nodes

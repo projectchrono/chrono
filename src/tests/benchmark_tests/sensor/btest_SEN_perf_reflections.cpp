@@ -32,14 +32,13 @@
 #include "chrono_sensor/filters/ChFilterVisualize.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 float end_time = 10.0f;
 
 int main(int argc, char* argv[]) {
     // for (int q = 0; q < 5; q++) {
-    GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------
     // Create the system
@@ -97,7 +96,7 @@ int main(int argc, char* argv[]) {
     auto cam = std::make_shared<ChCameraSensor>(
         cam_body,                                                            // body camera is attached to
         50.0f,                                                               // update rate in Hz
-        chrono::ChFrame<double>({-10, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({-10, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1920,                                                                // image width
         1080,                                                                // image height
         (float)CH_C_PI / 1.2f                                                // FOV
@@ -121,7 +120,7 @@ int main(int argc, char* argv[]) {
     while (ch_time < end_time) {
         // cam->SetOffsetPose(chrono::ChFrame<double>(
         //     {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate), 1},
-        //     Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1})));
+        //     QuatFromAngleAxis(ch_time * orbit_rate, {0, 0, 1})));
 
         manager->Update();
         sys.DoStepDynamics(0.001);

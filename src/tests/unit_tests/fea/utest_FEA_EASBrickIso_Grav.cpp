@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
 
     ChMatrixDynamic<> FileInputMat(2000, 2);
     if (output) {
-        GetLog() << "Output file: ../TEST_Brick/UT_EASBrickIso_Grav.txt\n";
+        std::cout << "Output file: ../TEST_Brick/UT_EASBrickIso_Grav.txt\n";
     } else {
         // Utils to open/read files: Load reference solution ("golden") file
         std::string EASBrick_val_file = GetChronoDataPath() + "testing/fea/UT_EASBrickIso_Grav.txt";
@@ -75,12 +75,12 @@ int main(int argc, char* argv[]) {
             fileMid >> FileInputMat(x, 0) >> FileInputMat(x, 1);
         }
         fileMid.close();
-        GetLog() << "Running in unit test mode.\n";
+        std::cout << "Running in unit test mode.\n";
     }
     // Create the physical system
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
 
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
     int i = 0;
     while (i < TotalNumNodes) {
         auto node =
-            chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
+            chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(COORDFlex(i, 0), COORDFlex(i, 1), COORDFlex(i, 2)));
         node->SetMass(0.0);
         my_mesh->AddNode(node);
         if (NDR(i, 0) == 1 && NDR(i, 1) == 1 && NDR(i, 2) == 1) {
@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
     if (output) {
         // Create output directory (if it does not already exist).
         if (!filesystem::create_directory(filesystem::path("../TEST_Brick"))) {
-            GetLog() << "Error creating directory ../TEST_Brick\n";
+            std::cout << "Error creating directory ../TEST_Brick\n";
             return 1;
         }
         // Initialize the output stream and set precision.
@@ -272,7 +272,7 @@ int main(int argc, char* argv[]) {
             sys.DoStepDynamics(step_size);
             Iterations += mystepper->GetNumIterations();
             out << sys.GetChTime() << nodetip->GetPos().z() << std::endl;
-            GetLog() << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << "\t"
+            std::cout << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << "\t"
                      << nodetip->GetForce().z() << "\t" << Iterations << "\n";
         }
         // Write results to output file.

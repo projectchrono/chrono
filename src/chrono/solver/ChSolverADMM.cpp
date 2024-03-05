@@ -12,11 +12,10 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include "chrono/solver/ChSolverADMM.h"
-#include "chrono/core/ChMathematics.h"
 
-#include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/core/ChSparsityPatternLearner.h"
+
+#include "chrono/solver/ChSolverADMM.h"
 
 namespace chrono {
 
@@ -100,7 +99,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         LS_solver->b() = k; 
 
         m_timer_convert.stop();
-        if (this->verbose) GetLog() << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s\n";
+        if (verbose) std::cout << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s" << std::endl;
 
         // v = H\k
         LS_solver->SetupCurrent();
@@ -149,17 +148,17 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         sysd.FromVariablesToVector(v, false); // this works supposing that variables have been warmstarted with "v" too, otherwise:  
 
         // warmstarted y:
-        // the following correct only if r_dual was approx.=0. //***TODO*** as parameter
+        // the following correct only if r_dual was approx.=0. //// TODO  as parameter
         y = - (Cq*v - E*l + b); //  dual residual exploiting the kkt form instead of - (N*l+r), faster!
             
         /*
-        GetLog() << "Y warmastarted:  \n";
-        for (int k = 0; k < ChMin(y.rows(), 10); ++k)
-            GetLog() << "  " << y(k) << "\n";
+        std::cout << "Y warmastarted:" << std::endl;
+        for (int k = 0; k < std::min(y.rows(), 10); ++k)
+            std::cout << "  " << y(k) << std::endl;
         */
         
         // warmstarted z:
-        z = l; //  warm start also this - should project? //***TODO*** as parameter
+        z = l; //  warm start also this - should project? //// TODO  as parameter
         //sysd.ConstraintsProject(z);
 
         // y_hat  = y;   // only for spectral stepsize
@@ -269,16 +268,16 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         LS_solver->A().coeffRef(nv + i, nv + i) += -(sigma + vrho(i));  //  A = [M, Cq'; Cq, -diag(vsigma+vrho) + E ];
 
     m_timer_convert.stop();
-    if (this->verbose)
-        GetLog() << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s\n";
+    if (verbose)
+        std::cout << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s" << std::endl;
 
     m_timer_factorize.start();
 
     LS_solver->SetupCurrent();  // LU decomposition ++++++++++++++++++++++++++++++++++++++
 
     m_timer_factorize.stop();
-    if (this->verbose)
-        GetLog() << " Time for factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate() << "s\n";
+    if (verbose)
+        std::cout << " Time for factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate() << "s" << std::endl;
 
     /*
     res_story.r_prim=zeros(1,1);
@@ -310,7 +309,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         LS_solver->SolveCurrent();                                                      // LU forward/backsolve ++++++++++++++++++++++++++++++++++++++
         
         m_timer_solve.stop();
-        if (this->verbose) GetLog() << " Time for solve : << " << m_timer_solve.GetTimeSecondsIntermediate() << "s\n";
+        if (verbose) std::cout << " Time for solve : << " << m_timer_solve.GetTimeSecondsIntermediate() << "s" << std::endl;
 
         // x = dA\B;      // A* x = B  with x = [v, -l]    
         l = -LS_solver->x().block(nv, 0, nc, 1);
@@ -353,8 +352,8 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         res_story.r_deltal(j) = norm((l - l_old).*S, inf);% diagnostic
         */
 
-        if (this->verbose)
-            GetLog() << "ADMM iter=" << iter << " prim=" << r_prim << " dual=" << r_dual << "  rho=" << rho_i << "  tols=" << this->tol_prim << " " << this->tol_dual <<  "\n";
+        if (verbose)
+            std::cout << "ADMM iter=" << iter << " prim=" << r_prim << " dual=" << r_dual << "  rho=" << rho_i << "  tols=" << this->tol_prim << " " << this->tol_dual <<  "" << std::endl;
 
         // For recording into violation history, if debugging
         if (this->record_violation_history) {
@@ -365,8 +364,8 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
         // Termination:
         if ((r_prim < this->tol_prim) && (r_dual < this->tol_dual)) {
-            if (this->verbose)
-                GetLog() << "ADMM converged ok! at iter=" << iter << "\n";
+            if (verbose)
+                std::cout << "ADMM converged ok! at iter=" << iter << std::endl;
             break;
         }
 
@@ -386,7 +385,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
             }
 
             if (this->stepadjust_type == AdmmStepType::BALANCED_FAST) {
-                double r_prim_scaled = r_prim_pre / (ChMax(z.lpNorm<Eigen::Infinity>(), l.lpNorm<Eigen::Infinity>()) + 1e-10); // maybe norm(l, inf) very similar to norm(z, inf)
+                double r_prim_scaled = r_prim_pre / (std::max(z.lpNorm<Eigen::Infinity>(), l.lpNorm<Eigen::Infinity>()) + 1e-10); // maybe norm(l, inf) very similar to norm(z, inf)
                 double r_dual_scaled = r_dual_pre / (y.lpNorm<Eigen::Infinity>() + 1e-10);  //  as in "ADMM Penalty Parameter Selection by Residual Balancing", Brendt Wohlberg
                 rhofactor = sqrt(r_prim_scaled / (r_dual_scaled + 1e-10));
             }
@@ -442,7 +441,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
                 LS_solver->SetupCurrent();  // LU decomposition ++++++++++++++++++++++++++++++++++++++
 
                 m_timer_refactorize.stop();
-                if (this->verbose) GetLog() << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSecondsIntermediate() << "s\n";
+                if (verbose) std::cout << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSecondsIntermediate() << "s" << std::endl;
             }
 
         } // end step adjust
@@ -453,9 +452,9 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
     l = l.cwiseProduct(S);
 
     /*
-    GetLog() << "Y resulting:  \n";
-        for (int k = 0; k < ChMin(y.rows(), 10); ++k)
-            GetLog() << "  " << y(k) << "\n";
+    std::cout << "Y resulting:" << std::endl;
+        for (int k = 0; k < std::min(y.rows(), 10); ++k)
+            std::cout << "  " << y(k) << std::endl;
     */
 
     sysd.FromVectorToConstraints(l);
@@ -505,7 +504,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         LS_solver->b() = k; 
 
         m_timer_convert.stop();
-        if (this->verbose) GetLog() << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s\n";
+        if (verbose) std::cout << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s" << std::endl;
 
         // v = H\k
         LS_solver->SetupCurrent();
@@ -543,7 +542,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         z.setZero();
         y.setZero();
 
-        //***TODO**? or just accept approximation?
+        ///// TODO or just accept approximation?
         //v = M\(k + D*l); % PERFORMANCE HIT, only needed if truncating Nesterov before convergence
         v.setZero(); // enough approx? or better sysd.FromVariablesToVector(v, false); ?
     }
@@ -557,17 +556,17 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         sysd.FromVariablesToVector(v, false); // this works supposing that variables have been warmstarted with "v" too, otherwise:  
 
         // warmstarted y:
-        // the following correct only if r_dual was approx.=0. //***TODO*** as parameter
+        // the following correct only if r_dual was approx.=0. //// TODO  as parameter
         y = - (Cq*v - E*l + b); //  dual residual exploiting the kkt form instead of - (N*l+r), faster!
             
         /*
-        GetLog() << "Y warmastarted:  \n";
-        for (int k = 0; k < ChMin(y.rows(), 10); ++k)
-            GetLog() << "  " << y(k) << "\n";
+        std::cout << "Y warmastarted:" << std::endl;
+        for (int k = 0; k < std::min(y.rows(), 10); ++k)
+            std::cout << "  " << y(k) << std::endl;
         */
         
         // warmstarted z:
-        z = l; //  warm start also this - should project? //***TODO*** as parameter
+        z = l; //  warm start also this - should project? //// TODO  as parameter
         //sysd.ConstraintsProject(z);
 
     }
@@ -676,14 +675,14 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         LS_solver->A().coeffRef(nv + i, nv + i) += -(sigma + vrho(i));  //  A = [M, Cq'; Cq, -diag(vsigma+vrho) + E ];
 
     m_timer_convert.stop();
-    if (this->verbose) GetLog() << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s\n";
+    if (verbose) std::cout << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s" << std::endl;
 
     m_timer_factorize.start();
                 
     LS_solver->SetupCurrent();  // LU decomposition ++++++++++++++++++++++++++++++++++++++
 
     m_timer_factorize.stop();
-    if (this->verbose) GetLog() << " Time for factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate() << "s\n";
+    if (verbose) std::cout << " Time for factorize : << " << m_timer_factorize.GetTimeSecondsIntermediate() << "s" << std::endl;
 
     /*
     res_story.r_prim=zeros(1,1);
@@ -724,7 +723,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         LS_solver->SolveCurrent();                                                      // LU forward/backsolve ++++++++++++++++++++++++++++++++++++++
         
         m_timer_solve.stop();
-        if (this->verbose) GetLog() << " Time for solve : << " << m_timer_solve.GetTimeSecondsIntermediate() << "s\n";
+        if (verbose) std::cout << " Time for solve : << " << m_timer_solve.GetTimeSecondsIntermediate() << "s" << std::endl;
 
         // x = dA\B;      // A* x = B  with x = [v, -l]    
         l = -LS_solver->x().block(nv, 0, nc, 1);
@@ -758,8 +757,8 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
 
 
-        if (this->verbose)
-            GetLog() << "ADMMfast iter=" << iter << " prim=" << r_prim << " dual=" << r_dual << "  rho=" << rho_i << " alpha=" << nalpha << "  tols=" << this->tol_prim << " " << this->tol_dual <<  "\n";
+        if (verbose)
+            std::cout << "ADMMfast iter=" << iter << " prim=" << r_prim << " dual=" << r_dual << "  rho=" << rho_i << " alpha=" << nalpha << "  tols=" << this->tol_prim << " " << this->tol_dual << std::endl;
 
         // For recording into violation history, if debugging
         if (this->record_violation_history) {
@@ -772,8 +771,8 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         
         // Termination:
         if ((r_prim < this->tol_prim) && (r_dual < this->tol_dual)) {
-            if (this->verbose)
-                GetLog() << "ADMMfast converged ok! at iter=" << iter << "\n";
+            if (verbose)
+                std::cout << "ADMMfast converged ok! at iter=" << iter << std::endl;
             break;
         }
 
@@ -789,7 +788,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
                 c_k = c_k_p;
             }
             else{
-                if (this->verbose) GetLog() << "ADMMfast Nesterov restart." << iter << "\n";
+                if (verbose) std::cout << "ADMMfast Nesterov restart." << iter << std::endl;
                 nalpha = 1.0;
                 c_k = (1 / eta) * c_k_p;
             }
@@ -810,7 +809,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
             }
 
             if (this->stepadjust_type == AdmmStepType::BALANCED_FAST) {
-                double r_prim_scaled = r_prim_pre / (ChMax(z.lpNorm<Eigen::Infinity>(), l.lpNorm<Eigen::Infinity>()) + 1e-10); // maybe norm(l, inf) very similar to norm(z, inf)
+                double r_prim_scaled = r_prim_pre / (std::max(z.lpNorm<Eigen::Infinity>(), l.lpNorm<Eigen::Infinity>()) + 1e-10); // maybe norm(l, inf) very similar to norm(z, inf)
                 double r_dual_scaled = r_dual_pre / (y.lpNorm<Eigen::Infinity>() + 1e-10);  //  as in "ADMM Penalty Parameter Selection by Residual Balancing", Brendt Wohlberg
                 rhofactor = sqrt(r_prim_scaled / (r_dual_scaled + 1e-10));
             }
@@ -866,7 +865,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
                 LS_solver->SetupCurrent();  // LU decomposition ++++++++++++++++++++++++++++++++++++++
 
                 m_timer_refactorize.stop();
-                if (this->verbose) GetLog() << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSecondsIntermediate() << "s\n";
+                if (verbose) std::cout << " Time for re-factorize : << " << m_timer_refactorize.GetTimeSecondsIntermediate() << "s" << std::endl;
             }
 
         } // end step adjust
@@ -877,9 +876,9 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
     l = l.cwiseProduct(S);
 
     /*
-    GetLog() << "Y resulting:  \n";
-        for (int k = 0; k < ChMin(y.rows(), 10); ++k)
-            GetLog() << "  " << y(k) << "\n";
+    std::cout << "Y resulting:" << std::endl;
+        for (int k = 0; k < std::min(y.rows(), 10); ++k)
+            std::cout << "  " << y(k) << std::endl;
     */
 
     sysd.FromVectorToConstraints(l);
@@ -902,42 +901,42 @@ class ChSolverADMM_StepType_enum_mapper : public ChSolverADMM {
     CH_ENUM_MAPPER_END(AdmmStepType);
 };
 
-void ChSolverADMM::ArchiveOut(ChArchiveOut& marchive) {
+void ChSolverADMM::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSolverADMM>();
+    archive_out.VersionWrite<ChSolverADMM>();
     // serialize parent class
-    ChIterativeSolverVI::ArchiveOut(marchive);
+    ChIterativeSolverVI::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(precond);
-    marchive << CHNVP(rho);
-    marchive << CHNVP(rho_b);
-    marchive << CHNVP(sigma);
-    marchive << CHNVP(stepadjust_each);
-    marchive << CHNVP(stepadjust_threshold);
-    marchive << CHNVP(stepadjust_maxfactor);
-    marchive << CHNVP(tol_prim);
-    marchive << CHNVP(tol_dual);
+    archive_out << CHNVP(precond);
+    archive_out << CHNVP(rho);
+    archive_out << CHNVP(rho_b);
+    archive_out << CHNVP(sigma);
+    archive_out << CHNVP(stepadjust_each);
+    archive_out << CHNVP(stepadjust_threshold);
+    archive_out << CHNVP(stepadjust_maxfactor);
+    archive_out << CHNVP(tol_prim);
+    archive_out << CHNVP(tol_dual);
     ChSolverADMM_StepType_enum_mapper::AdmmStepType_mapper mmapper;
-    marchive << CHNVP(mmapper(this->stepadjust_type), "stepadjust_type");
+    archive_out << CHNVP(mmapper(this->stepadjust_type), "stepadjust_type");
 }
 
-void ChSolverADMM::ArchiveIn(ChArchiveIn& marchive) {
+void ChSolverADMM::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChSolverADMM>();
+    /*int version =*/ archive_in.VersionRead<ChSolverADMM>();
     // deserialize parent class
-    ChIterativeSolverVI::ArchiveIn(marchive);
+    ChIterativeSolverVI::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(precond);
-    marchive >> CHNVP(rho);
-    marchive >> CHNVP(rho_b);
-    marchive >> CHNVP(sigma);
-    marchive >> CHNVP(stepadjust_each);
-    marchive >> CHNVP(stepadjust_threshold);
-    marchive >> CHNVP(stepadjust_maxfactor);
-    marchive >> CHNVP(tol_prim);
-    marchive >> CHNVP(tol_dual);
+    archive_in >> CHNVP(precond);
+    archive_in >> CHNVP(rho);
+    archive_in >> CHNVP(rho_b);
+    archive_in >> CHNVP(sigma);
+    archive_in >> CHNVP(stepadjust_each);
+    archive_in >> CHNVP(stepadjust_threshold);
+    archive_in >> CHNVP(stepadjust_maxfactor);
+    archive_in >> CHNVP(tol_prim);
+    archive_in >> CHNVP(tol_dual);
     ChSolverADMM_StepType_enum_mapper::AdmmStepType_mapper mmapper;
-    marchive >> CHNVP(mmapper(this->stepadjust_type), "stepadjust_type");
+    archive_in >> CHNVP(mmapper(this->stepadjust_type), "stepadjust_type");
 }
 
 }  // end namespace chrono

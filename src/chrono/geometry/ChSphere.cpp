@@ -17,7 +17,7 @@
 #include "chrono/geometry/ChSphere.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSphere)
@@ -53,7 +53,7 @@ ChMatrix33<> ChSphere::GetGyration() const {
 }
 
 ChAABB ChSphere::GetBoundingBox(double radius) {
-    return ChAABB(ChVector<>(-radius), ChVector<>(+radius));
+    return ChAABB(ChVector3d(-radius), ChVector3d(+radius));
 }
 
 ChAABB ChSphere::GetBoundingBox() const {
@@ -70,23 +70,23 @@ double ChSphere::GetBoundingSphereRadius() const {
 
 // -----------------------------------------------------------------------------
 
-void ChSphere::ArchiveOut(ChArchiveOut& marchive) {
+void ChSphere::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSphere>();
+    archive_out.VersionWrite<ChSphere>();
     // serialize parent class
-    ChGeometry::ArchiveOut(marchive);
+    ChGeometry::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(rad);
+    archive_out << CHNVP(rad);
 }
 
-void ChSphere::ArchiveIn(ChArchiveIn& marchive) {
+void ChSphere::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChSphere>();
+    /*int version =*/archive_in.VersionRead<ChSphere>();
     // deserialize parent class
-    ChGeometry::ArchiveIn(marchive);
+    ChGeometry::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(rad);
+    archive_in >> CHNVP(rad);
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

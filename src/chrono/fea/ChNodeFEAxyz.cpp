@@ -17,7 +17,7 @@
 namespace chrono {
 namespace fea {
 
-ChNodeFEAxyz::ChNodeFEAxyz(ChVector<> initial_pos) : ChNodeXYZ(initial_pos), X0(initial_pos), Force(VNULL) {
+ChNodeFEAxyz::ChNodeFEAxyz(ChVector3d initial_pos) : ChNodeXYZ(initial_pos), X0(initial_pos), Force(VNULL) {
     variables.SetNodeMass(0);
 }
 
@@ -78,7 +78,7 @@ void ChNodeFEAxyz::NodeIntStateScatter(const unsigned int off_x,
                                        const ChStateDelta& v,
                                        const double T) {
     SetPos(x.segment(off_x, 3));
-    SetPos_dt(v.segment(off_v, 3));
+    SetPosDer(v.segment(off_v, 3));
 }
 
 void ChNodeFEAxyz::NodeIntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
@@ -86,7 +86,7 @@ void ChNodeFEAxyz::NodeIntStateGatherAcceleration(const unsigned int off_a, ChSt
 }
 
 void ChNodeFEAxyz::NodeIntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    SetPos_dtdt(a.segment(off_a, 3));
+    SetPosDer2(a.segment(off_a, 3));
 }
 
 void ChNodeFEAxyz::NodeIntStateIncrement(const unsigned int off_x,
@@ -159,10 +159,10 @@ void ChNodeFEAxyz::VariablesQbLoadSpeed() {
 }
 
 void ChNodeFEAxyz::VariablesQbSetSpeed(double step) {
-    ChVector<> old_dt = pos_dt;
-    SetPos_dt(variables.Get_qb().segment(0, 3));
+    ChVector3d old_dt = pos_dt;
+    SetPosDer(variables.Get_qb().segment(0, 3));
     if (step) {
-        SetPos_dtdt((pos_dt - old_dt) / step);
+        SetPosDer2((pos_dt - old_dt) / step);
     }
 }
 
@@ -171,7 +171,7 @@ void ChNodeFEAxyz::VariablesFbIncrementMq() {
 }
 
 void ChNodeFEAxyz::VariablesQbIncrementPosition(double step) {
-    ChVector<> newspeed = variables.Get_qb().segment(0, 3);
+    ChVector3d newspeed = variables.Get_qb().segment(0, 3);
 
     // ADVANCE POSITION: pos' = pos + dt * vel
     SetPos(GetPos() + newspeed * step);

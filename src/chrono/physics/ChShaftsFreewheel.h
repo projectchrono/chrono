@@ -47,7 +47,7 @@ class ChApi ChShaftsFreewheel : public ChShaftsCouple {
     virtual ChShaftsFreewheel* Clone() const override { return new ChShaftsFreewheel(*this); }
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() override { return 1; }
+    virtual int GetNumConstraintsBilateral() override { return 1; }
 
     //
     // STATE FUNCTIONS
@@ -166,10 +166,10 @@ class ChApi ChShaftsFreewheel : public ChShaftsCouple {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 CH_CLASS_VERSION(ChShaftsFreewheel,0)

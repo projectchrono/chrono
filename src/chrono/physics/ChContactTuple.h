@@ -38,9 +38,9 @@ class ChContactTuple {
     Ta* objA;  ///< first ChContactable object in the pair
     Tb* objB;  ///< second ChContactable object in the pair
 
-    ChVector<> p1;      ///< max penetration point on geo1, after refining, in abs space
-    ChVector<> p2;      ///< max penetration point on geo2, after refining, in abs space
-    ChVector<> normal;  ///< normal, on surface of master reference (geo1)
+    ChVector3d p1;      ///< max penetration point on geo1, after refining, in abs space
+    ChVector3d p2;      ///< max penetration point on geo2, after refining, in abs space
+    ChVector3d normal;  ///< normal, on surface of master reference (geo1)
 
     ChMatrix33<> contact_plane;  ///< the plane of contact (X is normal direction)
 
@@ -90,9 +90,9 @@ class ChContactTuple {
         this->eff_radius = cinfo.eff_radius;
 
         // Contact plane
-        ChVector<> Vx, Vy, Vz;
+        ChVector3d Vx, Vy, Vz;
         XdirToDxDyDz(normal, VECT_Y, Vx, Vy, Vz);
-        contact_plane.Set_A_axis(Vx, Vy, Vz);
+        contact_plane.SetFromDirectionAxes(Vx, Vy, Vz);
     }
 
     /// Get the colliding object A, with point P1
@@ -107,7 +107,7 @@ class ChContactTuple {
     /// (It is the coordinate system of the contact plane and normal)
     ChCoordsys<> GetContactCoords() const {
         ChCoordsys<> mcsys;
-        ChQuaternion<> mrot = this->contact_plane.Get_A_quaternion();
+        ChQuaternion<> mrot = this->contact_plane.GetQuaternion();
         mcsys.rot.Set(mrot.e0(), mrot.e1(), mrot.e2(), mrot.e3());
         mcsys.pos = this->p2;
         return mcsys;
@@ -119,13 +119,13 @@ class ChContactTuple {
     const ChMatrix33<>& GetContactPlane() const { return contact_plane; }
 
     /// Get the contact point 1, in absolute coordinates
-    const ChVector<>& GetContactP1() const { return p1; }
+    const ChVector3d& GetContactP1() const { return p1; }
 
     /// Get the contact point 2, in absolute coordinates
-    const ChVector<>& GetContactP2() const { return p2; }
+    const ChVector3d& GetContactP2() const { return p2; }
 
     /// Get the contact normal, in absolute coordinates
-    const ChVector<>& GetContactNormal() const { return normal; }
+    const ChVector3d& GetContactNormal() const { return normal; }
 
     /// Get the contact distance
     double GetContactDistance() const { return norm_dist; }
@@ -134,10 +134,10 @@ class ChContactTuple {
     double GetEffectiveCurvatureRadius() const { return eff_radius; }
 
     /// Get the contact force, if computed, in contact coordinate system
-    virtual ChVector<> GetContactForce() const { return ChVector<>(0); }
+    virtual ChVector3d GetContactForce() const { return ChVector3d(0); }
 
     /// Get the contact torque, if computed, in contact coordinate system
-    virtual ChVector<> GetContactTorque() const { return ChVector<>(0); }
+    virtual ChVector3d GetContactTorque() const { return ChVector3d(0); }
 
     //
     // UPDATING FUNCTIONS

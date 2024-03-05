@@ -112,11 +112,11 @@ int main(int argc, char* argv[]) {
     }
     sysFSI.ReadParametersFromFile(inputJson);
 
-    sysFSI.SetContainerDim(ChVector<>(bxDim, byDim, bzDim));
+    sysFSI.SetContainerDim(ChVector3d(bxDim, byDim, bzDim));
 
     auto initSpace0 = sysFSI.GetInitialSpacing();
-    ChVector<> cMin = ChVector<>(-5 * bxDim, -byDim / 2.0 - initSpace0 / 2.0, -5 * bzDim);
-    ChVector<> cMax = ChVector<>(5 * bxDim, byDim / 2.0 + initSpace0 / 2.0, 5 * bzDim);
+    ChVector3d cMin = ChVector3d(-5 * bxDim, -byDim / 2.0 - initSpace0 / 2.0, -5 * bzDim);
+    ChVector3d cMax = ChVector3d(5 * bxDim, byDim / 2.0 + initSpace0 / 2.0, 5 * bzDim);
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Set SPH discretization type, consistent or inconsistent
@@ -130,8 +130,8 @@ int main(int argc, char* argv[]) {
 
     // Create SPH particles of fluid region
     chrono::utils::GridSampler<> sampler(initSpace0);
-    ChVector<> boxCenter(-bxDim / 2 + fxDim / 2, 0, fzDim / 2 + 1 * initSpace0);
-    ChVector<> boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
+    ChVector3d boxCenter(-bxDim / 2 + fxDim / 2, 0, fzDim / 2 + 1 * initSpace0);
+    ChVector3d boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
     chrono::utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
     ChFsiVisualizationGL fsi_vis(&sysFSI);
     if (render) {
         fsi_vis.SetTitle("Chrono::FSI Flexible Flat Plate Demo");
-        fsi_vis.UpdateCamera(ChVector<>(bxDim / 8, -3, 0.25), ChVector<>(bxDim / 8, 0.0, 0.25));
+        fsi_vis.UpdateCamera(ChVector3d(bxDim / 8, -3, 0.25), ChVector3d(bxDim / 8, 0.0, 0.25));
         fsi_vis.SetCameraMoveScale(1.0f);
         fsi_vis.EnableBoundaryMarkers(true);
         fsi_vis.Initialize();
@@ -216,8 +216,8 @@ int main(int argc, char* argv[]) {
 // Create the objects of the MBD system. Rigid/flexible bodies, and if
 // fsi, their bce representation are created and added to the systems
 void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
-    sysMBS.Set_G_acc(ChVector<>(0, 0, 0));
-    sysFSI.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sysMBS.Set_G_acc(ChVector3d(0, 0, 0));
+    sysFSI.Set_G_acc(ChVector3d(0, 0, -9.81));
 
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);
@@ -227,9 +227,9 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Fluid representation of walls
     sysFSI.AddBoxContainerBCE(ground,                                         //
-                              ChFrame<>(ChVector<>(0, 0, bzDim / 2), QUNIT),  //
-                              ChVector<>(bxDim, byDim, bzDim),                //
-                              ChVector<int>(2, 0, -1));
+                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
+                              ChVector3d(bxDim, byDim, bzDim),                //
+                              ChVector3i(2, 0, -1));
 
     auto initSpace0 = sysFSI.GetInitialSpacing();
 
@@ -241,7 +241,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     double plate_lenght_x = 0.02;
     double plate_lenght_y = byDim;
     double plate_lenght_z = initSpace0 * 40;
-    ChVector<> center_plate(0.0, 0.0, plate_lenght_z / 2 + 1 * initSpace0);
+    ChVector3d center_plate(0.0, 0.0, plate_lenght_z / 2 + 1 * initSpace0);
 
     // Specification of the mesh
     int numDiv_x = 1;
@@ -263,8 +263,8 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     NodeNeighborElement_mesh.resize(TotalNumNodes);
 
     // Create and add the nodes
-    ChVector<> loc;
-    ChVector<> dir(1, 0, 0);
+    ChVector3d loc;
+    ChVector3d dir(1, 0, 0);
     for (int k = 0; k < N_z; k++) {
         for (int j = 0; j < N_y; j++) {
             loc.x() = center_plate.x();
@@ -325,7 +325,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
             // Add element to mesh
             my_mesh->AddElement(element);
-            ChVector<> center = 0.25 * (element->GetNodeA()->GetPos() + element->GetNodeB()->GetPos() +
+            ChVector3d center = 0.25 * (element->GetNodeA()->GetPos() + element->GetNodeB()->GetPos() +
                                         element->GetNodeC()->GetPos() + element->GetNodeD()->GetPos());
             std::cout << "Adding element" << num_elem << "  with center:  " << center.x() << " " << center.y() << " "
                       << center.z() << std::endl;

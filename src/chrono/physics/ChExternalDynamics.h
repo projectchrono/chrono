@@ -80,7 +80,7 @@ class ChApi ChExternalDynamics : public ChPhysicsItem {
 
     virtual void Update(double time, bool update_assets = true) override;
 
-    virtual int GetDOF() override { return m_nstates; }
+    virtual int GetNumCoordinatesPos() override { return m_nstates; }
 
     ChVariables& Variables() { return *m_variables; }
 

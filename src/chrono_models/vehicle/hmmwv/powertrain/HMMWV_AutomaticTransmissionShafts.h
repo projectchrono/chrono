@@ -47,8 +47,8 @@ class CH_MODELS_API HMMWV_AutomaticTransmissionShafts : public ChAutomaticTransm
     virtual double GetUpshiftRPM() const override { return m_upshift_RPM; }
     virtual double GetDownshiftRPM() const override { return m_downshift_RPM; }
 
-    virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) override;
-    virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) override;
+    virtual void SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunctionInterp>& map) override;
+    virtual void SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunctionInterp>& map) override;
 
   private:
     // Shaft inertias.

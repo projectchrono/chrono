@@ -18,8 +18,6 @@
 
 namespace chrono {
 
-using namespace geometry;
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChContactContainerNSC)
 
@@ -178,7 +176,7 @@ void _OptimalContactInsert(std::list<Tcont*>& contactlist,           // contact 
                            Ta* objA,                                 // collidable object A
                            Tb* objB,                                 // collidable object B
                            const ChCollisionInfo& cinfo,  // collision information
-                           const ChMaterialCompositeNSC& cmat        // composite material
+                           const ChContactMaterialCompositeNSC& cmat        // composite material
 ) {
     if (lastcontact != contactlist.end()) {
         // reuse old contacts
@@ -194,8 +192,8 @@ void _OptimalContactInsert(std::list<Tcont*>& contactlist,           // contact 
 }
 
 void ChContactContainerNSC::AddContact(const ChCollisionInfo& cinfo,
-                                       std::shared_ptr<ChMaterialSurface> mat1,
-                                       std::shared_ptr<ChMaterialSurface> mat2) {
+                                       std::shared_ptr<ChContactMaterial> mat1,
+                                       std::shared_ptr<ChContactMaterial> mat2) {
     assert(cinfo.modelA->GetContactable());
     assert(cinfo.modelB->GetContactable());
 
@@ -212,9 +210,9 @@ void ChContactContainerNSC::AddContact(const ChCollisionInfo& cinfo,
     }
 
     // Create the composite material
-    ChMaterialCompositeNSC cmat(GetSystem()->composition_strategy.get(),
-                                std::static_pointer_cast<ChMaterialSurfaceNSC>(mat1),
-                                std::static_pointer_cast<ChMaterialSurfaceNSC>(mat2));
+    ChContactMaterialCompositeNSC cmat(GetSystem()->composition_strategy.get(),
+                                std::static_pointer_cast<ChContactMaterialNSC>(mat1),
+                                std::static_pointer_cast<ChContactMaterialNSC>(mat2));
 
     InsertContact(cinfo, cmat);
 }
@@ -237,9 +235,9 @@ void ChContactContainerNSC::AddContact(const ChCollisionInfo& cinfo) {
     }
 
     // Create the composite material
-    ChMaterialCompositeNSC cmat(GetSystem()->composition_strategy.get(),
-                                std::static_pointer_cast<ChMaterialSurfaceNSC>(cinfo.shapeA->GetMaterial()),
-                                std::static_pointer_cast<ChMaterialSurfaceNSC>(cinfo.shapeB->GetMaterial()));
+    ChContactMaterialCompositeNSC cmat(GetSystem()->composition_strategy.get(),
+                                std::static_pointer_cast<ChContactMaterialNSC>(cinfo.shapeA->GetMaterial()),
+                                std::static_pointer_cast<ChContactMaterialNSC>(cinfo.shapeB->GetMaterial()));
 
     // Check for a user-provided callback to modify the material
     if (GetAddContactCallback()) {
@@ -249,7 +247,7 @@ void ChContactContainerNSC::AddContact(const ChCollisionInfo& cinfo) {
     InsertContact(cinfo, cmat);
 }
 
-void ChContactContainerNSC::InsertContact(const ChCollisionInfo& cinfo, const ChMaterialCompositeNSC& cmat) {
+void ChContactContainerNSC::InsertContact(const ChCollisionInfo& cinfo, const ChContactMaterialCompositeNSC& cmat) {
     auto contactableA = cinfo.modelA->GetContactable();
     auto contactableB = cinfo.modelB->GetContactable();
 
@@ -381,20 +379,20 @@ void ChContactContainerNSC::ComputeContactForces() {
     SumAllContactForces(contactlist_6_6_rolling, contact_forces);
 }
 
-ChVector<> ChContactContainerNSC::GetContactableForce(ChContactable* contactable) {
+ChVector3d ChContactContainerNSC::GetContactableForce(ChContactable* contactable) {
     std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(contactable);
     if (Iterator != contact_forces.end()) {
         return Iterator->second.force;
     }
-    return ChVector<>(0);
+    return ChVector3d(0);
 }
 
-ChVector<> ChContactContainerNSC::GetContactableTorque(ChContactable* contactable) {
+ChVector3d ChContactContainerNSC::GetContactableTorque(ChContactable* contactable) {
     std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(contactable);
     if (Iterator != contact_forces.end()) {
         return Iterator->second.torque;
     }
-    return ChVector<>(0);
+    return ChVector3d(0);
 }
 
 template <class Tcont>
@@ -789,21 +787,21 @@ void ChContactContainerNSC::ConstraintsFetch_react(double factor) {
     _ConstraintsFetch_react(contactlist_6_6_rolling, factor);
 }
 
-void ChContactContainerNSC::ArchiveOut(ChArchiveOut& marchive) {
+void ChContactContainerNSC::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChContactContainerNSC>();
+    archive_out.VersionWrite<ChContactContainerNSC>();
     // serialize parent class
-    ChContactContainer::ArchiveOut(marchive);
+    ChContactContainer::ArchiveOut(archive_out);
     // serialize all member data:
     // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChContactContainerNSC::ArchiveIn(ChArchiveIn& marchive) {
+void ChContactContainerNSC::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChContactContainerNSC>();
+    /*int version =*/ archive_in.VersionRead<ChContactContainerNSC>();
     // deserialize parent class
-    ChContactContainer::ArchiveIn(marchive);
+    ChContactContainer::ArchiveIn(archive_in);
     // stream in all member data:
     RemoveAllContacts();
     // NO SERIALIZATION of contact list because assume it is volatile and generated when needed

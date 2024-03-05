@@ -43,8 +43,8 @@ class ChApi ChLinkDistance : public ChLink {
     int Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first frame to link
                    std::shared_ptr<ChBodyFrame> mbody2,  ///< second frame to link
                    bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                   ChVector<> mpos1,  ///< pos. of distance endpoint, for 1st body (rel. or abs., see flag above)
-                   ChVector<> mpos2,  ///< pos. of distance endpoint, for 2nd body (rel. or abs., see flag above)
+                   ChVector3d mpos1,  ///< pos. of distance endpoint, for 1st body (rel. or abs., see flag above)
+                   ChVector3d mpos2,  ///< pos. of distance endpoint, for 2nd body (rel. or abs., see flag above)
                    bool auto_distance =
                        true,  ///< if true, initializes the imposed distance as the distance between mpos1 and mpos2
                    double mdistance = 0,        ///< imposed distance (no need to define, if auto_distance=true.)
@@ -52,7 +52,7 @@ class ChApi ChLinkDistance : public ChLink {
     );
 
     /// Get the number of (bilateral) constraints introduced by this link.
-    virtual int GetDOC_c() override { return 1; }
+    virtual int GetNumConstraintsBilateral() override { return 1; }
 
     /// Get the link coordinate system, expressed relative to Body2 (the 'master' body). This represents the 'main'
     /// reference of the link: reaction forces are expressed in this coordinate system. (It is the coordinate system of
@@ -60,22 +60,22 @@ class ChApi ChLinkDistance : public ChLink {
     virtual ChCoordsys<> GetLinkRelativeCoords() override;
 
     /// Get the 1st anchor endpoint for the distance (expressed in Body1 coordinate system)
-    ChVector<> GetEndPoint1Rel() const { return pos1; }
+    ChVector3d GetEndPoint1Rel() const { return pos1; }
     /// Set the 1st anchor endpoint for the distance (expressed in Body1 coordinate system)
-    void SetEndPoint1Rel(const ChVector<>& mset) { pos1 = mset; }
+    void SetEndPoint1Rel(const ChVector3d& mset) { pos1 = mset; }
     /// Get the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-    ChVector<> GetEndPoint1Abs() const { return ((ChFrame<double>*)Body1)->TransformLocalToParent(pos1); }
+    ChVector3d GetEndPoint1Abs() const { return ((ChFrame<double>*)Body1)->TransformPointLocalToParent(pos1); }
     /// Set the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-    void SetEndPoint1Abs(ChVector<>& mset) { pos1 = ((ChFrame<double>*)Body1)->TransformParentToLocal(mset); }
+    void SetEndPoint1Abs(ChVector3d& mset) { pos1 = ((ChFrame<double>*)Body1)->TransformPointParentToLocal(mset); }
 
     /// Get the 2nd anchor endpoint for the distance (expressed in Body2 coordinate system)
-    ChVector<> GetEndPoint2Rel() const { return pos2; }
+    ChVector3d GetEndPoint2Rel() const { return pos2; }
     /// Set the 2nd anchor endpoint for the distance (expressed in Body2 coordinate system)
-    void SetEndPoint2Rel(const ChVector<>& mset) { pos2 = mset; }
+    void SetEndPoint2Rel(const ChVector3d& mset) { pos2 = mset; }
     /// Get the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-    ChVector<> GetEndPoint2Abs() const { return ((ChFrame<double>*)Body2)->TransformLocalToParent(pos2); }
+    ChVector3d GetEndPoint2Abs() const { return ((ChFrame<double>*)Body2)->TransformPointLocalToParent(pos2); }
     /// Set the 1st anchor endpoint for the distance (expressed in absolute coordinate system)
-    void SetEndPoint2Abs(ChVector<>& mset) { pos2 = ((ChFrame<double>*)Body2)->TransformParentToLocal(mset); }
+    void SetEndPoint2Abs(ChVector3d& mset) { pos2 = ((ChFrame<double>*)Body2)->TransformPointParentToLocal(mset); }
 
     /// Set the imposed distance
     void SetImposedDistance(const double mset) { distance = mset; }
@@ -137,18 +137,18 @@ class ChApi ChLinkDistance : public ChLink {
     // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     Mode mode;                 ///< current mode
     double mode_sign;          ///< current mode
     double distance;           ///< imposed distance
     double curr_dist;          ///< current distance
-    ChVector<> pos1;           ///< first endpoint, in body rel. coords
-    ChVector<> pos2;           ///< second endpoint, in body rel. coords
+    ChVector3d pos1;           ///< first endpoint, in body rel. coords
+    ChVector3d pos2;           ///< second endpoint, in body rel. coords
     ChConstraintTwoBodies Cx;  ///< the constraint object
     ChVectorN<double, 1> C;    ///< constraint violation
 };

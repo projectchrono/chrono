@@ -22,6 +22,7 @@
 #include "chrono/physics/ChLinkMotorLinearPosition.h"
 #include "chrono/timestepper/ChTimestepper.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono/fea/ChElementBeamIGA.h"
 #include "chrono/fea/ChBuilderBeam.h"
@@ -80,11 +81,11 @@ void MakeAndRunDemo0(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     double beam_L = 0.1;
 
-    auto hnode1 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L * 0, 0, 0)));
-    auto hnode2 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L * 0.5, 0.00, 0)));
-    auto hnode3 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L * 1.0, 0.00, 0)));
-    auto hnode4 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L * 1.5, 0.00, 0)));
-    auto hnode5 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L * 2.0, 0.00, 0)));
+    auto hnode1 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(beam_L * 0, 0, 0)));
+    auto hnode2 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(beam_L * 0.5, 0.00, 0)));
+    auto hnode3 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(beam_L * 1.0, 0.00, 0)));
+    auto hnode4 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(beam_L * 1.5, 0.00, 0)));
+    auto hnode5 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(beam_L * 2.0, 0.00, 0)));
 
     my_mesh->AddNode(hnode1);
     my_mesh->AddNode(hnode2);
@@ -182,13 +183,13 @@ void MakeAndRunDemo1(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis,
     builder.BuildBeam(my_mesh,                   // the mesh to put the elements in
                       msection,                  // section of the beam
                       nsections,                 // number of sections (spans)
-                      ChVector<>(0, 0, 0),       // start point
-                      ChVector<>(beam_L, 0, 0),  // end point
+                      ChVector3d(0, 0, 0),       // start point
+                      ChVector3d(beam_L, 0, 0),  // end point
                       VECT_Y,                    // suggested Y direction of section
                       order);                    // order (3 = cubic, etc)
     builder.GetLastBeamNodes().front()->SetFixed(true);
-    builder.GetLastBeamNodes().back()->SetForce(ChVector<>(0, beam_tip_load, 0));
-    // builder.GetLastBeamNodes().back()->SetTorque(ChVector<>(0,0, 1.2));
+    builder.GetLastBeamNodes().back()->SetForce(ChVector3d(0, beam_tip_load, 0));
+    // builder.GetLastBeamNodes().back()->SetTorque(ChVector3d(0,0, 1.2));
 
     // Attach a visualization of the FEM mesh.
 
@@ -222,9 +223,9 @@ void MakeAndRunDemo1(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis,
     double numerical_displ =
         builder.GetLastBeamNodes().back()->GetPos().y() - builder.GetLastBeamNodes().back()->GetX0().GetPos().y();
 
-    GetLog() << "\n LINEAR STATIC cantilever, order= " << order << "  nsections= " << nsections
-             << "  rel.error=  " << fabs((numerical_displ - analytic_timoshenko_displ) / analytic_timoshenko_displ)
-             << "\n";
+    std::cout << "\nLINEAR STATIC cantilever, order= " << order << "  nsections= " << nsections
+              << "  rel.error=  " << fabs((numerical_displ - analytic_timoshenko_displ) / analytic_timoshenko_displ)
+              << std::endl;
 
     while (vis->Run()) {
         vis->BeginScene();
@@ -266,7 +267,7 @@ void MakeAndRunDemo2(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     // Note: we can add a ChBeamShape component to the section, and that can
     // provide the shape for the visualization of the beam. Note that the visualization
     // shape does not have to match to the physical properties (that in this example are those of a rectangular section)
-    std::vector<std::vector<ChVector<> > > polyline_points = {
+    std::vector<std::vector<ChVector3d> > polyline_points = {
         {{0, 0.00, 0.02}, {0, 0.01, -0.02}, {0, 0.00, -0.025}, {0, -0.01, -0.025}},  // upper profile, with 4 xyz points
         {{0, -0.01, -0.025}, {0, -0.01, 0.00}, {0, 0.00, 0.02}}  // lower profile, with 3 xyz points. Note x=0, always.
     };
@@ -278,10 +279,10 @@ void MakeAndRunDemo2(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     ChBuilderBeamIGA builderR;
 
-    std::vector<ChVector<> > my_points = {{0, 0, 0.2}, {0, 0, 0.3}, {0, -0.01, 0.4}, {0, -0.04, 0.5}, {0, -0.1, 0.6}};
+    std::vector<ChVector3d> my_points = {{0, 0, 0.2}, {0, 0, 0.3}, {0, -0.01, 0.4}, {0, -0.04, 0.5}, {0, -0.1, 0.6}};
 
-    geometry::ChLineBspline my_spline(3,           // order (3 = cubic, etc)
-                                      my_points);  // control points, will become the IGA nodes
+    ChLineBspline my_spline(3,           // order (3 = cubic, etc)
+                            my_points);  // control points, will become the IGA nodes
 
     builderR.BuildBeam(my_mesh,    // the mesh to put the elements in
                        msection,   // section of the beam
@@ -291,7 +292,7 @@ void MakeAndRunDemo2(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     builderR.GetLastBeamNodes().front()->SetFixed(true);
 
     auto mbodywing = chrono_types::make_shared<ChBodyEasyBox>(0.01, 0.2, 0.05, 2000);
-    mbodywing->SetCoord(builderR.GetLastBeamNodes().back()->GetCoord());
+    mbodywing->SetCsys(builderR.GetLastBeamNodes().back()->GetCsys());
     sys.Add(mbodywing);
 
     auto myjoint = chrono_types::make_shared<ChLinkMateFix>();
@@ -356,29 +357,29 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     auto mplasticity = chrono_types::make_shared<ChPlasticityCosseratLumped>();
     // The isotropic hardening curve. The value at zero absyssa is the initial yeld.
-    mplasticity->n_yeld_x = chrono_types::make_shared<ChFunction_Const>(3000);
-    // mplasticity->n_yeld_x = chrono_types::make_shared<ChFunction_Ramp>(3000, 1e3);
+    mplasticity->n_yeld_x = chrono_types::make_shared<ChFunctionConst>(3000);
+    // mplasticity->n_yeld_x = chrono_types::make_shared<ChFunctionRamp>(3000, 1e3);
     // The optional kinematic hardening curve:
-    mplasticity->n_beta_x = chrono_types::make_shared<ChFunction_Ramp>(0, 1e3);
+    mplasticity->n_beta_x = chrono_types::make_shared<ChFunctionRamp>(0, 1e3);
 
     // for bending (on y and z): some kinematic hardening
-    mplasticity->n_yeld_My = chrono_types::make_shared<ChFunction_Const>(0.3);
-    mplasticity->n_beta_My = chrono_types::make_shared<ChFunction_Ramp>(0, 0.001e2);
-    mplasticity->n_yeld_Mz = chrono_types::make_shared<ChFunction_Const>(0.3);
-    mplasticity->n_beta_Mz = chrono_types::make_shared<ChFunction_Ramp>(0, 0.001e2);
+    mplasticity->n_yeld_My = chrono_types::make_shared<ChFunctionConst>(0.3);
+    mplasticity->n_beta_My = chrono_types::make_shared<ChFunctionRamp>(0, 0.001e2);
+    mplasticity->n_yeld_Mz = chrono_types::make_shared<ChFunctionConst>(0.3);
+    mplasticity->n_beta_Mz = chrono_types::make_shared<ChFunctionRamp>(0, 0.001e2);
 
     auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(minertia, melasticity, mplasticity);
 
     msection->SetDrawThickness(beam_wy, beam_wz);
 
     ChBuilderBeamIGA builder;
-    builder.BuildBeam(my_mesh,                  // the mesh to put the elements in
-                      msection,                 // section of the beam
-                      5,                        // number of sections (spans)
-                      ChVector<>(0, 0, 0),      // start point
-                      ChVector<>(0.4, 0.0, 0),  // end point
-                      VECT_Y,                   // suggested Y direction of section
-                      2);                       // order (3 = cubic, etc)
+    builder.BuildBeam(my_mesh,                // the mesh to put the elements in
+                      msection,               // section of the beam
+                      5,                      // number of sections (spans)
+                      ChVector3d(0, 0, 0),    // start point
+                      ChVector3d(0.4, 0, 0),  // end point
+                      VECT_Y,                 // suggested Y direction of section
+                      3);                     // order (3 = cubic, etc)
     builder.GetLastBeamNodes().front()->SetFixed(true);
 
     // Now create a linear motor that push-pulls the end of the beam
@@ -389,21 +390,13 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     auto motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
     sys.Add(motor);
-    motor->Initialize(
-        builder.GetLastBeamNodes().back(), truss,
-        ChFrame<>(builder.GetLastBeamNodes().back()->GetPos(), chrono::Q_from_AngAxis(0 * CH_C_PI_2, VECT_Z)));
+    motor->Initialize(builder.GetLastBeamNodes().back(), truss,
+                      ChFrame<>(builder.GetLastBeamNodes().back()->GetPos(), Q_ROTATE_Z_TO_X));
     motor->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::SPHERICAL);
-    auto rampup = chrono_types::make_shared<ChFunction_Ramp>(0, 0.1);
-    auto rampdo = chrono_types::make_shared<ChFunction_Ramp>(0, -0.1);
-    auto motfun = chrono_types::make_shared<ChFunction_Sequence>();
-    motfun->InsertFunct(rampdo, 1, 0, true);
-    motfun->InsertFunct(rampup, 1, 0, true);
-    auto motrepeat = chrono_types::make_shared<ChFunction_Repeat>(motfun);
-    motrepeat->Set_window_length(2);
-    auto motfuntot = chrono_types::make_shared<ChFunction_Sequence>();
-    motfuntot->InsertFunct(rampup, 0.5, 0, true);
-    motfuntot->InsertFunct(motrepeat, 10, 0, true);
-    motor->SetMotionFunction(motfuntot);
+
+    auto motfunsine = chrono_types::make_shared<ChFunctionSine>(0.05, 0.1);
+
+    motor->SetMotionFunction(motfunsine);
 
     // Attach a visualization of the FEM mesh.
 
@@ -423,7 +416,7 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     // This is needed if you want to see things in Irrlicht 3D view.
     vis->AttachSystem(&sys);
 
-    ChStreamOutAsciiFile my_plasticfile(out_dir + "/plasticity.dat");
+    std::ofstream my_plasticfile(out_dir + "/plasticity.dat");
 
     while (vis->Run()) {
         vis->BeginScene();
@@ -441,7 +434,7 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
         my_plasticfile << sys.GetChTime() << " " << builder.GetLastBeamElements()[0]->GetStrainE()[0].x() << " "
                        << builder.GetLastBeamElements()[0]->GetStressN()[0].x() << " " << plasticdata->p_strain_acc
                        << " " << plasticdata->p_strain_e.x() << " " << mK(0, 0) << " " << motor->GetMotorForce() << " "
-                       << motor->GetMotorPos() << "\n";
+                       << motor->GetMotorPos() << std::endl;
         /*
         my_plasticfile << sys.GetChTime() << " "
             << builder.GetLastBeamElements()[0]->GetStrainK()[0].z() << " "
@@ -450,7 +443,7 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
             << plasticdata->p_strain_k.z() << " "
             << mK(5, 5) << " "
             << motor->GetMotorForce() << " "
-            << motor->GetMotorPos() << "\n";
+            << motor->GetMotorPos() << std::endl;
             */
     }
 }
@@ -470,7 +463,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     // for max precision in gravity of FE, at least 2 integration points per element when using cubic IGA
     my_mesh->SetAutomaticGravity(true, 2);
-    sys.Set_G_acc(ChVector<>(0, -9.81, 0));
+    sys.Set_G_acc(ChVector3d(0, -9.81, 0));
 
     double beam_L = 6;
     double beam_ro = 0.050;
@@ -506,8 +499,8 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     builder.BuildBeam(my_mesh,                   // the mesh to put the elements in
                       msection,                  // section of the beam
                       20,                        // number of sections (spans)
-                      ChVector<>(0, 0, 0),       // start point
-                      ChVector<>(beam_L, 0, 0),  // end point
+                      ChVector3d(0, 0, 0),       // start point
+                      ChVector3d(beam_L, 0, 0),  // end point
                       VECT_Y,                    // suggested Y direction of section
                       1);                        // order (3 = cubic, etc)
 
@@ -515,11 +508,11 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     // Create the flywheel and attach it to the center of the beam
 
-    auto mbodyflywheel = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y,  //
-                                                                       0.24, 0.05, 7800);    // R, h, density
-    mbodyflywheel->SetCoord(ChCoordsys<>(
-        node_mid->GetPos() + ChVector<>(0, 0.05, 0),  // flywheel initial center (plus Y offset)
-        Q_from_AngAxis(CH_C_PI_2, VECT_Z))  // flywheel initial alignment (rotate 90° so cylinder axis is on X)
+    auto mbodyflywheel = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,          //
+                                                                       0.24, 0.05, 7800);  // R, h, density
+    mbodyflywheel->SetCsys(
+        ChCoordsys<>(node_mid->GetPos() + ChVector3d(0, 0.05, 0),  // flywheel initial center (plus Y offset)
+                     QuatFromAngleZ(CH_C_PI_2))  // flywheel initial alignment (rotate 90 deg so cylinder axis is on X)
     );
     sys.Add(mbodyflywheel);
 
@@ -545,16 +538,16 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     rotmotor1->Initialize(builder.GetLastBeamNodes().front(),  // body A (slave)
                           truss,                               // body B (master)
                           ChFrame<>(builder.GetLastBeamNodes().front()->GetPos(),
-                                    Q_from_AngAxis(CH_C_PI_2, VECT_Y))  // motor frame, in abs. coords
+                                    QuatFromAngleY(CH_C_PI_2))  // motor frame, in abs. coords
     );
     sys.Add(rotmotor1);
 
     // use a custom function for setting the speed of the motor
-    class ChFunction_myf : public ChFunction {
+    class ChFunctionMyFun : public ChFunction {
       public:
-        virtual ChFunction_myf* Clone() const override { return new ChFunction_myf(); }
+        virtual ChFunctionMyFun* Clone() const override { return new ChFunctionMyFun(); }
 
-        virtual double Get_y(double x) const override {
+        virtual double GetVal(double x) const override {
             double A1 = 0.8;
             double A2 = 1.2;
             double T1 = 0.5;
@@ -572,7 +565,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
         }
     };
 
-    auto f_ramp = chrono_types::make_shared<ChFunction_myf>();
+    auto f_ramp = chrono_types::make_shared<ChFunctionMyFun>();
     rotmotor1->SetMotorFunction(f_ramp);
 
     // Attach a visualization of the FEM mesh.
@@ -593,7 +586,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     // This is needed if you want to see things in Irrlicht 3D view.
     vis->AttachSystem(&sys);
 
-    chrono::ChStreamOutAsciiFile file_out1(out_dir + "/rotor_displ.dat");
+    std::ofstream file_out1(out_dir + "/rotor_displ.dat");
 
     // Set to a more precise HHT timestepper if needed
     // sys.SetTimestepperType(ChTimestepper::Type::HHT);
@@ -609,12 +602,12 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
         vis->Render();
         sys.DoStepDynamics(0.002);
         vis->EndScene();
-        file_out1 << sys.GetChTime() << " " << node_mid->GetPos().y() << " " << node_mid->GetPos().z() << "\n";
+        file_out1 << sys.GetChTime() << " " << node_mid->GetPos().y() << " " << node_mid->GetPos().z() << std::endl;
     }
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Initialize output
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -628,7 +621,7 @@ int main(int argc, char* argv[]) {
     std::string models[] = {"static analysis", "curved beam connected to body", "plasticity", "Jeffcott rotor"};
 
     int which = 1;
-    std::cout << "Options:\n";
+    std::cout << "Options:" << std::endl;
     for (int i = 1; i <= 4; i++)
         std::cout << i << "  " << models[i - 1] << std::endl;
     std::cin >> which;
@@ -643,9 +636,9 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddLight(ChVector<>(30, 100, 30), 180, ChColor(0.5f, 0.5f, 0.5f));
-    vis->AddLight(ChVector<>(30, 80, -30), 190, ChColor(0.2f, 0.3f, 0.4f));
-    vis->AddCamera(ChVector<>(-0.1, 0.2, -0.2));
+    vis->AddLight(ChVector3d(30, 100, 30), 180, ChColor(0.5f, 0.5f, 0.5f));
+    vis->AddLight(ChVector3d(30, 80, -30), 190, ChColor(0.2f, 0.3f, 0.4f));
+    vis->AddCamera(ChVector3d(-0.1, 0.2, -0.2));
 
     // Solver default settings for all the sub demos:
     auto solver = chrono_types::make_shared<ChSolverMINRES>();

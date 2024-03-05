@@ -40,7 +40,7 @@ using namespace chrono::fea;
 int main(int argc, char* argv[]) {
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
-    system->Set_G_acc(ChVector<>(0, 0, 0));
+    system->Set_G_acc(ChVector3d(0, 0, 0));
 
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
     system->SetSolver(solver);
@@ -83,11 +83,11 @@ int main(int argc, char* argv[]) {
     double dx = length / (num_nodes - 1);
 
     // Setup beam cross section gradients to initially align with the global y and z directions
-    ChVector<> dir1(0, 1, 0);
-    ChVector<> dir2(0, 0, 1);
+    ChVector3d dir1(0, 1, 0);
+    ChVector3d dir2(0, 0, 1);
 
     // Create the first node and fix it completely to ground (Cantilever constraint)
-    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(0, 0, 0.0), dir1, dir2);
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(0, 0, 0.0), dir1, dir2);
     nodeA->SetFixed(true);
     mesh->AddNode(nodeA);
 
@@ -95,8 +95,8 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChNodeFEAxyzDD> nodeEndPoint;
 
     for (int i = 1; i <= num_elements; i++) {
-        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(dx * (2 * i), 0, 0), dir1, dir2);
-        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(dx * (2 * i - 1), 0, 0), dir1, dir2);
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(dx * (2 * i), 0, 0), dir1, dir2);
+        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(dx * (2 * i - 1), 0, 0), dir1, dir2);
         mesh->AddNode(nodeB);
         mesh->AddNode(nodeC);
 
@@ -157,10 +157,10 @@ int main(int argc, char* argv[]) {
     system->DoStaticNonlinear(50);
 
     // Calculate the twist angle of the end of the ANCF beam mesh
-    ChVector<> point;
+    ChVector3d point;
     ChQuaternion<> rot;
     elementlast->EvaluateSectionFrame(1, point, rot);
-    ChVector<> Tip_Angles = rot.Q_to_Euler123();
+    ChVector3d Tip_Angles = rot.GetCardanAnglesXYZ();
 
     // For Analytical Formula, see: https://en.wikipedia.org/wiki/Torsion_constant
     double J = 2.25 * std::pow(0.5 * width, 4);

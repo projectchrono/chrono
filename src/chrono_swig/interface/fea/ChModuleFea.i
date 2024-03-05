@@ -339,7 +339,7 @@ using namespace chrono::fea;
 
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChObject.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector3.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChQuaternion.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChMatrix.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChPhysicsItem.i"
@@ -351,9 +351,9 @@ using namespace chrono::fea;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChTensors.i"
 // Put this 'director' feature _before_ class wrapping declaration.
 %feature("director") chrono::ChFunction;
-%import(module = "pychrono.core")  "../../../chrono/motion_functions/ChFunction.h"
+%import(module = "pychrono.core")  "../../../chrono/functions/ChFunction.h"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChMaterialSurface.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactMaterial.i"
 %import(module = "pychrono.core")  "../../../chrono/physics/ChPhysicsItem.h"
 %import(module = "pychrono.core")  "../../../chrono/physics/ChIndexedNodes.h"
 %feature("director") chrono::ChLoadable;
@@ -447,7 +447,7 @@ using namespace chrono::fea;
 %include "../../../chrono/fea/ChContactSurfaceNodeCloud.h"
 %template(vector_ChNodeFEAbase) std::vector< std::shared_ptr<chrono::fea::ChNodeFEAbase> >;
 %template(vector_ChElementBase) std::vector< std::shared_ptr<chrono::fea::ChElementBase> >;
-%include "../../../chrono/fea/ChMeshSurface.h"
+%import "../../../chrono/fea/ChMeshSurface.h" // should be already provided by ChModuleCore
 %include "../../../chrono/fea/ChMesh.h"
 %include "../../../chrono/fea/ChLinkDirFrame.h"
 %include "../../../chrono/fea/ChLinkPointFrame.h"

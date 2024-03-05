@@ -37,8 +37,8 @@ namespace m113 {
 //// TODO: check these values
 const double M113_TrackShoeBandANCF::m_tread_mass = 1.8;
 const double M113_TrackShoeBandANCF::m_web_mass = 2.0;
-const ChVector<> M113_TrackShoeBandANCF::m_tread_inertias(0.015, 0.001, 0.016);
-const ChVector<> M113_TrackShoeBandANCF::m_web_inertias(0.01, 0.01, 0.01);
+const ChVector3d M113_TrackShoeBandANCF::m_tread_inertias(0.015, 0.001, 0.016);
+const ChVector3d M113_TrackShoeBandANCF::m_web_inertias(0.01, 0.01, 0.01);
 
 const double M113_TrackShoeBandANCF::m_shoe_height = 0.06;
 
@@ -57,7 +57,7 @@ const double M113_TrackShoeBandANCF::m_steel_thickness = 0.05 * 25.4 / 1000.0;
 const double M113_TrackShoeBandANCF::m_tread_length = 0.0724 * 1.04;
 const double M113_TrackShoeBandANCF::m_tread_thickness = 0.0157 * 1.04;
 
-const ChVector<> M113_TrackShoeBandANCF::m_guide_box_dims(0.0529, 0.0114, 0.075);
+const ChVector3d M113_TrackShoeBandANCF::m_guide_box_dims(0.0529, 0.0114, 0.075);
 const double M113_TrackShoeBandANCF::m_guide_box_offset_x = 0;
 
 const std::string M113_TrackShoeBandANCF::m_meshFile = "M113/meshes/TrackShoeBand.obj";
@@ -97,7 +97,7 @@ M113_TrackShoeBandANCF::M113_TrackShoeBandANCF(const std::string& name,
 void M113_TrackShoeBandANCF::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
         auto trimesh =
-            geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetDataFile(m_meshFile), false, false);
+            ChTriangleMeshConnected::CreateFromWavefrontFile(GetDataFile(m_meshFile), false, false);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(m_meshFile).stem());

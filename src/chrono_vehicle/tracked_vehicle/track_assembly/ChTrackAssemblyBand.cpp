@@ -27,7 +27,6 @@
 
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBand.h"
 
-#include "chrono/core/ChLog.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 namespace chrono {
@@ -52,7 +51,7 @@ namespace vehicle {
 bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chassis,
                                              int num_shoes,
                                              const std::vector<double>& connection_lengths,
-                                             std::vector<ChVector2<>>& shoe_points) {
+                                             std::vector<ChVector2d>& shoe_points) {
     // Shift the start point by a fraction of a shoe length so that the assembly can start with the belt
     // tooth aligned with the sprocket grove
     double FirstShoeFractionalOffset = -0.5;
@@ -64,19 +63,19 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
     int Maxiter = 200;
 
     // Position of sprocket (in chassis reference frame)
-    ChVector<> sprocket_pos_3d = chassis->TransformPointParentToLocal(m_sprocket->GetGearBody()->GetPos());
+    ChVector3d sprocket_pos_3d = chassis->TransformPointParentToLocal(m_sprocket->GetGearBody()->GetPos());
     m_sprocket_offset = sprocket_pos_3d.y();
 
     // Number of wheels
     int num_wheels = static_cast<int>(m_suspensions.size());
 
     // X & Z coordinates for the sprocket, idler, and all of the road wheels
-    std::vector<ChVector2<>> CirclePosAll(2 + num_wheels);
+    std::vector<ChVector2d> CirclePosAll(2 + num_wheels);
 
     // Radii for the sprocket, idler, and all of the road wheels
     std::vector<double> CircleRadiusAll(2 + num_wheels);
 
-    ChVector<> idler_pos_3d = chassis->TransformPointParentToLocal(m_idler->GetWheelBody()->GetPos());
+    ChVector3d idler_pos_3d = chassis->TransformPointParentToLocal(m_idler->GetWheelBody()->GetPos());
 
     CirclePosAll[0].x() = sprocket_pos_3d.x();
     CirclePosAll[0].y() = sprocket_pos_3d.z();
@@ -87,7 +86,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
     CircleRadiusAll[1] = m_idler->GetWheelRadius();
 
     for (int i = 0; i < num_wheels; i++) {
-        ChVector<> wheel_pos = chassis->TransformPointParentToLocal(m_suspensions[i]->GetWheelBody()->GetPos());
+        ChVector3d wheel_pos = chassis->TransformPointParentToLocal(m_suspensions[i]->GetWheelBody()->GetPos());
         CirclePosAll[i + 2].x() = wheel_pos.x();
         CirclePosAll[i + 2].y() = wheel_pos.z();
         CircleRadiusAll[i + 2] = m_suspensions[i]->GetWheelRadius();
@@ -112,7 +111,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
     int Current_Circle = 0;
     
     // Tangent points (start and end) between consecutive circles
-    std::vector<std::pair<ChVector2<>, ChVector2<>>> TangentPoints(CirclePosAll.size());
+    std::vector<std::pair<ChVector2d, ChVector2d>> TangentPoints(CirclePosAll.size());
 
     // Vector to save the indices of the circles that form the boundaries of the belt wrap
     std::vector<int> CircleIndex(CirclePosAll.size());
@@ -133,7 +132,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
             if (c == Current_Circle) {  // Don't count the distance between the circle and itself
                 continue;
             }
-            ChVector2<> Dist = CirclePosAll[c] - CirclePosAll[Current_Circle];
+            ChVector2d Dist = CirclePosAll[c] - CirclePosAll[Current_Circle];
             Distances.push_back(Dist.Length2());
             DistanceIndices.push_back(c);
         }
@@ -157,16 +156,16 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
         double minAngle = 0;
         int nextCircle = 0;
 
-        ChVector2<> Tan1Pnt1;
-        ChVector2<> Tan1Pnt2;
-        ChVector2<> Tan2Pnt1;
-        ChVector2<> Tan2Pnt2;
+        ChVector2d Tan1Pnt1;
+        ChVector2d Tan1Pnt2;
+        ChVector2d Tan2Pnt1;
+        ChVector2d Tan2Pnt2;
 
         for (size_t i = 0; i < DistanceIndices.size(); i++) {
             // Find the tangent points between the current circle and the next circle to check the wrap angles on
-            ChVector2<> Circle1Pos = CirclePosAll[Current_Circle];
+            ChVector2d Circle1Pos = CirclePosAll[Current_Circle];
             double Circle1Rad = CircleRadiusAll[Current_Circle];
-            ChVector2<> Circle2Pos = CirclePosAll[DistanceIndices[idx[i]]];
+            ChVector2d Circle2Pos = CirclePosAll[DistanceIndices[idx[i]]];
             double Circle2Rad = CircleRadiusAll[DistanceIndices[idx[i]]];
 
             FindCircleTangentPoints(Circle1Pos, Circle1Rad, Circle2Pos, Circle2Rad, Tan1Pnt1, Tan1Pnt2, Tan2Pnt1,
@@ -234,7 +233,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
     // Save the reduced geometry corresponding to the tight wrapping of the belt path.
 
     // X & Z coordinates for the sprocket and idler or any of the road wheels on the belt wrap loop
-    std::vector<ChVector2<>> CirclePos(iter + 1);
+    std::vector<ChVector2d> CirclePos(iter + 1);
     // radii for the sprocket and idler or any of the road wheels on the belt wrap loop
     std::vector<double> CircleRadius(iter + 1);
 
@@ -369,7 +368,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
             StartingAngle += CH_C_2PI;
         }
 
-        shoe_points[0] = ChVector2<>(std::cos(StartingAngle) * ScaledCircleRadius[0] + CirclePos[0].x(),
+        shoe_points[0] = ChVector2d(std::cos(StartingAngle) * ScaledCircleRadius[0] + CirclePos[0].x(),
                                      std::sin(StartingAngle) * ScaledCircleRadius[0] + CirclePos[0].y());
 
         int shoelinktype = 0;
@@ -404,8 +403,8 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
         int shoeidx;
 
         for (shoeidx = 1; shoeidx < shoe_points.size(); shoeidx++) {
-            ChVector2<> Point;
-            ChVector2<> StartingPoint = shoe_points[shoeidx - 1];
+            ChVector2d Point;
+            ChVector2d StartingPoint = shoe_points[shoeidx - 1];
 
             // Make sure that all the features are only searched once to prevent and endless loop
             for (int c = 0; c < Features.rows(); c++) {
@@ -429,7 +428,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
             }
 
             if (!FoundPoint) {
-                GetLog() << "Belt Assembly ERROR: Something went wrong\n";
+                std::cerr << "Belt Assembly ERROR: Something went wrong" << std::endl;
                 assert(FoundPoint);
                 return true;
             }
@@ -473,7 +472,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
         }
 
         if (std::abs(ExtraLength) < Tolerance) {
-            GetLog() << "Belt Wrap Algorithm Conveged after " << iter << " iterations - Extra Length: " << ExtraLength
+            std::cout << "Belt Wrap Algorithm Conveged after " << iter << " iterations - Extra Length: " << ExtraLength
                       << " - Length Tolerance: " << Tolerance << "\n";
             break;
         }
@@ -505,14 +504,14 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
     return true;
 }
 
-void ChTrackAssemblyBand::FindCircleTangentPoints(ChVector2<> Circle1Pos,
+void ChTrackAssemblyBand::FindCircleTangentPoints(ChVector2d Circle1Pos,
                                                   double Circle1Rad,
-                                                  ChVector2<> Circle2Pos,
+                                                  ChVector2d Circle2Pos,
                                                   double Circle2Rad,
-                                                  ChVector2<>& Tan1Pnt1,
-                                                  ChVector2<>& Tan1Pnt2,
-                                                  ChVector2<>& Tan2Pnt1,
-                                                  ChVector2<>& Tan2Pnt2) {
+                                                  ChVector2d& Tan1Pnt1,
+                                                  ChVector2d& Tan1Pnt2,
+                                                  ChVector2d& Tan2Pnt1,
+                                                  ChVector2d& Tan2Pnt2) {
     // Based on https://en.wikipedia.org/wiki/Tangent_lines_to_circles with modifications
 
     double x1 = Circle1Pos.x();
@@ -526,22 +525,22 @@ void ChTrackAssemblyBand::FindCircleTangentPoints(ChVector2<> Circle1Pos,
     double gamma = std::atan2((y2 - y1), (x2 - x1));
 
     Tan1Pnt1 =
-        ChVector2<>(x1 + r1 * std::cos(gamma + (CH_C_PI_2 + beta)), y1 + r1 * std::sin(gamma + (CH_C_PI_2 + beta)));
+        ChVector2d(x1 + r1 * std::cos(gamma + (CH_C_PI_2 + beta)), y1 + r1 * std::sin(gamma + (CH_C_PI_2 + beta)));
     Tan1Pnt2 =
-        ChVector2<>(x2 + r2 * std::cos(gamma + (CH_C_PI_2 + beta)), y2 + r2 * std::sin(gamma + (CH_C_PI_2 + beta)));
+        ChVector2d(x2 + r2 * std::cos(gamma + (CH_C_PI_2 + beta)), y2 + r2 * std::sin(gamma + (CH_C_PI_2 + beta)));
 
     // Pick the external tangent on the other side of the circle
     Tan2Pnt1 =
-        ChVector2<>(x1 + r1 * std::cos(gamma - (CH_C_PI_2 + beta)), y1 + r1 * std::sin(gamma - (CH_C_PI_2 + beta)));
+        ChVector2d(x1 + r1 * std::cos(gamma - (CH_C_PI_2 + beta)), y1 + r1 * std::sin(gamma - (CH_C_PI_2 + beta)));
     Tan2Pnt2 =
-        ChVector2<>(x2 + r2 * std::cos(gamma - (CH_C_PI_2 + beta)), y2 + r2 * std::sin(gamma - (CH_C_PI_2 + beta)));
+        ChVector2d(x2 + r2 * std::cos(gamma - (CH_C_PI_2 + beta)), y2 + r2 * std::sin(gamma - (CH_C_PI_2 + beta)));
 }
 
 void ChTrackAssemblyBand::CheckCircleCircle(bool& found,
-                                            ChVector2<>& Point,
+                                            ChVector2d& Point,
                                             ChMatrixDynamic<>& Features,
                                             int FeatureIdx,
-                                            ChVector2<>& StartingPoint,
+                                            ChVector2d& StartingPoint,
                                             double Radius) {
     // Code was based on http://mathworld.wolfram.com/Circle-CircleIntersection.html
 
@@ -550,13 +549,13 @@ void ChTrackAssemblyBand::CheckCircleCircle(bool& found,
     Point.y() = 0;
 
     // Check for any intersection
-    ChVector2<> ArcCenter(Features(FeatureIdx, 1), Features(FeatureIdx, 2));
+    ChVector2d ArcCenter(Features(FeatureIdx, 1), Features(FeatureIdx, 2));
     double StartingArcAngle = Features(FeatureIdx, 3);
     double EndingArcAngle = Features(FeatureIdx, 4);
 
     double R = Features(FeatureIdx, 5);
     double r = Radius;
-    ChVector2<> temp = ArcCenter - StartingPoint;
+    ChVector2d temp = ArcCenter - StartingPoint;
     double d = temp.Length();
 
     double y2 = (4 * d * d * R * R - std::pow(d * d - r * r + R * R, 2)) / (4 * d * d);
@@ -569,7 +568,7 @@ void ChTrackAssemblyBand::CheckCircleCircle(bool& found,
 
     double theta = std::acos(((R * R + d * d) - r * r) / (2 * R * d));
 
-    ChVector2<> Ctr = StartingPoint - ArcCenter;
+    ChVector2d Ctr = StartingPoint - ArcCenter;
     double Angle1 = std::atan2(Ctr.y(), Ctr.x()) - theta;
     double Angle2 = std::atan2(Ctr.y(), Ctr.x()) + theta - CH_C_2PI;
 
@@ -610,10 +609,10 @@ void ChTrackAssemblyBand::CheckCircleCircle(bool& found,
 }
 
 void ChTrackAssemblyBand::CheckCircleLine(bool& found,
-                                          ChVector2<>& Point,
+                                          ChVector2d& Point,
                                           ChMatrixDynamic<>& Features,
                                           int FeatureIdx,
-                                          ChVector2<>& StartingPoint,
+                                          ChVector2d& StartingPoint,
                                           double Radius) {
     // Code was based on http://mathworld.wolfram.com/Circle-LineIntersection.html
 
@@ -625,8 +624,8 @@ void ChTrackAssemblyBand::CheckCircleLine(bool& found,
     double y1 = Features(FeatureIdx, 2) - StartingPoint.y();
     double x2 = Features(FeatureIdx, 3) - StartingPoint.x();
     double y2 = Features(FeatureIdx, 4) - StartingPoint.y();
-    ChVector2<> LinePnt1(x1, y1);
-    ChVector2<> LinePnt2(x2, y2);
+    ChVector2d LinePnt1(x1, y1);
+    ChVector2d LinePnt2(x2, y2);
     double r = Radius;
 
     double dx = x2 - x1;
@@ -654,18 +653,18 @@ void ChTrackAssemblyBand::CheckCircleLine(bool& found,
     double yint_1 = (-D * dx + std::abs(dy) * std::sqrt(discriminant)) / (dr * dr);
     double yint_2 = (-D * dx - std::abs(dy) * std::sqrt(discriminant)) / (dr * dr);
 
-    ChVector2<> intPnt1(xint_1, yint_1);
-    ChVector2<> intPnt2(xint_2, yint_2);
+    ChVector2d intPnt1(xint_1, yint_1);
+    ChVector2d intPnt2(xint_2, yint_2);
 
-    ChVector2<> Line = LinePnt2 - LinePnt1;
+    ChVector2d Line = LinePnt2 - LinePnt1;
     if (Line.Dot(intPnt1 - LinePnt1) > Line.Dot(intPnt2 - LinePnt1)) {
         auto temp = intPnt1;
         intPnt1 = intPnt2;
         intPnt2 = temp;
     }
 
-    ChVector2<> intPnt2mLinePnt1 = intPnt2 - LinePnt1;
-    ChVector2<> intPnt2mLinePnt2 = intPnt2 - LinePnt2;
+    ChVector2d intPnt2mLinePnt1 = intPnt2 - LinePnt1;
+    ChVector2d intPnt2mLinePnt2 = intPnt2 - LinePnt2;
     if ((intPnt2mLinePnt1.Length() <= dr) && (intPnt2mLinePnt2.Length() <= dr)) {
         found = true;
         Point = intPnt2 + StartingPoint;

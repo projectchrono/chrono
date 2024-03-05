@@ -14,6 +14,7 @@
 
 #include <cmath>
 
+
 #include "chrono/timestepper/ChTimestepper.h"
 
 namespace chrono {
@@ -84,7 +85,7 @@ void ChTimestepperEulerExpl::Advance(const double dt) {
     GetIntegrable()->StateSetup(Y, dYdt);
 
     // setup auxiliary vectors
-    L.setZero(GetIntegrable()->GetNconstr());
+    L.setZero(GetIntegrable()->GetNumConstraints());
 
     GetIntegrable()->StateGather(Y, T);  // state <- system
 
@@ -141,8 +142,8 @@ void ChTimestepperEulerExplIIorder::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // setup auxiliary vectors
-    Dv.setZero(mintegrable->GetNcoords_v(), GetIntegrable());
-    L.setZero(mintegrable->GetNconstr());
+    Dv.setZero(mintegrable->GetNumCoordinatesVel(), GetIntegrable());
+    L.setZero(mintegrable->GetNumConstraints());
 
     mintegrable->StateGather(X, V, T);  // state <- system
 
@@ -197,7 +198,7 @@ void ChTimestepperEulerSemiImplicit::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // setup auxiliary vectors
-    L.setZero(mintegrable->GetNconstr());
+    L.setZero(mintegrable->GetNumConstraints());
 
     mintegrable->StateGather(X, V, T);  // state <- system
 
@@ -245,9 +246,9 @@ void ChTimestepperRungeKuttaExpl::Advance(const double dt) {
     GetIntegrable()->StateSetup(Y, dYdt);
 
     // setup auxiliary vectors
-    int n_y = GetIntegrable()->GetNcoords_y();
-    int n_dy = GetIntegrable()->GetNcoords_dy();
-    int n_c = GetIntegrable()->GetNconstr();
+    int n_y = (GetIntegrable()->GetNumCoordinatesPos() + GetIntegrable()->GetNumCoordinatesVel());
+    int n_dy = (GetIntegrable()->GetNumCoordinatesVel() + GetIntegrable()->GetNumCoordinatesAcc());
+    int n_c = GetIntegrable()->GetNumConstraints();
     y_new.setZero(n_y, GetIntegrable());
     Dydt1.setZero(n_dy, GetIntegrable());
     Dydt2.setZero(n_dy, GetIntegrable());
@@ -310,9 +311,9 @@ void ChTimestepperHeun::Advance(const double dt) {
     GetIntegrable()->StateSetup(Y, dYdt);
 
     // setup auxiliary vectors
-    int n_y = GetIntegrable()->GetNcoords_y();
-    int n_dy = GetIntegrable()->GetNcoords_dy();
-    int n_c = GetIntegrable()->GetNconstr();
+    int n_y = (GetIntegrable()->GetNumCoordinatesPos() + GetIntegrable()->GetNumCoordinatesVel());
+    int n_dy = (GetIntegrable()->GetNumCoordinatesVel() + GetIntegrable()->GetNumCoordinatesAcc());
+    int n_c = GetIntegrable()->GetNumConstraints();
     y_new.setZero(n_y, GetIntegrable());
     Dydt1.setZero(n_dy, GetIntegrable());
     Dydt2.setZero(n_dy, GetIntegrable());
@@ -375,8 +376,8 @@ void ChTimestepperLeapfrog::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // setup auxiliary vectors
-    L.setZero(mintegrable->GetNconstr());
-    Aold.setZero(mintegrable->GetNcoords_v(), GetIntegrable());
+    L.setZero(mintegrable->GetNumConstraints());
+    Aold.setZero(mintegrable->GetNumCoordinatesVel(), GetIntegrable());
 
     mintegrable->StateGather(X, V, T);  // state <- system
     mintegrable->StateGatherAcceleration(Aold);
@@ -430,13 +431,13 @@ void ChTimestepperEulerImplicit::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // setup auxiliary vectors
-    Dv.setZero(mintegrable->GetNcoords_v(), GetIntegrable());
-    Dl.setZero(mintegrable->GetNconstr());
-    Xnew.setZero(mintegrable->GetNcoords_x(), mintegrable);
-    Vnew.setZero(mintegrable->GetNcoords_v(), mintegrable);
-    R.setZero(mintegrable->GetNcoords_v());
-    Qc.setZero(mintegrable->GetNconstr());
-    L.setZero(mintegrable->GetNconstr());
+    Dv.setZero(mintegrable->GetNumCoordinatesVel(), GetIntegrable());
+    Dl.setZero(mintegrable->GetNumConstraints());
+    Xnew.setZero(mintegrable->GetNumCoordinatesPos(), mintegrable);
+    Vnew.setZero(mintegrable->GetNumCoordinatesVel(), mintegrable);
+    R.setZero(mintegrable->GetNumCoordinatesVel());
+    Qc.setZero(mintegrable->GetNumConstraints());
+    L.setZero(mintegrable->GetNumConstraints());
 
     mintegrable->StateGather(X, V, T);  // state <- system
 
@@ -464,8 +465,8 @@ void ChTimestepperEulerImplicit::Advance(const double dt) {
         mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // Qc= C/dt  (sign flipped later in StateSolveCorrection)
 
         if (verbose)
-            GetLog() << " Euler iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>()
-                     << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << "\n";
+            std::cout << " Euler iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>()
+                     << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << std::endl;
 
         if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL))
             break;
@@ -541,10 +542,10 @@ void ChTimestepperEulerImplicitLinearized::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // setup auxiliary vectors
-    Dl.setZero(mintegrable->GetNconstr());
-    R.setZero(mintegrable->GetNcoords_v());
-    Qc.setZero(mintegrable->GetNconstr());
-    L.setZero(mintegrable->GetNconstr());
+    Dl.setZero(mintegrable->GetNumConstraints());
+    R.setZero(mintegrable->GetNumCoordinatesVel());
+    Qc.setZero(mintegrable->GetNumConstraints());
+    L.setZero(mintegrable->GetNumConstraints());
 
     mintegrable->StateGather(X, V, T);  // state <- system
 
@@ -630,10 +631,10 @@ void ChTimestepperEulerImplicitProjected::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // setup auxiliary vectors
-    Dl.setZero(mintegrable->GetNconstr());
-    R.setZero(mintegrable->GetNcoords_v());
-    Qc.setZero(mintegrable->GetNconstr());
-    L.setZero(mintegrable->GetNconstr());
+    Dl.setZero(mintegrable->GetNumConstraints());
+    R.setZero(mintegrable->GetNumCoordinatesVel());
+    Qc.setZero(mintegrable->GetNumConstraints());
+    L.setZero(mintegrable->GetNumConstraints());
 
     mintegrable->StateGather(X, V, T);  // state <- system
 
@@ -676,11 +677,11 @@ void ChTimestepperEulerImplicitProjected::Advance(const double dt) {
     // 2
     // Do the position stabilization (single NR step on constraints, with mass matrix as metric)
 
-    Dl.setZero(mintegrable->GetNconstr());
-    R.setZero(mintegrable->GetNcoords_v());
-    Qc.setZero(mintegrable->GetNconstr());
-    L.setZero(mintegrable->GetNconstr());
-    Vold.setZero(mintegrable->GetNcoords_v(), V.GetIntegrable());
+    Dl.setZero(mintegrable->GetNumConstraints());
+    R.setZero(mintegrable->GetNumCoordinatesVel());
+    Qc.setZero(mintegrable->GetNumConstraints());
+    L.setZero(mintegrable->GetNumConstraints());
+    Vold.setZero(mintegrable->GetNumCoordinatesVel(), V.GetIntegrable());
 
     //
     // [ M       Cq' ] [ dpos ] = [  0 ]
@@ -742,14 +743,14 @@ void ChTimestepperTrapezoidal::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // setup auxiliary vectors
-    Dv.setZero(mintegrable->GetNcoords_v(), GetIntegrable());
-    Dl.setZero(mintegrable->GetNconstr());
-    Xnew.setZero(mintegrable->GetNcoords_x(), mintegrable);
-    Vnew.setZero(mintegrable->GetNcoords_v(), mintegrable);
-    L.setZero(mintegrable->GetNconstr());
-    R.setZero(mintegrable->GetNcoords_v());
-    Rold.setZero(mintegrable->GetNcoords_v());
-    Qc.setZero(mintegrable->GetNconstr());
+    Dv.setZero(mintegrable->GetNumCoordinatesVel(), GetIntegrable());
+    Dl.setZero(mintegrable->GetNumConstraints());
+    Xnew.setZero(mintegrable->GetNumCoordinatesPos(), mintegrable);
+    Vnew.setZero(mintegrable->GetNumCoordinatesVel(), mintegrable);
+    L.setZero(mintegrable->GetNumConstraints());
+    R.setZero(mintegrable->GetNumCoordinatesVel());
+    Rold.setZero(mintegrable->GetNumCoordinatesVel());
+    Qc.setZero(mintegrable->GetNumConstraints());
 
     mintegrable->StateGather(X, V, T);  // state <- system
     // mintegrable->StateGatherReactions(L); // <- system  assume l_old = 0;  otherwise DAE gives oscillatory reactions
@@ -782,8 +783,8 @@ void ChTimestepperTrapezoidal::Advance(const double dt) {
         mintegrable->LoadConstraint_C(Qc, 1.0 / dt, Qc_do_clamp, Qc_clamping);  // Qc= C/dt  (sign will be flipped later in StateSolveCorrection)
 
         if (verbose)
-            GetLog() << " Trapezoidal iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>()
-                     << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << "\n";
+            std::cout << " Trapezoidal iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>()
+                     << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << std::endl;
 
         if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL))
             break;
@@ -855,14 +856,14 @@ void ChTimestepperTrapezoidalLinearized::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // setup auxiliary vectors
-    Dv.setZero(mintegrable->GetNcoords_v(), GetIntegrable());
-    Dl.setZero(mintegrable->GetNconstr());
-    Xnew.setZero(mintegrable->GetNcoords_x(), mintegrable);
-    Vnew.setZero(mintegrable->GetNcoords_v(), mintegrable);
-    L.setZero(mintegrable->GetNconstr());
-    R.setZero(mintegrable->GetNcoords_v());
-    Rold.setZero(mintegrable->GetNcoords_v());
-    Qc.setZero(mintegrable->GetNconstr());
+    Dv.setZero(mintegrable->GetNumCoordinatesVel(), GetIntegrable());
+    Dl.setZero(mintegrable->GetNumConstraints());
+    Xnew.setZero(mintegrable->GetNumCoordinatesPos(), mintegrable);
+    Vnew.setZero(mintegrable->GetNumCoordinatesVel(), mintegrable);
+    L.setZero(mintegrable->GetNumConstraints());
+    R.setZero(mintegrable->GetNumCoordinatesVel());
+    Rold.setZero(mintegrable->GetNumCoordinatesVel());
+    Qc.setZero(mintegrable->GetNumConstraints());
 
     mintegrable->StateGather(X, V, T);  // state <- system
     // mintegrable->StateGatherReactions(L); // <- system  assume l_old = 0;
@@ -944,7 +945,7 @@ CH_UPCASTING(ChTimestepperTrapezoidalLinearized2, ChTimestepperIIorder)
 CH_UPCASTING(ChTimestepperTrapezoidalLinearized2, ChImplicitIterativeTimestepper)
 
 // Performs a step of trapezoidal implicit linearized for II order systems
-//*** SIMPLIFIED VERSION -DOES NOT WORK - PREFER ChTimestepperTrapezoidalLinearized
+/// SIMPLIFIED VERSION -DOES NOT WORK - PREFER ChTimestepperTrapezoidalLinearized
 void ChTimestepperTrapezoidalLinearized2::Advance(const double dt) {
     // downcast
     ChIntegrableIIorder* mintegrable = (ChIntegrableIIorder*)this->integrable;
@@ -953,12 +954,12 @@ void ChTimestepperTrapezoidalLinearized2::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // setup auxiliary vectors
-    Dv.setZero(mintegrable->GetNcoords_v(), GetIntegrable());
-    Xnew.setZero(mintegrable->GetNcoords_x(), mintegrable);
-    Vnew.setZero(mintegrable->GetNcoords_v(), mintegrable);
-    L.setZero(mintegrable->GetNconstr());
-    R.setZero(mintegrable->GetNcoords_v());
-    Qc.setZero(mintegrable->GetNconstr());
+    Dv.setZero(mintegrable->GetNumCoordinatesVel(), GetIntegrable());
+    Xnew.setZero(mintegrable->GetNumCoordinatesPos(), mintegrable);
+    Vnew.setZero(mintegrable->GetNumCoordinatesVel(), mintegrable);
+    L.setZero(mintegrable->GetNumConstraints());
+    R.setZero(mintegrable->GetNumCoordinatesVel());
+    Qc.setZero(mintegrable->GetNumConstraints());
 
     mintegrable->StateGather(X, V, T);  // state <- system
 
@@ -1057,15 +1058,15 @@ void ChTimestepperNewmark::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // setup auxiliary vectors
-    Da.setZero(mintegrable->GetNcoords_a(), GetIntegrable());
-    Dl.setZero(mintegrable->GetNconstr());
-    Xnew.setZero(mintegrable->GetNcoords_x(), mintegrable);
-    Vnew.setZero(mintegrable->GetNcoords_v(), mintegrable);
-    Anew.setZero(mintegrable->GetNcoords_a(), mintegrable);
-    R.setZero(mintegrable->GetNcoords_v());
-    Rold.setZero(mintegrable->GetNcoords_v());
-    Qc.setZero(mintegrable->GetNconstr());
-    L.setZero(mintegrable->GetNconstr());
+    Da.setZero(mintegrable->GetNumCoordinatesVel(), GetIntegrable());
+    Dl.setZero(mintegrable->GetNumConstraints());
+    Xnew.setZero(mintegrable->GetNumCoordinatesPos(), mintegrable);
+    Vnew.setZero(mintegrable->GetNumCoordinatesVel(), mintegrable);
+    Anew.setZero(mintegrable->GetNumCoordinatesVel(), mintegrable);
+    R.setZero(mintegrable->GetNumCoordinatesVel());
+    Rold.setZero(mintegrable->GetNumCoordinatesVel());
+    Qc.setZero(mintegrable->GetNumConstraints());
+    L.setZero(mintegrable->GetNumConstraints());
 
     mintegrable->StateGather(X, V, T);  // state <- system
     mintegrable->StateGatherAcceleration(A);
@@ -1089,26 +1090,26 @@ void ChTimestepperNewmark::Advance(const double dt) {
     for (int i = 0; i < this->GetMaxiters(); ++i) {
         mintegrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
 
-        R.setZero(mintegrable->GetNcoords_v());
-        Qc.setZero(mintegrable->GetNconstr());
+        R.setZero(mintegrable->GetNumCoordinatesVel());
+        Qc.setZero(mintegrable->GetNumConstraints());
         mintegrable->LoadResidual_F(R, 1.0);                                                    //  f_new
         mintegrable->LoadResidual_CqL(R, L, 1.0);                                               //   Cq'*l_new
         mintegrable->LoadResidual_Mv(R, Anew, -1.0);                                            //  - M*a_new
         mintegrable->LoadConstraint_C(Qc, (1.0 / (beta * dt * dt)), Qc_do_clamp, Qc_clamping);  //  Qc = 1/(beta*dt^2)*C  (sign will be flipped later in StateSolveCorrection) 
 
         if (verbose)
-            GetLog() << " Newmark iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>()
-                     << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << "\n";
+            std::cout << " Newmark iteration=" << i << "  |R|=" << R.lpNorm<Eigen::Infinity>()
+                     << "  |Qc|=" << Qc.lpNorm<Eigen::Infinity>() << std::endl;
 
         if ((R.lpNorm<Eigen::Infinity>() < abstolS) && (Qc.lpNorm<Eigen::Infinity>() < abstolL)) {
             if (verbose) {
-                GetLog() << " Newmark NR converged (" << i << ")." << "  T = " << T + dt << "  h = " << dt << "\n";
+                std::cout << " Newmark NR converged (" << i << ")." << "  T = " << T + dt << "  h = " << dt << std::endl;
             }
             break;
         }
 
         if (verbose && modified_Newton && call_setup)
-                GetLog() << " Newmark call Setup.\n";
+                std::cout << " Newmark call Setup." << std::endl;
 
         mintegrable->StateSolveCorrection(  //
             Da, Dl, R, Qc,                  //

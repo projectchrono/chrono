@@ -31,7 +31,7 @@
 #include <iomanip>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/core/ChLog.h"
+#include "chrono/functions/ChFunctionSineStep.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChTMsimpleTire.h"
 
@@ -55,9 +55,9 @@ ChTMsimpleTire::ChTMsimpleTire(const std::string& name)
       m_bottom_radius(0.0),
       m_bottom_stiffness(0.0),
       m_rolling_resistance(0.01) {
-    m_tireforce.force = ChVector<>(0, 0, 0);
-    m_tireforce.point = ChVector<>(0, 0, 0);
-    m_tireforce.moment = ChVector<>(0, 0, 0);
+    m_tireforce.force = ChVector3d(0, 0, 0);
+    m_tireforce.point = ChVector3d(0, 0, 0);
+    m_tireforce.moment = ChVector3d(0, 0, 0);
 
     m_par.pn = 0.0;
     m_par.mu_0 = 0.8;
@@ -97,7 +97,7 @@ void ChTMsimpleTire::Synchronize(double time, const ChTerrain& terrain) {
 
     // Extract the wheel normal (expressed in global frame)
     ChMatrix33<> A(wheel_state.rot);
-    ChVector<> disc_normal = A.Get_A_Yaxis();
+    ChVector3d disc_normal = A.GetAxisY();
 
     // Assuming the tire is a disc, check contact with terrain
     float mu_road;
@@ -114,7 +114,7 @@ void ChTMsimpleTire::Synchronize(double time, const ChTerrain& terrain) {
 
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
-        ChVector<> vel = wheel_state.lin_vel;
+        ChVector3d vel = wheel_state.lin_vel;
         m_data.vel = m_data.frame.TransformDirectionParentToLocal(vel);
 
         // Generate normal contact force. If the resulting force is negative, the disc
@@ -153,14 +153,14 @@ void ChTMsimpleTire::Synchronize(double time, const ChTerrain& terrain) {
         m_states.omega = 0;
         m_states.brx = 0;
         m_states.bry = 0;
-        m_states.disc_normal = ChVector<>(0, 0, 0);
+        m_states.disc_normal = ChVector3d(0, 0, 0);
     }
 }
 
 void ChTMsimpleTire::Advance(double step) {
     // Set tire forces to zero.
-    m_tireforce.force = ChVector<>(0, 0, 0);
-    m_tireforce.moment = ChVector<>(0, 0, 0);
+    m_tireforce.force = ChVector3d(0, 0, 0);
+    m_tireforce.moment = ChVector3d(0, 0, 0);
 
     // Return now if no contact.
     if (!m_data.in_contact)
@@ -176,7 +176,7 @@ void ChTMsimpleTire::Advance(double step) {
 
     CombinedCoulombForces(Fx0, Fy0, Fz, m_states.muscale);
 
-    double frblend = ChSineStep(m_data.vel.x(), m_frblend_begin, 0.0, m_frblend_end, 1.0);
+    double frblend = ChFunctionSineStep::Eval(m_data.vel.x(), m_frblend_begin, 0.0, m_frblend_end, 1.0);
 
     TMcombinedForces(Fx, Fy, m_states.sx, m_states.sy, Fz, m_states.muscale);
     Fx = (1.0 - frblend) * Fx0 + frblend * Fx;
@@ -195,17 +195,17 @@ void ChTMsimpleTire::Advance(double step) {
 
     double startup = 1;
     if (m_use_startup_transition) {
-        startup = ChSineStep(m_time, m_begin_start_transition, 0.0, m_end_start_transition, 1.0);
+        startup = ChFunctionSineStep::Eval(m_time, m_begin_start_transition, 0.0, m_end_start_transition, 1.0);
     }
 
     // Compile the force and moment vectors so that they can be
     // transformed into the global coordinate system.
-    m_tireforce.force = ChVector<>(startup * Fx, startup * Fy, m_data.normal_force);
-    m_tireforce.moment = startup * ChVector<>(Mx, My, Mz);
+    m_tireforce.force = ChVector3d(startup * Fx, startup * Fy, m_data.normal_force);
+    m_tireforce.moment = startup * ChVector3d(Mx, My, Mz);
 }
 
 void ChTMsimpleTire::CombinedCoulombForces(double& fx, double& fy, double fz, double muscale) {
-    ChVector2<> F;
+    ChVector2d F;
     /*
      The Dahl Friction Model elastic tread blocks representated by a single bristle. At tire stand still it acts
      like a spring which enables holding of a vehicle on a slope without creeping (hopefully). Damping terms
@@ -316,7 +316,8 @@ void ChTMsimpleTire::SetVerticalStiffness(std::vector<double>& defl, std::vector
     r = A.colPivHouseholderQr().solve(b);
     m_d1 = r(0);
     m_d2 = r(1);
-    GetLog() << "Stiffness Coeffs from test data d1 = " << m_d1 << "  d2 = " << m_d2 << "\n";
+    if (m_verbose)
+        std::cout << "Stiffness Coeffs from test data d1 = " << m_d1 << "  d2 = " << m_d2 << "\n";
 }
 
 double ChTMsimpleTire::GetTireMaxLoad(unsigned int li) {
@@ -528,34 +529,30 @@ void ChTMsimpleTire::GuessPassCar70Par(double tireLoad,       // tire load force
 
 // Do some rough constency checks
 bool ChTMsimpleTire::CheckParameters() {
-    bool isOk = false;
-
     // Nominal Load set?
     if (m_par.pn < GetTireMaxLoad(0)) {
-        GetLog() << "TMsimpleCheckParameters(): Tire Nominal Load Problem!\n";
-        return isOk;
+        std::cerr << "TMsimpleCheckParameters(): Tire Nominal Load Problem!" << std::endl;
+        return false;
     }
 
     // Stiffness parameters, spring
     if (m_d1 <= 0.0) {
-        GetLog() << "TMsimpleCheckParameters(): Tire Vertical Stiffness Problem!\n";
-        return isOk;
+        std::cerr << "TMsimpleCheckParameters(): Tire Vertical Stiffness Problem!" << std::endl;
+        return false;
     }
 
     // Stiffness parameters, spring
     if (m_par.mu_0 <= 0.0) {
-        GetLog() << "TMsimpleCheckParameters(): Friction Coefficien Mu_0 unset!\n";
-        return isOk;
+        std::cerr << "TMsimpleCheckParameters(): Friction Coefficien Mu_0 unset!" << std::endl;
+        return false;
     }
 
     if (m_par.dz <= 0.0) {
-        GetLog() << "TMsimpleCheckParameters(): Tire Vertical Damping Problem!\n";
-        return isOk;
+        std::cerr << "TMsimpleCheckParameters(): Tire Vertical Damping Problem!" << std::endl;
+        return false;
     }
 
-    isOk = true;
-
-    return isOk;
+    return true;
 }
 
 // set tire reference coefficient of friction

@@ -16,12 +16,12 @@
 
 using namespace chrono;
 
-uint ChSolverMulticoreMinRes::Solve(ChShurProduct& ShurProduct,
-                                   ChProjectConstraints& Project,
-                                   const uint max_iter,
-                                   const uint size,
-                                   const DynamicVector<real>& mb,
-                                   DynamicVector<real>& x) {
+uint ChSolverMulticoreMinRes::Solve(ChSchurProduct& SchurProduct,
+                                    ChProjectConstraints& Project,
+                                    const uint max_iter,
+                                    const uint size,
+                                    const DynamicVector<real>& mb,
+                                    DynamicVector<real>& x) {
     if (size == 0) {
         return 0;
     }
@@ -37,7 +37,7 @@ uint ChSolverMulticoreMinRes::Solve(ChShurProduct& ShurProduct,
 
     real beta, c = 1, eta, norm_rMR, norm_r0, c_old = 1, s_old = 0, s = 0, alpha, beta_old, c_oold, s_oold, r1_hat, r1,
                r2, r3;
-    ShurProduct(x, v_hat);
+    SchurProduct(x, v_hat);
     v_hat = mb - v_hat;
     beta = Sqrt((v_hat, v_hat));
     w_old = w;
@@ -56,7 +56,7 @@ uint ChSolverMulticoreMinRes::Solve(ChShurProduct& ShurProduct,
         // Lanczos
         v_old = v;
         v = 1.0 / beta * v_hat;
-        ShurProduct(v, Av);
+        SchurProduct(v, Av);
         alpha = (v, Av);
         ////v_hat = Av - alpha * v - beta * v_old;
         v_hat = Av - alpha * v;
@@ -78,7 +78,7 @@ uint ChSolverMulticoreMinRes::Solve(ChShurProduct& ShurProduct,
         // Givens Rotation
         c = r1_hat * r1;
         s = beta * r1;
-       
+
         // Update
         w_oold = w_old;
         w_old = w;

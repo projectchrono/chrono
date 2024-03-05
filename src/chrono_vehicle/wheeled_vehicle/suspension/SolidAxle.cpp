@@ -38,7 +38,7 @@ SolidAxle::SolidAxle(const std::string& filename) : ChSolidAxle(""), m_springFor
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 SolidAxle::SolidAxle(const rapidjson::Document& d) : ChSolidAxle(""), m_springForceCB(NULL), m_shockForceCB(NULL) {

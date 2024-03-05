@@ -56,7 +56,7 @@ using namespace chrono::vehicle::duro;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 0.5);
+ChVector3d initLoc(0, 0, 0.5);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
@@ -73,7 +73,7 @@ TireModelType tire_model = TireModelType::TMEASY;
 BrakeType brake_model = BrakeType::SIMPLE;
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 0.75);
+ChVector3d trackPoint(0.0, 0.0, 0.75);
 
 bool use_realtime = true;
 
@@ -95,7 +95,7 @@ bool povray_output = false;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // --------------
     // Create systems
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
 
     RigidTerrain terrain(duro.GetSystem());
 
-    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto patch_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
 
@@ -222,12 +222,13 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle("Duro 4x4 Demo");
             vis_vsg->AttachVehicle(&duro.GetVehicle());
             vis_vsg->SetChaseCamera(trackPoint, 8.0, 0.5);
-            vis_vsg->SetWindowSize(ChVector2<int>(1200, 800));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 100));
+            vis_vsg->SetWindowSize(ChVector2i(1200, 800));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 100));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
             // Create the interactive VSG driver system
@@ -277,7 +278,7 @@ int main(int argc, char* argv[]) {
         vehModel.append("#RT");
     }
     utils::ChRunningAverage RTF_filter(50);
-    ChFunction_Recorder mfunTireOmega, mfunWheelOmega;
+    ChFunctionInterp mfunTireOmega, mfunWheelOmega;
 
     while (vis->Run()) {
         double time = duro.GetSystem()->GetChTime();
@@ -346,7 +347,7 @@ int main(int argc, char* argv[]) {
     mplot1.SetTitle(vehModel);
     mplot1.SetLabelX("Time (s)");
     mplot1.SetLabelY("Tire Omega (rad/s)");
-    mplot1.Plot(mfunTireOmega, "from ChFunction_Recorder", " with lines lt -1 lc rgb'#00AAEE' ");
+    mplot1.Plot(mfunTireOmega, "from ChFunctionInterp", " with lines lt -1 lc rgb'#00AAEE' ");
 
     std::cout << "Maximum Kingpin Angle = " << maxKingpinAngle << " deg" << std::endl;
     return 0;

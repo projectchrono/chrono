@@ -44,7 +44,7 @@ void M113_AutomaticTransmissionShafts::SetGearRatios(std::vector<double>& fwd, d
     fwd.push_back(0.962);   // 4th gear;
 }
 
-void M113_AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void M113_AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunctionInterp>& map) {
     map->AddPoint(0.00, 7);
     map->AddPoint(0.25, 7);
     map->AddPoint(0.50, 7);
@@ -53,7 +53,7 @@ void M113_AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std::
     map->AddPoint(1.00, 18);
 }
 
-void M113_AutomaticTransmissionShafts::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void M113_AutomaticTransmissionShafts::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunctionInterp>& map) {
     map->AddPoint(0.00, 2.00);
     map->AddPoint(0.25, 1.80);
     map->AddPoint(0.50, 1.50);

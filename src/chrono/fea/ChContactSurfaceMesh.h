@@ -43,10 +43,10 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     void SetContactSurface(ChContactSurface* container) { m_container = container; }
 
     /// Set node ownership.
-    void SetNodeOwnership(const ChVector<bool>& owns_node) { m_owns_node = owns_node; }
+    void SetNodeOwnership(const ChVector3b& owns_node) { m_owns_node = owns_node; }
 
     /// Set edge ownership.
-    void SetEdgeOwnership(const ChVector<bool>& owns_edge) { m_owns_edge = owns_edge; }
+    void SetEdgeOwnership(const ChVector3b& owns_edge) { m_owns_edge = owns_edge; }
 
     /// Acccess the specified FEA node for which this is a proxy.
     std::shared_ptr<ChNodeFEAxyz> GetNode(int i) const { return m_nodes[i]; }
@@ -91,18 +91,18 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
 
     /// Express the local point in absolute frame, for the given state position.
-    virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override;
+    virtual ChVector3d GetContactPoint(const ChVector3d& loc_point, const ChState& state_x) override;
 
     /// Get the absolute speed of a local point attached to the contactable.
     /// The given point is assumed to be expressed in the local frame of this object.
     /// This function must use the provided states.
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point,
+    virtual ChVector3d GetContactPointSpeed(const ChVector3d& loc_point,
                                             const ChState& state_x,
                                             const ChStateDelta& state_w) override;
 
     /// Get the absolute speed of point abs_point if attached to the
     /// surface. Easy in this case because there are no rotations..
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override;
+    virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override;
 
     /// Return the coordinate system for the associated collision model.
     /// ChCollisionModel might call this to get the position of the
@@ -111,9 +111,9 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
 
     /// Apply the force & torque, expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector<>& F,
-                                            const ChVector<>& T,
-                                            const ChVector<>& abs_point,
+    virtual void ContactForceLoadResidual_F(const ChVector3d& F,
+                                            const ChVector3d& T,
+                                            const ChVector3d& abs_point,
                                             ChVectorDynamic<>& R) override;
 
     /// Compute a contiguous vector of generalized forces Q from a given force & torque at the given point.
@@ -121,16 +121,16 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactComputeQ(const ChVector<>& F,
-                                   const ChVector<>& T,
-                                   const ChVector<>& point,
+    virtual void ContactComputeQ(const ChVector3d& F,
+                                   const ChVector3d& T,
+                                   const ChVector3d& point,
                                    const ChState& state_x,
                                    ChVectorDynamic<>& Q,
                                    int offset) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item. For example,
     /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
-    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point,
+    virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                ChMatrix33<>& contact_plane,
                                                type_constraint_tuple& jacobian_tuple_N,
                                                type_constraint_tuple& jacobian_tuple_U,
@@ -201,7 +201,7 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
 
     /// Gets the normal to the surface at the parametric coordinate U,V.
     /// Each coordinate ranging in -1..+1.
-    virtual ChVector<> ComputeNormal(const double U, const double V) override;
+    virtual ChVector3d ComputeNormal(const double U, const double V) override;
 
     /// If true, use quadrature over u,v in [0..1] range as triangle volumetric coords.
     virtual bool IsTriangleIntegrationNeeded() override { return true; }
@@ -209,12 +209,12 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     /// Compute u,v of contact point respect to triangle.
     /// - u is in the node1->node2 direction.
     /// - v is in the node1->node3 direction.
-    void ComputeUVfromP(const ChVector<> P, double& u, double& v);
+    void ComputeUVfromP(const ChVector3d P, double& u, double& v);
 
   private:
     std::array<std::shared_ptr<ChNodeFEAxyz>, 3> m_nodes;
-    ChVector<bool> m_owns_node;
-    ChVector<bool> m_owns_edge;
+    ChVector3b m_owns_node;
+    ChVector3b m_owns_edge;
 
     ChContactSurface* m_container;
 };
@@ -236,10 +236,10 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     void SetContactSurface(ChContactSurface* container) { m_container = container; }
 
     /// Set node ownership.
-    void SetNodeOwnership(const ChVector<bool>& owns_node) { m_owns_node = owns_node; }
+    void SetNodeOwnership(const ChVector3b& owns_node) { m_owns_node = owns_node; }
 
     /// Set edge ownership.
-    void SetEdgeOwnership(const ChVector<bool>& owns_edge) { m_owns_edge = owns_edge; }
+    void SetEdgeOwnership(const ChVector3b& owns_edge) { m_owns_edge = owns_edge; }
 
     /// Acccess the specified FEA node for which this is a proxy.
     std::shared_ptr<ChNodeFEAxyzrot> GetNode(int i) const { return m_nodes[i]; }
@@ -284,18 +284,18 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     virtual void ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
 
     /// Express the local point in absolute frame, for the given state position.
-    virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override;
+    virtual ChVector3d GetContactPoint(const ChVector3d& loc_point, const ChState& state_x) override;
 
     /// Get the absolute speed of a local point attached to the contactable.
     /// The given point is assumed to be expressed in the local frame of this object.
     /// This function must use the provided states.
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point,
+    virtual ChVector3d GetContactPointSpeed(const ChVector3d& loc_point,
                                             const ChState& state_x,
                                             const ChStateDelta& state_w) override;
 
     /// Get the absolute speed of point abs_point if attached to the
     /// surface. Easy in this case because there are no rotations..
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override;
+    virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override;
 
     /// Return the coordinate system for the associated collision model.
     /// ChCollisionModel might call this to get the position of the
@@ -304,9 +304,9 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
 
     /// Apply the force & torque, expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector<>& F, 
-                                            const ChVector<>& T,
-                                            const ChVector<>& abs_point,
+    virtual void ContactForceLoadResidual_F(const ChVector3d& F, 
+                                            const ChVector3d& T,
+                                            const ChVector3d& abs_point,
                                             ChVectorDynamic<>& R) override;
 
     /// Compute a contiguous vector of generalized forces Q from a given force & torque at the given point.
@@ -314,16 +314,16 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactComputeQ(const ChVector<>& F,
-                                   const ChVector<>& T,
-                                   const ChVector<>& point,
+    virtual void ContactComputeQ(const ChVector3d& F,
+                                   const ChVector3d& T,
+                                   const ChVector3d& point,
                                    const ChState& state_x,
                                    ChVectorDynamic<>& Q,
                                    int offset) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item. For example,
     /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
-    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point,
+    virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                ChMatrix33<>& contact_plane,
                                                type_constraint_tuple& jacobian_tuple_N,
                                                type_constraint_tuple& jacobian_tuple_U,
@@ -394,7 +394,7 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
 
     /// Gets the normal to the surface at the parametric coordinate U,V.
     /// Each coordinate ranging in -1..+1.
-    virtual ChVector<> ComputeNormal(const double U, const double V) override;
+    virtual ChVector3d ComputeNormal(const double U, const double V) override;
 
     /// If true, use quadrature over u,v in [0..1] range as triangle volumetric coords.
     virtual bool IsTriangleIntegrationNeeded() override { return true; }
@@ -402,12 +402,12 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     /// Compute u,v of contact point respect to triangle.
     /// u is node1->node2 direction,
     /// v is node1->node3 direction
-    void ComputeUVfromP(const ChVector<> P, double& u, double& v);
+    void ComputeUVfromP(const ChVector3d P, double& u, double& v);
 
   private:
     std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3> m_nodes;
-    ChVector<bool> m_owns_node;
-    ChVector<bool> m_owns_edge;
+    ChVector3b m_owns_node;
+    ChVector3b m_owns_edge;
 
     ChContactSurface* m_container;
 };
@@ -426,7 +426,7 @@ class ChApi ChContactSegmentXYZ {
     void SetNodes(const std::array<std::shared_ptr<ChNodeFEAxyz>, 2>& nodes) { m_nodes = nodes; }
 
     /// Set node ownership.
-    void SetNodeOwnership(const ChVector2<bool>& owns_node) { m_owns_node = owns_node; }
+    void SetNodeOwnership(const ChVector2b& owns_node) { m_owns_node = owns_node; }
 
     /// Acccess the specified FEA node for which this is a proxy.
     std::shared_ptr<ChNodeFEAxyz> GetNode(int i) const { return m_nodes[i]; }
@@ -436,7 +436,7 @@ class ChApi ChContactSegmentXYZ {
 
   private:
     std::array<std::shared_ptr<ChNodeFEAxyz>, 2> m_nodes;
-    ChVector2<bool> m_owns_node;
+    ChVector2b m_owns_node;
 };
 
 // -----------------------------------------------------------------------------
@@ -446,7 +446,7 @@ class ChApi ChContactSegmentXYZ {
 /// higher computational overhead.
 class ChApi ChContactSurfaceMesh : public ChContactSurface {
   public:
-    ChContactSurfaceMesh(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh = nullptr);
+    ChContactSurfaceMesh(std::shared_ptr<ChContactMaterial> material, ChMesh* mesh = nullptr);
 
     virtual ~ChContactSurfaceMesh() {}
 
@@ -506,7 +506,7 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
 
     /// Construct a contact surface from a triangular mesh.
     /// FEA nodes are created at the mesh vertex locations.
-    void ConstructFromTrimesh(std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh, double sphere_swept = 0.0);
+    void ConstructFromTrimesh(std::shared_ptr<ChTriangleMeshConnected> trimesh, double sphere_swept = 0.0);
 
     /// Get the list of triangles.
     std::vector<std::shared_ptr<ChContactTriangleXYZ>>& GetTriangleList() { return m_faces; }
@@ -529,11 +529,11 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     /// The mesh is specified as a set of 3D vertex points (with associated velocities) and a set of faces (indices into
     /// the vertex array). In addition, ownership of nodes and edges among the consitutent triangles is returned in
     /// 'owns_node' and 'owns_edge'.
-    void OutputSimpleMesh(std::vector<ChVector<>>& vert_pos,       ///< mesh vertices (absolute xyz positions)
-                          std::vector<ChVector<>>& vert_vel,       ///< vertex velocities (absolute xyz velocities)
-                          std::vector<ChVector<int>>& triangles,   ///< triangle faces (indices in vertex array)
-                          std::vector<ChVector<bool>>& owns_node,  ///< node ownership for each triangular face
-                          std::vector<ChVector<bool>>& owns_edge   ///< edge ownership for each triangular face
+    void OutputSimpleMesh(std::vector<ChVector3d>& vert_pos,       ///< mesh vertices (absolute xyz positions)
+                          std::vector<ChVector3d>& vert_vel,       ///< vertex velocities (absolute xyz velocities)
+                          std::vector<ChVector3i>& triangles,   ///< triangle faces (indices in vertex array)
+                          std::vector<ChVector3b>& owns_node,  ///< node ownership for each triangular face
+                          std::vector<ChVector3b>& owns_edge   ///< edge ownership for each triangular face
     ) const;
 
   private:

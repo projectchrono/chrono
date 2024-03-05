@@ -30,10 +30,10 @@
 // and numerical integration implementations.
 // =============================================================================
 
-#include "chrono/core/ChMathematics.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/utils/ChConstants.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
 
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
     // -----------------
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
 
     // ----------------
     // Specify the mesh
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
 
         // Create the node
         auto node =
-            chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
+            chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(loc_x, loc_y, loc_z), ChVector3d(dir_x, dir_y, dir_z));
 
         node->SetMass(0);
 
@@ -133,9 +133,9 @@ int main(int argc, char* argv[]) {
     // Create an orthotropic material.
     // All layers for all elements share the same material.
     double rho = 500;
-    ChVector<> E(6e8, 3e8, 3e8);
-    ChVector<> nu(0.3, 0.3, 0.3);
-    ChVector<> G(1.1538e8, 1.1538e8, 1.1538e8);
+    ChVector3d E(6e8, 3e8, 3e8);
+    ChVector3d nu(0.3, 0.3, 0.3);
+    ChVector3d G(1.1538e8, 1.1538e8, 1.1538e8);
     auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
 
     // Create the elements

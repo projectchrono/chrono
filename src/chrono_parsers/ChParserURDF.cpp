@@ -223,8 +223,8 @@ void ChParserURDF::createChildren(urdf::LinkConstSharedPtr parent, const ChFrame
 
 // -----------------------------------------------------------------------------
 
-ChVector<> ChParserURDF::toChVector(const urdf::Vector3& vec) {
-    return ChVector<>(vec.x, vec.y, vec.z);
+ChVector3d ChParserURDF::toChVector(const urdf::Vector3& vec) {
+    return ChVector3d(vec.x, vec.y, vec.z);
 }
 
 ChQuaternion<> ChParserURDF::toChQuaternion(const urdf::Rotation& rot) {
@@ -304,7 +304,7 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
 
     // Create the contact material for all collision shapes associated with this body
     auto link_name = body->GetNameString();
-    std::shared_ptr<ChMaterialSurface> contact_material;
+    std::shared_ptr<ChContactMaterial> contact_material;
     if (m_mat_data.find(link_name) != m_mat_data.end())
         contact_material = m_mat_data.find(link_name)->second.CreateMaterial(m_sys->GetContactMethod());
     else
@@ -342,11 +342,11 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
                     auto mesh_filename = m_filepath + "/" + mesh->filename;
                     auto ext = filesystem::path(mesh->filename).extension();
 
-                    std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;
+                    std::shared_ptr<ChTriangleMeshConnected> trimesh;
                     if (ext == "obj" || ext == "OBJ")
-                        trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_filename, false);
+                        trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_filename, false);
                     else if (ext == "stl" || ext == "STL")
-                        trimesh = geometry::ChTriangleMeshConnected::CreateFromSTLFile(mesh_filename, true);
+                        trimesh = ChTriangleMeshConnected::CreateFromSTLFile(mesh_filename, true);
 
                     if (!trimesh) {
                         cout << "Warning: Unsupported format for collision mesh file <" << mesh_filename << ">." << endl;
@@ -409,7 +409,7 @@ std::shared_ptr<ChBodyAuxRef> ChParserURDF::toChBody(urdf::LinkConstSharedPtr li
         // Error if a discarded body was connected to its parent with anything but a FIXED joint
         if (link->parent_joint->type != urdf::Joint::FIXED) {
             cerr << "ERROR: Body with ZERO inertia not connected through FIXED joint to parent." << endl;
-            throw ChException("Body with ZERO inertia not connected through FIXED joint to parent.");
+            throw std::runtime_error("Body with ZERO inertia not connected through FIXED joint to parent.");
         }
 
         // Get the parent link and the Chrono parent body
@@ -431,8 +431,8 @@ std::shared_ptr<ChBodyAuxRef> ChParserURDF::toChBody(urdf::LinkConstSharedPtr li
     // Note that URDF and Chrono use the same convention regarding sign of products of inertia
     const auto& inertial = link->inertial;
     double mass = inertial->mass;
-    auto inertia_moments = ChVector<>(inertial->ixx, inertial->iyy, inertial->izz);
-    auto inertia_products = ChVector<>(inertial->ixy, inertial->ixz, inertial->iyz);
+    auto inertia_moments = ChVector3d(inertial->ixx, inertial->iyy, inertial->izz);
+    auto inertia_products = ChVector3d(inertial->ixy, inertial->ixz, inertial->iyz);
 
     // Create the Chrono body
     auto body = chrono_types::make_shared<ChBodyAuxRef>();
@@ -477,15 +477,15 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
         return nullptr;
     if (!child) {
         cerr << "ERROR: Body " << child_link_name << " not found." << endl;
-        throw ChException("Body not found.");
+        throw std::runtime_error("Body not found.");
     }
 
     // Create 3 mutually orthogonal directions, with d1 being the joint axis.
     // These form a rotation matrix relative to the child frame (in the URDF representation, a body reference frame
     // coincides with the frame of the joint connecting the body to its parent).
     auto joint_axis = toChVector(joint->axis);
-    ChVector<> d1, d2, d3;
-    joint_axis.DirToDxDyDz(d1, d2, d3);
+    ChVector3d d1, d2, d3;
+    joint_axis.GetDirectionAxesAsX(d1, d2, d3);
 
     // Create motors or passive joints
     ChFrame<> joint_frame = child->GetFrame_REF_to_abs();  // default joint frame == child body frame
@@ -493,7 +493,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
     if (m_actuated_joints.find(joint->name) != m_actuated_joints.end()) {
         // Create a motor (with a default zero constant motor function)
         auto actuation_type = m_actuated_joints.find(joint->name)->second;
-        auto actuation_fun = chrono_types::make_shared<ChFunction_Const>(0);
+        auto actuation_fun = chrono_types::make_shared<ChFunctionConst>(0);
 
         if (joint_type == urdf::Joint::REVOLUTE || joint_type == urdf::Joint::CONTINUOUS) {
             std::shared_ptr<ChLinkMotorRotation> revolute;
@@ -508,7 +508,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
                     revolute = chrono_types::make_shared<ChLinkMotorRotationTorque>();
                     break;
             }
-            joint_frame.SetRot(joint_frame.Amatrix * ChMatrix33<>(d2, d3, d1));  // Chrono rot. motor axis along Z
+            joint_frame.SetRot(joint_frame.GetRotMat() * ChMatrix33<>(d2, d3, d1));  // Chrono rot. motor axis along Z
             revolute->Initialize(parent, child, joint_frame);
             revolute->SetMotorFunction(actuation_fun);
             revolute->SetNameString(joint_name);
@@ -528,7 +528,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
                     prismatic = chrono_types::make_shared<ChLinkMotorLinearForce>();
                     break;
             }
-            joint_frame.SetRot(joint_frame.Amatrix * ChMatrix33<>(d1, d2, d3));  // Chrono lin. motor axis along X
+            joint_frame.SetRot(joint_frame.GetRotMat() * ChMatrix33<>(d1, d2, d3));  // Chrono lin. motor axis along X
             prismatic->Initialize(parent, child, joint_frame);
             prismatic->SetMotorFunction(actuation_fun);
             prismatic->SetNameString(joint_name);
@@ -543,8 +543,8 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
                 revolute->GetLimit_Rz().SetMin(joint->limits->lower);
                 revolute->GetLimit_Rz().SetMax(joint->limits->upper);
             }
-            joint_frame.SetRot(joint_frame.Amatrix * ChMatrix33<>(d2, d3, d1));  // Chrono revolute axis along Z
-            revolute->Initialize(parent, child, joint_frame.GetCoord());
+            joint_frame.SetRot(joint_frame.GetRotMat() * ChMatrix33<>(d2, d3, d1));  // Chrono revolute axis along Z
+            revolute->Initialize(parent, child, joint_frame);
             revolute->SetNameString(joint_name);
             return revolute;
         }
@@ -556,30 +556,30 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
                 prismatic->GetLimit_Rz().SetMin(joint->limits->lower);
                 prismatic->GetLimit_Rz().SetMax(joint->limits->upper);
             }
-            joint_frame.SetRot(joint_frame.Amatrix * ChMatrix33<>(d2, d3, d1));  // Chrono prismatic axis along Z
-            prismatic->Initialize(parent, child, joint_frame.GetCoord());
+            joint_frame.SetRot(joint_frame.GetRotMat() * ChMatrix33<>(d2, d3, d1));  // Chrono prismatic axis along Z
+            prismatic->Initialize(parent, child, joint_frame);
             prismatic->SetNameString(joint_name);
             return prismatic;
         }
 
         if (joint_type == urdf::Joint::FLOATING) {
             auto free = chrono_types::make_shared<ChLinkLockFree>();
-            free->Initialize(parent, child, joint_frame.GetCoord());
+            free->Initialize(parent, child, joint_frame);
             free->SetNameString(joint_name);
             return free;
         }
 
         if (joint_type == urdf::Joint::PLANAR) {
             auto planar = chrono_types::make_shared<ChLinkLockPointPlane>();
-            joint_frame.SetRot(joint_frame.Amatrix * ChMatrix33<>(d2, d3, d1));  // Chrono plane normal along Z
-            planar->Initialize(parent, child, joint_frame.GetCoord());
+            joint_frame.SetRot(joint_frame.GetRotMat() * ChMatrix33<>(d2, d3, d1));  // Chrono plane normal along Z
+            planar->Initialize(parent, child, joint_frame);
             planar->SetNameString(joint_name);
             return planar;
         }
 
         if (joint_type == urdf::Joint::FIXED) {
             auto fixed = chrono_types::make_shared<ChLinkLockLock>();
-            fixed->Initialize(parent, child, joint_frame.GetCoord());
+            fixed->Initialize(parent, child, joint_frame);
             fixed->SetNameString(joint_name);
             return fixed;
         }

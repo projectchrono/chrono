@@ -240,7 +240,7 @@ TEST(real3, functions) {
         real3 a = Normalize(real3(rand(), rand(), rand()));
         real3 b = Normalize(real3(rand(), rand(), rand()));
         real3 ans1 = Cross(a, b);
-        ChVector<real> ans2;
+        ChVector3<real> ans2;
         ans2.Cross(ToChVector(a), ToChVector(b));
         Assert_near(ans1, FromChVector(ans2), precision);
     }

@@ -37,7 +37,7 @@ class CH_MODELS_API MTV_LeafspringAxle2 : public ChLeafspringAxle {
     ~MTV_LeafspringAxle2() {}
 
   protected:
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
     virtual double getAxleTubeMass() const override { return m_axleTubeMass; }
     virtual double getSpindleMass() const override { return m_spindleMass; }
@@ -46,10 +46,10 @@ class CH_MODELS_API MTV_LeafspringAxle2 : public ChLeafspringAxle {
     virtual double getSpindleRadius() const override { return m_spindleRadius; }
     virtual double getSpindleWidth() const override { return m_spindleWidth; }
 
-    virtual const ChVector<> getAxleTubeCOM() const override { return ChVector<>(0, 0, 0); }
+    virtual const ChVector3d getAxleTubeCOM() const override { return ChVector3d(0, 0, 0); }
 
-    virtual const ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
 
     virtual double getAxleInertia() const override { return m_axleShaftInertia; }
 
@@ -72,8 +72,8 @@ class CH_MODELS_API MTV_LeafspringAxle2 : public ChLeafspringAxle {
     static const double m_spindleRadius;
     static const double m_spindleWidth;
 
-    static const ChVector<> m_axleTubeInertia;
-    static const ChVector<> m_spindleInertia;
+    static const ChVector3d m_axleTubeInertia;
+    static const ChVector3d m_spindleInertia;
 
     static const double m_springCoefficient;
     static const double m_springRestLength;

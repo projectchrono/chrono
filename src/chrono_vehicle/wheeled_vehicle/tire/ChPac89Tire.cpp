@@ -32,6 +32,7 @@
 #include <cmath>
 
 #include "chrono/core/ChGlobal.h"
+#include "chrono/functions/ChFunctionSineStep.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChPac89Tire.h"
 
@@ -40,9 +41,9 @@ namespace vehicle {
 
 ChPac89Tire::ChPac89Tire(const std::string& name)
     : ChForceElementTire(name), m_kappa(0), m_alpha(0), m_gamma(0), m_gamma_limit(3), m_mu(0), m_mu0(0.8) {
-    m_tireforce.force = ChVector<>(0, 0, 0);
-    m_tireforce.point = ChVector<>(0, 0, 0);
-    m_tireforce.moment = ChVector<>(0, 0, 0);
+    m_tireforce.force = ChVector3d(0, 0, 0);
+    m_tireforce.point = ChVector3d(0, 0, 0);
+    m_tireforce.moment = ChVector3d(0, 0, 0);
 }
 
 // -----------------------------------------------------------------------------
@@ -66,7 +67,7 @@ void ChPac89Tire::Synchronize(double time, const ChTerrain& terrain) {
 
     // Extract the wheel normal (expressed in global frame)
     ChMatrix33<> A(wheel_state.rot);
-    ChVector<> disc_normal = A.Get_A_Yaxis();
+    ChVector3d disc_normal = A.GetAxisY();
 
     // Assuming the tire is a disc, check contact with terrain
     float mu;
@@ -80,7 +81,7 @@ void ChPac89Tire::Synchronize(double time, const ChTerrain& terrain) {
 
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
-        ChVector<> vel = wheel_state.lin_vel;
+        ChVector3d vel = wheel_state.lin_vel;
         m_data.vel = m_data.frame.TransformDirectionParentToLocal(vel);
 
         // Generate normal contact force (recall, all forces are reduced to the wheel
@@ -114,14 +115,14 @@ void ChPac89Tire::Synchronize(double time, const ChTerrain& terrain) {
         m_states.omega = 0;
         m_states.brx = 0;
         m_states.bry = 0;
-        m_states.disc_normal = ChVector<>(0, 0, 0);
+        m_states.disc_normal = ChVector3d(0, 0, 0);
     }
 }
 
 void ChPac89Tire::Advance(double step) {
     // Set tire forces to zero.
-    m_tireforce.force = ChVector<>(0, 0, 0);
-    m_tireforce.moment = ChVector<>(0, 0, 0);
+    m_tireforce.force = ChVector3d(0, 0, 0);
+    m_tireforce.moment = ChVector3d(0, 0, 0);
 
     // Return now if no contact.
     if (!m_data.in_contact)
@@ -145,7 +146,7 @@ void ChPac89Tire::Advance(double step) {
 
     double mu_scale = m_mu / m_mu0;
 
-    double frblend = ChSineStep(m_data.vel.x(), m_frblend_begin, 0.0, m_frblend_end, 1.0);
+    double frblend = ChFunctionSineStep::Eval(m_data.vel.x(), m_frblend_begin, 0.0, m_frblend_end, 1.0);
 
     // Calculate the new force and moment values (normal force and moment have already been accounted for in
     // Synchronize()).
@@ -240,32 +241,19 @@ void ChPac89Tire::Advance(double step) {
         const double vx_min = 0.125;
         const double vx_max = 0.5;
         // Smoothing factor dependend on m_state.abs_vx, allows soft switching of My
-        double myStartUp = ChSineStep(std::abs(m_states.vx), vx_min, 0.0, vx_max, 1.0);
+        double myStartUp = ChFunctionSineStep::Eval(std::abs(m_states.vx), vx_min, 0.0, vx_max, 1.0);
         My = myStartUp * m_rolling_resistance * m_data.normal_force * Lrad * ChSignum(m_states.omega);
     }
-
-    // GetLog() << "Fx:" << Fx
-    //    << " Fy:" << Fy
-    //    << " Fz:" << Fz
-    //    << " Mx:" << Mx
-    //    << " My:" << My
-    //    << " Mz:" << Mz
-    //    << std::endl
-    //    << " G:" << gamma
-    //    << " A:" << alpha
-    //    << " K:" << kappa
-    //    << " O:" << m_states.omega
-    //    << "\n";
 
     // Compile the force and moment vectors so that they can be
     // transformed into the global coordinate system.
     // Convert from SAE to ISO Coordinates at the contact patch.
-    m_tireforce.force = ChVector<>(Fx, -Fy, m_data.normal_force);
-    m_tireforce.moment = ChVector<>(Mx, -My, -Mz);
+    m_tireforce.force = ChVector3d(Fx, -Fy, m_data.normal_force);
+    m_tireforce.moment = ChVector3d(Mx, -My, -Mz);
 }
 
 void ChPac89Tire::CombinedCoulombForces(double& fx, double& fy, double fz, double muscale) {
-    ChVector2<> F;
+    ChVector2d F;
     /*
      The Dahl Friction Model elastic tread blocks representated by a single bristle. At tire stand still it acts
      like a spring which enables holding of a vehicle on a slope without creeping (hopefully). Damping terms

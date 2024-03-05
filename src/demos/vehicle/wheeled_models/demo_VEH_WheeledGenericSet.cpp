@@ -107,7 +107,7 @@ class Driver : public ChDriver {
 // =============================================================================
 
 Generic_Vehicle CreateVehicle(ChSystem& sys,
-                              ChVector<> location,
+                              ChVector3d location,
                               SuspensionTypeWV suspension_type_front,
                               SuspensionTypeWV suspension_type_rear) {
     // Construct vehicle
@@ -142,14 +142,14 @@ Generic_Vehicle CreateVehicle(ChSystem& sys,
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // ------------------------
     // Create the Chrono system
     // ------------------------
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
     sys.SetSolverMaxIterations(150);
@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
 
     for (int ix = 0; ix < x_num; ix++) {
         for (int iy = 0; iy < y_num; iy++) {
-            auto loc = ChVector<>(ix * x_sep, iy * y_sep, 0.6);
+            auto loc = ChVector3d(ix * x_sep, iy * y_sep, 0.6);
             vehicles.push_back(CreateVehicle(sys, loc, suspension_types_front[iy], suspension_types_rear[ix]));
         }
     }
@@ -192,11 +192,11 @@ int main(int argc, char* argv[]) {
     double terrain_y = (y_num - 1) * y_num;
 
     RigidTerrain terrain(&sys);
-    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto patch_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
     auto patch = terrain.AddPatch(patch_mat,                                                 //
-                                  ChCoordsys<>(ChVector<>(terrain_x, terrain_y, 0), QUNIT),  //
+                                  ChCoordsys<>(ChVector3d(terrain_x, terrain_y, 0), QUNIT),  //
                                   terrain_size_x, terrain_size_y);
     patch->SetColor(ChColor(0.5f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);
@@ -224,7 +224,7 @@ int main(int argc, char* argv[]) {
             vis_irr->SetWindowTitle("Generic Vehicles");
             vis_irr->SetChaseCamera(VNULL, 6.0, 1.5);
             ////vis_irr->SetChaseCameraState(utils::ChChaseCamera::Track);
-            ////vis_irr->SetChaseCameraPosition(ChVector<>(-6, terrain_y, 3.0));
+            ////vis_irr->SetChaseCameraPosition(ChVector3d(-6, terrain_y, 3.0));
             vis_irr->Initialize();
             vis_irr->AddLightDirectional();
             vis_irr->AddSkyBox();
@@ -241,16 +241,17 @@ int main(int argc, char* argv[]) {
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("Generic Vehicles");
-            vis_vsg->SetWindowSize(ChVector2<int>(1200, 900));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+            vis_vsg->SetWindowSize(ChVector2i(1200, 900));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->AttachVehicle(&vehicles[i_ego]);
             vis_vsg->SetChaseCamera(VNULL, 8.0, 1.5);
             ////vis_vsg->SetChaseCameraState(utils::ChChaseCamera::Track);
-            ////vis_vsg->SetChaseCameraPosition(ChVector<>(-6, terrain_y, 3.0));
+            ////vis_vsg->SetChaseCameraPosition(ChVector3d(-6, terrain_y, 3.0));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
             vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
             vis = vis_vsg;

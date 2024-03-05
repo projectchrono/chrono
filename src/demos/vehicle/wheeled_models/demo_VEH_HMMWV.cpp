@@ -19,7 +19,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChStream.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChFilters.h"
 
@@ -60,7 +59,7 @@ using namespace chrono::vehicle::hmmwv;
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 0.5);
+ChVector3d initLoc(0, 0, 0.5);
 ChQuaternion<> initRot(1, 0, 0, 0);
 // ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
 // ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
@@ -108,7 +107,7 @@ double terrainLength = 200.0;  // size in X direction
 double terrainWidth = 200.0;   // size in Y direction
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Contact method
 ChContactMethod contact_method = ChContactMethod::SMC;
@@ -142,7 +141,7 @@ bool blender_output = false;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // --------------
     // Create systems
@@ -208,13 +207,13 @@ int main(int argc, char* argv[]) {
     // Optionally, attach additional visual assets to ground.
     // Note: this must be done after initializing the terrain (so that its visual model is created).
     if (patch->GetGroundBody()->GetVisualModel()) {
-        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
             GetChronoDataFile("models/trees/Tree.obj"), true, true);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName("Trees");
         trimesh_shape->SetMutable(false);
-        patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape, ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI_2)));
+        patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape, ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI_2)));
     }
 
     // -----------------
@@ -315,8 +314,8 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowTitle("HMMWV Demo");
             vis_vsg->AttachVehicle(&vehicle);
             vis_vsg->SetChaseCamera(trackPoint, 8.0, 0.5);
-            vis_vsg->SetWindowSize(ChVector2<int>(1200, 900));
-            vis_vsg->SetWindowPosition(ChVector2<int>(100, 300));
+            vis_vsg->SetWindowSize(ChVector2i(1200, 900));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
@@ -350,7 +349,7 @@ int main(int argc, char* argv[]) {
     postprocess::ChBlender blender_exporter(hmmwv.GetSystem());
     if (blender_output) {
         blender_exporter.SetBasePath(blender_dir);
-        blender_exporter.SetCamera(ChVector<>(4.0, 2, 1.0), ChVector<>(0, 0, 0), 50);
+        blender_exporter.SetCamera(ChVector3d(4.0, 2, 1.0), ChVector3d(0, 0, 0), 50);
         blender_exporter.AddAll();
         blender_exporter.ExportScript();
     }

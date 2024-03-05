@@ -19,7 +19,6 @@
 #include <vector>
 
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/timestepper/ChTimestepper.h"
@@ -45,7 +44,7 @@ using namespace chrono::irrlicht;
 const std::string out_dir = GetChronoOutputPath() + "FEA_TRUSS";
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create (if needed) output directory
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -102,11 +101,11 @@ int main(int argc, char* argv[]) {
                 double step_x = L_x / ((double)nnodes_x - 1.0);
                 double step_y = L_y / ((double)nnodes_y - 1.0);
 
-                ChVector<> P_mass(ix * step_x, iy * step_y, 0);
+                ChVector3d P_mass(ix * step_x, iy * step_y, 0);
 
                 auto mnode = chrono_types::make_shared<ChNodeFEAxyz>(P_mass);
                 mnode->SetMass(step_x * step_y * density);
-                mnode->SetPos_dt(ChVector<>(0.05, 0, 0));
+                mnode->SetPosDer(ChVector3d(0.05, 0, 0));
                 if (ix == 0) {
                     mnode->SetFixed(true);
                     // Create a constraint between a node and the truss
@@ -115,7 +114,7 @@ int main(int argc, char* argv[]) {
                     // sys.Add(constraintA);
                 }
                 if (ix == nnodes_x - 1) {
-                    mnode->SetForce(ChVector<>(0, -0.00, 0));
+                    mnode->SetForce(ChVector3d(0, -0.00, 0));
                 }
                 my_mesh->AddNode(mnode);
                 mass_nodes.push_back(mnode);  // for later easy reference
@@ -126,7 +125,7 @@ int main(int argc, char* argv[]) {
         for (int ex = 0; ex < nnodes_x; ++ex) {
             for (int ey = 0; ey < nnodes_y; ++ey) {
                 if (ex + 1 < nnodes_x && ey + 1 < nnodes_y) {
-                    ChVector<> P_dumb = 1.0 / 4.0 * mass_nodes[ex * nnodes_y + ey]->GetPos() +
+                    ChVector3d P_dumb = 1.0 / 4.0 * mass_nodes[ex * nnodes_y + ey]->GetPos() +
                                         1.0 / 4.0 * mass_nodes[(ex + 1) * nnodes_y + ey]->GetPos() +
                                         1.0 / 4.0 * mass_nodes[(ex + 1) * nnodes_y + (ey + 1)]->GetPos() +
                                         1.0 / 4.0 * mass_nodes[ex * nnodes_y + (ey + 1)]->GetPos();
@@ -222,7 +221,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0.0, 1.0, -1.0));
+    vis->AddCamera(ChVector3d(0.0, 1.0, -1.0));
     vis->AttachSystem(&sys);
 
     // Simulation loop

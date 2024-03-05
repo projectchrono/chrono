@@ -191,14 +191,14 @@ class MyDriver {
 
     const std::string& GetDriverType() { return m_driver_type; }
 
-    ChVector<> GetTargetLocation() {
+    ChVector3d GetTargetLocation() {
         if (m_type == DriverModelType::HUMAN)
             return std::static_pointer_cast<ChHumanDriver>(m_driver)->GetTargetLocation();
         else
             return m_steering_controller->GetTargetLocation();
     }
 
-    ChVector<> GetSentinelLocation() {
+    ChVector3d GetSentinelLocation() {
         if (m_type == DriverModelType::HUMAN)
             return std::static_pointer_cast<ChHumanDriver>(m_driver)->GetSentinelLocation();
         else
@@ -229,7 +229,7 @@ class MyDriver {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChCLI cli(argv[0]);
 
@@ -308,7 +308,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Road width  = " << road_width << std::endl;
     std::cout << std::boolalpha << "Closed loop?  " << path_is_closed << std::endl << std::endl;
 
-    terrain.GetGround()->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(geometry::ChBox(1, road_width, 1)),
+    terrain.GetGround()->AddVisualShape(chrono_types::make_shared<ChVisualShapeBox>(ChBox(1, road_width, 1)),
                                         ChFrame<>(init_csys.pos - 0.5 * ChWorldFrame::Vertical(), init_csys.rot));
 
     path->write(out_dir + "/path.txt");
@@ -356,8 +356,10 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
     vis->SetWindowTitle("OpenCRG Steering");
     vis->SetWindowSize(1200, 800);
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->AttachVehicle(&feda.GetVehicle());
+    vis->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+    vis->SetShadows(true);
 
     auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
     auto target = chrono_types::make_shared<ChVisualShapeSphere>(0.1);

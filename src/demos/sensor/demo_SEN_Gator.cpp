@@ -56,7 +56,7 @@ using namespace chrono::sensor;
 // =============================================================================
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 0.5);
+ChVector3d initLoc(0, 0, 0.5);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
@@ -167,14 +167,14 @@ float gps_collection_time = 0.f;
 
 // Origin used as the gps reference point
 // Located in Madison, WI
-ChVector<> gps_reference(-89.400, 43.070, 260.0);
+ChVector3d gps_reference(-89.400, 43.070, 260.0);
 
 // ---------------
 
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // --------------
     // Create vehicle
@@ -280,7 +280,7 @@ int main(int argc, char* argv[]) {
 
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("Gator Demo");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 2.0), 5.0, 0.05);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 2.0), 5.0, 0.05);
     vis->Initialize();
     vis->AddTypicalLights();
     vis->AddSkyBox();
@@ -331,7 +331,7 @@ int main(int argc, char* argv[]) {
     auto cam = chrono_types::make_shared<ChCameraSensor>(
         gator.GetChassisBody(),                                              // body camera is attached to
         cam_update_rate,                                                     // update rate in Hz
-        chrono::ChFrame<double>({-8, 0, 3}, Q_from_AngAxis(.2, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({-8, 0, 3}, QuatFromAngleAxis(.2, {0, 1, 0})),  // offset pose
         image_width,                                                         // image width
         image_height,                                                        // image height
         cam_fov,
@@ -349,7 +349,7 @@ int main(int argc, char* argv[]) {
     auto cam2 = chrono_types::make_shared<ChCameraSensor>(
         gator.GetChassisBody(),                                                 // body camera is attached to
         cam_update_rate,                                                        // update rate in Hz
-        chrono::ChFrame<double>({.1, 0, 1.45}, Q_from_AngAxis(.2, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({.1, 0, 1.45}, QuatFromAngleAxis(.2, {0, 1, 0})),  // offset pose
         image_width,                                                            // image width
         image_height,                                                           // image height
         cam_fov,
@@ -367,7 +367,7 @@ int main(int argc, char* argv[]) {
     auto lidar = chrono_types::make_shared<ChLidarSensor>(
         gator.GetChassisBody(),                                                   // body to which the IMU is attached
         lidar_update_rate,                                                        // update rate
-        chrono::ChFrame<double>({-.282, 0, 1.82}, Q_from_AngAxis(0, {1, 0, 0})),  // offset pose from body
+        chrono::ChFrame<double>({-.282, 0, 1.82}, QuatFromAngleAxis(0, {1, 0, 0})),  // offset pose from body
         horizontal_samples,                                                       // horizontal samples
         vertical_samples,                                                         // vertical samples/channels
         lidar_hfov,                                                               // horizontal field of view
@@ -403,19 +403,19 @@ int main(int argc, char* argv[]) {
             // Set the imu noise model to a gaussian model
             acc_noise_model =
                 chrono_types::make_shared<ChNoiseNormalDrift>(100.f,                           // double updateRate,
-                                                              ChVector<double>({0., 0., 0.}),  // double mean,
-                                                              ChVector<double>({0.001, 0.001, 0.001}),  // double stdev,
+                                                              ChVector3d({0., 0., 0.}),  // double mean,
+                                                              ChVector3d({0.001, 0.001, 0.001}),  // double stdev,
                                                               .0001,  // double bias_drift,
                                                               .1);    // double tau_drift,
             gyro_noise_model = chrono_types::make_shared<ChNoiseNormalDrift>(
                 100.f,                                       // float updateRate,
-                ChVector<double>({0., 0., 0.}),              // float mean,
-                ChVector<double>({0.0075, 0.0075, 0.0075}),  // float stdev,
+                ChVector3d({0., 0., 0.}),              // float mean,
+                ChVector3d({0.0075, 0.0075, 0.0075}),  // float stdev,
                 .001,                                        // double bias_drift,
                 .1);                                         // double tau_drift,
             mag_noise_model =
-                chrono_types::make_shared<ChNoiseNormal>(ChVector<double>({0., 0., 0.}),            // float mean,
-                                                         ChVector<double>({0.001, 0.001, 0.001}));  // float stdev,
+                chrono_types::make_shared<ChNoiseNormal>(ChVector3d({0., 0., 0.}),            // float mean,
+                                                         ChVector3d({0.001, 0.001, 0.001}));  // float stdev,
             break;
         case IMU_NONE:
             // Set the imu noise model to none (does not affect the data)
@@ -425,7 +425,7 @@ int main(int argc, char* argv[]) {
             break;
     }
 
-    auto imu_offset_pose = chrono::ChFrame<double>({0, 0, 1.45}, Q_from_AngAxis(0, {1, 0, 0}));
+    auto imu_offset_pose = chrono::ChFrame<double>({0, 0, 1.45}, QuatFromAngleAxis(0, {1, 0, 0}));
     auto acc =
         chrono_types::make_shared<ChAccelerometerSensor>(gator.GetChassisBody(),  // body to which the IMU is attached
                                                          imu_update_rate,         // update rate
@@ -467,15 +467,15 @@ int main(int argc, char* argv[]) {
     switch (gps_noise_type) {
         case GPSNoiseModel::NORMAL:
             gps_noise_model =
-                chrono_types::make_shared<ChNoiseNormal>(ChVector<float>(1.f, 1.f, 1.f),  // Mean
-                                                         ChVector<float>(2.f, 3.f, 1.f)   // Standard Deviation
+                chrono_types::make_shared<ChNoiseNormal>(ChVector3f(1.f, 1.f, 1.f),  // Mean
+                                                         ChVector3f(2.f, 3.f, 1.f)   // Standard Deviation
                 );
             break;
         case GPSNoiseModel::GPS_NONE:
             gps_noise_model = chrono_types::make_shared<ChNoiseNone>();
             break;
     }
-    auto gps_offset_pose = chrono::ChFrame<double>({0, 0, 1.45}, Q_from_AngAxis(0, {1, 0, 0}));
+    auto gps_offset_pose = chrono::ChFrame<double>({0, 0, 1.45}, QuatFromAngleAxis(0, {1, 0, 0}));
     auto gps = chrono_types::make_shared<ChGPSSensor>(
         gator.GetChassisBody(),  // body to which the GPS is attached
         gps_update_rate,         // update rate
@@ -512,7 +512,7 @@ int main(int argc, char* argv[]) {
 
         cam->SetOffsetPose(
             chrono::ChFrame<double>({-orbit_radius * cos(time * orbit_rate), -orbit_radius * sin(time * orbit_rate), 3},
-                                    Q_from_AngAxis(time * orbit_rate, {0, 0, 1})));
+                                    QuatFromAngleAxis(time * orbit_rate, {0, 0, 1})));
 
         manager->Update();
 

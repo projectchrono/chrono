@@ -72,30 +72,30 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
     }
 
     /// Express the local point in absolute frame, for the given state position.
-    virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override {
+    virtual ChVector3d GetContactPoint(const ChVector3d& loc_point, const ChState& state_x) override {
         return state_x.segment(0, 3);
     }
 
     /// Get the absolute speed of a local point attached to the contactable.
     /// The given point is assumed to be expressed in the local frame of this object.
     /// This function must use the provided states.
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point,
+    virtual ChVector3d GetContactPointSpeed(const ChVector3d& loc_point,
                                             const ChState& state_x,
                                             const ChStateDelta& state_w) override {
         return state_w.segment(0, 3);
     }
 
     /// Get the absolute speed of point abs_point if attached to the surface.
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override { return m_node->pos_dt; }
+    virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override { return m_node->pos_dt; }
 
     /// Return the coordinate system for the associated collision model.
     /// ChCollisionModel might call this to get the position of the contact model (when rigid) and sync it.
     virtual ChCoordsys<> GetCsysForCollisionModel() override { return ChCoordsys<>(m_node->pos, QNULL); }
 
     /// Apply the force & torque, expressed in absolute reference, to the coordinates of the variables.
-    virtual void ContactForceLoadResidual_F(const ChVector<>& F,
-                                            const ChVector<>& T,
-                                            const ChVector<>& abs_point,
+    virtual void ContactForceLoadResidual_F(const ChVector3d& F,
+                                            const ChVector3d& T,
+                                            const ChVector3d& abs_point,
                                             ChVectorDynamic<>& R) override;
 
     /// Compute a contiguous vector of generalized forces Q from a given force & torque at the given point.
@@ -103,9 +103,9 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
     /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactComputeQ(const ChVector<>& F,
-                                   const ChVector<>& T,
-                                   const ChVector<>& point,
+    virtual void ContactComputeQ(const ChVector3d& F,
+                                   const ChVector3d& T,
+                                   const ChVector3d& point,
                                    const ChState& state_x,
                                    ChVectorDynamic<>& Q,
                                    int offset) override {
@@ -114,7 +114,7 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
 
     /// Compute the jacobian(s) part(s) for this contactable item.
     /// For example, if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
-    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point,
+    virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                ChMatrix33<>& contact_plane,
                                                type_constraint_tuple& jacobian_tuple_N,
                                                type_constraint_tuple& jacobian_tuple_U,
@@ -122,7 +122,7 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
                                                bool second) override;
 
     virtual double GetContactableMass() override {
-        //***TODO***!!!!!!!!!!!!!!!!!!!!
+        //// TODO !!!!!!!!!!!!!!!!!!!!
         return 1;
         // return this->m_node->GetMass(); // no!! could be zero in nodes of non-lumped-masses meshes!
     }
@@ -182,7 +182,7 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
     virtual void ContactableGetStateBlock_x(ChState& x) override { x.segment(0, 3) = m_node->GetPos().eigen(); }
 
     /// Get all the DOFs packed in a single vector (speed part).
-    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override { w.segment(0, 3) = m_node->GetPos_dt().eigen(); }
+    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override { w.segment(0, 3) = m_node->GetPosDer().eigen(); }
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
@@ -191,30 +191,30 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
     }
 
     /// Express the local point in absolute frame, for the given state position.
-    virtual ChVector<> GetContactPoint(const ChVector<>& loc_point, const ChState& state_x) override {
+    virtual ChVector3d GetContactPoint(const ChVector3d& loc_point, const ChState& state_x) override {
         return state_x.segment(0, 3);
     }
 
     /// Get the absolute speed of a local point attached to the contactable.
     /// The given point is assumed to be expressed in the local frame of this object.
     /// This function must use the provided states.
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& loc_point,
+    virtual ChVector3d GetContactPointSpeed(const ChVector3d& loc_point,
                                             const ChState& state_x,
                                             const ChStateDelta& state_w) override {
         return state_w.segment(0, 3);
     }
 
     /// Get the absolute speed of point abs_point if attached to the surface.
-    virtual ChVector<> GetContactPointSpeed(const ChVector<>& abs_point) override { return m_node->GetPos_dt(); }
+    virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override { return m_node->GetPosDer(); }
 
     /// Return the coordinate system for the associated collision model.
     /// ChCollisionModel might call this to get the position of the contact model (when rigid) and sync it.
-    virtual ChCoordsys<> GetCsysForCollisionModel() override { return m_node->GetCoord(); }
+    virtual ChCoordsys<> GetCsysForCollisionModel() override { return m_node->GetCsys(); }
 
     /// Apply the force & torque, expressed in absolute reference, to the coordinates of the variables.
-    virtual void ContactForceLoadResidual_F(const ChVector<>& F,
-                                            const ChVector<>& T,
-                                            const ChVector<>& abs_point,
+    virtual void ContactForceLoadResidual_F(const ChVector3d& F,
+                                            const ChVector3d& T,
+                                            const ChVector3d& abs_point,
                                             ChVectorDynamic<>& R) override;
 
     /// Compute a contiguous vector of generalized forces Q from a given force & torque at the given point.
@@ -222,9 +222,9 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
     /// The force and its application point are specified in the global frame.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactComputeQ(const ChVector<>& F,
-                                   const ChVector<>& T,
-                                   const ChVector<>& point,
+    virtual void ContactComputeQ(const ChVector3d& F,
+                                   const ChVector3d& T,
+                                   const ChVector3d& point,
                                    const ChState& state_x,
                                    ChVectorDynamic<>& Q,
                                    int offset) override {
@@ -233,7 +233,7 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
 
     /// Compute the jacobian(s) part(s) for this contactable item.
     /// For example, if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
-    virtual void ComputeJacobianForContactPart(const ChVector<>& abs_point,
+    virtual void ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                                ChMatrix33<>& contact_plane,
                                                ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
                                                ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
@@ -241,7 +241,7 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
                                                bool second) override;
 
     virtual double GetContactableMass() override {
-        //***TODO***!!!!!!!!!!!!!!!!!!!!
+        //// TODO !!!!!!!!!!!!!!!!!!!!
         return 1;
         // return m_node->GetMass(); // no!! could be zero in nodes of non-lumped-masses meshes!
     }
@@ -266,7 +266,7 @@ class ChApi ChContactNodeXYZROTsphere : public ChContactNodeXYZROT {
 /// Might be an efficient option in case of dense tessellations (but misses the node-vs-face and edge-vs-edge cases)
 class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
   public:
-    ChContactSurfaceNodeCloud(std::shared_ptr<ChMaterialSurface> material, ChMesh* mesh = nullptr);
+    ChContactSurfaceNodeCloud(std::shared_ptr<ChContactMaterial> material, ChMesh* mesh = nullptr);
 
     virtual ~ChContactSurfaceNodeCloud() {}
 

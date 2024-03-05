@@ -37,23 +37,23 @@ class ChApi ChMaterialShellANCF {
 
     /// Construct a (possibly) orthotropic material.
     ChMaterialShellANCF(double rho,            ///< material density
-                        const ChVector<>& E,   ///< elasticity moduli (E_x, E_y, E_z)
-                        const ChVector<>& nu,  ///< Poisson ratios (nu_xy, nu_xz, nu_yz)
-                        const ChVector<>& G    ///< shear moduli (G_xy, G_xz, G_yz)
+                        const ChVector3d& E,   ///< elasticity moduli (E_x, E_y, E_z)
+                        const ChVector3d& nu,  ///< Poisson ratios (nu_xy, nu_xz, nu_yz)
+                        const ChVector3d& G    ///< shear moduli (G_xy, G_xz, G_yz)
     );
 
     /// Return the material density.
     double Get_rho() const { return m_rho; }
 
     /// Return the matrix of elastic coefficients.
-    const ChMatrixNM<double, 6, 6>& Get_E_eps() const { return m_E_eps; }
+    const ChMatrix66d& Get_E_eps() const { return m_E_eps; }
 
   private:
     /// Calculate the matrix of elastic coefficients.
-    void Calc_E_eps(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G);
+    void Calc_E_eps(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G);
 
     double m_rho;                      ///< density
-    ChMatrixNM<double, 6, 6> m_E_eps;  ///< matrix of elastic coefficients
+    ChMatrix66d m_E_eps;  ///< matrix of elastic coefficients
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

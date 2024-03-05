@@ -16,14 +16,20 @@
 
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/physics/ChHydraulicActuator.h"
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 
 // #define FMI2_FUNCTION_PREFIX MyModel_
 #include "chrono_fmi/ChFmuToolsExport.h"
 
 class FmuComponent : public chrono::FmuChronoComponentBase {
   public:
-    FmuComponent(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID);
+    FmuComponent(fmi2String instanceName,
+                 fmi2Type fmuType,
+                 fmi2String fmuGUID,
+                 fmi2String fmuResourceLocation,
+                 const fmi2CallbackFunctions* functions,
+                 fmi2Boolean visible,
+                 fmi2Boolean loggingOn);
     virtual ~FmuComponent() {}
 
     /// Advance dynamics
@@ -58,10 +64,16 @@ class FmuComponent : public chrono::FmuChronoComponentBase {
     double U;   // valve position
 
     std::shared_ptr<chrono::ChHydraulicActuator2> m_actuator;
-    std::shared_ptr<chrono::ChFunction_Setpoint> m_actuation;
+    std::shared_ptr<chrono::ChFunctionSetpoint> m_actuation;
 };
 
 // Create an instance of this FMU
-FmuComponentBase* fmi2Instantiate_getPointer(fmi2String instanceName, fmi2Type fmuType, fmi2String fmuGUID) {
-    return new FmuComponent(instanceName, fmuType, fmuGUID);
+FmuComponentBase* fmi2Instantiate_getPointer(fmi2String instanceName,
+                                             fmi2Type fmuType,
+                                             fmi2String fmuGUID,
+                                             fmi2String fmuResourceLocation,
+                                             const fmi2CallbackFunctions* functions,
+                                             fmi2Boolean visible,
+                                             fmi2Boolean loggingOn) {
+    return new FmuComponent(instanceName, fmuType, fmuGUID, fmuResourceLocation, functions, visible, loggingOn);
 }

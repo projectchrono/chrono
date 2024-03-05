@@ -37,14 +37,14 @@ class CH_VEHICLE_API ChTrackShoeSegmented : public ChTrackShoe {
     virtual ~ChTrackShoeSegmented() {}
 
     /// Get the contact material for the track shoe part interacting with the sprocket.
-    std::shared_ptr<ChMaterialSurface> GetSprocketContactMaterial() const { return m_shoe_sprk_material; }
+    std::shared_ptr<ChContactMaterial> GetSprocketContactMaterial() const { return m_shoe_sprk_material; }
 
   protected:
     ChTrackShoeSegmented(const std::string& name);
 
     /// Initialize this track shoe subsystem.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,             ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 
@@ -61,7 +61,7 @@ class CH_VEHICLE_API ChTrackShoeSegmented : public ChTrackShoe {
     ChContactMaterialData m_shoe_sprk_minfo;  ///< data for contact material for shoe shape contacting sprocket
 
   private:
-    std::shared_ptr<ChMaterialSurface> m_shoe_sprk_material;  ///< contact material for shoe shape contacting sprocket
+    std::shared_ptr<ChContactMaterial> m_shoe_sprk_material;  ///< contact material for shoe shape contacting sprocket
 
     friend class ChTrackAssemblySegmented;
 };

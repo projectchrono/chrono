@@ -89,7 +89,7 @@ class CH_VEHICLE_API ChSuspensionTestRig {
 
     /// Get the global location of the specified spindle.
     /// Note: 'axle' is the index in the set of tested axles.
-    const ChVector<>& GetSpindlePos(int axle, VehicleSide side) const;
+    const ChVector3d& GetSpindlePos(int axle, VehicleSide side) const;
 
     /// Get the global rotation of the specified spindle.
     /// Note: 'axle' is the index in the set of tested axles.
@@ -97,11 +97,11 @@ class CH_VEHICLE_API ChSuspensionTestRig {
 
     /// Get the linear velocity of the specified spindle (expressed in the global reference frame).
     /// Note: 'axle' is the index in the set of tested axles.
-    const ChVector<>& GetSpindleLinVel(int axle, VehicleSide side) const;
+    const ChVector3d& GetSpindleLinVel(int axle, VehicleSide side) const;
 
     /// Get the angular velocity of the specified spindle (expressed in the global reference frame).
     /// Note: 'axle' is the index in the set of tested axles.
-    ChVector<> GetSpindleAngVel(int axle, VehicleSide side) const;
+    ChVector3d GetSpindleAngVel(int axle, VehicleSide side) const;
 
     /// Return current driver steering input.
     double GetSteeringInput() const { return m_driver->GetSteering(); }

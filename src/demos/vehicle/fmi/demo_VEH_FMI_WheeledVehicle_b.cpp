@@ -48,9 +48,12 @@ std::string VEHICLE_FMU_FILENAME = VEHICLE_FMU_DIR + VEHICLE_FMU_MODEL_IDENTIFIE
 std::string TIRE_FMU_FILENAME = TIRE_FMU_DIR + TIRE_FMU_MODEL_IDENTIFIER + std::string(".fmu");
 std::string DRIVER_FMU_FILENAME = DRIVER_FMU_DIR + DRIVER_FMU_MODEL_IDENTIFIER + std::string(".fmu");
 
-std::string VEHICLE_UNPACK_DIR = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_") + VEHICLE_FMU_MODEL_IDENTIFIER;
-std::string TIRE_UNPACK_DIR = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_") + TIRE_FMU_MODEL_IDENTIFIER;
-std::string DRIVER_UNPACK_DIR = CHRONO_VEHICLE_FMU_DIR + std::string("tmp_") + DRIVER_FMU_MODEL_IDENTIFIER;
+std::string VEHICLE_UNPACK_DIR =
+    CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_") + VEHICLE_FMU_MODEL_IDENTIFIER + std::string("/");
+std::string TIRE_UNPACK_DIR =
+    CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_") + TIRE_FMU_MODEL_IDENTIFIER + std::string("/");
+std::string DRIVER_UNPACK_DIR =
+    CHRONO_VEHICLE_FMU_DIR + std::string("tmp_unpack_") + DRIVER_FMU_MODEL_IDENTIFIER + std::string("/");
 
 // -----------------------------------------------------------------------------
 
@@ -61,8 +64,6 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
                       const std::vector<std::string>& logCategories) {
     try {
         vehicle_fmu.Load(VEHICLE_FMU_FILENAME, VEHICLE_UNPACK_DIR);
-        vehicle_fmu.BuildVariablesTree();
-        vehicle_fmu.BuildVisualizersList(&vehicle_fmu.tree_variables);
     } catch (std::exception& e) {
         throw e;
     }
@@ -80,17 +81,19 @@ void CreateVehicleFMU(FmuChronoUnit& vehicle_fmu,
                                 start_time,             // start time
                                 fmi2False, stop_time);  // use stop time
 
-    // Set fixed parameters
+    // Set fixed parameters - use vehicle JSON files from the Chrono::Vehicle data directory
+    std::string data_path = "../data/vehicle/";
     std::string vehicle_JSON = vehicle::GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json");
     std::string engine_JSON = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json");
     std::string transmission_JSON = vehicle::GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json");
 
+    vehicle_fmu.SetVariable("data_path", data_path);
     vehicle_fmu.SetVariable("vehicle_JSON", vehicle_JSON);
     vehicle_fmu.SetVariable("engine_JSON", engine_JSON);
     vehicle_fmu.SetVariable("transmission_JSON", transmission_JSON);
     vehicle_fmu.SetVariable("step_size", step_size, FmuVariable::Type::Real);
 
-    ////ChVector<> g_acc(0, 0, 0);
+    ////ChVector3d g_acc(0, 0, 0);
     ////vehicle_fmu.SetVecVariable("g_acc", g_acc);
 }
 
@@ -103,8 +106,6 @@ void CreateDriverFMU(FmuChronoUnit& driver_fmu,
                      const std::vector<std::string>& logCategories) {
     try {
         driver_fmu.Load(DRIVER_FMU_FILENAME, DRIVER_UNPACK_DIR);
-        driver_fmu.BuildVariablesTree();
-        driver_fmu.BuildVisualizersList(&driver_fmu.tree_variables);
     } catch (std::exception& e) {
         throw e;
     }
@@ -143,8 +144,6 @@ void CreateTireFMU(FmuChronoUnit& tire_fmu,
                    const std::vector<std::string>& logCategories) {
     try {
         tire_fmu.Load(TIRE_FMU_FILENAME, TIRE_UNPACK_DIR);
-        tire_fmu.BuildVariablesTree();
-        tire_fmu.BuildVisualizersList(&tire_fmu.tree_variables);
     } catch (std::exception& e) {
         throw e;
     }
@@ -245,7 +244,7 @@ int main(int argc, char* argv[]) {
     vehicle_fmu.EnterInitializationMode();
     {
         // Set initial vehicle location
-        ChVector<> init_loc;
+        ChVector3d init_loc;
         double init_yaw;
         driver_fmu.GetVecVariable("init_loc", init_loc);
         driver_fmu.GetVariable("init_yaw", init_yaw, FmuVariable::Type::Real);
@@ -323,11 +322,11 @@ int main(int argc, char* argv[]) {
 
         // ------------ Set terrain information for each tire FMU
         for (int i = 0; i < 4; i++) {
-            ChVector<> query_point;
+            ChVector3d query_point;
             tire_fmu[i].GetVecVariable("query_point", query_point);
 
             double terrain_height = terrain.GetHeight(query_point);
-            ChVector<> terrain_normal = terrain.GetNormal(query_point);
+            ChVector3d terrain_normal = terrain.GetNormal(query_point);
             double terrain_mu = (double)terrain.GetCoefficientFriction(query_point);
             tire_fmu[i].SetVariable("terrain_height", terrain_height, FmuVariable::Type::Real);
             tire_fmu[i].SetVecVariable("terrain_normal", terrain_normal);

@@ -50,7 +50,6 @@ class settings_container;
 
 /// Base class for Chrono::Multicore systems.
 class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
-
   public:
     ChSystemMulticore();
     ChSystemMulticore(const ChSystemMulticore& other);
@@ -80,7 +79,8 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
 
     /// Change the default composition laws for contact surface materials
     /// (coefficient of friction, cohesion, compliance, etc.).
-    virtual void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy) override;
+    virtual void SetMaterialCompositionStrategy(
+        std::unique_ptr<ChContactMaterialCompositionStrategy>&& strategy) override;
 
     virtual void PrintStepStats();
     unsigned int GetNumBodies();
@@ -122,13 +122,13 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     /// This resultant force includes all external applied loads acting on the body (from gravity, loads, springs,
     /// etc). However, this does *not* include any constraint forces. In particular, contact forces are not included if
     /// using the NSC formulation, but are included when using the SMC formulation.
-    virtual ChVector<> GetBodyAppliedForce(ChBody* body) override;
+    virtual ChVector3d GetBodyAppliedForce(ChBody* body) override;
 
     /// Return the resultant applied torque on the specified body.
     /// This resultant torque includes all external applied loads acting on the body (from gravity, loads, springs,
     /// etc). However, this does *not* include any constraint forces. In particular, contact torques are not included if
     /// using the NSC formulation, but are included when using the SMC formulation.
-    virtual ChVector<> GetBodyAppliedTorque(ChBody* body) override;
+    virtual ChVector3d GetBodyAppliedTorque(ChBody* body) override;
 
     /// Get the contact force on the body with specified id.
     /// Note that ComputeContactForces must be called prior to calling this function
@@ -196,7 +196,6 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
 
 /// Multicore system using non-smooth contact (complementarity-based) method.
 class CH_MULTICORE_API ChSystemMulticoreNSC : public ChSystemMulticore {
-
   public:
     ChSystemMulticoreNSC();
     ChSystemMulticoreNSC(const ChSystemMulticoreNSC& other);
@@ -232,7 +231,6 @@ class CH_MULTICORE_API ChSystemMulticoreNSC : public ChSystemMulticore {
 
 /// Multicore system using smooth contact (penalty-based) method.
 class CH_MULTICORE_API ChSystemMulticoreSMC : public ChSystemMulticore {
-
   public:
     ChSystemMulticoreSMC();
     ChSystemMulticoreSMC(const ChSystemMulticoreSMC& other);

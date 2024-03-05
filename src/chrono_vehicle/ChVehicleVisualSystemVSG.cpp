@@ -443,8 +443,8 @@ void ChVehicleVisualSystemVSG::Advance(double step) {
     }
 
     // Update the VSG camera
-    ChVector<> cam_pos = m_camera->GetCameraPos();
-    ChVector<> cam_target = m_camera->GetTargetPos();
+    ChVector3d cam_pos = m_camera->GetCameraPos();
+    ChVector3d cam_target = m_camera->GetTargetPos();
     m_vsg_cameraEye.set(cam_pos.x(), cam_pos.y(), cam_pos.z());
     m_vsg_cameraTarget.set(cam_target.x(), cam_target.y(), cam_target.z());
     m_lookAt->eye.set(cam_pos.x(), cam_pos.y(), cam_pos.z());

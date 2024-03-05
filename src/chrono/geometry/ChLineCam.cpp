@@ -15,7 +15,7 @@
 #include "chrono/geometry/ChLineCam.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLineCam)
@@ -32,7 +32,7 @@ ChLineCam::ChLineCam() {
     center = VNULL;
     e = 0;
     s = Rb;
-    law = chrono_types::make_shared<ChFunction_Const>(0);  // default law = no follower motion
+    law = chrono_types::make_shared<ChFunctionConst>(0);  // default law = no follower motion
     negative = false;
     internal = false;
 }
@@ -74,7 +74,7 @@ void ChLineCam::Set_flat_oscillate(double me, double md, double mb0) {
     Rb = e + d * sin(b0);
 }
 
-ChVector<> ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
+ChVector3d ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
     double a = par * 2 * CH_C_PI;  // range : par 0..1 -> angle 0...2PI
     double r, f, b, B, fshift, y, ydx, ydxdx, sa, fxalpha, u, uh = 0;
     double sign, signdx, signdxdx;
@@ -82,7 +82,7 @@ ChVector<> ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
     // defaults
     g = 0;
     q = 0;
-    ChVector<> res = VNULL;
+    ChVector3d res = VNULL;
 
     double radius = internal ? -Rr : +Rr;
     double ecc = negative ? -e : +e;
@@ -99,9 +99,9 @@ ChVector<> ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
         }
     }
 
-    y = sign * law->Get_y(fxalpha);
-    ydx = signdx * law->Get_y_dx(fxalpha);
-    ydxdx = signdxdx * law->Get_y_dxdx(fxalpha);
+    y = sign * law->GetVal(fxalpha);
+    ydx = signdx * law->GetDer(fxalpha);
+    ydxdx = signdxdx * law->GetDer2(fxalpha);
 
     switch (this->type) {
         case CAM_TYPE_SLIDEFOLLOWER:
@@ -174,55 +174,55 @@ ChVector<> ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
     return res;
 }
 
-ChVector<> ChLineCam::Evaluate(double parU) const {
+ChVector3d ChLineCam::Evaluate(double parU) const {
     double qtmp, gtmp;
     return EvaluateCamPoint(parU, gtmp, qtmp);
 }
 
-void ChLineCam::ArchiveOut(ChArchiveOut& marchive) {
+void ChLineCam::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLineCam>();
+    archive_out.VersionWrite<ChLineCam>();
     // serialize parent class
-    ChLine::ArchiveOut(marchive);
+    ChLine::ArchiveOut(archive_out);
     // serialize all member data:
 
     eChCamType_mapper mmapper;
-    marchive << CHNVP(mmapper(type), "type");
-    marchive << CHNVP(law);
-    marchive << CHNVP(phase);
-    marchive << CHNVP(Rb);
-    marchive << CHNVP(Rr);
-    marchive << CHNVP(p);
-    marchive << CHNVP(d);
-    marchive << CHNVP(b0);
-    marchive << CHNVP(e);
-    marchive << CHNVP(s);
-    marchive << CHNVP(negative);
-    marchive << CHNVP(internal);
-    marchive << CHNVP(center);
+    archive_out << CHNVP(mmapper(type), "type");
+    archive_out << CHNVP(law);
+    archive_out << CHNVP(phase);
+    archive_out << CHNVP(Rb);
+    archive_out << CHNVP(Rr);
+    archive_out << CHNVP(p);
+    archive_out << CHNVP(d);
+    archive_out << CHNVP(b0);
+    archive_out << CHNVP(e);
+    archive_out << CHNVP(s);
+    archive_out << CHNVP(negative);
+    archive_out << CHNVP(internal);
+    archive_out << CHNVP(center);
 }
 
-void ChLineCam::ArchiveIn(ChArchiveIn& marchive) {
+void ChLineCam::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLineCam>();
+    /*int version =*/ archive_in.VersionRead<ChLineCam>();
     // deserialize parent class
-    ChLine::ArchiveIn(marchive);
+    ChLine::ArchiveIn(archive_in);
     // stream in all member data:
     eChCamType_mapper mmapper;
-    marchive >> CHNVP(mmapper(type), "type");
-    marchive >> CHNVP(law);
-    marchive >> CHNVP(phase);
-    marchive >> CHNVP(Rb);
-    marchive >> CHNVP(Rr);
-    marchive >> CHNVP(p);
-    marchive >> CHNVP(d);
-    marchive >> CHNVP(b0);
-    marchive >> CHNVP(e);
-    marchive >> CHNVP(s);
-    marchive >> CHNVP(negative);
-    marchive >> CHNVP(internal);
-    marchive >> CHNVP(center);
+    archive_in >> CHNVP(mmapper(type), "type");
+    archive_in >> CHNVP(law);
+    archive_in >> CHNVP(phase);
+    archive_in >> CHNVP(Rb);
+    archive_in >> CHNVP(Rr);
+    archive_in >> CHNVP(p);
+    archive_in >> CHNVP(d);
+    archive_in >> CHNVP(b0);
+    archive_in >> CHNVP(e);
+    archive_in >> CHNVP(s);
+    archive_in >> CHNVP(negative);
+    archive_in >> CHNVP(internal);
+    archive_in >> CHNVP(center);
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

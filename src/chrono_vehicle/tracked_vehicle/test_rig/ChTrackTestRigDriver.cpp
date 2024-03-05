@@ -17,14 +17,14 @@
 //
 // =============================================================================
 
-#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDriver.h"
-
 #include <fstream>
 #include <iostream>
 #include <iomanip>
 #include <sstream>
 
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChUtils.h"
+
+#include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDriver.h"
 
 namespace chrono {
 namespace vehicle {

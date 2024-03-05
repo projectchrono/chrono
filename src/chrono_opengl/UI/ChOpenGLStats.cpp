@@ -208,9 +208,9 @@ void ChOpenGLStatsDefault::GenerateSystem(ChSystem& sys) {
     if (parallel_system) {
         num_shapes =
             parallel_system->data_manager->cd_data->num_rigid_shapes + parallel_system->data_manager->num_fluid_bodies;
-        num_rigid_bodies = parallel_system->data_manager->num_rigid_bodies + parallel_system->GetNphysicsItems();
+        num_rigid_bodies = parallel_system->data_manager->num_rigid_bodies + parallel_system->GetNumOtherPhysicsItems();
         num_fluid_bodies = parallel_system->data_manager->num_fluid_bodies;
-        num_contacts = parallel_system->GetNcontacts();
+        num_contacts = parallel_system->GetNumContacts();
         num_bilaterals = parallel_system->data_manager->num_bilaterals;
     }
     double left_b = screen.LEFT + screen.RIGHT;
@@ -232,7 +232,7 @@ void ChOpenGLStatsDefault::GenerateSystem(ChSystem& sys) {
         real build_r = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_R");
         real build_n = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_N");
         real stab = parallel_system->data_manager->system_timer.GetTime("ChIterativeSolverMulticore_Stab");
-        real shur = parallel_system->data_manager->system_timer.GetTime("ShurProduct");
+        real schur = parallel_system->data_manager->system_timer.GetTime("SchurProduct");
 
         real number = build_m;
         real build_m_v = glm::mix(left_b, right_b, number / timer_lcp);
@@ -252,8 +252,8 @@ void ChOpenGLStatsDefault::GenerateSystem(ChSystem& sys) {
         number += stab;
         real stab_v = glm::mix(left_b, right_b, number / timer_lcp);
 
-        number += shur;
-        real shur_v = glm::mix(left_b, right_b, number / timer_lcp);
+        number += schur;
+        real schur_v = glm::mix(left_b, right_b, number / timer_lcp);
 
         bars.AddBar(left_b, build_m_v, screen.BOTTOM + thick * 3, screen.BOTTOM + thick * 2, ColorConverter(0x5D9CEC));
         bars.AddBar(build_m_v, build_d_v, screen.BOTTOM + thick * 3, screen.BOTTOM + thick * 2,
@@ -265,8 +265,8 @@ void ChOpenGLStatsDefault::GenerateSystem(ChSystem& sys) {
         bars.AddBar(build_r_v, build_n_v, screen.BOTTOM + thick * 3, screen.BOTTOM + thick * 2,
                     ColorConverter(0xFC6E51));
         bars.AddBar(build_n_v, stab_v, screen.BOTTOM + thick * 3, screen.BOTTOM + thick * 2, ColorConverter(0xED5565));
-        bars.AddBar(stab_v, shur_v, screen.BOTTOM + thick * 3, screen.BOTTOM + thick * 2, ColorConverter(0xAC92EC));
-        bars.AddBar(shur_v, right_b, screen.BOTTOM + thick * 3, screen.BOTTOM + thick * 2, ColorConverter(0xEC87C0));
+        bars.AddBar(stab_v, schur_v, screen.BOTTOM + thick * 3, screen.BOTTOM + thick * 2, ColorConverter(0xAC92EC));
+        bars.AddBar(schur_v, right_b, screen.BOTTOM + thick * 3, screen.BOTTOM + thick * 2, ColorConverter(0xEC87C0));
         // bars.AddBar(stab_v, right_b, screen.BOTTOM + thick * 3, screen.BOTTOM + thick * 2, normalize(glm::vec3(149,
         // 165, 166)));
     }

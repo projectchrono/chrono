@@ -41,7 +41,7 @@ using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono::Engine physical system
     ChSystemSMC sys;
@@ -70,8 +70,8 @@ int main(int argc, char* argv[]) {
     try {
         ChMeshFileLoader::FromAbaqusFile(my_mesh, GetChronoDataFile("fea/electrostatics.INP").c_str(), mmaterial,
                                          node_sets);
-    } catch (const ChException &myerr) {
-        GetLog() << myerr.what();
+    } catch (std::exception myerr) {
+        std::cerr << myerr.what() << std::endl;
         return 1;
     }
 
@@ -137,9 +137,9 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddLight(ChVector<>(20, 20, 20), 90, ChColor(0.5f, 0.5f, 0.5f));
-    vis->AddLight(ChVector<>(-20, 20, -20), 90, ChColor(0.7f, 0.8f, 0.8f));
-    vis->AddCamera(ChVector<>(0., 0.2, -0.3));
+    vis->AddLight(ChVector3d(20, 20, 20), 90, ChColor(0.5f, 0.5f, 0.5f));
+    vis->AddLight(ChVector3d(-20, 20, -20), 90, ChColor(0.7f, 0.8f, 0.8f));
+    vis->AddCamera(ChVector3d(0., 0.2, -0.3));
 
     // SIMULATION LOOP
 
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
     for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
             if (mnode->GetP() < 6.2) {
-                // GetLog() << "Node at y=" << mnode->GetPos().y << " has V=" << mnode->GetP() << "\n";
+                // std::cout << "Node at y=" << mnode->GetPos().y << " has V=" << mnode->GetP() << std::endl;
             }
         }
     }

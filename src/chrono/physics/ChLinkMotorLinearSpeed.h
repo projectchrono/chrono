@@ -59,8 +59,8 @@ class ChApi ChLinkMotorLinearSpeed : public ChLinkMotorLinear {
     /// Set if the constraint is in "avoid position drift" mode.
     bool GetAvoidPositionDrift() { return this->avoid_position_drift; }
 
-    /// Get the current actuator reaction force [N]
-    virtual double GetMotorForce() const override { return -this->react_force.x(); }
+    /// Get the current actuator reaction force
+    virtual double GetMotorForce() const override { return -this->react_force.z(); }
 
     void Update(double mytime, bool update_assets = true) override;
 
@@ -68,7 +68,7 @@ class ChApi ChLinkMotorLinearSpeed : public ChLinkMotorLinear {
     // STATE FUNCTIONS
     //
 
-    virtual int GetDOF() override { return 1; }
+    virtual int GetNumCoordinatesPos() override { return 1; }
 
     ChVariablesGeneric& Variables() { return variable; }
 
@@ -121,10 +121,10 @@ class ChApi ChLinkMotorLinearSpeed : public ChLinkMotorLinear {
     virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     double pos_offset;

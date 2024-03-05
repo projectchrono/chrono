@@ -21,7 +21,7 @@
 #define CH_TRACK_BRAKE_SIMPLE_H
 
 #include "chrono/physics/ChSystem.h"
-#include "chrono/physics/ChLinkBrake.h"
+#include "chrono/physics/ChLinkLockBrake.h"
 
 #include "chrono_vehicle/tracked_vehicle/ChTrackBrake.h"
 
@@ -65,7 +65,7 @@ class CH_VEHICLE_API ChTrackBrakeSimple : public ChTrackBrake {
     virtual double GetMaxBrakingTorque() = 0;
 
     double m_braking;
-    std::shared_ptr<ChLinkBrake> m_brake;
+    std::shared_ptr<ChLinkLockBrake> m_brake;
 };
 
 /// @} vehicle_tracked_brake

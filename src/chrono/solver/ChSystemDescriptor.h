@@ -139,11 +139,11 @@ class ChApi ChSystemDescriptor {
     virtual void UpdateCountsAndOffsets();
 
     /// Sets the c_a coefficient (default=1) used for scaling the M masses of the vvariables
-    /// when performing ShurComplementProduct(), SystemProduct(), ConvertToMatrixForm(),
+    /// when performing SchurComplementProduct(), SystemProduct(), ConvertToMatrixForm(),
     virtual void SetMassFactor(const double mc_a) { c_a = mc_a; }
 
     /// Gets the c_a coefficient (default=1) used for scaling the M masses of the vvariables
-    /// when performing ShurComplementProduct(), SystemProduct(), ConvertToMatrixForm(),
+    /// when performing SchurComplementProduct(), SystemProduct(), ConvertToMatrixForm(),
     virtual double GetMassFactor() { return c_a; }
 
     // DATA <-> MATH.VECTORS FUNCTIONS
@@ -240,7 +240,7 @@ class ChApi ChSystemDescriptor {
 
     // MATHEMATICAL OPERATIONS ON DATA
 
-    /// Performs the product of N, the Shur complement of the KKT matrix, by an 'l' vector
+    /// Performs the product of N, the Schur complement of the KKT matrix, by an 'l' vector
     /// <pre>
     ///    result = [N]*l = [ [Cq][M^(-1)][Cq'] - [E] ] * l
     /// </pre>
@@ -255,7 +255,7 @@ class ChApi ChSystemDescriptor {
     /// NOTE! currently this function does NOT support the cases that use also ChKblock
     /// objects, because it would need to invert the global M+K, that is not diagonal,
     /// for doing = [N]*l = [ [Cq][(M+K)^(-1)][Cq'] - [E] ] * l
-    virtual void ShurComplementProduct(
+    virtual void SchurComplementProduct(
         ChVectorDynamic<>& result,            ///< result of  N * l_i
         const ChVectorDynamic<>& lvector,     ///< vector to be multiplied
         std::vector<bool>* enabled = nullptr  ///< optional: vector of "enabled" flags, one per scalar constraint.
@@ -350,17 +350,17 @@ class ChApi ChSystemDescriptor {
     virtual void WriteMatrixSpmv(const std::string& path, const std::string& prefix);
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) {
+    virtual void ArchiveOut(ChArchiveOut& archive_out) {
         // version number
-        marchive.VersionWrite<ChSystemDescriptor>();
+        archive_out.VersionWrite<ChSystemDescriptor>();
         // serialize parent class
         // serialize all member data:
     }
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) {
+    virtual void ArchiveIn(ChArchiveIn& archive_in) {
         // version number
-        /*int version =*/ marchive.VersionRead<ChSystemDescriptor>();
+        /*int version =*/archive_in.VersionRead<ChSystemDescriptor>();
         // deserialize parent class
         // stream in all member data:
     }

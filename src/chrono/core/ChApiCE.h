@@ -14,6 +14,8 @@
 #define CHAPICE_H
 
 #include <cstddef>
+#include <cassert>
+#include <iostream>
 
 #include "chrono/ChVersion.h"
 #include "chrono/core/ChPlatform.h"

@@ -68,7 +68,7 @@ vis.SetWindowTitle('FEA cables')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0, 0.6, -1))
+vis.AddCamera(chrono.ChVector3d(0, 0.6, -1))
 vis.AddTypicalLights()
 
 # Set solver and solver settings

@@ -27,14 +27,14 @@ def main():
 
     sys = chrono.ChSystemNSC()
     sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
-    sys.Set_G_acc(chrono.ChVectorD(0, 0, -9.81))
+    sys.Set_G_acc(chrono.ChVector3d(0, 0, -9.81))
     sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN)
     sys.SetSolverMaxIterations(150)
     sys.SetMaxPenetrationRecoverySpeed(4.0)
 
     # Create the terrain
     terrain = veh.RigidTerrain(sys)
-    patch_mat = chrono.ChMaterialSurfaceNSC()
+    patch_mat = chrono.ChContactMaterialNSC()
     patch_mat.SetFriction(0.9)
     patch_mat.SetRestitution(0.01)
     patch = terrain.AddPatch(patch_mat, chrono.CSYSNORM, 200, 100)
@@ -44,7 +44,7 @@ def main():
 
     # Create and initialize the first vehicle
     hmmwv_1 = veh.HMMWV_Reduced(sys)
-    hmmwv_1.SetInitPosition(chrono.ChCoordsysD(chrono.ChVectorD(0, -1.5, 1.0), chrono.ChQuaternionD(1, 0, 0, 0)))
+    hmmwv_1.SetInitPosition(chrono.ChCoordsysd(chrono.ChVector3d(0, -1.5, 1.0), chrono.ChQuaterniond(1, 0, 0, 0)))
     hmmwv_1.SetEngineType(veh.EngineModelType_SIMPLE)
     hmmwv_1.SetTransmissionType(veh.TransmissionModelType_AUTOMATIC_SIMPLE_MAP)
     hmmwv_1.SetDriveType(veh.DrivelineTypeWV_RWD)
@@ -67,7 +67,7 @@ def main():
 
     # Create and initialize the second vehicle
     hmmwv_2 = veh.HMMWV_Reduced(sys)
-    hmmwv_2.SetInitPosition(chrono.ChCoordsysD(chrono.ChVectorD(7, 1.5, 1.0), chrono.ChQuaternionD(1, 0, 0, 0)))
+    hmmwv_2.SetInitPosition(chrono.ChCoordsysd(chrono.ChVector3d(7, 1.5, 1.0), chrono.ChQuaterniond(1, 0, 0, 0)))
     hmmwv_2.SetEngineType(veh.EngineModelType_SIMPLE)
     hmmwv_2.SetTransmissionType(veh.TransmissionModelType_AUTOMATIC_SIMPLE_MAP)
     hmmwv_2.SetDriveType(veh.DrivelineTypeWV_RWD)
@@ -93,9 +93,9 @@ def main():
     vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
     vis.SetWindowTitle('Two Car Demo')
     vis.SetWindowSize(1280, 1024)
-    vis.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 0.75), 6.0, 0.5)
+    vis.SetChaseCamera(chrono.ChVector3d(0.0, 0.0, 0.75), 6.0, 0.5)
     vis.SetChaseCameraState(veh.ChChaseCamera.Track)
-    vis.SetChaseCameraPosition(chrono.ChVectorD(-10, 0, 2.0))
+    vis.SetChaseCameraPosition(chrono.ChVector3d(-10, 0, 2.0))
     vis.Initialize()
     vis.AddLightDirectional()
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))

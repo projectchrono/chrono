@@ -18,7 +18,9 @@
 #include "chrono/geometry/ChVolume.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// A rounded cylinder (sphere-swept cylinder) geometric object for collision and visualization.
 class ChApi ChRoundedCylinder : public ChVolume {
@@ -31,7 +33,7 @@ class ChApi ChRoundedCylinder : public ChVolume {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChRoundedCylinder* Clone() const override { return new ChRoundedCylinder(*this); }
 
-    virtual Type GetClassType() const override { return Type::ROUNDED_CYLINDER; }
+    virtual Type GetType() const override { return Type::ROUNDED_CYLINDER; }
 
     /// Return the volume of this solid.
     virtual double GetVolume() const override;
@@ -45,10 +47,10 @@ class ChApi ChRoundedCylinder : public ChVolume {
     /// Return the radius of a bounding sphere for this geometry.
     virtual double GetBoundingSphereRadius() const override;
 
-    virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
+    virtual ChVector3d Baricenter() const override { return ChVector3d(0); }
 
     /// Evaluate position in box volume.
-    virtual ChVector<> Evaluate(double parU, double parV, double parW) const override {
+    virtual ChVector3d Evaluate(double parU, double parV, double parW) const override {
         //// TODO
         return VNULL;
     }
@@ -63,10 +65,10 @@ class ChApi ChRoundedCylinder : public ChVolume {
     double GetSphereRadius() const { return sr; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
     /// Return the volume of this type of solid with given dimensions.
     static double GetVolume(double radius, double height, double srad);
@@ -85,9 +87,9 @@ class ChApi ChRoundedCylinder : public ChVolume {
     double sr;  ///< radius of sweeping sphere
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChRoundedCylinder, 0)
+CH_CLASS_VERSION(ChRoundedCylinder, 0)
 
 }  // end namespace chrono
 

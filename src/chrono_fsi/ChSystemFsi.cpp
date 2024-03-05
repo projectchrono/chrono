@@ -515,19 +515,19 @@ void ChSystemFsi::SetSPHMethod(FluidDynamics SPH_method, SolverType lin_solver) 
     m_paramsH->LinearSolver = lin_solver;
 }
 
-void ChSystemFsi::SetContainerDim(const ChVector<>& boxDim) {
+void ChSystemFsi::SetContainerDim(const ChVector3d& boxDim) {
     m_paramsH->boxDimX = boxDim.x();
     m_paramsH->boxDimY = boxDim.y();
     m_paramsH->boxDimZ = boxDim.z();
 }
 
-void ChSystemFsi::SetBoundaries(const ChVector<>& cMin, const ChVector<>& cMax) {
+void ChSystemFsi::SetBoundaries(const ChVector3d& cMin, const ChVector3d& cMax) {
     m_paramsH->cMin = utils::ToReal3(cMin);
     m_paramsH->cMax = utils::ToReal3(cMax);
     m_paramsH->use_default_limits = false;
 }
 
-void ChSystemFsi::SetActiveDomain(const ChVector<>& boxHalfDim) {
+void ChSystemFsi::SetActiveDomain(const ChVector3d& boxHalfDim) {
     m_paramsH->bodyActiveDomain = utils::ToReal3(boxHalfDim);
 }
 
@@ -544,13 +544,13 @@ void ChSystemFsi::SetInitPressure(const double height) {
     m_paramsH->use_init_pressure = true;
 }
 
-void ChSystemFsi::Set_G_acc(const ChVector<>& gravity) {
+void ChSystemFsi::Set_G_acc(const ChVector3d& gravity) {
     m_paramsH->gravity.x = gravity.x();
     m_paramsH->gravity.y = gravity.y();
     m_paramsH->gravity.z = gravity.z();
 }
 
-void ChSystemFsi::SetBodyForce(const ChVector<>& force) {
+void ChSystemFsi::SetBodyForce(const ChVector3d& force) {
     m_paramsH->bodyForce3.x = force.x();
     m_paramsH->bodyForce3.y = force.y();
     m_paramsH->bodyForce3.z = force.z();
@@ -1000,43 +1000,43 @@ void ChSystemFsi::PrintFsiInfoToFile(const std::string& dir, double time) const 
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::AddSPHParticle(const ChVector<>& point,
+void ChSystemFsi::AddSPHParticle(const ChVector3d& point,
                                  double rho0,
                                  double pres0,
                                  double mu0,
-                                 const ChVector<>& velocity,
-                                 const ChVector<>& tauXxYyZz,
-                                 const ChVector<>& tauXyXzYz) {
+                                 const ChVector3d& velocity,
+                                 const ChVector3d& tauXxYyZz,
+                                 const ChVector3d& tauXyXzYz) {
     Real h = m_paramsH->HSML;
     m_sysFSI->AddSPHParticle(utils::ToReal4(point, h), mR4(rho0, pres0, mu0, -1), utils::ToReal3(velocity),
                              utils::ToReal3(tauXxYyZz), utils::ToReal3(tauXyXzYz));
 }
 
-void ChSystemFsi::AddSPHParticle(const ChVector<>& point,
-                                 const ChVector<>& velocity,
-                                 const ChVector<>& tauXxYyZz,
-                                 const ChVector<>& tauXyXzYz) {
+void ChSystemFsi::AddSPHParticle(const ChVector3d& point,
+                                 const ChVector3d& velocity,
+                                 const ChVector3d& tauXxYyZz,
+                                 const ChVector3d& tauXyXzYz) {
     AddSPHParticle(point, m_paramsH->rho0, m_paramsH->BASEPRES, m_paramsH->mu0, velocity, tauXxYyZz, tauXyXzYz);
 }
 
-void ChSystemFsi::AddBoxSPH(const ChVector<>& boxCenter, const ChVector<>& boxHalfDim) {
+void ChSystemFsi::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim) {
     // Use a chrono sampler to create a bucket of points
     chrono::utils::GridSampler<> sampler(m_paramsH->INITSPACE);
-    std::vector<ChVector<>> points = sampler.SampleBox(boxCenter, boxHalfDim);
+    std::vector<ChVector3d> points = sampler.SampleBox(boxCenter, boxHalfDim);
 
     // Add fluid particles from the sampler points to the FSI system
     int numPart = (int)points.size();
     for (int i = 0; i < numPart; i++) {
         AddSPHParticle(points[i], m_paramsH->rho0, 0, m_paramsH->mu0,
-                       ChVector<>(0),   // initial velocity
-                       ChVector<>(0),   // tauxxyyzz
-                       ChVector<>(0));  // tauxyxzyz
+                       ChVector3d(0),   // initial velocity
+                       ChVector3d(0),   // tauxxyyzz
+                       ChVector3d(0));  // tauxyxzyz
     }
 }
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector2<> size) {
+void ChSystemFsi::AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& frame, const ChVector2d size) {
     thrust::host_vector<Real4> bce;
     CreateBCE_wall(mR2(size.x(), size.y()), bce);
     AddBCE(body, bce, frame, false, false, false);
@@ -1044,46 +1044,48 @@ void ChSystemFsi::AddWallBCE(std::shared_ptr<ChBody> body, const ChFrame<>& fram
 
 void ChSystemFsi::AddBoxContainerBCE(std::shared_ptr<ChBody> body,
                                      const ChFrame<>& frame,
-                                     const ChVector<>& size,
-                                     const ChVector<int> faces) {
+                                     const ChVector3d& size,
+                                     const ChVector3i faces) {
     Real spacing = m_paramsH->MULT_INITSPACE * m_paramsH->HSML;
     Real buffer = 2 * m_paramsH->NUM_BOUNDARY_LAYERS * spacing;
 
-    ChVector<> hsize = size / 2;
+    ChVector3d hsize = size / 2;
 
     // Wall center positions
-    ChVector<> xn(-hsize.x() - spacing, 0, 0);
-    ChVector<> xp(+hsize.x() + spacing, 0, 0);
-    ChVector<> yn(0, -hsize.y() - spacing, 0);
-    ChVector<> yp(0, +hsize.y() + spacing, 0);
-    ChVector<> zn(0, 0, -hsize.z() - spacing);
-    ChVector<> zp(0, 0, +hsize.z() + spacing);
+    ChVector3d xn(-hsize.x() - spacing, 0, 0);
+    ChVector3d xp(+hsize.x() + spacing, 0, 0);
+    ChVector3d yn(0, -hsize.y() - spacing, 0);
+    ChVector3d yp(0, +hsize.y() + spacing, 0);
+    ChVector3d zn(0, 0, -hsize.z() - spacing);
+    ChVector3d zp(0, 0, +hsize.z() + spacing);
 
     // Z- wall
     if (faces.z() == -1 || faces.z() == 2)
         AddWallBCE(body, frame * ChFrame<>(zn, QUNIT), {size.x(), size.y()});
     // Z+ wall
     if (faces.z() == +1 || faces.z() == 2)
-        AddWallBCE(body, frame * ChFrame<>(zp, Q_from_AngX(CH_C_PI)), {size.x(), size.y()});
+        AddWallBCE(body, frame * ChFrame<>(zp, QuatFromAngleX(CH_C_PI)), {size.x(), size.y()});
 
     // X- wall
     if (faces.x() == -1 || faces.x() == 2)
-        AddWallBCE(body, frame * ChFrame<>(xn, Q_from_AngY(+CH_C_PI_2)), {size.z() + buffer, size.y()});
+        AddWallBCE(body, frame * ChFrame<>(xn, QuatFromAngleY(+CH_C_PI_2)), {size.z() + buffer, size.y()});
     // X+ wall
     if (faces.x() == +1 || faces.x() == 2)
-        AddWallBCE(body, frame * ChFrame<>(xp, Q_from_AngY(-CH_C_PI_2)), {size.z() + buffer, size.y()});
+        AddWallBCE(body, frame * ChFrame<>(xp, QuatFromAngleY(-CH_C_PI_2)), {size.z() + buffer, size.y()});
 
     // Y- wall
     if (faces.y() == -1 || faces.y() == 2)
-        AddWallBCE(body, frame * ChFrame<>(yn, Q_from_AngX(-CH_C_PI_2)), {size.x() + buffer, size.z() + buffer});
+        AddWallBCE(body, frame * ChFrame<>(yn, QuatFromAngleX(-CH_C_PI_2)),
+                   {size.x() + buffer, size.z() + buffer});
     // Y+ wall
     if (faces.y() == +1 || faces.y() == 2)
-        AddWallBCE(body, frame * ChFrame<>(yp, Q_from_AngX(+CH_C_PI_2)), {size.x() + buffer, size.z() + buffer});
+        AddWallBCE(body, frame * ChFrame<>(yp, QuatFromAngleX(+CH_C_PI_2)),
+                   {size.x() + buffer, size.z() + buffer});
 }
 
 size_t ChSystemFsi::AddBoxBCE(std::shared_ptr<ChBody> body,
                               const ChFrame<>& frame,
-                              const ChVector<>& size,
+                              const ChVector3d& size,
                               bool solid) {
     thrust::host_vector<Real4> bce;
     CreateBCE_box(utils::ToReal3(size), solid, bce);
@@ -1141,7 +1143,7 @@ size_t ChSystemFsi::AddConeBCE(std::shared_ptr<ChBody> body,
 }
 
 size_t ChSystemFsi::AddPointsBCE(std::shared_ptr<ChBody> body,
-                                 const std::vector<ChVector<>>& points,
+                                 const std::vector<ChVector3d>& points,
                                  const ChFrame<>& frame,
                                  bool solid) {
     thrust::host_vector<Real4> bce;
@@ -1824,40 +1826,40 @@ void ChSystemFsi::AddBCE_cable(const thrust::host_vector<Real4>& posRadBCE,
     fea::ChElementCableANCF::ShapeVector Nd;
 
     double dx = (cable->GetNodeB()->GetX0() - cable->GetNodeA()->GetX0()).Length();
-    ChVector<> physic_to_natural(1 / dx, 1, 1);
+    ChVector3d physic_to_natural(1 / dx, 1, 1);
 
-    ChVector<> nAp = cable->GetNodeA()->GetPos();
-    ChVector<> nBp = cable->GetNodeB()->GetPos();
+    ChVector3d nAp = cable->GetNodeA()->GetPos();
+    ChVector3d nBp = cable->GetNodeB()->GetPos();
 
-    ChVector<> nAv = cable->GetNodeA()->GetPos_dt();
-    ChVector<> nBv = cable->GetNodeB()->GetPos_dt();
+    ChVector3d nAv = cable->GetNodeA()->GetPosDer();
+    ChVector3d nBv = cable->GetNodeB()->GetPosDer();
 
-    ChVector<> nAdir = cable->GetNodeA()->GetD();
-    ChVector<> nBdir = cable->GetNodeB()->GetD();
+    ChVector3d nAdir = cable->GetNodeA()->GetD();
+    ChVector3d nBdir = cable->GetNodeB()->GetD();
 
-    ChVector<> nAdirv = cable->GetNodeA()->GetD_dt();
-    ChVector<> nBdirv = cable->GetNodeB()->GetD_dt();
+    ChVector3d nAdirv = cable->GetNodeA()->GetD_dt();
+    ChVector3d nBdirv = cable->GetNodeB()->GetD_dt();
 
     int posRadSizeModified = 0;
     if (m_verbose)
         printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());
 
     for (size_t i = 0; i < posRadBCE.size(); i++) {
-        ChVector<> pos_physical = utils::ToChVector(mR3(posRadBCE[i]));
-        ChVector<> pos_natural = pos_physical * physic_to_natural;
+        ChVector3d pos_physical = utils::ToChVector(mR3(posRadBCE[i]));
+        ChVector3d pos_natural = pos_physical * physic_to_natural;
 
         cable->ShapeFunctionsDerivatives(Nd, pos_natural.x());
-        ChVector<> Element_Axis = Nd(0) * nAp + Nd(1) * nAdir + Nd(2) * nBp + Nd(3) * nBdir;
+        ChVector3d Element_Axis = Nd(0) * nAp + Nd(1) * nAdir + Nd(2) * nBp + Nd(3) * nBdir;
         Element_Axis.Normalize();
 
-        ChVector<> new_y_axis = ChVector<>(-Element_Axis.y(), Element_Axis.x(), 0) +
-                                ChVector<>(-Element_Axis.z(), 0, Element_Axis.x()) +
-                                ChVector<>(0, -Element_Axis.z(), Element_Axis.y());
+        ChVector3d new_y_axis = ChVector3d(-Element_Axis.y(), Element_Axis.x(), 0) +
+                                ChVector3d(-Element_Axis.z(), 0, Element_Axis.x()) +
+                                ChVector3d(0, -Element_Axis.z(), Element_Axis.y());
         new_y_axis.Normalize();
-        ChVector<> new_z_axis = Vcross(Element_Axis, new_y_axis);
+        ChVector3d new_z_axis = Vcross(Element_Axis, new_y_axis);
 
         cable->ShapeFunctions(N, pos_natural.x());
-        ChVector<> Correct_Pos = N(0) * nAp + N(1) * nAdir + N(2) * nBp + N(3) * nBdir + new_y_axis * pos_physical.y() +
+        ChVector3d Correct_Pos = N(0) * nAp + N(1) * nAdir + N(2) * nBp + N(3) * nBdir + new_y_axis * pos_physical.y() +
                                  new_z_axis * pos_physical.z();
 
         if ((Correct_Pos.x() < m_paramsH->cMin.x || Correct_Pos.x() > m_paramsH->cMax.x) ||
@@ -1883,7 +1885,7 @@ void ChSystemFsi::AddBCE_cable(const thrust::host_vector<Real4>& posRadBCE,
         if (addthis) {
             m_sysFSI->sphMarkersH->posRadH.push_back(mR4(utils::ToReal3(Correct_Pos), posRadBCE[i].w));
             m_sysFSI->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(utils::ToReal3(pos_natural));
-            ChVector<> Correct_Vel = N(0) * nAv + N(1) * nAdirv + N(2) * nBv + N(3) * nBdirv + ChVector<double>(1e-20);
+            ChVector3d Correct_Vel = N(0) * nAv + N(1) * nAdirv + N(2) * nBv + N(3) * nBdirv + ChVector3d(1e-20);
             Real3 v3 = utils::ToReal3(Correct_Vel);
             m_sysFSI->sphMarkersH->velMasH.push_back(v3);
             m_sysFSI->sphMarkersH->rhoPresMuH.push_back(
@@ -1905,35 +1907,35 @@ void ChSystemFsi::AddBCE_shell(const thrust::host_vector<Real4>& posRadBCE,
 
     Real dx = shell->GetLengthX();
     Real dy = shell->GetLengthY();
-    ChVector<> physic_to_natural(2 / dx, 2 / dy, 1);
-    ChVector<> nAp = shell->GetNodeA()->GetPos();
-    ChVector<> nBp = shell->GetNodeB()->GetPos();
-    ChVector<> nCp = shell->GetNodeC()->GetPos();
-    ChVector<> nDp = shell->GetNodeD()->GetPos();
+    ChVector3d physic_to_natural(2 / dx, 2 / dy, 1);
+    ChVector3d nAp = shell->GetNodeA()->GetPos();
+    ChVector3d nBp = shell->GetNodeB()->GetPos();
+    ChVector3d nCp = shell->GetNodeC()->GetPos();
+    ChVector3d nDp = shell->GetNodeD()->GetPos();
 
-    ChVector<> nAdir = shell->GetNodeA()->GetD();
-    ChVector<> nBdir = shell->GetNodeB()->GetD();
-    ChVector<> nCdir = shell->GetNodeC()->GetD();
-    ChVector<> nDdir = shell->GetNodeD()->GetD();
+    ChVector3d nAdir = shell->GetNodeA()->GetD();
+    ChVector3d nBdir = shell->GetNodeB()->GetD();
+    ChVector3d nCdir = shell->GetNodeC()->GetD();
+    ChVector3d nDdir = shell->GetNodeD()->GetD();
 
-    ChVector<> nAv = shell->GetNodeA()->GetPos_dt();
-    ChVector<> nBv = shell->GetNodeB()->GetPos_dt();
-    ChVector<> nCv = shell->GetNodeC()->GetPos_dt();
-    ChVector<> nDv = shell->GetNodeD()->GetPos_dt();
+    ChVector3d nAv = shell->GetNodeA()->GetPosDer();
+    ChVector3d nBv = shell->GetNodeB()->GetPosDer();
+    ChVector3d nCv = shell->GetNodeC()->GetPosDer();
+    ChVector3d nDv = shell->GetNodeD()->GetPosDer();
 
     if (m_verbose)
         printf(" posRadBCE.size()= :%zd\n", posRadBCE.size());
 
     for (size_t i = 0; i < posRadBCE.size(); i++) {
-        ChVector<> pos_physical = utils::ToChVector(mR3(posRadBCE[i]));
-        ChVector<> pos_natural = pos_physical * physic_to_natural;
+        ChVector3d pos_physical = utils::ToChVector(mR3(posRadBCE[i]));
+        ChVector3d pos_natural = pos_physical * physic_to_natural;
 
         shell->ShapeFunctions(N, pos_natural.x(), pos_natural.y(), pos_natural.z());
 
-        ChVector<> Normal = N(0) * nAdir + N(2) * nBdir + N(4) * nCdir + N(6) * nDdir;
+        ChVector3d Normal = N(0) * nAdir + N(2) * nBdir + N(4) * nCdir + N(6) * nDdir;
         Normal.Normalize();
 
-        ChVector<> Correct_Pos = N(0) * nAp + N(2) * nBp + N(4) * nCp + N(6) * nDp +
+        ChVector3d Correct_Pos = N(0) * nAp + N(2) * nBp + N(4) * nCp + N(6) * nDp +
                                  Normal * pos_physical.z() * my_h * m_paramsH->MULT_INITSPACE_Shells;
 
         if ((Correct_Pos.x() < m_paramsH->cMin.x || Correct_Pos.x() > m_paramsH->cMax.x) ||
@@ -1960,7 +1962,7 @@ void ChSystemFsi::AddBCE_shell(const thrust::host_vector<Real4>& posRadBCE,
             m_sysFSI->sphMarkersH->posRadH.push_back(mR4(utils::ToReal3(Correct_Pos), posRadBCE[i].w));
             m_sysFSI->fsiGeneralData->FlexSPH_MeshPos_LRF_H.push_back(utils::ToReal3(pos_natural));
 
-            ChVector<> Correct_Vel = N(0) * nAv + N(2) * nBv + N(4) * nCv + N(6) * nDv;
+            ChVector3d Correct_Vel = N(0) * nAv + N(2) * nBv + N(4) * nCv + N(6) * nDv;
             Real3 v3 = utils::ToReal3(Correct_Vel);
             m_sysFSI->sphMarkersH->velMasH.push_back(v3);
             m_sysFSI->sphMarkersH->rhoPresMuH.push_back(
@@ -1973,15 +1975,15 @@ void ChSystemFsi::AddBCE_shell(const thrust::host_vector<Real4>& posRadBCE,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::CreateMeshPoints(geometry::ChTriangleMeshConnected& mesh,
+void ChSystemFsi::CreateMeshPoints(ChTriangleMeshConnected& mesh,
                                    double delta,
-                                   std::vector<ChVector<>>& point_cloud) {
+                                   std::vector<ChVector3d>& point_cloud) {
     mesh.RepairDuplicateVertexes(1e-9);  // if meshes are not watertight
     auto bbox = mesh.GetBoundingBox();
 
     const double EPSI = 1e-6;
 
-    ChVector<> ray_origin;
+    ChVector3d ray_origin;
     for (double x = bbox.min.x(); x < bbox.max.x(); x += delta) {
         ray_origin.x() = x + 1e-9;
         for (double y = bbox.min.y(); y < bbox.max.y(); y += delta) {
@@ -1989,7 +1991,7 @@ void ChSystemFsi::CreateMeshPoints(geometry::ChTriangleMeshConnected& mesh,
             for (double z = bbox.min.z(); z < bbox.max.z(); z += delta) {
                 ray_origin.z() = z + 1e-9;
 
-                ChVector<> ray_dir[2] = {ChVector<>(5, 0.5, 0.25), ChVector<>(-3, 0.7, 10)};
+                ChVector3d ray_dir[2] = {ChVector3d(5, 0.5, 0.25), ChVector3d(-3, 0.7, 10)};
                 int intersectCounter[2] = {0, 0};
 
                 for (unsigned int i = 0; i < mesh.m_face_v_indices.size(); ++i) {
@@ -2053,7 +2055,7 @@ void ChSystemFsi::CreateMeshPoints(geometry::ChTriangleMeshConnected& mesh,
                 }
 
                 if (((intersectCounter[0] % 2) == 1) && ((intersectCounter[1] % 2) == 1))  // inside mesh
-                    point_cloud.push_back(ChVector<>(x, y, z));
+                    point_cloud.push_back(ChVector3d(x, y, z));
             }
         }
     }
@@ -2073,8 +2075,8 @@ int ChSystemFsi::GetNumBoundaryLayers() const {
     return m_paramsH->NUM_BOUNDARY_LAYERS;
 }
 
-ChVector<> ChSystemFsi::GetContainerDim() const {
-    return ChVector<>(m_paramsH->boxDimX, m_paramsH->boxDimY, m_paramsH->boxDimZ);
+ChVector3d ChSystemFsi::GetContainerDim() const {
+    return ChVector3d(m_paramsH->boxDimX, m_paramsH->boxDimY, m_paramsH->boxDimZ);
 }
 
 double ChSystemFsi::GetDensity() const {
@@ -2093,16 +2095,16 @@ double ChSystemFsi::GetParticleMass() const {
     return m_paramsH->markerMass;
 }
 
-ChVector<> ChSystemFsi::Get_G_acc() const {
-    return ChVector<>(m_paramsH->gravity.x, m_paramsH->gravity.y, m_paramsH->gravity.z);
+ChVector3d ChSystemFsi::Get_G_acc() const {
+    return ChVector3d(m_paramsH->gravity.x, m_paramsH->gravity.y, m_paramsH->gravity.z);
 }
 
 double ChSystemFsi::GetSoundSpeed() const {
     return m_paramsH->Cs;
 }
 
-ChVector<> ChSystemFsi::GetBodyForce() const {
-    return ChVector<>(m_paramsH->bodyForce3.x, m_paramsH->bodyForce3.y, m_paramsH->bodyForce3.z);
+ChVector3d ChSystemFsi::GetBodyForce() const {
+    return ChVector3d(m_paramsH->bodyForce3.x, m_paramsH->bodyForce3.y, m_paramsH->bodyForce3.z);
 }
 
 double ChSystemFsi::GetStepSize() const {
@@ -2149,45 +2151,45 @@ std::shared_ptr<fea::ChMesh> ChSystemFsi::GetFsiMesh() const {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-std::vector<ChVector<>> ChSystemFsi::GetParticlePositions() const {
+std::vector<ChVector3d> ChSystemFsi::GetParticlePositions() const {
     thrust::host_vector<Real4> posRadH = m_sysFSI->sphMarkersD2->posRadD;
-    std::vector<ChVector<>> pos;
+    std::vector<ChVector3d> pos;
     for (size_t i = 0; i < posRadH.size(); i++) {
         pos.push_back(utils::ToChVector(posRadH[i]));
     }
     return pos;
 }
 
-std::vector<ChVector<>> ChSystemFsi::GetParticleFluidProperties() const {
+std::vector<ChVector3d> ChSystemFsi::GetParticleFluidProperties() const {
     thrust::host_vector<Real4> rhoPresMuH = m_sysFSI->sphMarkersD2->rhoPresMuD;
-    std::vector<ChVector<>> props;
+    std::vector<ChVector3d> props;
     for (size_t i = 0; i < rhoPresMuH.size(); i++) {
         props.push_back(utils::ToChVector(rhoPresMuH[i]));
     }
     return props;
 }
 
-std::vector<ChVector<>> ChSystemFsi::GetParticleVelocities() const {
+std::vector<ChVector3d> ChSystemFsi::GetParticleVelocities() const {
     thrust::host_vector<Real3> velH = m_sysFSI->sphMarkersD2->velMasD;
-    std::vector<ChVector<>> vel;
+    std::vector<ChVector3d> vel;
     for (size_t i = 0; i < velH.size(); i++) {
         vel.push_back(utils::ToChVector(velH[i]));
     }
     return vel;
 }
 
-std::vector<ChVector<>> ChSystemFsi::GetParticleAccelerations() const {
+std::vector<ChVector3d> ChSystemFsi::GetParticleAccelerations() const {
     thrust::host_vector<Real4> accH = m_sysFSI->GetParticleAccelerations();
-    std::vector<ChVector<>> acc;
+    std::vector<ChVector3d> acc;
     for (size_t i = 0; i < accH.size(); i++) {
         acc.push_back(utils::ToChVector(accH[i]));
     }
     return acc;
 }
 
-std::vector<ChVector<>> ChSystemFsi::GetParticleForces() const {
+std::vector<ChVector3d> ChSystemFsi::GetParticleForces() const {
     thrust::host_vector<Real4> frcH = m_sysFSI->GetParticleForces();
-    std::vector<ChVector<>> frc;
+    std::vector<ChVector3d> frc;
     for (size_t i = 0; i < frcH.size(); i++) {
         frc.push_back(utils::ToChVector(frcH[i]));
     }
@@ -2196,11 +2198,11 @@ std::vector<ChVector<>> ChSystemFsi::GetParticleForces() const {
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-thrust::device_vector<int> ChSystemFsi::FindParticlesInBox(const ChFrame<>& frame, const ChVector<>& size) {
-    const ChVector<>& Pos = frame.GetPos();
-    ChVector<> Ax = frame.GetA().Get_A_Xaxis();
-    ChVector<> Ay = frame.GetA().Get_A_Yaxis();
-    ChVector<> Az = frame.GetA().Get_A_Zaxis();
+thrust::device_vector<int> ChSystemFsi::FindParticlesInBox(const ChFrame<>& frame, const ChVector3d& size) {
+    const ChVector3d& Pos = frame.GetPos();
+    ChVector3d Ax = frame.GetRotMat().GetAxisX();
+    ChVector3d Ay = frame.GetRotMat().GetAxisY();
+    ChVector3d Az = frame.GetRotMat().GetAxisZ();
 
     auto hsize = 0.5 * mR3(size.x(), size.y(), size.z());
     auto pos = mR3(Pos.x(), Pos.y(), Pos.z());

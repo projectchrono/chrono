@@ -42,10 +42,10 @@ class CH_FSI_API ChFsiVisualizationGL : public ChFsiVisualization {
     virtual void SetSize(int width, int height) override;
 
     /// Add a camera initially at the specified position and target (look at) point.
-    virtual void AddCamera(const ChVector<>& pos, const ChVector<>& target) override;
+    virtual void AddCamera(const ChVector3d& pos, const ChVector3d& target) override;
 
     /// Set camera position and target (look at) point.
-    virtual void UpdateCamera(const ChVector<>& pos, const ChVector<>& target) override;
+    virtual void UpdateCamera(const ChVector3d& pos, const ChVector3d& target) override;
 
     /// Set camera up vector (default: Z).
     virtual void SetCameraVertical(CameraVerticalDir up) override;

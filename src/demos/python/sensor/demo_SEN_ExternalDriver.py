@@ -72,10 +72,10 @@ class ChVehicle_DataGeneratorFunctor(veh.ChExternalDriver_DataGeneratorFunctor):
 
         writer.Key("pos") << body.GetPos()
         writer.Key("rot") << body.GetRot()
-        writer.Key("lin_vel") << body.GetPos_dt()
-        writer.Key("ang_vel") << body.GetWvel_loc()
-        writer.Key("lin_acc") << body.GetPos_dtdt()
-        writer.Key("ang_acc") << body.GetWacc_loc()
+        writer.Key("lin_vel") << body.GetPosDer()
+        writer.Key("ang_vel") << body.GetAngVelLocal()
+        writer.Key("lin_acc") << body.GetPosDer2()
+        writer.Key("ang_acc") << body.GetAngAccLocal()
 
 
 class ChDriverInputs_DataParserFunctor(veh.ChExternalDriver_DataParserFunctor):
@@ -102,8 +102,8 @@ def main():
     my_hmmwv = veh.HMMWV_Full()
     my_hmmwv.SetContactMethod(contact_method)
     my_hmmwv.SetChassisFixed(False)
-    my_hmmwv.SetInitPosition(chrono.ChCoordsysD(
-        initLoc, chrono.ChQuaternionD(1, 0, 0, 0)))
+    my_hmmwv.SetInitPosition(chrono.ChCoordsysd(
+        initLoc, chrono.ChQuaterniond(1, 0, 0, 0)))
     my_hmmwv.SetEngineType(engine_model)
     my_hmmwv.SetTransmissionType(transmission_model)
     my_hmmwv.SetDriveType(drive_type)
@@ -122,11 +122,11 @@ def main():
 
     terrain = veh.RigidTerrain(my_hmmwv.GetSystem())
     if (contact_method == chrono.ChContactMethod_NSC):
-        patch_mat = chrono.ChMaterialSurfaceNSC()
+        patch_mat = chrono.ChContactMaterialNSC()
         patch_mat.SetFriction(0.9)
         patch_mat.SetRestitution(0.01)
     elif (contact_method == chrono.ChContactMethod_SMC):
-        patch_mat = chrono.ChMaterialSurfaceSMC()
+        patch_mat = chrono.ChContactMaterialSMC()
         patch_mat.SetFriction(0.9)
         patch_mat.SetRestitution(0.01)
         patch_mat.SetYoungModulus(2e7)
@@ -140,11 +140,11 @@ def main():
     # Create the camera
 
     manager = sens.ChSensorManager(my_hmmwv.GetSystem())
-    manager.scene.AddPointLight(chrono.ChVectorF(
+    manager.scene.AddPointLight(chrono.ChVector3f(
         0, 0, 100), chrono.ChColor(2, 2, 2), 5000)
 
     cam_update_rate = 30
-    offset_pose = chrono.ChFrameD(chrono.ChVectorD(-5, 0, 2))
+    offset_pose = chrono.ChFramed(chrono.ChVector3d(-5, 0, 2))
     image_width = 280
     image_height = 120
     fov = 1.408
@@ -185,7 +185,7 @@ def main():
         app.AddTypicalLights(irr.vector3df(-60, -30, 100),
                              irr.vector3df(60, 30, 100), 250, 130)
         app.AddTypicalLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
-        app.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 1.75), 6.0, 0.5)
+        app.SetChaseCamera(chrono.ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5)
         app.SetTimestep(step_size)
         app.AssetBindAll()
         app.AssetUpdateAll()
@@ -239,7 +239,7 @@ def main():
 veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location
-initLoc = chrono.ChVectorD(-50, 0, 0.7)
+initLoc = chrono.ChVector3d(-50, 0, 0.7)
 
 # Vehicle target speed (cruise-control)
 target_speed = 12

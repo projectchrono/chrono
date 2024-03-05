@@ -53,11 +53,11 @@ int example = 1;
 // -----------------------------------------------------------------------------
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create the sys
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.81));
+    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
 
     // Create the ground body
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.6, 0.15, 10000, true, false);
@@ -69,13 +69,13 @@ int main(int argc, char* argv[]) {
     auto body = chrono_types::make_shared<ChBodyEasyBox>(0.9, 0.9, 0.15, 1000, true, false);
     sys.Add(body);
     body->SetBodyFixed(false);
-    body->SetPos(ChVector<>(1.0, 0.0, 0.0));
-    body->SetWvel_loc(ChVector<>(1.5, 1.5, -1.5));
-    body->SetPos_dt(ChVector<>(1.0, -0.4, 0.2));
+    body->SetPos(ChVector3d(1.0, 0.0, 0.0));
+    body->SetAngVelLocal(ChVector3d(1.5, 1.5, -1.5));
+    body->SetPosDer(ChVector3d(1.0, -0.4, 0.2));
     body->GetVisualShape(0)->SetColor(ChColor(0.6f, 0, 0));
 
     auto symbol_bushing = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
-    body->AddVisualShape(symbol_bushing, ChFrame<>(ChVector<>(-1, 0, 0), QUNIT));
+    body->AddVisualShape(symbol_bushing, ChFrame<>(ChVector3d(-1, 0, 0), QUNIT));
 
     // Now create the bushing connecting the "body" to the "ground".
     // A bushing is like an invisible connection between two bodies, but differently from constraints, it has some
@@ -91,8 +91,8 @@ int main(int argc, char* argv[]) {
     // This type of bushing requires two 6x6 matrices for generic stiffness and damping, for both translation and
     // rotation. Optionally, it also supports initial pre-displacement and pre-stress
 
-    ChMatrixNM<double, 6, 6> K_matrix;
-    ChMatrixNM<double, 6, 6> R_matrix;
+    ChMatrix66d K_matrix;
+    ChMatrix66d R_matrix;
 
     K_matrix.setZero();
     R_matrix.setZero();
@@ -104,12 +104,12 @@ int main(int argc, char* argv[]) {
     auto bushing_generic = chrono_types::make_shared<ChLoadBodyBodyBushingGeneric>(
         body,                                  // body A
         ground,                                // body B
-        ChFrame<>(ChVector<>(0.0, 0.0, 0.0)),  // initial frame of bushing in abs space
+        ChFrame<>(ChVector3d(0.0, 0.0, 0.0)),  // initial frame of bushing in abs space
         K_matrix,                              // the 6x6 (translation+rotation) K matrix in local frame
         R_matrix                               // the 6x6 (translation+rotation) R matrix in local frame
     );
-    bushing_generic->SetNeutralForce(ChVector<>(100, 0, 0));
-    bushing_generic->NeutralDisplacement().SetPos(ChVector<>(0.02, 0, 0));
+    bushing_generic->SetNeutralForce(ChVector3d(100, 0, 0));
+    bushing_generic->NeutralDisplacement().SetPos(ChVector3d(0.02, 0, 0));
     if (example == 1) {
         load_container->Add(bushing_generic);
     }
@@ -122,11 +122,11 @@ int main(int argc, char* argv[]) {
     auto bushing_mate = chrono_types::make_shared<ChLoadBodyBodyBushingMate>(
         body,                                  // body A
         ground,                                // body B
-        ChFrame<>(ChVector<>(0.0, 0.0, 0.0)),  // initial frame of bushing in abs space
-        ChVector<>(95000.0),                   // K stiffness in local frame  [N/m]
-        ChVector<>(100.0),                     // R damping in local frame  [N/m/s]
-        ChVector<>(95000.0),                   // K rotational stiffness,in local frame [Nm/rad]
-        ChVector<>(100.0)                      // R rotational damping, in local frame [Nm/rad/s]
+        ChFrame<>(ChVector3d(0.0, 0.0, 0.0)),  // initial frame of bushing in abs space
+        ChVector3d(95000.0),                   // K stiffness in local frame  [N/m]
+        ChVector3d(100.0),                     // R damping in local frame  [N/m/s]
+        ChVector3d(95000.0),                   // K rotational stiffness,in local frame [Nm/rad]
+        ChVector3d(100.0)                      // R rotational damping, in local frame [Nm/rad/s]
     );
     if (example == 2) {
         load_container->Add(bushing_mate);
@@ -139,10 +139,10 @@ int main(int argc, char* argv[]) {
     auto bushing_plastic = chrono_types::make_shared<ChLoadBodyBodyBushingPlastic>(
         body,                                  // body A
         ground,                                // body B
-        ChFrame<>(ChVector<>(0.0, 0.0, 0.0)),  // initial frame of bushing in abs space
-        ChVector<>(95000.0),                   // K stiffness in local frame  [N/m]
-        ChVector<>(100.0),                     // R damping in local frame  [N/m/s]
-        ChVector<>(18000.0)                    // plastic yield [N/m]
+        ChFrame<>(ChVector3d(0.0, 0.0, 0.0)),  // initial frame of bushing in abs space
+        ChVector3d(95000.0),                   // K stiffness in local frame  [N/m]
+        ChVector3d(100.0),                     // R damping in local frame  [N/m/s]
+        ChVector3d(18000.0)                    // plastic yield [N/m]
     );
     if (example == 3) {
         load_container->Add(bushing_plastic);
@@ -159,11 +159,11 @@ int main(int argc, char* argv[]) {
 
     auto bushing_link = chrono_types::make_shared<ChLinkBushing>(ChLinkBushing::Type::Mount);
     bushing_link->Initialize(
-        body,                                                                 // body A
-        ground,                                                               // body B
-        ChCoordsys<>(ChVector<>(0.0, 0.0, 0.0), ChQuaternion<>(1, 0, 0, 0)),  // initial frame of bushing in abs space
-        K_matrix,                                                             // K stiffness in local frame
-        R_matrix);                                                            // R damping in local frame
+        body,                                                              // body A
+        ground,                                                            // body B
+        ChFrame<>(ChVector3d(0.0, 0.0, 0.0), ChQuaternion<>(1, 0, 0, 0)),  // initial frame of bushing in abs space
+        K_matrix,                                                          // K stiffness in local frame
+        R_matrix);                                                         // R damping in local frame
     if (example == 4) {
         sys.Add(bushing_link);
     }
@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
 
     // Finally, add a force that tends to bend the body
 
-    auto force = chrono_types::make_shared<ChLoadBodyForce>(body, ChVector<>(0, 0, -8e3), false, ChVector<>(1, 0, 0));
+    auto force = chrono_types::make_shared<ChLoadBodyForce>(body, ChVector3d(0, 0, -8e3), false, ChVector3d(1, 0, 0));
     load_container->Add(force);
 
     // Create the Irrlicht visualization sys
@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(3, 3, 0));
+    vis->AddCamera(ChVector3d(3, 3, 0));
     vis->AddTypicalLights();
 
     vis->EnableBodyFrameDrawing(true);

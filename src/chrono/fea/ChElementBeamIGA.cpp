@@ -115,7 +115,7 @@ void ChElementBeamIGA::SetNodesGenericOrder(std::vector<std::shared_ptr<ChNodeFE
     double u2 = knots(knots.size() - order - 1);
 
     if (u1 < 0.5 && u2 >= 0.5) {
-        // GetLog() << " -- IS_MIDDLE ";
+        // std::cout << " -- IS_MIDDLE ";
         is_middle = true;
     }
     // Full integration for end elements:
@@ -191,9 +191,9 @@ void ChElementBeamIGA::SetNodesGenericOrder(std::vector<std::shared_ptr<ChNodeFE
     int_order_s = int_order_b;
 
     /*
-    GetLog() << "Element order p=" << this->order << ",   u in (" << u1 << ", " << u2 << ")";
-    GetLog() << "   orders:  b=" << int_order_b << "   s=" << int_order_s;
-    GetLog() << "\n";
+    std::cout << "Element order p=" << this->order << ",   u in (" << u1 << ", " << u2 << ")";
+    std::cout << "   orders:  b=" << int_order_b << "   s=" << int_order_s;
+    std::cout << std::endl;
     */
 }
 
@@ -305,22 +305,22 @@ void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
         for (int i = 0; i < nodes.size(); ++i) {
             int stride = i * 6;
             if (this->section->GetInertia()->compute_inertia_damping_matrix) {
-                this->section->GetInertia()->ComputeInertiaDampingMatrix(matr_loc, nodes[i]->GetWvel_loc());
+                this->section->GetInertia()->ComputeInertiaDampingMatrix(matr_loc, nodes[i]->GetAngVelLocal());
                 KRi_loc += matr_loc * node_multiplier_fact_R;
             }
             if (this->section->GetInertia()->compute_inertia_stiffness_matrix) {
                 this->section->GetInertia()->ComputeInertiaStiffnessMatrix(
-                    matr_loc, nodes[i]->GetWvel_loc(), nodes[i]->GetWacc_loc(),
-                    (nodes[i]->GetA().transpose()) * nodes[i]->GetPos_dtdt());  // assume x_dtdt in local frame!
+                    matr_loc, nodes[i]->GetAngVelLocal(), nodes[i]->GetAngAccLocal(),
+                    (nodes[i]->GetRotMat().transpose()) * nodes[i]->GetPosDer2());  // assume x_dtdt in local frame!
                 KRi_loc += matr_loc * node_multiplier_fact_K;
             }
             // corotate the local damping and stiffness matrices (at once, already scaled) into absolute one
-            // H.block<3, 3>(stride,   stride  ) += nodes[i]->GetA() * KRi_loc.block<3, 3>(0,0) *
-            // (nodes[i]->GetA().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(0,0) is null by construction
+            // H.block<3, 3>(stride,   stride  ) += nodes[i]->GetRotMat() * KRi_loc.block<3, 3>(0,0) *
+            // (nodes[i]->GetRotMat().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(0,0) is null by construction
             H.block<3, 3>(stride + 3, stride + 3) += KRi_loc.block<3, 3>(3, 3);
-            H.block<3, 3>(stride, stride + 3) += nodes[i]->GetA() * KRi_loc.block<3, 3>(0, 3);
+            H.block<3, 3>(stride, stride + 3) += nodes[i]->GetRotMat() * KRi_loc.block<3, 3>(0, 3);
             // H.block<3, 3>(stride+3, stride)   +=                    KRi_loc.block<3, 3>(3,0) *
-            // (nodes[i]->GetA().transpose());  // NOTE: not needed as KRi_loc.block<3, 3>(3,0) is null by construction
+            // (nodes[i]->GetRotMat().transpose());  // NOTE: not needed as KRi_loc.block<3, 3>(3,0) is null by construction
         }
     }
 
@@ -350,7 +350,7 @@ void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
                 Mloc.block<3, 3>(stride, stride) += sectional_mass.block<3, 3>(0, 0) * (node_multiplier * Mfactor);
                 Mloc.block<3, 3>(stride + 3, stride + 3) +=
                     sectional_mass.block<3, 3>(3, 3) * (node_multiplier * Mfactor);
-                Mxw = nodes[i]->GetA() * sectional_mass.block<3, 3>(0, 3) * (node_multiplier * Mfactor);
+                Mxw = nodes[i]->GetRotMat() * sectional_mass.block<3, 3>(0, 3) * (node_multiplier * Mfactor);
                 Mloc.block<3, 3>(stride, stride + 3) += Mxw;
                 Mloc.block<3, 3>(stride + 3, stride) += Mxw.transpose();
             }
@@ -386,22 +386,22 @@ void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
                 int nspan = order;
 
                 ChVectorDynamic<> N((int)nodes.size());
-                geometry::ChBasisToolsBspline::BasisEvaluate(this->order, nspan, u, knots, N);
+                ChBasisToolsBspline::BasisEvaluate(this->order, nspan, u, knots, N);
 
                 /*
                 // interpolate rotation of section at given u, to compute R.
                 ChQuaternion<> q_delta;
-                ChVector<> da = VNULL;
-                ChVector<> delta_rot_dir;
+                ChVector3d da = VNULL;
+                ChVector3d delta_rot_dir;
                 double delta_rot_angle;
                 for (int i = 0; i < nodes.size(); ++i) {
                     ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
-                    q_delta = nodes[0]->coord.rot.GetConjugate() * q_i;
-                    q_delta.Q_to_AngAxis(delta_rot_angle, delta_rot_dir); // a_i = dir_i*angle_i (in spline local
+                    q_delta = nodes[0]->GetRot().GetConjugate() * q_i;
+                    q_delta.GetAngleAxis(delta_rot_angle, delta_rot_dir); // a_i = dir_i*angle_i (in spline local
                 reference, -PI..+PI) da += delta_rot_dir * delta_rot_angle * N(i);  // a = N_i*a_i
                 }
-                ChQuaternion<> qda; qda.Q_from_Rotv(da);
-                ChQuaternion<> qR = nodes[0]->coord.rot * qda;
+                ChQuaternion<> qda; qda.SetFromRotVec(da);
+                ChQuaternion<> qR = nodes[0]->GetRot() * qda;
 
                 // compute the 3x3 rotation matrix R equivalent to quaternion above
                 ChMatrix33<> R(qR);
@@ -424,7 +424,7 @@ void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
                         // but the more general case needs the rotations, hence:
                         Mloc.block<3, 3>(istride, jstride) += sectional_mass.block<3, 3>(0, 0) * gmassfactor;
                         Mloc.block<3, 3>(istride + 3, jstride + 3) += sectional_mass.block<3, 3>(3, 3) * gmassfactor;
-                        Mxw = nodes[i]->GetA() * sectional_mass.block<3, 3>(0, 3) * gmassfactor;
+                        Mxw = nodes[i]->GetRotMat() * sectional_mass.block<3, 3>(0, 3) * gmassfactor;
                         Mloc.block<3, 3>(istride, jstride + 3) += Mxw;
                         Mloc.block<3, 3>(istride + 3, jstride) += Mxw.transpose();
                     }
@@ -465,7 +465,7 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
     // Do quadrature over the "s" shear Gauss points
     // (only if int_order_b != int_order_s, otherwise do a single loop later over "b" bend points also for shear)
 
-    //***TODO*** maybe not needed: separate bending and shear integration points.
+    //// TODO  maybe not needed: separate bending and shear integration points.
 
     // Do quadrature over the "b" bend Gauss points
 
@@ -487,43 +487,43 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
 
         ChMatrixDynamic<> N(2, (int)nodes.size());  // row n.0 contains N, row n.1 contains dN/du
 
-        geometry::ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
+        ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
                                                           N);  ///< here return N and dN/du
 
         // interpolate rotation of section at given u, to compute R.
         // Note: this is approximate.
         // A more precise method: use quaternion splines, as in Kim,Kim and Shin, 1995 paper.
         ChQuaternion<> q_delta;
-        ChVector<> da = VNULL;
-        ChVector<> delta_rot_dir;
+        ChVector3d da = VNULL;
+        ChVector3d delta_rot_dir;
         double delta_rot_angle;
         for (int i = 0; i < nodes.size(); ++i) {
             ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
-            q_delta = nodes[0]->coord.rot.GetConjugate() * q_i;
-            q_delta.Q_to_AngAxis(delta_rot_angle,
+            q_delta = nodes[0]->GetRot().GetConjugate() * q_i;
+            q_delta.GetAngleAxis(delta_rot_angle,
                                  delta_rot_dir);  // a_i = dir_i*angle_i (in spline local reference, -PI..+PI)
             da += delta_rot_dir * delta_rot_angle * N(0, i);  // a = N_i*a_i
         }
         ChQuaternion<> qda;
-        qda.Q_from_Rotv(da);
-        ChQuaternion<> qR = nodes[0]->coord.rot * qda;
+        qda.SetFromRotVec(da);
+        ChQuaternion<> qR = nodes[0]->GetRot() * qda;
 
         // compute the 3x3 rotation matrix R equivalent to quaternion above
         ChMatrix33<> R(qR);
 
         // compute abs. spline gradient r'  = dr/ds
-        ChVector<> dr;
+        ChVector3d dr;
         for (int i = 0; i < nodes.size(); ++i) {
-            ChVector<> r_i(state_x.segment(i * 7, 3));
+            ChVector3d r_i(state_x.segment(i * 7, 3));
             dr += r_i * N(1, i);  // dr/du = N_i'*r_i
         }
         // (note r'= dr/ds = dr/du du/ds = dr/du * 1/Jsu   where Jsu computed in SetupInitial)
         dr *= 1.0 / Jsu;
 
         // compute abs. time rate of spline gradient  dr'/dt
-        ChVector<> drdt;
+        ChVector3d drdt;
         for (int i = 0; i < nodes.size(); ++i) {
-            ChVector<> drdt_i(state_w.segment(i * 6, 3));
+            ChVector3d drdt_i(state_w.segment(i * 6, 3));
             drdt += drdt_i * N(1, i);
         }
         drdt *= 1.0 / Jsu;
@@ -534,7 +534,7 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
         for (int i = 0; i < nodes.size(); ++i) {
             ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
             q_delta = qR.GetConjugate() * q_i;
-            q_delta.Q_to_AngAxis(delta_rot_angle,
+            q_delta.GetAngleAxis(delta_rot_angle,
                                  delta_rot_dir);  // a_i = dir_i*angle_i (in spline local reference, -PI..+PI)
             da += delta_rot_dir * delta_rot_angle * N(1, i);  // da/du = N_i'*a_i
         }
@@ -542,31 +542,31 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
         da *= 1.0 / Jsu;
 
         // compute abs rate of spline rotation gradient da'/dt
-        ChVector<> dadt;
+        ChVector3d dadt;
         for (int i = 0; i < nodes.size(); ++i) {
             ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
-            ChVector<> wl_i(state_w.segment(i * 6 + 3, 3));  //  w in node csys
-            ChVector<> w_i = q_i.Rotate(wl_i);               // w in absolute csys
+            ChVector3d wl_i(state_w.segment(i * 6 + 3, 3));  //  w in node csys
+            ChVector3d w_i = q_i.Rotate(wl_i);               // w in absolute csys
             dadt += w_i * N(1, i);
         }
         dadt *= 1.0 / Jsu;
 
         // compute local epsilon strain:  strain_e= R^t * r' - {1, 0, 0}
-        ChVector<> astrain_e = R.transpose() * dr - VECT_X - this->strain_e_0[ig];
+        ChVector3d astrain_e = R.transpose() * dr - VECT_X - this->strain_e_0[ig];
 
         // compute local time rate of strain:  strain_e_dt = R^t * dr'/dt
-        ChVector<> astrain_e_dt = R.transpose() * drdt;
+        ChVector3d astrain_e_dt = R.transpose() * drdt;
 
         // compute local curvature strain:  strain_k= 2*[F(q*)(+)] * q' = 2*[F(q*)(+)] * N_i'*q_i = R^t * a' = a'_local
-        ChVector<> astrain_k = da - this->strain_k_0[ig];
+        ChVector3d astrain_k = da - this->strain_k_0[ig];
 
         // compute local time rate of curvature strain:
-        ChVector<> astrain_k_dt = R.transpose() * dadt;
+        ChVector3d astrain_k_dt = R.transpose() * dadt;
 
         // compute stress n  (local cut forces)
         // compute stress_m  (local cut torque)
-        ChVector<> astress_n;
-        ChVector<> astress_m;
+        ChVector3d astress_n;
+        ChVector3d astress_m;
         ChBeamMaterialInternalData* aplastic_data_old = nullptr;
         ChBeamMaterialInternalData* aplastic_data = nullptr;
         std::vector<std::unique_ptr<ChBeamMaterialInternalData>> foo_plastic_data;
@@ -591,8 +591,8 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
 
         // add viscous damping
         if (this->section->GetDamping()) {
-            ChVector<> n_sp;
-            ChVector<> m_sp;
+            ChVector3d n_sp;
+            ChVector3d m_sp;
             this->section->GetDamping()->ComputeStress(n_sp, m_sp, astrain_e_dt, astrain_k_dt);
             astress_n += n_sp;
             astress_m += m_sp;
@@ -600,13 +600,13 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
 
         // compute internal force, in generalized coordinates:
 
-        ChVector<> stress_n_abs = R * astress_n;
-        ChVector<> stress_m_abs = R * astress_m;
+        ChVector3d stress_n_abs = R * astress_n;
+        ChVector3d stress_m_abs = R * astress_m;
 
         for (int i = 0; i < nodes.size(); ++i) {
             // -Force_i = w * Jue * Jsu * Jsu^-1 * N' * R * C * (strain_e - strain_e0)
             //          = w * Jue                * N'         * stress_n_abs
-            ChVector<> Force_i = stress_n_abs * N(1, i) * (-w * Jue);
+            ChVector3d Force_i = stress_n_abs * N(1, i) * (-w * Jue);
             Fi.segment(i * 6, 3) += Force_i.eigen();
 
             // -Torque_i =   w * Jue * Jsu * Jsu^-1 * R_i^t * N'               * R * D * (strain_k - strain_k0) +
@@ -614,13 +614,13 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
             //           =   w * Jue * R_i^t                * N'               * stress_m_abs +
             //             + w * Jue * Jsu * R_i^t          * N * skew(r')^t   * stress_n_abs
             ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
-            ChVector<> Torque_i = q_i.RotateBack(stress_m_abs * N(1, i) * (-w * Jue) -
+            ChVector3d Torque_i = q_i.RotateBack(stress_m_abs * N(1, i) * (-w * Jue) -
                                                  Vcross(dr, stress_n_abs) * N(0, i) * (-w * Jue * Jsu));
             Fi.segment(3 + i * 6, 3) += Torque_i.eigen();
         }
 
-        // GetLog() << "     gp n." << ig <<   "  J=" << this->Jacobian[ig] << "   strain_e= " << strain_e << "\n";
-        // GetLog() << "                    stress_n= " << stress_n << "\n";
+        // std::cout << "     gp n." << ig <<   "  J=" << this->Jacobian[ig] << "   strain_e= " << strain_e << std::endl;
+        // std::cout << "                    stress_n= " << stress_n << std::endl;
     }
 
     // Add also inertial quadratic terms: gyroscopic and centrifugal
@@ -629,8 +629,8 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
         if (ChElementBeamIGA::lumped_mass == true) {
             // CASE OF LUMPED MASS - faster
             double node_multiplier = length / (double)nodes.size();
-            ChVector<> mFcent_i;
-            ChVector<> mTgyro_i;
+            ChVector3d mFcent_i;
+            ChVector3d mTgyro_i;
             for (int i = 0; i < nodes.size(); ++i) {
                 this->section->GetInertia()->ComputeQuadraticTerms(mFcent_i, mTgyro_i, state_w.segment(3 + i * 6, 3));
                 ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
@@ -639,8 +639,8 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
             }
         } else {
             // CASE OF CONSISTENT MASS
-            ChVector<> mFcent_i;
-            ChVector<> mTgyro_i;
+            ChVector3d mFcent_i;
+            ChVector3d mTgyro_i;
             // evaluate inertial quadratic forces using same gauss points used for bending
             for (int ig = 0; ig < int_order_b; ++ig) {
                 double eta = ChQuadrature::GetStaticTables()->Lroots[int_order_b - 1][ig];
@@ -652,32 +652,32 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
                 int nspan = order;
 
                 ChMatrixDynamic<> N(1, (int)nodes.size());  // row n.0 contains N, row n.1 contains dN/du
-                geometry::ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
+                ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
                                                                   N);  ///< here return N and dN/du
 
                 // interpolate rotation of section at given u, to compute R.
                 // Note: this is approximate.
                 // A more precise method: use quaternion splines, as in Kim,Kim and Shin, 1995 paper.
                 ChQuaternion<> q_delta;
-                ChVector<> da = VNULL;
-                ChVector<> delta_rot_dir;
+                ChVector3d da = VNULL;
+                ChVector3d delta_rot_dir;
                 double delta_rot_angle;
                 for (int i = 0; i < nodes.size(); ++i) {
                     ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
-                    q_delta = nodes[0]->coord.rot.GetConjugate() * q_i;
-                    q_delta.Q_to_AngAxis(delta_rot_angle,
+                    q_delta = nodes[0]->GetRot().GetConjugate() * q_i;
+                    q_delta.GetAngleAxis(delta_rot_angle,
                                          delta_rot_dir);  // a_i = dir_i*angle_i (in spline local reference, -PI..+PI)
                     da += delta_rot_dir * delta_rot_angle * N(0, i);  // a = N_i*a_i
                 }
                 ChQuaternion<> qda;
-                qda.Q_from_Rotv(da);
-                ChQuaternion<> qR = nodes[0]->coord.rot * qda;
+                qda.SetFromRotVec(da);
+                ChQuaternion<> qR = nodes[0]->GetRot() * qda;
 
-                ChVector<> w_sect;
+                ChVector3d w_sect;
                 for (int i = 0; i < nodes.size(); ++i) {
                     ChQuaternion<> q_i(state_x.segment(i * 7 + 3, 4));
-                    ChVector<> wl_i(state_w.segment(i * 6 + 3, 3));  //  w in node csys
-                    ChVector<> w_i = q_i.Rotate(wl_i);               // w in absolute csys
+                    ChVector3d wl_i(state_w.segment(i * 6 + 3, 3));  //  w in node csys
+                    ChVector3d w_i = q_i.Rotate(wl_i);               // w in absolute csys
                     w_sect += w_i * N(0, i);
                 }
                 w_sect = qR.RotateBack(w_sect);  // w in sectional csys
@@ -693,7 +693,7 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
     }  // end quadratic inertial force terms
 }
 
-void ChElementBeamIGA::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+void ChElementBeamIGA::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
     // no so efficient... a temporary mass matrix here:
     ChMatrixDynamic<> mM(this->GetNdofs(), this->GetNdofs());
     this->ComputeMmatrixGlobal(mM);
@@ -737,12 +737,12 @@ void ChElementBeamIGA::ComputeNF(const double U,
 
     ChMatrixDynamic<> N(2, (int)nodes.size());  // row n.0 contains N, row n.1 contains dN/du
 
-    geometry::ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
+    ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
                                                       N);  ///< h
 
-    ChVector<> dr0;
+    ChVector3d dr0;
     for (int i = 0; i < nodes.size(); ++i) {
-        dr0 += nodes[i]->GetX0ref().coord.pos * N(1, i);
+        dr0 += nodes[i]->GetX0ref().GetPos() * N(1, i);
     }
     detJ = dr0.Length() * c1;
 
@@ -809,13 +809,13 @@ void ChElementBeamIGA::SetupInitial(ChSystem* system) {
 
         ChMatrixDynamic<> N(2, (int)nodes.size());  // row n.0 contains N, row n.1 contains dN/du
 
-        geometry::ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
+        ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
                                                           N);  ///< here return N and dN/du
 
         // compute reference spline gradient \dot{dr_0} = dr0/du
-        ChVector<> dr0;
+        ChVector3d dr0;
         for (int i = 0; i < nodes.size(); ++i) {
-            dr0 += nodes[i]->GetX0ref().coord.pos * N(1, i);
+            dr0 += nodes[i]->GetX0ref().GetPos() * N(1, i);
         }
         this->Jacobian_s[ig] = dr0.Length();  // J = |dr0/du|
     }
@@ -843,13 +843,13 @@ void ChElementBeamIGA::SetupInitial(ChSystem* system) {
 
         ChMatrixDynamic<> N(2, (int)nodes.size());  // row n.0 contains N, row n.1 contains dN/du
 
-        geometry::ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
+        ChBasisToolsBspline::BasisEvaluateDeriv(this->order, nspan, u, knots,
                                                           N);  ///< here return N and dN/du
 
         // compute reference spline gradient \dot{dr_0} = dr0/du
-        ChVector<> dr0;
+        ChVector3d dr0;
         for (int i = 0; i < nodes.size(); ++i) {
-            dr0 += nodes[i]->GetX0ref().coord.pos * N(1, i);
+            dr0 += nodes[i]->GetX0ref().GetPos() * N(1, i);
         }
         this->Jacobian_b[ig] = dr0.Length();  // J = |dr0/du|
 
@@ -864,27 +864,27 @@ void ChElementBeamIGA::SetupInitial(ChSystem* system) {
         // Note: this is approximate.
         // A more precise method: use quaternion splines, as in Kim,Kim and Shin, 1995 paper.
         ChQuaternion<> q_delta;
-        ChVector<> da = VNULL;
-        ChVector<> delta_rot_dir;
+        ChVector3d da = VNULL;
+        ChVector3d delta_rot_dir;
         double delta_rot_angle;
         for (int i = 0; i < nodes.size(); ++i) {
             ChQuaternion<> q_i = nodes[i]->GetX0ref().GetRot();  // state_x.ClipQuaternion(i * 7 + 3, 0);
             q_delta = nodes[0]->GetX0ref().GetRot().GetConjugate() * q_i;
-            q_delta.Q_to_AngAxis(delta_rot_angle,
+            q_delta.GetAngleAxis(delta_rot_angle,
                                  delta_rot_dir);  // a_i = dir_i*angle_i (in spline local reference, -PI..+PI)
             da += delta_rot_dir * delta_rot_angle * N(0, i);  // a = N_i*a_i
         }
         ChQuaternion<> qda;
-        qda.Q_from_Rotv(da);
+        qda.SetFromRotVec(da);
         ChQuaternion<> qR = nodes[0]->GetX0().GetRot() * qda;
 
         // compute the 3x3 rotation matrix R equivalent to quaternion above
         ChMatrix33<> R(qR);
 
         // compute abs. spline gradient r'  = dr/ds
-        ChVector<> dr;
+        ChVector3d dr;
         for (int i = 0; i < nodes.size(); ++i) {
-            ChVector<> r_i = nodes[i]->GetX0().GetPos();
+            ChVector3d r_i = nodes[i]->GetX0().GetPos();
             dr += r_i * N(1, i);  // dr/du = N_i'*r_i
         }
         // (note r'= dr/ds = dr/du du/ds = dr/du * 1/Jsu   where Jsu computed in SetupInitial)
@@ -896,7 +896,7 @@ void ChElementBeamIGA::SetupInitial(ChSystem* system) {
         for (int i = 0; i < nodes.size(); ++i) {
             ChQuaternion<> q_i = nodes[i]->GetX0ref().GetRot();
             q_delta = qR.GetConjugate() * q_i;
-            q_delta.Q_to_AngAxis(delta_rot_angle,
+            q_delta.GetAngleAxis(delta_rot_angle,
                                  delta_rot_dir);  // a_i = dir_i*angle_i (in spline local reference, -PI..+PI)
             da += delta_rot_dir * delta_rot_angle * N(1, i);  // da/du = N_i'*a_i
         }

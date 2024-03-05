@@ -18,7 +18,9 @@
 #include "chrono/geometry/ChVolume.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// A conical geometric object for collisions and visualization.
 class ChApi ChCone : public ChVolume {
@@ -32,7 +34,7 @@ class ChApi ChCone : public ChVolume {
     virtual ChCone* Clone() const override { return new ChCone(*this); }
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::CONE; }
+    virtual Type GetType() const override { return Type::CONE; }
 
     /// Return the volume of this solid.
     virtual double GetVolume() const override;
@@ -47,10 +49,10 @@ class ChApi ChCone : public ChVolume {
     virtual double GetBoundingSphereRadius() const override;
 
     /// Compute the baricenter of the cone.
-    virtual ChVector<> Baricenter() const override { return ChVector<>(); }
+    virtual ChVector3d Baricenter() const override { return ChVector3d(); }
 
     /// Evaluate position in box volume.
-    virtual ChVector<> Evaluate(double parU, double parV, double parW) const override {
+    virtual ChVector3d Evaluate(double parU, double parV, double parW) const override {
         //// TODO
         return VNULL;
     }
@@ -74,18 +76,18 @@ class ChApi ChCone : public ChVolume {
     static double GetBoundingSphereRadius(double radius, double height);
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
     double r;
     double h;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChCone, 0)
+CH_CLASS_VERSION(ChCone, 0)
 
 }  // end namespace chrono
 

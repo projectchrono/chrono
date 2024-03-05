@@ -20,11 +20,12 @@
 #include <typeindex>
 #include <type_traits>
 #include <unordered_set>
+#include <map>
 #include <memory>
 #include <algorithm>
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChStream.h"
+
 #include "chrono/core/ChClassFactory.h"
 #include "chrono/core/ChTemplateExpressions.h"
 
@@ -61,12 +62,6 @@ class ChArchiveIn;
     std::make_pair(std::function<returnType()>([this]() -> returnType codeGet), \
                    std::function<void(returnType)>([this](returnType val) codeSet))
 
-/// Exceptions for archives should inherit from this
-class ChExceptionArchive : public ChException {
-  public:
-    ChExceptionArchive(std::string swhat) : ChException(swhat){};
-};
-
 /// Functor to call the ArchiveIn function for unrelated classes that
 /// implemented them. This helps stripping out the templating, to make ChArchiveIn
 /// easier and equippable with virtual functions.
@@ -76,9 +71,9 @@ class ChFunctorArchiveIn {
     virtual ~ChFunctorArchiveIn(){};
 
     /// Use this to call member function ArchiveIn.
-    virtual void CallArchiveIn(ChArchiveIn& marchive, const std::string& classname) = 0;
+    virtual void CallArchiveIn(ChArchiveIn& archive_in, const std::string& classname) = 0;
 
-    virtual void CallArchiveIn(ChArchiveIn& marchive) = 0;
+    virtual void CallArchiveIn(ChArchiveIn& archive_in) = 0;
 
     /// Use this to call
     /// - the default constructor, or,
@@ -86,7 +81,7 @@ class ChFunctorArchiveIn {
     /// The latter is expected to a) deserialize constructor parameters, b) create a new obj as pt2Object = new
     /// myclass(params..). If classname not registered, call default constructor via new(T) or call construction via
     /// T::ArchiveInConstructor()
-    virtual void CallConstructor(ChArchiveIn& marchive, const std::string& classname) = 0;
+    virtual void CallConstructor(ChArchiveIn& archive_in, const std::string& classname) = 0;
 
     /// Use this to create a new object as pt2Object = new myclass(), but using the class factory for polymorphic
     /// classes. If classname not registered, creates simply via new(T).
@@ -114,55 +109,55 @@ class ChFunctorArchiveInSpecific : public ChFunctorArchiveIn {
     // constructor - takes pointer to an object and pointer to a member
     ChFunctorArchiveInSpecific(TClass* _pt2Object) { pt2Object = _pt2Object; };
 
-    virtual void CallArchiveIn(ChArchiveIn& marchive) override { this->_archive_in(marchive); }
+    virtual void CallArchiveIn(ChArchiveIn& archive_in) override { this->_archive_in(archive_in); }
 
-    virtual void CallArchiveIn(ChArchiveIn& marchive, const std::string& classname) override {
-        this->_archive_in(marchive, classname);
+    virtual void CallArchiveIn(ChArchiveIn& archive_in, const std::string& classname) override {
+        this->_archive_in(archive_in, classname);
     }
 
-    virtual void CallConstructor(ChArchiveIn& marchive, const std::string& classname) override {
-        throw(ChExceptionArchive("Cannot call CallConstructor() for a constructed object."));
+    virtual void CallConstructor(ChArchiveIn& archive_in, const std::string& classname) override {
+        throw std::runtime_error("Cannot call CallConstructor() for a constructed object.");
     }
 
     virtual void CallConstructorDefault(const std::string& classname) override {
-        throw(ChExceptionArchive("Cannot call CallConstructorDefault() for a constructed object."));
+        throw std::runtime_error("Cannot call CallConstructorDefault() for a constructed object.");
     }
 
     virtual void SetRawPtr(void* mptr) override {
-        throw(ChExceptionArchive("Cannot call SetRawPtr() for a constructed object."));
+        throw std::runtime_error("Cannot call SetRawPtr() for a constructed object.");
     }
 
     virtual void* GetRawPtr() override { return getVoidPointer<TClass>(pt2Object); };
 
     virtual bool IsPolymorphic() override {
-        throw(ChExceptionArchive("Cannot call IsPolymorphic() for a constructed object."));
+        throw std::runtime_error("Cannot call IsPolymorphic() for a constructed object.");
     }
 
     virtual std::type_index GetObjectPtrTypeindex() override { return std::type_index(typeid(pt2Object)); }
 
   private:
     template <class Tc = TClass>
-    typename enable_if<ChDetect_ArchiveIn<Tc>::value, void>::type _archive_in(ChArchiveIn& marchive) {
-        this->pt2Object->ArchiveIn(marchive);
+    typename enable_if<ChDetect_ArchiveIn<Tc>::value, void>::type _archive_in(ChArchiveIn& archive_in) {
+        this->pt2Object->ArchiveIn(archive_in);
     }
 
     template <class Tc = TClass>
-    typename enable_if<!ChDetect_ArchiveIn<Tc>::value, void>::type _archive_in(ChArchiveIn& marchive) {}
+    typename enable_if<!ChDetect_ArchiveIn<Tc>::value, void>::type _archive_in(ChArchiveIn& archive_in) {}
 
     template <class Tc = TClass>
-    typename enable_if<ChDetect_ArchiveIn<Tc>::value, void>::type _archive_in(ChArchiveIn& marchive,
+    typename enable_if<ChDetect_ArchiveIn<Tc>::value, void>::type _archive_in(ChArchiveIn& archive_in,
                                                                               const std::string& classname) {
         if (ChClassFactory::IsClassRegistered(classname))
-            ChClassFactory::archive_in(classname, marchive, pt2Object);
+            ChClassFactory::archive_in(classname, archive_in, pt2Object);
         else
-            this->pt2Object->ArchiveIn(marchive);
+            this->pt2Object->ArchiveIn(archive_in);
     }
 
     template <class Tc = TClass>
-    typename enable_if<!ChDetect_ArchiveIn<Tc>::value, void>::type _archive_in(ChArchiveIn& marchive,
+    typename enable_if<!ChDetect_ArchiveIn<Tc>::value, void>::type _archive_in(ChArchiveIn& archive_in,
                                                                                const std::string& classname) {
         if (ChClassFactory::IsClassRegistered(classname))
-            ChClassFactory::archive_in(classname, marchive, pt2Object);
+            ChClassFactory::archive_in(classname, archive_in, pt2Object);
     }
 };
 
@@ -175,14 +170,14 @@ class ChFunctorArchiveInSpecificPtr : public ChFunctorArchiveIn {
     // constructor - takes pointer to an object and pointer to a member
     ChFunctorArchiveInSpecificPtr(TClass** _pt2Object) { pt2Object = _pt2Object; }
 
-    virtual void CallArchiveIn(ChArchiveIn& marchive) override { this->_archive_in(marchive); }
+    virtual void CallArchiveIn(ChArchiveIn& archive_in) override { this->_archive_in(archive_in); }
 
-    virtual void CallArchiveIn(ChArchiveIn& marchive, const std::string& classname) override {
-        this->_archive_in(marchive, classname);
+    virtual void CallArchiveIn(ChArchiveIn& archive_in, const std::string& classname) override {
+        this->_archive_in(archive_in, classname);
     }
 
-    virtual void CallConstructor(ChArchiveIn& marchive, const std::string& classname) override {
-        this->_constructor(marchive, classname);
+    virtual void CallConstructor(ChArchiveIn& archive_in, const std::string& classname) override {
+        this->_constructor(archive_in, classname);
     }
 
     virtual void CallConstructorDefault(const std::string& classname) override {
@@ -200,27 +195,27 @@ class ChFunctorArchiveInSpecificPtr : public ChFunctorArchiveIn {
   private:
     template <class Tc = TClass>
     typename enable_if<ChDetect_ArchiveInConstructor<Tc>::value, void>::type _constructor(
-        ChArchiveIn& marchive,
+        ChArchiveIn& archive_in,
         const std::string& classname) {
         // WARNING: as for the !ChDetect_ArchiveInConstructor, checking if the class of the pointe has
         // ArchiveInConstructor, does not guarantee that a derived class might have a normal constructor (even if more
         // corner case)
         if (ChClassFactory::IsClassRegistered(classname))
-            ChClassFactory::create(classname, marchive, pt2Object);
+            ChClassFactory::create(classname, archive_in, pt2Object);
         else
-            *pt2Object = static_cast<Tc*>(Tc::ArchiveInConstructor(marchive));
+            *pt2Object = static_cast<Tc*>(Tc::ArchiveInConstructor(archive_in));
     }
 
     template <class Tc = TClass>
     typename enable_if<!ChDetect_ArchiveInConstructor<Tc>::value, void>::type _constructor(
-        ChArchiveIn& marchive,
+        ChArchiveIn& archive_in,
         const std::string& classname) {
         // WARNING: DARIOM checking if Tc has an ArchiveInConstructor has little meaning;
         // in fact, a ChBody* will land to this function since it does not have ArchiveInConstructor,
         // however, if the ChBody* actually holds a ChBodyEasyBox, then the ArchiveInConstructor should be called
         // So, first check if the underlying object has it before rolling back to default constructor
         if (ChClassFactory::IsClassRegistered(classname))
-            ChClassFactory::create(classname, marchive, pt2Object);
+            ChClassFactory::create(classname, archive_in, pt2Object);
         else {
             this->CallConstructorDefault(classname);
         }
@@ -251,8 +246,8 @@ class ChFunctorArchiveInSpecificPtr : public ChFunctorArchiveIn {
         if (ChClassFactory::IsClassRegistered(classname))
             ChClassFactory::create(classname, pt2Object);
         else
-            throw(ChExceptionArchive("Cannot call CallConstructorDefault(). Class  " + classname +
-                                     " not registered, and is an abstract class."));
+            throw std::runtime_error("Cannot call CallConstructorDefault(). Class  " + classname +
+                                     " not registered, and is an abstract class.");
     }
 
     template <class Tc = TClass>
@@ -261,29 +256,29 @@ class ChFunctorArchiveInSpecificPtr : public ChFunctorArchiveIn {
         if (ChClassFactory::IsClassRegistered(classname))
             ChClassFactory::create(classname, pt2Object);
         else
-            throw(ChExceptionArchive("Cannot call CallConstructorDefault(). Class " + classname +
-                                     " not registered, and is without default constructor."));
+            throw std::runtime_error("Cannot call CallConstructorDefault(). Class " + classname +
+                                     " not registered, and is without default constructor.");
     }
 
     template <class Tc = TClass>
-    typename enable_if<ChDetect_ArchiveIn<Tc>::value, void>::type _archive_in(ChArchiveIn& marchive) {
-        (*pt2Object)->ArchiveIn(marchive);
+    typename enable_if<ChDetect_ArchiveIn<Tc>::value, void>::type _archive_in(ChArchiveIn& archive_in) {
+        (*pt2Object)->ArchiveIn(archive_in);
     }
 
     template <class Tc = TClass>
-    typename enable_if<ChDetect_ArchiveIn<Tc>::value, void>::type _archive_in(ChArchiveIn& marchive,
+    typename enable_if<ChDetect_ArchiveIn<Tc>::value, void>::type _archive_in(ChArchiveIn& archive_in,
                                                                               const std::string& classname) {
         if (!classname.empty() && ChClassFactory::IsClassRegistered(classname))
-            ChClassFactory::archive_in(classname, marchive, *pt2Object);
+            ChClassFactory::archive_in(classname, archive_in, *pt2Object);
         else
-            _archive_in(marchive);
+            _archive_in(archive_in);
     }
 
     template <class Tc = TClass>
-    typename enable_if<!ChDetect_ArchiveIn<Tc>::value, void>::type _archive_in(ChArchiveIn& marchive,
+    typename enable_if<!ChDetect_ArchiveIn<Tc>::value, void>::type _archive_in(ChArchiveIn& archive_in,
                                                                                const std::string& classname) {
         if (!classname.empty() && ChClassFactory::IsClassRegistered(classname))
-            ChClassFactory::archive_in(classname, marchive, *pt2Object);
+            ChClassFactory::archive_in(classname, archive_in, *pt2Object);
         else {
             // do nothing
         }
@@ -291,7 +286,7 @@ class ChFunctorArchiveInSpecificPtr : public ChFunctorArchiveIn {
 
     // template <class Tc=TClass>
     // typename enable_if< !ChDetect_ArchiveIn<Tc>::value, void >::type
-    //_archive_in(ChArchiveIn& marchive) {
+    //_archive_in(ChArchiveIn& archive_in) {
     //     //std::static_assert(true, "ArchiveIn() not provided in class to be deserialized.");
     // }
 };
@@ -465,12 +460,12 @@ class ChValue {
     //
 
     /// Use this to call ArchiveOut member function.
-    virtual void CallArchiveOut(ChArchiveOut& marchive) = 0;
+    virtual void CallArchiveOut(ChArchiveOut& archive_out) = 0;
 
     /// Use this to call (optional) member function ArchiveOutConstructor. This is
     /// expected to serialize constructor parameters if any.
     /// If ArchiveOutConstructor is not provided, simply does nothing.
-    virtual void CallArchiveOutConstructor(ChArchiveOut& marchive) = 0;
+    virtual void CallArchiveOutConstructor(ChArchiveOut& archive_out) = 0;
 
     /// Tell if the object has the ArchiveContainerName() function; if so you might call CallArchiveContainerName
     virtual bool HasArchiveContainerName() = 0;
@@ -478,7 +473,7 @@ class ChValue {
     /// Use this to call ArchiveContainerName member function, if present
     virtual std::string& CallArchiveContainerName() = 0;
 
-    virtual void CallOut(ChArchiveOut& marchive) = 0;
+    virtual void CallOut(ChArchiveOut& archive_out) = 0;
 
   protected:
     virtual void thrower() const = 0;
@@ -552,56 +547,56 @@ class ChValueSpecific : public ChValue {
 
     virtual std::string& CallArchiveContainerName() { return this->_get_name_string(); }
 
-    virtual void CallArchiveOut(ChArchiveOut& marchive) { this->_archive_out(marchive); }
+    virtual void CallArchiveOut(ChArchiveOut& archive_out) { this->_archive_out(archive_out); }
 
-    virtual void CallArchiveOutConstructor(ChArchiveOut& marchive) { this->_archive_out_constructor(marchive); }
+    virtual void CallArchiveOutConstructor(ChArchiveOut& archive_out) { this->_archive_out_constructor(archive_out); }
 
-    virtual void CallOut(ChArchiveOut& marchive);
+    virtual void CallOut(ChArchiveOut& archive_out);
 
   private:
     virtual void thrower() const { throw static_cast<TClass*>(_ptr_to_val); }
 
     template <class Tc = TClass>
     typename enable_if<ChDetect_ArchiveOutConstructor<Tc>::value, void>::type _archive_out_constructor(
-        ChArchiveOut& marchive) {
+        ChArchiveOut& archive_out) {
         // while TClass refers to the type of the pointer
         // the underlying object might be of a more derived type
         // GetClassRegisteredName() will retrieve the most derived type
         std::string classname = GetClassRegisteredName();
         if (ChClassFactory::IsClassRegistered(classname))
-            ChClassFactory::archive_out_constructor(classname, marchive, _ptr_to_val);
+            ChClassFactory::archive_out_constructor(classname, archive_out, _ptr_to_val);
         else {
-            this->_ptr_to_val->ArchiveOutConstructor(marchive);
+            this->_ptr_to_val->ArchiveOutConstructor(archive_out);
         }
     }
 
     template <class Tc = TClass>
     typename enable_if<!ChDetect_ArchiveOutConstructor<Tc>::value, void>::type _archive_out_constructor(
-        ChArchiveOut& marchive) {
+        ChArchiveOut& archive_out) {
         std::string classname = GetClassRegisteredName();
         if (ChClassFactory::IsClassRegistered(classname))
-            ChClassFactory::archive_out_constructor(classname, marchive, _ptr_to_val);
+            ChClassFactory::archive_out_constructor(classname, archive_out, _ptr_to_val);
         else {
             // do nothing
         }
     }
 
     template <class Tc = TClass>
-    typename enable_if<ChDetect_ArchiveOut<Tc>::value, void>::type _archive_out(ChArchiveOut& marchive) {
+    typename enable_if<ChDetect_ArchiveOut<Tc>::value, void>::type _archive_out(ChArchiveOut& archive_out) {
         std::string classname = GetClassRegisteredName();
         if (ChClassFactory::IsClassRegistered(classname))
-            ChClassFactory::archive_out(classname, marchive, _ptr_to_val);
+            ChClassFactory::archive_out(classname, archive_out, _ptr_to_val);
         else {
-            this->_ptr_to_val->ArchiveOut(marchive);
+            this->_ptr_to_val->ArchiveOut(archive_out);
         }
         // also here we might want to check if some derived class had implemented ArchiveOut
     }
 
     template <class Tc = TClass>
-    typename enable_if<!ChDetect_ArchiveOut<Tc>::value, void>::type _archive_out(ChArchiveOut& marchive) {
+    typename enable_if<!ChDetect_ArchiveOut<Tc>::value, void>::type _archive_out(ChArchiveOut& archive_out) {
         std::string classname = GetClassRegisteredName();
         if (ChClassFactory::IsClassRegistered(classname))
-            ChClassFactory::archive_out(classname, marchive, _ptr_to_val);
+            ChClassFactory::archive_out(classname, archive_out, _ptr_to_val);
         else {
             // do nothing
         }
@@ -755,13 +750,13 @@ template <class T, class Tv>
 class _wrap_pair {
   public:
     _wrap_pair(std::pair<T, Tv>& apair) { _wpair = &apair; }
-    void ArchiveOut(ChArchiveOut& marchive) {
-        marchive << CHNVP(_wpair->first, "1");
-        marchive << CHNVP(_wpair->second, "2");
+    void ArchiveOut(ChArchiveOut& archive_out) {
+        archive_out << CHNVP(_wpair->first, "1");
+        archive_out << CHNVP(_wpair->second, "2");
     }
-    void ArchiveIn(ChArchiveIn& marchive) {
-        marchive >> CHNVP(_wpair->first, "1");
-        marchive >> CHNVP(_wpair->second, "2");
+    void ArchiveIn(ChArchiveIn& archive_in) {
+        archive_in >> CHNVP(_wpair->first, "1");
+        archive_in >> CHNVP(_wpair->second, "2");
     }
 
   private:
@@ -769,7 +764,7 @@ class _wrap_pair {
 };
 
 /// Base class for archives with pointers to shared objects.
-class ChArchive {
+class ChApi ChArchive {
   protected:
     bool cluster_class_versions;
 
@@ -778,26 +773,23 @@ class ChArchive {
     bool use_versions;
 
   public:
-    ChArchive() {
-        use_versions = true;
-        cluster_class_versions = true;
-    }
+    ChArchive();
 
     virtual ~ChArchive(){};
 
     /// Turn off version info in archives.
     /// By default, version numbers are saved in archives
     /// Either save/load both with version info, or not, do not mix because it could give problems in binary archives.
-    void SetUseVersions(bool muse) { this->use_versions = muse; }
+    void SetUseVersions(bool muse);
 
     /// If true, the version number is not saved in each class.
     /// Rather, it is saved only the first time that class is encountered.
     /// The same setting must be used for both serialization and deserialization.
-    void SetClusterClassVersions(bool mcl) { this->cluster_class_versions = mcl; }
+    void SetClusterClassVersions(bool mcl);
 };
 
 /// Base class for serializing into archives.
-class ChArchiveOut : public ChArchive {
+class ChApi ChArchiveOut : public ChArchive {
   protected:
     std::unordered_map<void*, size_t> internal_ptr_id;
     size_t currentID;
@@ -852,20 +844,7 @@ class ChArchiveOut : public ChArchive {
     /// was not previously inserted. Returns already_stored=false if was
     /// already inserted. Return 'obj_ID' offset in vector in any case.
     /// For null pointers, always return 'already_stored'=true, and 'obj_ID'=0.
-    void PutPointer(void* object, bool& already_stored, size_t& obj_ID) {
-        if (this->internal_ptr_id.find(static_cast<void*>(object)) != this->internal_ptr_id.end()) {
-            already_stored = true;
-            obj_ID = internal_ptr_id[static_cast<void*>(object)];
-            return;
-        }
-
-        // wasn't in list.. add to it
-        ++currentID;
-        obj_ID = currentID;
-        internal_ptr_id[static_cast<void*>(object)] = obj_ID;
-        already_stored = false;
-        return;
-    }
+    void PutPointer(void* object, bool& already_stored, size_t& obj_ID);
 
   public:
     //---------------------------------------------------
@@ -988,6 +967,23 @@ class ChArchiveOut : public ChArchive {
         this->out_array_end(specVal, bVal.value().size());
     }
 
+    // trick to wrap std::map container
+    template <class T, class Tv>
+    void out(ChNameValue<std::map<T, Tv>> bVal) {
+        ChValueSpecific<std::map<T, Tv>> specVal(bVal.value(), bVal.name(), bVal.flags(), bVal.GetCausality(),
+                                                           bVal.GetVariability());
+        this->out_array_pre(specVal, bVal.value().size());
+        int i = 0;
+        for (auto it = bVal.value().begin(); it != bVal.value().end(); ++it) {
+            ChNameValue<std::pair<T, Tv>> array_key(std::to_string(i), (*it));
+            this->out(array_key);
+            this->out_array_between(specVal, bVal.value().size());
+            ++i;
+        }
+        this->out_array_end(specVal, bVal.value().size());
+    }
+
+
     // trick to call out_ref on std::shared_ptr
     template <class T>
     void out(ChNameValue<std::shared_ptr<T>> bVal) {
@@ -1048,8 +1044,8 @@ class ChArchiveOut : public ChArchive {
             void* idptr = getVoidPointer<T>(mptr);
             PutPointer(idptr, already_stored, obj_ID);
             if (already_stored) {
-                throw(ChExceptionArchive("Cannot serialize tracked object '" + std::string(bVal.name()) +
-                                         "' by value, AFTER already serialized by pointer."));
+                throw std::runtime_error("Cannot serialize tracked object '" + std::string(bVal.name()) +
+                                         "' by value, AFTER already serialized by pointer.");
             }
             tracked = true;
         }
@@ -1086,22 +1082,11 @@ class ChArchiveOut : public ChArchive {
     }
 
   protected:
-    virtual void out_version(int mver, const std::type_index mtypeid) {
-        if (use_versions) {
-            std::string class_name = ChClassFactory::IsClassRegistered(mtypeid)
-                                         ? ChClassFactory::GetClassTagName(mtypeid)
-                                         : std::string(mtypeid.name());
-            // to avoid troubles in xml archives
-            std::replace(class_name.begin(), class_name.end(), '<', '[');
-            std::replace(class_name.begin(), class_name.end(), '>', ']');
-            std::replace(class_name.begin(), class_name.end(), ' ', '_');
-            this->out(ChNameValue<int>(("_version_" + class_name).c_str(), mver));
-        }
-    }
+    virtual void out_version(int mver, const std::type_index mtypeid);
 };
 
 /// Base class for deserializing from archives.
-class ChArchiveIn : public ChArchive {
+class ChApi ChArchiveIn : public ChArchive {
   protected:
     std::unordered_map<void*, size_t> internal_ptr_id;
     std::unordered_map<size_t, void*> internal_id_ptr;
@@ -1115,12 +1100,7 @@ class ChArchiveIn : public ChArchive {
     bool try_tolerate_missing_tokens;
 
   public:
-    ChArchiveIn() : can_tolerate_missing_tokens(false) {
-        internal_ptr_id.clear();
-        internal_ptr_id[nullptr] = 0;  // null pointer -> ID=0.
-        internal_id_ptr.clear();
-        internal_id_ptr[0] = nullptr;  // ID=0 -> null pointer.
-    }
+    ChArchiveIn();
 
     virtual ~ChArchiveIn() {}
 
@@ -1162,7 +1142,7 @@ class ChArchiveIn : public ChArchive {
     void PutNewPointer(void* object, size_t obj_ID) {
         if (internal_ptr_id.find(object) != internal_ptr_id.end() ||
             internal_id_ptr.find(obj_ID) != internal_id_ptr.end())
-            throw(ChExceptionArchive("Expected to create a new object from pointer, but was already created."));
+            throw std::runtime_error("Expected to create a new object from pointer, but was already created.");
 
         internal_ptr_id[object] = obj_ID;
         internal_id_ptr[obj_ID] = object;
@@ -1213,8 +1193,8 @@ class ChArchiveIn : public ChArchive {
         if (!this->in_array_pre(bVal.name(), arraysize))
             return false;
         if (arraysize != sizeof(bVal.value()) / sizeof(T)) {
-            throw(ChExceptionArchive("Size of [] saved array does not match size of receiver array " +
-                                     std::string(bVal.name()) + "."));
+            throw std::runtime_error("Size of [] saved array does not match size of receiver array " +
+                                     std::string(bVal.name()) + ".");
         }
         for (size_t i = 0; i < arraysize; ++i) {
             T element;
@@ -1290,6 +1270,26 @@ class ChArchiveIn : public ChArchive {
         this->in_array_end(bVal.name());
         return true;
     }
+
+    // trick to wrap std::map container
+    template <class T, class Tv>
+    bool in(ChNameValue<std::map<T, Tv>> bVal) {
+        bVal.value().clear();
+        size_t arraysize;
+        if (!this->in_array_pre(bVal.name(), arraysize))
+            return false;
+        for (size_t i = 0; i < arraysize; ++i) {
+            std::pair<T, Tv> mpair;
+            ChNameValue<std::pair<T, Tv>> array_val(std::to_string(i), mpair);
+            this->in(array_val);
+            // store in map; constant time:
+            bVal.value()[mpair.first] = mpair.second;
+            this->in_array_between(bVal.name());
+        }
+        this->in_array_end(bVal.name());
+        return true;
+    }
+
 
     // trick to call in_ref on ChSharedPointer:
     template <class T>
@@ -1398,23 +1398,12 @@ class ChArchiveIn : public ChArchive {
     }
 
   protected:
-    virtual int in_version(const std::type_index mtypeid) {
-        int mver;
-        std::string class_name = ChClassFactory::IsClassRegistered(mtypeid) ? ChClassFactory::GetClassTagName(mtypeid)
-                                                                            : std::string(mtypeid.name());
-        // to avoid troubles in xml archives
-        std::replace(class_name.begin(), class_name.end(), '<', '[');
-        std::replace(class_name.begin(), class_name.end(), '>', ']');
-        std::replace(class_name.begin(), class_name.end(), ' ', '_');
-        this->in(ChNameValue<int>(("_version_" + class_name).c_str(), mver));
-        return mver;
-    }
+    virtual int in_version(const std::type_index mtypeid);
 };
 
 template <class TClass>
-void ChValueSpecific<TClass>::CallOut(ChArchiveOut& marchive) {
-    marchive.out(CHNVP(*this->_ptr_to_val, this->_name.c_str()));
-}
+void ChValueSpecific<TClass>::CallOut(ChArchiveOut& archive_out) { archive_out.out(CHNVP(*this->_ptr_to_val, this->_name.c_str())); }
+
 
 /// @} chrono_serialization
 

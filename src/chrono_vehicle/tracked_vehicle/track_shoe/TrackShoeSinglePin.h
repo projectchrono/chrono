@@ -49,7 +49,7 @@ class CH_VEHICLE_API TrackShoeSinglePin : public ChTrackShoeSinglePin {
     /// Return the mass of the shoe body.
     virtual double GetShoeMass() const override { return m_shoe_mass; }
     /// Return the moments of inertia of the shoe body.
-    virtual const ChVector<>& GetShoeInertia() const override { return m_shoe_inertia; }
+    virtual const ChVector3d& GetShoeInertia() const override { return m_shoe_inertia; }
 
     /// Return the location of the front contact cylinder.
     virtual double GetFrontCylinderLoc() const override { return m_front_cyl_loc; }
@@ -59,7 +59,7 @@ class CH_VEHICLE_API TrackShoeSinglePin : public ChTrackShoeSinglePin {
     virtual double GetCylinderRadius() const override { return m_cyl_radius; }
 
     /// Return the location of the guiding pin center, expressed in the shoe reference frame.
-    virtual ChVector<> GetLateralContactPoint() const override { return m_pin_center; }
+    virtual ChVector3d GetLateralContactPoint() const override { return m_pin_center; }
 
     /// Return contact geometry and material for interaction with terrain.
     virtual ChVehicleGeometry GetGroundContactGeometry() const override { return m_ground_geometry; }
@@ -70,13 +70,13 @@ class CH_VEHICLE_API TrackShoeSinglePin : public ChTrackShoeSinglePin {
     double m_shoe_height;
     double m_shoe_pitch;
     double m_shoe_mass;
-    ChVector<> m_shoe_inertia;
+    ChVector3d m_shoe_inertia;
 
     double m_cyl_radius;
     double m_front_cyl_loc;
     double m_rear_cyl_loc;
 
-    ChVector<> m_pin_center;
+    ChVector3d m_pin_center;
 
     ChVehicleGeometry m_ground_geometry;
 };

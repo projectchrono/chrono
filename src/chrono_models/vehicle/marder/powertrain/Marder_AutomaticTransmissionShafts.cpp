@@ -44,7 +44,7 @@ void Marder_AutomaticTransmissionShafts::SetGearRatios(std::vector<double>& fwd,
     fwd.push_back(1.0);   // 4th gear;
 }
 
-void Marder_AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void Marder_AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunctionInterp>& map) {
     // Torque Converter Allison TC-521
     // calculated from SAE TC example curve
     map->AddPoint(0, 3.023);
@@ -64,7 +64,7 @@ void Marder_AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std
     map->AddPoint(1, 5.61822);
 }
 
-void Marder_AutomaticTransmissionShafts::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void Marder_AutomaticTransmissionShafts::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunctionInterp>& map) {
     // calculated from SAE TC example curve
     map->AddPoint(0.0, 2.5);
     map->AddPoint(0.85, 1.0);

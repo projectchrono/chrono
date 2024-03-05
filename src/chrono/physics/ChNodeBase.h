@@ -131,14 +131,14 @@ class ChApi ChNodeBase {
     /// multiplied by a 'step' factor.
     ///     pos+=qb*step
     /// If qb is a speed, this behaves like a single step of 1-st order
-    /// numerical integration (Eulero integration).
+    /// numerical integration (Euler integration).
     virtual void VariablesQbIncrementPosition(double step) {}
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 
   protected:
     unsigned int offset_x;  ///< offset in vector of state (position part)

@@ -17,7 +17,7 @@ Chrono uses [Eigen3](https://eigen.tuxfamily.org/dox/index.html) for representin
 Dense matrices in Chrono are templated by the scalar type and have row-major storage order. All Chrono matrix and vector types below are simply aliases to appropriate Eigen matrix types; see @ref chrono_linalg and the ChMatrix.h header.
 
 <div class="ce-info">
-The [ChVector](@ref chrono::ChVector) and [ChVector2](@ref chrono::ChVector2) classes, used to represent 3D vectors in space and 2D vectors in a plane, respectively, are not Eigen types nor derived from Eigen matrices.
+The [ChVector3](@ref chrono::ChVector3) and [ChVector2](@ref chrono::ChVector2) classes, used to represent 3D vectors in space and 2D vectors in a plane, respectively, are not Eigen types nor derived from Eigen matrices.
 </div>
 
 Matrices are indexed starting from 0, with (row,column) indexing:
@@ -124,17 +124,17 @@ See @ref chrono::ChFunction for API details and a list of subclasses.
 ### Example 1
 
 ~~~{.cpp}
-	ChFunction_Ramp f_ramp;
+	ChFunctionRamp f_ramp;
 
-	f_ramp.Set_ang(0.1);	// set angular coefficient;
+	f_ramp.SetAngularCoeff(0.1);	// set angular coefficient;
 	f_ramp.Set_y0(0.4);		// set y value for x=0;
 
-	// Evaluate y=f(x) function at a given x value, using Get_y() :
-	double y	= f_ramp.Get_y(10);
-	// Evaluate derivative df(x)/dx at a given x value, using Get_y_dx() :
-	double ydx	= f_ramp.Get_y_dx(10);
+	// Evaluate y=f(x) function at a given x value, using GetVal() :
+	double y	= f_ramp.GetVal(10);
+	// Evaluate derivative df(x)/dx at a given x value, using GetDer() :
+	double ydx	= f_ramp.GetDer(10);
 
-	GetLog() << "   ChFunction_Ramp at x=0: y=" << y << "  dy/dx=" << ydx << "\n\n";
+	std::cout << "   ChFunctionRamp at x=0: y=" << y << "  dy/dx=" << ydx << std::endl;
 ~~~
 
 
@@ -143,22 +143,22 @@ See @ref chrono::ChFunction for API details and a list of subclasses.
 Save values of a sine ChFunction  into a file.
 
 ~~~{.cpp}
-	ChFunction_Sine f_sine;
+	ChFunctionSine f_sine;
 
 	f_sine.Set_amp(2);		// set amplitude;
 	f_sine.Set_freq(1.5);	// set frequency;
 
-	ChStreamOutAsciiFile file_f_sine ("f_sine_out.dat");
+	std::ofstream file_f_sine ("f_sine_out.dat");
 
 	// Evaluate y=f(x) function along 100 x points, and its derivatives, 
 	// and save to file (later it can be loaded, for example, in Matlab)
 	for (int i=0; i<100; i++)
 	{
 		double x = (double)i/50.0;
-		double y = f_sine.Get_y(x);
-		double ydx = f_sine.Get_y_dx(x);
-		double ydxdx = f_sine.Get_y_dxdx(x);
-		file_f_sine << x << " " << y << " " << ydx << " " << ydxdx << "\n";
+		double y = f_sine.GetVal(x);
+		double ydx = f_sine.GetDer(x);
+		double ydxdx = f_sine.GetDer2(x);
+		file_f_sine << x << " " << y << " " << ydx << " " << ydxdx << std::endl;
 	}	
 ~~~
 
@@ -181,26 +181,26 @@ you can override the base Get_ydx() and Get_ydxdx() too, for higher precision.
 ~~~{.cpp}
 // First, define a custom class inherited from ChFunction
 
-class ChFunction_MyTest : public ChFunction
+class ChFunctionMyTest : public ChFunction
 {
 public:
-	ChFunction* new_Duplicate() {return new ChFunction_MyTest;} 
-	double Get_y(double x) {return cos(x);} // just for test: simple cosine
+	ChFunction* new_Duplicate() {return new ChFunctionMyTest;} 
+	double GetVal(double x) {return cos(x);} // just for test: simple cosine
 };
 
-ChFunction_MyTest f_test;
+ChFunctionMyTest f_test;
 
-ChStreamOutAsciiFile file_f_test ("f_test_out.dat");
+std::ofstream file_f_test ("f_test_out.dat");
 
 // Evaluate y=f(x) function along 100 x points, and its derivatives, 
 // and save to file (later it can be loaded, for example, in Matlab)
 for (int i=0; i<100; i++)
 {
 	double x = (double)i/50.0;
-	double y = f_test.Get_y(x);
-	double ydx = f_test.Get_y_dx(x);
-	double ydxdx = f_test.Get_y_dxdx(x);
-	file_f_test << x << " " << y << " " << ydx << " " << ydxdx << "\n";
+	double y = f_test.GetVal(x);
+	double ydx = f_test.GetDer(x);
+	double ydxdx = f_test.GetDer2(x);
+	file_f_test << x << " " << y << " " << ydx << " " << ydxdx << std::endl;
 }
 ~~~
 
@@ -256,7 +256,7 @@ For N less than 10, the quadrature uses precomputed coefficients for maximum per
 	double qresult;	
 	ChQuadrature::Integrate1D<double>(qresult, mfx,  0, CH_C_PI,  6);
 	
-	GetLog()<< "Quadrature 1d result:" << qresult << " (analytic solution: 2.0) \n";
+	std::cout << "Quadrature 1d result:" << qresult << " (analytic solution: 2.0)" << std::endl;
 
 	
 	// Other quadrature tests, this time in 2D
@@ -269,7 +269,7 @@ For N less than 10, the quadrature uses precomputed coefficients for maximum per
 
 	MySine2d mfx2d;
 	ChQuadrature::Integrate2D<double>(qresult, mfx2d, 0, CH_C_PI, -1,1, 6);
-	GetLog()<< "Quadrature 2d result:" << qresult << " (analytic solution: 4.0) \n";
+	std::cout << "Quadrature 2d result:" << qresult << " (analytic solution: 4.0)" << std::endl;
 ~~~
 
 Note that thanks to templating, one can also integrate 
@@ -294,7 +294,7 @@ m-dimensional (vectorial, tensorial) functions
 	MySine2dM mfx2dM;
 	ChMatrixNM<double,2,1> resultM;
 	ChQuadrature::Integrate2D< ChMatrixNM<double,2,1> >(resultM, mfx2dM, 0, 1, 0,3, 6);
-	GetLog()<< "Quadrature 2d matrix result:" << resultM << " (analytic solution: 2.25, 4.5) \n";
+	std::cout << "Quadrature 2d matrix result:" << resultM << " (analytic solution: 2.25, 4.5)" << std::endl;
 ~~~
 
 <br><br><br>

@@ -39,7 +39,7 @@ PushPipeAxle::PushPipeAxle(const std::string& filename)
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 PushPipeAxle::PushPipeAxle(const rapidjson::Document& d)

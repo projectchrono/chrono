@@ -38,8 +38,8 @@ static const std::string ref_dir = "testing/joints/distance_constraint/";
 // =============================================================================
 // Prototypes of local functions
 //
-bool TestDistance(const ChVector<>& jointLocGnd,
-                  const ChVector<>& jointLocPend,
+bool TestDistance(const ChVector3d& jointLocGnd,
+                  const ChVector3d& jointLocPend,
                   const ChCoordsys<>& PendCSYS,
                   double simTimeStep,
                   double outTimeStep,
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     // Case 1 - Pendulum CG at Y = 2 with a distance contraint between the CG and ground.
 
     test_name = "Distance_Case01";
-    TestDistance(ChVector<>(0, 0, 0), ChVector<>(0, 2, 0), ChCoordsys<>(ChVector<>(0, 2, 0), QUNIT), sim_step, out_step,
+    TestDistance(ChVector3d(0, 0, 0), ChVector3d(0, 2, 0), ChCoordsys<>(ChVector3d(0, 2, 0), QUNIT), sim_step, out_step,
                  test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-3);
     test_passed &= ValidateReference(test_name, "Vel", 1e-4);
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     // Case 2 - Pendulum inital position is perpendicular to the distance constraint between ground
 
     test_name = "Distance_Case02";
-    TestDistance(ChVector<>(1, 2, 3), ChVector<>(1, 4, 3), ChCoordsys<>(ChVector<>(-1, 4, 3), QUNIT), sim_step,
+    TestDistance(ChVector3d(1, 2, 3), ChVector3d(1, 4, 3), ChCoordsys<>(ChVector3d(-1, 4, 3), QUNIT), sim_step,
                  out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-3);
     test_passed &= ValidateReference(test_name, "Vel", 2e-3);
@@ -107,7 +107,8 @@ int main(int argc, char* argv[]) {
     // pendulum to ground (Double Pendulum).
 
     test_name = "Distance_Case03";
-    TestDistance(ChVector<>(0, 0, 0), ChVector<>(0, 2, 0), ChCoordsys<>(ChVector<>(0, 4, 0), Q_from_AngZ(-CH_C_PI_2)),
+    TestDistance(ChVector3d(0, 0, 0), ChVector3d(0, 2, 0),
+                 ChCoordsys<>(ChVector3d(0, 4, 0), QuatFromAngleZ(-CH_C_PI_2)),
                  sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-3);
     test_passed &= ValidateReference(test_name, "Vel", 1e-4);
@@ -121,7 +122,7 @@ int main(int argc, char* argv[]) {
     test_passed &= ValidateConstraints(test_name, 1e-5);
 
     // Return 0 if all tests passed and 1 otherwise
-    std::cout << std::endl << "UNIT TEST: " << (test_passed ? "PASSED" : "FAILED") << std::endl;
+    std::cout << "\nUNIT TEST: " << (test_passed ? "PASSED" : "FAILED") << std::endl;
     return !test_passed;
 }
 
@@ -130,8 +131,8 @@ int main(int argc, char* argv[]) {
 // Worker function for performing the simulation with specified parameters.
 //
 bool TestDistance(
-    const ChVector<>& jointLocGnd,   // absolute location of the distance constrain ground attachment point
-    const ChVector<>& jointLocPend,  // absolute location of the distance constrain pendulum attachment point
+    const ChVector3d& jointLocGnd,   // absolute location of the distance constrain ground attachment point
+    const ChVector3d& jointLocPend,  // absolute location of the distance constrain pendulum attachment point
     const ChCoordsys<>& PendCSYS,    // Coordinate system for the pendulum
     double simTimeStep,              // simulation time step
     double outTimeStep,              // output time step
@@ -146,7 +147,7 @@ bool TestDistance(
     // (MKS is used in this example)
 
     double mass = 1.0;                     // mass of pendulum
-    ChVector<> inertiaXX(0.04, 0.1, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
+    ChVector3d inertiaXX(0.04, 0.1, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
     double g = 9.80665;
 
     double timeRecord = 5;  // simulation length
@@ -158,7 +159,7 @@ bool TestDistance(
     // handled by this ChSystem object.
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0.0, 0.0, -g));
+    sys.Set_G_acc(ChVector3d(0.0, 0.0, -g));
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverType(ChSolver::Type::PSOR);
@@ -267,8 +268,8 @@ bool TestDistance(
 
     // Total energy at initial time.
     ChMatrix33<> inertia = pendulum->GetInertia();
-    ChVector<> angVelLoc = pendulum->GetWvel_loc();
-    double transKE = 0.5 * mass * pendulum->GetPos_dt().Length2();
+    ChVector3d angVelLoc = pendulum->GetAngVelLocal();
+    double transKE = 0.5 * mass * pendulum->GetPosDer().Length2();
     double rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
     double deltaPE = mass * g * (pendulum->GetPos().z() - PendCSYS.pos.z());
     double totalE0 = transKE + rotKE + deltaPE;
@@ -281,35 +282,35 @@ bool TestDistance(
         // Ensure that the final data point is recorded.
         if (simTime >= outTime - simTimeStep / 2) {
             // CM position, velocity, and acceleration (expressed in global frame).
-            const ChVector<>& position = pendulum->GetPos();
-            const ChVector<>& velocity = pendulum->GetPos_dt();
+            const ChVector3d& position = pendulum->GetPos();
+            const ChVector3d& velocity = pendulum->GetPosDer();
             out_pos << simTime << position << std::endl;
             out_vel << simTime << velocity << std::endl;
-            out_acc << simTime << pendulum->GetPos_dtdt() << std::endl;
+            out_acc << simTime << pendulum->GetPosDer2() << std::endl;
 
             // Orientation, angular velocity, and angular acceleration (expressed in
             // global frame).
             out_quat << simTime << pendulum->GetRot() << std::endl;
-            out_avel << simTime << pendulum->GetWvel_par() << std::endl;
-            out_aacc << simTime << pendulum->GetWacc_par() << std::endl;
+            out_avel << simTime << pendulum->GetAngVelParent() << std::endl;
+            out_aacc << simTime << pendulum->GetAngAccParent() << std::endl;
 
             // Reaction Force and Torque
             // These are expressed in the link coordinate system. We convert them to
             // the coordinate system of Body2 (in our case this is the ground).
             ChCoordsys<> linkCoordsys = distanceConstraint->GetLinkRelativeCoords();
-            ChVector<> reactForce = distanceConstraint->Get_react_force();
-            ChVector<> reactForceGlobal = linkCoordsys.TransformDirectionLocalToParent(reactForce);
+            ChVector3d reactForce = distanceConstraint->Get_react_force();
+            ChVector3d reactForceGlobal = linkCoordsys.TransformDirectionLocalToParent(reactForce);
             out_rfrc << simTime << reactForceGlobal << std::endl;
 
-            ChVector<> reactTorque = distanceConstraint->Get_react_torque();
-            ChVector<> reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
+            ChVector3d reactTorque = distanceConstraint->Get_react_torque();
+            ChVector3d reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
             out_rtrq << simTime << reactTorqueGlobal << std::endl;
 
             // Conservation of Energy
             // Translational Kinetic Energy (1/2*m*||v||^2)
             // Rotational Kinetic Energy (1/2 w'*I*w)
             // Delta Potential Energy (m*g*dz)
-            angVelLoc = pendulum->GetWvel_loc();
+            angVelLoc = pendulum->GetAngVelLocal();
             transKE = 0.5 * mass * velocity.Length2();
             rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
             deltaPE = mass * g * (position.z() - PendCSYS.pos.z());

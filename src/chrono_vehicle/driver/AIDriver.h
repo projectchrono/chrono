@@ -22,7 +22,7 @@
 #include <string>
 
 #include "chrono_vehicle/driver/ChAIDriver.h"
-#include "chrono/motion_functions/ChFunction_Recorder.h"
+#include "chrono/functions/ChFunctionInterp.h"
 
 namespace chrono {
 namespace vehicle {
@@ -49,7 +49,7 @@ class CH_VEHICLE_API AIDriver : public ChAIDriver {
     virtual double CalculateSteering(double front_axle_angle, double rear_axle_angle) override;
 
   private:
-    ChFunction_Recorder m_steering_map;  ///< front wheel angle to steering input mapping
+    ChFunctionInterp m_steering_map;  ///< front wheel angle to steering input mapping
 };
 
 /// @} vehicle_driver

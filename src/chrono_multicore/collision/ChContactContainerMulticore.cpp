@@ -21,8 +21,6 @@
 
 namespace chrono {
 
-using namespace geometry;
-
 ChContactContainerMulticore::ChContactContainerMulticore(ChMulticoreDataManager* dc) : data_manager(dc) {
     contactlist_6_6.clear();
     n_added_6_6 = 0;
@@ -83,14 +81,14 @@ void ChContactContainerMulticore::ReportAllContacts(std::shared_ptr<ReportContac
 
     // Grab the list of bodies.
     // NOTE: we assume that bodies were added in the order of their IDs!
-    auto bodylist = GetSystem()->Get_bodylist();
+    auto bodylist = GetSystem()->GetBodies();
 
     // Contact forces
-    ChVector<> force;
-    ChVector<> torque;
+    ChVector3d force;
+    ChVector3d torque;
 
     // Contact plane
-    ChVector<> plane_x, plane_y, plane_z;
+    ChVector3d plane_x, plane_y, plane_z;
     ChMatrix33<> contact_plane;
 
     for (uint i = 0; i < cd_data->num_rigid_contacts; i++) {
@@ -102,7 +100,7 @@ void ChContactContainerMulticore::ReportAllContacts(std::shared_ptr<ReportContac
 
         // Contact plane coordinate system (normal in x direction from pB to pA)
         XdirToDxDyDz(ToChVector(nrm[i]), VECT_Y, plane_x, plane_y, plane_z);
-        contact_plane.Set_A_axis(plane_x, plane_y, plane_z);
+        contact_plane.SetFromDirectionAxes(plane_x, plane_y, plane_z);
 
         // Contact force and torque expressed in the contact plane
         switch (GetSystem()->GetContactMethod()) {
@@ -114,7 +112,7 @@ void ChContactContainerMulticore::ReportAllContacts(std::shared_ptr<ReportContac
                     f_u = (double)(gamma_u[cd_data->num_rigid_contacts + 2 * i + 0] / data_manager->settings.step_size);
                     f_v = (double)(gamma_u[cd_data->num_rigid_contacts + 2 * i + 1] / data_manager->settings.step_size);
                 }
-                force = ChVector<>(f_n, f_u, f_v);
+                force = ChVector3d(f_n, f_u, f_v);
                 double t_n = 0;
                 double t_u = 0;
                 double t_v = 0;
@@ -126,7 +124,7 @@ void ChContactContainerMulticore::ReportAllContacts(std::shared_ptr<ReportContac
                     t_v = (double)(gamma_u[3 * cd_data->num_rigid_contacts + 3 * i + 2] /
                                    data_manager->settings.step_size);
                 }
-                torque = ChVector<>(t_n, t_u, t_v);
+                torque = ChVector3d(t_n, t_u, t_v);
                 break;
             }
             case ChContactMethod::SMC: {
@@ -156,24 +154,24 @@ void ChContactContainerMulticore::ComputeContactForces() {
     static_cast<ChSystemMulticore*>(GetSystem())->CalculateContactForces();
 }
 
-ChVector<> ChContactContainerMulticore::GetContactableForce(ChContactable* contactable) {
+ChVector3d ChContactContainerMulticore::GetContactableForce(ChContactable* contactable) {
     // If contactable is a body, defer to associated system
     if (auto body = dynamic_cast<ChBody*>(contactable)) {
         real3 frc = static_cast<ChSystemMulticore*>(GetSystem())->GetBodyContactForce(body->GetId());
         return ToChVector(frc);
     }
 
-    return ChVector<>(0, 0, 0);
+    return ChVector3d(0, 0, 0);
 }
 
-ChVector<> ChContactContainerMulticore::GetContactableTorque(ChContactable* contactable) {
+ChVector3d ChContactContainerMulticore::GetContactableTorque(ChContactable* contactable) {
     // If contactable is a body, defer to associated system
     if (auto body = dynamic_cast<ChBody*>(contactable)) {
         real3 trq = static_cast<ChSystemMulticore*>(GetSystem())->GetBodyContactTorque(body->GetId());
         return ToChVector(trq);
     }
 
-    return ChVector<>(0, 0, 0);
+    return ChVector3d(0, 0, 0);
 }
 
 }  // end namespace chrono

@@ -12,7 +12,7 @@
 // Authors: Hammad Mazhar, Radu Serban
 // =============================================================================
 //
-// Description: Vectorized implementation of a 4D vector/Quaternion
+// Description: Vectorized implementation of a 4D vector/quaternion
 // =============================================================================
 
 #include "chrono/multicore_math/simd.h"
@@ -188,7 +188,7 @@ CUDA_HOST_DEVICE ChApi real3 AbsRotate(const quaternion& q, const real3& v) {
     return result;
 }
 
-CUDA_HOST_DEVICE ChApi quaternion Q_from_AngAxis(const real& angle, const real3& axis) {
+CUDA_HOST_DEVICE ChApi quaternion QuatFromAngleAxis(const real& angle, const real3& axis) {
     quaternion quat;
     real halfang;
     real sinhalf;

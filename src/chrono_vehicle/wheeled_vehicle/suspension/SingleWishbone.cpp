@@ -36,7 +36,7 @@ SingleWishbone::SingleWishbone(const std::string& filename)
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 SingleWishbone::SingleWishbone(const rapidjson::Document& d)
@@ -113,7 +113,7 @@ void SingleWishbone::Create(const rapidjson::Document& d) {
     } else {
         m_tierodMass = 0;
         m_tierodRadius = 0;
-        m_tierodInertia = ChVector<>(0);
+        m_tierodInertia = ChVector3d(0);
         m_use_tierod_bodies = false;
     }
 

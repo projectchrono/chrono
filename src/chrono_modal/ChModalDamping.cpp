@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#include <iomanip>
+
 #include "chrono_modal/ChModalDamping.h"
 #include "chrono_modal/ChModalAssembly.h"
 #include "chrono_modal/ChEigenvalueSolver.h"
@@ -22,7 +24,6 @@
 namespace chrono {
 
 using namespace fea;
-using namespace geometry;
 
 namespace modal {
 
@@ -36,7 +37,7 @@ void ChModalDampingFactorRmm::ComputeR(ChModalAssembly& assembly,
                                        const ChMatrixDynamic<>& Psi,
                                        ChMatrixDynamic<>& modal_R) const {
     int n_mod_coords = assembly.Get_n_modes_coords_w();
-    int n_bou_coords = assembly.GetN_boundary_coords_w();
+    int n_bou_coords = assembly.GetNumCoordinatesVelBoundary();
 
     ChVectorDynamic<> omegas = CH_C_2PI * assembly.Get_modes_frequencies();
     ChVectorDynamic<> zetas;
@@ -68,7 +69,7 @@ void ChModalDampingFactorRayleigh::ComputeR(ChModalAssembly& assembly,
     ChModalDampingFactorRmm::ComputeR(assembly, modal_M, modal_K, Psi, modal_R);
 
     // For the Rbb block:
-    int n_bou_coords = assembly.GetN_boundary_coords_w();
+    int n_bou_coords = assembly.GetNumCoordinatesVelBoundary();
 
     modal_R.block(0, 0, n_bou_coords, n_bou_coords) = alpha * modal_M.block(0, 0, n_bou_coords, n_bou_coords) +
                                                       beta * modal_K.block(0, 0, n_bou_coords, n_bou_coords);
@@ -82,7 +83,7 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     assert(false);  // this damping model is not ready and must be validated
 
     int n_mod_coords = assembly.Get_n_modes_coords_w();
-    int n_bou_coords = assembly.GetN_boundary_coords_w();
+    int n_bou_coords = assembly.GetNumCoordinatesVelBoundary();
     int n_bou_mod_coords = n_bou_coords + n_mod_coords;
 
     ChMatrixDynamic<std::complex<double>> modes_V_reduced(n_bou_mod_coords, n_bou_mod_coords);
@@ -99,7 +100,7 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     ChGeneralizedEigenvalueSolverLanczos     eigsolver;
     //ChGeneralizedEigenvalueSolverKrylovSchur eigsolver;
     eigsolver.sigma = 0.01;  //// TODO lower value of sigma working in Debug but not in Release !?!?!
-    eigsolver.Solve(M_reduced, K_reduced, Cq_reduced, modes_V_reduced, eig_reduced, freq_reduced, 6); //***TODO*** must
+    eigsolver.Solve(M_reduced, K_reduced, Cq_reduced, modes_V_reduced, eig_reduced, freq_reduced, 6); //// TODO  must
     be all modes n_bou_mod_coords-Cq_reduced.rows(), not only first ones, but Krylov and Lanczos do not allow it..;
     */
 
@@ -166,29 +167,29 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     modal_R.block(0, 0, modal_R_nonzero.rows(), modal_R_nonzero.cols()) = modal_R_nonzero;
 
     if (true) {
-        ChStreamOutAsciiFile fileM("dump_modald_M.dat");
-        fileM.SetNumFormat("%.12g");
+        std::ofstream fileM("dump_modald_M.dat");
+        fileM << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(M_reduced.toDense(), fileM);
-        ChStreamOutAsciiFile fileK("dump_modald_K.dat");
-        fileK.SetNumFormat("%.12g");
+        std::ofstream fileK("dump_modald_K.dat");
+        fileK << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(K_reduced.toDense(), fileK);
-        ChStreamOutAsciiFile fileCq("dump_modald_Cq.dat");
-        fileCq.SetNumFormat("%.12g");
+        std::ofstream fileCq("dump_modald_Cq.dat");
+        fileCq << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(Cq_reduced.toDense(), fileCq);
-        ChStreamOutAsciiFile fileV("dump_modald_V.dat");
-        fileV.SetNumFormat("%.12g");
+        std::ofstream fileV("dump_modald_V.dat");
+        fileV << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(V, fileV);
-        ChStreamOutAsciiFile fileF("dump_modald_f.dat");
-        fileF.SetNumFormat("%.12g");
+        std::ofstream fileF("dump_modald_f.dat");
+        fileF << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(freq_reduced, fileF);
-        ChStreamOutAsciiFile fileRnz("dump_modald_Rnz.dat");
-        fileRnz.SetNumFormat("%.12g");
+        std::ofstream fileRnz("dump_modald_Rnz.dat");
+        fileRnz << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(modal_R_nonzero, fileRnz);
-        ChStreamOutAsciiFile fileMm("dump_modald_Mm.dat");
-        fileMm.SetNumFormat("%.12g");
+        std::ofstream fileMm("dump_modald_Mm.dat");
+        fileMm << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(Mmodal, fileMm);
-        ChStreamOutAsciiFile fileMm_matr("dump_modald_Mm_matr.dat");
-        fileMm_matr.SetNumFormat("%.12g");
+        std::ofstream fileMm_matr("dump_modald_Mm_matr.dat");
+        fileMm_matr << std::setprecision(12) << std::scientific;
         StreamOutDenseMatlabFormat(Mmodal_matr, fileMm_matr);
     }
 }

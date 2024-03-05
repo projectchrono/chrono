@@ -41,7 +41,7 @@ Duro::Duro()
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_steeringType(SteeringTypeWV::PITMAN_ARM),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initFwdVel(0),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false) {}
@@ -59,7 +59,7 @@ Duro::Duro(ChSystem* system)
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_steeringType(SteeringTypeWV::PITMAN_ARM),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initFwdVel(0),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false) {}
@@ -159,7 +159,7 @@ void Duro::Initialize() {
         }
 
         default:
-            GetLog() << "Unsupported Tire Model Type! Switching to TMsimple.\n";
+            std::cout << "Unsupported Tire Model Type! Switching to TMsimple.\n";
         case TireModelType::TMSIMPLE: {
             auto tire_FL = chrono_types::make_shared<Duro_TMsimpleTire>("FL");
             auto tire_FR = chrono_types::make_shared<Duro_TMsimpleTire>("FR");

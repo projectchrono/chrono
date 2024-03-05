@@ -28,13 +28,13 @@ namespace chrono {
 class ChApi ChCollisionShapeCylindricalShell : public ChCollisionShape {
   public:
     ChCollisionShapeCylindricalShell();
-    ChCollisionShapeCylindricalShell(std::shared_ptr<ChMaterialSurface> material, double radius, double height);
-    ChCollisionShapeCylindricalShell(std::shared_ptr<ChMaterialSurface> material, const geometry::ChCylinder& cyl);
+    ChCollisionShapeCylindricalShell(std::shared_ptr<ChContactMaterial> material, double radius, double height);
+    ChCollisionShapeCylindricalShell(std::shared_ptr<ChContactMaterial> material, const ChCylinder& cyl);
 
     ~ChCollisionShapeCylindricalShell() {}
 
     // Access the cylinder geometry.
-    geometry::ChCylinder& GetGeometry() { return gcylinder; }
+    ChCylinder& GetGeometry() { return gcylinder; }
 
     /// Get the cylinder radius.
     double GetRadius() const { return gcylinder.GetRadius(); }
@@ -43,13 +43,13 @@ class ChApi ChCollisionShapeCylindricalShell : public ChCollisionShape {
     double GetHeight() const { return gcylinder.GetHeight(); }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    geometry::ChCylinder gcylinder;
+    ChCylinder gcylinder;
 };
 
 /// @} chrono_collision

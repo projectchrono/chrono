@@ -33,7 +33,7 @@ void plot(std::shared_ptr<ChBezierCurve> path, int n, const char* title, bool eq
     ChVectorDynamic<> y(n);
     double delta = 1.0 / n;
     for (int i = 0; i < n; i++) {
-        ChVector<> pos = path->eval(delta * i);
+        ChVector3d pos = path->eval(delta * i);
         x(i) = pos.x();
         y(i) = pos.y();
     }
@@ -54,7 +54,7 @@ void plot(std::shared_ptr<ChBezierCurve> path, int n, const char* title, bool eq
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
     
     // Create (if needed) output directory
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -63,27 +63,27 @@ int main(int argc, char* argv[]) {
     }
 
     // Straight-line path
-    auto path1 = StraightLinePath(ChVector<>(-10, -10, 1), ChVector<>(10, 10, 1), 1);
+    auto path1 = StraightLinePath(ChVector3d(-10, -10, 1), ChVector3d(10, 10, 1), 1);
     plot(path1, 100, "straight line path");
 
     // Circle path (left)
-    auto path2 = CirclePath(ChVector<>(1, 2, 0), 3.0, 5.0, true, 1);
+    auto path2 = CirclePath(ChVector3d(1, 2, 0), 3.0, 5.0, true, 1);
     plot(path2, 100, "left circle path");
 
     // Circle path (right)
-    auto path3 = CirclePath(ChVector<>(1, 2, 0), 3.0, 5.0, false, 1);
+    auto path3 = CirclePath(ChVector3d(1, 2, 0), 3.0, 5.0, false, 1);
     plot(path3, 100, "right circle path");
 
     // NATO double lane change path (left)
-    auto path4 = DoubleLaneChangePath(ChVector<>(-100, 0, 0.1), 28.93, 3.6105, 25.0, 100.0, true);
+    auto path4 = DoubleLaneChangePath(ChVector3d(-100, 0, 0.1), 28.93, 3.6105, 25.0, 100.0, true);
     plot(path4, 100, "left NATO double lane change", false);
 
     // NATO double lane change path (right)
-    auto path5 = DoubleLaneChangePath(ChVector<>(-100, 0, 0.1), 28.93, 3.6105, 25.0, 100.0, false);
+    auto path5 = DoubleLaneChangePath(ChVector3d(-100, 0, 0.1), 28.93, 3.6105, 25.0, 100.0, false);
     plot(path5, 100, "right NATO double lane change", false);
 
     // ISO double lane change path (left)
-    auto path6 = DoubleLaneChangePath(ChVector<>(-100, 0, 0.1), 13.5, 4.0, 11.0, 100.0, true);
+    auto path6 = DoubleLaneChangePath(ChVector3d(-100, 0, 0.1), 13.5, 4.0, 11.0, 100.0, true);
     plot(path6, 100, "right ISO double lane change", false);
 
     return 0;

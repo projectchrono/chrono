@@ -28,7 +28,7 @@ namespace vehicle {
 
 ChIdler::ChIdler(const std::string& name) : ChPart(name), m_track(nullptr) {}
 
-void ChIdler::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location, ChTrackAssembly* track) {
+void ChIdler::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d& location, ChTrackAssembly* track) {
     m_parent = chassis;
     m_rel_loc = location;
     m_track = track;

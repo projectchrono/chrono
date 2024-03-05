@@ -32,7 +32,7 @@ class ChShaft;
 /// gear have two inputs and one output (or, if you prefer, one input and two outputs).
 /// Note that you can use this class also to make a gearbox if you are interested
 /// in knowing the reaction torque transmitted to the truss (whereas the basic
-/// ChLinkGear cannot do this because it has only in and out); in this case you
+/// ChLinkLockGear cannot do this because it has only in and out); in this case you
 /// just use the shaft n.1 as truss and fix it.
 class ChApi ChShaftsPlanetary : public ChPhysicsItem {
   public:
@@ -47,7 +47,7 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     virtual int GetNumCoords() const { return 3; }
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() override { return 1; }
+    virtual int GetNumConstraintsBilateral() override { return 1; }
 
     //
     // STATE FUNCTIONS
@@ -111,11 +111,11 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     ChShaft* GetShaft3() { return shaft3; }
 
     /// Return the speed of the first shaft (carrier wheel).
-    double GetSpeedShaft1() const { return shaft1->GetPos_dt(); }
+    double GetSpeedShaft1() const { return shaft1->GetPosDer(); }
     /// Return the speed of the second shaft.
-    double GetSpeedShaft2() const { return shaft2->GetPos_dt(); }
+    double GetSpeedShaft2() const { return shaft2->GetPosDer(); }
     /// Return the speed of the third shaft.
-    double GetSpeedShaft3() const { return shaft3->GetPos_dt(); }
+    double GetSpeedShaft3() const { return shaft3->GetPosDer(); }
 
     /// Set the transmission ratios r1 r2 r3 as in
     ///     r1*w1 + r2*w2 + r3*w3 = 0
@@ -188,10 +188,10 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     bool active;

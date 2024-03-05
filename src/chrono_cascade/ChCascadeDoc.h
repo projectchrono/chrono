@@ -17,10 +17,9 @@
 
 #include "chrono_cascade/ChApiCASCADE.h"
 
-#include "chrono/core/ChStream.h"
 #include "chrono/core/ChFrameMoving.h"
 #include "chrono/physics/ChBodyAuxRef.h"
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChContactMaterial.h"
 
 #include <TDocStd_Document.hxx>
 
@@ -47,9 +46,9 @@ class ChApiCASCADE ChCascadeDoc {
     /// the STEP file, saved from some CAD. If load was ok, return true.
     bool Load_STEP(const char* filename);
 
-    /// Show shape hierarchy, writing on mstream (mstream could be GetLog()
+    /// Show shape hierarchy, writing on mstream
     /// to print in default console log)
-    void Dump(ChStreamOutAscii& mstream);
+    void Dump(std::ostream& mstream);
 
     /// Get the root shape. Note that there could be more than one root,
     /// if so, use 'num' to select the one that you need.
@@ -76,9 +75,9 @@ class ChApiCASCADE ChCascadeDoc {
     static bool GetVolumeProperties(
         const TopoDS_Shape& mshape,   ///< pass the shape here
         const double density,         ///< pass the density here
-        ChVector<>& center_position,  ///< get the COG position center, respect to shape pos.
-        ChVector<>& inertiaXX,        ///< get the inertia diagonal terms
-        ChVector<>& inertiaXY,        ///< get the inertia extradiagonal terms
+        ChVector3d& center_position,  ///< get the COG position center, respect to shape pos.
+        ChVector3d& inertiaXX,        ///< get the inertia diagonal terms
+        ChVector3d& inertiaXY,        ///< get the inertia extradiagonal terms
         double& volume,               ///< get the volume
         double& mass                  ///< get the mass
     );
@@ -102,11 +101,10 @@ class ChApiCASCADE ChCascadeDoc {
     /// Convert Chrono coordinates into OpenCascade coordinates
     static void FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Location& to_coord);
 
-    
-
   private:
-    // cascade OCAF doc handle; ***note that if using simply the Handle(TDocStd_Document) doc; ie with no pointer to handle, it crashes.
-	Handle(TDocStd_Document)* doc;
+    // cascade OCAF doc handle; ***note that if using simply the Handle(TDocStd_Document) doc; ie with no pointer to
+    // handle, it crashes.
+    Handle(TDocStd_Document) * doc;
 };
 
 /// @} cascade_module

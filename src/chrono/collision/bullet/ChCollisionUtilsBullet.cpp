@@ -316,8 +316,8 @@ bool IntersectSegmentCylinder(const cbtVector3& sC,  // segment center point
 
 ChConvexHullLibraryWrapper::ChConvexHullLibraryWrapper() {}
 
-void ChConvexHullLibraryWrapper::ComputeHull(const std::vector<ChVector<> >& points,
-                                             geometry::ChTriangleMeshConnected& vshape) {
+void ChConvexHullLibraryWrapper::ComputeHull(const std::vector<ChVector3d >& points,
+                                             ChTriangleMeshConnected& vshape) {
     HullLibrary hl;
     HullResult hresult;
     HullDesc desc;
@@ -341,12 +341,12 @@ void ChConvexHullLibraryWrapper::ComputeHull(const std::vector<ChVector<> >& poi
 
         vshape.getIndicesVertexes().resize(hresult.mNumFaces);
         for (unsigned int it = 0; it < hresult.mNumFaces; ++it) {
-            vshape.getIndicesVertexes()[it] = ChVector<int>(
+            vshape.getIndicesVertexes()[it] = ChVector3i(
                 hresult.m_Indices[it * 3 + 0], hresult.m_Indices[it * 3 + 1], hresult.m_Indices[it * 3 + 2]);
         }
         vshape.getCoordsVertices().resize(hresult.mNumOutputVertices);
         for (unsigned int iv = 0; iv < hresult.mNumOutputVertices; ++iv) {
-            vshape.getCoordsVertices()[iv] = ChVector<>(
+            vshape.getCoordsVertices()[iv] = ChVector3d(
                 hresult.m_OutputVertices[iv].x(), hresult.m_OutputVertices[iv].y(), hresult.m_OutputVertices[iv].z());
         }
     }

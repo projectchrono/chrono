@@ -19,7 +19,6 @@
 //
 // =============================================================================
 
-#include "chrono/core/ChStream.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
@@ -75,7 +74,7 @@ double terrainLength = 200.0;  // size in X direction
 double terrainWidth = 200.0;   // size in Y direction
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Contact method
 ChContactMethod contact_method = ChContactMethod::SMC;
@@ -105,7 +104,7 @@ bool povray_output = false;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // --------------
     // Create systems
@@ -116,7 +115,7 @@ int main(int argc, char* argv[]) {
     my_bus.SetContactMethod(contact_method);
     my_bus.SetChassisCollisionType(chassis_collision_type);
     my_bus.SetChassisFixed(false);
-    my_bus.SetInitPosition(ChCoordsys<>(ChVector<>(0, 0, 0.5), QUNIT));
+    my_bus.SetInitPosition(ChCoordsys<>(ChVector3d(0, 0, 0.5), QUNIT));
     my_bus.SetTireType(tire_model);
     my_bus.SetTireStepSize(tire_step_size);
     my_bus.Initialize();
@@ -241,8 +240,11 @@ int main(int argc, char* argv[]) {
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
             vis_vsg->SetWindowTitle("VSG: City Bus Demo");
-            vis_vsg->SetChaseCamera(trackPoint, 14.0, 0.5);
+            vis_vsg->SetWindowSize(1200, 800);
+            vis_vsg->SetChaseCamera(trackPoint, 16.0, 0.5);
             vis_vsg->AttachVehicle(&my_bus.GetVehicle());
+            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
             // Create the interactive VSG driver system
@@ -277,7 +279,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     if (debug_output) {
-        GetLog() << "\n\n============ System Configuration ============\n";
+        std::cout << "\n\n============ System Configuration ============\n";
         my_bus.LogHardpointLocations();
     }
 
@@ -318,8 +320,8 @@ int main(int argc, char* argv[]) {
 
         // Debug logging
         if (debug_output && step_number % debug_steps == 0) {
-            GetLog() << "\n\n============ System Information ============\n";
-            GetLog() << "Time = " << time << "\n\n";
+            std::cout << "\n\n============ System Information ============\n";
+            std::cout << "Time = " << time << "\n\n";
             my_bus.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
         }
 

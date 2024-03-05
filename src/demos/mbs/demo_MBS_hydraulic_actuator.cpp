@@ -40,7 +40,7 @@ using namespace chrono;
 std::string out_dir = GetChronoOutputPath() + "DEMO_HYDRAULIC_ACTUATOR";
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create (if needed) output directory
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
     ChSystemSMC sys;
 
     auto actuator = chrono_types::make_shared<ChHydraulicActuator3>();
-    actuator->SetInputFunction(chrono_types::make_shared<ChFunction_Sine>(0.0, 5.0, 1.0));
+    actuator->SetInputFunction(chrono_types::make_shared<ChFunctionSine>(1.0, 5.0));
     actuator->Cylinder().SetInitialChamberLengths(0.221, 0.221);
     actuator->Cylinder().SetInitialChamberPressures(3.3e6, 4.4e6);
     actuator->DirectionalValve().SetInitialSpoolPosition(0);

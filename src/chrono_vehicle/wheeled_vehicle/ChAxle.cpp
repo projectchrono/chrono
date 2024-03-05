@@ -44,8 +44,8 @@ void ChAxle::SetOutput(bool state) {
 void ChAxle::Initialize(std::shared_ptr<ChChassis> chassis,
                         std::shared_ptr<ChSubchassis> subchassis,
                         std::shared_ptr<ChSteering> steering,
-                        const ChVector<>& susp_location,
-                        const ChVector<>& arb_location,
+                        const ChVector3d& susp_location,
+                        const ChVector3d& arb_location,
                         double wheel_separation,
                         double left_ang_vel,
                         double right_ang_vel) {

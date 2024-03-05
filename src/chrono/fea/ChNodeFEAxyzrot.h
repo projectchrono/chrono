@@ -57,28 +57,33 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
 
     /// Get atomic mass of the node.
     double GetMass() const { return variables.GetBodyMass(); }
+
     /// Set atomic mass of the node.
-    void SetMass(double mm) { variables.SetBodyMass(mm); }
+    void SetMass(double m) { variables.SetBodyMass(m); }
 
     /// Access atomic inertia of the node.
     ChMatrix33<>& GetInertia() { return variables.GetBodyInertia(); }
 
     /// Set the initial (reference) frame
     void SetX0(const ChFrame<>& mx) { X0 = mx; }
+
     /// Get the initial (reference) frame
     const ChFrame<>& GetX0() const { return X0; }
+
     /// Access  the initial (reference) frame
     ChFrame<>& GetX0ref() { return X0; }
 
     /// Set the 3d applied force, in absolute reference
-    void SetForce(const ChVector<>& mf) { Force = mf; }
+    void SetForce(const ChVector3d& frc) { Force = frc; }
+
     /// Get the 3d applied force, in absolute reference
-    const ChVector<>& GetForce() const { return Force; }
+    const ChVector3d& GetForce() const { return Force; }
 
     /// Set the 3d applied torque, in node reference
-    void SetTorque(const ChVector<>& mf) { Torque = mf; }
+    void SetTorque(const ChVector3d& trq) { Torque = trq; }
+
     /// Get the 3d applied torque, in node reference
-    const ChVector<>& GetTorque() const { return Torque; }
+    const ChVector3d& GetTorque() const { return Torque; }
 
     /// Access the frame of the node - in absolute csys,
     /// with infos on actual position, speed, acceleration, etc.
@@ -200,14 +205,14 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
 
     // SERIALIZATION
 
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     ChVariablesBodyOwnMass variables;  ///< 3D node variables, with x,y,z displ. and 3D rot.
     ChFrame<> X0;                      ///< reference frame
-    ChVector<> Force;                  ///< applied force
-    ChVector<> Torque;                 ///< applied torque
+    ChVector3d Force;                  ///< applied force
+    ChVector3d Torque;                 ///< applied torque
 };
 
 /// @} fea_nodes

@@ -15,24 +15,24 @@
 #include "chrono/geometry/ChLineBspline.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLineBspline)
 
 ChLineBspline::ChLineBspline() {
-    const std::vector<ChVector<> > mpoints = {ChVector<>(-1, 0, 0), ChVector<>(1, 0, 0)};
+    const std::vector<ChVector3d > mpoints = {ChVector3d(-1, 0, 0), ChVector3d(1, 0, 0)};
 	this->closed = false;
-    this->SetupData(1, mpoints);
+    this->Setup(1, mpoints);
 }
 
 ChLineBspline::ChLineBspline(
     int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-    const std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
+    const std::vector<ChVector3d >& mpoints,  ///< control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
 	this->closed = false;
-    this->SetupData(morder, mpoints, mknots);
+    this->Setup(morder, mpoints, mknots);
 }
 
 ChLineBspline::ChLineBspline(const ChLineBspline& source) : ChLine(source) {
@@ -42,7 +42,7 @@ ChLineBspline::ChLineBspline(const ChLineBspline& source) : ChLine(source) {
 	this->closed = source.closed;
 }
 
-ChVector<> ChLineBspline::Evaluate(double parU) const {
+ChVector3d ChLineBspline::Evaluate(double parU) const {
 	double mU;
 	if (this->closed)
 		mU = fmod(parU, 1.0);
@@ -56,7 +56,7 @@ ChVector<> ChLineBspline::Evaluate(double parU) const {
     ChVectorDynamic<> N(this->p + 1);
     ChBasisToolsBspline::BasisEvaluate(this->p, spanU, u, this->knots, N);
 
-    ChVector<> pos = VNULL;
+    ChVector3d pos = VNULL;
     int uind = spanU - p;
     for (int i = 0; i <= this->p; i++) {
         pos += points[uind + i] * N(i);
@@ -65,7 +65,7 @@ ChVector<> ChLineBspline::Evaluate(double parU) const {
     return pos;
 }
 
-ChVector<> ChLineBspline::GetTangent(double parU) const {
+ChVector3d ChLineBspline::GetTangent(double parU) const {
     double mU;
 	if (this->closed)
 		mU = fmod(parU, 1.0);
@@ -79,7 +79,7 @@ ChVector<> ChLineBspline::GetTangent(double parU) const {
     ChMatrixDynamic<> NdN(2, p + 1);  // basis on 1st row and their 1st derivatives on 2nd row
     ChBasisToolsBspline::BasisEvaluateDeriv(this->p, spanU, u, this->knots, NdN);
 
-    ChVector<> dir = VNULL;
+    ChVector3d dir = VNULL;
     int uind = spanU - p;
     for (int i = 0; i <= this->p; i++) {
         dir += points[uind + i] * NdN(1, i);
@@ -88,19 +88,19 @@ ChVector<> ChLineBspline::GetTangent(double parU) const {
     return dir;
 }
 
-void ChLineBspline::SetupData(
+void ChLineBspline::Setup(
     int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-    const std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
+    const std::vector<ChVector3d >& mpoints,  ///< control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
     if (morder < 1)
-        throw ChException("ChLineBspline::SetupData requires order >= 1.");
+        throw std::invalid_argument("ChLineBspline::Setup requires order >= 1.");
 
     if (mpoints.size() < morder + 1)
-        throw ChException("ChLineBspline::SetupData requires at least order+1 control points.");
+        throw std::invalid_argument("ChLineBspline::Setup requires at least order+1 control points.");
 
     if (mknots && (size_t)mknots->size() != (mpoints.size() + morder + 1))
-        throw ChException("ChLineBspline::SetupData: knots must have size=n_points+order+1");
+        throw std::invalid_argument("ChLineBspline::Setup: knots must have size=n_points+order+1");
 
     this->p = morder;
     this->points = mpoints;
@@ -149,29 +149,29 @@ void ChLineBspline::SetClosed(bool mc) {
 	this->closed = mc;
 }
 
-void ChLineBspline::ArchiveOut(ChArchiveOut& marchive) {
+void ChLineBspline::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLineBspline>();
+    archive_out.VersionWrite<ChLineBspline>();
     // serialize parent class
-    ChLine::ArchiveOut(marchive);
+    ChLine::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(points);
-    marchive << CHNVP(knots);
-    marchive << CHNVP(p);
-	marchive << CHNVP(closed);
+    archive_out << CHNVP(points);
+    archive_out << CHNVP(knots);
+    archive_out << CHNVP(p);
+	archive_out << CHNVP(closed);
 }
 
-void ChLineBspline::ArchiveIn(ChArchiveIn& marchive) {
+void ChLineBspline::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLineBspline>();
+    /*int version =*/ archive_in.VersionRead<ChLineBspline>();
     // deserialize parent class
-    ChLine::ArchiveIn(marchive);
+    ChLine::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(points);
-    marchive >> CHNVP(knots);
-    marchive >> CHNVP(p);
-	marchive >> CHNVP(closed);
+    archive_in >> CHNVP(points);
+    archive_in >> CHNVP(knots);
+    archive_in >> CHNVP(p);
+	archive_in >> CHNVP(closed);
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

@@ -18,10 +18,12 @@
 #include <cmath>
 
 #include "chrono/geometry/ChLine.h"
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// For ChLineCam: types of cams
 enum eChCamType {
@@ -63,7 +65,7 @@ class ChApi ChLineCam : public ChLine {
     bool negative;  ///< negative cam: for desmodromic stuff, (cam is also Y or X mirrored, depend.on type )
     bool internal;  ///< follower roller is inside the cam
 
-    ChVector<> center;  ///< center of cam in space (def.alignment on xy plane)
+    ChVector3d center;  ///< center of cam in space (def.alignment on xy plane)
 
   public:
     ChLineCam();
@@ -74,7 +76,7 @@ class ChApi ChLineCam : public ChLine {
     virtual ChLineCam* Clone() const override { return new ChLineCam(*this); }
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::LINE_CAM; }
+    virtual Type GetType() const override { return Type::LINE_CAM; }
 
     virtual bool Get_closed() const override { return true; }
     virtual void Set_closed(bool mc) override {}
@@ -100,8 +102,8 @@ class ChApi ChLineCam : public ChLine {
     eChCamType Get_type() const { return type; }
 
     /// position of center of cam in 3d space.
-    void Set_center(ChVector<> mc) { center = mc; }
-    ChVector<> Get_center() const { return center; }
+    void Set_center(ChVector3d mc) { center = mc; }
+    ChVector3d Get_center() const { return center; }
 
     /// If true, creates a negative cam.
     void Set_Negative(bool val) { negative = val; }
@@ -113,7 +115,7 @@ class ChApi ChLineCam : public ChLine {
 
     /// Sets the data for the rotating follower (length, distance from cam center, initial phase mb0)
     void Set_rotating_follower(double mp, double md, double mb0);
-    double Get_p() const { return p; }
+    double GetVal() const { return p; }
     double Get_d() const { return d; }
     double Get_b0() const { return b0; }
 
@@ -128,27 +130,27 @@ class ChApi ChLineCam : public ChLine {
     /// Evaluate at once all important properties of cam, function of rotation 'par'
     /// (par in range 0..1, with 1 corresponding to 360 degrees):
     /// Also returns the pressure angle g and curvature radius q.
-    ChVector<> EvaluateCamPoint(double par, double& g, double& q) const;
+    ChVector3d EvaluateCamPoint(double par, double& g, double& q) const;
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
-    virtual ChVector<> Evaluate(double U) const override;
+    virtual ChVector3d Evaluate(double U) const override;
 
     /// Weight evaluation.
     /// Given that the shape is defined by a Ch_function, the
     /// returned weight is the weight of the function (Ch_function_sequence can
     /// have different 'weight' values depending on the function segment)
-    double Get_weight(double par) const { return law->Get_weight(par * 2 * CH_C_PI); }
+    double GetWeight(double par) const { return law->GetWeight(par * 2 * CH_C_PI); }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChLineCam, 0)
+CH_CLASS_VERSION(ChLineCam, 0)
 
 }  // end namespace chrono
 

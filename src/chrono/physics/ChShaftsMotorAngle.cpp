@@ -22,7 +22,7 @@ CH_FACTORY_REGISTER(ChShaftsMotorAngle)
 
 ChShaftsMotorAngle::ChShaftsMotorAngle() : rot_offset(0), violation(0), motor_torque(0) {
     // default motion function : a ramp
-    this->f_rot = chrono_types::make_shared<ChFunction_Ramp>(
+    this->f_rot = chrono_types::make_shared<ChFunctionRamp>(
         0.0,   // default y(0)
         1.0    // default dy/dx , i.e.   1 [rad/s]
         );
@@ -56,7 +56,7 @@ void ChShaftsMotorAngle::Update(double mytime, bool update_assets) {
 
     // Update class data
     this->f_rot->Update(mytime); // call callbacks if any
-    violation = GetMotorRot() - f_rot->Get_y(mytime) - rot_offset;
+    violation = GetMotorAngle() - f_rot->GetVal(mytime) - rot_offset;
 }
 
 //// STATE BOOKKEEPING FUNCTIONS
@@ -83,10 +83,10 @@ void ChShaftsMotorAngle::IntLoadConstraint_C(const unsigned int off_L,  // offse
                                         bool do_clamp,             // apply clamping to c*C?
                                         double recovery_clamp      // value for min/max clamping of c*C
                                         ) {
-    double res = c * (GetMotorRot()  - this->f_rot->Get_y(this->GetChTime()) - this->rot_offset);
+    double res = c * (GetMotorAngle()  - this->f_rot->GetVal(this->GetChTime()) - this->rot_offset);
 
     if (do_clamp) {
-        res = ChMin(ChMax(res, -recovery_clamp), recovery_clamp);
+        res = std::min(std::max(res, -recovery_clamp), recovery_clamp);
     }
     Qc(off_L) += res;
 }
@@ -95,7 +95,7 @@ void ChShaftsMotorAngle::IntLoadConstraint_Ct(const unsigned int off_L,  // offs
                                          ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*Ct
                                          const double c             // a scaling factor
                                          ) {
-    double ct = - this->f_rot->Get_y_dx(this->GetChTime());
+    double ct = - this->f_rot->GetDer(this->GetChTime());
     Qc(off_L) += c * ct;
 }
 
@@ -130,14 +130,14 @@ void ChShaftsMotorAngle::ConstraintsBiReset() {
 
 void ChShaftsMotorAngle::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
 
-    double res = factor * (GetMotorRot()  - this->f_rot->Get_y(this->GetChTime()) - this->rot_offset);
+    double res = factor * (GetMotorAngle()  - this->f_rot->GetVal(this->GetChTime()) - this->rot_offset);
 
     constraint.Set_b_i(constraint.Get_b_i() + factor * res);
 }
 
 void ChShaftsMotorAngle::ConstraintsBiLoad_Ct(double factor) {
 
-    double ct = - this->f_rot->Get_y_dx(this->GetChTime());
+    double ct = - this->f_rot->GetDer(this->GetChTime());
     constraint.Set_b_i(constraint.Get_b_i() + factor * ct);
 }
 
@@ -152,32 +152,32 @@ void ChShaftsMotorAngle::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsMotorAngle::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsMotorAngle::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsMotorAngle>();
+    archive_out.VersionWrite<ChShaftsMotorAngle>();
 
     // serialize parent class
-    ChShaftsMotorBase::ArchiveOut(marchive);
+    ChShaftsMotorBase::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(motor_torque);
-    marchive << CHNVP(this->rot_offset);
-    marchive << CHNVP(this->f_rot);
+    archive_out << CHNVP(motor_torque);
+    archive_out << CHNVP(this->rot_offset);
+    archive_out << CHNVP(this->f_rot);
 
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsMotorAngle::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsMotorAngle::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsMotorAngle>();
+    /*int version =*/ archive_in.VersionRead<ChShaftsMotorAngle>();
 
     // deserialize parent class:
-    ChShaftsMotorBase::ArchiveIn(marchive);
+    ChShaftsMotorBase::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(motor_torque);
-    marchive >> CHNVP(this->rot_offset);
-    marchive >> CHNVP(this->f_rot);
+    archive_in >> CHNVP(motor_torque);
+    archive_in >> CHNVP(this->rot_offset);
+    archive_in >> CHNVP(this->f_rot);
     constraint.SetVariables(&shaft1->Variables(), &shaft2->Variables());
 }
 

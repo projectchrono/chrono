@@ -47,8 +47,8 @@ ChLinkDistance::ChLinkDistance(const ChLinkDistance& other) : ChLink(other) {
 int ChLinkDistance::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
                                std::shared_ptr<ChBodyFrame> mbody2,
                                bool pos_are_relative,
-                               ChVector<> mpos1,
-                               ChVector<> mpos2,
+                               ChVector3d mpos1,
+                               ChVector3d mpos2,
                                bool auto_distance,
                                double mdistance,
                                Mode mode) {
@@ -66,7 +66,7 @@ int ChLinkDistance::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
         pos2 = Body2->TransformPointParentToLocal(mpos2);
     }
 
-    ChVector<> delta_pos = Body1->TransformPointLocalToParent(pos1) - Body2->TransformPointLocalToParent(pos2);
+    ChVector3d delta_pos = Body1->TransformPointLocalToParent(pos1) - Body2->TransformPointLocalToParent(pos2);
     curr_dist = delta_pos.Length();
 
     if (auto_distance) {
@@ -88,14 +88,14 @@ void ChLinkDistance::SetMode(Mode mode) {
 }
 
 ChCoordsys<> ChLinkDistance::GetLinkRelativeCoords() {
-    ChVector<> dir_F1_F2_W =
+    ChVector3d dir_F1_F2_W =
         (Vnorm(Body1->TransformPointLocalToParent(pos1) - Body2->TransformPointLocalToParent(pos2)));
-    ChVector<> dir_F1_F2_B1 = Body2->TransformDirectionParentToLocal(dir_F1_F2_W);
-    ChVector<> Vx, Vy, Vz;
+    ChVector3d dir_F1_F2_B1 = Body2->TransformDirectionParentToLocal(dir_F1_F2_W);
+    ChVector3d Vx, Vy, Vz;
     XdirToDxDyDz(dir_F1_F2_B1, VECT_Y, Vx, Vy, Vz);
     ChMatrix33<> rel_matrix(Vx, Vy, Vz);
 
-    Quaternion Ql2 = rel_matrix.Get_A_quaternion();
+    ChQuaterniond Ql2 = rel_matrix.GetQuaternion();
     return ChCoordsys<>(pos2, Ql2);
 }
 
@@ -104,17 +104,17 @@ void ChLinkDistance::Update(double mytime, bool update_assets) {
     ChLink::Update(mytime, update_assets);
 
     // compute jacobians
-    ChVector<> delta_pos = Body1->TransformPointLocalToParent(pos1) - Body2->TransformPointLocalToParent(pos2);
+    ChVector3d delta_pos = Body1->TransformPointLocalToParent(pos1) - Body2->TransformPointLocalToParent(pos2);
     curr_dist = delta_pos.Length();
-    ChVector<> dir_F1_F2_W = Vnorm(delta_pos);
-    ChVector<> dir_F1_F2_B2 = Body2->TransformDirectionParentToLocal(dir_F1_F2_W);
-    ChVector<> dir_F1_F2_B1 = Body1->TransformDirectionParentToLocal(dir_F1_F2_W);
+    ChVector3d dir_F1_F2_W = Vnorm(delta_pos);
+    ChVector3d dir_F1_F2_B2 = Body2->TransformDirectionParentToLocal(dir_F1_F2_W);
+    ChVector3d dir_F1_F2_B1 = Body1->TransformDirectionParentToLocal(dir_F1_F2_W);
 
-    ChVector<> Cq_B1_pos = dir_F1_F2_W;
-    ChVector<> Cq_B2_pos = -dir_F1_F2_W;
+    ChVector3d Cq_B1_pos = dir_F1_F2_W;
+    ChVector3d Cq_B2_pos = -dir_F1_F2_W;
 
-    ChVector<> Cq_B1_rot = -Vcross(dir_F1_F2_B1, pos1);
-    ChVector<> Cq_B2_rot = Vcross(dir_F1_F2_B2, pos2);
+    ChVector3d Cq_B1_rot = -Vcross(dir_F1_F2_B1, pos1);
+    ChVector3d Cq_B2_rot = Vcross(dir_F1_F2_B2, pos2);
 
     Cx.Get_Cq_a()(0) = mode_sign * Cq_B1_pos.x();
     Cx.Get_Cq_a()(1) = mode_sign * Cq_B1_pos.y();
@@ -171,9 +171,9 @@ void ChLinkDistance::IntLoadConstraint_C(const unsigned int off_L,  ///< offset 
 
     if (do_clamp)
         if (mode == Mode::BILATERAL)
-            Qc(off_L) += ChMin(ChMax(c * C[0], -recovery_clamp), recovery_clamp);
+            Qc(off_L) += std::min(std::max(c * C[0], -recovery_clamp), recovery_clamp);
         else
-            Qc(off_L) += ChMax(c * C[0], -recovery_clamp);
+            Qc(off_L) += std::max(c * C[0], -recovery_clamp);
     else
         Qc(off_L) += c * C[0];
 }
@@ -220,7 +220,7 @@ void ChLinkDistance::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
         return;
 
     if (do_clamp)
-        Cx.Set_b_i(Cx.Get_b_i() + ChMin(ChMax(factor * C[0], -recovery_clamp), recovery_clamp));
+        Cx.Set_b_i(Cx.Get_b_i() + std::min(std::max(factor * C[0], -recovery_clamp), recovery_clamp));
     else
         Cx.Set_b_i(Cx.Get_b_i() + factor * C[0]);
 }
@@ -238,40 +238,40 @@ void ChLinkDistance::ConstraintsFetch_react(double factor) {
     react_torque = VNULL;
 }
 
-void ChLinkDistance::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkDistance::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkDistance>();
+    archive_out.VersionWrite<ChLinkDistance>();
 
     // serialize parent class
-    ChLink::ArchiveOut(marchive);
+    ChLink::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(distance);
-    marchive << CHNVP(pos1);
-    marchive << CHNVP(pos2);
+    archive_out << CHNVP(distance);
+    archive_out << CHNVP(pos1);
+    archive_out << CHNVP(pos2);
 
     ChLinkDistance_Mode_enum_mapper::Mode_mapper typemapper;
-    marchive << CHNVP(typemapper(mode), "ChLinkDistance__Mode");
+    archive_out << CHNVP(typemapper(mode), "ChLinkDistance__Mode");
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkDistance::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkDistance::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChLinkDistance>();
+    /*int version =*/archive_in.VersionRead<ChLinkDistance>();
 
     // deserialize parent class
-    ChLink::ArchiveIn(marchive);
+    ChLink::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(distance);
-    marchive >> CHNVP(pos1);
-    marchive >> CHNVP(pos2);
+    archive_in >> CHNVP(distance);
+    archive_in >> CHNVP(pos1);
+    archive_in >> CHNVP(pos2);
 
     Cx.SetVariables(&Body1->Variables(), &Body2->Variables());
 
     ChLinkDistance_Mode_enum_mapper::Mode_mapper typemapper;
     Mode mode_temp;
-    marchive >> CHNVP(typemapper(mode_temp), "ChLinkDistance__Mode");
+    archive_in >> CHNVP(typemapper(mode_temp), "ChLinkDistance__Mode");
     SetMode(mode_temp);
 }
 

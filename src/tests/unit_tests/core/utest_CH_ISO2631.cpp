@@ -12,6 +12,8 @@
 
 #include "gtest/gtest.h"
 #include "chrono/utils/ChFilters.h"
+#include "chrono/utils/ChConstants.h"
+
 
 using namespace chrono;
 

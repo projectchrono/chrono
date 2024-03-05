@@ -36,7 +36,7 @@ namespace generic {
 const double Generic_Pac89Tire::m_normalDamping = 3500;
 
 const double Generic_Pac89Tire::m_mass = 37.6;
-const ChVector<> Generic_Pac89Tire::m_inertia(3.84, 6.69, 3.84);
+const ChVector3d Generic_Pac89Tire::m_inertia(3.84, 6.69, 3.84);
 
 const std::string Generic_Pac89Tire::m_meshFile_left = "generic/tire/generic_tire_coarse.obj";
 const std::string Generic_Pac89Tire::m_meshFile_right = "generic/tire/generic_tire_coarse.obj";
@@ -141,7 +141,7 @@ double Generic_Pac89Tire::GetNormalStiffnessForce(double depth) const {
                 normalforcetabel[int(std::floor(position) + 1)] * scale);
     }
     */
-    return m_vert_map.Get_y(depth);
+    return m_vert_map.GetVal(depth);
 }
 
 // -----------------------------------------------------------------------------

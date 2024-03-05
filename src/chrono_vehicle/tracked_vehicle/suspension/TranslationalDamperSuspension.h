@@ -42,7 +42,7 @@ class CH_VEHICLE_API TranslationalDamperSuspension : public ChTranslationalDampe
     /// Return the mass of the arm body.
     virtual double GetArmMass() const override { return m_arm_mass; }
     /// Return the moments of inertia of the arm body.
-    virtual const ChVector<>& GetArmInertia() const override { return m_arm_inertia; }
+    virtual const ChVector3d& GetArmInertia() const override { return m_arm_inertia; }
     /// Return a visualization radius for the arm body.
     virtual double GetArmVisRadius() const override { return m_arm_radius; }
 
@@ -60,7 +60,7 @@ class CH_VEHICLE_API TranslationalDamperSuspension : public ChTranslationalDampe
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> GetShockForceFunctor() const override { return m_shock_forceCB; }
 
   private:
-    virtual const ChVector<> GetLocation(PointId which) override { return m_points[which]; }
+    virtual const ChVector3d GetLocation(PointId which) override { return m_points[which]; }
 
     virtual void Create(const rapidjson::Document& d) override;
 
@@ -69,10 +69,10 @@ class CH_VEHICLE_API TranslationalDamperSuspension : public ChTranslationalDampe
     std::shared_ptr<ChLinkRSDA::TorqueFunctor> m_damper_torqueCB;
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shock_forceCB;
 
-    ChVector<> m_points[NUM_POINTS];
+    ChVector3d m_points[NUM_POINTS];
 
     double m_arm_mass;
-    ChVector<> m_arm_inertia;
+    ChVector3d m_arm_inertia;
     double m_arm_radius;
 };
 

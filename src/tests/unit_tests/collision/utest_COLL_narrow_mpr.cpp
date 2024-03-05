@@ -20,7 +20,7 @@
 #include "chrono/collision/multicore/ChCollisionUtils.h"
 
 #include "chrono/collision/ChCollisionModel.h"
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChConstants.h"
 
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtBoxShape.h"
 #include "chrono/collision/bullet/BulletCollision/CollisionShapes/cbtCollisionMargin.h"
@@ -401,7 +401,7 @@ TEST(ChNarrowphaseMPR, cylinder_sphere) {
     // Cylinder position and orientation fixed for all tests.
     // Aligned with X axis and shifted by its half-length in the X direction.
     real3 c_pos(c_hlen, 0, 0);
-    quaternion c_rot = FromChQuaternion(Q_from_AngY(CH_C_PI_2));
+    quaternion c_rot = FromChQuaternion(QuatFromAngleY(CH_C_PI_2));
 
     real3 norm;
     real depth;
@@ -557,7 +557,7 @@ TEST(ChNarrowphaseMPR, roundedcyl_sphere) {
     // Rounded cylinder position and orientation fixed for all tests.
     // Aligned with X axis and shifted by its half-length in the X direction.
     real3 c_pos(c_hlen, 0, 0);
-    quaternion c_rot = FromChQuaternion(Q_from_AngY(CH_C_PI_2));
+    quaternion c_rot = FromChQuaternion(QuatFromAngleY(CH_C_PI_2));
 
     real3 norm;
     real depth;

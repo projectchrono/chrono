@@ -30,11 +30,11 @@ namespace fmtv {
 // Static variables
 
 const double FMTV_ChassisFront::m_body_mass = 3946;
-const ChVector<> FMTV_ChassisFront::m_body_inertiaXX(3.2282e3, 5.2323e3, 4.4980e3);
-const ChVector<> FMTV_ChassisFront::m_body_inertiaXY(0, -0.4027e3, 0);
-const ChVector<> FMTV_ChassisFront::m_body_COM_loc(-0.6972, 0, 0.6672);
-const ChVector<> FMTV_ChassisFront::m_connector_loc(-1.85, 0, 0.45);
-const ChCoordsys<> FMTV_ChassisFront::m_driverCsys(ChVector<>(0.4, 0.7, 1.18), ChQuaternion<>(1, 0, 0, 0));
+const ChVector3d FMTV_ChassisFront::m_body_inertiaXX(3.2282e3, 5.2323e3, 4.4980e3);
+const ChVector3d FMTV_ChassisFront::m_body_inertiaXY(0, -0.4027e3, 0);
+const ChVector3d FMTV_ChassisFront::m_body_COM_loc(-0.6972, 0, 0.6672);
+const ChVector3d FMTV_ChassisFront::m_connector_loc(-1.85, 0, 0.45);
+const ChCoordsys<> FMTV_ChassisFront::m_driverCsys(ChVector3d(0.4, 0.7, 1.18), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 
@@ -63,9 +63,9 @@ FMTV_ChassisFront::FMTV_ChassisFront(const std::string& name, bool fixed, Collis
     double joint_pos_z = 0.8404;
     double widthFrame = 0.905;
     double heightFrame = 0.2;
-    ChVector<> frontBoxPos((1.0 + joint_pos_x) / 2, 0, joint_pos_z);
+    ChVector3d frontBoxPos((1.0 + joint_pos_x) / 2, 0, joint_pos_z);
     ChVehicleGeometry::BoxShape box(frontBoxPos, ChQuaternion<>(1, 0, 0, 0),
-                                    ChVector<>(1.0 - joint_pos_x, widthFrame, heightFrame));
+                                    ChVector3d(1.0 - joint_pos_x, widthFrame, heightFrame));
 
     m_geometry.m_has_primitives = true;
     m_geometry.m_vis_boxes.push_back(box);

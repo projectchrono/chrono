@@ -156,7 +156,7 @@ void DBPcontroller::OnPhaseChange(robosimian::RS_Driver::Phase old_phase, robosi
             m_start_time = m_robot->GetSystem()->GetChTime();
             // Increment DBP force
             m_dbp += m_dbp_incr;
-            m_load->SetForce(ChVector<>(-m_dbp * m_weight, 0, 0), false);
+            m_load->SetForce(ChVector3d(-m_dbp * m_weight, 0, 0), false);
         }
 
         cout << "  FL wheel location:  " << m_robot->GetWheelPos(robosimian::LimbID::FL).x() << endl;
@@ -196,13 +196,13 @@ std::shared_ptr<vehicle::SCMTerrain> CreateTerrain(robosimian::RoboSimian* robot
     double damping = 3e4;    // Damping coefficient (Pa*s/m)
 
     auto terrain = chrono_types::make_shared<vehicle::SCMTerrain>(robot->GetSystem());
-    terrain->SetPlane(ChCoordsys<>(ChVector<>(length / 2 - offset, 0, height), QUNIT));
+    terrain->SetPlane(ChCoordsys<>(ChVector3d(length / 2 - offset, 0, height), QUNIT));
     terrain->SetSoilParameters(Kphi, Kc, n, coh, phi, K, E_elastic, damping);
     terrain->SetPlotType(vehicle::SCMTerrain::PLOT_SINKAGE, 0, 0.15);
     terrain->Initialize(length, width, 1.0 / 64);
 
     // Enable moving patch feature
-    terrain->AddMovingPatch(robot->GetChassisBody(), ChVector<>(0, 0, 0), ChVector<>(3.0, 2.0, 1.0));
+    terrain->AddMovingPatch(robot->GetChassisBody(), ChVector3d(0, 0, 0), ChVector3d(3.0, 2.0, 1.0));
 
     return terrain;
 }
@@ -220,8 +220,8 @@ void SetContactProperties(robosimian::RoboSimian* robot) {
     robot->GetWheelContactMaterial()->SetFriction(friction);
     robot->GetWheelContactMaterial()->SetRestitution(cr);
 
-    std::static_pointer_cast<ChMaterialSurfaceSMC>(robot->GetSledContactMaterial())->SetYoungModulus(Y);
-    std::static_pointer_cast<ChMaterialSurfaceSMC>(robot->GetWheelContactMaterial())->SetYoungModulus(Y);
+    std::static_pointer_cast<ChContactMaterialSMC>(robot->GetSledContactMaterial())->SetYoungModulus(Y);
+    std::static_pointer_cast<ChContactMaterialSMC>(robot->GetWheelContactMaterial())->SetYoungModulus(Y);
 }
 
 // =============================================================================
@@ -264,8 +264,8 @@ int main(int argc, char* argv[]) {
     my_sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     my_sys.SetSolverMaxIterations(200);
     my_sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    my_sys.Set_G_acc(ChVector<double>(0, 0, -9.8));
-    ////my_sys.Set_G_acc(ChVector<double>(0, 0, 0));
+    my_sys.Set_G_acc(ChVector3d(0, 0, -9.8));
+    ////my_sys.Set_G_acc(ChVector3d(0, 0, 0));
 
     // -----------------------
     // Create RoboSimian robot
@@ -318,8 +318,8 @@ int main(int argc, char* argv[]) {
 
     // Initialize Robosimian robot
 
-    ////robot.Initialize(ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
-    robot.Initialize(ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI)));
+    ////robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
+    robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI)));
 
     // -----------------------------------
     // Create a driver and attach to robot
@@ -394,10 +394,10 @@ int main(int argc, char* argv[]) {
         vis->Initialize();
         vis->AddLogo();
         vis->AddSkyBox();
-        vis->AddCamera(ChVector<>(1, -2.75, 0.2), ChVector<>(1, 0, 0));
-        vis->AddLight(ChVector<>(100, +100, 100), 290, ChColor(0.7f, 0.7f, 0.7f));
-        vis->AddLight(ChVector<>(100, -100, 80), 190, ChColor(0.7f, 0.8f, 0.8f));
-        ////vis->AddLightWithShadow(ChVector<>(10.0, -6.0, 3.0), ChVector<>(0, 0, 0), 3, -10, 10, 40, 512);
+        vis->AddCamera(ChVector3d(1, -2.75, 0.2), ChVector3d(1, 0, 0));
+        vis->AddLight(ChVector3d(100, +100, 100), 290, ChColor(0.7f, 0.7f, 0.7f));
+        vis->AddLight(ChVector3d(100, -100, 80), 190, ChColor(0.7f, 0.8f, 0.8f));
+        ////vis->AddLightWithShadow(ChVector3d(10.0, -6.0, 3.0), ChVector3d(0, 0, 0), 3, -10, 10, 40, 512);
         ////vis->EnableShadows();
     }
 

@@ -22,34 +22,34 @@ CH_UPCASTING(ChCollisionShapeTriangle, ChCollisionShape)
 
 ChCollisionShapeTriangle::ChCollisionShapeTriangle() : ChCollisionShape(Type::TRIANGLE) {}
 
-ChCollisionShapeTriangle::ChCollisionShapeTriangle(std::shared_ptr<ChMaterialSurface> material,
-                                                   const ChVector<>& p1,
-                                                   const ChVector<>& p2,
-                                                   const ChVector<>& p3)
+ChCollisionShapeTriangle::ChCollisionShapeTriangle(std::shared_ptr<ChContactMaterial> material,
+                                                   const ChVector3d& p1,
+                                                   const ChVector3d& p2,
+                                                   const ChVector3d& p3)
     : ChCollisionShape(Type::TRIANGLE, material) {
     gtriangle.SetPoints(p1, p2, p3);
 }
 
-ChCollisionShapeTriangle::ChCollisionShapeTriangle(std::shared_ptr<ChMaterialSurface> material,
-                                                   const geometry::ChTriangle& triangle)
+ChCollisionShapeTriangle::ChCollisionShapeTriangle(std::shared_ptr<ChContactMaterial> material,
+                                                   const ChTriangle& triangle)
     : ChCollisionShape(Type::TRIANGLE, material), gtriangle(triangle) {}
 
-void ChCollisionShapeTriangle::ArchiveOut(ChArchiveOut& marchive) {
+void ChCollisionShapeTriangle::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCollisionShapeTriangle>();
+    archive_out.VersionWrite<ChCollisionShapeTriangle>();
     // serialize parent class
-    ChCollisionShape::ArchiveOut(marchive);
+    ChCollisionShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gtriangle);
+    archive_out << CHNVP(gtriangle);
 }
 
-void ChCollisionShapeTriangle::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionShapeTriangle::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionShapeTriangle>();
+    /*int version =*/archive_in.VersionRead<ChCollisionShapeTriangle>();
     // deserialize parent class
-    ChCollisionShape::ArchiveIn(marchive);
+    ChCollisionShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gtriangle);
+    archive_in >> CHNVP(gtriangle);
 }
 
 }  // end namespace chrono

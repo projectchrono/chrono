@@ -35,7 +35,7 @@ AutomaticTransmissionShafts::AutomaticTransmissionShafts(const std::string& file
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 AutomaticTransmissionShafts::AutomaticTransmissionShafts(const rapidjson::Document& d)
@@ -82,11 +82,11 @@ void AutomaticTransmissionShafts::SetGearRatios(std::vector<double>& fwd, double
     fwd = m_fwd_gear;
 }
 
-void AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunctionInterp>& map) {
     m_tc_capacity_factor.Set(*map);
 }
 
-void AutomaticTransmissionShafts::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void AutomaticTransmissionShafts::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunctionInterp>& map) {
     m_tc_torque_ratio.Set(*map);
 }
 

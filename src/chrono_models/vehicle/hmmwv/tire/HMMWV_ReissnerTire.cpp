@@ -36,17 +36,17 @@ const double HMMWV_ReissnerTire::m_alpha = 0.005;
 const double HMMWV_ReissnerTire::m_default_pressure = 200e3;
 
 const double HMMWV_ReissnerTire::m_rho_0 = 0.1e4;
-const ChVector<> HMMWV_ReissnerTire::m_E_0(0.756e10, 0.474e8, 0.474e8);
+const ChVector3d HMMWV_ReissnerTire::m_E_0(0.756e10, 0.474e8, 0.474e8);
 const double HMMWV_ReissnerTire::m_nu_0 = 0.45;
-const ChVector<> HMMWV_ReissnerTire::m_G_0(0.1634e8, 0.1634e8, 0.1634e8);
+const ChVector3d HMMWV_ReissnerTire::m_G_0(0.1634e8, 0.1634e8, 0.1634e8);
 const double HMMWV_ReissnerTire::m_rho_1 = 0.2639e4;
-const ChVector<> HMMWV_ReissnerTire::m_E_1(0.18e12, 0.474e8, 0.474e8);
+const ChVector3d HMMWV_ReissnerTire::m_E_1(0.18e12, 0.474e8, 0.474e8);
 const double HMMWV_ReissnerTire::m_nu_1 = 0.45;
-const ChVector<> HMMWV_ReissnerTire::m_G_1(0.1634e8, 0.1634e8, 0.1634e8);
+const ChVector3d HMMWV_ReissnerTire::m_G_1(0.1634e8, 0.1634e8, 0.1634e8);
 const double HMMWV_ReissnerTire::m_rho_2 = 0.11e4;
-const ChVector<> HMMWV_ReissnerTire::m_E_2(0.474e8, 0.474e8, 0.474e8);
+const ChVector3d HMMWV_ReissnerTire::m_E_2(0.474e8, 0.474e8, 0.474e8);
 const double HMMWV_ReissnerTire::m_nu_2 = 0.45;
-const ChVector<> HMMWV_ReissnerTire::m_G_2(0.1634e8, 0.1634e8, 0.1634e8);
+const ChVector3d HMMWV_ReissnerTire::m_G_2(0.1634e8, 0.1634e8, 0.1634e8);
 
 const unsigned int HMMWV_ReissnerTire::m_num_elements_bead = 2;
 const unsigned int HMMWV_ReissnerTire::m_num_layers_bead = 3;
@@ -158,7 +158,7 @@ void HMMWV_ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleS
     // and are then transformed to the global frame.
     for (int i = 0; i < m_div_circumference; i++) {
         double phi = (CH_C_2PI * i) / m_div_circumference;
-        ChVector<> nrm(-std::sin(phi), 0, std::cos(phi));
+        ChVector3d nrm(-std::sin(phi), 0, std::cos(phi));
 
         for (int j = 0; j <= m_div_width; j++) {
             double t_prf = double(j) / m_div_width;
@@ -172,17 +172,17 @@ void HMMWV_ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleS
             double y = y_prf;
             double z = (m_rim_radius + x_prf) * std::sin(phi);
             // Node position in global frame (actual coordinate values)
-            ChVector<> loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+            ChVector3d loc = wheel_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
 
             // Node direction
-            ChVector<> tan_prf(std::cos(phi) * xp_prf, yp_prf, std::sin(phi) * xp_prf);
-            ChVector<> nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
-            ChMatrix33<> mrot; mrot.Set_A_Xdir(tan_prf,nrm_prf);
+            ChVector3d tan_prf(std::cos(phi) * xp_prf, yp_prf, std::sin(phi) * xp_prf);
+            ChVector3d nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
+            ChMatrix33<> mrot; mrot.SetFromAxisX(tan_prf,nrm_prf);
             auto node = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));
 
             // Node velocity
-            ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
-            node->SetPos_dt(vel);
+            ChVector3d vel = wheel_frame.PointSpeedLocalToParent(ChVector3d(x, y, z));
+            node->SetPosDer(vel);
             node->SetMass(0);
             m_mesh->AddNode(node);
         }
@@ -263,7 +263,7 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> HMMWV_ReissnerTire::GetConnecte
 }
 
 void HMMWV_ReissnerTire::CreateContactMaterial() {
-    m_contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    m_contact_mat = chrono_types::make_shared<ChContactMaterialSMC>();
     m_contact_mat->SetFriction(m_friction);
     m_contact_mat->SetRestitution(m_restitution);
     m_contact_mat->SetYoungModulus(m_Young);

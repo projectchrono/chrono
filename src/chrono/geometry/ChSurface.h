@@ -17,11 +17,12 @@
 
 #include <cmath>
 
-#include "chrono/core/ChFilePS.h"
 #include "chrono/geometry/ChGeometry.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// Base class for all geometric objects representing bi-parametric surfaces in 3D space.
 /// This is the base for all U,V-parametric object, implementing Evaluate()
@@ -42,12 +43,12 @@ class ChApi ChSurface : public ChGeometry {
     /// Return a point on the surface, given parametric coordinates U,V.
     /// Parameters U and V always work in 0..1 range.
     /// The default implementation always returns the origin of the surface frame.
-    virtual ChVector<> Evaluate(double parU, double parV) const { return VNULL; }
+    virtual ChVector3d Evaluate(double parU, double parV) const { return VNULL; }
 
     /// Return the normal unit vector at the parametric coordinates U,V (in the range [0,1]).
     /// Computed value (normalized) goes into the 'pos' reference.
     /// This default implementation uses finite differences.
-    virtual ChVector<> GetNormal(double parU, double parV) const;
+    virtual ChVector3d GetNormal(double parU, double parV) const;
 
     /// Tell if the surface is closed (periodic) on U
     virtual bool Get_closed_U() const { return false; }
@@ -64,15 +65,15 @@ class ChApi ChSurface : public ChGeometry {
     void SetWireframe(bool mw) { wireframe = mw; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChSurface, 0)
+CH_CLASS_VERSION(ChSurface, 0)
 
 }  // end namespace chrono
 

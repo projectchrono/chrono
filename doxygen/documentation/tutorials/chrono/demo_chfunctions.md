@@ -5,7 +5,7 @@ Tutorial that teaches how to use the ChFunction inherited classes to build math 
 
 - create and use ChFunction objects, from available classes.
 - define a custom function by inheriting from ChFunction class.
-- use the ChFunction_Sequence to build a sequence of basic functions
+- use the ChFunctionSequence to build a sequence of basic functions
 - No GUI: only text output.
 
 	

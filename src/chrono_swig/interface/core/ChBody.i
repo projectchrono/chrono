@@ -9,23 +9,26 @@
 
 %csmethodmodifiers chrono::ChBody::SetPos "public"
 %csmethodmodifiers chrono::ChBody::SetRot "public"
+%csmethodmodifiers chrono::ChBody::SetPosDer "public"
+%csmethodmodifiers chrono::ChBody::SetLinVel "public"
+%csmethodmodifiers chrono::ChBody::SetRotDer "public"
+%csmethodmodifiers chrono::ChBody::SetAngVelLocal "public"
+%csmethodmodifiers chrono::ChBody::SetAngVelParent "public"
+
+%csmethodmodifiers chrono::ChBody::GetPhysicsItem "public"
 %csmethodmodifiers chrono::ChBody::GetPos "public"
 %csmethodmodifiers chrono::ChBody::GetRot "public"
-%csmethodmodifiers chrono::ChBody::GetA "public"
-%csmethodmodifiers chrono::ChBody::GetPhysicsItem "public"
-
-%csmethodmodifiers chrono::ChBody::SetPos_dt "public"
-%csmethodmodifiers chrono::ChBody::SetRot_dt "public"
-%csmethodmodifiers chrono::ChBody::SetWvel_loc "public"
-%csmethodmodifiers chrono::ChBody::SetWvel_par "public"
-%csmethodmodifiers chrono::ChBody::GetPos_dt "public"
-%csmethodmodifiers chrono::ChBody::GetRot_dt "public"
-%csmethodmodifiers chrono::ChBody::GetWvel_loc "public"
-%csmethodmodifiers chrono::ChBody::GetWvel_par "public"
-%csmethodmodifiers chrono::ChBody::GetPos_dtdt "public"
-%csmethodmodifiers chrono::ChBody::GetRot_dtdt "public"
-%csmethodmodifiers chrono::ChBody::GetWacc_loc "public"
-%csmethodmodifiers chrono::ChBody::GetWacc_par "public"
+%csmethodmodifiers chrono::ChBody::GetRotMat "public"
+%csmethodmodifiers chrono::ChBody::GetPosDer "public"
+%csmethodmodifiers chrono::ChBody::GetLinVel "public"
+%csmethodmodifiers chrono::ChBody::GetRotDer "public"
+%csmethodmodifiers chrono::ChBody::GetAngVelLocal "public"
+%csmethodmodifiers chrono::ChBody::GetAngVelParent "public"
+%csmethodmodifiers chrono::ChBody::GetPosDer2 "public"
+%csmethodmodifiers chrono::ChBody::GetLinAcc "public"
+%csmethodmodifiers chrono::ChBody::GetRotDer2 "public"
+%csmethodmodifiers chrono::ChBody::GetAngAccLocal "public"
+%csmethodmodifiers chrono::ChBody::GetAngAccParent "public"
 
 // avoid adding new keyword
 %csmethodmodifiers chrono::ChBody::AddCollisionModel "public"
@@ -36,26 +39,29 @@
 %extend chrono::ChBody 
 {
 // Methods inherited from ChFrame
-void SetPos(const ChVector<double>& p)      {$self->SetPos(p);}
+void SetPos(const ChVector3<double>& p)     {$self->SetPos(p);}
 void SetRot(const ChQuaternion<double>& q)  {$self->SetRot(q);}
 void SetRot(const ChMatrix33<double>& A)    {$self->SetRot(A);}
-const ChVector<double>& GetPos() const      {return $self->GetPos();}
+const ChVector3<double>& GetPos() const     {return $self->GetPos();}
 const ChQuaternion<double>& GetRot() const  {return $self->GetRot();}
-const ChMatrix33<double>& GetA() const      {return $self->GetA();}
+const ChMatrix33<double>& GetRotMat() const {return $self->GetRotMat();}
 
 // Methods inherited from ChFrameMoving
-void SetPos_dt(const ChVector<double>& pd)      {$self->SetPos_dt(pd);}
-void SetRot_dt(const ChQuaternion<double>& qd)  {$self->SetRot_dt(qd);}
-void SetWvel_loc(const ChVector<double>& wl)    {$self->SetWvel_loc(wl);}
-void SetWvel_par(const ChVector<double>& wp)    {$self->SetWvel_par(wp);}
-const ChVector<double>& GetPos_dt() const       {return $self->GetPos_dt();}
-const ChQuaternion<double>& GetRot_dt() const   {return $self->GetRot_dt();}
-ChVector<double> GetWvel_loc() const            {return $self->GetWvel_loc();}
-ChVector<double> GetWvel_par() const            {return $self->GetWvel_par();}
-const ChVector<double>& GetPos_dtdt() const     {return $self->GetPos_dtdt();}
-const ChQuaternion<double>& GetRot_dtdt() const {return $self->GetRot_dtdt();}
-ChVector<double> GetWacc_loc() const            {return $self->GetWacc_loc();}
-ChVector<double> GetWacc_par() const            {return $self->GetWacc_par();}
+void SetPosDer(const ChVector3<double>& pd)        {$self->SetPosDer(pd);}
+void SetLinVel(const ChVector3<double>& pd)        {$self->SetLinVel(pd);}
+void SetRotDer(const ChQuaternion<double>& qd)     {$self->SetRotDer(qd);}
+void SetAngVelLocal(const ChVector3<double>& wl)   {$self->SetAngVelLocal(wl);}
+void SetAngVelParent(const ChVector3<double>& wp)  {$self->SetAngVelParent(wp);}
+const ChVector3<double>& GetPosDer() const         {return $self->GetPosDer();}
+const ChVector3<double>& GetLinVel() const         {return $self->GetLinVel();}
+const ChQuaternion<double>& GetRotDer() const      {return $self->GetRotDer();}
+ChVector3<double> GetAngVelLocal() const           {return $self->GetAngVelLocal();}
+ChVector3<double> GetAngVelParent() const          {return $self->GetAngVelParent();}
+const ChVector3<double>& GetPosDer2() const        {return $self->GetPosDer2();}
+const ChVector3<double>& GetLinAcc() const         {return $self->GetLinAcc();}
+const ChQuaternion<double>& GetRotDer2() const     {return $self->GetRotDer2();}
+ChVector3<double> GetAngAccLocal() const           {return $self->GetAngAccLocal();}
+ChVector3<double> GetAngAccParent() const          {return $self->GetAngAccParent();}
 
 // Methods inherited from ChContactable
 void AddCollisionModel(std::shared_ptr<ChCollisionModel> model)                         {$self->AddCollisionModel(model);}
@@ -92,7 +98,7 @@ std::shared_ptr<ChCollisionModel> GetCollisionModel()                           
 
 // Forward ref
 //%import "ChPhysicsItem.i"   // (parent class does not need %import if all .i are included in proper order
-%import "chrono_swig/interface/core/ChMaterialSurface.i"
+%import "chrono_swig/interface/core/ChContactMaterial.i"
 %import "chrono_swig/interface/core/ChCollisionModel.i"
 %import "chrono_swig/interface/core/ChMarker.i"
 

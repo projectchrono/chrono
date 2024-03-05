@@ -43,14 +43,14 @@ class CH_MODELS_API Generic_RigidSuspension : public ChRigidSuspension {
 
     ~Generic_RigidSuspension() {}
 
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
     virtual double getSpindleMass() const override { return m_spindleMass; }
 
     virtual double getSpindleRadius() const override { return m_spindleRadius; }
     virtual double getSpindleWidth() const override { return m_spindleWidth; }
 
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -60,7 +60,7 @@ class CH_MODELS_API Generic_RigidSuspension : public ChRigidSuspension {
     static const double m_spindleRadius;
     static const double m_spindleWidth;
 
-    static const ChVector<> m_spindleInertia;
+    static const ChVector3d m_spindleInertia;
 
     static const double m_axleInertia;
 };

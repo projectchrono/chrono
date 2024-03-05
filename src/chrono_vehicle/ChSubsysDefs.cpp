@@ -70,19 +70,20 @@ void SpringForce::set_stops(const std::vector<std::pair<double, double>>& data_b
 }
 
 void SpringForce::set_stops(double bump_coefficient, double rebound_coefficient) {
-    for (auto& p : m_bump.GetPoints())
-        p.y = bump_coefficient * p.x;
-    for (auto& p : m_rebound.GetPoints())
-        p.y = rebound_coefficient * p.x;
+    for (auto& p : m_bump.GetTable())
+        m_bump.AddPoint(p.first, bump_coefficient * p.first, true);
+
+    for (auto& p : m_rebound.GetTable())
+        m_rebound.AddPoint(p.first, rebound_coefficient * p.first, true);
 }
 
 double SpringForce::evaluate_stops(double length) {
     double f = 0;
     if (m_stops) {
         if (length < m_min_length)
-            f += m_bump.Get_y(m_min_length - length);
+            f += m_bump.GetVal(m_min_length - length);
         if (length > m_max_length)
-            f -= m_rebound.Get_y(length - m_max_length);
+            f -= m_rebound.GetVal(length - m_max_length);
     }
     return f;
 }
@@ -94,18 +95,18 @@ rapidjson::Value SpringForce::exportJSON(rapidjson::Document::AllocatorType& all
     obj.AddMember("max length", m_max_length, allocator);
 
     rapidjson::Value dataB(rapidjson::kArrayType);
-    for (const auto& p : m_bump.GetPoints()) {
+    for (const auto& p : m_bump.GetTable()) {
         rapidjson::Value xy(rapidjson::kArrayType);
-        xy.PushBack(p.x, allocator);
-        xy.PushBack(p.y, allocator);
+        xy.PushBack(p.first, allocator);
+        xy.PushBack(p.second, allocator);
         dataB.PushBack(xy, allocator);
     }
 
     rapidjson::Value dataR(rapidjson::kArrayType);
-    for (const auto& p : m_rebound.GetPoints()) {
+    for (const auto& p : m_rebound.GetTable()) {
         rapidjson::Value xy(rapidjson::kArrayType);
-        xy.PushBack(p.x, allocator);
-        xy.PushBack(p.y, allocator);
+        xy.PushBack(p.first, allocator);
+        xy.PushBack(p.second, allocator);
         dataR.PushBack(xy, allocator);
     }
 
@@ -154,7 +155,7 @@ double NonlinearSpringForce::evaluate(double time,
                                       double length,
                                       double vel,
                                       const ChLinkTSDA& link) {
-    return m_P - m_mapK.Get_y(length - rest_length) + evaluate_stops(length);
+    return m_P - m_mapK.GetVal(length - rest_length) + evaluate_stops(length);
 }
 
 rapidjson::Value NonlinearSpringForce::exportJSON(rapidjson::Document::AllocatorType& allocator) {
@@ -163,10 +164,10 @@ rapidjson::Value NonlinearSpringForce::exportJSON(rapidjson::Document::Allocator
     obj.AddMember("type", "NonlinearSpringForce", allocator);
 
     rapidjson::Value dataK(rapidjson::kArrayType);
-    for (const auto& p : m_mapK.GetPoints()) {
+    for (const auto& p : m_mapK.GetTable()) {
         rapidjson::Value xy(rapidjson::kArrayType);
-        xy.PushBack(p.x, allocator);
-        xy.PushBack(p.y, allocator);
+        xy.PushBack(p.first, allocator);
+        xy.PushBack(p.second, allocator);
         dataK.PushBack(xy, allocator);
     }
 
@@ -214,7 +215,7 @@ double NonlinearDamperForce::evaluate(double time,
                                       double length,
                                       double vel,
                                       const ChLinkTSDA& link) {
-    return -m_mapC.Get_y(vel);
+    return -m_mapC.GetVal(vel);
 }
 
 rapidjson::Value NonlinearDamperForce::exportJSON(rapidjson::Document::AllocatorType& allocator) {
@@ -223,10 +224,10 @@ rapidjson::Value NonlinearDamperForce::exportJSON(rapidjson::Document::Allocator
     obj.AddMember("type", "NonlinearDamperForce", allocator);
 
     rapidjson::Value dataC(rapidjson::kArrayType);
-    for (const auto& p : m_mapC.GetPoints()) {
+    for (const auto& p : m_mapC.GetTable()) {
         rapidjson::Value xy(rapidjson::kArrayType);
-        xy.PushBack(p.x, allocator);
-        xy.PushBack(p.y, allocator);
+        xy.PushBack(p.first, allocator);
+        xy.PushBack(p.second, allocator);
         dataC.PushBack(xy, allocator);
     }
 
@@ -335,7 +336,7 @@ double NonlinearSpringDamperForce::evaluate(double time,
                                             double length,
                                             double vel,
                                             const ChLinkTSDA& link) {
-    return m_P - m_mapK.Get_y(length - rest_length) - m_mapC.Get_y(vel) + evaluate_stops(length);
+    return m_P - m_mapK.GetVal(length - rest_length) - m_mapC.GetVal(vel) + evaluate_stops(length);
 }
 
 rapidjson::Value NonlinearSpringDamperForce::exportJSON(rapidjson::Document::AllocatorType& allocator) {
@@ -344,18 +345,18 @@ rapidjson::Value NonlinearSpringDamperForce::exportJSON(rapidjson::Document::All
     obj.AddMember("type", "NonlinearSpringDamperForce", allocator);
 
     rapidjson::Value dataK(rapidjson::kArrayType);
-    for (const auto& p : m_mapK.GetPoints()) {
+    for (const auto& p : m_mapK.GetTable()) {
         rapidjson::Value xy(rapidjson::kArrayType);
-        xy.PushBack(p.x, allocator);
-        xy.PushBack(p.y, allocator);
+        xy.PushBack(p.first, allocator);
+        xy.PushBack(p.second, allocator);
         dataK.PushBack(xy, allocator);
     }
 
     rapidjson::Value dataC(rapidjson::kArrayType);
-    for (const auto& p : m_mapC.GetPoints()) {
+    for (const auto& p : m_mapC.GetTable()) {
         rapidjson::Value xy(rapidjson::kArrayType);
-        xy.PushBack(p.x, allocator);
-        xy.PushBack(p.y, allocator);
+        xy.PushBack(p.first, allocator);
+        xy.PushBack(p.second, allocator);
         dataC.PushBack(xy, allocator);
     }
 
@@ -512,7 +513,7 @@ double NonlinearSpringTorque::evaluate(double time,
                                        double angle,
                                        double vel,
                                        const ChLinkRSDA& link) {
-    return m_P - m_mapK.Get_y(angle - rest_angle);
+    return m_P - m_mapK.GetVal(angle - rest_angle);
 }
 
 rapidjson::Value NonlinearSpringTorque::exportJSON(rapidjson::Document::AllocatorType& allocator) {
@@ -521,10 +522,10 @@ rapidjson::Value NonlinearSpringTorque::exportJSON(rapidjson::Document::Allocato
     obj.AddMember("type", "NonlinearSpringTorque", allocator);
 
     rapidjson::Value dataK(rapidjson::kArrayType);
-    for (const auto& p : m_mapK.GetPoints()) {
+    for (const auto& p : m_mapK.GetTable()) {
         rapidjson::Value xy(rapidjson::kArrayType);
-        xy.PushBack(p.x, allocator);
-        xy.PushBack(p.y, allocator);
+        xy.PushBack(p.first, allocator);
+        xy.PushBack(p.second, allocator);
         dataK.PushBack(xy, allocator);
     }
 
@@ -568,7 +569,7 @@ double NonlinearDamperTorque::evaluate(double time,
                                        double angle,
                                        double vel,
                                        const ChLinkRSDA& link) {
-    return -m_mapC.Get_y(vel);
+    return -m_mapC.GetVal(vel);
 }
 
 rapidjson::Value NonlinearDamperTorque::exportJSON(rapidjson::Document::AllocatorType& allocator) {
@@ -577,10 +578,10 @@ rapidjson::Value NonlinearDamperTorque::exportJSON(rapidjson::Document::Allocato
     obj.AddMember("type", "NonlinearDamperTorque", allocator);
 
     rapidjson::Value dataC(rapidjson::kArrayType);
-    for (const auto& p : m_mapC.GetPoints()) {
+    for (const auto& p : m_mapC.GetTable()) {
         rapidjson::Value xy(rapidjson::kArrayType);
-        xy.PushBack(p.x, allocator);
-        xy.PushBack(p.y, allocator);
+        xy.PushBack(p.first, allocator);
+        xy.PushBack(p.second, allocator);
         dataC.PushBack(xy, allocator);
     }
 
@@ -641,7 +642,7 @@ double NonlinearSpringDamperTorque::evaluate(double time,
                                              double angle,
                                              double vel,
                                              const ChLinkRSDA& link) {
-    return m_P - m_mapK.Get_y(angle - rest_angle) - m_mapC.Get_y(vel);
+    return m_P - m_mapK.GetVal(angle - rest_angle) - m_mapC.GetVal(vel);
 }
 
 rapidjson::Value NonlinearSpringDamperTorque::exportJSON(rapidjson::Document::AllocatorType& allocator) {
@@ -650,18 +651,18 @@ rapidjson::Value NonlinearSpringDamperTorque::exportJSON(rapidjson::Document::Al
     obj.AddMember("type", "NonlinearSpringDamperTorque", allocator);
 
     rapidjson::Value dataK(rapidjson::kArrayType);
-    for (const auto& p : m_mapK.GetPoints()) {
+    for (const auto& p : m_mapK.GetTable()) {
         rapidjson::Value xy(rapidjson::kArrayType);
-        xy.PushBack(p.x, allocator);
-        xy.PushBack(p.y, allocator);
+        xy.PushBack(p.first, allocator);
+        xy.PushBack(p.second, allocator);
         dataK.PushBack(xy, allocator);
     }
 
     rapidjson::Value dataC(rapidjson::kArrayType);
-    for (const auto& p : m_mapC.GetPoints()) {
+    for (const auto& p : m_mapC.GetTable()) {
         rapidjson::Value xy(rapidjson::kArrayType);
-        xy.PushBack(p.x, allocator);
-        xy.PushBack(p.y, allocator);
+        xy.PushBack(p.first, allocator);
+        xy.PushBack(p.second, allocator);
         dataC.PushBack(xy, allocator);
     }
 

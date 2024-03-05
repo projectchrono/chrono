@@ -23,7 +23,7 @@ ChLinkMotorLinearSpeed::ChLinkMotorLinearSpeed() {
     variable.GetMass()(0, 0) = 1.0;
     variable.GetInvMass()(0, 0) = 1.0;
 
-    m_func = chrono_types::make_shared<ChFunction_Const>(1.0);
+    m_func = chrono_types::make_shared<ChFunctionConst>(1.0);
 
     pos_offset = 0;
 
@@ -49,17 +49,17 @@ void ChLinkMotorLinearSpeed::Update(double mytime, bool update_assets) {
 
     // Add the time-dependent term in residual C as
     //   C = d_error - d_setpoint - d_offset
-    // with d_error = x_pos_A- x_pos_B, and d_setpoint = x(t)
+    // with d_error = z_pos_1 - z_pos_2, and d_setpoint = x(t)
     if (this->avoid_position_drift)
-        C(0) = this->mpos - aux_dt - this->pos_offset;
+        C(m_actuated_idx) = this->mpos - aux_dt - this->pos_offset;
     else
-        C(0) = 0.0;
+        C(m_actuated_idx) = 0.0;
 }
 
 void ChLinkMotorLinearSpeed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
-    double mCt = -m_func->Get_y(this->GetChTime());
-    if (mask.Constr_N(0).IsActive()) {
-        Qc(off_L + 0) += c * mCt;
+    double mCt = -m_func->GetVal(this->GetChTime());
+    if (mask.Constr_N(m_actuated_idx).IsActive()) {
+        Qc(off_L + m_actuated_idx) += c * mCt;
     }
 }
 
@@ -67,9 +67,9 @@ void ChLinkMotorLinearSpeed::ConstraintsBiLoad_Ct(double factor) {
     if (!this->IsActive())
         return;
 
-    double mCt = -m_func->Get_y(this->GetChTime());
-    if (mask.Constr_N(0).IsActive()) {
-        mask.Constr_N(0).Set_b_i(mask.Constr_N(0).Get_b_i() + factor * mCt);
+    double mCt = -m_func->GetVal(this->GetChTime());
+    if (mask.Constr_N(m_actuated_idx).IsActive()) {
+        mask.Constr_N(m_actuated_idx).Set_b_i(mask.Constr_N(m_actuated_idx).Get_b_i() + factor * mCt);
     }
 }
 
@@ -111,7 +111,7 @@ void ChLinkMotorLinearSpeed::IntLoadResidual_F(const unsigned int off,  // offse
                                                ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                                const double c           // a scaling factor
 ) {
-    double imposed_speed = m_func->Get_y(this->GetChTime());
+    double imposed_speed = m_func->GetVal(this->GetChTime());
     R(off) += imposed_speed * c;
 }
 
@@ -166,7 +166,7 @@ void ChLinkMotorLinearSpeed::VariablesFbReset() {
 }
 
 void ChLinkMotorLinearSpeed::VariablesFbLoadForces(double factor) {
-    double imposed_speed = m_func->Get_y(this->GetChTime());
+    double imposed_speed = m_func->GetVal(this->GetChTime());
     variable.Get_fb()(0) += imposed_speed * factor;
 }
 
@@ -186,29 +186,29 @@ void ChLinkMotorLinearSpeed::VariablesQbSetSpeed(double step) {
     // Compute accel. by BDF (approximate by differentiation); not needed
 }
 
-void ChLinkMotorLinearSpeed::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMotorLinearSpeed::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMotorLinearSpeed>();
+    archive_out.VersionWrite<ChLinkMotorLinearSpeed>();
 
     // serialize parent class
-    ChLinkMotorLinear::ArchiveOut(marchive);
+    ChLinkMotorLinear::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(pos_offset);
-    marchive << CHNVP(avoid_position_drift);
+    archive_out << CHNVP(pos_offset);
+    archive_out << CHNVP(avoid_position_drift);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorLinearSpeed::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMotorLinearSpeed::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMotorLinearSpeed>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMotorLinearSpeed>();
 
     // deserialize parent class
-    ChLinkMotorLinear::ArchiveIn(marchive);
+    ChLinkMotorLinear::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(pos_offset);
-    marchive >> CHNVP(avoid_position_drift);
+    archive_in >> CHNVP(pos_offset);
+    archive_in >> CHNVP(avoid_position_drift);
 }
 
 }  // end namespace chrono

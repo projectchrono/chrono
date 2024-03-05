@@ -36,7 +36,7 @@ RigidTire::RigidTire(const std::string& filename) : ChRigidTire(""), m_has_mesh(
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 RigidTire::RigidTire(const rapidjson::Document& d) : ChRigidTire(""), m_has_mesh(false) {

@@ -13,7 +13,6 @@
 // =============================================================================
 
 #include "chrono/solver/ChSolverPSSOR.h"
-#include "chrono/core/ChMathematics.h"
 
 namespace chrono {
 
@@ -103,7 +102,7 @@ double ChSolverPSSOR::Solve(ChSystemDescriptor& sysd) {
                     i_friction_comp++;
 
                     if (i_friction_comp == 1)
-                        candidate_violation = fabs(ChMin(0.0, mresidual));
+                        candidate_violation = fabs(std::min(0.0, mresidual));
 
                     if (i_friction_comp == 3) {
                         mconstraints[ic - 2]->Project();  // the N normal component will take care of N,U,V
@@ -128,9 +127,9 @@ double ChSolverPSSOR::Solve(ChSystemDescriptor& sysd) {
                         mconstraints[ic - 0]->Increment_q(true_delta_2);
 
                         if (this->record_violation_history) {
-                            maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_0));
-                            maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_1));
-                            maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_2));
+                            maxdeltalambda = std::max(maxdeltalambda, fabs(true_delta_0));
+                            maxdeltalambda = std::max(maxdeltalambda, fabs(true_delta_1));
+                            maxdeltalambda = std::max(maxdeltalambda, fabs(true_delta_2));
                         }
                         i_friction_comp = 0;
                     }
@@ -159,10 +158,10 @@ double ChSolverPSSOR::Solve(ChSystemDescriptor& sysd) {
                     mconstraints[ic]->Increment_q(true_delta);
 
                     if (this->record_violation_history)
-                        maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta));
+                        maxdeltalambda = std::max(maxdeltalambda, fabs(true_delta));
                 }
 
-                maxviolation = ChMax(maxviolation, fabs(candidate_violation));
+                maxviolation = std::max(maxviolation, fabs(candidate_violation));
 
             }  // end IsActive()
 
@@ -228,12 +227,12 @@ double ChSolverPSSOR::Solve(ChSystemDescriptor& sysd) {
                         mconstraints[ic + 1]->Increment_q(true_delta_1);
                         mconstraints[ic + 0]->Increment_q(true_delta_2);
 
-                        candidate_violation = fabs(ChMin(0.0, mresidual));
+                        candidate_violation = fabs(std::min(0.0, mresidual));
 
                         if (this->record_violation_history) {
-                            maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_0));
-                            maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_1));
-                            maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta_2));
+                            maxdeltalambda = std::max(maxdeltalambda, fabs(true_delta_0));
+                            maxdeltalambda = std::max(maxdeltalambda, fabs(true_delta_1));
+                            maxdeltalambda = std::max(maxdeltalambda, fabs(true_delta_2));
                         }
                         i_friction_comp = 0;
                     }
@@ -262,10 +261,10 @@ double ChSolverPSSOR::Solve(ChSystemDescriptor& sysd) {
                     mconstraints[ic]->Increment_q(true_delta);
 
                     if (this->record_violation_history)
-                        maxdeltalambda = ChMax(maxdeltalambda, fabs(true_delta));
+                        maxdeltalambda = std::max(maxdeltalambda, fabs(true_delta));
                 }
 
-                maxviolation = ChMax(maxviolation, fabs(candidate_violation));
+                maxviolation = std::max(maxviolation, fabs(candidate_violation));
 
             }  // end IsActive()
 

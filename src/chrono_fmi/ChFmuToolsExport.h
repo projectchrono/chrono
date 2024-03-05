@@ -26,8 +26,6 @@
 
 #include "chrono/serialization/ChArchive.h"
 #include "chrono/core/ChFrameMoving.h"
-#include "chrono/core/ChLog.h"
-#include "chrono/core/ChMathematics.h"
 
 // fmu_tools
 // #include "rapidxml_ext.hpp"
@@ -38,14 +36,38 @@ namespace chrono {
 /// Extension of FmuComponentBase class for Chrono FMUs.
 class FmuChronoComponentBase : public FmuComponentBase {
   public:
-    FmuChronoComponentBase(fmi2String _instanceName, fmi2Type _fmuType, fmi2String _fmuGUID)
-        : FmuComponentBase(_instanceName, _fmuType, _fmuGUID) {}
+    FmuChronoComponentBase(fmi2String instanceName,
+                           fmi2Type fmuType,
+                           fmi2String fmuGUID,
+                           fmi2String fmuResourceLocation,
+                           const fmi2CallbackFunctions* functions,
+                           fmi2Boolean visible,
+                           fmi2Boolean loggingOn)
+        : FmuComponentBase(
+              instanceName,
+              fmuType,
+              fmuGUID,
+              fmuResourceLocation,
+              functions,
+              visible,
+              loggingOn,
+              {{"logEvents", true},
+               {"logSingularLinearSystems", true},
+               {"logNonlinearSystems", true},
+               {"logStatusWarning", true},
+               {"logStatusError", true},
+               {"logStatusPending", true},
+               {"logDynamicStateSelection", true},
+               {"logStatusDiscard", true},
+               {"logStatusFatal", true},
+               {"logAll", true}},
+              {"logStatusWarning", "logStatusDiscard", "logStatusError", "logStatusFatal", "logStatusPending"}) {}
     virtual ~FmuChronoComponentBase() {}
 
-    /// Add FMU variables corresponding to the specified ChVector.
-    /// This function creates 3 FMU variables, one for each component of the ChVector, with names "name.x", "name.y",
+    /// Add FMU variables corresponding to the specified ChVector3d.
+    /// This function creates 3 FMU variables, one for each component of the ChVector3d, with names "name.x", "name.y",
     /// and "name.z", all of type FmuVariable::Type::Real.
-    void AddFmuVecVariable(ChVector<>& v,
+    void AddFmuVecVariable(ChVector3d& v,
                            const std::string& name,
                            const std::string& unit_name,
                            const std::string& description,
@@ -59,8 +81,8 @@ class FmuChronoComponentBase : public FmuComponentBase {
     }
 
     /// Add FMU variables corresponding to the specified ChQuaternion.
-    /// This function creates 4 FMU variables, one for each component of the ChVector, with names "name.e0", "name.e1",
-    /// "name.e2", and "name.e3", all of type FmuVariable::Type::Real.
+    /// This function creates 4 FMU variables, one for each component of the ChVector3d, with names "name.e0",
+    /// "name.e1", "name.e2", and "name.e3", all of type FmuVariable::Type::Real.
     void AddFmuQuatVariable(ChQuaternion<>& q,
                             const std::string& name,
                             const std::string& unit_name,
@@ -75,9 +97,9 @@ class FmuChronoComponentBase : public FmuComponentBase {
     }
 
     /// Add FMU variables corresponding to the specified ChCoordsys.
-    /// This function creates 7 FMU variables, one for each component of the position ChVector and one for each
+    /// This function creates 7 FMU variables, one for each component of the position ChVector3d and one for each
     /// component of the rotation quaternion, all of type FmuVariable::Type::Real.
-    void AddFmuCsysVariable(ChCoordsys<>& s,
+    void AddFmuCsysVariable(ChCoordsysd& s,
                             const std::string& name,
                             const std::string& unit_name,
                             const std::string& description,
@@ -88,7 +110,7 @@ class FmuChronoComponentBase : public FmuComponentBase {
     }
 
     /// Add FMU variables corresponding to the specified ChFrame.
-    /// This function creates 7 FMU variables, one for each component of the position ChVector and one for each
+    /// This function creates 7 FMU variables, one for each component of the position ChVector3d and one for each
     /// component of the rotation quaternion, all of type FmuVariable::Type::Real.
     void AddFmuFrameVariable(ChFrame<>& s,
                              const std::string& name,
@@ -96,13 +118,13 @@ class FmuChronoComponentBase : public FmuComponentBase {
                              const std::string& description,
                              FmuVariable::CausalityType causality = FmuVariable::CausalityType::local,
                              FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous) {
-        AddFmuCsysVariable(s.GetCoord(), name, unit_name, description, causality, variability);
+        AddFmuCsysVariable(s.GetCsys(), name, unit_name, description, causality, variability);
     }
 
     /// Add FMU variables corresponding to the specified ChFrameMoving.
-    /// This function creates 7 FMU variables for the pose, one for each component of the position ChVector and one for
-    /// each component of the rotation quaternion, all of type FmuVariable::Type::Real.  Additionally, 7 FMU variables
-    /// are created to encode the position and orientation time derivatives.
+    /// This function creates 7 FMU variables for the pose, one for each component of the position ChVector3d and one
+    /// for each component of the rotation quaternion, all of type FmuVariable::Type::Real.  Additionally, 7 FMU
+    /// variables are created to encode the position and orientation time derivatives.
     void AddFmuFrameMovingVariable(
         ChFrameMoving<>& s,
         const std::string& name,
@@ -111,10 +133,10 @@ class FmuChronoComponentBase : public FmuComponentBase {
         const std::string& description,
         FmuVariable::CausalityType causality = FmuVariable::CausalityType::local,
         FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous) {
-        AddFmuCsysVariable(s.GetCoord(), name, unit_name, description, causality, variability);
-        AddFmuVecVariable(s.GetPos_dt(), name + ".pos_dt", unit_name_dt, description + " position derivative",
+        AddFmuCsysVariable(s.GetCsys(), name, unit_name, description, causality, variability);
+        AddFmuVecVariable(s.GetPosDer(), name + ".pos_dt", unit_name_dt, description + " position derivative",
                           causality, variability);
-        AddFmuQuatVariable(s.GetRot_dt(), name + ".rot_dt", "1", description + " orientation derivative", causality,
+        AddFmuQuatVariable(s.GetRotDer(), name + ".rot_dt", "1", description + " orientation derivative", causality,
                            variability);
     }
 };

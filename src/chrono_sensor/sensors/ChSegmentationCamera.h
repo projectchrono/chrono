@@ -66,7 +66,7 @@ class CH_SENSOR_API ChSegmentationCamera : public ChOptixSensor {
     /// Parameters should be given for the forward model
     /// The backward distortion model will the used and calculated from the forward parameters given
     /// @param params the set of 3 radial parameters (k1,k2,k3)
-    void SetRadialLensParameters(ChVector<float> params);
+    void SetRadialLensParameters(ChVector3f params);
 
   private:
     float m_hFOV;                           ///< the horizontal field of view of the sensor

@@ -3,8 +3,8 @@
     "Type": "GRANULAR_GPU",
 
     "Patch dimensions": {
-        "Length": 4,
-        "Width": 1
+        "Length": 8,
+        "Width": 2
     },
 
     "Granular material": {

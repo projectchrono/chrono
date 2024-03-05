@@ -2651,7 +2651,7 @@ dgMeshEffect::dgMeshEffect (const hacd::HaF64* const vertexCloud, hacd::HaI32 co
 	}
 }
 
-//**** Note, from this point out is a copy of 'MeshEffect3.cpp' from the Newton Physics Engine
+/**** Note, from this point out is a copy of 'MeshEffect3.cpp' from the Newton Physics Engine ***/
 
 
 #define USE_NEW_METHOD 0

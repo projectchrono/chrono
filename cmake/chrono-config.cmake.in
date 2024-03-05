@@ -194,6 +194,9 @@ if(Chrono_VEHICLE_REQUESTED AND Chrono_VEHICLE_AVAILABLE)
   if(Chrono_FSI_AVAILABLE)
     set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};FSI")
   endif()
+  if(Chrono_MULTICORE_AVAILABLE)
+    set(Chrono_FIND_COMPONENTS "${Chrono_FIND_COMPONENTS};Multicore")
+  endif()
 endif()
 
 if(Chrono_VEHICLECOSIM_REQUESTED AND Chrono_VEHICLECOSIM_AVAILABLE)
@@ -405,6 +408,18 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
       list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_fsi")
       if (NOT CHRONO_STATIC)
         list(APPEND CHRONO_DLL_NAMES "ChronoEngine_fsi.dll")
+
+        # ATTENTION: This is a temporary hack!
+        # We only add to the list of DLLs, when we should fully configure the OpenGL and VSG modules.
+        # However, full configuration of the OpenGL module leads to problems when using in a C# project (because of FindThreads).
+        # This is done only to allow building vehicle C# demos, in case the FSI module was also enabled in Chrono.
+
+        if (Chrono_OPENGL_AVAILABLE)
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_opengl.dll")
+        endif()
+        if (Chrono_VSG_AVAILABLE)
+          list(APPEND CHRONO_DLL_NAMES "ChronoEngine_vsg.dll")
+        endif()
       endif()
 
     elseif(${COMPONENT_UPPER} MATCHES "SENSOR")
@@ -617,8 +632,25 @@ foreach(COMPONENT ${Chrono_FIND_COMPONENTS})
         foreach(CS ${Chrono_CSHARP_VEHICLE_SOURCES})
           list(APPEND CHRONO_CSHARP_SOURCES "${Chrono_CSHARP_VEHICLE_DIR}/${CS}")
         endforeach()
-      endif()   
+      endif() 
 
+      if(Chrono_POSTPROCESS_REQUESTED AND Chrono_POSTPROCESS_AVAILABLE)
+        list(PREPEND CHRONO_LIB_NAMES "ChronoEngine_csharp_postprocess")
+        list(APPEND CHRONO_DLL_NAMES "ChronoEngine_csharp_postprocess.dll")
+
+        set(Chrono_CSHARP_POSTPROCESS_DIR "${CHRONO_CSHARP_SOURCE_DIR}/postprocess")
+        file(GLOB Chrono_CSHARP_POSTPROCESS_SOURCES 
+             LIST_DIRECTORIES false 
+             RELATIVE "${Chrono_CSHARP_POSTPROCESS_DIR}" 
+             CONFIGURE_DEPENDS 
+             "${Chrono_CSHARP_POSTPROCESS_DIR}/*.cs")
+        FindDuplicates(Chrono_CSHARP_POSTPROCESS_DUPLICATES "${Chrono_CSHARP_CORE_SOURCES}"
+                                                            "${Chrono_CSHARP_POSTPROCESS_SOURCES}")
+        list(REMOVE_ITEM Chrono_CSHARP_POSTPROCESS_SOURCES ${Chrono_CSHARP_POSTPROCESS_DUPLICATES})
+        foreach(CS ${Chrono_CSHARP_POSTPROCESS_SOURCES})
+           list(APPEND CHRONO_CSHARP_SOURCES "${Chrono_CSHARP_POSTPROCESS_DIR}/${CS}")
+        endforeach()
+       endif()
     endif()
 
   endif()

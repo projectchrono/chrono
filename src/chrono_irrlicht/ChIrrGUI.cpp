@@ -12,9 +12,9 @@
 
 #include "chrono/physics/ChSystem.h"
 #include "chrono/utils/ChProfiler.h"
-#include "chrono/serialization/ChArchiveAsciiDump.h"
+#include "chrono/serialization/ChOutputASCII.h"
 #include "chrono/serialization/ChArchiveJSON.h"
-#include "chrono/serialization/ChArchiveExplorer.h"
+#include "chrono/serialization/ChObjectExplorer.h"
 
 #include "chrono_irrlicht/ChIrrGUI.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -60,30 +60,30 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
                 m_gui->m_vis->SetUtilityFlag(!m_gui->m_vis->GetUtilityFlag());
                 return true;
             case irr::KEY_F8: {
-                GetLog() << "Saving system in JSON format to dump.json file \n";
-                ChStreamOutAsciiFile mfileo("dump.json");
-                ChArchiveOutJSON marchiveout(mfileo);
-                marchiveout.SetUseVersions(false);
-                marchiveout << CHNVP(m_gui->m_system, "System");
+                std::cout << "Saving system in JSON format to dump.json file \n";
+                std::ofstream mfileo("dump.json");
+                ChArchiveOutJSON archive_out(mfileo);
+                archive_out.SetUseVersions(false);
+                archive_out << CHNVP(m_gui->m_system, "System");
 
-                GetLog() << "Saving system in ASCII format to dump.txt file \n";
-                ChStreamOutAsciiFile mfileo2("dump.txt");
-                ChArchiveAsciiDump marchiveout2(mfileo2);
-                marchiveout2.SetUseVersions(false);
-                marchiveout2 << CHNVP(m_gui->m_system, "System");
+                std::cout << "Saving system in ASCII format to dump.txt file \n";
+                std::ofstream mfileo2("dump.txt");
+                ChOutputASCII archive_out2(mfileo2);
+                archive_out2.SetUseVersions(false);
+                archive_out2 << CHNVP(m_gui->m_system, "System");
 
                 return true;
             }
             case irr::KEY_F6:
-                GetLog() << "Saving system vector and matrices to dump_xxyy.dat files.\n";
+                std::cout << "Saving system vector and matrices to dump_xxyy.dat files.\n";
                 m_gui->DumpSystemMatrices();
                 return true;
             case irr::KEY_F7:
                 if (!m_gui->m_system->IsSolverMatrixWriteEnabled()) {
-                    GetLog() << "Start saving system vector and matrices to *.dat files...\n";
+                    std::cout << "Start saving system vector and matrices to *.dat files...\n";
                     m_gui->m_system->EnableSolverMatrixWrite(true);
                 } else {
-                    GetLog() << "Stop saving system vector and matrices to *.dat files.\n";
+                    std::cout << "Stop saving system vector and matrices to *.dat files.\n";
                     m_gui->m_system->EnableSolverMatrixWrite(false);
                 }
                 return true;
@@ -108,16 +108,15 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
             case irr::KEY_F12:
 #ifdef CHRONO_POSTPROCESS
                 if (m_gui->blender_save == false) {
-                    GetLog() << "Start saving Blender postprocessing scripts...\n";
+                    std::cout << "Start saving Blender postprocessing scripts...\n";
                     m_gui->SetBlenderSave(true);
                 } else {
                     m_gui->SetBlenderSave(false);
-                    GetLog() << "Stop saving Blender postprocessing scripts.\n";
+                    std::cout << "Stop saving Blender postprocessing scripts.\n";
                 }
 #else
-                GetLog()
-                    << "Saving Blender3D files not supported. Rebuild the solution with ENABLE_MODULE_POSTPROCESSING "
-                       "in CMake. \n";
+                std::cout << "Saving Blender3D files not supported\n.";
+                std::cout << "Rebuild the solution with ENABLE_MODULE_POSTPROCESSING in CMake." << std::endl;
 #endif
                 return true;
             default:
@@ -176,7 +175,7 @@ class DebugDrawer : public ChCollisionSystem::VisualizationCallback {
         : m_driver(driver), m_debugMode(0), m_linecolor(255, 255, 0, 0) {}
     ~DebugDrawer() {}
 
-    virtual void DrawLine(const ChVector<>& from, const ChVector<>& to, const ChColor& color) override {
+    virtual void DrawLine(const ChVector3d& from, const ChVector3d& to, const ChColor& color) override {
         m_driver->draw3DLine(irr::core::vector3dfCH(from), irr::core::vector3dfCH(to), m_linecolor);
     }
 
@@ -370,21 +369,21 @@ void ChIrrGUI::AddUserEventReceiver(irr::IEventReceiver* receiver) {
 }
 
 void ChIrrGUI::SetSymbolscale(double val) {
-    symbolscale = ChMax(10e-12, val);
+    symbolscale = std::max(10e-12, val);
     char message[50];
     snprintf(message, sizeof(message), "%g", symbolscale);
     g_symbolscale->setText(irr::core::stringw(message).c_str());
 }
 
 void ChIrrGUI::SetModalAmplitude(double val) {
-    modal_amplitude = ChMax(0.0, val);
+    modal_amplitude = std::max(0.0, val);
     char message[50];
     snprintf(message, sizeof(message), "%g", modal_amplitude);
     g_modal_amplitude->setText(irr::core::stringw(message).c_str());
 }
 
 void ChIrrGUI::SetModalSpeed(double val) {
-    modal_speed = ChMax(0.0, val);
+    modal_speed = std::max(0.0, val);
     char message[50];
     snprintf(message, sizeof(message), "%g", modal_speed);
     g_modal_speed->setText(irr::core::stringw(message).c_str());
@@ -408,7 +407,7 @@ void ChIrrGUI::DumpSystemMatrices() {
         // Save M mass matrix, K stiffness matrix, R damping matrix, Cq jacobians:
         m_system->DumpSystemMatrices(true, true, true, true, "dump_");
 
-    } catch (const ChException& myexc) {
+    } catch (const std::exception& myexc) {
         std::cerr << myexc.what() << std::endl;
     }
 }
@@ -416,7 +415,7 @@ void ChIrrGUI::DumpSystemMatrices() {
 // -----------------------------------------------------------------------------
 
 static void recurse_update_tree_node(ChValue* value, irr::gui::IGUITreeViewNode* mnode) {
-    ChArchiveExplorer mexplorer2;
+    ChObjectExplorer mexplorer2;
     mexplorer2.FetchValues(*value, "*");
     int ni = 0;
     auto subnode = mnode->getFirstChild();
@@ -467,7 +466,7 @@ static void recurse_update_tree_node(ChValue* value, irr::gui::IGUITreeViewNode*
             recurse_update_tree_node(j, subnode);
 
         // this to show the "+" symbol for not yet explored nodes
-        ChArchiveExplorer mexplorer3;
+        ChObjectExplorer mexplorer3;
         mexplorer3.FetchValues(*j, "*");
         if (subnode->getChildCount() == 0 && mexplorer3.GetFetchResults().size()) {
             subnode->addChildBack(L"_foo_to_set_");
@@ -505,17 +504,15 @@ void ChIrrGUI::Render() {
     str += "\n\nReal Time Factor: ";
     str += m_system->GetRTF();
     str += "\n\nNum. active bodies:  ";
-    str += m_system->GetNbodies();
+    str += m_system->GetNumBodies();
     str += "\nNum. sleeping bodies:  ";
-    str += m_system->GetNbodiesSleeping();
+    str += m_system->GetNumBodiesSleeping();
     str += "\nNum. contacts:  ";
-    str += m_system->GetNcontacts();
+    str += m_system->GetNumContacts();
     str += "\nNum. coords:  ";
-    str += m_system->GetNcoords_w();
+    str += m_system->GetNumCoordinatesVel();
     str += "\nNum. constr:  ";
-    str += m_system->GetNdoc_w();
-    str += "\nNum. variables:  ";
-    str += m_system->GetNsysvars_w();
+    str += m_system->GetNumConstraints();
     g_textFPS->setText(str.c_str());
 
     int dmode = g_drawcontacts->getSelected();

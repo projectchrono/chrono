@@ -48,7 +48,7 @@ class CH_VEHICLE_API ChDoubleTrackWheel : public ChTrackWheel {
     /// Initialize this track wheel subsystem.
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis subsystem
                             std::shared_ptr<ChBody> carrier,     ///< [in] the carrier body
-                            const ChVector<>& location,          ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,          ///< [in] location relative to the chassis frame
                             ChTrackAssembly* track               ///< [in] containing track assembly
                             ) override;
 

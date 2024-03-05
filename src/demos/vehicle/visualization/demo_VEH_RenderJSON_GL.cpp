@@ -75,7 +75,7 @@ ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
     if (is_wheeled) {
         // Create the wheeled vehicle system
         auto vehicle = new WheeledVehicle(sys, vehicle::GetDataFile(setup.VehicleJSON()));
-        vehicle->Initialize(ChCoordsys<>(ChVector<>(0, 0, 0.75), QUNIT));
+        vehicle->Initialize(ChCoordsys<>(ChVector3d(0, 0, 0.75), QUNIT));
         vehicle->GetChassis()->SetFixed(chassis_fixed);
         vehicle->SetChassisVisualizationType(VisualizationType::MESH);
         vehicle->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
@@ -100,7 +100,7 @@ ChVehicle* CreateVehicle(ChSystem* sys, bool is_wheeled) {
     } else {
         // Create the tracked vehicle system
         auto vehicle = new TrackedVehicle(sys, vehicle::GetDataFile(setup.VehicleJSON()));
-        vehicle->Initialize(ChCoordsys<>(ChVector<>(0, 0, 0.85), QUNIT));
+        vehicle->Initialize(ChCoordsys<>(ChVector3d(0, 0, 0.85), QUNIT));
         vehicle->GetChassis()->SetFixed(chassis_fixed);
         vehicle->SetChassisVisualizationType(VisualizationType::MESH);
         vehicle->SetSprocketVisualizationType(VisualizationType::MESH);
@@ -173,7 +173,7 @@ class JSONStats : public opengl::ChOpenGLStats {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Peek in vehicle JSON file and infer type
     rapidjson::Document d;
@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
     // Create containing system and vehicle
     ChSystemSMC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys.Set_G_acc(enable_gravity ? ChVector<>(0, 0, -9.81) : VNULL);
+    sys.Set_G_acc(enable_gravity ? ChVector3d(0, 0, -9.81) : VNULL);
     auto vehicle = CreateVehicle(&sys, is_wheeled);
 
     // (Constant) driver inputs
@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowTitle("JSON visualization");
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::SOLID);
-    vis.AddCamera(factor * ChVector<>(-1, -1, 0.75), ChVector<>(0, 0, 0.5));
+    vis.AddCamera(factor * ChVector3d(-1, -1, 0.75), ChVector3d(0, 0, 0.5));
     vis.SetCameraVertical(CameraVerticalDir::Z);
     vis.Initialize();
     vis.AttachSystem(&sys);

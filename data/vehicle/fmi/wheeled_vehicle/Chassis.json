@@ -1,0 +1,25 @@
+{
+  "Name": "Chassis",
+  "Type": "Chassis",
+  "Template": "RigidChassis",
+
+  "Components": [
+    {
+      "Centroidal Frame": {
+        "Location": [ 0.056, 0, 0.213 ],
+        "Orientation": [ 1, 0, 0, 0 ]
+      },
+      "Mass": 2086.52,
+      "Moments of Inertia": [ 1078.52, 2955.66, 3570.20 ],
+      "Products of Inertia": [ 0, 0, 0 ],
+      "Void": false
+    }
+  ],
+
+  "Driver Position": {
+    "Location": [ 0.87, 0.7, 1.05 ],
+    "Orientation": [ 1, 0, 0, 0 ]
+  },
+
+  "Rear Connector Location": [ -2.5, 0, -0.25 ]
+}

@@ -42,7 +42,7 @@ void ChTrackBrakeShafts::Initialize(std::shared_ptr<ChChassis> chassis, std::sha
 
     // Create and initialize the connection between the brake shaft and the chassis
     auto connection = chrono_types::make_shared<ChShaftsBody>();
-    connection->Initialize(m_shaft, chassis->GetBody(), ChVector<>(0, 1, 0));
+    connection->Initialize(m_shaft, chassis->GetBody(), ChVector3d(0, 1, 0));
     chassis->GetSystem()->Add(connection);
 
     // Create and initialize the brake clutch (set as unlocked)

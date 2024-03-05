@@ -95,7 +95,7 @@ void ChElementTetraCorot_10::GetStateBlock(ChVectorDynamic<>& mD) {
 }
 
 double ChElementTetraCorot_10::ComputeVolume() {
-    ChVector<> B1, C1, D1;
+    ChVector3d B1, C1, D1;
     B1.Sub(nodes[1]->pos, nodes[0]->pos);
     C1.Sub(nodes[2]->pos, nodes[0]->pos);
     D1.Sub(nodes[3]->pos, nodes[0]->pos);
@@ -555,7 +555,7 @@ void ChElementTetraCorot_10::UpdateRotation() {
     if (det < 0)
         this->A *= -1.0;
 
-    // GetLog() << "FEM rotation: \n" << A << "\n"
+    // std::cout << "FEM rotation:\n"<< A << std::endl
 }
 
 void ChElementTetraCorot_10::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
@@ -579,7 +579,7 @@ void ChElementTetraCorot_10::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfac
             H(id, id) += amfactor * lumped_node_mass;
         }
     }
-    //***TO DO*** better per-node lumping, or 30x30 consistent mass matrix.
+    //// TODO  better per-node lumping, or 30x30 consistent mass matrix.
 }
 
 void ChElementTetraCorot_10::ComputeInternalForces(ChVectorDynamic<>& Fi) {
@@ -607,7 +607,7 @@ void ChElementTetraCorot_10::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     double lumped_node_mass = (GetVolume() * Material->Get_density()) / GetNnodes();
     ChVectorDynamic<> FiR_local =
         Material->Get_RayleighDampingK() * (StiffnessMatrix * displ + lumped_node_mass * displ);
-    //***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
+    //// TODO  better per-node lumping, or 12x12 consistent mass matrix.
 
     FiK_local += FiR_local;
     FiK_local *= -1.0;
@@ -630,16 +630,16 @@ void ChElementTetraCorot_10::LoadableGetStateBlock_x(int block_offset, ChState& 
 }
 
 void ChElementTetraCorot_10::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = this->nodes[0]->GetPos_dt().eigen();
-    mD.segment(block_offset + 3, 3) = this->nodes[1]->GetPos_dt().eigen();
-    mD.segment(block_offset + 6, 3) = this->nodes[2]->GetPos_dt().eigen();
-    mD.segment(block_offset + 9, 3) = this->nodes[3]->GetPos_dt().eigen();
-    mD.segment(block_offset + 12, 3) = this->nodes[4]->GetPos_dt().eigen();
-    mD.segment(block_offset + 15, 3) = this->nodes[5]->GetPos_dt().eigen();
-    mD.segment(block_offset + 18, 3) = this->nodes[6]->GetPos_dt().eigen();
-    mD.segment(block_offset + 21, 3) = this->nodes[7]->GetPos_dt().eigen();
-    mD.segment(block_offset + 24, 3) = this->nodes[8]->GetPos_dt().eigen();
-    mD.segment(block_offset + 27, 3) = this->nodes[9]->GetPos_dt().eigen();
+    mD.segment(block_offset + 0, 3) = this->nodes[0]->GetPosDer().eigen();
+    mD.segment(block_offset + 3, 3) = this->nodes[1]->GetPosDer().eigen();
+    mD.segment(block_offset + 6, 3) = this->nodes[2]->GetPosDer().eigen();
+    mD.segment(block_offset + 9, 3) = this->nodes[3]->GetPosDer().eigen();
+    mD.segment(block_offset + 12, 3) = this->nodes[4]->GetPosDer().eigen();
+    mD.segment(block_offset + 15, 3) = this->nodes[5]->GetPosDer().eigen();
+    mD.segment(block_offset + 18, 3) = this->nodes[6]->GetPosDer().eigen();
+    mD.segment(block_offset + 21, 3) = this->nodes[7]->GetPosDer().eigen();
+    mD.segment(block_offset + 24, 3) = this->nodes[8]->GetPosDer().eigen();
+    mD.segment(block_offset + 27, 3) = this->nodes[9]->GetPosDer().eigen();
 }
 
 void ChElementTetraCorot_10::LoadableStateIncrement(const unsigned int off_x,

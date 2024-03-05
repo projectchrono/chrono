@@ -10,7 +10,7 @@
 //#define ChApi 
 
 // Forward ref
-%import "ChMaterialSurface.i"
+%import "ChContactMaterial.i"
 %import "ChCollisionModel.i"
 
 

@@ -27,7 +27,7 @@ namespace citybus {
 // -----------------------------------------------------------------------------
 
 const double CityBus_RackPinion::m_steeringLinkMass = 3.0;
-const ChVector<> CityBus_RackPinion::m_steeringLinkInertia(.138, 0.09, .138);
+const ChVector3d CityBus_RackPinion::m_steeringLinkInertia(.138, 0.09, .138);
 const double CityBus_RackPinion::m_steeringLinkCOM = 0;
 //const double CityBus_RackPinion::m_steeringLinkLength = 0.896;
 const double CityBus_RackPinion::m_steeringLinkLength = 0.5;

@@ -17,7 +17,7 @@
 namespace chrono {
 namespace fea {
 
-ChNodeFEAxyzP::ChNodeFEAxyzP(ChVector<> initial_pos) : pos(initial_pos), P(0), P_dt(0), F(0) {
+ChNodeFEAxyzP::ChNodeFEAxyzP(ChVector3d initial_pos) : pos(initial_pos), P(0), P_dt(0), F(0) {
     variables.GetMass()(0) = 0;
 }
 
@@ -164,26 +164,26 @@ void ChNodeFEAxyzP::VariablesQbIncrementPosition(double step) {
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAxyzP::ArchiveOut(ChArchiveOut& marchive) {
+void ChNodeFEAxyzP::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChNodeFEAxyzP>();
+    archive_out.VersionWrite<ChNodeFEAxyzP>();
     // serialize parent class
-    ChNodeFEAbase::ArchiveOut(marchive);
+    ChNodeFEAbase::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(P);
-    marchive << CHNVP(P_dt);
-    marchive << CHNVP(F);
+    archive_out << CHNVP(P);
+    archive_out << CHNVP(P_dt);
+    archive_out << CHNVP(F);
 }
 
-void ChNodeFEAxyzP::ArchiveIn(ChArchiveIn& marchive) {
+void ChNodeFEAxyzP::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChNodeFEAxyzP>();
+    /*int version =*/ archive_in.VersionRead<ChNodeFEAxyzP>();
     // deserialize parent class
-    ChNodeFEAbase::ArchiveIn(marchive);
+    ChNodeFEAbase::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(P);
-    marchive >> CHNVP(P_dt);
-    marchive >> CHNVP(F);
+    archive_in >> CHNVP(P);
+    archive_in >> CHNVP(P_dt);
+    archive_in >> CHNVP(F);
 }
 
 }  // end namespace fea

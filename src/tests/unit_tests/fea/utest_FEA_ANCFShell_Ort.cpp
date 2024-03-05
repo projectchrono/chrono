@@ -36,10 +36,10 @@
 #include <cmath>
 #include <algorithm>
 
-#include "chrono/core/ChMathematics.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/utils/ChConstants.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
 
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
 
         // Create the node
         auto node =
-            chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(dir_x, dir_y, dir_z));
+            chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(loc_x, loc_y, loc_z), ChVector3d(dir_x, dir_y, dir_z));
 
         node->SetMass(0);
 
@@ -143,9 +143,9 @@ int main(int argc, char* argv[]) {
     // Create an orthotropic material.
     // All layers for all elements share the same material.
     double rho = 500;
-    ChVector<> E(2e8, 1e8, 1e8);
-    ChVector<> nu(0.3, 0.3, 0.3);
-    ChVector<> G(3.84615E+07, 3.84615E+07, 3.84615E+07);
+    ChVector3d E(2e8, 1e8, 1e8);
+    ChVector3d nu(0.3, 0.3, 0.3);
+    ChVector3d G(3.84615E+07, 3.84615E+07, 3.84615E+07);
     auto mat = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
 
     // Create the elements
@@ -224,7 +224,7 @@ int main(int argc, char* argv[]) {
     utils::CSV_writer csv(" ");
     std::ifstream file2("UT_ANCFShellLam.txt");*/
 
-    ChVector<> mforce(0, 0, -10);
+    ChVector3d mforce(0, 0, -10);
 
     std::cout << "test_ANCFShell_Ort" << std::endl;
 

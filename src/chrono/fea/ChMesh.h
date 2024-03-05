@@ -74,8 +74,8 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// Get the number of elements in the mesh.
     unsigned int GetNelements() { return (unsigned int)velements.size(); }
 
-    virtual int GetDOF() override { return n_dofs; }
-    virtual int GetDOF_w() override { return n_dofs_w; }
+    virtual int GetNumCoordinatesPos() override { return n_dofs; }
+    virtual int GetNumCoordinatesVel() override { return n_dofs_w; }
 
     /// Override default in ChPhysicsItem.
     virtual bool GetCollide() const override { return true; }
@@ -165,7 +165,7 @@ class ChApi ChMesh : public ChIndexedNodes {
 
     /// Get ChMesh mass properties
     void ComputeMassProperties(double& mass,          ///< ChMesh object mass
-                               ChVector<>& com,       ///< ChMesh center of gravity
+                               ChVector3d& com,       ///< ChMesh center of gravity
                                ChMatrix33<>& inertia  ///< ChMesh inertia tensor
                                );
 
@@ -257,7 +257,7 @@ class ChApi ChMesh : public ChIndexedNodes {
     ///     pos += qb * step
     /// </pre>
     /// If qb is a speed, this behaves like a single step of 1-st order
-    /// numerical integration (Eulero integration).
+    /// numerical integration (Euler integration).
     virtual void VariablesQbIncrementPosition(double step) override;
 
     /// Tell to a system descriptor that there are variables of type

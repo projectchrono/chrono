@@ -32,8 +32,6 @@
 
 namespace chrono {
 
-using namespace geometry;
-
 ChFluidContainer::ChFluidContainer() {
     body_offset = 0;
     epsilon = 1e-3;

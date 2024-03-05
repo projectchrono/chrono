@@ -24,8 +24,7 @@
 #include <list>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/core/ChLog.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/collision/ChCollisionSystem.h"
 #include "chrono/utils/ChOpenMP.h"
@@ -125,10 +124,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Change the default composition laws for contact surface materials
     /// (coefficient of friction, cohesion, compliance, etc.)
-    virtual void SetMaterialCompositionStrategy(std::unique_ptr<ChMaterialCompositionStrategy>&& strategy);
+    virtual void SetMaterialCompositionStrategy(std::unique_ptr<ChContactMaterialCompositionStrategy>&& strategy);
 
     /// Accessor for the current composition laws for contact surface material.
-    const ChMaterialCompositionStrategy& GetMaterialCompositionStrategy() const { return *composition_strategy; }
+    const ChContactMaterialCompositionStrategy& GetMaterialCompositionStrategy() const { return *composition_strategy; }
 
     /// For elastic collisions, with objects that have nonzero
     /// restitution coefficient: objects will rebounce only if their
@@ -203,10 +202,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     std::shared_ptr<ChSystemDescriptor> GetSystemDescriptor() { return descriptor; }
 
     /// Set the G (gravity) acceleration vector, affecting all the bodies in the system.
-    void Set_G_acc(const ChVector<>& m_acc) { G_acc = m_acc; }
+    void Set_G_acc(const ChVector3d& m_acc) { G_acc = m_acc; }
 
     /// Get the G (gravity) acceleration vector affecting all the bodies in the system.
-    const ChVector<>& Get_G_acc() const { return G_acc; }
+    const ChVector3d& Get_G_acc() const { return G_acc; }
 
     /// Get the simulation time of this system.
     double GetChTime() const { return ch_time; }
@@ -240,8 +239,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     virtual void SetNumThreads(int num_threads_chrono, int num_threads_collision = 0, int num_threads_eigen = 0);
 
     int GetNumThreadsChrono() const { return nthreads_chrono; }
-    int GetNumthreadsCollision() const { return nthreads_collision; }
-    int GetNumthreadsEigen() const { return nthreads_eigen; }
+    int GetNumThreadsCollision() const { return nthreads_collision; }
+    int GetNumThreadsEigen() const { return nthreads_eigen; }
 
     // DATABASE HANDLING
 
@@ -309,15 +308,15 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     void RemoveAllOtherPhysicsItems() { assembly.RemoveAllOtherPhysicsItems(); }
 
     /// Get the list of bodies.
-    const std::vector<std::shared_ptr<ChBody>>& Get_bodylist() const { return assembly.bodylist; }
+    const std::vector<std::shared_ptr<ChBody>>& GetBodies() const { return assembly.bodylist; }
     /// Get the list of shafts.
-    const std::vector<std::shared_ptr<ChShaft>>& Get_shaftlist() const { return assembly.shaftlist; }
+    const std::vector<std::shared_ptr<ChShaft>>& GetShafts() const { return assembly.shaftlist; }
     /// Get the list of links.
-    const std::vector<std::shared_ptr<ChLinkBase>>& Get_linklist() const { return assembly.linklist; }
+    const std::vector<std::shared_ptr<ChLinkBase>>& GetLinks() const { return assembly.linklist; }
     /// Get the list of meshes.
-    const std::vector<std::shared_ptr<fea::ChMesh>>& Get_meshlist() const { return assembly.meshlist; }
+    const std::vector<std::shared_ptr<fea::ChMesh>>& GetMeshes() const { return assembly.meshlist; }
     /// Get the list of physics items that are not in the body or link lists.
-    const std::vector<std::shared_ptr<ChPhysicsItem>>& Get_otherphysicslist() const {
+    const std::vector<std::shared_ptr<ChPhysicsItem>>& GetOtherPhysicsItems() const {
         return assembly.otherphysicslist;
     }
 
@@ -343,65 +342,35 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     std::shared_ptr<ChPhysicsItem> Search(const std::string& name) const { return assembly.Search(name); }
 
     /// Get the number of active bodies (excluding those that are sleeping or are fixed to ground).
-    int GetNbodies() const { return assembly.GetNbodies(); }
+    int GetNumBodies() const { return assembly.GetNumBodies(); }
     /// Get the number of bodies that are in sleeping mode (excluding fixed bodies).
-    int GetNbodiesSleeping() const { return assembly.GetNbodiesSleeping(); }
+    int GetNumBodiesSleeping() const { return assembly.GetNumBodiesSleeping(); }
     /// Get the number of bodies that are fixed to ground.
-    int GetNbodiesFixed() const { return assembly.GetNbodiesFixed(); }
+    int GetNumBodiesFixed() const { return assembly.GetNumBodiesFixed(); }
     /// Get the total number of bodies in the assembly, including the grounded and sleeping bodies.
-    int GetNbodiesTotal() const { return assembly.GetNbodiesTotal(); }
+    int GetNumBodiesTotal() const { return assembly.GetNumBodiesTotal(); }
 
     /// Get the number of shafts.
-    int GetNshafts() const { return assembly.GetNshafts(); }
+    int GetNumShafts() const { return assembly.GetNumShafts(); }
     /// Get the number of shafts that are in sleeping mode (excluding fixed shafts).
-    int GetNshaftsSleeping() const { return assembly.GetNbodiesSleeping(); }
+    int GetNumShaftsSleeping() const { return assembly.GetNumBodiesSleeping(); }
     /// Get the number of shafts that are fixed to ground.
-    int GetNshaftsFixed() const { return assembly.GetNshaftsFixed(); }
+    int GetNumShaftsFixed() const { return assembly.GetNumShaftsFixed(); }
     /// Get the total number of shafts added to the assembly, including the grounded and sleeping shafts.
-    int GetNshaftsTotal() const { return assembly.GetNshaftsTotal(); }
+    int GetNumShaftsTotal() const { return assembly.GetNumShaftsTotal(); }
 
     /// Get the number of links.
-    int GetNlinks() const { return assembly.GetNlinks(); }
+    int GetNumLinks() const { return assembly.GetNumLinks(); }
 
     /// Get the number of meshes.
-    int GetNmeshes() const { return assembly.GetNmeshes(); }
+    int GetNumMeshes() const { return assembly.GetNumMeshes(); }
 
     /// Get the number of other physics items (other than bodies, links, or meshes).
-    int GetNphysicsItems() const { return assembly.GetNphysicsItems(); }
-
-    /// Get the number of coordinates (considering 7 coords for rigid bodies because of the 4 dof of quaternions).
-    int GetNcoords() const { return ncoords; }
-    /// Get the number of degrees of freedom of the assembly.
-    int GetNdof() const { return ndof; }
-    /// Get the number of scalar constraints added to the assembly, including constraints on quaternion norms.
-    int GetNdoc() const { return ndoc; }
-    /// Get the number of system variables (coordinates plus the constraint multipliers, in case of quaternions).
-    int GetNsysvars() const { return nsysvars; }
-    /// Get the number of coordinates (considering 6 coords for rigid bodies, 3 transl.+3rot.)
-    int GetNcoords_w() const { return ncoords_w; }
-    /// Get the number of scalar constraints added to the assembly.
-    int GetNdoc_w() const { return ndoc_w; }
-    /// Get the number of scalar constraints added to the assembly (only bilaterals).
-    int GetNdoc_w_C() const { return ndoc_w_C; }
-    /// Get the number of scalar constraints added to the assembly (only unilaterals).
-    int GetNdoc_w_D() const { return ndoc_w_D; }
-    /// Get the number of system variables (coordinates plus the constraint multipliers).
-    int GetNsysvars_w() const { return nsysvars_w; }
-
-    /// Get the number of scalar coordinates (ex. dim of position vector)
-    int GetDOF() const { return GetNcoords(); }
-    /// Get the number of scalar coordinates of variables derivatives (ex. dim of speed vector)
-    int GetDOF_w() const { return GetNcoords_w(); }
-    /// Get the number of scalar constraints, if any, in this item
-    int GetDOC() const { return GetNdoc_w(); }
-    /// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
-    int GetDOC_c() const { return GetNdoc_w_C(); }
-    /// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
-    int GetDOC_d() const { return GetNdoc_w_D(); }
+    int GetNumOtherPhysicsItems() const { return assembly.GetNumOtherPhysicsItems(); }
 
     /// Write the hierarchy of contained bodies, markers, etc. in ASCII
     /// readable form, mostly for debugging purposes. Level is the tab spacing at the left.
-    void ShowHierarchy(ChStreamOutAscii& m_file, int level = 0) const { assembly.ShowHierarchy(m_file, level); }
+    void ShowHierarchy(std::ostream& m_file, int level = 0) const { assembly.ShowHierarchy(m_file, level); }
 
     /// Removes all bodies/marker/forces/links/contacts, also resets timers and events.
     void Clear();
@@ -413,7 +382,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     // STATISTICS
 
     /// Gets the number of contacts.
-    int GetNcontacts();
+    int GetNumContacts();
 
     /// Return the time (in seconds) spent for computing the time step.
     virtual double GetTimerStep() const { return timer_step(); }
@@ -462,13 +431,13 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// This resultant force includes all external applied loads acting on the body (from gravity, loads, springs,
     /// etc). However, this does *not* include any constraint forces. In particular, contact forces are not included if
     /// using the NSC formulation, but are included when using the SMC formulation.
-    virtual ChVector<> GetBodyAppliedForce(ChBody* body);
+    virtual ChVector3d GetBodyAppliedForce(ChBody* body);
 
     /// Return the resultant applied torque on the specified body.
     /// This resultant torque includes all external applied loads acting on the body (from gravity, loads, springs,
     /// etc). However, this does *not* include any constraint forces. In particular, contact torques are not included if
     /// using the NSC formulation, but are included when using the SMC formulation.
-    virtual ChVector<> GetBodyAppliedTorque(ChBody* body);
+    virtual ChVector3d GetBodyAppliedTorque(ChBody* body);
 
   public:
     /// Counts the number of bodies and links.
@@ -522,14 +491,22 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     // TIMESTEPPER INTERFACE
 
-    /// Tells the number of position coordinates x in y = {x, v}
-    virtual int GetNcoords_x() override { return GetNcoords(); }
+    /// Get the number of coordinates at the position level.
+    /// Might differ from coordinates at the velocity level if quaternions are used for rotations.
+    virtual int GetNumCoordinatesPos() override { return m_num_coords_pos; }
 
-    /// Tells the number of speed coordinates of v in y = {x, v} and  dy/dt={v, a}
-    virtual int GetNcoords_v() override { return GetNcoords_w(); }
+    /// Get the number of coordinates at the velocity level.
+    /// Might differ from coordinates at the position level if quaternions are used for rotations.
+    virtual int GetNumCoordinatesVel() override { return m_num_coords_vel; }
 
-    /// Tells the number of lagrangian multipliers (constraints)
-    virtual int GetNconstr() override { return GetNdoc_w(); }
+    /// Tells the number of scalar constraints i.e. of lagrangian multipliers
+    virtual int GetNumConstraints() override { return m_num_constr; }
+
+    /// Get the number of bilateral scalar constraints.
+    virtual int GetNumConstraintsBilateral() { return m_num_constr_bil; }
+
+    /// Get the number of unilateral scalar constraints.
+    virtual int GetNumConstraintsUnilateral() { return m_num_constr_uni; }
 
     /// From system to state y={x,v}
     virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override;
@@ -571,20 +548,21 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// </pre>
     /// for residual R and  G = [ c_a*M + c_v*dF/dv + c_x*dF/dx ].\n
     /// This function returns true if successful and false otherwise.
-    virtual bool StateSolveCorrection(ChStateDelta& Dv,             ///< result: computed Dv
-                                      ChVectorDynamic<>& DL,        ///< result: computed lagrangian multipliers. Note the sign in system above.
-                                      const ChVectorDynamic<>& R,   ///< the R residual
-                                      const ChVectorDynamic<>& Qc,  ///< the Qc residual. Note the sign in system above.
-                                      const double c_a,             ///< the factor in c_a*M
-                                      const double c_v,             ///< the factor in c_v*dF/dv
-                                      const double c_x,             ///< the factor in c_x*dF/dv
-                                      const ChState& x,             ///< current state, x part
-                                      const ChStateDelta& v,        ///< current state, v part
-                                      const double T,               ///< current time T
-                                      bool force_state_scatter,  ///< if false, x and v are not scattered to the system
-                                      bool full_update,          ///< if true, perform a full update during scatter
-                                      bool force_setup           ///< if true, call the solver's Setup() function
-                                      ) override;
+    virtual bool StateSolveCorrection(
+        ChStateDelta& Dv,             ///< result: computed Dv
+        ChVectorDynamic<>& DL,        ///< result: computed lagrangian multipliers. Note the sign in system above.
+        const ChVectorDynamic<>& R,   ///< the R residual
+        const ChVectorDynamic<>& Qc,  ///< the Qc residual. Note the sign in system above.
+        const double c_a,             ///< the factor in c_a*M
+        const double c_v,             ///< the factor in c_v*dF/dv
+        const double c_x,             ///< the factor in c_x*dF/dv
+        const ChState& x,             ///< current state, x part
+        const ChStateDelta& v,        ///< current state, v part
+        const double T,               ///< current time T
+        bool force_state_scatter,     ///< if false, x and v are not scattered to the system
+        bool full_update,             ///< if true, perform a full update during scatter
+        bool force_setup              ///< if true, call the solver's Setup() function
+        ) override;
 
     /// Increment a vector R with the term c*F:
     ///    R += c*F
@@ -680,6 +658,9 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Tell if the system will put to sleep the bodies whose motion has almost come to a rest.
     bool GetUseSleeping() const { return use_sleeping; }
 
+    /// Get the visual system to which this ChSystem is attached (if any).
+    ChVisualSystem* GetVisualSystem() const { return visual_system; }
+
   private:
     /// Put bodies to sleep if possible. Also awakens sleeping bodies, if needed.
     /// Returns true if some body changed from sleep to no sleep or viceversa,
@@ -760,7 +741,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// matrix (at the current configuration).
     /// These can be later used for linearized motion, modal analysis, buckling analysis, etc.
     /// The name of the files will be [path]_M.dat [path]_K.dat [path]_R.dat [path]_Cq.dat
-    /// Might throw ChException if file can't be saved.
+    /// Might throw exception if file can't be saved.
     void DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path);
 
     /// Compute the system-level mass matrix.
@@ -848,39 +829,27 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
-
-    /// Process a ".chr" binary file containing the full system object
-    /// hierarchy as exported -for example- by the R3D modeler, with chrono plug-in version,
-    /// or by using the FileWriteChR() function.
-    int FileProcessChR(ChStreamInBinary& m_file);
-
-    /// Write a ".chr" binary file containing the full system object
-    /// hierarchy (bodies, forces, links, etc.) (deprecated function - obsolete)
-    int FileWriteChR(ChStreamOutBinary& m_file);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 
   protected:
     ChAssembly assembly;
 
     std::shared_ptr<ChContactContainer> contact_container;  ///< the container of contacts
 
-    ChVector<> G_acc;  ///< gravitational acceleration
+    ChVector3d G_acc;  ///< gravitational acceleration
 
     bool is_initialized;  ///< if false, an initial setup is required (i.e. a call to Initialize)
     bool is_updated;      ///< if false, a new update is required (i.e. a call to Update)
 
-    int ncoords;     ///< number of scalar coordinates (including 4th dimension of quaternions) for all active bodies
-    int ndoc;        ///< number of scalar constraints (including constr. on quaternions)
-    int nsysvars;    ///< number of variables (coords+lagrangian mult.), i.e. = ncoords+ndoc  for all active bodies
-    int ncoords_w;   ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
-    int ndoc_w;      ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
-    int nsysvars_w;  ///< number of variables when using 3 rot. dof. per body; i.e. = ncoords_w+ndoc_w
-    int ndof;        ///< number of degrees of freedom, = ncoords-ndoc =  ncoords_w-ndoc_w ,
-    int ndoc_w_C;    ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
-    int ndoc_w_D;    ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
+    int m_num_coords_pos;  ///< number of scalar coordinates (including 4th dimension of quaternions) for all active
+                           ///< bodies
+    int m_num_coords_vel;  ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
+    int m_num_constr;      ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
+    int m_num_constr_bil;  ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
+    int m_num_constr_uni;  ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
 
     double ch_time;  ///< simulation time of the system
     double step;     ///< time step
@@ -907,9 +876,9 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     int ncontacts;  ///< total number of contacts
 
-    std::shared_ptr<ChCollisionSystem> collision_system;                        ///< collision engine
-    std::vector<std::shared_ptr<CustomCollisionCallback>> collision_callbacks;  ///< user-defined collision callbacks
-    std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy;        /// material composition strategy
+    std::shared_ptr<ChCollisionSystem> collision_system;                         ///< collision engine
+    std::vector<std::shared_ptr<CustomCollisionCallback>> collision_callbacks;   ///< user-defined collision callbacks
+    std::unique_ptr<ChContactMaterialCompositionStrategy> composition_strategy;  /// material composition strategy
 
     ChVisualSystem* visual_system;  ///< run-time visualization engine
 

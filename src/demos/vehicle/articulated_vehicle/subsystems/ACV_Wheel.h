@@ -27,14 +27,14 @@ class ACV_Wheel : public chrono::vehicle::ChWheel {
     ~ACV_Wheel() {}
 
     virtual double GetWheelMass() const override { return m_mass; }
-    virtual const chrono::ChVector<>& GetWheelInertia() const override { return m_inertia; }
+    virtual const chrono::ChVector3d& GetWheelInertia() const override { return m_inertia; }
 
     virtual double GetRadius() const override { return m_radius; }
     virtual double GetWidth() const override { return m_width; }
 
   private:
     static const double m_mass;
-    static const chrono::ChVector<> m_inertia;
+    static const chrono::ChVector3d m_inertia;
     static const double m_radius;
     static const double m_width;
 };

@@ -19,21 +19,26 @@
 
 using System;
 using static ChronoGlobals;
+using static chrono_vehicle;
 
 namespace ChronoDemo
 {
+
     internal class Program
     {
+
         static void Main(string[] args)
         {
+            Console.WriteLine("Copyright (c) 2017 projectchrono.org");
+            Console.WriteLine("Chrono version: " + CHRONO_VERSION);
 
             // Set the path to the Chrono data files and Chrono::Vehicle data files
             chrono.SetChronoDataPath(CHRONO_DATA_DIR);
-
+            chrono_vehicle.SetDataPath(CHRONO_VEHICLE_DATA_DIR);
 
             // Create the vehicle system
-            WheeledVehicle vehicle = new WheeledVehicle(vehicle.GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json"), ChContactMethod.SMC);
-            vehicle.Initialize(new ChCoordsysD(new ChVectorD(0, 0, 0.5), new ChQuaternionD(1, 0, 0, 0)));
+            WheeledVehicle vehicle = new WheeledVehicle(GetDataFile("hmmwv/vehicle/HMMWV_Vehicle.json"), ChContactMethod.SMC);
+            vehicle.Initialize(new ChCoordsysd(new ChVector3d(0, 0, 0.5), new ChQuaterniond(1, 0, 0, 0)));
             vehicle.GetChassis().SetFixed(false);
             vehicle.SetChassisVisualizationType(VisualizationType.MESH);
             vehicle.SetChassisRearVisualizationType(VisualizationType.PRIMITIVES);
@@ -43,8 +48,8 @@ namespace ChronoDemo
             vehicle.SetWheelVisualizationType(VisualizationType.MESH);
 
             // Create and initialize the powertrain system
-            ChEngineShafts engine = ReadEngineJSON(vehicle.GetDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json"));
-            ChAutomaticTransmissionShafts transmission = ReadTransmissionJSON(vehicle.GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json"));
+            ChEngine engine = ReadEngineJSON(GetDataFile("hmmwv/powertrain/HMMWV_EngineShafts.json"));
+            ChTransmission transmission = ReadTransmissionJSON(GetDataFile("hmmwv/powertrain/HMMWV_AutomaticTransmissionShafts.json"));
             ChPowertrainAssembly powertrain = new ChPowertrainAssembly(engine, transmission);
             vehicle.InitializePowertrain(powertrain);
 
@@ -53,7 +58,7 @@ namespace ChronoDemo
             {
                 foreach (ChWheel wheel in axle.GetWheels())
                 {
-                    ChTire tire = ReadTireJSON(vehicle.GetDataFile("hmmwv/tire/HMMWV_TMeasyTire.json"));
+                    ChTire tire = ReadTireJSON(GetDataFile("hmmwv/tire/HMMWV_TMeasyTire.json"));
                     vehicle.InitializeTire(tire, wheel, VisualizationType.MESH);
                 }
             }
@@ -65,28 +70,27 @@ namespace ChronoDemo
             system.SetCollisionSystemType(ChCollisionSystem.Type.BULLET);
 
             // Create the terrain
-            RigidTerrain terrain = new RigidTerrain(system, vehicle.GetDataFile("terrain/RigidPlane.json"));
+            RigidTerrain terrain = new RigidTerrain(system, GetDataFile("terrain/RigidPlane.json"));
             terrain.Initialize();
+            ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
 
-            // Create the vehicle Irrlicht interface
-            ChWheeledVehicleVisualSystemIrrlicht vis_ = new ChWheeledVehicleVisualSystemIrrlicht();
-            vis.SetWindowTitle(title);
-            vis.SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), vehicle_model->CameraDistance(), 0.5);
+            vis.SetWindowTitle("CSharp Vehicle Irrlicht Demo");
+            vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 1.75), 3, 1.5);
             vis.Initialize();
+            
             vis.AddLightDirectional();
             vis.AddSkyBox();
             vis.AddLogo();
+            
             vis.AttachVehicle(vehicle);
 
             // Create the interactive Irrlicht driver system
-            ChInteractiveDriverIRR driver_irr = new ChInteractiveDriverIRR(*vis);
+            ChInteractiveDriverIRR driver_irr = new ChInteractiveDriverIRR(vis);
             driver_irr.SetSteeringDelta(0.02);
             driver_irr.SetThrottleDelta(0.02);
             driver_irr.SetBrakingDelta(0.06);
-            driver_irr.Initialize();
-
-
-
+            driver_irr.Initialize();        
+            
             // Simulation loop
             double step_size = 2e-3;
 
@@ -99,22 +103,21 @@ namespace ChronoDemo
                 vis.EndScene();
 
                 // Get driver inputs
-                DriverInputs driver_inputs = driver.GetInputs();
+                DriverInputs driver_inputs = driver_irr.GetInputs();
 
                 // Update modules (process inputs from other modules)
                 double time = vehicle.GetSystem().GetChTime();
-                driver.Synchronize(time);
+                driver_irr.Synchronize(time);
                 vehicle.Synchronize(time, driver_inputs, terrain);
                 terrain.Synchronize(time);
                 vis.Synchronize(time, driver_inputs);
 
                 // Advance simulation for one timestep for all modules
-                driver.Advance(step_size);
+                driver_irr.Advance(step_size);
                 vehicle.Advance(step_size);
                 terrain.Advance(step_size);
                 vis.Advance(step_size);
             }
-
         }
 
     }

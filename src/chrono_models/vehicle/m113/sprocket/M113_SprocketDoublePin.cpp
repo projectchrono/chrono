@@ -36,7 +36,7 @@ namespace m113 {
 const int M113_SprocketDoublePin::m_num_teeth = 10;
 
 const double M113_SprocketDoublePin::m_gear_mass = 27.68;
-const ChVector<> M113_SprocketDoublePin::m_gear_inertia(0.646, 0.883, 0.646);
+const ChVector3d M113_SprocketDoublePin::m_gear_inertia(0.646, 0.883, 0.646);
 const double M113_SprocketDoublePin::m_axle_inertia = 0.4;
 const double M113_SprocketDoublePin::m_separation = 0.278;
 
@@ -68,14 +68,14 @@ void M113_SprocketDoublePin::CreateContactMaterial(ChContactMethod contact_metho
 // -----------------------------------------------------------------------------
 void M113_SprocketDoublePin::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        ////auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
+        ////auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
         auto trimesh = CreateVisualizationMesh(0.15, 0.03, 0.02);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(GetMeshFile()).stem());
         trimesh_shape->SetMutable(false);
-        ////std::vector<geometry::ChTriangleMeshConnected> meshes = {*trimesh};
-        ////geometry::ChTriangleMeshConnected::WriteWavefront("mySprocket.obj", meshes);
+        ////std::vector<ChTriangleMeshConnected> meshes = {*trimesh};
+        ////ChTriangleMeshConnected::WriteWavefront("mySprocket.obj", meshes);
         m_gear->AddVisualShape(trimesh_shape);
     } else {
         ChSprocket::AddVisualizationAssets(vis);

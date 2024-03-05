@@ -117,14 +117,14 @@ class ChApi ChSystemSMC : public ChSystem {
         /// Calculate contact force (resultant of both normal and tangential components) for a contact between two
         /// objects, obj1 and obj2. Optionally, can compute torque, or leave it as zero. 
         /// Note that this function is always called with delta > 0.
-        virtual std::pair<ChVector<>,ChVector<>> CalculateForceTorque(
+        virtual std::pair<ChVector3d,ChVector3d> CalculateForceTorque(
             const ChSystemSMC& sys,             ///< containing system
-            const ChVector<>& normal_dir,       ///< normal contact direction (expressed in global frame)
-            const ChVector<>& p1,               ///< most penetrated point on obj1 (expressed in global frame)
-            const ChVector<>& p2,               ///< most penetrated point on obj2 (expressed in global frame)
-            const ChVector<>& vel1,             ///< velocity of contact point on obj1 (expressed in global frame)
-            const ChVector<>& vel2,             ///< velocity of contact point on obj2 (expressed in global frame)
-            const ChMaterialCompositeSMC& mat,  ///< composite material for contact pair
+            const ChVector3d& normal_dir,       ///< normal contact direction (expressed in global frame)
+            const ChVector3d& p1,               ///< most penetrated point on obj1 (expressed in global frame)
+            const ChVector3d& p2,               ///< most penetrated point on obj2 (expressed in global frame)
+            const ChVector3d& vel1,             ///< velocity of contact point on obj1 (expressed in global frame)
+            const ChVector3d& vel2,             ///< velocity of contact point on obj2 (expressed in global frame)
+            const ChContactMaterialCompositeSMC& mat,  ///< composite material for contact pair
             double delta,                       ///< overlap in normal direction
             double eff_radius,                  ///< effective radius of curvature at contact
             double mass1,                       ///< mass of obj1
@@ -141,10 +141,10 @@ class ChApi ChSystemSMC : public ChSystem {
     const ChContactForceTorqueSMC& GetContactForceTorqueAlgorithm() const { return *m_force_algo; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     bool m_use_mat_props;                        ///< if true, derive contact parameters from mat. props.

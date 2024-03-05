@@ -5,6 +5,7 @@ Change Log
 ==========
 
 - [Unreleased (development version)](#unreleased-development-branch)
+  - [Refactoring of class and function names](#changed-refactoring-of-class-and-function-names)
   - [Updated Chrono::VSG module](#changed-updated-chronovsg-module)
   - [New motion functions and filters](#added-new-motion-functions-and-filters)
   - [Updated ChBlender exporter to Blender4.0](#changed-updated-chblender-exporter-to-blender40)
@@ -98,7 +99,544 @@ Change Log
 
 ## Unreleased (development branch)
 
-## [Changed] Updated Chrono::VSG module
+### [Changed] Refactoring of class and function names
+
+For consistency and uniformity, many class and functions were renamed and some classes obsoleted.
+Note that this represents a major public API change and we expect most user code will need to be updated to reflect these changes.
+
+**Header files**
+
+| File                                | Action                                    |
+| :---------------------------------- | :---------------------------------------- |
+| ChDistribution.h                    | rename: ChRandom.h                        |
+| ChException.h                       | remove                                    |
+| ChFx.h                              | remove                                    |
+| ChLinkRackpinion.h                  | remove: merged into ChLinkMate.h          |
+| ChLists.h                           | remove                                    |
+| ChLog.h                             | remove                                    |
+| ChMaterialSurface.h                 | rename: ChContactMaterial.h               |
+| ChMaterialSurfaceNSC.h              | rename: ChContactMaterialNSC.h            |
+| ChMaterialSurfaceSMC.h              | rename: ChContactMaterialSMC.h            |
+| ChMath.h                            | remove                                    |
+| ChMathematics.h                     | remove and replace with:                  |
+|                                     |         ChConstants.h                     |
+|                                     |         ChUtils.h                         |
+| ChSolvmin.h                         | remove                                    |
+| ChStream.h                          | remove                                    |
+| ChFunction_Const.h                  | rename: ChFunctionConst.h                 |
+| ChFunction_BSpline.h                | rename: ChFunctionBSpline.h               |
+| ChFunction_ConstAcc.h               | rename: ChFunctionConstAcc.h              |
+| ChFunction_DoubleS.h                | rename: ChFunctionConstJerk.h             |
+| ChFunction_Cycloidal.h              | rename: ChFunctionCycloidal.h             |
+| ChFunction_Derive.h                 | rename: ChFunctionDerivative.h            |
+| ChFunction_Fillet3.h                | rename: ChFunctionFillet3.h               |
+| ChFunction_Integrate.h              | rename: ChFunctionIntegral.h              |
+| ChFunction_Lambda.h                 | rename: ChFunctionLambda.h                |
+| ChFunction_Mirror.h                 | rename: ChFunctionMirror.h                |
+| ChFunction_Mocap.h                  | remove                                    |
+| ChFunction_Noise.h                  | remove                                    |
+| ChFunction_Operation.h              | rename: ChFunctionOperator.h              |
+| ChFunction_Oscilloscope.h           | remove                                    |
+| ChFunction_Poly345.h                | rename: ChFunctionPoly345.h               |
+| ChFunction_Poly.h                   | rename: ChFunctionPoly.h                  |
+| ChFunction_Ramp.h                   | rename: ChFunctionRamp.h                  |
+| ChFunction_Recorder.h               | rename: ChFunctionInterp.h                |
+| ChFunction_Repeat.h                 | rename: ChFunctionRepeat.h                |
+| ChFunction_Sequence.h               | rename: ChFunctionSequence.h              |
+| ChFunction_Sigma.h                  | rename: ChFunctionPoly23.h                |
+| ChFunction_Sine.h                   | rename: ChFunctionSine.h                  |
+| ChFunction_Setpoint.h               | rename: ChFunctionSetpoint.h              |
+| ChFunctionPosition_line.h           | rename: ChFunctionPositionLine.h          |
+| ChFunctionPosition_setpoint.h       | rename: ChFunctionPositionSetpoint.h      |
+| ChFunctionPosition_XYZfunctions.h   | rename: ChFunctionPositionXYZFunctions.h  |
+| ChFunctionRotation_ABCfunctions.h   | rename: ChFunctionRotationABCFunctions.h  |
+| ChFunctionRotation_axis.h           | rename: ChFunctionRotationAxis.h          |
+| ChFunctionRotation_setpoint.h       | rename: ChFunctionRotationSetpoint.h      |
+| ChFunctionRotation_spline.h         | rename: ChFunctionRotationBSpline.h       |
+| ChFunctionRotation_SQUAD.h          | rename: ChFunctionRotationSQUAD.h         |
+| ChLinkBrake.h                       | rename: ChLinkLockBrake.h                 |
+| ChLinkClearance.h                   | rename: ChLinkLockClearance.h             |
+| ChLinkGear.h                        | rename: ChLinkLockGear.h                  |
+| ChLinkLinActuator.h                 | rename: ChLinkLockLinActuator.h           |
+| ChLinkPointSpline.h                 | rename: ChLinkLockPointSpline.h           |
+| ChLinkPulley.h                      | rename: ChLinkLockPulley.h                |
+| ChLinkScrew.h                       | rename: ChLinkLockScrew.h                 |
+| ChLinkTrajectory.h                  | rename: ChLinkLockTrajectory.h            |
+| ChVector.h                          | rename: ChVector3.h                       |
+
+
+**Classes and functions**
+
+| Class                             | Function                      | Action                                           |
+| :-------------------------------- | :--------------------------   | :----------------------------------------------- |
+| -                                 | make_ChFunctionLambda         | remove                                           |
+| -                                 | make_shared_ChFunctionLambda  | remove                                           |
+| -                                 | ChAtan2                       | remove                                           |
+| -                                 | ChClamp                       | relocate to utils/ChUtils.h                      |
+| -                                 | ChClampValue                  | relocate to utils/ChUtils.h                      |
+| -                                 | ChGetRandomSeed               | remove                                           |
+| -                                 | ChMax                         | remove                                           |
+| -                                 | ChMin                         | remove                                           |
+| -                                 | ChPeriodicPar                 | remove                                           |
+|                                   | ChRandom                      | replace with: ChRandom::Get                      |
+| -                                 | ChSetRandomSeed               | replace with: ChRandom::SetSeed                  |
+| -                                 | ChSignum                      | relocate to utils/ChUtils.h                      |
+| -                                 | ChSineStep                    | implemented in ChFunctionSineStep                |
+| -                                 | GetLog                        | remove                                           |
+| -                                 | SetLog                        | remove                                           |
+| -                                 | SetLogDefault                 | remove                                           |
+| ChArchiveAsciiDump                |                               | rename: ChOutputASCII                            |
+| ChArchiveExplorer                 |                               | rename: ChObjectExplorer                         |
+| ChAssembly                        |                               |                                                  |
+|                                   | Get_bodylist                  | rename: GetBodies                                |
+|                                   | Get_linklist                  | rename: GetLinks                                 |
+|                                   | Get_meshlist                  | rename: GetMeshes                                |
+|                                   | Get_otherphysicslist          | rename: GetShafts                                |
+|                                   | Get_shaftslist                | rename: GetOtherPhysicsItems                     |
+|                                   | GetNbodies                    | rename: GetNumBodies                             |
+|                                   | GetNbodiesFixed               | rename: GetNumBodiesFixed                        |
+|                                   | GetNbodiesSleeping            | rename: GetNumBodiesSleeping                     |
+|                                   | GetNbodiesTotal               | rename: GetNumBodiesTotal                        |
+|                                   | GetNcontacts                  | rename: GetNumContacts                           |
+|                                   | GetNcoords                    | rename: GetNumCoordinatesPos                     |
+|                                   | GetNcoords_w                  | rename: GetNumCoordinatesVel                     |
+|                                   | GetNdoc                       | remove: no constraints at position level         |
+|                                   | GetNdoc_w                     | rename: GetNumConstraints                        |
+|                                   | GetNdoc_w_C                   | rename: GetNumConstraintsBilateral               |
+|                                   | GetNdoc_w_D                   | rename: GetNumConstraintsUnilateral              |
+|                                   | GetNdof                       | remove: it was a rough estimate                  |
+|                                   | GetNlinks                     | rename: GetNumLinks                              |
+|                                   | GetNmeshes                    | rename: GetNumMeshes                             |
+|                                   | GetNphysicsItems              | rename: GetNumOtherPhysicsItems                  |
+|                                   | GetNshafts                    | rename: GetNumShafts                             |
+|                                   | GetNshaftsFixed               | rename: GetNumShaftsFixed                        |
+|                                   | GetNshaftsSleeping            | rename: GetNumShaftsSleeping                     |
+|                                   | GetNshaftsTotal               | rename: GetNumShaftsTotal                        |
+|                                   | GetNsysvars                   | remove                                           |
+|                                   | GetNsysvars_w                 | remove                                           |
+| ChBinaryArchive                   |                               | remove                                           |
+| ChException                       |                               | remove                                           |
+| ChFrame                           |                               |                                                  |
+|                                   | GetA                          | rename: GetRotMat                                |
+|                                   | GetCoord                      | rename: GetCsys                                  |
+|                                   | operator%=                    | remove                                           |
+|                                   | SetCoord                      | rename: SetCsys                                  |
+| ChFrameMoving                     |                               |                                                  | 
+|                                   | Compute_Adt                   | rename: ComputeRotMatDer                         |
+|                                   | Compute_Adtdt                 | rename: ComputeRotMatDer2                        |
+|                                   | GetA_dt                       | rename: GetRotMatDer                             |
+|                                   | GetA_dtdt                     | rename: GetRotMatDer2                            |
+|                                   | GetCoord_dt                   | rename: GetCsysDer                               |
+|                                   | GetCoord_dtdt                 | rename: GetCsysDer2                              |
+|                                   | GetPos_dt                     | rename: GetPosDer                                |
+|                                   |                               | added: GetLinVel                                 |
+|                                   | GetPos_dtdt                   | rename: GetPosDer2                               |
+|                                   |                               | added: GetLinAcc                                 |
+|                                   | GetRot_dt                     | rename: GetRotDer                                |
+|                                   | GetRot_dtdt                   | rename: GetRotDer2                               |
+|                                   | GetWacc_loc                   | rename: GetAngAccLocal                           |
+|                                   | GetWacc_par                   | rename: GetAngAccParent                          |
+|                                   | GetWvel_loc                   | rename: GetAngVelLocal                           |
+|                                   | GetWvel_par                   | rename: GetAngVelParent                          |
+|                                   | operator%=                    | remove                                           |
+|                                   | SetCoord_dt                   | rename: SetCsysDer                               |
+|                                   | SetCoord_dtdt                 | rename: SetCsysDer2                              |
+|                                   | SetPos_dt                     | rename: SetPosDer                                |
+|                                   |                               | added: SetLinVel                                 |
+|                                   | SetPos_dtdt                   | rename: SetPosDer2                               |
+|                                   |                               | added: SetLinAcc                                 |
+|                                   | SetRot_dt                     | rename: SetRotDer                                |
+|                                   | SetRot_dtdt                   | rename: SetRotDer2                               |
+|                                   | SetWacc_loc                   | rename: SetAngAccLocal                           |
+|                                   | SetWacc_par                   | rename: SetAngAccParent                          |
+|                                   | SetWvel_loc                   | rename: SetAngVelLocal                           |
+|                                   | SetWvel_par                   | rename: SetAngVelParent                          |
+| ChFunction                        |                               |                                                  |
+|                                   | Compute_int                   | rename: GetIntegral                              |
+|                                   | Compute_max                   | rename: GetMax                                   |
+|                                   | Compute_mean                  | rename: GetMean                                  |
+|                                   | Compute_min                   | rename: GetMin                                   |
+|                                   | Compute_sqrmean               | rename: GetSquaredMean                           |
+|                                   | Estimate_x_range              | remove                                           |
+|                                   | Estimate_y_range              | remove: use GetMin, GetMax                       |
+|                                   | EvaluateIntervaldN            | rename: SampleUpToDerN                           |
+|                                   | Get_Ca_neg                    | rename: GetNegativeAccelerationCoeff             |
+|                                   | Get_Ca_pos                    | rename: GetPositiveAccelerationCoeff             |
+|                                   | Get_Cv                        | rename: GetVelocityCoeff                         |
+|                                   | Get_Type                      | rename: GetType                                  |
+|                                   | Get_weight                    | rename: GetWeight                                |
+|                                   | Get_y_dN                      | rename: GetDerN                                  |
+|                                   | Get_y_dx                      | rename: GetDer                                   |
+|                                   | Get_y_dxdx                    | rename: GetDer2                                  |
+|                                   | Get_y_dxdxdx                  | rename: GetDer3                                  |
+|                                   | FileAsciiPairsSave            | rename: OutputToASCIIFile                        |
+|                                   | HandleAccess                  | remove                                           |
+|                                   | HandleNumber                  | remove                                           |
+|                                   | FilePostscriptPlot            | remove                                           |
+| ChFunction_Const                  |                               | rename: ChFunctionConst                          |
+|                                   | Get_yconst                    | rename: GetConstant                              |
+|                                   | Set_yconst                    | rename: SetConstant                              |
+| ChFunction_BSpline                |                               | rename: ChFunctionBSpline                        |
+|                                   | Get_Basis_Tool                | rename: GetBasisTool                             |
+|                                   | Get_Control_Points            | rename: GetControlPoints                         |
+|                                   | Get_Control_Points_Abscissae  | rename: GetControlPointsAbscissae                |
+|                                   | Get_Knots                     | rename: GetKnots                                 |
+|                                   | Get_Order                     | rename: GetOrder                                 |
+|                                   | Get_y                         | rename: GetVal                                   |
+|                                   | Recompute_Constrained         | rename: ApplyInterpolationConstraints            |
+|                                   | Setup_Data                    | rename: Setup                                    |
+| ChFunction_ConstAcc               |                               | rename: ChFunctionConstAcc                       |
+|                                   | Get_end                       | rename: GetDuration                              |
+|                                   | Get_h                         | rename: GetDisplacement                          |
+|                                   | Get_av                        | rename: GetFirstAccelerationEnd                  |
+|                                   | Get_aw                        | rename: GetSecondAccelerationStart               |
+|                                   | Set_av                        | rename: SetFirstAccelerationEnd                  |
+|                                   | Set_avw                       | rename: SetAccelerationReferencePoints           |
+|                                   | Set_aw                        | rename: SetSecondAccelerationStart               |
+|                                   | Set_end                       | rename: SetDuration                              |
+|                                   | Set_h                         | rename: SetDisplacement                          |
+| ChFunction_Derive                 |                               | rename: ChFunctionDerivative                     |
+|                                   | Get_order                     | rename: GetOrder                                 |
+|                                   | Set_fa                        | rename: SetOperandFunction                       |
+|                                   | Get_fa                        | rename: GetOperandFunction                       |
+|                                   | Set_order                     | rename: SetOrder                                 |
+| ChFunction_DoubleS                |                               | rename: ChFunctionConstJerk                      |
+|                                   | Get_Bounds                    | rename: GetBoundaryConditions                    |
+|                                   | Get_Constraints               | rename: GetImposedLimits                         |
+|                                   | Get_Limits                    | rename: GetReachedLimits                         |
+|                                   | Get_Times                     | rename: GetTimes                                 |
+| ChFunction_Cycloidal              |                               | rename: ChFunctionCycloidal                      |
+|                                   | Set_end                       | rename: SetWidth                                 |
+|                                   | Set_h                         | rename: SetHeight                                |
+|                                   | Get_end                       | rename: GetWidth                                 |
+|                                   | Get_h                         | rename: GetHeight                                |
+| ChFunction_Fillet3                |                               | rename: ChFunctionFillet3                        |
+|                                   | Get_dy1                       | rename: GetStartDer                              |
+|                                   | Get_dy2                       | rename: GetEndDer                                |
+|                                   | Get_y1                        | rename: GetStartVal                              |
+|                                   | Get_y2                        | rename: GetEndVal                                |
+|                                   | Set_dy1                       | rename: SetStartDer                              |
+|                                   | Set_dy2                       | rename: SetEndDer                                |
+|                                   | Set_y1                        | rename: SetStartVal                              |
+|                                   | Set_y2                        | rename: SetEndVal                                |
+|                                   | SetupCoefficients             | rename: Setup                                    |
+| ChFunction_Integrate              |                               | rename: ChFunctionIntegral                       |
+|                                   | ComputeIntegral               | rename: Setup                                    |
+|                                   | Get_C_start                   | rename: GetOffsetVal                             |
+|                                   | Get_num_samples               | rename: GetNumSamples                            |
+|                                   | Get_x_end                     | rename: GetStart                                 |
+|                                   | Get_x_start                   | rename: GetEnd                                   |
+|                                   | Set_C_start                   | rename: SetOffsetVal                             |
+|                                   | Set_num_samples               | rename: SetNumSamples                            |
+|                                   | Set_x_end                     | rename: SetEndArg                                |
+|                                   | Set_x_start                   | rename: SetStartArg                              |
+| ChFunction_Lambda                 |                               | rename: ChFunctionLambda                         |
+| ChFunction_Mirror                 |                               | rename: ChFunctionMirror                         |
+|                                   | Get_mirror_axis               | rename: GetMirrorAxis                            |  
+|                                   | Set_mirror_axis               | rename: SetMirrorAxis                            |  
+| ChFunction_Mocap                  |                               | remove                                           |
+| ChFunction_Noise                  |                               | remove                                           |
+| ChFunction_Operation              |                               | rename: ChFunctionOperator                       |
+|                                   | Get_fa                        | rename: GetFirstOperandFunction                  |
+|                                   | Get_fb                        | rename: GetSecondOperandFunction                 |
+|                                   | Get_optype                    | rename: GetOperationType                         |
+|                                   | Set_fa                        | rename: SetFirstFunction                         |
+|                                   | Set_fb                        | rename: SetSecondOperandFunction                 |
+|                                   | Set_optype                    | rename: SetOperationType                         |
+| ChFunction_Oscilloscope           |                               | remove                                           |
+| ChFunction_Poly                   |                               | rename: ChFunctionPoly                           |
+|                                   | Get_coeff                     | rename: GetCoefficients                          |
+|                                   | Set_coeff                     | rename: SetCoefficients                          |
+| ChFunction_Poly345                |                               | rename: ChFunctionPoly345                        |
+|                                   | Set_end                       | rename: SetWidth                                 |
+|                                   | Set_h                         | rename: SetHeight                                |
+|                                   | Get_end                       | rename: GetWidth                                 |
+|                                   | Get_h                         | rename: GetHeight                                |
+| ChFunction_Ramp                   |                               | rename: ChFunctionRamp                           |
+|                                   | Set_ang                       | rename: SetAngularCoeff                          |
+|                                   | Set_y0                        | rename: SetStartVal                              |
+|                                   | Get_ang                       | rename: GetAngularCoeff                          |
+|                                   | Get_y0                        | rename: GetStartVal                              |
+| ChFunction_Recorder               |                               | rename: ChFunctionInterp                         |
+|                                   | GetPoints                     | rename: GetTable                                 |
+| ChFunction_Repeat                 |                               | rename: ChFunctionRepeat                         |
+|                                   | Get_window_length             | rename: GetSliceLength                           |
+|                                   | Get_window_phase              | rename: GetSliceShift                            |
+|                                   | Get_window_start              | rename: GetSliceStart                            |
+|                                   | Set_window_length             | rename: SetSliceWidth                            |
+|                                   | Set_window_phase              | rename: SetSliceShift                            |
+|                                   | Set_window_start              | rename: SetSliceStart                            |
+| ChFunction_Sequence               |                               | rename: ChFunctionSequence                       |
+|                                   | Get_list                      | rename: GetFunctions                             |
+|                                   | GetNthDuration                | rename: GetDuration                              |
+|                                   | GetNthFunction                | rename: GetFunction                              |
+|                                   | GetNthNode                    | rename: GetNode                                  |
+|                                   | KillFunct                     | rename: RemoveFunct                              |
+| ChFunction_Sigma                  |                               | rename: ChFunctionPoly23                         |
+|                                   | Get_amp                       | rename: GetAmplitude                             |
+|                                   | Set_amp                       | rename: SetAmplitude                             |
+| ChFunction_Sine                   |                               | rename: ChFunctionSine                           |
+|                                   | (constructor)                 | changed args order to ampl, freq, phase          |
+|                                   | Get_phase                     | rename: SetPhase                                 |
+|                                   | Set_phase                     | rename: SetPhase                                 |
+|                                   | SetFreq                       | rename: SetFrequency                             |
+|                                   | Get_w                         | rename: GetAngularRate                           |
+|                                   | Set_freq                      | rename: SetFrequency                             |
+|                                   | Set_w                         | rename: SetAngularRate                           |
+| ChFunction_SineStep               | SetP1                         | rename: SetFirstPoint                            |
+|                                   | SetP2                         | rename: SetSecondPoint                           |
+| ChFunction_Setpoint               |                               | rename: ChFunctionSetpoint                       |
+| ChFunctionPosition                |                               |                                                  |
+|                                   | Get_p                         | rename: GetPos                                   |
+|                                   | Get_p_ds                      | rename: GetLinVel                                |
+|                                   | Get_p_dsds                    | rename: GetLinAcc                                |
+| ChFunctionPosition                |                               |                                                  |
+|                                   | Get_q                         | rename: GetQuat                                  |
+|                                   | Get_w_loc                     | rename: GetAngVel                                |
+|                                   | Get_a_loc                     | rename: GetAngAcc                                |
+| ChFunctionPosition_line           |                               | rename: ChFunctionPositionLine                   |
+| ChFunctionPosition_setpoint       |                               | rename: ChFunctionPositionSetpoint               |
+| ChFunctionPosition_XYZfunctions   |                               | rename: ChFunctionPositionXYZFunctions           |
+| ChFunctionRotation_ABCfunctions   |                               | rename: ChFunctionRotationABCFunctions           |
+|                                   | SetAngleset                   | rename: SetRotationRepresentation                |
+|                                   | GetAngleset                   | rename: GetRotationRepresentation                |
+| ChFunctionRotation_axis           |                               | rename: ChFunctionRotationAxis                   |
+| ChFunctionRotation_setpoint       |                               | rename: ChFunctionRotationSetpoint               |
+| ChFunctionRotation_spline         |                               | rename: ChFunctionRotationBSpline                |
+|                                   | Rotations                     | rename: GetRotations                             |
+|                                   | Knots                         | rename: GetKnots                                 |
+| ChFunctionRotation_SQUAD          |                               | rename: ChFunctionRotationSQUAD                  |
+|                                   | Rotations                     | rename: GetRotations                             |
+|                                   | Knots                         | rename: GetKnots                                 |
+| ChIntegrable                      |                               |                                                  |
+|                                   | GetNconstr                    | rename: GetNumConstraints                        |
+|                                   | GetNcoords_dy                 | remove: split in GetNumCoordinatesVel/Acc        |
+|                                   | GetNcoords_x                  | rename: GetNumCoordinatesPos                     |
+|                                   | GetNcoords_v                  | rename: GetNumCoordinatesVel                     |
+|                                   | GetNcoords_y                  | remove: split in GetNumCoordinatesPos/Vel        |
+| ChLinkBrake                       |                               | rename: ChLinkLockBrake                          |
+| ChLinkClearance                   |                               | rename: ChLinkLockClearance                      |
+| ChLinkGear                        |                               | rename: ChLinkLockGear                           |
+| ChLinkLinActuator                 |                               | rename: ChLinkLockLinActuator                    |
+| ChLinkMateCoaxial                 |                               | rename: ChLinkMateCylindrical                    |
+| ChLinkMatePlane                   |                               | rename: ChLinkMatePlanar                         |
+|                                   | GetSeparation                 | rename: GetDistance                              |
+|                                   | SetSeparation                 | rename: SetDistance                              |
+| ChLinkMatePrismatic               |                               |                                                  |
+|                                   | GetRelativePos_dt             | rename: GetRelativePosDer                        |
+|                                   | GetRelativePos_dtdt           | rename: GetRelativePosDer2                       |
+| ChLinkMateXdistance               |                               | rename: ChLinkMateDistanceZ                      |
+| ChLinkMotorPosition               |                               |                                                  |
+|                                   | GetMotorPos_dt                | rename: GetMotorPosDer                           |
+|                                   | GetMotorPos_dtdt              | rename: GetMotorPosDer2                          |
+| ChLinkMotorRotation               |                               |                                                  |
+|                                   | GetMotorRot                   | rename: GetMotorAngle                            |
+|                                   | GetMotorRot_dt                | rename: GetMotorAngleDer                         |
+|                                   | GetMotorRot_dtdt              | rename: GetMotorAngleDer2                        |
+|                                   | GetMotorRotPeriodic           | rename: GetMotorAngleWrapped                     |
+|                                   | GetMotorRotTurns              | rename: GetMotorNumTurns                         |
+| ChLinkPointSpline                 |                               | rename: ChLinkLockPointSpline                    |
+| ChLinkPulley                      |                               | rename: ChLinkLockPulley                         |
+| ChLinkScrew                       |                               | rename: ChLinkLockScrew                          |
+| ChLinkTrajectory                  |                               | rename: ChLinkLockTrajectory                     |
+| ChList                            |                               | remove                                           |
+| ChLog                             |                               | remove                                           |
+| ChLogConsole                      |                               | remove                                           |
+| ChMarker                          |                               |                                                  |
+|                                   | Dir_Ref2World                 | remove                                           |
+|                                   | Dir_World2Ref                 | remove                                           |
+|                                   | GetAbsWvel                    | rename: GetAngVelAbs                             |
+|                                   | GetAbsWacc                    | rename: GetAngAccAbs                             |
+|                                   | GetAbsCoord                   | rename: GetAbsCsys                               |
+|                                   | GetAbsCoord_dt                | rename: GetAbsCsysDer                            |
+|                                   | GetAbsCoord_dtdt              | rename: GetAbsCsysDer2                           |
+|                                   | GetMotion_ang                 | rename: GetMotionAngle                           |
+|                                   | GetMotion_axis                | rename: GetMotionAxis                            |
+|                                   | GetMotion_X                   | rename: GetMotionAxisX                           |
+|                                   | GetMotion_Y                   | rename: GetMotionAxisY                           |
+|                                   | GetMotion_Z                   | rename: GetMotionAxisZ                           |
+|                                   | GetRest_Coord                 | rename: GetRestCsys                              |
+|                                   | Impose_Rel_Coord              | rename: ImposeRelativeTransform                  |
+|                                   | Impose_Abs_Coord              | rename: ImposeAbsoluteTransform                  |
+|                                   | Point_Ref2World               | remove                                           |
+|                                   | Point_World2Ref               | remove                                           |
+|                                   | SetAbsCoord                   | rename: SetAbsCsys                               |
+|                                   | SetAbsCoord_dt                | rename: SetAbsCsysDer                            |
+|                                   | SetAbsCoord_dtdt              | rename: SetAbsCsysDer2                           |
+|                                   | SetMotion_ang                 | rename: SetMotionAngle                           |
+|                                   | SetMotion_axis                | rename: SetMotionAxis                            |
+|                                   | SetMotion_X                   | rename: SetMotionAxisX                           |
+|                                   | SetMotion_Y                   | rename: SetMotionAxisY                           |
+|                                   | SetMotion_Z                   | rename: SetMotionAxisZ                           |
+| ChMaterialSurface                 |                               | rename: ChContactMaterial                        |
+|                                   | SetSfriction                  | rename: SetStaticFriction                        |
+|                                   | GetSfriction                  | rename: GetStaticFriction                        |
+|                                   | SetKfriction                  | rename: SetSlidingFriction                       |
+|                                   | GetKfriction                  | rename: GetSlidingFriction                       |
+| ChMaterialComposite               |                               | rename: ChContactMaterialComposite               |
+| ChMaterialCompositeNSC            |                               | rename: ChContactMaterialCompositeNSC            |
+| ChMaterialCompositeSMC            |                               | rename: ChContactMaterialCompositeSMC            |
+| ChMaterialCompositionStrategy     |                               | rename: ChContactMaterialCompositionStrategy     |
+| ChMinMaxDistribution              |                               | rename: ChUniformDistribution                    |
+| ChModalAssembly                   |                               |                                                  |
+|                                   | refer to ChAssembly           | as ChAsembly with boundary/internal suffixes     |
+| ChPhysicsItem                     |                               |                                                  |
+|                                   | GetDOC                        | rename: GetNumConstraints                        |
+|                                   | GetDOC_c                      | rename: GetNumConstraintsBilateral               |
+|                                   | GetDOC_d                      | rename: GetNumConstraintsUnilateral              |
+|                                   | GetDOF                        | rename: GetNumCoordinatesPos                     |
+|                                   | GetDOF_w                      | rename: GetNumCoordinatesVel                     |
+| ChQuaternion                      |                               |                                                  |
+|                                   | free functions                | rename and move to ChRotation.h (see Notes)      |
+|                                   | GetXaxis                      | rename: GetAxisX                                 |
+|                                   | GetYaxis                      | rename: GetAxisY                                 |
+|                                   | GetZaxis                      | rename: GetAxisZ                                 |
+|                                   | ImmQ_complete                 | remove                                           |
+|                                   | ImmQ_dt_complete              | remove                                           |
+|                                   | ImmQ_dtdtcomplete             | remove                                           |
+|                                   | operator%                     | remove (use operator*)                           |
+|                                   | Q_from_AngAxis                | rename: SetFromAngleAxis                         |
+|                                   | Q_from_AngX                   | rename: SetFromAngleX                            |
+|                                   | Q_from_AngY                   | rename: SetFromAngleY                            |
+|                                   | Q_from_AngZ                   | rename: SetFromAngleZ                            |
+|                                   | Q_from_Euler123               | rename: SetFromCardanAnglesXYZ                   |
+|                                   | Q_from_NasaAngles             | rename: SetFromCardanAnglesZYX                   |
+|                                   | Q_from_rotvec                 | rename: SetFromRotVec                            |
+|                                   | Q_to_AngAxis                  | rename: GetAngleAxis                             |
+|                                   | Q_to_Euler123                 | rename: GetCardanAnglesXYZ                       |
+|                                   | Q_to_NasaAngles               | rename: GetCardanAnglesZYX                       |
+|                                   | Q_to_rotvec                   | rename: GetRotVec                                |
+|                                   | Qdt_from_AngAxis              | rename: SetDerFromAngleAxis                      |
+|                                   | Qdt_from_Wabs                 | rename: SetDerFromAngVelAbs                      |
+|                                   | Qdt_to_Wabs                   | rename: GetAngVelAbs                             |
+|                                   | Qdt_to_Wrel                   | rename: GetAngVelRel                             |
+|                                   | Qdt_from_Wrel                 | rename: SetDerFromAngVelRel                      |
+|                                   | Qdtdt_from_Aabs               | rename: SetDer2FromAngAccAbs                     |
+|                                   | Qdtdt_from_Arel               | rename: SetDer2FromAngAccRel                     |
+|                                   | Qdtdt_from_AngAxis            | rename: SetDer2FromAngleAxis                     |
+| ChStream                          |                               | remove                                           |
+| ChStreamFile                      |                               | remove                                           |
+| ChStreamIn                        |                               | remove                                           |
+| ChStreamInAscii                   |                               | remove                                           |
+| ChStreamInAsciiFile               |                               | remove                                           |
+| ChStreamInBinary                  |                               | remove                                           |
+| ChStreamInBinaryFile              |                               | remove                                           |
+| ChStreamOut                       |                               | remove                                           |
+| ChStreamOutAscii                  |                               | remove                                           |
+| ChStreamOutAsciiFile              |                               | remove                                           |
+| ChStreamOutBinary                 |                               | remove                                           |
+| ChStreamOutBinaryFile             |                               | remove                                           |
+| ChSystem                          |                               |                                                  |
+|                                   | Get_bodylist                  | rename: GetBodies                                |
+|                                   | Get_linklist                  | rename: GetLinks                                 |
+|                                   | Get_meshlist                  | rename: GetMeshes                                |
+|                                   | Get_otherphysicslist          | rename: GetShafts                                |
+|                                   | Get_shaftslist                | rename: GetOtherPhysicsItems                     |
+|                                   | GetDOC                        | remove                                           |
+|                                   | GetDOC_c                      | remove                                           |
+|                                   | GetDOC_d                      | remove                                           |
+|                                   | GetDOF                        | remove                                           |
+|                                   | GetDOF_w                      | remove                                           |
+|                                   | GetNbodies                    | rename: GetNumBodies                             |
+|                                   | GetNbodiesFixed               | rename: GetNumBodiesFixed                        |
+|                                   | GetNbodiesSleeping            | rename: GetNumBodiesSleeping                     |
+|                                   | GetNbodiesTotal               | rename: GetNumBodiesTotal                        |
+|                                   | GetNconstr                    | rename: GetNumConstraints                        |
+|                                   | GetNcontacts                  | rename: GetNumContacts                           |
+|                                   | GetNcoords                    | rename: GetNumCoordinatesPos                     |
+|                                   | GetNcoords_w                  | rename: GetNumCoordinatesVel                     |
+|                                   | GetNdoc                       | remove: no constraints at position level         |
+|                                   | GetNdoc_w                     | rename: GetNumConstraints                        |
+|                                   | GetNdoc_w_C                   | rename: GetNumConstraintsBilateral               |
+|                                   | GetNdoc_w_D                   | rename: GetNumConstraintsUnilateral              |
+|                                   | GetNdof                       | remove: it was a rough estimate                  |
+|                                   | GetNlinks                     | rename: GetNumLinks                              |
+|                                   | GetNmeshes                    | rename: GetNumMeshes                             |
+|                                   | GetNphysicsItems              | rename: GetNumOtherPhysicsItems                  |
+|                                   | GetNshafts                    | rename: GetNumShafts                             |
+|                                   | GetNshaftsFixed               | rename: GetNumShaftsFixed                        |
+|                                   | GetNshaftsSleeping            | rename: GetNumShaftsSleeping                     |
+|                                   | GetNshaftsTotal               | rename: GetNumShaftsTotal                        |
+|                                   | GetNsysvars                   | remove                                           |
+|                                   | GetNsysvars_w                 | remove                                           |
+| ChVector                          | DirToDxDyDz                   | rename: GetDirectionAxesAsX                      |
+
+
+**Types**
+
+| Class                             | Type                | Action                                           |
+| :-------------------------------- | :------------------ | :----------------------------------------------- |
+| ChCoordsys                        | Coordsys            | rename: ChCoordsysd                              |
+|                                   | CoordsysF           | rename: ChCoordsysf                              |
+| ChQuaternion                      | Quaternion          | rename: ChQuaterniond                            |
+|                                   | QuaternionF         | rename: ChQuaternionf                            |
+| ChVector                          | Vector              | rename: ChVector3d                               |
+|                                   | VectorF             | rename: ChVector3f                               |
+
+
+**Notes**
+
++ Functions that duplicated C++ Standard Library functions were removed and replaced with the corresponding C++ function (e.g., `ChMin` was obosoleted in favor of `std::min`).
+
++ The enum `AngleSet` (previously defined in ChQuaternion.h) was renamed to `RotRepresentation` and moved to a new header named ChRotation.h.
+
++ All free functions for converting from one rotation representation to another are now located in ChRotation.h.
+  These functions have consistent names of the form *XxxFromYyy*.
+
+  | Old (in ChQuaternion.h)  | New (in ChRotation.h)         |
+  | :----------------------- | :-----------------------------|
+  | -                        | AngleSetFromAngleSet          |
+  | -                        | AngleSetFromRodriguez         |
+  | -                        | RodriguezFromAngleSet         |
+  | -                        | QuatFromRotVec                |
+  | -                        | RotVecFromQuat                |
+  | Angle_to_Quat            | QuatFromRodriguez             |
+  | Angle_to_Quat            | QuatFromAngleSet              |
+  | AngleDT_to_QuatDT        | QuatDerFromAngleSet           |
+  | AngleDT_to_QuatDT        | QuatDerFromRodriguez          |
+  | AngleDTDT_to_QuatDTDT    | QuatDer2FromAngleSet          |
+  | AngleDTDT_to_QuatDTDT    | QuatDer2FromRodriguez         |
+  | ImmQ_complete            | QuatFromImaginary             |
+  | ImmQ_dt_complete         | QuatDerFromImaginary          |
+  | ImmQ_dtdt_complete       | QuatDer2FromImaginary         |
+  | Q_from_AngAxis           | QuatFromAngleAxis             |
+  | Q_from_AngX              | QuatFromAngleX                |
+  | Q_from_AngY              | QuatFromAngleY                |
+  | Q_from_AngZ              | QuatFromAngleZ                |
+  | Q_from_Euler123          | QuatFromAngleSet              |
+  | Q_from_NasaAngles        | QuatFromAngleSet              |
+  | Q_from_Vect_to_Vect      | QuatFromVec2Vec               |
+  | Q_to_AngAxis             | AngleAxisFromQuat             |
+  | Q_to_Euler123            | AngleSetFromQuat              |
+  | Q_to_NasaAngles          | AngleSetFromQuat              |
+  | Qdt_from_AngAxis         | QuatDerFromAngleAxis          |
+  | Qdtdt_from_AngAxis       | QuatDer2FromAngleAxis         |
+  | Quat_to_Angle            | RodriguezFromQuat             |
+  | Quat_to_Angle            | AngleSetFromQuat              |
+
++ `ChLinkMate` and derived classes have been rewritten so that:
+  - when only 1 dof is left, the relevant axis is Z, in line with ChLinkLock formulation (e.g. Prismatic, Coaxial, ...);
+  - when 2 dof are left, the relevant axes are X and Y; the exception is `ChLinkRackpinion` (`ChLinkMateRackPinion` in new naming) that kept Z as pinion and X as rack;
+  - the 'flipped==true' state is now referring to axes that are counter-aligned.
+
++ The signature of all ChLink `Initialize()` functions were changed to consistently use `ChFrame` objects to specify link position and alignment (where previously some of them used `ChCoordsys`).
+  A corresponding change was done for the constructor of `vehicle::ChVehicleJoint`.
+
++ `ChStream` classes were simple wrappers around C++ ouptut streams. The entire code has been now refactored to operate on STL streams directly, in order to simplify the API and to allow the user a more familiar interaction with streams in Chrono.
+  - the `operator<<` associated to `ChStreamOutAscii` has been removed: this means that it is not possible to stream custom classes through this operator;
+  this option has been replaced by appropriate overloads of STL streams (clearly limited to data members publicly accessible) or by the direct usage of `ChOutputASCII`.
+  - `ChStream[In/Out]Binary` features to operate on streams through the `read|write` methods have been incorporated into the one class that was using it, namely `ChArchiveBinary`. 
+
++ `ChArchive` classes have been refactored to adapt to the direct use of STL streams and have been renamed for consistency and clarity.
+  - proper serialization/deserialization classes kept the same name:
+    + `ChArchiveJSON[In/Out]`
+    + `ChArchiveXML[In/Out]`
+    + `ChArchiveBinary[In/Out]`
+  - auxiliary classes which, while still leveraging the `ChArchive` features, allow only export but not loading back objects were renamed:
+    + `ChArchiveAsciiDump` --> `ChOutputASCII`
+    + `ChArchiveExplorer` --> `ChObjectExplorer`
+
+### [Changed] Updated Chrono::VSG module
 
 The Chrono::VSG m,odule was updated to use newer version of the VSG libraries.
 - Adds shadow support (enabled in several demos).
@@ -953,17 +1491,17 @@ Follow the Chrono::Modal installation guide for instructions on how to enable it
 The new class `ChModalAssembly` offer three main functionalities:
 
 - **undamped modal analysis** of all the system being created within the sub assembly will be obtained. The modes and frequencies can be also displayed interactively if using the Irrlicht visualization system. 
-	- The sub-assembly can also contain constraints between its sub parts. 
-	- Rigid modes (for free-free structures) are supported
-	- A custom generalized, sparse, constrained eigenvalue solver of Krylov-Schur type allows the computation of only the n lower modes. This allows handling large FEA systems. 
-	
+  - The sub-assembly can also contain constraints between its sub parts. 
+  - Rigid modes (for free-free structures) are supported
+  - A custom generalized, sparse, constrained eigenvalue solver of Krylov-Schur type allows the computation of only the n lower modes. This allows handling large FEA systems. 
+  
 - **damped (complex) modal analysis** of the subsystem: this is like the previous case, but damping matrix is used too, hence obtaining complex eigenvalues/eigenvectors. Damping factors for the modes are output too, indicating stability or instability. *NOTE: while we wait that Spectra will enable complex eigenvalues in Krylov-Schur, a more conventional solver is used, that is not sparse - hence requiring more time and memory*
 
 - **modal reduction** of the sub-assembly. Example of a scenario where this is useful: you have a tower modeled with thousands of finite elements, but you are just interested in the small oscillations of its tip, because you will mount a windmill on its tip. If you simulate thousands of finite elements just for this purpose, you waste CPU time, hence a modal reduction of the tower will discard all the DOFs of the finite elements and represent the overall behavior of the tower using just few modal shapes (ex. fore aft bending, lateral bending, etc.), with extreme CPU performance at the cost of a small reduction of fidelity.
-	- Bodies and FEA nodes can be added to the subassebly as *internal*  or *boundary* interface nodes. Later one can call `ChModalAssembly::SwitchModalReductionON(int n_modes)` to replace the complexity of the internal nodes with few `n_modes` modal coordinates.
-	- Boundary interface nodes can be connected to the rest of the multibody system as usual, using constraints, forces, etc.
-	- Internal constraints can be used between internal nodes. Their effect too will be condensed in the modal reduction.
-	- *NOTE*: at the moment only linear dynamics is supported for the sub-assembly, in the sense that the sub-assembly cannot withstand large rotations, ex. in a helicopter blade. Future developments will address this
+  - Bodies and FEA nodes can be added to the subassebly as *internal*  or *boundary* interface nodes. Later one can call `ChModalAssembly::SwitchModalReductionON(int n_modes)` to replace the complexity of the internal nodes with few `n_modes` modal coordinates.
+  - Boundary interface nodes can be connected to the rest of the multibody system as usual, using constraints, forces, etc.
+  - Internal constraints can be used between internal nodes. Their effect too will be condensed in the modal reduction.
+  - *NOTE*: at the moment only linear dynamics is supported for the sub-assembly, in the sense that the sub-assembly cannot withstand large rotations, ex. in a helicopter blade. Future developments will address this
 
 
 ### [Added] Callback mechanism for collision debug visualization
@@ -1950,24 +2488,24 @@ for (auto& axle : trailer.GetAxles()) {
 
 - The WCSPH based explicit solver now supports both fluid dynamics and granular material dynamics.
 
-	- The fluid dynamics is executed by default.
-	- The granular material dynamics is executed by setting an "Elastic SPH" option in the input JSON file.
+  - The fluid dynamics is executed by default.
+  - The granular material dynamics is executed by setting an "Elastic SPH" option in the input JSON file.
 
 - Add a consistent SPH discretization into the explicit SPH solver.
 
-	- Both the gradient and Laplacian operators in the NS equations are discretized by a consistent format.
-	- The correction matrices are calculated for both operators to enhance the consistency.
-	- A second-order accuracy will be recovered by this consistent discretization.
+  - Both the gradient and Laplacian operators in the NS equations are discretized by a consistent format.
+  - The correction matrices are calculated for both operators to enhance the consistency.
+  - A second-order accuracy will be recovered by this consistent discretization.
 
 - Add a new particle shifting technique into Chrono::FSI.
 
-	- The particle shifting strategy is a penetration-based particle shifting technique.
-	- It supports three-dimensional fluid/granular material dynamics problems with a free surface.
+  - The particle shifting strategy is a penetration-based particle shifting technique.
+  - It supports three-dimensional fluid/granular material dynamics problems with a free surface.
 
 - Make the granular material solver more stable and accurate in the framework of WCSPH.
 
-	- The Drucker-Prager yield criterion is implemented in conjunction with a four-step update strategy for the stress tensor of the granular material.
-	- The interaction between a rigid multibody system and granular material is supported.
+  - The Drucker-Prager yield criterion is implemented in conjunction with a four-step update strategy for the stress tensor of the granular material.
+  - The interaction between a rigid multibody system and granular material is supported.
 
 ### [Added] New Chrono::Sensor module
 
@@ -2110,14 +2648,14 @@ ChWorldFrame::SetYUP();
 
 ### [Changed] CASCADE module
 
-1.	Support for OpenCASCADE 7.4.0. The API of OpenCASCADE introduced some changes in the 7.4.0 version so we also updated the CASCADE module of Chrono. Please download and upgrade your OpenCASCADE version as it is not backward compatible. (The module is optionally built via CMake configuration flag ENABLE_MODULE_CASCADE, also remember to update the CASCADE_INCLUDE_DIR and CASCADE_LIBDIR paths and to update your PATH if you added the path to Cascade dlls)
+1.  Support for OpenCASCADE 7.4.0. The API of OpenCASCADE introduced some changes in the 7.4.0 version so we also updated the CASCADE module of Chrono. Please download and upgrade your OpenCASCADE version as it is not backward compatible. (The module is optionally built via CMake configuration flag ENABLE_MODULE_CASCADE, also remember to update the CASCADE_INCLUDE_DIR and CASCADE_LIBDIR paths and to update your PATH if you added the path to Cascade dlls)
 
-2.	The method `ChCascadeDoc::CreateBodyFromShape()` is obsolete. Just use the `ChBodyEasyCascade` class to obtain the same result, for example:
+2.  The method `ChCascadeDoc::CreateBodyFromShape()` is obsolete. Just use the `ChBodyEasyCascade` class to obtain the same result, for example:
     ```cpp
     auto mbody = chrono_types::make_shared<ChBodyEasyCascade>(myshape, ...);
     ```
 
-3.	The mesh tesselation algorithm could give coarser or finer meshes with respect to the previous release.
+3.  The mesh tesselation algorithm could give coarser or finer meshes with respect to the previous release.
 
 
 ### [Changed] Collision shapes and contact materials
@@ -2220,49 +2758,49 @@ Here's a summary of the main API changes (there were many other changes under th
 Starting with this release, Chrono relies on Eigen3 for all dense linear algebra.
 
 1. With this change, Chrono requires `Eigen3` version 3.3.0 or newer.  Unless not possible for other reasons, we suggest you use their latest version, 3.3.7.
-	- Eigen is available for download at http://eigen.tuxfamily.org/
-	- Eigen is a headers-only library, so no install is required in order to use it in Chrono.
-	- If the location of the Eigen headers is not automatically detected by CMake, manually specify it by setting the CMake variable `EIGEN3_INCLUDE_DIR`.
-	- Note: CUDA 9.1 has removed a file (`math_functions.hpp`) which is referenced by Eigen prior to version 3.3.6.  As such, if you build any of the GPU-based Chrono modules (FSI or Granular) and use CUDA 9.1, make sure to use Eigen 3.3.7.
+  - Eigen is available for download at http://eigen.tuxfamily.org/
+  - Eigen is a headers-only library, so no install is required in order to use it in Chrono.
+  - If the location of the Eigen headers is not automatically detected by CMake, manually specify it by setting the CMake variable `EIGEN3_INCLUDE_DIR`.
+  - Note: CUDA 9.1 has removed a file (`math_functions.hpp`) which is referenced by Eigen prior to version 3.3.6.  As such, if you build any of the GPU-based Chrono modules (FSI or Granular) and use CUDA 9.1, make sure to use Eigen 3.3.7.
 
 2. The switch to Eigen does come with a few strings attached
-	- On the flip side, this makes the code a lot cleaner, easier to understand and maintain, and facilitates several further developments on our road-map.
-	- Furthermore, performance did not degrade and in fact improved meaningfully on practically all our benchmark tests (measured with GCC and clang on Linux and MacOS).
-	- On the other hand, libraries that use expression templates metaprogramming techniques (as Eigen does) lead to longer compile times. Moreover, while release (optimized) code is faster, code built in debug mode will likely be (significantly) slower.
-	- Finally, because several Chrono classes now need to use an (Eigen-provided) overloaded operator new to ensure memory alignment and because of some limitations of the C++ language, this change has an important consequence on user code: std::make_shared **cannot always be used safely**. The solution we adopted is to provide `chrono_types::make_shared` replacement functions which should be used throughout (see below).
+  - On the flip side, this makes the code a lot cleaner, easier to understand and maintain, and facilitates several further developments on our road-map.
+  - Furthermore, performance did not degrade and in fact improved meaningfully on practically all our benchmark tests (measured with GCC and clang on Linux and MacOS).
+  - On the other hand, libraries that use expression templates metaprogramming techniques (as Eigen does) lead to longer compile times. Moreover, while release (optimized) code is faster, code built in debug mode will likely be (significantly) slower.
+  - Finally, because several Chrono classes now need to use an (Eigen-provided) overloaded operator new to ensure memory alignment and because of some limitations of the C++ language, this change has an important consequence on user code: std::make_shared **cannot always be used safely**. The solution we adopted is to provide `chrono_types::make_shared` replacement functions which should be used throughout (see below).
 
 3. The new matrix and vector classes
-	- The "old" Chrono matrix types (`ChMatrixNM`, `ChMatrixDynamic`, `ChVectorDynamic`) are now nothing but *type aliases* of appropriate Eigen types (`see ChMatrix.h`). 
-	In other words, use them as you would Eigen types (see https://eigen.tuxfamily.org/dox/group__TutorialMatrixArithmetic.html).
-	- For completeness, we introduced additional types (such as `ChVectorN`,  `ChRowVectorN`, `ChRowVectorDynamic`), all defined in ChMatrix.h.
-	- We only implemented a handful of extensions needed for Chrono (such as a method for computing the WRMS vector norm) using the "back-door" extension mechanism provided by Eigen (see `ChMatrixEigenExtensions.h`)
-	- The "old" base class ChMatrix was **eliminated**.  For the instances where a Chrono function needs to accept either a dynamic (ChMatrixDynamic) or a static (ChMatrixNM) argument, we rely on the `Eigen::Ref` mechanism. For this, we defined various type aliases, such as `ChMatrixRef` and `ChMatrixConstRef` (see ChMatrix.h).  Currently, these assume a 'double' scalar type as this is all that's needed in Chrono (they could be templated by the scalar type, but this will be done only if absolutely needed).
-	- For 3x3 matrices, the `ChMatrix33` class (as before, templated by the scalar type) is derived from a 3x3 fixed-size vectorizable Eigen matrix.  Using inheritance here was needed in order to implement various custom constructors and methods.  
-	- For clarity and to properly separate responsibilities, we added a small set of 3x4 and 4x4 matrices specific to multibody dynamics.  These derived classes have strict and limited functionality and are unlikely to show up in user code (see `ChMatrixMBD.h`).
-	- Note: for now, the ChVector and ChQuaternion classes were left unchanged.
-	- See `demo_CH_linalg.cpp` for simple examples of matrix operations with the new Chrono classes and types.
+  - The "old" Chrono matrix types (`ChMatrixNM`, `ChMatrixDynamic`, `ChVectorDynamic`) are now nothing but *type aliases* of appropriate Eigen types (`see ChMatrix.h`). 
+  In other words, use them as you would Eigen types (see https://eigen.tuxfamily.org/dox/group__TutorialMatrixArithmetic.html).
+  - For completeness, we introduced additional types (such as `ChVectorN`,  `ChRowVectorN`, `ChRowVectorDynamic`), all defined in ChMatrix.h.
+  - We only implemented a handful of extensions needed for Chrono (such as a method for computing the WRMS vector norm) using the "back-door" extension mechanism provided by Eigen (see `ChMatrixEigenExtensions.h`)
+  - The "old" base class ChMatrix was **eliminated**.  For the instances where a Chrono function needs to accept either a dynamic (ChMatrixDynamic) or a static (ChMatrixNM) argument, we rely on the `Eigen::Ref` mechanism. For this, we defined various type aliases, such as `ChMatrixRef` and `ChMatrixConstRef` (see ChMatrix.h).  Currently, these assume a 'double' scalar type as this is all that's needed in Chrono (they could be templated by the scalar type, but this will be done only if absolutely needed).
+  - For 3x3 matrices, the `ChMatrix33` class (as before, templated by the scalar type) is derived from a 3x3 fixed-size vectorizable Eigen matrix.  Using inheritance here was needed in order to implement various custom constructors and methods.  
+  - For clarity and to properly separate responsibilities, we added a small set of 3x4 and 4x4 matrices specific to multibody dynamics.  These derived classes have strict and limited functionality and are unlikely to show up in user code (see `ChMatrixMBD.h`).
+  - Note: for now, the ChVector and ChQuaternion classes were left unchanged.
+  - See `demo_CH_linalg.cpp` for simple examples of matrix operations with the new Chrono classes and types.
 
 4. Obsolete/eliminated Chrono classes
-	- With the switch to Eigen, we **removed** `ChLinearAlgebra`.  More robust and varied matrix factorization and linear system solvers can be used directly from Eigen (see http://eigen.tuxfamily.org/dox/group__DenseLinearSolvers__chapter.html).
-	- We also **removed** the custom sparse matrix classes `ChLinkedListMatrix` and `ChMapMatrix`.  
+  - With the switch to Eigen, we **removed** `ChLinearAlgebra`.  More robust and varied matrix factorization and linear system solvers can be used directly from Eigen (see http://eigen.tuxfamily.org/dox/group__DenseLinearSolvers__chapter.html).
+  - We also **removed** the custom sparse matrix classes `ChLinkedListMatrix` and `ChMapMatrix`.  
 
 5. Some considerations for developers
-	- Consult the Eigen documentation (http://eigen.tuxfamily.org/dox/) and FAQs to understand what Eigen provides and how it should be used (e.g., when it's meaningful/appropriate to use fixed-size Eigen objects)
-	- Look at block operations with Eigen matrices and vectors (https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html)These make code much more clear (contrast this with the use of the old "paste" functions which was obfuscated and prone to mistakes).   However, always measure performance impacts;  in some cases (especially with smaller matrices), explicit loops may be more efficient than Eigen block operations. 
-	- Beware of aliasing issues (https://eigen.tuxfamily.org/dox/group__TopicAliasing.html).  
-	- Beware of memory alignment issues (https://eigen.tuxfamily.org/dox/group__TopicUnalignedArrayAssert.html)
-	In particular, if you create a class that has a fixed-size vectorizable Eigen type (a ChMatrixNM, a ChVectorN, or most common a ChMatrix33) make sure to overload its operator new.  For that, use the Eigen-provided macro `EIGEN_MAKE_ALIGNED_OPERATOR_NEW` (see https://eigen.tuxfamily.org/dox/group__TopicStructHavingEigenMembers.html)
-	- When creating shared pointers, make sure to use **`chrono_types::make_shared`** (see below)
+  - Consult the Eigen documentation (http://eigen.tuxfamily.org/dox/) and FAQs to understand what Eigen provides and how it should be used (e.g., when it's meaningful/appropriate to use fixed-size Eigen objects)
+  - Look at block operations with Eigen matrices and vectors (https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html)These make code much more clear (contrast this with the use of the old "paste" functions which was obfuscated and prone to mistakes).   However, always measure performance impacts;  in some cases (especially with smaller matrices), explicit loops may be more efficient than Eigen block operations. 
+  - Beware of aliasing issues (https://eigen.tuxfamily.org/dox/group__TopicAliasing.html).  
+  - Beware of memory alignment issues (https://eigen.tuxfamily.org/dox/group__TopicUnalignedArrayAssert.html)
+  In particular, if you create a class that has a fixed-size vectorizable Eigen type (a ChMatrixNM, a ChVectorN, or most common a ChMatrix33) make sure to overload its operator new.  For that, use the Eigen-provided macro `EIGEN_MAKE_ALIGNED_OPERATOR_NEW` (see https://eigen.tuxfamily.org/dox/group__TopicStructHavingEigenMembers.html)
+  - When creating shared pointers, make sure to use **`chrono_types::make_shared`** (see below)
 
 6. API and user code
-	- Except for the limited situations where user code explicitly used the old-style matrix operations (which should now use the cleaner Eigen API; see e.g. https://eigen.tuxfamily.org/dox/group__TutorialMatrixArithmetic.html), the main impact on users has to do with the shared pointers in the Chrono public API.
-	- The issue has to do with the fact that std::make_shared uses 'placement new' to create a shared pointer with a single memory allocation.  This means that std::make_shared will not use an overloaded 'operator new' for classes that provide it (for memory alignment considerations).
-	- To maintain encapsulation (as much as possible) and not require users to know/care about the guts of Chrono (namely know which classes overload, or have a parent that overloads, their operator new), the solution we adopted is to provide **custom** make_shared functions (in the namespace chrono_types) and a mechanism to pick at compile-time which one should be used (conditional on the object's class having or not an overloaded operator new).   For classes that require aligned memory (i.e. classes that have an overloaded operator new), **`chrono_types::make_shared`** explicitly creates the shared_ptr.   Otherwise, it falls back on using std::make_shared (see `ChTypes.h`).
-	- As such, user code should always create a shared_ptr using something like:
-	~~~.{.cpp}
-	auto foo = chrono_types::make_shared<T>(bar);
-	~~~
-	- See the various Chrono demos and tests for examples.
+  - Except for the limited situations where user code explicitly used the old-style matrix operations (which should now use the cleaner Eigen API; see e.g. https://eigen.tuxfamily.org/dox/group__TutorialMatrixArithmetic.html), the main impact on users has to do with the shared pointers in the Chrono public API.
+  - The issue has to do with the fact that std::make_shared uses 'placement new' to create a shared pointer with a single memory allocation.  This means that std::make_shared will not use an overloaded 'operator new' for classes that provide it (for memory alignment considerations).
+  - To maintain encapsulation (as much as possible) and not require users to know/care about the guts of Chrono (namely know which classes overload, or have a parent that overloads, their operator new), the solution we adopted is to provide **custom** make_shared functions (in the namespace chrono_types) and a mechanism to pick at compile-time which one should be used (conditional on the object's class having or not an overloaded operator new).   For classes that require aligned memory (i.e. classes that have an overloaded operator new), **`chrono_types::make_shared`** explicitly creates the shared_ptr.   Otherwise, it falls back on using std::make_shared (see `ChTypes.h`).
+  - As such, user code should always create a shared_ptr using something like:
+  ~~~.{.cpp}
+  auto foo = chrono_types::make_shared<T>(bar);
+  ~~~
+  - See the various Chrono demos and tests for examples.
 
 ### [Changed] Eigen sparse matrices and updates to direct sparse linear solvers
 
@@ -2271,15 +2809,15 @@ A `ChSparseMatrix` is just a **type alias** to an Eigen SparseMatrix with double
 
 1. The main effects on public API relate to concomitant updates we made to the sparse direct linear solvers (the Chrono::MKL interface to the Intel MKL Pardiso solver and the Chrono::Mumps interface to the MUMPS solver).  While we now rely on Eigen’s own interface to Pardiso, Chrono::Mumps still implements a custom interface to MUMPS (ChMumpsEngine).  
 
-	For examples of usage, see `demo_FEA_cablesMKL` and `demo_FEA_cablesMUMPS`.
+  For examples of usage, see `demo_FEA_cablesMKL` and `demo_FEA_cablesMUMPS`.
 
 2. Both sparse direct solvers (and any others that may be provided in the future) share the same functionality in terms of controlling the identification and update of the matrix sparsity pattern.  The main features implemented in the base class `ChSolverDirect` are:
-	- *sparsity pattern lock*
-	The sparsity pattern lock skips sparsity identification or reserving memory for non-zeros on all but the first call to the solver setup. This feature is intended for problems where the system matrix sparsity pattern does not change (or changes very little) from call to call.  See ChSolverDirect::LockSparsityPattern.
-	- *sparsity pattern learning*
-	The sparsity pattern learning feature acquires the sparsity pattern in advance, in order to speed up matrix assembly.  Enabled by default, the sparsity matrix learner identifies the exact matrix sparsity pattern (without actually setting any non-zeros). See ChSolverDirect::UseSparsityPatternLearner.
-	- In situations where the problem structure changes but relatively infrequently, it is still desirable to lock the sparsity pattern.  However, if using the sparsity pattern learner, an update must be explicitly triggered by the user after a problem modification (by calling `ChSparseDirect::ForceSparsityPatternUpdate`).  For an example, `see demo_FEA_beams_extrude`.
-	- Finally, there is an option to provide an estimate for the matrix sparsity (a value in [0,1], with 0 corresponding to a fully dense matrix). When the sparsity pattern learner is disabled, this value is used if/when required to reserve space for matrix indices and non-zeros. See `ChSolverDirect::SetSparsityEstimate`.
+  - *sparsity pattern lock*
+  The sparsity pattern lock skips sparsity identification or reserving memory for non-zeros on all but the first call to the solver setup. This feature is intended for problems where the system matrix sparsity pattern does not change (or changes very little) from call to call.  See ChSolverDirect::LockSparsityPattern.
+  - *sparsity pattern learning*
+  The sparsity pattern learning feature acquires the sparsity pattern in advance, in order to speed up matrix assembly.  Enabled by default, the sparsity matrix learner identifies the exact matrix sparsity pattern (without actually setting any non-zeros). See ChSolverDirect::UseSparsityPatternLearner.
+  - In situations where the problem structure changes but relatively infrequently, it is still desirable to lock the sparsity pattern.  However, if using the sparsity pattern learner, an update must be explicitly triggered by the user after a problem modification (by calling `ChSparseDirect::ForceSparsityPatternUpdate`).  For an example, `see demo_FEA_beams_extrude`.
+  - Finally, there is an option to provide an estimate for the matrix sparsity (a value in [0,1], with 0 corresponding to a fully dense matrix). When the sparsity pattern learner is disabled, this value is used if/when required to reserve space for matrix indices and non-zeros. See `ChSolverDirect::SetSparsityEstimate`.
 
 3. If appropriate and warranted by the problem setup, it is *highly recommended* to enable the sparsity pattern lock. This can significantly improve performance for more complex problems (larger size and/or problems which include constraints).
 
@@ -2287,31 +2825,31 @@ A `ChSparseMatrix` is just a **type alias** to an Eigen SparseMatrix with double
 
 In addition to various bug fixes and enhancements, Chrono v4.0.0 includes the following main updates:
 - Adopted Google test and benchmark libraries for unit testing and performance benchmarking.
-	- these are set up as Git submodules
-	- unit tests relocated under src/tests/unit_tests; several unit tests were migrated to use the Google test framework
-  	- examples in src/tests/benchmark_tests illustrate use of the Google benchmark framework
+  - these are set up as Git submodules
+  - unit tests relocated under src/tests/unit_tests; several unit tests were migrated to use the Google test framework
+    - examples in src/tests/benchmark_tests illustrate use of the Google benchmark framework
 - Core Chrono module
-	- new LinkMotor elements, for modeling linear and rotational motors
-	- new parsers for generating Chrono models from ADAMS adm files and OpenSim osim files (these parsers provide partial support)
+  - new LinkMotor elements, for modeling linear and rotational motors
+  - new parsers for generating Chrono models from ADAMS adm files and OpenSim osim files (these parsers provide partial support)
 - Chrono::FEA
-	- FEA support is now included in the core Chrono module and not as an optional module anymore
-	- new IGA (isogeometric) beam element
-	- new 8-node, high-order ANCF shell element
+  - FEA support is now included in the core Chrono module and not as an optional module anymore
+  - new IGA (isogeometric) beam element
+  - new 8-node, high-order ANCF shell element
 - Chrono::MUMPS
-	- new optional module providing an interface to the MUMPS sparse direct linear solver
+  - new optional module providing an interface to the MUMPS sparse direct linear solver
 - Chrono::Distributed
-	- new optional module for MPI_based distributed parallel simulation of granular dynamics problems
-	- currently only supports SMC contact formulation (penalty approach) and a reduced number of collision shapes (spheres and triangular meshes)
+  - new optional module for MPI_based distributed parallel simulation of granular dynamics problems
+  - currently only supports SMC contact formulation (penalty approach) and a reduced number of collision shapes (spheres and triangular meshes)
 - Chrono::FSI
-	- support for Implicit Incompressible Smoothed Particle Hydrodynamics
-	- support for fluid-solid interaction with ANCF cable/shell elements
-	- new GPU-based sparse linear solvers via CUBLAS and CUSPARSE libraries
+  - support for Implicit Incompressible Smoothed Particle Hydrodynamics
+  - support for fluid-solid interaction with ANCF cable/shell elements
+  - new GPU-based sparse linear solvers via CUBLAS and CUSPARSE libraries
 - Chrono::Python
-	- Python interface to Chrono now distributed as an Anaconda package
-	- new interface to the Chrono::MKL and Chrono::Cascade modules
-	- several new demos, including demo for use with TensorFlow
+  - Python interface to Chrono now distributed as an Anaconda package
+  - new interface to the Chrono::MKL and Chrono::Cascade modules
+  - several new demos, including demo for use with TensorFlow
 - Chrono::Vehicle
-	- new tire models (TMeasy, Pacejka89)
-	- new templates for continuous-band tracks
-	- new suspension templates
-	- new vehicle models (generic sedan, UAZ van)
+  - new tire models (TMeasy, Pacejka89)
+  - new templates for continuous-band tracks
+  - new suspension templates
+  - new vehicle models (generic sedan, UAZ van)

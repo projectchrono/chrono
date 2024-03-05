@@ -39,12 +39,12 @@ void ChSolverMulticoreBB::UpdateR() {
     R_n = -b_n - D_n_T * M_invk + s_n;
 }
 
-uint ChSolverMulticoreBB::Solve(ChShurProduct& ShurProduct,
-                               ChProjectConstraints& Project,
-                               const uint max_iter,
-                               const uint size,
-                               const DynamicVector<real>& r,
-                               DynamicVector<real>& gamma) {
+uint ChSolverMulticoreBB::Solve(ChSchurProduct& SchurProduct,
+                                ChProjectConstraints& Project,
+                                const uint max_iter,
+                                const uint size,
+                                const DynamicVector<real>& r,
+                                DynamicVector<real>& gamma) {
     if (size == 0) {
         return 0;
     }
@@ -96,7 +96,7 @@ uint ChSolverMulticoreBB::Solve(ChShurProduct& ShurProduct,
         }
     } else if (data_manager->settings.solver.use_power_iteration) {
         data_manager->measures.solver.lambda_max =
-            LargestEigenValue(ShurProduct, temp, data_manager->measures.solver.lambda_max);
+            LargestEigenValue(SchurProduct, temp, data_manager->measures.solver.lambda_max);
         alpha = 1.95 / data_manager->measures.solver.lambda_max;
     }
     real gmma = 1e-4;
@@ -106,7 +106,7 @@ uint ChSolverMulticoreBB::Solve(ChShurProduct& ShurProduct,
     ml = gamma;
     lastgoodres = 10e30;
     ml_candidate = ml;
-    ShurProduct(ml, temp);
+    SchurProduct(ml, temp);
     mg = temp - r;
     mg_p = mg;
 
@@ -132,7 +132,7 @@ uint ChSolverMulticoreBB::Solve(ChShurProduct& ShurProduct,
         while (armijo_repeat) {
             ml_p = ml + lambda * mdir;
 
-            ShurProduct(ml_p, temp);
+            SchurProduct(ml_p, temp);
             mg_p = temp - r;
             mf_p = (ml_p, 0.5 * temp - r);
 
@@ -195,17 +195,15 @@ uint ChSolverMulticoreBB::Solve(ChShurProduct& ShurProduct,
 
         AtIterationEnd(lastgoodres, objective_value);
 
-		if (data_manager->settings.solver.test_objective) {
-			if (objective_value <= data_manager->settings.solver.tolerance_objective) {
-				break;
-			}
-		}
-		else {
-			if (lastgoodres < data_manager->settings.solver.tol_speed) {
-				break;
-			}
-		}
-
+        if (data_manager->settings.solver.test_objective) {
+            if (objective_value <= data_manager->settings.solver.tolerance_objective) {
+                break;
+            }
+        } else {
+            if (lastgoodres < data_manager->settings.solver.tol_speed) {
+                break;
+            }
+        }
 
         // t4.stop();
     }

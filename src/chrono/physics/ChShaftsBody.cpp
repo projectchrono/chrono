@@ -32,7 +32,7 @@ ChShaftsBody::ChShaftsBody(const ChShaftsBody& other) : ChPhysicsItem(other) {
 bool ChShaftsBody::Initialize(std::shared_ptr<ChShaft> mshaft,
                               std::shared_ptr<ChBodyFrame>
                                   mbody,
-                              const ChVector<>& mdir) {
+                              const ChVector3d& mdir) {
     ChShaft* mm1 = mshaft.get();
     ChBodyFrame* mm2 = mbody.get();
     assert(mm1 && mm2);
@@ -84,7 +84,7 @@ void ChShaftsBody::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in
     double cnstr_violation = c * res;
 
     if (do_clamp) {
-        cnstr_violation = ChMin(ChMax(cnstr_violation, -recovery_clamp), recovery_clamp);
+        cnstr_violation = std::min(std::max(cnstr_violation, -recovery_clamp), recovery_clamp);
     }
 
     Qc(off_L) += cnstr_violation;
@@ -139,8 +139,8 @@ void ChShaftsBody::ConstraintsBiLoad_Ct(double factor) {
 
 void ChShaftsBody::ConstraintsLoadJacobians() {
     // compute jacobians
-    // ChVector<> jacw = body->TransformDirectionParentToLocal(shaft_dir);
-    ChVector<> jacw = shaft_dir;
+    // ChVector3d jacw = body->TransformDirectionParentToLocal(shaft_dir);
+    ChVector3d jacw = shaft_dir;
 
     constraint.Get_Cq_a()(0) = -1;
 
@@ -159,31 +159,31 @@ void ChShaftsBody::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsBody::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsBody::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsBody>();
+    archive_out.VersionWrite<ChShaftsBody>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(shaft_dir);
-    marchive << CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    marchive << CHNVP(body); //***TODO*** serialize, with shared ptr
+    archive_out << CHNVP(shaft_dir);
+    archive_out << CHNVP(shaft);  //// TODO  serialize, with shared ptr
+    archive_out << CHNVP(body); //// TODO  serialize, with shared ptr
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsBody::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsBody::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsBody>();
+    /*int version =*/ archive_in.VersionRead<ChShaftsBody>();
 
     // deserialize parent class:
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(shaft_dir);
-    marchive >> CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    marchive >> CHNVP(body); //***TODO*** serialize, with shared ptr
+    archive_in >> CHNVP(shaft_dir);
+    archive_in >> CHNVP(shaft);  //// TODO  serialize, with shared ptr
+    archive_in >> CHNVP(body); //// TODO  serialize, with shared ptr
     constraint.SetVariables(&shaft->Variables(), &body->Variables());
 }
 
@@ -207,8 +207,8 @@ ChShaftsBodyTranslation::ChShaftsBodyTranslation(const ChShaftsBodyTranslation& 
 
 bool ChShaftsBodyTranslation::Initialize(std::shared_ptr<ChShaft> mshaft,
                               std::shared_ptr<ChBodyFrame> mbody,
-                              const ChVector<>& mdir,
-                              const ChVector<>& mpos) {
+                              const ChVector3d& mdir,
+                              const ChVector3d& mpos) {
     ChShaft* mm1 = mshaft.get();
     ChBodyFrame* mm2 = mbody.get();
     assert(mm1 && mm2);
@@ -261,7 +261,7 @@ void ChShaftsBodyTranslation::IntLoadConstraint_C(const unsigned int off_L,  ///
     double cnstr_violation = c * res;
 
     if (do_clamp) {
-        cnstr_violation = ChMin(ChMax(cnstr_violation, -recovery_clamp), recovery_clamp);
+        cnstr_violation = std::min(std::max(cnstr_violation, -recovery_clamp), recovery_clamp);
     }
 
     Qc(off_L) += cnstr_violation;
@@ -316,8 +316,8 @@ void ChShaftsBodyTranslation::ConstraintsBiLoad_Ct(double factor) {
 
 void ChShaftsBodyTranslation::ConstraintsLoadJacobians() {
     // compute jacobians
-    ChVector<> jacx = body->TransformDirectionLocalToParent(shaft_dir);
-    ChVector<> jacw = Vcross(shaft_pos, shaft_dir);
+    ChVector3d jacx = body->TransformDirectionLocalToParent(shaft_dir);
+    ChVector3d jacw = Vcross(shaft_pos, shaft_dir);
 
     constraint.Get_Cq_a()(0) = -1.0;
 
@@ -336,34 +336,34 @@ void ChShaftsBodyTranslation::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsBodyTranslation::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsBodyTranslation::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsBody>();
+    archive_out.VersionWrite<ChShaftsBody>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(shaft_dir);
-    marchive << CHNVP(shaft_pos);
-    marchive << CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    marchive << CHNVP(body); //***TODO*** serialize, with shared ptr
+    archive_out << CHNVP(shaft_dir);
+    archive_out << CHNVP(shaft_pos);
+    archive_out << CHNVP(shaft);  //// TODO  serialize, with shared ptr
+    archive_out << CHNVP(body); //// TODO  serialize, with shared ptr
 
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsBodyTranslation::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsBodyTranslation::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsBody>();
+    /*int version =*/ archive_in.VersionRead<ChShaftsBody>();
 
     // deserialize parent class:
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(shaft_dir);
-    marchive >> CHNVP(shaft_pos);
-    marchive >> CHNVP(shaft);  //***TODO*** serialize, with shared ptr
-    marchive >> CHNVP(body); //***TODO*** serialize, with shared ptr
+    archive_in >> CHNVP(shaft_dir);
+    archive_in >> CHNVP(shaft_pos);
+    archive_in >> CHNVP(shaft);  //// TODO  serialize, with shared ptr
+    archive_in >> CHNVP(body); //// TODO  serialize, with shared ptr
     constraint.SetVariables(&shaft->Variables(), &body->Variables());
 
 }

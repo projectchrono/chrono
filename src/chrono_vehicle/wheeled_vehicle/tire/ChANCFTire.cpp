@@ -104,7 +104,7 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> ChANCFTire::CreateMeshANCF4(con
     // and are then transformed to the global frame.
     for (int i = 0; i < div_circumference; i++) {
         double phi = (CH_C_2PI * i) / div_circumference;
-        ChVector<> nrm(-std::sin(phi), 0, std::cos(phi));
+        ChVector3d nrm(-std::sin(phi), 0, std::cos(phi));
 
         for (int j = 0; j <= div_width; j++) {
             double t_prf = double(j) / div_width;
@@ -118,18 +118,18 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> ChANCFTire::CreateMeshANCF4(con
             double y = y_prf;
             double z = (rim_radius + x_prf) * std::sin(phi);
             // Node position in global frame (actual coordinate values)
-            ChVector<> loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+            ChVector3d loc = wheel_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
 
             // Node direction
-            ChVector<> tan_prf(std::cos(phi) * xp_prf, yp_prf, std::sin(phi) * xp_prf);
-            ChVector<> nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
-            ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
+            ChVector3d tan_prf(std::cos(phi) * xp_prf, yp_prf, std::sin(phi) * xp_prf);
+            ChVector3d nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
+            ChVector3d dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
 
             auto node = chrono_types::make_shared<ChNodeFEAxyzD>(loc, dir);
 
             // Node velocity
-            ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
-            node->SetPos_dt(vel);
+            ChVector3d vel = wheel_frame.PointSpeedLocalToParent(ChVector3d(x, y, z));
+            node->SetPosDer(vel);
             node->SetMass(0);
             mesh->AddNode(node);
         }
@@ -234,11 +234,11 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> ChANCFTire::CreateMeshANCF8(con
     double dphi = CH_C_2PI / (2 * div_circumference);
     double dt = 1.0 / (2 * div_width);
 
-    ChVector<> curv(0, 0, 0);
+    ChVector3d curv(0, 0, 0);
 
     for (int i = 0; i < 2 * div_circumference; i++) {
         double phi = i * dphi;
-        ChVector<> nrm(-std::sin(phi), 0, std::cos(phi));
+        ChVector3d nrm(-std::sin(phi), 0, std::cos(phi));
 
         for (int j = 0; j <= 2 * div_width; j++) {
             double t_prf = j * dt;
@@ -252,18 +252,18 @@ std::vector<std::shared_ptr<fea::ChNodeFEAbase>> ChANCFTire::CreateMeshANCF8(con
             double y = y_prf;
             double z = (rim_radius + x_prf) * std::sin(phi);
             // Node position in global frame (actual coordinate values)
-            ChVector<> loc = wheel_frame.TransformPointLocalToParent(ChVector<>(x, y, z));
+            ChVector3d loc = wheel_frame.TransformPointLocalToParent(ChVector3d(x, y, z));
 
             // Node direction
-            ChVector<> tan_prf(std::cos(phi) * xp_prf, yp_prf, std::sin(phi) * xp_prf);
-            ChVector<> nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
-            ChVector<> dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
+            ChVector3d tan_prf(std::cos(phi) * xp_prf, yp_prf, std::sin(phi) * xp_prf);
+            ChVector3d nrm_prf = Vcross(tan_prf, nrm).GetNormalized();
+            ChVector3d dir = wheel_frame.TransformDirectionLocalToParent(nrm_prf);
 
             auto node = chrono_types::make_shared<ChNodeFEAxyzDD>(loc, dir, curv);
 
             // Node velocity
-            ChVector<> vel = wheel_frame.PointSpeedLocalToParent(ChVector<>(x, y, z));
-            node->SetPos_dt(vel);
+            ChVector3d vel = wheel_frame.PointSpeedLocalToParent(ChVector3d(x, y, z));
+            node->SetPosDer(vel);
             node->SetMass(0);
             mesh->AddNode(node);
         }

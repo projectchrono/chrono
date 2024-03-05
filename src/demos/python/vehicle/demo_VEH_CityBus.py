@@ -32,8 +32,8 @@ import math
 veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location and orientation
-initLoc = chrono.ChVectorD(0, 0, 0.5)
-initRot = chrono.ChQuaternionD(1, 0, 0, 0)
+initLoc = chrono.ChVector3d(0, 0, 0.5)
+initRot = chrono.ChQuaterniond(1, 0, 0, 0)
 
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 chassis_vis_type = veh.VisualizationType_MESH
@@ -53,7 +53,7 @@ terrainLength = 200.0  # size in X direction
 terrainWidth = 200.0   # size in Y direction
 
 # Poon chassis tracked by the camera
-trackPoint = chrono.ChVectorD(0.0, 0.0, 1.75)
+trackPoint = chrono.ChVector3d(0.0, 0.0, 1.75)
 
 # Contact method
 contact_method = chrono.ChContactMethod_SMC
@@ -82,7 +82,7 @@ bus = veh.CityBus()
 bus.SetContactMethod(contact_method)
 bus.SetChassisCollisionType(chassis_collision_type)
 bus.SetChassisFixed(False)
-bus.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
+bus.SetInitPosition(chrono.ChCoordsysd(initLoc, initRot))
 bus.SetTireType(tire_model)
 bus.SetTireStepSize(tire_step_size)
 bus.Initialize()
@@ -100,11 +100,11 @@ bus.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 # Create the terrain
 terrain = veh.RigidTerrain(bus.GetSystem())
 if (contact_method == chrono.ChContactMethod_NSC):
-    patch_mat = chrono.ChMaterialSurfaceNSC()
+    patch_mat = chrono.ChContactMaterialNSC()
     patch_mat.SetFriction(0.9)
     patch_mat.SetRestitution(0.01)
 elif (contact_method == chrono.ChContactMethod_SMC):
-    patch_mat = chrono.ChMaterialSurfaceSMC()
+    patch_mat = chrono.ChContactMaterialSMC()
     patch_mat.SetFriction(0.9)
     patch_mat.SetRestitution(0.01)
     patch_mat.SetYoungModulus(2e7)

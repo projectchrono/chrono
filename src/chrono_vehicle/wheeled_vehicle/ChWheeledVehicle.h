@@ -94,7 +94,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     virtual int GetNumberAxles() const = 0;
 
     /// Get the global location of the specified spindle.
-    const ChVector<>& GetSpindlePos(int axle, VehicleSide side) const;
+    const ChVector3d& GetSpindlePos(int axle, VehicleSide side) const;
 
     /// Get the orientation of the specified spindle.
     /// Return a quaternion representing a rotation with respect to the global reference frame.
@@ -102,11 +102,11 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
 
     /// Get the linear velocity of the specified spindle.
     /// Return the linear velocity of the spindle center, expressed in the global reference frame.
-    const ChVector<>& GetSpindleLinVel(int axle, VehicleSide side) const;
+    const ChVector3d& GetSpindleLinVel(int axle, VehicleSide side) const;
 
     /// Get the angular velocity of the specified spindle.
     /// Return the angular velocity of the spindle frame, expressed in the global reference frame.
-    ChVector<> GetSpindleAngVel(int axle, VehicleSide side) const;
+    ChVector3d GetSpindleAngVel(int axle, VehicleSide side) const;
 
     /// Get the angular speed of the specified spindle.
     /// This is the angular speed of the spindle shaft.

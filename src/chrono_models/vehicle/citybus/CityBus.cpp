@@ -40,7 +40,7 @@ CityBus::CityBus()
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::TMEASY),
       m_tire_step_size(-1),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initFwdVel(0),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false) {}
@@ -55,7 +55,7 @@ CityBus::CityBus(ChSystem* system)
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
-      m_initPos(ChCoordsys<>(ChVector<>(0, 0, 1), QUNIT)),
+      m_initPos(ChCoordsys<>(ChVector3d(0, 0, 1), QUNIT)),
       m_initFwdVel(0),
       m_initOmega({0, 0, 0, 0}),
       m_apply_drag(false) {}
@@ -123,7 +123,7 @@ void CityBus::Initialize() {
         }
 
         default:
-            GetLog() << "Unsupported Tire Model Type! Switching to TMeasy.\n";
+            std::cerr << "Unsupported Tire Model Type! Switching to TMeasy." << std::endl;
         case TireModelType::TMEASY: {
             auto tire_FL = chrono_types::make_shared<CityBus_TMeasyTire>("FL");
             auto tire_FR = chrono_types::make_shared<CityBus_TMeasyTire>("FR");

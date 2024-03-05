@@ -45,7 +45,7 @@ void Duro_AutomaticTransmissionShafts::SetGearRatios(std::vector<double>& fwd, d
     fwd.push_back(1.0);          // 4th gear;
 }
 
-void Duro_AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void Duro_AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunctionInterp>& map) {
     map->AddPoint(0, 6.55649);
     map->AddPoint(0.105301, 6.53588);
     map->AddPoint(0.20916, 6.55649);
@@ -63,7 +63,7 @@ void Duro_AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std::
     map->AddPoint(1, 12.1852);
 }
 
-void Duro_AutomaticTransmissionShafts::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void Duro_AutomaticTransmissionShafts::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunctionInterp>& map) {
     map->AddPoint(0.0, 1.96);
     map->AddPoint(0.85, 1.0);
     map->AddPoint(1.00, 1.00);

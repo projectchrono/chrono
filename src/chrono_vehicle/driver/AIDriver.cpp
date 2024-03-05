@@ -50,7 +50,7 @@ AIDriver::AIDriver(ChVehicle& vehicle, const std::string& filename) : ChAIDriver
 }
 
 double AIDriver::CalculateSteering(double front_axle_radius, double rear_axle_radius) {
-    return m_steering_map.Get_y(front_axle_radius);
+    return m_steering_map.GetVal(front_axle_radius);
 }
 
 }  // end namespace vehicle

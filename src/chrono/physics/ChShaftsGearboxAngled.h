@@ -33,7 +33,7 @@ class ChBodyFrame;
 ///  transmits the reaction of the gearbox to a 3D body that acts as the
 ///  support truss.
 ///  A typical example is the case of a gearbox with bevel gears,
-///  where input shaft and output shaft are at 90°.
+///  where input shaft and output shaft are at 90ï¿½.
 ///  Note that the more basic ChShaftsGear can do the same, except
 ///  that it does not provide a way to transmit reaction
 ///  to a truss body.
@@ -51,8 +51,8 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     ChShaft* shaft2;    ///< second connected shaft
     ChBodyFrame* body;  ///< connected body
 
-    ChVector<> shaft_dir1;  ///< direction of first shaft
-    ChVector<> shaft_dir2;  ///< direction of second shaft
+    ChVector3d shaft_dir1;  ///< direction of first shaft
+    ChVector3d shaft_dir2;  ///< direction of second shaft
 
   public:
     ChShaftsGearboxAngled();
@@ -66,7 +66,7 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     virtual int GetNumCoords() const { return 6 + 1 + 1; }
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() override { return 1; }
+    virtual int GetNumConstraintsBilateral() override { return 1; }
 
     //
     // STATE FUNCTIONS
@@ -116,8 +116,8 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     Initialize(std::shared_ptr<ChShaft> mshaft1,    ///< first (input) shaft to join
                std::shared_ptr<ChShaft> mshaft2,    ///< second  (output) shaft to join
                std::shared_ptr<ChBodyFrame> mbody,  ///< 3D body to use as truss (also carrier, if rotates as in planetary gearboxes)
-               ChVector<>& mdir1,  ///< the direction of the first shaft on 3D body defining the gearbox truss
-               ChVector<>& mdir2   ///< the direction of the first shaft on 3D body defining the gearbox truss
+               ChVector3d& mdir1,  ///< the direction of the first shaft on 3D body defining the gearbox truss
+               ChVector3d& mdir2   ///< the direction of the first shaft on 3D body defining the gearbox truss
                );
 
     /// Get the first shaft (carrier wheel)
@@ -137,20 +137,20 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     /// Set the direction of shaft 1 (input) respect to 3D body, as a
     /// normalized vector expressed in the coordinates of the body.
     /// The shaft applies only torque, about this axis.
-    void SetShaftDirection1(ChVector<> md) { shaft_dir1 = Vnorm(md); }
+    void SetShaftDirection1(ChVector3d md) { shaft_dir1 = Vnorm(md); }
 
     /// Set the direction of shaft 2 (output) respect to 3D body, as a
     /// normalized vector expressed in the coordinates of the body.
     /// The shaft applies only torque, about this axis.
-    void SetShaftDirection2(ChVector<> md) { shaft_dir2 = Vnorm(md); }
+    void SetShaftDirection2(ChVector3d md) { shaft_dir2 = Vnorm(md); }
 
     /// Get the direction of the shaft 1 (input) respect to 3D body, as a
     /// normalized vector expressed in the coordinates of the body.
-    const ChVector<>& GetShaftDirection1() const { return shaft_dir1; }
+    const ChVector3d& GetShaftDirection1() const { return shaft_dir1; }
 
     /// Get the direction of the shaft 2 (input) respect to 3D body, as a
     /// normalized vector expressed in the coordinates of the body.
-    const ChVector<>& GetShaftDirection2() const { return shaft_dir2; }
+    const ChVector3d& GetShaftDirection2() const { return shaft_dir2; }
 
     /// Get the reaction torque considered as applied to the 1st axis.
     double GetTorqueReactionOn1() const { return t0 * torque_react; }
@@ -160,7 +160,7 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
 
     /// Get the reaction torque considered as applied to the body
     /// (the truss of the gearbox), expressed in local body coordinates.
-    ChVector<> GetTorqueReactionOnBody() const {
+    ChVector3d GetTorqueReactionOnBody() const {
         return (shaft_dir1 * t0 - shaft_dir2) * torque_react;
     }
 
@@ -172,10 +172,10 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 CH_CLASS_VERSION(ChShaftsGearboxAngled,0)

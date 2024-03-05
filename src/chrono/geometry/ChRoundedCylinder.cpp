@@ -17,7 +17,7 @@
 #include "chrono/geometry/ChRoundedCylinder.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChRoundedCylinder)
@@ -58,8 +58,8 @@ ChMatrix33<> ChRoundedCylinder::GetGyration() const {
 }
 
 ChAABB ChRoundedCylinder::GetBoundingBox(double radius, double height, double srad) {
-    return ChAABB(ChVector<>(-radius, -radius, -height / 2) - srad,  //
-                  ChVector<>(+radius, +radius, +height / 2) + srad);
+    return ChAABB(ChVector3d(-radius, -radius, -height / 2) - srad,  //
+                  ChVector3d(+radius, +radius, +height / 2) + srad);
 }
 
 ChAABB ChRoundedCylinder::GetBoundingBox() const {
@@ -76,27 +76,27 @@ double ChRoundedCylinder::GetBoundingSphereRadius() const {
 
 // -----------------------------------------------------------------------------
 
-void ChRoundedCylinder::ArchiveOut(ChArchiveOut& marchive) {
+void ChRoundedCylinder::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChRoundedCylinder>();
+    archive_out.VersionWrite<ChRoundedCylinder>();
     // serialize parent class
-    ChGeometry::ArchiveOut(marchive);
+    ChGeometry::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(r);
-    marchive << CHNVP(h);
-    marchive << CHNVP(sr);
+    archive_out << CHNVP(r);
+    archive_out << CHNVP(h);
+    archive_out << CHNVP(sr);
 }
 
-void ChRoundedCylinder::ArchiveIn(ChArchiveIn& marchive) {
+void ChRoundedCylinder::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChRoundedCylinder>();
+    /*int version =*/archive_in.VersionRead<ChRoundedCylinder>();
     // deserialize parent class
-    ChGeometry::ArchiveIn(marchive);
+    ChGeometry::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(r);
-    marchive >> CHNVP(h);
-    marchive >> CHNVP(sr);
+    archive_in >> CHNVP(r);
+    archive_in >> CHNVP(h);
+    archive_in >> CHNVP(sr);
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

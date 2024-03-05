@@ -55,9 +55,9 @@ void SynCopterAgent::InitializeZombie(ChSystem* system) {
 
 void SynCopterAgent::SynchronizeZombie(std::shared_ptr<SynMessage> message) {
     if (auto state = std::dynamic_pointer_cast<SynCopterStateMessage>(message)) {
-        m_zombie_body->SetCoord(state->chassis.GetFrame().GetPos(), state->chassis.GetFrame().GetRot());
+        m_zombie_body->SetCsys(state->chassis.GetFrame().GetPos(), state->chassis.GetFrame().GetRot());
         for (int i = 0; i < state->props.size(); i++)
-            m_prop_list[i]->SetCoord(state->props[i].GetFrame().GetPos(), state->props[i].GetFrame().GetRot());
+            m_prop_list[i]->SetCsys(state->props[i].GetFrame().GetPos(), state->props[i].GetFrame().GetRot());
     }
 }
 
@@ -67,18 +67,18 @@ void SynCopterAgent::Update() {
 
     auto chassis_body = m_copter->GetChassis();
     SynPose chassis_pose(chassis_body->GetPos(), chassis_body->GetRot());
-    chassis_pose.GetFrame().SetPos_dt(chassis_body->GetPos_dt());
-    chassis_pose.GetFrame().SetPos_dtdt(chassis_body->GetPos_dtdt());
-    chassis_pose.GetFrame().SetRot_dt(chassis_body->GetRot_dt());
-    chassis_pose.GetFrame().SetRot_dtdt(chassis_body->GetRot_dtdt());
+    chassis_pose.GetFrame().SetPosDer(chassis_body->GetPosDer());
+    chassis_pose.GetFrame().SetPosDer2(chassis_body->GetPosDer2());
+    chassis_pose.GetFrame().SetRotDer(chassis_body->GetRotDer());
+    chassis_pose.GetFrame().SetRotDer2(chassis_body->GetRotDer2());
 
     std::vector<SynPose> props_poses;
     for (auto prop : m_copter->GetProps() ) {
         SynPose frame(prop->GetPos(), prop->GetRot());
-        frame.GetFrame().SetPos_dt(prop->GetPos_dt());
-        frame.GetFrame().SetPos_dtdt(prop->GetPos_dtdt());
-        frame.GetFrame().SetRot_dt(prop->GetRot_dt());
-        frame.GetFrame().SetRot_dtdt(prop->GetRot_dtdt());
+        frame.GetFrame().SetPosDer(prop->GetPosDer());
+        frame.GetFrame().SetPosDer2(prop->GetPosDer2());
+        frame.GetFrame().SetRotDer(prop->GetRotDer());
+        frame.GetFrame().SetRotDer2(prop->GetRotDer2());
         props_poses.emplace_back(frame);
     }
 
@@ -100,7 +100,7 @@ std::shared_ptr<ChVisualShapeTriangleMesh> SynCopterAgent::CreateMeshZombieCompo
     auto trimesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     if (!filename.empty()) {
         auto mesh =
-            geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(filename), false, false);
+            ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(filename), false, false);
         trimesh->SetMesh(mesh);
         trimesh->SetMutable(false);
         trimesh->SetName(filesystem::path(filename).stem());

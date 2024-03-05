@@ -18,7 +18,7 @@
 #include "chrono/physics/ChShaftsMotor.h"
 #include "chrono/solver/ChConstraintTwoGeneric.h"
 #include "chrono/solver/ChVariablesGeneric.h"
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 
 namespace chrono {
 
@@ -108,8 +108,8 @@ class ChApi ChShaftsMotorSpeed : public ChShaftsMotorBase {
     //
 
     /// Number of scalar constraints
-    virtual int GetDOF() override { return 1; } 
-    virtual int GetDOC_c() override { return 1; }
+    virtual int GetNumCoordinatesPos() override { return 1; } 
+    virtual int GetNumConstraintsBilateral() override { return 1; }
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGather(const unsigned int off_x,
@@ -178,10 +178,10 @@ class ChApi ChShaftsMotorSpeed : public ChShaftsMotorBase {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 CH_CLASS_VERSION(ChShaftsMotorSpeed,0)

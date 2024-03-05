@@ -17,8 +17,6 @@
 
 namespace chrono {
 
-using namespace geometry;
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChContactContainerSMC)
 
@@ -175,7 +173,7 @@ void _OptimalContactInsert(std::list<Tcont*>& contactlist,           // contact 
                            Ta* objA,                                 // collidable object A
                            Tb* objB,                                 // collidable object B
                            const ChCollisionInfo& cinfo,  // collision information
-                           const ChMaterialCompositeSMC& cmat        // composite material
+                           const ChContactMaterialCompositeSMC& cmat        // composite material
 ) {
     if (lastcontact != contactlist.end()) {
         // reuse old contacts
@@ -191,8 +189,8 @@ void _OptimalContactInsert(std::list<Tcont*>& contactlist,           // contact 
 }
 
 void ChContactContainerSMC::AddContact(const ChCollisionInfo& cinfo,
-                                       std::shared_ptr<ChMaterialSurface> mat1,
-                                       std::shared_ptr<ChMaterialSurface> mat2) {
+                                       std::shared_ptr<ChContactMaterial> mat1,
+                                       std::shared_ptr<ChContactMaterial> mat2) {
     assert(cinfo.modelA->GetContactable());
     assert(cinfo.modelB->GetContactable());
 
@@ -213,9 +211,9 @@ void ChContactContainerSMC::AddContact(const ChCollisionInfo& cinfo,
     }
 
     // Create the composite material
-    ChMaterialCompositeSMC cmat(GetSystem()->composition_strategy.get(),
-                                std::static_pointer_cast<ChMaterialSurfaceSMC>(mat1),
-                                std::static_pointer_cast<ChMaterialSurfaceSMC>(mat2));
+    ChContactMaterialCompositeSMC cmat(GetSystem()->composition_strategy.get(),
+                                std::static_pointer_cast<ChContactMaterialSMC>(mat1),
+                                std::static_pointer_cast<ChContactMaterialSMC>(mat2));
 
     InsertContact(cinfo, cmat);
 }
@@ -242,9 +240,9 @@ void ChContactContainerSMC::AddContact(const ChCollisionInfo& cinfo) {
     }
 
     // Create the composite material
-    ChMaterialCompositeSMC cmat(GetSystem()->composition_strategy.get(),
-                                std::static_pointer_cast<ChMaterialSurfaceSMC>(cinfo.shapeA->GetMaterial()),
-                                std::static_pointer_cast<ChMaterialSurfaceSMC>(cinfo.shapeB->GetMaterial()));
+    ChContactMaterialCompositeSMC cmat(GetSystem()->composition_strategy.get(),
+                                std::static_pointer_cast<ChContactMaterialSMC>(cinfo.shapeA->GetMaterial()),
+                                std::static_pointer_cast<ChContactMaterialSMC>(cinfo.shapeB->GetMaterial()));
 
     // Check for a user-provided callback to modify the material
     if (GetAddContactCallback()) {
@@ -254,7 +252,7 @@ void ChContactContainerSMC::AddContact(const ChCollisionInfo& cinfo) {
     InsertContact(cinfo, cmat);
 }
 
-void ChContactContainerSMC::InsertContact(const ChCollisionInfo& cinfo, const ChMaterialCompositeSMC& cmat) {
+void ChContactContainerSMC::InsertContact(const ChCollisionInfo& cinfo, const ChContactMaterialCompositeSMC& cmat) {
     auto contactableA = cinfo.modelA->GetContactable();
     auto contactableB = cinfo.modelB->GetContactable();
 
@@ -381,20 +379,20 @@ void ChContactContainerSMC::ComputeContactForces() {
     SumAllContactForces(contactlist_666_666, contact_forces);
 }
 
-ChVector<> ChContactContainerSMC::GetContactableForce(ChContactable* contactable) {
+ChVector3d ChContactContainerSMC::GetContactableForce(ChContactable* contactable) {
     std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(contactable);
     if (Iterator != contact_forces.end()) {
         return Iterator->second.force;
     }
-    return ChVector<>(0);
+    return ChVector3d(0);
 }
 
-ChVector<> ChContactContainerSMC::GetContactableTorque(ChContactable* contactable) {
+ChVector3d ChContactContainerSMC::GetContactableTorque(ChContactable* contactable) {
     std::unordered_map<ChContactable*, ForceTorque>::const_iterator Iterator = contact_forces.find(contactable);
     if (Iterator != contact_forces.end()) {
         return Iterator->second.torque;
     }
-    return ChVector<>(0);
+    return ChVector3d(0);
 }
 
 template <class Tcont>
@@ -422,7 +420,7 @@ void ChContactContainerSMC::ReportAllContacts(std::shared_ptr<ReportContactCallb
     _ReportAllContacts(contactlist_666_6, callback.get());
     _ReportAllContacts(contactlist_666_333, callback.get());
     _ReportAllContacts(contactlist_666_666, callback.get());
-    //***TODO*** rolling cont.
+    //// TODO  rolling cont.
 }
 
 // STATE INTERFACE
@@ -495,24 +493,24 @@ void ChContactContainerSMC::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
 
 // OBSOLETE
 void ChContactContainerSMC::ConstraintsFbLoadForces(double factor) {
-    GetLog() << "ChContactContainerSMC::ConstraintsFbLoadForces OBSOLETE - use new bookkeeping! \n";
+    std::cerr << "ChContactContainerSMC::ConstraintsFbLoadForces OBSOLETE - use new bookkeeping!" << std::endl;
 }
 
-void ChContactContainerSMC::ArchiveOut(ChArchiveOut& marchive) {
+void ChContactContainerSMC::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChContactContainerSMC>();
+    archive_out.VersionWrite<ChContactContainerSMC>();
     // serialize parent class
-    ChContactContainer::ArchiveOut(marchive);
+    ChContactContainer::ArchiveOut(archive_out);
     // serialize all member data:
     // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChContactContainerSMC::ArchiveIn(ChArchiveIn& marchive) {
+void ChContactContainerSMC::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChContactContainerSMC>();
+    /*int version =*/ archive_in.VersionRead<ChContactContainerSMC>();
     // deserialize parent class
-    ChContactContainer::ArchiveIn(marchive);
+    ChContactContainer::ArchiveIn(archive_in);
     // stream in all member data:
     RemoveAllContacts();
     // NO SERIALIZATION of contact list because assume it is volatile and generated when needed

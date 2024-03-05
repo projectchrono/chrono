@@ -67,9 +67,9 @@ void Kraz_trailer::Initialize(std::shared_ptr<ChChassis> frontChassis) {
     ChWheeledTrailer::Initialize(frontChassis);
 
     // Initialize the axle subsystems.
-    m_axles[0]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-6.32, 0, 0), ChVector<>(0), 0.0);
-    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-7.63, 0, 0), ChVector<>(0), 0.0);
-    m_axles[2]->Initialize(m_chassis, nullptr, nullptr, ChVector<>(-8.94, 0, 0), ChVector<>(0), 0.0);
+    m_axles[0]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(-6.32, 0, 0), ChVector3d(0), 0.0);
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(-7.63, 0, 0), ChVector3d(0), 0.0);
+    m_axles[2]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(-8.94, 0, 0), ChVector3d(0), 0.0);
 }
 
 // Get suspension spring forces

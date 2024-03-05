@@ -93,7 +93,7 @@ void ChShaftsClutch::IntLoadConstraint_C(const unsigned int off_L,  // offset in
     double cnstr_violation = c * res;
 
     if (do_clamp) {
-        cnstr_violation = ChMin(ChMax(cnstr_violation, -recovery_clamp), recovery_clamp);
+        cnstr_violation = std::min(std::max(cnstr_violation, -recovery_clamp), recovery_clamp);
     }
 
     Qc(off_L) += cnstr_violation;
@@ -177,31 +177,31 @@ void ChShaftsClutch::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsClutch::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsClutch::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsClutch>();
+    archive_out.VersionWrite<ChShaftsClutch>();
 
     // serialize parent class
-    ChShaftsCouple::ArchiveOut(marchive);
+    ChShaftsCouple::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(maxT);
-    marchive << CHNVP(minT);
-    marchive << CHNVP(modulation);
+    archive_out << CHNVP(maxT);
+    archive_out << CHNVP(minT);
+    archive_out << CHNVP(modulation);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsClutch::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsClutch::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsClutch>();
+    /*int version =*/ archive_in.VersionRead<ChShaftsClutch>();
 
     // deserialize parent class:
-    ChShaftsCouple::ArchiveIn(marchive);
+    ChShaftsCouple::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(maxT);
-    marchive >> CHNVP(minT);
-    marchive >> CHNVP(modulation);
+    archive_in >> CHNVP(maxT);
+    archive_in >> CHNVP(minT);
+    archive_in >> CHNVP(modulation);
     constraint.SetVariables(&shaft1->Variables(), &shaft2->Variables());
 
 }

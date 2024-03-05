@@ -16,7 +16,7 @@
 #define CH_COLLISION_SHAPE_POINT_H
 
 #include "chrono/collision/ChCollisionShape.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
 namespace chrono {
 
@@ -27,24 +27,24 @@ namespace chrono {
 class ChApi ChCollisionShapePoint : public ChCollisionShape {
   public:
     ChCollisionShapePoint();
-    ChCollisionShapePoint(std::shared_ptr<ChMaterialSurface> material, const ChVector<>& point, double radius);
+    ChCollisionShapePoint(std::shared_ptr<ChContactMaterial> material, const ChVector3d& point, double radius);
 
     ~ChCollisionShapePoint() {}
 
     /// Access the point.
-    const ChVector<>& GetPoint() const { return point; }
+    const ChVector3d& GetPoint() const { return point; }
 
     /// Get the associated radius.
     double GetRadius() const { return radius; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    ChVector<> point;
+    ChVector3d point;
     double radius;
 };
 

@@ -19,7 +19,7 @@
 #include <sstream>
 #include <string>
 
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChLoad.h"
 #include "chrono/physics/ChObject.h"
 #include "chrono/physics/ChSystem.h"
@@ -292,7 +292,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, con
 
     // elements internal forces
     timer_internal_forces.start();
-    //***PARALLEL FOR***, must use omp atomic to avoid race condition in writing to R
+    //// PARALLEL FOR, must use omp atomic to avoid race condition in writing to R
 #pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
     for (int ie = 0; ie < velements.size(); ie++) {
         velements[ie]->EleIntLoadResidual_F(R, c);
@@ -302,7 +302,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, con
 
     // elements gravity forces
     if (automatic_gravity_load) {
-        //***PARALLEL FOR***, must use omp atomic to avoid race condition in writing to R
+        //// PARALLEL FOR, must use omp atomic to avoid race condition in writing to R
 #pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
         for (int ie = 0; ie < velements.size(); ie++) {
             velements[ie]->EleIntLoadResidual_F_gravity(R, GetSystem()->Get_G_acc(), c);
@@ -313,16 +313,16 @@ void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, con
     local_off_v = 0;
     if (automatic_gravity_load && system) {
         // #pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
-        //***PARALLEL FOR***, (no need here to use omp atomic to avoid race condition in writing to R)
+        //// PARALLEL FOR, (no need here to use omp atomic to avoid race condition in writing to R)
         for (int in = 0; in < vnodes.size(); in++) {
             if (!vnodes[in]->IsFixed()) {
                 if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyz>(vnodes[in])) {
-                    ChVector<> fg = c * mnode->GetMass() * system->Get_G_acc();
+                    ChVector3d fg = c * mnode->GetMass() * system->Get_G_acc();
                     R.segment(off + local_off_v, 3) += fg.eigen();
                 }
                 // ChNodeFEAxyzrot is not inherited from ChNodeFEAxyz, so must deal with it too
                 if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(vnodes[in])) {
-                    ChVector<> fg = c * mnode->GetMass() * system->Get_G_acc();
+                    ChVector3d fg = c * mnode->GetMass() * system->Get_G_acc();
                     R.segment(off + local_off_v, 3) += fg.eigen();
                 }
                 local_off_v += vnodes[in]->GetNdofW_active();
@@ -332,14 +332,14 @@ void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, con
 }
 
 void ChMesh::ComputeMassProperties(double& mass,           // ChMesh object mass
-                                   ChVector<>& com,        // ChMesh center of gravity
+                                   ChVector3d& com,        // ChMesh center of gravity
                                    ChMatrix33<>& inertia)  // ChMesh inertia tensor
 {
     mass = 0;
-    com = ChVector<>(0);
+    com = ChVector3d(0);
     inertia = ChMatrix33<>(1);
 
-    ChVector<> mmass_weighted_radius(0);
+    ChVector3d mmass_weighted_radius(0);
     double mJxx=0;
     double mJyy=0;
     double mJzz=0;

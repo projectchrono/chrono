@@ -72,7 +72,6 @@
 
 using namespace chrono;
 using namespace cascade;
-using namespace geometry;
 
 ChCascadeDoc::ChCascadeDoc() {
     doc = new Handle(TDocStd_Document);
@@ -86,7 +85,7 @@ ChCascadeDoc::~ChCascadeDoc() {
 }
 
 static bool recurse_CascadeDoc(TDF_Label label,
-                               Handle(XCAFDoc_ShapeTool)& shapeTool,
+                               Handle(XCAFDoc_ShapeTool) & shapeTool,
                                TopLoc_Location& parentloc,
                                int level,
                                ChCascadeDoc::callback_CascadeDoc& mcallback) {
@@ -166,12 +165,12 @@ bool ChCascadeDoc::Load_STEP(const char* filename) {
     STEPCAFControl_Reader cafreader;
 
     if (!Interface_Static::SetCVal("xstep.cascade.unit", "M"))
-        GetLog() << "\n\n ERROR SETTING 'M' UNITS!!!..   \n\n\n";
+        std::cerr << "\n\n ERROR SETTING 'M' UNITS!!!..   \n\n" << std::endl;
 
     IFSelect_ReturnStatus aStatus = cafreader.ReadFile(filename);
 
     if (aStatus == IFSelect_RetDone) {
-        /*Standard_Boolean aRes =*/ cafreader.Transfer((*doc));
+        /*Standard_Boolean aRes =*/cafreader.Transfer((*doc));
         return true;
     }
     return false;
@@ -181,33 +180,33 @@ class callback_CascadeDoc_dump : public ChCascadeDoc::callback_CascadeDoc {
   public:
     virtual bool ForShape(TopoDS_Shape& mshape, TopLoc_Location& mloc, char* mname, int mlevel, TDF_Label& mlabel) {
         for (int i = 0; i < mlevel; i++)
-            GetLog() << "  ";
-        GetLog() << "-Name :" << mname;
+            std::cout << "  ";
+        std::cout << "-Name :" << mname;
 
         if (mlevel == 0)
-            GetLog() << " (root)";
-        GetLog() << "\n";
+            std::cout << " (root)";
+        std::cout << "\n";
 
         for (int i = 0; i < mlevel; i++)
-            GetLog() << "  ";
+            std::cout << "  ";
         gp_XYZ mtr = mloc.Transformation().TranslationPart();
-        GetLog() << "      pos at: " << mtr.X() << " " << mtr.Y() << " " << mtr.Z() << " (absolute) \n";
+        std::cout << "      pos at: " << mtr.X() << " " << mtr.Y() << " " << mtr.Z() << " (absolute) \n";
         for (int i = 0; i < mlevel; i++)
-            GetLog() << "  ";
+            std::cout << "  ";
         gp_XYZ mtr2 = mshape.Location().Transformation().TranslationPart();
-        GetLog() << "      pos at: " << mtr2.X() << " " << mtr2.Y() << " " << mtr2.Z() << " (.Location)\n";
+        std::cout << "      pos at: " << mtr2.X() << " " << mtr2.Y() << " " << mtr2.Z() << " (.Location)\n";
 
         return true;
     }
 };
 
-void ChCascadeDoc::Dump(ChStreamOutAscii& mstream) {
+void ChCascadeDoc::Dump(std::ostream& mstream) {
     callback_CascadeDoc_dump adumper;
     this->ScanCascadeShapes(adumper);
 }
 
 int wildcard_compare(const char* wildcard, const char* string) {
-    const char* cp = 0, * mp = 0;
+    const char *cp = 0, *mp = 0;
 
     while ((*string) && (*wildcard != '*')) {
         if ((*wildcard != *string) && (*wildcard != '?')) {
@@ -366,25 +365,25 @@ bool ChCascadeDoc::GetRootShape(TopoDS_Shape& mshape, const int num) {
 
 bool ChCascadeDoc::GetVolumeProperties(const TopoDS_Shape& mshape,   ///< pass the shape here
                                        const double density,         ///< pass the density here
-                                       ChVector<>& center_position,  ///< get the position center, respect to shape pos.
-                                       ChVector<>& inertiaXX,        ///< get the inertia diagonal terms
-                                       ChVector<>& inertiaXY,        ///< get the inertia extradiagonal terms
+                                       ChVector3d& center_position,  ///< get the position center, respect to shape pos.
+                                       ChVector3d& inertiaXX,        ///< get the inertia diagonal terms
+                                       ChVector3d& inertiaXY,        ///< get the inertia extradiagonal terms
                                        double& volume,               ///< get the volume
                                        double& mass                  ///< get the mass
-                                       ) {
+) {
     if (mshape.IsNull())
         return false;
 
     GProp_GProps vprops;
-    
-	// default density = 1;
+
+    // default density = 1;
 
     BRepGProp::VolumeProperties(mshape, vprops);
 
-	mass = vprops.Mass() * density; 
+    mass = vprops.Mass() * density;
     volume = vprops.Mass();
     gp_Pnt G = vprops.CentreOfMass();
-	gp_Mat I = vprops.MatrixOfInertia();
+    gp_Mat I = vprops.MatrixOfInertia();
 
     center_position.x() = G.X();
     center_position.y() = G.Y();
@@ -397,15 +396,15 @@ bool ChCascadeDoc::GetVolumeProperties(const TopoDS_Shape& mshape,   ///< pass t
     inertiaXY.y() = I(1, 3);
     inertiaXY.z() = I(2, 3);
 
-	inertiaXX *= density;
-	inertiaXY *= density;
+    inertiaXX *= density;
+    inertiaXY *= density;
 
     return true;
 }
 
 void ChCascadeDoc::FromCascadeToChrono(const TopLoc_Location& from_coord, ChFrame<>& to_coord) {
     gp_XYZ mtr = from_coord.Transformation().TranslationPart();
-    to_coord.SetPos(ChVector<>(mtr.X(), mtr.Y(), mtr.Z()));
+    to_coord.SetPos(ChVector3d(mtr.X(), mtr.Y(), mtr.Z()));
 
     gp_Mat mro = from_coord.Transformation().VectorialPart();
     ChMatrix33<> to_mat;
@@ -426,23 +425,20 @@ void ChCascadeDoc::FromCascadeToChrono(const TopLoc_Location& from_coord, ChFram
 }
 
 void ChCascadeDoc::FromChronoToCascade(const ChFrame<>& from_coord, TopLoc_Location& to_coord) {
-    const ChVector<>& mpos = from_coord.GetPos();
+    const ChVector3d& mpos = from_coord.GetPos();
     gp_Vec mtr(mpos.x(), mpos.y(), mpos.z());
 
-    const ChMatrix33<>& from_mat = from_coord.GetA();
-	
-	gp_Trsf castrasf;
-	castrasf.SetValues(from_mat(0, 0), from_mat(0, 1), from_mat(0, 2), mpos.x(), from_mat(1, 0), from_mat(1, 1),
-		from_mat(1, 2), mpos.y(), from_mat(2, 0), from_mat(2, 1), from_mat(2, 2), mpos.z());
+    const ChMatrix33<>& from_mat = from_coord.GetRotMat();
 
-	to_coord = TopLoc_Location(castrasf);
+    gp_Trsf castrasf;
+    castrasf.SetValues(from_mat(0, 0), from_mat(0, 1), from_mat(0, 2), mpos.x(), from_mat(1, 0), from_mat(1, 1),
+                       from_mat(1, 2), mpos.y(), from_mat(2, 0), from_mat(2, 1), from_mat(2, 2), mpos.z());
+
+    to_coord = TopLoc_Location(castrasf);
 
     //((gp_Trsf)(to_coord.Transformation()))
     //    .SetValues(from_mat(0, 0), from_mat(0, 1), from_mat(0, 2), mpos.x(), from_mat(1, 0), from_mat(1, 1),
     //               from_mat(1, 2), mpos.y(), from_mat(2, 0), from_mat(2, 1), from_mat(2, 2), mpos.z()); //0, 0);
 }
-
-
-
 
 /////////////////////

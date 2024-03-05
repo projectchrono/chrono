@@ -27,7 +27,7 @@ class ACV_ChassisRear : public chrono::vehicle::ChRigidChassisRear {
     ~ACV_ChassisRear() {}
 
     /// Get the location (in the local frame of this chassis) of the connection to the front chassis.
-    virtual const chrono::ChVector<>& GetLocalPosFrontConnector() const override { return m_connector_loc; }
+    virtual const chrono::ChVector3d& GetLocalPosFrontConnector() const override { return m_connector_loc; }
 
   protected:
     virtual double GetBodyMass() const override { return m_body_mass; }
@@ -37,10 +37,10 @@ class ACV_ChassisRear : public chrono::vehicle::ChRigidChassisRear {
     chrono::ChMatrix33<> m_body_inertia;
 
     static const double m_body_mass;
-    static const chrono::ChVector<> m_body_inertiaXX;
-    static const chrono::ChVector<> m_body_inertiaXY;
-    static const chrono::ChVector<> m_body_COM_loc;
-    static const chrono::ChVector<> m_connector_loc;
+    static const chrono::ChVector3d m_body_inertiaXX;
+    static const chrono::ChVector3d m_body_inertiaXY;
+    static const chrono::ChVector3d m_body_COM_loc;
+    static const chrono::ChVector3d m_connector_loc;
 };
 
 

@@ -64,7 +64,7 @@ std::string engine_file("M113/powertrain/M113_EngineSimple.json");
 std::string transmission_file("M113/powertrain/M113_AutomaticTransmissionSimpleMap.json");
 
 // Initial vehicle position
-ChVector<> initLoc(0, 0, 1.1);
+ChVector3d initLoc(0, 0, 1.1);
 
 // Initial vehicle orientation
 ChQuaternion<> initRot(1, 0, 0, 0);
@@ -115,7 +115,7 @@ class MyDriver {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------------------
     // Construct the Tracked vehicle
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
     TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChContactMethod::SMC);
 
     // Disable gravity in this simulation
-    ////vehicle.GetSystem()->Set_G_acc(ChVector<>(0, 0, 0));
+    ////vehicle.GetSystem()->Set_G_acc(ChVector3d(0, 0, 0));
 
     // Control steering type (enable crossdrive capability).
     ////vehicle.GetDriveline()->SetGyrationMode(true);
@@ -202,8 +202,8 @@ int main(int argc, char* argv[]) {
 
     auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("JSON Band-Tracked Vehicle Demo");
-    vis->SetChaseCamera(ChVector<>(0, 0, 0), 6.0, 0.5);
-    ////vis->SetChaseCameraPosition(vehicle.GetPos() + ChVector<>(0, 2, 0));
+    vis->SetChaseCamera(ChVector3d(0, 0, 0), 6.0, 0.5);
+    ////vis->SetChaseCameraPosition(vehicle.GetPos() + ChVector3d(0, 2, 0));
     vis->SetChaseCameraMultipliers(1e-4, 10);
     vis->Initialize();
     vis->AddLightDirectional();
@@ -364,7 +364,7 @@ int main(int argc, char* argv[]) {
     int render_frame = 0;
 
     while (step_number < sim_steps) {
-        const ChVector<>& c_pos = vehicle.GetPos();
+        const ChVector3d& c_pos = vehicle.GetPos();
 
         // File output
         if (output) {
@@ -377,18 +377,18 @@ int main(int argc, char* argv[]) {
             const ChFrameMoving<>& c_ref = vehicle.GetChassisBody()->GetFrame_REF_to_abs();
             cout << "      chassis:    " << c_pos.x() << "  " << c_pos.y() << "  " << c_pos.z() << endl;
             {
-                const ChVector<>& i_pos_abs = vehicle.GetTrackAssembly(LEFT)->GetIdler()->GetWheelBody()->GetPos();
-                const ChVector<>& s_pos_abs = vehicle.GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos();
-                ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
-                ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
+                const ChVector3d& i_pos_abs = vehicle.GetTrackAssembly(LEFT)->GetIdler()->GetWheelBody()->GetPos();
+                const ChVector3d& s_pos_abs = vehicle.GetTrackAssembly(LEFT)->GetSprocket()->GetGearBody()->GetPos();
+                ChVector3d i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
+                ChVector3d s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
                 cout << "      L idler:    " << i_pos_rel.x() << "  " << i_pos_rel.y() << "  " << i_pos_rel.z() << endl;
                 cout << "      L sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
             }
             {
-                const ChVector<>& i_pos_abs = vehicle.GetTrackAssembly(RIGHT)->GetIdler()->GetWheelBody()->GetPos();
-                const ChVector<>& s_pos_abs = vehicle.GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody()->GetPos();
-                ChVector<> i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
-                ChVector<> s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
+                const ChVector3d& i_pos_abs = vehicle.GetTrackAssembly(RIGHT)->GetIdler()->GetWheelBody()->GetPos();
+                const ChVector3d& s_pos_abs = vehicle.GetTrackAssembly(RIGHT)->GetSprocket()->GetGearBody()->GetPos();
+                ChVector3d i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
+                ChVector3d s_pos_rel = c_ref.TransformPointParentToLocal(s_pos_abs);
                 cout << "      R idler:    " << i_pos_rel.x() << "  " << i_pos_rel.y() << "  " << i_pos_rel.z() << endl;
                 cout << "      R sprocket: " << s_pos_rel.x() << "  " << s_pos_rel.y() << "  " << s_pos_rel.z() << endl;
             }

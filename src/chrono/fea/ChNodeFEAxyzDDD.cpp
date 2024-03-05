@@ -17,10 +17,10 @@
 namespace chrono {
 namespace fea {
 
-ChNodeFEAxyzDDD::ChNodeFEAxyzDDD(ChVector<> initial_pos,
-                                 ChVector<> initial_dir_u,
-                                 ChVector<> initial_dir_v,
-                                 ChVector<> initial_dir_w)
+ChNodeFEAxyzDDD::ChNodeFEAxyzDDD(ChVector3d initial_pos,
+                                 ChVector3d initial_dir_u,
+                                 ChVector3d initial_dir_v,
+                                 ChVector3d initial_dir_w)
     : ChNodeFEAxyzDD(initial_pos, initial_dir_u, initial_dir_v), DDD(initial_dir_w), DDD_dt(VNULL), DDD_dtdt(VNULL) {
     variables_DDD = new ChVariablesGenericDiagonalMass(3);
     // default: no atomic mass associated to fea node, the fea element will add mass matrix
@@ -243,7 +243,7 @@ void ChNodeFEAxyzDDD::VariablesQbLoadSpeed() {
 void ChNodeFEAxyzDDD::VariablesQbSetSpeed(double step) {
     ChNodeFEAxyzDD::VariablesQbSetSpeed(step);
     if (!IsFixedDDD()) {
-        ChVector<> oldDDD_dt = DDD_dt;
+        ChVector3d oldDDD_dt = DDD_dt;
         SetDDD_dt(variables_DDD->Get_qb().segment(0, 3));
         if (step) {
             SetDDD_dtdt((DDD_dt - oldDDD_dt) / step);
@@ -262,7 +262,7 @@ void ChNodeFEAxyzDDD::VariablesQbIncrementPosition(double step) {
     ChNodeFEAxyzDD::VariablesQbIncrementPosition(step);
     if (!IsFixedDDD()) {
         // ADVANCE POSITION: pos' = pos + dt * vel
-        ChVector<> newspeed_DDD(variables_DDD->Get_qb().segment(0, 3));
+        ChVector3d newspeed_DDD(variables_DDD->Get_qb().segment(0, 3));
         SetDDD(GetDDD() + newspeed_DDD * step);
     }
 }

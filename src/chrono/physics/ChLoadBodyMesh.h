@@ -29,7 +29,7 @@ namespace chrono {
 
 class ChApi ChLoadBodyMesh : public ChLoadBase {
   public:
-    ChLoadBodyMesh(std::shared_ptr<ChBody> cbody, geometry::ChTriangleMeshConnected& cmesh);
+    ChLoadBodyMesh(std::shared_ptr<ChBody> cbody, ChTriangleMeshConnected& cmesh);
 
     virtual ~ChLoadBodyMesh() {}
 
@@ -43,23 +43,23 @@ class ChApi ChLoadBodyMesh : public ChLoadBase {
     /// indexes are 0-based. These vectors can be later sent to another computing node that computes, say, CFD forces on
     /// the mesh.
     void OutputSimpleMesh(
-        std::vector<ChVector<>>& vert_pos,     ///< array of vertexes (absolute xyz positions)
-        std::vector<ChVector<>>& vert_vel,     ///< array of vertexes (absolute xyz velocities, might be useful)
-        std::vector<ChVector<int>>& triangles  ///< array of triangles (indexes to vertexes, ccw)
+        std::vector<ChVector3d>& vert_pos,     ///< array of vertexes (absolute xyz positions)
+        std::vector<ChVector3d>& vert_vel,     ///< array of vertexes (absolute xyz velocities, might be useful)
+        std::vector<ChVector3i>& triangles  ///< array of triangles (indexes to vertexes, ccw)
     );
 
     /// Set the forces to the body, where forces are given as a vector of xyz vectors (expressed in absolute
     /// coordinates) and indexes to the referenced vertex, as obtained by OutputSimpleMesh.
     /// NOTE: do not insert/remove nodes from the collision mesh between the OutputSimpleMesh-InputSimpleForces pair!
-    void InputSimpleForces(const std::vector<ChVector<>> vert_forces,  ///< array of forces (in absolute frame)
+    void InputSimpleForces(const std::vector<ChVector3d> vert_forces,  ///< array of forces (in absolute frame)
                            const std::vector<int> vert_ind             ///< indexes of vertices with applied forces
     );
 
     /// Set the contact mesh (also resets the applied nodes).
-    void SetContactMesh(geometry::ChTriangleMeshConnected& mmesh);
+    void SetContactMesh(ChTriangleMeshConnected& mmesh);
 
     /// Get the contact mesh.
-    geometry::ChTriangleMeshConnected& GetContactMesh() { return this->contactmesh; }
+    ChTriangleMeshConnected& GetContactMesh() { return this->contactmesh; }
 
     /// Access the list of applied forces, to allow adding new ones, removing them, counting them, etc.
     /// Note that only nodes from the reference mesh should be added.
@@ -103,7 +103,7 @@ class ChApi ChLoadBodyMesh : public ChLoadBase {
 
   private:
     std::shared_ptr<ChBody> contactbody;
-    geometry::ChTriangleMeshConnected contactmesh;
+    ChTriangleMeshConnected contactmesh;
 
     std::vector<std::shared_ptr<ChLoadBodyForce>> forces;
 };

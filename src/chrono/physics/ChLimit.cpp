@@ -32,11 +32,11 @@ ChLinkLimit::ChLinkLimit()
       m_minElastic(0),
       m_maxElastic(0) {
     // Default: no modulation
-    m_Kmax_modul = chrono_types::make_shared<ChFunction_Const>(1);
-    m_Kmin_modul = chrono_types::make_shared<ChFunction_Const>(1);
-    m_Rmax_modul = chrono_types::make_shared<ChFunction_Const>(1);
-    m_Rmin_modul = chrono_types::make_shared<ChFunction_Const>(1);
-    m_polarMax_funct = chrono_types::make_shared<ChFunction_Const>(1);
+    m_Kmax_modul = chrono_types::make_shared<ChFunctionConst>(1);
+    m_Kmin_modul = chrono_types::make_shared<ChFunctionConst>(1);
+    m_Rmax_modul = chrono_types::make_shared<ChFunctionConst>(1);
+    m_Rmin_modul = chrono_types::make_shared<ChFunctionConst>(1);
+    m_polarMax_funct = chrono_types::make_shared<ChFunctionConst>(1);
 
     constr_upper.SetMode(CONSTRAINT_UNILATERAL);
     constr_lower.SetMode(CONSTRAINT_UNILATERAL);
@@ -105,56 +105,56 @@ void ChLinkLimit::SetMinCushion(double val) {
 }
 
 // file parsing / dumping
-void ChLinkLimit::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkLimit::ArchiveOut(ChArchiveOut& archive_out) {
     // class version number
-    marchive.VersionWrite<ChLinkLimit>();
+    archive_out.VersionWrite<ChLinkLimit>();
 
     // stream out all member data
-    marchive << CHNVP(m_active);
-    marchive << CHNVP(m_penalty_only);
-    marchive << CHNVP(m_polar);
-    marchive << CHNVP(m_rotation);
-    marchive << CHNVP(m_max);
-    marchive << CHNVP(m_min);
-    marchive << CHNVP(m_maxCushion);
-    marchive << CHNVP(m_minCushion);
-    marchive << CHNVP(m_Kmax);
-    marchive << CHNVP(m_Kmin);
-    marchive << CHNVP(m_Rmax);
-    marchive << CHNVP(m_Rmin);
-    marchive << CHNVP(m_maxElastic);
-    marchive << CHNVP(m_minElastic);
-    marchive << CHNVP(m_Kmax_modul);
-    marchive << CHNVP(m_Kmin_modul);
-    marchive << CHNVP(m_Rmax_modul);
-    marchive << CHNVP(m_Rmin_modul);
-    marchive << CHNVP(m_polarMax_funct);
+    archive_out << CHNVP(m_active);
+    archive_out << CHNVP(m_penalty_only);
+    archive_out << CHNVP(m_polar);
+    archive_out << CHNVP(m_rotation);
+    archive_out << CHNVP(m_max);
+    archive_out << CHNVP(m_min);
+    archive_out << CHNVP(m_maxCushion);
+    archive_out << CHNVP(m_minCushion);
+    archive_out << CHNVP(m_Kmax);
+    archive_out << CHNVP(m_Kmin);
+    archive_out << CHNVP(m_Rmax);
+    archive_out << CHNVP(m_Rmin);
+    archive_out << CHNVP(m_maxElastic);
+    archive_out << CHNVP(m_minElastic);
+    archive_out << CHNVP(m_Kmax_modul);
+    archive_out << CHNVP(m_Kmin_modul);
+    archive_out << CHNVP(m_Rmax_modul);
+    archive_out << CHNVP(m_Rmin_modul);
+    archive_out << CHNVP(m_polarMax_funct);
 }
 
-void ChLinkLimit::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkLimit::ArchiveIn(ChArchiveIn& archive_in) {
     // class version number
-    /*int version =*/ marchive.VersionRead<ChLinkLimit>();
+    /*int version =*/ archive_in.VersionRead<ChLinkLimit>();
 
     // stream in all member data
-    marchive >> CHNVP(m_active);
-    marchive >> CHNVP(m_penalty_only);
-    marchive >> CHNVP(m_polar);
-    marchive >> CHNVP(m_rotation);
-    marchive >> CHNVP(m_max);
-    marchive >> CHNVP(m_min);
-    marchive >> CHNVP(m_maxCushion);
-    marchive >> CHNVP(m_minCushion);
-    marchive >> CHNVP(m_Kmax);
-    marchive >> CHNVP(m_Kmin);
-    marchive >> CHNVP(m_Rmax);
-    marchive >> CHNVP(m_Rmin);
-    marchive >> CHNVP(m_maxElastic);
-    marchive >> CHNVP(m_minElastic);
-    marchive >> CHNVP(m_Kmax_modul);
-    marchive >> CHNVP(m_Kmin_modul);
-    marchive >> CHNVP(m_Rmax_modul);
-    marchive >> CHNVP(m_Rmin_modul);
-    marchive >> CHNVP(m_polarMax_funct);
+    archive_in >> CHNVP(m_active);
+    archive_in >> CHNVP(m_penalty_only);
+    archive_in >> CHNVP(m_polar);
+    archive_in >> CHNVP(m_rotation);
+    archive_in >> CHNVP(m_max);
+    archive_in >> CHNVP(m_min);
+    archive_in >> CHNVP(m_maxCushion);
+    archive_in >> CHNVP(m_minCushion);
+    archive_in >> CHNVP(m_Kmax);
+    archive_in >> CHNVP(m_Kmin);
+    archive_in >> CHNVP(m_Rmax);
+    archive_in >> CHNVP(m_Rmin);
+    archive_in >> CHNVP(m_maxElastic);
+    archive_in >> CHNVP(m_minElastic);
+    archive_in >> CHNVP(m_Kmax_modul);
+    archive_in >> CHNVP(m_Kmin_modul);
+    archive_in >> CHNVP(m_Rmax_modul);
+    archive_in >> CHNVP(m_Rmin_modul);
+    archive_in >> CHNVP(m_polarMax_funct);
 }
 
 double ChLinkLimit::GetViolation(double x) const {
@@ -196,8 +196,8 @@ double ChLinkLimit::GetForce(double x, double x_dt) const {
         if (cush_coord_norm > 1)
             cush_coord_norm = 1;  // clip cushion forces at stopper limit
 
-        force = cush_coord * m_Kmin * m_Kmin_modul->Get_y(cush_coord_norm);
-        force += (-x_dt) * m_Rmin * m_Rmin_modul->Get_y(cush_coord_norm);
+        force = cush_coord * m_Kmin * m_Kmin_modul->GetVal(cush_coord_norm);
+        force += (-x_dt) * m_Rmin * m_Rmin_modul->GetVal(cush_coord_norm);
         if (force < 0) {
             force = 0;
         }  // damping could cause neg force while going away,
@@ -217,8 +217,8 @@ double ChLinkLimit::GetForce(double x, double x_dt) const {
         if (cush_coord_norm > 1)
             cush_coord_norm = 1;  // clip cushion forces at stopper limit
 
-        force = (-cush_coord) * m_Kmax * m_Kmax_modul->Get_y(cush_coord_norm);
-        force += (-x_dt) * m_Rmax * m_Rmax_modul->Get_y(cush_coord_norm);
+        force = (-cush_coord) * m_Kmax * m_Kmax_modul->GetVal(cush_coord_norm);
+        force += (-x_dt) * m_Rmax * m_Rmax_modul->GetVal(cush_coord_norm);
         if (force > 0) {
             force = 0;
         }  // damping could cause pos force while going away,
@@ -231,7 +231,7 @@ double ChLinkLimit::GetForce(double x, double x_dt) const {
 double ChLinkLimit::GetMaxPolarAngle(double pol_ang) const {
     if (!m_polarMax_funct)
         return 0.001;
-    return m_polarMax_funct->Get_y(pol_ang);
+    return m_polarMax_funct->GetVal(pol_ang);
 }
 
 // The same, but for conical limits, in polar coordinates
@@ -252,7 +252,7 @@ double ChLinkLimit::GetPolarForce(double x, double x_dt, double pol_ang) const {
         max_val = 999999999;
     }
 
-    ang_max = m_polarMax_funct->Get_y(pol_ang);
+    ang_max = m_polarMax_funct->GetVal(pol_ang);
 
     if (x < max_val && x > ang_max - m_maxCushion) {
         cushion_thick = m_maxCushion;
@@ -270,8 +270,8 @@ double ChLinkLimit::GetPolarForce(double x, double x_dt, double pol_ang) const {
         if (cush_coord_norm > 1)
             cush_coord_norm = 1;
 
-        force = (-cush_coord) * m_Kmax * m_Kmax_modul->Get_y(cush_coord_norm);
-        force += (-x_dt) * m_Rmax * m_Rmax_modul->Get_y(cush_coord_norm);
+        force = (-cush_coord) * m_Kmax * m_Kmax_modul->GetVal(cush_coord_norm);
+        force += (-x_dt) * m_Rmax * m_Rmax_modul->GetVal(cush_coord_norm);
 
         // damping could cause pos force while going away,
         // so, since the limit is not "sticky", clip force sign.

@@ -38,7 +38,7 @@ ChBalancer::~ChBalancer() {
 
 // -----------------------------------------------------------------------------
 
-void ChBalancer::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>& location) {
+void ChBalancer::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d& location) {
     ChSubchassis::Initialize(chassis, location);
 
     m_parent = chassis;
@@ -52,14 +52,14 @@ void ChBalancer::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>
     m_pointsL.resize(NUM_POINTS);
     m_pointsR.resize(NUM_POINTS);
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> rel_pos = GetLocation(static_cast<PointId>(i));
-        m_pointsL[i] = to_abs.TransformLocalToParent(rel_pos);
+        ChVector3d rel_pos = GetLocation(static_cast<PointId>(i));
+        m_pointsL[i] = to_abs.TransformPointLocalToParent(rel_pos);
         rel_pos.y() = -rel_pos.y();
-        m_pointsR[i] = to_abs.TransformLocalToParent(rel_pos);
+        m_pointsR[i] = to_abs.TransformPointLocalToParent(rel_pos);
     }
 
     // Transform pin directions to absolute frame
-    ChVector<> rel_dir = GetDirection();
+    ChVector3d rel_dir = GetDirection();
     m_dirL = to_abs.TransformDirectionLocalToParent(rel_dir);
     rel_dir.y() = -rel_dir.y();
     m_dirR = to_abs.TransformDirectionLocalToParent(rel_dir);
@@ -70,8 +70,8 @@ void ChBalancer::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector<>
 
 void ChBalancer::InitializeSide(VehicleSide side,
                                 std::shared_ptr<ChChassis> chassis,
-                                const std::vector<ChVector<>>& points,
-                                const ChVector<>& dir) {
+                                const std::vector<ChVector3d>& points,
+                                const ChVector3d& dir) {
     std::string suffix = (side == LEFT) ? "_L" : "_R";
 
     // Chassis orientation (expressed in absolute frame)
@@ -79,14 +79,14 @@ void ChBalancer::InitializeSide(VehicleSide side,
     ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
 
     // Orientation of revolute joint
-    ChVector<> w = dir.GetNormalized();
-    ChVector<> u = VECT_X;
-    ChVector<> v = Vcross(w, u);
+    ChVector3d w = dir.GetNormalized();
+    ChVector3d u = VECT_X;
+    ChVector3d v = Vcross(w, u);
     v.Normalize();
     u = Vcross(v, w);
     ChMatrix33<> rot(u, v, w);
 
-    ChQuaternion<> joint_rot = chassisRot * rot.Get_A_quaternion();
+    ChQuaternion<> joint_rot = chassisRot * rot.GetQuaternion();
 
     // Create beam body
     m_beam[side] = chrono_types::make_shared<ChBody>();
@@ -100,7 +100,7 @@ void ChBalancer::InitializeSide(VehicleSide side,
     // Attach balancer to chassis through a revolute joint and set joint limits
     m_balancer_joint[side] = chrono_types::make_shared<ChVehicleJoint>(
         ChVehicleJoint::Type::REVOLUTE, m_name + "_rev_balancer" + suffix, m_beam[side], chassis->GetBody(),
-        ChCoordsys<>(points[REVOLUTE], joint_rot), GetBushingData());
+        ChFrame<>(points[REVOLUTE], joint_rot), GetBushingData());
     chassis->AddJoint(m_balancer_joint[side]);
 
     if (m_balancer_joint[side]->IsKinematic()) {
@@ -116,7 +116,7 @@ void ChBalancer::InitializeInertiaProperties() {
 }
 
 void ChBalancer::UpdateInertiaProperties() {
-    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
+    m_xform = m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT));
 
     // Calculate COM and inertia expressed in global frame
     utils::CompositeInertia composite;
@@ -124,10 +124,10 @@ void ChBalancer::UpdateInertiaProperties() {
     composite.AddComponent(m_beam[RIGHT]->GetFrame_COG_to_abs(), m_beam[RIGHT]->GetMass(), m_beam[RIGHT]->GetInertia());
 
     // Express COM and inertia in subsystem reference frame
-    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
-    m_com.coord.rot = QUNIT;
+    m_com.GetPos() = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.GetRot() = QUNIT;
 
-    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
+    m_inertia = m_xform.GetRotMat().transpose() * composite.GetInertia() * m_xform.GetRotMat();
 }
 
 // -----------------------------------------------------------------------------
@@ -144,9 +144,9 @@ void ChBalancer::AddVisualizationAssets(VisualizationType vis) {
 
         // Orientation of revolute joint
         auto dir = GetDirection();
-        ChVector<> w = dir.GetNormalized();
-        ChVector<> u = VECT_X;
-        ChVector<> v = Vcross(w, u);
+        ChVector3d w = dir.GetNormalized();
+        ChVector3d u = VECT_X;
+        ChVector3d v = Vcross(w, u);
         v.Normalize();
         u = Vcross(v, w);
         ChMatrix33<> rot(u, v, w);
@@ -162,9 +162,9 @@ void ChBalancer::AddVisualizationAssets(VisualizationType vis) {
         // Orientation of revolute joint
         auto dir = GetDirection();
         dir.y() = -dir.y();
-        ChVector<> w = dir.GetNormalized();
-        ChVector<> u = VECT_X;
-        ChVector<> v = Vcross(w, u);
+        ChVector3d w = dir.GetNormalized();
+        ChVector3d u = VECT_X;
+        ChVector3d v = Vcross(w, u);
         v.Normalize();
         u = Vcross(v, w);
         ChMatrix33<> rot(u, v, w);

@@ -26,7 +26,7 @@ ChShaftsMotorSpeed::ChShaftsMotorSpeed() : motor_torque(0) {
     this->variable.GetMass()(0,0) = 1.0;
     this->variable.GetInvMass()(0,0) = 1.0;
 
-    this->f_speed = chrono_types::make_shared<ChFunction_Const>(1.0);
+    this->f_speed = chrono_types::make_shared<ChFunctionConst>(1.0);
 
     this->rot_offset = 0;
 
@@ -122,7 +122,7 @@ void ChShaftsMotorSpeed::IntLoadResidual_F(const unsigned int off,  // offset in
                                 ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                 const double c           // a scaling factor
                                 ) {
-    double imposed_speed = this->f_speed->Get_y(this->GetChTime());
+    double imposed_speed = this->f_speed->GetVal(this->GetChTime());
     R(off) +=  imposed_speed * c;
 }
 
@@ -161,14 +161,14 @@ void ChShaftsMotorSpeed::IntLoadConstraint_C(const unsigned int off_L,  // offse
     // with d_error = x_pos_A-x_pos_B, and d_setpoint = x(t)
     double C;
     if (this->avoid_angle_drift) 
-        C = this->GetMotorRot()  - aux_dt - this->rot_offset; 
+        C = this->GetMotorAngle()  - aux_dt - this->rot_offset; 
     else
         C = 0.0;
 
     double res = c * C;
 
     if (do_clamp) {
-        res = ChMin(ChMax(res, -recovery_clamp), recovery_clamp);
+        res = std::min(std::max(res, -recovery_clamp), recovery_clamp);
     }
     Qc(off_L) += res;
 }
@@ -177,7 +177,7 @@ void ChShaftsMotorSpeed::IntLoadConstraint_Ct(const unsigned int off_L,  // offs
                                          ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*Ct
                                          const double c             // a scaling factor
                                          ) {
-    double ct = - this->f_speed->Get_y(this->GetChTime());
+    double ct = - this->f_speed->GetVal(this->GetChTime());
     Qc(off_L) += c * ct;
 }
 
@@ -221,7 +221,7 @@ void ChShaftsMotorSpeed::VariablesFbReset() {
 
 void ChShaftsMotorSpeed::VariablesFbLoadForces(double factor) {
     
-    double imposed_speed = this->f_speed->Get_y(this->GetChTime());
+    double imposed_speed = this->f_speed->GetVal(this->GetChTime());
     variable.Get_fb()(0) += imposed_speed * factor;
 }
 
@@ -251,14 +251,14 @@ void ChShaftsMotorSpeed::ConstraintsBiLoad_C(double factor, double recovery_clam
 
     double C;
     if (this->avoid_angle_drift) 
-        C = this->GetMotorRot()  - aux_dt - this->rot_offset; 
+        C = this->GetMotorAngle()  - aux_dt - this->rot_offset; 
     else
         C = 0.0;
 
     double res = factor * C;
 
     if (do_clamp) {
-        res = ChMin(ChMax(res, -recovery_clamp), recovery_clamp);
+        res = std::min(std::max(res, -recovery_clamp), recovery_clamp);
     }
 
     constraint.Set_b_i(constraint.Get_b_i() + res);
@@ -266,7 +266,7 @@ void ChShaftsMotorSpeed::ConstraintsBiLoad_C(double factor, double recovery_clam
 
 void ChShaftsMotorSpeed::ConstraintsBiLoad_Ct(double factor) {
 
-    double ct = - this->f_speed->Get_y(this->GetChTime());
+    double ct = - this->f_speed->GetVal(this->GetChTime());
     constraint.Set_b_i(constraint.Get_b_i() + factor * ct);
 }
 
@@ -281,34 +281,34 @@ void ChShaftsMotorSpeed::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsMotorSpeed::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsMotorSpeed::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsMotorSpeed>();
+    archive_out.VersionWrite<ChShaftsMotorSpeed>();
 
     // serialize parent class
-    ChShaftsMotorBase::ArchiveOut(marchive);
+    ChShaftsMotorBase::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(motor_torque);
-    marchive << CHNVP(f_speed);
-    marchive << CHNVP(rot_offset);
-    marchive << CHNVP(avoid_angle_drift);
+    archive_out << CHNVP(motor_torque);
+    archive_out << CHNVP(f_speed);
+    archive_out << CHNVP(rot_offset);
+    archive_out << CHNVP(avoid_angle_drift);
 
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsMotorSpeed::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsMotorSpeed::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsMotorSpeed>();
+    /*int version =*/ archive_in.VersionRead<ChShaftsMotorSpeed>();
 
     // deserialize parent class:
-    ChShaftsMotorBase::ArchiveIn(marchive);
+    ChShaftsMotorBase::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(motor_torque);
-    marchive >> CHNVP(f_speed);
-    marchive >> CHNVP(rot_offset);
-    marchive >> CHNVP(avoid_angle_drift);
+    archive_in >> CHNVP(motor_torque);
+    archive_in >> CHNVP(f_speed);
+    archive_in >> CHNVP(rot_offset);
+    archive_in >> CHNVP(avoid_angle_drift);
     constraint.SetVariables(&shaft1->Variables(), &shaft2->Variables());
 }
 

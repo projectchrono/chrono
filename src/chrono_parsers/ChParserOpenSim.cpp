@@ -22,6 +22,7 @@
 // =============================================================================
 
 #include "chrono_parsers/ChParserOpenSim.h"
+
 #include "chrono_thirdparty/filesystem/path.h"
 #include "chrono_thirdparty/filesystem/resolver.h"
 #include "chrono_thirdparty/rapidxml/rapidxml_print.hpp"
@@ -29,6 +30,7 @@
 
 #include "chrono/core/ChCubicSpline.h"
 #include "chrono/core/ChFrame.h"
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
 
@@ -41,6 +43,7 @@
 
 #include <cstring>
 #include <utility>
+
 using namespace filesystem;
 using namespace rapidxml;
 
@@ -125,7 +128,7 @@ void ChParserOpenSim::Parse(ChSystem& system, const std::string& filename) {
 
     // Get gravity from model and set it in system
     auto elems = strToSTLVector<double>(doc.first_node()->first_node("Model")->first_node("gravity")->value());
-    system.Set_G_acc(ChVector<>(elems[0], elems[1], elems[2]));
+    system.Set_G_acc(ChVector3d(elems[0], elems[1], elems[2]));
 
     // Traverse the list of bodies and parse the information for each one
     xml_node<>* bodySet = doc.first_node()->first_node("Model")->first_node("BodySet");
@@ -258,15 +261,16 @@ bool ChParserOpenSim::parseForce(rapidxml::xml_node<>* forceNode,
         std::cout << "Actuator " << name << std::endl;
         // Chrono should be using std::string
         auto body = system.SearchBody(stringStripCStr(forceNode->first_node("body")->value()));
-        ChVector<> point = strToChVector<double>(forceNode->first_node("point")->value());
+        ChVector3d point = strToChVector3<double>(forceNode->first_node("point")->value());
         auto point_global = CStrToBool(forceNode->first_node("point_is_global")->value());
-        ChVector<> direction = strToChVector<double>(forceNode->first_node("direction")->value());
+        ChVector3d direction = strToChVector3<double>(forceNode->first_node("direction")->value());
         auto force_global = CStrToBool(forceNode->first_node("force_is_global")->value());
         auto max_force = std::stod(stringStripCStr(forceNode->first_node("optimal_force")->value()));
 
-        auto load = chrono_types::make_shared<ChLoadBodyForce>(body, max_force * direction, !force_global, point, !point_global);
+        auto load = chrono_types::make_shared<ChLoadBodyForce>(body, max_force * direction, !force_global, point,
+                                                               !point_global);
         if (!m_activate_actuators)
-            load->SetModulationFunction(chrono_types::make_shared<ChFunction_Const>(0));
+            load->SetModulationFunction(chrono_types::make_shared<ChFunctionConst>(0));
         container->Add(load);
 
         m_report.forces.insert(std::make_pair(name, Report::ForceInfo{std::string("PointActuator"), load}));
@@ -277,7 +281,7 @@ bool ChParserOpenSim::parseForce(rapidxml::xml_node<>* forceNode,
         auto bodyA = system.SearchBody(stringStripCStr(forceNode->first_node("bodyA")->value()));
         auto bodyB = system.SearchBody(stringStripCStr(forceNode->first_node("bodyB")->value()));
         auto torque_is_global = CStrToBool(forceNode->first_node("torque_is_global")->value());
-        ChVector<> axis = strToChVector<double>(forceNode->first_node("axis")->value());
+        ChVector3d axis = strToChVector3<double>(forceNode->first_node("axis")->value());
         auto max_force = std::stod(forceNode->first_node("optimal_force")->value());
 
         // Note: OpenSim assumes the specified torque is applied to bodyA (with an equal and opposite
@@ -285,7 +289,7 @@ bool ChParserOpenSim::parseForce(rapidxml::xml_node<>* forceNode,
         // passed in its constructor.
         auto load = chrono_types::make_shared<ChLoadBodyBodyTorque>(bodyB, bodyA, max_force * axis, !torque_is_global);
         if (!m_activate_actuators)
-            load->SetModulationFunction(chrono_types::make_shared<ChFunction_Const>(0));
+            load->SetModulationFunction(chrono_types::make_shared<ChFunctionConst>(0));
         container->Add(load);
 
         m_report.forces.insert(std::make_pair(name, Report::ForceInfo{std::string("TorqueActuator"), load}));
@@ -334,7 +338,7 @@ void ChParserOpenSim::initFunctionTable() {
             // Ground-like body, massless => fixed
             newBody->SetBodyFixed(true);
             newBody->SetCollide(false);
-            newBody->SetPos(ChVector<>(0, 0, 0));
+            newBody->SetPos(ChVector3d(0, 0, 0));
         } else {
             // Give new body mass
             newBody->SetMass(std::stod(fieldNode->value()));
@@ -344,7 +348,7 @@ void ChParserOpenSim::initFunctionTable() {
 
     function_table["mass_center"] = [](xml_node<>* fieldNode, std::shared_ptr<ChBodyAuxRef> newBody) {
         // Set COM in reference frame
-        auto COM = strToChVector<double>(fieldNode->value());
+        auto COM = strToChVector3<double>(fieldNode->value());
         // Opensim doesn't really use a rotated COM to REF frame, so unit quaternion
         newBody->SetFrame_COG_to_REF(ChFrame<>(COM, ChQuaternion<>(1, 0, 0, 0)));
         // Only add vis balls if we're using primitives
@@ -352,42 +356,42 @@ void ChParserOpenSim::initFunctionTable() {
 
     function_table["inertia_xx"] = [](xml_node<>* fieldNode, std::shared_ptr<ChBodyAuxRef> newBody) {
         // Set xx inertia moment
-        ChVector<> inertiaXX = newBody->GetInertiaXX();
+        ChVector3d inertiaXX = newBody->GetInertiaXX();
         inertiaXX.x() = std::stod(fieldNode->value());
         newBody->SetInertiaXX(inertiaXX);
     };
 
     function_table["inertia_yy"] = [](xml_node<>* fieldNode, std::shared_ptr<ChBodyAuxRef> newBody) {
         // Set yy inertia moment
-        ChVector<> inertiaXX = newBody->GetInertiaXX();
+        ChVector3d inertiaXX = newBody->GetInertiaXX();
         inertiaXX.y() = std::stod(fieldNode->value());
         newBody->SetInertiaXX(inertiaXX);
     };
 
     function_table["inertia_zz"] = [](xml_node<>* fieldNode, std::shared_ptr<ChBodyAuxRef> newBody) {
         // Set zz inertia moment
-        ChVector<> inertiaXX = newBody->GetInertiaXX();
+        ChVector3d inertiaXX = newBody->GetInertiaXX();
         inertiaXX.z() = std::stod(fieldNode->value());
         newBody->SetInertiaXX(inertiaXX);
     };
 
     function_table["inertia_xy"] = [](xml_node<>* fieldNode, std::shared_ptr<ChBodyAuxRef> newBody) {
         // Set xy inertia moment
-        ChVector<> inertiaXY = newBody->GetInertiaXY();
+        ChVector3d inertiaXY = newBody->GetInertiaXY();
         inertiaXY.x() = std::stod(fieldNode->value());
         newBody->SetInertiaXY(inertiaXY);
     };
 
     function_table["inertia_xz"] = [](xml_node<>* fieldNode, std::shared_ptr<ChBodyAuxRef> newBody) {
         // Set xz inertia moment
-        ChVector<> inertiaXY = newBody->GetInertiaXY();
+        ChVector3d inertiaXY = newBody->GetInertiaXY();
         inertiaXY.y() = std::stod(fieldNode->value());
         newBody->SetInertiaXY(inertiaXY);
     };
 
     function_table["inertia_yz"] = [](xml_node<>* fieldNode, std::shared_ptr<ChBodyAuxRef> newBody) {
         // Set yz inertia moment
-        ChVector<> inertiaXY = newBody->GetInertiaXY();
+        ChVector3d inertiaXY = newBody->GetInertiaXY();
         inertiaXY.z() = std::stod(fieldNode->value());
         newBody->SetInertiaXY(inertiaXY);
     };
@@ -432,24 +436,25 @@ void ChParserOpenSim::initFunctionTable() {
 
         // Get joint's position in parent frame
         auto elems = ChParserOpenSim::strToSTLVector<double>(jointNode->first_node("location_in_parent")->value());
-        ChVector<> jointPosInParent = ChVector<>(elems[0], elems[1], elems[2]);
+        ChVector3d jointPosInParent = ChVector3d(elems[0], elems[1], elems[2]);
 
         // Get joint's orientation in parent frame
         elems = ChParserOpenSim::strToSTLVector<double>(jointNode->first_node("orientation_in_parent")->value());
-        ChQuaternion<> jointOrientationInParent = Q_from_AngX(elems[0]) * Q_from_AngY(elems[1]) * Q_from_AngZ(elems[2]);
+        ChQuaternion<> jointOrientationInParent =
+            QuatFromAngleX(elems[0]) * QuatFromAngleY(elems[1]) * QuatFromAngleZ(elems[2]);
 
         // Parent to joint in parent transform
         ChFrame<> X_P_F(jointPosInParent, jointOrientationInParent);
 
         // Offset location and orientation caused by joint initial configuration, default is identity
-        ChFrame<> X_F_M(ChVector<>(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
+        ChFrame<> X_F_M(ChVector3d(0, 0, 0), ChQuaternion<>(1, 0, 0, 0));
         // Get offsets, depending on joint type
         if (type == std::string("PinJoint")) {
             xml_node<>* coordinates =
                 jointNode->first_node("CoordinateSet")->first_node("objects")->first_node("Coordinate");
             // Just a rotation about Z
             double thetaZ = std::stod(coordinates->first_node("default_value")->value());
-            X_F_M = Q_from_AngZ(thetaZ) * X_F_M;
+            X_F_M = QuatFromAngleZ(thetaZ) * X_F_M;
         } else if (type == std::string("WeldJoint")) {
             // Do absolutely nothing, they're stuck together
         } else if (type == std::string("UniversalJoint")) {
@@ -459,7 +464,7 @@ void ChParserOpenSim::initFunctionTable() {
             double thetaX = std::stod(coordinates->first_node("default_value")->value());
             coordinates = coordinates->next_sibling();
             double thetaY = std::stod(coordinates->first_node("default_value")->value());
-            X_F_M = Q_from_AngX(thetaX) * Q_from_AngY(thetaY) * X_F_M;
+            X_F_M = QuatFromAngleX(thetaX) * QuatFromAngleY(thetaY) * X_F_M;
         } else if (type == std::string("BallJoint")) {
             xml_node<>* coordinates =
                 jointNode->first_node("CoordinateSet")->first_node("objects")->first_node("Coordinate");
@@ -469,7 +474,7 @@ void ChParserOpenSim::initFunctionTable() {
             double thetaY = std::stod(coordinates->first_node("default_value")->value());
             coordinates = coordinates->next_sibling();
             double thetaZ = std::stod(coordinates->first_node("default_value")->value());
-            X_F_M = Q_from_AngX(thetaX) * Q_from_AngY(thetaY) * Q_from_AngZ(thetaZ) * X_F_M;
+            X_F_M = QuatFromAngleX(thetaX) * QuatFromAngleY(thetaY) * QuatFromAngleZ(thetaZ) * X_F_M;
         } else if (type == std::string("CustomJoint")) {
             // Make a map of generalized coordinates' default values so we can get initial position
             std::map<std::string, double> coordVals;
@@ -505,7 +510,7 @@ void ChParserOpenSim::initFunctionTable() {
 
                 // Get axis to transform about/along
                 auto axisElems = ChParserOpenSim::strToSTLVector<double>(transforms->first_node("axis")->value());
-                ChVector<> axis(axisElems[0], axisElems[1], axisElems[2]);
+                ChVector3d axis(axisElems[0], axisElems[1], axisElems[2]);
 
                 if (functionType == std::string("LinearFunction")) {
                     // ax + b style linear mapping
@@ -547,7 +552,7 @@ void ChParserOpenSim::initFunctionTable() {
 
                 if (transformIndex < 3) {
                     // Rotation
-                    X_F_M = Q_from_AngAxis(transformValue, axis) * X_F_M;
+                    X_F_M = QuatFromAngleAxis(transformValue, axis) * X_F_M;
                 } else {
                     // Translation
                     X_F_M = (transformValue * axis) * X_F_M;
@@ -561,11 +566,12 @@ void ChParserOpenSim::initFunctionTable() {
 
         // Get joint's position in child frame
         elems = ChParserOpenSim::strToSTLVector<double>(jointNode->first_node("location")->value());
-        ChVector<> jointPosInChild = ChVector<>(elems[0], elems[1], elems[2]);
+        ChVector3d jointPosInChild = ChVector3d(elems[0], elems[1], elems[2]);
 
         // Get joint's orientation in child frame
         elems = ChParserOpenSim::strToSTLVector<double>(jointNode->first_node("orientation")->value());
-        ChQuaternion<> jointOrientationInChild = Q_from_AngX(elems[0]) * Q_from_AngY(elems[1]) * Q_from_AngZ(elems[2]);
+        ChQuaternion<> jointOrientationInChild =
+            QuatFromAngleX(elems[0]) * QuatFromAngleY(elems[1]) * QuatFromAngleZ(elems[2]);
 
         // Joint in child to child
         ChFrame<> X_B_M(jointPosInChild, jointOrientationInChild);
@@ -611,11 +617,11 @@ void ChParserOpenSim::initFunctionTable() {
         // Make a joint, depending on what it actually is
         if (type == std::string("PinJoint")) {
             auto revJoint = chrono_types::make_shared<ChLinkLockRevolute>();
-            revJoint->Initialize(parent, newBody, jointFrame.GetCoord());
+            revJoint->Initialize(parent, newBody, jointFrame);
             joint = revJoint;
         } else if (type == std::string("WeldJoint")) {
             auto weldJoint = chrono_types::make_shared<ChLinkLockLock>();
-            weldJoint->Initialize(parent, newBody, jointFrame.GetCoord());
+            weldJoint->Initialize(parent, newBody, jointFrame);
             joint = weldJoint;
         } else if (type == std::string("UniversalJoint")) {
             // Do some universal magic here
@@ -625,7 +631,7 @@ void ChParserOpenSim::initFunctionTable() {
         } else if (type == std::string("BallJoint")) {
             // Add a spherical joint
             auto spherJoint = chrono_types::make_shared<ChLinkLockSpherical>();
-            spherJoint->Initialize(parent, newBody, jointFrame.GetCoord());
+            spherJoint->Initialize(parent, newBody, jointFrame);
             joint = spherJoint;
         } else {
             standin = true;
@@ -633,7 +639,7 @@ void ChParserOpenSim::initFunctionTable() {
             std::cout << "Unknown Joint type " << type << " between " << parent->GetName() << " and "
                       << newBody->GetName() << " -- making spherical standin." << std::endl;
             auto customJoint = chrono_types::make_shared<ChLinkLockSpherical>();
-            customJoint->Initialize(parent, newBody, jointFrame.GetCoord());
+            customJoint->Initialize(parent, newBody, jointFrame);
             joint = customJoint;
         }
 
@@ -671,7 +677,7 @@ void ChParserOpenSim::initFunctionTable() {
 struct collision_cylinder_specs {
     double rad;
     double hlen;
-    ChVector<> pos;
+    ChVector3d pos;
     ChQuaternion<> rot;
 };
 
@@ -723,7 +729,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
         }
         child_col_info.level = child_level;
 
-        ChVector<> p1, p2;
+        ChVector3d p1, p2;
         // Make cylinder from parent to outbound joint
         // First end is at parent COM
         p1 = parent->GetFrame_COG_to_REF().GetPos();
@@ -733,13 +739,13 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
         // Don't make a connection between overlapping bodies
         if ((p2 - p1).Length() > 1e-5) {
             ChMatrix33<> rot;
-            rot.Set_A_Xdir(p1 - p2);
+            rot.SetFromAxisX(p1 - p2);
             // Center of cylinder is halfway between points
             collision_cylinder_specs new_cyl;
             new_cyl.rad = .02;
             new_cyl.hlen = (p1 - p2).Length() / 2;
             new_cyl.pos = (p2 - p1) / 2;
-            new_cyl.rot = rot.Get_A_quaternion() * Q_from_AngY(-CH_C_PI / 2);
+            new_cyl.rot = rot.GetQuaternion() * QuatFromAngleY(-CH_C_PI / 2);
             body_collision_info[parent->GetName()].cylinders.push_back(new_cyl);
         }
 
@@ -751,13 +757,13 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
         // Don't make a connection between overlapping bodies
         if ((p2 - p1).Length() > 1e-5) {
             ChMatrix33<> rot;
-            rot.Set_A_Xdir(p2 - p1);
+            rot.SetFromAxisX(p2 - p1);
             // Center of cylinder is halfway between points
             collision_cylinder_specs new_cyl;
             new_cyl.rad = .02;
             new_cyl.hlen = (p2 - p1).Length() / 2;
             new_cyl.pos = (p1 - p2) / 2;
-            new_cyl.rot = rot.Get_A_quaternion() * Q_from_AngY(-CH_C_PI / 2);
+            new_cyl.rot = rot.GetQuaternion() * QuatFromAngleY(-CH_C_PI / 2);
             body_collision_info[child->GetName()].cylinders.push_back(new_cyl);
         }
 
@@ -804,17 +810,17 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
         }
 
         // Create a contact material that will be shared by all shapes for this body
-        std::shared_ptr<ChMaterialSurface> mat;
+        std::shared_ptr<ChContactMaterial> mat;
         switch (system.GetContactMethod()) {
             case ChContactMethod::NSC: {
-                auto matNSC = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+                auto matNSC = chrono_types::make_shared<ChContactMaterialNSC>();
                 matNSC->SetFriction(m_friction);
                 matNSC->SetRestitution(m_restitution);
                 mat = matNSC;
                 break;
             }
             case ChContactMethod::SMC: {
-                auto matSMC = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+                auto matSMC = chrono_types::make_shared<ChContactMaterialSMC>();
                 matSMC->SetFriction(m_friction);
                 matSMC->SetRestitution(m_restitution);
                 matSMC->SetYoungModulus(m_young_modulus);

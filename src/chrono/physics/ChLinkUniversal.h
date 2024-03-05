@@ -39,10 +39,10 @@ class ChApi ChLinkUniversal : public ChLink {
     virtual ChLinkUniversal* Clone() const override { return new ChLinkUniversal(*this); }
 
     /// Get the number of (bilateral) constraints introduced by this joint.
-    virtual int GetDOC_c() override { return 4; }
+    virtual int GetNumConstraintsBilateral() override { return 4; }
 
     /// Get the link coordinate system, expressed relative to Body2.
-    virtual ChCoordsys<> GetLinkRelativeCoords() override { return m_frame2.GetCoord(); }
+    virtual ChCoordsys<> GetLinkRelativeCoords() override { return m_frame2.GetCsys(); }
 
     /// Get the joint frame on Body1, expressed in Body1 coordinate system.
     const ChFrame<>& GetFrame1Rel() const { return m_frame1; }
@@ -130,10 +130,10 @@ class ChApi ChLinkUniversal : public ChLink {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     // Joint frames (in body local frames)

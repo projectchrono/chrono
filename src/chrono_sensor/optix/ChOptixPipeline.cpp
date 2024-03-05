@@ -495,7 +495,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             break;
         }
         default:
-            throw ChException("Unsupported pipeline type: unknown type");
+            throw std::invalid_argument("Unsupported pipeline type: unknown type");
     }
 
     program_groups.push_back(m_hit_box_group);
@@ -1039,12 +1039,12 @@ void ChOptixPipeline::UpdateDeformableMeshes() {
 
 void ChOptixPipeline::UpdateObjectVelocity() {
     for (int i = 0; i < m_bodies.size(); i++) {
-        m_material_records[i].data.translational_velocity = {(float)m_bodies[i]->GetPos_dt().x(),
-                                                             (float)m_bodies[i]->GetPos_dt().y(),
-                                                             (float)m_bodies[i]->GetPos_dt().z()};
-        m_material_records[i].data.angular_velocity = {(float)m_bodies[i]->GetWvel_par().x(),
-                                                       (float)m_bodies[i]->GetWvel_par().y(),
-                                                       (float)m_bodies[i]->GetWvel_par().z()};
+        m_material_records[i].data.translational_velocity = {(float)m_bodies[i]->GetPosDer().x(),
+                                                             (float)m_bodies[i]->GetPosDer().y(),
+                                                             (float)m_bodies[i]->GetPosDer().z()};
+        m_material_records[i].data.angular_velocity = {(float)m_bodies[i]->GetAngVelParent().x(),
+                                                       (float)m_bodies[i]->GetAngVelParent().y(),
+                                                       (float)m_bodies[i]->GetAngVelParent().z()};
         m_material_records[i].data.objectId = i;
     }
     CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(md_material_records), m_material_records.data(),

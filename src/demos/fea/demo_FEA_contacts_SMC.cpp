@@ -21,6 +21,7 @@
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/core/ChRandom.h"
 
 #include "chrono/fea/ChElementTetraCorot_4.h"
 #include "chrono/fea/ChMesh.h"
@@ -34,12 +35,11 @@
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono::Engine physical system
     ChSystemSMC sys;
@@ -59,8 +59,8 @@ int main(int argc, char* argv[]) {
     // It is a SMC (penalty) material that we will assign to
     // all surfaces that might generate contacts.
 
-    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
-    mysurfmaterial->SetYoungModulus(6e4);
+    auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
+    mysurfmaterial->SetYoungModulus(1e5);
     mysurfmaterial->SetFriction(0.3f);
     mysurfmaterial->SetRestitution(0.2f);
     mysurfmaterial->SetAdhesion(0);
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     if (do_mesh_collision_floor) {
         // floor as a triangle mesh surface:
         auto mfloor = chrono_types::make_shared<ChBody>();
-        mfloor->SetPos(ChVector<>(0, -1, 0));
+        mfloor->SetPos(ChVector3d(0, -1, 0));
         mfloor->SetBodyFixed(true);
         sys.Add(mfloor);
 
@@ -98,11 +98,11 @@ int main(int argc, char* argv[]) {
     // two falling objects:
 
     auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.1, 0.1, 2700, true, true, mysurfmaterial);
-    mcube->SetPos(ChVector<>(0.6, 0.5, 0.6));
+    mcube->SetPos(ChVector3d(0.6, 0.5, 0.6));
     sys.Add(mcube);
 
     auto msphere = chrono_types::make_shared<ChBodyEasySphere>(0.1, 2700, true, true, mysurfmaterial);
-    msphere->SetPos(ChVector<>(0.8, 0.5, 0.6));
+    msphere->SetPos(ChVector3d(0.8, 0.5, 0.6));
     sys.Add(msphere);
 
     // Example 1: tetrahedrons, with collisions
@@ -126,11 +126,11 @@ int main(int argc, char* argv[]) {
             for (int j = 0; j < 3; ++j)
                 for (int i = 0; i < 3; ++i) {
                     // Creates the nodes for the tetrahedron
-                    ChVector<> offset(j * 0.21, i * 0.21, k * 0.21);
-                    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0.1, 0) + offset);
-                    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0.1, 0.2) + offset);
-                    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0, 0.3, 0) + offset);
-                    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector<>(0.2, 0.1, 0) + offset);
+                    ChVector3d offset(j * 0.21, i * 0.21, k * 0.21);
+                    auto mnode1 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0.1, 0) + offset);
+                    auto mnode2 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0.1, 0.2) + offset);
+                    auto mnode3 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0, 0.3, 0) + offset);
+                    auto mnode4 = chrono_types::make_shared<ChNodeFEAxyz>(ChVector3d(0.2, 0.1, 0) + offset);
 
                     my_mesh->AddNode(mnode1);
                     my_mesh->AddNode(mnode2);
@@ -146,18 +146,18 @@ int main(int argc, char* argv[]) {
     }
 
     if (true) {
+        double angles[4] = {0.24304, 0.774199, 0.963853, 0.47501};
         for (int i = 0; i < 4; ++i) {
             try {
-                ChCoordsys<> cdown(ChVector<>(0, -0.4, 0));
-                ChCoordsys<> crot(VNULL,
-                                  Q_from_AngAxis(CH_C_2PI * ChRandom(), VECT_Y) * Q_from_AngAxis(CH_C_PI_2, VECT_X));
-                ChCoordsys<> cydisp(ChVector<>(-0.3, 0.1 + i * 0.1, -0.3));
+                ChCoordsys<> cdown(ChVector3d(0, -0.4, 0));
+                ChCoordsys<> crot(VNULL, QuatFromAngleY(CH_C_2PI * ChRandom::Get()) * QuatFromAngleX(CH_C_PI_2));
+                ChCoordsys<> cydisp(ChVector3d(-0.3, 0.1 + i * 0.1, -0.3));
                 ChCoordsys<> ctot = cdown >> crot >> cydisp;
                 ChMatrix33<> mrot(ctot.rot);
                 ChMeshFileLoader::FromTetGenFile(my_mesh, GetChronoDataFile("fea/beam.node").c_str(),
                                                  GetChronoDataFile("fea/beam.ele").c_str(), mmaterial, ctot.pos, mrot);
-            } catch (const ChException& myerr) {
-                GetLog() << myerr.what();
+            } catch (std::exception myerr) {
+                std::cerr << myerr.what();
                 return 0;
             }
         }
@@ -184,15 +184,15 @@ int main(int argc, char* argv[]) {
     auto msection_cable2 = chrono_types::make_shared<ChBeamSectionCable>();
     msection_cable2->SetDiameter(0.05);
     msection_cable2->SetYoungModulus(0.01e9);
-    msection_cable2->SetBeamRaleyghDamping(0.05);
+    msection_cable2->SetBeamRayleighDamping(0.05);
 
     ChBuilderCableANCF builder;
 
     builder.BuildBeam(my_mesh_beams,             // the mesh where to put the created nodes and elements
                       msection_cable2,           // the ChBeamSectionCable to use for the ChElementCableANCF elements
                       10,                        // the number of ChElementCableANCF to create
-                      ChVector<>(0, 0.1, -0.1),  // the 'A' point in space (beginning of beam)
-                      ChVector<>(0.5, 0.13, -0.1));  // the 'B' point in space (end of beam)
+                      ChVector3d(0, 0.1, -0.1),  // the 'A' point in space (beginning of beam)
+                      ChVector3d(0.5, 0.13, -0.1));  // the 'B' point in space (end of beam)
 
     // Create the contact surface(s).
     // In this case it is a ChContactSurfaceNodeCloud, so just pass
@@ -246,8 +246,8 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0.0, 0.6, -1.0));
-    vis->AddLightWithShadow(ChVector<>(1.5, 5.5, -2.5), ChVector<>(0, 0, 0), 3, 2.2, 7.2, 40, 512, ChColor(1, 1, 1));
+    vis->AddCamera(ChVector3d(0.0, 0.6, -1.0));
+    vis->AddLightWithShadow(ChVector3d(1.5, 5.5, -2.5), ChVector3d(0, 0, 0), 3, 2.2, 7.2, 40, 512, ChColor(1, 1, 1));
     vis->EnableContactDrawing(ContactsDrawMode::CONTACT_DISTANCES);
     vis->EnableShadows();
 
@@ -266,7 +266,7 @@ int main(int argc, char* argv[]) {
         vis->BeginScene();
         vis->Render();
         vis->EndScene();
-        sys.DoStepDynamics(0.001);
+        sys.DoStepDynamics(0.0005);
     }
 
     return 0;

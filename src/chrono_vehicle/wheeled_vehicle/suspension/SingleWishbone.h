@@ -53,12 +53,12 @@ class CH_VEHICLE_API SingleWishbone : public ChSingleWishbone {
     virtual double getUprightRadius() const override { return m_uprightRadius; }
     virtual double getTierodRadius() const override { return m_tierodRadius; }
 
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getCAInertiaMoments() const override { return m_CAInertiaMoments; }
-    virtual const ChVector<>& getCAInertiaProducts() const override { return m_CAInertiaProducts; }
-    virtual const ChVector<>& getUprightInertiaMoments() const override { return m_uprightInertiaMoments; }
-    virtual const ChVector<>& getUprightInertiaProducts() const override { return m_uprightInertiaProducts; }
-    virtual const ChVector<> getTierodInertia() const override { return m_tierodInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getCAInertiaMoments() const override { return m_CAInertiaMoments; }
+    virtual const ChVector3d& getCAInertiaProducts() const override { return m_CAInertiaProducts; }
+    virtual const ChVector3d& getUprightInertiaMoments() const override { return m_uprightInertiaMoments; }
+    virtual const ChVector3d& getUprightInertiaProducts() const override { return m_uprightInertiaProducts; }
+    virtual const ChVector3d getTierodInertia() const override { return m_tierodInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
@@ -69,13 +69,13 @@ class CH_VEHICLE_API SingleWishbone : public ChSingleWishbone {
     virtual std::shared_ptr<ChVehicleBushingData> getTierodBushingData() const override { return m_tierodBushingData; }
 
   private:
-    virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
+    virtual const ChVector3d getLocation(PointId which) override { return m_points[which]; }
 
     virtual void Create(const rapidjson::Document& d) override;
 
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
-    ChVector<> m_points[NUM_POINTS];
+    ChVector3d m_points[NUM_POINTS];
 
     bool m_use_tierod_bodies;
 
@@ -93,12 +93,12 @@ class CH_VEHICLE_API SingleWishbone : public ChSingleWishbone {
     double m_uprightRadius;
     double m_tierodRadius;
 
-    ChVector<> m_spindleInertia;
-    ChVector<> m_CAInertiaMoments;
-    ChVector<> m_CAInertiaProducts;
-    ChVector<> m_uprightInertiaMoments;
-    ChVector<> m_uprightInertiaProducts;
-    ChVector<> m_tierodInertia;
+    ChVector3d m_spindleInertia;
+    ChVector3d m_CAInertiaMoments;
+    ChVector3d m_CAInertiaProducts;
+    ChVector3d m_uprightInertiaMoments;
+    ChVector3d m_uprightInertiaProducts;
+    ChVector3d m_tierodInertia;
 
     double m_axleInertia;
 

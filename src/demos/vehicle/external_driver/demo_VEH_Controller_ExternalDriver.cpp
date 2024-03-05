@@ -48,7 +48,6 @@
 #include "chrono_thirdparty/rapidjson/error/en.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::vehicle;
 using namespace chrono::vehicle::hmmwv;
 
@@ -87,7 +86,7 @@ VisualizationType wheel_vis_type = VisualizationType::MESH;
 VisualizationType tire_vis_type = VisualizationType::MESH;
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(0, 0, 0.5);
+ChVector3d initLoc(0, 0, 0.5);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Rigid terrain dimensions
@@ -96,7 +95,7 @@ double terrainLength = 300.0;  // size in X direction
 double terrainWidth = 300.0;   // size in Y direction
 
 // Point on chassis tracked by the chase camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
 // Simulation step size
 double step_size = 2e-3;
@@ -135,10 +134,10 @@ class ChVehicle_DataGeneratorFunctor : public ChExternalDriver::DataGeneratorFun
 
         writer.Key("pos") << body->GetPos();
         writer.Key("rot") << body->GetRot();
-        writer.Key("lin_vel") << body->GetPos_dt();
-        writer.Key("ang_vel") << body->GetWvel_loc();
-        writer.Key("lin_acc") << body->GetPos_dtdt();
-        writer.Key("ang_acc") << body->GetWacc_loc();
+        writer.Key("lin_vel") << body->GetPosDer();
+        writer.Key("ang_vel") << body->GetAngVelLocal();
+        writer.Key("lin_acc") << body->GetPosDer2();
+        writer.Key("ang_acc") << body->GetAngAccLocal();
     }
 
   private:
@@ -210,7 +209,7 @@ class ChCameraSensor_DataGeneratorFunctor : public ChExternalDriver::DataGenerat
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2022 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2022 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // ---------
     // CLI setup
@@ -292,8 +291,8 @@ int main(int argc, char* argv[]) {
                     client.sendMessage(message);
                 }
 
-            } catch (utils::ChExceptionSocket& exception) {
-                GetLog() << " ERROR with socket system: \n" << exception.what() << "\n";
+            } catch (std::exception exception) {
+                std::cerr << " ERROR with socket system: \n" << exception.what() << std::endl;
             }
         }
         return 0;
@@ -341,13 +340,14 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     if (patch->GetGroundBody()->GetVisualModel()) {
-        auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
             GetChronoDataFile("models/trees/Tree.obj"), true, true);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName("Trees");
         trimesh_shape->SetMutable(false);
-        patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape, ChFrame<>(VNULL, Q_from_AngZ(CH_C_PI_2)));
+        patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape,
+                                                           ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI_2)));
     }
 
     // ------------------------
@@ -388,7 +388,7 @@ int main(int argc, char* argv[]) {
     manager->scene->SetBackground(b);
 
     // Create a camera that's placed on the hood
-    chrono::ChFrame<double> offset_pose({-8, 0, 3}, Q_from_AngAxis(.2, {0, 1, 0}));
+    chrono::ChFrame<double> offset_pose({-8, 0, 3}, QuatFromAngleY(0.2));
     auto cam = chrono_types::make_shared<ChCameraSensor>(hmmwv.GetChassisBody(),  // body camera is attached to
                                                          30,                      // update rate in Hz
                                                          offset_pose,             // offset pose
@@ -460,7 +460,7 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Driver location in vehicle local frame
-    ChVector<> driver_pos = hmmwv.GetChassis()->GetLocalDriverCoordsys().pos;
+    ChVector3d driver_pos = hmmwv.GetChassis()->GetLocalDriverCoordsys().pos;
 
     // Number of simulation steps between miscellaneous events
     double render_step_size = 1 / fps;
@@ -481,8 +481,8 @@ int main(int argc, char* argv[]) {
 #endif
         // Extract system state
         time = hmmwv.GetSystem()->GetChTime();
-        ChVector<> acc_CG = hmmwv.GetVehicle().GetChassisBody()->GetPos_dtdt();
-        ChVector<> acc_driver = hmmwv.GetVehicle().GetPointAcceleration(driver_pos);
+        ChVector3d acc_CG = hmmwv.GetVehicle().GetChassisBody()->GetPosDer2();
+        ChVector3d acc_driver = hmmwv.GetVehicle().GetPointAcceleration(driver_pos);
         double fwd_acc_CG = fwd_acc_GC_filter.Add(acc_CG.x());
         double lat_acc_CG = lat_acc_GC_filter.Add(acc_CG.y());
         double fwd_acc_driver = fwd_acc_driver_filter.Add(acc_driver.x());
@@ -522,10 +522,10 @@ int main(int argc, char* argv[]) {
 
         // Debug logging
         if (debug_output && sim_frame % debug_steps == 0) {
-            GetLog() << "driver acceleration:  " << acc_driver.x() << "  " << acc_driver.y() << "  " << acc_driver.z()
+            std::cout << "driver acceleration:  " << acc_driver.x() << "  " << acc_driver.y() << "  " << acc_driver.z()
                      << "\n";
-            GetLog() << "CG acceleration:      " << acc_CG.x() << "  " << acc_CG.y() << "  " << acc_CG.z() << "\n";
-            GetLog() << "\n";
+            std::cout << "CG acceleration:      " << acc_CG.x() << "  " << acc_CG.y() << "  " << acc_CG.z() << "\n";
+            std::cout << "\n";
         }
 
         // Update modules (process inputs from other modules)

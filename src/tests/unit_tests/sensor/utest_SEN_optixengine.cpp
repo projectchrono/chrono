@@ -18,7 +18,6 @@
 
 #include "gtest/gtest.h"
 
-#include "chrono/core/ChLog.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono_sensor/sensors/ChCameraSensor.h"
@@ -49,7 +48,7 @@ TEST(ChOptixEngine, assign_sensor_safety) {
     auto cam = chrono_types::make_shared<ChCameraSensor>(
         box,                                                                // body camera is attached to
         10.0f,                                                              // update rate in Hz
-        chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         64,                                                                 // image width
         48,                                                                 // image height
         (float)CH_C_PI / 3                                                  // FOV
@@ -71,7 +70,7 @@ TEST(ChOptixEngine, assign_sensor_safety) {
     auto cam2 = chrono_types::make_shared<ChCameraSensor>(
         box,                                                                // body camera is attached to
         10.0f,                                                              // update rate in Hz
-        chrono::ChFrame<double>({-4, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({-4, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         64,                                                                 // image width
         48,                                                                 // image height
         (float)CH_C_PI / 3                                                  // FOV
@@ -103,7 +102,7 @@ TEST(ChOptixEngine, construct_scene_safety) {
     auto cam = chrono_types::make_shared<ChCameraSensor>(
         box,                                                                // body camera is attached to
         10.0f,                                                              // update rate in Hz
-        chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         64,                                                                 // image width
         48,                                                                 // image height
         (float)CH_C_PI / 3                                                  // FOV
@@ -151,7 +150,7 @@ TEST(ChOptixEngine, construct_scene_safety_2) {
     auto cam = chrono_types::make_shared<ChCameraSensor>(
         box,                                                                // body camera is attached to
         10.0f,                                                              // update rate in Hz
-        chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         64,                                                                 // image width
         48,                                                                 // image height
         (float)CH_C_PI / 3                                                  // FOV
@@ -200,7 +199,7 @@ TEST(ChOptixEngine, lights) {
     auto cam = chrono_types::make_shared<ChCameraSensor>(
         box,                                                                // body camera is attached to
         10.0f,                                                              // update rate in Hz
-        chrono::ChFrame<double>({-8, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1,                                                                  // image width
         1,                                                                  // image height
         (float)CH_C_PI / 3                                                  // FOV

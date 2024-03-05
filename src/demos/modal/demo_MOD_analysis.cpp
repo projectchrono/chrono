@@ -73,7 +73,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
 
     auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 200);
     my_body_A->SetBodyFixed(base_fixed);
-    my_body_A->SetPos(ChVector<>(-0.5, 0, 0));
+    my_body_A->SetPos(ChVector3d(-0.5, 0, 0));
     assembly->Add(my_body_A);
 
     // Create a FEM mesh, that is a container for groups of elements and their referenced nodes.
@@ -91,8 +91,8 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
     section->SetDensity(beam_density);
     section->SetYoungModulus(beam_Young);
     section->SetGwithPoissonRatio(0.31);
-    section->SetBeamRaleyghDampingBeta(0.00001);
-    section->SetBeamRaleyghDampingAlpha(0.001);
+    section->SetBeamRayleighDampingBeta(0.00001);
+    section->SetBeamRayleighDampingAlpha(0.001);
     section->SetAsRectangularSection(beam_wy, beam_wz);
 
     // This helps creating sequences of nodes and ChElementBeamEuler elements:
@@ -101,15 +101,15 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
     builder.BuildBeam(mesh,                      // the mesh where to put the created nodes and elements
                       section,                   // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
                       6,                         // the number of ChElementBeamEuler to create
-                      ChVector<>(0, 0, 0),       // the 'A' point in space (beginning of beam)
-                      ChVector<>(beam_L, 0, 0),  // the 'B' point in space (end of beam)
-                      ChVector<>(0, 1, 0)        // the 'Y' up direction of the section for the beam
+                      ChVector3d(0, 0, 0),       // the 'A' point in space (beginning of beam)
+                      ChVector3d(beam_L, 0, 0),  // the 'B' point in space (end of beam)
+                      ChVector3d(0, 1, 0)        // the 'Y' up direction of the section for the beam
     );
 
     // CONSTRAINT: connect root of blade to the base.
 
     auto my_root = chrono_types::make_shared<ChLinkMateGeneric>();
-    my_root->Initialize(builder.GetLastBeamNodes().front(), my_body_A, ChFrame<>(ChVector<>(0, 0, 1), QUNIT));
+    my_root->Initialize(builder.GetLastBeamNodes().front(), my_body_A, ChFrame<>(ChVector3d(0, 0, 1), QUNIT));
     assembly->Add(my_root);
 
     // VISUALIZATION ASSETS:
@@ -148,10 +148,10 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
 
     // Just for logging the frequencies:
     for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i) {
-        GetLog() << "Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i)
+        std::cout << "Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i)
                  << "  damping ratio:" << assembly->Get_modes_damping_ratios()(i)
                  << "    Re=" << assembly->Get_modes_eig()(i).real() << "  Im=" << assembly->Get_modes_eig()(i).imag()
-                 << "\n";
+                 << std::endl;
     }
 
     // Here we perform the complex-modal analysis (damped modes) on the ChModalAssembly.
@@ -179,10 +179,10 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
 
     // Just for logging the frequencies:
     for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i) {
-        GetLog() << "Damped mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i)
+        std::cout << "Damped mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i)
                  << "  damping ratio:" << assembly->Get_modes_damping_ratios()(i)
                  << "    Re=" << assembly->Get_modes_eig()(i).real() << "  Im=" << assembly->Get_modes_eig()(i).imag()
-                 << "\n";
+                 << std::endl;
     }
 
     // This is needed if you want to see things in Irrlicht
@@ -192,7 +192,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
     while ((ID_current_example == current_example) && vis.Run()) {
         vis.BeginScene();
         vis.Render();
-        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
+        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_C_PI_2, VECT_Z),
                         ChColor(0.5f, 0.5f, 0.5f), true);
         vis.EndScene();
     }
@@ -228,8 +228,8 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
     section->SetDensity(beam_density);
     section->SetYoungModulus(beam_Young);
     section->SetGwithPoissonRatio(0.31);
-    section->SetBeamRaleyghDampingBeta(0.00001);
-    section->SetBeamRaleyghDampingAlpha(0.001);
+    section->SetBeamRayleighDampingBeta(0.00001);
+    section->SetBeamRayleighDampingAlpha(0.001);
     section->SetAsRectangularSection(beam_wy, beam_wz);
 
     // This helps creating sequences of nodes and ChElementBeamEuler elements:
@@ -238,17 +238,17 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
     builder.BuildBeam(mesh,                      // the mesh where to put the created nodes and elements
                       section,                   // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
                       6,                         // the number of ChElementBeamEuler to create
-                      ChVector<>(0, 0, 0),       // the 'A' point in space (beginning of beam)
-                      ChVector<>(beam_L, 0, 0),  // the 'B' point in space (end of beam)
-                      ChVector<>(0, 1, 0)        // the 'Y' up direction of the section for the beam
+                      ChVector3d(0, 0, 0),       // the 'A' point in space (beginning of beam)
+                      ChVector3d(beam_L, 0, 0),  // the 'B' point in space (end of beam)
+                      ChVector3d(0, 1, 0)        // the 'Y' up direction of the section for the beam
     );
     auto start_node = builder.GetLastBeamNodes().front();
     builder.BuildBeam(mesh,     // the mesh where to put the created nodes and elements
                       section,  // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
                       6,        // the number of ChElementBeamEuler to create
                       builder.GetLastBeamNodes().back(),    // the 'A' point in space (beginning of beam)
-                      ChVector<>(beam_L, beam_L * 0.5, 0),  // the 'B' point in space (end of beam)
-                      ChVector<>(1, 0, 0)                   // the 'Y' up direction of the section for the beam
+                      ChVector3d(beam_L, beam_L * 0.5, 0),  // the 'B' point in space (end of beam)
+                      ChVector3d(1, 0, 0)                   // the 'Y' up direction of the section for the beam
     );
     auto end_node = builder.GetLastBeamNodes().back();
 
@@ -256,24 +256,24 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
 
     auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 200);
     my_body_A->SetBodyFixed(body1fixed);
-    my_body_A->SetPos(ChVector<>(-0.25, 0, 0));
+    my_body_A->SetPos(ChVector3d(-0.25, 0, 0));
     assembly->Add(my_body_A);
 
     // BODY: 2nd end
 
     auto my_body_B = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 200);
     my_body_B->SetBodyFixed(body2fixed);
-    my_body_B->SetPos(ChVector<>(beam_L, beam_L * 0.5 + 0.25, 0));
+    my_body_B->SetPos(ChVector3d(beam_L, beam_L * 0.5 + 0.25, 0));
     assembly->Add(my_body_B);
 
     // CONSTRAINT: connect beam end to body
     auto my_root1 = chrono_types::make_shared<ChLinkMateGeneric>();
-    my_root1->Initialize(start_node, my_body_A, ChFrame<>(ChVector<>(0, 0, 0), QUNIT));
+    my_root1->Initialize(start_node, my_body_A, ChFrame<>(ChVector3d(0, 0, 0), QUNIT));
     assembly->Add(my_root1);
 
     // CONSTRAINT: connect beam end to body
     auto my_root2 = chrono_types::make_shared<ChLinkMateGeneric>();
-    my_root2->Initialize(end_node, my_body_B, ChFrame<>(ChVector<>(beam_L, beam_L * 0.5, 0), QUNIT));
+    my_root2->Initialize(end_node, my_body_B, ChFrame<>(ChVector3d(beam_L, beam_L * 0.5, 0), QUNIT));
     assembly->Add(my_root2);
 
     // VISUALIZATION ASSETS:
@@ -324,7 +324,7 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
 
     // Just for logging the frequencies:
     for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i)
-        GetLog() << "Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i) << "\n";
+        std::cout << "Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i) << std::endl;
 
     // This is needed if you want to see things in Irrlicht 3D view.
     vis.BindAll();
@@ -333,7 +333,7 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
     while ((ID_current_example == current_example) && vis.Run()) {
         vis.BeginScene();
         vis.Render();
-        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
+        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_C_PI_2, VECT_Z),
                         ChColor(0.5f, 0.5f, 0.5f), true);
         vis.EndScene();
     }
@@ -372,7 +372,7 @@ class MyEventReceiver : public irr::IEventReceiver {
 };
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Directory for output data
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -398,10 +398,10 @@ int main(int argc, char* argv[]) {
     vis.Initialize();
     vis.AddLogo();
     vis.AddSkyBox();
-    vis.AddCamera(ChVector<>(1, 1.3, 6), ChVector<>(3, 0, 0));
-    vis.AddLightWithShadow(ChVector<>(20, 20, 20), ChVector<>(0, 0, 0), 50, 5, 50, 55);
-    vis.AddLight(ChVector<>(-20, -20, 0), 6, ChColor(0.6f, 1.0f, 1.0f));
-    vis.AddLight(ChVector<>(0, -20, -20), 6, ChColor(0.6f, 1.0f, 1.0f));
+    vis.AddCamera(ChVector3d(1, 1.3, 6), ChVector3d(3, 0, 0));
+    vis.AddLightWithShadow(ChVector3d(20, 20, 20), ChVector3d(0, 0, 0), 50, 5, 50, 55);
+    vis.AddLight(ChVector3d(-20, -20, 0), 6, ChColor(0.6f, 1.0f, 1.0f));
+    vis.AddLight(ChVector3d(0, -20, -20), 6, ChColor(0.6f, 1.0f, 1.0f));
 
     // This is for GUI tweaking of system parameters..
     MyEventReceiver receiver;

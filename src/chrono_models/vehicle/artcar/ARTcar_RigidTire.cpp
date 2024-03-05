@@ -39,7 +39,7 @@ const double ARTcar_RigidTire::m_radius = .170/2;
 const double ARTcar_RigidTire::m_width = .0855;
 
 const double ARTcar_RigidTire::m_mass = .200;
-const ChVector<> ARTcar_RigidTire::m_inertia(.0008, 0.001, .0008);
+const ChVector3d ARTcar_RigidTire::m_inertia(.0008, 0.001, .0008);
 
 const std::string ARTcar_RigidTire::m_meshName = "ARTcar_tire_POV_geom";
 //const std::string ARTcar_RigidTire::m_meshFile = "artcar/tire.obj";

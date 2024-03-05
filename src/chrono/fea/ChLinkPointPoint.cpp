@@ -52,7 +52,7 @@ void ChLinkPointPoint::Update(double mytime, bool update_assets) {
 }
 
 ChVectorDynamic<> ChLinkPointPoint::GetConstraintViolation() const {
-    ChVector<> res = mnodeA->GetPos() - mnodeB->GetPos();
+    ChVector3d res = mnodeA->GetPos() - mnodeB->GetPos();
     ChVectorN<double, 3> C;
     C(0) = res.x();
     C(1) = res.y();
@@ -96,13 +96,13 @@ void ChLinkPointPoint::IntLoadConstraint_C(const unsigned int off_L,  // offset 
     if (!IsActive())
         return;
 
-    ChVector<> res = mnodeA->GetPos() - mnodeB->GetPos();
-    ChVector<> cres = res * c;
+    ChVector3d res = mnodeA->GetPos() - mnodeB->GetPos();
+    ChVector3d cres = res * c;
 
     if (do_clamp) {
-        cres.x() = ChMin(ChMax(cres.x(), -recovery_clamp), recovery_clamp);
-        cres.y() = ChMin(ChMax(cres.y(), -recovery_clamp), recovery_clamp);
-        cres.z() = ChMin(ChMax(cres.z(), -recovery_clamp), recovery_clamp);
+        cres.x() = std::min(std::max(cres.x(), -recovery_clamp), recovery_clamp);
+        cres.y() = std::min(std::max(cres.y(), -recovery_clamp), recovery_clamp);
+        cres.z() = std::min(std::max(cres.z(), -recovery_clamp), recovery_clamp);
     }
     Qc(off_L + 0) += cres.x();
     Qc(off_L + 1) += cres.y();
@@ -157,7 +157,7 @@ void ChLinkPointPoint::ConstraintsBiReset() {
 }
 
 void ChLinkPointPoint::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-    ChVector<> res = mnodeA->GetPos() - mnodeB->GetPos();
+    ChVector3d res = mnodeA->GetPos() - mnodeB->GetPos();
 
     constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
     constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y());
@@ -195,11 +195,11 @@ void ChLinkPointPoint::ConstraintsFetch_react(double factor) {
 
 // FILE I/O
 
-void ChLinkPointPoint::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkPointPoint::ArchiveOut(ChArchiveOut& archive_out) {
     //// TODO
 }
 
-void ChLinkPointPoint::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkPointPoint::ArchiveIn(ChArchiveIn& archive_in) {
     //// TODO
 }
 

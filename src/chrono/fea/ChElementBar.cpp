@@ -51,7 +51,7 @@ void ChElementBar::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, doubl
     // compute stiffness matrix (this is already the explicit
     // formulation of the corotational stiffness matrix in 3D)
 
-    ChVector<> dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
+    ChVector3d dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
     ChVectorN<double, 3> dircolumn = dir.eigen();
 
     double Kstiffness = ((this->area * this->E) / this->length);
@@ -99,20 +99,20 @@ void ChElementBar::SetupInitial(ChSystem* system) {
 void ChElementBar::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     assert(Fi.size() == 6);
 
-	ChVector<> dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
+	ChVector3d dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
 	double internal_force_local = GetCurrentForce();
-    ChVector<> int_forceA = dir * internal_force_local;
-    ChVector<> int_forceB = -dir * internal_force_local;
+    ChVector3d int_forceA = dir * internal_force_local;
+    ChVector3d int_forceB = -dir * internal_force_local;
 
     Fi.segment(0, 3) = int_forceA.eigen();
     Fi.segment(3, 3) = int_forceB.eigen();
 }
 
 double ChElementBar::GetCurrentForce() {
-	ChVector<> dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
+	ChVector3d dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
     double L_ref = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
     double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
-    double L_dt = Vdot((nodes[1]->GetPos_dt() - nodes[0]->GetPos_dt()), dir);
+    double L_dt = Vdot((nodes[1]->GetPosDer() - nodes[0]->GetPosDer()), dir);
     double Kstiffness = ((this->area * this->E) / this->length);
     double Rdamping = this->rdamping * Kstiffness;
     double internal_Kforce_local = Kstiffness * (L - L_ref);

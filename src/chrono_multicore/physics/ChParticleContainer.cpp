@@ -29,8 +29,6 @@
 
 namespace chrono {
 
-using namespace geometry;
-
 ChParticleContainer::ChParticleContainer() {
     body_offset = 0;
     compliance = 0;

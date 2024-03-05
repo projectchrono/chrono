@@ -16,7 +16,7 @@
 #define CHCONTINUUMMATERIAL_H
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/core/ChTensors.h"
 
 namespace chrono {
@@ -43,8 +43,8 @@ class ChApi ChContinuumMaterial {
     /// Get the density of the material, in kg/m^2.
     double Get_density() const { return density; }
 
-    virtual void ArchiveOut(ChArchiveOut& marchive);
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 };
 
 /// Class for the basic properties of materials in an elastic continuum.
@@ -131,8 +131,8 @@ class ChApi ChContinuumElastic : public ChContinuumMaterial {
     /// Set the Rayleigh stiffness-proportional damping factor beta, in R=alpha*M + beta*K
     double Get_RayleighDampingK() const { return damping_K; }
 
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 // -----------------------------------------------------------------------------
@@ -167,8 +167,8 @@ class ChApi ChContinuumElastoplastic : public ChContinuumElastic {
     /// Set the plastic flow rate.
     virtual double Get_flow_rate() const = 0;
 
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 // -----------------------------------------------------------------------------
@@ -227,8 +227,8 @@ class ChApi ChContinuumPlasticVonMises : public ChContinuumElastoplastic {
     virtual void ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow,
                                           const ChStrainTensor<>& mestrain) const override;
 
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 // -----------------------------------------------------------------------------
@@ -309,8 +309,8 @@ class ChApi ChContinuumDruckerPrager : public ChContinuumElastoplastic {
     virtual void ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow,
                                           const ChStrainTensor<>& mestrain) const override;
 
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 /// @} chrono_fea

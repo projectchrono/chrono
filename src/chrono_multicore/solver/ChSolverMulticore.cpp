@@ -40,10 +40,10 @@ ChSolverMulticore::ChSolverMulticore() {
 //=================================================================================================================================
 
 void ChSolverMulticore::ComputeSRhs(custom_vector<real>& gamma,
-                                   const custom_vector<real>& rhs,
-                                   custom_vector<real3>& vel_data,
-                                   custom_vector<real3>& omg_data,
-                                   custom_vector<real>& b) {
+                                    const custom_vector<real>& rhs,
+                                    custom_vector<real3>& vel_data,
+                                    custom_vector<real3>& omg_data,
+                                    custom_vector<real>& b) {
     // TODO change SHRS to use blaze
     // ComputeImpulses(gamma, vel_data, omg_data);
     // rigid_rigid->ComputeS(rhs, vel_data, omg_data, b);
@@ -51,7 +51,7 @@ void ChSolverMulticore::ComputeSRhs(custom_vector<real>& gamma,
 
 bool init_eigen_vec = 0;
 
-real ChSolverMulticore::LargestEigenValue(ChShurProduct& ShurProduct, DynamicVector<real>& temp, real lambda) {
+real ChSolverMulticore::LargestEigenValue(ChSchurProduct& SchurProduct, DynamicVector<real>& temp, real lambda) {
     eigen_vec.resize(temp.size());
     if (init_eigen_vec == 0) {
         eigen_vec = 1;
@@ -59,13 +59,13 @@ real ChSolverMulticore::LargestEigenValue(ChShurProduct& ShurProduct, DynamicVec
     }
 
     if (lambda != 0) {
-        ShurProduct(eigen_vec, temp);
+        SchurProduct(eigen_vec, temp);
         eigen_vec = 1.0 / lambda * temp;
     }
     real lambda_old = 0;
 
     for (int i = 0; i < data_manager->settings.solver.max_power_iteration; i++) {
-        ShurProduct(eigen_vec, temp);
+        SchurProduct(eigen_vec, temp);
         lambda = Sqrt((temp, temp));
         if (lambda == 0) {
             return 1;

@@ -45,24 +45,24 @@ class ChApi ChTexture {
     void SetScale(float sx, float sy);
 
     /// Set the texture scale (in X and Y directions).
-    void SetScale(const ChVector2<float>& scale);
+    void SetScale(const ChVector2f& scale);
 
     /// Get the texture scales (in X and Y directions)
     float GetScaleX() const { return m_scale.x(); }
     float GetScaleY() const { return m_scale.y(); }
 
     /// Get the texture scales (in X and Y directions)
-    const ChVector2<float>& GetScale() const { return m_scale; }
+    const ChVector2f& GetScale() const { return m_scale; }
 
     /// Method to allow serialization of transient data to archives.
-    void ArchiveOut(ChArchiveOut& marchive);
+    void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow de-serialization of transient data from archives.
-    void ArchiveIn(ChArchiveIn& marchive);
+    void ArchiveIn(ChArchiveIn& archive_in);
 
   private:
     std::string m_filename;
-    ChVector2<float> m_scale;
+    ChVector2f m_scale;
 };
 
 /// @} chrono_assets

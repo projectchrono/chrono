@@ -118,7 +118,7 @@ void ChShaftsPlanetary::IntLoadConstraint_C(const unsigned int off_L,  // offset
     double cnstr_violation = c * res;
 
     if (do_clamp) {
-        cnstr_violation = ChMin(ChMax(cnstr_violation, -recovery_clamp), recovery_clamp);
+        cnstr_violation = std::min(std::max(cnstr_violation, -recovery_clamp), recovery_clamp);
     }
 
     Qc(off_L) += cnstr_violation;
@@ -195,45 +195,45 @@ void ChShaftsPlanetary::ConstraintsFetch_react(double factor) {
 
 //////// FILE I/O
 
-void ChShaftsPlanetary::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsPlanetary::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsPlanetary>();
+    archive_out.VersionWrite<ChShaftsPlanetary>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(r1);
-    marchive << CHNVP(r2);
-    marchive << CHNVP(r3);
-    marchive << CHNVP(avoid_phase_drift);
-    marchive << CHNVP(phase1);
-    marchive << CHNVP(phase2);
-    marchive << CHNVP(phase3);
-    marchive << CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    marchive << CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    marchive << CHNVP(shaft3); //***TODO*** serialize with shared ptr
+    archive_out << CHNVP(r1);
+    archive_out << CHNVP(r2);
+    archive_out << CHNVP(r3);
+    archive_out << CHNVP(avoid_phase_drift);
+    archive_out << CHNVP(phase1);
+    archive_out << CHNVP(phase2);
+    archive_out << CHNVP(phase3);
+    archive_out << CHNVP(shaft1); //// TODO  serialize with shared ptr
+    archive_out << CHNVP(shaft2); //// TODO  serialize with shared ptr
+    archive_out << CHNVP(shaft3); //// TODO  serialize with shared ptr
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsPlanetary::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsPlanetary::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsPlanetary>();
+    /*int version =*/ archive_in.VersionRead<ChShaftsPlanetary>();
 
     // deserialize parent class:
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(r1);
-    marchive >> CHNVP(r2);
-    marchive >> CHNVP(r3);
-    marchive >> CHNVP(avoid_phase_drift);
-    marchive >> CHNVP(phase1);
-    marchive >> CHNVP(phase2);
-    marchive >> CHNVP(phase3);
-    marchive >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    marchive >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    marchive >> CHNVP(shaft3); //***TODO*** serialize with shared ptr
+    archive_in >> CHNVP(r1);
+    archive_in >> CHNVP(r2);
+    archive_in >> CHNVP(r3);
+    archive_in >> CHNVP(avoid_phase_drift);
+    archive_in >> CHNVP(phase1);
+    archive_in >> CHNVP(phase2);
+    archive_in >> CHNVP(phase3);
+    archive_in >> CHNVP(shaft1); //// TODO  serialize with shared ptr
+    archive_in >> CHNVP(shaft2); //// TODO  serialize with shared ptr
+    archive_in >> CHNVP(shaft3); //// TODO  serialize with shared ptr
 
     constraint.SetVariables(&shaft1->Variables(), &shaft2->Variables(), &shaft3->Variables());
 }

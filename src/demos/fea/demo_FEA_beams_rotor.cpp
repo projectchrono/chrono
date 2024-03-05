@@ -17,7 +17,6 @@
 // =============================================================================
 
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkLock.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
@@ -43,7 +42,7 @@ using namespace chrono::postprocess;
 const std::string out_dir = GetChronoOutputPath() + "BEAM_ROTOR";
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     double beam_Young = 100.e6;
     double beam_density = 400;
@@ -52,7 +51,7 @@ int main(int argc, char* argv[]) {
     double beam_Rmax = 6.2;
     double beam_Rmin = 0.2;
     double rad_s = 3;
-    ChVector<> tip_abs_force(0, 0, -36.4);  // for uniform rotation use only z value
+    ChVector3d tip_abs_force(0, 0, -36.4);  // for uniform rotation use only z value
     bool use_euler = true;
     bool use_iga = false;
     bool use_timoshenko = false;
@@ -74,18 +73,18 @@ int main(int argc, char* argv[]) {
 
     auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(10, 2, 10, 3000);
     my_body_A->SetBodyFixed(true);
-    my_body_A->SetPos(ChVector<>(0, -10, 0));
+    my_body_A->SetPos(ChVector3d(0, -10, 0));
     sys.Add(my_body_A);
 
     // Attach a 'cylinder' shape asset for visualization of the tower.
     auto mtower = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 9.0);
-    my_body_A->AddVisualShape(mtower, ChFrame<>(ChVector<>(0, 5.5, 0), Q_from_AngX(CH_C_PI_2)));
+    my_body_A->AddVisualShape(mtower, ChFrame<>(ChVector3d(0, 5.5, 0), QuatFromAngleX(CH_C_PI_2)));
 
     // BODY: the rotating hub:
 
-    auto my_body_hub = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.2, 0.5, 1000);
-    my_body_hub->SetPos(ChVector<>(0, 0, 1));
-    my_body_hub->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_X));
+    auto my_body_hub = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.2, 0.5, 1000);
+    my_body_hub->SetPos(ChVector3d(0, 0, 1));
+    my_body_hub->SetRot(QuatFromAngleX(CH_C_PI_2));
     sys.Add(my_body_hub);
 
     // CONSTRAINT: the hub of the motor.
@@ -97,14 +96,14 @@ int main(int argc, char* argv[]) {
         // WARNING! the ChLinkMotorRotationSpeed introduces an aux state that cannot be solved via static analysis
         // functions!!!
         auto my_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-        my_motor->Initialize(my_body_hub, my_body_A, ChFrame<>(ChVector<>(0, 0, 1)));
-        auto my_speed = chrono_types::make_shared<ChFunction_Const>(rad_s);  // rad/s
+        my_motor->Initialize(my_body_hub, my_body_A, ChFrame<>(ChVector3d(0, 0, 1)));
+        auto my_speed = chrono_types::make_shared<ChFunctionConst>(rad_s);  // rad/s
         my_motor->SetSpeedFunction(my_speed);
         sys.Add(my_motor);
     } else {
         auto my_motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-        my_motor->Initialize(my_body_hub, my_body_A, ChFrame<>(ChVector<>(0, 0, 1)));
-        auto my_angle = chrono_types::make_shared<ChFunction_Ramp>(0, rad_s);  // alpha_0, dalpha/dt (in rad/s)
+        my_motor->Initialize(my_body_hub, my_body_A, ChFrame<>(ChVector3d(0, 0, 1)));
+        auto my_angle = chrono_types::make_shared<ChFunctionRamp>(0, rad_s);  // alpha_0, dalpha/dt (in rad/s)
         my_motor->SetAngleFunction(my_angle);
         sys.Add(my_motor);
     }
@@ -131,11 +130,11 @@ int main(int argc, char* argv[]) {
         msection->SetDensity(beam_density);
         msection->SetYoungModulus(beam_Young);
         msection->SetGwithPoissonRatio(0.31);
-        msection->SetBeamRaleyghDampingBeta(0 * 0.00001);
-        msection->SetBeamRaleyghDampingAlpha(0 * 0.001);
+        msection->SetBeamRayleighDampingBeta(0 * 0.00001);
+        msection->SetBeamRayleighDampingAlpha(0 * 0.001);
         msection->SetAsRectangularSection(beam_wy, beam_wz);
-        msection->compute_inertia_damping_matrix = true;    //*** not much different
-        msection->compute_inertia_stiffness_matrix = true;  //*** not much differen
+        msection->compute_inertia_damping_matrix = true;    //// NOTE: not much different
+        msection->compute_inertia_stiffness_matrix = true;  //// NOTE: not much different
 
         // This helps creating sequences of nodes and ChElementBeamEuler elements:
         ChBuilderBeamEuler builder;
@@ -143,15 +142,15 @@ int main(int argc, char* argv[]) {
         builder.BuildBeam(my_mesh,   // the mesh where to put the created nodes and elements
                           msection,  // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
                           6,         // the number of ChElementBeamEuler to create
-                          ChVector<>(0, beam_Rmin, 1),  // the 'A' point in space (beginning of beam)
-                          ChVector<>(0, beam_Rmax, 1),  // the 'B' point in space (end of beam)
-                          ChVector<>(0, 0, 1)           // the 'Y' up direction of the section for the beam
+                          ChVector3d(0, beam_Rmin, 1),  // the 'A' point in space (beginning of beam)
+                          ChVector3d(0, beam_Rmax, 1),  // the 'B' point in space (end of beam)
+                          ChVector3d(0, 0, 1)           // the 'Y' up direction of the section for the beam
         );
 
         for (auto el : builder.GetLastBeamElements())
             el->SetUseGeometricStiffness(true);  // default true, if false convergence is bad
 
-        sys.SetNumThreads(1);  //**to do: fix race conditions in num diff
+        sys.SetNumThreads(1);  //// TODO: fix race conditions in num diff
         // for (auto el : builder.GetLastBeamElements())
         //    el->use_numerical_diff_for_KR = true;
 
@@ -170,9 +169,9 @@ int main(int argc, char* argv[]) {
         builder.BuildBeam(my_mesh,                      // the mesh to put the elements in
                           msection,                     // section of the beam
                           6,                            // number of sections (spans)
-                          ChVector<>(0, beam_Rmin, 1),  // the 'A' point in space (beginning of beam)
-                          ChVector<>(0, beam_Rmax, 1),  // the 'B' point in space (end of beam)
-                          ChVector<>(0, 0, 1),          // the 'Y' up direction of the section for the beam
+                          ChVector3d(0, beam_Rmin, 1),  // the 'A' point in space (beginning of beam)
+                          ChVector3d(0, beam_Rmax, 1),  // the 'B' point in space (end of beam)
+                          ChVector3d(0, 0, 1),          // the 'Y' up direction of the section for the beam
                           1);                           // order (3 = cubic, etc)
 
         nodes = builder.GetLastBeamNodes();
@@ -197,9 +196,9 @@ int main(int argc, char* argv[]) {
         builder.BuildBeam(my_mesh,                      // the mesh to put the elements in
                           mtaperedsection,              // section of the beam
                           6,                            // number of sections (spans)
-                          ChVector<>(0, beam_Rmin, 1),  // the 'A' point in space (beginning of beam)
-                          ChVector<>(0, beam_Rmax, 1),  // the 'B' point in space (end of beam)
-                          ChVector<>(0, 0, 1)           // the 'Y' up direction of the section for the beam
+                          ChVector3d(0, beam_Rmin, 1),  // the 'A' point in space (beginning of beam)
+                          ChVector3d(0, beam_Rmax, 1),  // the 'B' point in space (end of beam)
+                          ChVector3d(0, 0, 1)           // the 'Y' up direction of the section for the beam
         );                                              // order (3 = cubic, etc)
 
         nodes = builder.GetLastBeamNodes();
@@ -208,9 +207,8 @@ int main(int argc, char* argv[]) {
     // CONSTRAINT: connect root of blade to the hub. Use a motor, but with zero speed.
 
     auto my_root = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-    my_root->Initialize(nodes.front(), my_body_hub,
-                        ChFrame<>(ChVector<>(0, 0.5, 1), Q_from_AngAxis(CH_C_PI_2, VECT_X)));
-    auto my_angle = chrono_types::make_shared<ChFunction_Const>(0);  // rad
+    my_root->Initialize(nodes.front(), my_body_hub, ChFrame<>(ChVector3d(0, 0.5, 1), QuatFromAngleX(CH_C_PI_2)));
+    auto my_angle = chrono_types::make_shared<ChFunctionConst>(0);  // rad
     my_root->SetMotorFunction(my_angle);
     sys.Add(my_root);
 
@@ -243,13 +241,13 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddLightWithShadow(ChVector<>(20, 20, 20), ChVector<>(0, 0, 0), 50, 5, 50, 55);
-    vis->AddLight(ChVector<>(-20, -20, 0), 6, ChColor(0.6f, 1.0f, 1.0f));
-    vis->AddLight(ChVector<>(0, -20, -20), 6, ChColor(0.6f, 1.0f, 1.0f));
-    vis->AddCamera(ChVector<>(1.0, 0.3, 10.0), ChVector<>(0.0, 0.0, 0.0));
+    vis->AddLightWithShadow(ChVector3d(20, 20, 20), ChVector3d(0, 0, 0), 50, 5, 50, 55);
+    vis->AddLight(ChVector3d(-20, -20, 0), 6, ChColor(0.6f, 1.0f, 1.0f));
+    vis->AddLight(ChVector3d(0, -20, -20), 6, ChColor(0.6f, 1.0f, 1.0f));
+    vis->AddCamera(ChVector3d(1.0, 0.3, 10.0), ChVector3d(0.0, 0.0, 0.0));
     vis->EnableShadows();
 
-    // ***TEST***
+    // --TEST--
 
     /// Given the position of a point in local frame coords, and
     /// assuming it is sticky to frame, return the acceleration in parent coords.
@@ -257,51 +255,52 @@ int main(int argc, char* argv[]) {
     /// local_pos is the local position of point P expressed in the par_frame,
     /// par_acc is the translational acceleration of point P but expressed in inertia coordiante.
     auto PointAccelerationLocalToParent = [&](const chrono::ChFrameMoving<double>& par_frame,
-                                              const chrono::ChVector<double>& local_pos,
-                                              chrono::ChVector<double>& par_acc) {
-        chrono::ChVector<double> par_pos = par_frame.TransformDirectionLocalToParent(local_pos);
-        chrono::ChVector<double> alpha = par_frame.GetWacc_par();
-        chrono::ChVector<double> omega = par_frame.GetWvel_par();
-        par_acc = par_frame.GetPos_dtdt() + chrono::Vcross(par_frame.GetWacc_par(), par_pos) +
+                                              const chrono::ChVector3d& local_pos, chrono::ChVector3d& par_acc) {
+        chrono::ChVector3d par_pos = par_frame.TransformDirectionLocalToParent(local_pos);
+        chrono::ChVector3d alpha = par_frame.GetAngAccParent();
+        chrono::ChVector3d omega = par_frame.GetAngVelParent();
+        par_acc = par_frame.GetPosDer2() + chrono::Vcross(par_frame.GetAngAccParent(), par_pos) +
                   chrono::Vcross(omega, chrono::Vcross(omega, par_pos));
     };
 
     // define a rotatiing frame, with rotational angular velocity 2.3rad/s about X axis
     chrono::ChFrameMoving<double> rot_frame;
-    chrono::ChVector<double> omega = chrono::ChVector<double>(2.3, 0, 0);
-    rot_frame.SetWvel_loc(omega);
-    rot_frame.SetWacc_loc(VNULL);
-    GetLog() << "Frame w_loc =" << rot_frame.GetWvel_loc() << "   w_abs =" << rot_frame.GetWvel_par() << "\n";
+    chrono::ChVector3d omega = chrono::ChVector3d(2.3, 0, 0);
+    rot_frame.SetAngVelLocal(omega);
+    rot_frame.SetAngAccLocal(VNULL);
+    std::cout << "Frame w_loc =" << rot_frame.GetAngVelLocal() << "   w_abs =" << rot_frame.GetAngVelParent() << std::endl;
 
     // solve the velocites and accelerations of point P due to the rotation of rot_frame
-    auto TestCase = [&](const chrono::ChFrameMoving<double> m_rot_frame, const chrono::ChVector<double>& m_dpos_rel) {
+    auto TestCase = [&](const chrono::ChFrameMoving<double> m_rot_frame, const chrono::ChVector3d& m_dpos_rel) {
         // elvauated by chrono method
-        chrono::ChVector<double> vel_par = rot_frame.PointSpeedLocalToParent(m_dpos_rel);
-        chrono::ChVector<double> acc_par = m_rot_frame.PointAccelerationLocalToParent(m_dpos_rel, VNULL, VNULL);
+        chrono::ChVector3d vel_par = rot_frame.PointSpeedLocalToParent(m_dpos_rel);
+        chrono::ChVector3d acc_par = m_rot_frame.PointAccelerationLocalToParent(m_dpos_rel, VNULL, VNULL);
 
         // evaluated by new method
-        chrono::ChVector<double> acc_par_ref;  // accelerations calculated by new developed method
+        chrono::ChVector3d acc_par_ref;  // accelerations calculated by new developed method
         PointAccelerationLocalToParent(m_rot_frame, m_dpos_rel, acc_par_ref);
 
-        std::cout << "rot_frame.GetCoord():\t" << m_rot_frame.GetCoord() << std::endl;
-        std::cout << "rot_frame.GetCoord_dt():\t" << m_rot_frame.GetPos_dt() << "\t" << m_rot_frame.GetWvel_loc()
+        std::cout << "rot_frame.GetCsys():\t" << m_rot_frame.GetCsys() << std::endl;
+        std::cout << "rot_frame.GetCsysDer():\t" << m_rot_frame.GetPosDer() << "\t" << m_rot_frame.GetAngVelLocal()
                   << std::endl;
-        std::cout << "rot_frame.GetCoord_dtdt():\t" << m_rot_frame.GetPos_dtdt() << "\t" << m_rot_frame.GetWacc_loc()
+        std::cout << "rot_frame.GetCsysDer2():\t" << m_rot_frame.GetPosDer2() << "\t" << m_rot_frame.GetAngAccLocal()
                   << std::endl;
         std::cout << "vel_par:\t" << vel_par << std::endl;
         std::cout << "acc_par from chrono method:\t" << acc_par << std::endl;
         std::cout << "acc_par_ref from new method:\t" << acc_par_ref << std::endl;
         std::cout << "acc_par_ref from r*w^2:\t" << -7.0 * omega.x() * omega.x() << std::endl;
-        std::cout << "\n" << std::endl;
+        std::cout << std::endl << std::endl;
     };
 
-    chrono::ChVector<double> dpos_rel1 = chrono::ChVector<double>(-7, 0, 0);
-    std::cout << "***Test case 1: a rotating point P along X axis, so its velocity and acceleration should be zero.\n"
+    chrono::ChVector3d dpos_rel1 = chrono::ChVector3d(-7, 0, 0);
+    std::cout << "Test case 1: a rotating point P along X axis, so its velocity and acceleration should be zero."
+              << std::endl
               << "But the acceleration from chrono method is NOT zero!" << std::endl;
     TestCase(rot_frame, dpos_rel1);
 
-    chrono::ChVector<double> dpos_rel2 = chrono::ChVector<double>(0, -7, 0);
-    std::cout << "Test case 2: a rotating point P along Y axis, so its velocity and accelerations have some values.\n"
+    chrono::ChVector3d dpos_rel2 = chrono::ChVector3d(0, -7, 0);
+    std::cout << "Test case 2: a rotating point P along Y axis, so its velocity and accelerations have some values."
+              << std::endl
               << "But the acceleration from chrono methos is A HALF of new method." << std::endl;
     TestCase(rot_frame, dpos_rel2);
 
@@ -340,10 +339,10 @@ int main(int argc, char* argv[]) {
                               ChStaticNonLinearRheonomicAnalysis* analysis) override {
             for (auto in : blade_nodes) {
                 // Set node speed and angular velocity, as moved by hub motor:
-                in->SetPos_dt(ChVector<>(-in->GetPos().y() * blade_rad_s, 0, 0));
-                in->SetWvel_par(ChVector<>(0, 0, blade_rad_s));
+                in->SetPosDer(ChVector3d(-in->GetPos().y() * blade_rad_s, 0, 0));
+                in->SetAngVelParent(ChVector3d(0, 0, blade_rad_s));
                 // Set also centripetal acceleration:
-                in->SetPos_dtdt(ChVector<>(0, -in->GetPos().y() * blade_rad_s * blade_rad_s, 0));
+                in->SetPosDer2(ChVector3d(0, -in->GetPos().y() * blade_rad_s * blade_rad_s, 0));
             }
         }
         // some data used by the callback to make things simple
@@ -359,7 +358,7 @@ int main(int argc, char* argv[]) {
     analysis.SetMaxIterations(25);
     analysis.SetVerbose(true);
     analysis.SetCallbackIterationBegin(mycallback);
-    
+
     // As an alternative to providing the callback, a much simpler option is to let the static solver
     // compute the speed and acceleration as inferred by the rheonomic joints, instead of the
     // previous line just use:
@@ -384,7 +383,7 @@ int main(int argc, char* argv[]) {
 
         ChVectorDynamic<> ploty_analytic(nodes.size());
         for (int i = 0; i < nodes.size(); ++i) {
-            ploty(i) = nodes[i]->GetPos_dt().x();
+            ploty(i) = nodes[i]->GetPosDer().x();
             ploty_analytic(i) = -nodes[i]->GetPos().y() * rad_s;
         }
         ChGnuPlot mplot_edge_speed((out_dir + "/flapwise_speed.dat").c_str());
@@ -394,7 +393,7 @@ int main(int argc, char* argv[]) {
                               " with lines lt -1 lc rgb'#AA00EE'");
 
         for (int i = 0; i < nodes.size(); ++i) {
-            ploty(i) = nodes[i]->GetPos_dtdt().y();
+            ploty(i) = nodes[i]->GetPosDer2().y();
             ploty_analytic(i) = -nodes[i]->GetPos().y() * rad_s * rad_s;
         }
         ChGnuPlot mplot_centeripetal_accel((out_dir + "/centripetal_acc.dat").c_str());
@@ -407,8 +406,8 @@ int main(int argc, char* argv[]) {
     /*
     // TRICK: force nodes to needed speed
     for (auto in : nodes) {
-        in->SetPos_dt(ChVector<>(-in->GetPos().y() * rad_s, 0, 0));
-        in->SetWvel_par(ChVector<>(0, 0,  rad_s));
+        in->SetPosDer(ChVector3d(-in->GetPos().y() * rad_s, 0, 0));
+        in->SetAngVelParent(ChVector3d(0, 0,  rad_s));
     }
     */
     // sys.EnableSolverMatrixWrite(false);
@@ -422,7 +421,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        tools::drawGrid(vis.get(), 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
+        tools::drawGrid(vis.get(), 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_C_PI_2, VECT_Z),
                         ChColor(0.4f, 0.4f, 0.4f), true);
 
         sys.DoStepDynamics(0.01);
@@ -435,8 +434,8 @@ int main(int argc, char* argv[]) {
         /*
         // for simplified testing of the tilting control of the blade, with sudden jump:
         if (sys.GetChTime() > 2){
-            if (auto myfunct = std::dynamic_pointer_cast<ChFunction_Const>(my_root->GetMotorFunction()))
-                myfunct->Set_yconst(0.4);
+            if (auto myfunct = std::dynamic_pointer_cast<ChFunctionConst>(my_root->GetMotorFunction()))
+                myfunct->SetConstant(0.4);
         }
         */
 

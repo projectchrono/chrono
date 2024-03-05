@@ -37,22 +37,22 @@ ChObj::ChObj(const ChObj& other) {
     ChTime = other.ChTime;
 }
 
-void ChObj::ArchiveOut(ChArchiveOut& marchive) {
-    marchive.VersionWrite<ChObj>();
+void ChObj::ArchiveOut(ChArchiveOut& archive_out) {
+    archive_out.VersionWrite<ChObj>();
 
     // stream out all member data
-    marchive << CHNVP(m_name);
-    marchive << CHNVP(m_identifier);
-    marchive << CHNVP(ChTime);
+    archive_out << CHNVP(m_name);
+    archive_out << CHNVP(m_identifier);
+    archive_out << CHNVP(ChTime);
 }
 
-void ChObj::ArchiveIn(ChArchiveIn& marchive) {
-    /*int version =*/ marchive.VersionRead<ChObj>();
+void ChObj::ArchiveIn(ChArchiveIn& archive_in) {
+    /*int version =*/ archive_in.VersionRead<ChObj>();
 
     // stream out all member data
-    marchive >> CHNVP(m_name);
-    marchive >> CHNVP(m_identifier);
-    marchive >> CHNVP(ChTime);
+    archive_in >> CHNVP(m_name);
+    archive_in >> CHNVP(m_identifier);
+    archive_in >> CHNVP(ChTime);
 }
 
 }  // end namespace chrono

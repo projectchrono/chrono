@@ -45,31 +45,31 @@ ChTranslationalDamperSuspension::~ChTranslationalDamperSuspension() {
 
 // -----------------------------------------------------------------------------
 void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
-                                                 const ChVector<>& location,
+                                                 const ChVector3d& location,
                                                  ChTrackAssembly* track) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> susp_to_abs(location);
     susp_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
 
     // Transform all points and directions to absolute frame.
-    std::vector<ChVector<>> points(NUM_POINTS);
+    std::vector<ChVector3d> points(NUM_POINTS);
 
     for (int i = 0; i < NUM_POINTS; i++) {
-        ChVector<> rel_pos = GetLocation(static_cast<PointId>(i));
+        ChVector3d rel_pos = GetLocation(static_cast<PointId>(i));
         points[i] = susp_to_abs.TransformPointLocalToParent(rel_pos);
     }
 
     // Create the trailing arm body. The reference frame of the arm body has its
     // x-axis aligned with the line between the arm-chassis connection point and
     // the arm-wheel connection point.
-    ChVector<> y_dir = susp_to_abs.GetA().Get_A_Yaxis();
-    ChVector<> u = points[ARM_WHEEL] - points[ARM_CHASSIS];
+    ChVector3d y_dir = susp_to_abs.GetRotMat().GetAxisY();
+    ChVector3d u = points[ARM_WHEEL] - points[ARM_CHASSIS];
     u.Normalize();
-    ChVector<> w = Vcross(u, y_dir);
+    ChVector3d w = Vcross(u, y_dir);
     w.Normalize();
-    ChVector<> v = Vcross(w, u);
+    ChVector3d v = Vcross(w, u);
     ChMatrix33<> rot;
-    rot.Set_A_axis(u, v, w);
+    rot.SetFromDirectionAxes(u, v, w);
 
     m_arm = chrono_types::make_shared<ChBody>();
     m_arm->SetNameString(m_name + "_arm");
@@ -87,20 +87,20 @@ void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chas
     m_pAS = m_arm->TransformPointParentToLocal(points[SHOCK_A]);
     m_dY = m_arm->TransformDirectionParentToLocal(y_dir);
 
-    ChQuaternion<> z2y = susp_to_abs.GetRot() * Q_from_AngX(-CH_C_PI_2);
+    ChQuaternion<> z2y = susp_to_abs.GetRot() * QuatFromAngleX(-CH_C_PI_2);
 
     // Create and initialize the joint between arm and chassis.
     if (m_lock_arm) {
         // Create a weld kinematic joint.
         m_joint =
             chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::LOCK, m_name + "_joint", chassis->GetBody(),
-                                                      m_arm, ChCoordsys<>(points[ARM_CHASSIS], z2y));
+                                                      m_arm, ChFrame<>(points[ARM_CHASSIS], z2y));
     } else {
         // Create a revolute joint or bushing.
         // The axis of rotation is the y axis of the suspension reference frame.
-        m_joint = chrono_types::make_shared<ChVehicleJoint>(
-            ChVehicleJoint::Type::REVOLUTE, m_name + "_joint", chassis->GetBody(), m_arm,
-            ChCoordsys<>(points[ARM_CHASSIS], z2y), getArmBushingData());
+        m_joint = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_joint",
+                                                            chassis->GetBody(), m_arm,
+                                                            ChFrame<>(points[ARM_CHASSIS], z2y), getArmBushingData());
     }
     chassis->AddJoint(m_joint);
 
@@ -108,7 +108,7 @@ void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chas
     // The reference RSDA frame is aligned with the chassis frame.
     m_spring = chrono_types::make_shared<ChLinkRSDA>();
     m_spring->SetNameString(m_name + "_spring");
-    m_spring->Initialize(chassis->GetBody(), m_arm, ChCoordsys<>(points[ARM_CHASSIS], z2y));
+    m_spring->Initialize(chassis->GetBody(), m_arm, ChFrame<>(points[ARM_CHASSIS], z2y));
     m_spring->SetRestAngle(GetSpringRestAngle());
     m_spring->RegisterTorqueFunctor(GetSpringTorqueFunctor());
     chassis->GetSystem()->AddLink(m_spring);
@@ -118,7 +118,7 @@ void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chas
     if (GetDamperTorqueFunctor()) {
         m_damper = chrono_types::make_shared<ChLinkRSDA>();
         m_damper->SetNameString(m_name + "_damper");
-        m_damper->Initialize(chassis->GetBody(), m_arm, ChCoordsys<>(points[ARM_CHASSIS], z2y));
+        m_damper->Initialize(chassis->GetBody(), m_arm, ChFrame<>(points[ARM_CHASSIS], z2y));
         m_damper->RegisterTorqueFunctor(GetDamperTorqueFunctor());
         chassis->GetSystem()->AddLink(m_damper);
     }
@@ -142,7 +142,7 @@ void ChTranslationalDamperSuspension::InitializeInertiaProperties() {
 }
 
 void ChTranslationalDamperSuspension::UpdateInertiaProperties() {
-    m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT), m_xform);
+    m_xform = m_parent->GetTransform().TransformLocalToParent(ChFrame<>(m_rel_loc, QUNIT));
 
     // Calculate COM and inertia expressed in global frame
     utils::CompositeInertia composite;
@@ -151,10 +151,10 @@ void ChTranslationalDamperSuspension::UpdateInertiaProperties() {
                            m_road_wheel->GetBody()->GetInertia());
 
     // Express COM and inertia in subsystem reference frame
-    m_com.coord.pos = m_xform.TransformPointParentToLocal(composite.GetCOM());
-    m_com.coord.rot = QUNIT;
+    m_com.GetPos() = m_xform.TransformPointParentToLocal(composite.GetCOM());
+    m_com.GetRot() = QUNIT;
 
-    m_inertia = m_xform.GetA().transpose() * composite.GetInertia() * m_xform.GetA();
+    m_inertia = m_xform.GetRotMat().transpose() * composite.GetInertia() * m_xform.GetRotMat();
 }
 
 double ChTranslationalDamperSuspension::GetCarrierAngle() const {
@@ -241,12 +241,12 @@ void ChTranslationalDamperSuspension::RemoveVisualizationAssets() {
 // -----------------------------------------------------------------------------
 void ChTranslationalDamperSuspension::LogConstraintViolations() {
     ChVectorDynamic<> C = m_joint->GetConstraintViolation();
-    GetLog() << "  Arm-chassis joint\n";
-    GetLog() << "  " << C(0) << "  ";
-    GetLog() << "  " << C(1) << "  ";
-    GetLog() << "  " << C(2) << "  ";
-    GetLog() << "  " << C(3) << "  ";
-    GetLog() << "  " << C(4) << "\n";
+    std::cout << "  Arm-chassis joint\n";
+    std::cout << "  " << C(0) << "  ";
+    std::cout << "  " << C(1) << "  ";
+    std::cout << "  " << C(2) << "  ";
+    std::cout << "  " << C(3) << "  ";
+    std::cout << "  " << C(4) << "\n";
 
     m_road_wheel->LogConstraintViolations();
 }

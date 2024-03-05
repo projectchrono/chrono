@@ -37,7 +37,7 @@ void ChElementGeneric::EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c
         }
         stride += GetNodeNdofs(in);
     }
-    // GetLog() << "EleIntLoadResidual_F , R=" << R << "\n";
+    // std::cout << "EleIntLoadResidual_F , R=" << R << std::endl;
 }
 
 void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {
@@ -84,7 +84,7 @@ void ChElementGeneric::EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& er
 }
 
 
-void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector<>& G_acc, const double c) {
+void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector3d& G_acc, const double c) {
     ChVectorDynamic<> Fg(GetNdofs());
     ComputeGravityForces(Fg, G_acc);
     Fg *= c;
@@ -106,7 +106,7 @@ void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const 
 
 // A default fall-back implementation of the ComputeGravityForces that will work for all elements inherited from
 // ChLoadableUVW and with nonzero GetDensity().
-void ChElementGeneric::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
+void ChElementGeneric::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
     Fg.setZero();
 
     // A null deleter: this is a hack to wrap "this" raw ptr, because the ChLoaderGravity needs it as a shared pointer
@@ -140,11 +140,11 @@ void ChElementGeneric::KRMmatricesLoad(double Kfactor, double Rfactor, double Mf
 }
 
 void ChElementGeneric::VariablesFbLoadInternalForces(double factor) {
-    throw(ChException("ChElementGeneric::VariablesFbLoadInternalForces is deprecated"));
+    throw(std::runtime_error("ChElementGeneric::VariablesFbLoadInternalForces is deprecated"));
 }
 
 void ChElementGeneric::VariablesFbIncrementMq() {
-    throw(ChException("ChElementGeneric::VariablesFbIncrementMq is deprecated"));
+    throw(std::runtime_error("ChElementGeneric::VariablesFbIncrementMq is deprecated"));
 }
 
 }  // end namespace fea

@@ -32,7 +32,7 @@ namespace vehicle {
 // could transfer pitch torque to the chassis.
 // -----------------------------------------------------------------------------
 ChShaftsDriveline4WD::ChShaftsDriveline4WD(const std::string& name)
-    : ChDrivelineWV(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
+    : ChDrivelineWV(name), m_dir_motor_block(ChVector3d(1, 0, 0)), m_dir_axle(ChVector3d(0, 1, 0)) {}
 
 ChShaftsDriveline4WD::~ChShaftsDriveline4WD() {
     auto sys = m_central_differential->GetSystem();
@@ -180,23 +180,23 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Front differential 
     double omega_front_differentialbox = 0.5 * (omega_axle_FL + omega_axle_FR);
-    m_front_differentialbox->SetPos_dt(omega_front_differentialbox);
+    m_front_differentialbox->SetPosDer(omega_front_differentialbox);
 
     // Rear differential
     double omega_rear_differentialbox = 0.5 * (omega_axle_RL + omega_axle_RR);
-    m_rear_differentialbox->SetPos_dt(omega_rear_differentialbox);
+    m_rear_differentialbox->SetPosDer(omega_rear_differentialbox);
 
     // Front conical gear
     double omega_front_shaft = omega_front_differentialbox / GetFrontConicalGearRatio();
-    m_front_shaft->SetPos_dt(omega_front_shaft);
+    m_front_shaft->SetPosDer(omega_front_shaft);
 
     // Rear conical gear
     double omega_rear_shaft = omega_rear_differentialbox / GetRearConicalGearRatio();
-    m_rear_shaft->SetPos_dt(omega_rear_shaft);
+    m_rear_shaft->SetPosDer(omega_rear_shaft);
 
     // Central differential
     double omega_driveshaft = 0.5 * (omega_front_shaft + omega_rear_shaft);
-    m_driveshaft->SetPos_dt(omega_driveshaft);
+    m_driveshaft->SetPosDer(omega_driveshaft);
 }
 
 // -----------------------------------------------------------------------------
@@ -218,8 +218,8 @@ void ChShaftsDriveline4WD::LockAxleDifferential(int axle, bool lock) {
         return;
     }
 
-    GetLog() << "WARNING: Incorrect axle specification in ChShaftsDriveline4WD::LockAxleDifferential.\n";
-    GetLog() << "         Driven axles are: " << m_driven_axles[0] << " and " << m_driven_axles[1] << "\n";
+    std::cerr << "WARNING: Incorrect axle specification in ChShaftsDriveline4WD::LockAxleDifferential." << std::endl;
+    std::cerr << "         Driven axles are: " << m_driven_axles[0] << " and " << m_driven_axles[1] << std::endl;
 }
 
 void ChShaftsDriveline4WD::LockCentralDifferential(int which, bool lock) {

@@ -12,6 +12,7 @@
 // Authors: Radu Serban
 // =============================================================================
 
+#include "chrono/utils/ChUtils.h"
 #include "chrono/physics/ChHydraulicActuator.h"
 
 namespace chrono {
@@ -54,8 +55,8 @@ void ChHydraulicActuatorBase::Initialize() {
 void ChHydraulicActuatorBase::Initialize(std::shared_ptr<ChBody> body1,  // first connected body
                                          std::shared_ptr<ChBody> body2,  // second connected body
                                          bool local,                     // true if locations given in body local frames
-                                         ChVector<> loc1,                // location of connection point on body 1
-                                         ChVector<> loc2                 // location of connection point on body 2
+                                         ChVector3d loc1,                // location of connection point on body 1
+                                         ChVector3d loc2                 // location of connection point on body 2
 ) {
     is_attached = true;
 
@@ -99,7 +100,7 @@ double ChHydraulicActuatorBase::GetActuatorForce() {
 }
 
 double ChHydraulicActuatorBase::GetInput(double t) const {
-    return ChClamp(ref_fun->Get_y(t), -1.0, +1.0);
+    return ChClamp(ref_fun->GetVal(t), -1.0, +1.0);
 }
 
 void ChHydraulicActuatorBase::Update(double time, bool update_assets) {
@@ -115,7 +116,7 @@ void ChHydraulicActuatorBase::Update(double time, bool update_assets) {
         auto avel1 = m_body1->PointSpeedLocalToParent(m_loc1);
         auto avel2 = m_body2->PointSpeedLocalToParent(m_loc2);
 
-        ChVector<> dir = (m_aloc1 - m_aloc2).GetNormalized();
+        ChVector3d dir = (m_aloc1 - m_aloc2).GetNormalized();
 
         s = (m_aloc1 - m_aloc2).Length();
         sd = Vdot(dir, avel1 - avel2);
@@ -124,16 +125,16 @@ void ChHydraulicActuatorBase::Update(double time, bool update_assets) {
 
         // Actuator force
         auto f = GetActuatorForce();
-        ChVector<> force = f * dir;
+        ChVector3d force = f * dir;
 
         // Force and moment acting on body 1
-        auto atorque1 = Vcross(m_aloc1 - m_body1->coord.pos, force);         // applied torque (absolute frame)
+        auto atorque1 = Vcross(m_aloc1 - m_body1->GetPos(), force);          // applied torque (absolute frame)
         auto ltorque1 = m_body1->TransformDirectionParentToLocal(atorque1);  // applied torque (local frame)
         m_Qforce.segment(0, 3) = force.eigen();
         m_Qforce.segment(3, 3) = ltorque1.eigen();
 
         // Force and moment acting on body 2
-        auto atorque2 = Vcross(m_aloc2 - m_body2->coord.pos, -force);        // applied torque (absolute frame)
+        auto atorque2 = Vcross(m_aloc2 - m_body2->GetPos(), -force);         // applied torque (absolute frame)
         auto ltorque2 = m_body2->TransformDirectionParentToLocal(atorque2);  // applied torque (local frame)
         m_Qforce.segment(6, 3) = -force.eigen();
         m_Qforce.segment(9, 3) = ltorque2.eigen();

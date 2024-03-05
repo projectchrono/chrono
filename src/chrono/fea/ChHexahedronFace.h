@@ -95,10 +95,10 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
 
     /// Get all the DOFs packed in a single vector (speed part).
     virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
-        mD.segment(block_offset + 0, 3) = GetNodeN(0)->GetPos_dt().eigen();
-        mD.segment(block_offset + 3, 3) = GetNodeN(1)->GetPos_dt().eigen();
-        mD.segment(block_offset + 6, 3) = GetNodeN(2)->GetPos_dt().eigen();
-        mD.segment(block_offset + 9, 3) = GetNodeN(3)->GetPos_dt().eigen();
+        mD.segment(block_offset + 0, 3) = GetNodeN(0)->GetPosDer().eigen();
+        mD.segment(block_offset + 3, 3) = GetNodeN(1)->GetPosDer().eigen();
+        mD.segment(block_offset + 6, 3) = GetNodeN(2)->GetPosDer().eigen();
+        mD.segment(block_offset + 9, 3) = GetNodeN(3)->GetPosDer().eigen();
     }
 
     /// Increment all DOFs using a delta.
@@ -147,7 +147,7 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
         ChVectorN<double, 4> N;
         ShapeFunctions(N, U, V);
 
-        //***TODO*** exact det of jacobian at u,v
+        //// TODO  exact det of jacobian at u,v
         detJ = ((GetNodeN(0)->GetPos() - GetNodeN(1)->GetPos()) - (GetNodeN(2)->GetPos() - GetNodeN(3)->GetPos()))
                    .Length() *
                ((GetNodeN(1)->GetPos() - GetNodeN(2)->GetPos()) - (GetNodeN(3)->GetPos() - GetNodeN(0)->GetPos()))
@@ -164,10 +164,10 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
 
     /// Get the normal to the surface at the parametric coordinate u,v.
     /// Normal must be considered pointing outside in case the surface is a boundary to a volume.
-    virtual ChVector<> ComputeNormal(const double U, const double V) override {
-        ChVector<> p0 = GetNodeN(0)->GetPos();
-        ChVector<> p1 = GetNodeN(1)->GetPos();
-        ChVector<> p2 = GetNodeN(2)->GetPos();
+    virtual ChVector3d ComputeNormal(const double U, const double V) override {
+        ChVector3d p0 = GetNodeN(0)->GetPos();
+        ChVector3d p1 = GetNodeN(1)->GetPos();
+        ChVector3d p2 = GetNodeN(2)->GetPos();
         return Vcross(p1 - p0, p2 - p0).GetNormalized();
     }
 

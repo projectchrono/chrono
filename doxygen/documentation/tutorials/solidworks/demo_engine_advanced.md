@@ -119,7 +119,7 @@ revolute_frame = my_marker.GetAbsFrame()
 link_motor = chrono.ChLinkMotorRotationSpeed()
 link_motor.Initialize(my_shaft, my_ground, revolute_frame)
 link_motor.SetSpindleConstraint(chrono.ChLinkMotorRotationSpeed.SpindleConstraint_CYLINDRICAL)
-link_motor.SetMotorFunction(chrono.ChFunction_Const(1.0*chrono.CH_C_2PI))  # 1.0 Hz to rad/s
+link_motor.SetMotorFunction(chrono.ChFunctionConst(1.0*chrono.CH_C_2PI))  # 1.0 Hz to rad/s
 my_system.Add(link_motor)
 ~~~
 
@@ -138,7 +138,7 @@ and fetched in the previous paragraph.
 The ```SetSpindleConstraint()``` is a custom function of ChLinkMotorRotation classes: 
 it can be used to choose which type of connection is used between the two parts. 
 Here we want to set a constant angular velocity, ex. one turn per second, and then 
-we need ```SetMotorFunction()``` to pass a ChFunction object, that is a ChFunction_Const in this case.
+we need ```SetMotorFunction()``` to pass a ChFunction object, that is a ChFunctionConst in this case.
 
 After you modified the ```run_test_modified.py``` according to the suggestions above, you can
 **run it** (from your IDE or by double-clicking on it). You should be able to see the four-cylinder 

@@ -36,7 +36,7 @@ RigidSuspension::RigidSuspension(const std::string& filename) : ChRigidSuspensio
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 RigidSuspension::RigidSuspension(const rapidjson::Document& d) : ChRigidSuspension("") {

@@ -49,7 +49,7 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     /// Get track tension at this track shoe.
     /// Return is the force due to the connections of this track shoe, expressed in the track shoe reference frame.
     /// For a double-pin track shoe, this function returns the force between the track shoe body and connector(s).
-    virtual ChVector<> GetTension() const override;
+    virtual ChVector3d GetTension() const override;
 
     /// Initialize this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized
@@ -58,7 +58,7 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     /// the center of the track shoe subsystem is at the specified location and all
     /// bodies have the specified orientation.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] chassis body
-                            const ChVector<>& location,             ///< [in] location relative to the chassis frame
+                            const ChVector3d& location,             ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame
                             ) override;
 
@@ -75,7 +75,7 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     /// Return the mass of the shoe body.
     virtual double GetShoeMass() const = 0;
     /// Return the moments of inertia of the shoe body.
-    virtual const ChVector<>& GetShoeInertia() const = 0;
+    virtual const ChVector3d& GetShoeInertia() const = 0;
     /// Return shoe length (distance between pins).
     virtual double GetShoeLength() const = 0;
     /// Return shoe width (separation between connectors).
@@ -84,7 +84,7 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     /// Return the mass of a connector body.
     virtual double GetConnectorMass() const = 0;
     /// Return the moments of inertia of a connector body.
-    virtual const ChVector<>& GetConnectorInertia() const = 0;
+    virtual const ChVector3d& GetConnectorInertia() const = 0;
     /// Return the length of a connector body (distance between pins).
     virtual double GetConnectorLength() const = 0;
     /// Return the width of a connector body (for visualization only).
@@ -96,10 +96,10 @@ class CH_VEHICLE_API ChTrackShoeDoublePin : public ChTrackShoeSegmented {
     /// For a one-connector double-pin, the location of the connector body is assumed to be at the midpoint between the
     /// provided left and right locations.
     void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] chassis body
-                    const ChVector<>& loc_shoe,             ///< [in] location of shoe body
+                    const ChVector3d& loc_shoe,             ///< [in] location of shoe body
                     const ChQuaternion<>& rot_shoe,         ///< [in] orientation of shoe body
-                    const ChVector<>& loc_connector_L,      ///< [in] location of left connector body
-                    const ChVector<>& loc_connector_R,      ///< [in] location of right connector body
+                    const ChVector3d& loc_connector_L,      ///< [in] location of left connector body
+                    const ChVector3d& loc_connector_R,      ///< [in] location of right connector body
                     const ChQuaternion<>& rot_connector     ///< [in] orientation of connector bodies
     );
 

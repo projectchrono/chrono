@@ -27,7 +27,6 @@
 
 using namespace chrono;
 using namespace chrono::particlefactory;
-using namespace chrono::geometry;
 using namespace chrono::irrlicht;
 
 //     A callback executed at each particle creation can be attached to the emitter.
@@ -53,7 +52,7 @@ class MyCreatorForAll : public ChRandomShapeCreator::AddBodyCallback {
 };
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create a Chrono physical system
     ChSystemNSC sys;
@@ -67,10 +66,10 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(0, 14, -20));
+    vis->AddCamera(ChVector3d(0, 14, -20));
 
     // Create a rigid body
-    auto sphere_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto sphere_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     sphere_mat->SetFriction(0.2f);
 
     auto sphereBody = chrono_types::make_shared<ChBodyEasySphere>(2.1,          // radius size
@@ -78,7 +77,7 @@ int main(int argc, char* argv[]) {
                                                                    true,         // visualization?
                                                                    true,         // collision?
                                                                    sphere_mat);  // contact material
-    sphereBody->SetPos(ChVector<>(1, 1, 0));
+    sphereBody->SetPos(ChVector3d(1, 1, 0));
     sphereBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
     sys.Add(sphereBody);
 
@@ -119,12 +118,12 @@ int main(int argc, char* argv[]) {
 
     // ---Initialize the randomizer for VELOCITIES, with statistical distribution
     auto mvelo = chrono_types::make_shared<ChRandomParticleVelocityAnyDirection>();
-    mvelo->SetModulusDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.0, 0.5));
+    mvelo->SetModulusDistribution(chrono_types::make_shared<ChUniformDistribution>(0.0, 0.5));
     emitter.SetParticleVelocity(mvelo);
 
     // ---Initialize the randomizer for ANGULAR VELOCITIES, with statistical distribution
     auto mangvelo = chrono_types::make_shared<ChRandomParticleVelocityAnyDirection>();
-    mangvelo->SetModulusDistribution(chrono_types::make_shared<ChMinMaxDistribution>(0.0, 0.2));
+    mangvelo->SetModulusDistribution(chrono_types::make_shared<ChUniformDistribution>(0.0, 0.2));
     emitter.SetParticleAngularVelocity(mangvelo);
 
     // ---Initialize the randomizer for CREATED SHAPES, with statistical distribution
@@ -165,7 +164,7 @@ int main(int argc, char* argv[]) {
     sys.SetSolverMaxIterations(40);
 
     // Turn off default -9.8 downward gravity
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.Set_G_acc(ChVector3d(0, 0, 0));
 
     // Simulation loop
     double timestep = 0.01;
@@ -179,21 +178,21 @@ int main(int argc, char* argv[]) {
 
         // Apply custom forcefield (brute force approach..)
         // A) reset 'user forces accumulators':
-        for (auto body : sys.Get_bodylist()) {
+        for (auto body : sys.GetBodies()) {
             body->Empty_forces_accumulators();
         }
 
         // B) store user computed force:
         // double G_constant = 6.674e-11; // gravitational constant
         double G_constant = 6.674e-3;  // gravitational constant - HACK to speed up simulation
-        for (unsigned int i = 0; i < sys.Get_bodylist().size(); i++) {
-            auto abodyA = sys.Get_bodylist()[i];
-            for (unsigned int j = i + 1; j < sys.Get_bodylist().size(); j++) {
-                auto abodyB = sys.Get_bodylist()[j];
-                ChVector<> D_attract = abodyB->GetPos() - abodyA->GetPos();
+        for (unsigned int i = 0; i < sys.GetBodies().size(); i++) {
+            auto abodyA = sys.GetBodies()[i];
+            for (unsigned int j = i + 1; j < sys.GetBodies().size(); j++) {
+                auto abodyB = sys.GetBodies()[j];
+                ChVector3d D_attract = abodyB->GetPos() - abodyA->GetPos();
                 double r_attract = D_attract.Length();
                 double f_attract = G_constant * (abodyA->GetMass() * abodyB->GetMass()) / (pow(r_attract, 2));
-                ChVector<> F_attract = (D_attract / r_attract) * f_attract;
+                ChVector3d F_attract = (D_attract / r_attract) * f_attract;
 
                 abodyA->Accumulate_force(F_attract, abodyA->GetPos(), false);
                 abodyB->Accumulate_force(-F_attract, abodyB->GetPos(), false);

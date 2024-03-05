@@ -22,12 +22,14 @@
 #include "chrono/geometry/ChBasisToolsBspline.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// Geometric object representing a Bspline spline.
 class ChApi ChLineBspline : public ChLine {
   public:
-    std::vector<ChVector<> > points;
+    std::vector<ChVector3d> points;
     ChVectorDynamic<> knots;
     int p;
     bool closed;
@@ -39,8 +41,8 @@ class ChApi ChLineBspline : public ChLine {
     /// Constructor from a given array of control points. Input data is copied.
     /// If the knots are not provided, a uniformly spaced knot vector is made.
     ChLineBspline(
-        int morder,                               ///< order p: 1= linear, 2=quadratic, etc.
-        const std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
+        int morder,                              ///< order p: 1= linear, 2=quadratic, etc.
+        const std::vector<ChVector3d>& mpoints,  ///< control points, size n. Required: at least n >= p+1
         ChVectorDynamic<>* mknots = 0  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
     );
 
@@ -53,10 +55,10 @@ class ChApi ChLineBspline : public ChLine {
     virtual int Get_complexity() const override { return (int)points.size(); }
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
-    virtual ChVector<> Evaluate(double U) const override;
+    virtual ChVector3d Evaluate(double U) const override;
 
     /// Return the tangent unit vector at the parametric coordinate U (in [0,1]).
-    virtual ChVector<> GetTangent(double parU) const override;
+    virtual ChVector3d GetTangent(double parU) const override;
 
     // Bspline specific functions
 
@@ -70,7 +72,7 @@ class ChApi ChLineBspline : public ChLine {
     double ComputeKnotUfromU(double U) const { return U * (knots(knots.size() - 1 - p) - knots(p)) + knots(p); }
 
     /// Access the points
-    std::vector<ChVector<> >& Points() { return points; }
+    std::vector<ChVector3d>& Points() { return points; }
 
     /// Access the knots
     ChVectorDynamic<>& Knots() { return knots; }
@@ -80,9 +82,9 @@ class ChApi ChLineBspline : public ChLine {
 
     /// Initial easy setup from a given array of control points. Input data is copied.
     /// If the knots are not provided, a uniformly spaced knot vector is made.
-    virtual void SetupData(
-        int morder,                               ///< order p: 1= linear, 2=quadratic, etc.
-        const std::vector<ChVector<> >& mpoints,  ///< control points, size n. Required: at least n >= p+1
+    virtual void Setup(
+        int morder,                              ///< order p: 1= linear, 2=quadratic, etc.
+        const std::vector<ChVector3d>& mpoints,  ///< control points, size n. Required: at least n >= p+1
         ChVectorDynamic<>* mknots = 0  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
     );
 
@@ -97,15 +99,15 @@ class ChApi ChLineBspline : public ChLine {
     bool GetClosed() { return closed; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChLineBspline, 0)
+CH_CLASS_VERSION(ChLineBspline, 0)
 
 }  // end namespace chrono
 

@@ -19,7 +19,7 @@ import math
 
 # Define a custom function
 class MyFunction(chrono.ChFunction):
-    def Get_y(self, x):
+    def GetVal(self, x):
         y = math.cos(math.pi * x)
         return y
 
@@ -39,29 +39,29 @@ except OSError as exc:
 # Ramp function
 # -------------
 
-f_ramp = chrono.ChFunction_Ramp()
-f_ramp.Set_ang(0.1)  # angular coefficient
-f_ramp.Set_y0(0.1)   # y value at x = 0
+f_ramp = chrono.ChFunctionRamp()
+f_ramp.SetAngularCoeff(0.1)  # angular coefficient
+f_ramp.SetStartVal(0.1)   # y value at x = 0
 
 # Evaluate the function and its first derivative at a given value
-y = f_ramp.Get_y(10)
-yd = f_ramp.Get_y_dx(10)
+y = f_ramp.GetVal(10)
+yd = f_ramp.GetDer(10)
 print(' Ramp function   f(10) = ', y, ', 1st derivative df/dx(10) = ', yd)
 
 # Sine function
 # -------------
 
-f_sine = chrono.ChFunction_Sine()
-f_sine.Set_amp(2)     # amplitude
-f_sine.Set_freq(1.5)  # frequency
+f_sine = chrono.ChFunctionSine()
+f_sine.SetAmplitude(2)     # amplitude
+f_sine.SetFrequency(1.5)  # frequency
 
 # Evaluate the function and its derivatives at 101 points in [0,2] and write to file
 sine_file = open(out_dir + "/f_sine.out","w+")
 for i in range(101):
     x = i / 50.0
-    y = f_sine.Get_y(x)
-    yd = f_sine.Get_y_dx(x)
-    ydd = f_sine.Get_y_dxdx(x)
+    y = f_sine.GetVal(x)
+    yd = f_sine.GetDer(x)
+    ydd = f_sine.GetDer2(x)
     sine_file.write("%f  %f  %f  %f\n" % (x, y, yd, ydd))
 sine_file.close()
 
@@ -75,30 +75,30 @@ f_test = MyFunction()
 test_file = open(out_dir + "/f_test.out", "w+")
 for i in range(101):
     x = i / 50.0
-    y = f_test.Get_y(x)
-    yd = f_test.Get_y_dx(x)
-    ydd = f_test.Get_y_dxdx(x)
+    y = f_test.GetVal(x)
+    yd = f_test.GetDer(x)
+    ydd = f_test.GetDer2(x)
     test_file.write("%f  %f  %f  %f\n" % (x, y, yd, ydd))
 test_file.close()
 
 # Function sequence
 # -----------------
 
-f_seq = chrono.ChFunction_Sequence()
+f_seq = chrono.ChFunctionSequence()
 
-f_const_acc1 = chrono.ChFunction_ConstAcc()
-f_const_acc1.Set_end(0.5)  # ramp length
-f_const_acc1.Set_h(0.3)    # ramp height
+f_const_acc1 = chrono.ChFunctionConstAcc()
+f_const_acc1.SetDuration(0.5)  # ramp length
+f_const_acc1.SetDisplacement(0.3)    # ramp height
 f_seq.InsertFunct(f_const_acc1, 0.5, 1, False, False, False, 0)
 
-f_const = chrono.ChFunction_Const()
+f_const = chrono.ChFunctionConst()
 f_seq.InsertFunct(f_const, 0.4, 1, True, False, False, -1)
 
-f_const_acc2 = chrono.ChFunction_ConstAcc()
-f_const_acc2.Set_end(0.6)  # ramp length
-f_const_acc2.Set_av(0.3)   # acceleration ends after 30% length
-f_const_acc2.Set_aw(0.7)   # deceleration starts after 70% length
-f_const_acc2.Set_h(-0.2)   # ramp height
+f_const_acc2 = chrono.ChFunctionConstAcc()
+f_const_acc2.SetDuration(0.6)  # ramp length
+f_const_acc2.SetFirstAccelerationEnd(0.3)   # acceleration ends after 30% length
+f_const_acc2.SetSecondAccelerationStart(0.7)   # deceleration starts after 70% length
+f_const_acc2.SetDisplacement(-0.2)   # ramp height
 f_seq.InsertFunct(f_const_acc2, 0.6, 1, True, False, False, -1)
 
 f_seq.Setup();
@@ -107,38 +107,38 @@ f_seq.Setup();
 seq_file = open(out_dir + "/f_seq.out", "w+")
 for i in range(101):
     x = i / 50.0
-    y = f_seq.Get_y(x)
-    yd = f_seq.Get_y_dx(x)
-    ydd = f_seq.Get_y_dxdx(x)
+    y = f_seq.GetVal(x)
+    yd = f_seq.GetDer(x)
+    ydd = f_seq.GetDer2(x)
     seq_file.write("%f  %f  %f  %f\n" % (x, y, yd, ydd))
 seq_file.close()
 
 # Repeating sequence
 # ------------------
 
-f_part1 = chrono.ChFunction_Ramp()
-f_part1.Set_ang(0.50)
-f_part2 = chrono.ChFunction_Const()
-f_part2.Set_yconst(1.0)
-f_part3 = chrono.ChFunction_Ramp()
-f_part3.Set_ang(-0.50)
+f_part1 = chrono.ChFunctionRamp()
+f_part1.SetAngularCoeff(0.50)
+f_part2 = chrono.ChFunctionConst()
+f_part2.SetConstant(1.0)
+f_part3 = chrono.ChFunctionRamp()
+f_part3.SetAngularCoeff(-0.50)
 
-f_seq = chrono.ChFunction_Sequence()
+f_seq = chrono.ChFunctionSequence()
 f_seq.InsertFunct(f_part1, 1.0, 1, True)
 f_seq.InsertFunct(f_part2, 1.0, 1., True)
 f_seq.InsertFunct(f_part3, 1.0, 1., True)
 
-f_rep_seq = chrono.ChFunction_Repeat(f_seq)
-f_rep_seq.Set_window_length(3.0)
-f_rep_seq.Set_window_start(0.0)
-f_rep_seq.Set_window_phase(3.0)
+f_rep_seq = chrono.ChFunctionRepeat(f_seq)
+f_rep_seq.SetSliceWidth(3.0)
+f_rep_seq.SetSliceStart(0.0)
+f_rep_seq.SetSliceShift(3.0)
 
 # Evaluate the function and its derivatives at 101 points in [0,2] and write to file
 rep_file = open(out_dir + "/f_rep.out", "w+")
 for i in range(1001):
     x = i / 50.0
-    y = f_rep_seq.Get_y(x)
-    yd = f_rep_seq.Get_y_dx(x)
-    ydd = f_rep_seq.Get_y_dxdx(x)
+    y = f_rep_seq.GetVal(x)
+    yd = f_rep_seq.GetDer(x)
+    ydd = f_rep_seq.GetDer2(x)
     rep_file.write("%f  %f  %f  %f\n" % (x, y, yd, ydd))
 rep_file.close()

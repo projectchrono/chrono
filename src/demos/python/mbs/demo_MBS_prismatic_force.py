@@ -33,7 +33,7 @@ except ImportError:
 print("Copyright (c) 2017 projectchrono.org")
 
 sys = chrono.ChSystemNSC()
-sys.Set_G_acc(chrono.ChVectorD(0, 0, 0))
+sys.Set_G_acc(chrono.ChVector3d(0, 0, 0))
 
 # Create the ground body
 ground = chrono.ChBody()
@@ -44,11 +44,11 @@ ground.SetCollide(False)
 
 rail1 = chrono.ChVisualShapeBox(8, 0.1, 0.1)
 rail1.SetColor(chrono.ChColor(0.6, 0.6, 0.6))
-ground.AddVisualShape(rail1, chrono.ChFrameD(chrono.ChVectorD(0, 0, -1)))
+ground.AddVisualShape(rail1, chrono.ChFramed(chrono.ChVector3d(0, 0, -1)))
 
 rail2 = chrono.ChVisualShapeBox(8, 0.1, 0.1)
 rail2.SetColor(chrono.ChColor(0.6, 0.6, 0.6))
-ground.AddVisualShape(rail2, chrono.ChFrameD(chrono.ChVectorD(0, 0, 1)))
+ground.AddVisualShape(rail2, chrono.ChFramed(chrono.ChVector3d(0, 0, 1)))
 
 # Create the slider bodies
 slider1 = chrono.ChBody()
@@ -57,12 +57,12 @@ slider1.SetIdentifier(1)
 slider1.SetBodyFixed(False)
 slider1.SetCollide(False)
 slider1.SetMass(1)
-slider1.SetInertiaXX(chrono.ChVectorD(0.1, 0.1, 0.1))
-slider1.SetPos(chrono.ChVectorD(-4, 0, -1))
+slider1.SetInertiaXX(chrono.ChVector3d(0.1, 0.1, 0.1))
+slider1.SetPos(chrono.ChVector3d(-4, 0, -1))
 
 cyl1 = chrono.ChVisualShapeCylinder(0.2, 0.4)
 cyl1.SetColor(chrono.ChColor(0.6, 0, 0))
-slider1.AddVisualShape(cyl1, chrono.ChFrameD(chrono.VNULL, chrono.Q_from_AngY(chrono.CH_C_PI_2)))
+slider1.AddVisualShape(cyl1, chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
 
 slider2 = chrono.ChBody()
 sys.AddBody(slider2)
@@ -70,29 +70,27 @@ slider2.SetIdentifier(1)
 slider2.SetBodyFixed(False)
 slider2.SetCollide(False)
 slider2.SetMass(1)
-slider2.SetInertiaXX(chrono.ChVectorD(0.1, 0.1, 0.1))
-slider2.SetPos(chrono.ChVectorD(-4, 0, 1))
+slider2.SetInertiaXX(chrono.ChVector3d(0.1, 0.1, 0.1))
+slider2.SetPos(chrono.ChVector3d(-4, 0, 1))
 
 cyl2 = chrono.ChVisualShapeCylinder(0.2, 0.4)
 cyl2.SetColor(chrono.ChColor(0, 0, 0.6))
-slider2.AddVisualShape(cyl2, chrono.ChFrameD(chrono.VNULL, chrono.Q_from_AngY(chrono.CH_C_PI_2)))
+slider2.AddVisualShape(cyl2, chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
 
 # Create prismatic joints between ground a sliders
 prismatic1 = chrono.ChLinkLockPrismatic()
-prismatic1.Initialize(slider1, ground, chrono.ChCoordsysD(
-    chrono.ChVectorD(0, 0, -1), chrono.Q_from_AngY(chrono.CH_C_PI_2)))
+prismatic1.Initialize(slider1, ground, chrono.ChFramed(chrono.ChVector3d(0, 0, -1), chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
 sys.AddLink(prismatic1)
 
 prismatic2 = chrono.ChLinkLockPrismatic()
-prismatic2.Initialize(slider2, ground, chrono.ChCoordsysD(
-    chrono.ChVectorD(0, 0, 1), chrono.Q_from_AngY(chrono.CH_C_PI_2)))
+prismatic2.Initialize(slider2, ground, chrono.ChFramed(chrono.ChVector3d(0, 0, 1), chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
 sys.AddLink(prismatic2)
 
 # Sine function parameters
 freq = 1
 ampl = 4
 omg = 2 * chrono.CH_C_PI * freq
-mod = chrono.ChFunction_Sine(0, freq, ampl)
+mod = chrono.ChFunctionSine(ampl, freq)
 
 # Actuate first slider using a link force
 prismatic1.GetForce_Z().SetActive(True)
@@ -112,7 +110,7 @@ vis.SetWindowTitle('Actuated prismatic joint demo')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(-1, 1.5, -6))
+vis.AddCamera(chrono.ChVector3d(-1, 1.5, -6))
 vis.AddTypicalLights()
 
 x0 = slider1.GetPos().x
@@ -128,7 +126,7 @@ while vis.Run():
 
     # Output slider x position/velocity and analytical solution
     # x = slider1.GetPos().x
-    # x_d = slider1.GetPos_dt().x
+    # x_d = slider1.GetPosDer().x
     # xa = x0 + (ampl / omg) * (time - m.sin(omg * time) / omg)
     # xa_d = (ampl / omg) * (1 - m.cos(omg * time))
     # print('{0:f}   {1:f} {2:f}   {3:f} {4:f}'.format(time, x, x_d, xa, xa_d))

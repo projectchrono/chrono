@@ -33,7 +33,7 @@ AutomaticTransmissionSimpleMap::AutomaticTransmissionSimpleMap(const std::string
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 AutomaticTransmissionSimpleMap::AutomaticTransmissionSimpleMap(const rapidjson::Document& d)

@@ -38,7 +38,7 @@ class CH_VEHICLE_API RackPinion : public ChRackPinion {
     ~RackPinion() {}
 
     virtual double GetSteeringLinkMass() const override { return m_steeringLinkMass; }
-    virtual ChVector<> GetSteeringLinkInertia() const override { return m_steeringLinkInertia; }
+    virtual ChVector3d GetSteeringLinkInertia() const override { return m_steeringLinkInertia; }
     virtual double GetSteeringLinkCOM() const override { return m_steeringLinkCOM; }
     virtual double GetSteeringLinkRadius() const override { return m_steeringLinkRadius; }
     virtual double GetSteeringLinkLength() const override { return m_steeringLinkLength; }
@@ -51,7 +51,7 @@ class CH_VEHICLE_API RackPinion : public ChRackPinion {
     virtual void Create(const rapidjson::Document& d) override;
 
     double m_steeringLinkMass;
-    ChVector<> m_steeringLinkInertia;
+    ChVector3d m_steeringLinkInertia;
     double m_steeringLinkCOM;
     double m_steeringLinkRadius;
     double m_steeringLinkLength;

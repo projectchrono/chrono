@@ -36,8 +36,8 @@ import os
 veh.SetDataPath(chrono.GetChronoDataPath() + 'vehicle/')
 
 # Initial vehicle location and orientation
-initLoc = chrono.ChVectorD(0, 0, 0.4)
-initRot = chrono.ChQuaternionD(1, 0, 0, 0)
+initLoc = chrono.ChVector3d(0, 0, 0.4)
+initRot = chrono.ChQuaterniond(1, 0, 0, 0)
 
 # Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
 chassis_vis_type = veh.VisualizationType_MESH
@@ -47,7 +47,7 @@ wheel_vis_type = veh.VisualizationType_NONE
 tire_vis_type = veh.VisualizationType_MESH
 
 # Poon chassis tracked by the camera
-trackPoint = chrono.ChVectorD(0.0, 0.0, 1.75)
+trackPoint = chrono.ChVector3d(0.0, 0.0, 1.75)
 
 # Simulation step sizes
 step_size = 1e-3
@@ -73,7 +73,7 @@ print( "Copyright (c) 2017 projectchrono.org\n")
 gator = veh.Gator()
 gator.SetContactMethod(chrono.ChContactMethod_NSC)
 gator.SetChassisFixed(False)
-gator.SetInitPosition(chrono.ChCoordsysD(initLoc, initRot))
+gator.SetInitPosition(chrono.ChCoordsysd(initLoc, initRot))
 gator.SetBrakeType(veh.BrakeType_SHAFTS)
 gator.SetTireType(veh.TireModelType_TMEASY)
 gator.SetTireStepSize(tire_step_size)
@@ -99,7 +99,7 @@ gator.GetSystem().SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 # ------------------
 
 terrain = veh.RigidTerrain(gator.GetSystem())
-patch_mat = chrono.ChMaterialSurfaceNSC()
+patch_mat = chrono.ChContactMaterialNSC()
 patch_mat.SetFriction(0.9)
 patch_mat.SetRestitution(0.01)
 patch = terrain.AddPatch(patch_mat, 

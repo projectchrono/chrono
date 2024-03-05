@@ -168,11 +168,11 @@ This is a danger
 
 ~~~
 <source lang="py">
-brick_material = chrono.ChMaterialSurfaceShared()
+brick_material = chrono.ChContactMaterialNSC()
 brick_material.SetFriction(0.6)
 brick_material.SetDampingF(0.05)
-brick_material.SetCompliance (0.000000003)
-brick_material.SetComplianceT(0.000000001)
+brick_material.SetCompliance (0.00003)
+brick_material.SetComplianceT(0.00001)
 </source>
 ~~~
 
@@ -180,11 +180,11 @@ Becomes
 
 
 ~~~{.py}
-brick_material = chrono.ChMaterialSurfaceShared()
+brick_material = chrono.ChContactMaterialNSC()
 brick_material.SetFriction(0.6)
 brick_material.SetDampingF(0.05)
-brick_material.SetCompliance (0.000000003)
-brick_material.SetComplianceT(0.000000001)
+brick_material.SetCompliance (0.00003)
+brick_material.SetComplianceT(0.00001)
 ~~~
 
 

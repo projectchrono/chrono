@@ -35,8 +35,8 @@ class ChApi ChLink : public ChLinkBase {
   protected:
     ChBodyFrame* Body1;       ///< first connected body
     ChBodyFrame* Body2;       ///< second connected body
-    ChVector<> react_force;   ///< store the xyz reactions, expressed in local coordinate system of link;
-    ChVector<> react_torque;  ///< store the torque reactions, expressed in local coordinate system of link;
+    ChVector3d react_force;   ///< store the xyz reactions, expressed in local coordinate system of link;
+    ChVector3d react_torque;  ///< store the torque reactions, expressed in local coordinate system of link;
 
   public:
     ChLink() : Body1(NULL), Body2(NULL), react_force(VNULL), react_torque(VNULL) {}
@@ -47,7 +47,7 @@ class ChApi ChLink : public ChLinkBase {
     virtual ChLink* Clone() const override { return new ChLink(*this); }
 
     /// Get the number of free degrees of freedom left by this link, between two bodies.
-    int GetLeftDOF() { return 6 - GetDOC(); }
+    int GetLeftDOF() { return 6 - GetNumConstraints(); }
 
     /// Get the number of scalar variables affected by constraints in this link
     virtual int GetNumCoords() override { return 12; }
@@ -64,14 +64,14 @@ class ChApi ChLink : public ChLinkBase {
 
     /// Get the link coordinate system in absolute reference. This represents the 'main' reference of the link: reaction
     /// forces and reaction torques are expressed in this coordinate system.
-    virtual ChCoordsys<> GetLinkAbsoluteCoords() override { return GetLinkRelativeCoords() >> Body2->GetCoord(); }
+    virtual ChCoordsys<> GetLinkAbsoluteCoords() override { return GetLinkRelativeCoords() >> Body2->GetCsys(); }
 
     /// Get reaction force, expressed in link coordinate system.
-    virtual ChVector<> Get_react_force() override { return react_force; }
+    virtual ChVector3d Get_react_force() override { return react_force; }
     /// Get reaction torque,  expressed in link coordinate system.
-    virtual ChVector<> Get_react_torque() override { return react_torque; }
+    virtual ChVector3d Get_react_torque() override { return react_torque; }
 
-    /// If some constraint is redundant, return to normal state  //***OBSOLETE***
+    /// OBSOLETE If some constraint is redundant, return to normal state.
     virtual int RestoreRedundant() { return 0; }
 
     //
@@ -99,10 +99,10 @@ class ChApi ChLink : public ChLinkBase {
     //
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 CH_CLASS_VERSION(ChLink,0)

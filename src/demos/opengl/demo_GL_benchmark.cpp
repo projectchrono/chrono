@@ -29,7 +29,6 @@
 #include "chrono_opengl/ChVisualSystemOpenGL.h"
 
 using namespace chrono;
-using namespace geometry;
 
 // -----------------------------------------------------------------------------
 // Create a mixture of geometries
@@ -40,17 +39,17 @@ void AddMixture(ChSystem* sys) {
     std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::BOX, 0.3);
     std::shared_ptr<utils::MixtureIngredient> m2 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 0.4);
     std::shared_ptr<utils::MixtureIngredient> m3 = gen.AddMixtureIngredient(utils::MixtureType::CYLINDER, 0.3);
-    m1->setDefaultSize(ChVector<>(1, .5, 0.7));
-    m2->setDefaultSize(ChVector<>(.5, .5, .5));
-    m3->setDefaultSize(ChVector<>(1, .5, 1));
-    gen.CreateObjectsCylinderX(sampler, ChVector<>(0, 0, 0), 20, 20, ChVector<>(0, 0, 0));
+    m1->setDefaultSize(ChVector3d(1, .5, 0.7));
+    m2->setDefaultSize(ChVector3d(.5, .5, .5));
+    m3->setDefaultSize(ChVector3d(1, .5, 1));
+    gen.CreateObjectsCylinderX(sampler, ChVector3d(0, 0, 0), 20, 20, ChVector3d(0, 0, 0));
 }
 
 // -----------------------------------------------------------------------------
 // Create the system
 // -----------------------------------------------------------------------------
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemNSC sys;
 
@@ -62,7 +61,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowSize(1280, 720);
     vis.SetRenderMode(opengl::SOLID);
     vis.Initialize();
-    vis.AddCamera(ChVector<>(-50, -50, 0), ChVector<>(0, 0, 0));
+    vis.AddCamera(ChVector3d(-50, -50, 0), ChVector3d(0, 0, 0));
     vis.SetCameraVertical(CameraVerticalDir::Z);
 
     

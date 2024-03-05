@@ -40,10 +40,10 @@ using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector<>(0, 0, -9.8));
+    sys.Set_G_acc(ChVector3d(0, 0, -9.8));
 
     // Set up solver
     auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -84,19 +84,19 @@ int main(int argc, char* argv[]) {
     double dx = length / (num_nodes - 1);
 
     // Setup beam cross section gradients to initially align with the global y and z directions
-    ChVector<> dir1(0, 1, 0);
-    ChVector<> dir2(0, 0, 1);
+    ChVector3d dir1(0, 1, 0);
+    ChVector3d dir2(0, 0, 1);
 
     // Create the first node and fix it completely to ground (Cantilever constraint)
-    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(0, 0, 0.0), dir1, dir2);
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(0, 0, 0.0), dir1, dir2);
     nodeA->SetFixed(true);
     mesh->AddNode(nodeA);
 
     auto last_element = chrono_types::make_shared<ChElementBeamANCF_3333>();
 
     for (int i = 1; i <= num_elements; i++) {
-        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(dx * (2 * i), 0, 0), dir1, dir2);
-        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector<>(dx * (2 * i - 1), 0, 0), dir1, dir2);
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(dx * (2 * i), 0, 0), dir1, dir2);
+        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(dx * (2 * i - 1), 0, 0), dir1, dir2);
         mesh->AddNode(nodeB);
         mesh->AddNode(nodeC);
 
@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
     vis->AddLogo();
     vis->AddSkyBox();
     vis->AddTypicalLights();
-    vis->AddCamera(ChVector<>(-0.4, 0.4, 0.4), ChVector<>(0.0, 0.0, 0.0));
+    vis->AddCamera(ChVector3d(-0.4, 0.4, 0.4), ChVector3d(0.0, 0.0, 0.0));
     vis->AttachSystem(&sys);
 
     // Simulation loop
@@ -185,9 +185,9 @@ int main(int argc, char* argv[]) {
 
         vis->BeginScene();
         vis->Render();
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(1, 0, 0), ChColor(1, 0, 0));
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 1, 0), ChColor(0, 1, 0));
-        irrlicht::tools::drawSegment(vis.get(), ChVector<>(0), ChVector<>(0, 0, 1), ChColor(0, 0, 1));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(1, 0, 0), ChColor(1, 0, 0));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(0, 1, 0), ChColor(0, 1, 0));
+        irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(0, 0, 1), ChColor(0, 0, 1));
         vis->EndScene();
 
         sys.DoStepDynamics(1e-2);

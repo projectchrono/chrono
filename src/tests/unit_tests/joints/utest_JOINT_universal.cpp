@@ -38,7 +38,7 @@ static const std::string ref_dir = "testing/joints/universal_joint/";
 // =============================================================================
 // Prototypes of local functions
 //
-bool TestUniversal(const ChVector<>& jointLoc,
+bool TestUniversal(const ChVector3d& jointLoc,
                    const ChQuaternion<>& jointRot,
                    double simTimeStep,
                    double outTimeStep,
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
     // Case 1
 
     test_name = "Universal_Case01";
-    TestUniversal(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2), sim_step, out_step, test_name);
+    TestUniversal(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI_2), sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 2e-3);
     test_passed &= ValidateReference(test_name, "Vel", 2e-3);
     test_passed &= ValidateReference(test_name, "Acc", 2e-2);
@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
     // Case 2
 
     test_name = "Universal_Case02";
-    TestUniversal(ChVector<>(0, 0, 0), Q_from_AngY(CH_C_PI_2), sim_step, out_step, test_name);
+    TestUniversal(ChVector3d(0, 0, 0), QuatFromAngleY(CH_C_PI_2), sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 2e-3);
     test_passed &= ValidateReference(test_name, "Vel", 2e-3);
     test_passed &= ValidateReference(test_name, "Acc", 2e-2);
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
     // Case 3
 
     ////test_name = "Universal_Case03";
-    ////TestUniversal(ChVector<>(0, 0, 0), Q_from_AngAxis(CH_C_PI / 2, ChVector<>(0.707107, -0.707107, 0)), sim_step,
+    ////TestUniversal(ChVector3d(0, 0, 0), QuatFromAngleAxis(CH_C_PI / 2, ChVector3d(0.707107, -0.707107, 0)), sim_step,
     /// out_step, test_name); /test_passed &= ValidateReference(test_name, "Pos", 2e-3); /test_passed &=
     /// ValidateReference(test_name, "Vel", 2e-3); /test_passed &= ValidateReference(test_name, "Acc", 2e-2);
     ////test_passed &= ValidateReference(test_name, "Quat", 1e-3);
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     ////test_passed &= ValidateConstraints(test_name, 1e-5);
 
     // Return 0 if all tests passed and 1 otherwise
-    std::cout << std::endl << "UNIT TEST: " << (test_passed ? "PASSED" : "FAILED") << std::endl;
+    std::cout << "\nUNIT TEST: " << (test_passed ? "PASSED" : "FAILED") << std::endl;
     return !test_passed;
 }
 
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
 //
 // Worker function for performing the simulation with specified parameters.
 //
-bool TestUniversal(const ChVector<>& jointLoc,      // absolute location of joint
+bool TestUniversal(const ChVector3d& jointLoc,      // absolute location of joint
                    const ChQuaternion<>& jointRot,  // orientation of joint
                    double simTimeStep,              // simulation time step
                    double outTimeStep,              // output time step
@@ -139,7 +139,7 @@ bool TestUniversal(const ChVector<>& jointLoc,      // absolute location of join
 
     double mass = 1.0;                     // mass of pendulum
     double length = 4.0;                   // length of pendulum
-    ChVector<> inertiaXX(0.1, 0.1, 0.04);  // mass moments of inertia of pendulum (centroidal frame)
+    ChVector3d inertiaXX(0.1, 0.1, 0.04);  // mass moments of inertia of pendulum (centroidal frame)
     double g = 9.80665;
 
     double timeRecord = 5;  // simulation length
@@ -151,7 +151,7 @@ bool TestUniversal(const ChVector<>& jointLoc,      // absolute location of join
     // handled by this ChSystem object.
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector<>(0.0, 0.0, -g));
+    sys.Set_G_acc(ChVector3d(0.0, 0.0, -g));
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverType(ChSolver::Type::PSOR);
@@ -169,7 +169,7 @@ bool TestUniversal(const ChVector<>& jointLoc,      // absolute location of join
 
     auto pendulum = chrono_types::make_shared<ChBody>();
     sys.AddBody(pendulum);
-    pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector<>(0, 0, -0.5 * length)));
+    pendulum->SetPos(jointLoc + jointRot.Rotate(ChVector3d(0, 0, -0.5 * length)));
     pendulum->SetRot(jointRot);
     pendulum->SetMass(mass);
     pendulum->SetInertiaXX(inertiaXX);
@@ -255,8 +255,8 @@ bool TestUniversal(const ChVector<>& jointLoc,      // absolute location of join
 
     // Total energy at initial time.
     ChMatrix33<> inertia = pendulum->GetInertia();
-    ChVector<> angVelLoc = pendulum->GetWvel_loc();
-    double transKE = 0.5 * mass * pendulum->GetPos_dt().Length2();
+    ChVector3d angVelLoc = pendulum->GetAngVelLocal();
+    double transKE = 0.5 * mass * pendulum->GetPosDer().Length2();
     double rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
     double deltaPE = mass * g * (pendulum->GetPos().z() - jointLoc.z());
     double totalE0 = transKE + rotKE + deltaPE;
@@ -269,17 +269,17 @@ bool TestUniversal(const ChVector<>& jointLoc,      // absolute location of join
         // Ensure that the final data point is recorded.
         if (simTime >= outTime - simTimeStep / 2) {
             // CM position, velocity, and acceleration (expressed in global frame).
-            const ChVector<>& position = pendulum->GetPos();
-            const ChVector<>& velocity = pendulum->GetPos_dt();
+            const ChVector3d& position = pendulum->GetPos();
+            const ChVector3d& velocity = pendulum->GetPosDer();
             out_pos << simTime << position << std::endl;
             out_vel << simTime << velocity << std::endl;
-            out_acc << simTime << pendulum->GetPos_dtdt() << std::endl;
+            out_acc << simTime << pendulum->GetPosDer2() << std::endl;
 
             // Orientation, angular velocity, and angular acceleration (expressed in
             // global frame).
             out_quat << simTime << pendulum->GetRot() << std::endl;
-            out_avel << simTime << pendulum->GetWvel_par() << std::endl;
-            out_aacc << simTime << pendulum->GetWacc_par() << std::endl;
+            out_avel << simTime << pendulum->GetAngVelParent() << std::endl;
+            out_aacc << simTime << pendulum->GetAngAccParent() << std::endl;
 
             // Reaction Force and Torque: acting on the ground body, as applied at the
             // joint location and expressed in the global frame.
@@ -292,8 +292,8 @@ bool TestUniversal(const ChVector<>& jointLoc,      // absolute location of join
             ChCoordsys<> linkCoordsys = universalJoint->GetLinkRelativeCoords();
 
             //    reaction force and torque on pendulum, expressed in joint frame
-            ChVector<> reactForce = universalJoint->Get_react_force();
-            ChVector<> reactTorque = universalJoint->Get_react_torque();
+            ChVector3d reactForce = universalJoint->Get_react_force();
+            ChVector3d reactTorque = universalJoint->Get_react_torque();
             //    reaction force and torque on pendulum, expressed in pendulum frame
             reactForce = linkCoordsys.TransformDirectionLocalToParent(reactForce);
             reactTorque = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
@@ -311,7 +311,7 @@ bool TestUniversal(const ChVector<>& jointLoc,      // absolute location of join
             // Translational Kinetic Energy (1/2*m*||v||^2)
             // Rotational Kinetic Energy (1/2 w'*I*w)
             // Delta Potential Energy (m*g*dz)
-            angVelLoc = pendulum->GetWvel_loc();
+            angVelLoc = pendulum->GetAngVelLocal();
             transKE = 0.5 * mass * velocity.Length2();
             rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
             deltaPE = mass * g * (position.z() - jointLoc.z());

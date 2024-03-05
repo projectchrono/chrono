@@ -21,10 +21,10 @@
 
 #include <algorithm>
 
-#include "chrono/core/ChMathematics.h"
 #include "chrono/assets/ChVisualShapeLine.h"
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/driver/ChPathFollowerDriver.h"
 
@@ -61,7 +61,7 @@ void ChClosedLoopDriver::Initialize() {
     auto bezier_curve = m_steeringPID->GetPath();
     auto num_points = static_cast<unsigned int>(bezier_curve->getNumPoints());
     auto path_asset = chrono_types::make_shared<ChVisualShapeLine>();
-    path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(bezier_curve));
+    path_asset->SetLineGeometry(chrono_types::make_shared<ChLineBezier>(bezier_curve));
     path_asset->SetColor(m_color);
     path_asset->SetName(m_pathName);
     path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));

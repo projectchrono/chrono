@@ -42,11 +42,11 @@ class CH_VEHICLE_API FlatTerrain : public ChTerrain {
 
     /// Get the terrain height below the specified location.
     /// Returns the constant value passed at construction.
-    virtual double GetHeight(const ChVector<>& loc) const override;
+    virtual double GetHeight(const ChVector3d& loc) const override;
 
     /// Get the terrain normal at the point below the specified location.
     /// Returns a constant unit vector along the vertical axis.
-    virtual ChVector<> GetNormal(const ChVector<>& loc) const override;
+    virtual ChVector3d GetNormal(const ChVector3d& loc) const override;
 
     /// Get the terrain coefficient of friction at the point below the specified location.
     /// This coefficient of friction value may be used by certain tire models to modify
@@ -55,7 +55,7 @@ class CH_VEHICLE_API FlatTerrain : public ChTerrain {
     /// For FlatTerrain, this function defers to the user-provided functor object
     /// of type ChTerrain::FrictionFunctor, if one was specified.
     /// Otherwise, it returns the constant value specified at construction.
-    virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
+    virtual float GetCoefficientFriction(const ChVector3d& loc) const override;
 
   private:
     double m_height;   ///< terrain height

@@ -32,7 +32,7 @@ namespace vehicle {
 // could transfer pitch torque to the chassis.
 // -----------------------------------------------------------------------------
 ChTrackDrivelineBDS::ChTrackDrivelineBDS(const std::string& name)
-    : ChDrivelineTV(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
+    : ChDrivelineTV(name), m_dir_motor_block(ChVector3d(1, 0, 0)), m_dir_axle(ChVector3d(0, 1, 0)) {}
 
 ChTrackDrivelineBDS::~ChTrackDrivelineBDS() {
     auto sys = m_differential->GetSystem();

@@ -153,7 +153,7 @@ void WheeledTrailer::Create(const std::string& filename, bool create_tires) {
         }
     }
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 void WheeledTrailer::Initialize(std::shared_ptr<ChChassis> frontChassis) {
@@ -162,7 +162,7 @@ void WheeledTrailer::Initialize(std::shared_ptr<ChChassis> frontChassis) {
 
     // Initialize the axles (suspension + brakes + wheels + antirollbar)
     for (int i = 0; i < m_num_axles; i++) {
-        m_axles[i]->Initialize(m_chassis, nullptr, nullptr, m_suspLocations[i], ChVector<>(0), m_wheelSeparations[i]);
+        m_axles[i]->Initialize(m_chassis, nullptr, nullptr, m_suspLocations[i], ChVector3d(0), m_wheelSeparations[i]);
         // Initialize tires (if present)
         for (auto& wheel : m_axles[i]->GetWheels()) {
             if (wheel->GetTire()) {

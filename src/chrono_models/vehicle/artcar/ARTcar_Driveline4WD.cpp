@@ -47,8 +47,8 @@ const double ARTcar_Driveline4WD::m_central_differential_locking_limit = 1; //no
 // the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
 ARTcar_Driveline4WD::ARTcar_Driveline4WD(const std::string& name) : ChShaftsDriveline4WD(name) {
-    SetMotorBlockDirection(ChVector<>(1, 0, 0));
-    SetAxleDirection(ChVector<>(0, 1, 0));
+    SetMotorBlockDirection(ChVector3d(1, 0, 0));
+    SetAxleDirection(ChVector3d(0, 1, 0));
 }
 
 }  // end namespace artcar

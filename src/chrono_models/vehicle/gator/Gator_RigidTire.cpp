@@ -32,7 +32,7 @@ namespace gator {
 const double Gator_RigidTire_Front::m_radius = 0.28575;
 const double Gator_RigidTire_Front::m_width = 0.254;
 const double Gator_RigidTire_Front::m_mass = 9.3;
-const ChVector<> Gator_RigidTire_Front::m_inertia(0.258, 0.416, 0.258);
+const ChVector3d Gator_RigidTire_Front::m_inertia(0.258, 0.416, 0.258);
 const std::string Gator_RigidTire_Front::m_meshFile_left = "gator/gator_wheel_FL.obj";
 const std::string Gator_RigidTire_Front::m_meshFile_right = "gator/gator_wheel_FR.obj";
 ////const std::string Gator_RigidTire_Front::m_meshFile_left = "gator/gator_tireF_fine.obj";
@@ -41,7 +41,7 @@ const std::string Gator_RigidTire_Front::m_meshFile_right = "gator/gator_wheel_F
 const double Gator_RigidTire_Rear::m_radius = 0.3175;
 const double Gator_RigidTire_Rear::m_width = 0.3048;
 const double Gator_RigidTire_Rear::m_mass = 9.3;
-const ChVector<> Gator_RigidTire_Rear::m_inertia(0.258, 0.416, 0.258);
+const ChVector3d Gator_RigidTire_Rear::m_inertia(0.258, 0.416, 0.258);
 const std::string Gator_RigidTire_Rear::m_meshFile_left = "gator/gator_wheel_RL.obj";
 const std::string Gator_RigidTire_Rear::m_meshFile_right = "gator/gator_wheel_RR.obj";
 ////const std::string Gator_RigidTire_Rear::m_meshFile_left = "gator/gator_tireR_fine.obj";

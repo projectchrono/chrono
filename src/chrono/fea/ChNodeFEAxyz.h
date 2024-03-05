@@ -32,7 +32,7 @@ class ChMesh;
 /// This is the typical node that can be used for tetrahedrons, etc.
 class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVariableTupleCarrier_1vars<3> {
   public:
-    ChNodeFEAxyz(ChVector<> initial_pos = VNULL);
+    ChNodeFEAxyz(ChVector3d initial_pos = VNULL);
     ChNodeFEAxyz(const ChNodeFEAxyz& other);
     virtual ~ChNodeFEAxyz() {}
 
@@ -55,18 +55,21 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
 
     /// Get mass of the node.
     virtual double GetMass() const override { return variables.GetNodeMass(); }
+
     /// Set mass of the node.
     virtual void SetMass(double m) override { variables.SetNodeMass(m); }
 
     /// Set the initial (reference) position
-    virtual void SetX0(const ChVector<>& x) { X0 = x; }
+    virtual void SetX0(const ChVector3d& x) { X0 = x; }
+
     /// Get the initial (reference) position
-    virtual const ChVector<>& GetX0() const { return X0; }
+    virtual const ChVector3d& GetX0() const { return X0; }
 
     /// Set the 3d applied force, in absolute reference
-    virtual void SetForce(const ChVector<>& f) { Force = f; }
+    virtual void SetForce(const ChVector3d& frc) { Force = frc; }
+
     /// Get the 3d applied force, in absolute reference
-    virtual const ChVector<>& GetForce() const { return Force; }
+    virtual const ChVector3d& GetForce() const { return Force; }
 
     /// Get the number of degrees of freedom
     virtual int GetNdofX() const override { return 3; }
@@ -129,8 +132,8 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
 
   protected:
     ChVariablesNode variables;  ///< 3D node variables, with x,y,z
-    ChVector<> X0;              ///< reference position
-    ChVector<> Force;           ///< applied force
+    ChVector3d X0;              ///< reference position
+    ChVector3d Force;           ///< applied force
 };
 
 /// @} fea_nodes

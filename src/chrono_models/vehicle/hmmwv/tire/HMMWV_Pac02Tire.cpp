@@ -29,7 +29,7 @@ namespace hmmwv {
 
 // Static variables
 const double HMMWV_Pac02Tire::m_mass = 37.6;
-const ChVector<> HMMWV_Pac02Tire::m_inertia(3.84, 6.69, 3.84);
+const ChVector3d HMMWV_Pac02Tire::m_inertia(3.84, 6.69, 3.84);
 const std::string HMMWV_Pac02Tire::m_meshFile_left = "hmmwv/hmmwv_tire_left.obj";
 const std::string HMMWV_Pac02Tire::m_meshFile_right = "hmmwv/hmmwv_tire_right.obj";
 

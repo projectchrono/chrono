@@ -99,11 +99,11 @@ int main(int argc, char* argv[]) {
     system.SetTangentialDisplacementModel(tdispl_model);
     system.SetStiffContact(stiff_contact);
 
-    system.Set_G_acc(ChVector<>(0, 0, gravity));
+    system.Set_G_acc(ChVector3d(0, 0, gravity));
 
     system.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    auto material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto material = chrono_types::make_shared<ChContactMaterialSMC>();
     material->SetYoungModulus(young_modulus);
     material->SetRestitution(restitution);
     material->SetFriction(friction);
@@ -141,10 +141,10 @@ int main(int argc, char* argv[]) {
         double loc_x = (i % (numDiv_x + 1)) * dx;
         double loc_y = (i / (numDiv_x + 1)) % (numDiv_y + 1) * dy;
         double loc_z = (i) / ((numDiv_x + 1) * (numDiv_y + 1)) * dz;
-        std::cout << "  " << i << "|  " << ChVector<>(loc_x, loc_y, loc_z) << std::endl;
+        std::cout << "  " << i << "|  " << ChVector3d(loc_x, loc_y, loc_z) << std::endl;
 
         // Create the node
-        auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector<>(loc_x, loc_y, loc_z), ChVector<>(0, 0, 1));
+        auto node = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(loc_x, loc_y, loc_z), ChVector3d(0, 0, 1));
         node->SetMass(0);
 
         // Add node to mesh
@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
 
     // Create node cloud for contact with box
     double m_contact_node_radius = 0.0015;
-    auto mysurfmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto mysurfmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
 
     mysurfmaterial->SetKn(kn);
     mysurfmaterial->SetKt(kt);
@@ -203,8 +203,8 @@ int main(int argc, char* argv[]) {
 
     // Create container box
     auto ground = utils::CreateBoxContainer(&system, binId, material,                                    //
-                                            ChVector<>(bin_width, bin_length, 200 * dy), bin_thickness,  //
-                                            ChVector<>(0, 0, -1.5 * m_contact_node_radius), QUNIT);      //
+                                            ChVector3d(bin_width, bin_length, 200 * dy), bin_thickness,  //
+                                            ChVector3d(0, 0, -1.5 * m_contact_node_radius), QUNIT);      //
 
     // -------------------
     // Setup linear solver
@@ -212,13 +212,13 @@ int main(int argc, char* argv[]) {
 
     switch (solver_type) {
         case DEFAULT_SOLVER: {
-            GetLog() << "Using DEFAULT solver.\n";
+            std::cout << "Using DEFAULT solver.\n";
             system.SetSolverMaxIterations(100);
             system.SetSolverForceTolerance(1e-6);
             break;
         }
         case MINRES_SOLVER: {
-            GetLog() << "Using MINRES solver.\n";
+            std::cout << "Using MINRES solver.\n";
             auto solver = chrono_types::make_shared<ChSolverMINRES>();
             system.SetSolver(solver);
             solver->SetMaxIterations(100);
@@ -236,7 +236,7 @@ int main(int argc, char* argv[]) {
     // Setup integrator
     // ----------------
 
-    GetLog() << "Using HHT integrator.\n";
+    std::cout << "Using HHT integrator.\n";
     auto integrator = chrono_types::make_shared<ChTimestepperHHT>(&system);
     integrator->SetAlpha(0.0);
     integrator->SetMaxiters(100);
@@ -252,22 +252,22 @@ int main(int argc, char* argv[]) {
         system.DoStepDynamics(time_step);
 
         system.GetContactContainer()->ComputeContactForces();
-        ChVector<> contact_force = ground->GetContactForce();
-        GetLog() << "t = " << system.GetChTime() << " num contacts = " << system.GetContactContainer()->GetNcontacts()
+        ChVector3d contact_force = ground->GetContactForce();
+        std::cout << "t = " << system.GetChTime() << " num contacts = " << system.GetContactContainer()->GetNumContacts()
                  << "  force =  " << contact_force.z() << "\n";
-        GetLog() << "Vertical Displacement of a Node: " << nodeRef->GetPos().z() << "\n";
-        GetLog() << "Total Weight of Shell: " << total_weight << "\n";
+        std::cout << "Vertical Displacement of a Node: " << nodeRef->GetPos().z() << "\n";
+        std::cout << "Total Weight of Shell: " << total_weight << "\n";
 
         if (system.GetChTime() > start_time) {
             if (std::abs(1 - std::abs(contact_force.z()) / total_weight) > rtol) {
-                GetLog() << "t = " << system.GetChTime() << "  force =  " << contact_force.z() << "\n";
+                std::cout << "t = " << system.GetChTime() << "  force =  " << contact_force.z() << "\n";
                 passed = false;
                 break;
             }
         }
     }
 
-    GetLog() << "Test " << (passed ? "PASSED" : "FAILED") << "\n\n\n";
+    std::cout << "Test " << (passed ? "PASSED" : "FAILED") << "\n\n\n";
 
     return !passed;
 }

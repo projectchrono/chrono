@@ -26,20 +26,20 @@ ChContinuumMaterial::ChContinuumMaterial(const ChContinuumMaterial& other) {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChContinuumMaterial)
 
-void ChContinuumMaterial::ArchiveOut(ChArchiveOut& marchive) {
+void ChContinuumMaterial::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChContinuumMaterial>();
+    archive_out.VersionWrite<ChContinuumMaterial>();
     // serialize parent class
     // serialize all member data:
-    marchive << CHNVP(density, "density");
+    archive_out << CHNVP(density, "density");
 }
 
-void ChContinuumMaterial::ArchiveIn(ChArchiveIn& marchive) {
+void ChContinuumMaterial::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChContinuumMaterial>();
+    /*int version =*/ archive_in.VersionRead<ChContinuumMaterial>();
     // deserialize parent class
     // stream in all member data:
-    marchive >> CHNVP(density, "density");
+    archive_in >> CHNVP(density, "density");
 }
 
 // -----------------------------------------------------------------------------
@@ -92,7 +92,7 @@ void ChContinuumElastic::ComputeStressStrainMatrix() {
     StressStrainMatrix.setZero(6, 6);
     StressStrainMatrix(0, 0) = (E * (1 - v)) / (1 + v) / (1 - 2 * v);
     // StressStrainMatrix(1,1)=StressStrainMatrix(0,0);	//
-    // StressStrainMatrix(2,2)=StressStrainMatrix(0,0);	//per non ricalcolare; qual'è meglio?
+    // StressStrainMatrix(2,2)=StressStrainMatrix(0,0);	//per non ricalcolare; qual'ï¿½ meglio?
     StressStrainMatrix(1, 1) = (E * (1 - v)) / (1 + v) / (1 - 2 * v);
     StressStrainMatrix(2, 2) = (E * (1 - v)) / (1 + v) / (1 - 2 * v);
     StressStrainMatrix(0, 1) = (E * (v)) / (1 + v) / (1 - 2 * v);
@@ -126,46 +126,46 @@ void ChContinuumElastic::ComputeElasticStrain(ChStrainTensor<>& mstrain, const C
     mstrain.YZ() = mstress.YZ() * invhG;
 }
 
-void ChContinuumElastic::ArchiveOut(ChArchiveOut& marchive) {
+void ChContinuumElastic::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChContinuumElastic>();
+    archive_out.VersionWrite<ChContinuumElastic>();
     // serialize parent class
-    ChContinuumMaterial::ArchiveOut(marchive);
+    ChContinuumMaterial::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(this->E);
-    marchive << CHNVP(this->v);
-    marchive << CHNVP(this->damping_M);
-    marchive << CHNVP(this->damping_K);
+    archive_out << CHNVP(this->E);
+    archive_out << CHNVP(this->v);
+    archive_out << CHNVP(this->damping_M);
+    archive_out << CHNVP(this->damping_K);
 }
 
-void ChContinuumElastic::ArchiveIn(ChArchiveIn& marchive) {
+void ChContinuumElastic::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChContinuumElastic>();
+    /*int version =*/ archive_in.VersionRead<ChContinuumElastic>();
     // deserialize parent class
-    ChContinuumMaterial::ArchiveIn(marchive);
+    ChContinuumMaterial::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(this->E);
-    marchive >> CHNVP(this->v);
+    archive_in >> CHNVP(this->E);
+    archive_in >> CHNVP(this->v);
     this->Set_v(this->v);  // G and l from v
-    marchive >> CHNVP(this->damping_M);
-    marchive >> CHNVP(this->damping_K);
+    archive_in >> CHNVP(this->damping_M);
+    archive_in >> CHNVP(this->damping_K);
 }
 
 // -----------------------------------------------------------------------------
 
-void ChContinuumElastoplastic::ArchiveOut(ChArchiveOut& marchive) {
+void ChContinuumElastoplastic::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChContinuumElastoplastic>();
+    archive_out.VersionWrite<ChContinuumElastoplastic>();
     // serialize parent class
-    ChContinuumElastic::ArchiveOut(marchive);
+    ChContinuumElastic::ArchiveOut(archive_out);
     // serialize all member data:
 }
 
-void ChContinuumElastoplastic::ArchiveIn(ChArchiveIn& marchive) {
+void ChContinuumElastoplastic::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChContinuumElastoplastic>();
+    /*int version =*/ archive_in.VersionRead<ChContinuumElastoplastic>();
     // deserialize parent class
-    ChContinuumElastic::ArchiveIn(marchive);
+    ChContinuumElastic::ArchiveIn(archive_in);
     // stream in all member data:
 }
 
@@ -224,26 +224,26 @@ void ChContinuumPlasticVonMises::ComputePlasticStrainFlow(ChStrainTensor<>& mpla
     }
 }
 
-void ChContinuumPlasticVonMises::ArchiveOut(ChArchiveOut& marchive) {
+void ChContinuumPlasticVonMises::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChContinuumPlasticVonMises>();
+    archive_out.VersionWrite<ChContinuumPlasticVonMises>();
     // serialize parent class
-    ChContinuumElastoplastic::ArchiveOut(marchive);
+    ChContinuumElastoplastic::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(this->elastic_yeld);
-    marchive << CHNVP(this->plastic_yeld);
-    marchive << CHNVP(this->flow_rate);
+    archive_out << CHNVP(this->elastic_yeld);
+    archive_out << CHNVP(this->plastic_yeld);
+    archive_out << CHNVP(this->flow_rate);
 }
 
-void ChContinuumPlasticVonMises::ArchiveIn(ChArchiveIn& marchive) {
+void ChContinuumPlasticVonMises::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChContinuumPlasticVonMises>();
+    /*int version =*/ archive_in.VersionRead<ChContinuumPlasticVonMises>();
     // deserialize parent class
-    ChContinuumElastoplastic::ArchiveIn(marchive);
+    ChContinuumElastoplastic::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(this->elastic_yeld);
-    marchive >> CHNVP(this->plastic_yeld);
-    marchive >> CHNVP(this->flow_rate);
+    archive_in >> CHNVP(this->elastic_yeld);
+    archive_in >> CHNVP(this->plastic_yeld);
+    archive_in >> CHNVP(this->flow_rate);
 }
 
 // -----------------------------------------------------------------------------
@@ -337,7 +337,7 @@ void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& mplasticst
                 dGdS.YZ() = mstress.YZ() / devsq;
                 dGdS.XZ() = mstress.XZ() / devsq;
             } else {
-                GetLog() << "      ... axial singularity - SHOULD NEVER OCCUR  - handled by polar cone\n";
+                std::cout << "      ... axial singularity - SHOULD NEVER OCCUR  - handled by polar cone" << std::endl;
                 dFdS.setZero();
                 dFdS.XX() = 1;
                 dFdS.YY() = 1;
@@ -363,7 +363,7 @@ void ChContinuumDruckerPrager::ComputeReturnMapping(ChStrainTensor<>& mplasticst
     }
 }
 
-//***OBSOLETE***
+//// OBSOLETE
 void ChContinuumDruckerPrager::ComputePlasticStrainFlow(ChStrainTensor<>& mplasticstrainflow,
                                                         const ChStrainTensor<>& mestrain) const {
     ChStressTensor<> mstress;
@@ -384,32 +384,32 @@ void ChContinuumDruckerPrager::ComputePlasticStrainFlow(ChStrainTensor<>& mplast
     }
 }
 
-void ChContinuumDruckerPrager::ArchiveOut(ChArchiveOut& marchive) {
+void ChContinuumDruckerPrager::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChContinuumDruckerPrager>();
+    archive_out.VersionWrite<ChContinuumDruckerPrager>();
     // serialize parent class
-    ChContinuumElastoplastic::ArchiveOut(marchive);
+    ChContinuumElastoplastic::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(this->elastic_yeld);
-    marchive << CHNVP(this->alpha);
-    marchive << CHNVP(this->dilatancy);
-    marchive << CHNVP(this->hardening_speed);
-    marchive << CHNVP(this->hardening_limit);
-    marchive << CHNVP(this->flow_rate);
+    archive_out << CHNVP(this->elastic_yeld);
+    archive_out << CHNVP(this->alpha);
+    archive_out << CHNVP(this->dilatancy);
+    archive_out << CHNVP(this->hardening_speed);
+    archive_out << CHNVP(this->hardening_limit);
+    archive_out << CHNVP(this->flow_rate);
 }
 
-void ChContinuumDruckerPrager::ArchiveIn(ChArchiveIn& marchive) {
+void ChContinuumDruckerPrager::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChContinuumDruckerPrager>();
+    /*int version =*/ archive_in.VersionRead<ChContinuumDruckerPrager>();
     // deserialize parent class
-    ChContinuumElastoplastic::ArchiveIn(marchive);
+    ChContinuumElastoplastic::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(this->elastic_yeld);
-    marchive >> CHNVP(this->alpha);
-    marchive >> CHNVP(this->dilatancy);
-    marchive >> CHNVP(this->hardening_speed);
-    marchive >> CHNVP(this->hardening_limit);
-    marchive >> CHNVP(this->flow_rate);
+    archive_in >> CHNVP(this->elastic_yeld);
+    archive_in >> CHNVP(this->alpha);
+    archive_in >> CHNVP(this->dilatancy);
+    archive_in >> CHNVP(this->hardening_speed);
+    archive_in >> CHNVP(this->hardening_limit);
+    archive_in >> CHNVP(this->flow_rate);
 }
 
 }  // end namespace fea

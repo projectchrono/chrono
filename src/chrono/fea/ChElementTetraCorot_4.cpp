@@ -64,7 +64,7 @@ void ChElementTetraCorot_4::GetStateBlock(ChVectorDynamic<>& mD) {
 }
 
 double ChElementTetraCorot_4::ComputeVolume() {
-    ChVector<> B1, C1, D1;
+    ChVector3d B1, C1, D1;
     B1.Sub(nodes[1]->pos, nodes[0]->pos);
     C1.Sub(nodes[2]->pos, nodes[0]->pos);
     D1.Sub(nodes[3]->pos, nodes[0]->pos);
@@ -146,7 +146,8 @@ void ChElementTetraCorot_4::ComputeStiffnessMatrix() {
             }
         }
     if (max_err > 1e-10)
-        GetLog() << "NONSYMMETRIC local stiffness matrix! err " << max_err << " at " << err_r << "," << err_c << "\n";
+        std::cerr << "NONSYMMETRIC local stiffness matrix! err " << max_err << " at " << err_r << "," << err_c
+                  << std::endl;
 }
 
 void ChElementTetraCorot_4::SetupInitial(ChSystem* system) {
@@ -178,8 +179,6 @@ void ChElementTetraCorot_4::UpdateRotation() {
     double det = ChPolarDecomposition<>::Compute(F, this->A, S, 1E-6);
     if (det < 0)
         this->A *= -1.0;
-
-    // GetLog() << "FEM rotation: \n" << A << "\n" ;
 }
 
 void ChElementTetraCorot_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
@@ -192,12 +191,12 @@ void ChElementTetraCorot_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfact
     ChMatrixCorotation::ComputeCK(StiffnessMatrix, this->A, 4, CK);
     ChMatrixCorotation::ComputeKCt(CK, this->A, 4, CKCt);
 
-    // ***TEST*** SYMMETRIZE TO AVOID ROUNDOFF ASYMMETRY
+    //// TEST SYMMETRIZE TO AVOID ROUNDOFF ASYMMETRY
     for (int row = 0; row < CKCt.rows() - 1; ++row)
         for (int col = row + 1; col < CKCt.cols(); ++col)
             CKCt(row, col) = CKCt(col, row);
 
-    //***DEBUG***
+    //// DEBUG
     double max_err = 0;
     int err_r = -1;
     int err_c = -1;
@@ -210,8 +209,11 @@ void ChElementTetraCorot_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfact
                 err_c = col;
             }
         }
+
     if (max_err > 1e-10)
-        GetLog() << "NONSYMMETRIC local stiffness matrix! err " << max_err << " at " << err_r << "," << err_c << "\n";
+        std::cerr << "NONSYMMETRIC local stiffness matrix! err " << max_err << " at " << err_r << "," << err_c
+                  << std::endl;
+
     max_err = 0;
     err_r = -1;
     err_c = -1;
@@ -227,9 +229,10 @@ void ChElementTetraCorot_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfact
             if (CKCt(row, col) > maxval)
                 maxval = CKCt(row, col);
         }
+
     if (max_err > 1e-10)
-        GetLog() << "NONSYMMETRIC corotated matrix! err " << max_err << " at " << err_r << "," << err_c
-                 << ",   maxval=" << maxval << "\n";
+        std::cerr << "NONSYMMETRIC corotated matrix! err " << max_err << " at " << err_r << "," << err_c
+                  << ",   maxval=" << maxval << std::endl;
 
     // For K stiffness matrix and R damping matrix:
     double mkfactor = Kfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingK();
@@ -243,7 +246,7 @@ void ChElementTetraCorot_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfact
             H(id, id) += amfactor * lumped_node_mass;
         }
     }
-    //***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
+    //// TODO  better per-node lumping, or 12x12 consistent mass matrix.
 }
 
 void ChElementTetraCorot_4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
@@ -266,7 +269,7 @@ void ChElementTetraCorot_4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     displ *= lumped_node_mass * this->Material->Get_RayleighDampingM();
     FiR_local += displ;
 
-    //***TO DO*** better per-node lumping, or 12x12 consistent mass matrix.
+    //// TODO  better per-node lumping, or 12x12 consistent mass matrix.
 
     FiK_local += FiR_local;
     FiK_local *= -1.0;
@@ -304,10 +307,10 @@ void ChElementTetraCorot_4::LoadableGetStateBlock_x(int block_offset, ChState& m
 }
 
 void ChElementTetraCorot_4::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = nodes[0]->GetPos_dt().eigen();
-    mD.segment(block_offset + 3, 3) = nodes[1]->GetPos_dt().eigen();
-    mD.segment(block_offset + 6, 3) = nodes[2]->GetPos_dt().eigen();
-    mD.segment(block_offset + 9, 3) = nodes[3]->GetPos_dt().eigen();
+    mD.segment(block_offset + 0, 3) = nodes[0]->GetPosDer().eigen();
+    mD.segment(block_offset + 3, 3) = nodes[1]->GetPosDer().eigen();
+    mD.segment(block_offset + 6, 3) = nodes[2]->GetPosDer().eigen();
+    mD.segment(block_offset + 9, 3) = nodes[3]->GetPosDer().eigen();
 }
 
 void ChElementTetraCorot_4::LoadableStateIncrement(const unsigned int off_x,
@@ -401,7 +404,7 @@ void ChElementTetraCorot_4_P::GetStateBlock(ChVectorDynamic<>& mD) {
 }
 
 double ChElementTetraCorot_4_P::ComputeVolume() {
-    ChVector<> B1, C1, D1;
+    ChVector3d B1, C1, D1;
     B1.Sub(nodes[1]->GetPos(), nodes[0]->GetPos());
     C1.Sub(nodes[2]->GetPos(), nodes[0]->GetPos());
     D1.Sub(nodes[3]->GetPos(), nodes[0]->GetPos());
@@ -488,7 +491,7 @@ void ChElementTetraCorot_4_P::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfa
                 H(id, id) += Rfactor * lumped_node_c;
             }
         }
-    //***TO DO*** better per-node lumping, or 4x4 consistent c integration as per mass matrices.
+    //// TODO  better per-node lumping, or 4x4 consistent c integration as per mass matrices.
 
     // For M mass matrix: NONE in Poisson equation c dT/dt + div [C] grad T = f
 }
@@ -503,7 +506,7 @@ void ChElementTetraCorot_4_P::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     // [local Internal Forces] = [Klocal] * P
     ChVectorDynamic<> FiK_local = StiffnessMatrix * displ;
 
-    //***TO DO*** derivative terms? + [Rlocal] * P_dt ???? ***NO because Poisson  rho dP/dt + div [C] grad P = 0
+    //// TODO  derivative terms? + [Rlocal] * P_dt ???? ***NO because Poisson  rho dP/dt + div [C] grad P = 0
 
     FiK_local *= -1.0;
 

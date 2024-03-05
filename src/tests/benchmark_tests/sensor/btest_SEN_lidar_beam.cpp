@@ -34,13 +34,12 @@
 #include "chrono_sensor/filters/ChFilterLidarNoise.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 float end_time = 100.0f;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------
     // Create the system
@@ -79,7 +78,7 @@ int main(int argc, char* argv[]) {
     auto lidar1 = std::make_shared<ChLidarSensor>(
         floor,                                                             // body lidar is attached to
         10.0f,                                                             // scanning rate in Hz
-        chrono::ChFrame<double>({0, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({0, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1,                                                                 // number of horizontal samples
         1,                                                                 // number of vertical channels
         1,                                                                 // horizontal field of view
@@ -92,7 +91,7 @@ int main(int argc, char* argv[]) {
     auto lidar2 = chrono_types::make_shared<ChLidarSensor>(
         floor,                                                             // body lidar is attached to
         10.0f,                                                             // scanning rate in Hz
-        chrono::ChFrame<double>({0, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({0, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1,                                                                 // number of horizontal samples
         1,                                                                 // number of vertical channels
         1.f,                                                               // horizontal field of view
@@ -110,7 +109,7 @@ int main(int argc, char* argv[]) {
     auto lidar3 = chrono_types::make_shared<ChLidarSensor>(
         floor,                                                             // body lidar is attached to
         10.0f,                                                             // scanning rate in Hz
-        chrono::ChFrame<double>({0, 0, 1}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({0, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1,                                                                 // number of horizontal samples
         1,                                                                 // number of vertical channels
         1.f,                                                               // horizontal field of view
@@ -164,7 +163,7 @@ int main(int argc, char* argv[]) {
                 << data3->Buffer[0].intensity  //
                 << std::endl;
 
-            first_wall->SetPos(first_wall->GetPos() + ChVector<>({0, .001, 0}));
+            first_wall->SetPos(first_wall->GetPos() + ChVector3d({0, .001, 0}));
             // std::cout << "y:" << first_wall->GetPos().y() << std::endl;
             data1->Buffer = NULL;
             data2->Buffer = NULL;

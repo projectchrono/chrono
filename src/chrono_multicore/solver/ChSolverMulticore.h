@@ -55,31 +55,31 @@ class CH_MULTICORE_API ChProjectNone : public ChProjectConstraints {
     virtual void operator()(real* data) {}
 };
 
-/// Functor class for calculating the Shur product of the matrix of unilateral constraints.
-class CH_MULTICORE_API ChShurProduct {
+/// Functor class for calculating the Schur product of the matrix of unilateral constraints.
+class CH_MULTICORE_API ChSchurProduct {
   public:
-    ChShurProduct();
-    virtual ~ChShurProduct() {}
+    ChSchurProduct();
+    virtual ~ChSchurProduct() {}
 
     virtual void Setup(ChMulticoreDataManager* data_container_) { data_manager = data_container_; }
 
-    //. Perform the Shur Product.
+    //. Perform the Schur Product.
     virtual void operator()(const DynamicVector<real>& x, DynamicVector<real>& AX);
 
     ChMulticoreDataManager* data_manager;  ///< Pointer to the system's data manager
 };
 
-/// Functor class for performing the Shur product of the matrix of bilateral constraints.
-class CH_MULTICORE_API ChShurProductBilateral : public ChShurProduct {
+/// Functor class for performing the Schur product of the matrix of bilateral constraints.
+class CH_MULTICORE_API ChSchurProductBilateral : public ChSchurProduct {
   public:
-    ChShurProductBilateral() {}
-    virtual ~ChShurProductBilateral() {}
+    ChSchurProductBilateral() {}
+    virtual ~ChSchurProductBilateral() {}
     virtual void Setup(ChMulticoreDataManager* data_container_);
 
-    /// Perform the Shur Product.
+    /// Perform the Schur Product.
     virtual void operator()(const DynamicVector<real>& x, DynamicVector<real>& AX);
 
-    CompressedMatrix<real> NshurB;
+    CompressedMatrix<real> NschurB;
 };
 
 //========================================================================================================
@@ -100,12 +100,12 @@ class CH_MULTICORE_API ChSolverMulticore {
                      custom_vector<real>& b);
 
     /// Call this function with an associated solver type to solve the system.
-    virtual uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
-                       ChProjectConstraints& Project, ///< Constraints
-                       const uint max_iter,           ///< Maximum number of iterations
-                       const uint size,               ///< Number of unknowns
-                       const DynamicVector<real>& b,  ///< Rhs vector
-                       DynamicVector<real>& x         ///< The vector of unknowns
+    virtual uint Solve(ChSchurProduct& SchurProduct,   ///< Schur product
+                       ChProjectConstraints& Project,  ///< Constraints
+                       const uint max_iter,            ///< Maximum number of iterations
+                       const uint size,                ///< Number of unknowns
+                       const DynamicVector<real>& b,   ///< Rhs vector
+                       DynamicVector<real>& x          ///< The vector of unknowns
                        ) = 0;
 
     void AtIterationEnd(real maxd, real maxdeltalambda) {
@@ -113,7 +113,7 @@ class CH_MULTICORE_API ChSolverMulticore {
         data_manager->measures.solver.maxdeltalambda_hist.push_back(maxdeltalambda);
     }
 
-    real LargestEigenValue(ChShurProduct& ShurProduct, DynamicVector<real>& temp, real lambda = 0);
+    real LargestEigenValue(ChSchurProduct& SchurProduct, DynamicVector<real>& temp, real lambda = 0);
 
     int current_iteration;  ///< The current iteration number of the solver
 
@@ -137,21 +137,21 @@ class CH_MULTICORE_API ChSolverMulticoreAPGDREF : public ChSolverMulticore {
     ~ChSolverMulticoreAPGDREF() {}
 
     /// Solve using the APGD method.
-    uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
-               ChProjectConstraints& Project, ///< Constraints
-               const uint max_iter,           ///< Maximum number of iterations
-               const uint size,               ///< Number of unknowns
-               const DynamicVector<real>& r,  ///< Rhs vector
-               DynamicVector<real>& gamma     ///< The vector of unknowns
-               );
+    uint Solve(ChSchurProduct& SchurProduct,   ///< Schur product
+               ChProjectConstraints& Project,  ///< Constraints
+               const uint max_iter,            ///< Maximum number of iterations
+               const uint size,                ///< Number of unknowns
+               const DynamicVector<real>& r,   ///< Rhs vector
+               DynamicVector<real>& gamma      ///< The vector of unknowns
+    );
 
     /// Compute the residual for the solver.
-    real Res4(ChShurProduct& ShurProduct,    ///< Schur product
-              ChProjectConstraints& Project, ///< Constraints
-              DynamicVector<real>& gamma,    ///< The vector of unknowns
-              const DynamicVector<real>& r,  ///< Rhs vector
-              DynamicVector<real>& tmp       ///< temporary vector
-			  );
+    real Res4(ChSchurProduct& SchurProduct,   ///< Schur product
+              ChProjectConstraints& Project,  ///< Constraints
+              DynamicVector<real>& gamma,     ///< The vector of unknowns
+              const DynamicVector<real>& r,   ///< Rhs vector
+              DynamicVector<real>& tmp        ///< temporary vector
+    );
 
     /// APGD specific vectors.
     DynamicVector<real> gamma_hat;
@@ -165,13 +165,13 @@ class CH_MULTICORE_API ChSolverMulticoreAPGD : public ChSolverMulticore {
     ~ChSolverMulticoreAPGD() {}
 
     /// Solve using a more streamlined but harder to read version of the APGD method.
-    uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
-               ChProjectConstraints& Project, ///< Constraints
-               const uint max_iter,           ///< Maximum number of iterations
-               const uint size,               ///< Number of unknowns
-               const DynamicVector<real>& b,  ///< Rhs vector
-               DynamicVector<real>& x         ///< The vector of unknowns
-               );
+    uint Solve(ChSchurProduct& SchurProduct,   ///< Schur product
+               ChProjectConstraints& Project,  ///< Constraints
+               const uint max_iter,            ///< Maximum number of iterations
+               const uint size,                ///< Number of unknowns
+               const DynamicVector<real>& b,   ///< Rhs vector
+               DynamicVector<real>& x          ///< The vector of unknowns
+    );
 
     void UpdateR();
 
@@ -192,13 +192,13 @@ class CH_MULTICORE_API ChSolverMulticoreBB : public ChSolverMulticore {
     ~ChSolverMulticoreBB() {}
 
     /// Solve using a more streamlined but harder to read version of the BB method.
-    uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
-               ChProjectConstraints& Project, ///< Constraints
-               const uint max_iter,           ///< Maximum number of iterations
-               const uint size,               ///< Number of unknowns
-               const DynamicVector<real>& b,  ///< Rhs vector
-               DynamicVector<real>& x         ///< The vector of unknowns
-               );
+    uint Solve(ChSchurProduct& SchurProduct,   ///< Schur product
+               ChProjectConstraints& Project,  ///< Constraints
+               const uint max_iter,            ///< Maximum number of iterations
+               const uint size,                ///< Number of unknowns
+               const DynamicVector<real>& b,   ///< Rhs vector
+               DynamicVector<real>& x          ///< The vector of unknowns
+    );
 
     void UpdateR();
 
@@ -214,13 +214,13 @@ class CH_MULTICORE_API ChSolverMulticoreMinRes : public ChSolverMulticore {
     ~ChSolverMulticoreMinRes() {}
 
     /// Solve using the minimal residual method.
-    uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
-               ChProjectConstraints& Project, ///< Constraints
-               const uint max_iter,           ///< Maximum number of iterations
-               const uint size,               ///< Number of unknowns
-               const DynamicVector<real>& b,  ///< Rhs vector
-               DynamicVector<real>& x         ///< The vector of unknowns
-               );
+    uint Solve(ChSchurProduct& SchurProduct,   ///< Schur product
+               ChProjectConstraints& Project,  ///< Constraints
+               const uint max_iter,            ///< Maximum number of iterations
+               const uint size,                ///< Number of unknowns
+               const DynamicVector<real>& b,   ///< Rhs vector
+               DynamicVector<real>& x          ///< The vector of unknowns
+    );
 
     DynamicVector<real> v, v_hat, w, w_old, xMR, v_old, Av, w_oold;
 };
@@ -232,13 +232,13 @@ class CH_MULTICORE_API ChSolverMulticoreSPGQP : public ChSolverMulticore {
     ~ChSolverMulticoreSPGQP() {}
 
     /// Solve using a more streamlined but harder to read version of the BB method.
-    uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
-               ChProjectConstraints& Project, ///< Constraints
-               const uint max_iter,           ///< Maximum number of iterations
-               const uint size,               ///< Number of unknowns
-               const DynamicVector<real>& b,  ///< Rhs vector
-               DynamicVector<real>& x         ///< The vector of unknowns
-               );
+    uint Solve(ChSchurProduct& SchurProduct,   ///< Schur product
+               ChProjectConstraints& Project,  ///< Constraints
+               const uint max_iter,            ///< Maximum number of iterations
+               const uint size,                ///< Number of unknowns
+               const DynamicVector<real>& b,   ///< Rhs vector
+               DynamicVector<real>& x          ///< The vector of unknowns
+    );
 
     void UpdateR();
 
@@ -255,13 +255,13 @@ class CH_MULTICORE_API ChSolverMulticoreCG : public ChSolverMulticore {
     ~ChSolverMulticoreCG() {}
 
     /// Solve using the conjugate gradient method.
-    uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
-               ChProjectConstraints& Project, ///< Constraints
-               const uint max_iter,           ///< Maximum number of iterations
-               const uint size,               ///< Number of unknowns
-               const DynamicVector<real>& b,  ///< Rhs vector
-               DynamicVector<real>& x         ///< The vector of unknowns
-               );
+    uint Solve(ChSchurProduct& SchurProduct,   ///< Schur product
+               ChProjectConstraints& Project,  ///< Constraints
+               const uint max_iter,            ///< Maximum number of iterations
+               const uint size,                ///< Number of unknowns
+               const DynamicVector<real>& b,   ///< Rhs vector
+               DynamicVector<real>& x          ///< The vector of unknowns
+    );
 
     DynamicVector<real> r, q, s;
 };
@@ -273,13 +273,13 @@ class CH_MULTICORE_API ChSolverMulticoreJacobi : public ChSolverMulticore {
     ~ChSolverMulticoreJacobi() {}
 
     /// Solve using a more streamlined but harder to read version of the BB method.
-    uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
-               ChProjectConstraints& Project, ///< Constraints
-               const uint max_iter,           ///< Maximum number of iterations
-               const uint size,               ///< Number of unknowns
-               const DynamicVector<real>& b,  ///< Rhs vector
-               DynamicVector<real>& x         ///< The vector of unknowns
-               );
+    uint Solve(ChSchurProduct& SchurProduct,   ///< Schur product
+               ChProjectConstraints& Project,  ///< Constraints
+               const uint max_iter,            ///< Maximum number of iterations
+               const uint size,                ///< Number of unknowns
+               const DynamicVector<real>& b,   ///< Rhs vector
+               DynamicVector<real>& x          ///< The vector of unknowns
+    );
     DynamicVector<real> ml_old, ml;
 };
 
@@ -290,13 +290,13 @@ class CH_MULTICORE_API ChSolverMulticoreGS : public ChSolverMulticore {
     ~ChSolverMulticoreGS() {}
 
     /// Solve using a more streamlined but harder to read version of the BB method.
-    uint Solve(ChShurProduct& ShurProduct,    ///< Schur product
-               ChProjectConstraints& Project, ///< Constraints
-               const uint max_iter,           ///< Maximum number of iterations
-               const uint size,               ///< Number of unknowns
-               const DynamicVector<real>& b,  ///< Rhs vector
-               DynamicVector<real>& x         ///< The vector of unknowns
-               );
+    uint Solve(ChSchurProduct& SchurProduct,   ///< Schur product
+               ChProjectConstraints& Project,  ///< Constraints
+               const uint max_iter,            ///< Maximum number of iterations
+               const uint size,                ///< Number of unknowns
+               const DynamicVector<real>& b,   ///< Rhs vector
+               DynamicVector<real>& x          ///< The vector of unknowns
+    );
     DynamicVector<real> ml_old, ml;
 };
 

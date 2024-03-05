@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-//#define BEAM_VERBOSE
+// #define BEAM_VERBOSE
 
 #include "chrono/fea/ChElementBeamTaperedTimoshenko.h"
 
@@ -249,17 +249,17 @@ void ChElementBeamTaperedTimoshenko::UpdateRotation() {
         Aabs = A0;
         q_element_abs_rot = q_element_ref_rot;
     } else {
-        ChVector<> mXele_w = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
+        ChVector3d mXele_w = nodes[1]->Frame().GetPos() - nodes[0]->Frame().GetPos();
         // propose Y_w as absolute dir of the Y axis of A node, removing the effect of Aref-to-A rotation if any:
         //    Y_w = [R Aref->w ]*[R Aref->A ]'*{0,1,0}
-        ChVector<> myele_wA = nodes[0]->Frame().GetRot().Rotate(q_refrotA.RotateBack(ChVector<>(0, 1, 0)));
+        ChVector3d myele_wA = nodes[0]->Frame().GetRot().Rotate(q_refrotA.RotateBack(ChVector3d(0, 1, 0)));
         // propose Y_w as absolute dir of the Y axis of B node, removing the effect of Bref-to-B rotation if any:
         //    Y_w = [R Bref->w ]*[R Bref->B ]'*{0,1,0}
-        ChVector<> myele_wB = nodes[1]->Frame().GetRot().Rotate(q_refrotB.RotateBack(ChVector<>(0, 1, 0)));
+        ChVector3d myele_wB = nodes[1]->Frame().GetRot().Rotate(q_refrotB.RotateBack(ChVector3d(0, 1, 0)));
         // Average the two Y directions to have midpoint torsion (ex -30?torsion A and +30?torsion B= 0?
-        ChVector<> myele_w = (myele_wA + myele_wB).GetNormalized();
-        Aabs.Set_A_Xdir(mXele_w, myele_w);
-        q_element_abs_rot = Aabs.Get_A_quaternion();
+        ChVector3d myele_w = (myele_wA + myele_wB).GetNormalized();
+        Aabs.SetFromAxisX(mXele_w, myele_w);
+        q_element_abs_rot = Aabs.GetQuaternion();
     }
 
     this->A = A0.transpose() * Aabs;
@@ -268,19 +268,19 @@ void ChElementBeamTaperedTimoshenko::UpdateRotation() {
 void ChElementBeamTaperedTimoshenko::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.resize(12);
 
-    ChVector<> delta_rot_dir;
+    ChVector3d delta_rot_dir;
     double delta_rot_angle;
 
     // Node 0, displacement (in local element frame, corotated back)
     //     d = [Atw]' Xt - [A0w]'X0
-    ChVector<> displ = this->q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPos()) -
+    ChVector3d displ = this->q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPos()) -
                        this->q_element_ref_rot.RotateBack(nodes[0]->GetX0().GetPos());
     mD.segment(0, 3) = displ.eigen();
 
     // Node 0, x,y,z small rotations (in local element frame)
-    ChQuaternion<> q_delta0 = q_element_abs_rot.GetConjugate() % nodes[0]->Frame().GetRot() % q_refrotA.GetConjugate();
+    ChQuaternion<> q_delta0 = q_element_abs_rot.GetConjugate() * nodes[0]->Frame().GetRot() * q_refrotA.GetConjugate();
     // note, for small incremental rotations this is opposite of ChNodeFEAxyzrot::VariablesQbIncrementPosition
-    q_delta0.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
+    q_delta0.GetAngleAxis(delta_rot_angle, delta_rot_dir);
 
     if (delta_rot_angle > CH_C_PI)
         delta_rot_angle -= CH_C_2PI;  // no 0..360 range, use -180..+180
@@ -294,9 +294,9 @@ void ChElementBeamTaperedTimoshenko::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.segment(6, 3) = displ.eigen();
 
     // Node 1, x,y,z small rotations (in local element frame)
-    ChQuaternion<> q_delta1 = q_element_abs_rot.GetConjugate() % nodes[1]->Frame().GetRot() % q_refrotB.GetConjugate();
+    ChQuaternion<> q_delta1 = q_element_abs_rot.GetConjugate() * nodes[1]->Frame().GetRot() * q_refrotB.GetConjugate();
     // note, for small incremental rotations this is opposite of ChNodeFEAxyzrot::VariablesQbIncrementPosition
-    q_delta1.Q_to_AngAxis(delta_rot_angle, delta_rot_dir);
+    q_delta1.GetAngleAxis(delta_rot_angle, delta_rot_dir);
 
     if (delta_rot_angle > CH_C_PI)
         delta_rot_angle -= CH_C_2PI;  // no 0..360 range, use -180..+180
@@ -308,38 +308,38 @@ void ChElementBeamTaperedTimoshenko::GetField_dt(ChVectorDynamic<>& mD_dt) {
     mD_dt.resize(12);
 
     // Node 0, velocity (in local element frame, corotated back by A' )
-    mD_dt.segment(0, 3) = q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPos_dt()).eigen();
+    mD_dt.segment(0, 3) = q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPosDer()).eigen();
 
     // Node 0, x,y,z ang.velocity (in local element frame, corotated back by A' )
-    mD_dt.segment(3, 3) = q_element_abs_rot.RotateBack(nodes[0]->Frame().GetWvel_par()).eigen();
+    mD_dt.segment(3, 3) = q_element_abs_rot.RotateBack(nodes[0]->Frame().GetAngVelParent()).eigen();
 
     // Node 1, velocity (in local element frame, corotated back by A' )
-    mD_dt.segment(6, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPos_dt()).eigen();
+    mD_dt.segment(6, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPosDer()).eigen();
 
     // Node 1, x,y,z ang.velocity (in local element frame, corotated back by A' )
-    mD_dt.segment(9, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetWvel_par()).eigen();
+    mD_dt.segment(9, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetAngVelParent()).eigen();
 }
 
 void ChElementBeamTaperedTimoshenko::GetField_dtdt(ChVectorDynamic<>& mD_dtdt) {
     mD_dtdt.resize(12);
 
     // Node 0, accelaration (in local element frame, corotated back by A' )
-    mD_dtdt.segment(0, 3) = q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPos_dtdt()).eigen();
+    mD_dtdt.segment(0, 3) = q_element_abs_rot.RotateBack(nodes[0]->Frame().GetPosDer2()).eigen();
 
     // Node 0, x,y,z ang.accelaration (in local element frame, corotated back by A' )
-    mD_dtdt.segment(3, 3) = q_element_abs_rot.RotateBack(nodes[0]->Frame().GetWacc_par()).eigen();
+    mD_dtdt.segment(3, 3) = q_element_abs_rot.RotateBack(nodes[0]->Frame().GetAngAccParent()).eigen();
 
     // Node 1, accelaration (in local element frame, corotated back by A' )
-    mD_dtdt.segment(6, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPos_dtdt()).eigen();
+    mD_dtdt.segment(6, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetPosDer2()).eigen();
 
     // Node 1, x,y,z ang.accelaration (in local element frame, corotated back by A' )
-    mD_dtdt.segment(9, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetWacc_par()).eigen();
+    mD_dtdt.segment(9, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetAngAccParent()).eigen();
 }
 
 // This class computes and adds corresponding masses to ElementGeneric member m_TotalMass
 void ChElementBeamTaperedTimoshenko::ComputeNodalMass() {
-   nodes[0]->m_TotalMass += 0.5 * this->length * this->tapered_section->GetSectionA()->GetMassPerUnitLength();
-   nodes[1]->m_TotalMass += 0.5 * this->length * this->tapered_section->GetSectionB()->GetMassPerUnitLength();
+    nodes[0]->m_TotalMass += 0.5 * this->length * this->tapered_section->GetSectionA()->GetMassPerUnitLength();
+    nodes[1]->m_TotalMass += 0.5 * this->length * this->tapered_section->GetSectionB()->GetMassPerUnitLength();
 }
 
 void ChElementBeamTaperedTimoshenko::ComputeTransformMatrix() {
@@ -361,9 +361,9 @@ void ChElementBeamTaperedTimoshenko::ComputeTransformMatrix() {
 
     // In case the section is rotated:
     ChMatrix33<> RotsectA;
-    RotsectA.Set_A_Rxyz(ChVector<>(alpha1, 0, 0));
+    RotsectA.SetFromCardanAnglesXYZ(ChVector3d(alpha1, 0, 0));
     ChMatrix33<> RotsectB;
-    RotsectB.Set_A_Rxyz(ChVector<>(alpha2, 0, 0));
+    RotsectB.SetFromCardanAnglesXYZ(ChVector3d(alpha2, 0, 0));
     ChMatrixNM<double, 12, 12> Rotsect;
     Rotsect.setZero();
     Rotsect.block<3, 3>(0, 0) = RotsectA;
@@ -496,7 +496,7 @@ void ChElementBeamTaperedTimoshenko::ComputeTransformMatrixAtPoint(ChMatrixDynam
 
     // In case the section is rotated:
     ChMatrix33<> RotsectA;
-    RotsectA.Set_A_Rxyz(ChVector<>(alpha, 0, 0));
+    RotsectA.SetFromCardanAnglesXYZ(ChVector3d(alpha, 0, 0));
     ChMatrixNM<double, 6, 6> Rotsect;
     Rotsect.setZero();
     Rotsect.block<3, 3>(0, 0) = RotsectA;
@@ -762,8 +762,8 @@ void ChElementBeamTaperedTimoshenko::ComputeGeometricStiffnessMatrix() {
 }
 
 void ChElementBeamTaperedTimoshenko::ComputeAccurateTangentStiffnessMatrix(ChMatrixRef Kt_accurate,
-                                                               double Km_factor,
-                                                               double Kg_factor) {
+                                                                           double Km_factor,
+                                                                           double Kg_factor) {
     ChMatrix33<> I33;
     I33.setIdentity();
     ChMatrix33<> O33;
@@ -778,8 +778,8 @@ void ChElementBeamTaperedTimoshenko::ComputeAccurateTangentStiffnessMatrix(ChMat
     H.setZero();
     for (int i = 0; i < nodes.size(); ++i) {
         double rot_angle = displ.segment(3 + 6 * i, 3).norm();
-        ChVector<> rot_vector = displ.segment(3 + 6 * i, 3).normalized();
-        ChVector<> Theta = displ.segment(3 + 6 * i, 3);
+        ChVector3d rot_vector = displ.segment(3 + 6 * i, 3).normalized();
+        ChVector3d Theta = displ.segment(3 + 6 * i, 3);
         // double eta = (1 - 0.5 * rot_angle * cos(0.5 * rot_angle) / sin(0.5 * rot_angle)) / (rot_angle * rot_angle);
         double eta = 1.0 / 12.0 + 1.0 / 720.0 * pow(rot_angle, 2) + 1.0 / 30240.0 * pow(rot_angle, 4) +
                      1.0 / 1209600.0 * pow(rot_angle, 6);
@@ -790,11 +790,11 @@ void ChElementBeamTaperedTimoshenko::ComputeAccurateTangentStiffnessMatrix(ChMat
         H.block<6, 6>(i * 6, i * 6) = Hn;
     }
 
-    ChVector<> xA = nodes[0]->Frame().GetPos();
-    ChVector<> xB = nodes[1]->Frame().GetPos();
-    ChVector<> xF = 0.5 * (xA + xB);
-    ChVector<> xA_loc = this->q_element_abs_rot.RotateBack(xA - xF);
-    ChVector<> xB_loc = this->q_element_abs_rot.RotateBack(xB - xF);
+    ChVector3d xA = nodes[0]->Frame().GetPos();
+    ChVector3d xB = nodes[1]->Frame().GetPos();
+    ChVector3d xF = 0.5 * (xA + xB);
+    ChVector3d xA_loc = this->q_element_abs_rot.RotateBack(xA - xF);
+    ChVector3d xB_loc = this->q_element_abs_rot.RotateBack(xB - xF);
     ChMatrixNM<double, 12, 3> SD;
     SD.topRows(3) = -ChStarMatrix33<>(xA_loc);
     SD.middleRows(3, 3) = I33;
@@ -831,8 +831,8 @@ void ChElementBeamTaperedTimoshenko::ComputeAccurateTangentStiffnessMatrix(ChMat
     LH.setZero();
     for (int i = 0; i < nodes.size(); ++i) {
         double rot_angle = displ.segment(3 + 6 * i, 3).norm();
-        ChVector<> rot_vector = displ.segment(3 + 6 * i, 3).normalized();
-        ChVector<> Theta = displ.segment(3 + 6 * i, 3);
+        ChVector3d rot_vector = displ.segment(3 + 6 * i, 3).normalized();
+        ChVector3d Theta = displ.segment(3 + 6 * i, 3);
         // double eta = (1 - 0.5 * rot_angle * cos(0.5 * rot_angle) / sin(0.5 * rot_angle)) / (rot_angle * rot_angle);
         double eta = 1.0 / 12.0 + 1.0 / 720.0 * pow(rot_angle, 2) + 1.0 / 30240.0 * pow(rot_angle, 4) +
                      1.0 / 1209600.0 * pow(rot_angle, 6);
@@ -843,12 +843,13 @@ void ChElementBeamTaperedTimoshenko::ComputeAccurateTangentStiffnessMatrix(ChMat
         // 4)*pow(0.5*rot_angle, 2));
         double miu = 1.0 / 360.0 + 1.0 / 7560.0 * pow(rot_angle, 2) + 1.0 / 201600.0 * pow(rot_angle, 4) +
                      1.0 / 5987520.0 * pow(rot_angle, 6);
-        ChVector<> m_loc = Fi_temp.segment(3 + 6 * i, 3);
+        ChVector3d m_loc = Fi_temp.segment(3 + 6 * i, 3);
 
         ChMatrix33<> Li =
             (eta * (Theta.Dot(m_loc) * I33 + TensorProduct(Theta, m_loc) - 2.0 * TensorProduct(m_loc, Theta)) +
              miu * ChStarMatrix33<>(Theta) * ChStarMatrix33<>(Theta) * TensorProduct(m_loc, Theta) -
-             0.5 * ChStarMatrix33<>(m_loc)) * Lambda;
+             0.5 * ChStarMatrix33<>(m_loc)) *
+            Lambda;
         LH.block<3, 3>(i * 6 + 3, i * 6 + 3) = Li;
     }
 
@@ -862,10 +863,10 @@ void ChElementBeamTaperedTimoshenko::ComputeAccurateTangentStiffnessMatrix(ChMat
     R_rhombus.setZero();
     R_rhombus.block<3, 3>(0, 0) = ChMatrix33<>(this->q_element_abs_rot);
     R_rhombus.block<3, 3>(3, 3) =
-        ChMatrix33<>(this->GetNodeA()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
+        ChMatrix33<>(this->GetNodeA()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
     R_rhombus.block<3, 3>(6, 6) = ChMatrix33<>(this->q_element_abs_rot);
     R_rhombus.block<3, 3>(9, 9) =
-        ChMatrix33<>(this->GetNodeB()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
+        ChMatrix33<>(this->GetNodeB()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
 
     Kt_accurate.setZero();
     Kt_accurate = R_rhombus * Kt_loc * R_rhombus.transpose();
@@ -875,8 +876,8 @@ void ChElementBeamTaperedTimoshenko::ComputeKiRimatricesLocal(bool inertial_damp
     assert(tapered_section);
 
     if (inertial_damping) {
-        ChVector<> mW_A = this->GetNodeA()->GetWvel_loc();
-        ChVector<> mW_B = this->GetNodeB()->GetWvel_loc();
+        ChVector3d mW_A = this->GetNodeA()->GetAngVelLocal();
+        ChVector3d mW_B = this->GetNodeB()->GetAngVelLocal();
         ChMatrixNM<double, 12, 12> mH;
         this->tapered_section->ComputeInertiaDampingMatrix(mH, mW_A, mW_B);
         this->Ri = 0.5 * this->length * mH;
@@ -886,17 +887,17 @@ void ChElementBeamTaperedTimoshenko::ComputeKiRimatricesLocal(bool inertial_damp
 
     if (inertial_stiffness) {
         // current angular velocity of section of node A, in material frame
-        ChVector<> mWvel_A = this->GetNodeA()->GetWvel_loc();
+        ChVector3d mWvel_A = this->GetNodeA()->GetAngVelLocal();
         // current angular acceleration of section of node A, in material frame
-        ChVector<> mWacc_A = this->GetNodeA()->GetWacc_loc();
+        ChVector3d mWacc_A = this->GetNodeA()->GetAngAccLocal();
         // current acceleration of section of node A, in material frame)
-        ChVector<> mXacc_A = this->GetNodeA()->TransformDirectionParentToLocal(this->GetNodeA()->GetPos_dtdt());
+        ChVector3d mXacc_A = this->GetNodeA()->TransformDirectionParentToLocal(this->GetNodeA()->GetPosDer2());
         // current angular velocity of section of node B, in material frame
-        ChVector<> mWvel_B = this->GetNodeB()->GetWvel_loc();
+        ChVector3d mWvel_B = this->GetNodeB()->GetAngVelLocal();
         // current angular acceleration of section of node B, in material frame
-        ChVector<> mWacc_B = this->GetNodeB()->GetWacc_loc();
+        ChVector3d mWacc_B = this->GetNodeB()->GetAngAccLocal();
         // current acceleration of section of node B, in material frame
-        ChVector<> mXacc_B = this->GetNodeB()->TransformDirectionParentToLocal(this->GetNodeB()->GetPos_dtdt());
+        ChVector3d mXacc_B = this->GetNodeB()->TransformDirectionParentToLocal(this->GetNodeB()->GetPosDer2());
 
         ChMatrixNM<double, 12, 12> mH;
         this->tapered_section->ComputeInertiaStiffnessMatrix(mH, mWvel_A, mWacc_A, mXacc_A, mWvel_B, mWacc_B, mXacc_B);
@@ -916,11 +917,11 @@ void ChElementBeamTaperedTimoshenko::SetupInitial(ChSystem* system) {
 
     // Compute initial rotation
     ChMatrix33<> A0;
-    ChVector<> mXele = nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos();
-    ChVector<> myele =
-        (nodes[0]->GetX0().GetA().Get_A_Yaxis() + nodes[1]->GetX0().GetA().Get_A_Yaxis()).GetNormalized();
-    A0.Set_A_Xdir(mXele, myele);
-    q_element_ref_rot = A0.Get_A_quaternion();
+    ChVector3d mXele = nodes[1]->GetX0().GetPos() - nodes[0]->GetX0().GetPos();
+    ChVector3d myele =
+        (nodes[0]->GetX0().GetRotMat().GetAxisY() + nodes[1]->GetX0().GetRotMat().GetAxisY()).GetNormalized();
+    A0.SetFromAxisX(mXele, myele);
+    q_element_ref_rot = A0.GetQuaternion();
 
     // Compute local mass matrix
     // It could be lumped or consistent mass matrix, depends on SetLumpedMassMatrix(true/false)
@@ -962,8 +963,8 @@ void ChElementBeamTaperedTimoshenko::ComputeKRMmatricesGlobal(ChMatrixRef H,
         //
 
         ChMatrix33<> Atoabs(this->q_element_abs_rot);
-        ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
-        ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
+        ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
+        ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
         std::vector<ChMatrix33<>*> R;
         R.push_back(&Atoabs);
         R.push_back(&AtolocwelA);
@@ -975,9 +976,9 @@ void ChElementBeamTaperedTimoshenko::ComputeKRMmatricesGlobal(ChMatrixRef H,
             ChVectorDynamic<> displ(this->GetNdofs());
             this->GetStateBlock(displ);
             double Px = -this->Km.row(0) * displ;
-            // ChVector<> mFo, mTo;
+            // ChVector3d mFo, mTo;
             // this->EvaluateSectionForceTorque(0, mFo, mTo);  // for double checking the Px value
-            // GetLog() << "   Px = " << Px << "  Px_eval = " << mFo.x() << " \n";
+            // std::cout << "   Px = " << Px << "  Px_eval = " << mFo.x() << "" << std::endl;
 
             // corotate Km + Kg  (where Kg = this->Kg * Px)
             ChMatrixCorotation::ComputeCK(this->Km + Px * this->Kg, R, 4, CK);
@@ -1010,7 +1011,7 @@ void ChElementBeamTaperedTimoshenko::ComputeKRMmatricesGlobal(ChMatrixRef H,
         }
 
         //// For K stiffness matrix and R matrix: scale by factors
-        // CKCt *= Kfactor + Rfactor * this->tapered_section->GetBeamRaleyghDamping();
+        // CKCt *= Kfactor + Rfactor * this->tapered_section->GetBeamRayleighDamping();
 
         H.block(0, 0, 12, 12) = CKCt * Kfactor + CRCt * Rfactor;
 
@@ -1027,17 +1028,17 @@ void ChElementBeamTaperedTimoshenko::ComputeKRMmatricesGlobal(ChMatrixRef H,
             double node_multiplier_fact_K = 0.5 * length * Kfactor;
 
             ///< current angular velocity of section of node A, in material frame
-            ChVector<> mWvel_A = this->GetNodeA()->GetWvel_loc();
+            ChVector3d mWvel_A = this->GetNodeA()->GetAngVelLocal();
             ///< current angular acceleration of section of node A, in material frame
-            ChVector<> mWacc_A = this->GetNodeA()->GetWacc_loc();
+            ChVector3d mWacc_A = this->GetNodeA()->GetAngAccLocal();
             ///< current acceleration of section of node A, in material frame)
-            ChVector<> mXacc_A = this->GetNodeA()->TransformDirectionParentToLocal(this->GetNodeA()->GetPos_dtdt());
+            ChVector3d mXacc_A = this->GetNodeA()->TransformDirectionParentToLocal(this->GetNodeA()->GetPosDer2());
             ///< current angular velocity of section of node B, in material frame
-            ChVector<> mWvel_B = this->GetNodeB()->GetWvel_loc();
+            ChVector3d mWvel_B = this->GetNodeB()->GetAngVelLocal();
             ///< current angular acceleration of section of node B, in material frame
-            ChVector<> mWacc_B = this->GetNodeB()->GetWacc_loc();
+            ChVector3d mWacc_B = this->GetNodeB()->GetAngAccLocal();
             ///< current acceleration of section of node B, in material frame
-            ChVector<> mXacc_B = this->GetNodeB()->TransformDirectionParentToLocal(this->GetNodeB()->GetPos_dtdt());
+            ChVector3d mXacc_B = this->GetNodeB()->TransformDirectionParentToLocal(this->GetNodeB()->GetPosDer2());
 
             if (this->tapered_section->compute_inertia_damping_matrix) {
                 this->tapered_section->ComputeInertiaDampingMatrix(matr_loc, mWvel_A, mWacc_A);
@@ -1065,13 +1066,13 @@ void ChElementBeamTaperedTimoshenko::ComputeKRMmatricesGlobal(ChMatrixRef H,
             for (int i = 0; i < nodes.size(); ++i) {
                 int stride = i * 6;
                 // corotate the local damping and stiffness matrices (at once, already scaled) into absolute one
-                // H.block<3, 3>(stride,   stride  ) += nodes[i]->GetA() * KRi_loc.block<3, 3>(0,0) *
-                // (nodes[i]->GetA().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(0,0) is null by
+                // H.block<3, 3>(stride,   stride  ) += nodes[i]->GetRotMat() * KRi_loc.block<3, 3>(0,0) *
+                // (nodes[i]->GetRotMat().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(0,0) is null by
                 // construction
                 H.block<3, 3>(stride + 3, stride + 3) += KRi_loc.block<3, 3>(3, 3);
-                H.block<3, 3>(stride, stride + 3) += nodes[i]->GetA() * KRi_loc.block<3, 3>(0, 3);
+                H.block<3, 3>(stride, stride + 3) += nodes[i]->GetRotMat() * KRi_loc.block<3, 3>(0, 3);
                 // H.block<3, 3>(stride+3, stride)   +=                    KRi_loc.block<3, 3>(3,0) *
-                // (nodes[i]->GetA().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(3,0) is null by
+                // (nodes[i]->GetRotMat().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(3,0) is null by
                 // construction
             }
         }
@@ -1101,7 +1102,7 @@ void ChElementBeamTaperedTimoshenko::ComputeKRMmatricesGlobal(ChMatrixRef H,
                 Mloc.block<3, 3>(stride, stride) += this->M.block<3, 3>(stride, stride) * node_multiplier_fact;
                 Mloc.block<3, 3>(stride + 3, stride + 3) +=
                     this->M.block<3, 3>(stride + 3, stride + 3) * node_multiplier_fact;
-                Mxw = nodes[i]->GetA() * this->M.block<3, 3>(stride, stride + 3) * node_multiplier_fact;
+                Mxw = nodes[i]->GetRotMat() * this->M.block<3, 3>(stride, stride + 3) * node_multiplier_fact;
                 Mloc.block<3, 3>(stride, stride + 3) += Mxw;
                 Mloc.block<3, 3>(stride + 3, stride) += Mxw.transpose();
             }
@@ -1113,8 +1114,8 @@ void ChElementBeamTaperedTimoshenko::ComputeKRMmatricesGlobal(ChMatrixRef H,
 
             // The following would be needed if consistent mass matrix is used, but...
             ChMatrix33<> Atoabs(this->q_element_abs_rot);
-            ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
-            ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
+            ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
+            ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
             std::vector<ChMatrix33<>*> R;
             R.push_back(&Atoabs);
             R.push_back(&AtolocwelA);
@@ -1142,7 +1143,6 @@ void ChElementBeamTaperedTimoshenko::GetKRMmatricesLocal(ChMatrixRef H,
     assert((H.rows() == 12) && (H.cols() == 12));
 
     H.block(0, 0, 12, 12) = this->Km * Kmfactor + this->Kg * Kgfactor + this->Rm * Rmfactor + this->M * Mfactor;
-
 }
 
 void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi) {
@@ -1160,7 +1160,7 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
     ChVectorDynamic<> displ_dt(12);
     this->GetField_dt(displ_dt);
 
-    // ChMatrixDynamic<> FiR_local = this->tapered_section->GetBeamRaleyghDamping() * this->Km * displ_dt;
+    // ChMatrixDynamic<> FiR_local = this->tapered_section->GetBeamRayleighDamping() * this->Km * displ_dt;
     ChMatrixDynamic<> FiR_local = this->Rm * displ_dt;
 
     Fi_local += FiR_local;
@@ -1172,8 +1172,8 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
 
     // Fi = C * Fi_local  with C block-diagonal rotations A  , for nodal forces in abs. frame
     ChMatrix33<> Atoabs(this->q_element_abs_rot);
-    ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
-    ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
+    ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
+    ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
     std::vector<ChMatrix33<>*> R;
     R.push_back(&Atoabs);
     R.push_back(&AtolocwelA);
@@ -1185,34 +1185,34 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
 
     // CASE OF LUMPED MASS - fast
     double node_multiplier = 0.5 * length;
-    ChVector<> mFcent_i;
-    ChVector<> mTgyro_i;
+    ChVector3d mFcent_i;
+    ChVector3d mTgyro_i;
     for (int i = 0; i < nodes.size(); ++i) {
         // int stride = i * 6;
         if (i == 0) {
-            this->tapered_section->GetSectionA()->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetWvel_loc());
+            this->tapered_section->GetSectionA()->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetAngVelLocal());
         } else {  // i==1
-            this->tapered_section->GetSectionB()->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetWvel_loc());
+            this->tapered_section->GetSectionB()->ComputeQuadraticTerms(mFcent_i, mTgyro_i, nodes[i]->GetAngVelLocal());
         }
         ChQuaternion<> q_i(nodes[i]->GetRot());
-        Fi.segment(i * 6, 3) -= node_multiplier * (nodes[i]->GetA() * mFcent_i).eigen();
+        Fi.segment(i * 6, 3) -= node_multiplier * (nodes[i]->GetRotMat() * mFcent_i).eigen();
         Fi.segment(3 + i * 6, 3) -= node_multiplier * mTgyro_i.eigen();
     }
 
 #ifdef BEAM_VERBOSE
-    GetLog() << "\nInternal forces (local): \n";
+    std::cout << "\nInternal forces (local):" << std::endl;
     for (int c = 0; c < 6; c++)
-        GetLog() << FiK_local(c) << "  ";
-    GetLog() << "\n";
+        std::cout << FiK_local(c) << "  ";
+    std::cout << std::endl;
     for (int c = 6; c < 12; c++)
-        GetLog() << FiK_local(c) << "  ";
-    GetLog() << "\n\nInternal forces (ABS) : \n";
+        std::cout << FiK_local(c) << "  ";
+    std::cout << "\n\nInternal forces (ABS) :" << std::endl;
     for (int c = 0; c < 6; c++)
-        GetLog() << Fi(c) << "  ";
-    GetLog() << "\n";
+        std::cout << Fi(c) << "  ";
+    std::cout << std::endl;
     for (int c = 6; c < 12; c++)
-        GetLog() << Fi(c) << "  ";
-    GetLog() << "\n";
+        std::cout << Fi(c) << "  ";
+    std::cout << std::endl;
 #endif
 }
 
@@ -1250,7 +1250,7 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
         ChVectorDynamic<> displ_dt(12);
         this->GetField_dt(displ_dt);
 
-        // ChMatrixDynamic<> FiR_local = this->tapered_section->GetBeamRaleyghDamping() * this->Km * displ_dt;
+        // ChMatrixDynamic<> FiR_local = this->tapered_section->GetBeamRayleighDamping() * this->Km * displ_dt;
         ChMatrixDynamic<> FiR_local = this->Rm * displ_dt;
         FiMKR_local -= FiR_local;
     }
@@ -1261,8 +1261,8 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
 
     // Fi = C * Fi_local  with C block-diagonal rotations A  , for nodal forces in abs. frame
     ChMatrix33<> Atoabs(this->q_element_abs_rot);
-    ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
-    ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() % this->q_element_abs_rot);
+    ChMatrix33<> AtolocwelA(this->GetNodeA()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
+    ChMatrix33<> AtolocwelB(this->GetNodeB()->Frame().GetRot().GetConjugate() * this->q_element_abs_rot);
     std::vector<ChMatrix33<>*> R;
     R.push_back(&Atoabs);
     R.push_back(&AtolocwelA);
@@ -1274,13 +1274,13 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
     // if (Mfactor && false) {  // Is this correct? Or the code in lines 1029~1036
     //    // set up vector of nodal accelarations (in absolute element system)
     //    ChVectorDynamic<> displ_dtdt(12);
-    //    displ_dtdt.segment(0, 3) = nodes[0]->Frame().GetPos_dtdt().eigen();
-    //    // displ_dtdt.segment(3, 3) = nodes[0]->Frame().GetWacc_par().eigen();        //但是之后dynamics求解发散
-    //    displ_dtdt.segment(3, 3) = nodes[0]->Frame().GetWacc_loc().eigen();  //但是之后dynamics求解发散
+    //    displ_dtdt.segment(0, 3) = nodes[0]->Frame().GetPosDer2().eigen();
+    //    // displ_dtdt.segment(3, 3) = nodes[0]->Frame().GetAngAccParent().eigen();        //但是之后dynamics求解发散
+    //    displ_dtdt.segment(3, 3) = nodes[0]->Frame().GetAngAccLocal().eigen();  //但是之后dynamics求解发散
 
-    //    displ_dtdt.segment(6, 3) = nodes[1]->Frame().GetPos_dtdt().eigen();
-    //    // displ_dtdt.segment(9, 3) = nodes[1]->Frame().GetWacc_par().eigen();
-    //    displ_dtdt.segment(9, 3) = nodes[1]->Frame().GetWacc_loc().eigen();
+    //    displ_dtdt.segment(6, 3) = nodes[1]->Frame().GetPosDer2().eigen();
+    //    // displ_dtdt.segment(9, 3) = nodes[1]->Frame().GetAngAccParent().eigen();
+    //    displ_dtdt.segment(9, 3) = nodes[1]->Frame().GetAngAccLocal().eigen();
     //    // this->GetField_dtdt(displ_dtdt);
 
     //    ChMatrixDynamic<> Mabs(12, 12);
@@ -1297,42 +1297,42 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
 
         // CASE OF LUMPED MASS - fast
         double node_multiplier = 0.5 * length;
-        ChVector<> mFcent_i;
-        ChVector<> mTgyro_i;
+        ChVector3d mFcent_i;
+        ChVector3d mTgyro_i;
         for (int i = 0; i < nodes.size(); ++i) {
             // int stride = i * 6;
             if (i == 0) {
                 this->tapered_section->GetSectionA()->ComputeQuadraticTerms(mFcent_i, mTgyro_i,
-                                                                            nodes[i]->GetWvel_loc());
+                                                                            nodes[i]->GetAngVelLocal());
             } else {  // i==1
                 this->tapered_section->GetSectionB()->ComputeQuadraticTerms(mFcent_i, mTgyro_i,
-                                                                            nodes[i]->GetWvel_loc());
+                                                                            nodes[i]->GetAngVelLocal());
             }
             ChQuaternion<> q_i(nodes[i]->GetRot());
-            Fi.segment(i * 6, 3) -= node_multiplier * (nodes[i]->GetA() * mFcent_i).eigen();
+            Fi.segment(i * 6, 3) -= node_multiplier * (nodes[i]->GetRotMat() * mFcent_i).eigen();
             Fi.segment(3 + i * 6, 3) -= node_multiplier * mTgyro_i.eigen();
         }
     }
 
 #ifdef BEAM_VERBOSE
-    GetLog() << "\nInternal forces (local): \n";
+    std::cout << "\nInternal forces (local):" << std::endl;
     for (int c = 0; c < 6; c++)
-        GetLog() << FiK_local(c) << "  ";
-    GetLog() << "\n";
+        std::cout << FiK_local(c) << "  ";
+    std::cout << std::endl;
     for (int c = 6; c < 12; c++)
-        GetLog() << FiK_local(c) << "  ";
-    GetLog() << "\n\nInternal forces (ABS) : \n";
+        std::cout << FiK_local(c) << "  ";
+    std::cout << "\n\nInternal forces (ABS) :" << std::endl;
     for (int c = 0; c < 6; c++)
-        GetLog() << Fi(c) << "  ";
-    GetLog() << "\n";
+        std::cout << Fi(c) << "  ";
+    std::cout << std::endl;
     for (int c = 6; c < 12; c++)
-        GetLog() << Fi(c) << "  ";
-    GetLog() << "\n";
+        std::cout << Fi(c) << "  ";
+    std::cout << std::endl;
 #endif
 }
 
-void ChElementBeamTaperedTimoshenko::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector<>& G_acc) {
-    // no so efficient... a temporary mass matrix here:
+void ChElementBeamTaperedTimoshenko::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
+    // not so efficient... a temporary mass matrix here:
     ChMatrixDynamic<> mM(12, 12);
     this->ComputeMmatrixGlobal(mM);
 
@@ -1352,8 +1352,8 @@ void ChElementBeamTaperedTimoshenko::ComputeGravityForces(ChVectorDynamic<>& Fg,
 }
 
 void ChElementBeamTaperedTimoshenko::EvaluateSectionDisplacement(const double eta,
-                                                                 ChVector<>& u_displ,
-                                                                 ChVector<>& u_rotaz) {
+                                                                 ChVector3d& u_displ,
+                                                                 ChVector3d& u_rotaz) {
     ChVectorDynamic<> displ(this->GetNdofs());
     this->GetStateBlock(displ);
     // No transformation for the displacement of two nodes,
@@ -1388,9 +1388,9 @@ void ChElementBeamTaperedTimoshenko::EvaluateSectionDisplacement(const double et
     u_rotaz.z() = dkNby * qey;
 }
 
-void ChElementBeamTaperedTimoshenko::EvaluateSectionFrame(const double eta, ChVector<>& point, ChQuaternion<>& rot) {
-    ChVector<> u_displ;
-    ChVector<> u_rotaz;
+void ChElementBeamTaperedTimoshenko::EvaluateSectionFrame(const double eta, ChVector3d& point, ChQuaternion<>& rot) {
+    ChVector3d u_displ;
+    ChVector3d u_rotaz;
     double Nx1 = (1. / 2.) * (1 - eta);
     double Nx2 = (1. / 2.) * (1 + eta);
 
@@ -1404,13 +1404,13 @@ void ChElementBeamTaperedTimoshenko::EvaluateSectionFrame(const double eta, ChVe
                                                                               Nx2 * this->nodes[1]->GetX0().GetPos()));
 
     ChQuaternion<> msectionrot;
-    msectionrot.Q_from_AngAxis(u_rotaz.Length(), u_rotaz.GetNormalized());
-    rot = this->q_element_abs_rot % msectionrot;
+    msectionrot.SetFromAngleAxis(u_rotaz.Length(), u_rotaz.GetNormalized());
+    rot = this->q_element_abs_rot * msectionrot;
 }
 
 void ChElementBeamTaperedTimoshenko::EvaluateSectionForceTorque(const double eta,
-                                                                ChVector<>& Fforce,
-                                                                ChVector<>& Mtorque) {
+                                                                ChVector3d& Fforce,
+                                                                ChVector3d& Mtorque) {
     assert(tapered_section);
 
     ChVectorDynamic<> displ(this->GetNdofs());
@@ -1519,8 +1519,8 @@ void ChElementBeamTaperedTimoshenko::EvaluateSectionForceTorque(const double eta
 }
 
 void ChElementBeamTaperedTimoshenko::EvaluateSectionStrain(const double eta,
-                                                           ChVector<>& StrainV_trans,
-                                                           ChVector<>& StrainV_rot) {
+                                                           ChVector3d& StrainV_trans,
+                                                           ChVector3d& StrainV_rot) {
     assert(tapered_section);
 
     ChVectorDynamic<> displ(this->GetNdofs());
@@ -1585,8 +1585,8 @@ void ChElementBeamTaperedTimoshenko::EvaluateSectionStrain(const double eta,
     StrainV_rot = sect_ek.segment(3, 3);
 }
 
-void ChElementBeamTaperedTimoshenko::EvaluateElementStrainEnergy(ChVector<>& StrainEnergyV_trans,
-                                                                 ChVector<>& StrainEnergyV_rot) {
+void ChElementBeamTaperedTimoshenko::EvaluateElementStrainEnergy(ChVector3d& StrainEnergyV_trans,
+                                                                 ChVector3d& StrainEnergyV_rot) {
     ChVectorDynamic<> displ(this->GetNdofs());
     this->GetStateBlock(displ);
 
@@ -1602,8 +1602,8 @@ void ChElementBeamTaperedTimoshenko::EvaluateElementStrainEnergy(ChVector<>& Str
     StrainEnergyV_rot = strain_energy_v.segment(3, 3);
 }
 
-void ChElementBeamTaperedTimoshenko::EvaluateElementDampingEnergy(ChVector<>& DampingEnergyV_trans,
-                                                                  ChVector<>& DampingEnergyV_rot) {
+void ChElementBeamTaperedTimoshenko::EvaluateElementDampingEnergy(ChVector3d& DampingEnergyV_trans,
+                                                                  ChVector3d& DampingEnergyV_rot) {
     ChVectorDynamic<> displ(this->GetNdofs());
     this->GetStateBlock(displ);
     ChVectorDynamic<> displ_dt(this->GetNdofs());
@@ -1630,11 +1630,11 @@ void ChElementBeamTaperedTimoshenko::LoadableGetStateBlock_x(int block_offset, C
 }
 
 void ChElementBeamTaperedTimoshenko::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = nodes[0]->GetPos_dt().eigen();
-    mD.segment(block_offset + 3, 3) = nodes[0]->GetWvel_loc().eigen();
+    mD.segment(block_offset + 0, 3) = nodes[0]->GetPosDer().eigen();
+    mD.segment(block_offset + 3, 3) = nodes[0]->GetAngVelLocal().eigen();
 
-    mD.segment(block_offset + 6, 3) = nodes[1]->GetPos_dt().eigen();
-    mD.segment(block_offset + 9, 3) = nodes[1]->GetWvel_loc().eigen();
+    mD.segment(block_offset + 6, 3) = nodes[1]->GetPosDer().eigen();
+    mD.segment(block_offset + 9, 3) = nodes[1]->GetAngVelLocal().eigen();
 }
 
 void ChElementBeamTaperedTimoshenko::LoadableStateIncrement(const unsigned int off_x,

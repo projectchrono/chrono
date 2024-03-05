@@ -15,9 +15,11 @@
 #ifndef CHMATRIX_H
 #define CHMATRIX_H
 
+#include <fstream>
+
 // Include these before ChMatrixEigenExtensions
 #include "chrono/serialization/ChArchive.h"
-#include "chrono/serialization/ChArchiveAsciiDump.h"
+#include "chrono/serialization/ChOutputASCII.h"
 
 // -----------------------------------------------------------------------------
 
@@ -89,6 +91,18 @@ using ChMatrixNM_col = Eigen::Matrix<T, M, N, Eigen::ColMajor>;
 
 ////template <typename T, int M, int N>
 ////using ChMatrixNMnoalign = Eigen::Matrix<T, M, N, Eigen::RowMajor | Eigen::DontAlign>;
+
+// -----------------------------------------------------------------------------
+
+/// Alias for a 6x6 matrix templated by coefficient type (row-major storage).
+template <typename T>
+using ChMatrix66 = ChMatrixNM<T, 6, 6>;
+
+/// Alias for a 6x6 matrix of doubles.
+using ChMatrix66d = ChMatrix66<double>;
+
+/// Alias for a 6x6 matrix of floats.
+using ChMatrix66f = ChMatrix66<float>;
 
 // -----------------------------------------------------------------------------
 
@@ -173,7 +187,7 @@ using ChSparseMatrix = Eigen::SparseMatrix<double, Eigen::RowMajor, int>;
 // -----------------------------------------------------------------------------
 
 /// Serialization of a dense matrix or vector into an ASCII stream (e.g. a file) in Matlab format.
-inline void StreamOutDenseMatlabFormat(ChMatrixConstRef A, ChStreamOutAscii& stream) {
+inline void StreamOutDenseMatlabFormat(ChMatrixConstRef A, std::ostream& stream) {
     for (int ii = 0; ii < A.rows(); ii++) {
         for (int jj = 0; jj < A.cols(); jj++) {
             stream << A(ii, jj);
@@ -189,16 +203,16 @@ inline void StreamInDenseMatlabFormat(const std::string& filename, ChMatrixDynam
     std::ifstream file_input(filename);
     std::vector<std::vector<double>> tmp_data;
     std::string line;
-    while (std::getline(file_input, line, '\n')) { // get line up to 'newline'
-        std::stringstream line_ss(line); // tmp
-        std::string subline; // tmp
-        std::vector<double> data_row; // tmp
-        while (std::getline(line_ss, subline, delim)) // split line at delimiter (eg. ',')
-            data_row.push_back(std::stod(subline)); // store sub parts in double vector
-        tmp_data.push_back(data_row); // add new numerical row in temporary data container
+    while (std::getline(file_input, line, '\n')) {     // get line up to 'newline'
+        std::stringstream line_ss(line);               // tmp
+        std::string subline;                           // tmp
+        std::vector<double> data_row;                  // tmp
+        while (std::getline(line_ss, subline, delim))  // split line at delimiter (eg. ',')
+            data_row.push_back(std::stod(subline));    // store sub parts in double vector
+        tmp_data.push_back(data_row);                  // add new numerical row in temporary data container
     }
-    size_t num_rows = tmp_data.size(); // get number of rows in file
-    size_t num_cols = tmp_data[0].size(); // get number of columns in file (assume all equal)
+    size_t num_rows = tmp_data.size();     // get number of rows in file
+    size_t num_cols = tmp_data[0].size();  // get number of columns in file (assume all equal)
     // Store parsed data in output ChMatrixDynamic<>
     matr.resize(num_rows, num_cols);
     for (int i = 0; i < num_rows; ++i)
@@ -245,7 +259,7 @@ inline void PasteMatrix(ChSparseMatrix& matrTo,
 
 /// Serialization of a sparse matrix to an ASCI stream (e.g., a file) in Matlab sparse matrix format.
 /// Note that row and column indices start at 1.
-inline void StreamOutSparseMatlabFormat(ChSparseMatrix& matr, ChStreamOutAscii& mstream) {
+inline void StreamOutSparseMatlabFormat(ChSparseMatrix& matr, std::ostream& mstream) {
     for (int ii = 0; ii < matr.rows(); ii++) {
         for (int jj = 0; jj < matr.cols(); jj++) {
             double elVal = matr.coeff(ii, jj);
@@ -257,7 +271,7 @@ inline void StreamOutSparseMatlabFormat(ChSparseMatrix& matr, ChStreamOutAscii& 
 }
 
 /// Serialization of a sparse matrix to an ASCII stream (for debugging; only the top-left 8x8 corner is printed).
-inline void StreamOut(ChSparseMatrix& matr, ChStreamOutAscii& stream) {
+inline void StreamOut(ChSparseMatrix& matr, std::ostream& stream) {
     int mrows = static_cast<int>(matr.rows());
     int mcols = static_cast<int>(matr.cols());
     stream << "\n"

@@ -300,15 +300,15 @@ bool ChTrackContactManager::InContact(TrackedCollisionFlag::Enum part) const {
 
 // -----------------------------------------------------------------------------
 
-ChVector<> ChTrackContactManager::GetSprocketResistiveTorque(VehicleSide side) const {
+ChVector3d ChTrackContactManager::GetSprocketResistiveTorque(VehicleSide side) const {
     const auto& contacts = (side == VehicleSide::LEFT) ? m_sprocket_L_contacts : m_sprocket_R_contacts;
     const auto& spoint =
         (side == VehicleSide::LEFT) ? m_sprocket_L->GetGearBody()->GetPos() : m_sprocket_R->GetGearBody()->GetPos();
 
-    ChVector<> torque(0);
+    ChVector3d torque(0);
     for (auto& c : contacts) {
-        ChVector<> F = c.m_csys * c.m_force;
-        ChVector<> T = c.m_csys * c.m_torque;
+        ChVector3d F = c.m_csys * c.m_force;
+        ChVector3d T = c.m_csys * c.m_torque;
         torque += (c.m_point - spoint).Cross(F) + T;
     }
 
@@ -317,13 +317,13 @@ ChVector<> ChTrackContactManager::GetSprocketResistiveTorque(VehicleSide side) c
 
 // -----------------------------------------------------------------------------
 
-bool ChTrackContactManager::OnReportContact(const ChVector<>& pA,
-                                            const ChVector<>& pB,
+bool ChTrackContactManager::OnReportContact(const ChVector3d& pA,
+                                            const ChVector3d& pB,
                                             const ChMatrix33<>& plane_coord,
                                             const double& distance,
                                             const double& eff_radius,
-                                            const ChVector<>& react_forces,
-                                            const ChVector<>& react_torques,
+                                            const ChVector3d& react_forces,
+                                            const ChVector3d& react_torques,
                                             ChContactable* modA,
                                             ChContactable* modB) {
     ContactInfo info;
@@ -575,7 +575,7 @@ void ChTrackCustomContact::ApplyForces() {
     ////std::cout << "Wheel-shoe collisions:  " << m_collision_manager->m_collisions_wheel.size() << std::endl;
     ////std::cout << "Ground-shoe collisions: " << m_collision_manager->m_collisions_ground.size() << std::endl;
 
-    ChVector<> force_shoe;
+    ChVector3d force_shoe;
 
     if (OverridesIdlerContact()) {
         for (auto& cInfo : m_collision_manager->m_collisions_idler) {

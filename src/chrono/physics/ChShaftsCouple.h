@@ -75,37 +75,37 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     /// Get the actual relative angle in terms of phase of shaft 1 respect to 2.
     double GetRelativeRotation() const { return (this->shaft1->GetPos() - this->shaft2->GetPos()); }
     /// Get the actual relative speed in terms of speed of shaft 1 respect to 2.
-    double GetRelativeRotation_dt() const { return (this->shaft1->GetPos_dt() - this->shaft2->GetPos_dt()); }
+    double GetRelativeRotation_dt() const { return (this->shaft1->GetPosDer() - this->shaft2->GetPosDer()); }
     /// Get the actual relative acceleration in terms of speed of shaft 1 respect to 2.
-    double GetRelativeRotation_dtdt() const { return (this->shaft1->GetPos_dtdt() - this->shaft2->GetPos_dtdt()); }
+    double GetRelativeRotation_dtdt() const { return (this->shaft1->GetPosDer2() - this->shaft2->GetPosDer2()); }
 
     //
     // SERIALIZATION
     //
 
-    virtual void ArchiveOut(ChArchiveOut& marchive) override {
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override {
         // version number
-        marchive.VersionWrite<ChShaftsCouple>();
+        archive_out.VersionWrite<ChShaftsCouple>();
 
         // serialize parent class
-        ChPhysicsItem::ArchiveOut(marchive);
+        ChPhysicsItem::ArchiveOut(archive_out);
 
         // serialize all member data:
-        marchive << CHNVP(shaft1);  //***TODO*** serialize, with shared ptr
-        marchive << CHNVP(shaft2);  //***TODO*** serialize, with shared ptr
+        archive_out << CHNVP(shaft1);  //// TODO  serialize, with shared ptr
+        archive_out << CHNVP(shaft2);  //// TODO  serialize, with shared ptr
     }
 
     /// Method to allow de serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override {
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override {
         // version number
-        /*int version =*/ marchive.VersionRead<ChShaftsCouple>();
+        /*int version =*/ archive_in.VersionRead<ChShaftsCouple>();
 
         // deserialize parent class:
-        ChPhysicsItem::ArchiveIn(marchive);
+        ChPhysicsItem::ArchiveIn(archive_in);
 
         // deserialize all member data:
-        marchive >> CHNVP(shaft1);  //***TODO*** serialize, with shared ptr
-        marchive >> CHNVP(shaft2);  //***TODO*** serialize, with shared ptr
+        archive_in >> CHNVP(shaft1);  //// TODO  serialize, with shared ptr
+        archive_in >> CHNVP(shaft2);  //// TODO  serialize, with shared ptr
     }
 };
 

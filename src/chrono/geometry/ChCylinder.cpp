@@ -18,7 +18,7 @@
 #include "chrono/geometry/ChCylinder.h"
 
 namespace chrono {
-namespace geometry {
+
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCylinder)
@@ -53,8 +53,8 @@ ChMatrix33<> ChCylinder::GetGyration() const {
 }
 
 ChAABB ChCylinder::GetBoundingBox(double radius, double height) {
-    return ChAABB(ChVector<>(-radius, -radius, -height / 2),  //
-                  ChVector<>(+radius, +radius, +height / 2));
+    return ChAABB(ChVector3d(-radius, -radius, -height / 2),  //
+                  ChVector3d(+radius, +radius, +height / 2));
 }
 
 ChAABB ChCylinder::GetBoundingBox() const {
@@ -71,25 +71,25 @@ double ChCylinder::GetBoundingSphereRadius() const {
 
 // -----------------------------------------------------------------------------
 
-void ChCylinder::ArchiveOut(ChArchiveOut& marchive) {
+void ChCylinder::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChCylinder>();
+    archive_out.VersionWrite<ChCylinder>();
     // serialize parent class
-    ChGeometry::ArchiveOut(marchive);
+    ChGeometry::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(r);
-    marchive << CHNVP(h);
+    archive_out << CHNVP(r);
+    archive_out << CHNVP(h);
 }
 
-void ChCylinder::ArchiveIn(ChArchiveIn& marchive) {
+void ChCylinder::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCylinder>();
+    /*int version =*/archive_in.VersionRead<ChCylinder>();
     // deserialize parent class
-    ChGeometry::ArchiveIn(marchive);
+    ChGeometry::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(r);
-    marchive >> CHNVP(h);
+    archive_in >> CHNVP(r);
+    archive_in >> CHNVP(h);
 }
 
-}  // end namespace geometry
+
 }  // end namespace chrono

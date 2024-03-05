@@ -34,10 +34,10 @@ ChLinkBushing::~ChLinkBushing() {}
 
 void ChLinkBushing::Initialize(std::shared_ptr<ChBody> body1,
                                std::shared_ptr<ChBody> body2,
-                               const ChCoordsys<>& pos,
-                               const ChMatrixNM<double, 6, 6>& K,
-                               const ChMatrixNM<double, 6, 6>& R) {
-    ChLinkMarkers::Initialize(body1, body2, pos);
+                               const ChFrame<>& frame,
+                               const ChMatrix66d& K,
+                               const ChMatrix66d& R) {
+    ChLinkMarkers::Initialize(body1, body2, frame);
     m_constants_K = K;  // K_x, K_y, K_z, KTheta_x, KTheta_y, KTheta_z
     m_constants_R = R;  // R_x, R_y, R_z, RTheta_x, RTheta_y, RTheta_z
 
@@ -78,8 +78,8 @@ void ChLinkBushing::Initialize(std::shared_ptr<ChBody> body1,
     }
 }
 
-ChVector<> ChLinkBushing::GetForce() const {
-    ChVector<> force(0.0);
+ChVector3d ChLinkBushing::GetForce() const {
+    ChVector3d force(0.0);
 
     if (force_X && force_X->IsActive())
         force.x() = force_X->GetForce(relM.pos.x(), relM_dt.pos.x(), ChTime);
@@ -93,8 +93,8 @@ ChVector<> ChLinkBushing::GetForce() const {
     return force;
 }
 
-ChVector<> ChLinkBushing::GetTorque() const {
-    ChVector<> torque(0.0);
+ChVector3d ChLinkBushing::GetTorque() const {
+    ChVector3d torque(0.0);
 
     if (force_Rx && force_Rx->IsActive())
         torque.x() = force_Rx->GetForce(relRotaxis.x(), relWvel.x(), ChTime);
@@ -108,20 +108,20 @@ ChVector<> ChLinkBushing::GetTorque() const {
     return torque;
 }
 
-void ChLinkBushing::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkBushing::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkBushing>();
+    archive_out.VersionWrite<ChLinkBushing>();
 
     // serialize parent class
-    ChLinkLock::ArchiveOut(marchive);
+    ChLinkLock::ArchiveOut(archive_out);
 }
 
-void ChLinkBushing::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkBushing::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    marchive.VersionRead<ChLinkBushing>();
+    archive_in.VersionRead<ChLinkBushing>();
 
     // deserialize parent class
-    ChLinkLock::ArchiveIn(marchive);
+    ChLinkLock::ArchiveIn(archive_in);
 }
 
 }  // end namespace chrono

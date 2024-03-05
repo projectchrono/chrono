@@ -1,9 +1,9 @@
 #include <algorithm>
 
-#include "chrono/core/ChMathematics.h"
 #include "chrono/assets/ChVisualShapeLine.h"
 #include "chrono/geometry/ChLineBezier.h"
 #include "chrono/utils/ChUtilsInputOutput.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/ChWorldFrame.h"
 
@@ -47,7 +47,7 @@ void ChMultiPathFollowerACCDriver::Create() {
     for (int i = 0; i < bezier_curve.size(); i++) {
         auto num_points = static_cast<unsigned int>(bezier_curve[i]->getNumPoints());
         auto path_asset = chrono_types::make_shared<ChVisualShapeLine>();
-        path_asset->SetLineGeometry(chrono_types::make_shared<geometry::ChLineBezier>(bezier_curve[i]));
+        path_asset->SetLineGeometry(chrono_types::make_shared<ChLineBezier>(bezier_curve[i]));
         path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
         path_asset->SetName(m_pathName);
         path_asset->SetNumRenderPoints(std::max<unsigned int>(2 * num_points, 400));
@@ -137,14 +137,14 @@ double ChMultiplePathSteeringController::Advance(const ChFrameMoving<>& ref_fram
     }
 
     // The "error" vector is the projection onto the horizontal plane of the vector between sentinel and target.
-    ChVector<> err_vec = m_target - m_sentinel;
+    ChVector3d err_vec = m_target - m_sentinel;
     ChWorldFrame::Project(err_vec);
 
     // Calculate the sign of the angle between the projections of the sentinel
     // vector and the target vector (with origin at vehicle location).
-    ChVector<> sentinel_vec = m_sentinel - ref_frame.GetPos();
+    ChVector3d sentinel_vec = m_sentinel - ref_frame.GetPos();
     ChWorldFrame::Project(sentinel_vec);
-    ChVector<> target_vec = m_target - ref_frame.GetPos();
+    ChVector3d target_vec = m_target - ref_frame.GetPos();
     ChWorldFrame::Project(target_vec);
 
     double temp = Vdot(Vcross(sentinel_vec, target_vec), ChWorldFrame::Vertical());

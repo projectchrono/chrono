@@ -25,7 +25,7 @@
 #include "chrono/physics/ChLoad.h"
 #include "chrono/physics/ChNodeXYZ.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 
 namespace chrono {
 
@@ -50,20 +50,20 @@ class ChLoaderXYZnode : public ChLoaderUVWatomic {
     }
 
     /// Set the applied nodal force, assumed to be constant in space and time.
-    void SetForce(const ChVector<>& mf) { force = mf; }
+    void SetForce(const ChVector3d& mf) { force = mf; }
 
     /// Get the applied force.
-    const ChVector<>& GetForce() const { return force; }
+    const ChVector3d& GetForce() const { return force; }
 
   private:
-    ChVector<> force;
+    ChVector3d force;
 };
 
 /// Force at XYZ node (ready to use load).
 class ChLoadXYZnode : public ChLoad<ChLoaderXYZnode> {
   public:
     ChLoadXYZnode(std::shared_ptr<ChNodeXYZ> node) : ChLoad<ChLoaderXYZnode>(node) {}
-    ChLoadXYZnode(std::shared_ptr<ChNodeXYZ> node, const ChVector<>& force) : ChLoad<ChLoaderXYZnode>(node) {
+    ChLoadXYZnode(std::shared_ptr<ChNodeXYZ> node, const ChVector3d& force) : ChLoad<ChLoaderXYZnode>(node) {
         this->loader.SetForce(force);
     }
 };
@@ -84,7 +84,7 @@ class ChApi ChLoadXYZnodeForce : public ChLoadCustom {
     /// Compute the force on the node, in absolute coordsystem,
     /// given position of node as abs_pos.
     /// Inherited classes MUST IMPLEMENT THIS.
-    virtual void ComputeForce(const ChVector<>& abs_pos, const ChVector<>& abs_vel, ChVector<>& abs_force) = 0;
+    virtual void ComputeForce(const ChVector3d& abs_pos, const ChVector3d& abs_vel, ChVector3d& abs_force) = 0;
 
     // Optional: inherited classes could implement this to avoid the
     // default numerical computation of jacobians:
@@ -98,7 +98,7 @@ class ChApi ChLoadXYZnodeForce : public ChLoadCustom {
 
     /// For diagnosis purposes, this can return the actual last computed value of
     /// the applied force, expressed in absolute coordinate system, assumed applied to node
-    ChVector<> GetForce() const { return computed_abs_force; }
+    ChVector3d GetForce() const { return computed_abs_force; }
 
   protected:
     /// Inherited classes could override this and return true, if the load benefits from a jacobian
@@ -107,7 +107,7 @@ class ChApi ChLoadXYZnodeForce : public ChLoadCustom {
 
     virtual void Update(double time) override;
 
-    ChVector<> computed_abs_force;
+    ChVector3d computed_abs_force;
 };
 
 /// Load representing a concentrated force acting on a ChNodeXYZ.
@@ -115,21 +115,21 @@ class ChApi ChLoadXYZnodeForce : public ChLoadCustom {
 class ChApi ChLoadXYZnodeForceAbsolute : public ChLoadXYZnodeForce {
   public:
     ChLoadXYZnodeForceAbsolute(std::shared_ptr<ChNodeXYZ> node,  ///< node to apply load to
-                               const ChVector<>& force           ///< force to apply, assumed in absolute coordsys,
+                               const ChVector3d& force           ///< force to apply, assumed in absolute coordsys,
     );
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLoadXYZnodeForceAbsolute* Clone() const override { return new ChLoadXYZnodeForceAbsolute(*this); }
 
     /// Compute the force on the node, in absolute coordsystem, given position of node as abs_pos.
-    virtual void ComputeForce(const ChVector<>& abs_pos, const ChVector<>& abs_vel, ChVector<>& abs_force) override;
+    virtual void ComputeForce(const ChVector3d& abs_pos, const ChVector3d& abs_vel, ChVector3d& abs_force) override;
 
     /// Set the applied force vector (expressed in absolute coordinates).
     /// The force is assumed constant, unless a scaling time function is provided.
-    void SetForceBase(const ChVector<>& force);
+    void SetForceBase(const ChVector3d& force);
 
     /// Return the current force vector (scaled by the current modulation value).
-    ChVector<> GetForce() const;
+    ChVector3d GetForce() const;
 
     /// Set modulation function.
     /// This is a function of time which (optionally) modulates the specified applied force.
@@ -137,7 +137,7 @@ class ChApi ChLoadXYZnodeForceAbsolute : public ChLoadXYZnodeForce {
     void SetModulationFunction(std::shared_ptr<ChFunction> modulation) { m_modulation = modulation; }
 
   protected:
-    ChVector<> m_force_base;  ///< base force value
+    ChVector3d m_force_base;  ///< base force value
 
     std::shared_ptr<ChFunction> m_modulation;  ///< modulation function of time
     double m_scale;                            ///< scaling factor (current modulation value)
@@ -165,7 +165,7 @@ class ChApi ChLoadXYZnodeXYZnode : public ChLoadCustomMultiple {
     /// Compute the force on the node A, in absolute coordsystem,
     /// given position and speed of node respect to the other. Node B gets the opposite.
     /// Inherited classes MUST IMPLEMENT THIS.
-    virtual void ComputeForce(const ChVector<>& rel_pos, const ChVector<>& rel_vel, ChVector<>& abs_force) = 0;
+    virtual void ComputeForce(const ChVector3d& rel_pos, const ChVector3d& rel_vel, ChVector3d& abs_force) = 0;
 
     // Optional: inherited classes could implement this to avoid the
     // default numerical computation of jacobians:
@@ -179,7 +179,7 @@ class ChApi ChLoadXYZnodeXYZnode : public ChLoadCustomMultiple {
 
     /// For diagnosis purposes, this can return the actual last computed value of
     /// the applied force, expressed in absolute coordinate system, assumed applied to node
-    ChVector<> GetForce() const { return computed_abs_force; }
+    ChVector3d GetForce() const { return computed_abs_force; }
 
   protected:
     /// Inherited classes could override this and return true, if the load benefits from a jacobian
@@ -188,7 +188,7 @@ class ChApi ChLoadXYZnodeXYZnode : public ChLoadCustomMultiple {
 
     virtual void Update(double time) override;
 
-    ChVector<> computed_abs_force;
+    ChVector3d computed_abs_force;
 };
 
 /// Load representing a spring between two ChNodeXYZ.
@@ -207,7 +207,7 @@ class ChApi ChLoadXYZnodeXYZnodeSpring : public ChLoadXYZnodeXYZnode {
 
     /// Compute the force on the nodeA, in absolute coordsystem,
     /// given relative position of nodeA respect to B, in absolute basis.
-    virtual void ComputeForce(const ChVector<>& rel_pos, const ChVector<>& rel_vel, ChVector<>& abs_force) override;
+    virtual void ComputeForce(const ChVector3d& rel_pos, const ChVector3d& rel_vel, ChVector3d& abs_force) override;
 
     /// Set stiffness, along direction.
     void SetStiffness(const double stiffness) { K = stiffness; }
@@ -248,7 +248,7 @@ class ChApi ChLoadXYZnodeXYZnodeBushing : public ChLoadXYZnodeXYZnode {
 
     /// Compute the force on the nodeA, in absolute coordsystem,
     /// given relative position of nodeA respect to B, in absolute basis
-    virtual void ComputeForce(const ChVector<>& rel_pos, const ChVector<>& rel_vel, ChVector<>& abs_force) override;
+    virtual void ComputeForce(const ChVector3d& rel_pos, const ChVector3d& rel_vel, ChVector3d& abs_force) override;
 
     /// Set force as a function of displacement on X. Default was constant zero.
     void SetFunctionForceX(std::shared_ptr<ChFunction> fx) { force_dX = fx; }
@@ -261,8 +261,8 @@ class ChApi ChLoadXYZnodeXYZnodeBushing : public ChLoadXYZnodeXYZnode {
 
     /// Set xyz constant damping coefficients [Ns/m]
     /// along the three absolute directions xyz
-    void SetDamping(const ChVector<> damping) { R = damping; }
-    ChVector<> GetDamping() const { return R; }
+    void SetDamping(const ChVector3d damping) { R = damping; }
+    ChVector3d GetDamping() const { return R; }
 
     /// Use this to enable the stiff force computation (i.e. it enables the
     /// automated computation of the jacobian by numerical differentiation to
@@ -274,7 +274,7 @@ class ChApi ChLoadXYZnodeXYZnodeBushing : public ChLoadXYZnodeXYZnode {
     std::shared_ptr<ChFunction> force_dY;
     std::shared_ptr<ChFunction> force_dZ;
 
-    ChVector<> R;
+    ChVector3d R;
 
     bool is_stiff;
 
@@ -300,7 +300,7 @@ class ChApi ChLoadXYZnodeBody : public ChLoadCustomMultiple {
     /// auxiliary frame attached to body) given relative position of nodeA respect to B
     /// Body will receive the reaction force.
     /// Inherited classes MUST IMPLEMENT THIS.
-    virtual void ComputeForce(const ChFrameMoving<>& rel_AB, ChVector<>& loc_force) = 0;
+    virtual void ComputeForce(const ChFrameMoving<>& rel_AB, ChVector3d& loc_force) = 0;
 
     // Optional: inherited classes could implement this to avoid the
     // default numerical computation of jacobians:
@@ -308,7 +308,7 @@ class ChApi ChLoadXYZnodeBody : public ChLoadCustomMultiple {
 
     /// For diagnosis purposes, this can return the actual last computed value of
     /// the applied force, expressed in coordinate system of loc_application_B, assumed applied to node.
-    ChVector<> GetForce() const { return computed_loc_force; }
+    ChVector3d GetForce() const { return computed_loc_force; }
 
     /// Set the application frame of bushing on bodyB
     void SetApplicationFrameB(const ChFrame<>& application_frame) { loc_application_B = application_frame; }
@@ -322,7 +322,7 @@ class ChApi ChLoadXYZnodeBody : public ChLoadCustomMultiple {
 
   protected:
     ChFrame<> loc_application_B;    ///< application point on body B (local)
-    ChVector<> computed_loc_force;  ///< store computed values here
+    ChVector3d computed_loc_force;  ///< store computed values here
     ChFrameMoving<> frame_Aw;       ///< for results
     ChFrameMoving<> frame_Bw;       ///< for results
 
@@ -350,7 +350,7 @@ class ChApi ChLoadXYZnodeBodySpring : public ChLoadXYZnodeBody {
 
     /// Compute the force on the nodeA, in local coordsystem of SetApplicationFrameB (the
     /// auxiliary frame attached to body) given relative position of nodeA respect to B
-    virtual void ComputeForce(const ChFrameMoving<>& rel_AB, ChVector<>& loc_force) override;
+    virtual void ComputeForce(const ChFrameMoving<>& rel_AB, ChVector3d& loc_force) override;
 
     /// Set stiffness, along direction.
     void SetStiffness(const double stiffness) { K = stiffness; }
@@ -391,7 +391,7 @@ class ChApi ChLoadXYZnodeBodyBushing : public ChLoadXYZnodeBody {
 
     /// Compute the force on the nodeA, in local coordsystem of SetApplicationFrameB (the
     /// auxiliary frame attached to body) given relative position of nodeA respect to B
-    virtual void ComputeForce(const ChFrameMoving<>& rel_AB, ChVector<>& loc_force) override;
+    virtual void ComputeForce(const ChFrameMoving<>& rel_AB, ChVector3d& loc_force) override;
 
     /// Set force as a function of displacement on X. Default was constant zero.
     void SetFunctionForceX(std::shared_ptr<ChFunction> fx) { force_dX = fx; }
@@ -404,8 +404,8 @@ class ChApi ChLoadXYZnodeBodyBushing : public ChLoadXYZnodeBody {
 
     /// Set xyz constant damping coefficients along the three directions xyz, assuming
     /// local xyz directions of the frame attached to body via SetApplicationFrameB.
-    void SetDamping(const ChVector<> damping) { R = damping; }
-    ChVector<> GetDamping() const { return R; }
+    void SetDamping(const ChVector3d damping) { R = damping; }
+    ChVector3d GetDamping() const { return R; }
 
     /// Use this to enable the stiff force computation (i.e. it enables the
     /// automated computation of the jacobian by numerical differentiation to
@@ -417,7 +417,7 @@ class ChApi ChLoadXYZnodeBodyBushing : public ChLoadXYZnodeBody {
     std::shared_ptr<ChFunction> force_dY;
     std::shared_ptr<ChFunction> force_dZ;
 
-    ChVector<> R;
+    ChVector3d R;
 
     bool is_stiff;
 

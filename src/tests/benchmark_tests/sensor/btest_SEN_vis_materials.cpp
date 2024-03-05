@@ -37,13 +37,12 @@
 #include "chrono_sensor/filters/ChFilterVisualize.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 float end_time = 100.0f;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------
     // Create the system
@@ -95,7 +94,7 @@ int main(int argc, char* argv[]) {
     auto cam = chrono_types::make_shared<ChCameraSensor>(
         sphere2,                                                             // body camera is attached to
         30.0f,                                                               // update rate in Hz
-        chrono::ChFrame<double>({-12, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({-12, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1920,                                                                // image width
         1080,                                                                // image height
         (float)CH_C_PI / 3                                                   // FOV
@@ -107,7 +106,7 @@ int main(int argc, char* argv[]) {
     auto cam_g = chrono_types::make_shared<ChCameraSensor>(
         sphere2,                                                             // body camera is attached to
         30.0f,                                                               // update rate in Hz
-        chrono::ChFrame<double>({-12, 0, 0}, Q_from_AngAxis(0, {0, 1, 0})),  // offset pose
+        chrono::ChFrame<double>({-12, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1920,                                                                // image width
         1080,                                                                // image height
         (float)CH_C_PI / 3, 1, CameraLensModelType::PINHOLE, true            // FOV

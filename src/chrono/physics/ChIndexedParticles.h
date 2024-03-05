@@ -66,11 +66,11 @@ class ChApi ChIndexedParticles : public ChPhysicsItem {
 
     /// Number of coordinates of the particle cluster.
     /// (x 7 because quaternions are used for rotation)
-    virtual int GetDOF() override { return 7 * (int)GetNparticles(); }
+    virtual int GetNumCoordinatesPos() override { return 7 * (int)GetNparticles(); }
 
     /// Number of coordinates of the particle cluster.
     /// (x 6 because derivatives use angular velocity)
-    virtual int GetDOF_w() override { return 6 * (int)GetNparticles(); }
+    virtual int GetNumCoordinatesVel() override { return 6 * (int)GetNparticles(); }
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// For a ChIndexedParticles, this returns the frame of the corresponding particle.
@@ -79,10 +79,10 @@ class ChApi ChIndexedParticles : public ChPhysicsItem {
     virtual unsigned int GetNumVisualModelClones() const override { return (unsigned int)GetNparticles(); }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 CH_CLASS_VERSION(ChIndexedParticles,0)

@@ -18,7 +18,7 @@
 #include <cstdlib>
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/timestepper/ChState.h"
 
 namespace chrono {
@@ -57,23 +57,23 @@ public:
 /// Derived concrete classes can use time integrators for the ChTimestepper hierarchy.
 class ChApi ChIntegrable {
   public:
-    /// Return the number of coordinates in the state Y.
-    virtual int GetNcoords_y() = 0;
 
-    /// Return the number of coordinates in the state increment.
-    /// This is a base implementation that works in many cases where dim(Y) = dim(dy),
-    /// but it can be overridden in the case that y contains quaternions for rotations
-    /// rather than simple y+dy
-    virtual int GetNcoords_dy() { return GetNcoords_y(); }
+    /// Return the number of coordinates at the position level.
+    virtual int GetNumCoordinatesPos() = 0;
 
-    /// Return the number of lagrangian multipliers (constraints).
-    /// By default returns 0.
-    virtual int GetNconstr() { return 0; }
+    /// Return the number of coordinates at the velocity level.
+    virtual int GetNumCoordinatesVel() = 0;
+
+    /// Return the number of coordinates at the acceleration level.
+    virtual int GetNumCoordinatesAcc() { return GetNumCoordinatesVel(); }
+
+    /// Return the number of lagrangian multipliers i.e. of scalar constraints.
+    virtual int GetNumConstraints() { return 0; }
 
     /// Set up the system state.
     virtual void StateSetup(ChState& y, ChStateDelta& dy) {
-        y.resize(GetNcoords_y());
-        dy.resize(GetNcoords_dy());
+        y.resize(GetNumCoordinatesPos() + GetNumCoordinatesVel());
+        dy.resize(GetNumCoordinatesVel() + GetNumCoordinatesAcc());
     }
 
     /// Gather system state in specified array.
@@ -180,7 +180,7 @@ class ChApi ChIntegrable {
                                       bool full_update,             ///< if true, perform a full update during scatter
                                       bool force_setup              ///< if true, call the solver's Setup() function
     ) {
-        throw ChException("StateSolveCorrection() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("StateSolveCorrection() not implemented, implicit integrators cannot be used. ");
     }
 
     /// Increment a vector R (usually the residual in a Newton Raphson iteration
@@ -190,7 +190,7 @@ class ChApi ChIntegrable {
                                  const ChVectorDynamic<>& v,  ///< the v vector
                                  const double c               ///< a scaling factor
                                  ) {
-        throw ChException("LoadResidual_Hv() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("LoadResidual_Hv() not implemented, implicit integrators cannot be used. ");
     }
 
     /// Increment a vector R (usually the residual in a Newton Raphson iteration
@@ -199,7 +199,7 @@ class ChApi ChIntegrable {
     virtual void LoadResidual_F(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
                                 const double c         ///< a scaling factor
                                 ) {
-        throw ChException("LoadResidual_F() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("LoadResidual_F() not implemented, implicit integrators cannot be used. ");
     }
 
     /// Increment a vector R (usually the residual in a Newton Raphson iteration
@@ -209,7 +209,7 @@ class ChApi ChIntegrable {
                                   const ChVectorDynamic<>& L,  ///< the L vector
                                   const double c               ///< a scaling factor
                                   ) {
-        throw ChException("LoadResidual_CqL() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("LoadResidual_CqL() not implemented, implicit integrators cannot be used. ");
     }
 
     /// Increment a vector Qc (usually the residual in a Newton Raphson iteration
@@ -220,7 +220,7 @@ class ChApi ChIntegrable {
                                   const bool do_clamp = false,  ///< enable optional clamping of Qc
                                   const double mclam = 1e30     ///< clamping value
                                   ) {
-        throw ChException("LoadConstraint_C() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("LoadConstraint_C() not implemented, implicit integrators cannot be used. ");
     }
 
     /// Increment a vector Qc (usually the residual in a Newton Raphson iteration
@@ -229,7 +229,7 @@ class ChApi ChIntegrable {
     virtual void LoadConstraint_Ct(ChVectorDynamic<>& Qc,  ///< result: the Qc residual, Qc += c*Ct
                                    const double c          ///< a scaling factor
                                    ) {
-        throw ChException("LoadConstraint_Ct() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("LoadConstraint_Ct() not implemented, implicit integrators cannot be used. ");
     }
 };
 
@@ -242,17 +242,6 @@ class ChApi ChIntegrable {
 /// Such systems permit the use of special integrators that can exploit the particular system structure.
 class ChApi ChIntegrableIIorder : public ChIntegrable {
   public:
-    /// Return the number of position coordinates x in y = {x, v}
-    virtual int GetNcoords_x() = 0;
-
-    /// Return the number of speed coordinates of v in y = {x, v} and  dy/dt={v, a}
-    /// This is a base implementation that works in many cases where dim(v) = dim(x), but
-    /// might be less ex. if x uses quaternions and v uses angular vel.
-    virtual int GetNcoords_v() { return GetNcoords_x(); }
-
-    /// Return the number of acceleration coordinates of a in dy/dt={v, a}
-    /// This is a default implementation that works in almost all cases, as dim(a) = dim(v),
-    virtual int GetNcoords_a() { return GetNcoords_v(); }
 
     /// Set up the system state with separate II order components x, v, a
     /// for y = {x, v} and  dy/dt={v, a}
@@ -362,7 +351,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
         bool full_update,             ///< if true, perform a full update during scatter
         bool force_setup              ///< if true, call the solver's Setup() function
     ) {
-        throw ChException("StateSolveCorrection() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("StateSolveCorrection() not implemented, implicit integrators cannot be used. ");
     }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L
@@ -373,7 +362,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     virtual void LoadResidual_F(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
                                 const double c         ///< a scaling factor
                                 ) override {
-        throw ChException("LoadResidual_F() not implemented, integrator cannot be used. ");
+        throw std::runtime_error("LoadResidual_F() not implemented, integrator cannot be used. ");
     }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L
@@ -385,7 +374,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                  const ChVectorDynamic<>& w,  ///< the w vector
                                  const double c               ///< a scaling factor
                                  ) {
-        throw ChException("LoadResidual_Mv() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("LoadResidual_Mv() not implemented, implicit integrators cannot be used. ");
     }
 
     /// Adds the lumped mass to a Md vector, representing a mass diagonal matrix. Used by lumped explicit integrators.
@@ -395,7 +384,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                    double& err,            ///< result: not touched if lumping does not introduce errors
                                    const double c          ///< a scaling factor
     ) {
-        throw ChException(
+        throw std::runtime_error(
             "LoadLumpedMass_Md() not implemented, explicit integrators with mass lumping cannot be used. ");
     }
 
@@ -408,7 +397,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                   const ChVectorDynamic<>& L,  ///< the L vector
                                   const double c               ///< a scaling factor
                                   ) override {
-        throw ChException("LoadResidual_CqL() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("LoadResidual_CqL() not implemented, implicit integrators cannot be used. ");
     }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L
@@ -421,7 +410,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                   const bool do_clamp = false,  ///< enable optional clamping of Qc
                                   const double mclam = 1e30     ///< clamping value
                                   ) override {
-        throw ChException("LoadConstraint_C() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("LoadConstraint_C() not implemented, implicit integrators cannot be used. ");
     }
 
     /// Assuming   M*a = F(x,v,t) + Cq'*L
@@ -432,7 +421,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     virtual void LoadConstraint_Ct(ChVectorDynamic<>& Qc,  ///< result: the Qc residual, Qc += c*Ct
                                    const double c          ///< a scaling factor
                                    ) override {
-        throw ChException("LoadConstraint_Ct() not implemented, implicit integrators cannot be used. ");
+        throw std::runtime_error("LoadConstraint_Ct() not implemented, implicit integrators cannot be used. ");
     }
 
     //
@@ -449,14 +438,6 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
     // NOTE: performance penalty is not a big issue since one should try to use
     //   custom II order timesteppers if possible.
     // NOTE: children classes does not need to override those default functions.
-
-    /// Return the number of coordinates in the state Y.
-    /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
-    virtual int GetNcoords_y() override { return GetNcoords_x() + GetNcoords_v(); }
-
-    /// Return the number of coordinates in the state increment.
-    /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
-    virtual int GetNcoords_dy() override { return GetNcoords_v() + GetNcoords_a(); }
 
     /// Gather system state in specified array.
     /// (overrides base - just a fallback to enable using with plain 1st order timesteppers)
@@ -522,7 +503,7 @@ class ChApi ChIntegrableIIorder : public ChIntegrable {
                                       bool force_state_scatter,
                                       bool full_update,
                                       bool force_setup) override final {
-        throw ChException(
+        throw std::runtime_error(
             "StateSolveCorrection() not implemented for ChIntegrableIIorder, implicit integrators for Ist order cannot "
             "be used. ");
     }

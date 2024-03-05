@@ -28,7 +28,7 @@ namespace vehicle {
 // direction of the crankshaft, in chassis local coords. This is needed because
 // ChShaftsBody could transfer rolling torque to the chassis.
 // -----------------------------------------------------------------------------
-ChEngineShafts::ChEngineShafts(const std::string& name, const ChVector<>& dir_motor_block)
+ChEngineShafts::ChEngineShafts(const std::string& name, const ChVector3d& dir_motor_block)
     : ChEngine(name), m_dir_motor_block(dir_motor_block) {}
 
 ChEngineShafts::~ChEngineShafts() {
@@ -77,7 +77,7 @@ void ChEngineShafts::Initialize(std::shared_ptr<ChChassis> chassis) {
     sys->Add(m_engine);
 
     // The thermal engine requires a torque curve
-    auto mTw = chrono_types::make_shared<ChFunction_Recorder>();
+    auto mTw = chrono_types::make_shared<ChFunctionInterp>();
     SetEngineTorqueMap(mTw);
     m_engine->SetTorqueCurve(mTw);
 
@@ -88,7 +88,7 @@ void ChEngineShafts::Initialize(std::shared_ptr<ChChassis> chassis) {
     sys->Add(m_engine_losses);
 
     // The engine brake model requires a torque curve
-    auto mTw_losses = chrono_types::make_shared<ChFunction_Recorder>();
+    auto mTw_losses = chrono_types::make_shared<ChFunctionInterp>();
     SetEngineLossesMap(mTw_losses);
     m_engine_losses->SetTorqueCurve(mTw_losses);
 }
@@ -96,7 +96,7 @@ void ChEngineShafts::Initialize(std::shared_ptr<ChChassis> chassis) {
 // -----------------------------------------------------------------------------
 void ChEngineShafts::Synchronize(double time, const DriverInputs& driver_inputs, double motorshaft_speed) {
     // Apply shaft speed
-    m_motorshaft->SetPos_dt(motorshaft_speed);
+    m_motorshaft->SetPosDer(motorshaft_speed);
 
     // Update the throttle level in the thermal engine
     m_engine->SetThrottle(driver_inputs.m_throttle);

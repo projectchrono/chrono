@@ -19,7 +19,6 @@
 #include <vector>
 
 #include "chrono/physics/ChBodyEasy.h"
-#include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono/timestepper/ChTimestepper.h"
@@ -49,7 +48,7 @@ using namespace chrono::postprocess;
 const std::string out_dir = GetChronoOutputPath() + "FEA_SHELLS";
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Create (if needed) output directory
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -74,10 +73,10 @@ int main(int argc, char* argv[]) {
     std::shared_ptr<ChNodeFEAxyz> nodePlotB;
     std::vector<std::shared_ptr<ChNodeFEAxyz>> nodesLoad;
 
-    ChFunction_Recorder ref_X;
-    ChFunction_Recorder ref_Y;
+    ChFunctionInterp ref_X;
+    ChFunctionInterp ref_Y;
 
-    ChVector<> load_force;
+    ChVector3d load_force;
 
     //
     // BENCHMARK 1
@@ -101,12 +100,12 @@ int main(int argc, char* argv[]) {
         // Create nodes
         double L = 1.0;
 
-        ChVector<> p0(0, 0, 0);
-        ChVector<> p1(L, 0, 0);
-        ChVector<> p2(0, L, 0);
-        ChVector<> p3(L, L, 0);
-        ChVector<> p4(-L, L, 0);
-        ChVector<> p5(L, -L, 0);
+        ChVector3d p0(0, 0, 0);
+        ChVector3d p1(L, 0, 0);
+        ChVector3d p2(0, L, 0);
+        ChVector3d p3(L, L, 0);
+        ChVector3d p4(-L, L, 0);
+        ChVector3d p5(L, -L, 0);
 
         auto node0 = chrono_types::make_shared<ChNodeFEAxyz>(p0);
         auto node1 = chrono_types::make_shared<ChNodeFEAxyz>(p1);
@@ -133,35 +132,35 @@ int main(int argc, char* argv[]) {
         // TEST
         sys.Setup();
         sys.Update();
-        GetLog() << "BST initial: \n"
-                 << "Area: " << element->area << "\n"
-                 << "l0: " << element->l0 << "\n"
-                 << "phi0: " << element->phi0 << "\n"
-                 << "k0: " << element->k0 << "\n"
-                 << "e0: " << element->e0 << "\n";
+        std::cout << "BST initial: \n"
+                  << "Area: " << element->area << "\n"
+                  << "l0: " << element->l0 << "\n"
+                  << "phi0: " << element->phi0 << "\n"
+                  << "k0: " << element->k0 << "\n"
+                  << "e0: " << element->e0 << "\n";
 
-        node1->SetPos(node1->GetPos() + ChVector<>(0.1, 0, 0));
+        node1->SetPos(node1->GetPos() + ChVector3d(0.1, 0, 0));
 
         sys.Update();
         ChVectorDynamic<double> Fi(element->GetNdofs());
         element->ComputeInternalForces(Fi);
-        GetLog() << "BST updated: \n"
-                 << "phi: " << element->phi << "\n"
-                 << "k: " << element->k << "\n"
-                 << "e: " << element->e << "\n"
-                 << "m: " << element->m << "\n"
-                 << "n: " << element->n << "\n";
-        ChVector<> resultant = VNULL;
-        GetLog() << "Fi= \n";
+        std::cout << "BST updated: \n"
+                  << "phi: " << element->phi << "\n"
+                  << "k: " << element->k << "\n"
+                  << "e: " << element->e << "\n"
+                  << "m: " << element->m << "\n"
+                  << "n: " << element->n << "\n";
+        ChVector3d resultant = VNULL;
+        std::cout << "Fi= \n";
         for (int i = 0; i < Fi.size(); ++i) {
             if (i % 3 == 0) {
-                GetLog() << "-------" << i / 3 << "\n";
-                ChVector<> fi = Fi.segment(i, 3);
+                std::cout << "-------" << i / 3 << "\n";
+                ChVector3d fi = Fi.segment(i, 3);
                 resultant += fi;
             }
-            GetLog() << Fi(i) << "\n";
+            std::cout << Fi(i) << "\n";
         }
-        GetLog() << "resultant: " << resultant << "\n";
+        std::cout << "resultant: " << resultant << "\n";
         // system("pause");
     }
 
@@ -196,7 +195,7 @@ int main(int argc, char* argv[]) {
         std::vector<std::shared_ptr<ChNodeFEAxyz>> nodes;  // for future loop when adding elements
         for (size_t iz = 0; iz <= nsections_z; ++iz) {
             for (size_t ix = 0; ix <= nsections_x; ++ix) {
-                ChVector<> p(ix * (L_x / nsections_x), 0, iz * (L_z / nsections_z));
+                ChVector3d p(ix * (L_x / nsections_x), 0, iz * (L_z / nsections_z));
 
                 auto node = chrono_types::make_shared<ChNodeFEAxyz>(p);
 
@@ -288,7 +287,8 @@ int main(int argc, char* argv[]) {
         auto material = chrono_types::make_shared<ChMaterialShellKirchhoff>(elasticity);
         material->SetDensity(density);
 
-        ChMeshFileLoader::BSTShellFromObjFile(mesh, GetChronoDataFile("models/sphere.obj").c_str(), material, thickness);
+        ChMeshFileLoader::BSTShellFromObjFile(mesh, GetChronoDataFile("models/sphere.obj").c_str(), material,
+                                              thickness);
 
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(0)))
             mnode->SetFixed(true);
@@ -317,7 +317,7 @@ int main(int argc, char* argv[]) {
 
     if (false) {
         // Create a contact material
-        auto mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+        auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
         mat->SetYoungModulus(6e4f);
         mat->SetFriction(0.3f);
         mat->SetRestitution(0.5f);
@@ -335,10 +335,10 @@ int main(int argc, char* argv[]) {
 
         // Create a fixed collision shape
         auto cylinder =
-            chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, 0.1, 1.0, 1000, true, true, mat);
+            chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.1, 1.0, 1000, true, true, mat);
         cylinder->SetBodyFixed(true);
-        cylinder->SetPos(ChVector<>(0.75, -0.25, 0.5));
-        cylinder->SetRot(Q_from_AngZ(CH_C_PI_2));
+        cylinder->SetPos(ChVector3d(0.75, -0.25, 0.5));
+        cylinder->SetRot(QuatFromAngleZ(CH_C_PI_2));
         cylinder->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.4f, 0.4f));
         sys.AddBody(cylinder);
     }
@@ -351,9 +351,9 @@ int main(int argc, char* argv[]) {
     vsys->Initialize();
     vsys->AddLogo();
     vsys->AddSkyBox();
-    vsys->AddCamera(ChVector<>(1, 0.3, 1.3), ChVector<>(0.5, -0.3, 0.5));
-    vsys->AddLight(ChVector<>(2, 2, 0), 6, ChColor(0.6f, 0.6f, 0.6f));
-    vsys->AddLight(ChVector<>(0, -2, 2), 6, ChColor(0.6f, 0.6f, 0.6f));
+    vsys->AddCamera(ChVector3d(1, 0.3, 1.3), ChVector3d(0.5, -0.3, 0.5));
+    vsys->AddLight(ChVector3d(2, 2, 0), 6, ChColor(0.6f, 0.6f, 0.6f));
+    vsys->AddLight(ChVector3d(0, -2, 2), 6, ChColor(0.6f, 0.6f, 0.6f));
 
     // Change solver to PardisoMKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -369,8 +369,8 @@ int main(int argc, char* argv[]) {
     sys.Setup();
     sys.Update();
 
-    ChFunction_Recorder rec_X;
-    ChFunction_Recorder rec_Y;
+    ChFunctionInterp rec_X;
+    ChFunctionInterp rec_Y;
 
     while (vsys->Run()) {
         vsys->BeginScene();
@@ -378,13 +378,12 @@ int main(int argc, char* argv[]) {
         vsys->EndScene();
         sys.DoStepDynamics(timestep);
     }
-    
-    
+
     // EXPLICIT INTEGRATION
-    // 
+    //
     // Explicit integration is an alternative to implicit integration. If you want to test
     // the explicit integration, just delete the previous while(){...} loop and uncomment the following piece of code.
-    // 
+    //
     // As you may know, explicit integration does not have to solve systems with stiffness or damping matrices at each
     // time step, so each time step has less CPU overhead, but this comes at a cost: very short time steps must
     // be used otherwise the integration will diverge - especially if the system has high stiffness and/or low masses.
@@ -393,20 +392,20 @@ int main(int argc, char* argv[]) {
     //   ChTimestepperHeun              timestep = 0.0001   (Heun is like a 2nd order Runge Kutta)
     //   ChTimestepperRungeKuttaExpl    timestep = 0.0005   (the famous 4th order Runge Kutta, of course slower)
     //
-    // You will see that the explicit integrator does not introduce numerical damping unlike implicit integrators, 
-    // so the motion will be more oscillatory and undamped, thus amplificating the risk of divergence (if you add ù
+    // You will see that the explicit integrator does not introduce numerical damping unlike implicit integrators,
+    // so the motion will be more oscillatory and undamped, thus amplificating the risk of divergence (if you add ï¿½
     // structural damping, this might help with stability, by the way)
-    // 
+    //
     // In explicit integrators, you can optionally enable mass lumping via  SetDiagonalLumpingON() , just remember:
     // - this helps reducing CPU overhead because it does not lead to linear systems
     // - not all finite elements/bodies support this: nodes with non-diagonal inertias lead to approximation in lumping
-    // - to avoid linear systems, this option also enables "constraints by penalty". Constraints, if any, 
+    // - to avoid linear systems, this option also enables "constraints by penalty". Constraints, if any,
     //   will turn into penalty forces. Penalty factors can be set as optional parameters in SetDiagonalLumpingON(..)
-    //   It is not the case of this demo, but if you add constraints, you'll see that they will be satisfied approximately
-    //   with some oscillatory clearance. The higher the penalty, the smaller the amplitude of such clearances, but the higher
-    //   the risk of divergence.
-    // 
-    // Final tip: if the time step is extremely small, it is not worth while rendering all time steps, in some cases the 
+    //   It is not the case of this demo, but if you add constraints, you'll see that they will be satisfied
+    //   approximately with some oscillatory clearance. The higher the penalty, the smaller the amplitude of such
+    //   clearances, but the higher the risk of divergence.
+    //
+    // Final tip: if the time step is extremely small, it is not worth while rendering all time steps, in some cases the
     // video rendering could become the real bottleneck.
     /*
     auto explicit_timestepper = chrono_types::make_shared<ChTimestepperHeun>(&sys);

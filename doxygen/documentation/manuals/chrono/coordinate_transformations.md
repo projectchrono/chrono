@@ -7,38 +7,36 @@ This documentation component introduces important concepts used through the enti
 \tableofcontents
 
 
-# Vectors  {#manual_ChVector}
+# Vectors  {#manual_ChVector3}
 
 
 Vectors that represent 3D points in space are defined by means of the 
-@ref chrono::ChVector class. 
+@ref chrono::ChVector3 class. 
 In mathematical notation:
 
 \f[ 
 \mathbf{p}=\{p_x,p_y,p_z\}
 \f]
 
-The ChVector<> class is templated. One can have vectors with single 
-precision, as ChVector<float>, with double precision,
-as ChVector<double>, etc. 
-The default data type is `double` precision; i.e., ChVector<> defaults to ChVector<double>.
+The ChVector3 class is templated. One can have vectors in single precision, as ChVector3<float>, in double precision, as ChVector3<double>, etc. 
+The default data type is `double` precision; i.e., ChVector3<> defaults to ChVector3<double>.
  
 
 Example, creating a vector:
 
 ~~~{.cpp}
-ChVector<> mvect1(2,3,4);
+ChVector3<> mvect1(2,3,4);
 ~~~
 Add, subtract, multiply vectors, using +,-,* operators. 
 
 ~~~{.cpp}
-ChVector<double> mvect1(2,3,4);	 // Create a vector with given the 2,3,4 ‘double’ components
+ChVector3<double> mvect1(2,3,4);	 // Create a vector with given the 2,3,4 ‘double’ components
 
-ChVector<float> mvect2(4,1,2); 	// Create a vector with given the 4,1,2 ‘float’ components
+ChVector3<float> mvect2(4,1,2); 	// Create a vector with given the 4,1,2 ‘float’ components
 
-ChVector<> mvect3(); 	// Create a 0,0,0, vector. The <> defaults to ‘double’
+ChVector3<> mvect3(); 	// Create a 0,0,0, vector. The <> defaults to ‘double’
 
-ChVector<> mvect4(mvect1 + mvect2);	 // Create a vector by copying another (a result from +)
+ChVector3<> mvect4(mvect1 + mvect2);	 // Create a vector by copying another (a result from +)
 
 mvect3 = mvect1 + mvect2; 	// Vector operators: +, - 
 
@@ -107,9 +105,9 @@ The rotation of a point by a quaternion can be done easily
 by using the .Rotate() member function of quaternions. The example below shows how to rotate a point 20 degrees about y-axis:
 
 ~~~{.cpp}
-ChVector vA(1,2,3);
-ChVector vB();
-ChQuaternion qA = Q_from_AngAxis(20 * CH_C_DEG_TO_RAD, VECT_Y);
+ChVector3<> vA(1,2,3);
+ChVector3<> vB();
+ChQuaternion<> qA = Q_from_AngAxis(20 * CH_C_DEG_TO_RAD, VECT_Y);
 vB = qA.Rotate(vA);
 ~~~
 
@@ -144,29 +142,24 @@ ChMatrix33<> mB(1);  // Unit matrix, this is a rotation matrix, meaning no rotat
 ChMatrix33<> mC(quat); // Build a rotation matrix from a given quaternion
 ~~~
 
-The * operator can multiply two rotation matrices, 
-for instance a rotation mA followed by a rotation mB becomes:
+The * operator can multiply two rotation matrices, for instance a rotation mA followed by a rotation mB becomes:
 
 ~~~{.cpp}
 ChMatrix33<> mC = mB * mA;
 ~~~
 
-The * operator can multiply a ChVector<>,
-this corresponds to rotating the vector:
+The * operator can multiply a ChVector3<>, this corresponds to rotating the vector:
 
 ~~~{.cpp}
-ChVector<> vB = m * vA;
+ChVector3<> vB = m * vA;
 ~~~
 
-The inverse rotation is the inverse of the matrix, 
-which is also the transpose.
+The inverse rotation is the inverse of the matrix,  which is also the transpose.
 
 
 # ChCoordsys   {#manual_ChCoordsys}
 
-A @ref chrono::ChCoordsys represents a coordinate system in 
-3D space. It embeds both a vector (coordinate translation \f$ \mathbf{d} \f$ ) 
-and a quaternion (coordinate rotation \f$ \mathbf{q} \f$ ):  
+A @ref chrono::ChCoordsys represents a coordinate system in  3D space. It embeds both a vector (coordinate translation \f$ \mathbf{d} \f$ ) and a quaternion (coordinate rotation \f$ \mathbf{q} \f$ ):  
 
 \f[
 \mathbf{c}=\{\mathbf{d},\mathbf{q}\}
@@ -177,8 +170,7 @@ The ChCoordys is a lightweight version of a ChFrame, which is discussed next.
 
 # ChFrame   {#manual_ChFrame}
 
-A @ref chrono::ChFrame represents a coordinate system in 3D space like 
-ChCoordsys but includes more advanced features.
+A @ref chrono::ChFrame represents a coordinate system in 3D space like ChCoordsys but includes more advanced features.
 
 ![](http://www.projectchrono.org/assets/manual/coord_frame.png)
 
@@ -209,8 +201,7 @@ an auxiliary 3x3 rotation matrix that can be used to speed up
 computations where quaternions would be less efficient. 
 
 ChCoordsys can be considered as a lightweight version of ChFrame. 
-To save memory or if advanced features are not needed, 
-ChCoordsys<> can be a better choice.
+To save memory or if advanced features are not needed, ChCoordsys can be a better choice.
 
 There are several ways to build a ChFrame. For instance:
 
@@ -241,7 +232,7 @@ by a matrix A and a translation is used:
 This can be done in Chrono as follows:
 
 ~~~{.cpp}
-ChVector<> d_Paa, d_baa, d_Pbb;
+ChVector3<> d_Paa, d_baa, d_Pbb;
 ChMatrix33<> A_ba;
 ...
 d_Paa = d_baa + A_ba * d_Pbb;
@@ -251,7 +242,7 @@ d_Paa = d_baa + A_ba * d_Pbb;
 However, the ChFrame<> class makes this simpler:
 
 ~~~{.cpp}
-ChVector<> d_Paa, d_Pbb;
+ChVector3<> d_Paa, d_Pbb;
 ChFrame<> X_ba;
 ...
 d_Paa = X_ba * d_Pbb;
@@ -304,18 +295,18 @@ which would be slower.
 </div>
 
 One can also use the * or >> operators with other objects, 
-for example using >> between a ChFrame Xa and a ChVector vb. The outcome of this 
+for example using >> between a ChFrame Xa and a ChVector3 vb. The outcome of this 
 operation is a new ChFrame object obtained by translating the old one by a vector vb:
 
 ~~~{.cpp}
-ChVector<> vb;
+ChVector3<> vb;
 ChFrame<> Xa, Xt; ...
 Xt = Xa >> vb;    // also  Xt = vb * Xa;
 ~~~
 
 The same holds for in-place operators *= or >>=, which can be used 
 to translate or to rotate a ChFrame, or to transform entirely, 
-depending on how it is used: with a ChVector or a ChQuaternion or another ChFrame. 
+depending on how it is used: with a ChVector3 or a ChQuaternion or another ChFrame. 
 For example, to translate Xa by vector vb one writes:
 
 ~~~{.cpp}
@@ -381,21 +372,21 @@ and linear velocity, also linear and angular accelerations are assigned.
 
 ~~~{.cpp}
 ChFrameMoving<> X_ba;
-X_ba.SetPos(ChVector<>(2,3,5));
+X_ba.SetPos(ChVector3<>(2,3,5));
 X_ba.SetRot(myquaternion);
 
 // set velocity 
-X_ba.SetPos_dt(ChVector<>(100,20,53)); 
-X_ba.SetWvel_loc(ChVector<>(0,40,0)); // W in local frame, or..
-X_ba.SetWvel_par(ChVector<>(0,40,0)); // W in parent frame
+X_ba.SetPos_dt(ChVector3<>(100,20,53)); 
+X_ba.SetWvel_loc(ChVector3<>(0,40,0)); // W in local frame, or..
+X_ba.SetWvel_par(ChVector3<>(0,40,0)); // W in parent frame
 
 // set acceleration
-X_ba.SetPos_dtdt(ChVector<>(13,16,22)); 
-X_ba.SetWacc_loc(ChVector<>(80,50,0)); // a in local frame, or..
-X_ba.SetWacc_par(ChVector<>(80,50,0)); // a in parent frame
+X_ba.SetPos_dtdt(ChVector3<>(13,16,22)); 
+X_ba.SetWacc_loc(ChVector3<>(80,50,0)); // a in local frame, or..
+X_ba.SetWacc_par(ChVector3<>(80,50,0)); // a in parent frame
 ~~~
 
-A ChFrameMoving can be used to transform ChVector (points in space), a ChFrame, or ChFrameMoving objects. Velocities are also computed and transformed.
+A ChFrameMoving can be used to transform ChVector3 (points in space), a ChFrame, or ChFrameMoving objects. Velocities are also computed and transformed.
 
 Example: The absolute velocity and angular velocity of **c** with respect to **a** can be computed if the transformation from **b** to **a** and from **c** to **b** is known:
 

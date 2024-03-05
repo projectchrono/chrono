@@ -33,7 +33,7 @@ double FEDA_EngineSimpleMap::GetMaxEngineSpeed() {
     return 2550 * rpm2rads;
 }
 
-void FEDA_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+void FEDA_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) {
     const double limit_factor = 0.9;
 
     map0.AddPoint(-100 * rpm2rads, 0.000);

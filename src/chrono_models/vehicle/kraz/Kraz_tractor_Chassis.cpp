@@ -26,11 +26,11 @@ namespace kraz {
 // Static variables
 // -----------------------------------------------------------------------------
 const double Kraz_tractor_Chassis::m_body_mass = 10000.0;
-const ChVector<> Kraz_tractor_Chassis::m_body_inertiaXX(3441, 28485, 29395);
-const ChVector<> Kraz_tractor_Chassis::m_body_inertiaXY(0, 0, 0);
-const ChVector<> Kraz_tractor_Chassis::m_body_COM_loc(-2.0, 0, 0.6);
-const ChVector<> Kraz_tractor_Chassis::m_connector_loc(-4.64, 0, 0.82);
-const ChCoordsys<> Kraz_tractor_Chassis::m_driverCsys(ChVector<>(-1.5, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
+const ChVector3d Kraz_tractor_Chassis::m_body_inertiaXX(3441, 28485, 29395);
+const ChVector3d Kraz_tractor_Chassis::m_body_inertiaXY(0, 0, 0);
+const ChVector3d Kraz_tractor_Chassis::m_body_COM_loc(-2.0, 0, 0.6);
+const ChVector3d Kraz_tractor_Chassis::m_connector_loc(-4.64, 0, 0.82);
+const ChCoordsys<> Kraz_tractor_Chassis::m_driverCsys(ChVector3d(-1.5, 0.5, 1.2), ChQuaternion<>(1, 0, 0, 0));
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

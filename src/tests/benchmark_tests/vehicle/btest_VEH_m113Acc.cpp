@@ -80,7 +80,7 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
     m_m113->SetTransmissionType(transmission_model);
     m_m113->SetChassisCollisionType(chassis_collision_type);
 
-    m_m113->SetInitPosition(ChCoordsys<>(ChVector<>(-250 + 5, 0, 1.1), ChQuaternion<>(1, 0, 0, 0)));
+    m_m113->SetInitPosition(ChCoordsys<>(ChVector3d(-250 + 5, 0, 1.1), ChQuaternion<>(1, 0, 0, 0)));
     m_m113->Initialize();
 
     m_m113->SetChassisVisualizationType(VisualizationType::NONE);
@@ -93,7 +93,7 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
 
     // Create the terrain
     m_terrain = new RigidTerrain(m_m113->GetSystem());
-    auto patch_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto patch_material = chrono_types::make_shared<ChContactMaterialSMC>();
     patch_material->SetFriction(0.9f);
     patch_material->SetRestitution(0.01f);
     patch_material->SetYoungModulus(2e7f);
@@ -103,7 +103,7 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
     m_terrain->Initialize();
 
     // Create the straight path and the driver system
-    auto path = StraightLinePath(ChVector<>(-250, 0, 0.5), ChVector<>(250, 0, 0.5), 1);
+    auto path = StraightLinePath(ChVector3d(-250, 0, 0.5), ChVector3d(250, 0, 0.5), 1);
     m_driver = new ChPathFollowerDriver(m_m113->GetVehicle(), path, "my_path", 1000.0);
     m_driver->GetSteeringController().SetLookAheadDistance(5.0);
     m_driver->GetSteeringController().SetGains(0.5, 0, 0);
@@ -161,7 +161,7 @@ void M113AccTest<EnumClass, SHOE_TYPE>::SimulateVis() {
     auto vis = chrono_types::make_shared<ChTrackedVehicleVisualSystemIrrlicht>();
     vis->AttachVehicle(&m_m113->GetVehicle());
     vis->SetWindowTitle("M113 acceleration test");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 0.0), 6.0, 0.5);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 0.0), 6.0, 0.5);
     vis->Initialize();
     vis->AddTypicalLights();
 

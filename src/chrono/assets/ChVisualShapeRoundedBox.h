@@ -28,31 +28,31 @@ class ChApi ChVisualShapeRoundedBox : public ChVisualShape {
   public:
     ChVisualShapeRoundedBox();
     ChVisualShapeRoundedBox(double length_x, double length_y, double length_z, double radius);
-    ChVisualShapeRoundedBox(const ChVector<>& lengths, double radius);
-    ChVisualShapeRoundedBox(const geometry::ChRoundedBox& box);
+    ChVisualShapeRoundedBox(const ChVector3d& lengths, double radius);
+    ChVisualShapeRoundedBox(const ChRoundedBox& box);
 
     ~ChVisualShapeRoundedBox() {}
 
     // Access the rounded box geometry.
-    geometry::ChRoundedBox& GetGeometry() { return gbox; }
+    ChRoundedBox& GetGeometry() { return gbox; }
 
     /// Get the box half-lengths.
-    const ChVector<>& GetHalflengths() const { return gbox.GetHalflengths(); }
+    const ChVector3d& GetHalflengths() const { return gbox.GetHalflengths(); }
 
     /// Get the box dimensions.
-    ChVector<> GetLengths() const { return gbox.GetLengths(); }
+    ChVector3d GetLengths() const { return gbox.GetLengths(); }
 
     /// Get the radius of the sweeping sphere.
     double GetSphereRadius() const { return gbox.GetSphereRadius(); }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    geometry::ChRoundedBox gbox;
+    ChRoundedBox gbox;
 };
 
 /// @} chrono_assets

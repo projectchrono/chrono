@@ -20,10 +20,10 @@ using namespace chrono::collision;
 real time_step = 0.0005;
 
 void AddContainer(ChSystemMulticoreNSC* sys) {
-    auto mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.4f);
 
-    ChVector<> hdim(2, 2, 2);
+    ChVector3d hdim(2, 2, 2);
 
     auto box = utils::CreateBoxContainer(sys, 0, mat, hdim, 0.1, Vector(0, 0, -1), QUNIT, true, false, true, true);
 }
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
     // Global parameter for tire:
     double tire_rad = 0.8;
     double tire_vel_z0 = -3;
-    ChVector<> tire_center(0, 0, 0);
+    ChVector3d tire_center(0, 0, 0);
     ChMatrix33<> tire_alignment(Q_from_AngAxis(CH_C_PI, VECT_Y));  // create rotated 180 deg on y
 
     double tire_w0 = tire_vel_z0 / tire_rad;
@@ -72,18 +72,18 @@ int main(int argc, char* argv[]) {
     // my_system.SetLoggingLevel(LOG_INFO, true);
 
     double gravity = 9.81;
-    my_system.Set_G_acc(ChVector<>(0, 0, 0));
+    my_system.Set_G_acc(ChVector3d(0, 0, 0));
 
     ////AddContainer(&my_system);
 
-    auto cmaterial = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto cmaterial = chrono_types::make_shared<ChContactMaterialNSC>();
     cmaterial->SetFriction(0.4f);
-    auto box = utils::CreateBoxContainer(&my_system, 0, cmaterial, ChVector<>(2, 2, 2), 0.1, ChVector<>(0, 0, -1),
+    auto box = utils::CreateBoxContainer(&my_system, 0, cmaterial, ChVector3d(2, 2, 2), 0.1, ChVector3d(0, 0, -1),
                                          QUNIT, true, false, true, true);
 
     auto PLATE = chrono_types::make_shared<ChBody>(chrono_types::make_shared<ChCollisionModelMulticore>());
-    utils::InitializeObject(PLATE, 100000, cmaterial, ChVector<>(0, 0, 0), QUNIT, false, true, 2, 6);
-    utils::AddBoxGeometry(PLATE.get(), ChVector<>(.1, .1, .1));
+    utils::InitializeObject(PLATE, 100000, cmaterial, ChVector3d(0, 0, 0), QUNIT, false, true, 2, 6);
+    utils::AddBoxGeometry(PLATE.get(), ChVector3d(.1, .1, .1));
     utils::FinalizeObject(PLATE, (ChSystemMulticore*)&my_system);
 
     auto my_mesh = chrono_types::make_shared<ChMesh>();
@@ -109,8 +109,8 @@ int main(int argc, char* argv[]) {
 
     //    for (unsigned int i = 0; i < my_mesh->GetNnodes(); ++i) {
     //        auto node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->GetPos();
-    //        ChVector<> tang_vel = Vcross(ChVector<>(tire_w0, 0, 0), node_pos - tire_center);
-    //        std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->SetPos_dt(ChVector<>(0, 0, 0) + tang_vel);
+    //        ChVector3d tang_vel = Vcross(ChVector3d(tire_w0, 0, 0), node_pos - tire_center);
+    //        std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->SetPos_dt(ChVector3d(0, 0, 0) + tang_vel);
     //    }
 
     my_system.Add(my_mesh);
@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
 
     opengl::ChOpenGLWindow& gl_window = opengl::ChOpenGLWindow::getInstance();
     gl_window.Initialize(1280, 720, "tireFEA", &my_system);
-    gl_window.SetCamera(ChVector<>(0, -2, 0), ChVector<>(0, 0, 0), ChVector<>(0, 0, 1), .2f);
+    gl_window.SetCamera(ChVector3d(0, -2, 0), ChVector3d(0, 0, 0), ChVector3d(0, 0, 1), .2f);
     gl_window.Pause();
     while (true) {
         if (gl_window.Active()) {
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
                 if (g < gravity) {
                     g += 0.1;
                 }
-                my_system.Set_G_acc(ChVector<>(0, 0, -g));
+                my_system.Set_G_acc(ChVector3d(0, 0, -g));
             }
             gl_window.Render();
         } else {

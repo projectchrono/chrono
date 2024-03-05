@@ -19,7 +19,7 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChLinkMotorLinear)  NO! ABSTRACT!
 
-ChLinkMotorLinear::ChLinkMotorLinear() {
+ChLinkMotorLinear::ChLinkMotorLinear() : m_actuated_idx(0) {
     this->SetGuideConstraint(GuideConstraint::PRISMATIC);
 
     mpos = 0;
@@ -35,40 +35,46 @@ ChLinkMotorLinear::ChLinkMotorLinear(const ChLinkMotorLinear& other) : ChLinkMot
 
 ChLinkMotorLinear::~ChLinkMotorLinear() {}
 
-void ChLinkMotorLinear::SetGuideConstraint(bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz) {
+void ChLinkMotorLinear::SetGuideConstraint(bool mc_x, bool mc_y, bool mc_rx, bool mc_ry, bool mc_rz) {
+    this->c_x = mc_x;
     this->c_y = mc_y;
-    this->c_z = mc_z;
     this->c_rx = mc_rx;
     this->c_ry = mc_ry;
     this->c_rz = mc_rz;
     SetupLinkMask();
+
+    m_actuated_idx = (int)c_x + (int)c_y;
+
 }
 
 void ChLinkMotorLinear::SetGuideConstraint(const GuideConstraint mconstraint) {
     if (mconstraint == GuideConstraint::FREE) {
+        this->c_x = false;
         this->c_y = false;
-        this->c_z = false;
         this->c_rx = false;
         this->c_ry = false;
         this->c_rz = false;
         SetupLinkMask();
     }
     if (mconstraint == GuideConstraint::PRISMATIC) {
+        this->c_x = true;
         this->c_y = true;
-        this->c_z = true;
         this->c_rx = true;
         this->c_ry = true;
         this->c_rz = true;
         SetupLinkMask();
     }
     if (mconstraint == GuideConstraint::SPHERICAL) {
+        this->c_x = true;
         this->c_y = true;
-        this->c_z = true;
         this->c_rx = false;
         this->c_ry = false;
         this->c_rz = false;
         SetupLinkMask();
     }
+
+    m_actuated_idx = (int)c_x + (int)c_y;
+
 }
 
 void ChLinkMotorLinear::Update(double mytime, bool update_assets) {
@@ -78,35 +84,34 @@ void ChLinkMotorLinear::Update(double mytime, bool update_assets) {
     // compute aux data for future reference (istantaneous pos speed accel)
     ChFrameMoving<> aframe1 = ChFrameMoving<>(this->frame1) >> (ChFrameMoving<>)(*this->Body1);
     ChFrameMoving<> aframe2 = ChFrameMoving<>(this->frame2) >> (ChFrameMoving<>)(*this->Body2);
-    ChFrameMoving<> aframe12;
-    aframe2.TransformParentToLocal(aframe1, aframe12);
+    ChFrameMoving<> aframe12 = aframe2.TransformParentToLocal(aframe1);
 
     //// RADU TODO: revisit this.
     //// This is incorrect for GuideConstraint::FREE
     //// Should use something like sqrt(Vdot(relpos,relpos)), but taking into account sign?
 
-    this->mpos = aframe12.GetPos().x();
-    this->mpos_dt = aframe12.GetPos_dt().x();
-    this->mpos_dtdt = aframe12.GetPos_dtdt().x();
+    this->mpos = aframe12.GetPos().z();
+    this->mpos_dt = aframe12.GetPosDer().z();
+    this->mpos_dtdt = aframe12.GetPosDer2().z();
 }
 
-void ChLinkMotorLinear::ArchiveOut(ChArchiveOut& marchive) {
+void ChLinkMotorLinear::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChLinkMotorLinear>();
+    archive_out.VersionWrite<ChLinkMotorLinear>();
 
     // serialize parent class
-    ChLinkMotor::ArchiveOut(marchive);
+    ChLinkMotor::ArchiveOut(archive_out);
 
     // serialize all member data:
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChLinkMotorLinear::ArchiveIn(ChArchiveIn& marchive) {
+void ChLinkMotorLinear::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChLinkMotorLinear>();
+    /*int version =*/ archive_in.VersionRead<ChLinkMotorLinear>();
 
     // deserialize parent class
-    ChLinkMotor::ArchiveIn(marchive);
+    ChLinkMotor::ArchiveIn(archive_in);
 
     // deserialize all member data:
 }

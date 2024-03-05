@@ -48,7 +48,7 @@ using namespace chrono::vehicle::fmtv;
 // =============================================================================
 
 // Initial vehicle location and orientation
-ChVector<> initLoc(-2, 0, 1.0);
+ChVector3d initLoc(-2, 0, 1.0);
 ChQuaternion<> initRot(1, 0, 0, 0);
 
 // Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
@@ -65,9 +65,9 @@ RandomSurfaceTerrain::VisualisationType visType = RandomSurfaceTerrain::Visualis
 TireModelType tire_model = TireModelType::TMEASY;
 
 // Point on chassis tracked by the camera
-ChVector<> trackPoint(0.0, 0.0, 1.75);
+ChVector3d trackPoint(0.0, 0.0, 1.75);
 
-ChVector<> vehCOM(-1.933, 0.014, 0.495);
+ChVector3d vehCOM(-1.933, 0.014, 0.495);
 
 // Simulation step sizes
 double step_size = 1e-3;
@@ -122,78 +122,78 @@ int main(int argc, char* argv[]) {
     switch (terrainCode) {
         case 1:
             surface = RandomSurfaceTerrain::SurfaceType::ISO8608_A_NOCORR;
-            GetLog() << "ISO8608 track A without correlation.\n";
+            std::cout << "ISO8608 track A without correlation.\n";
             break;
         case 2:
             surface = RandomSurfaceTerrain::SurfaceType::ISO8608_B_NOCORR;
-            GetLog() << "ISO8608 track B without correlation.\n";
+            std::cout << "ISO8608 track B without correlation.\n";
             break;
         case 3:
             surface = RandomSurfaceTerrain::SurfaceType::ISO8608_C_NOCORR;
-            GetLog() << "ISO8608 track C without correlation.\n";
+            std::cout << "ISO8608 track C without correlation.\n";
             break;
         case 4:
             surface = RandomSurfaceTerrain::SurfaceType::ISO8608_D_NOCORR;
-            GetLog() << "ISO8608 track D without correlation.\n";
+            std::cout << "ISO8608 track D without correlation.\n";
             break;
         case 5:
             surface = RandomSurfaceTerrain::SurfaceType::ISO8608_E_NOCORR;
-            GetLog() << "ISO8608 track E without correlation.\n";
+            std::cout << "ISO8608 track E without correlation.\n";
             break;
         case 6:
             surface = RandomSurfaceTerrain::SurfaceType::ISO8608_F_NOCORR;
-            GetLog() << "ISO8608 track F without correlation.\n";
+            std::cout << "ISO8608 track F without correlation.\n";
             break;
         case 7:
             surface = RandomSurfaceTerrain::SurfaceType::ISO8608_G_NOCORR;
-            GetLog() << "ISO8608 track G without correlation.\n";
+            std::cout << "ISO8608 track G without correlation.\n";
             break;
         case 8:
             surface = RandomSurfaceTerrain::SurfaceType::ISO8608_H_NOCORR;
-            GetLog() << "ISO8608 track H without correlation.\n";
+            std::cout << "ISO8608 track H without correlation.\n";
             break;
         case 11:
             surface = RandomSurfaceTerrain::SurfaceType::ISO8608_A_CORR;
-            GetLog() << "ISO8608 track A with correlation.\n";
+            std::cout << "ISO8608 track A with correlation.\n";
             break;
         case 12:
             surface = RandomSurfaceTerrain::SurfaceType::ISO8608_B_CORR;
-            GetLog() << "ISO8608 track B with correlation.\n";
+            std::cout << "ISO8608 track B with correlation.\n";
             break;
         case 13:
             surface = RandomSurfaceTerrain::SurfaceType::ISO8608_C_CORR;
-            GetLog() << "ISO8608 track C with correlation.\n";
+            std::cout << "ISO8608 track C with correlation.\n";
             break;
         case 14:
             surface = RandomSurfaceTerrain::SurfaceType::ISO8608_D_CORR;
-            GetLog() << "ISO8608 track D with correlation.\n";
+            std::cout << "ISO8608 track D with correlation.\n";
             break;
         case 15:
             surface = RandomSurfaceTerrain::SurfaceType::ISO8608_E_CORR;
-            GetLog() << "ISO8608 track E with correlation.\n";
+            std::cout << "ISO8608 track E with correlation.\n";
             break;
         case 21:
             surface = RandomSurfaceTerrain::SurfaceType::MAJOR_ROAD_CONCRETE;
-            GetLog() << "Concrete Major Road with correlation.\n";
+            std::cout << "Concrete Major Road with correlation.\n";
             break;
         case 22:
             surface = RandomSurfaceTerrain::SurfaceType::MAJOR_ROAD_ASPHALTIC_CONCRETE;
-            GetLog() << "Asphaltic Concrete Major Road with correlation.\n";
+            std::cout << "Asphaltic Concrete Major Road with correlation.\n";
             break;
         case 23:
             surface = RandomSurfaceTerrain::SurfaceType::MAIN_ROAD_ASPHALTIC_CONCRETE_ON_PAVEMENT;
-            GetLog() << "Asphaltic Concrete Covered Pavement Main Road with correlation.\n";
+            std::cout << "Asphaltic Concrete Covered Pavement Main Road with correlation.\n";
             break;
         case 24:
             surface = RandomSurfaceTerrain::SurfaceType::MAIN_ROAD_ASPHALTIC_CONCRETE;
-            GetLog() << "Asphaltic Concrete  Main Road with correlation.\n";
+            std::cout << "Asphaltic Concrete  Main Road with correlation.\n";
             break;
         case 25:
             surface = RandomSurfaceTerrain::SurfaceType::TRACK_TILED_CONCRETE_PAVEMENT;
-            GetLog() << "Tiled Concrete Pavement Track with correlation.\n";
+            std::cout << "Tiled Concrete Pavement Track with correlation.\n";
             break;
         default:
-            GetLog()
+            std::cout
                 << "Invalid Terrain Code - (1-8 uncorrelated) or (11-15 correlated) or (21-25 Literature Examples)\n";
             return -1;
     }
@@ -233,8 +233,8 @@ int main(int argc, char* argv[]) {
     // ------------------
     RandomSurfaceTerrain terrain(lmtv.GetSystem(), xmax);
     terrain.Initialize(surface, 2, visType);
-    GetLog() << "RMS = " << (1000.0 * terrain.GetRMS()) << " mm\n";
-    GetLog() << "IRI = " << terrain.GetIRI() << " mm/m\n";
+    std::cout << "RMS = " << (1000.0 * terrain.GetRMS()) << " mm\n";
+    std::cout << "IRI = " << terrain.GetIRI() << " mm/m\n";
 
     // create the driver
     auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file));
@@ -255,8 +255,8 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddLogo();
     vis->GetSceneManager()->setAmbientLight(irr::video::SColorf(0.1f, 0.1f, 0.1f, 1.0f));
-    vis->AddLight(ChVector<>(-50, -30, 40), 200, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(+10, +30, 40), 200, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(-50, -30, 40), 200, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(+10, +30, 40), 200, ChColor(0.7f, 0.7f, 0.7f));
     vis->AttachVehicle(&lmtv.GetVehicle());
 
     // Visualization of controller points (sentinel & target)

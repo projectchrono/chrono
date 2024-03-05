@@ -80,7 +80,7 @@ class CH_VEHICLE_API ChThreeLinkIRS : public ChSuspension {
         std::shared_ptr<ChChassis> chassis,        ///< [in] associated chassis subsystem
         std::shared_ptr<ChSubchassis> subchassis,  ///< [in] associated subchassis subsystem (may be null)
         std::shared_ptr<ChSteering> steering,      ///< [in] associated steering subsystem (may be null)
-        const ChVector<>& location,                ///< [in] location relative to the chassis frame
+        const ChVector3d& location,                ///< [in] location relative to the chassis frame
         double left_ang_vel = 0,                   ///< [in] initial angular velocity of left wheel
         double right_ang_vel = 0                   ///< [in] initial angular velocity of right wheel
         ) override;
@@ -133,7 +133,7 @@ class CH_VEHICLE_API ChThreeLinkIRS : public ChSuspension {
     /// The reported locations are expressed in the suspension reference frame.
     /// By default, these values are reported in SI units (meters), but can be
     /// optionally reported in inches.
-    void LogHardpointLocations(const ChVector<>& ref, bool inches = false);
+    void LogHardpointLocations(const ChVector3d& ref, bool inches = false);
 
   protected:
     /// Identifiers for the various hardpoints.
@@ -167,7 +167,7 @@ class CH_VEHICLE_API ChThreeLinkIRS : public ChSuspension {
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the suspension reference frame.
-    virtual const ChVector<> getLocation(PointId which) = 0;
+    virtual const ChVector3d getLocation(PointId which) = 0;
 
     /// Return the camber angle, in radians (default: 0).
     virtual double getCamberAngle() const { return 0; }
@@ -177,7 +177,7 @@ class CH_VEHICLE_API ChThreeLinkIRS : public ChSuspension {
     virtual double getToeAngle() const { return 0; }
 
     /// Return the vector of the specified direction.
-    virtual const ChVector<> getDirection(DirectionId which) = 0;
+    virtual const ChVector3d getDirection(DirectionId which) = 0;
 
     /// Return the mass of the spindle body.
     virtual double getSpindleMass() const = 0;
@@ -189,19 +189,19 @@ class CH_VEHICLE_API ChThreeLinkIRS : public ChSuspension {
     virtual double getLowerLinkMass() const = 0;
 
     /// Return the moments of inertia of the spindle body.
-    virtual const ChVector<>& getSpindleInertia() const = 0;
+    virtual const ChVector3d& getSpindleInertia() const = 0;
 
     /// Return the moments of inertia of the trailing arm body.
     /// The x direction is aligned with the arm.
-    virtual const ChVector<>& getArmInertia() const = 0;
+    virtual const ChVector3d& getArmInertia() const = 0;
 
     /// Return the moments of inertia of the upper link.
     /// The x direction is aligned with the link.
-    virtual const ChVector<>& getUpperLinkInertia() const = 0;
+    virtual const ChVector3d& getUpperLinkInertia() const = 0;
 
     /// Return the moments of inertia of the lower link.
     /// The x direction is aligned with the link.
-    virtual const ChVector<>& getLowerLinkInertia() const = 0;
+    virtual const ChVector3d& getLowerLinkInertia() const = 0;
 
     /// Return the inertia of the axle shaft.
     virtual double getAxleInertia() const = 0;
@@ -258,30 +258,30 @@ class CH_VEHICLE_API ChThreeLinkIRS : public ChSuspension {
     std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< handles to the shock links (left/right)
 
   private:
-    std::vector<ChVector<>> m_pointsL;  ///< hardpoint locations (left)
-    std::vector<ChVector<>> m_pointsR;  ///< hardpoint locations (right)
+    std::vector<ChVector3d> m_pointsL;  ///< hardpoint locations (left)
+    std::vector<ChVector3d> m_pointsR;  ///< hardpoint locations (right)
 
-    std::vector<ChVector<>> m_dirsL;  ///< joint directions (left)
-    std::vector<ChVector<>> m_dirsR;  ///< joint directions (right)
+    std::vector<ChVector3d> m_dirsL;  ///< joint directions (left)
+    std::vector<ChVector3d> m_dirsR;  ///< joint directions (right)
 
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChChassis> chassis,
-                        const std::vector<ChVector<>>& points,
-                        const std::vector<ChVector<>>& dirs,
+                        const std::vector<ChVector3d>& points,
+                        const std::vector<ChVector3d>& dirs,
                         double ang_vel);
 
     static void AddVisualizationArm(std::shared_ptr<ChBody> body,
-                                    const ChVector<>& pt_C,
-                                    const ChVector<>& pt_S,
-                                    const ChVector<>& pt_CM,
-                                    const ChVector<>& pt_U,
-                                    const ChVector<>& pt_L,
+                                    const ChVector3d& pt_C,
+                                    const ChVector3d& pt_S,
+                                    const ChVector3d& pt_CM,
+                                    const ChVector3d& pt_U,
+                                    const ChVector3d& pt_L,
                                     double radius);
 
     static void AddVisualizationLink(std::shared_ptr<ChBody> body,
-                                     const ChVector<>& pt_1,
-                                     const ChVector<>& pt_2,
-                                     const ChVector<>& pt_CM,
+                                     const ChVector3d& pt_1,
+                                     const ChVector3d& pt_2,
+                                     const ChVector3d& pt_CM,
                                      double radius);
 
     virtual void ExportComponentList(rapidjson::Document& jsonDocument) const override;

@@ -20,7 +20,6 @@
 #include "chrono/utils/ChUtilsCreators.h"
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
-#include "chrono/core/ChTransform.h"
 
 #include "chrono_fsi/ChSystemFsi.h"
 
@@ -76,13 +75,13 @@ void WriteCylinderVTK(const std::string& filename, double radius, double length,
 
     for (int i = 0; i < res; i++) {
         auto w = frame.TransformPointLocalToParent(
-            ChVector<>(radius * cos(2 * i * 3.1415 / res), -1 * length / 2, radius * sin(2 * i * 3.1415 / res)));
+            ChVector3d(radius * cos(2 * i * 3.1415 / res), -1 * length / 2, radius * sin(2 * i * 3.1415 / res)));
         outf << w.x() << " " << w.y() << " " << w.z() << "\n";
     }
 
     for (int i = 0; i < res; i++) {
         auto w = frame.TransformPointLocalToParent(
-            ChVector<>(radius * cos(2 * i * 3.1415 / res), +1 * length / 2, radius * sin(2 * i * 3.1415 / res)));
+            ChVector3d(radius * cos(2 * i * 3.1415 / res), +1 * length / 2, radius * sin(2 * i * 3.1415 / res)));
         outf << w.x() << " " << w.y() << " " << w.z() << "\n";
     }
 
@@ -132,7 +131,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysMBS.Set_G_acc(sysFSI.Get_G_acc());
 
     // Set common material Properties
-    auto cmaterial = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto cmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
     cmaterial->SetYoungModulus(1e8);
     cmaterial->SetFriction(0.2f);
     cmaterial->SetRestitution(0.05f);
@@ -143,7 +142,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Create a container
     auto box = chrono_types::make_shared<ChBody>();
-    box->SetPos(ChVector<>(0.0, 0.0, 0.0));
+    box->SetPos(ChVector3d(0.0, 0.0, 0.0));
     box->SetRot(ChQuaternion<>(1, 0, 0, 0));
     box->SetIdentifier(-1);
     box->SetBodyFixed(true);
@@ -151,37 +150,38 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Add collision geometry for the container walls
     chrono::utils::AddBoxContainer(box, cmaterial,                                 //
-                                   ChFrame<>(ChVector<>(0, 0, bzDim / 2), QUNIT),  //
-                                   ChVector<>(bxDim, byDim, bzDim), 0.1,           //
-                                   ChVector<int>(2, 2, -1),                        //
+                                   ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
+                                   ChVector3d(bxDim, byDim, bzDim), 0.1,           //
+                                   ChVector3i(2, 2, -1),                        //
                                    false);
     box->SetCollide(true);
 
     // Add BCE particles attached on the walls into FSI system
     sysFSI.AddBoxContainerBCE(box,                                            //
-                              ChFrame<>(ChVector<>(0, 0, bzDim / 2), QUNIT),  //
-                              ChVector<>(bxDim, byDim, bzDim),                //
-                              ChVector<int>(2, 2, 2));
+                              ChFrame<>(ChVector3d(0, 0, bzDim / 2), QUNIT),  //
+                              ChVector3d(bxDim, byDim, bzDim),                //
+                              ChVector3i(2, 2, 2));
 
     // Create a falling cylinder
     auto cylinder = chrono_types::make_shared<ChBody>();
 
     // Set the general properties of the cylinder
-    double volume = geometry::ChCylinder::GetVolume(cyl_radius, cyl_length / 2);
+    double volume = ChCylinder::GetVolume(cyl_radius, cyl_length / 2);
     double density = sysFSI.GetDensity() * 2.0;
     double mass = density * volume;
-    ChVector<> cyl_pos = ChVector<>(0, 0, bzDim + cyl_radius + 2 * initSpace0);
-    ChVector<> cyl_vel = ChVector<>(0.0, 0.0, 0.0);
-    ChVector<> gyration = geometry::ChCylinder::GetGyration(cyl_radius, cyl_length / 2).diagonal();
+    ChVector3d cyl_pos = ChVector3d(0, 0, bzDim + cyl_radius + 2 * initSpace0);
+    ChVector3d cyl_vel = ChVector3d(0.0, 0.0, 0.0);
+    ChVector3d gyration = ChCylinder::GetGyration(cyl_radius, cyl_length / 2).diagonal();
     cylinder->SetPos(cyl_pos);
-    cylinder->SetPos_dt(cyl_vel);
+    cylinder->SetPosDer(cyl_vel);
     cylinder->SetMass(mass);
     cylinder->SetInertiaXX(mass * gyration);
 
     // Set the collision and visualization geometry
     cylinder->SetCollide(true);
     cylinder->SetBodyFixed(false);
-    chrono::utils::AddCylinderGeometry(cylinder.get(), cmaterial, cyl_radius, cyl_length, VNULL, Q_from_AngX(CH_C_PI_2));
+    chrono::utils::AddCylinderGeometry(cylinder.get(), cmaterial, cyl_radius, cyl_length, VNULL,
+                                       QuatFromAngleX(CH_C_PI_2));
     cylinder->GetCollisionModel()->SetSafeMargin(initSpace0);
 
     cylinder->GetVisualShape(0)->SetColor(ChColor(0.65f, 0.20f, 0.10f));
@@ -193,7 +193,8 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysFSI.AddFsiBody(cylinder);
 
     // Add BCE particles attached on the cylinder into FSI system
-    sysFSI.AddCylinderBCE(cylinder, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)), cyl_radius, cyl_length, true);
+    sysFSI.AddCylinderBCE(cylinder, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)), cyl_radius, cyl_length,
+                          true);
 }
 
 // =============================================================================
@@ -237,17 +238,17 @@ int main(int argc, char* argv[]) {
 
     // Set the periodic boundary condition (if not, set relative larger values)
     auto initSpace0 = sysFSI.GetInitialSpacing();
-    ChVector<> cMin(-bxDim / 2 * 10, -byDim / 2 * 10, -bzDim * 10);
-    ChVector<> cMax(bxDim / 2 * 10, byDim / 2 * 10, bzDim * 10);
+    ChVector3d cMin(-bxDim / 2 * 10, -byDim / 2 * 10, -bzDim * 10);
+    ChVector3d cMax(bxDim / 2 * 10, byDim / 2 * 10, bzDim * 10);
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Create an initial box for the terrain patch
     chrono::utils::GridSampler<> sampler(initSpace0);
 
     // Use a chrono sampler to create a bucket of granular material
-    ChVector<> boxCenter(0, 0, bzDim / 2);
-    ChVector<> boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
-    std::vector<ChVector<>> points = sampler.SampleBox(boxCenter, boxHalfDim);
+    ChVector3d boxCenter(0, 0, bzDim / 2);
+    ChVector3d boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
+    std::vector<ChVector3d> points = sampler.SampleBox(boxCenter, boxHalfDim);
 
     // Add SPH particles from the sampler points to the FSI system
     size_t numPart = (int)points.size();
@@ -255,7 +256,7 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < numPart; i++) {
         double pre_ini = sysFSI.GetDensity() * gz * (-points[i].z() + bzDim);
         double rho_ini = sysFSI.GetDensity() + pre_ini / (sysFSI.GetSoundSpeed() * sysFSI.GetSoundSpeed());
-        sysFSI.AddSPHParticle(points[i], rho_ini, pre_ini, sysFSI.GetViscosity(), ChVector<>(0));
+        sysFSI.AddSPHParticle(points[i], rho_ini, pre_ini, sysFSI.GetViscosity(), ChVector3d(0));
     }
 
     // Create MBD and BCE particles for the solid domain
@@ -300,11 +301,11 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        auto origin = sysMBS.Get_bodylist()[1]->GetPos();
+        auto origin = sysMBS.GetBodies()[1]->GetPos();
 
         visFSI->SetTitle("Chrono::FSI cylinder drop");
         visFSI->SetSize(1280, 720);
-        visFSI->AddCamera(origin - ChVector<>(2 * bxDim, 2 * byDim, 0), origin);
+        visFSI->AddCamera(origin - ChVector3d(2 * bxDim, 2 * byDim, 0), origin);
         visFSI->SetCameraMoveScale(0.1f);
         visFSI->EnableBoundaryMarkers(false);
         visFSI->EnableRigidBodyMarkers(true);
@@ -342,7 +343,7 @@ int main(int argc, char* argv[]) {
         }
 
         std::cout << "step: " << current_step << "\ttime: " << time << "\tRTF: " << sysFSI.GetRTF()
-                  << "\tcyl z: " << sysMBS.Get_bodylist()[1]->GetPos().z() << std::endl;
+                  << "\tcyl z: " << sysMBS.GetBodies()[1]->GetPos().z() << std::endl;
 
         // Call the FSI solver
         sysFSI.DoStepDynamics_FSI();

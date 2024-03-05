@@ -38,7 +38,7 @@ class CH_MODELS_API UAZBUS_SAEToeBarLeafspringAxle : public ChSAEToeBarLeafsprin
     ~UAZBUS_SAEToeBarLeafspringAxle();
 
   protected:
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
     virtual double getCamberAngle() const override { return 0; }
     virtual double getToeAngle() const override { return 0; }
@@ -61,18 +61,18 @@ class CH_MODELS_API UAZBUS_SAEToeBarLeafspringAxle : public ChSAEToeBarLeafsprin
     virtual double getTierodRadius() const override { return m_tierodRadius; }
     virtual double getDraglinkRadius() const override { return m_draglinkRadius; }
 
-    virtual const ChVector<> getAxleTubeCOM() const override { return ChVector<>(0, 0, 0); }
+    virtual const ChVector3d getAxleTubeCOM() const override { return ChVector3d(0, 0, 0); }
 
-    virtual const ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getKnuckleInertia() const override { return m_knuckleInertia; }
-    virtual const ChVector<>& getTierodInertia() const override { return m_tierodInertia; }
-    virtual const ChVector<>& getDraglinkInertia() const override { return m_draglinkInertia; }
+    virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getKnuckleInertia() const override { return m_knuckleInertia; }
+    virtual const ChVector3d& getTierodInertia() const override { return m_tierodInertia; }
+    virtual const ChVector3d& getDraglinkInertia() const override { return m_draglinkInertia; }
 
-    virtual const ChVector<>& getFrontLeafInertia() const override { return m_frontleafInertia; }
-    virtual const ChVector<>& getRearLeafInertia() const override { return m_rearleafInertia; }
-    virtual const ChVector<>& getClampInertia() const override { return m_clampInertia; }
-    virtual const ChVector<>& getShackleInertia() const override { return m_shackleInertia; }
+    virtual const ChVector3d& getFrontLeafInertia() const override { return m_frontleafInertia; }
+    virtual const ChVector3d& getRearLeafInertia() const override { return m_rearleafInertia; }
+    virtual const ChVector3d& getClampInertia() const override { return m_clampInertia; }
+    virtual const ChVector3d& getShackleInertia() const override { return m_shackleInertia; }
 
     virtual double getAxleInertia() const override { return m_axleShaftInertia; }
 
@@ -128,16 +128,16 @@ class CH_MODELS_API UAZBUS_SAEToeBarLeafspringAxle : public ChSAEToeBarLeafsprin
     static const double m_tierodRadius;
     static const double m_draglinkRadius;
 
-    static const ChVector<> m_axleTubeInertia;
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_knuckleInertia;
-    static const ChVector<> m_tierodInertia;
-    static const ChVector<> m_draglinkInertia;
+    static const ChVector3d m_axleTubeInertia;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_knuckleInertia;
+    static const ChVector3d m_tierodInertia;
+    static const ChVector3d m_draglinkInertia;
 
-    static const ChVector<> m_frontleafInertia;
-    static const ChVector<> m_rearleafInertia;
-    static const ChVector<> m_clampInertia;
-    static const ChVector<> m_shackleInertia;
+    static const ChVector3d m_frontleafInertia;
+    static const ChVector3d m_rearleafInertia;
+    static const ChVector3d m_clampInertia;
+    static const ChVector3d m_shackleInertia;
 
     static const double m_auxSpringCoefficient;
     static const double m_auxSpringRestLength;

@@ -80,7 +80,7 @@ bool data_output = false;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // --------------
     // Create systems
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     FEDA feda;
     feda.SetContactMethod(ChContactMethod::SMC);
     feda.SetChassisFixed(false);
-    feda.SetInitPosition(ChCoordsys<>(ChVector<>(-terrainLength / 2 + 5, 0, 0.5), ChQuaternion<>(1, 0, 0, 0)));
+    feda.SetInitPosition(ChCoordsys<>(ChVector3d(-terrainLength / 2 + 5, 0, 0.5), ChQuaternion<>(1, 0, 0, 0)));
     feda.SetEngineType(engine_model);
     feda.SetTransmissionType(transmission_model);
     feda.SetTireType(tire_model);
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
     feda.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the terrain
-    auto patch_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto patch_mat = chrono_types::make_shared<ChContactMaterialSMC>();
     patch_mat->SetFriction(0.9f);
     patch_mat->SetRestitution(0.01f);
     patch_mat->SetYoungModulus(2e7f);
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     // Create the straight path and the driver system
-    auto path = StraightLinePath(ChVector<>(-terrainLength / 2, 0, 0.5), ChVector<>(terrainLength / 2, 0, 0.5), 1);
+    auto path = StraightLinePath(ChVector3d(-terrainLength / 2, 0, 0.5), ChVector3d(terrainLength / 2, 0, 0.5), 1);
     ChPathFollowerDriver driver(feda.GetVehicle(), path, "my_path", 1000.0);
     driver.GetSteeringController().SetLookAheadDistance(5.0);
     driver.GetSteeringController().SetGains(0.5, 0, 0);
@@ -135,16 +135,16 @@ int main(int argc, char* argv[]) {
     // Create the vehicle Irrlicht interface
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
     vis->SetWindowTitle("FEDA acceleration test");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 8.0, 0.5);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 8.0, 0.5);
     vis->Initialize();
     vis->AddSkyBox();
     vis->AddLogo();
-    vis->AddLight(ChVector<>(0, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(0, 50, 100), 130, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(-300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(-300, 50, 100), 130, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(+300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f));
-    vis->AddLight(ChVector<>(+300, 50, 100), 130, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(0, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(0, 50, 100), 130, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(-300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(-300, 50, 100), 130, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(+300, -30, 100), 250, ChColor(0.7f, 0.7f, 0.7f));
+    vis->AddLight(ChVector3d(+300, 50, 100), 130, ChColor(0.7f, 0.7f, 0.7f));
     vis->AttachVehicle(&feda.GetVehicle());
 
     // Prepare output
@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
     double last_speed = -1;
 
     // Record vehicle speed
-    ChFunction_Recorder speed_recorder, dist_recorder;
+    ChFunctionInterp speed_recorder, dist_recorder;
 
     // Initialize simulation frame counter and simulation time
     int step_number = 0;
