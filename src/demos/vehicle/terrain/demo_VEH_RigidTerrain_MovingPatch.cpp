@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
 
     // Create a straight line path and the path-follower driver
     auto path = StraightLinePath(ChVector3d(-1, 0, 0.1), ChVector3d(10 * patch_len, 0, 0.1), 4);
-    double x_end = path->getPoints().back().x() - 10;
+    double x_end = path->GetPoints().back().x() - 10;
 
     ChPathFollowerDriver driver(hmmwv.GetVehicle(), path, "my_path", 8.0);
     driver.SetColor(ChColor(0.0f, 0.0f, 0.8f));

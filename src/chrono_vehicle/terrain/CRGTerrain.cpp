@@ -390,7 +390,7 @@ void CRGTerrain::SetupLineGraphics() {
     auto mat = chrono_types::make_shared<ChVisualMaterial>();
     mat->SetDiffuseColor({0.3f, 0.3f, 0.6f});
 
-    auto np = m_road_left->getNumPoints();
+    auto np = m_road_left->GetNumPoints();
     unsigned int num_render_points = std::max<unsigned int>(static_cast<unsigned int>(3 * np), 400);
 
     auto bezier_line_left = chrono_types::make_shared<ChLineBezier>(m_road_left);

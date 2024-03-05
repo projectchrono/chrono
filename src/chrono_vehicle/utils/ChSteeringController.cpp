@@ -167,7 +167,7 @@ double ChPathSteeringController::Advance(const ChFrameMoving<>& ref_frame, doubl
 
 void ChPathSteeringController::CalcTargetLocation() {
     // Let the underlying tracker do its magic.
-    m_tracker->calcClosestPoint(m_sentinel, m_target);
+    m_tracker->CalcClosestPoint(m_sentinel, m_target);
 }
 
 void ChPathSteeringController::Reset(const ChFrameMoving<>& ref_frame) {
@@ -175,7 +175,7 @@ void ChPathSteeringController::Reset(const ChFrameMoving<>& ref_frame) {
     ChSteeringController::Reset(ref_frame);
 
     // Reset the path tracker with the new sentinel location.
-    m_tracker->reset(m_sentinel);
+    m_tracker->Reset(m_sentinel);
 }
 
 // -----------------------------------------------------------------------------
@@ -253,7 +253,7 @@ void ChPathSteeringControllerXT::CalcTargetLocation() {
     // we need more information about the path properties here:
     ChFrame<> tnb;
 
-    m_tracker->calcClosestPoint(m_sentinel, tnb, m_pcurvature);
+    m_tracker->CalcClosestPoint(m_sentinel, tnb, m_pcurvature);
 
     m_target = tnb.GetPos();
 
@@ -267,7 +267,7 @@ void ChPathSteeringControllerXT::Reset(const ChFrameMoving<>& ref_frame) {
     ChSteeringController::Reset(ref_frame);
 
     // Reset the path tracker with the new sentinel location.
-    m_tracker->reset(m_sentinel);
+    m_tracker->Reset(m_sentinel);
 }
 
 double ChPathSteeringControllerXT::CalcHeadingError(ChVector3d& a, ChVector3d& b) {
@@ -477,14 +477,14 @@ ChPathSteeringControllerSR::ChPathSteeringControllerSR(const std::string& filena
 }
 
 void ChPathSteeringControllerSR::CalcPathPoints() {
-    size_t np = m_path->getNumPoints();
+    size_t np = m_path->GetNumPoints();
     S_l.resize(np);
     R_l.resize(np);
     R_lu.resize(np);
 
     if (m_isClosedPath) {
         for (size_t i = 0; i < np; i++) {
-            S_l[i] = m_path->getPoint(i);
+            S_l[i] = m_path->GetPoint(i);
         }
         for (size_t i = 0; i < np - 1; i++) {
             R_l[i] = S_l[i + 1] - S_l[i];
@@ -497,7 +497,7 @@ void ChPathSteeringControllerSR::CalcPathPoints() {
         R_lu[np - 1].Normalize();
     } else {
         for (size_t i = 0; i < np; i++) {
-            S_l[i] = m_path->getPoint(i);
+            S_l[i] = m_path->GetPoint(i);
         }
         for (size_t i = 0; i < np - 1; i++) {
             R_l[i] = S_l[i + 1] - S_l[i];
@@ -747,7 +747,7 @@ void ChPathSteeringControllerStanley::CalcTargetLocation() {
     // we need more information about the path properties here:
     ChFrame<> tnb;
 
-    m_tracker->calcClosestPoint(m_sentinel, tnb, m_pcurvature);
+    m_tracker->CalcClosestPoint(m_sentinel, tnb, m_pcurvature);
     m_target = tnb.GetPos();
     m_ptangent = tnb.GetRot().GetAxisX();
 }

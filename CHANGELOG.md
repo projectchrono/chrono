@@ -214,14 +214,28 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNshaftsTotal               | rename: GetNumShaftsTotal                        |
 |                                   | GetNsysvars                   | remove                                           |
 |                                   | GetNsysvars_w                 | remove                                           |
+| ChBezierCurve                     |                               |                                                  |
+|                                   | calcClosestPoint              | rename: CalcClosestPoint                         |
+|                                   | eval                          | rename: Eval                                     |
+|                                   | evalD                         | rename: EvalDer                                  |
+|                                   | evalDD                        | rename: EvalDer2                                 |
+|                                   | getNumPoints                  | rename: GetNumPoints                             |
+|                                   | getNumSegments                | rename: GetNumSegments                           |
+|                                   | getPoint                      | rename: GetPoint                                 |
+|                                   | getPoints                     | rename: GetPoints                                |
+|                                   | read                          | rename: Read                                     |
+|                                   | write                         | rename: Write                                    |
+| ChBezierCurve                     |                               |                                                  |
+|                                   | calcClosestPoint              | rename: CalcClosestPoint                         |
+|                                   | reset                         | rename: Reset                                    |
 | ChBinaryArchive                   |                               | remove                                           |
 | ChBody                            |                               |                                                  |
-|                                   | Point_World2Body              | remove                                           |
-|                                   | Point_Body2World              | remove                                           |
-|                                   | Dir_World2Body                | remove                                           |
 |                                   | Dir_Body2World                | remove                                           |
-|                                   | RelPoint_AbsSpeed             | remove                                           |
+|                                   | Dir_World2Body                | remove                                           |
+|                                   | Point_Body2World              | remove                                           |
+|                                   | Point_World2Body              | remove                                           |
 |                                   | RelPoint_AbsAcc               | remove                                           |
+|                                   | RelPoint_AbsSpeed             | remove                                           |
 | ChException                       |                               | remove                                           |
 | ChFrame                           |                               |                                                  |
 |                                   | GetA                          | rename: GetRotMat                                |

@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
 
     // Get the vehicle path (middle of the road)
     auto path = terrain.GetRoadCenterLine();
-    path->write(out_dir + "/path.txt");
+    path->Write(out_dir + "/path.txt");
 
     cout << endl;
     cout << "CRG road file = " << crg_road_file << endl;

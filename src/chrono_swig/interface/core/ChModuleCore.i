@@ -627,7 +627,7 @@ using namespace chrono::fea;
 public:
   double ClosestPointCurvature(const chrono::ChVector3d& loc, chrono::ChFrame<>& tnb) {
     double curvature;
-    int foo = $self->calcClosestPoint(loc, tnb, curvature);
+    int foo = $self->CalcClosestPoint(loc, tnb, curvature);
     return curvature;
   }
 };

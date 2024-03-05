@@ -690,7 +690,7 @@ void WriteCurvePovray(const ChBezierCurve& curve,
                       const ChColor& col) {
     int nP = 20;
     double dt = 1.0 / nP;
-    size_t nS = curve.getNumPoints() - 1;
+    size_t nS = curve.GetNumPoints() - 1;
 
     // Open output file.
     std::string pov_filename = out_dir + "/" + curve_name + ".inc";
@@ -700,12 +700,12 @@ void WriteCurvePovray(const ChBezierCurve& curve,
     ofile << "  sphere_sweep {" << std::endl;
     ofile << "    linear_spline " << nP * nS + 1 << "," << std::endl;
 
-    ChVector3d v = curve.eval(0, 0.0);
+    ChVector3d v = curve.Eval(0, 0.0);
     ofile << "        <" << v.x() << ", " << v.z() << ", " << v.x() << "> ," << radius << std::endl;
 
     for (int iS = 0; iS < nS; iS++) {
         for (int iP = 1; iP <= nP; iP++) {
-            v = curve.eval(iS, iP * dt);
+            v = curve.Eval(iS, iP * dt);
             ofile << "        <" << v.x() << ", " << v.z() << ", " << v.y() << "> ," << radius << std::endl;
         }
     }

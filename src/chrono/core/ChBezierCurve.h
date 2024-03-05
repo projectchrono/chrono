@@ -87,26 +87,26 @@ class ChApi ChBezierCurve {
                    const std::vector<ChVector3d >& outCV);
 
     /// Return the number of knot points.
-    size_t getNumPoints() const { return m_points.size(); }
+    size_t GetNumPoints() const { return m_points.size(); }
 
     /// Return the number of intervals (segments).
-    size_t getNumSegments() const { return getNumPoints() - 1; }
+    size_t GetNumSegments() const { return GetNumPoints() - 1; }
 
     /// Return true if path is closed and false otherwise.
     bool IsClosed() const { return m_closed; }
 
     /// Return the knot point with specified index.
-    const ChVector3d& getPoint(size_t i) const { return m_points[i]; }
+    const ChVector3d& GetPoint(size_t i) const { return m_points[i]; }
 
     /// Return all curve knots.
-    const std::vector<ChVector3d> getPoints() const { return m_points; }
+    const std::vector<ChVector3d> GetPoints() const { return m_points; }
 
     /// Evaluate the value of the Bezier curve.
     /// This function calculates and returns the point on the curve at the
     /// given curve parameter (assumed to be in [0,1]).  
     /// A value t=0 returns the first point on the curve.
     /// A value t=1 returns the last point on the curve.
-    ChVector3d eval(double t) const;
+    ChVector3d Eval(double t) const;
 
     /// Evaluate the value of the Bezier curve.
     /// This function calculates and returns the point on the curve in the
@@ -115,31 +115,31 @@ class ChApi ChBezierCurve {
     /// A value t-0 returns the first end of the specified interval.
     /// A value t=1 return the second end of the specified interval.
     /// It uses the Bernstein polynomial representation of a Bezier curve.
-    ChVector3d eval(size_t i, double t) const;
+    ChVector3d Eval(size_t i, double t) const;
 
     /// Evaluate the tangent vector to the Bezier curve.
     /// This function calculates and returns the first derivative (tangent vector)
     /// to the curve in the specified interval between two knot points and at the
     /// given curve parameter (assumed to be in [0,1]). It uses the Bernstein
     /// polynomial representation of a Bezier curve.
-    ChVector3d evalD(size_t i, double t) const;
+    ChVector3d EvalDer(size_t i, double t) const;
 
     /// Evaluate the second derivative vector to the Bezier curve.
     /// This function calculates and returns the second derivative vector to the
     /// curve in the specified interval between two knot points and at the given
     /// curve parameter (assumed to be in [0,1]). It uses the Bernstein polynomial
     /// representation of a Bezier curve.
-    ChVector3d evalDD(size_t i, double t) const;
+    ChVector3d EvalDer2(size_t i, double t) const;
 
     /// Calculate the closest point on the curve to the given location.
     /// This function calculates and returns the point on the curve in the specified
     /// interval that is closest to the specified location. On input, the value 't' is
     /// an initial guess. On return, it contains the curve parameter corresponding
     /// to the closest point.
-    ChVector3d calcClosestPoint(const ChVector3d& loc, size_t i, double& t) const;
+    ChVector3d CalcClosestPoint(const ChVector3d& loc, size_t i, double& t) const;
 
     /// Write the knots and control points to the specified file.
-    void write(const std::string& filename);
+    void Write(const std::string& filename);
 
     /// Create a ChBezierCurve using data in the specified file.
     /// The input file is assumed to contain on the first line the number of data points and the number of data columns.
@@ -148,7 +148,7 @@ class ChApi ChBezierCurve {
     /// In the second case, subsequent lines should contain the coordinates of the curve knot, the coordinates of the
     /// "incoming" control point, and the coordinates of the "outgoing" control point (i.e. 9 values per line). The
     /// returned curve is a general Bezier curve using the specified knots and control polygons.
-    static std::shared_ptr<ChBezierCurve> read(const std::string& filename, bool closed = false);
+    static std::shared_ptr<ChBezierCurve> Read(const std::string& filename, bool closed = false);
 
     // SERIALIZATION
 
@@ -163,7 +163,7 @@ class ChApi ChBezierCurve {
     /// This function solves the resulting tridiagonal system for one of the
     /// coordinates (x, y, or z) of the outCV control points, to impose that the
     /// resulting Bezier curve is a spline interpolant of the knots.
-    static void solveTriDiag(size_t n, double* rhs, double* x);
+    static void SolveTriDiag(size_t n, double* rhs, double* x);
 
     std::vector<ChVector3d > m_points;  ///< set of knot points
     std::vector<ChVector3d > m_inCV;    ///< set on "incident" control points
@@ -198,7 +198,7 @@ class ChApi ChBezierCurveTracker {
     /// This function reinitializes the pathTracker at the specified location. It
     /// calculates an appropriate initial guess for the curve segment and sets the
     /// curve parameter to 0.5.
-    void reset(const ChVector3d& loc);
+    void Reset(const ChVector3d& loc);
 
     /// Calculate the closest point on the underlying curve to the specified location.
     /// This function returns the closest point on the underlying path to the
@@ -208,7 +208,7 @@ class ChApi ChBezierCurveTracker {
     /// for the Newton iteration, we use time coherence (by keeping track of the path
     /// interval and curve parameter within that interval from the last query). As
     /// such, this function should be called with a continuous sequence of locations.
-    int calcClosestPoint(const ChVector3d& loc, ChVector3d& point);
+    int CalcClosestPoint(const ChVector3d& loc, ChVector3d& point);
 
     /// Calculate the closest point on the underlying curve to the specified location.
     /// Return the TNB (tangent-normal-binormal) frame and the curvature at the closest point.
@@ -216,7 +216,7 @@ class ChApi ChBezierCurveTracker {
     /// along the binormal.  The frame location is the closest point on the Bezier curve.
     /// Note that the normal and binormal are not defined at points with zero curvature.
     /// In such cases, we return an orthonormal frame with X axis along the tangent.
-    int calcClosestPoint(const ChVector3d& loc, ChFrame<>& tnb, double& curvature);
+    int CalcClosestPoint(const ChVector3d& loc, ChFrame<>& tnb, double& curvature);
 
   private:
     std::shared_ptr<ChBezierCurve> m_path;  ///< associated Bezier curve

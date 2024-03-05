@@ -490,7 +490,7 @@ void RandomSurfaceTerrain::SetupVisualization(RandomSurfaceTerrain::Visualisatio
         case RandomSurfaceTerrain::VisualisationType::LINES: {
             GenerateCurves();
 
-            auto np = m_road_left->getNumPoints();
+            auto np = m_road_left->GetNumPoints();
             unsigned int num_render_points = std::max<unsigned int>(static_cast<unsigned int>(3 * np), 400);
             auto bezier_line_left = chrono_types::make_shared<ChLineBezier>(m_road_left);
             auto bezier_asset_left = chrono_types::make_shared<ChVisualShapeLine>();

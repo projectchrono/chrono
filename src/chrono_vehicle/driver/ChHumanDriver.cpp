@@ -199,7 +199,7 @@ void ChHumanDriver::Create() {
     road->SetBodyFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
 
-    auto num_points = static_cast<unsigned int>(m_path->getNumPoints());
+    auto num_points = static_cast<unsigned int>(m_path->GetNumPoints());
     auto path_asset = chrono_types::make_shared<ChVisualShapeLine>();
     path_asset->SetLineGeometry(chrono_types::make_shared<ChLineBezier>(m_path));
     path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
@@ -369,7 +369,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
 
 void ChHumanDriver::Initialize() {
     // Information about the drive course and the road borders
-    size_t np = m_path->getNumPoints();
+    size_t np = m_path->GetNumPoints();
     m_S_l.resize(np);
     m_R_l.resize(np);
     m_R_lu.resize(np);
@@ -379,7 +379,7 @@ void ChHumanDriver::Initialize() {
 
     if (m_path->IsClosed()) {
         for (size_t i = 0; i < np; i++) {
-            m_S_l[i] = m_path->getPoint(i);
+            m_S_l[i] = m_path->GetPoint(i);
         }
         for (size_t i = 0; i < np - 1; i++) {
             m_R_l[i] = m_S_l[i + 1] - m_S_l[i];
@@ -396,7 +396,7 @@ void ChHumanDriver::Initialize() {
         m_Rj[np - 1] = m_S_l[np - 1] - 0.5 * m_road_width * m_R_lu[np - 1].Cross(ChWorldFrame::Vertical());
     } else {
         for (size_t i = 0; i < np; i++) {
-            m_S_l[i] = m_path->getPoint(i);
+            m_S_l[i] = m_path->GetPoint(i);
         }
         for (size_t i = 0; i < np - 1; i++) {
             m_R_l[i] = m_S_l[i + 1] - m_S_l[i];

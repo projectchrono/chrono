@@ -45,7 +45,7 @@ void ChMultiPathFollowerACCDriver::Create() {
 
     auto bezier_curve = m_steeringPID.GetPath();
     for (int i = 0; i < bezier_curve.size(); i++) {
-        auto num_points = static_cast<unsigned int>(bezier_curve[i]->getNumPoints());
+        auto num_points = static_cast<unsigned int>(bezier_curve[i]->GetNumPoints());
         auto path_asset = chrono_types::make_shared<ChVisualShapeLine>();
         path_asset->SetLineGeometry(chrono_types::make_shared<ChLineBezier>(bezier_curve[i]));
         path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
@@ -111,7 +111,7 @@ void ChMultiplePathSteeringController::SetGains(double Kp, double Ki, double Kd)
 
 void ChMultiplePathSteeringController::CalcTargetLocation() {
     // Let the underlying tracker do its magic.
-    m_tracker[m_lane]->calcClosestPoint(m_sentinel, m_target);
+    m_tracker[m_lane]->CalcClosestPoint(m_sentinel, m_target);
 }
 
 void ChMultiplePathSteeringController::Reset(const ChFrameMoving<>& ref_frame) {
@@ -120,7 +120,7 @@ void ChMultiplePathSteeringController::Reset(const ChFrameMoving<>& ref_frame) {
 
     // Reset the path tracker with the new sentinel location
     for (int i = 0; i < m_tracker.size(); i++) {
-        m_tracker[i]->reset(m_sentinel);
+        m_tracker[i]->Reset(m_sentinel);
     }
 }
 

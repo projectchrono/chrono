@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
     // ----------------------
 
     // From data file
-    auto path = ChBezierCurve::read(vehicle::GetDataFile(path_file), closed_loop);
+    auto path = ChBezierCurve::Read(vehicle::GetDataFile(path_file), closed_loop);
 
     // Parameterized ISO double lane change (to left)
     ////auto path = DoubleLaneChangePath(ChVector3d(-125, -125, 0.1), 13.5, 4.0, 11.0, 50.0, true);
@@ -137,14 +137,14 @@ int main(int argc, char* argv[]) {
     // Parameterized NATO double lane change (to right)
     ////auto path = DoubleLaneChangePath(ChVector3d(-125, -125, 0.1), 28.93, 3.6105, 25.0, 50.0, false);
 
-    ////path->write("my_path.txt");
+    ////path->Write("my_path.txt");
 
     // --------------------------------------------
     // Set initial vehicle location and orientation
     // --------------------------------------------
 
-    auto point0 = path->getPoint(0);
-    auto point1 = path->getPoint(1);
+    auto point0 = path->GetPoint(0);
+    auto point1 = path->GetPoint(1);
 
     ChVector3d initLoc = point0;
     initLoc.z() = 0.5;

@@ -33,7 +33,7 @@ void plot(std::shared_ptr<ChBezierCurve> path, int n, const char* title, bool eq
     ChVectorDynamic<> y(n);
     double delta = 1.0 / n;
     for (int i = 0; i < n; i++) {
-        ChVector3d pos = path->eval(delta * i);
+        ChVector3d pos = path->Eval(delta * i);
         x(i) = pos.x();
         y(i) = pos.y();
     }
