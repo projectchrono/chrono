@@ -56,7 +56,7 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     virtual ~ChSystemMulticore();
 
     virtual bool Integrate_Y() override;
-    virtual void AddBody(std::shared_ptr<ChBody> newbody) override;
+    virtual void AddBody(std::shared_ptr<ChBody> body) override;
     virtual void AddShaft(std::shared_ptr<ChShaft> shaft) override;
     virtual void AddLink(std::shared_ptr<ChLinkBase> link) override;
     virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) override;
@@ -143,12 +143,12 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     /// Get the contact force on the specified body.
     /// Note that ComputeContactForces must be called prior to calling this function
     /// at any time where reporting of contact forces is desired.
-    real3 GetBodyContactForce(std::shared_ptr<ChBody> body) const { return GetBodyContactForce(body->GetId()); }
+    real3 GetBodyContactForce(std::shared_ptr<ChBody> body) const { return GetBodyContactForce(body->GetIndex()); }
 
     /// Get the contact torque on the specified body.
     /// Note that ComputeContactForces must be called prior to calling this function
     /// at any time where reporting of contact torques is desired.
-    real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) const { return GetBodyContactTorque(body->GetId()); }
+    real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) const { return GetBodyContactTorque(body->GetIndex()); }
 
     settings_container* GetSettings();
 

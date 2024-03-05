@@ -232,10 +232,14 @@ Note that this represents a major public API change and we expect most user code
 | ChBody                            |                               |                                                  |
 |                                   | Dir_Body2World                | remove                                           |
 |                                   | Dir_World2Body                | remove                                           |
+|                                   | GetId                         | rename: GetIndex (internal use only)             |
+|                                   | GetGid                        | remove                                           |
 |                                   | Point_Body2World              | remove                                           |
 |                                   | Point_World2Body              | remove                                           |
 |                                   | RelPoint_AbsAcc               | remove                                           |
 |                                   | RelPoint_AbsSpeed             | remove                                           |
+|                                   | SetId                         | remove                                           |
+|                                   | SetGid                        | remove                                           |
 | ChException                       |                               | remove                                           |
 | ChFrame                           |                               |                                                  |
 |                                   | GetA                          | rename: GetRotMat                                |
@@ -538,6 +542,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Qdtdt_from_Aabs               | rename: SetDer2FromAngAccAbs                     |
 |                                   | Qdtdt_from_Arel               | rename: SetDer2FromAngAccRel                     |
 |                                   | Qdtdt_from_AngAxis            | rename: SetDer2FromAngleAxis                     |
+| ChShaft                           |                               |                                                  |
+|                                   | GetId                         | rename: GetIndex (internal use only)             |
+|                                   | GetGid                        | remove                                           |
 | ChStream                          |                               | remove                                           |
 | ChStreamFile                      |                               | remove                                           |
 | ChStreamIn                        |                               | remove                                           |

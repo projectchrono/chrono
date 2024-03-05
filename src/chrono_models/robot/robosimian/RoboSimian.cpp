@@ -317,8 +317,8 @@ bool ContactManager::OnReportContact(const ChVector3d& pA,
     auto bodyB = dynamic_cast<ChBodyAuxRef*>(modB);
 
     // Filter robot bodies based on their IDs.
-    bool a = (bodyA && bodyA->GetId() < 100);
-    bool b = (bodyB && bodyB->GetId() < 100);
+    bool a = (bodyA && bodyA->GetIndex() < 100);
+    bool b = (bodyB && bodyB->GetIndex() < 100);
 
     if (!a && !b)
         return true;

@@ -139,12 +139,13 @@ void ChSystem::Clear() {
 // -----------------------------------------------------------------------------
 
 void ChSystem::AddBody(std::shared_ptr<ChBody> body) {
-    body->SetId(static_cast<int>(GetBodies().size()));
+    body->index = static_cast<unsigned int>(GetBodies().size());
     assembly.AddBody(body);
     body->SetSystem(this);
 }
 
 void ChSystem::AddShaft(std::shared_ptr<ChShaft> shaft) {
+    shaft->index = static_cast<unsigned int>(GetShafts().size());
     assembly.AddShaft(shaft);
     shaft->SetSystem(this);
 }

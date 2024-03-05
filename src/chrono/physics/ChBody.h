@@ -106,19 +106,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// A body is inactive if it is fixed to ground or in sleep mode.
     virtual bool IsActive() const override;
 
-    /// Set body id for indexing (internal use only).
-    void SetId(int id) { body_id = id; }
-
-    /// Set body id for indexing (internal use only).
-    unsigned int GetId() { return body_id; }
-
-    /// Set global body index (internal use only).
-    void SetGid(unsigned int id) { body_gid = id; }
-
-    /// Get the global body index (internal use only).
-    unsigned int GetGid() const { return body_gid; }
-
-    // FUNCTIONS
+    /// Get the unique sequential body index (internal use only).
+    unsigned int GetIndex() { return index; }
 
     /// Number of coordinates of body: 7 because uses quaternions for rotation.
     virtual int GetNumCoordinatesPos() override { return 7; }
@@ -412,9 +401,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
         ) override;
 
   protected:
-    unsigned int body_id;   ///< body-specific identifier, used for indexing (internal use only)
-    unsigned int body_gid;  ///< body-specific identifier, used for global indexing (internal use only)
-
     std::vector<std::shared_ptr<ChMarker>> marklist;  ///< list of markers
     std::vector<std::shared_ptr<ChForce>> forcelist;  ///< list of forces
 
@@ -435,6 +421,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     float sleep_minspeed;
     float sleep_minwvel;
     float sleep_starttime;
+
+    unsigned int index;  ///< unique sequential body identifier, used for indexing (internal use only)
 
   private:
     // STATE FUNCTIONS
@@ -657,7 +645,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     void BFlagSet(BodyFlag mask, bool state);
     bool BFlagGet(BodyFlag mask) const;
 
-    // Give private access
+    // Friend classes with private access
     friend class ChSystem;
     friend class ChSystemMulticore;
     friend class ChSystemMulticoreNSC;

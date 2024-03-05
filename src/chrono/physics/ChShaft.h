@@ -19,7 +19,6 @@
 #include "chrono/physics/ChLoadable.h"
 #include "chrono/solver/ChVariablesShaft.h"
 
-
 namespace chrono {
 
 // Forward references (for parent hierarchy pointer)
@@ -30,34 +29,7 @@ class ChSystem;
 ///  In most cases these represent shafts that can be used to build 1D models
 ///  of power trains. This is more efficient than simulating power trains
 ///  modeled with full 3D ChBody objects.
-
 class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
-
-  private:
-    double torque;  ///< The torque acting on shaft (force, if used as linear DOF)
-
-    double pos;       //< shaft angle
-    double pos_dt;    //< shaft angular velocity
-    double pos_dtdt;  //< shaft angular acceleration
-
-    double inertia;  ///< shaft J moment of inertia (or mass, if used as linear DOF)
-
-    ChVariablesShaft variables;  ///< used as an interface to the solver
-
-    float max_speed;  ///< limit on linear speed
-
-    float sleep_time;
-    float sleep_minspeed;
-    float sleep_minwvel;
-    float sleep_starttime;
-
-    bool fixed;
-    bool limitspeed;
-    bool sleeping;
-    bool use_sleeping;
-
-    unsigned int id;  ///< shaft id used for internal indexing
-
   public:
     ChShaft();
     ChShaft(const ChShaft& other);
@@ -66,9 +38,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChShaft* Clone() const override { return new ChShaft(*this); }
 
-    //
     // FLAGS
-    //
 
     /// Sets the 'fixed' state of the shaft. If true, it does not rotate
     /// despite constraints, forces, etc.
@@ -103,15 +73,8 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     /// A shaft is inactive if it is fixed to ground or is in sleep mode.
     virtual bool IsActive() const override { return !(sleeping || fixed); }
 
-    //
-    // FUNCTIONS
-    //
-
-    /// Set the shaft id for indexing (only used internally)
-    void SetId(unsigned int identifier) { id = identifier; }
-
-    /// Get the shaft id for indexing (only used internally)
-    unsigned int GetId() const { return id; }
+    /// Get the unique sequential shaft index (internal use only).
+    unsigned int GetIndex() const { return index; }
 
     /// Number of coordinates of the shaft
     virtual int GetNumCoordinatesPos() override { return 1; }
@@ -119,9 +82,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     /// Returns reference to the encapsulated ChVariables,
     ChVariablesShaft& Variables() { return variables; }
 
-    //
     // STATE FUNCTIONS
-    //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGather(const unsigned int off_x,
@@ -157,9 +118,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    //
     // SOLVER FUNCTIONS
-    //
 
     // Override/implement system functions of ChPhysicsItem
     // (to assemble/manage data for system solver)
@@ -195,25 +154,29 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     /// ChVariables in this object (for further passing it to a solver)
     virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
 
-	//
-	// INTERFACE to ChLoadable
-	// 
-	virtual int LoadableGet_ndof_x() override { return 1; }
+    // INTERFACE to ChLoadable
+
+    virtual int LoadableGet_ndof_x() override { return 1; }
     virtual int LoadableGet_ndof_w() override { return 1; }
     virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override { mD(block_offset) = this->GetPos(); }
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override { mD(block_offset) = this->GetPosDer(); }
+    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
+        mD(block_offset) = this->GetPosDer();
+    }
     virtual void LoadableStateIncrement(const unsigned int off_x,
                                         ChState& x_new,
                                         const ChState& x,
                                         const unsigned int off_v,
-                                        const ChStateDelta& Dv) override { x_new(off_x) = x(off_x) + Dv(off_v); }
+                                        const ChStateDelta& Dv) override {
+        x_new(off_x) = x(off_x) + Dv(off_v);
+    }
     virtual int Get_field_ncoords() override { return 1; }
     virtual int GetSubBlocks() override { return 1; }
     virtual unsigned int GetSubBlockOffset(int nblock) override { return this->GetOffset_w(); }
     virtual unsigned int GetSubBlockSize(int nblock) override { return 1; }
     virtual bool IsSubBlockActive(int nblock) const override { return true; }
-    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override { mvars.push_back(&this->Variables()); };
-
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override {
+        mvars.push_back(&this->Variables());
+    };
 
     // Other functions
 
@@ -270,26 +233,50 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     void SetSleepMinWvel(float m_t) { sleep_minwvel = m_t; }
     float GetSleepMinWvel() const { return sleep_minwvel; }
 
-    //
     // UPDATE FUNCTIONS
-    //
 
     /// Update all auxiliary data of the shaft at given time
     virtual void Update(double mytime, bool update_assets = true) override;
 
-    //
     // SERIALIZATION
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    double torque;  ///< The torque acting on shaft (force, if used as linear DOF)
+
+    double pos;       //< shaft angle
+    double pos_dt;    //< shaft angular velocity
+    double pos_dtdt;  //< shaft angular acceleration
+
+    double inertia;  ///< shaft J moment of inertia (or mass, if used as linear DOF)
+
+    ChVariablesShaft variables;  ///< used as an interface to the solver
+
+    float max_speed;  ///< limit on linear speed
+
+    float sleep_time;
+    float sleep_minspeed;
+    float sleep_minwvel;
+    float sleep_starttime;
+
+    bool fixed;
+    bool limitspeed;
+    bool sleeping;
+    bool use_sleeping;
+
+    unsigned int index;  ///< unique sequential body identifier, used for indexing (internal use only)
+
+    // Friend classes with private access
+    friend class ChSystem;
+    friend class ChSystemMulticore;
 };
 
-CH_CLASS_VERSION(ChShaft,0)
-
+CH_CLASS_VERSION(ChShaft, 0)
 
 }  // end namespace chrono
 

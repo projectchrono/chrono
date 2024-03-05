@@ -206,20 +206,19 @@ bool ChSystemMulticore::Integrate_Y() {
 }
 
 // Add the specified body to the system.
-// A unique identifier is assigned to each body for indexing purposes.
-// Space is allocated in system-wide vectors for data corresponding to the
-// body.
-void ChSystemMulticore::AddBody(std::shared_ptr<ChBody> newbody) {
+// A unique identifier is assigned to each body for indexing purposes. 
+// Space is allocated in system-wide vectors for data corresponding to the body.
+void ChSystemMulticore::AddBody(std::shared_ptr<ChBody> body) {
     // This is only need because bilaterals need to know what bodies to
     // refer to. Not used by contacts
-    newbody->SetId(data_manager->num_rigid_bodies);
+    body->index = data_manager->num_rigid_bodies;
 
-    assembly.bodylist.push_back(newbody);
+    assembly.bodylist.push_back(body);
     data_manager->num_rigid_bodies++;
 
     // Set the system for the body.  Note that this will also add the body's
     // collision shapes to the collision system if not already done.
-    newbody->SetSystem(this);
+    body->SetSystem(this);
 
     // Reserve space for this body in the system-wide vectors. Note that the
     // actual data is set in UpdateBodies().
@@ -229,14 +228,14 @@ void ChSystemMulticore::AddBody(std::shared_ptr<ChBody> newbody) {
     data_manager->host_data.collide_rigid.push_back(true);
 
     // Let derived classes reserve space for specific material surface data
-    AddMaterialSurfaceData(newbody);
+    AddMaterialSurfaceData(body);
 }
 
 // Add the specified shaft to the system.
 // A unique identifier is assigned to each shaft for indexing purposes.
 // Space is allocated in system-wide vectors for data corresponding to the shaft.
 void ChSystemMulticore::AddShaft(std::shared_ptr<ChShaft> shaft) {
-    shaft->SetId(data_manager->num_shafts);
+    shaft->index = data_manager->num_shafts;
     shaft->SetSystem(this);
 
     assembly.shaftlist.push_back(shaft);
@@ -765,17 +764,17 @@ void ChSystemMulticore::SetMaterialCompositionStrategy(
 
 ChVector3d ChSystemMulticore::GetBodyAppliedForce(ChBody* body) {
     auto h = data_manager->settings.step_size;
-    auto fx = data_manager->host_data.hf[body->GetId() * 6 + 0] / h;
-    auto fy = data_manager->host_data.hf[body->GetId() * 6 + 1] / h;
-    auto fz = data_manager->host_data.hf[body->GetId() * 6 + 2] / h;
+    auto fx = data_manager->host_data.hf[body->GetIndex() * 6 + 0] / h;
+    auto fy = data_manager->host_data.hf[body->GetIndex() * 6 + 1] / h;
+    auto fz = data_manager->host_data.hf[body->GetIndex() * 6 + 2] / h;
     return ChVector3d((double)fx, (double)fy, (double)fz);
 }
 
 ChVector3d ChSystemMulticore::GetBodyAppliedTorque(ChBody* body) {
     auto h = data_manager->settings.step_size;
-    auto tx = data_manager->host_data.hf[body->GetId() * 6 + 3] / h;
-    auto ty = data_manager->host_data.hf[body->GetId() * 6 + 4] / h;
-    auto tz = data_manager->host_data.hf[body->GetId() * 6 + 5] / h;
+    auto tx = data_manager->host_data.hf[body->GetIndex() * 6 + 3] / h;
+    auto ty = data_manager->host_data.hf[body->GetIndex() * 6 + 4] / h;
+    auto tz = data_manager->host_data.hf[body->GetIndex() * 6 + 5] / h;
     return ChVector3d((double)tx, (double)ty, (double)tz);
 }
 

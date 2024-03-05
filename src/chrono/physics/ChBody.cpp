@@ -31,7 +31,7 @@ CH_UPCASTING_SANITIZED(ChBody, ChContactable_1vars<6>, ChBody_ChContactable_1var
 CH_UPCASTING(ChBody, ChLoadableUVW)
 
 ChBody::ChBody()
-    : body_id(0), fixed(false), collide(false), Xforce(VNULL), Xtorque(VNULL), Force_acc(VNULL), Torque_acc(VNULL) {
+    : index(0), fixed(false), collide(false), Xforce(VNULL), Xtorque(VNULL), Force_acc(VNULL), Torque_acc(VNULL) {
     marklist.clear();
     forcelist.clear();
 
@@ -1000,7 +1000,6 @@ void ChBody::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(marklist, "markers");
     archive_out << CHNVP(forcelist, "forces");
 
-    archive_out << CHNVP(body_id);
     archive_out << CHNVP(collision_model);
     archive_out << CHNVP(gyro);
     archive_out << CHNVP(Xforce);
@@ -1055,8 +1054,6 @@ void ChBody::ArchiveIn(ChArchiveIn& archive_in) {
     for (auto& i : tempforces) {
         AddForce(i);
     }
-
-    archive_in >> CHNVP(body_id);
 
     std::shared_ptr<ChCollisionModel> collision_model_temp;  ///< pointer to the collision model
     archive_in >> CHNVP(collision_model_temp, "collision_model");

@@ -824,9 +824,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// nonlinearities before coming to the precise static solution.
     bool DoStaticRelaxing(int nsteps = 10);
 
-    //
     // SERIALIZATION
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out);

@@ -87,7 +87,7 @@ void ChCollisionSystemMulticore::Add(std::shared_ptr<ChCollisionModel> model) {
     auto ct_model = chrono_types::make_shared<ChCollisionModelMulticore>(model.get());
     ct_model->Populate();
 
-    int body_id = ct_model->GetBody()->GetId();
+    auto body_id = ct_model->GetBody()->GetIndex();
     short2 fam = S2(ct_model->model->GetFamilyGroup(), ct_model->model->GetFamilyMask());
 
     // The offset for this shape will the current total number of points in the convex data list
