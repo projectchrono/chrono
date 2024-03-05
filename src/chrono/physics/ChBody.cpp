@@ -369,7 +369,10 @@ void ChBody::Empty_forces_accumulators() {
 void ChBody::Accumulate_force(const ChVector3d& force, const ChVector3d& appl_point, bool local) {
     ChVector3d absforce;
     ChVector3d abstorque;
-    To_abs_forcetorque(force, appl_point, local, absforce, abstorque);
+    if (local)
+        AppliedForceLocalToWrenchParent(force, appl_point, absforce, abstorque);
+    else
+        AppliedForceParentToWrenchParent(force, appl_point, absforce, abstorque);
 
     Force_acc += absforce;
     Torque_acc += TransformDirectionParentToLocal(abstorque);

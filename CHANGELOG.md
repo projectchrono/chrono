@@ -240,6 +240,10 @@ Note that this represents a major public API change and we expect most user code
 |                                   | RelPoint_AbsSpeed             | remove                                           |
 |                                   | SetId                         | remove                                           |
 |                                   | SetGid                        | remove                                           |
+| ChBodyFrame                       |                               |                                                  |
+|                                   | To_abs_forcetorque            | remove                                           |
+|                                   |                               | added: AppliedForceLocalToWrenchParent           |
+|                                   |                               | added: AppliedForceParentToWrenchParent          |
 | ChException                       |                               | remove                                           |
 | ChFrame                           |                               |                                                  |
 |                                   | GetA                          | rename: GetRotMat                                |

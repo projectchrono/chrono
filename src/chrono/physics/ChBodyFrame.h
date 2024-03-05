@@ -31,15 +31,23 @@ class ChApi ChBodyFrame : public ChFrameMoving<double> {
     /// Return a reference to the encapsulated variables, representing states (pos, speed or accel.) and forces.
     virtual ChVariables& Variables() = 0;
 
-    /// Transform a force applied at a point on the body  into a force and moment applied to the COM and expressed in
-    /// the absolute frame.
-    /// If local = true, the provided applied force and point are assumed to be expressed in body coordinates.
-    /// If local = false, the provided applied force and point is assumed to be expressed in absolute coordinates.
-    void To_abs_forcetorque(const ChVector3d& force,
-                            const ChVector3d& appl_point,
-                            bool local,
-                            ChVector3d& resultforce,
-                            ChVector3d& resulttorque);
+    /// Transform a force applied to a point on the body to a force and moment at the frame origin.
+    /// The applied force and its application point are assumed to be expressed in the body frame.
+    /// The resulting force and torque are expressed in the parent frame.
+    void AppliedForceLocalToWrenchParent(const ChVector3d& force,       ///< applied force, in local coords.
+                                         const ChVector3d& appl_point,  ///< application point, in local coords
+                                         ChVector3d& force_abs,         ///< wrench force, in abs. coords.
+                                         ChVector3d& torque_abs         ///< wrench torque, in abs. coords.
+    );
+
+    /// Transform a force applied to a point on the body to a force and moment at the frame origin.
+    /// The applied force and its application point are assumed to be expressed in the parent frame.
+    /// The resulting force and torque are expressed in the parent frame.
+    void AppliedForceParentToWrenchParent(const ChVector3d& force,       ///< applied force, in abs. coords.
+                                          const ChVector3d& appl_point,  ///< application point, in abs. coords
+                                          ChVector3d& force_abs,         ///< wrench force, in abs. coords.
+                                          ChVector3d& torque_abs         ///< wrench torque, in abs. coords.
+    );
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
