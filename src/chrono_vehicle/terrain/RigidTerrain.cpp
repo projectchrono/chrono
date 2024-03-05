@@ -464,7 +464,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     const int coarse_grid_resolution = std::min(heightmap_resolution, unrefined_resolution);
 
     // Note: typically this method works best with a 1:1 aspect ratio, but it can work with rectangular-type
-    // grid cells, and elongated triangles, however, it might run into trouble using refinemeshedges if the
+    // grid cells, and elongated triangles, however, it might run into trouble using RefineMeshEdges if the
     // aspect ratio is too extreme.
     //
     // Adjusted cell sizes to fit within the terrain dimensions
@@ -644,7 +644,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
         // Compute the triangle connectivity map
         std::vector<std::array<int, 4>> tri_map;
 
-        ////bool check_pathological = patch->m_trimesh->ComputeNeighbouringTriangleMap(tri_map);  // to RefineMeshEdges
+        /* bool check_pathological = */ patch->m_trimesh->ComputeNeighbouringTriangleMap(tri_map);
         ////if (!check_pathological) break; // TODO: ensure the return is correct from ChTriangleMeshConnected.cpp
 
         for (const auto& edge : winged_edges) {
