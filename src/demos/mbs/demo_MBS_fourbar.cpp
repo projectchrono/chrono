@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
         tools::drawPolyline(vis.get(), mtrajectory, ChColor(0, 0.5f, 0));
 
         // We need to add another point to the array of 3d points describing the trajectory to be drawn..
-        mtrajectory.push_back(my_body_C->Point_Body2World(ChVector3d(1, 1, 0)));
+        mtrajectory.push_back(my_body_C->TransformPointLocalToParent(ChVector3d(1, 1, 0)));
         // keep only last 150 points..
         if (mtrajectory.size() > 150)
             mtrajectory.erase(mtrajectory.begin());

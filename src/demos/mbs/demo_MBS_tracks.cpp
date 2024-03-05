@@ -388,7 +388,7 @@ class MySimpleTank {
             }
 
             // close track
-            ChVector3d linkpos = firstBodyShoe->Point_Body2World(joint_displacement);
+            ChVector3d linkpos = firstBodyShoe->TransformPointLocalToParent(joint_displacement);
             auto link_revolute_shoeshoe = chrono_types::make_shared<ChLinkLockRevolute>();
             link_revolute_shoeshoe->Initialize(firstBodyShoe, previous_rigidBodyShoe, ChFrame<>(linkpos, QUNIT));
             sys.AddLink(link_revolute_shoeshoe);
@@ -437,7 +437,7 @@ class MySimpleTank {
 
         // Create revolute constraint
         if (previous_shoe) {
-            ChVector3d linkpos = rigidBodyShoe->Point_Body2World(joint_displacement);
+            ChVector3d linkpos = rigidBodyShoe->TransformPointLocalToParent(joint_displacement);
             auto link_revolute_shoeshoe = chrono_types::make_shared<ChLinkLockRevolute>();
             link_revolute_shoeshoe->Initialize(rigidBodyShoe, previous_shoe, ChFrame<>(linkpos, QUNIT));
             sys.AddLink(link_revolute_shoeshoe);

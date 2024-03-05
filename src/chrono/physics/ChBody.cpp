@@ -314,32 +314,6 @@ void ChBody::ClampSpeed() {
     }
 }
 
-//// Utilities for coordinate transformations
-
-ChVector3d ChBody::Point_World2Body(const ChVector3d& mpoint) {
-    return ChFrame<double>::TransformPointParentToLocal(mpoint);
-}
-
-ChVector3d ChBody::Point_Body2World(const ChVector3d& mpoint) {
-    return ChFrame<double>::TransformPointLocalToParent(mpoint);
-}
-
-ChVector3d ChBody::Dir_World2Body(const ChVector3d& dir) {
-    return Rmat.transpose() * dir;
-}
-
-ChVector3d ChBody::Dir_Body2World(const ChVector3d& dir) {
-    return Rmat * dir;
-}
-
-ChVector3d ChBody::RelPoint_AbsSpeed(const ChVector3d& mrelpoint) {
-    return PointSpeedLocalToParent(mrelpoint);
-}
-
-ChVector3d ChBody::RelPoint_AbsAcc(const ChVector3d& mrelpoint) {
-    return PointAccelerationLocalToParent(mrelpoint);
-}
-
 // The inertia tensor functions
 
 void ChBody::SetInertia(const ChMatrix33<>& newXInertia) {
@@ -398,14 +372,14 @@ void ChBody::Accumulate_force(const ChVector3d& force, const ChVector3d& appl_po
     To_abs_forcetorque(force, appl_point, local, absforce, abstorque);
 
     Force_acc += absforce;
-    Torque_acc += Dir_World2Body(abstorque);
+    Torque_acc += TransformDirectionParentToLocal(abstorque);
 }
 
 void ChBody::Accumulate_torque(const ChVector3d& torque, bool local) {
     if (local) {
         Torque_acc += torque;
     } else {
-        Torque_acc += Dir_World2Body(torque);
+        Torque_acc += TransformDirectionParentToLocal(torque);
     }
 }
 
@@ -770,8 +744,8 @@ ChVector3d ChBody::GetContactPointSpeed(const ChVector3d& loc_point,
 }
 
 ChVector3d ChBody::GetContactPointSpeed(const ChVector3d& abs_point) {
-    ChVector3d m_p1_loc = Point_World2Body(abs_point);
-    return PointSpeedLocalToParent(m_p1_loc);
+    ChVector3d point_loc = TransformPointParentToLocal(abs_point);
+    return PointSpeedLocalToParent(point_loc);
 }
 
 ChCoordsys<> ChBody::GetCsysForCollisionModel() {
@@ -782,11 +756,11 @@ void ChBody::ContactForceLoadResidual_F(const ChVector3d& F,
                                         const ChVector3d& T,
                                         const ChVector3d& abs_point,
                                         ChVectorDynamic<>& R) {
-    ChVector3d m_p1_loc = this->Point_World2Body(abs_point);
-    ChVector3d force1_loc = this->Dir_World2Body(F);
-    ChVector3d torque1_loc = Vcross(m_p1_loc, force1_loc);
+    ChVector3d point_loc = TransformPointParentToLocal(abs_point);
+    ChVector3d force1_loc = this->TransformDirectionParentToLocal(F);
+    ChVector3d torque1_loc = Vcross(point_loc, force1_loc);
     if (!T.IsNull())
-        torque1_loc += this->Dir_World2Body(T);
+        torque1_loc += this->TransformDirectionParentToLocal(T);
     R.segment(this->GetOffset_w() + 0, 3) += F.eigen();
     R.segment(this->GetOffset_w() + 3, 3) += torque1_loc.eigen();
 }
@@ -814,7 +788,7 @@ void ChBody::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                            ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
                                            bool second) {
     /*
-    ChVector3d p1 = Point_World2Body(abs_point);
+    ChVector3d p1 = TransformPointParentToLocal(abs_point);
     ChStarMatrix33<> Ps1(p1);
 
     ChMatrix33<> Jx1 = contact_plane.transpose();
@@ -835,7 +809,7 @@ void ChBody::ComputeJacobianForContactPart(const ChVector3d& abs_point,
     */
 
     // UNROLLED VERSION - FASTER
-    ChVector3d p1 = Point_World2Body(abs_point);
+    ChVector3d p1 = TransformPointParentToLocal(abs_point);
     double temp00 =
         Rmat(0, 2) * contact_plane(0, 0) + Rmat(1, 2) * contact_plane(1, 0) + Rmat(2, 2) * contact_plane(2, 0);
     double temp01 =

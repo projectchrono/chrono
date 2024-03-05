@@ -78,7 +78,7 @@ void ChForce::SetVpoint(ChVector3d mypoint) {
     // abs pos
     vpoint = mypoint;
     // rel pos
-    vrelpoint = GetBody()->Point_World2Body(vpoint);
+    vrelpoint = GetBody()->TransformPointParentToLocal(vpoint);
 
     // computes initial rest position.
     ChVector3d displace = VNULL;
@@ -103,7 +103,7 @@ void ChForce::SetVrelpoint(ChVector3d myrelpoint) {
     // rel pos
     vrelpoint = myrelpoint;
     // abs pos
-    vpoint = GetBody()->Point_Body2World(vrelpoint);
+    vpoint = GetBody()->TransformPointLocalToParent(vrelpoint);
 
     // computes initial rest position.
     ChVector3d displace = VNULL;
@@ -192,12 +192,12 @@ void ChForce::UpdateState() {
 
     switch (frame) {
         case WORLD:
-            vpoint = Vadd(restpos, vmotion);                // Uw
-            vrelpoint = my_body->Point_World2Body(vpoint);  // Uo1 = [A]'(Uw-Xo1)
+            vpoint = Vadd(restpos, vmotion);                           // Uw
+            vrelpoint = my_body->TransformPointParentToLocal(vpoint);  // Uo1 = [A]'(Uw-Xo1)
             break;
         case BODY:
-            vrelpoint = Vadd(restpos, vmotion);             // Uo1
-            vpoint = my_body->Point_Body2World(vrelpoint);  // Uw = Xo1+[A]Uo1
+            vrelpoint = Vadd(restpos, vmotion);                        // Uo1
+            vpoint = my_body->TransformPointLocalToParent(vrelpoint);  // Uw = Xo1+[A]Uo1
             break;
     }
 

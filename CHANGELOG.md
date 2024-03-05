@@ -215,6 +215,13 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNsysvars                   | remove                                           |
 |                                   | GetNsysvars_w                 | remove                                           |
 | ChBinaryArchive                   |                               | remove                                           |
+| ChBody                            |                               |                                                  |
+|                                   | Point_World2Body              | remove                                           |
+|                                   | Point_Body2World              | remove                                           |
+|                                   | Dir_World2Body                | remove                                           |
+|                                   | Dir_Body2World                | remove                                           |
+|                                   | RelPoint_AbsSpeed             | remove                                           |
+|                                   | RelPoint_AbsAcc               | remove                                           |
 | ChException                       |                               | remove                                           |
 | ChFrame                           |                               |                                                  |
 |                                   | GetA                          | rename: GetRotMat                                |

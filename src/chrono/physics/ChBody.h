@@ -203,15 +203,6 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// and Add.. functions.
     const std::vector<std::shared_ptr<ChForce>>& GetForceList() const { return forcelist; }
 
-    // Point/vector transf.(NOTE! you may also use operators of ChMovingFrame)
-
-    ChVector3d Point_World2Body(const ChVector3d& mpoint);
-    ChVector3d Point_Body2World(const ChVector3d& mpoint);
-    ChVector3d Dir_World2Body(const ChVector3d& dir);
-    ChVector3d Dir_Body2World(const ChVector3d& dir);
-    ChVector3d RelPoint_AbsSpeed(const ChVector3d& mrelpoint);
-    ChVector3d RelPoint_AbsAcc(const ChVector3d& mrelpoint);
-
     /// Set the body mass.
     /// Try not to mix bodies with too high/too low values of mass, for numerical stability.
     void SetMass(double newmass) { variables.SetBodyMass(newmass); }
