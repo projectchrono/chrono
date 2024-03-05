@@ -37,7 +37,7 @@ namespace ChronoDemo
             // Create the system
             ChSystemSMC sys = new ChSystemSMC();
 
-            sys.Set_G_acc(new ChVector3d(0, gravity, 0));
+            sys.SetGravitationalAcceleration(new ChVector3d(0, gravity, 0));
             sys.SetCollisionSystemType(coll_type);
 
             // The following two lines are optional, since they are the default options. They are added for future reference,

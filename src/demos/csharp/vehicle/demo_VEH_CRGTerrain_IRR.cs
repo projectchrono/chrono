@@ -376,7 +376,7 @@ namespace ChronoDemo
             shapeLocation.Sub(initCsys.pos, halfUpVector);
             terrain.GetGround().AddVisualShape(new ChVisualShapeBox(new ChBox(1, roadWidth, 0.1)),
                                     new ChFramed(shapeLocation, initCsys.rot));
-            path.write(outDir + "/path.txt");
+            path.Write(outDir + "/path.txt");
 
 
             // ----------------------------

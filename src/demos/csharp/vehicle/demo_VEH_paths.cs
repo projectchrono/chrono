@@ -60,7 +60,7 @@ namespace ChronoDemo
                 double delta = 1.0 / n;
                 for (int i = 0; i < n; i++)
                 {
-                    ChVector3d pos = path.eval(delta * i);
+                    ChVector3d pos = path.Eval(delta * i);
                     x.SetItem(i, pos.x);
                     y.SetItem(i, pos.y);
                 }
