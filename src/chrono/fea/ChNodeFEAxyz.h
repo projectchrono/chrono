@@ -55,18 +55,21 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
 
     /// Get mass of the node.
     virtual double GetMass() const override { return variables.GetNodeMass(); }
+
     /// Set mass of the node.
     virtual void SetMass(double m) override { variables.SetNodeMass(m); }
 
     /// Set the initial (reference) position
-    virtual void SetX0(ChVector3d x) { X0 = x; }
+    virtual void SetX0(const ChVector3d& x) { X0 = x; }
+
     /// Get the initial (reference) position
-    virtual ChVector3d GetX0() { return X0; }
+    virtual const ChVector3d& GetX0() const { return X0; }
 
     /// Set the 3d applied force, in absolute reference
-    virtual void SetForce(ChVector3d f) { Force = f; }
+    virtual void SetForce(const ChVector3d& frc) { Force = frc; }
+
     /// Get the 3d applied force, in absolute reference
-    virtual ChVector3d GetForce() { return Force; }
+    virtual const ChVector3d& GetForce() const { return Force; }
 
     /// Get the number of degrees of freedom
     virtual int GetNdofX() const override { return 3; }
