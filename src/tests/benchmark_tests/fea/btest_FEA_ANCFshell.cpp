@@ -100,7 +100,7 @@ class ANCFshell_PARDISOPROJECT : public ANCFshell<N> {
 template <int N>
 ANCFshell<N>::ANCFshell(SolverType solver_type) {
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector3d(0, -9.8, 0));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, -9.8, 0));
     m_system->SetNumThreads(4);
 
     // Set solver parameters

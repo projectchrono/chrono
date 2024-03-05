@@ -78,7 +78,7 @@ class Crane {
         connection_sph->SetColor(ChColor(0.7f, 0.3f, 0.3f));
 
         // Estimate initial required force (moment balance about crane pivot)
-        auto Gacc = sys.Get_G_acc();
+        auto Gacc = sys.GetGravitationalAcceleration();
         auto Gtorque = Vcross(crane_mass * Gacc, crane_pos) + Vcross(pend_mass * Gacc, pend_pos);
         auto dir = (crane_pos - m_point_ground).GetNormalized();
         m_F0 = Gtorque.Length() / Vcross(dir, crane_pos).Length();
@@ -265,8 +265,8 @@ int main(int argc, char* argv[]) {
     // Create the two Chrono systems 
     ChSystemSMC sysMBS;
     ChSystemSMC sysHYD;
-    sysMBS.Set_G_acc(ChVector3d(0, 0, -9.8));
-    sysHYD.Set_G_acc(ChVector3d(0, 0, -9.8));
+    sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
+    sysHYD.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
 
     // Construct the crane multibody system
     Crane crane(sysMBS); 

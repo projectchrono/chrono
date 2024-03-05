@@ -128,7 +128,7 @@ void WriteCylinderVTK(const std::string& filename, double radius, double length,
 //------------------------------------------------------------------
 void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Set gravity to the rigid body system in chrono
-    sysMBS.Set_G_acc(sysFSI.Get_G_acc());
+    sysMBS.SetGravitationalAcceleration(sysFSI.GetGravitationalAcceleration());
 
     // Set common material Properties
     auto cmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
@@ -252,7 +252,7 @@ int main(int argc, char* argv[]) {
 
     // Add SPH particles from the sampler points to the FSI system
     size_t numPart = (int)points.size();
-    double gz = std::abs(sysFSI.Get_G_acc().z());
+    double gz = std::abs(sysFSI.GetGravitationalAcceleration().z());
     for (int i = 0; i < numPart; i++) {
         double pre_ini = sysFSI.GetDensity() * gz * (-points[i].z() + bzDim);
         double rho_ini = sysFSI.GetDensity() + pre_ini / (sysFSI.GetSoundSpeed() * sysFSI.GetSoundSpeed());

@@ -53,7 +53,7 @@ TEST(FullAssembly, Assemble) {
 
     // Create the mechanical system
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, -g));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -g));
 
     // Integrator settings
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);

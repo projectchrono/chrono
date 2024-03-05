@@ -43,7 +43,7 @@ mesh = fea.ChMesh()
 # Remember to add the mesh to the system!
 sys.Add(mesh)
 
-# sys.Set_G_acc(VNULL) or
+# sys.SetGravitationalAcceleration(VNULL) or
 mesh.SetAutomaticGravity(False)
 
 nodePlotA = fea.ChNodeFEAxyzrot()

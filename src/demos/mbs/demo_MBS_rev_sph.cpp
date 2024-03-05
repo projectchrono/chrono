@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(1, -1, 1));
+    sys.SetGravitationalAcceleration(ChVector3d(1, -1, 1));
 
     // Create the ground body
     // ----------------------

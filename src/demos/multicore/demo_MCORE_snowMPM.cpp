@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
 
     // Set gravitational acceleration
     double gravity = 9.81;
-    sys.Set_G_acc(ChVector3d(0, 0, -gravity));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -gravity));
 
     // Set solver parameters
     sys.GetSettings()->solver.solver_mode = SolverMode::SLIDING;

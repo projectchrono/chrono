@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
 
     ChSystemSMC sys;
     ChVector3d Gacc(0, 0, -9.8);
-    sys.Set_G_acc(Gacc);
+    sys.SetGravitationalAcceleration(Gacc);
 
     ChVector3d attachment_ground(std::sqrt(3.0) / 2, 0, 0);
     ChVector3d attachment_crane(0, 0, 0);

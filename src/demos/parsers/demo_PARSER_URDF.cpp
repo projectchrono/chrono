@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono system
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.8));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
 
     // Create a "floor" body
     auto floor = chrono_types::make_shared<ChBody>();

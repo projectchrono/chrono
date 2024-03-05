@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
     rig->SetMaxTorque(6000);
 
     // Disable gravity in this simulation
-    ////rig->GetSystem()->Set_G_acc(ChVector3d(0, 0, 0));
+    ////rig->GetSystem()->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Visualization settings
     rig->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);

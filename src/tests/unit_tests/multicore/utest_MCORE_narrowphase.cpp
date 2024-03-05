@@ -97,7 +97,7 @@ void SetupSystem(ChSystemMulticoreNSC* msystem) {
     float contact_recovery_speed = 10e30f;
     double tolerance = 1e-2;
 
-    msystem->Set_G_acc(ChVector3d(0, 0, -9.81));
+    msystem->SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     msystem->GetSettings()->solver.tolerance = tolerance;
     msystem->GetSettings()->solver.solver_mode = SolverMode::SLIDING;

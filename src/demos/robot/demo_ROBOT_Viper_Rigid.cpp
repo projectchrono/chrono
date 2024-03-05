@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
 
     // Create the Chrono system with gravity in the negative Z direction
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);

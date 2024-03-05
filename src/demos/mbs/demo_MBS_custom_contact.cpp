@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    sys->Set_G_acc(ChVector3d(0, -9.8, 0));
+    sys->SetGravitationalAcceleration(ChVector3d(0, -9.8, 0));
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the ground body with a plate and side walls (both collision and visualization).

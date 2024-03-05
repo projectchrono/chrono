@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
     std::static_pointer_cast<ChTrackShoeBand>(vehicle.GetTrackShoe(LEFT, 0))->WriteTreadVisualizationMesh(out_dir);
 
     // Disable gravity in this simulation
-    ////sys->Set_G_acc(ChVector3d(0, 0, 0));
+    ////sys->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // --------------------------------------------------
     // Control internal collisions and contact monitoring

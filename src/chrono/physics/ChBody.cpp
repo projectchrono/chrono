@@ -536,7 +536,7 @@ void ChBody::UpdateForces(double mytime) {
 
     // Add gravitational forces
     if (system) {
-        Xforce += system->Get_G_acc() * GetMass();
+        Xforce += system->GetGravitationalAcceleration() * GetMass();
     }
 }
 

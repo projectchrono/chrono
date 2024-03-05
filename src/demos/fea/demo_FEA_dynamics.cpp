@@ -97,7 +97,7 @@ void test_1() {
     sys.Add(constraintA);
 
     // Set no gravity
-    // sys.Set_G_acc(VNULL);
+    // sys.SetGravitationalAcceleration(VNULL);
 
     // Perform a dynamic time integration:
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -177,7 +177,7 @@ void test_2() {
     sys.Add(constraintA);
 
     // Set no gravity
-    // sys.Set_G_acc(VNULL);
+    // sys.SetGravitationalAcceleration(VNULL);
 
     // Perform a dynamic time integration:
 
@@ -261,7 +261,7 @@ void test_2b() {
     sys.Add(constraintA);
 
     // Set no gravity
-    // sys.Set_G_acc(VNULL);
+    // sys.SetGravitationalAcceleration(VNULL);
 
     // Perform a dynamic time integration:
 
@@ -450,7 +450,7 @@ void test_4() {
     sys.Add(constraintA);
 
     // Set no gravity
-    // sys.Set_G_acc(VNULL);
+    // sys.SetGravitationalAcceleration(VNULL);
 
     // Perform a dynamic time integration:
 

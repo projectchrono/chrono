@@ -401,7 +401,7 @@ RoboSimian::RoboSimian(ChContactMethod contact_method, bool has_sled, bool fixed
       m_root("results") {
     m_system = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
                                                         : static_cast<ChSystem*>(new ChSystemSMC);
-    m_system->Set_G_acc(ChVector3d(0, 0, -9.81));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     // Integration and Solver settings
     m_system->SetSolverMaxIterations(150);

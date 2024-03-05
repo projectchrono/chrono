@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
     TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChContactMethod::SMC);
 
     // Disable gravity in this simulation
-    ////vehicle.GetSystem()->Set_G_acc(ChVector3d(0, 0, 0));
+    ////vehicle.GetSystem()->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Control steering type (enable crossdrive capability).
     ////vehicle.GetDriveline()->SetGyrationMode(true);

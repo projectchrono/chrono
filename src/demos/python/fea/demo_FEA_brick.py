@@ -171,7 +171,7 @@ while elemcount < TotalNumElements :
     mesh.AddElement(element)
     elemcount += 1
 
-sys.Set_G_acc(chrono.ChVector3d(0, 0, -9.81))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, -9.81))
 # Remember to add the mesh to the system!
 sys.Add(mesh)
 

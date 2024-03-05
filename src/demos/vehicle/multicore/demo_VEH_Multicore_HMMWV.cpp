@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
 
     ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
-    sys->Set_G_acc(gravity);
+    sys->SetGravitationalAcceleration(gravity);
 
     // Use a custom material property composition strategy.
     // This ensures that tire-terrain interaction always uses the same coefficient of friction.
@@ -459,7 +459,7 @@ int main(int argc, char* argv[]) {
         // Rotate gravity vector
         if (!is_pitched && time > time_pitch) {
             cout << time << "    Pitch: " << gravityR.x() << " " << gravityR.y() << " " << gravityR.z() << endl;
-            sys->Set_G_acc(gravityR);
+            sys->SetGravitationalAcceleration(gravityR);
             is_pitched = true;
         }
 

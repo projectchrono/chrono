@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
 
     // Disable gravity
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Set the half-length of the two shafts
     double hl = 2;

@@ -31,7 +31,7 @@ namespace ChronoDemo
 
             ChSystemNSC sys = new ChSystemNSC();
 
-            sys.Set_G_acc(new ChVector3d(0, -10, 0));
+            sys.SetGravitationalAcceleration(new ChVector3d(0, -10, 0));
 
             // ..the truss
             ChBody my_body_A = new ChBody();

@@ -463,7 +463,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     // for max precision in gravity of FE, at least 2 integration points per element when using cubic IGA
     my_mesh->SetAutomaticGravity(true, 2);
-    sys.Set_G_acc(ChVector3d(0, -9.81, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));
 
     double beam_L = 6;
     double beam_ro = 0.050;

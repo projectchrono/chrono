@@ -22,7 +22,7 @@ def main():
     # Create the system
     #------------------
     mphysicalSystem = chrono.ChSystemNSC()
-    mphysicalSystem.Set_G_acc(chrono.ChVector3d(0,0,0))
+    mphysicalSystem.SetGravitationalAcceleration(chrono.ChVector3d(0,0,0))
 
     red = chrono.ChVisualMaterial()
     red.SetDiffuseColor(chrono.ChColor(1,0,0))

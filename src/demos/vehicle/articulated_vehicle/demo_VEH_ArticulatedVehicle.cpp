@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     // Create a collsion system and associate it with the underlying Chrono system
     vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
-    //vehicle.GetSystem()->Set_G_acc(ChVector3d(0, 0, 0));
+    //vehicle.GetSystem()->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Create the terrain
     RigidTerrain terrain(vehicle.GetSystem());

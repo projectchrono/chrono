@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.8));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
 
     // Set up solver
     auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();

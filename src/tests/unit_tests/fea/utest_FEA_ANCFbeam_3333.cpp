@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
     // their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 
-    sys.Set_G_acc(ChVector3d(0, -9.81, 0.0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, -9.81, 0.0));
     const double beam_h = 0.5;  // Beam height (y)
     const double beam_w = 0.1;  // Beam width (z)
     const double beam_l = 2.0;  // Beam length

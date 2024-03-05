@@ -57,7 +57,7 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
 
     // Create system
     m_system = new ChSystemNSC;
-    m_system->Set_G_acc(ChVector3d(0, -1, 0));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, -1, 0));
 
     // Set solver parameters
     switch (solver_type) {

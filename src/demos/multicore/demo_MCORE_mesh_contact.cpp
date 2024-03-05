@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    sys->Set_G_acc(ChVector3d(0, -gravity, 0));
+    sys->SetGravitationalAcceleration(ChVector3d(0, -gravity, 0));
 
     // Set associated collision detection system
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);

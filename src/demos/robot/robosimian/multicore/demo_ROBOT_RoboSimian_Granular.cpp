@@ -226,8 +226,8 @@ int main(int argc, char* argv[]) {
     }
 
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
-    sys->Set_G_acc(ChVector3d(0, 0, -9.8));
-    ////sys->Set_G_acc(ChVector3d(0, 0, 0));
+    sys->SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
+    ////sys->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     int max_threads = ChOMP::GetNumThreads();
     if (nthreads > max_threads)

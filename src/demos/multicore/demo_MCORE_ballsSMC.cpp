@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
     sys.SetNumThreads(8);
 
     // Set gravitational acceleration
-    sys.Set_G_acc(ChVector3d(0, 0, -gravity));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -gravity));
 
     // Set solver parameters
     sys.GetSettings()->solver.max_iteration_bilateral = max_iteration;

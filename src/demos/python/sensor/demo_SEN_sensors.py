@@ -29,7 +29,7 @@ def main():
     # Create the system
     # -----------------
     mphysicalSystem = chrono.ChSystemNSC()
-    mphysicalSystem.Set_G_acc(chrono.ChVector3d(0,0,-9.81))
+    mphysicalSystem.SetGravitationalAcceleration(chrono.ChVector3d(0,0,-9.81))
 
     # ----------------------------------------
     # add a floor, box and sphere to the scene

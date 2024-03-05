@@ -50,7 +50,7 @@ class MySpringTorque(chrono.TorqueFunctor):
 print("Copyright (c) 2017 projectchrono.org")
 
 sys = chrono.ChSystemNSC()
-sys.Set_G_acc(chrono.ChVector3d(0, 0, 0))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, 0))
 
 # Revolute joint frame 
 rev_rot = chrono.QuatFromAngleX(m.pi / 6.0)

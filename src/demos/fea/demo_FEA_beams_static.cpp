@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
     // Final touches..
     //
 
-    // note, this benchmark not using gravity.. use sys.Set_G_acc(VNULL); or..
+    // note, this benchmark not using gravity.. use sys.SetGravitationalAcceleration(VNULL); or..
     my_mesh->SetAutomaticGravity(false);
 
     // Remember to add the mesh to the system!

@@ -81,7 +81,7 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(double length, do
     }
 
     m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
     m_system->SetNumThreads(1);
 }
 
@@ -102,7 +102,7 @@ ChVehicleCosimTerrainNodeRigid::ChVehicleCosimTerrainNodeRigid(const std::string
     }
 
     m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
     m_system->SetNumThreads(1);
 
     // Read rigid terrain parameters from provided specfile

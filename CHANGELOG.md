@@ -461,6 +461,9 @@ Note that this represents a major public API change and we expect most user code
 | ChLinkScrew                       |                               | rename: ChLinkLockScrew                          |
 | ChLinkTrajectory                  |                               | rename: ChLinkLockTrajectory                     |
 | ChList                            |                               | remove                                           |
+| ChLoaderUW                        |                               |                                                  |
+|                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
+|                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
 | ChLog                             |                               | remove                                           |
 | ChLogConsole                      |                               | remove                                           |
 | ChMarker                          |                               |                                                  |
@@ -549,6 +552,7 @@ Note that this represents a major public API change and we expect most user code
 | ChStreamOutBinaryFile             |                               | remove                                           |
 | ChSystem                          |                               |                                                  |
 |                                   | Get_bodylist                  | rename: GetBodies                                |
+|                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
 |                                   | Get_linklist                  | rename: GetLinks                                 |
 |                                   | Get_meshlist                  | rename: GetMeshes                                |
 |                                   | Get_otherphysicslist          | rename: GetShafts                                |
@@ -580,6 +584,10 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNshaftsTotal               | rename: GetNumShaftsTotal                        |
 |                                   | GetNsysvars                   | remove                                           |
 |                                   | GetNsysvars_w                 | remove                                           |
+|                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
+| ChSystemFsi                       |                               |                                                  |
+|                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
+|                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
 | ChTriangleMesh                    |                               |                                                  |
 |                                   | addTriangle                   | rename: AddTriangle                              |
 |                                   | getNumTriangles               | rename: GetNumTriangles                          |

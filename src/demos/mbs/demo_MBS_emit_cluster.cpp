@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
     sys.SetSolverMaxIterations(40);
 
     // Turn off default -9.8 downward gravity
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Simulation loop
     double timestep = 0.01;

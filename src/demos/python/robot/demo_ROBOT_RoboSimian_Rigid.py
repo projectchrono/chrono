@@ -177,7 +177,7 @@ sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 sys.SetSolverMaxIterations(200)
 sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN)
 
-sys.Set_G_acc(chrono.ChVector3d(0, 0, -9.8))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, -9.8))
 
 # -----------------------
 # Create RoboSimian robot

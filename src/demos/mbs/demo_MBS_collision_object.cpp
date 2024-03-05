@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    sys->Set_G_acc(ChVector3d(0, -9.81, 0));
+    sys->SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));
 
     // Create and attach the collision detection sys
     switch (collision_type) {

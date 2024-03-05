@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     system.SetTangentialDisplacementModel(tdispl_model);
     system.SetStiffContact(stiff_contact);
 
-    system.Set_G_acc(ChVector3d(0, 0, gravity));
+    system.SetGravitationalAcceleration(ChVector3d(0, 0, gravity));
 
     system.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 

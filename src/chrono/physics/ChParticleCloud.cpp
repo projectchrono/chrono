@@ -425,7 +425,7 @@ void ChParticleCloud::IntLoadResidual_F(const unsigned int off,  // offset in R 
 ) {
     ChVector3d Gforce;
     if (GetSystem())
-        Gforce = GetSystem()->Get_G_acc() * particle_mass.GetBodyMass();
+        Gforce = GetSystem()->GetGravitationalAcceleration() * particle_mass.GetBodyMass();
 
     for (unsigned int j = 0; j < particles.size(); j++) {
         // particle gyroscopic force:
@@ -506,7 +506,7 @@ void ChParticleCloud::VariablesFbReset() {
 void ChParticleCloud::VariablesFbLoadForces(double factor) {
     ChVector3d Gforce;
     if (GetSystem())
-        Gforce = GetSystem()->Get_G_acc() * particle_mass.GetBodyMass();
+        Gforce = GetSystem()->GetGravitationalAcceleration() * particle_mass.GetBodyMass();
 
     for (unsigned int j = 0; j < particles.size(); j++) {
         // particle gyroscopic force:

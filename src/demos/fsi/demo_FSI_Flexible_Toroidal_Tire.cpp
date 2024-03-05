@@ -246,8 +246,8 @@ int main(int argc, char* argv[]) {
 // Create the objects of the MBD system. Rigid/flexible bodies, and if
 // fsi, their bce representation are created and added to the systems
 void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
-    sysMBS.Set_G_acc(ChVector3d(0, 0, -9.81));
-    sysFSI.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+    sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);

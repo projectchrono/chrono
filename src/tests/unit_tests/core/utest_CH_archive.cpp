@@ -47,7 +47,7 @@ enum class ArchiveType { BINARY, JSON, XML };
 using namespace chrono;
 
 void assemble_fourbar(ChSystemNSC& system) {
-    system.Set_G_acc(ChVector3d(0, -9.81, 0));
+    system.SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));
 
     // Joint coords
     ChFrame<> frameO(ChVector3d(0, 0, 0), QUNIT);
@@ -96,7 +96,7 @@ void assemble_fourbar(ChSystemNSC& system) {
 }
 
 void assemble_pendulum(ChSystemNSC& system) {
-    system.Set_G_acc(ChVector3d(0.0, -9.81, 0.0));
+    system.SetGravitationalAcceleration(ChVector3d(0.0, -9.81, 0.0));
 
     auto floor = chrono_types::make_shared<ChBody>();
     floor->SetBodyFixed(true);
@@ -118,7 +118,7 @@ void assemble_pendulum(ChSystemNSC& system) {
 }
 
 void assemble_gear_and_pulleys(ChSystemNSC& sys) {
-    sys.Set_G_acc(ChVector3d(0, -10, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, -10, 0));
     // Create a Chrono physical system
 
     // Contact material shared among all bodies
@@ -179,7 +179,7 @@ void assemble_gear_and_pulleys(ChSystemNSC& sys) {
 }
 
 void assemble_pendulum_visual(ChSystemNSC& system) {
-    system.Set_G_acc(ChVector3d(0.0, -9.81, 0.0));
+    system.SetGravitationalAcceleration(ChVector3d(0.0, -9.81, 0.0));
 
     auto floor = chrono_types::make_shared<ChBody>();
     floor->SetBodyFixed(true);
@@ -316,7 +316,7 @@ TEST(ChArchiveJSON, Pendulum) {
 
     {
         ChSystemNSC system;
-        system.Set_G_acc(ChVector3d(0.0, -9.81, 0.0));
+        system.SetGravitationalAcceleration(ChVector3d(0.0, -9.81, 0.0));
 
         auto floor = chrono_types::make_shared<ChBody>();
         floor->SetBodyFixed(true);

@@ -40,7 +40,7 @@ using namespace chrono::fea;
 int main(int argc, char* argv[]) {
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
-    system->Set_G_acc(ChVector3d(0, 0, 0));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
     system->SetSolver(solver);

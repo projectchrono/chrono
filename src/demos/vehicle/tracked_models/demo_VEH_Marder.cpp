@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
     marder.SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
     // Disable gravity in this simulation
-    ////marder.GetSystem()->Set_G_acc(ChVector3d(0, 0, 0));
+    ////marder.GetSystem()->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Change (SMC) contact force model
     ////if (contact_method == ChContactMethod::SMC) {

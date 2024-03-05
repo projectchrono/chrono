@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
         my_link_springdamper->SetRestLength(my_link_springdamper->GetLength());
         my_system.AddLink(my_link_springdamper);
 
-        my_system.Set_G_acc(ChVector3d(0, 0, 0));
+        my_system.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
         my_system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
         my_system.SetSolverMaxIterations(20);
 

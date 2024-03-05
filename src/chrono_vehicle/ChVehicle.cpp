@@ -57,7 +57,7 @@ ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
     m_system = (contact_method == ChContactMethod::NSC) ? static_cast<ChSystem*>(new ChSystemNSC)
                                                         : static_cast<ChSystem*>(new ChSystemSMC);
 
-    m_system->Set_G_acc(-9.81 * ChWorldFrame::Vertical());
+    m_system->SetGravitationalAcceleration(-9.81 * ChWorldFrame::Vertical());
 
     // Integration and Solver settings
     switch (contact_method) {

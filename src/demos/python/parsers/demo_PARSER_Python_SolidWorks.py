@@ -163,7 +163,7 @@ vis.AddTypicalLights()
 sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN)
 sys.SetSolverMaxIterations(40)
 sys.SetMaxPenetrationRecoverySpeed(0.002)
-sys.Set_G_acc(chrono.ChVector3d(0,-9.80,-9.8))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0,-9.80,-9.8))
 
 
 while vis.Run():

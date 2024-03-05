@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     // -----------------
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, -10, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, -10, 0));
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Set solver settings

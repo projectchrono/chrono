@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     // Create the system
     // -----------------
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // ----------------------
     // color visual materials

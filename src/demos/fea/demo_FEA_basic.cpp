@@ -89,7 +89,7 @@ void test_1() {
     sys.Add(constraintA);
 
     // Set no gravity
-    // sys.Set_G_acc(VNULL);
+    // sys.SetGravitationalAcceleration(VNULL);
 
     // Perform a linear static analysis
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -185,7 +185,7 @@ void test_2() {
     sys.Add(constraint3);
 
     // Set no gravity
-    // sys.Set_G_acc(VNULL);
+    // sys.SetGravitationalAcceleration(VNULL);
 
     // Perform a linear static analysis
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -299,7 +299,7 @@ void test_3() {
     sys.Add(constraint3);
 
     // Set no gravity
-    // sys.Set_G_acc(VNULL);
+    // sys.SetGravitationalAcceleration(VNULL);
 
     // Perform a linear static analysis
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -416,7 +416,7 @@ void test_4() {
     sys.Add(constraint4);
 
     // Set no gravity
-    // sys.Set_G_acc(VNULL);
+    // sys.SetGravitationalAcceleration(VNULL);
 
     // Perform a linear static analysis
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -569,7 +569,7 @@ void test_5() {
     sys.Add(constraint4);
 
     // Set no gravity
-    // sys.Set_G_acc(VNULL);
+    // sys.SetGravitationalAcceleration(VNULL);
 
     // Perform a linear static analysis
     auto solver = chrono_types::make_shared<ChSolverMINRES>();

@@ -241,7 +241,7 @@ bool CheckConstraints() {
 int main(int argc, char* argv[]) {
     // Create model
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     AddMesh(sys);
     AddBodies(sys);

@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
 
     // Create the system
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
     sys.SetCollisionSystemType(collision_type);
     if (collision_type == ChCollisionSystem::Type::MULTICORE) {
         auto cd_chrono = std::static_pointer_cast<ChCollisionSystemMulticore>(sys.GetCollisionSystem());

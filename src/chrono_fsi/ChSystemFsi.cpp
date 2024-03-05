@@ -544,7 +544,7 @@ void ChSystemFsi::SetInitPressure(const double height) {
     m_paramsH->use_init_pressure = true;
 }
 
-void ChSystemFsi::Set_G_acc(const ChVector3d& gravity) {
+void ChSystemFsi::SetGravitationalAcceleration(const ChVector3d& gravity) {
     m_paramsH->gravity.x = gravity.x();
     m_paramsH->gravity.y = gravity.y();
     m_paramsH->gravity.z = gravity.z();
@@ -2095,7 +2095,7 @@ double ChSystemFsi::GetParticleMass() const {
     return m_paramsH->markerMass;
 }
 
-ChVector3d ChSystemFsi::Get_G_acc() const {
+ChVector3d ChSystemFsi::GetGravitationalAcceleration() const {
     return ChVector3d(m_paramsH->gravity.x, m_paramsH->gravity.y, m_paramsH->gravity.z);
 }
 

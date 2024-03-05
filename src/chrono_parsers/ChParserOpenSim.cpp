@@ -128,7 +128,7 @@ void ChParserOpenSim::Parse(ChSystem& system, const std::string& filename) {
 
     // Get gravity from model and set it in system
     auto elems = strToSTLVector<double>(doc.first_node()->first_node("Model")->first_node("gravity")->value());
-    system.Set_G_acc(ChVector3d(elems[0], elems[1], elems[2]));
+    system.SetGravitationalAcceleration(ChVector3d(elems[0], elems[1], elems[2]));
 
     // Traverse the list of bodies and parse the information for each one
     xml_node<>* bodySet = doc.first_node()->first_node("Model")->first_node("BodySet");

@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
     // Switch off mesh class gravity
 
     my_mesh->SetAutomaticGravity(addGravity);
-    sys.Set_G_acc(ChVector3d(0, 0, -9.8));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
 
     // Add the mesh to the system
     sys.Add(my_mesh);

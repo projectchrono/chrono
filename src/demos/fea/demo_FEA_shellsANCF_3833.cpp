@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
     double time_step = 1e-3;
 
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     std::cout << "-----------------------------------------------------------------\n";
     std::cout << " Higher order ANCF Shell Element demo with different constraints \n";

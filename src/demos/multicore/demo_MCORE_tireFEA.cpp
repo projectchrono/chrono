@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     // my_system.SetLoggingLevel(LOG_INFO, true);
 
     double gravity = 9.81;
-    my_system.Set_G_acc(ChVector3d(0, 0, 0));
+    my_system.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     ////AddContainer(&my_system);
 
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
                 if (g < gravity) {
                     g += 0.1;
                 }
-                my_system.Set_G_acc(ChVector3d(0, 0, -g));
+                my_system.SetGravitationalAcceleration(ChVector3d(0, 0, -g));
             }
             gl_window.Render();
         } else {

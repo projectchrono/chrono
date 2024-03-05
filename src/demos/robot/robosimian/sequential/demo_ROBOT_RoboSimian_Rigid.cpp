@@ -196,8 +196,8 @@ int main(int argc, char* argv[]) {
     my_sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     my_sys->SetSolverMaxIterations(200);
     my_sys->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    my_sys->Set_G_acc(ChVector3d(0, 0, -9.8));
-    ////my_sys->Set_G_acc(ChVector3d(0, 0, 0));
+    my_sys->SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
+    ////my_sys->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // -----------------------
     // Create RoboSimian robot

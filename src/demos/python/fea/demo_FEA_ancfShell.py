@@ -40,7 +40,7 @@ def CastNode(nb):
 time_step = 1e-3
 
 sys = chrono.ChSystemSMC()
-sys.Set_G_acc(chrono.ChVector3d(0, 0, -9.8))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, -9.8))
 
 print( "-----------------------------------------------------------\n")
 print("------------------------------------------------------------\n")

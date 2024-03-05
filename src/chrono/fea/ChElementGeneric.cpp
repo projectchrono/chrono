@@ -115,7 +115,7 @@ void ChElementGeneric::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVecto
     if (auto loadable = std::dynamic_pointer_cast<ChLoadableUVW>(this_wrapper)) {
         if (G_acc != VNULL) {
             auto common_gravity_loader = chrono_types::make_shared<ChLoad<ChLoaderGravity>>(loadable);
-            common_gravity_loader->loader.Set_G_acc(G_acc);
+            common_gravity_loader->loader.SetGravitationalAcceleration(G_acc);
             common_gravity_loader->loader.SetNumIntPoints(1);  //// TODO n. gauss points as parameter?
             if (loadable->GetDensity()) {
                 // temporary set loader target and compute generalized forces term

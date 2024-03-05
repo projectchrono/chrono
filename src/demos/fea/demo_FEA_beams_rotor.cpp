@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     sys.Add(my_mesh);
 
     // no gravity used here
-    sys.Set_G_acc(VNULL);
+    sys.SetGravitationalAcceleration(VNULL);
     my_mesh->SetAutomaticGravity(false);
 
     // BEAMS:

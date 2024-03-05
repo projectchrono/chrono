@@ -66,7 +66,7 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
     ChSystemSMC sys_ball;
     sys_ball.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
     sys_ball.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
-    sys_ball.Set_G_acc(ChVector3d(0, 0, -980));
+    sys_ball.SetGravitationalAcceleration(ChVector3d(0, 0, -980));
 
     double inertia = 2.0 / 5.0 * ball_mass * ball_radius * ball_radius;
     ChVector3d ball_initial_pos(0, 0, params.box_Z / 4.0 + ball_radius + 2 * params.sphere_radius);

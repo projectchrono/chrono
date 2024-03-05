@@ -11,7 +11,7 @@ class simulation:
 
     def __init__(self) -> None:
         self.system = chrono.ChSystemNSC()
-        self.system.Set_G_acc(chrono.ChVector3d(0,0,0))
+        self.system.SetGravitationalAcceleration(chrono.ChVector3d(0,0,0))
 
         green = self.init_vis_mat(chrono.ChColor(0,1,0))
         black = self.init_vis_mat(chrono.ChColor(1,1,1))

@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
     // Create the multicore sys and set associated collision detection system
     ChSystemMulticoreNSC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
-    sys.Set_G_acc(ChVector3d(0, -9.81, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));
 
     // Set number of threads
     sys.SetNumThreads(1);

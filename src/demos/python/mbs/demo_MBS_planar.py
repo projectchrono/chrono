@@ -27,7 +27,7 @@ print ("Example: demonstration of a plane-plane joint")
 #
 
 sys      = chrono.ChSystemNSC()
-sys.Set_G_acc(chrono.ChVector3d(0, 0, 0))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, 0))
 
 # Create the ground body
 ground = chrono.ChBodyEasyBox(3, 2, 0.1, 10, True, False)

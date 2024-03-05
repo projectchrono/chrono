@@ -186,7 +186,7 @@ ChronoModel::ChronoModel() {
     // Create the Chrono physical system
     // ---------------------------------
     m_system = chrono_types::make_shared<ChSystemNSC>();
-    m_system->Set_G_acc(ChVector3d(0, -g, 0));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, -g, 0));
 
     // Create the ground body
     // ----------------------

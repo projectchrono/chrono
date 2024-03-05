@@ -270,9 +270,9 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     my_mesh_2->SetAutomaticGravity(addGravity);
 
     if (addGravity) {
-        sys.Set_G_acc(ChVector3d(0, -1, 0));
+        sys.SetGravitationalAcceleration(ChVector3d(0, -1, 0));
     } else {
-        sys.Set_G_acc(ChVector3d(0, 0, 0));
+        sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
     }
     sys.Add(my_mesh_1);
     sys.Add(my_mesh_2);

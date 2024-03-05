@@ -106,7 +106,7 @@ ContactForceTest::ContactForceTest() {
     system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     double gravity = -9.81;
-    system->Set_G_acc(ChVector3d(0, 0, gravity));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, gravity));
 
     // Create the falling balls
     unsigned int num_balls = 8;

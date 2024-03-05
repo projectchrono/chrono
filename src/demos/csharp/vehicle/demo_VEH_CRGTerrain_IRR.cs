@@ -333,7 +333,7 @@ namespace ChronoDemo
             // Set the gravity. Must be set after Y-UP
             ChVector3d gravity = new ChVector3d(ChWorldFrame.Vertical());
             gravity.Scale(-9.81);
-            sys.Set_G_acc(gravity);
+            sys.SetGravitationalAcceleration(gravity);
             Console.WriteLine($"Gravity direction: {gravity.x}, {gravity.y}, {gravity.z}");
 
             // Solver settings

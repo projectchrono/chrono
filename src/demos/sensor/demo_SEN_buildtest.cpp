@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
     phys_mat->SetFriction(0.2f);
 
     ChSystemNSC sys;
-    sys.Set_G_acc({0, 0, -9.81});
+    sys.SetGravitationalAcceleration({0, 0, -9.81});
 
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(100, 100, 1,      // x,y,z size
                                                           1000,             // density

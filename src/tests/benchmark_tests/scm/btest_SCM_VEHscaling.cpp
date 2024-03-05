@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
     // Create the Chrono system
     // ------------------------
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     sys.SetNumThreads(nthreads, nthreads, 1);
     if (chrono_collsys) {
 #ifdef CHRONO_COLLISION

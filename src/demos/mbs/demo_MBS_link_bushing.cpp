@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
 
     // Create the sys
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     // Create the ground body
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.6, 0.15, 10000, true, false);

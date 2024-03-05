@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     // Remember to add the mesh to the system!
     sys.Add(mesh);
 
-    // sys.Set_G_acc(VNULL); // to remove gravity effect, or:
+    // sys.SetGravitationalAcceleration(VNULL); // to remove gravity effect, or:
     // mesh->SetAutomaticGravity(false);
 
     std::shared_ptr<ChNodeFEAxyz> nodePlotA;

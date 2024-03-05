@@ -87,7 +87,7 @@ void CreateGranularMaterial(ChSystemMulticore* sys) {
 }
 
 void SetupSystem(ChSystemMulticoreNSC* sys) {
-    sys->Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys->SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     // Solver settings
     int max_iteration_normal = 0;

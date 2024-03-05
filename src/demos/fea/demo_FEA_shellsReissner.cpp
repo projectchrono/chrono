@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
     // Remember to add the mesh to the system!
     sys.Add(my_mesh);
 
-    // sys.Set_G_acc(VNULL); or
+    // sys.SetGravitationalAcceleration(VNULL); or
     my_mesh->SetAutomaticGravity(false);
 
     std::shared_ptr<ChNodeFEAxyzrot> nodePlotA;

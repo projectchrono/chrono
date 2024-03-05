@@ -83,7 +83,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
             sys = new ChSystemMulticoreNSC();
             break;
     }
-    sys->Set_G_acc(gravity);
+    sys->SetGravitationalAcceleration(gravity);
 
     // Set associated collision system
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);

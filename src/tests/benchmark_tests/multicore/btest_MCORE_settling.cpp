@@ -64,7 +64,7 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     real tolerance = 1e-3;
 
     // Set gravitational acceleration
-    m_system->Set_G_acc(ChVector3d(0, 0, -gravity));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -gravity));
 
     // Set solver parameters
     m_system->GetSettings()->solver.max_iteration_bilateral = max_iteration;

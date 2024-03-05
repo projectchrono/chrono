@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
     sys.SetNumThreads(8);
 
     // Set gravitational acceleration
-    sys.Set_G_acc(ChVector3d(0, 0, -gravity));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -gravity));
 
     // Settings for the broad-phase collision detection
     sys.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);

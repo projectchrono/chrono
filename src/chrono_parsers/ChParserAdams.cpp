@@ -290,7 +290,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                                 // std::cout << "setting " << grav_strs[i] << " to:" << grav[i] <<std::endl;
                             }
                         }
-                        sys.Set_G_acc(grav);
+                        sys.SetGravitationalAcceleration(grav);
                         // std::cout <<std::endl;
                         break;
                     }

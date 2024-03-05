@@ -238,7 +238,7 @@ void ChTireTestRig::Advance(double step) {
 // -----------------------------------------------------------------------------
 
 void ChTireTestRig::CreateMechanism(Mode mode) {
-    m_system->Set_G_acc(ChVector3d(0, 0, -m_grav));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -m_grav));
 
     // Create bodies.
     // Rig bodies are constructed with mass and inertia commensurate with those of the wheel-tire system.

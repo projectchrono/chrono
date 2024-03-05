@@ -107,8 +107,8 @@ int main(int argc, char* argv[]) {
 
     // Set SPH parameters and soil material properties
     const ChVector3d gravity(0, 0, -9.81);
-    sysFSI.Set_G_acc(gravity);
-    sys.Set_G_acc(gravity);
+    sysFSI.SetGravitationalAcceleration(gravity);
+    sys.SetGravitationalAcceleration(gravity);
 
     ChSystemFsi::ElasticMaterialProperties mat_props;
     mat_props.Young_modulus = youngs_modulus;

@@ -215,7 +215,7 @@ bool TestRevolute(const ChVector3d& jointLoc,      // absolute location of joint
     std::cout << "  Create system..." << std::endl;
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, -g));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -g));
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverType(ChSolver::Type::PSOR);

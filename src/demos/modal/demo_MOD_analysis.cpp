@@ -386,7 +386,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
 
     // no gravity used here
-    sys.Set_G_acc(VNULL);
+    sys.SetGravitationalAcceleration(VNULL);
 
     // VISUALIZATION
 

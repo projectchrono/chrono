@@ -140,7 +140,7 @@ else: # use SMC contact method
     frame_skip = 100
 
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
-sys.Set_G_acc(chrono.ChVector3d(0, -9.8, 0))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, -9.8, 0))
 
 # Create the ground body with a plate and side walls (both collision and visualization).
 ground = chrono.ChBody()

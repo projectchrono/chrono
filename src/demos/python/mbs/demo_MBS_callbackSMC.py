@@ -94,7 +94,7 @@ friction = 0.6
 
 sys = chrono.ChSystemSMC()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
-sys.Set_G_acc(chrono.ChVector3d(0, -10, 0))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, -10, 0))
 
 # Set solver settings
 sys.SetSolverMaxIterations(100)

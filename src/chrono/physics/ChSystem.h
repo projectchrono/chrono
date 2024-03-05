@@ -201,11 +201,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Access directly the 'system descriptor'.
     std::shared_ptr<ChSystemDescriptor> GetSystemDescriptor() { return descriptor; }
 
-    /// Set the G (gravity) acceleration vector, affecting all the bodies in the system.
-    void Set_G_acc(const ChVector3d& m_acc) { G_acc = m_acc; }
+    /// Set the gravitational acceleration vector.
+    void SetGravitationalAcceleration(const ChVector3d& gacc) { G_acc = gacc; }
 
-    /// Get the G (gravity) acceleration vector affecting all the bodies in the system.
-    const ChVector3d& Get_G_acc() const { return G_acc; }
+    /// Get the gravitatoinal acceleration vector.
+    const ChVector3d& GetGravitationalAcceleration() const { return G_acc; }
 
     /// Get the simulation time of this system.
     double GetChTime() const { return ch_time; }

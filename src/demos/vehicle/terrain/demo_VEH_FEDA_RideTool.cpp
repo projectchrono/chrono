@@ -164,7 +164,7 @@ void RunTest(double speed,
              double& abs_pow) {
     // Create the containing system
     ChSystemSMC sys;
-    sys.Set_G_acc({0, 0, -9.81});
+    sys.SetGravitationalAcceleration({0, 0, -9.81});
     sys.SetSolverMaxIterations(150);
     sys.SetMaxPenetrationRecoverySpeed(4.0);
 

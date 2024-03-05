@@ -129,7 +129,7 @@ ANCFBeamTest::ANCFBeamTest(bool useContInt) {
     m_useContInt = useContInt;
 
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector3d(0, 0, -9.80665));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.80665));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -298,7 +298,7 @@ bool ANCFBeamTest::GeneralizedGravityForceCheck(int msglvl) {
     // ComputeGravityForces method for the element
     ChVectorDynamic<double> GeneralizedForceDueToGravity;
     GeneralizedForceDueToGravity.resize(3 * NSF);
-    m_element->ComputeGravityForces(GeneralizedForceDueToGravity, m_system->Get_G_acc());
+    m_element->ComputeGravityForces(GeneralizedForceDueToGravity, m_system->GetGravitationalAcceleration());
 
     // "Exact" numeric integration is used in the element formulation so no significant error is expected in this
     // solution
@@ -1219,7 +1219,7 @@ bool ANCFBeamTest::AxialDisplacementCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
-    system->Set_G_acc(ChVector3d(0, 0, 0));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1391,7 +1391,7 @@ bool ANCFBeamTest::CantileverTipLoadCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
-    system->Set_G_acc(ChVector3d(0, 0, 0));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1567,7 +1567,7 @@ bool ANCFBeamTest::CantileverGravityCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     double g = -9.80665;
-    system->Set_G_acc(ChVector3d(0, 0, g));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, g));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1702,7 +1702,7 @@ bool ANCFBeamTest::AxialTwistCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
-    system->Set_G_acc(ChVector3d(0, 0, 0));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);

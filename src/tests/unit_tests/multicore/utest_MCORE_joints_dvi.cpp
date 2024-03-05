@@ -62,7 +62,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
 
         // Create the mechanical sys
         sys = new ChSystemMulticoreNSC();
-        sys->Set_G_acc(ChVector3d(0, 0, -9.81));
+        sys->SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
         // Set number of threads
         sys->SetNumThreads(1);

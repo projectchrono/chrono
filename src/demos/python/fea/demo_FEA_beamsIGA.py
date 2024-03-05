@@ -38,7 +38,7 @@ mesh = fea.ChMesh()
 sys.Add(mesh)
 
 mesh.SetAutomaticGravity(True,2) # for max precision in gravity of FE, at least 2 integration points per element when using cubic IGA
-sys.Set_G_acc(chrono.ChVector3d(0,-9.81, 0));
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0,-9.81, 0));
 
 beam_L = 6
 beam_ro = 0.050

@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
 
     // Add fluid particles from the sampler points to the FSI system
     size_t numPart = points.size();
-    double gz = std::abs(sysFSI.Get_G_acc().z());
+    double gz = std::abs(sysFSI.GetGravitationalAcceleration().z());
     for (int i = 0; i < numPart; i++) {
         // Calculate the pressure of a steady state (p = rho*g*h)
         auto pre_ini = sysFSI.GetDensity() * gz * (-points[i].z() + fzDim);

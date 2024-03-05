@@ -271,8 +271,8 @@ int main(int argc, char* argv[]) {
     sysMBS.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     ChVector3d gravity = ChVector3d(0, 0, -9.81);
-    sysMBS.Set_G_acc(gravity);
-    sysFSI.Set_G_acc(gravity);
+    sysMBS.SetGravitationalAcceleration(gravity);
+    sysFSI.SetGravitationalAcceleration(gravity);
 
     sysFSI.SetVerbose(verbose_fsi);
 

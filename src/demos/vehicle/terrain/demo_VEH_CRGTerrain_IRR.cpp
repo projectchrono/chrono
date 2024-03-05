@@ -271,7 +271,7 @@ int main(int argc, char* argv[]) {
 
     ChSystemSMC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys.Set_G_acc(-9.81 * ChWorldFrame::Vertical());
+    sys.SetGravitationalAcceleration(-9.81 * ChWorldFrame::Vertical());
     sys.SetSolverMaxIterations(150);
     sys.SetMaxPenetrationRecoverySpeed(4.0);
 

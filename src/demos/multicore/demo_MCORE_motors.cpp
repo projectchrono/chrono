@@ -509,7 +509,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    sys->Set_G_acc(ChVector3d(0, -9.8, 0));
+    sys->SetGravitationalAcceleration(ChVector3d(0, -9.8, 0));
     sys->GetSettings()->solver.tolerance = 1e-5;
     sys->GetSettings()->collision.bins_per_axis = vec3(1, 1, 1);
 

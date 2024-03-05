@@ -113,7 +113,7 @@ void SetSimParameters(
     ChSystemSMC::TangentialDisplacementModel tmodel = ChSystemSMC::TangentialDisplacementModel::MultiStep) {
     // Set solver settings and collision detection parameters
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys->Set_G_acc(gravity);
+    sys->SetGravitationalAcceleration(gravity);
 
     sys->SetMaxiter(100);
     sys->SetSolverTolerance(1e-3);
@@ -132,7 +132,7 @@ void SetSimParameters(
     ChSystemSMC::TangentialDisplacementModel tmodel = ChSystemSMC::TangentialDisplacementModel::MultiStep) {
     // Set solver settings and collision detection parameters
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
-    sys->Set_G_acc(gravity);
+    sys->SetGravitationalAcceleration(gravity);
 
     sys->GetSettings()->solver.max_iteration_bilateral = 100;
     sys->GetSettings()->solver.tolerance = 1e-3;

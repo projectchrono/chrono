@@ -108,7 +108,7 @@ ContactForceTest::ContactForceTest() : sys(nullptr) {
 
     // Set other sys properties
     double gravity = -9.81;
-    sys->Set_G_acc(ChVector3d(0, 0, gravity));
+    sys->SetGravitationalAcceleration(ChVector3d(0, 0, gravity));
     sys->GetSettings()->solver.tolerance = 1e-5;
     sys->GetSettings()->solver.max_iteration_bilateral = 100;
     sys->GetSettings()->solver.clamp_bilaterals = false;

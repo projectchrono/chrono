@@ -36,7 +36,7 @@ int main() {
     double max_dist = 1;
 
 
-    system.Set_G_acc(ChVector3d(0, -gravity, 0));
+    system.SetGravitationalAcceleration(ChVector3d(0, -gravity, 0));
 
 
 

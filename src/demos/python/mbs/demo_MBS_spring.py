@@ -53,7 +53,7 @@ class MySpringForce(chrono.ForceFunctor):
 print("Copyright (c) 2017 projectchrono.org")
 
 sys = chrono.ChSystemNSC()
-sys.Set_G_acc(chrono.ChVector3d(0, 0, 0))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, 0))
 
 # Create the ground body with two visualization spheres
 # -----------------------------------------------------

@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
 
     ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
-    sys->Set_G_acc(gravity);
+    sys->SetGravitationalAcceleration(gravity);
 
     // Set number of threads
     sys->SetNumThreads(4);
@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
         if (!is_pitched && time > time_pitch) {
             std::cout << time << "    Pitch: " << gravityR.x() << " " << gravityR.y() << " " << gravityR.z()
                       << std::endl;
-            sys->Set_G_acc(gravityR);
+            sys->SetGravitationalAcceleration(gravityR);
             is_pitched = true;
         }
 

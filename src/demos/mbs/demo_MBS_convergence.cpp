@@ -92,7 +92,7 @@ void create_items(ChSystem& sys) {
             totmass += rigidBody->GetMass();
         }
 
-        std::cout << "Expected contact force at bottom F=" << (totmass * sys.Get_G_acc().y()) << "\n";
+        std::cout << "Expected contact force at bottom F=" << (totmass * sys.GetGravitationalAcceleration().y()) << "\n";
     }
 
     if (do_wall) {
@@ -128,7 +128,7 @@ void create_items(ChSystem& sys) {
         sys.Add(rigidHeavy);
 
         std::cout << "Expected contact deformation at side sphere="
-                  << (rigidHeavy->GetMass() * sys.Get_G_acc().y()) * material->GetCompliance() << "\n";
+                  << (rigidHeavy->GetMass() * sys.GetGravitationalAcceleration().y()) * material->GetCompliance() << "\n";
     }
 
     // Create the floor using a fixed rigid body of 'box' type:

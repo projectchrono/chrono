@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0.01, -1, 1));
+    sys.SetGravitationalAcceleration(ChVector3d(0.01, -1, 1));
 
     double L = 0.5;  // distance for the revolute-translational joint
 

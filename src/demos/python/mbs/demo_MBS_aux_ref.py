@@ -40,7 +40,7 @@ import math
 
 sys = chrono.ChSystemNSC()
 
-sys.Set_G_acc(chrono.ChVector3d(0, -9.81, 0))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, -9.81, 0))
 
 # Create the ground body with two visualization cylinders
 

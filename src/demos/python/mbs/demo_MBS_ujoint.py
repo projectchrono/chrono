@@ -28,7 +28,7 @@ print ("Example: demonstration of a universal joint")
 #
 
 sys      = chrono.ChSystemNSC()
-sys.Set_G_acc(chrono.ChVector3d(0, 0, 0))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, 0))
 
 # Set the half-length of the two shafts
 hl = 2

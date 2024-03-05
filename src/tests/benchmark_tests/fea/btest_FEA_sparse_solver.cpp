@@ -47,7 +47,7 @@ class SystemFixture : public ::benchmark::Fixture {
   public:
     void SetUp(const ::benchmark::State& st) override {
         m_system = new ChSystemSMC();
-        m_system->Set_G_acc(ChVector3d(0, -9.8, 0));
+        m_system->SetGravitationalAcceleration(ChVector3d(0, -9.8, 0));
 
         // Mesh properties
         double length = 1;

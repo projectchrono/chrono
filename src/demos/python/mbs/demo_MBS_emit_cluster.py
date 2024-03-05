@@ -166,7 +166,7 @@ sys.SetSolverType(chrono.ChSolver.Type_PSOR)
 sys.SetSolverMaxIterations(40)
 
 # Turn off default -9.8 downward gravity
-sys.Set_G_acc(chrono.ChVector3d(0, 0, 0))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, 0))
 
 # Simulation loop
 stepsize = 1e-2

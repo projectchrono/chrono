@@ -73,7 +73,7 @@ ChVehicleCosimTireNode::ChVehicleCosimTireNode(int index, const std::string& tir
     // Create the (sequential) SMC system
     m_system = new ChSystemSMC;
     m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
     // Create a tire subsystem from JSON specification file (if provided)
     if (!tire_json.empty())

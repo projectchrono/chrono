@@ -87,7 +87,7 @@ void DPCapPress() {
     sys.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
     // sys.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
@@ -404,7 +404,7 @@ void ShellBrickContact() {
     sys.UseMaterialProperties(false);
     sys.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
@@ -623,7 +623,7 @@ void ShellBrickContact() {
     my_shell_mesh->AddContactSurface(my_contactsurface_shell);
     my_contactsurface_shell->AddFacesFromBoundary(0.005);
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -9.81));
     // Turn off gravity for only the shell elements
     my_shell_mesh->SetAutomaticGravity(false);
 
@@ -792,7 +792,7 @@ void SimpleBoxContact() {
     sys.UseMaterialProperties(false);
     sys.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
@@ -961,7 +961,7 @@ void SimpleBoxContact() {
     Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
     // Plate->SetPosDer(ChVector3d(0.0, 0.0, -0.1));
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -9.81));
 
     // -------------------------------------
     // Options for visualization in irrlicht
@@ -1083,7 +1083,7 @@ void SoilBin() {
     sys.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
     // sys.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
@@ -1264,7 +1264,7 @@ void SoilBin() {
     Ground->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
     sys.Add(Ground);
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -9.81));
     my_mesh->SetAutomaticGravity(false);
 
     std::shared_ptr<ChLinkLockPointPlane> constraintLateral;
@@ -1414,7 +1414,7 @@ void SoilBin() {
 void AxialDynamics() {
     FILE* outputfile;
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
@@ -1565,7 +1565,7 @@ void AxialDynamics() {
     // Add the mesh to the system
     sys.Add(my_mesh);
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, 0.0));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, 0.0));
     my_mesh->SetAutomaticGravity(false);
 
     // -------------------------------------
@@ -1663,7 +1663,7 @@ void AxialDynamics() {
 void BendingQuasiStatic() {
     FILE* outputfile;
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     std::cout << "-----------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------" << std::endl;
@@ -1782,7 +1782,7 @@ void BendingQuasiStatic() {
     // Add the mesh to the system
     sys.Add(my_mesh);
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, 0.0));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, 0.0));
 
     // -------------------------------------
     // Options for visualization in irrlicht
@@ -1887,7 +1887,7 @@ void BendingQuasiStatic() {
 void SwingingShell() {
     FILE* outputfile;
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetBodyFixed(true);
@@ -2013,7 +2013,7 @@ void SwingingShell() {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -9.81));
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);

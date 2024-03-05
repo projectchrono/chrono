@@ -263,7 +263,7 @@ int main(int argc, char* argv[]) {
     m113.SetTrackShoeVisualizationType(track_vis);
 
     // Disable gravity in this simulation
-    ////m113.GetSystem()->Set_G_acc(ChVector3d(0, 0, 0));
+    ////m113.GetSystem()->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Change (SMC) contact force model
     ////if (contact_method == ChContactMethod::SMC) {

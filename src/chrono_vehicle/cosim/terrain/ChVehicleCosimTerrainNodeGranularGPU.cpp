@@ -81,7 +81,7 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(doubl
 
     // Create systems
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
     // Defer construction of the granular system to Construct
     m_systemGPU = nullptr;
@@ -100,7 +100,7 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(const
 
     // Create systems
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
     // Defer construction of the granular system to Construct
     m_systemGPU = nullptr;

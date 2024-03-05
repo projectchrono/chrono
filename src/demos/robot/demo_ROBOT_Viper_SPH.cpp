@@ -146,8 +146,8 @@ int main(int argc, char* argv[]) {
     ChSystemFsi sysFSI(&sysMBS);
 
     ChVector3d gravity = ChVector3d(0, 0, -9.81);
-    sysMBS.Set_G_acc(gravity);
-    sysFSI.Set_G_acc(gravity);
+    sysMBS.SetGravitationalAcceleration(gravity);
+    sysFSI.SetGravitationalAcceleration(gravity);
 
     // Read JSON file with simulation parameters
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Viper_granular_NSC.json");

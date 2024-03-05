@@ -76,7 +76,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 
     // Set gravitational acceleration
     ChVector3d Gacc(0, 0, -9.8);
-    sys.Set_G_acc(Gacc);
+    sys.SetGravitationalAcceleration(Gacc);
 
     // Estimate initial required force (moment balance about crane pivot)
     auto Gtorque = Vcross(crane_mass * Gacc, crane_pos) + Vcross(pend_mass * Gacc, pend_pos);

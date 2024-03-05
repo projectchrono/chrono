@@ -86,7 +86,7 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem& sys, double length, double width
 int main(int argc, char* argv[]) {
     // Create a Chrono system and an associated collision detection system
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.8));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create parser instance

@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
     // Create a Chrono physical system and associated collision system
     ChSystemSMC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     // Initialize output
     if (output) {

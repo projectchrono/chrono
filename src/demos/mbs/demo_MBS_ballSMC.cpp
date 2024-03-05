@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
     // Create the system
     ChSystemSMC sys;
 
-    sys.Set_G_acc(ChVector3d(0, gravity, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, gravity, 0));
     sys.SetCollisionSystemType(coll_type);
 
     // The following two lines are optional, since they are the default options. They are added for future reference,

@@ -305,7 +305,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, con
         //// PARALLEL FOR, must use omp atomic to avoid race condition in writing to R
 #pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
         for (int ie = 0; ie < velements.size(); ie++) {
-            velements[ie]->EleIntLoadResidual_F_gravity(R, GetSystem()->Get_G_acc(), c);
+            velements[ie]->EleIntLoadResidual_F_gravity(R, GetSystem()->GetGravitationalAcceleration(), c);
         }
     }
 
@@ -317,12 +317,12 @@ void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, con
         for (int in = 0; in < vnodes.size(); in++) {
             if (!vnodes[in]->IsFixed()) {
                 if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyz>(vnodes[in])) {
-                    ChVector3d fg = c * mnode->GetMass() * system->Get_G_acc();
+                    ChVector3d fg = c * mnode->GetMass() * system->GetGravitationalAcceleration();
                     R.segment(off + local_off_v, 3) += fg.eigen();
                 }
                 // ChNodeFEAxyzrot is not inherited from ChNodeFEAxyz, so must deal with it too
                 if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(vnodes[in])) {
-                    ChVector3d fg = c * mnode->GetMass() * system->Get_G_acc();
+                    ChVector3d fg = c * mnode->GetMass() * system->GetGravitationalAcceleration();
                     R.segment(off + local_off_v, 3) += fg.eigen();
                 }
                 local_off_v += vnodes[in]->GetNdofW_active();

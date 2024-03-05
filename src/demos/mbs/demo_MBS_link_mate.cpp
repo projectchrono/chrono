@@ -235,7 +235,7 @@ void test_pendulum() {
     vis->EnableLinkFrameDrawing(false);
 
     // gravity
-    sys.Set_G_acc({0, 0, -gacc});
+    sys.SetGravitationalAcceleration({0, 0, -gacc});
 
     // Change solver to PardisoMKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -442,7 +442,7 @@ void test_anchorchain() {
     }
 
     // Gravity
-    sys.Set_G_acc({0, 0, -gacc});
+    sys.SetGravitationalAcceleration({0, 0, -gacc});
     sys.Setup();
 
     // Change solver to PardisoMKL

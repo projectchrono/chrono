@@ -219,9 +219,9 @@ class ChLoaderGravity : public ChLoaderUVWdistributed {
     /// Gets the number of integration points for gravity
     int GetNumIntPoints() const { return num_int_points; }
     /// Sets the G (gravity) acceleration vector affecting the loadable object
-    void Set_G_acc(ChVector3d m_acc) { G_acc = m_acc; }
+    void SetGravitationalAcceleration(ChVector3d m_acc) { G_acc = m_acc; }
     /// Gets the G (gravity) acceleration vector affecting the loadable object
-    ChVector3d Get_G_acc() { return G_acc; }
+    ChVector3d GetGravitationalAcceleration() { return G_acc; }
 
     virtual int GetIntegrationPointsU() override { return num_int_points; }
     virtual int GetIntegrationPointsV() override { return num_int_points; }

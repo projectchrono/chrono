@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
     // Create containing system and vehicle
     ChSystemSMC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys.Set_G_acc(enable_gravity ? ChVector3d(0, 0, -9.81) : VNULL);
+    sys.SetGravitationalAcceleration(enable_gravity ? ChVector3d(0, 0, -9.81) : VNULL);
     auto vehicle = CreateVehicle(&sys, is_wheeled);
 
     // (Constant) driver inputs

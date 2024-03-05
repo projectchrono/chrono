@@ -88,7 +88,7 @@ namespace ChronoDemo
             hmmwv.SetTireCollisionType(ChTire.CollisionType.SINGLE_POINT);
             hmmwv.SetTireStepSize(step_size);
             hmmwv.Initialize();
-            if (isYUp) { hmmwv.GetSystem().Set_G_acc(new ChVector3d(0, -9.81, 0)); } // adjust the gravity to the world
+            if (isYUp) { hmmwv.GetSystem().SetGravitationalAcceleration(new ChVector3d(0, -9.81, 0)); } // adjust the gravity to the world
 
             // Visualisation of vehicle
             hmmwv.SetChassisVisualizationType(VisualizationType.MESH);

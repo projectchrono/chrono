@@ -188,7 +188,7 @@ int main(int argc, char* argv[]) {
         elemcount++;
     }
 
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     // Remember to add the mesh to the system!
     sys.Add(my_mesh);
 

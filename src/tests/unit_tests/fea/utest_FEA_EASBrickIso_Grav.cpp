@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
     // Create the physical system
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 

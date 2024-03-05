@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
 
     // Create the sys
     ChSystemMulticoreSMC sys;
-    sys.Set_G_acc(ChVector3d(0, -10, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, -10, 0));
     sys.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
 
     // Create a contact material, shared among all bodies

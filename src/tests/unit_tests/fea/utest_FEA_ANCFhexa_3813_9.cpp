@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
 bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile = nullptr;
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     double time_step = 1e-3;
     bool genRefFile = false;
     double precision = 1e-3;  // Precision for unit test
@@ -238,7 +238,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     // Add the mesh to the system
     sys.Add(my_mesh);
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, 0.0));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, 0.0));
 
     // Set up solver
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -308,7 +308,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     double precision = 1e-3;  // Precision for test
     bool genRefFile = false;
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     std::cout << "--------------------------------------------------------------------\n";
     std::cout << "--------------------------------------------------------------------\n";
@@ -431,7 +431,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -9.81));
 
     // ----------------------------------
     // Perform a dynamic time integration
@@ -495,7 +495,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
 bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile = nullptr;
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     double time_step = 1e-4;
     bool genRefFile = false;
     double precision = 1e-4;  // Precision for unit test
@@ -629,7 +629,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     // Add the mesh to the system
     sys.Add(my_mesh);
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, 0.0));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, 0.0));
 
     // Set up solver
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -697,7 +697,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
 bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile = nullptr;
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     double time_step = 1e-4;
     bool genRefFile = false;
     double precision = 1e-4;  // Precision for unit test
@@ -836,7 +836,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     // Add the mesh to the system
     sys.Add(my_mesh);
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, 0.0));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, 0.0));
 
     // Set up solver
     auto solver = chrono_types::make_shared<ChSolverMINRES>();

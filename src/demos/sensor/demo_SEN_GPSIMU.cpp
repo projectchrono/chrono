@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
     // Create the system
     // -----------------
     ChSystemNSC sys;
-    sys.Set_G_acc({0, 0, -9.81});
+    sys.SetGravitationalAcceleration({0, 0, -9.81});
 
     // -------------------------------
     // Create a double pendulum system

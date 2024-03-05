@@ -241,7 +241,7 @@ int main(int argc, char* argv[]) {
             ) {
                 // Scale the external loads. In our example, just two forces. 
                 // Note: if gravity is used, consider scaling also gravity effect, e.g: 
-                //    sys.Set_G_acc(load_scaling * ChVector3d(0,-9.8,0))
+                //    sys.SetGravitationalAcceleration(load_scaling * ChVector3d(0,-9.8,0))
                 cb_loaded_node_1->SetForce(load_scaling * cb_F_node_1);
                 cb_loaded_node_2->SetForce(load_scaling * cb_F_node_2);
             }

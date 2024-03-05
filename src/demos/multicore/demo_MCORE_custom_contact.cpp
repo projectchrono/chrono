@@ -167,7 +167,7 @@ int main(int argc, char* argv[]) {
     auto ground_mat_vis = chrono_types::make_shared<ChVisualMaterial>();
     ground_mat_vis->SetKdTexture(GetChronoDataFile("textures/blue.png"));
 
-    sys->Set_G_acc(ChVector3d(0, -9.8, 0));
+    sys->SetGravitationalAcceleration(ChVector3d(0, -9.8, 0));
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
 
     // Create the ground body with a plate and side walls (both collision and visualization).

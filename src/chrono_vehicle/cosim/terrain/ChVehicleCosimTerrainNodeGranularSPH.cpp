@@ -68,7 +68,7 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(doubl
     m_system = new ChSystemSMC;
 
     // Solver settings independent of method type
-    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
     // Set number of threads
     m_system->SetNumThreads(1);
@@ -87,7 +87,7 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(const
     m_system = new ChSystemSMC;
 
     // Solver settings independent of method type
-    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
     // Set number of threads
     m_system->SetNumThreads(1);
@@ -173,7 +173,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     sysFSI.SetDiscreType(false, false);
     sysFSI.SetOutputLength(0);
 
-    sysFSI.Set_G_acc(ChVector3d(0, 0, m_gacc));
+    sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
     sysFSI.SetDensity(m_density);
     sysFSI.SetCohesionForce(m_cohesion);
 

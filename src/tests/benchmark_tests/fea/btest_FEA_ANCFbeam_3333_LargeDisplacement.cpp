@@ -94,7 +94,7 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
     m_NumElements = num_elements;
     m_NumThreads = NumThreads;
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector3d(0, 0, -9.80665));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.80665));
     m_system->SetNumThreads(NumThreads, 1, NumThreads);
 
     // Set solver parameters
