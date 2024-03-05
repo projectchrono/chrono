@@ -55,8 +55,8 @@ namespace ChronoDemo
             // Plotting function
             void Plot(ChBezierCurve path, int n, string title, bool equal_axes = true)
             {
-                ChVectorDynamicD x = new ChVectorDynamicD(n);
-                ChVectorDynamicD y = new ChVectorDynamicD(n);
+                ChVectorDynamicd x = new ChVectorDynamicd(n);
+                ChVectorDynamicd y = new ChVectorDynamicd(n);
                 double delta = 1.0 / n;
                 for (int i = 0; i < n; i++)
                 {

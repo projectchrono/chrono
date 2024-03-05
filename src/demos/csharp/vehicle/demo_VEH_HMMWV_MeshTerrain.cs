@@ -25,6 +25,7 @@
 using System;
 using static ChronoGlobals;
 using static chrono_vehicle;
+using static chrono;
 
 namespace ChronoDemo
 {
@@ -50,9 +51,6 @@ namespace ChronoDemo
                 isYUp = false;  // default
                 Console.WriteLine("\n\nDefault Z-Up Chrono world set\n\n");
             }
-
-            // TODO: correct CHRONO_VERSION call
-            //Console.WriteLine(chrono.GetLog() + "Copyright (c) 2017 projectchrono.org\nChrono version: " + CHRONO_VERSION + "\n\n");
 
             // Set the path to the Chrono data files and Chrono::Vehicle data files
             chrono.SetChronoDataPath(CHRONO_DATA_DIR);
@@ -226,15 +224,21 @@ namespace ChronoDemo
             }
             
             // Adjust location and position
-            // Note the differences in worldframes
+            // Note the differences in worldframes - expanded out into single line declarations for clarity
             ChVector3d positionZ = new ChVector3d(0,10,0); // ZUp
             ChVector3d positionY = new ChVector3d(0, 0, -10); // YUp
+            // rotations about the vertical axis
             ChQuaterniond rotationZ = chrono.QuatFromAngleZ(-170 * chrono.CH_C_DEG_TO_RAD); // Rotation in ZUp
             ChQuaterniond rotationY = chrono.QuatFromAngleY(-170 * chrono.CH_C_DEG_TO_RAD); // Rotation in Yup
 
+            // Rotate for Y-Up world
+            ChQuaterniond resultantSlopeRot = new ChQuaterniond();
+            ChQuaterniond rotateYUp = new ChQuaterniond(chrono.Q_ROTATE_Z_TO_Y); // alternatively, could use the call chrono.QuatFromAngleX(-chrono.CH_C_PI_2));
+            resultantSlopeRot.Cross(rotationY, rotateYUp); // alter the rotation around the vertical axis, about the x-axis to suit the YUp world
+
             // Generate the patch of terrain built from the combined point cloud
-            var patch = terrain.AddPatch(patch_mat, new ChCoordsysd((isYUp ? positionY : positionZ), (isYUp ? rotationY : rotationZ)),
-                                                                                point_cloud, 100, 100, 100, 500, 5, 20, 0.3, 1.0);
+            var patch = terrain.AddPatch(patch_mat, new ChCoordsysd((isYUp ? positionY : positionZ), (isYUp ? resultantSlopeRot : rotationZ)),
+                                                                                point_cloud, 100, 100, 50, 800, 3, 15, 0.3, 1.2);
             patch.SetColor(new ChColor(0.7f, 0.7f, 0.7f));
             // Initialize the terrain
             terrain.Initialize();

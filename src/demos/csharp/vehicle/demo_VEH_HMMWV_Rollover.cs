@@ -34,20 +34,17 @@ namespace ChronoDemo
             Console.WriteLine("Copyright (c) 2017 projectchrono.org");
             Console.WriteLine("Chrono version: " + CHRONO_VERSION);
 
-            bool setYUp = false; // default declaration regarding use of the y-up world.
+            bool isYUp = false; // default declaration regarding use of the y-up world.
             Console.WriteLine("Do you want to use a Y-Up world Orientation (Y/N)? (default N):");
             string orientationInput = Console.ReadLine();
             if (orientationInput.Equals("y") && !string.IsNullOrWhiteSpace(orientationInput))
             {
-                setYUp = true;
+                isYUp = true;
                 Console.WriteLine("\n\nY-Up World selected.\n\n");
             } else {
-                setYUp = false;  // default
+                isYUp = false;  // default
                 Console.WriteLine("\n\nDefault Z-Up Chrono world set\n\n");
             }
-
-            // TODO: correct CHRONO_VERSION call
-            //Console.WriteLine(chrono.GetLog() + "Copyright (c) 2017 projectchrono.org\nChrono version: " + CHRONO_VERSION + "\n\n");
 
             // Set the path to the Chrono data files and Chrono::Vehicle data files
             chrono.SetChronoDataPath(CHRONO_DATA_DIR);
@@ -60,19 +57,18 @@ namespace ChronoDemo
             // Visualisation, Tracking and Vehicle Setup
             //------------------------------------------
 
-            if (setYUp)
+            if (isYUp)
             {
                 ChWorldFrame.SetYUP();
             }
             // Initial vehicle location and orientation
-            ChVector3d initLoc = new ChVector3d(0, (setYUp) ? 0.5 : 0, (setYUp) ? 0 : 0.5);
+            ChVector3d initLoc = new ChVector3d(0, (isYUp) ? 0.5 : 0, (isYUp) ? 0 : 0.5);
 
             // Create and configure the vehicle
             HMMWV_Full hmmwv = new HMMWV_Full();
             // Vehicle Collisions
             hmmwv.SetContactMethod(ChContactMethod.NSC);
             hmmwv.SetChassisCollisionType(CollisionType.HULLS); // automatically enables collision for the chassis
-            //hmmwv.SetCollisionSystemType(ChCollisionSystem.Type.BULLET); // TODO:: Currently has issues with SWIG wrapping. BULLET is presumed. May need to revisit if multicore module is wrapped.
             // Configure vehicle specifics
             hmmwv.SetInitPosition(new ChCoordsysd(initLoc, chrono.QUNIT));
             hmmwv.SetEngineType(EngineModelType.SHAFTS);
@@ -84,7 +80,7 @@ namespace ChronoDemo
             hmmwv.SetTireType(TireModelType.TMEASY);
             hmmwv.SetTireStepSize(step_size);
             hmmwv.Initialize();
-            if (setYUp) { hmmwv.GetSystem().Set_G_acc(new ChVector3d(0, -9.81, 0)); } // adjust the gravity
+            if (isYUp) { hmmwv.GetSystem().Set_G_acc(new ChVector3d(0, -9.81, 0)); } // adjust the gravity
 
             // Visualisation of vehicle
             hmmwv.SetChassisVisualizationType(VisualizationType.MESH);
@@ -107,20 +103,29 @@ namespace ChronoDemo
             minfo.cr = 0.1f;
             minfo.Y = 2e7f;
             var terrain_mat = minfo.CreateMaterial(hmmwv.GetSystem().GetContactMethod());
-            // Ground patch
-            var patch = terrain.AddPatch(terrain_mat, new ChCoordsysd(), 100.0, 100.0, 0.5);
-            patch.SetTexture(GetDataFile("terrain/textures/dirt.jpg"), 20, 20);
-            // Ramp patch
+
+
             // NB: in Y-Up the +vs Zaxis is to the right of the vehicle, and a +ve slope angle causes an upwards gradient ramp
-            ChQuaterniond slope = (setYUp) ? chrono.QuatFromAngleZ(15 * chrono.CH_C_DEG_TO_RAD) : chrono.QuatFromAngleY(-15 * chrono.CH_C_DEG_TO_RAD);
-            var ramp = terrain.AddPatch(terrain_mat, new ChCoordsysd(new ChVector3d(20, (setYUp ? 0 : 3), (setYUp ? -3 : 0)), slope), 20, 6, 0.5);
+            ChQuaterniond slope = (isYUp) ? chrono.QuatFromAngleZ(15 * chrono.CH_C_DEG_TO_RAD) : chrono.QuatFromAngleY(-15 * chrono.CH_C_DEG_TO_RAD);
+
+            // Rotate for Y-Up world
+            ChQuaterniond rotateYUp = new ChQuaterniond(chrono.Q_ROTATE_Z_TO_Y); // // alternatively, could use the call chrono.QuatFromAngleX(-chrono.CH_C_PI_2));
+            // Adjust the slope rotation for the Y-Up world
+            ChQuaterniond resultantSlopeRot = new ChQuaterniond();
+            resultantSlopeRot.Cross(slope, rotateYUp);
+
+            // Create the ramp path. Place and rotate as per the world rotation
+            var ramp = terrain.AddPatch(terrain_mat, new ChCoordsysd(new ChVector3d(20, (isYUp ? 0 : 3), (isYUp ? -3 : 0)), (isYUp ? resultantSlopeRot : slope)), 20, 6, 0.5);
             ramp.SetTexture(GetDataFile("terrain/textures/concrete.jpg"), 2, 2);
 
+            // Ground patch. Rotate as per the world rotation
+            var patch = terrain.AddPatch(terrain_mat, new ChCoordsysd(new ChVector3d(), (isYUp ? rotateYUp : chrono.QUNIT)), 100.0, 100.0, 0.5);
+            patch.SetTexture(GetDataFile("terrain/textures/dirt.jpg"), 20, 20);
             terrain.Initialize();
             
             
             //-------------------------------------------------
-            // Call line drawing of mesh height (method adjusts depending on setYUp)
+            // Call line drawing of mesh height (method adjusts depending on isYUp)
             //-------------------------------------------------
 
             VisualiseTerrain(); // See below after simulation loop
@@ -129,14 +134,13 @@ namespace ChronoDemo
             // Create the vehicle Irrlicht interface
             ChWheeledVehicleVisualSystemIrrlicht vis = new ChWheeledVehicleVisualSystemIrrlicht();
             vis.SetWindowTitle("Rollover Demo");
-            if (setYUp) { vis.SetCameraVertical(CameraVerticalDir.Y); } // Adjustment for Y-Up world
+            if (isYUp) { vis.SetCameraVertical(CameraVerticalDir.Y); } // Adjustment for Y-Up world
             vis.SetChaseCamera(new ChVector3d(0.0, 0.0, 2.0), 5.0, 0.05);
             vis.Initialize();
-            if (setYUp)
-            { // add a light that's noticeably different for y up (green for y-axis)
-                vis.AddLight(new ChVector3d(30, 120, 30), 300, new ChColor(0.5f, 0.7f, 0.5f));
-            } else
-            {
+            if (isYUp)
+            { // add a light in the correct location for Y-Up
+                vis.AddLight(new ChVector3d(30, 120, 30), 300, new ChColor(0.4f, 0.4f, 0.4f));
+            } else {
                 vis.AddLightDirectional(80, 10);
             }
             vis.AddSkyBox();
@@ -164,7 +168,7 @@ namespace ChronoDemo
 
                 // Check rollover -- detach chase camera
                 // this is a bit clunky between yup and not. could be streamlined.
-                if (setYUp)
+                if (isYUp)
                 {
 
                     if (chrono.Vdot(hmmwv.GetChassisBody().GetRotMat().GetAxisZ(), ChWorldFrame.Vertical()) < 0)
@@ -179,7 +183,7 @@ namespace ChronoDemo
                         vis.SetChaseCameraAngle(chrono.CH_C_PI_2 / 2); // point camera towards the vehicle and ramp after freeing it
                     }
                 }
-                else if (!setYUp)
+                else if (!isYUp)
                 {
                     if (chrono.Vdot(hmmwv.GetChassisBody().GetRotMat().GetAxisZ(), ChWorldFrame.Vertical()) < 0)
                     {
@@ -227,20 +231,20 @@ namespace ChronoDemo
                 // Draw horizontal lines
                 for (int j = 0; j < pointsPerSide; j++)
                 {
-                    double gridAxis = -halfGridSize + j * interval + (setYUp ? gridCentre.z : gridCentre.y); // change the axis depending on y-up or z-up
+                    double gridAxis = -halfGridSize + j * interval + (isYUp ? gridCentre.z : gridCentre.y); // change the axis depending on y-up or z-up
                     var polyline = new ChLinePoly(pointsPerSide);
 
                     for (int i = 0; i < pointsPerSide; i++)
                     {
                         double x = -halfGridSize + i * interval + gridCentre.x;
-                        double height = terrain.GetHeight(new ChVector3d(x, (setYUp ? 1000 : gridAxis), (setYUp ? gridAxis : 1000))); // Height query of terrain at set point
-                        polyline.Set_point(i, new ChVector3d(x, (setYUp ? height : gridAxis), (setYUp ? gridAxis : height)));  // Set each point along the polyline
+                        double height = terrain.GetHeight(new ChVector3d(x, (isYUp ? 1000 : gridAxis), (isYUp ? gridAxis : 1000))); // Height query of terrain at set point
+                        polyline.Set_point(i, new ChVector3d(x, (isYUp ? height : gridAxis), (isYUp ? gridAxis : height)));  // Set each point along the polyline
                     }
 
                     // Add polyline to visualisation
                     var visual = new ChVisualShapeLine();
                     visual.SetLineGeometry(polyline);
-                    visual.SetColor(new ChColor(0.8f, 0.8f, 0.8f));
+                    visual.SetColor(new ChColor(0.7f, (isYUp ? 1.0f : 0.7f), 0.7f));
                     gridBody.AddVisualShape(visual);  // Add visual to the body
                 }
 
@@ -252,9 +256,9 @@ namespace ChronoDemo
 
                     for (int j = 0; j < pointsPerSide; j++)
                     {
-                        double crossAxis = -halfGridSize + j * interval + (setYUp ? gridCentre.z : gridCentre.y);
-                        double height = terrain.GetHeight(new ChVector3d(x, (setYUp ? 1000 : crossAxis), (setYUp ? crossAxis : 1000))); // Query the height
-                        polyline.Set_point(j, new ChVector3d(x, (setYUp ? height : crossAxis), (setYUp ? crossAxis : height)));  // Set each point along the polyline
+                        double crossAxis = -halfGridSize + j * interval + (isYUp ? gridCentre.z : gridCentre.y);
+                        double height = terrain.GetHeight(new ChVector3d(x, (isYUp ? 1000 : crossAxis), (isYUp ? crossAxis : 1000))); // Query the height
+                        polyline.Set_point(j, new ChVector3d(x, (isYUp ? height : crossAxis), (isYUp ? crossAxis : height)));  // Set each point along the polyline
                     }
 
                     // Add polyline to visualisation
