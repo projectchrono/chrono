@@ -87,8 +87,6 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
         bool m_visualize;
         std::shared_ptr<ChVisualMaterial> m_vis_mat;
 
-        bool m_Yup;
-
         friend class RigidTerrain;
     };
 
@@ -235,13 +233,6 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     /// Collision is disabled with all other objects in this family.
     void SetCollisionFamily(int family) { m_collision_family = family; }
 
-    /// Embed in a system with Y up global reference frame (default: false).
-    /// This facilitates use in an external tool (e.g., Unity) with a Y up global frame.
-    /// ATTENTION:
-    /// - Do not enable this when used within Chrono, even if ChWorldFrame is set with Y up.
-    /// - If needed, this function must be called before adding or loading any terrain patches.
-    void EnableYupWorld() { m_Yup = true; }
-
   private:
     /// Patch represented as a box domain.
     struct CH_VEHICLE_API BoxPatch : public Patch {
@@ -277,10 +268,8 @@ class CH_VEHICLE_API RigidTerrain : public ChTerrain {
     void LoadPatch(const rapidjson::Value& a);
     void InitializePatch(std::shared_ptr<Patch> patch);
 
-    int m_collision_family;
-
-    bool m_Yup;
     bool m_initialized;
+    int m_collision_family;
 };
 
 /// @} vehicle_terrain

@@ -52,8 +52,7 @@ RigidTerrain::RigidTerrain(ChSystem* system)
       m_use_friction_functor(false),
       m_contact_callback(nullptr),
       m_collision_family(14),
-      m_initialized(false),
-      m_Yup(false) {}
+      m_initialized(false) {}
 
 // -----------------------------------------------------------------------------
 // Constructor from JSON file
@@ -64,8 +63,7 @@ RigidTerrain::RigidTerrain(ChSystem* system, const std::string& filename)
       m_use_friction_functor(false),
       m_contact_callback(nullptr),
       m_collision_family(14),
-      m_initialized(false),
-      m_Yup(false) {
+      m_initialized(false) {
     // Open and parse the input file
     Document d;
     ReadFileJSON(filename, d);
@@ -153,8 +151,6 @@ void RigidTerrain::LoadPatch(const rapidjson::Value& d) {
     } else {
         patch->m_visualize = false;
     }
-
-    patch->m_Yup = m_Yup;
 }
 
 // -----------------------------------------------------------------------------
@@ -205,10 +201,9 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     auto patch = chrono_types::make_shared<BoxPatch>();
     AddPatch(patch, position, material);
     patch->m_visualize = visualization;
-    patch->m_Yup = m_Yup;
 
     // Create the collision model (one or more boxes) attached to the patch body
-    if (tiled && !m_Yup) {
+    if (tiled) {
         int nX = (int)std::ceil(length / max_tile_size);
         int nY = (int)std::ceil(width / max_tile_size);
         double sizeX1 = length / nX;
@@ -222,33 +217,15 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
                 patch->m_body->AddCollisionShape(ct_shape, ChFrame<>(loc, QUNIT));
             }
         }
-    } else if (tiled && m_Yup) {  // tiling across the z-x plane for a y-up world
-        int nX = (int)std::ceil(length / max_tile_size);
-        int nZ = (int)std::ceil(width / max_tile_size);
-        double sizeX1 = length / nX;
-        double sizeZ1 = width / nZ;
-        auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(material, sizeX1, thickness, sizeZ1);
-        for (int ix = 0; ix < nX; ix++) {
-            for (int iz = 0; iz < nZ; iz++) {
-                ChVector3d loc((sizeX1 - length) / 2 + ix * sizeX1,  //
-                               -0.5 * thickness,                     // thickness is along the y-axis
-                               (sizeZ1 - width) / 2 + iz * sizeZ1);  // map the width value across the z-axis
-                patch->m_body->AddCollisionShape(ct_shape, ChFrame<>(loc, QUNIT));
-            }
-        }
     } else {  // non-tiled terrain creation of a single collision box and centre based on worldframe detection
-        auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(material,                      //
-                                                                       length,                        // x
-                                                                       (m_Yup ? thickness : width),   // y
-                                                                       (m_Yup ? width : thickness));  // z
-        ChVector3d loc(0, (m_Yup ? (-0.5 * thickness) : 0),
-                       (m_Yup ? 0 : (-0.5 * thickness)));  // centralise based on thickness along y-up or z-up world
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(material, length, width, thickness);
+        ChVector3d loc(0, 0, -0.5 * thickness);
         patch->m_body->AddCollisionShape(ct_shape, ChFrame<>(loc, QUNIT));
     }
 
     // Cache patch parameters
     patch->m_location = position.pos;
-    patch->m_normal = (m_Yup ? position.rot.GetAxisY() : position.rot.GetAxisZ());
+    patch->m_normal = position.rot.GetAxisZ();
     patch->m_hlength = length / 2;
     patch->m_hwidth = width / 2;
     patch->m_hthickness = thickness / 2;
@@ -269,7 +246,6 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     auto patch = chrono_types::make_shared<MeshPatch>();
     AddPatch(patch, position, material);
     patch->m_visualize = visualization;
-    patch->m_Yup = m_Yup;
 
     // Load mesh from file
     patch->m_trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_file, true, true);
@@ -317,7 +293,6 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     auto patch = chrono_types::make_shared<MeshPatch>();
     AddPatch(patch, position, material);
     patch->m_visualize = visualization;
-    patch->m_Yup = m_Yup;
 
     // Read the image file (request only 1 channel) and extract number of pixels
     STB hmap;
@@ -481,7 +456,6 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     auto patch = chrono_types::make_shared<MeshPatch>();
     AddPatch(patch, position, material);
     patch->m_visualize = visualization;
-    patch->m_Yup = m_Yup;
 
     // Initialise the mesh
     patch->m_trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
@@ -499,7 +473,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
 
     // Calculate the number of vertices for the coarse
     const int n_verts_across_down = coarse_grid_resolution + 1;
-    unsigned int n_verts = n_verts_across_down * n_verts_across_down;
+    int n_verts = n_verts_across_down * n_verts_across_down;
 
     // Resize vertices, normals, and UVs
     patch->m_trimesh->getCoordsVertices().resize(n_verts);
@@ -530,17 +504,13 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
         heightmap_resolution, std::vector<double>(heightmap_resolution, std::numeric_limits<double>::max()));
 
     // Refinement process
-    int current_iteration = 0;                       // what it says
-    max_refinements = std::max(0, max_refinements);  // Ensure iterations is clamped
-    bool execute_refine;                             // true or false if traignles have been marked for refinement
-    double vertical_flat_angle_threshold = 4;  // Dot product close to 0 to the vertical/horizontal world frame for
-                                               // nearly vertical triangle (for exclusion from refinement)
-    double flat_threshold =
-        std::cos(vertical_flat_angle_threshold * CH_C_DEG_TO_RAD);  // Convert angle thresholds to cos rad
-    double vertical_threshold =
-        std::cos((90 - vertical_flat_angle_threshold) * CH_C_DEG_TO_RAD);  // Convert angle thresholds to cos rad
-    ChVector3d vertical_vector(0, 0, 1);  // vertical vector for Z-up world frame (mesh processing is done within a z-up
-                                          // world and rotated at the end)
+    int current_iteration = 0;
+    max_refinements = std::max(0, max_refinements);
+    bool execute_refine;
+    double angle_threshold = 4 * CH_C_DEG_TO_RAD;
+    double horizontal_threshold = std::cos(angle_threshold);
+    double vertical_threshold = std::sin(angle_threshold);
+    ChVector3d vertical_vector(0, 0, 1);
     std::map<std::pair<int, int>, std::pair<int, int>> winged_edges;  // map for winged edges checking (in normals)
 
     // Smoothing / postprocessing parameters
@@ -652,15 +622,11 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
             }
         }
     }
-
-    std::cout << "coarse triangles generated:" << patch->m_trimesh->getNumTriangles() << std::endl;
+    std::cout << "Terrain patch no. of coarse triangles generated:" << patch->m_trimesh->getNumTriangles() << std::endl;
 
     //--------------------------------------------------
     // Stage 2: iterative refinement in a two stage pass
     //--------------------------------------------------
-
-    std::cout << "Refinement loop commencing" << std::endl;
-
     std::vector<int> marked_tris;  // Container for marked triangles
     marked_tris.clear();           // clear the group prior to iteration
 
@@ -675,12 +641,23 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
         auto& vertices = patch->m_trimesh->getCoordsVertices();  // get the vertices of the mesh
         patch->m_trimesh->ComputeWingedEdges(winged_edges);      // compute the winged edge map
 
+        // Compute the triangle connectivity map
+        std::vector<std::array<int, 4>> tri_map;
+
+        ////bool check_pathological = patch->m_trimesh->ComputeNeighbouringTriangleMap(tri_map);  // to RefineMeshEdges
+        ////if (!check_pathological) break; // TODO: ensure the return is correct from ChTriangleMeshConnected.cpp
+
         for (const auto& edge : winged_edges) {
             int tri1_index = edge.second.first;
             int tri2_index = edge.second.second;
-            // Skip if no adjacent triangle (boundary edge)
-            if (tri1_index == -1 || tri2_index == -1)
+            // Skip if no adjacent triangle (boundary edge) or indices are out of bounds
+            if (tri1_index >= tri_map.size() || tri2_index >= tri_map.size())
                 continue;
+            // Also skip if the neighboring triangles are boundary triangles (-1 in tri_map)
+            if (tri_map[tri1_index][1] == -1 || tri_map[tri1_index][2] == -1 || tri_map[tri1_index][3] == -1 ||
+                tri_map[tri2_index][1] == -1 || tri_map[tri2_index][2] == -1 || tri_map[tri2_index][3] == -1)
+                continue;
+
             // get the vertices
             const auto& tri1 = patch->m_trimesh->getIndicesVertexes()[tri1_index];
             const auto& tri2 = patch->m_trimesh->getIndicesVertexes()[tri2_index];
@@ -692,14 +669,11 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
                 Vcross(vertices[tri2.y()] - vertices[tri2.x()], vertices[tri2.z()] - vertices[tri2.x()])
                     .GetNormalized();
 
-            /// Triangle Exclusion checks:
-            // Check the dot product of the normals against the vertical and horizontal frame and skip if nearly
-            // vertical or nearly flat triangles look further up to note they are set for a parallel and perpendicular
-            // check against the vertical
-            if ((std::abs(normal1 ^ vertical_vector) < vertical_threshold &&
-                 std::abs(normal1 ^ vertical_vector) > flat_threshold) ||
-                (std::abs(normal2 ^ vertical_vector) < vertical_threshold &&
-                 std::abs(normal2 ^ vertical_vector) > flat_threshold)) {
+            // Skip triangles that are close to horizontal or close to vertical
+            auto dot1 = std::abs(normal1 ^ vertical_vector);
+            auto dot2 = std::abs(normal2 ^ vertical_vector);
+            if ((dot1 < vertical_threshold && dot1 > horizontal_threshold) ||
+                (dot2 < vertical_threshold && dot2 > horizontal_threshold)) {
                 continue;
             }
 
@@ -707,21 +681,18 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
             double dot_product = Vdot(normal1, normal2);
             double angle = std::acos(dot_product) * CH_C_RAD_TO_DEG;  // convert the angle
             if (angle > refine_angle_limit) {                         // Mark both triangles for refinement
-                marked_tris.push_back(tri1_index);
-                marked_tris.push_back(tri2_index);
+                marked_tris.emplace_back(tri1_index);
+                marked_tris.emplace_back(tri2_index);
                 execute_refine = true;
             }
         }
 
-        // Re-sort and remove any duplicates from marked_tris
-        std::sort(marked_tris.begin(), marked_tris.end());
-        marked_tris.erase(std::unique(marked_tris.begin(), marked_tris.end()), marked_tris.end());
-
-        /// Refine all marked triangles and set heights
+        //  Refine all marked triangles and set heights
         if (execute_refine) {  // Refine marked triangles
             // use Chrono's LEPP refine mesh edges method to increase triangle resolution of marked triangles
-            patch->m_trimesh->RefineMeshEdges(marked_tris, max_edge_length, nullptr, nullptr, aux_data_double,
-                                              aux_data_int, aux_data_bool, aux_data_vect);
+            patch->m_trimesh->RefineMeshEdges(marked_tris, max_edge_length, 0, &tri_map, aux_data_double, aux_data_int,
+                                              aux_data_bool, aux_data_vect);
+            // std::cout << "refinement done. bilinear filtering" << std::endl;
 
             // set height of vertices with bilinear interpolation
             for (auto& vertex : patch->m_trimesh->getCoordsVertices()) {
@@ -737,19 +708,20 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
                 double fy = (vertex.y() + width / 2) / cell_width - cell_y;
 
                 // Ensure the next cell indices are also within bounds
-                int nextCellX = std::min(cell_x + 1, heightmap_resolution - 1);
-                int nextCellY = std::min(cell_y + 1, heightmap_resolution - 1);
+                int next_cell_x = std::min(cell_x + 1, heightmap_resolution - 1);
+                int next_cell_y = std::min(cell_y + 1, heightmap_resolution - 1);
 
                 // Apply bilinear interpolation
-                vertex.z() = height_map[cell_x][cell_y] * (1 - fx) * (1 - fy) +
-                             height_map[nextCellX][cell_y] * fx * (1 - fy) +
-                             height_map[cell_x][nextCellY] * (1 - fx) * fy + height_map[nextCellX][nextCellY] * fx * fy;
+                vertex.z() =
+                    height_map[cell_x][cell_y] * (1 - fx) * (1 - fy) + height_map[next_cell_x][cell_y] * fx * (1 - fy) +
+                    height_map[cell_x][next_cell_y] * (1 - fx) * fy + height_map[next_cell_x][next_cell_y] * fx * fy;
             }
         }  // End refinement
 
         // Provide update to console
-        std::cout << "Iterative refinment number: " << current_iteration << std::endl;
+        std::cout << "Terrain Patch iterative refinement number: " << current_iteration << std::endl;
         std::cout << "Number of triangles refined: " << marked_tris.size() << std::endl;
+
         ++current_iteration;  // counter
     }
 
@@ -758,13 +730,10 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     //---------------------------------------------------------------------------
 
     // Repair duplicate vertices
-    int merged_vertices = patch->m_trimesh->RepairDuplicateVertexes(1e-18);
-    // Print the number of merged vertices
-    if (merged_vertices > 0) {
-        std::cout << "Number of merged vertices: " << merged_vertices << std::endl;
-    }
+    ////int merged_vertices = patch->m_trimesh->RepairDuplicateVertexes(1e-18);
+    ////std::cout << "Number of merged vertices: " << merged_vertices << std::endl;
 
-    /// Taubin smoothing approach, controllable with smoothing factor 0-1
+    // Taubin smoothing approach, controllable with smoothing factor 0-1
     // Note: Does not set height - this is done in the iterative loop
     // Ensure latest values used
     auto& vertices = patch->m_trimesh->getCoordsVertices();
@@ -858,13 +827,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     for (auto& vertex_color : patch->m_trimesh->getCoordsColors()) {
         vertex_color = ChColor(1, 1, 1);
     }
-
     // No UV mapping as terrain is simply a single colour
-
-    // Check if Y-Up world orientation and rotate mesh acccordingly
-    if (ChWorldFrame::Vertical() == ChVector3d(0, 1, 0)) {
-        patch->m_trimesh->Transform(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_C_PI_2));
-    }
 
     // Build the connected mesh
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, patch->m_trimesh, true, false,
@@ -882,7 +845,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
 // Functions to modify properties of a patch
 // -----------------------------------------------------------------------------
 
-RigidTerrain::Patch::Patch() : m_friction(0.8f), m_visualize(true), m_Yup(false) {
+RigidTerrain::Patch::Patch() : m_friction(0.8f), m_visualize(true) {
     m_vis_mat = std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
 }
 
@@ -1032,13 +995,11 @@ void RigidTerrain::BindPatch(std::shared_ptr<Patch> patch) {
 void RigidTerrain::RemovePatch(std::shared_ptr<Patch> patch) {
     auto pos = std::find(m_patches.begin(), m_patches.end(), patch);
     if (pos != m_patches.end()) {
-        const auto& patch = *pos;
-
         // Unbind the patch from the visualization and collision systems (if they exists)
         if (m_system->GetVisualSystem())
-            m_system->GetVisualSystem()->UnbindItem(patch->m_body);
+            m_system->GetVisualSystem()->UnbindItem((*pos)->m_body);
         if (m_system->GetCollisionSystem())
-            m_system->GetCollisionSystem()->UnbindItem(patch->m_body);
+            m_system->GetCollisionSystem()->UnbindItem((*pos)->m_body);
 
         // Erase from the list of patches
         m_patches.erase(pos);
@@ -1149,8 +1110,6 @@ bool RigidTerrain::BoxPatch::FindPoint(const ChVector3d& loc, double& height, Ch
 
     // Check bounds
     ChVector3d Cl = m_body->TransformPointParentToLocal(C);
-    if (m_Yup)
-        return std::abs(Cl.x()) <= m_hlength && std::abs(Cl.z()) <= m_hwidth;
     return std::abs(Cl.x()) <= m_hlength && std::abs(Cl.y()) <= m_hwidth;
 }
 
