@@ -236,7 +236,7 @@ std::shared_ptr<ChTriangleMeshConnected> ChRigidTire::GetContactMesh() const {
 
 void ChRigidTire::GetMeshVertexStates(std::vector<ChVector3d>& pos, std::vector<ChVector3d>& vel) const {
     assert(m_use_contact_mesh);
-    auto vertices = m_trimesh->getCoordsVertices();
+    auto vertices = m_trimesh->GetCoordsVertices();
 
     for (size_t i = 0; i < vertices.size(); ++i) {
         pos.push_back(m_wheel->GetSpindle()->TransformPointLocalToParent(vertices[i]));

@@ -71,7 +71,7 @@ ChTriangleMeshConnected::~ChTriangleMeshConnected() {
         delete (id);
 }
 
-void ChTriangleMeshConnected::addTriangle(const ChVector3d& vertex0,
+void ChTriangleMeshConnected::AddTriangle(const ChVector3d& vertex0,
                                           const ChVector3d& vertex1,
                                           const ChVector3d& vertex2) {
     int base_v = (int)m_vertices.size();
@@ -81,7 +81,7 @@ void ChTriangleMeshConnected::addTriangle(const ChVector3d& vertex0,
     m_face_v_indices.push_back(ChVector3i(base_v, base_v + 1, base_v + 2));
 }
 
-void ChTriangleMeshConnected::addTriangle(const ChTriangle& atriangle) {
+void ChTriangleMeshConnected::AddTriangle(const ChTriangle& atriangle) {
     int base_v = (int)m_vertices.size();
     m_vertices.push_back(atriangle.p1);
     m_vertices.push_back(atriangle.p2);
@@ -154,7 +154,7 @@ void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
     double integral[10] = {(double)0.0, (double)0.0, (double)0.0, (double)0.0, (double)0.0,
                            (double)0.0, (double)0.0, (double)0.0, (double)0.0, (double)0.0};
 
-    for (int i = 0; i < this->getNumTriangles(); i++) {
+    for (int i = 0; i < this->GetNumTriangles(); i++) {
         // Get vertices of triangle i.
         ChVector3d v0 = this->m_vertices[m_face_v_indices[i].x()];
         ChVector3d v1 = this->m_vertices[m_face_v_indices[i].y()];
@@ -709,8 +709,8 @@ bool ChTriangleMeshConnected::MakeOffset(double moffset) {
             for (int j = 0; j < ntri; ++j) {
                 b(j, 0) = 1;
                 for (int k = 0; k < ntri; ++k) {
-                    A(j, k) = Vdot(this->getTriangle(mverttriangles[j]).GetNormal(),
-                                   this->getTriangle(mverttriangles[k]).GetNormal());
+                    A(j, k) = Vdot(this->GetTriangle(mverttriangles[j]).GetNormal(),
+                                   this->GetTriangle(mverttriangles[k]).GetNormal());
                 }
             }
 
@@ -736,7 +736,7 @@ bool ChTriangleMeshConnected::MakeOffset(double moffset) {
             // weighted sum as offset vector
             voffsets[i] = VNULL;
             for (int j = 0; j < ntri; ++j) {
-                voffsets[i] += this->getTriangle(mverttriangles[j]).GetNormal() * x(j);
+                voffsets[i] += this->GetTriangle(mverttriangles[j]).GetNormal() * x(j);
             }
         }
     }
@@ -1134,7 +1134,7 @@ void ChTriangleMeshConnected::RefineMeshEdges(
 }
 
 const std::vector<ChVector3d>& ChTriangleMeshConnected::getFaceVertices() {
-    int n_faces = getNumTriangles();
+    int n_faces = GetNumTriangles();
 
     m_tmp_vectors.resize(3 * n_faces);
 
@@ -1149,7 +1149,7 @@ const std::vector<ChVector3d>& ChTriangleMeshConnected::getFaceVertices() {
 }
 
 const std::vector<ChVector3d>& ChTriangleMeshConnected::getFaceNormals() {
-    int n_faces = getNumTriangles();
+    int n_faces = GetNumTriangles();
 
     m_tmp_vectors.resize(3 * n_faces);
 
@@ -1199,8 +1199,8 @@ const std::vector<ChColor>& ChTriangleMeshConnected::getFaceColors() {
 }
 
 const std::vector<ChVector3d>& ChTriangleMeshConnected::getAverageNormals() {
-    int n_verts = getNumVertices();
-    int n_faces = getNumTriangles();
+    int n_verts = GetNumVertices();
+    int n_faces = GetNumTriangles();
 
     m_tmp_vectors.resize(n_verts);
 

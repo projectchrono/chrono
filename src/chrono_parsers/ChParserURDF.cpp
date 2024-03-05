@@ -366,12 +366,12 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
                         }
                         case MeshCollisionType::CONVEX_HULL: {
                             auto ct_shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(
-                                contact_material, trimesh->getCoordsVertices());
+                                contact_material, trimesh->GetCoordsVertices());
                             body->AddCollisionShape(ct_shape, frame);
                             break;
                         }
                         case MeshCollisionType::NODE_CLOUD: {
-                            for (const auto& v : trimesh->getCoordsVertices()) {
+                            for (const auto& v : trimesh->GetCoordsVertices()) {
                                 auto ct_shape =
                                     chrono_types::make_shared<ChCollisionShapeSphere>(contact_material, 0.002);
                                 body->AddCollisionShape(ct_shape, ChFrame<>(v, QUNIT));

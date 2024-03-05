@@ -231,8 +231,8 @@ void ChCollisionModelMulticore::Populate() {
                 auto shape_trimesh = std::static_pointer_cast<ChCollisionShapeTriangleMesh>(shape);
                 auto trimesh = shape_trimesh->GetMesh();
 
-                for (int i = 0; i < trimesh->getNumTriangles(); i++) {
-                    ChTriangle tri = trimesh->getTriangle(i);
+                for (int i = 0; i < trimesh->GetNumTriangles(); i++) {
+                    ChTriangle tri = trimesh->GetTriangle(i);
                     ChVector3d p1 = tri.p1 + position;
                     ChVector3d p2 = tri.p2 + position;
                     ChVector3d p3 = tri.p3 + position;

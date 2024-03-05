@@ -527,8 +527,8 @@ void SCMLoader::Initialize(const ChTriangleMeshConnected& trimesh, double delta)
     m_type = PatchType::TRI_MESH;
 
     // Load triangular mesh
-    const auto& vertices = trimesh.getCoordsVertices();
-    const auto& faces = trimesh.getIndicesVertexes();
+    const auto& vertices = trimesh.GetCoordsVertices();
+    const auto& faces = trimesh.GetIndicesVertexes();
 
     // Find x, y, and z ranges of vertex data
     auto minmaxX = std::minmax_element(begin(vertices), end(vertices),
@@ -610,12 +610,12 @@ void SCMLoader::CreateVisualizationMesh(double sizeX, double sizeY) {
     // Readability aliases
     auto trimesh = m_trimesh_shape->GetMesh();
     trimesh->Clear();
-    std::vector<ChVector3d>& vertices = trimesh->getCoordsVertices();
-    std::vector<ChVector3d>& normals = trimesh->getCoordsNormals();
-    std::vector<ChVector3i>& idx_vertices = trimesh->getIndicesVertexes();
-    std::vector<ChVector3i>& idx_normals = trimesh->getIndicesNormals();
-    std::vector<ChVector2d>& uv_coords = trimesh->getCoordsUV();
-    std::vector<ChColor>& colors = trimesh->getCoordsColors();
+    std::vector<ChVector3d>& vertices = trimesh->GetCoordsVertices();
+    std::vector<ChVector3d>& normals = trimesh->GetCoordsNormals();
+    std::vector<ChVector3i>& idx_vertices = trimesh->GetIndicesVertexes();
+    std::vector<ChVector3i>& idx_normals = trimesh->GetIndicesNormals();
+    std::vector<ChVector2d>& uv_coords = trimesh->GetCoordsUV();
+    std::vector<ChColor>& colors = trimesh->GetCoordsColors();
 
     // Resize mesh arrays.
     vertices.resize(n_verts);
@@ -1697,8 +1697,8 @@ void SCMLoader::RemoveMaterialFromNode(double amount, NodeRecord& nr) {
 // Update vertex position and color in visualization mesh
 void SCMLoader::UpdateMeshVertexCoordinates(const ChVector2i ij, int iv, const NodeRecord& nr) {
     auto& trimesh = *m_trimesh_shape->GetMesh();
-    std::vector<ChVector3d>& vertices = trimesh.getCoordsVertices();
-    std::vector<ChColor>& colors = trimesh.getCoordsColors();
+    std::vector<ChVector3d>& vertices = trimesh.GetCoordsVertices();
+    std::vector<ChColor>& colors = trimesh.GetCoordsColors();
 
     // Update visualization mesh vertex position
     vertices[iv] = m_plane.TransformPointLocalToParent(ChVector3d(ij.x() * m_delta, ij.y() * m_delta, nr.level));
@@ -1762,9 +1762,9 @@ void SCMLoader::UpdateMeshVertexCoordinates(const ChVector2i ij, int iv, const N
 // Update vertex normal in visualization mesh.
 void SCMLoader::UpdateMeshVertexNormal(const ChVector2i ij, int iv) {
     auto& trimesh = *m_trimesh_shape->GetMesh();
-    std::vector<ChVector3d>& vertices = trimesh.getCoordsVertices();
-    std::vector<ChVector3d>& normals = trimesh.getCoordsNormals();
-    std::vector<ChVector3i>& idx_normals = trimesh.getIndicesNormals();
+    std::vector<ChVector3d>& vertices = trimesh.GetCoordsVertices();
+    std::vector<ChVector3d>& normals = trimesh.GetCoordsNormals();
+    std::vector<ChVector3i>& idx_normals = trimesh.GetIndicesNormals();
 
     // Average normals from adjacent faces
     normals[iv] = ChVector3d(0, 0, 0);

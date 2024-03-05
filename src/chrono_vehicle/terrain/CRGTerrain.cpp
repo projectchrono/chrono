@@ -412,10 +412,10 @@ void CRGTerrain::SetupLineGraphics() {
 
 void CRGTerrain::GenerateMesh() {
     m_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    auto& coords = m_mesh->getCoordsVertices();
-    auto& indices = m_mesh->getIndicesVertexes();
-    auto& coords_uv = m_mesh->getCoordsUV();
-    auto& indices_uv = m_mesh->getIndicesUV();
+    auto& coords = m_mesh->GetCoordsVertices();
+    auto& indices = m_mesh->GetIndicesVertexes();
+    auto& coords_uv = m_mesh->GetCoordsUV();
+    auto& indices_uv = m_mesh->GetIndicesUV();
 
     int nu = static_cast<int>((m_uend - m_ubeg) / m_uinc) + 1;
     int nv;

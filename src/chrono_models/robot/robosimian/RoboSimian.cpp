@@ -938,7 +938,7 @@ void RS_Part::AddCollisionShapes() {
         auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, false, false);
         switch (mesh.m_type) {
             case MeshShape::Type::CONVEX_HULL: {
-                auto shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(m_mat, trimesh->getCoordsVertices());
+                auto shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(m_mat, trimesh->GetCoordsVertices());
                 m_body->AddCollisionShape(shape, ChFrame<>(mesh.m_pos, mesh.m_rot));
                 break;
             }
@@ -950,7 +950,7 @@ void RS_Part::AddCollisionShapes() {
             }
             case MeshShape::Type::NODE_CLOUD: {
                 auto shape = chrono_types::make_shared<ChCollisionShapeSphere>(m_mat, 0.002);
-                for (const auto& v : trimesh->getCoordsVertices()) {
+                for (const auto& v : trimesh->GetCoordsVertices()) {
                     m_body->AddCollisionShape(shape, ChFrame<>(v, QUNIT));
                 }
                 break;

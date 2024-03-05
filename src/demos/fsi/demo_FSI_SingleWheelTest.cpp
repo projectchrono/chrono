@@ -96,15 +96,15 @@ void WriteWheelVTK(const std::string& filename, ChTriangleMeshConnected& mesh, c
     outf << "VTK from simulation" << std::endl;
     outf << "ASCII" << std::endl;
     outf << "DATASET UNSTRUCTURED_GRID" << std::endl;
-    outf << "POINTS " << mesh.getCoordsVertices().size() << " "
+    outf << "POINTS " << mesh.GetCoordsVertices().size() << " "
          << "float" << std::endl;
-    for (auto& v : mesh.getCoordsVertices()) {
+    for (auto& v : mesh.GetCoordsVertices()) {
         auto w = frame.TransformPointLocalToParent(v);
         outf << w.x() << " " << w.y() << " " << w.z() << std::endl;
     }
-    auto nf = mesh.getIndicesVertexes().size();
+    auto nf = mesh.GetIndicesVertexes().size();
     outf << "CELLS " << nf << " " << 4 * nf << std::endl;
-    for (auto& f : mesh.getIndicesVertexes()) {
+    for (auto& f : mesh.GetIndicesVertexes()) {
         outf << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
     }
     outf << "CELL_TYPES " << nf << std::endl;

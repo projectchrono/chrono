@@ -179,7 +179,7 @@ void ChCascadeMeshTools::fillTriangleMeshFromCascadeFace(ChTriangleMesh& chmesh,
             V.SetY(p.Y());
             V.SetZ(p.Z());
             ChVector3d cv3(V.X(), V.Y(), V.Z());
-            chmesh.addTriangle(cv1, cv2, cv3);
+            chmesh.AddTriangle(cv1, cv2, cv3);
 
             itri++;
         }

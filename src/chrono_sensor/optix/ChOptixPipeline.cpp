@@ -822,24 +822,24 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
 
     if (!mesh_found) {
         // make sure chrono mesh is setup as expected
-        if (mesh->getIndicesMaterials().size() == 0) {
-            mesh->getIndicesMaterials() = std::vector<int>(mesh->getIndicesVertexes().size(), 0);
+        if (mesh->GetIndicesMaterials().size() == 0) {
+            mesh->GetIndicesMaterials() = std::vector<int>(mesh->GetIndicesVertexes().size(), 0);
         }
 
         // move the chrono data to contiguous data structures to be copied to gpu
-        std::vector<uint4> vertex_index_buffer = std::vector<uint4>(mesh->getIndicesVertexes().size());
-        std::vector<uint4> normal_index_buffer = std::vector<uint4>(mesh->getIndicesNormals().size());
-        std::vector<uint4> uv_index_buffer = std::vector<uint4>(mesh->getIndicesUV().size());
+        std::vector<uint4> vertex_index_buffer = std::vector<uint4>(mesh->GetIndicesVertexes().size());
+        std::vector<uint4> normal_index_buffer = std::vector<uint4>(mesh->GetIndicesNormals().size());
+        std::vector<uint4> uv_index_buffer = std::vector<uint4>(mesh->GetIndicesUV().size());
         std::vector<unsigned int> mat_index_buffer;
-        std::vector<float4> vertex_buffer = std::vector<float4>(mesh->getCoordsVertices().size());
-        std::vector<float4> normal_buffer = std::vector<float4>(mesh->getCoordsNormals().size());
-        std::vector<float2> uv_buffer = std::vector<float2>(mesh->getCoordsUV().size());
+        std::vector<float4> vertex_buffer = std::vector<float4>(mesh->GetCoordsVertices().size());
+        std::vector<float4> normal_buffer = std::vector<float4>(mesh->GetCoordsNormals().size());
+        std::vector<float2> uv_buffer = std::vector<float2>(mesh->GetCoordsUV().size());
 
         // not optional for vertex indices
-        for (int i = 0; i < mesh->getIndicesVertexes().size(); i++) {
-            vertex_index_buffer[i] = make_uint4((unsigned int)mesh->getIndicesVertexes()[i].x(),  //
-                                                (unsigned int)mesh->getIndicesVertexes()[i].y(),  //
-                                                (unsigned int)mesh->getIndicesVertexes()[i].z(), 0);
+        for (int i = 0; i < mesh->GetIndicesVertexes().size(); i++) {
+            vertex_index_buffer[i] = make_uint4((unsigned int)mesh->GetIndicesVertexes()[i].x(),  //
+                                                (unsigned int)mesh->GetIndicesVertexes()[i].y(),  //
+                                                (unsigned int)mesh->GetIndicesVertexes()[i].z(), 0);
         }
         uint4* d_vertex_index_buffer = {};
         CUDA_ERROR_CHECK(
@@ -851,10 +851,10 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
 
         uint4* d_normal_index_buffer = {};
         if (normal_index_buffer.size() > 0) {  // optional whether there are normal indices
-            for (int i = 0; i < mesh->getIndicesNormals().size(); i++) {
-                normal_index_buffer[i] = make_uint4((unsigned int)mesh->getIndicesNormals()[i].x(),  //
-                                                    (unsigned int)mesh->getIndicesNormals()[i].y(),  //
-                                                    (unsigned int)mesh->getIndicesNormals()[i].z(), 0);
+            for (int i = 0; i < mesh->GetIndicesNormals().size(); i++) {
+                normal_index_buffer[i] = make_uint4((unsigned int)mesh->GetIndicesNormals()[i].x(),  //
+                                                    (unsigned int)mesh->GetIndicesNormals()[i].y(),  //
+                                                    (unsigned int)mesh->GetIndicesNormals()[i].z(), 0);
             }
             CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_normal_index_buffer),
                                         sizeof(uint4) * normal_index_buffer.size()));
@@ -865,10 +865,10 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
 
         uint4* d_uv_index_buffer = {};
         if (uv_index_buffer.size() > 0) {  // optional whether there are uv indices
-            for (int i = 0; i < mesh->getIndicesUV().size(); i++) {
-                uv_index_buffer[i] = make_uint4((unsigned int)mesh->getIndicesUV()[i].x(),  //
-                                                (unsigned int)mesh->getIndicesUV()[i].y(),  //
-                                                (unsigned int)mesh->getIndicesUV()[i].z(), 0);
+            for (int i = 0; i < mesh->GetIndicesUV().size(); i++) {
+                uv_index_buffer[i] = make_uint4((unsigned int)mesh->GetIndicesUV()[i].x(),  //
+                                                (unsigned int)mesh->GetIndicesUV()[i].y(),  //
+                                                (unsigned int)mesh->GetIndicesUV()[i].z(), 0);
             }
             CUDA_ERROR_CHECK(
                 cudaMalloc(reinterpret_cast<void**>(&d_uv_index_buffer), sizeof(uint4) * uv_index_buffer.size()));
@@ -878,8 +878,8 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
         }
 
         unsigned int* d_mat_index_buffer = {};
-        if (mesh->getIndicesMaterials().size() > 0) {  // optional whether there are material indices
-            std::copy(mesh->getIndicesMaterials().begin(), mesh->getIndicesMaterials().end(),
+        if (mesh->GetIndicesMaterials().size() > 0) {  // optional whether there are material indices
+            std::copy(mesh->GetIndicesMaterials().begin(), mesh->GetIndicesMaterials().end(),
                       std::back_inserter(mat_index_buffer));
 
             CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_mat_index_buffer),
@@ -890,10 +890,10 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
         }
 
         // there have to be some vertices for this to be a mesh (not optional)
-        for (int i = 0; i < mesh->getCoordsVertices().size(); i++) {
-            vertex_buffer[i] = make_float4((float)mesh->getCoordsVertices()[i].x(),  //
-                                           (float)mesh->getCoordsVertices()[i].y(),  //
-                                           (float)mesh->getCoordsVertices()[i].z(), 0.f);
+        for (int i = 0; i < mesh->GetCoordsVertices().size(); i++) {
+            vertex_buffer[i] = make_float4((float)mesh->GetCoordsVertices()[i].x(),  //
+                                           (float)mesh->GetCoordsVertices()[i].y(),  //
+                                           (float)mesh->GetCoordsVertices()[i].z(), 0.f);
         }
         float4* d_vertex_buffer = {};
         CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_vertex_buffer), sizeof(float4) * vertex_buffer.size()));
@@ -905,10 +905,10 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
 
         float4* d_normal_buffer = {};
         if (normal_buffer.size() > 0) {  // optional for there to be vertex normals
-            for (int i = 0; i < mesh->getCoordsNormals().size(); i++) {
-                normal_buffer[i] = make_float4((float)mesh->getCoordsNormals()[i].x(),  //
-                                               (float)mesh->getCoordsNormals()[i].y(),  //
-                                               (float)mesh->getCoordsNormals()[i].z(), 0.f);
+            for (int i = 0; i < mesh->GetCoordsNormals().size(); i++) {
+                normal_buffer[i] = make_float4((float)mesh->GetCoordsNormals()[i].x(),  //
+                                               (float)mesh->GetCoordsNormals()[i].y(),  //
+                                               (float)mesh->GetCoordsNormals()[i].z(), 0.f);
             }
             CUDA_ERROR_CHECK(
                 cudaMalloc(reinterpret_cast<void**>(&d_normal_buffer), sizeof(float4) * normal_buffer.size()));
@@ -918,9 +918,9 @@ unsigned int ChOptixPipeline::GetRigidMeshMaterial(CUdeviceptr& d_vertices,
         }
         float2* d_uv_buffer = {};
         if (uv_buffer.size() > 0) {  // optional for there to be uv coordinates
-            for (int i = 0; i < mesh->getCoordsUV().size(); i++) {
-                uv_buffer[i] = make_float2((float)mesh->getCoordsUV()[i].x(),  //
-                                           (float)mesh->getCoordsUV()[i].y());
+            for (int i = 0; i < mesh->GetCoordsUV().size(); i++) {
+                uv_buffer[i] = make_float2((float)mesh->GetCoordsUV()[i].x(),  //
+                                           (float)mesh->GetCoordsUV()[i].y());
             }
             CUDA_ERROR_CHECK(cudaMalloc(reinterpret_cast<void**>(&d_uv_buffer), sizeof(float2) * uv_buffer.size()));
             CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_uv_buffer), uv_buffer.data(),
@@ -988,7 +988,7 @@ unsigned int ChOptixPipeline::GetDeformableMeshMaterial(CUdeviceptr& d_vertices,
 
     unsigned int mesh_id = m_material_records[mat_id].data.mesh_pool_id;
     CUdeviceptr d_normals = reinterpret_cast<CUdeviceptr>(m_mesh_pool[mesh_id].normal_buffer);
-    unsigned int num_triangles = static_cast<unsigned int>(mesh_shape->GetMesh()->getIndicesVertexes().size());
+    unsigned int num_triangles = static_cast<unsigned int>(mesh_shape->GetMesh()->GetIndicesVertexes().size());
     m_deformable_meshes.push_back(std::make_tuple(mesh_shape, d_vertices, d_normals, num_triangles));
 
     return mat_id;
@@ -1004,29 +1004,29 @@ void ChOptixPipeline::UpdateDeformableMeshes() {
         auto mesh = mesh_shape->GetMesh();
 
         // if the mesh has changed size, we need to recreate the entire mesh (not very nice)
-        if (num_prev_triangles != mesh_shape->GetMesh()->getIndicesVertexes().size()) {
+        if (num_prev_triangles != mesh_shape->GetMesh()->GetIndicesVertexes().size()) {
             throw std::runtime_error("Error: changing mesh size not supported by Chrono::Sensor");
         }
 
         // update all the vertex locations
 
-        std::vector<float4> vertex_buffer = std::vector<float4>(mesh->getCoordsVertices().size());
-        for (int j = 0; j < mesh->getCoordsVertices().size(); j++) {
-            vertex_buffer[j] = make_float4((float)mesh->getCoordsVertices()[j].x(),  //
-                                           (float)mesh->getCoordsVertices()[j].y(),  //
-                                           (float)mesh->getCoordsVertices()[j].z(),  //
+        std::vector<float4> vertex_buffer = std::vector<float4>(mesh->GetCoordsVertices().size());
+        for (int j = 0; j < mesh->GetCoordsVertices().size(); j++) {
+            vertex_buffer[j] = make_float4((float)mesh->GetCoordsVertices()[j].x(),  //
+                                           (float)mesh->GetCoordsVertices()[j].y(),  //
+                                           (float)mesh->GetCoordsVertices()[j].z(),  //
                                            0.f);                                     // padding for alignment
         }
         CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_vertices), vertex_buffer.data(),
                                     sizeof(float4) * vertex_buffer.size(), cudaMemcpyHostToDevice));
 
         // update all the normals if normal exist
-        if (mesh_shape->GetMesh()->getCoordsNormals().size() > 0) {
-            std::vector<float4> normal_buffer = std::vector<float4>(mesh->getCoordsNormals().size());
-            for (int j = 0; j < mesh->getCoordsNormals().size(); j++) {
-                normal_buffer[j] = make_float4((float)mesh->getCoordsNormals()[j].x(),  //
-                                               (float)mesh->getCoordsNormals()[j].y(),  //
-                                               (float)mesh->getCoordsNormals()[j].z(),  //
+        if (mesh_shape->GetMesh()->GetCoordsNormals().size() > 0) {
+            std::vector<float4> normal_buffer = std::vector<float4>(mesh->GetCoordsNormals().size());
+            for (int j = 0; j < mesh->GetCoordsNormals().size(); j++) {
+                normal_buffer[j] = make_float4((float)mesh->GetCoordsNormals()[j].x(),  //
+                                               (float)mesh->GetCoordsNormals()[j].y(),  //
+                                               (float)mesh->GetCoordsNormals()[j].z(),  //
                                                0.f);                                    // padding for alignment
             }
             CUDA_ERROR_CHECK(cudaMemcpy(reinterpret_cast<void*>(d_normals), normal_buffer.data(),

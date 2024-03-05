@@ -147,7 +147,7 @@ body.AddVisualShape(cyl,
 # ==Asset== Attach three instances of the same 'triangle mesh' shape
 # TODO: not sure how to add vertices
 mesh = chrono.ChVisualShapeTriangleMesh()
-mesh.GetMesh().addTriangle(chrono.ChVector3d(0, 0, 0), chrono.ChVector3d(0, 1, 0), chrono.ChVector3d(1, 0, 0))
+mesh.GetMesh().AddTriangle(chrono.ChVector3d(0, 0, 0), chrono.ChVector3d(0, 1, 0), chrono.ChVector3d(1, 0, 0))
 mesh.AddMaterial(orange_mat)
 
 body.AddVisualShape(mesh, chrono.ChFramed(chrono.ChVector3d(2,0,2), chrono.QUNIT))

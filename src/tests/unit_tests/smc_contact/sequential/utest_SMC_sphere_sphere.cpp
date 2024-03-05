@@ -53,7 +53,7 @@ std::shared_ptr<ChCollisionShape> CreateSphereShape(ShapeType type,
             auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
                 GetChronoDataFile("models/sphere.obj"), false, true);
             mesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(radius));
-            shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(mat, mesh->getCoordsVertices());
+            shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(mat, mesh->GetCoordsVertices());
             break;
         }
         case ShapeType::MESH: {

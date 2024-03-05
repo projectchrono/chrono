@@ -391,13 +391,13 @@ void ChVehicleCosimBaseNode::SendGeometry(const ChVehicleGeometry& geom, int des
         MPI_Send(data, 3, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
 
         const auto& trimesh = mesh.m_trimesh;
-        const auto& vertices = trimesh->getCoordsVertices();
-        const auto& normals = trimesh->getCoordsNormals();
-        const auto& idx_vertices = trimesh->getIndicesVertexes();
-        const auto& idx_normals = trimesh->getIndicesNormals();
-        int nv = trimesh->getNumVertices();
-        int nn = trimesh->getNumNormals();
-        int nt = trimesh->getNumTriangles();
+        const auto& vertices = trimesh->GetCoordsVertices();
+        const auto& normals = trimesh->GetCoordsNormals();
+        const auto& idx_vertices = trimesh->GetIndicesVertexes();
+        const auto& idx_normals = trimesh->GetIndicesNormals();
+        int nv = trimesh->GetNumVertices();
+        int nn = trimesh->GetNumNormals();
+        int nt = trimesh->GetNumTriangles();
 
         int surf_props[] = {nv, nn, nt, mesh.m_matID};
         MPI_Send(surf_props, 4, MPI_INT, dest, 0, MPI_COMM_WORLD);
@@ -494,10 +494,10 @@ void ChVehicleCosimBaseNode::RecvGeometry(ChVehicleGeometry& geom, int source) c
         ChVector3d pos(data[0], data[1], data[2]);
 
         auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-        auto& vertices = trimesh->getCoordsVertices();
-        auto& normals = trimesh->getCoordsNormals();
-        auto& idx_vertices = trimesh->getIndicesVertexes();
-        auto& idx_normals = trimesh->getIndicesNormals();
+        auto& vertices = trimesh->GetCoordsVertices();
+        auto& normals = trimesh->GetCoordsNormals();
+        auto& idx_vertices = trimesh->GetIndicesVertexes();
+        auto& idx_normals = trimesh->GetIndicesNormals();
 
         int surf_props[4];
         MPI_Recv(surf_props, 4, MPI_INT, source, 0, MPI_COMM_WORLD, &status);
@@ -506,10 +506,10 @@ void ChVehicleCosimBaseNode::RecvGeometry(ChVehicleGeometry& geom, int source) c
         int nt = surf_props[2];
         int matID = surf_props[3];
 
-        trimesh->getCoordsVertices().resize(nv);
-        trimesh->getCoordsNormals().resize(nn);
-        trimesh->getIndicesVertexes().resize(nt);
-        trimesh->getIndicesNormals().resize(nt);
+        trimesh->GetCoordsVertices().resize(nv);
+        trimesh->GetCoordsNormals().resize(nn);
+        trimesh->GetIndicesVertexes().resize(nt);
+        trimesh->GetIndicesNormals().resize(nt);
 
         // Tire mesh vertices & normals and triangle indices
         double* vert_data = new double[3 * nv + 3 * nn];

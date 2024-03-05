@@ -318,7 +318,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
     auto proxy = chrono_types::make_shared<ProxyBodySet>();
 
     // Note: it is assumed that there is one and only one mesh defined!
-    auto nv = m_geometry[i_shape].m_coll_meshes[0].m_trimesh->getNumVertices();
+    auto nv = m_geometry[i_shape].m_coll_meshes[0].m_trimesh->GetNumVertices();
     auto i_mat = m_geometry[i_shape].m_coll_meshes[0].m_matID;
     auto material = m_geometry[i_shape].m_materials[i_mat].CreateMaterial(m_method);
 

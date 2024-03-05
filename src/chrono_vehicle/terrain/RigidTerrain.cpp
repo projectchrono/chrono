@@ -266,8 +266,8 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
 
     // Cache patch parameters
     patch->m_radius =
-        std::max_element(patch->m_trimesh->getCoordsVertices().begin(),                                      //
-                         patch->m_trimesh->getCoordsVertices().end(),                                        //
+        std::max_element(patch->m_trimesh->GetCoordsVertices().begin(),                                      //
+                         patch->m_trimesh->GetCoordsVertices().end(),                                        //
                          [](const ChVector3d& a, const ChVector3d& b) { return a.Length2() < b.Length2(); }  //
                          )
             ->Length();
@@ -318,26 +318,26 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
 
     // Resize mesh arrays
     patch->m_trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    patch->m_trimesh->getCoordsVertices().resize(n_verts);
-    patch->m_trimesh->getCoordsNormals().resize(n_verts);
-    patch->m_trimesh->getCoordsUV().resize(n_verts);
-    patch->m_trimesh->getCoordsColors().resize(n_verts);
+    patch->m_trimesh->GetCoordsVertices().resize(n_verts);
+    patch->m_trimesh->GetCoordsNormals().resize(n_verts);
+    patch->m_trimesh->GetCoordsUV().resize(n_verts);
+    patch->m_trimesh->GetCoordsColors().resize(n_verts);
 
-    patch->m_trimesh->getIndicesVertexes().resize(n_faces);
-    patch->m_trimesh->getIndicesNormals().resize(n_faces);
-    patch->m_trimesh->getIndicesUV().resize(n_faces);
+    patch->m_trimesh->GetIndicesVertexes().resize(n_faces);
+    patch->m_trimesh->GetIndicesNormals().resize(n_faces);
+    patch->m_trimesh->GetIndicesUV().resize(n_faces);
 
     // Initialize the array of accumulators (number of adjacent faces to a vertex)
     std::vector<int> accumulators(n_verts, 0);
 
     // Readability aliases
-    std::vector<ChVector3d>& vertices = patch->m_trimesh->getCoordsVertices();
-    std::vector<ChVector3d>& normals = patch->m_trimesh->getCoordsNormals();
-    std::vector<ChColor>& colors = patch->m_trimesh->getCoordsColors();
-    std::vector<ChVector2d>& uvs = patch->m_trimesh->getCoordsUV();
-    std::vector<ChVector3i>& idx_vertices = patch->m_trimesh->getIndicesVertexes();
-    std::vector<ChVector3i>& idx_normals = patch->m_trimesh->getIndicesNormals();
-    std::vector<ChVector3i>& idx_uvs = patch->m_trimesh->getIndicesUV();
+    std::vector<ChVector3d>& vertices = patch->m_trimesh->GetCoordsVertices();
+    std::vector<ChVector3d>& normals = patch->m_trimesh->GetCoordsNormals();
+    std::vector<ChColor>& colors = patch->m_trimesh->GetCoordsColors();
+    std::vector<ChVector2d>& uvs = patch->m_trimesh->GetCoordsUV();
+    std::vector<ChVector3i>& idx_vertices = patch->m_trimesh->GetIndicesVertexes();
+    std::vector<ChVector3i>& idx_normals = patch->m_trimesh->GetIndicesNormals();
+    std::vector<ChVector3i>& idx_uvs = patch->m_trimesh->GetIndicesUV();
 
     // Load mesh vertices.
     // Note that pixels in a BMP start at top-left corner.
@@ -476,9 +476,9 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     int n_verts = n_verts_across_down * n_verts_across_down;
 
     // Resize vertices, normals, and UVs
-    patch->m_trimesh->getCoordsVertices().resize(n_verts);
-    patch->m_trimesh->getCoordsNormals().resize(n_verts);
-    patch->m_trimesh->getCoordsUV().resize(n_verts);
+    patch->m_trimesh->GetCoordsVertices().resize(n_verts);
+    patch->m_trimesh->GetCoordsNormals().resize(n_verts);
+    patch->m_trimesh->GetCoordsUV().resize(n_verts);
 
     //---------------------
     // Refinement variables
@@ -601,7 +601,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
 
             // Apply the direct height from the height map and generate the vertex
             double z = height_map[cellX][cellY];
-            patch->m_trimesh->getCoordsVertices()[i * n_verts_across_down + j] = ChVector3d(x, y, z);
+            patch->m_trimesh->GetCoordsVertices()[i * n_verts_across_down + j] = ChVector3d(x, y, z);
         }
     }
 
@@ -614,15 +614,15 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
             unsigned int v3 = v2 + 1;
             // Alternating triangles for the RHF - i.e. counter-clockwise vertices
             if ((i + j) % 2 == 0) {
-                patch->m_trimesh->getIndicesVertexes().push_back(ChVector3i(v0, v2, v1));
-                patch->m_trimesh->getIndicesVertexes().push_back(ChVector3i(v1, v2, v3));
+                patch->m_trimesh->GetIndicesVertexes().push_back(ChVector3i(v0, v2, v1));
+                patch->m_trimesh->GetIndicesVertexes().push_back(ChVector3i(v1, v2, v3));
             } else {
-                patch->m_trimesh->getIndicesVertexes().push_back(ChVector3i(v0, v2, v3));
-                patch->m_trimesh->getIndicesVertexes().push_back(ChVector3i(v0, v3, v1));
+                patch->m_trimesh->GetIndicesVertexes().push_back(ChVector3i(v0, v2, v3));
+                patch->m_trimesh->GetIndicesVertexes().push_back(ChVector3i(v0, v3, v1));
             }
         }
     }
-    std::cout << "Terrain patch no. of coarse triangles generated:" << patch->m_trimesh->getNumTriangles() << std::endl;
+    std::cout << "Terrain patch no. of coarse triangles generated:" << patch->m_trimesh->GetNumTriangles() << std::endl;
 
     //--------------------------------------------------
     // Stage 2: iterative refinement in a two stage pass
@@ -638,7 +638,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
         execute_refine = false;
 
         // Normal checking and clearing if near vertical or flat
-        auto& vertices = patch->m_trimesh->getCoordsVertices();  // get the vertices of the mesh
+        auto& vertices = patch->m_trimesh->GetCoordsVertices();  // get the vertices of the mesh
         patch->m_trimesh->ComputeWingedEdges(winged_edges);      // compute the winged edge map
 
         // Compute the triangle connectivity map
@@ -659,8 +659,8 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
                 continue;
 
             // get the vertices
-            const auto& tri1 = patch->m_trimesh->getIndicesVertexes()[tri1_index];
-            const auto& tri2 = patch->m_trimesh->getIndicesVertexes()[tri2_index];
+            const auto& tri1 = patch->m_trimesh->GetIndicesVertexes()[tri1_index];
+            const auto& tri2 = patch->m_trimesh->GetIndicesVertexes()[tri2_index];
             // Calculate normals for each triangle
             ChVector3d normal1 =
                 Vcross(vertices[tri1.y()] - vertices[tri1.x()], vertices[tri1.z()] - vertices[tri1.x()])
@@ -695,7 +695,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
             // std::cout << "refinement done. bilinear filtering" << std::endl;
 
             // set height of vertices with bilinear interpolation
-            for (auto& vertex : patch->m_trimesh->getCoordsVertices()) {
+            for (auto& vertex : patch->m_trimesh->GetCoordsVertices()) {
                 int cell_x = static_cast<int>((vertex.x() + length / 2) / cell_length);
                 int cell_y = static_cast<int>((vertex.y() + width / 2) / cell_width);
 
@@ -736,9 +736,9 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     // Taubin smoothing approach, controllable with smoothing factor 0-1
     // Note: Does not set height - this is done in the iterative loop
     // Ensure latest values used
-    auto& vertices = patch->m_trimesh->getCoordsVertices();
-    auto& triangles = patch->m_trimesh->getIndicesVertexes();
-    n_verts = patch->m_trimesh->getNumVertices();  // update the vertices again
+    auto& vertices = patch->m_trimesh->GetCoordsVertices();
+    auto& triangles = patch->m_trimesh->GetIndicesVertexes();
+    n_verts = patch->m_trimesh->GetNumVertices();  // update the vertices again
     // Smoothing loop
     if (smoothing_factor != 0) {  // skip if smoothing is zero
         // Create an adjacency list
@@ -824,7 +824,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     // ---------------------------------------
 
     // Set colour of all vertices to white
-    for (auto& vertex_color : patch->m_trimesh->getCoordsColors()) {
+    for (auto& vertex_color : patch->m_trimesh->GetCoordsColors()) {
         vertex_color = ChColor(1, 1, 1);
     }
     // No UV mapping as terrain is simply a single colour

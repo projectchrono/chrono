@@ -169,12 +169,12 @@ std::shared_ptr<ChTriangleMeshConnected> ChSprocket::CreateVisualizationMesh(dou
 
     // Create trimesh
     auto mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    std::vector<ChVector3d>& vertices = mesh->getCoordsVertices();
-    std::vector<ChVector3d>& normals = mesh->getCoordsNormals();
-    std::vector<ChVector3i>& idx_vertices = mesh->getIndicesVertexes();
-    std::vector<ChVector3i>& idx_normals = mesh->getIndicesNormals();
-    ////std::vector<ChVector2d>& uv_coords = mesh->getCoordsUV();
-    std::vector<ChColor>& colors = mesh->getCoordsColors();
+    std::vector<ChVector3d>& vertices = mesh->GetCoordsVertices();
+    std::vector<ChVector3d>& normals = mesh->GetCoordsNormals();
+    std::vector<ChVector3i>& idx_vertices = mesh->GetIndicesVertexes();
+    std::vector<ChVector3i>& idx_normals = mesh->GetIndicesNormals();
+    ////std::vector<ChVector2d>& uv_coords = mesh->GetCoordsUV();
+    std::vector<ChColor>& colors = mesh->GetCoordsColors();
 
     // Calculate number of vertices, normals, and faces. Resize mesh arrays.
     auto npoints = ppoints.size();

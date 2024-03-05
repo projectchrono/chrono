@@ -647,12 +647,12 @@ void ChContactSurfaceMesh::AddFace(std::shared_ptr<ChNodeFEAxyzrot> node1,
 void ChContactSurfaceMesh::ConstructFromTrimesh(std::shared_ptr<ChTriangleMeshConnected> trimesh,
                                                 double sphere_swept) {
     std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> nodes;
-    for (const auto& v : trimesh->getCoordsVertices()) {
+    for (const auto& v : trimesh->GetCoordsVertices()) {
         nodes.push_back(chrono_types::make_shared<fea::ChNodeFEAxyz>(v));
     }
 
     std::vector<NodeTripletXYZ> triangles_ptrs;
-    for (const auto& tri : trimesh->getIndicesVertexes()) {
+    for (const auto& tri : trimesh->GetIndicesVertexes()) {
         const auto& node0 = nodes[tri[0]];
         const auto& node1 = nodes[tri[1]];
         const auto& node2 = nodes[tri[2]];

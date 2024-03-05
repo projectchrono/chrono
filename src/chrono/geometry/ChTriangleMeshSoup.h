@@ -47,16 +47,16 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     ////virtual ChTriangle& Triangle(int index) { return m_triangles[index]; }
 
     /// Add a triangle to this triangle mesh, by specifying the three coordinates
-    virtual void addTriangle(const ChVector3d& vertex0, const ChVector3d& vertex1, const ChVector3d& vertex2) override;
+    virtual void AddTriangle(const ChVector3d& vertex0, const ChVector3d& vertex1, const ChVector3d& vertex2) override;
 
     /// Add a triangle to this triangle mesh, by specifying a ChTriangle
-    virtual void addTriangle(const ChTriangle& atriangle) override { m_triangles.push_back(atriangle); }
+    virtual void AddTriangle(const ChTriangle& atriangle) override { m_triangles.push_back(atriangle); }
 
     /// Get the number of triangles already added to this mesh
-    virtual int getNumTriangles() const override { return (int)m_triangles.size(); }
+    virtual int GetNumTriangles() const override { return (int)m_triangles.size(); }
 
     /// Access the n-th triangle in mesh
-    virtual ChTriangle getTriangle(int index) const override { return m_triangles[index]; }
+    virtual ChTriangle GetTriangle(int index) const override { return m_triangles[index]; }
 
     /// Get the list of triangles.
     std::vector<ChTriangle>& getTriangles() { return m_triangles; }

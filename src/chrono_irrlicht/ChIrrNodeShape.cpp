@@ -118,15 +118,15 @@ void ChIrrNodeShape::UpdateTriangleMesh_col(std::shared_ptr<ChVisualShapeTriangl
     if (nbuffers == 0)
         return;
 
-    const auto& vertices = mesh->getCoordsVertices();
-    const auto& normals = mesh->getCoordsNormals();
-    const auto& uvs = mesh->getCoordsUV();
-    const auto& colors = mesh->getCoordsColors();
+    const auto& vertices = mesh->GetCoordsVertices();
+    const auto& normals = mesh->GetCoordsNormals();
+    const auto& uvs = mesh->GetCoordsUV();
+    const auto& colors = mesh->GetCoordsColors();
 
-    const auto& v_indices = mesh->getIndicesVertexes();
-    const auto& n_indices = mesh->getIndicesNormals();
-    const auto& uv_indices = mesh->getIndicesUV();
-    const auto& c_indices = mesh->getIndicesColors();
+    const auto& v_indices = mesh->GetIndicesVertexes();
+    const auto& n_indices = mesh->GetIndicesNormals();
+    const auto& uv_indices = mesh->GetIndicesUV();
+    const auto& c_indices = mesh->GetIndicesColors();
 
     unsigned int ntriangles = (unsigned int)v_indices.size();
     unsigned int nvertexes = ntriangles * 3;
@@ -227,14 +227,14 @@ void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChVisualShapeTriangl
     if (nbuffers == 0)
         return;
 
-    const auto& vertices = mesh->getCoordsVertices();
-    const auto& normals = mesh->getCoordsNormals();
-    const auto& uvs = mesh->getCoordsUV();
+    const auto& vertices = mesh->GetCoordsVertices();
+    const auto& normals = mesh->GetCoordsNormals();
+    const auto& uvs = mesh->GetCoordsUV();
 
-    const auto& v_indices = mesh->getIndicesVertexes();
-    const auto& n_indices = mesh->getIndicesNormals();
-    const auto& uv_indices = mesh->getIndicesUV();
-    const auto& m_indices = mesh->getIndicesMaterials();
+    const auto& v_indices = mesh->GetIndicesVertexes();
+    const auto& n_indices = mesh->GetIndicesNormals();
+    const auto& uv_indices = mesh->GetIndicesUV();
+    const auto& m_indices = mesh->GetIndicesMaterials();
 
     unsigned int ntriangles_all = (unsigned int)v_indices.size();
 
@@ -365,21 +365,21 @@ void ChIrrNodeShape::UpdateTriangleMeshFixedConnectivity(std::shared_ptr<ChVisua
 
     // Access Chrono triangle mesh
     const auto& mesh = trianglemesh->GetMesh();
-    std::vector<ChVector3d>& vertices = mesh->getCoordsVertices();
-    std::vector<ChVector3d>& normals = mesh->getCoordsNormals();
-    std::vector<ChVector2d>& uvs = mesh->getCoordsUV();
-    std::vector<ChColor>& colors = mesh->getCoordsColors();
-    std::vector<ChVector3i>& idx_vertices = mesh->getIndicesVertexes();
+    std::vector<ChVector3d>& vertices = mesh->GetCoordsVertices();
+    std::vector<ChVector3d>& normals = mesh->GetCoordsNormals();
+    std::vector<ChVector2d>& uvs = mesh->GetCoordsUV();
+    std::vector<ChColor>& colors = mesh->GetCoordsColors();
+    std::vector<ChVector3i>& idx_vertices = mesh->GetIndicesVertexes();
 
-    unsigned int ntriangles = (unsigned int)mesh->getIndicesVertexes().size();
-    unsigned int nvertices = (unsigned int)mesh->getCoordsVertices().size();
-    unsigned int nuvs = (unsigned int)mesh->getCoordsUV().size();
-    unsigned int ncolors = (unsigned int)mesh->getCoordsColors().size();
+    unsigned int ntriangles = (unsigned int)mesh->GetIndicesVertexes().size();
+    unsigned int nvertices = (unsigned int)mesh->GetCoordsVertices().size();
+    unsigned int nuvs = (unsigned int)mesh->GetCoordsUV().size();
+    unsigned int ncolors = (unsigned int)mesh->GetCoordsColors().size();
 
     bool has_colors = (ncolors > 0);
     bool has_uvs = (nuvs > 0);
 
-    assert(mesh->getCoordsNormals().size() == mesh->getCoordsVertices().size());
+    assert(mesh->GetCoordsNormals().size() == mesh->GetCoordsVertices().size());
     assert(ncolors == 0 || ncolors == nvertices);
     assert(nuvs == 0 || nuvs == nvertices);
 

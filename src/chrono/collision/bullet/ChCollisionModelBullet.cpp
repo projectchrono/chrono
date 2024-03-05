@@ -447,7 +447,7 @@ void ChCollisionModelBullet::injectTriangleMesh(std::shared_ptr<ChCollisionShape
     auto is_convex = shape_trimesh->IsConvex();
     auto radius = shape_trimesh->GetRadius();
 
-    if (!trimesh->getNumTriangles())
+    if (!trimesh->GetNumTriangles())
         return;
 
     if (auto mesh = std::dynamic_pointer_cast<ChTriangleMeshConnected>(trimesh)) {
@@ -549,10 +549,10 @@ void ChCollisionModelBullet::injectTriangleMesh(std::shared_ptr<ChCollisionShape
     }
 
     cbtTriangleMesh* bulletMesh = new cbtTriangleMesh;
-    for (int i = 0; i < trimesh->getNumTriangles(); i++) {
-        bulletMesh->addTriangle(cbtVector3CH(trimesh->getTriangle(i).p1),  //
-                                cbtVector3CH(trimesh->getTriangle(i).p2),  //
-                                cbtVector3CH(trimesh->getTriangle(i).p3),  //
+    for (int i = 0; i < trimesh->GetNumTriangles(); i++) {
+        bulletMesh->addTriangle(cbtVector3CH(trimesh->GetTriangle(i).p1),  //
+                                cbtVector3CH(trimesh->GetTriangle(i).p2),  //
+                                cbtVector3CH(trimesh->GetTriangle(i).p3),  //
                                 true                                       // try to remove duplicate vertices
         );
     }

@@ -547,7 +547,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                 *mfile << "uv_layer.data.foreach_set('uv', uvs) " << std::endl;
             }
 
-            if (mesh->m_face_mat_indices.size() == mesh->getNumTriangles()) {
+            if (mesh->m_face_mat_indices.size() == mesh->GetNumTriangles()) {
                 *mfile << "mat_indices = [ " << std::endl;
                 for (unsigned int ip = 0; ip < mesh->m_face_mat_indices.size(); ip++) {
                     *mfile << mesh->m_face_mat_indices[ip] << "," << std::endl;
@@ -570,8 +570,8 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
             }
             *mfile << collection << ".objects.link(new_object)\n" << std::endl;
 
-            if (mesh->m_colors.size() == mesh->m_vertices.size() || mesh->getPropertiesPerVertex().size() ||
-                mesh->getPropertiesPerFace().size()) {
+            if (mesh->m_colors.size() == mesh->m_vertices.size() || mesh->GetPropertiesPerVertex().size() ||
+                mesh->GetPropertiesPerFace().size()) {
                 *mfile << "meshsetting = setup_meshsetting(new_object)" << std::endl;
             }
 
@@ -589,7 +589,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                 *mfile << "mat = update_meshsetting_color_material(new_object,meshsetting, 'chrono_color')" << std::endl;
             }
 
-            for (auto mprop : mesh->getPropertiesPerVertex()) {
+            for (auto mprop : mesh->GetPropertiesPerVertex()) {
                 if (auto mprop_scalar = dynamic_cast<ChPropertyT<double>*>(mprop)) {
                     *mfile << "data_scalars = [ " << std::endl;
                     for (unsigned int iv = 0; iv < mprop_scalar->data.size(); iv++) {
@@ -624,7 +624,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                            << mprop_vectors->name.c_str() << "')" << std::endl;
                 }
             }
-            for (auto mprop : mesh->getPropertiesPerFace()) {
+            for (auto mprop : mesh->GetPropertiesPerFace()) {
                 if (auto mprop_scalar = dynamic_cast<ChPropertyT<double>*>(mprop)) {
                     *mfile << "data_scalars = [ " << std::endl;
                     for (unsigned int iv = 0; iv < mprop_scalar->data.size(); iv++) {

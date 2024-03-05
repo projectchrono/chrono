@@ -203,10 +203,10 @@ void ObsModTerrain::Initialize(ObsModTerrain::VisualisationType vType) {
 
 void ObsModTerrain::GenerateMesh() {
     m_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    auto& coords = m_mesh->getCoordsVertices();
-    auto& indices = m_mesh->getIndicesVertexes();
-    auto& normals = m_mesh->getCoordsNormals();
-    auto& normidx = m_mesh->getIndicesNormals();
+    auto& coords = m_mesh->GetCoordsVertices();
+    auto& indices = m_mesh->GetIndicesVertexes();
+    auto& normals = m_mesh->GetCoordsNormals();
+    auto& normidx = m_mesh->GetIndicesNormals();
 
     for (size_t i = 0; i < m_nx; i++) {
         double x = m_x[i];

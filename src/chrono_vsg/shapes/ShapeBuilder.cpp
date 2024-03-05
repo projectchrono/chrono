@@ -164,15 +164,15 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColShape(std::shared_ptr<ChV
 
     const auto& mesh = tms->GetMesh();
 
-    const auto& vertices = mesh->getCoordsVertices();
-    const auto& normals = mesh->getCoordsNormals();
-    const auto& uvs = mesh->getCoordsUV();
-    const auto& colors = mesh->getCoordsColors();
+    const auto& vertices = mesh->GetCoordsVertices();
+    const auto& normals = mesh->GetCoordsNormals();
+    const auto& uvs = mesh->GetCoordsUV();
+    const auto& colors = mesh->GetCoordsColors();
 
-    const auto& v_indices = mesh->getIndicesVertexes();
-    const auto& n_indices = mesh->getIndicesNormals();
-    const auto& uv_indices = mesh->getIndicesUV();
-    const auto& c_indices = mesh->getIndicesColors();
+    const auto& v_indices = mesh->GetIndicesVertexes();
+    const auto& n_indices = mesh->GetIndicesNormals();
+    const auto& uv_indices = mesh->GetIndicesUV();
+    const auto& c_indices = mesh->GetIndicesColors();
 
     unsigned int ntriangles = (unsigned int)v_indices.size();
 
@@ -281,10 +281,10 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<
 
     const auto& mesh = tms->GetMesh();
 
-    const auto& vertices = mesh->getCoordsVertices();
-    const auto& normals = mesh->getCoordsNormals();
-    const auto& uvs = mesh->getCoordsUV();
-    const auto& colors = mesh->getCoordsColors();
+    const auto& vertices = mesh->GetCoordsVertices();
+    const auto& normals = mesh->GetCoordsNormals();
+    const auto& uvs = mesh->GetCoordsUV();
+    const auto& colors = mesh->GetCoordsColors();
 
     size_t nvertices = vertices.size();
     bool normals_ok = true;
@@ -302,7 +302,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshColAvgShape(std::shared_ptr<
         colors_ok = false;
     }
 
-    const auto& v_indices = mesh->getIndicesVertexes();
+    const auto& v_indices = mesh->GetIndicesVertexes();
     auto default_color = tms->GetColor();
 
     // create and fill the vsg buffers
@@ -361,14 +361,14 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateTrimeshPbrMatShape(std::shared_ptr<
     const auto& materials = tms->GetMaterials();
     int nmaterials = (int)materials.size();
 
-    const auto& vertices = mesh->getCoordsVertices();
-    const auto& normals = mesh->getCoordsNormals();
-    const auto& uvs = mesh->getCoordsUV();
+    const auto& vertices = mesh->GetCoordsVertices();
+    const auto& normals = mesh->GetCoordsNormals();
+    const auto& uvs = mesh->GetCoordsUV();
 
-    const auto& v_indices = mesh->getIndicesVertexes();
-    const auto& n_indices = mesh->getIndicesNormals();
-    const auto& uv_indices = mesh->getIndicesUV();
-    const auto& m_indices = mesh->getIndicesMaterials();
+    const auto& v_indices = mesh->GetIndicesVertexes();
+    const auto& n_indices = mesh->GetIndicesNormals();
+    const auto& uv_indices = mesh->GetIndicesUV();
+    const auto& m_indices = mesh->GetIndicesMaterials();
 
     size_t ntriangles_all = (unsigned int)v_indices.size();
 

@@ -46,28 +46,28 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChTriangleMeshConnected* Clone() const override { return new ChTriangleMeshConnected(*this); }
 
-    std::vector<ChVector3d>& getCoordsVertices() { return m_vertices; }
-    std::vector<ChVector3d>& getCoordsNormals() { return m_normals; }
-    std::vector<ChVector2d>& getCoordsUV() { return m_UV; }
-    std::vector<ChColor>& getCoordsColors() { return m_colors; }
-    std::vector<ChVector3i>& getIndicesVertexes() { return m_face_v_indices; }
-    std::vector<ChVector3i>& getIndicesNormals() { return m_face_n_indices; }
-    std::vector<ChVector3i>& getIndicesUV() { return m_face_uv_indices; }
-    std::vector<ChVector3i>& getIndicesColors() { return m_face_col_indices; }
-    std::vector<int>& getIndicesMaterials() { return m_face_mat_indices; }
+    std::vector<ChVector3d>& GetCoordsVertices() { return m_vertices; }
+    std::vector<ChVector3d>& GetCoordsNormals() { return m_normals; }
+    std::vector<ChVector2d>& GetCoordsUV() { return m_UV; }
+    std::vector<ChColor>& GetCoordsColors() { return m_colors; }
+    std::vector<ChVector3i>& GetIndicesVertexes() { return m_face_v_indices; }
+    std::vector<ChVector3i>& GetIndicesNormals() { return m_face_n_indices; }
+    std::vector<ChVector3i>& GetIndicesUV() { return m_face_uv_indices; }
+    std::vector<ChVector3i>& GetIndicesColors() { return m_face_col_indices; }
+    std::vector<int>& GetIndicesMaterials() { return m_face_mat_indices; }
 
-    std::vector<ChProperty*>& getPropertiesPerVertex() { return m_properties_per_vertex; }
-    std::vector<ChProperty*>& getPropertiesPerFace() { return m_properties_per_face; };
+    std::vector<ChProperty*>& GetPropertiesPerVertex() { return m_properties_per_vertex; }
+    std::vector<ChProperty*>& GetPropertiesPerFace() { return m_properties_per_face; };
 
-    const std::vector<ChVector3d>& getCoordsVertices() const { return m_vertices; }
-    const std::vector<ChVector3d>& getCoordsNormals() const { return m_normals; }
-    const std::vector<ChVector2d>& getCoordsUV() const { return m_UV; }
-    const std::vector<ChColor>& getCoordsColors() const { return m_colors; }
-    const std::vector<ChVector3i>& getIndicesVertexes() const { return m_face_v_indices; }
-    const std::vector<ChVector3i>& getIndicesNormals() const { return m_face_n_indices; }
-    const std::vector<ChVector3i>& getIndicesUV() const { return m_face_uv_indices; }
-    const std::vector<ChVector3i>& getIndicesColors() const { return m_face_col_indices; }
-    const std::vector<int>& getIndicesMaterials() const { return m_face_mat_indices; }
+    const std::vector<ChVector3d>& GetCoordsVertices() const { return m_vertices; }
+    const std::vector<ChVector3d>& GetCoordsNormals() const { return m_normals; }
+    const std::vector<ChVector2d>& GetCoordsUV() const { return m_UV; }
+    const std::vector<ChColor>& GetCoordsColors() const { return m_colors; }
+    const std::vector<ChVector3i>& GetIndicesVertexes() const { return m_face_v_indices; }
+    const std::vector<ChVector3i>& GetIndicesNormals() const { return m_face_n_indices; }
+    const std::vector<ChVector3i>& GetIndicesUV() const { return m_face_uv_indices; }
+    const std::vector<ChVector3i>& GetIndicesColors() const { return m_face_col_indices; }
+    const std::vector<int>& GetIndicesMaterials() const { return m_face_mat_indices; }
 
     /// Add a property as an array of data per-vertex. Deletion will be automatic at the end of mesh life.
     /// Warning: mprop.data.size() must be equal to m_vertices.size().  Cost: allocation and a data copy.
@@ -102,22 +102,22 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     /// Add a triangle to this triangle mesh, by specifying the three coordinates.
     /// This is disconnected - no vertex sharing is used even if it could be.
-    virtual void addTriangle(const ChVector3d& vertex0, const ChVector3d& vertex1, const ChVector3d& vertex2) override;
+    virtual void AddTriangle(const ChVector3d& vertex0, const ChVector3d& vertex1, const ChVector3d& vertex2) override;
 
     /// Add a triangle to this triangle mesh, by specifying a ChTriangle.
-    virtual void addTriangle(const ChTriangle& atriangle) override;
+    virtual void AddTriangle(const ChTriangle& atriangle) override;
 
     /// Get the number of vertices in this mesh.
-    int getNumVertices() const { return (int)m_vertices.size(); }
+    int GetNumVertices() const { return (int)m_vertices.size(); }
 
     /// Get the number of normals in this mesh.
-    int getNumNormals() const { return (int)m_normals.size(); }
+    int GetNumNormals() const { return (int)m_normals.size(); }
 
     /// Get the number of triangles already added to this mesh.
-    virtual int getNumTriangles() const override { return (int)m_face_v_indices.size(); }
+    virtual int GetNumTriangles() const override { return (int)m_face_v_indices.size(); }
 
     /// Access the n-th triangle in mesh
-    virtual ChTriangle getTriangle(int index) const override {
+    virtual ChTriangle GetTriangle(int index) const override {
         return ChTriangle(m_vertices[m_face_v_indices[index].x()], m_vertices[m_face_v_indices[index].y()],
                           m_vertices[m_face_v_indices[index].z()]);
     }

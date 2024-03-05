@@ -242,7 +242,7 @@ void AddObstacle(ChSystem* sys) {
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, mesh, false, false, 0.005);
         body->AddCollisionShape(ct_shape);
     } else {
-        auto ct_shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(mat, mesh->getCoordsVertices());
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(mat, mesh->GetCoordsVertices());
         body->AddCollisionShape(ct_shape);
     }
 

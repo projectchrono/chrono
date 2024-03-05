@@ -67,8 +67,8 @@ bool ChConvexDecomposition::AddTriangle(const ChTriangle& t1) {
 }
 
 bool ChConvexDecomposition::AddTriangleMesh(const ChTriangleMesh& tm) {
-    for (int i = 0; i < tm.getNumTriangles(); i++) {
-        if (!this->AddTriangle(tm.getTriangle(i)))
+    for (int i = 0; i < tm.GetNumTriangles(); i++) {
+        if (!this->AddTriangle(tm.GetTriangle(i)))
             return false;
     }
     return true;
@@ -135,8 +135,8 @@ bool ChConvexDecompositionHACD::AddTriangle(const ChVector3d& v1, const ChVector
 }
 
 bool ChConvexDecompositionHACD::AddTriangleMesh(const ChTriangleMesh& tm) {
-    for (int i = 0; i < tm.getNumTriangles(); i++) {
-        if (!this->ChConvexDecomposition::AddTriangle(tm.getTriangle(i)))
+    for (int i = 0; i < tm.GetNumTriangles(); i++) {
+        if (!this->ChConvexDecomposition::AddTriangle(tm.GetTriangle(i)))
             return false;
     }
     return true;
@@ -222,7 +222,7 @@ bool ChConvexDecompositionHACD::GetConvexHullResult(unsigned int hullIndex, ChTr
         unsigned int i1 = trianglesCH[i].X();
         unsigned int i2 = trianglesCH[i].Y();
         unsigned int i3 = trianglesCH[i].Z();
-        convextrimesh.addTriangle(ChVector3d(pointsCH[i1].X(), pointsCH[i1].Y(), pointsCH[i1].Z()),
+        convextrimesh.AddTriangle(ChVector3d(pointsCH[i1].X(), pointsCH[i1].Y(), pointsCH[i1].Z()),
                                   ChVector3d(pointsCH[i2].X(), pointsCH[i2].Y(), pointsCH[i2].Z()),
                                   ChVector3d(pointsCH[i3].X(), pointsCH[i3].Y(), pointsCH[i3].Z()));
     }
@@ -317,8 +317,8 @@ bool ChConvexDecompositionHACDv2::AddTriangle(const ChVector3d& v1, const ChVect
 }
 
 bool ChConvexDecompositionHACDv2::AddTriangleMesh(const ChTriangleMesh& tm) {
-    for (int i = 0; i < tm.getNumTriangles(); i++) {
-        if (!this->ChConvexDecomposition::AddTriangle(tm.getTriangle(i)))
+    for (int i = 0; i < tm.GetNumTriangles(); i++) {
+        if (!this->ChConvexDecomposition::AddTriangle(tm.GetTriangle(i)))
             return false;
     }
     return true;
@@ -425,7 +425,7 @@ bool ChConvexDecompositionHACDv2::GetConvexHullResult(unsigned int hullIndex, Ch
             unsigned int i1 = 3 * hull->mIndices[i * 3 + 0];
             unsigned int i2 = 3 * hull->mIndices[i * 3 + 1];
             unsigned int i3 = 3 * hull->mIndices[i * 3 + 2];
-            convextrimesh.addTriangle(
+            convextrimesh.AddTriangle(
                 ChVector3d(hull->mVertices[i1 + 0], hull->mVertices[i1 + 1], hull->mVertices[i1 + 2]),
                 ChVector3d(hull->mVertices[i2 + 0], hull->mVertices[i2 + 1], hull->mVertices[i2 + 2]),
                 ChVector3d(hull->mVertices[i3 + 0], hull->mVertices[i3 + 1], hull->mVertices[i3 + 2]));

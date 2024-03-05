@@ -147,10 +147,10 @@ int main(int argc, char* argv[]) {
 
     // Attach three instances of the same 'triangle mesh' shape
     auto mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
-    mesh->GetMesh()->getCoordsVertices().push_back(ChVector3d(0, 0, 0));
-    mesh->GetMesh()->getCoordsVertices().push_back(ChVector3d(0, 1, 0));
-    mesh->GetMesh()->getCoordsVertices().push_back(ChVector3d(1, 0, 0));
-    mesh->GetMesh()->getIndicesVertexes().push_back(ChVector3i(0, 1, 2));
+    mesh->GetMesh()->GetCoordsVertices().push_back(ChVector3d(0, 0, 0));
+    mesh->GetMesh()->GetCoordsVertices().push_back(ChVector3d(0, 1, 0));
+    mesh->GetMesh()->GetCoordsVertices().push_back(ChVector3d(1, 0, 0));
+    mesh->GetMesh()->GetIndicesVertexes().push_back(ChVector3i(0, 1, 2));
     mesh->AddMaterial(orange_mat);
 
     body->AddVisualShape(mesh, ChFrame<>(ChVector3d(2, 0, 2), QUNIT));

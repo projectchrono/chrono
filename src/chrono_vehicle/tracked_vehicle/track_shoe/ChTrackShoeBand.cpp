@@ -250,10 +250,10 @@ std::shared_ptr<ChVisualShapeTriangleMesh> ChTrackShoeBand::ToothMesh(double y) 
 
     // Create the triangular mesh.
     auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    std::vector<ChVector3d>& vertices = trimesh->getCoordsVertices();
-    std::vector<ChVector3d>& normals = trimesh->getCoordsNormals();
-    std::vector<ChVector3i>& idx_vertices = trimesh->getIndicesVertexes();
-    std::vector<ChVector3i>& idx_normals = trimesh->getIndicesNormals();
+    std::vector<ChVector3d>& vertices = trimesh->GetCoordsVertices();
+    std::vector<ChVector3d>& normals = trimesh->GetCoordsNormals();
+    std::vector<ChVector3i>& idx_vertices = trimesh->GetIndicesVertexes();
+    std::vector<ChVector3i>& idx_normals = trimesh->GetIndicesNormals();
 
     // Number of vertices:
     //   - 1 for the middle of the tooth base on +y side

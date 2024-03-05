@@ -29,16 +29,16 @@ class ChApi ChTriangleMesh : public ChGeometry {
     virtual ~ChTriangleMesh() {}
 
     /// Add a triangle to this triangle mesh, by specifying the three coordinates
-    virtual void addTriangle(const ChVector3d& vertex0, const ChVector3d& vertex1, const ChVector3d& vertex2) = 0;
+    virtual void AddTriangle(const ChVector3d& vertex0, const ChVector3d& vertex1, const ChVector3d& vertex2) = 0;
 
     /// Add a triangle to this triangle mesh, by specifying a ChTriangle
-    virtual void addTriangle(const ChTriangle& atriangle) = 0;
+    virtual void AddTriangle(const ChTriangle& atriangle) = 0;
 
     /// Get the number of triangles already added to this mesh
-    virtual int getNumTriangles() const = 0;
+    virtual int GetNumTriangles() const = 0;
 
     /// Get the n-th triangle in mesh
-    virtual ChTriangle getTriangle(int index) const = 0;
+    virtual ChTriangle GetTriangle(int index) const = 0;
 
     /// Clear all data
     virtual void Clear() = 0;

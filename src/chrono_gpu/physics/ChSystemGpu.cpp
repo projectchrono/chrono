@@ -525,7 +525,7 @@ unsigned int ChSystemGpuMesh::AddMesh(const std::string& filename,
     bool flag = mesh->LoadWavefrontMesh(filename, true, false);
     if (!flag)
         CHGPU_ERROR("ERROR! Mesh %s failed to load in!\n", filename.c_str());
-    if (mesh->getNumTriangles() == 0)
+    if (mesh->GetNumTriangles() == 0)
         printf("WARNING: Mesh %s has no triangles!\n", filename.c_str());
     mesh->Transform(translation, rotscale.cast<double>());
 
@@ -557,7 +557,7 @@ std::vector<unsigned int> ChSystemGpuMesh::AddMeshes(const std::vector<std::stri
 void ChSystemGpuMesh::SetMeshes() {
     int nTriangles = 0;
     for (const auto& mesh : m_meshes)
-        nTriangles += mesh->getNumTriangles();
+        nTriangles += mesh->GetNumTriangles();
 
     ChSystemGpuMesh_impl* sys_trimesh = static_cast<ChSystemGpuMesh_impl*>(m_sys);
     ChSystemGpuMesh_impl::TriangleSoup* pMeshSoup = sys_trimesh->getMeshSoup();
@@ -579,8 +579,8 @@ void ChSystemGpuMesh::SetMeshes() {
     unsigned int tri_i = 0;
     // for each obj file data set
     for (const auto& mesh : m_meshes) {
-        for (int i = 0; i < mesh->getNumTriangles(); i++) {
-            ChTriangle tri = mesh->getTriangle(i);
+        for (int i = 0; i < mesh->GetNumTriangles(); i++) {
+            ChTriangle tri = mesh->GetTriangle(i);
 
             pMeshSoup->node1[tri_i] = make_float3((float)tri.p1.x(), (float)tri.p1.y(), (float)tri.p1.z());
             pMeshSoup->node2[tri_i] = make_float3((float)tri.p2.x(), (float)tri.p2.y(), (float)tri.p2.z());
@@ -1628,8 +1628,8 @@ void ChSystemGpuMesh::WriteMesh(const std::string& outfilename, unsigned int i) 
     const auto& mmesh = m_meshes.at(i);
 
     // Writing vertices
-    ostream << "POINTS " << mmesh->getCoordsVertices().size() << " float" << std::endl;
-    for (auto& v : mmesh->getCoordsVertices()) {
+    ostream << "POINTS " << mmesh->GetCoordsVertices().size() << " float" << std::endl;
+    for (auto& v : mmesh->GetCoordsVertices()) {
         float3 point = make_float3(v.x(), v.y(), v.z());
         sys_trimesh->ApplyFrameTransform(point, sys_trimesh->tri_params->fam_frame_broad[i].pos,
                                          sys_trimesh->tri_params->fam_frame_broad[i].rot_mat);
@@ -1638,15 +1638,15 @@ void ChSystemGpuMesh::WriteMesh(const std::string& outfilename, unsigned int i) 
 
     // Writing faces
     ostream << "\n\n";
-    ostream << "CELLS " << mmesh->getIndicesVertexes().size() << " " << 4 * mmesh->getIndicesVertexes().size()
+    ostream << "CELLS " << mmesh->GetIndicesVertexes().size() << " " << 4 * mmesh->GetIndicesVertexes().size()
             << std::endl;
-    for (auto& f : mmesh->getIndicesVertexes())
+    for (auto& f : mmesh->GetIndicesVertexes())
         ostream << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
 
     // Writing face types. Type 5 is generally triangles
     ostream << "\n\n";
-    ostream << "CELL_TYPES " << mmesh->getIndicesVertexes().size() << std::endl;
-    auto nfaces = mmesh->getIndicesVertexes().size();
+    ostream << "CELL_TYPES " << mmesh->GetIndicesVertexes().size() << std::endl;
+    auto nfaces = mmesh->GetIndicesVertexes().size();
     for (size_t j = 0; j < nfaces; j++)
         ostream << "5 " << std::endl;
 
@@ -1722,9 +1722,9 @@ void ChSystemGpuMesh::WriteMeshes(const std::string& outfilename) const {
     // Prescan the V and F: to write all meshes to one file, we need vertex number offset info
     unsigned int mesh_num = 0;
     for (const auto& mmesh : m_meshes) {
-        vertexOffset[mesh_num + 1] = (unsigned int)mmesh->getCoordsVertices().size();
-        total_v += mmesh->getCoordsVertices().size();
-        total_f += mmesh->getIndicesVertexes().size();
+        vertexOffset[mesh_num + 1] = (unsigned int)mmesh->GetCoordsVertices().size();
+        total_v += mmesh->GetCoordsVertices().size();
+        total_f += mmesh->GetIndicesVertexes().size();
         mesh_num++;
     }
     for (unsigned int i = 1; i < m_meshes.size(); i++)
@@ -1734,7 +1734,7 @@ void ChSystemGpuMesh::WriteMeshes(const std::string& outfilename) const {
     ostream << "POINTS " << total_v << " float" << std::endl;
     mesh_num = 0;
     for (const auto& mmesh : m_meshes) {
-        for (auto& v : mmesh->getCoordsVertices()) {
+        for (auto& v : mmesh->GetCoordsVertices()) {
             float3 point = make_float3(v.x(), v.y(), v.z());
             sys_trimesh->ApplyFrameTransform(point, sys_trimesh->tri_params->fam_frame_broad[mesh_num].pos,
                                              sys_trimesh->tri_params->fam_frame_broad[mesh_num].rot_mat);
@@ -1748,7 +1748,7 @@ void ChSystemGpuMesh::WriteMeshes(const std::string& outfilename) const {
     ostream << "CELLS " << total_f << " " << 4 * total_f << std::endl;
     mesh_num = 0;
     for (const auto& mmesh : m_meshes) {
-        for (auto& f : mmesh->getIndicesVertexes()) {
+        for (auto& f : mmesh->GetIndicesVertexes()) {
             ostream << "3 " << f.x() + vertexOffset[mesh_num] << " " << f.y() + vertexOffset[mesh_num] << " "
                     << f.z() + vertexOffset[mesh_num] << std::endl;
         }
@@ -1759,7 +1759,7 @@ void ChSystemGpuMesh::WriteMeshes(const std::string& outfilename) const {
     ostream << "\n\n";
     ostream << "CELL_TYPES " << total_f << std::endl;
     for (const auto& mmesh : m_meshes) {
-        auto nfaces = mmesh->getIndicesVertexes().size();
+        auto nfaces = mmesh->GetIndicesVertexes().size();
         for (size_t j = 0; j < nfaces; j++)
             ostream << "5 " << std::endl;
     }

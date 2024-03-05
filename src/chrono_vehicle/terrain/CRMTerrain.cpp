@@ -87,7 +87,7 @@ void CRMTerrain::AddRigidObstacle(const std::string& obj_file,
     o.trimesh->LoadWavefrontMesh(GetChronoDataFile(obj_file), true, true);
 
     // Scale trimesh
-    for (auto& v : o.trimesh->getCoordsVertices()) {
+    for (auto& v : o.trimesh->GetCoordsVertices()) {
         v *= scale;
     }
 
@@ -464,7 +464,7 @@ void CRMTerrain::ProcessObstacleMesh(RigidObstacle& o) {
     // Create BCE markers for the *transformed* obstacle mesh
     // (to address any roundoff issues that may result in a set of BCE markers that are not watertight)
     auto trimesh = *o.trimesh;
-    for (auto& v : trimesh.getCoordsVertices()) {
+    for (auto& v : trimesh.GetCoordsVertices()) {
         auto v_abs = o.body->TransformPointLocalToParent(v);  // vertex in absolute frame
         v = v_abs - m_offset;                                 // vertex in CRMTerrain frame
     }

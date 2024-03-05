@@ -285,7 +285,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateMeshProxy(unsigned int i) {
     auto material = m_geometry[i_shape].m_materials[trimesh_shape.m_matID].CreateMaterial(m_method);
 
     //// RADU TODO:  better approximation of mass / inertia?
-    ////double mass_p = m_load_mass[i_shape] / trimesh->getNumTriangles();
+    ////double mass_p = m_load_mass[i_shape] / trimesh->GetNumTriangles();
 
     // Create a contact surface mesh constructed from the provided trimesh
     auto surface = chrono_types::make_shared<fea::ChContactSurfaceMesh>(material);

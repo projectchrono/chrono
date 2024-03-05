@@ -60,10 +60,10 @@ void ChVehicleCosimTireNodeRigid::InitializeTire(std::shared_ptr<ChWheel> wheel,
 
     // Preprocess the tire mesh and store neighbor element information for each vertex.
     // Calculate mesh triangle areas.
-    auto num_verts = trimesh->getNumVertices();
-    auto num_triangles = trimesh->getNumTriangles();
-    auto& verts = trimesh->getCoordsVertices();
-    auto& idx_verts = trimesh->getIndicesVertexes();
+    auto num_verts = trimesh->GetNumVertices();
+    auto num_triangles = trimesh->GetNumTriangles();
+    auto& verts = trimesh->GetCoordsVertices();
+    auto& idx_verts = trimesh->GetIndicesVertexes();
     m_adjElements.resize(num_verts);
     std::vector<double> triArea(num_triangles);
     for (int ie = 0; ie < num_triangles; ie++) {
@@ -128,7 +128,7 @@ void ChVehicleCosimTireNodeRigid::OnOutputData(int frame) {
 
 void ChVehicleCosimTireNodeRigid::WriteTireStateInformation(utils::CSV_writer& csv) {
     // Write number of vertices
-    int num_vertices = m_tire_rgd->GetContactMesh()->getNumVertices();
+    int num_vertices = m_tire_rgd->GetContactMesh()->GetNumVertices();
     csv << num_vertices << endl;
 
     // Write mesh vertex positions and velocities
@@ -143,10 +143,10 @@ void ChVehicleCosimTireNodeRigid::WriteTireStateInformation(utils::CSV_writer& c
 
 void ChVehicleCosimTireNodeRigid::WriteTireMeshInformation(utils::CSV_writer& csv) {
     // Print tire mesh connectivity
-    int num_triangles = m_tire_rgd->GetContactMesh()->getNumTriangles();
+    int num_triangles = m_tire_rgd->GetContactMesh()->GetNumTriangles();
     csv << num_triangles << endl;
 
-    const std::vector<ChVector3i>& triangles = m_tire_rgd->GetContactMesh()->getIndicesVertexes();
+    const std::vector<ChVector3i>& triangles = m_tire_rgd->GetContactMesh()->GetIndicesVertexes();
     for (int ie = 0; ie < num_triangles; ie++) {
         csv << triangles[ie] << endl;
     }

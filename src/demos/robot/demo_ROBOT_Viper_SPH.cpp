@@ -420,13 +420,13 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
             file << "VTK from simulation" << std::endl;
             file << "ASCII" << std::endl;
             file << "DATASET UNSTRUCTURED_GRID" << std::endl;
-            auto nv = mmesh->getCoordsVertices().size();
+            auto nv = mmesh->GetCoordsVertices().size();
             file << "POINTS " << nv << " float" << std::endl;
-            for (auto& v : mmesh->getCoordsVertices())
+            for (auto& v : mmesh->GetCoordsVertices())
                 file << v.x() << " " << v.y() << " " << v.z() << std::endl;
-            auto nf = mmesh->getIndicesVertexes().size();
+            auto nf = mmesh->GetIndicesVertexes().size();
             file << "CELLS " << nf << " " << 4 * nf << std::endl;
-            for (auto& f : mmesh->getIndicesVertexes())
+            for (auto& f : mmesh->GetIndicesVertexes())
                 file << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
             file << "CELL_TYPES " << nf << std::endl;
             for (size_t ii = 0; ii < nf; ii++)
@@ -483,13 +483,13 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
             file << "VTK from simulation" << std::endl;
             file << "ASCII" << std::endl;
             file << "DATASET UNSTRUCTURED_GRID" << std::endl;
-            auto nv = mmesh->getCoordsVertices().size();
+            auto nv = mmesh->GetCoordsVertices().size();
             file << "POINTS " << nv << " float" << std::endl;
-            for (auto& v : mmesh->getCoordsVertices())
+            for (auto& v : mmesh->GetCoordsVertices())
                 file << v.x() << " " << v.y() << " " << v.z() << std::endl;
-            auto nf = mmesh->getIndicesVertexes().size();
+            auto nf = mmesh->GetIndicesVertexes().size();
             file << "CELLS " << nf << " " << 4 * nf << std::endl;
-            for (auto& f : mmesh->getIndicesVertexes())
+            for (auto& f : mmesh->GetIndicesVertexes())
                 file << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
             file << "CELL_TYPES " << nf << std::endl;
             for (size_t ii = 0; ii < nf; ii++)
@@ -548,13 +548,13 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
             file << "VTK from simulation" << std::endl;
             file << "ASCII" << std::endl;
             file << "DATASET UNSTRUCTURED_GRID" << std::endl;
-            auto nv = mmesh->getCoordsVertices().size();
+            auto nv = mmesh->GetCoordsVertices().size();
             file << "POINTS " << nv << " float" << std::endl;
-            for (auto& v : mmesh->getCoordsVertices())
+            for (auto& v : mmesh->GetCoordsVertices())
                 file << v.x() << " " << v.y() << " " << v.z() << std::endl;
-            auto nf = mmesh->getIndicesVertexes().size();
+            auto nf = mmesh->GetIndicesVertexes().size();
             file << "CELLS " << nf << " " << 4 * nf << std::endl;
-            for (auto& f : mmesh->getIndicesVertexes())
+            for (auto& f : mmesh->GetIndicesVertexes())
                 file << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
             file << "CELL_TYPES " << nf << std::endl;
             for (size_t ii = 0; ii < nf; ii++)
@@ -613,13 +613,13 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
             file << "VTK from simulation" << std::endl;
             file << "ASCII" << std::endl;
             file << "DATASET UNSTRUCTURED_GRID" << std::endl;
-            auto nv = mmesh->getCoordsVertices().size();
+            auto nv = mmesh->GetCoordsVertices().size();
             file << "POINTS " << nv << " float" << std::endl;
-            for (auto& v : mmesh->getCoordsVertices())
+            for (auto& v : mmesh->GetCoordsVertices())
                 file << v.x() << " " << v.y() << " " << v.z() << std::endl;
-            auto nf = mmesh->getIndicesVertexes().size();
+            auto nf = mmesh->GetIndicesVertexes().size();
             file << "CELLS " << nf << " " << 4 * nf << std::endl;
-            for (auto& f : mmesh->getIndicesVertexes())
+            for (auto& f : mmesh->GetIndicesVertexes())
                 file << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
             file << "CELL_TYPES " << nf << std::endl;
             for (size_t ii = 0; ii < nf; ii++)
@@ -679,13 +679,13 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
             file << "VTK from simulation" << std::endl;
             file << "ASCII" << std::endl;
             file << "DATASET UNSTRUCTURED_GRID" << std::endl;
-            auto nv = mmesh->getCoordsVertices().size();
+            auto nv = mmesh->GetCoordsVertices().size();
             file << "POINTS " << nv << " float" << std::endl;
-            for (auto& v : mmesh->getCoordsVertices())
+            for (auto& v : mmesh->GetCoordsVertices())
                 file << v.x() << " " << v.y() << " " << v.z() << std::endl;
-            auto nf = mmesh->getIndicesVertexes().size();
+            auto nf = mmesh->GetIndicesVertexes().size();
             file << "CELLS " << nf << " " << 4 * nf << std::endl;
-            for (auto& f : mmesh->getIndicesVertexes())
+            for (auto& f : mmesh->GetIndicesVertexes())
                 file << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
             file << "CELL_TYPES " << nf << std::endl;
             for (size_t ii = 0; ii < nf; ii++)

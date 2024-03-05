@@ -200,8 +200,8 @@ TEST(SensorInterface, mesh_channels) {
 
     // triangle with only verts and vert ids
     auto triangle = chrono_types::make_shared<ChTriangleMeshConnected>();
-    triangle->getCoordsVertices() = vertices;
-    triangle->getIndicesVertexes() = vert_ids;
+    triangle->GetCoordsVertices() = vertices;
+    triangle->GetIndicesVertexes() = vert_ids;
 
     auto triangle_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     triangle_shape->SetMesh(triangle);
@@ -231,8 +231,8 @@ TEST(SensorInterface, mesh_channels) {
     ASSERT_FLOAT_EQ(buffer->Buffer[0].range, 2.f);
 
     // triangle with verts and uvs
-    triangle->getCoordsUV() = uvs;
-    triangle->getIndicesUV() = uv_ids;
+    triangle->GetCoordsUV() = uvs;
+    triangle->GetIndicesUV() = uv_ids;
     manager->ReconstructScenes();
     while (sys.GetChTime() < 0.15) {
         manager->Update();
@@ -244,8 +244,8 @@ TEST(SensorInterface, mesh_channels) {
     ASSERT_FLOAT_EQ(buffer->Buffer[0].range, 2.f);
 
     // triangle with verts, uvs, and normals
-    triangle->getCoordsNormals() = normals;
-    triangle->getIndicesNormals() = norm_ids;
+    triangle->GetCoordsNormals() = normals;
+    triangle->GetIndicesNormals() = norm_ids;
     manager->ReconstructScenes();
     while (sys.GetChTime() < 0.25) {
         manager->Update();
@@ -257,7 +257,7 @@ TEST(SensorInterface, mesh_channels) {
     ASSERT_FLOAT_EQ(buffer->Buffer[0].range, 2.f);
 
     // triangle with verts, uv, normals, mat
-    triangle->getIndicesMaterials() = mat_ids;
+    triangle->GetIndicesMaterials() = mat_ids;
     manager->ReconstructScenes();
     while (sys.GetChTime() < 0.35) {
         manager->Update();

@@ -580,7 +580,33 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNshaftsTotal               | rename: GetNumShaftsTotal                        |
 |                                   | GetNsysvars                   | remove                                           |
 |                                   | GetNsysvars_w                 | remove                                           |
-| ChVector                          | DirToDxDyDz                   | rename: GetDirectionAxesAsX                      |
+| ChTriangleMesh                    |                               |                                                  |
+|                                   | addTriangle                   | rename: AddTriangle                              |
+|                                   | getNumTriangles               | rename: GetNumTriangles                          |
+|                                   | getTriangle                   | rename: GetTriangle                              |
+| ChTriangleMeshConnected           |                               |                                                  |
+|                                   | addTriangle                   | rename: AddTriangle                              |
+|                                   | getCoordsVertices             | rename: GetCoordsVertices                        |
+|                                   | getCoordsNormals              | rename: GetCoordsNormals                         |
+|                                   | getCoordsUV                   | rename: GetCoordsUV                              |
+|                                   | getCoordsColors               | rename: GetCoordsColors                          |
+|                                   | getIndicesVertexes            | rename: GetIndicesVertexes                       |
+|                                   | getIndicesNormals             | rename: GetIndicesNormals                        |
+|                                   | getIndicesUV                  | rename: GetIndicesUV                             |
+|                                   | getIndicesColors              | rename: GetIndicesColors                         |
+|                                   | getIndicesMaterials           | rename: GetIndicesMaterials                      |
+|                                   | getNumNormals                 | rename: GetNumNormals                            |
+|                                   | getNumTriangles               | rename: GetNumTriangles                          |
+|                                   | getNumVertices                | rename: GetNumVertices                           |
+|                                   | getPropertiesPerVertex        | rename: GetPropertiesPerVertex                   |
+|                                   | getPropertiesPerFace          | rename: GetPropertiesPerFace                     |
+|                                   | getTriangle                   | rename: GetTriangle                              |
+| ChTriangleMeshSoup                |                               |                                                  |
+|                                   | addTriangle                   | rename: AddTriangle                              |
+|                                   | getNumTriangles               | rename: GetNumTriangles                          |
+|                                   | getTriangle                   | rename: GetTriangle                              |
+| ChVector                          |                               |                                                  |
+|                                   | DirToDxDyDz                   | rename: GetDirectionAxesAsX                      |
 
 
 **Types**

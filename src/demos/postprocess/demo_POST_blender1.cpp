@@ -152,21 +152,21 @@ int main(int argc, char* argv[]) {
 
     auto trimesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     // ...four vertices
-    trimesh->GetMesh()->getCoordsVertices() =
+    trimesh->GetMesh()->GetCoordsVertices() =
         std::vector<chrono::ChVector3d>{{2, 1, 0}, {3, 1, 0}, {3, 2, 0}, {2, 2, 0}};
     // ...two triangle faces, whose indexes point to the vertexes above. Counterclockwise.
-    trimesh->GetMesh()->getIndicesVertexes() = std::vector<chrono::ChVector3i>{
+    trimesh->GetMesh()->GetIndicesVertexes() = std::vector<chrono::ChVector3i>{
         {0, 1, 2},
         {2, 3, 0},
     };
     // ... one normal, pointing toward Y (NOTE: normals would be unnecessary in Blender - here just for completeness)
-    trimesh->GetMesh()->getCoordsNormals() = std::vector<chrono::ChVector3d>{
+    trimesh->GetMesh()->GetCoordsNormals() = std::vector<chrono::ChVector3d>{
         {0, 0, 1},
     };
     // ... same normal for all vertexes of both triangles (NOTE: normals would be unnecessary in Blender, etc.)
-    trimesh->GetMesh()->getIndicesNormals() = std::vector<chrono::ChVector3i>{{0, 0, 0}, {0, 0, 0}};
+    trimesh->GetMesh()->GetIndicesNormals() = std::vector<chrono::ChVector3i>{{0, 0, 0}, {0, 0, 0}};
     // ... per-vertex colors, RGB:
-    trimesh->GetMesh()->getCoordsColors() =
+    trimesh->GetMesh()->GetCoordsColors() =
         std::vector<chrono::ChColor>{{0.9, 0.8, 0.1}, {0.8, 0.2, 0.3}, {0.2, 0.1, 0.9}, {0.2, 0.6, 0.6}};
 
     // NOTE: optionally, you can add a scalar or vector property, per vertex or per face, that can
