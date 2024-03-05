@@ -432,8 +432,8 @@ void ChSuspensionTestRig::SetPlotOutput(double output_step) {
         auto trq = axle->m_suspension->ReportSuspensionTorque(LEFT);
 
         PlotData pd;
-        pd.csvL.set_delim(" ");
-        pd.csvR.set_delim(" ");
+        pd.csvL.SetDelimitator(" ");
+        pd.csvR.SetDelimitator(" ");
         pd.num_tsda = (int)frc.size();
         pd.num_rsda = (int)trq.size();
 
@@ -493,8 +493,8 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
     for (int ia = 0; ia < m_naxles; ia++) {
         std::string outfileL = prefix + std::to_string(ia) + "_L.txt";
         std::string outfileR = prefix + std::to_string(ia) + "_R.txt";
-        m_plot_data[ia].csvL.write_to_file(outfileL);
-        m_plot_data[ia].csvR.write_to_file(outfileR);
+        m_plot_data[ia].csvL.WriteToFile(outfileL);
+        m_plot_data[ia].csvR.WriteToFile(outfileR);
 
 #ifdef CHRONO_POSTPROCESS
         std::string lsL = "set style line 1 lt rgb 'dark-green' lw 2";

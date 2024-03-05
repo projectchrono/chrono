@@ -261,8 +261,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a CSV writers to record the IMU and GPS data
-    utils::CSV_writer imu_csv(" ");
-    utils::CSV_writer gps_csv(" ");
+    utils::ChWriterCSV imu_csv(" ");
+    utils::ChWriterCSV gps_csv(" ");
 
     // ---------------
     // Simulate system
@@ -344,8 +344,8 @@ int main(int argc, char* argv[]) {
     std::string imu_file = out_dir + "/imu_pendulum_leg_1.csv";
     std::string gps_file = out_dir + "/gps_pendulum_leg_2.csv";
 
-    imu_csv.write_to_file(imu_file);
-    gps_csv.write_to_file(gps_file);
+    imu_csv.WriteToFile(imu_file);
+    gps_csv.WriteToFile(gps_file);
 
     return 0;
 }

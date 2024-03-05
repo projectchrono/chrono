@@ -214,13 +214,13 @@ void ChVehicleCosimTireNodeFlexible::ApplyMeshForces(const MeshContact& mesh_con
 
 void ChVehicleCosimTireNodeFlexible::OnOutputData(int frame) {
     // Create and write frame output file.
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
     csv << m_system->GetChTime() << endl;
     WriteTireStateInformation(csv);
     WriteTireMeshInformation(csv);
 
     std::string filename = OutputFilename(m_node_out_dir + "/simulation", "data", "dat", frame + 1, 5);
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 
     if (m_verbose)
         cout << "[Tire node   ] write output file ==> " << filename << endl;
@@ -230,7 +230,7 @@ void ChVehicleCosimTireNodeFlexible::OutputVisualizationData(int frame) {
     //// TODO (format?)
 }
 
-void ChVehicleCosimTireNodeFlexible::WriteTireStateInformation(utils::CSV_writer& csv) {
+void ChVehicleCosimTireNodeFlexible::WriteTireStateInformation(utils::ChWriterCSV& csv) {
     // Extract vertex states from mesh
     auto mesh = m_tire_def->GetMesh();
     ChState x(mesh->GetNumCoordinatesPos(), NULL);
@@ -255,7 +255,7 @@ void ChVehicleCosimTireNodeFlexible::WriteTireStateInformation(utils::CSV_writer
         csv << v(iv) << endl;
 }
 
-void ChVehicleCosimTireNodeFlexible::WriteTireMeshInformation(utils::CSV_writer& csv) {
+void ChVehicleCosimTireNodeFlexible::WriteTireMeshInformation(utils::ChWriterCSV& csv) {
     // Extract mesh
     auto mesh = m_tire_def->GetMesh();
 

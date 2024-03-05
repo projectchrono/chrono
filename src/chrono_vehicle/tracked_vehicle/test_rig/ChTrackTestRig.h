@@ -242,7 +242,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     bool m_plot_output;
     double m_plot_output_step;
     double m_next_plot_output_time;
-    utils::CSV_writer* m_csv;
+    utils::ChWriterCSV* m_csv;
 
     friend class ChTrackTestRigVisualSystemIrrlicht;
 };

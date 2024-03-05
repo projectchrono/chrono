@@ -258,9 +258,9 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup chassis position output with column headers
-    utils::CSV_writer csv("\t");
-    csv.stream().setf(std::ios::scientific | std::ios::showpos);
-    csv.stream().precision(6);
+    utils::ChWriterCSV csv("\t");
+    csv.Stream().setf(std::ios::scientific | std::ios::showpos);
+    csv.Stream().precision(6);
     csv << "Time (s)"
         << "Chassis X Pos (m)"
         << "Chassis Y Pos (m)"
@@ -475,7 +475,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (output) {
-        csv.write_to_file(out_dir + "/chassis_position.txt");
+        csv.WriteToFile(out_dir + "/chassis_position.txt");
     }
 
     vehicle.WriteContacts(out_dir + "/contacts.txt");

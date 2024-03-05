@@ -42,7 +42,7 @@ void WriteBodies(ChSystem* system,
                  bool active_only,
                  bool dump_vel,
                  const std::string& delim) {
-    CSV_writer csv(delim);
+    ChWriterCSV csv(delim);
 
     for (auto body : system->GetBodies()) {
         if (active_only && !body->IsActive())
@@ -53,7 +53,7 @@ void WriteBodies(ChSystem* system,
         csv << std::endl;
     }
 
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 }
 
 // -----------------------------------------------------------------------------
@@ -64,7 +64,7 @@ void WriteBodies(ChSystem* system,
 // -----------------------------------------------------------------------------
 bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
     // Create the CSV stream.
-    CSV_writer csv(" ");
+    ChWriterCSV csv(" ");
     std::string tab("    ");
 
     // Write contact method type (0: NSC, 1: SMC)
@@ -190,7 +190,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
         }
     }
 
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 
     return true;
 }
@@ -358,11 +358,11 @@ void WriteCamera(const std::string& filename,
                  const ChVector3d& cam_target,
                  const ChVector3d& camera_upvec,
                  const std::string& delim) {
-    CSV_writer csv(delim);
+    ChWriterCSV csv(delim);
     csv << cam_location << std::endl;
     csv << cam_target << std::endl;
     csv << camera_upvec << std::endl;
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 }
 
 // -----------------------------------------------------------------------------
@@ -419,7 +419,7 @@ void WriteVisualizationAssets(ChSystem* system,
                               std::function<bool(const ChBody&)> selector,
                               bool body_info,
                               const std::string& delim) {
-    CSV_writer csv(delim);
+    ChWriterCSV csv(delim);
 
     // If requested, Loop over all bodies and write out their position and
     // orientation.  Otherwise, body count is left at 0.
@@ -584,7 +584,7 @@ void WriteVisualizationAssets(ChSystem* system,
     std::stringstream header;
     header << b_count << delim << a_count << delim << l_count << delim << la_count << delim << std::endl;
 
-    csv.write_to_file(filename, header.str());
+    csv.WriteToFile(filename, header.str());
 }
 
 // -----------------------------------------------------------------------------

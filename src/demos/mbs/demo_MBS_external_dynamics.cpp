@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
         ChVectorDynamic<> y(2);
 
         Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-        utils::CSV_writer csv(" ");
+        utils::ChWriterCSV csv(" ");
         y = vdp->GetInitialStates();
         csv << t << y.format(rowFmt) << std::endl;
 
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
         }
 
         std::string out_file = out_dir + "/vanDerPol_nonstiff.out";
-        csv.write_to_file(out_file);
+        csv.WriteToFile(out_file);
 
 #ifdef CHRONO_POSTPROCESS
         postprocess::ChGnuPlot gplot(out_dir + "/vanDerPol_nonstiff.gpl");
@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
         ChVectorDynamic<> y(2);
 
         Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-        utils::CSV_writer csv(" ");
+        utils::ChWriterCSV csv(" ");
         y = vdp->GetInitialStates();
         csv << t << y.format(rowFmt) << std::endl;
 
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
         }
 
         std::string out_file = out_dir + "/vanDerPol_Stiff.out";
-        csv.write_to_file(out_file);
+        csv.WriteToFile(out_file);
 
 #ifdef CHRONO_POSTPROCESS
         postprocess::ChGnuPlot gplot(out_dir + "/vanDerPol_stiff.gpl");

@@ -241,10 +241,10 @@ int main(int argc, char* argv[]) {
 
     // Initialize output file for driver inputs
     std::string driver_file = out_dir + "/driver_inputs.txt";
-    utils::CSV_writer driver_csv(" ");
+    utils::ChWriterCSV driver_csv(" ");
 
     // Initialize output file for debug output
-    utils::CSV_writer vehicle_csv(" ");
+    utils::ChWriterCSV vehicle_csv(" ");
 
     // Enable vehicle output (ASCII file)
     if (vehicle_output) {
@@ -465,13 +465,13 @@ int main(int argc, char* argv[]) {
     }
 
     if (driver_mode == DriverMode::RECORD) {
-        driver_csv.write_to_file(driver_file);
+        driver_csv.WriteToFile(driver_file);
     }
 
     if (debug_output) {
         std::string filename = out_dir + "/debug_data_" + vehicle.GetTire(0, VehicleSide::LEFT)->GetTemplateName();
         std::string data_file = filename + ".txt";
-        vehicle_csv.write_to_file(data_file);
+        vehicle_csv.WriteToFile(data_file);
 
         std::cout << "\n============ Debug output ============" << std::endl;
         std::cout << std::endl;

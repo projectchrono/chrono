@@ -245,9 +245,9 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         // Initialize the output stream and set precision.
-        utils::CSV_writer out("\t");
-        out.stream().setf(std::ios::scientific | std::ios::showpos);
-        out.stream().precision(7);
+        utils::ChWriterCSV out("\t");
+        out.Stream().setf(std::ios::scientific | std::ios::showpos);
+        out.Stream().precision(7);
         int Iterations = 0;
         // Simulate to final time, while saving position of tip node.
         while (sys.GetChTime() < sim_time) {
@@ -258,7 +258,7 @@ int main(int argc, char* argv[]) {
                      << nodetip->GetForce().z() << "\t" << Iterations << "\n";
         }
         // Write results to output file.
-        out.write_to_file("../TEST_Brick/UT_EASBrickMR_Grav.txt");
+        out.WriteToFile("../TEST_Brick/UT_EASBrickMR_Grav.txt");
     } else {
         // Initialize total number of iterations and timer.
         int Iterations = 0;

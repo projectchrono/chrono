@@ -287,9 +287,9 @@ int main(int argc, char* argv[]) {
         driver.ExportPathPovray(out_dir);
     }
 
-    utils::CSV_writer csv("\t");
-    csv.stream().setf(std::ios::scientific | std::ios::showpos);
-    csv.stream().precision(6);
+    utils::ChWriterCSV csv("\t");
+    csv.Stream().setf(std::ios::scientific | std::ios::showpos);
+    csv.Stream().precision(6);
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);
@@ -449,7 +449,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (data_output) {
-        csv.write_to_file(out_dir + "/" + output_file_name + ".dat");
+        csv.WriteToFile(out_dir + "/" + output_file_name + ".dat");
     }
 
     return 0;

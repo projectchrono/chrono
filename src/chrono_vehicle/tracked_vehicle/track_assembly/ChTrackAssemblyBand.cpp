@@ -494,11 +494,11 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
         }
     }
 
-    ////utils::CSV_writer csv;
+    ////utils::ChWriterCSV csv;
     ////for (int i = 0; i < shoe_points.size(); i++) {
     ////    csv << shoe_points[i].x() << shoe_points[i].y() << std::endl;
     ////}
-    ////csv.write_to_file("points.txt");
+    ////csv.WriteToFile("points.txt");
 
     //// TODO:  right now only counter-clock-wise
     return true;

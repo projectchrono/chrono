@@ -171,8 +171,8 @@ int main(int argc, char* argv[]) {
     auto actuation = chrono_types::make_shared<ChFunctionRepeat>(f_segment, 0, 10, 10);
 
     // Initialize combined output
-    utils::CSV_writer csv;
-    csv.set_delim(" ");
+    utils::ChWriterCSV csv;
+    csv.SetDelimitator(" ");
 
     // Simulation loop
     double time = 0;
@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
     }
 
     std::string out_file = out_dir + "/hydraulic_crane.out";
-    csv.write_to_file(out_file);
+    csv.WriteToFile(out_file);
 
 #ifdef CHRONO_POSTPROCESS
     {

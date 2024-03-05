@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     lidar3->PushFilter(std::make_shared<ChFilterDIAccess>());
     manager->AddSensor(lidar3);
 
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     UserDIBufferPtr data1 = lidar1->GetMostRecentBuffer<UserDIBufferPtr>();
     UserDIBufferPtr data2 = lidar2->GetMostRecentBuffer<UserDIBufferPtr>();
@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
             data3->Buffer = NULL;
         }
     }
-    csv.write_to_file("lidar_beam_results.csv");
+    csv.WriteToFile("lidar_beam_results.csv");
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
     std::cout << "Simulation time: " << sys.GetChTime() << " seconds, wall time: " << wall_time.count()

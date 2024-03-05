@@ -641,9 +641,9 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
         // Output (if enabled)
         if (m_settling_output && steps % output_steps == 0) {
             std::string filename = OutputFilename(m_node_out_dir + "/settling", "settling", "dat", output_frame + 1, 5);
-            utils::CSV_writer csv(" ");
+            utils::ChWriterCSV csv(" ");
             WriteParticleInformation(csv);
-            csv.write_to_file(filename);
+            csv.WriteToFile(filename);
             output_frame++;
         }
 
@@ -1065,14 +1065,14 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnOutputData(int frame) {
     // Create and write frame output file.
     std::string filename = OutputFilename(m_node_out_dir + "/simulation", "simulation", "dat", frame + 1, 5);
 
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
     WriteParticleInformation(csv);
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 }
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeGranularOMP::WriteParticleInformation(utils::CSV_writer& csv) {
+void ChVehicleCosimTerrainNodeGranularOMP::WriteParticleInformation(utils::ChWriterCSV& csv) {
     // Write current time, number of granular particles and their radius
     ////csv << m_system->GetChTime() << endl;
     ////csv << m_num_particles << m_radius_g << endl;
@@ -1087,7 +1087,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteParticleInformation(utils::CSV_w
 }
 
 void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& filename) const {
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     // Write current time and number of granular material bodies.
     csv << m_system->GetChTime() << endl;
@@ -1103,7 +1103,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& fi
     }
 
     std::string checkpoint_filename = m_node_out_dir + "/" + filename;
-    csv.write_to_file(checkpoint_filename);
+    csv.WriteToFile(checkpoint_filename);
     if (m_verbose)
         cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
 }

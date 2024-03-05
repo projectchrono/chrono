@@ -45,7 +45,7 @@ bool TestLinActuator(const ChQuaternion<>& rot,
                      const std::string& testName);
 bool ValidateReference(const std::string& testName, const std::string& what, double tolerance);
 bool ValidateConstraints(const std::string& testName, const std::string& what, double tolerance);
-utils::CSV_writer OutStream();
+utils::ChWriterCSV OutStream();
 
 // =============================================================================
 //
@@ -190,23 +190,23 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     // ------------------------------------------------
 
     // Create the CSV_Writer output objects (TAB delimited)
-    utils::CSV_writer out_pos = OutStream();
-    utils::CSV_writer out_vel = OutStream();
-    utils::CSV_writer out_acc = OutStream();
+    utils::ChWriterCSV out_pos = OutStream();
+    utils::ChWriterCSV out_vel = OutStream();
+    utils::ChWriterCSV out_acc = OutStream();
 
-    utils::CSV_writer out_quat = OutStream();
-    utils::CSV_writer out_avel = OutStream();
-    utils::CSV_writer out_aacc = OutStream();
+    utils::ChWriterCSV out_quat = OutStream();
+    utils::ChWriterCSV out_avel = OutStream();
+    utils::ChWriterCSV out_aacc = OutStream();
 
-    utils::CSV_writer out_rfrcP = OutStream();
-    utils::CSV_writer out_rtrqP = OutStream();
+    utils::ChWriterCSV out_rfrcP = OutStream();
+    utils::ChWriterCSV out_rtrqP = OutStream();
 
-    utils::CSV_writer out_rfrcA = OutStream();
-    utils::CSV_writer out_rtrqA = OutStream();
+    utils::ChWriterCSV out_rfrcA = OutStream();
+    utils::ChWriterCSV out_rtrqA = OutStream();
 
-    utils::CSV_writer out_cnstrP = OutStream();
+    utils::ChWriterCSV out_cnstrP = OutStream();
 
-    utils::CSV_writer out_cnstrA = OutStream();
+    utils::ChWriterCSV out_cnstrA = OutStream();
 
     // Write headers
     out_pos << "Time"
@@ -333,23 +333,23 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     }
 
     // Write output files
-    out_pos.write_to_file(out_dir + testName + "_CHRONO_Pos.txt", testName + "\n");
-    out_vel.write_to_file(out_dir + testName + "_CHRONO_Vel.txt", testName + "\n");
-    out_acc.write_to_file(out_dir + testName + "_CHRONO_Acc.txt", testName + "\n");
+    out_pos.WriteToFile(out_dir + testName + "_CHRONO_Pos.txt", testName + "\n");
+    out_vel.WriteToFile(out_dir + testName + "_CHRONO_Vel.txt", testName + "\n");
+    out_acc.WriteToFile(out_dir + testName + "_CHRONO_Acc.txt", testName + "\n");
 
-    out_quat.write_to_file(out_dir + testName + "_CHRONO_Quat.txt", testName + "\n");
-    out_avel.write_to_file(out_dir + testName + "_CHRONO_Avel.txt", testName + "\n");
-    out_aacc.write_to_file(out_dir + testName + "_CHRONO_Aacc.txt", testName + "\n");
+    out_quat.WriteToFile(out_dir + testName + "_CHRONO_Quat.txt", testName + "\n");
+    out_avel.WriteToFile(out_dir + testName + "_CHRONO_Avel.txt", testName + "\n");
+    out_aacc.WriteToFile(out_dir + testName + "_CHRONO_Aacc.txt", testName + "\n");
 
-    out_rfrcP.write_to_file(out_dir + testName + "_CHRONO_RforceP.txt", testName + "\n");
-    out_rtrqP.write_to_file(out_dir + testName + "_CHRONO_RtorqueP.txt", testName + "\n");
+    out_rfrcP.WriteToFile(out_dir + testName + "_CHRONO_RforceP.txt", testName + "\n");
+    out_rtrqP.WriteToFile(out_dir + testName + "_CHRONO_RtorqueP.txt", testName + "\n");
 
-    out_rfrcA.write_to_file(out_dir + testName + "_CHRONO_RforceA.txt", testName + "\n");
-    out_rtrqA.write_to_file(out_dir + testName + "_CHRONO_RtorqueA.txt", testName + "\n");
+    out_rfrcA.WriteToFile(out_dir + testName + "_CHRONO_RforceA.txt", testName + "\n");
+    out_rtrqA.WriteToFile(out_dir + testName + "_CHRONO_RtorqueA.txt", testName + "\n");
 
-    out_cnstrP.write_to_file(out_dir + testName + "_CHRONO_ConstraintsP.txt", testName + "\n");
+    out_cnstrP.WriteToFile(out_dir + testName + "_CHRONO_ConstraintsP.txt", testName + "\n");
 
-    out_cnstrA.write_to_file(out_dir + testName + "_CHRONO_ConstraintsA.txt", testName + "\n");
+    out_cnstrA.WriteToFile(out_dir + testName + "_CHRONO_ConstraintsA.txt", testName + "\n");
 
     return true;
 }
@@ -398,11 +398,11 @@ bool ValidateConstraints(const std::string& testName,  // name of this test
 //
 // Utility function to create a CSV output stream and set output format options.
 //
-utils::CSV_writer OutStream() {
-    utils::CSV_writer out("\t");
+utils::ChWriterCSV OutStream() {
+    utils::ChWriterCSV out("\t");
 
-    out.stream().setf(std::ios::scientific | std::ios::showpos);
-    out.stream().precision(6);
+    out.Stream().setf(std::ios::scientific | std::ios::showpos);
+    out.Stream().precision(6);
 
     return out;
 }

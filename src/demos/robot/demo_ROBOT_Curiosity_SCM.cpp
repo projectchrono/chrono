@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     }
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     // Simulation loop
     while (vis->Run()) {
@@ -278,7 +278,7 @@ int main(int argc, char* argv[]) {
 
     if (output) {
         // write output data into file
-        csv.write_to_file(out_dir + "/output.dat");
+        csv.WriteToFile(out_dir + "/output.dat");
     }
 
     return 0;

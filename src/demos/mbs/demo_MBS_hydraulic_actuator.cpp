@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
     double t = 0;
 
     Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
     auto y0 = actuator->GetInitialStates();
     csv << t << 0 << y0.format(rowFmt) << std::endl;
 
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     }
 
     std::string out_file = out_dir + "/hydro.out";
-    csv.write_to_file(out_file);
+    csv.WriteToFile(out_file);
 
 #ifdef CHRONO_POSTPROCESS
     {

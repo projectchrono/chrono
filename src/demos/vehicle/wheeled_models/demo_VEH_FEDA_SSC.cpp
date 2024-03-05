@@ -279,7 +279,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize output file for driver inputs
     std::string driver_file = out_dir + "/driver_inputs.txt";
-    utils::CSV_writer driver_csv(" ");
+    utils::ChWriterCSV driver_csv(" ");
 
     std::string ssc_file = out_dir + "/ssc_";
     if (turn_direction_left) {
@@ -297,7 +297,7 @@ int main(int argc, char* argv[]) {
         ssc_file.append("tmeasy");
     }
     ssc_file.append(".txt");
-    utils::CSV_writer ssc_csv(" ");
+    utils::ChWriterCSV ssc_csv(" ");
 
     // Set up vehicle output
     feda.GetVehicle().SetChassisOutput(true);
@@ -479,7 +479,7 @@ int main(int argc, char* argv[]) {
         step_number++;
     }
 
-    ssc_csv.write_to_file(ssc_file);
+    ssc_csv.WriteToFile(ssc_file);
 
     // data at manoever end
     double vel_kmh = real_speed * 3.6;

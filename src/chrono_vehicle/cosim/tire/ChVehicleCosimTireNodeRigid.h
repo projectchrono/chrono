@@ -70,9 +70,9 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeRigid : public ChVehicleCosimTireNode
 
   private:
     /// Write mesh vertex positions and velocities.
-    void WriteTireStateInformation(utils::CSV_writer& csv);
+    void WriteTireStateInformation(utils::ChWriterCSV& csv);
     /// Write mesh connectivity and strain information.
-    void WriteTireMeshInformation(utils::CSV_writer& csv);
+    void WriteTireMeshInformation(utils::ChWriterCSV& csv);
 
     std::shared_ptr<ChRigidTire> m_tire_rgd;               ///< rigid tire
     std::vector<std::vector<unsigned int>> m_adjElements;  ///< list of neighboring elements for each mesh vertex

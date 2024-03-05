@@ -555,7 +555,7 @@ void Generator::createObjects(const PointVector& points, const ChVector3d& vel) 
 
 // Write body information to a CSV file
 void Generator::writeObjectInfo(const std::string& filename) {
-    CSV_writer csv;
+    ChWriterCSV csv;
 
     for (int i = 0; i < m_bodies.size(); i++) {
         csv << static_cast<int>(m_bodies[i].m_type);
@@ -567,7 +567,7 @@ void Generator::writeObjectInfo(const std::string& filename) {
         csv << std::endl;
     }
 
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 }
 
 }  // namespace utils

@@ -224,7 +224,7 @@ int main(int argc, char* argv[]) {
     double t = 0;
 
     Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     while (vis->Run()) {
         if (t > t_end)
@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
     }
 
     std::string out_file = out_dir + "/hydro.out";
-    csv.write_to_file(out_file);
+    csv.WriteToFile(out_file);
 
 #ifdef CHRONO_POSTPROCESS
     {

@@ -491,7 +491,7 @@ void ChVehicleCosimTerrainNodeSCM::OnOutputData(int frame) {
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeSCM::WriteCheckpoint(const std::string& filename) const {
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     // Get all SCM grid nodes modified from start of simulation
     const auto& nodes = m_terrain->GetModifiedNodes(true);
@@ -506,7 +506,7 @@ void ChVehicleCosimTerrainNodeSCM::WriteCheckpoint(const std::string& filename) 
     }
 
     std::string checkpoint_filename = m_node_out_dir + "/" + filename;
-    csv.write_to_file(checkpoint_filename);
+    csv.WriteToFile(checkpoint_filename);
     if (m_verbose)
         cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
 }

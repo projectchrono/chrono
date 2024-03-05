@@ -155,9 +155,9 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    utils::CSV_writer csv("\t");
-    csv.stream().setf(std::ios::scientific | std::ios::showpos);
-    csv.stream().precision(6);
+    utils::ChWriterCSV csv("\t");
+    csv.Stream().setf(std::ios::scientific | std::ios::showpos);
+    csv.Stream().precision(6);
 
     csv << "time";
     csv << "throttle";
@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (data_output) {
-        csv.write_to_file(out_dir + "/feda_accel_chrono.dat");
+        csv.WriteToFile(out_dir + "/feda_accel_chrono.dat");
     }
 
     return 0;

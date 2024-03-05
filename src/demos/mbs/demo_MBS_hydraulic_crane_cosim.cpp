@@ -137,7 +137,7 @@ class Crane {
         integrator->SetAbsTolerances(1e-4, 1e2);
 
         // Initialize output
-        m_csv.set_delim(" ");
+        m_csv.SetDelimitator(" ");
         double s, sd;
         GetActuatorLength(s, sd);
         m_csv << 0 << s << sd << std::endl;
@@ -177,7 +177,7 @@ class Crane {
         m_csv << time << s << sd << std::endl;
     }
 
-    void WriteOutput(const std::string& filename) { m_csv.write_to_file(filename); }
+    void WriteOutput(const std::string& filename) { m_csv.WriteToFile(filename); }
 
   private:
     ChSystem& m_sys;
@@ -186,7 +186,7 @@ class Crane {
     ChVector3d m_point_ground;
     ChVector3d m_point_crane;
     double m_F0;
-    utils::CSV_writer m_csv;
+    utils::ChWriterCSV m_csv;
 };
 
 class Actuator {
@@ -221,7 +221,7 @@ class Actuator {
         integrator->SetAbsTolerances(1e-4, 1e2);
 
         // Initialize output
-        m_csv.set_delim(" ");
+        m_csv.SetDelimitator(" ");
       }
 
       void SetActuation(double time, double Uref) { m_actuation->SetSetpoint(Uref, time); }
@@ -242,13 +242,13 @@ class Actuator {
         m_csv << time << Uref << U << p[0] << p[1] << F << std::endl;
       }
 
-      void WriteOutput(const std::string& filename) { m_csv.write_to_file(filename); }
+      void WriteOutput(const std::string& filename) { m_csv.WriteToFile(filename); }
 
     private:
       ChSystem& m_sys;
       std::shared_ptr<ChHydraulicActuator2> m_actuator;
       std::shared_ptr<ChFunctionSetpoint> m_actuation;
-      utils::CSV_writer m_csv;
+      utils::ChWriterCSV m_csv;
 };
 
 // -----------------------------------------------------------------------------

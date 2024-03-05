@@ -615,6 +615,11 @@ Note that this represents a major public API change and we expect most user code
 |                                   | getTriangle                   | rename: GetTriangle                              |
 | ChVector                          |                               |                                                  |
 |                                   | DirToDxDyDz                   | rename: GetDirectionAxesAsX                      |
+| CSV_writer                        |                               | rename: ChWriterCSV                              |
+|                                   | delim                         | rename: GetDelimitator                           |
+|                                   | set_delim                     | rename: SetDelimitator                           |
+|                                   | stream                        | rename: Stream                                   |
+|                                   | write_to_file                 | rename: WriteToFile                              |
 
 
 **Types**

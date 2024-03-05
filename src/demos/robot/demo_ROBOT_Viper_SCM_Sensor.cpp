@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     }
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     // Create the rover
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
@@ -474,7 +474,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (output) {
-        csv.write_to_file(out_dir + "/output.dat");
+        csv.WriteToFile(out_dir + "/output.dat");
     }
 
     return 0;

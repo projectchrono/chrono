@@ -233,9 +233,9 @@ int main(int argc, char* argv[]) {
     // ---------------
 
     // Output file
-    utils::CSV_writer csv("\t");
-    csv.stream().setf(std::ios::scientific | std::ios::showpos);
-    csv.stream().precision(6);
+    utils::ChWriterCSV csv("\t");
+    csv.Stream().setf(std::ios::scientific | std::ios::showpos);
+    csv.Stream().precision(6);
 
     // Running average of vehicle speed
     utils::ChRunningAverage speed_filter(500);
@@ -322,7 +322,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (output)
-        csv.write_to_file(out_dir + "/tire_force.out");
+        csv.WriteToFile(out_dir + "/tire_force.out");
 
     return 0;
 }

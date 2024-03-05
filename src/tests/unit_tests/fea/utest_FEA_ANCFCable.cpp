@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
     }
 
     /* m_data.resize(7);
-     utils::CSV_writer csv(" ");
+     utils::ChWriterCSV csv(" ");
      std::ifstream file2("UT_ANCFBeam.txt");
 
      for (size_t col = 0; col < 7; col++)
@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
     m_data[6][it] << std::endl;
     // Advance system state
     std::cout << "Time t = " << sys.GetChTime() << "s \n";
-    csv.write_to_file("UT_ANCFBeam.txt"); */
+    csv.WriteToFile("UT_ANCFBeam.txt"); */
 
     return 0;
 }

@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
     m_data.resize(2);
     for (size_t col = 0; col < 2; col++)
         m_data[col].resize(num_steps);
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
     std::ifstream file2("UT_ANCFShellIso.txt");
 
     ChVector3d mforce(0, 0, -50);
@@ -234,6 +234,6 @@ int main(int argc, char* argv[]) {
     /*m_data[0][it] = sys.GetChTime();
     m_data[1][it] = nodetip->pos.z;
     csv << m_data[0][it] << m_data[1][it]  << std::endl;
-    csv.write_to_file("UT_ANCFShellIso.txt");*/
+    csv.WriteToFile("UT_ANCFShellIso.txt");*/
     return 0;
 }

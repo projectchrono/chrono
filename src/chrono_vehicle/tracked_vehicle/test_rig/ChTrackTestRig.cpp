@@ -409,7 +409,7 @@ void ChTrackTestRig::Output(int frame, ChVehicleOutput& database) const {
 void ChTrackTestRig::SetPlotOutput(double output_step) {
     m_plot_output = true;
     m_plot_output_step = output_step;
-    m_csv = new utils::CSV_writer(" ");
+    m_csv = new utils::ChWriterCSV(" ");
 }
 
 void ChTrackTestRig::CollectPlotData(double time) {
@@ -437,7 +437,7 @@ void ChTrackTestRig::PlotOutput(const std::string& out_dir, const std::string& o
         return;
 
     std::string out_file = out_dir + "/" + out_name + ".txt";
-    m_csv->write_to_file(out_file);
+    m_csv->WriteToFile(out_file);
 
 #ifdef CHRONO_POSTPROCESS
     std::string gplfile = out_dir + "/tmp.gpl";

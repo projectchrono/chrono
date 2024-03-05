@@ -104,7 +104,7 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
   public:
     ContactReporter(ChSystemMulticore* system) : sys(system) { csv << sys->GetChTime() << sys->GetNumContacts() << endl; }
 
-    void write(const std::string& filename) { csv.write_to_file(filename); }
+    void write(const std::string& filename) { csv.WriteToFile(filename); }
 
   private:
     virtual bool OnReportContact(const ChVector3d& pA,
@@ -128,7 +128,7 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
     }
 
     ChSystemMulticore* sys;
-    utils::CSV_writer csv;
+    utils::ChWriterCSV csv;
 };
 
 // =============================================================================

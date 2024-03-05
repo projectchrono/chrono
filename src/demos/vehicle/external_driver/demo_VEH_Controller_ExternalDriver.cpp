@@ -445,9 +445,9 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    utils::CSV_writer csv("\t");
-    csv.stream().setf(std::ios::scientific | std::ios::showpos);
-    csv.stream().precision(6);
+    utils::ChWriterCSV csv("\t");
+    csv.Stream().setf(std::ios::scientific | std::ios::showpos);
+    csv.Stream().precision(6);
 
     utils::ChRunningAverage fwd_acc_GC_filter(filter_window_size);
     utils::ChRunningAverage lat_acc_GC_filter(filter_window_size);
@@ -557,7 +557,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (state_output)
-        csv.write_to_file(out_dir + "/state.out");
+        csv.WriteToFile(out_dir + "/state.out");
 
     return 0;
 }

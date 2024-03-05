@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     }
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     //
     // Create a rigid body with a mesh or a cylinder collision shape
@@ -379,7 +379,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (output) {
-        csv.write_to_file(out_dir + "/output.dat");
+        csv.WriteToFile(out_dir + "/output.dat");
     }
 
     return 0;

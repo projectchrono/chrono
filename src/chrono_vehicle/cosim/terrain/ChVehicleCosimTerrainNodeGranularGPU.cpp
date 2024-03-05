@@ -777,7 +777,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::UpdateVisualizationParticles() {
 
 void ChVehicleCosimTerrainNodeGranularGPU::WriteCheckpoint(const std::string& filename) const {
     assert(m_num_particles == m_systemGPU->GetNumParticles());
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     // Write number of granular material bodies.
     csv << m_num_particles << endl;
@@ -790,7 +790,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::WriteCheckpoint(const std::string& fi
     }
 
     std::string checkpoint_filename = m_node_out_dir + "/" + filename;
-    csv.write_to_file(checkpoint_filename);
+    csv.WriteToFile(checkpoint_filename);
     if (m_verbose)
         cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
 }

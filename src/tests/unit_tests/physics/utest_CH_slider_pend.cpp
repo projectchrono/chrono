@@ -127,13 +127,13 @@ void ODEModel::CalcAcceleration() {
 void ODEModel::WriteData(double step, const std::string& filename) {
     assert(m_data.size() == 3);
 
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     for (size_t it = 0; it < m_data[0].size(); ++it) {
         csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << std::endl;
     }
 
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 }
 
 // =============================================================================
@@ -294,13 +294,13 @@ void ChronoModel::Simulate(double step, int num_steps) {
 void ChronoModel::WriteData(double step, const std::string& filename) {
     assert(m_data.size() == 3);
 
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     for (size_t it = 0; it < m_data[0].size(); ++it) {
         csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << std::endl;
     }
 
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 }
 
 // =============================================================================

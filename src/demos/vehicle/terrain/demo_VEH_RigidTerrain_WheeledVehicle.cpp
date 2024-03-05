@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    ////utils::CSV_writer out(" ");
+    ////utils::ChWriterCSV out(" ");
     ////for (int ix = 0; ix < 20; ix++) {
     ////    double x = ix * 1.0;
     ////    for (int iy = 0; iy < 100; iy++) {
@@ -210,7 +210,7 @@ int main(int argc, char* argv[]) {
     ////        out << x << y << z << std::endl;
     ////    }
     ////}
-    ////out.write_to_file("terrain.out");
+    ////out.WriteToFile("terrain.out");
 
     // ---------------
     // Simulation loop

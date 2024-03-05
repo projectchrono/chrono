@@ -115,18 +115,18 @@ void ChVehicleCosimTireNodeRigid::OnOutputData(int frame) {
     }
 
     // Create and write frame output file.
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
     WriteTireStateInformation(csv);
     WriteTireMeshInformation(csv);
 
     std::string filename = OutputFilename(m_node_out_dir + "/simulation", "data", "dat", frame + 1, 5);
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 
     if (m_verbose)
         cout << "[Tire node   ] write output file ==> " << filename << endl;
 }
 
-void ChVehicleCosimTireNodeRigid::WriteTireStateInformation(utils::CSV_writer& csv) {
+void ChVehicleCosimTireNodeRigid::WriteTireStateInformation(utils::ChWriterCSV& csv) {
     // Write number of vertices
     int num_vertices = m_tire_rgd->GetContactMesh()->GetNumVertices();
     csv << num_vertices << endl;
@@ -141,7 +141,7 @@ void ChVehicleCosimTireNodeRigid::WriteTireStateInformation(utils::CSV_writer& c
         csv << vel[in] << endl;
 }
 
-void ChVehicleCosimTireNodeRigid::WriteTireMeshInformation(utils::CSV_writer& csv) {
+void ChVehicleCosimTireNodeRigid::WriteTireMeshInformation(utils::ChWriterCSV& csv) {
     // Print tire mesh connectivity
     int num_triangles = m_tire_rgd->GetContactMesh()->GetNumTriangles();
     csv << num_triangles << endl;

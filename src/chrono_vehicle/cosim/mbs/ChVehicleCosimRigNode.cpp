@@ -194,7 +194,7 @@ void ChVehicleCosimRigNode::OnOutputData(int frame) {
     }
 
     // Create and write frame output file.
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
     csv << m_system->GetChTime() << endl;  // current time
     csv << m_chassis->GetIdentifier() << m_chassis->GetPos() << m_chassis->GetRot() << m_chassis->GetPosDer()
         << m_chassis->GetRotDer() << endl;
@@ -202,7 +202,7 @@ void ChVehicleCosimRigNode::OnOutputData(int frame) {
         << m_spindle->GetRotDer() << endl;
 
     std::string filename = OutputFilename(m_node_out_dir, "data", "dat", frame + 1, 5);
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 
     if (m_verbose)
         cout << "[Rig node    ] write output file ==> " << filename << endl;

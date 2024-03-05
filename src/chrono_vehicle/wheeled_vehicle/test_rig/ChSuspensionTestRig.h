@@ -223,8 +223,8 @@ class CH_VEHICLE_API ChSuspensionTestRig {
 
     /// Plot data for one axle.
     struct PlotData {
-        utils::CSV_writer csvL;  ///< csv output for left side
-        utils::CSV_writer csvR;  ///< csv output for right side
+        utils::ChWriterCSV csvL;  ///< csv output for left side
+        utils::ChWriterCSV csvR;  ///< csv output for right side
         int num_tsda;            ///< number of TSDAs
         int num_rsda;            ///< number of RSDAs
     };

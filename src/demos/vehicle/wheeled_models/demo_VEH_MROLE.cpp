@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize output file for driver inputs
     std::string driver_file = out_dir + "/driver_inputs.txt";
-    utils::CSV_writer driver_csv(" ");
+    utils::ChWriterCSV driver_csv(" ");
 
     // Set up vehicle output
     mrole.GetVehicle().SetChassisOutput(true);
@@ -336,7 +336,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (driver_mode == RECORD) {
-        driver_csv.write_to_file(driver_file);
+        driver_csv.WriteToFile(driver_file);
     }
 
     return 0;

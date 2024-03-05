@@ -54,7 +54,7 @@ bool TestRevolute(const ChVector3d& jointLoc,
 bool ValidateReference(const std::string& testName, const std::string& refTestName, const std::string& what, double tolerance);
 bool ValidateConstraints(const std::string& testName, double tolerance);
 bool ValidateEnergy(const std::string& testName, double tolerance);
-utils::CSV_writer OutStream();
+utils::ChWriterCSV OutStream();
 
 // =============================================================================
 //
@@ -276,20 +276,20 @@ bool TestRevolute(const ChVector3d& jointLoc,      // absolute location of joint
     std::cout << "  Create output streams..." << std::endl;
 
     // Create the CSV_Writer output objects (TAB delimited)
-    utils::CSV_writer out_pos = OutStream();
-    utils::CSV_writer out_vel = OutStream();
-    utils::CSV_writer out_acc = OutStream();
+    utils::ChWriterCSV out_pos = OutStream();
+    utils::ChWriterCSV out_vel = OutStream();
+    utils::ChWriterCSV out_acc = OutStream();
 
-    utils::CSV_writer out_quat = OutStream();
-    utils::CSV_writer out_avel = OutStream();
-    utils::CSV_writer out_aacc = OutStream();
+    utils::ChWriterCSV out_quat = OutStream();
+    utils::ChWriterCSV out_avel = OutStream();
+    utils::ChWriterCSV out_aacc = OutStream();
 
-    utils::CSV_writer out_rfrc = OutStream();
-    utils::CSV_writer out_rtrq = OutStream();
+    utils::ChWriterCSV out_rfrc = OutStream();
+    utils::ChWriterCSV out_rtrq = OutStream();
 
-    utils::CSV_writer out_energy = OutStream();
+    utils::ChWriterCSV out_energy = OutStream();
 
-    utils::CSV_writer out_cnstr = OutStream();
+    utils::ChWriterCSV out_cnstr = OutStream();
 
     // Write headers
     out_pos << "Time"
@@ -441,20 +441,20 @@ bool TestRevolute(const ChVector3d& jointLoc,      // absolute location of joint
     std::cout << "     file=" << out_dir + chronoTestName + "_CHRONO_Energy.txt" << std::endl;
     std::cout << "     file=" << out_dir + chronoTestName + "_CHRONO_Constraints.txt" << std::endl;
 
-    out_pos.write_to_file(out_dir + chronoTestName + "_CHRONO_Pos.txt", chronoTestName + "\n");
-    out_vel.write_to_file(out_dir + chronoTestName + "_CHRONO_Vel.txt", chronoTestName + "\n");
-    out_acc.write_to_file(out_dir + chronoTestName + "_CHRONO_Acc.txt", chronoTestName + "\n");
+    out_pos.WriteToFile(out_dir + chronoTestName + "_CHRONO_Pos.txt", chronoTestName + "\n");
+    out_vel.WriteToFile(out_dir + chronoTestName + "_CHRONO_Vel.txt", chronoTestName + "\n");
+    out_acc.WriteToFile(out_dir + chronoTestName + "_CHRONO_Acc.txt", chronoTestName + "\n");
 
-    out_quat.write_to_file(out_dir + chronoTestName + "_CHRONO_Quat.txt", chronoTestName + "\n");
-    out_avel.write_to_file(out_dir + chronoTestName + "_CHRONO_Avel.txt", chronoTestName + "\n");
-    out_aacc.write_to_file(out_dir + chronoTestName + "_CHRONO_Aacc.txt", chronoTestName + "\n");
+    out_quat.WriteToFile(out_dir + chronoTestName + "_CHRONO_Quat.txt", chronoTestName + "\n");
+    out_avel.WriteToFile(out_dir + chronoTestName + "_CHRONO_Avel.txt", chronoTestName + "\n");
+    out_aacc.WriteToFile(out_dir + chronoTestName + "_CHRONO_Aacc.txt", chronoTestName + "\n");
 
-    out_rfrc.write_to_file(out_dir + chronoTestName + "_CHRONO_Rforce.txt", chronoTestName + "\n");
-    out_rtrq.write_to_file(out_dir + chronoTestName + "_CHRONO_Rtorque.txt", chronoTestName + "\n");
+    out_rfrc.WriteToFile(out_dir + chronoTestName + "_CHRONO_Rforce.txt", chronoTestName + "\n");
+    out_rtrq.WriteToFile(out_dir + chronoTestName + "_CHRONO_Rtorque.txt", chronoTestName + "\n");
 
-    out_energy.write_to_file(out_dir + chronoTestName + "_CHRONO_Energy.txt", chronoTestName + "\n");
+    out_energy.WriteToFile(out_dir + chronoTestName + "_CHRONO_Energy.txt", chronoTestName + "\n");
 
-    out_cnstr.write_to_file(out_dir + chronoTestName + "_CHRONO_Constraints.txt", chronoTestName + "\n");
+    out_cnstr.WriteToFile(out_dir + chronoTestName + "_CHRONO_Constraints.txt", chronoTestName + "\n");
 
     return true;
 }
@@ -520,11 +520,11 @@ bool ValidateEnergy(const std::string& chronoTestName,  // name of the Chrono te
 //
 // Utility function to create a CSV output stream and set output format options.
 //
-utils::CSV_writer OutStream() {
-    utils::CSV_writer out("\t");
+utils::ChWriterCSV OutStream() {
+    utils::ChWriterCSV out("\t");
 
-    out.stream().setf(std::ios::scientific | std::ios::showpos);
-    out.stream().precision(6);
+    out.Stream().setf(std::ios::scientific | std::ios::showpos);
+    out.Stream().precision(6);
 
     return out;
 }

@@ -51,24 +51,21 @@
 namespace chrono {
 namespace utils {
 
-// -----------------------------------------------------------------------------
-// CSV_writer
-//
-// Simple class to output to a Comma-Separated Values file.
-// -----------------------------------------------------------------------------
-class ChApi CSV_writer {
+/// ChWriterCSV
+/// Simple class to output to a Comma-Separated Values ASCII file.
+class ChApi ChWriterCSV {
   public:
-    explicit CSV_writer(const std::string& delim = ",") : m_delim(delim) {}
+    explicit ChWriterCSV(const std::string& delim = ",") : m_delim(delim) {}
 
-    CSV_writer(const CSV_writer& source) : m_delim(source.m_delim) {
+    ChWriterCSV(const ChWriterCSV& source) : m_delim(source.m_delim) {
         // Note that we do not copy the stream buffer (as then it would be shared!)
         m_ss.copyfmt(source.m_ss);          // copy all data
         m_ss.clear(source.m_ss.rdstate());  // copy the error state
     }
 
-    ~CSV_writer() {}
+    ~ChWriterCSV() {}
 
-    void write_to_file(const std::string& filename, const std::string& header = "") const {
+    void WriteToFile(const std::string& filename, const std::string& header = "") const {
         std::ofstream ofile(filename.c_str());
         if (!header.empty())
             ofile << header << std::endl;
@@ -76,25 +73,25 @@ class ChApi CSV_writer {
         ofile.close();
     }
 
-    void set_delim(const std::string& delim) { m_delim = delim; }
-    const std::string& delim() const { return m_delim; }
-    std::ostringstream& stream() { return m_ss; }
+    void SetDelimitator(const std::string& delim) { m_delim = delim; }
+    const std::string& GetDelimitator() const { return m_delim; }
+    std::ostringstream& Stream() { return m_ss; }
 
     template <typename T>
-    CSV_writer& operator<<(const T& t) {
+    ChWriterCSV& operator<<(const T& t) {
         m_ss << t << m_delim;
         return *this;
     }
 
-    CSV_writer& operator<<(std::ostream& (*t)(std::ostream&)) {
+    ChWriterCSV& operator<<(std::ostream& (*t)(std::ostream&)) {
         m_ss << t;
         return *this;
     }
-    CSV_writer& operator<<(std::ios& (*t)(std::ios&)) {
+    ChWriterCSV& operator<<(std::ios& (*t)(std::ios&)) {
         m_ss << t;
         return *this;
     }
-    CSV_writer& operator<<(std::ios_base& (*t)(std::ios_base&)) {
+    ChWriterCSV& operator<<(std::ios_base& (*t)(std::ios_base&)) {
         m_ss << t;
         return *this;
     }
@@ -105,24 +102,24 @@ class ChApi CSV_writer {
 };
 
 template <typename T>
-inline CSV_writer& operator<<(CSV_writer& out, const ChVector3<T>& v) {
+inline ChWriterCSV& operator<<(ChWriterCSV& out, const ChVector3<T>& v) {
     out << v.x() << v.y() << v.z();
     return out;
 }
 
 template <typename T>
-inline CSV_writer& operator<<(CSV_writer& out, const ChQuaternion<T>& q) {
+inline ChWriterCSV& operator<<(ChWriterCSV& out, const ChQuaternion<T>& q) {
     out << q.e0() << q.e1() << q.e2() << q.e3();
     return out;
 }
 
-inline CSV_writer& operator<<(CSV_writer& out, const ChColor& c) {
+inline ChWriterCSV& operator<<(ChWriterCSV& out, const ChColor& c) {
     out << c.R << c.G << c.B;
     return out;
 }
 
 template <typename T>
-inline CSV_writer& operator<<(CSV_writer& out, const std::vector<T>& vec) {
+inline ChWriterCSV& operator<<(ChWriterCSV& out, const std::vector<T>& vec) {
     for (const auto& v : vec)
         out << v;
     return out;

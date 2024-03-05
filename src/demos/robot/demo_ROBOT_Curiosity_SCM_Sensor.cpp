@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     }
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     // Curiosity rover initial position and orientation
     ChVector3d body_pos(-5, -0.2, 0);
@@ -544,7 +544,7 @@ int main(int argc, char* argv[]) {
 
     if (output) {
         // write output data into file
-        csv.write_to_file(out_dir + "/output.dat");
+        csv.WriteToFile(out_dir + "/output.dat");
     }
 
     return 0;

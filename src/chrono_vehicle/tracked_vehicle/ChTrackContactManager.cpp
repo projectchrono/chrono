@@ -461,7 +461,7 @@ bool ChTrackContactManager::OnReportContact(const ChVector3d& pA,
 
 void ChTrackContactManager::WriteContacts(const std::string& filename) {
     if (m_collect && m_flags != 0)
-        m_csv.write_to_file(filename);
+        m_csv.WriteToFile(filename);
 }
 
 // -----------------------------------------------------------------------------

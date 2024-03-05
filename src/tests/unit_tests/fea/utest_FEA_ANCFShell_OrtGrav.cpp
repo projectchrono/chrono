@@ -194,7 +194,7 @@ int main(int argc, char* argv[]) {
     m_data.resize(4);
     for (size_t col = 0; col < 4; col++)
         m_data[col].resize(num_steps);
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
     std::ifstream file2("UT_ANCFShellOrtGrav.txt");*/
 
     for (unsigned int it = 0; it < num_steps; it++) {
@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
         m_data[2][it] = nodetip->pos.x;
         m_data[3][it] = nodetip->pos.y;
         csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << m_data[3][it] << std::endl;
-        csv.write_to_file("UT_ANCFShellOrtGrav.txt");*/
+        csv.WriteToFile("UT_ANCFShellOrtGrav.txt");*/
     }
     std::cout << "Unit test check succeeded \n";
     return 0;
