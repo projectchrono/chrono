@@ -401,7 +401,7 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
 
         int ite_count = 0;
         int NR_limit = 10;
-        double tol = 1.e-12;
+        double tol = 1.e-6 * this->M_red.norm();
         bool converged_flag_F = false;
 
         while (!converged_flag_F && ite_count < NR_limit) {
