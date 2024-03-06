@@ -163,7 +163,8 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// Tell if this mesh will add automatically a gravity load to all contained elements.
     bool GetAutomaticGravity() { return automatic_gravity_load; }
 
-    /// Get ChMesh mass properties
+    /// Get ChMesh mass properties. The inertia tensor is solved with respect to the absolute frame, 
+    /// and also aligned with the absolute frame, NOT at the center of mass.
     void ComputeMassProperties(double& mass,          ///< ChMesh object mass
                                ChVector<>& com,       ///< ChMesh center of gravity
                                ChMatrix33<>& inertia  ///< ChMesh inertia tensor
