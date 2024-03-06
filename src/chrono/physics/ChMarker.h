@@ -28,12 +28,10 @@ namespace chrono {
 // Forward reference
 class ChBody;
 
-/// Markers are auxiliary reference frames which belong to rigid bodies and move
-/// together with them. Most often, markers are used as references to build
-/// ChLink() constraints between two rigid bodies.
-/// The ChMarker objects allow also to user-define a motion law of marker respect
-/// to parent ChBody, if needed to represent imposed trajectories etc.
-
+/// Markers are auxiliary reference frames attached to a rigid body and moving with the body.
+/// Most often, markers are used as references to build ChLink() constraints between two rigid bodies.
+/// ChMarker also allows user-defined motion laws of the marker with respect to the parent body, e.g., to represent
+/// imposed trajectories.
 class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
   public:
     enum class MotionType {
@@ -45,9 +43,9 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     ChMarker();
     ChMarker(const std::string& name,
              ChBody* body,
-             const ChCoordsysd& rel_pos,
-             const ChCoordsysd& rel_pos_dt,
-             const ChCoordsysd& rel_pos_dtdt);
+             const ChCoordsysd& rel_csys,
+             const ChCoordsysd& rel_csys_dt,
+             const ChCoordsysd& rel_csys_dtdt);
     ChMarker(const ChMarker& other);
     ~ChMarker();
 
@@ -55,10 +53,10 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     virtual ChMarker* Clone() const override { return new ChMarker(*this); }
 
     /// Gets a pointer to the associated rigid body.
-    ChBody* GetBody() const { return Body; }
+    ChBody* GetBody() const { return m_body; }
 
     /// Sets the parent rigid body.
-    void SetBody(ChBody* newRB) { Body = newRB; }
+    void SetBody(ChBody* body) { m_body = body; }
 
     /// Set body-relative marker frame and update auxiliary variables.
     /// The current position becomes the 'resting position' coordinates for the current time.
@@ -70,14 +68,14 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
 
     /// Get the 'resting position'.
     /// This is the position which the marker should have when the x,y,z motion laws are at time=0.
-    const ChCoordsysd& GetRestCsys() const { return rest_coord; }
+    const ChCoordsysd& GetRestCoordsys() const { return m_rest_csys; }
 
     // Body-relative coordinates
 
-    // In order to get/set  body-relative coordinates, you can use the methods of the ChFrameMoving parent class: for
-    // example use  my_marker->SetCsys(newpos) to impose a new position&rotation, etc. NOTE!! after each modification of
-    // the frame position, speed, acceleration, etc., remember to call UpdateState() if you want to kee updated also the
-    // absolute coordinates , ie. the auxiliary structure to get with GetAbsFrame().
+    // In order to get/set  body-relative coordinates, one can use the methods of the ChFrameMoving parent class.
+    // For example, use my_marker->SetCoordsys(newpos) to impose a new position&rotation.
+    // NOTE: after each modification of the frame position, speed, acceleration, etc., remember to call UpdateState()
+    // to also update the absolute coordinates, i.e. the auxiliary structure returned by GetAbsFrame().
 
     // Absolute coordinates (auxiliary data)
 
@@ -85,40 +83,40 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     /// coordinates. This object (coordinates/speeds/accel. of marker
     /// expressed in absolute coordinates) is useful for performance
     /// reasons. Note! it is updated only after each Update() function.
-    const ChFrameMoving<double>& GetAbsFrame() const { return abs_frame; }
+    const ChFrameMoving<double>& GetAbsFrame() const { return m_abs_frame; }
 
     /// Get the translation and rotation (as a ChCoordsysd) with respect to the absolute coordinates.
-    const ChCoordsysd& GetAbsCsys() const { return abs_frame.GetCsys(); }
+    const ChCoordsysd& GetAbsCoordsys() const { return m_abs_frame.GetCoordsys(); }
 
     /// Get the speed of translation and rotation (as a derived ChCoordsysd) with respect to the absolute coordinates.
-    const ChCoordsysd& GetAbsCsysDer() const { return abs_frame.GetCsysDer(); }
+    const ChCoordsysd& GetAbsCoordsysDer() const { return m_abs_frame.GetCoordsysDer(); }
 
     /// Get the acceleration of translation and rotation (as a derived ChCoordsysd) with respect to the absolute
     /// coordinates.
-    const ChCoordsysd& GetAbsCsysDer2() const { return abs_frame.GetCsysDer2(); }
+    const ChCoordsysd& GetAbsCoordsysDer2() const { return m_abs_frame.GetCoordsysDer2(); }
 
     /// Set the translation and rotation (as a ChCoordsysd) with respect to the absolute coordinates.
     /// NOTE! internal use only, for the moment. Use  ImposeAbsoluteTransform() if needed.
-    void SetAbsCsys(const ChCoordsysd& newpos) { abs_frame.SetCsys(newpos); }
+    void SetAbsCoordsys(const ChCoordsysd& csys) { m_abs_frame.SetCoordsys(csys); }
 
     /// Set the speed of translation and rotation (as a ChCoordsysd) with respect to the absolute coordinates.
     /// NOTE! internal use only, for the moment.
-    void SetAbsCsysDer(const ChCoordsysd& newpos_dt) { abs_frame.SetCsysDer(newpos_dt); }
+    void SetAbsCoordsysDer(const ChCoordsysd& csys_dt) { m_abs_frame.SetCoordsysDer(csys_dt); }
 
     /// Set the speed of translation and rotation (as a ChCoordsysd) with respect to the absolute coordinates.
     /// NOTE! internal use only, for the moment.
-    void SetAbsCsysDer2(const ChCoordsysd& newpos_dtdt) { abs_frame.SetCsysDer2(newpos_dtdt); }
+    void SetAbsCoordsysDer2(const ChCoordsysd& csys_dtdt) { m_abs_frame.SetCoordsysDer2(csys_dtdt); }
 
     /// Get the angular velocity with respect to global frame, expressed in absolute coordinates.
-    ChVector3d GetAbsAngVel() const { return abs_frame.GetAngVelParent(); }
+    ChVector3d GetAbsAngVel() const { return m_abs_frame.GetAngVelParent(); }
 
     /// Get the angular acceleration with respect to global frame, expressed in absolute coordinates.
-    ChVector3d GetAbsAngAcc() const { return abs_frame.GetAngAccParent(); }
+    ChVector3d GetAbsAngAcc() const { return m_abs_frame.GetAngAccParent(); }
 
     // Imposed motion
 
     /// Set the imposed motion type (default: MotionType::FUNCTIONS).
-    void SetMotionType(MotionType m_motion) { motion_type = m_motion; }
+    void SetMotionType(MotionType motion_type) { m_motion_type = motion_type; }
 
     /// Set the imposed motion law, for translation on X body axis.
     void SetMotionAxisX(std::shared_ptr<ChFunction> funct);
@@ -136,29 +134,29 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     void SetMotionAxis(ChVector3d axis);
 
     /// Get the imposed motion type.
-    MotionType GetMotionType() const { return motion_type; }
+    MotionType GetMotionType() const { return m_motion_type; }
 
     /// Get imposed motion law, for translation on X body axis.
-    std::shared_ptr<ChFunction> GetMotionAxisX() const { return motion_X; }
+    std::shared_ptr<ChFunction> GetMotionAxisX() const { return m_motion_X; }
 
     /// Get imposed motion law, for translation on Y body axis.
-    std::shared_ptr<ChFunction> GetMotionAxisY() const { return motion_Y; }
+    std::shared_ptr<ChFunction> GetMotionAxisY() const { return m_motion_Y; }
 
     /// Get imposed motion law, for translation on Z body axis.
-    std::shared_ptr<ChFunction> GetMotionAxisZ() const { return motion_Z; }
+    std::shared_ptr<ChFunction> GetMotionAxisZ() const { return m_motion_Z; }
 
     /// Get imposed motion law, for rotation about an axis.
-    std::shared_ptr<ChFunction> GetMotionAngle() const { return motion_ang; }
+    std::shared_ptr<ChFunction> GetMotionAngle() const { return m_motion_ang; }
 
     /// Get the axis of rotation, if rotation motion law is used.
-    ChVector3d GetMotionAxis() const { return motion_axis; }
+    ChVector3d GetMotionAxis() const { return m_motion_axis; }
 
     // UPDATING
 
     /// Update the time-dependent variables (e.g., function objects to impose the body-relative motion).
     void UpdateTime(double mytime);
 
-    /// Update auxiliary variables (e.g., the abs_frame data) at current state.
+    /// Update auxiliary variables (e.g., the m_abs_frame data) at current state.
     void UpdateState();
 
     /// Call UpdateTime() and UpdateState() at once.
@@ -176,26 +174,26 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    MotionType motion_type;  ///< type of marker motion
+    MotionType m_motion_type;  ///< type of marker motion
 
-    std::shared_ptr<ChFunction> motion_X;    ///< user imposed motion for X coord, body relative
-    std::shared_ptr<ChFunction> motion_Y;    ///< user imposed motion for Y coord, body relative
-    std::shared_ptr<ChFunction> motion_Z;    ///< user imposed motion for Z coord, body relative
-    std::shared_ptr<ChFunction> motion_ang;  ///< user imposed angle rotation about axis
-    ChVector3d motion_axis;                  ///< axis for user imposed rotation
+    std::shared_ptr<ChFunction> m_motion_X;    ///< user imposed motion for X coord, body relative
+    std::shared_ptr<ChFunction> m_motion_Y;    ///< user imposed motion for Y coord, body relative
+    std::shared_ptr<ChFunction> m_motion_Z;    ///< user imposed motion for Z coord, body relative
+    std::shared_ptr<ChFunction> m_motion_ang;  ///< user imposed angle rotation about axis
+    ChVector3d m_motion_axis;                  ///< axis for user imposed rotation
 
-    ChBody* Body;  ///< points to parent body
+    ChBody* m_body;  ///< parent body
 
-    ChCoordsysd rest_coord;  ///< relative resting position for function=0.
+    ChCoordsysd m_rest_csys;  ///< relative resting position for function=0
 
-    // These values are set for each marker update, and are used internally if there's some external routine which
+    // These values are set for each marker update, and are used internally if there is some external routine which
     // applies marker motion estimated by finite differencing
-    ChCoordsysd last_rel_coord;
-    ChCoordsysd last_rel_coord_dt;
-    double last_time;
+    ChCoordsysd m_last_rel_csys;
+    ChCoordsysd m_last_rel_csys_dt;
+    double m_last_time;
 
     // Absolute position of frame (expressed in absolute coordinate system)
-    ChFrameMoving<double> abs_frame;  ///< absolute frame position
+    ChFrameMoving<double> m_abs_frame;  ///< absolute frame position
 };
 
 CH_CLASS_VERSION(ChMarker, 0)

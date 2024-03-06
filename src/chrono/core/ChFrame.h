@@ -35,21 +35,21 @@ class ChFrame {
     /// Default constructor, or construct from pos and rot (as a quaternion)
     explicit ChFrame(const ChVector3<Real>& v = ChVector3<Real>(0, 0, 0),
                      const ChQuaternion<Real>& q = ChQuaternion<Real>(1, 0, 0, 0))
-        : Csys(v, q), Rmat(q) {}
+        : m_csys(v, q), m_rmat(q) {}
 
     /// Construct from pos and rotation (as a 3x3 matrix)
-    ChFrame(const ChVector3<Real>& v, const ChMatrix33<Real>& R) : Csys(v, R.GetQuaternion()), Rmat(R) {}
+    ChFrame(const ChVector3<Real>& v, const ChMatrix33<Real>& R) : m_csys(v, R.GetQuaternion()), m_rmat(R) {}
 
     /// Construct from a coordsys
-    explicit ChFrame(const ChCoordsys<Real>& C) : Csys(C), Rmat(C.rot) {}
+    explicit ChFrame(const ChCoordsys<Real>& C) : m_csys(C), m_rmat(C.rot) {}
 
     /// Construct from position mv and rotation of angle alpha around unit vector mu
-    ChFrame(const ChVector3<Real>& v, const Real angle, const ChVector3<Real>& u) : Csys(v, angle, u) {
-        Rmat.SetFromQuaternion(Csys.rot);
+    ChFrame(const ChVector3<Real>& v, const Real angle, const ChVector3<Real>& u) : m_csys(v, angle, u) {
+        m_rmat.SetFromQuaternion(m_csys.rot);
     }
 
     /// Copy constructor, build from another frame
-    ChFrame(const ChFrame<Real>& other) : Csys(other.Csys), Rmat(other.Rmat) {}
+    ChFrame(const ChFrame<Real>& other) : m_csys(other.m_csys), m_rmat(other.m_rmat) {}
 
     virtual ~ChFrame() {}
 
@@ -59,8 +59,8 @@ class ChFrame {
     ChFrame<Real>& operator=(const ChFrame<Real>& other) {
         if (&other == this)
             return *this;
-        Csys = other.Csys;
-        Rmat = other.Rmat;
+        m_csys = other.m_csys;
+        m_rmat = other.m_rmat;
         return *this;
     }
 
@@ -121,45 +121,45 @@ class ChFrame {
 
     /// Transform this frame by pre-multiplication with a given vector (translate frame).
     ChFrame<Real>& operator>>=(const ChVector3<Real>& v) {
-        this->Csys.pos += v;
+        this->m_csys.pos += v;
         return *this;
     }
 
     /// Transform this frame by pre-multiplication with a given quaternion (rotate frame).
     ChFrame<Real>& operator>>=(const ChQuaternion<Real>& q) {
-        this->SetCsys(q.Rotate(this->Csys.pos), this->Csys.rot >> q);
+        this->SetCoordsys(q.Rotate(this->m_csys.pos), this->m_csys.rot >> q);
         return *this;
     }
 
     /// Transform this frame by pre-multiplication with a given coordinate system.
     ChFrame<Real>& operator>>=(const ChCoordsys<Real>& C) {
-        this->SetCsys(this->Csys >> C);
+        this->SetCoordsys(this->m_csys >> C);
         return *this;
     }
 
     // FUNCTIONS
 
     /// Return both current rotation and translation as a ChCoordsys object.
-    ChCoordsys<Real>& GetCsys() { return Csys; }
-    const ChCoordsys<Real>& GetCsys() const { return Csys; }
+    ChCoordsys<Real>& GetCoordsys() { return m_csys; }
+    const ChCoordsys<Real>& GetCoordsys() const { return m_csys; }
 
     /// Return the current translation as a 3d vector.
-    ChVector3<Real>& GetPos() { return Csys.pos; }
-    const ChVector3<Real>& GetPos() const { return Csys.pos; }
+    ChVector3<Real>& GetPos() { return m_csys.pos; }
+    const ChVector3<Real>& GetPos() const { return m_csys.pos; }
 
     /// Return the current rotation as a quaternion.
-    ChQuaternion<Real>& GetRot() { return Csys.rot; }
-    const ChQuaternion<Real>& GetRot() const { return Csys.rot; }
+    ChQuaternion<Real>& GetRot() { return m_csys.rot; }
+    const ChQuaternion<Real>& GetRot() const { return m_csys.rot; }
 
     /// Return the current rotation as a 3x3 matrix.
-    ChMatrix33<Real>& GetRotMat() { return Rmat; }
-    const ChMatrix33<Real>& GetRotMat() const { return Rmat; }
+    ChMatrix33<Real>& GetRotMat() { return m_rmat; }
+    const ChMatrix33<Real>& GetRotMat() const { return m_rmat; }
 
     /// Get axis of finite rotation, in parent space.
     ChVector3<Real> GetRotAxis() {
         ChVector3<Real> vtmp;
         Real angle;
-        Csys.rot.GetAngleAxis(angle, vtmp);
+        m_csys.rot.GetAngleAxis(angle, vtmp);
         return vtmp;
     }
 
@@ -167,7 +167,7 @@ class ChFrame {
     Real GetRotAngle() {
         ChVector3<Real> vtmp;
         Real angle;
-        Csys.rot.GetAngleAxis(angle, vtmp);
+        m_csys.rot.GetAngleAxis(angle, vtmp);
         return angle;
     }
 
@@ -175,35 +175,35 @@ class ChFrame {
 
     /// Impose both translation and rotation as a single ChCoordsys.
     /// Note: the quaternion part must be already normalized.
-    void SetCsys(const ChCoordsys<Real>& C) {
-        Csys = C;
-        Rmat.SetFromQuaternion(C.rot);
+    void SetCoordsys(const ChCoordsys<Real>& C) {
+        m_csys = C;
+        m_rmat.SetFromQuaternion(C.rot);
     }
 
     /// Impose both translation and rotation.
     /// Note: the quaternion part must be already normalized.
-    void SetCsys(const ChVector3<Real>& v, const ChQuaternion<Real>& q) {
-        Csys.pos = v;
-        Csys.rot = q;
-        Rmat.SetFromQuaternion(q);
+    void SetCoordsys(const ChVector3<Real>& v, const ChQuaternion<Real>& q) {
+        m_csys.pos = v;
+        m_csys.rot = q;
+        m_rmat.SetFromQuaternion(q);
     }
 
     /// Impose the rotation as a quaternion.
     /// Note: the quaternion must be already normalized.
     void SetRot(const ChQuaternion<Real>& q) {
-        Csys.rot = q;
-        Rmat.SetFromQuaternion(q);
+        m_csys.rot = q;
+        m_rmat.SetFromQuaternion(q);
     }
 
     /// Impose the rotation as a 3x3 matrix.
     /// Note: the rotation matrix must be already orthogonal.
     void SetRot(const ChMatrix33<Real>& R) {
-        Csys.rot = R.GetQuaternion();
-        Rmat = R;
+        m_csys.rot = R.GetQuaternion();
+        m_rmat = R;
     }
 
     /// Impose the translation
-    void SetPos(const ChVector3<Real>& mpos) { Csys.pos = mpos; }
+    void SetPos(const ChVector3<Real>& mpos) { m_csys.pos = mpos; }
 
     // FUNCTIONS TO TRANSFORM THE FRAME ITSELF
 
@@ -213,7 +213,7 @@ class ChFrame {
     ///  or
     ///     this' = this >> F
     void ConcatenatePreTransformation(const ChFrame<Real>& F) {
-        this->SetCsys(F.TransformPointLocalToParent(Csys.pos), F.Csys.rot * Csys.rot);
+        this->SetCoordsys(F.TransformPointLocalToParent(m_csys.pos), F.m_csys.rot * m_csys.rot);
     }
 
     /// Apply a transformation (rotation and translation) represented by another frame F in local coordinate.
@@ -222,69 +222,71 @@ class ChFrame {
     ///  or
     ///    this'= F >> this
     void ConcatenatePostTransformation(const ChFrame<Real>& F) {
-        this->SetCsys(TransformPointLocalToParent(F.Csys.pos), Csys.rot * F.Csys.rot);
+        this->SetCoordsys(TransformPointLocalToParent(F.m_csys.pos), m_csys.rot * F.m_csys.rot);
     }
 
     /// An easy way to move the frame by the amount specified by vector v,
     /// (assuming v expressed in parent coordinates)
-    void Move(const ChVector3<Real>& v) { this->Csys.pos += v; }
+    void Move(const ChVector3<Real>& v) { this->m_csys.pos += v; }
 
     /// Apply both translation and rotation, assuming both expressed in parent
     /// coordinates, as a vector for translation and quaternion for rotation,
-    void Move(const ChCoordsys<Real>& C) { this->SetCsys(C.TransformPointLocalToParent(Csys.pos), C.rot * Csys.rot); }
+    void Move(const ChCoordsys<Real>& C) {
+        this->SetCoordsys(C.TransformPointLocalToParent(m_csys.pos), C.rot * m_csys.rot);
+    }
 
     // FUNCTIONS FOR COORDINATE TRANSFORMATIONS
 
     /// Transform a point from the local frame coordinate system to the parent coordinate system.
-    ChVector3<Real> TransformPointLocalToParent(const ChVector3<Real>& v) const { return Csys.pos + Rmat * v; }
+    ChVector3<Real> TransformPointLocalToParent(const ChVector3<Real>& v) const { return m_csys.pos + m_rmat * v; }
 
     /// Transforms a point from the parent coordinate system to local frame coordinate system.
     ChVector3<Real> TransformPointParentToLocal(const ChVector3<Real>& v) const {
-        return Rmat.transpose() * (v - Csys.pos);
+        return m_rmat.transpose() * (v - m_csys.pos);
     }
 
     /// Transform a frame from 'this' local coordinate system to parent frame coordinate system.
     ChFrame<Real> TransformLocalToParent(const ChFrame<Real>& F) const {
-        return ChFrame<Real>(TransformPointLocalToParent(F.Csys.pos), Csys.rot * F.Csys.rot);
+        return ChFrame<Real>(TransformPointLocalToParent(F.m_csys.pos), m_csys.rot * F.m_csys.rot);
     }
 
     /// Transform a frame from the parent coordinate system to 'this' local frame coordinate system.
     ChFrame<Real> TransformParentToLocal(const ChFrame<Real>& F) const {
-        return ChFrame<>(TransformPointParentToLocal(F.Csys.pos), Csys.rot.GetConjugate() * F.Csys.rot);
+        return ChFrame<>(TransformPointParentToLocal(F.m_csys.pos), m_csys.rot.GetConjugate() * F.m_csys.rot);
     }
 
     /// Transform a direction from the parent frame coordinate system to 'this' local coordinate system.
-    ChVector3<Real> TransformDirectionLocalToParent(const ChVector3<Real>& d) const { return Rmat * d; }
+    ChVector3<Real> TransformDirectionLocalToParent(const ChVector3<Real>& d) const { return m_rmat * d; }
 
     /// Transforms a direction from 'this' local coordinate system to parent frame coordinate system.
-    ChVector3<Real> TransformDirectionParentToLocal(const ChVector3<Real>& d) const { return Rmat.transpose() * d; }
+    ChVector3<Real> TransformDirectionParentToLocal(const ChVector3<Real>& d) const { return m_rmat.transpose() * d; }
 
     // OTHER FUNCTIONS
 
     /// Returns true if this transform is identical to the other transform.
-    bool Equals(const ChFrame<Real>& other) const { return Csys.Equals(other.Csys); }
+    bool Equals(const ChFrame<Real>& other) const { return m_csys.Equals(other.m_csys); }
 
     /// Returns true if this transform is equal to the other transform, within a tolerance 'tol'.
-    bool Equals(const ChFrame<Real>& other, Real tol) const { return Csys.Equals(other.Csys, tol); }
+    bool Equals(const ChFrame<Real>& other, Real tol) const { return m_csys.Equals(other.m_csys, tol); }
 
     /// Normalize the rotation, so that quaternion has unit length
     void Normalize() {
-        Csys.rot.Normalize();
-        Rmat.SetFromQuaternion(Csys.rot);
+        m_csys.rot.Normalize();
+        m_rmat.SetFromQuaternion(m_csys.rot);
     }
 
     /// Sets to no translation and no rotation
     virtual void SetIdentity() {
-        Csys.SetIdentity();
-        Rmat.setIdentity();
+        m_csys.SetIdentity();
+        m_rmat.setIdentity();
     }
 
     /// Invert in place.
     /// If w = A * v, after A.Invert() we have v = A * w;
     virtual void Invert() {
-        Csys.rot.Conjugate();
-        Rmat.transposeInPlace();
-        Csys.pos = -(Rmat * Csys.pos);
+        m_csys.rot.Conjugate();
+        m_rmat.transposeInPlace();
+        m_csys.pos = -(m_rmat * m_csys.pos);
     }
 
     /// Return the inverse transform.
@@ -299,7 +301,7 @@ class ChFrame {
         // suggested: use versioning
         archive.VersionWrite<ChFrame<double>>();
         // stream out all member data
-        archive << CHNVP(Csys);
+        archive << CHNVP(m_csys);
     }
 
     /// Method to allow de-serialization of transient data from archives.
@@ -307,13 +309,13 @@ class ChFrame {
         // suggested: use versioning
         /*int version =*/archive.VersionRead<ChFrame<double>>();
         // stream in all member data
-        if (archive.in(CHNVP(Csys)))
-            Rmat.SetFromQuaternion(Csys.rot);
+        if (archive.in(CHNVP(m_csys)))
+            m_rmat.SetFromQuaternion(m_csys.rot);
     }
 
   protected:
-    ChCoordsys<Real> Csys;  ///< Rotation and position, as vector+quaternion
-    ChMatrix33<Real> Rmat;  ///< 3x3 orthogonal rotation matrix
+    ChCoordsys<Real> m_csys;  ///< position and rotation, as vector + quaternion
+    ChMatrix33<Real> m_rmat;  ///< 3x3 orthogonal rotation matrix
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
@@ -356,7 +358,7 @@ typedef ChFrame<float> ChFramef;
 /// The effect is like applying the transformation frame_A to frame_B and get frame_C.
 template <class Real>
 ChCoordsys<Real> operator*(const ChFrame<Real>& Fa, const ChCoordsys<Real>& Cb) {
-    return Fa.GetCsys().TransformLocalToParent(Cb);
+    return Fa.GetCoordsys().TransformLocalToParent(Cb);
 }
 
 /// The '*' operator that transforms a coordinate system of 'mixed' type:
@@ -380,7 +382,7 @@ ChFrame<Real> operator*(const ChCoordsys<Real>& Ca, const ChFrame<Real>& Fb) {
 /// The effect is like applying the transformation frame_B to frame_A and get frame_C.
 template <class Real>
 ChCoordsys<Real> operator>>(const ChCoordsys<Real>& Ca, const ChFrame<Real>& Fb) {
-    return Fb.GetCsys().TransformLocalToParent(Ca);
+    return Fb.GetCoordsys().TransformLocalToParent(Ca);
 }
 
 /// The '>>' operator that transforms a coordinate system of 'mixed' type:

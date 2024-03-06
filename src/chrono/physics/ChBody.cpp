@@ -106,7 +106,7 @@ void ChBody::IntStateScatter(const unsigned int off_x,  // offset in x state vec
                              const double T,            // time
                              bool full_update           // perform complete update
 ) {
-    SetCsys(x.segment(off_x, 7));
+    SetCoordsys(x.segment(off_x, 7));
     SetPosDer(v.segment(off_v + 0, 3));
     SetAngVelLocal(v.segment(off_v + 3, 3));
     SetChTime(T);
@@ -246,12 +246,12 @@ void ChBody::VariablesFbIncrementMq() {
 
 void ChBody::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    variables.Get_qb().segment(0, 3) = GetCsysDer().pos.eigen();
+    variables.Get_qb().segment(0, 3) = GetCoordsysDer().pos.eigen();
     variables.Get_qb().segment(3, 3) = GetAngVelLocal().eigen();
 }
 
 void ChBody::VariablesQbSetSpeed(double step) {
-    ChCoordsys<> old_coord_dt = GetCsysDer();
+    ChCoordsys<> old_coord_dt = GetCoordsysDer();
 
     // from 'qb' vector, sets body speed, and updates auxiliary data
     SetPosDer(variables.Get_qb().segment(0, 3));
@@ -265,8 +265,8 @@ void ChBody::VariablesQbSetSpeed(double step) {
 
     // Compute accel. by BDF (approximate by differentiation);
     if (step) {
-        SetPosDer2((GetCsysDer().pos - old_coord_dt.pos) / step);
-        SetRotDer2((GetCsysDer().rot - old_coord_dt.rot) / step);
+        SetPosDer2((GetCoordsysDer().pos - old_coord_dt.pos) / step);
+        SetRotDer2((GetCoordsysDer().rot - old_coord_dt.rot) / step);
     }
 }
 
@@ -717,8 +717,8 @@ ChAABB ChBody::GetTotalAABB() {
 }
 
 void ChBody::ContactableGetStateBlock_x(ChState& x) {
-    x.segment(0, 3) = GetCsys().pos.eigen();
-    x.segment(3, 4) = GetCsys().rot.eigen();
+    x.segment(0, 3) = GetCoordsys().pos.eigen();
+    x.segment(3, 4) = GetCoordsys().rot.eigen();
 }
 
 void ChBody::ContactableGetStateBlock_w(ChStateDelta& w) {
@@ -752,7 +752,7 @@ ChVector3d ChBody::GetContactPointSpeed(const ChVector3d& abs_point) {
 }
 
 ChCoordsys<> ChBody::GetCsysForCollisionModel() {
-    return ChCoordsys<>(GetFrame_REF_to_abs().GetCsys());
+    return ChCoordsys<>(GetFrame_REF_to_abs().GetCoordsys());
 }
 
 void ChBody::ContactForceLoadResidual_F(const ChVector3d& F,
@@ -814,23 +814,23 @@ void ChBody::ComputeJacobianForContactPart(const ChVector3d& abs_point,
     // UNROLLED VERSION - FASTER
     ChVector3d p1 = TransformPointParentToLocal(abs_point);
     double temp00 =
-        Rmat(0, 2) * contact_plane(0, 0) + Rmat(1, 2) * contact_plane(1, 0) + Rmat(2, 2) * contact_plane(2, 0);
+        m_rmat(0, 2) * contact_plane(0, 0) + m_rmat(1, 2) * contact_plane(1, 0) + m_rmat(2, 2) * contact_plane(2, 0);
     double temp01 =
-        Rmat(0, 2) * contact_plane(0, 1) + Rmat(1, 2) * contact_plane(1, 1) + Rmat(2, 2) * contact_plane(2, 1);
+        m_rmat(0, 2) * contact_plane(0, 1) + m_rmat(1, 2) * contact_plane(1, 1) + m_rmat(2, 2) * contact_plane(2, 1);
     double temp02 =
-        Rmat(0, 2) * contact_plane(0, 2) + Rmat(1, 2) * contact_plane(1, 2) + Rmat(2, 2) * contact_plane(2, 2);
+        m_rmat(0, 2) * contact_plane(0, 2) + m_rmat(1, 2) * contact_plane(1, 2) + m_rmat(2, 2) * contact_plane(2, 2);
     double temp10 =
-        Rmat(0, 1) * contact_plane(0, 0) + Rmat(1, 1) * contact_plane(1, 0) + Rmat(2, 1) * contact_plane(2, 0);
+        m_rmat(0, 1) * contact_plane(0, 0) + m_rmat(1, 1) * contact_plane(1, 0) + m_rmat(2, 1) * contact_plane(2, 0);
     double temp11 =
-        Rmat(0, 1) * contact_plane(0, 1) + Rmat(1, 1) * contact_plane(1, 1) + Rmat(2, 1) * contact_plane(2, 1);
+        m_rmat(0, 1) * contact_plane(0, 1) + m_rmat(1, 1) * contact_plane(1, 1) + m_rmat(2, 1) * contact_plane(2, 1);
     double temp12 =
-        Rmat(0, 1) * contact_plane(0, 2) + Rmat(1, 1) * contact_plane(1, 2) + Rmat(2, 1) * contact_plane(2, 2);
+        m_rmat(0, 1) * contact_plane(0, 2) + m_rmat(1, 1) * contact_plane(1, 2) + m_rmat(2, 1) * contact_plane(2, 2);
     double temp20 =
-        Rmat(0, 0) * contact_plane(0, 0) + Rmat(1, 0) * contact_plane(1, 0) + Rmat(2, 0) * contact_plane(2, 0);
+        m_rmat(0, 0) * contact_plane(0, 0) + m_rmat(1, 0) * contact_plane(1, 0) + m_rmat(2, 0) * contact_plane(2, 0);
     double temp21 =
-        Rmat(0, 0) * contact_plane(0, 1) + Rmat(1, 0) * contact_plane(1, 1) + Rmat(2, 0) * contact_plane(2, 1);
+        m_rmat(0, 0) * contact_plane(0, 1) + m_rmat(1, 0) * contact_plane(1, 1) + m_rmat(2, 0) * contact_plane(2, 1);
     double temp22 =
-        Rmat(0, 0) * contact_plane(0, 2) + Rmat(1, 0) * contact_plane(1, 2) + Rmat(2, 0) * contact_plane(2, 2);
+        m_rmat(0, 0) * contact_plane(0, 2) + m_rmat(1, 0) * contact_plane(1, 2) + m_rmat(2, 0) * contact_plane(2, 2);
 
     // Jx1 =
     // [ c00, c10, c20]
@@ -934,8 +934,8 @@ void ChBody::LoadableStateIncrement(const unsigned int off_x,
 }
 
 void ChBody::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
-    mD.segment(block_offset + 0, 3) = GetCsys().pos.eigen();
-    mD.segment(block_offset + 3, 4) = GetCsys().rot.eigen();
+    mD.segment(block_offset + 0, 3) = GetCoordsys().pos.eigen();
+    mD.segment(block_offset + 3, 4) = GetCoordsys().rot.eigen();
 }
 
 void ChBody::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
@@ -962,7 +962,7 @@ void ChBody::ComputeNF(
     if (state_x)
         bodycoord = state_x->segment(0, 7);  // the numerical jacobian algo might change state_x
     else
-        bodycoord = Csys;
+        bodycoord = m_csys;
 
     // compute Q components F,T, given current state of body 'bodycoord'. Note T in Q is in local csys, F is an abs csys
     body_absF = absF;

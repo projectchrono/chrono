@@ -679,7 +679,7 @@ void ChPovRay::ExportObjData(std::ofstream& pov_file,
     int num_shapesFEA = vis_model->GetNumShapesFEA();
     int num_cameras = (int)item->GetCameras().size();
     int num_commands = (commands == m_custom_commands.end()) ? 0 : 1;
-    int num_csys = (parentframe.GetCsys() == CSYSNORM) ? 0 : 1;
+    int num_csys = (parentframe.GetCoordsys() == CSYSNORM) ? 0 : 1;
 
     // Use a union only if more than one element
     bool use_union = num_shapes + num_shapesFEA + num_cameras + num_commands + num_csys > 1;
@@ -801,14 +801,14 @@ void ChPovRay::ExportData(const std::string& filename) {
                 // Get the current coordinate frame of the i-th object
                 ChCoordsys<> assetcsys = CSYSNORM;
                 const ChFrame<>& bodyframe = body->GetFrame_REF_to_abs();
-                assetcsys = bodyframe.GetCsys();
+                assetcsys = bodyframe.GetCoordsys();
 
                 // Dump the POV macro that generates the contained asset(s) tree
                 ExportObjData(pov_file, body, bodyframe);
 
                 // Show body COG?
                 if (COGs_show) {
-                    const ChCoordsys<>& cogcsys = body->GetFrame_COG_to_abs().GetCsys();
+                    const ChCoordsys<>& cogcsys = body->GetFrame_COG_to_abs().GetCoordsys();
                     pov_file << "sh_csysCOG(";
                     pov_file << cogcsys.pos.x() << "," << cogcsys.pos.y() << "," << cogcsys.pos.z() << ",";
                     pov_file << cogcsys.rot.e0() << "," << cogcsys.rot.e1() << "," << cogcsys.rot.e2() << ","
@@ -845,7 +845,7 @@ void ChPovRay::ExportData(const std::string& filename) {
                 for (unsigned int m = 0; m < clones->GetNparticles(); ++m) {
                     // Get the current coordinate frame of the i-th particle
                     ChCoordsys<> assetcsys = CSYSNORM;
-                    assetcsys = clones->GetParticle(m).GetCsys();
+                    assetcsys = clones->GetParticle(m).GetCoordsys();
 
                     data_file << assetcsys.pos.x() << ", ";
                     data_file << assetcsys.pos.y() << ", ";

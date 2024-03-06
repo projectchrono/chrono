@@ -247,16 +247,16 @@ Note that this represents a major public API change and we expect most user code
 | ChException                       |                               | remove                                           |
 | ChFrame                           |                               |                                                  |
 |                                   | GetA                          | rename: GetRotMat                                |
-|                                   | GetCoord                      | rename: GetCsys                                  |
+|                                   | GetCoord                      | rename: GetCoordsys                              |
 |                                   | operator%=                    | remove                                           |
-|                                   | SetCoord                      | rename: SetCsys                                  |
+|                                   | SetCoord                      | rename: SetCoordsys                              |
 | ChFrameMoving                     |                               |                                                  | 
 |                                   | Compute_Adt                   | rename: ComputeRotMatDer                         |
 |                                   | Compute_Adtdt                 | rename: ComputeRotMatDer2                        |
 |                                   | GetA_dt                       | rename: GetRotMatDer                             |
 |                                   | GetA_dtdt                     | rename: GetRotMatDer2                            |
-|                                   | GetCoord_dt                   | rename: GetCsysDer                               |
-|                                   | GetCoord_dtdt                 | rename: GetCsysDer2                              |
+|                                   | GetCoord_dt                   | rename: GetCoordsysDer                           |
+|                                   | GetCoord_dtdt                 | rename: GetCoordsysDer2                          |
 |                                   | GetPos_dt                     | rename: GetPosDer                                |
 |                                   |                               | added: GetLinVel                                 |
 |                                   | GetPos_dtdt                   | rename: GetPosDer2                               |
@@ -268,8 +268,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetWvel_loc                   | rename: GetAngVelLocal                           |
 |                                   | GetWvel_par                   | rename: GetAngVelParent                          |
 |                                   | operator%=                    | remove                                           |
-|                                   | SetCoord_dt                   | rename: SetCsysDer                               |
-|                                   | SetCoord_dtdt                 | rename: SetCsysDer2                              |
+|                                   | SetCoord_dt                   | rename: SetCoordsysDer                           |
+|                                   | SetCoord_dtdt                 | rename: SetCoordsysDer2                          |
 |                                   | SetPos_dt                     | rename: SetPosDer                                |
 |                                   |                               | added: SetLinVel                                 |
 |                                   | SetPos_dtdt                   | rename: SetPosDer2                               |
@@ -479,22 +479,22 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Dir_World2Ref                 | remove                                           |
 |                                   | GetAbsWvel                    | rename: GetAngVelAbs                             |
 |                                   | GetAbsWacc                    | rename: GetAngAccAbs                             |
-|                                   | GetAbsCoord                   | rename: GetAbsCsys                               |
-|                                   | GetAbsCoord_dt                | rename: GetAbsCsysDer                            |
-|                                   | GetAbsCoord_dtdt              | rename: GetAbsCsysDer2                           |
+|                                   | GetAbsCoord                   | rename: GetAbsCoordsys                           |
+|                                   | GetAbsCoord_dt                | rename: GetAbsCoordsysDer                        |
+|                                   | GetAbsCoord_dtdt              | rename: GetAbsCoordsysDer2                       |
 |                                   | GetMotion_ang                 | rename: GetMotionAngle                           |
 |                                   | GetMotion_axis                | rename: GetMotionAxis                            |
 |                                   | GetMotion_X                   | rename: GetMotionAxisX                           |
 |                                   | GetMotion_Y                   | rename: GetMotionAxisY                           |
 |                                   | GetMotion_Z                   | rename: GetMotionAxisZ                           |
-|                                   | GetRest_Coord                 | rename: GetRestCsys                              |
+|                                   | GetRest_Coord                 | rename: GetRestCoordsys                          |
 |                                   | Impose_Rel_Coord              | rename: ImposeRelativeTransform                  |
 |                                   | Impose_Abs_Coord              | rename: ImposeAbsoluteTransform                  |
 |                                   | Point_Ref2World               | remove                                           |
 |                                   | Point_World2Ref               | remove                                           |
-|                                   | SetAbsCoord                   | rename: SetAbsCsys                               |
-|                                   | SetAbsCoord_dt                | rename: SetAbsCsysDer                            |
-|                                   | SetAbsCoord_dtdt              | rename: SetAbsCsysDer2                           |
+|                                   | SetAbsCoord                   | rename: SetAbsCoordsys                           |
+|                                   | SetAbsCoord_dt                | rename: SetAbsCoordsysDer                        |
+|                                   | SetAbsCoord_dtdt              | rename: SetAbsCoordsysDer2                       |
 |                                   | SetMotion_ang                 | rename: SetMotionAngle                           |
 |                                   | SetMotion_axis                | rename: SetMotionAxis                            |
 |                                   | SetMotion_X                   | rename: SetMotionAxisX                           |

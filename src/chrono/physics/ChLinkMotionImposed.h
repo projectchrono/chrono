@@ -82,7 +82,7 @@ class ChApi ChLinkMotionImposed : public ChLinkMateGeneric {
 	/// in this case we use the "moving" auxiliary frame M whose motion is concatenated to frame2 (in absolute coordinates,
 	/// such moving frame will be cohincident with frame1 if the constraint is well assembled - in fact this makes constraint
 	/// forces more intuitive, as one will get reaction forces and torques as applied to the frame1 of moving body 1).
-    virtual ChCoordsys<> GetLinkRelativeCoords() override { return (frameMb2).GetCsys(); }
+    virtual ChCoordsys<> GetLinkRelativeCoords() override { return (frameMb2).GetCoordsys(); }
 
     void Update(double mytime, bool update_assets) override;
 

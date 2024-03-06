@@ -77,7 +77,7 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     /// body). This represents the 'main' reference of the link: reaction forces
     /// are expressed in this coordinate system.
     /// (It is the coordinate system of the contact plane relative to Body2)
-    virtual ChCoordsys<> GetLinkRelativeCoords() override { return frame2.GetCsys(); }
+    virtual ChCoordsys<> GetLinkRelativeCoords() override { return frame2.GetCoordsys(); }
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// For a ChLinkMate, this returns the absolute coordinate system of the second body.

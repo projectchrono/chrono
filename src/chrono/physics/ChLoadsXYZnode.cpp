@@ -195,10 +195,10 @@ void ChLoadXYZnodeBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     if (state_x) {
         // the numerical jacobian algo might change state_x
         bodycoordA.SetPos(state_x->segment(0, 3));
-        bodycoordB.SetCsys(state_x->segment(3, 7));
+        bodycoordB.SetCoordsys(state_x->segment(3, 7));
     } else {
         bodycoordA.SetPos(nodeA->pos);
-        bodycoordB.SetCsys(bodyB->GetCsys());
+        bodycoordB.SetCoordsys(bodyB->GetCoordsys());
     }
 
     if (state_w) {
@@ -208,7 +208,7 @@ void ChLoadXYZnodeBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
         bodycoordB.SetAngVelLocal(state_w->segment(6, 3));
     } else {
         bodycoordA.SetPosDer(nodeA->GetPosDer());
-        bodycoordB.SetCsysDer(bodyB->GetCsysDer());
+        bodycoordB.SetCoordsysDer(bodyB->GetCoordsysDer());
     }
 
     frame_Aw = bodycoordA;

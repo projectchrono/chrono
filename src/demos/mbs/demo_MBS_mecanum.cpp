@@ -214,8 +214,8 @@ int main(int argc, char* argv[]) {
     ChFrame<> ftot_wC = f0 >> f1 >> f2_wC;
 
     auto spindle_A = create_mecanum_wheel(sys,
-                                          ftot_wA.GetCsys().pos,  // wheel position
-                                          ftot_wA.GetCsys().rot,  // wheel alignment
+                                          ftot_wA.GetCoordsys().pos,  // wheel position
+                                          ftot_wA.GetCoordsys().rot,  // wheel alignment
                                           wheel_radius,            // wheel radius
                                           2.2,                     // wheel width
                                           8,                       // n. of rollers
@@ -230,8 +230,8 @@ int main(int argc, char* argv[]) {
     sys.AddLink(link_shaftA);
 
     auto spindle_B = create_mecanum_wheel(sys,
-                                          ftot_wB.GetCsys().pos,  // wheel position
-                                          ftot_wB.GetCsys().rot,  // wheel alignment
+                                          ftot_wB.GetCoordsys().pos,  // wheel position
+                                          ftot_wB.GetCoordsys().rot,  // wheel alignment
                                           wheel_radius,            // wheel radius
                                           2.2,                     // wheel width
                                           8,                       // n. of rollers
@@ -246,8 +246,8 @@ int main(int argc, char* argv[]) {
     sys.AddLink(link_shaftB);
 
     auto spindle_C = create_mecanum_wheel(sys,
-                                          ftot_wC.GetCsys().pos,  // wheel position
-                                          ftot_wC.GetCsys().rot,  // wheel alignment
+                                          ftot_wC.GetCoordsys().pos,  // wheel position
+                                          ftot_wC.GetCoordsys().rot,  // wheel alignment
                                           wheel_radius,            // wheel radius
                                           2.2,                     // wheel width
                                           8,                       // n. of rollers
@@ -317,15 +317,15 @@ int main(int argc, char* argv[]) {
         ChVector3d imposed_speed(STATIC_x_speed, 0, STATIC_z_speed);
         ChFrame<> roll_twist(ChVector3d(0, -wheel_radius, 0), QuatFromAngleY(-roller_angle));
 
-        ChFrame<> abs_roll_wA = roll_twist >> f2_wA >> ChFrame<>(platform->GetCsys());
+        ChFrame<> abs_roll_wA = roll_twist >> f2_wA >> ChFrame<>(platform->GetCoordsys());
         double wheel_A_rotspeed =
             (STATIC_rot_speed * platform_radius) +
             ((abs_roll_wA.GetRotMat().transpose() * imposed_speed).x() / sin(roller_angle)) / wheel_radius;
-        ChFrame<> abs_roll_wB = roll_twist >> f2_wB >> ChFrame<>(platform->GetCsys());
+        ChFrame<> abs_roll_wB = roll_twist >> f2_wB >> ChFrame<>(platform->GetCoordsys());
         double wheel_B_rotspeed =
             (STATIC_rot_speed * platform_radius) +
             ((abs_roll_wB.GetRotMat().transpose() * imposed_speed).x() / sin(roller_angle)) / wheel_radius;
-        ChFrame<> abs_roll_wC = roll_twist >> f2_wC >> ChFrame<>(platform->GetCsys());
+        ChFrame<> abs_roll_wC = roll_twist >> f2_wC >> ChFrame<>(platform->GetCoordsys());
         double wheel_C_rotspeed =
             (STATIC_rot_speed * platform_radius) +
             ((abs_roll_wC.GetRotMat().transpose() * imposed_speed).x() / sin(roller_angle)) / wheel_radius;

@@ -305,7 +305,7 @@ void ChPart::ExportMarkerList(rapidjson::Document& jsonDocument, std::vector<std
         obj.AddMember("id", marker->GetIdentifier(), allocator);
         obj.AddMember("body name", rapidjson::StringRef(marker->GetBody()->GetName()), allocator);
         obj.AddMember("body id", marker->GetBody()->GetIdentifier(), allocator);
-        obj.AddMember("relative coordinates", Csys2Val(marker->GetCsys(), allocator), allocator);
+        obj.AddMember("relative coordinates", Csys2Val(marker->GetCoordsys(), allocator), allocator);
         jsonArray.PushBack(obj, allocator);
     }
     jsonDocument.AddMember("markers", jsonArray, allocator);

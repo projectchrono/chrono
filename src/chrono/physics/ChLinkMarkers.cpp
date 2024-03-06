@@ -76,9 +76,7 @@ void ChLinkMarkers::Initialize(std::shared_ptr<ChMarker> mark1, std::shared_ptr<
     SetUpMarkers(mark1.get(), mark2.get());
 }
 
-void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1,
-                               std::shared_ptr<ChBody> mbody2,
-                               const ChFrame<>& frame) {
+void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1, std::shared_ptr<ChBody> mbody2, const ChFrame<>& frame) {
     return Initialize(mbody1, mbody2, false, frame, frame);
 }
 
@@ -113,99 +111,99 @@ void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1,
 // and relM_dtdt, as well as auxiliary data. Cache some intermediate quantities
 // for possible reuse in UpdateState by some derived classes.
 void ChLinkMarkers::UpdateRelMarkerCoords() {
-    PQw = marker1->GetAbsCsys().pos - marker2->GetAbsCsys().pos;
-    PQw_dt = marker1->GetAbsCsysDer().pos - marker2->GetAbsCsysDer().pos;
-    PQw_dtdt = marker1->GetAbsCsysDer2().pos - marker2->GetAbsCsysDer2().pos;
+    PQw = marker1->GetAbsCoordsys().pos - marker2->GetAbsCoordsys().pos;
+    PQw_dt = marker1->GetAbsCoordsysDer().pos - marker2->GetAbsCoordsysDer().pos;
+    PQw_dtdt = marker1->GetAbsCoordsysDer2().pos - marker2->GetAbsCoordsysDer2().pos;
 
     dist = Vlength(PQw);                 // distance between origins, modulus
     dist_dt = Vdot(Vnorm(PQw), PQw_dt);  // speed between origins, modulus.
 
     ChQuaterniond qtemp1;
 
-    ChQuaterniond temp1 = marker1->GetCsysDer().rot;
-    ChQuaterniond temp2 = marker2->GetCsysDer().rot;
+    ChQuaterniond temp1 = marker1->GetCoordsysDer().rot;
+    ChQuaterniond temp2 = marker2->GetCoordsysDer().rot;
 
     if (Qnotnull(temp1) || Qnotnull(temp2)) {
         q_AD =  //  q'qqq + qqqq'
-            Qadd(Qcross(Qconjugate(marker2->GetCsysDer().rot),
-                        Qcross(Qconjugate(marker2->GetBody()->GetCsys().rot),
-                               Qcross((marker1->GetBody()->GetCsys().rot), (marker1->GetCsys().rot)))),
-                 Qcross(Qconjugate(marker2->GetCsys().rot),
-                        Qcross(Qconjugate(marker2->GetBody()->GetCsys().rot),
-                               Qcross((marker1->GetBody()->GetCsys().rot), (marker1->GetCsysDer().rot)))));
+            Qadd(Qcross(Qconjugate(marker2->GetCoordsysDer().rot),
+                        Qcross(Qconjugate(marker2->GetBody()->GetCoordsys().rot),
+                               Qcross((marker1->GetBody()->GetCoordsys().rot), (marker1->GetCoordsys().rot)))),
+                 Qcross(Qconjugate(marker2->GetCoordsys().rot),
+                        Qcross(Qconjugate(marker2->GetBody()->GetCoordsys().rot),
+                               Qcross((marker1->GetBody()->GetCoordsys().rot), (marker1->GetCoordsysDer().rot)))));
     } else
         q_AD = QNULL;
 
     q_BC =  // qq'qq + qqq'q
-        Qadd(Qcross(Qconjugate(marker2->GetCsys().rot),
-                    Qcross(Qconjugate(marker2->GetBody()->GetCsysDer().rot),
-                           Qcross((marker1->GetBody()->GetCsys().rot), (marker1->GetCsys().rot)))),
-             Qcross(Qconjugate(marker2->GetCsys().rot),
-                    Qcross(Qconjugate(marker2->GetBody()->GetCsys().rot),
-                           Qcross((marker1->GetBody()->GetCsysDer().rot), (marker1->GetCsys().rot)))));
+        Qadd(Qcross(Qconjugate(marker2->GetCoordsys().rot),
+                    Qcross(Qconjugate(marker2->GetBody()->GetCoordsysDer().rot),
+                           Qcross((marker1->GetBody()->GetCoordsys().rot), (marker1->GetCoordsys().rot)))),
+             Qcross(Qconjugate(marker2->GetCoordsys().rot),
+                    Qcross(Qconjugate(marker2->GetBody()->GetCoordsys().rot),
+                           Qcross((marker1->GetBody()->GetCoordsysDer().rot), (marker1->GetCoordsys().rot)))));
 
     // q_8 = q''qqq + 2q'q'qq + 2q'qq'q + 2q'qqq'
     //     + 2qq'q'q + 2qq'qq' + 2qqq'q' + qqqq''
-    temp2 = marker2->GetCsysDer2().rot;
+    temp2 = marker2->GetCoordsysDer2().rot;
     if (Qnotnull(temp2))
-        q_8 = Qcross(Qconjugate(marker2->GetCsysDer2().rot),
-                     Qcross(Qconjugate(Body2->GetCsys().rot),
-                            Qcross(Body1->GetCsys().rot,
-                                   marker1->GetCsys().rot)));  // q_dtdt'm2 * q'o2 * q,o1 * q,m1
+        q_8 = Qcross(Qconjugate(marker2->GetCoordsysDer2().rot),
+                     Qcross(Qconjugate(Body2->GetCoordsys().rot),
+                            Qcross(Body1->GetCoordsys().rot,
+                                   marker1->GetCoordsys().rot)));  // q_dtdt'm2 * q'o2 * q,o1 * q,m1
     else
         q_8 = QNULL;
-    temp1 = marker1->GetCsysDer2().rot;
+    temp1 = marker1->GetCoordsysDer2().rot;
     if (Qnotnull(temp1)) {
-        qtemp1 = Qcross(Qconjugate(marker2->GetCsys().rot),
-                        Qcross(Qconjugate(Body2->GetCsys().rot),
-                               Qcross(Body1->GetCsys().rot,
-                                      marker1->GetCsysDer2().rot)));  // q'm2 * q'o2 * q,o1 * q_dtdt,m1
+        qtemp1 = Qcross(Qconjugate(marker2->GetCoordsys().rot),
+                        Qcross(Qconjugate(Body2->GetCoordsys().rot),
+                               Qcross(Body1->GetCoordsys().rot,
+                                      marker1->GetCoordsysDer2().rot)));  // q'm2 * q'o2 * q,o1 * q_dtdt,m1
         q_8 = Qadd(q_8, qtemp1);
     }
-    temp2 = marker2->GetCsysDer().rot;
+    temp2 = marker2->GetCoordsysDer().rot;
     if (Qnotnull(temp2)) {
-        qtemp1 =
-            Qcross(Qconjugate(marker2->GetCsysDer().rot),
-                   Qcross(Qconjugate(Body2->GetCsysDer().rot), Qcross(Body1->GetCsys().rot, marker1->GetCsys().rot)));
+        qtemp1 = Qcross(Qconjugate(marker2->GetCoordsysDer().rot),
+                        Qcross(Qconjugate(Body2->GetCoordsysDer().rot),
+                               Qcross(Body1->GetCoordsys().rot, marker1->GetCoordsys().rot)));
         qtemp1 = Qscale(qtemp1, 2);  // 2( q_dt'm2 * q_dt'o2 * q,o1 * q,m1)
         q_8 = Qadd(q_8, qtemp1);
     }
-    temp2 = marker2->GetCsysDer().rot;
+    temp2 = marker2->GetCoordsysDer().rot;
     if (Qnotnull(temp2)) {
-        qtemp1 =
-            Qcross(Qconjugate(marker2->GetCsysDer().rot),
-                   Qcross(Qconjugate(Body2->GetCsys().rot), Qcross(Body1->GetCsysDer().rot, marker1->GetCsys().rot)));
+        qtemp1 = Qcross(Qconjugate(marker2->GetCoordsysDer().rot),
+                        Qcross(Qconjugate(Body2->GetCoordsys().rot),
+                               Qcross(Body1->GetCoordsysDer().rot, marker1->GetCoordsys().rot)));
         qtemp1 = Qscale(qtemp1, 2);  // 2( q_dt'm2 * q'o2 * q_dt,o1 * q,m1)
         q_8 = Qadd(q_8, qtemp1);
     }
-    temp1 = marker1->GetCsysDer().rot;
-    temp2 = marker2->GetCsysDer().rot;
+    temp1 = marker1->GetCoordsysDer().rot;
+    temp2 = marker2->GetCoordsysDer().rot;
     if (Qnotnull(temp2) && Qnotnull(temp1)) {
-        qtemp1 =
-            Qcross(Qconjugate(marker2->GetCsysDer().rot),
-                   Qcross(Qconjugate(Body2->GetCsys().rot), Qcross(Body1->GetCsys().rot, marker1->GetCsysDer().rot)));
+        qtemp1 = Qcross(Qconjugate(marker2->GetCoordsysDer().rot),
+                        Qcross(Qconjugate(Body2->GetCoordsys().rot),
+                               Qcross(Body1->GetCoordsys().rot, marker1->GetCoordsysDer().rot)));
         qtemp1 = Qscale(qtemp1, 2);  // 2( q_dt'm2 * q'o2 * q,o1 * q_dt,m1)
         q_8 = Qadd(q_8, qtemp1);
     }
 
-    qtemp1 =
-        Qcross(Qconjugate(marker2->GetCsys().rot),
-               Qcross(Qconjugate(Body2->GetCsysDer().rot), Qcross(Body1->GetCsysDer().rot, marker1->GetCsys().rot)));
+    qtemp1 = Qcross(Qconjugate(marker2->GetCoordsys().rot),
+                    Qcross(Qconjugate(Body2->GetCoordsysDer().rot),
+                           Qcross(Body1->GetCoordsysDer().rot, marker1->GetCoordsys().rot)));
     qtemp1 = Qscale(qtemp1, 2);  // 2( q'm2 * q_dt'o2 * q_dt,o1 * q,m1)
     q_8 = Qadd(q_8, qtemp1);
-    temp1 = marker1->GetCsysDer().rot;
+    temp1 = marker1->GetCoordsysDer().rot;
     if (Qnotnull(temp1)) {
-        qtemp1 = Qcross(
-            Qconjugate(marker2->GetCsys().rot),
-            Qcross(Qconjugate(Body2->GetCsysDer().rot), Qcross(Body1->GetCsys().rot, marker1->GetCsysDer().rot)));
+        qtemp1 = Qcross(Qconjugate(marker2->GetCoordsys().rot),
+                        Qcross(Qconjugate(Body2->GetCoordsysDer().rot),
+                               Qcross(Body1->GetCoordsys().rot, marker1->GetCoordsysDer().rot)));
         qtemp1 = Qscale(qtemp1, 2);  // 2( q'm2 * q_dt'o2 * q,o1 * q_dt,m1)
         q_8 = Qadd(q_8, qtemp1);
     }
-    temp1 = marker1->GetCsysDer().rot;
+    temp1 = marker1->GetCoordsysDer().rot;
     if (Qnotnull(temp1)) {
-        qtemp1 = Qcross(
-            Qconjugate(marker2->GetCsys().rot),
-            Qcross(Qconjugate(Body2->GetCsys().rot), Qcross(Body1->GetCsysDer().rot, marker1->GetCsysDer().rot)));
+        qtemp1 = Qcross(Qconjugate(marker2->GetCoordsys().rot),
+                        Qcross(Qconjugate(Body2->GetCoordsys().rot),
+                               Qcross(Body1->GetCoordsysDer().rot, marker1->GetCoordsysDer().rot)));
         qtemp1 = Qscale(qtemp1, 2);  // 2( q'm2 * q'o2 * q_dt,o1 * q_dt,m1)
         q_8 = Qadd(q_8, qtemp1);
     }
@@ -244,9 +242,9 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
     relM.pos = marker2->GetRotMat().transpose() * (Body2->GetRotMat().transpose() * PQw);
 
     // relM.rot
-    relM.rot = Qcross(Qconjugate(marker2->GetCsys().rot),
-                      Qcross(Qconjugate(marker2->GetBody()->GetCsys().rot),
-                             Qcross((marker1->GetBody()->GetCsys().rot), (marker1->GetCsys().rot))));
+    relM.rot = Qcross(Qconjugate(marker2->GetCoordsys().rot),
+                      Qcross(Qconjugate(marker2->GetBody()->GetCoordsys().rot),
+                             Qcross((marker1->GetBody()->GetCoordsys().rot), (marker1->GetCoordsys().rot))));
 
     // relM_dt.pos
     relM_dt.pos = m2_Rel_A_dt.transpose() * (Body2->GetRotMat().transpose() * PQw) +
@@ -261,16 +259,16 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
                     marker2->GetRotMat().transpose() * (Body2->GetRotMat().transpose() * PQw_dtdt) + q_4;
 
     // relM_dtdt.rot
-    qtemp1 = Qcross(Qconjugate(marker2->GetCsys().rot),
-                    Qcross(Qconjugate(Body2->GetCsysDer2().rot),
-                           Qcross(Body1->GetCsys().rot,
-                                  marker1->GetCsys().rot)));  // ( q'm2 * q_dtdt'o2 * q,o1 * q,m1)
+    qtemp1 = Qcross(Qconjugate(marker2->GetCoordsys().rot),
+                    Qcross(Qconjugate(Body2->GetCoordsysDer2().rot),
+                           Qcross(Body1->GetCoordsys().rot,
+                                  marker1->GetCoordsys().rot)));  // ( q'm2 * q_dtdt'o2 * q,o1 * q,m1)
     relM_dtdt.rot = Qadd(q_8, qtemp1);
-    qtemp1 = Qcross(
-        Qconjugate(marker2->GetCsys().rot),
-        Qcross(Qconjugate(Body2->GetCsys().rot), Qcross(Body1->GetCsysDer2().rot,
-                                                        marker1->GetCsys().rot)));  // ( q'm2 * q'o2 * q_dtdt,o1 * q,m1)
-    relM_dtdt.rot = Qadd(relM_dtdt.rot, qtemp1);                                    // = q_8 + qq''qq + qqq''q
+    qtemp1 = Qcross(Qconjugate(marker2->GetCoordsys().rot),
+                    Qcross(Qconjugate(Body2->GetCoordsys().rot),
+                           Qcross(Body1->GetCoordsysDer2().rot,
+                                  marker1->GetCoordsys().rot)));  // ( q'm2 * q'o2 * q_dtdt,o1 * q,m1)
+    relM_dtdt.rot = Qadd(relM_dtdt.rot, qtemp1);                  // = q_8 + qq''qq + qqq''q
 
     // ... and also "user-friendly" relative coordinates:
 
@@ -319,7 +317,7 @@ void ChLinkMarkers::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>&
 
         if (Body2->Variables().IsActive()) {
             Body2->AppliedForceParentToWrenchParent(m_abs_force,
-                                                    marker1->GetAbsCsys().pos,  // application point is always marker1
+                                                    marker1->GetAbsCoordsys().pos,  // application point is always marker1
                                                     body_force,                 // wrench force, in abs. coords.
                                                     body_torque);               // wrench torque, in abs. coords.
             R.segment(Body2->Variables().GetOffset() + 0, 3) -= c * body_force.eigen();
@@ -329,7 +327,7 @@ void ChLinkMarkers::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>&
 
         if (Body1->Variables().IsActive()) {
             Body1->AppliedForceParentToWrenchParent(m_abs_force,
-                                                    marker1->GetAbsCsys().pos,  // application point is always marker1
+                                                    marker1->GetAbsCoordsys().pos,  // application point is always marker1
                                                     body_force,                 // wrench force, in abs. coords.
                                                     body_torque);               // wrench torque, in abs. coords.
             R.segment(Body1->Variables().GetOffset() + 0, 3) += c * body_force.eigen();
@@ -364,7 +362,7 @@ void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
         ChVector3d body_torque;
 
         Body2->AppliedForceParentToWrenchParent(m_abs_force,
-                                                marker1->GetAbsCsys().pos,  // application point is always marker1
+                                                marker1->GetAbsCoordsys().pos,  // application point is always marker1
                                                 body_force,                 // wrench force, in abs. coords.
                                                 body_torque);               // wrench torque, in abs. coords.
         Body2->Variables().Get_fb().segment(0, 3) -= factor * body_force.eigen();
@@ -372,7 +370,7 @@ void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
             factor * Body2->TransformDirectionParentToLocal(body_torque).eigen();
 
         Body1->AppliedForceParentToWrenchParent(m_abs_force,
-                                                marker1->GetAbsCsys().pos,  // application point is always marker1
+                                                marker1->GetAbsCoordsys().pos,  // application point is always marker1
                                                 body_force,                 // wrench force, in abs. coords.
                                                 body_torque);               // wrench torque, in abs. coords.
         Body1->Variables().Get_fb().segment(0, 3) += factor * body_force.eigen();

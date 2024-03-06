@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
 
             // also create a collision shape attached to the hand:
             auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.08, 0.08, 1000, true, true, mysurfmaterial);
-            mcube->SetCsys(ChCoordsys<>(ChVector3d(0.1, 0, 0)) >> body_hand->GetCsys());
+            mcube->SetCoordsys(ChCoordsys<>(ChVector3d(0.1, 0, 0)) >> body_hand->GetCoordsys());
             sys.Add(mcube);
             auto mcubelink = chrono_types::make_shared<ChLinkLockLock>();
             mcubelink->Initialize(mcube, body_hand, *mcube);

@@ -228,10 +228,8 @@ def main():
             print("Time = " << time << "\n\n")
             # hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS)
 
-            marker_driver = hmmwv.GetChassis().GetMarkers()[
-                0].GetAbsCsys().pos
-            marker_com = hmmwv.GetChassis().GetMarkers()[
-                1].GetAbsCsys().pos
+            marker_driver = hmmwv.GetChassis().GetMarkers()[0].GetAbsCoordsys().pos
+            marker_com = hmmwv.GetChassis().GetMarkers()[1].GetAbsCoordsys().pos
             print("Markers\n")
             print("  Driver loc:      ", marker_driver.x,
                   " ", marker_driver.y, " ", marker_driver.z)

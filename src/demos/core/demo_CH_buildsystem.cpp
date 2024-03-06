@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
 
             // Print something on the console..
             std::cout << "Time: " << chronoTime
-                      << "  Slider X position: " << my_link_CA->GetMarker1()->GetAbsCsys().pos.x()
+                      << "  Slider X position: " << my_link_CA->GetMarker1()->GetAbsCoordsys().pos.x()
                       << "  Engine torque: " << my_motor_AB->GetMotorTorque() << std::endl;
         }
     }

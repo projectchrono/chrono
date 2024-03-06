@@ -32,9 +32,9 @@ void ChBodyAuxRef::SetFrame_COG_to_REF(const ChFrame<>& cog_to_ref) {
 
     ChFrameMoving<> new_cog_to_abs = ref_to_abs.TransformLocalToParent(ChFrameMoving<>(cog_to_ref));
 
-    this->SetCsys(new_cog_to_abs.GetCsys());
-    this->SetCsysDer(new_cog_to_abs.GetCsysDer());
-    this->SetCsysDer2(new_cog_to_abs.GetCsysDer2());
+    this->SetCoordsys(new_cog_to_abs.GetCoordsys());
+    this->SetCoordsysDer(new_cog_to_abs.GetCoordsysDer());
+    this->SetCoordsysDer2(new_cog_to_abs.GetCoordsysDer2());
 
     this->auxref_to_cog = cog_to_ref.GetInverse();
     this->auxref_to_abs = this->TransformLocalToParent(this->auxref_to_cog);
@@ -62,7 +62,7 @@ void ChBodyAuxRef::SetFrame_COG_to_REF(const ChFrame<>& cog_to_ref) {
 
 void ChBodyAuxRef::SetFrame_REF_to_abs(const ChFrame<>& ref_to_abs) {
     auto cog_to_abs = ref_to_abs.TransformLocalToParent(this->auxref_to_cog.GetInverse());
-    this->SetCsys(cog_to_abs.GetCsys());
+    this->SetCoordsys(cog_to_abs.GetCoordsys());
     this->auxref_to_abs = ref_to_abs;
 }
 

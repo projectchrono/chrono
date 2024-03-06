@@ -288,7 +288,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Computes the gyroscopic torque. In fact, in sake of highest
     /// speed, the gyroscopic torque isn't automatically updated each time a
-    /// SetCsys() or SetCsysDer() etc. is called, but only if necessary,
+    /// SetCoordsys() or SetCoordsysDer() etc. is called, but only if necessary,
     /// for each UpdateState().
     void ComputeGyro();
 

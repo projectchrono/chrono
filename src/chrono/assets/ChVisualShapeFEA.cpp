@@ -1040,7 +1040,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
             m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_COORDSYS);
             for (unsigned int inode = 0; inode < FEMmesh->GetNnodes(); ++inode) {
                 if (auto mynode = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(FEMmesh->GetNode(inode))) {
-                    m_glyphs_shape->SetGlyphCoordsys(inode, mynode->Frame().GetCsys());
+                    m_glyphs_shape->SetGlyphCoordsys(inode, mynode->Frame().GetCoordsys());
                 }
                 // else if (auto mynode = std::dynamic_pointer_cast<ChNodeFEAxyzD>(FEMmesh->GetNode(inode))) {
                 //	m_glyphs_shape->SetGlyphVector(inode, mynode->GetPos(), mynode->GetD() * symbols_scale,

@@ -173,7 +173,7 @@ void test_pendulum() {
     sys.Add(load_container);
 
     auto my_root = chrono_types::make_shared<ChBody>();
-    my_root->SetCsys(VNULL, QUNIT);
+    my_root->SetCoordsys(VNULL, QUNIT);
     my_root->SetMass(1e6);
     my_root->SetInertiaXX(ChVector3d(1, 1, 1));
     my_root->SetNameString("base");
@@ -194,7 +194,7 @@ void test_pendulum() {
     ChVector3d mZ;
     Xdir.GetDirectionAxesAsX(mX, mY, mZ, Ydir);
     ChQuaternion<> mass_rot = ChMatrix33<>(mX, mY, mZ).GetQuaternion();
-    my_mass->SetCsys(mass_pos, mass_rot);
+    my_mass->SetCoordsys(mass_pos, mass_rot);
     my_mass->SetMass(tip_mass);
     my_mass->SetInertiaXX(ChVector3d(0, 0, 0));
     my_mass->SetNameString("mass");

@@ -152,10 +152,10 @@ int main(int argc, char* argv[]) {
 
     // Test the  ">>" or "*" operators also for ChCoordsys:
     ChCoordsys<> c_0;
-    c_0 = f_3.GetCsys() >> f32.GetCsys() >> f21.GetCsys() >> f10.GetCsys();
+    c_0 = f_3.GetCoordsys() >> f32.GetCoordsys() >> f21.GetCoordsys() >> f10.GetCoordsys();
     std::cout << f_0 << " ..triple frame trsf. with ChCoordsys '>>' operator" << std::endl;
 
-    c_0 = f10.GetCsys() * f21.GetCsys() * f32.GetCsys() * f_3.GetCsys();
+    c_0 = f10.GetCoordsys() * f21.GetCoordsys() * f32.GetCoordsys() * f_3.GetCoordsys();
     std::cout << f_0 << " ..triple frame trsf. with ChCoordsys '*' operator" << std::endl;
 
     //

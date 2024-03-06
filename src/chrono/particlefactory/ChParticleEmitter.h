@@ -118,7 +118,7 @@ class ChParticleEmitter {
 
             // transform if pre_transform is used
             ChCoordsys<> mcoords_abs;
-            mcoords_abs = mcoords >> pre_transform.GetCsys();
+            mcoords_abs = mcoords >> pre_transform.GetCoordsys();
 
             // 3)
             // Random creation of particle

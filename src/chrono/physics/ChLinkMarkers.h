@@ -105,7 +105,7 @@ class ChApi ChLinkMarkers : public ChLink {
     /// Get the link coordinate system, expressed relative to Body2 (the main body).
     /// This represents the 'main' reference of the link (the coordinate system of the main marker2 on Body2).
     /// Reaction forces and torques are expressed in this coordinate system.
-    virtual ChCoordsys<> GetLinkRelativeCoords() override { return marker2->GetCsys(); }
+    virtual ChCoordsys<> GetLinkRelativeCoords() override { return marker2->GetCoordsys(); }
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// For a ChLinkMarkers, this returns the absolute coordinate system of the main marker2.

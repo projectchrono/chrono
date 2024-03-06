@@ -114,12 +114,12 @@ void ChLinkTSDA::ComputeQ(double time,                  // current time
 ) {
     // Extract states and state derivatives for the two connected bodies
     ChFrameMoving<> bframe1;
-    bframe1.SetCsys(state_x.segment(0, 7));
+    bframe1.SetCoordsys(state_x.segment(0, 7));
     bframe1.SetPosDer(state_w.segment(0, 3));
     bframe1.SetAngVelLocal(state_w.segment(3, 3));
 
     ChFrameMoving<> bframe2;
-    bframe2.SetCsys(state_x.segment(7, 7));
+    bframe2.SetCoordsys(state_x.segment(7, 7));
     bframe2.SetPosDer(state_w.segment(6, 3));
     bframe2.SetAngVelLocal(state_w.segment(9, 3));
 

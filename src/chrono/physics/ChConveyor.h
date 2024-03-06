@@ -65,11 +65,11 @@ class ChApi ChConveyor : public ChPhysicsItem {
     void SetBodyFixed(bool mev) { GetTruss()->SetBodyFixed(mev); }
     bool GetBodyFixed() { return GetTruss()->GetBodyFixed(); }
 
-    ChCoordsys<>& GetCsys() { return GetTruss()->GetCsys(); }
+    ChCoordsys<>& GetCoordsys() { return GetTruss()->GetCoordsys(); }
     ChVector3d& GetPos() { return GetTruss()->GetPos(); }
     ChQuaternion<>& GetRot() { return GetTruss()->GetRot(); }
-    void SetCsys(const ChCoordsys<>& mcoord) { return GetTruss()->SetCsys(mcoord); }
-    void SetCsys(const ChVector3d& mv, const ChQuaternion<>& mq) { GetTruss()->SetCsys(mv, mq); }
+    void SetCoordsys(const ChCoordsys<>& mcoord) { return GetTruss()->SetCoordsys(mcoord); }
+    void SetCoordsys(const ChVector3d& mv, const ChQuaternion<>& mq) { GetTruss()->SetCoordsys(mv, mq); }
     void SetRot(const ChQuaternion<>& mrot) { GetTruss()->SetRot(mrot); }
     void SetPos(const ChVector3d& mpos) { GetTruss()->SetPos(mpos); }
 

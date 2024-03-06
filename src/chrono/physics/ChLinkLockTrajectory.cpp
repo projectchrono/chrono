@@ -76,8 +76,8 @@ void ChLinkLockTrajectory::UpdateTime(double time) {
         deltaC_dtdt.pos = (resultA + resultB - result * 2) * (4 / pow(2 * tstep, 2));
         /*
         // if line coordinate is relative to absolute space:
-        ChMatrix33<> mw(marker2->GetAbsCsys().rot);
-        deltaC.pos = mw.transpose() * (result - marker2->GetAbsCsys().pos);  //// CORRECT?
+        ChMatrix33<> mw(marker2->GetAbsCoordsys().rot);
+        deltaC.pos = mw.transpose() * (result - marker2->GetAbsCoordsys().pos);  //// CORRECT?
         deltaC_dt.pos = mw.transpose() * ((resultB - resultA) * (1 / (2 * tstep)));
         deltaC_dtdt.pos = mw.transpose() * ((resultA + resultB - result * 2) * (4 / pow(2 * tstep, 2)));
         */

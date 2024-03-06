@@ -24,8 +24,8 @@ namespace chrono {
 void ChVisualShapePointPoint::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
     // Extract two positions from updater if it has any, and then update line geometry from these positions.
     if (auto link_markers = dynamic_cast<ChLinkMarkers*>(updater)) {
-        UpdateLineGeometry(frame.TransformPointParentToLocal(link_markers->GetMarker1()->GetAbsCsys().pos),
-                           frame.TransformPointParentToLocal(link_markers->GetMarker2()->GetAbsCsys().pos));
+        UpdateLineGeometry(frame.TransformPointParentToLocal(link_markers->GetMarker1()->GetAbsCoordsys().pos),
+                           frame.TransformPointParentToLocal(link_markers->GetMarker2()->GetAbsCoordsys().pos));
     } else if (auto link_dist = dynamic_cast<ChLinkDistance*>(updater)) {
         UpdateLineGeometry(frame.TransformPointParentToLocal(link_dist->GetEndPoint1Abs()),
                            frame.TransformPointParentToLocal(link_dist->GetEndPoint2Abs()));

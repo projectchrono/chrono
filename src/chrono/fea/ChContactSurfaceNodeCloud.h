@@ -209,7 +209,7 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
 
     /// Return the coordinate system for the associated collision model.
     /// ChCollisionModel might call this to get the position of the contact model (when rigid) and sync it.
-    virtual ChCoordsys<> GetCsysForCollisionModel() override { return m_node->GetCsys(); }
+    virtual ChCoordsys<> GetCsysForCollisionModel() override { return m_node->GetCoordsys(); }
 
     /// Apply the force & torque, expressed in absolute reference, to the coordinates of the variables.
     virtual void ContactForceLoadResidual_F(const ChVector3d& F,

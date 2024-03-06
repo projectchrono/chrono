@@ -55,9 +55,9 @@ void SynCopterAgent::InitializeZombie(ChSystem* system) {
 
 void SynCopterAgent::SynchronizeZombie(std::shared_ptr<SynMessage> message) {
     if (auto state = std::dynamic_pointer_cast<SynCopterStateMessage>(message)) {
-        m_zombie_body->SetCsys(state->chassis.GetFrame().GetPos(), state->chassis.GetFrame().GetRot());
+        m_zombie_body->SetCoordsys(state->chassis.GetFrame().GetPos(), state->chassis.GetFrame().GetRot());
         for (int i = 0; i < state->props.size(); i++)
-            m_prop_list[i]->SetCsys(state->props[i].GetFrame().GetPos(), state->props[i].GetFrame().GetRot());
+            m_prop_list[i]->SetCoordsys(state->props[i].GetFrame().GetPos(), state->props[i].GetFrame().GetRot());
     }
 }
 

@@ -98,7 +98,7 @@ void ChIrrNodeModel::OnAnimate(u32 timeMs) {
     if (IsVisible) {
         // reorient/reposition the scene node
         if (!m_clones) {
-            tools::alignIrrlichtNode(this, m_physicsitem.lock()->GetVisualModelFrame().GetCsys());
+            tools::alignIrrlichtNode(this, m_physicsitem.lock()->GetVisualModelFrame().GetCoordsys());
         } else if (m_physicsitem.lock()->GetNumVisualModelClones() > 0) {
             // check that children clones are already as many as assets frame clones, and adjust if not
             if (SetupClones()) {
@@ -106,7 +106,7 @@ void ChIrrNodeModel::OnAnimate(u32 timeMs) {
                 unsigned int iclone = 0;
                 irr::core::list<ISceneNode*>::ConstIterator it = this->getChildren().begin();
                 for (; it != Children.end(); ++it) {
-                    tools::alignIrrlichtNode((*it), m_physicsitem.lock()->GetVisualModelFrame(iclone).GetCsys());
+                    tools::alignIrrlichtNode((*it), m_physicsitem.lock()->GetVisualModelFrame(iclone).GetCoordsys());
                     ++iclone;
                 }
             }

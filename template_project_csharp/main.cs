@@ -122,7 +122,7 @@ namespace ChronoDemo
             {
                 vis.BeginScene();
                 vis.Render();
-                vis.RenderFrame(new ChFramed(chrono.CastToChBodyFrame(ball).GetCsys()), 1.2 * radius);
+                vis.RenderFrame(new ChFramed(chrono.CastToChBodyFrame(ball).GetCoordsys()), 1.2 * radius);
                 vis.EndScene();
 
                 while (time < out_time)

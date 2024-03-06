@@ -402,9 +402,9 @@ void ChVehicleOutputHDF5::WriteMarkers(const std::vector<std::shared_ptr<ChMarke
     H5::DataSpace dataspace(1, dim);
     std::vector<marker_info> info(nmarkers);
     for (auto i = 0; i < nmarkers; i++) {
-        const ChVector3d& p = markers[i]->GetAbsCsys().pos;
-        const ChVector3d& pd = markers[i]->GetAbsCsysDer().pos;
-        const ChVector3d& pdd = markers[i]->GetAbsCsysDer2().pos;
+        const ChVector3d& p = markers[i]->GetAbsCoordsys().pos;
+        const ChVector3d& pd = markers[i]->GetAbsCoordsysDer().pos;
+        const ChVector3d& pdd = markers[i]->GetAbsCoordsysDer2().pos;
         info[i] = {markers[i]->GetIdentifier(), p.x(), p.y(), p.z(), pd.x(), pd.y(), pd.z(), pdd.x(), pdd.y(), pdd.z()};
     }
 

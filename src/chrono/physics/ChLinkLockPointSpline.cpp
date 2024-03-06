@@ -52,7 +52,7 @@ void ChLinkLockPointSpline::UpdateTime(double time) {
         double mu, ds, dh, mrad;
 
         // find nearest point
-        vpoint = marker1->GetAbsCsys().pos;
+        vpoint = marker1->GetAbsCoordsys().pos;
         vpoint = Body2->TransformPointParentToLocal(vpoint);
         trajectory_line->FindNearestLinePoint(vpoint, mu, 0, tolerance);
 
@@ -97,7 +97,7 @@ void ChLinkLockPointSpline::UpdateTime(double time) {
         dh = Vdot(Vsub(ptang2, ptang), vrad);
         mrad = ((ds * ds) / (2 * dh));  // radius of curvature on spline
 
-        //ChMatrix33<> mw(marker2->GetAbsCsys().rot);
+        //ChMatrix33<> mw(marker2->GetAbsCoordsys().rot);
 
         deltaC.pos = VNULL;
         deltaC_dt.pos = VNULL;

@@ -301,8 +301,8 @@ int main(int argc, char* argv[]) {
             std::cout << "Time = " << time << "\n\n";
             mrole.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS);
 
-            auto marker_driver = mrole.GetChassis()->GetMarkers()[0]->GetAbsCsys().pos;
-            auto marker_com = mrole.GetChassis()->GetMarkers()[1]->GetAbsCsys().pos;
+            auto marker_driver = mrole.GetChassis()->GetMarkers()[0]->GetAbsCoordsys().pos;
+            auto marker_com = mrole.GetChassis()->GetMarkers()[1]->GetAbsCoordsys().pos;
             std::cout << "Markers\n";
             std::cout << "  Driver loc:      " << marker_driver.x() << " " << marker_driver.y() << " "
                       << marker_driver.z() << std::endl;

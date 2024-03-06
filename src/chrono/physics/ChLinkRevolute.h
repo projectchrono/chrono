@@ -38,7 +38,7 @@ class ChApi ChLinkRevolute : public ChLink {
     virtual int GetNumConstraintsBilateral() override { return 5; }
 
     /// Get the link coordinate system, expressed relative to Body2.
-    virtual ChCoordsys<> GetLinkRelativeCoords() override { return m_frame2.GetCsys(); }
+    virtual ChCoordsys<> GetLinkRelativeCoords() override { return m_frame2.GetCoordsys(); }
 
     /// Get the joint frame on Body1, expressed in Body1 coordinate system.
     const ChFrame<>& GetFrame1Rel() const { return m_frame1; }

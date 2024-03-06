@@ -63,7 +63,7 @@ double ChLinkLockClearance::Get_axis_phase() {
         return 0;
     double angle;
     ChVector3d axis;
-    GetMarker2()->GetCsys().rot.GetAngleAxis(angle, axis);
+    GetMarker2()->GetCoordsys().rot.GetAngleAxis(angle, axis);
     if (axis.z() < 0.0) {
         axis = Vmul(axis, -1.0);
         angle = CH_C_2PI - angle;
@@ -78,7 +78,7 @@ double ChLinkLockClearance::Get_rotation_angle() {
 ChVector3d ChLinkLockClearance::Get_contact_P_abs() {
     if (!GetMarker2())
         return VNULL;
-    return GetMarker2()->GetAbsCsys().pos - (clearance + diameter / 2) * Get_contact_N_abs();
+    return GetMarker2()->GetAbsCoordsys().pos - (clearance + diameter / 2) * Get_contact_N_abs();
 }
 
 ChVector3d ChLinkLockClearance::Get_contact_N_abs() {
@@ -149,9 +149,9 @@ void ChLinkLockClearance::UpdateTime(double mytime) {
     marker2->SetMotionType(ChMarker::MotionType::EXTERNAL);
 
     ChMatrix33<> ma;
-    ma.SetFromQuaternion(marker2->GetAbsCsys().rot);
+    ma.SetFromQuaternion(marker2->GetAbsCoordsys().rot);
 
-    ChVector3d absdist = Vsub(marker1->GetAbsCsys().pos, marker2->GetAbsCsys().pos);
+    ChVector3d absdist = Vsub(marker1->GetAbsCoordsys().pos, marker2->GetAbsCoordsys().pos);
 
     ChVector3d mz = ma.GetAxisZ();
     ChVector3d my = Vnorm(Vcross(ma.GetAxisZ(), absdist));
@@ -160,7 +160,7 @@ void ChLinkLockClearance::UpdateTime(double mytime) {
     ma.SetFromDirectionAxes(mx, my, mz);
 
     // rotate "main" marker2 into tangent position
-    marker2->ImposeAbsoluteTransform(ChFrame<>(marker2->GetAbsCsys().pos, ma.GetQuaternion()));  
+    marker2->ImposeAbsoluteTransform(ChFrame<>(marker2->GetAbsCoordsys().pos, ma.GetQuaternion()));  
 
     // imposed relative positions/speeds
     deltaC.pos = VNULL;

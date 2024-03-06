@@ -280,10 +280,10 @@ int main(int argc, char* argv[]) {
         chrono::ChVector3d acc_par_ref;  // accelerations calculated by new developed method
         PointAccelerationLocalToParent(m_rot_frame, m_dpos_rel, acc_par_ref);
 
-        std::cout << "rot_frame.GetCsys():\t" << m_rot_frame.GetCsys() << std::endl;
-        std::cout << "rot_frame.GetCsysDer():\t" << m_rot_frame.GetPosDer() << "\t" << m_rot_frame.GetAngVelLocal()
+        std::cout << "rot_frame.GetCoordsys():\t" << m_rot_frame.GetCoordsys() << std::endl;
+        std::cout << "rot_frame.GetCoordsysDer():\t" << m_rot_frame.GetPosDer() << "\t" << m_rot_frame.GetAngVelLocal()
                   << std::endl;
-        std::cout << "rot_frame.GetCsysDer2():\t" << m_rot_frame.GetPosDer2() << "\t" << m_rot_frame.GetAngAccLocal()
+        std::cout << "rot_frame.GetCoordsysDer2():\t" << m_rot_frame.GetPosDer2() << "\t" << m_rot_frame.GetAngAccLocal()
                   << std::endl;
         std::cout << "vel_par:\t" << vel_par << std::endl;
         std::cout << "acc_par from chrono method:\t" << acc_par << std::endl;

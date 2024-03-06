@@ -124,7 +124,7 @@ std::shared_ptr<ChLinkLockRevolute> AddRevoluteJoint(std::shared_ptr<ChBodyAuxRe
     ChFrame<> X_GC = X_GP * X_PC;                                       // global -> child
 
     auto joint = chrono_types::make_shared<ChLinkLockRevolute>();
-    joint->Initialize(body_1, body_2, ChFrame<>(X_GC.GetCsys().pos, X_GC.GetCsys().rot));
+    joint->Initialize(body_1, body_2, ChFrame<>(X_GC.GetCoordsys().pos, X_GC.GetCoordsys().rot));
     chassis->GetBody()->GetSystem()->AddLink(joint);
 
     return joint;

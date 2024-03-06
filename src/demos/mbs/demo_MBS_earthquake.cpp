@@ -69,7 +69,7 @@ void create_column(ChSystemNSC& sys,
     auto bodyColumn = chrono_types::make_shared<ChBodyEasyConvexHull>(mpoints, col_density, true, true, material);
     ChCoordsys<> cog_column(ChVector3d(0, col_base + col_height / 2, 0));
     ChCoordsys<> abs_cog_column = cog_column >> base_pos;
-    bodyColumn->SetCsys(abs_cog_column);
+    bodyColumn->SetCoordsys(abs_cog_column);
     sys.Add(bodyColumn);
 }
 
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
                                                                     column_mat);        // contact material
 
             ChCoordsys<> cog_top(ChVector3d(icol * spacing + spacing / 2, 4.5 + 0.4 / 2, 0));
-            bodyTop->SetCsys(cog_top);
+            bodyTop->SetCoordsys(cog_top);
 
             sys.Add(bodyTop);
         }

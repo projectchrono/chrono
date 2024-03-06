@@ -369,11 +369,11 @@ void ChLinkLock::Update(double time, bool update_assets) {
 void ChLinkLock::UpdateState() {
     // ----------- SOME PRECALCULATED VARIABLES, to optimize speed
 
-    ChStarMatrix33<> P1star(marker1->GetCsys().pos);  // [P] star matrix of rel pos of mark1
-    ChStarMatrix33<> Q2star(marker2->GetCsys().pos);  // [Q] star matrix of rel pos of mark2
+    ChStarMatrix33<> P1star(marker1->GetCoordsys().pos);  // [P] star matrix of rel pos of mark1
+    ChStarMatrix33<> Q2star(marker2->GetCoordsys().pos);  // [Q] star matrix of rel pos of mark2
 
-    ChGlMatrix34<> body1Gl(Body1->GetCsys().rot);
-    ChGlMatrix34<> body2Gl(Body2->GetCsys().rot);
+    ChGlMatrix34<> body1Gl(Body1->GetCoordsys().rot);
+    ChGlMatrix34<> body2Gl(Body2->GetCoordsys().rot);
 
     // COMPUTE THE  Cq Ct Qc    matrices (temporary, for complete lock constraint)
 
@@ -385,8 +385,8 @@ void ChLinkLock::UpdateState() {
     // ----------- PARTIAL DERIVATIVE Ct OF CONSTRAINT
     Ct_temp.pos = m2_Rel_A_dt.transpose() * (Body2->GetRotMat().transpose() * PQw) +
                   marker2->GetRotMat().transpose() *
-                      (Body2->GetRotMat().transpose() * (Body1->GetRotMat() * marker1->GetCsysDer().pos) -
-                       marker2->GetCsysDer().pos);
+                      (Body2->GetRotMat().transpose() * (Body1->GetRotMat() * marker1->GetCoordsysDer().pos) -
+                       marker2->GetCoordsysDer().pos);
 
     Ct_temp.rot = q_AD;
 
@@ -406,15 +406,15 @@ void ChLinkLock::UpdateState() {
                                       marker2->GetRotMat().transpose() * tmpStar * body2Gl;  // -- -* Cq2_temp(4-7)
 
     {
-        ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCsys().rot), Qconjugate(Body2->GetCsys().rot)));
-        ChStarMatrix44<> stempQ2(marker1->GetCsys().rot);
+        ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCoordsys().rot), Qconjugate(Body2->GetCoordsys().rot)));
+        ChStarMatrix44<> stempQ2(marker1->GetCoordsys().rot);
         stempQ2.semiTranspose();
         Cq1_temp.bottomRightCorner<4, 4>() = stempQ1 * stempQ2;  // =* == Cq1_temp(col 4-7, row 4-7) ... CqrR
     }
 
     {
-        ChStarMatrix44<> stempQ1(Qconjugate(marker2->GetCsys().rot));
-        ChStarMatrix44<> stempQ2(Qcross(Body1->GetCsys().rot, marker1->GetCsys().rot));
+        ChStarMatrix44<> stempQ1(Qconjugate(marker2->GetCoordsys().rot));
+        ChStarMatrix44<> stempQ2(Qcross(Body1->GetCoordsys().rot, marker1->GetCoordsys().rot));
         stempQ2.semiTranspose();
         stempQ2.semiNegate();
         Cq2_temp.bottomRightCorner<4, 4>() = stempQ1 * stempQ2;  // == =* Cq2_temp(col 4-7, row 4-7) ... CqrR
@@ -425,13 +425,13 @@ void ChLinkLock::UpdateState() {
     ChVector3d vtemp1;
     ChVector3d vtemp2;
 
-    vtemp1 = Vcross(Body1->GetAngVelLocal(), Vcross(Body1->GetAngVelLocal(), marker1->GetCsys().pos));
-    vtemp1 = Vadd(vtemp1, marker1->GetCsysDer2().pos);
-    vtemp1 = Vadd(vtemp1, Vmul(Vcross(Body1->GetAngVelLocal(), marker1->GetCsysDer().pos), 2));
+    vtemp1 = Vcross(Body1->GetAngVelLocal(), Vcross(Body1->GetAngVelLocal(), marker1->GetCoordsys().pos));
+    vtemp1 = Vadd(vtemp1, marker1->GetCoordsysDer2().pos);
+    vtemp1 = Vadd(vtemp1, Vmul(Vcross(Body1->GetAngVelLocal(), marker1->GetCoordsysDer().pos), 2));
 
-    vtemp2 = Vcross(Body2->GetAngVelLocal(), Vcross(Body2->GetAngVelLocal(), marker2->GetCsys().pos));
-    vtemp2 = Vadd(vtemp2, marker2->GetCsysDer2().pos);
-    vtemp2 = Vadd(vtemp2, Vmul(Vcross(Body2->GetAngVelLocal(), marker2->GetCsysDer().pos), 2));
+    vtemp2 = Vcross(Body2->GetAngVelLocal(), Vcross(Body2->GetAngVelLocal(), marker2->GetCoordsys().pos));
+    vtemp2 = Vadd(vtemp2, marker2->GetCoordsysDer2().pos);
+    vtemp2 = Vadd(vtemp2, Vmul(Vcross(Body2->GetAngVelLocal(), marker2->GetCoordsysDer().pos), 2));
 
     Qcx = CqxT * (Body1->GetRotMat() * vtemp1 - Body2->GetRotMat() * vtemp2);
 
@@ -568,7 +568,7 @@ static void Transform_Cq_to_Cqw(const ChLinkLock::ChConstraintMatrixX7& mCq,
     mCqw.block(0, 0, mCq.rows(), 3) = mCq.block(0, 0, mCq.rows(), 3);
 
     // rotational part [Cq_w] = [Cq_q]*[Gl]'*1/4
-    ChGlMatrix34<> mGl(mbody->GetCsys().rot);
+    ChGlMatrix34<> mGl(mbody->GetCoordsys().rot);
     for (int colres = 0; colres < 3; colres++) {
         for (int row = 0; row < mCq.rows(); row++) {
             double sum = 0;
@@ -762,8 +762,8 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
 
     // From react vector to the 'intuitive' react_force and react_torque
     // const ChQuaternion<>& q2 = Body2->GetRot();
-    // const ChQuaternion<>& q1p = marker1->GetAbsCsys().rot;
-    // const ChQuaternion<>& qs = marker2->GetCsys().rot;
+    // const ChQuaternion<>& q1p = marker1->GetAbsCoordsys().rot;
+    // const ChQuaternion<>& qs = marker2->GetCoordsys().rot;
     // const ChMatrix33<>& Cs = marker2->GetRotMat();
 
     // ChMatrix44<> Chi__q1p_barT;  //[Chi] * [transpose(bar(q1p))]
@@ -1617,8 +1617,8 @@ void ChLinkLock::ConstraintsLoadJacobians() {
         }
     }
 
-    ChGlMatrix34<> Gl1(Body1->GetCsys().rot);
-    ChGlMatrix34<> Gl2(Body2->GetCsys().rot);
+    ChGlMatrix34<> Gl1(Body1->GetCoordsys().rot);
+    ChGlMatrix34<> Gl2(Body2->GetCoordsys().rot);
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
@@ -2195,11 +2195,11 @@ void ChLinkLockLock::UpdateTime(double time) {
 void ChLinkLockLock::UpdateState() {
     // ----------- SOME PRECALCULATED VARIABLES, to optimize speed
 
-    ChStarMatrix33<> P1star(marker1->GetCsys().pos);  // [P] star matrix of rel pos of mark1
-    ChStarMatrix33<> Q2star(marker2->GetCsys().pos);  // [Q] star matrix of rel pos of mark2
+    ChStarMatrix33<> P1star(marker1->GetCoordsys().pos);  // [P] star matrix of rel pos of mark1
+    ChStarMatrix33<> Q2star(marker2->GetCoordsys().pos);  // [Q] star matrix of rel pos of mark2
 
-    ChGlMatrix34<> body1Gl(Body1->GetCsys().rot);
-    ChGlMatrix34<> body2Gl(Body2->GetCsys().rot);
+    ChGlMatrix34<> body1Gl(Body1->GetCoordsys().rot);
+    ChGlMatrix34<> body2Gl(Body2->GetCoordsys().rot);
 
     // ----------- RELATIVE LINK-LOCK COORDINATES (violations)
 
@@ -2233,8 +2233,8 @@ void ChLinkLockLock::UpdateState() {
     // ----------- PARTIAL DERIVATIVE Ct OF CONSTRAINT
     Ct_temp.pos = m2_Rel_A_dt.transpose() * (Body2->GetRotMat().transpose() * PQw) +
                   marker2->GetRotMat().transpose() *
-                      (Body2->GetRotMat().transpose() * (Body1->GetRotMat() * marker1->GetCsysDer().pos) -
-                       marker2->GetCsysDer().pos);
+                      (Body2->GetRotMat().transpose() * (Body1->GetRotMat() * marker1->GetCoordsysDer().pos) -
+                       marker2->GetCoordsysDer().pos);
     Ct_temp.pos -= deltaC_dt.pos;  // the deltaC contribute
 
     // deltaC^*(q_AD) + deltaC_dt^*q_pq
@@ -2256,16 +2256,16 @@ void ChLinkLockLock::UpdateState() {
                                       marker2->GetRotMat().transpose() * tmpStar * body2Gl;  // -- -* Cq2_temp(4-7)
 
     {
-        ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCsys().rot), Qconjugate(Body2->GetCsys().rot)));
-        ChStarMatrix44<> stempQ2(marker1->GetCsys().rot);
+        ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCoordsys().rot), Qconjugate(Body2->GetCoordsys().rot)));
+        ChStarMatrix44<> stempQ2(marker1->GetCoordsys().rot);
         ChStarMatrix44<> stempDC(Qconjugate(deltaC.rot));
         stempQ2.semiTranspose();
         Cq1_temp.bottomRightCorner<4, 4>() = stempDC * stempQ1 * stempQ2;  // =* == Cq1_temp(col 4-7, row 4-7) ... CqrR
     }
 
     {
-        ChStarMatrix44<> stempQ1(Qconjugate(marker2->GetCsys().rot));
-        ChStarMatrix44<> stempQ2(Qcross(Body1->GetCsys().rot, marker1->GetCsys().rot));
+        ChStarMatrix44<> stempQ1(Qconjugate(marker2->GetCoordsys().rot));
+        ChStarMatrix44<> stempQ2(Qcross(Body1->GetCoordsys().rot, marker1->GetCoordsys().rot));
         ChStarMatrix44<> stempDC(Qconjugate(deltaC.rot));
         stempQ2.semiTranspose();
         stempQ2.semiNegate();
@@ -2278,13 +2278,13 @@ void ChLinkLockLock::UpdateState() {
     ChVector3d vtemp1;
     ChVector3d vtemp2;
 
-    vtemp1 = Vcross(Body1->GetAngVelLocal(), Vcross(Body1->GetAngVelLocal(), marker1->GetCsys().pos));
-    vtemp1 = Vadd(vtemp1, marker1->GetCsysDer2().pos);
-    vtemp1 = Vadd(vtemp1, Vmul(Vcross(Body1->GetAngVelLocal(), marker1->GetCsysDer().pos), 2));
+    vtemp1 = Vcross(Body1->GetAngVelLocal(), Vcross(Body1->GetAngVelLocal(), marker1->GetCoordsys().pos));
+    vtemp1 = Vadd(vtemp1, marker1->GetCoordsysDer2().pos);
+    vtemp1 = Vadd(vtemp1, Vmul(Vcross(Body1->GetAngVelLocal(), marker1->GetCoordsysDer().pos), 2));
 
-    vtemp2 = Vcross(Body2->GetAngVelLocal(), Vcross(Body2->GetAngVelLocal(), marker2->GetCsys().pos));
-    vtemp2 = Vadd(vtemp2, marker2->GetCsysDer2().pos);
-    vtemp2 = Vadd(vtemp2, Vmul(Vcross(Body2->GetAngVelLocal(), marker2->GetCsysDer().pos), 2));
+    vtemp2 = Vcross(Body2->GetAngVelLocal(), Vcross(Body2->GetAngVelLocal(), marker2->GetCoordsys().pos));
+    vtemp2 = Vadd(vtemp2, marker2->GetCoordsysDer2().pos);
+    vtemp2 = Vadd(vtemp2, Vmul(Vcross(Body2->GetAngVelLocal(), marker2->GetCoordsysDer().pos), 2));
 
     Qcx = CqxT * (Body1->GetRotMat() * vtemp1 - Body2->GetRotMat() * vtemp2);
 

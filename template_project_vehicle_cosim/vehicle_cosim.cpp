@@ -88,7 +88,7 @@ class MyTerrain : public ChVehicleCosimTerrainNode {
 
 MyTerrain::MyTerrain(double length, double width) : ChVehicleCosimTerrainNode(length, width) {
     m_system = new ChSystemSMC;
-    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
     m_system->SetNumThreads(1);
     m_system->SetContactForceModel(ChSystemSMC::ContactForceModel::Hertz);
 #ifdef CHRONO_IRRLICHT

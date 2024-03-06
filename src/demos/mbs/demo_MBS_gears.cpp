@@ -203,18 +203,18 @@ int main(int argc, char* argv[]) {
         // .. draw also some circle lines representing gears - just for aesthetical reasons
 
         tools::drawCircle(vis.get(), link_gearBC->Get_r2(),
-                          (link_gearBC->Get_local_shaft2() >> *link_gearBC->GetBody2()).GetCsys(), ChColor(1, 0, 0),
+                          (link_gearBC->Get_local_shaft2() >> *link_gearBC->GetBody2()).GetCoordsys(), ChColor(1, 0, 0),
                           50, true);
         tools::drawCircle(vis.get(), link_gearAD->Get_r1(),
-                          (link_gearAD->Get_local_shaft1() >> *link_gearAD->GetBody1()).GetCsys(), ChColor(1, 0, 0),
+                          (link_gearAD->Get_local_shaft1() >> *link_gearAD->GetBody1()).GetCoordsys(), ChColor(1, 0, 0),
                           30, true);
         tools::drawCircle(vis.get(), link_gearAD->Get_r2(),
-                          (link_gearAD->Get_local_shaft2() >> *link_gearAD->GetBody2()).GetCsys(), ChColor(1, 0, 0),
+                          (link_gearAD->Get_local_shaft2() >> *link_gearAD->GetBody2()).GetCoordsys(), ChColor(1, 0, 0),
                           30, true);
 
-        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearAB->GetMarker2()->GetAbsCsys().pos, QUNIT));
-        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearAD->GetMarker2()->GetAbsCsys().pos, QUNIT));
-        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearBC->GetMarker2()->GetAbsCsys().pos, QUNIT));
+        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearAB->GetMarker2()->GetAbsCoordsys().pos, QUNIT));
+        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearAD->GetMarker2()->GetAbsCoordsys().pos, QUNIT));
+        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(link_gearBC->GetMarker2()->GetAbsCoordsys().pos, QUNIT));
 
         // ..draw also some segments for a simplified representation of pulley
         tools::drawSegment(vis.get(), link_pulleyDE->Get_belt_up1(), link_pulleyDE->Get_belt_up2(), ChColor(0, 1, 0),

@@ -126,11 +126,11 @@ int main(int argc, char* argv[]) {
         vis->GetGUIEnvironment()->drawAll();
 
         // .. draw the rod (from joint BC to joint CA)
-        tools::drawSegment(vis.get(), my_link_BC->GetMarker1()->GetAbsCsys().pos,
-                           my_link_CA->GetMarker1()->GetAbsCsys().pos, ChColor(0, 1, 0));
+        tools::drawSegment(vis.get(), my_link_BC->GetMarker1()->GetAbsCoordsys().pos,
+                           my_link_CA->GetMarker1()->GetAbsCoordsys().pos, ChColor(0, 1, 0));
         // .. draw the crank (from joint AB to joint BC)
         tools::drawSegment(vis.get(), my_link_AB->GetLinkAbsoluteCoords().pos,
-                           my_link_BC->GetMarker1()->GetAbsCsys().pos, ChColor(1, 0, 0));
+                           my_link_BC->GetMarker1()->GetAbsCoordsys().pos, ChColor(1, 0, 0));
         // .. draw a small circle at crank origin
         tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
 

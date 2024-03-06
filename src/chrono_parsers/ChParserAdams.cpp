@@ -395,14 +395,14 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
         auto parentFrame = parentBody->GetFrame_REF_to_COG();
         ChQuaternion<> rot = Q_from_313_angles(marker.rot[0], marker.rot[1], marker.rot[2]);
         // Convert to aux frame instead of COG frame
-        ChCoordsys<> markerCoord = (parentFrame * ChFrame<>(loc, rot)).GetCsys();
+        ChCoordsys<> markerCoord = (parentFrame * ChFrame<>(loc, rot)).GetCoordsys();
         // Make new marker attached to body, without any initial motion
         auto ch_marker = chrono_types::make_shared<ChMarker>(marker_pair.first, parentBody.get(), markerCoord, ChCoordsys<>(),
                                                     ChCoordsys<>());
         parentBody->AddMarker(ch_marker);
         // std::cout << "marker " << marker_pair.first << " is at " << loc.x() << "," << loc.y() << "," << loc.z()
         // <<std::endl;
-        // auto absloc = ch_marker->GetAbsCsys().pos;
+        // auto absloc = ch_marker->GetAbsCoordsys().pos;
         // std::cout << "marker " << marker_pair.first << " is at abs " << absloc.x() << "," << absloc.y() << "," <<
         // absloc.z()
         // <<std::endl;

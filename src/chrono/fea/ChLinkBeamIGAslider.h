@@ -155,7 +155,7 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
     /// Set the attachment position, expressed in absolute coordinates.
     /// This function may be called only after initialization.
     void SetAttachReferenceInAbsoluteCoords(const ChCoordsys<>& csys_abs) {
-        m_csys = m_body->GetCsys().TransformParentToLocal(csys_abs);
+        m_csys = m_body->GetCoordsys().TransformParentToLocal(csys_abs);
     }
 
     /// Get the reaction force on the node, expressed in the link coordinate system.

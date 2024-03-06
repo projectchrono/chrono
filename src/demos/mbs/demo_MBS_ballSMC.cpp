@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        vis->RenderFrame(ChFrame<>(ball->GetCsys()), 1.2 * radius);
+        vis->RenderFrame(ChFrame<>(ball->GetCoordsys()), 1.2 * radius);
         vis->EndScene();
 
         while (time < out_time) {
