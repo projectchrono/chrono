@@ -150,7 +150,7 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M,
     // initialize the floating frame of reference F to be placed at COG
     this->UpdateFloatingFrameOfReference();
 
-    // recover the local M,K,Cq (full_M_loc, full_K_loc, full_Cq_loc) matrices 
+    // recover the local M,K,Cq (full_M_loc, full_K_loc, full_Cq_loc) matrices
     // through rotating back to the local frame of F
     this->ComputeLocalFullKMCqMatrix(full_M, full_K, full_Cq);
 
@@ -361,7 +361,6 @@ void ChModalAssembly::ComputeMassCenter() {
 }
 
 void ChModalAssembly::UpdateFloatingFrameOfReference() {
-
     double fooT;
     ChState x_mod;
     ChStateDelta v_mod;
@@ -374,7 +373,7 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
         this->ComputeMassCenter();
 
         this->floating_frame_F = this->cog_frame;
-        //this->floating_frame_F_old = this->floating_frame_F;
+        // this->floating_frame_F_old = this->floating_frame_F;
 
         // store the initial floating frame of reference F0 in the initial configuration
         this->floating_frame_F0 = this->floating_frame_F;
@@ -444,6 +443,13 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
         // update again for safe
         this->UpdateTransformationMatrix();
         this->ComputeProjectionMatrix();
+    }
+
+    if (verbose) {
+        ChVector<> pos_F = this->floating_frame_F.GetPos();
+        ChVector<> theta_F = this->floating_frame_F.GetRot().Q_to_Rotv() * CH_C_RAD_TO_DEG;
+        GetLog() << "this->floating_frame_F: pos: " << pos_F.x() << "  " << pos_F.y() << "  " << pos_F.z()
+                 << "  rot: " << theta_F.x() << "  " << theta_F.y() << "  " << theta_F.z() << "\n";
     }
 
     // store the old configuration of the floating frame F
@@ -543,8 +549,8 @@ void ChModalAssembly::ComputeProjectionMatrix() {
 }
 
 void ChModalAssembly::ComputeLocalFullKMCqMatrix(ChSparseMatrix& full_M,
-                                                ChSparseMatrix& full_K,
-                                                ChSparseMatrix& full_Cq) {
+                                                 ChSparseMatrix& full_K,
+                                                 ChSparseMatrix& full_Cq) {
     // todo: to fill the sparse P_BI in a more straightforward and efficient way
     ChMatrixDynamic<> P_BI;
     P_BI.setIdentity(n_boundary_coords_w + n_internal_coords_w, n_boundary_coords_w + n_internal_coords_w);
@@ -704,7 +710,7 @@ void ChModalAssembly::DoModalReduction_Herting(const ChModalDamping& damping_mod
 
         // temporarily set reduced damping matrix from the original local matrix
         // todo: develop a more reasonable damping model
-        {   
+        {
             // Initialize the reduced damping matrix
             this->R_red.setZero(this->M_red.rows(), this->M_red.cols());  // default R=0 , zero damping
             // Modal reduction of R damping matrix: compute using user-provided damping model.
@@ -715,7 +721,6 @@ void ChModalAssembly::DoModalReduction_Herting(const ChModalDamping& damping_mod
             this->R_red.block(0, n_boundary_coords_w, n_boundary_coords_w, n_modes_coords_w).setZero();
             this->R_red.block(n_boundary_coords_w, 0, n_modes_coords_w, n_boundary_coords_w).setZero();
         }
-
 
         // Find the suitable coefficients 'c_modes' to normalize 'modes_V' to improve the condition number of 'M_red'.
         if (i_try < 1) {
