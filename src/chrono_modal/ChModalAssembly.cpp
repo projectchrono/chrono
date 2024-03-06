@@ -299,12 +299,16 @@ void ChModalAssembly::ComputeMassCenter() {
 
     double mass_total = 0;
     ChVector<> mass_weighted_radius(0);
+    ChMatrix33<> inertial_total(0);
 
     // for boundary bodies
     for (auto& body : bodylist) {
         if (body->IsActive()) {
             mass_total += body->GetMass();
             mass_weighted_radius += body->GetMass() * body->GetPos();
+            inertial_total +=
+                body->GetInertia() + body->GetMass() * (body->GetPos().Length2() * ChMatrix33<>(1.0) -
+                                                        body->GetPos().eigen() * body->GetPos().eigen().transpose());
         }
     }
     // for internal bodies
@@ -312,6 +316,9 @@ void ChModalAssembly::ComputeMassCenter() {
         if (body->IsActive()) {
             mass_total += body->GetMass();
             mass_weighted_radius += body->GetMass() * body->GetPos();
+            inertial_total +=
+                body->GetInertia() + body->GetMass() * (body->GetPos().Length2() * ChMatrix33<>(1.0) -
+                                                        body->GetPos().eigen() * body->GetPos().eigen().transpose());
         }
     }
 
@@ -320,8 +327,11 @@ void ChModalAssembly::ComputeMassCenter() {
     ChVector<> mmesh_cog(0);
     ChMatrix33<> mmesh_inertia(0);
     mmesh_bou_int->ComputeMassProperties(mmesh_mass, mmesh_cog, mmesh_inertia);
+
+    // mass property for the entire assembly
     mass_total += mmesh_mass;
     mass_weighted_radius += mmesh_mass * mmesh_cog;
+    inertial_total += mmesh_inertia;
 
     ChVector<> cog_x;
     if (mass_total) {
@@ -329,11 +339,15 @@ void ChModalAssembly::ComputeMassCenter() {
 
         this->cog_frame.SetPos(cog_x);
 
-        Eigen::EigenSolver<Eigen::MatrixXd> es(mmesh_inertia);
-        ChMatrix33<> com_axis = es.eigenvectors().real();
-        ChQuaternion q_axis = com_axis.Get_A_quaternion();
+        // The inertia tensor about cog, but still aligned with the absolute frame
+        ChMatrix33<> inertia_cog = inertial_total - mass_total * (cog_x.Length2() * ChMatrix33<>(1.0) -
+                                                                  cog_x.eigen() * cog_x.eigen().transpose());
+        Eigen::EigenSolver<Eigen::MatrixXd> es(inertia_cog);
+        ChVector<> prin_inertia = es.eigenvalues().real();  // principal moments of inertia
+        ChMatrix33<> prin_axis = es.eigenvectors().real();  // principal axes of inertia
+        ChQuaternion qrot = prin_axis.Get_A_quaternion();
 
-        this->cog_frame.SetRot(q_axis);
+        this->cog_frame.SetRot(qrot);
 
     } else {
         // place at the position of the first boundary body/node of subassembly
