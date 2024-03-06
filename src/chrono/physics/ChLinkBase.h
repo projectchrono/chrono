@@ -67,12 +67,6 @@ class ChApi ChLinkBase : public ChPhysicsItem {
         return ChFrame<>(GetLinkAbsoluteCoords());
     }
 
-    /// To get reaction force, expressed in link coordinate system:
-    virtual ChVector3d Get_react_force() { return VNULL; }
-    /// To get reaction torque,  expressed in link coordinate system:
-    virtual ChVector3d Get_react_torque() { return VNULL; }
-    // (Note, functions above might fit better in a specialized subclass, but here for easier GUI interface)
-
     /// Get the current constraint violations.
     virtual ChVectorDynamic<> GetConstraintViolation() const { return ChVectorDynamic<>(); }
 
@@ -80,6 +74,12 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     /// must be waken if they are sleeping. By default =true, i.e. always keep awaken, but
     /// child classes might return false for optimizing sleeping, in case no time-dependant.
     virtual bool IsRequiringWaking() { return true; }
+
+    /// [INTERNAL USE ONLY] Get the reaction force. The meaning is up to the derived classes.
+    virtual ChVector3d GetReactForce() = 0;
+
+    /// [INTERNAL USE ONLY] Get the reaction torque. The meaning is up to the derived classes.
+    virtual ChVector3d GetReactTorque() = 0;
 
     //
     // SERIALIZATION

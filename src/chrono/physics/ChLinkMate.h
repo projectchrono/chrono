@@ -38,9 +38,6 @@ class ChApi ChLinkMate : public ChLink {
     ChLinkMate(const ChLinkMate& other) : ChLink(other) {}
     virtual ~ChLinkMate() {}
 
-    /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkMate* Clone() const override { return new ChLinkMate(*this); }
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
@@ -108,27 +105,28 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     /// Sets which movements (of frame 1 respect to frame 2) are constrained
     void SetConstrainedCoords(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz);
 
-    /// Initialize the generic mate, given the two bodies to be connected, and the absolute position of
-    /// the mate (the two frames to connect on the bodies will be initially coincindent to that frame).
+    /// Initialize the link given the two bodies to be connected and the absolute position of the link.
+    /// Two frames, moving together with each of the two bodies, will be automatically created.
+    /// This method guarantees that the constraint is satisfied, given that the bodies will not be moved before the simulation starts.
     virtual void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> body2,  ///< second body to link
-                            ChFrame<> mabsframe                   ///< mate frame, in abs. coordinate
+                            ChFrame<> absframe                   ///< link frame, in abs. coordinate
     );
 
-    /// Initialize the generic mate, given the two bodies to be connected, the positions of the two frames
-    /// to connect on the bodies (each expressed in body or abs. coordinates).
+    /// Initialize the link given the two bodies to be connected and two frames (either referring to absolute or body coordinates) in which the link must be placed.
+    /// It is recommended to place the bodies so that the constraints are satisfied.
+    /// Starting the simulation with constraints violation might lead to unstable results.
     virtual void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> body2,  ///< second body to link
                             bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                            ChFrame<> mframe1,                    ///< slave frame 1 (rel. or abs.)
-                            ChFrame<> mframe2                     ///< master frame 2 (rel. or abs.)
+                            ChFrame<> frame1,                    ///< slave frame 1 (rel. or abs.)
+                            ChFrame<> frame2                     ///< master frame 2 (rel. or abs.)
     );
 
     /// Initialization based on passing two vectors (point + dir) on the two bodies, which will represent the Z axes of
-    /// the two frames (X and Y will be built from the Z vector via Gram Schmidt orthonormalization).
-    /// Note: It is safer and recommended to check whether the final result of the master frame F2
-    /// is as your expectation since it could affect the output result of the joint, such as the reaction
-    /// forces/torques, etc.
+    /// the two frames (X and Y will be built from the Z vector via Gram-Schmidt orthonormalization).
+    /// It is recommended to place the bodies so that the constraints are satisfied.
+    /// Starting the simulation with constraints violation might lead to unstable results.
     virtual void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> body2,  ///< second body to link
                             bool pos_are_relative,                ///< true: following pos. are relative to bodies
@@ -137,6 +135,62 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
                             const ChVector3d& dir1,                    ///< X axis of slave plane 1 (rel. or abs.)
                             const ChVector3d& dir2                     ///< X axis of master plane 2 (rel. or abs.)
     );
+
+    /// Get reaction force, expressed on link frame 1.
+    virtual ChVector3d GetReactForce1() override {
+        return GetFrame1().TransformDirectionParentToLocal(
+                GetBody2()->TransformDirectionLocalToParent(
+                 GetReactForceBody2()));
+
+        return GetFrame1().TransformDirectionParentToLocal(GetReactForce2() >> GetFrame2() >> *GetBody2());
+    }
+
+    /// Get reaction torque, expressed on link frame 1.
+    virtual ChVector3d GetReactTorque1() override {
+        auto posF2_from_F1_inF1 = GetFrame1().TransformPointParentToLocal(GetBody2()->TransformPointLocalToParent(GetFrame2().GetPos()));
+        auto torque1_dueto_force2_inF1 = Vcross(posF2_from_F1_inF1, GetReactForce1());
+        auto torque1_dueto_torque2_inF1 =
+            GetFrame1().TransformDirectionParentToLocal(
+                GetBody2()->TransformDirectionLocalToParent(
+                 GetFrame2().TransformDirectionLocalToParent(
+                   GetReactTorque2())));
+        return torque1_dueto_torque2_inF1 + torque1_dueto_force2_inF1;
+    }
+
+    /// Get reaction force, expressed on body 1.
+    virtual ChVector3d GetReactForceBody1() override {
+        return GetBody1()->TransformDirectionParentToLocal(
+                GetBody2()->TransformDirectionLocalToParent(
+                 GetReactForceBody2()));
+    }
+
+    /// Get reaction force, expressed on body 2.
+    virtual ChVector3d GetReactForceBody2() override {
+        return GetFrame2().TransformDirectionLocalToParent(GetReactForce2());
+    }
+
+    /// Get reaction torque, expressed on body 1.
+    virtual ChVector3d GetReactTorqueBody1() override {
+        auto posF2_from_B1_inB1 = GetBody1()->TransformPointParentToLocal(GetBody2()->TransformPointLocalToParent(GetFrame2().GetPos()));
+        auto torque1_dueto_force2_inB1 = Vcross(posF2_from_B1_inB1, GetReactForceBody1());
+        auto torque1_dueto_torque2_inB1 =
+            GetBody1()->TransformDirectionParentToLocal(
+                GetBody2()->TransformDirectionLocalToParent(
+                 GetFrame2().TransformDirectionLocalToParent(
+                   GetReactTorque2())));
+        return torque1_dueto_torque2_inB1 + torque1_dueto_force2_inB1;
+    }
+
+    /// Get reaction torque, expressed on body 2.
+    virtual ChVector3d GetReactTorqueBody2() override {
+        auto posF2_from_B2_inB2 = GetFrame2().GetPos();
+        auto torque1_dueto_force2_inB2 = Vcross(posF2_from_B2_inB2, GetReactForceBody2());
+        auto torque1_dueto_torque2_inB2 = 
+                GetBody2()->TransformDirectionLocalToParent(
+                 GetFrame2().TransformDirectionLocalToParent(
+                   GetReactTorque2()));
+        return torque1_dueto_torque2_inB2 + torque1_dueto_force2_inB2;
+    }
 
     //
     // UPDATING FUNCTIONS

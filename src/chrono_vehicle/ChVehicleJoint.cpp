@@ -62,7 +62,7 @@ ChVectorDynamic<> ChVehicleJoint::GetConstraintViolation() const {
 
 ChVector3d ChVehicleJoint::GetForce() const {
     if (m_joint.index() == 0) {
-        return mpark::get<Link>(m_joint)->Get_react_force();
+        return mpark::get<Link>(m_joint)->GetReactForce2();
     } else {
         return mpark::get<Bushing>(m_joint)->GetForce();
     }

@@ -43,9 +43,6 @@ class ChApi ChLink : public ChLinkBase {
     ChLink(const ChLink& other);
     virtual ~ChLink() {}
 
-    /// "Virtual" copy constructor (covariant return type).
-    virtual ChLink* Clone() const override { return new ChLink(*this); }
-
     /// Get the number of free degrees of freedom left by this link, between two bodies.
     int GetLeftDOF() { return 6 - GetNumConstraints(); }
 
@@ -66,10 +63,29 @@ class ChApi ChLink : public ChLinkBase {
     /// forces and reaction torques are expressed in this coordinate system.
     virtual ChCoordsys<> GetLinkAbsoluteCoords() override { return GetLinkRelativeCoords() >> Body2->GetCoordsys(); }
 
-    /// Get reaction force, expressed in link coordinate system.
-    virtual ChVector3d Get_react_force() override { return react_force; }
-    /// Get reaction torque,  expressed in link coordinate system.
-    virtual ChVector3d Get_react_torque() override { return react_torque; }
+    /// Get reaction force, expressed on link frame 1.
+    virtual ChVector3d GetReactForce1() = 0;
+
+    /// Get reaction force, expressed on link frame 2.
+    virtual ChVector3d GetReactForce2() { return react_force; }
+
+    /// Get reaction torque, expressed on link frame 1.
+    virtual ChVector3d GetReactTorque1() = 0;
+
+    /// Get reaction torque, expressed on link frame 2.
+    virtual ChVector3d GetReactTorque2() { return react_torque; }
+
+    /// Get reaction force, expressed on body 1.
+    virtual ChVector3d GetReactForceBody1() = 0;
+
+    /// Get reaction force, expressed on body 2.
+    virtual ChVector3d GetReactForceBody2() = 0;
+
+    /// Get reaction torque, expressed on body 1.
+    virtual ChVector3d GetReactTorqueBody1() = 0;
+
+    /// Get reaction torque, expressed on body 2.
+    virtual ChVector3d GetReactTorqueBody2() = 0;
 
     /// OBSOLETE If some constraint is redundant, return to normal state.
     virtual int RestoreRedundant() { return 0; }
@@ -103,6 +119,16 @@ class ChApi ChLink : public ChLinkBase {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+private:
+
+    /// [INTERNAL USE ONLY] Reaction force on the link frame 2.
+    virtual ChVector3d GetReactForce() override { return GetReactForce2(); }
+
+    /// [INTERNAL USE ONLY] Reaction torque on the link frame 2.
+    virtual ChVector3d GetReactTorque() override { return GetReactTorque2(); }
+
+
 };
 
 CH_CLASS_VERSION(ChLink,0)

@@ -327,11 +327,11 @@ bool TestSpherical(const ChVector3d& jointLoc,      // absolute location of join
             // These are expressed in the link coordinate system. We convert them to
             // the coordinate system of Body2 (in our case this is the ground).
             ChCoordsys<> linkCoordsys = sphericalJoint->GetLinkRelativeCoords();
-            ChVector3d reactForce = sphericalJoint->Get_react_force();
+            ChVector3d reactForce = sphericalJoint->GetReactForce2();
             ChVector3d reactForceGlobal = linkCoordsys.TransformDirectionLocalToParent(reactForce);
             out_rfrc << simTime << reactForceGlobal << std::endl;
 
-            ChVector3d reactTorque = sphericalJoint->Get_react_torque();
+            ChVector3d reactTorque = sphericalJoint->GetReactTorque2();
             ChVector3d reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
             out_rtrq << simTime << reactTorqueGlobal << std::endl;
 

@@ -217,15 +217,15 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
 
 void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> body1,
                                    std::shared_ptr<ChBodyFrame> body2,
-                                   ChFrame<> mabsframe) {
-    this->Initialize(body1, body2, false, mabsframe, mabsframe);
+                                   ChFrame<> absframe) {
+    this->Initialize(body1, body2, false, absframe, absframe);
 }
 
 void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> body1,
                                    std::shared_ptr<ChBodyFrame> body2,
                                    bool pos_are_relative,
-                                   ChFrame<> mpos1,
-                                   ChFrame<> mpos2) {
+                                   ChFrame<> frame1,
+                                   ChFrame<> frame2) {
     assert(body1.get() != body2.get());
 
     this->Body1 = body1.get();
@@ -235,12 +235,12 @@ void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> body1,
     this->mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
 
     if (pos_are_relative) {
-        this->frame1 = mpos1;
-        this->frame2 = mpos2;
+        this->frame1 = frame1;
+        this->frame2 = frame2;
     } else {
         // from abs to body-rel
-        this->frame1 = static_cast<ChFrame<>*>(this->Body1)->TransformParentToLocal(mpos1);
-        this->frame2 = static_cast<ChFrame<>*>(this->Body2)->TransformParentToLocal(mpos2);
+        this->frame1 = static_cast<ChFrame<>*>(this->Body1)->TransformParentToLocal(frame1);
+        this->frame2 = static_cast<ChFrame<>*>(this->Body2)->TransformParentToLocal(frame2);
     }
 }
 

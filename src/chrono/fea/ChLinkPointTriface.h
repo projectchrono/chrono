@@ -50,20 +50,6 @@ class ChApi ChTriangleOfXYZnodes : public ChVariableTupleCarrier_3vars<3, 3, 3> 
 /// The node can be offset respect to the face.
 
 class ChApi ChLinkPointTriface : public ChLinkBase {
-  private:
-    ChVector3d react;
-
-    // used as an interface to the solver.
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZnodes> constraint1;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZnodes> constraint2;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZnodes> constraint3;
-
-    std::shared_ptr<ChNodeFEAxyz> mnodeA;
-    ChTriangleOfXYZnodes mtriangle;
-
-    double s2, s3;
-    double d;
-
   public:
     ChLinkPointTriface();
     ChLinkPointTriface(const ChLinkPointTriface& other);
@@ -77,9 +63,6 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
 
     /// Number of scalar constraints
     virtual int GetNumConstraintsBilateral() override { return 3; }
-
-    /// To get reaction force, expressed in link coordinate system:
-    virtual ChVector3d Get_react_force() override { return GetReactionOnNode(); }
 
     //
     // STATE FUNCTIONS
@@ -184,6 +167,26 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+private:
+    ChVector3d react;
+
+    // used as an interface to the solver.
+    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZnodes> constraint1;
+    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZnodes> constraint2;
+    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZnodes> constraint3;
+
+    std::shared_ptr<ChNodeFEAxyz> mnodeA;
+    ChTriangleOfXYZnodes mtriangle;
+
+    double s2, s3;
+    double d;
+
+    /// [INTERNAL USE ONLY] Reaction force on the node, at node position, according to absolute orientation.
+    virtual ChVector3d GetReactForce() override { return GetReactionOnNode(); }
+
+    /// [INTERNAL USE ONLY] Reaction torque on the node, at node position, according to absolute orientation.
+    virtual ChVector3d GetReactTorque() override { return VNULL; }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -208,20 +211,6 @@ class ChApi ChTriangleOfXYZROTnodes : public ChVariableTupleCarrier_3vars<6, 6, 
 /// shape function (ex. the face of a tetrahedron or a triangular shell)
 /// The node can be offset respect to the face.
 class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
-  private:
-    ChVector3d react;
-
-    // used as an interface to the solver.
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZROTnodes> constraint1;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZROTnodes> constraint2;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZROTnodes> constraint3;
-
-    std::shared_ptr<ChNodeFEAxyz> mnodeA;
-    ChTriangleOfXYZROTnodes mtriangle;
-
-    double s2, s3;
-    double d;
-
   public:
     ChLinkPointTrifaceRot();
     ChLinkPointTrifaceRot(const ChLinkPointTrifaceRot& other);
@@ -235,9 +224,6 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
 
     /// Number of scalar constraints
     virtual int GetNumConstraintsBilateral() override { return 3; }
-
-    /// To get reaction force, expressed in link coordinate system:
-    virtual ChVector3d Get_react_force() override { return GetReactionOnNode(); }
 
     //
     // STATE FUNCTIONS
@@ -342,6 +328,26 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+private:
+    ChVector3d react;
+
+    // used as an interface to the solver.
+    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZROTnodes> constraint1;
+    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZROTnodes> constraint2;
+    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZROTnodes> constraint3;
+
+    std::shared_ptr<ChNodeFEAxyz> mnodeA;
+    ChTriangleOfXYZROTnodes mtriangle;
+
+    double s2, s3;
+    double d;
+
+    /// [INTERNAL USE ONLY] Reaction force on the node, at node position, according to absolute orientation.
+    virtual ChVector3d GetReactForce() override { return GetReactionOnNode(); }
+
+    /// [INTERNAL USE ONLY] Reaction torque on the node, at node position, according to absolute orientation.
+    virtual ChVector3d GetReactTorque() override { return VNULL; }
 };
 
 /// @} fea_constraints

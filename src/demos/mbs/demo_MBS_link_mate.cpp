@@ -277,11 +277,11 @@ void test_pendulum() {
               << "\t\tx:  " << my_mass->GetPos().x() << "\ty:  " << my_mass->GetPos().y()
               << "\tz:  " << my_mass->GetPos().z() << std::endl;
     std::cout << "\tThe reaction forces at the root are:\n"
-              << "\t\tfx:  " << my_joint->Get_react_force().x() << "\tfy:  " << my_joint->Get_react_force().y()
-              << "\tfz:  " << my_joint->Get_react_force().z() << std::endl;
+              << "\t\tfx:  " << my_joint->GetReactForce2().x() << "\tfy:  " << my_joint->GetReactForce2().y()
+              << "\tfz:  " << my_joint->GetReactForce2().z() << std::endl;
     std::cout << "\tThe reaction torques at the root are:\n"
-              << "\t\tmx:  " << my_joint->Get_react_torque().x() << "\tmy:  " << my_joint->Get_react_torque().y()
-              << "\tmz:  " << my_joint->Get_react_torque().z() << std::endl;
+              << "\t\tmx:  " << my_joint->GetReactTorque2().x() << "\tmy:  " << my_joint->GetReactTorque2().y()
+              << "\tmz:  " << my_joint->GetReactTorque2().z() << std::endl;
 
     // ====================================
     // Eigenvalue analysis
@@ -504,8 +504,8 @@ void test_anchorchain() {
         for (int i_link = 0; i_link < sys.GetLinks().size(); i_link++) {
             reactions(i_link, 0) = sys.GetLinks().at(i_link)->GetLinkAbsoluteCoords().pos.x();
 
-            ChVector3d f_loc = sys.GetLinks().at(i_link)->Get_react_force();
-            ChVector3d m_loc = sys.GetLinks().at(i_link)->Get_react_torque();
+            ChVector3d f_loc = sys.GetLinks().at(i_link)->GetReactForce2();
+            ChVector3d m_loc = sys.GetLinks().at(i_link)->GetReactTorque2();
             ChQuaternion<> q_link = sys.GetLinks().at(i_link)->GetLinkAbsoluteCoords().rot;
             // Transform the reaction forces and torques of the joints from local frame to the absolute frame.
             // The horizontal reaction forces (along X direction) should be equal among all joints for the catenary

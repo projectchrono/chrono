@@ -362,11 +362,11 @@ bool TestCylindrical(const ChVector3d& jointLoc,      // absolute location of jo
             // These are expressed in the link coordinate system. We convert them to
             // the coordinate system of Body2 (in our case this is the ground).
             ChCoordsys<> linkCoordsys = cylindricalJoint->GetLinkRelativeCoords();
-            ChVector3d reactForce = cylindricalJoint->Get_react_force();
+            ChVector3d reactForce = cylindricalJoint->GetReactForce2();
             ChVector3d reactForceGlobal = linkCoordsys.TransformDirectionLocalToParent(reactForce);
             out_rfrc << simTime << reactForceGlobal << std::endl;
 
-            ChVector3d reactTorque = cylindricalJoint->Get_react_torque();
+            ChVector3d reactTorque = cylindricalJoint->GetReactTorque2();
             ChVector3d reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
             out_rtrq << simTime << reactTorqueGlobal << std::endl;
 

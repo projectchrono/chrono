@@ -103,8 +103,8 @@ TEST(FullAssembly, Assemble) {
     ChCoordsys<> linkCoordsys = revoluteJoint->GetLinkRelativeCoords();
 
     // Reaction force and torque on ground, expressed in joint frame
-    ChVector3d rfrc = revoluteJoint->Get_react_force();
-    ChVector3d rtrq = revoluteJoint->Get_react_torque();
+    ChVector3d rfrc = revoluteJoint->GetReactForce2();
+    ChVector3d rtrq = revoluteJoint->GetReactTorque2();
 
     // Reaction force and torque on ground, expressed in ground frame
     rfrc = linkCoordsys.TransformDirectionLocalToParent(rfrc);

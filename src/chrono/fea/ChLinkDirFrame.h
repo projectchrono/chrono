@@ -33,20 +33,6 @@ namespace fea {
 /// (frame). The D direction of the ChNodeFEAxyzD is enforced to stay parallel to a given direction associated to the
 /// ChBodyFrame.
 class ChApi ChLinkDirFrame : public ChLinkBase {
-  private:
-    ChVector3d m_react;
-
-    // used as an interface to the solver.
-    ChConstraintTwoGeneric constraint1;
-    ChConstraintTwoGeneric constraint2;
-
-    std::shared_ptr<fea::ChNodeFEAxyzD> m_node;
-    std::shared_ptr<ChBodyFrame> m_body;
-
-    // Coordinate system, attached to the body, whose X direction is
-    // constrained to remain parallel to the node's D direction.
-    ChCoordsys<> m_csys;
-
   public:
     ChLinkDirFrame();
     ChLinkDirFrame(const ChLinkDirFrame& other);
@@ -60,9 +46,6 @@ class ChApi ChLinkDirFrame : public ChLinkBase {
 
     /// Number of scalar constraints.
     virtual int GetNumConstraintsBilateral() override { return 2; }
-
-    /// Get the reaction torque on the body, expressed in the link coordinate system.
-    virtual ChVector3d Get_react_torque() override { return GetReactionOnBody(); }
 
     // Get constraint violations
     virtual ChVectorDynamic<> GetConstraintViolation() const override;
@@ -156,6 +139,26 @@ class ChApi ChLinkDirFrame : public ChLinkBase {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+private:
+    ChVector3d m_react;
+
+    // used as an interface to the solver.
+    ChConstraintTwoGeneric constraint1;
+    ChConstraintTwoGeneric constraint2;
+
+    std::shared_ptr<fea::ChNodeFEAxyzD> m_node;
+    std::shared_ptr<ChBodyFrame> m_body;
+
+    // Coordinate system, attached to the body, whose X direction is
+    // constrained to remain parallel to the node's D direction.
+    ChCoordsys<> m_csys;
+
+    /// [INTERNAL USE ONLY] Reaction force on the body, at attachment point, in body coordinate system.
+    virtual ChVector3d GetReactForce() override { return GetReactionOnBody(); }
+
+    /// [INTERNAL USE ONLY] Reaction torque on the body, at attachment point, in body coordinate system.
+    virtual ChVector3d GetReactTorque() override { return VNULL; }
 };
 
 /// @} fea_constraints

@@ -399,8 +399,8 @@ int main(int argc, char* argv[]) {
     // Perform a static analysis:
     sys.DoStaticLinear();
 
-    std::cout << " constraintA reaction force  F= " << constraintA->Get_react_force() << std::endl;
-    std::cout << " constraintA reaction torque T= " << constraintA->Get_react_torque() << std::endl;
+    std::cout << " constraintA reaction force  F= " << constraintA->GetReactForce2() << std::endl;
+    std::cout << " constraintA reaction torque T= " << constraintA->GetReactTorque2() << std::endl;
 
     std::cout << " nodeC position = " << nodeC->GetPos() << std::endl;
     std::cout << " stiff_load K jacobian=" << stiff_load->GetJacobians()->K << std::endl;

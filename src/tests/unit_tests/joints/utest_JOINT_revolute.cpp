@@ -386,8 +386,8 @@ bool TestRevolute(const ChVector3d& jointLoc,        // absolute location of joi
             ChCoordsys<> linkCoordsys = revoluteJoint->GetLinkRelativeCoords();
 
             //    reaction force and torque on ground, expressed in joint frame
-            ChVector3d reactForce = revoluteJoint->Get_react_force();
-            ChVector3d reactTorque = revoluteJoint->Get_react_torque();
+            ChVector3d reactForce = revoluteJoint->GetReactForce2();
+            ChVector3d reactTorque = revoluteJoint->GetReactTorque2();
 
             //    reaction force and torque on ground, expressed in ground frame
             reactForce = linkCoordsys.TransformDirectionLocalToParent(reactForce);

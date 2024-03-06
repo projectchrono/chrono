@@ -443,6 +443,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNcoords_x                  | rename: GetNumCoordinatesPos                     |
 |                                   | GetNcoords_v                  | rename: GetNumCoordinatesVel                     |
 |                                   | GetNcoords_y                  | remove: split in GetNumCoordinatesPos/Vel        |
+| ChLinkBase                        |                               |                                                  |
+|                                   | Get_react_force               | rename: GetReactForce2                           |
+|                                   | Get_react_torque              | rename: GetReactTorque2                          |
 | ChLinkBrake                       |                               | rename: ChLinkLockBrake                          |
 | ChLinkClearance                   |                               | rename: ChLinkLockClearance                      |
 | ChLinkGear                        |                               | rename: ChLinkLockGear                           |

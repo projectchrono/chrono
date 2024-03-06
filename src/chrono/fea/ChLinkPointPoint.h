@@ -32,17 +32,6 @@ namespace fea {
 /// The two nodes will be joined, as overlapping. Nodes are 3-DOF points that are used in point-based primitives, such
 /// as finite elements.
 class ChApi ChLinkPointPoint : public ChLinkBase {
-  private:
-    ChVector3d react;
-
-    // used as an interface to the solver.
-    ChConstraintTwoGeneric constraint1;
-    ChConstraintTwoGeneric constraint2;
-    ChConstraintTwoGeneric constraint3;
-
-    std::shared_ptr<fea::ChNodeFEAxyz> mnodeA;
-    std::shared_ptr<fea::ChNodeFEAxyz> mnodeB;
-
   public:
     ChLinkPointPoint();
     ChLinkPointPoint(const ChLinkPointPoint& other);
@@ -56,9 +45,6 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
 
     /// Number of scalar constraints
     virtual int GetNumConstraintsBilateral() override { return 3; }
-
-    /// To get reaction force, expressed in link coordinate system:
-    virtual ChVector3d Get_react_force() override { return GetReactionOnNode(); }
 
     // Get constraint violations
     virtual ChVectorDynamic<> GetConstraintViolation() const override;
@@ -137,6 +123,23 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+private:
+    ChVector3d react;
+
+    // used as an interface to the solver.
+    ChConstraintTwoGeneric constraint1;
+    ChConstraintTwoGeneric constraint2;
+    ChConstraintTwoGeneric constraint3;
+
+    std::shared_ptr<fea::ChNodeFEAxyz> mnodeA;
+    std::shared_ptr<fea::ChNodeFEAxyz> mnodeB;
+
+    /// [INTERNAL USE ONLY] Reaction force on the node, at node position and oriented as the absolute reference.
+    virtual ChVector3d GetReactForce() override { return GetReactionOnNode(); }
+
+    /// [INTERNAL USE ONLY] Reaction torque on the node, at node position and oriented as the absolute reference.
+    virtual ChVector3d GetReactTorque() override { return VNULL; }
 };
 
 /// @} fea_constraints

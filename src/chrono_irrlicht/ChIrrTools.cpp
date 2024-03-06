@@ -328,10 +328,10 @@ int drawAllLinks(ChVisualSystemIrrlicht* vis, double mlen, LinkDrawMode drawtype
         ChVector3d v2;
         switch (drawtype) {
             case LinkDrawMode::LINK_REACT_FORCE:
-                v2 = link->Get_react_force();
+                v2 = link->GetReactForce2();
                 break;
             case LinkDrawMode::LINK_REACT_TORQUE:
-                v2 = link->Get_react_torque();
+                v2 = link->GetReactTorque2();
                 break;
             default:
                 break;
@@ -366,28 +366,28 @@ int drawAllLinkLabels(ChVisualSystemIrrlicht* vis, LinkLabelMode labeltype, ChCo
 
         switch (labeltype) {
             case LinkLabelMode::LINK_REACT_FORCE_VAL:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->Get_react_force().Length());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactForce2().Length());
                 break;
             case LinkLabelMode::LINK_REACT_FORCE_X:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->Get_react_force().x());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactForce2().x());
                 break;
             case LinkLabelMode::LINK_REACT_FORCE_Y:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->Get_react_force().y());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactForce2().y());
                 break;
             case LinkLabelMode::LINK_REACT_FORCE_Z:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->Get_react_force().z());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactForce2().z());
                 break;
             case LinkLabelMode::LINK_REACT_TORQUE_VAL:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->Get_react_torque().Length());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactTorque2().Length());
                 break;
             case LinkLabelMode::LINK_REACT_TORQUE_X:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->Get_react_torque().x());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactTorque2().x());
                 break;
             case LinkLabelMode::LINK_REACT_TORQUE_Y:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->Get_react_torque().y());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactTorque2().y());
                 break;
             case LinkLabelMode::LINK_REACT_TORQUE_Z:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->Get_react_torque().z());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactTorque2().z());
                 break;
             default:
                 break;

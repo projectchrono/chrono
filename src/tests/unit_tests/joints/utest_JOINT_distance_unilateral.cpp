@@ -72,7 +72,7 @@ int main() {
     // CHECK 1: check if the body is free falling until hitting the constraint, no side motion
     // a failure in this case can be due to wrong reaction forces or to an artificial clamping in IntLoadConstraint_C
     bool straight_fall = true;
-    while (std::abs(unilink->Get_react_force().x()) < 1e-8) {
+    while (std::abs(unilink->GetReactForce2().x()) < 1e-8) {
         ChVector3d body_acc = body->GetPosDer2();
         if (std::abs(body_acc.x() - 0.0) > 1e-6 || std::abs(body_acc.y() + gravity) > 1e-6 ||
             std::abs(body_acc.z() - 0.0) > 1e-6)

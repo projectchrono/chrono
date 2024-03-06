@@ -37,27 +37,6 @@ namespace fea {
 /// to the outlet is automatically updated during the sliding motion.
 
 class ChApi ChLinkBeamIGAslider : public ChLinkBase {
-  private:
-    ChVector3d m_react;
-
-    // used as an interface to the solver.
-    // ChConstraintNgeneric constraint1;
-    ChConstraintNgeneric constraint2;
-    ChConstraintNgeneric constraint3;
-
-    std::vector<std::shared_ptr<fea::ChElementBeamIGA>> m_beams;
-    std::shared_ptr<ChBodyFrame> m_body;
-
-    std::vector<std::shared_ptr<ChNodeFEAxyzrot>> m_nodes;
-
-    int order;
-    size_t active_element;
-    double tau;
-
-    // Coordinate system, attached to the body, whose origin is
-    // constrained to coincide with the node's position.
-    ChCoordsys<> m_csys;
-
   public:
     ChLinkBeamIGAslider();
     ChLinkBeamIGAslider(const ChLinkBeamIGAslider& other);
@@ -71,9 +50,6 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
 
     /// Number of scalar constraints.
     virtual int GetNumConstraintsBilateral() override { return 2; }
-
-    /// Reaction force on the body, at the attachment point, expressed in the link coordinate frame.
-    virtual ChVector3d Get_react_force() override { return GetReactionOnBody(); }
 
     //
     // STATE FUNCTIONS
@@ -183,6 +159,32 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
 
   private:
     virtual void UpdateNodes();
+
+    ChVector3d m_react;
+
+    // used as an interface to the solver.
+    // ChConstraintNgeneric constraint1;
+    ChConstraintNgeneric constraint2;
+    ChConstraintNgeneric constraint3;
+
+    std::vector<std::shared_ptr<fea::ChElementBeamIGA>> m_beams;
+    std::shared_ptr<ChBodyFrame> m_body;
+
+    std::vector<std::shared_ptr<ChNodeFEAxyzrot>> m_nodes;
+
+    int order;
+    size_t active_element;
+    double tau;
+
+    // Coordinate system, attached to the body, whose origin is
+    // constrained to coincide with the node's position.
+    ChCoordsys<> m_csys;
+
+    /// [INTERNAL USE ONLY] Reaction force on the body, at attachment point, in body coordinate system.
+    virtual ChVector3d GetReactForce() override { return GetReactionOnBody(); }
+
+    /// [INTERNAL USE ONLY] Reaction torque on the body, at attachment point, in body coordinate system.
+    virtual ChVector3d GetReactTorque() override { return VNULL; }
 };
 
 /// @} fea_constraints

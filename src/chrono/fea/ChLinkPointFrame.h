@@ -33,21 +33,6 @@ namespace fea {
 /// The node position is enforced to coincide to a given position associated with the ChBodyFrame.
 class ChApi ChLinkPointFrame : public ChLinkBase {
 
-  private:
-    ChVector3d m_react;
-
-    // used as an interface to the solver.
-    ChConstraintTwoGeneric constraint1;
-    ChConstraintTwoGeneric constraint2;
-    ChConstraintTwoGeneric constraint3;
-
-    std::shared_ptr<fea::ChNodeFEAxyz> m_node;
-    std::shared_ptr<ChBodyFrame> m_body;
-
-    // Coordinate system, attached to the body, whose origin is
-    // constrained to coincide with the node's position.
-    ChCoordsys<> m_csys;
-
   public:
     ChLinkPointFrame();
     ChLinkPointFrame(const ChLinkPointFrame& other);
@@ -61,9 +46,6 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
 
     /// Number of scalar constraints.
     virtual int GetNumConstraintsBilateral() override { return 3; }
-
-    /// Reaction force on the body, at the attachment point, expressed in the link coordinate frame.
-    virtual ChVector3d Get_react_force() override { return GetReactionOnBody(); }
 
     // Get constraint violations
     virtual ChVectorDynamic<> GetConstraintViolation() const override;
@@ -173,21 +155,10 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
-};
 
-/// Class for creating a constraint between an FEA node of ChNodeFEAxyz type and a ChBodyFrame (frame) object.
-/// The node position is constrained to a given coordinate system CSYS that moves with the ChBodyFrame. The movements of
-/// the node respect to X, Y, Z  axes of such CSYS can be costrained or not,  depending on three boolean toggles. By
-/// default, XYZ are all constrained and the node follows the center of CSYS,  s it is completely locked to it, but
-/// other options are, for example, that you just enable the X constraint (so the node moves on the flat YZ plane) or
-/// you just enable XY constraints (so the node moves along the Z direction), etc.
-class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
-  private:
+private:
+
     ChVector3d m_react;
-
-	bool c_x;
-    bool c_y;
-    bool c_z;
 
     // used as an interface to the solver.
     ChConstraintTwoGeneric constraint1;
@@ -201,7 +172,22 @@ class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
     // constrained to coincide with the node's position.
     ChCoordsys<> m_csys;
 
-  public:
+    /// [INTERNAL USE ONLY] Reaction force on the body, at the attachment point, expressed in the body coordinate frame.
+    virtual ChVector3d GetReactForce() override { return GetReactionOnBody(); }
+
+    /// [INTERNAL USE ONLY] Reaction torque on the body, at the attachment point, expressed in the body coordinate frame.
+    virtual ChVector3d GetReactTorque() override { return VNULL; }
+
+};
+
+/// Class for creating a constraint between an FEA node of ChNodeFEAxyz type and a ChBodyFrame (frame) object.
+/// The node position is constrained to a given coordinate system CSYS that moves with the ChBodyFrame. The movements of
+/// the node respect to X, Y, Z  axes of such CSYS can be costrained or not,  depending on three boolean toggles. By
+/// default, XYZ are all constrained and the node follows the center of CSYS,  s it is completely locked to it, but
+/// other options are, for example, that you just enable the X constraint (so the node moves on the flat YZ plane) or
+/// you just enable XY constraints (so the node moves along the Z direction), etc.
+class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
+public:
     ChLinkPointFrameGeneric(bool mc_x = true, bool mc_y = true, bool mc_z = true);
     ChLinkPointFrameGeneric(const ChLinkPointFrameGeneric& other);
     ~ChLinkPointFrameGeneric() {}
@@ -210,13 +196,10 @@ class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
     virtual ChLinkPointFrameGeneric* Clone() const override { return new ChLinkPointFrameGeneric(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() override { return 3 + 7; }
+    virtual int GetNumAffectedCoords() override { return 3 + 7; }
 
     /// Number of scalar constraints.
     virtual int GetNumConstraintsBilateral() override { return ((int)c_x+(int)c_y+(int)c_z); }
-
-    /// Reaction force on the body, at the attachment point, expressed in the link coordinate frame.
-    virtual ChVector3d Get_react_force() override { return GetReactionOnBody(); }
 
     // Get constraint violations
     virtual ChVectorDynamic<> GetConstraintViolation() const override;
@@ -341,6 +324,33 @@ class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+private:
+    ChVector3d m_react;
+
+	bool c_x;
+    bool c_y;
+    bool c_z;
+
+    // used as an interface to the solver.
+    ChConstraintTwoGeneric constraint1;
+    ChConstraintTwoGeneric constraint2;
+    ChConstraintTwoGeneric constraint3;
+
+    std::shared_ptr<fea::ChNodeFEAxyz> m_node;
+    std::shared_ptr<ChBodyFrame> m_body;
+
+    // Coordinate system, attached to the body, whose origin is
+    // constrained to coincide with the node's position.
+    ChCoordsys<> m_csys;
+
+    /// [INTERNAL USE ONLY] Reaction force on the body, at the attachment point, expressed in the body coordinate frame.
+    virtual ChVector3d GetReactForce() override { return GetReactionOnBody(); }
+
+    /// [INTERNAL USE ONLY] Reaction force on the body, at the attachment point, expressed in the body coordinate frame.
+    virtual ChVector3d GetReactTorque() override { return VNULL; }
+
+  
 };
 
 /// @} fea_constraints

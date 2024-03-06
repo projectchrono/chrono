@@ -339,8 +339,8 @@ int main(int argc, char* argv[]) {
     sysFSI.Initialize();
 
     auto wheel = sysMBS.GetBodies()[1];
-    ChVector3d force = actuator->Get_react_force();
-    ChVector3d torque = motor->Get_react_torque();
+    ChVector3d force = actuator->GetReactForce2();
+    ChVector3d torque = motor->GetReactTorque2();
     ChVector3d w_pos = wheel->GetPos();
     ChVector3d w_vel = wheel->GetPosDer();
     ChVector3d angvel = wheel->GetAngVelLocal();
@@ -381,8 +381,8 @@ int main(int argc, char* argv[]) {
     timer.start();
     while (time < total_time) {
         // Get the infomation of the wheel
-        force = actuator->Get_react_force();
-        torque = motor->Get_react_torque();
+        force = actuator->GetReactForce2();
+        torque = motor->GetReactTorque2();
         w_pos = wheel->GetPos();
         w_vel = wheel->GetPosDer();
         angvel = wheel->GetAngVelLocal();
