@@ -472,6 +472,7 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     std::vector<double> m_data_acc_z;
 
     std::vector<double> m_data_acc_ap_z;  // vertical acceleration in ft/s^2 for absorbed power calculation
+    double m_data_ap_avg;
 
     // freqency weighted data series
     std::vector<double> m_data_acc_x_wd;
@@ -504,6 +505,7 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     ChISO2631_1_Wk m_filter_wk_z;
 
     ChAbsorbed_Power_Vertical m_filter_abspow;
+    ChFilterI m_filter_int_abspow;
 
     // filter classes for time integral aw
     ChFilterI m_filter_int_aw_x;
