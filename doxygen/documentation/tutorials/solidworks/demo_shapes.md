@@ -2,7 +2,7 @@ Demo Collision Shapes {#tutorial_chrono_solidworks_demo_shapes}
 ==========================
 
 
-This tutorial shows how to use the [Chrono::SolidWorks](@ref tutorial_install_chrono_solidworks)  add-in for assigning collision shapes to SolidWorks parts. 
+This tutorial shows how to use the [Chrono::SolidWorks](@ref chrono_solidworks_installation)  add-in for assigning collision shapes to SolidWorks parts. 
 Those collision shapes will be converted to Chrono::Engine collision shapes when exporting the .py scene file.
 
 Note that, by default, all parts that you model in SolidWorks do not generate any collision shapes: if you want to simulate phenomena with collisions, you must use the procedure that is outlined in this tutorial in order to assign collision shapes to parts. This is motivated by various reasons:
@@ -21,7 +21,7 @@ Also groups of them are supported.
 # Prerequisites:
 
 + you must have a [SolidWorks](http://www.solidworks.com) CAD license.
-+ the [Chrono::SolidWorks](@ref tutorial_install_chrono_solidworks) add-in must be installed in SolidWorks.
++ the [Chrono::SolidWorks](@ref chrono_solidworks_installation) add-in must be installed in SolidWorks.
 Optionally, for the last steps of the tutorial (rendering the animation) these tools must be installed: 
 + the [PyChrono](@ref pychrono_introduction) python module must be installed in your Python environment, 
 + the [POVray](http://www.povray.org) rendering software must be installed; not mandatory if you want to use the Irrlicht realtime visualization;

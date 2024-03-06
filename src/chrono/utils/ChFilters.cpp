@@ -849,6 +849,7 @@ void ChISO2631_Vibration_SeatCushionLogger::Config(double step) {
     m_filter_wk_z.Config(step);
 
     m_filter_abspow.Config(step);
+    m_filter_int_abspow.Config(step);
 
     m_filter_int_aw_x.Config(step);
     m_filter_int_aw_y.Config(step);
@@ -871,7 +872,12 @@ void ChISO2631_Vibration_SeatCushionLogger::AddData(double speed, double acc_x, 
     m_data_acc_y.push_back(startFactor * acc_y);
     m_data_acc_z.push_back(startFactor * acc_z);
 
-    m_data_acc_ap_z.push_back(startFactor * acc_z * meter_to_ft);
+    double next_ap = startFactor * acc_z * meter_to_ft;
+    m_data_acc_ap_z.push_back(next_ap);
+    double ap = m_filter_abspow.Filter(next_ap);
+    double ap_int = m_filter_int_abspow.Filter(ap * ap);
+    double time = m_step * m_data_acc_ap_z.size();
+    m_data_ap_avg = ap_int / time;
 
     m_data_acc_x_wd.push_back(m_filter_wd_x.Filter(m_data_acc_x.back()));
     m_data_acc_y_wd.push_back(m_filter_wd_y.Filter(m_data_acc_y.back()));
@@ -1006,30 +1012,7 @@ double ChISO2631_Vibration_SeatCushionLogger::GetSeverityVDV() const {
 }
 
 double ChISO2631_Vibration_SeatCushionLogger::GetAbsorbedPowerVertical() {
-    double ap = 0.0;
-    ChFilterI m_filter_int_abspow(m_step);
-
-    std::vector<double> ap_buf, ap_buf_int, ap_buf_avg;
-    for (size_t i = 0; i < m_data_acc_ap_z.size(); i++) {
-        ap_buf.push_back(m_filter_abspow.Filter(m_data_acc_ap_z[i]));
-    }
-    for (size_t i = 0; i < m_data_acc_ap_z.size(); i++) {
-        ap_buf_int.push_back(m_filter_int_abspow.Filter(ap_buf[i] * ap_buf[i]));
-    }
-    for (size_t i = 0; i < m_data_acc_ap_z.size(); i++) {
-        double time = m_step * i;
-        if (i == 0) {
-            ap_buf_avg.push_back(0.0);
-        } else {
-            ap_buf_avg.push_back(ap_buf_int[i] / time);
-        }
-    }
-
-    if (ap_buf_avg.empty())
-        return 0;
-
-    ap = ap_buf_avg.back();
-    return ap;
+    return m_data_ap_avg;
 }
 
 void ChISO2631_Vibration_SeatCushionLogger::Reset() {
@@ -1071,7 +1054,8 @@ void ChISO2631_Vibration_SeatCushionLogger::Reset() {
     m_filter_wk_z.Reset();
 
     m_filter_abspow.Reset();
-
+	m_filter_int_abspow.Reset();
+	
     m_filter_int_aw_x.Reset();
     m_filter_int_aw_y.Reset();
     m_filter_int_aw_z.Reset();
