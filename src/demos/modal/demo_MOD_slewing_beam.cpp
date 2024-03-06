@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Radu Serban
+// Authors: Alessandro Tasora, Chao Peng
 // =============================================================================
 //
 // Show how to use the ChAssembly to manage the hierarchy of the entire system
@@ -21,14 +21,11 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMate.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
-#include "chrono/physics/ChLinkMotorRotationSpeed.h"
 
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
-
 #include "chrono_modal/ChModalAssembly.h"
-// #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
 #include "chrono/solver/ChDirectSolverLS.h"
 #ifdef CHRONO_PARDISO_MKL
@@ -41,7 +38,6 @@ using namespace chrono;
 using namespace chrono::modal;
 using namespace chrono::fea;
 using namespace filesystem;
-// using namespace chrono::irrlicht;
 
 // Output directory
 const std::string out_dir = GetChronoOutputPath() + "SLEWING_BEAM";
@@ -49,7 +45,7 @@ const std::string out_dir = GetChronoOutputPath() + "SLEWING_BEAM";
 constexpr double time_step = 0.002;
 constexpr double time_length = 50;
 
-constexpr bool RUN_ORIGIN = false;
+constexpr bool RUN_ORIGIN = true;
 constexpr bool RUN_MODAL = true;
 constexpr bool ROTATING_BEAM = true;
 constexpr bool APPLY_FORCE = !ROTATING_BEAM;
@@ -59,8 +55,6 @@ constexpr bool DO_DYNAMICS = true;
 constexpr bool USE_LINEAR_INERTIAL_TERM = true;
 
 void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdeflection) {
-    GetLog() << "\n\nRUN TEST\n";
-
     // Create a Chrono::Engine physical system
     ChSystemNSC sys;
 
@@ -72,11 +66,10 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
     int n_elements = 10;
     double EA = 5.03e6;
     double GJxx = 6.047e5;
-    double EIyy = 1.654;  // Too small value results in divergece.
+    double EIyy = 1.654;
     double EIzz = 566.6;
     double mass_per_unit_length = 0.2019;
     double Jxx = 2.28e-5;
-    double offset_coeff = 0.0;
 
     // parent system
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 10);
@@ -88,21 +81,12 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
     my_truss->SetPos(ChVector<>(0, 0, 0));
     sys.AddBody(my_truss);
 
-     auto my_link_truss = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-    //auto my_link_truss = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
+    auto my_link_truss = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     my_link_truss->Initialize(my_truss, my_ground, ChFrame<>(0.5 * (my_truss->GetPos() + my_ground->GetPos()), QUNIT));
     auto driving_fun = chrono_types::make_shared<ChFunction_Setpoint>();
     driving_fun->SetSetpoint(0, 0);
-     my_link_truss->SetAngleFunction(driving_fun);
-    //my_link_truss->SetSpeedFunction(driving_fun);
-    // my_link_truss->SetUseTangentStiffness(use_tangent_stiffness_Kc);
+    my_link_truss->SetAngleFunction(driving_fun);
     sys.AddLink(my_link_truss);
-
-    // auto my_link_truss = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);
-    // my_link_truss->Initialize(my_truss, my_ground, ChFrame<>(0.5 * (my_truss->GetPos() + my_ground->GetPos()),
-    // QUNIT));
-    //// my_link_truss->SetUseTangentStiffness(use_tangent_stiffness_Kc);
-    // sys.AddLink(my_link_truss);
 
     auto assembly = chrono_types::make_shared<ChModalAssembly>();
     assembly->use_linear_inertial_term = USE_LINEAR_INERTIAL_TERM;
@@ -131,7 +115,7 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
         chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(my_node_A->GetPos() + ChVector<>(beam_L, 0, 0), QUNIT));
     my_node_B->SetMass(0);
     my_node_B->GetInertia().setZero();
-    mesh_boundary->AddNode(my_node_B);  // If added to mesh_boundary, the time stepper will diverge.
+    mesh_boundary->AddNode(my_node_B);
 
     // Beam section:
     auto section = chrono_types::make_shared<ChBeamSectionEulerAdvancedGeneric>();
@@ -166,20 +150,7 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
     my_link_root->SetConstrainedCoords(true, true, true, true, true, true);
     sys.AddLink(my_link_root);
 
-    //{
-    //    auto my_tip_mass = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 0.1);
-    //    my_tip_mass->SetMass(mass_per_unit_length * beam_L * 0.05);
-    //    my_tip_mass->SetPos(my_node_B->GetPos());
-    //    sys.AddBody(my_tip_mass);
-
-    //    auto my_link_tip = chrono_types::make_shared<ChLinkMateGeneric>();
-    //    my_link_tip->Initialize(my_node_B, my_tip_mass,
-    //                            ChFrame<>(0.5 * (my_node_B->GetPos() + my_tip_mass->GetPos()), QUNIT));
-    //    my_link_tip->SetConstrainedCoords(true, true, true, true, true, true);
-    //    sys.AddLink(my_link_tip);
-    //}
-
-    // gravity along -Y
+    // gravity is zero
     sys.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Set linear solver
@@ -218,14 +189,14 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
         if (hht_stepper != nullptr) {
             // hht_stepper->SetVerbose(false);
             hht_stepper->SetStepControl(false);
-             //hht_stepper->SetRelTolerance(1e-6);
-             //hht_stepper->SetAbsTolerances(1e-12);
-             //hht_stepper->SetAlpha(-0.3);
-             //hht_stepper->SetModifiedNewton(false);
-             //hht_stepper->SetMaxiters(20);
+            // hht_stepper->SetRelTolerance(1e-4);
+            // hht_stepper->SetAbsTolerances(1e-6);
+            // hht_stepper->SetAlpha(-0.2);
+            // hht_stepper->SetModifiedNewton(false);
+            // hht_stepper->SetMaxiters(20);
         }
 
-        double omega = 4;
+        double omega = 4.0;
         double T = 15.0;
 
         int Nframes = (int)(time_length / time_step);
@@ -237,37 +208,13 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
             double tao = sys.GetChTime() / T;
 
             if (ROTATING_BEAM) {
-                 double rot_angle = 0;
-                 if (tao < 1.0)
-                     rot_angle = omega * T * (tao * tao / 2.0 + (cos(CH_C_2PI * tao) - 1.0) / pow(CH_C_2PI, 2.0));
-                 else
-                     rot_angle = omega * T * (tao - 0.5);
-
-                 driving_fun->SetSetpoint(rot_angle, sys.GetChTime());
-
-                /*double rot_speed = 0;
+                double rot_angle = 0;
                 if (tao < 1.0)
-                    rot_speed = tao * omega;
-                else if (tao < 2.0)
-                    rot_speed = (2.0 - tao) * omega;
-                else if (tao < 5.0)
-                    rot_speed = 0;
-                else if (tao < 6.0)
-                    rot_speed = (tao - 5.0) * omega;
-                else if (tao < 7.0)
-                    rot_speed = (7.0 - tao) * omega;
-                else if (tao < 10.0)
-                    rot_speed = 0;
-                else if (tao < 11.0)
-                    rot_speed = (tao - 10.0) * omega;
-                else if (tao < 12.0)
-                    rot_speed = (12.0 - tao) * omega;
-                else if (tao < 15.0)
-                    rot_speed = 0;
+                    rot_angle = omega * T * (tao * tao / 2.0 + (cos(CH_C_2PI * tao) - 1.0) / pow(CH_C_2PI, 2.0));
                 else
-                    rot_speed = 0;
+                    rot_angle = omega * T * (tao - 0.5);
 
-                driving_fun->SetSetpoint(rot_speed, sys.GetChTime());*/
+                driving_fun->SetSetpoint(rot_angle, sys.GetChTime());
             }
 
             // Add a force to generate vibration
@@ -333,7 +280,6 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
             mdeflection(frame, 12) = relative_frame_2.GetRot().Q_to_Rotv().y();
             mdeflection(frame, 13) = relative_frame_2.GetRot().Q_to_Rotv().z();
             if (do_modal_reduction) {
-                // ChFrameMoving<> relative_frame_F = assembly->GetFloatingFrameOfReference();
                 ChFrameMoving<> relative_frame_F;
                 my_node_A->TransformParentToLocal(assembly->GetFloatingFrameOfReference(), relative_frame_F);
                 mdeflection(frame, 14) = relative_frame_F.GetPos().x();
@@ -371,16 +317,6 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
                 GetLog() << "Rot Angle (deg): " << mdeflection(frame, 1) << "\t";
                 GetLog() << "Rel. Def.:\t" << relative_frame_tip.GetPos().x() << "\t" << relative_frame_tip.GetPos().y()
                          << "\t" << relative_frame_tip.GetPos().z() << "\n";
-                // GetLog() << "Root Pos:\t" << my_node_A->GetPos().x() << "\t" << my_node_A->GetPos().y() << "\t"
-                //          << my_node_A->GetPos().z() << "\t";
-                // GetLog() << "Root Rot:\t" << my_node_A->GetRot().Q_to_Rotv().x() << "\t"
-                //          << my_node_A->GetRot().Q_to_Rotv().y() << "\t" << my_node_A->GetRot().Q_to_Rotv().z() <<
-                //          "\n";
-                // GetLog() << "Tip Pos:\t" << my_node_B->GetPos().x() << "\t" << my_node_B->GetPos().y() << "\t"
-                //          << my_node_B->GetPos().z() << "\t";
-                // GetLog() << "Tip Rot:\t" << my_node_B->GetRot().Q_to_Rotv().x() << "\t"
-                //          << my_node_B->GetRot().Q_to_Rotv().y() << "\t" << my_node_B->GetRot().Q_to_Rotv().z() <<
-                //          "\n";
             }
             frame++;
         }
@@ -414,15 +350,6 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
 
         // Perform static analysis
         sys.DoStaticNonlinear(100, false);
-        // sys.DoStaticLinear();
-
-        // play with parameters of static analysis
-        // ChStaticNonLinearAnalysis static_analysis;
-        // static_analysis.SetVerbose(true);
-        // static_analysis.SetMaxIterations(100);
-        // static_analysis.SetResidualTolerance(1e-20);
-        // static_analysis.SetIncrementalSteps(20);
-        // sys.DoStaticAnalysis(static_analysis);
 
         ChFrameMoving<> relative_frame_tip;  // The tip node
         my_node_A->TransformParentToLocal(my_node_B->Frame(), relative_frame_tip);
