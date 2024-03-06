@@ -286,32 +286,49 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Search an item (body, link or other ChPhysics items) by name.
     std::shared_ptr<ChPhysicsItem> Search(const std::string& name) const { return assembly.Search(name); }
 
-    /// Get the number of active bodies (excluding those that are sleeping or are fixed to ground).
+    /// Get the total number of bodies added to the system, including fixed and sleeping bodies.
     int GetNumBodies() const { return assembly.GetNumBodies(); }
-    /// Get the number of bodies that are in sleeping mode (excluding fixed bodies).
+
+    /// Get the number of active bodies, excluding sleeping or fixed.
+    int GetNumBodiesActive() const { return assembly.GetNumBodiesActive(); }
+
+    /// Get the number of sleeping bodies.
     int GetNumBodiesSleeping() const { return assembly.GetNumBodiesSleeping(); }
-    /// Get the number of bodies that are fixed to ground.
+
+    /// Get the number of bodies fixed to ground.
     int GetNumBodiesFixed() const { return assembly.GetNumBodiesFixed(); }
-    /// Get the total number of bodies in the assembly, including the grounded and sleeping bodies.
-    int GetNumBodiesTotal() const { return assembly.GetNumBodiesTotal(); }
+
 
     /// Get the number of shafts.
     int GetNumShafts() const { return assembly.GetNumShafts(); }
+
     /// Get the number of shafts that are in sleeping mode (excluding fixed shafts).
     int GetNumShaftsSleeping() const { return assembly.GetNumBodiesSleeping(); }
+
     /// Get the number of shafts that are fixed to ground.
     int GetNumShaftsFixed() const { return assembly.GetNumShaftsFixed(); }
+
     /// Get the total number of shafts added to the assembly, including the grounded and sleeping shafts.
     int GetNumShaftsTotal() const { return assembly.GetNumShaftsTotal(); }
 
-    /// Get the number of links.
+
+    /// Get the number of links (including non active).
     int GetNumLinks() const { return assembly.GetNumLinks(); }
+
+    /// Get the number of active links.
+    int GetNumLinksActive() const { return assembly.GetNumLinksActive(); }
+
 
     /// Get the number of meshes.
     int GetNumMeshes() const { return assembly.GetNumMeshes(); }
 
-    /// Get the number of other physics items (other than bodies, links, or meshes).
+
+    /// Get the number of other physics items (including non active).
     int GetNumOtherPhysicsItems() const { return assembly.GetNumOtherPhysicsItems(); }
+
+    /// Get the number of other active physics items.
+    int GetNumOtherPhysicsItemsActive() const { return assembly.GetNumOtherPhysicsItemsActive(); }
+
 
     /// Write the hierarchy of contained bodies, markers, etc. in ASCII
     /// readable form, mostly for debugging purposes. Level is the tab spacing at the left.
@@ -415,13 +432,13 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Get the number of coordinates at the position level.
     /// Might differ from coordinates at the velocity level if quaternions are used for rotations.
-    virtual int GetNumCoordinatesPos() override { return m_num_coords_pos; }
+    virtual int GetNumCoordsPosLevel() override { return m_num_coords_pos; }
 
     /// Get the number of coordinates at the velocity level.
     /// Might differ from coordinates at the position level if quaternions are used for rotations.
-    virtual int GetNumCoordinatesVel() override { return m_num_coords_vel; }
+    virtual int GetNumCoordsVelLevel() override { return m_num_coords_vel; }
 
-    /// Tells the number of scalar constraints i.e. of lagrangian multipliers
+    /// Get the number of scalar constraints in the system.
     virtual int GetNumConstraints() override { return m_num_constr; }
 
     /// Get the number of bilateral scalar constraints.

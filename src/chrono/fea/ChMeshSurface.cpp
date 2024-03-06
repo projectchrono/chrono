@@ -34,7 +34,7 @@ void ChMeshSurface::AddFacesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbas
     for (int i = 0; i < node_set.size(); ++i)
         node_set_map.insert((size_t)node_set[i].get());
 
-    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < this->mmesh->GetNumElements(); ++ie) {
         auto element = mmesh->GetElement(ie);
 
         if (auto tet = std::dynamic_pointer_cast<ChElementTetrahedron>(element)) {
@@ -85,7 +85,7 @@ void ChMeshSurface::AddFacesFromBoundary() {
     // Boundary faces of TETRAHEDRONS
     std::multimap<std::array<ChNodeFEAxyz*, 3>, ChTetrahedronFace> face_map_tet;
 
-    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < this->mmesh->GetNumElements(); ++ie) {
         if (auto mtetra = std::dynamic_pointer_cast<ChElementTetrahedron>(mmesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
                 ChTetrahedronFace mface(mtetra, nface);
@@ -96,7 +96,7 @@ void ChMeshSurface::AddFacesFromBoundary() {
             }
         }
     }
-    for (unsigned int ie = 0; ie < this->mmesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < this->mmesh->GetNumElements(); ++ie) {
         if (auto mtetra = std::dynamic_pointer_cast<ChElementTetrahedron>(mmesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
                 ChTetrahedronFace mface(mtetra, nface);
@@ -116,7 +116,7 @@ void ChMeshSurface::AddFacesFromBoundary() {
     // Boundary faces of HEXAHEDRONS
     std::multimap<std::array<ChNodeFEAxyz*, 4>, ChHexahedronFace> face_map_hex;
 
-    for (unsigned int ie = 0; ie < mmesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < mmesh->GetNumElements(); ++ie) {
         if (auto mbrick = std::dynamic_pointer_cast<ChElementHexahedron>(mmesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {
                 ChHexahedronFace mface(mbrick, nface);
@@ -127,7 +127,7 @@ void ChMeshSurface::AddFacesFromBoundary() {
             }
         }
     }
-    for (unsigned int ie = 0; ie < mmesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < mmesh->GetNumElements(); ++ie) {
         if (auto mbrick = std::dynamic_pointer_cast<ChElementHexahedron>(mmesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {
                 ChHexahedronFace mface(mbrick, nface);

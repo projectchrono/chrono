@@ -54,16 +54,16 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
     virtual bool IsContactActive() override { return true; }
 
     /// Get the number of DOFs affected by this object (position part).
-    virtual int ContactableGet_ndof_x() override { return 3; }
+    virtual int GetContactableNumCoordsPosLevel() override { return 3; }
 
     /// Get the number of DOFs affected by this object (speed part).
-    virtual int ContactableGet_ndof_w() override { return 3; }
+    virtual int GetContactableNumCoordsVelLevel() override { return 3; }
 
     /// Get all the DOFs packed in a single vector (position part).
-    virtual void ContactableGetStateBlock_x(ChState& x) override { x.segment(0, 3) = m_node->pos.eigen(); }
+    virtual void ContactableGetStateBlockPosLevel(ChState& x) override { x.segment(0, 3) = m_node->pos.eigen(); }
 
     /// Get all the DOFs packed in a single vector (speed part).
-    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override { w.segment(0, 3) = m_node->pos_dt.eigen(); }
+    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override { w.segment(0, 3) = m_node->pos_dt.eigen(); }
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
@@ -173,16 +173,16 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
     virtual bool IsContactActive() override { return true; }
 
     /// Get the number of DOFs affected by this object (position part).
-    virtual int ContactableGet_ndof_x() override { return 7; }
+    virtual int GetContactableNumCoordsPosLevel() override { return 7; }
 
     /// Get the number of DOFs affected by this object (speed part).
-    virtual int ContactableGet_ndof_w() override { return 6; }
+    virtual int GetContactableNumCoordsVelLevel() override { return 6; }
 
     /// Get all the DOFs packed in a single vector (position part).
-    virtual void ContactableGetStateBlock_x(ChState& x) override { x.segment(0, 3) = m_node->GetPos().eigen(); }
+    virtual void ContactableGetStateBlockPosLevel(ChState& x) override { x.segment(0, 3) = m_node->GetPos().eigen(); }
 
     /// Get all the DOFs packed in a single vector (speed part).
-    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override { w.segment(0, 3) = m_node->GetPosDer().eigen(); }
+    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override { w.segment(0, 3) = m_node->GetPosDer().eigen(); }
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
@@ -291,7 +291,7 @@ class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
     std::vector<std::shared_ptr<ChContactNodeXYZROTsphere>>& GetNodeListRot() { return m_nodes_rot; }
 
     /// Get the number of nodes.
-    unsigned int GetNnodes() const { return (unsigned int)m_nodes.size(); }
+    unsigned int GetNumNodes() const { return (unsigned int)m_nodes.size(); }
 
     /// Get the number of nodes with rotational dofs.
     unsigned int GetNnodesRot() const { return (unsigned int)m_nodes_rot.size(); }

@@ -44,9 +44,9 @@ class ChApi ChElementTetraCorot_4 : public ChElementTetrahedron,
     ChElementTetraCorot_4();
     ~ChElementTetraCorot_4();
 
-    virtual int GetNnodes() override { return 4; }
-    virtual int GetNdofs() override { return 4 * 3; }
-    virtual int GetNodeNdofs(int n) override { return 3; }
+    virtual int GetNumNodes() override { return 4; }
+    virtual int GetNumCoordsPosLevel() override { return 4 * 3; }
+    virtual int GetNodeNumCoordsPosLevel(int n) override { return 3; }
 
     double GetVolume() { return Volume; }
 
@@ -78,7 +78,7 @@ class ChApi ChElementTetraCorot_4 : public ChElementTetrahedron,
     void ShapeFunctions(ShapeVector& N, double r, double s, double t);
 
     /// Fills the D vector (displacement) with the current field values at the nodes of the element, with proper
-    /// ordering. If the D vector has not the size of this->GetNdofs(), it will be resized.For corotational elements,
+    /// ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized.For corotational elements,
     /// field is assumed in local reference!
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
@@ -136,16 +136,16 @@ class ChApi ChElementTetraCorot_4 : public ChElementTetrahedron,
     //
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() override { return 4 * 3; }
+    virtual int GetLoadableNumCoordsPosLevel() override { return 4 * 3; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() override { return 4 * 3; }
+    virtual int GetLoadableNumCoordsVelLevel() override { return 4 * 3; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,
@@ -155,13 +155,13 @@ class ChApi ChElementTetraCorot_4 : public ChElementTetrahedron,
                                         const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
-    virtual int Get_field_ncoords() override { return 3; }
+    virtual int GetFieldNumCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
     virtual int GetSubBlocks() override { return 4; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffsetW(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffsetVelLevel(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }
@@ -220,9 +220,9 @@ class ChApi ChElementTetraCorot_4_P : public ChElementGeneric, public ChElementC
     ChElementTetraCorot_4_P();
     ~ChElementTetraCorot_4_P() {}
 
-    virtual int GetNnodes() override { return 4; }
-    virtual int GetNdofs() override { return 4 * 1; }
-    virtual int GetNodeNdofs(int n) override { return 1; }
+    virtual int GetNumNodes() override { return 4; }
+    virtual int GetNumCoordsPosLevel() override { return 4 * 1; }
+    virtual int GetNodeNumCoordsPosLevel(int n) override { return 1; }
 
     double GetVolume() { return Volume; }
 
@@ -251,7 +251,7 @@ class ChApi ChElementTetraCorot_4_P : public ChElementGeneric, public ChElementC
     virtual void ShapeFunctions(ShapeVector& N, double z0, double z1, double z2);
 
     /// Fills the D vector with the current field values at the nodes of the element, with proper ordering. If the D
-    /// vector has not the size of this->GetNdofs(), it will be resized. For corotational elements, field is assumed in
+    /// vector has not the size of this->GetNumCoordsPosLevel(), it will be resized. For corotational elements, field is assumed in
     /// local reference!
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
@@ -301,16 +301,16 @@ class ChApi ChElementTetraCorot_4_P : public ChElementGeneric, public ChElementC
     //
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() override { return 4 * 3; }
+    virtual int GetLoadableNumCoordsPosLevel() override { return 4 * 3; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() override { return 4 * 3; }
+    virtual int GetLoadableNumCoordsVelLevel() override { return 4 * 3; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,
@@ -320,13 +320,13 @@ class ChApi ChElementTetraCorot_4_P : public ChElementGeneric, public ChElementC
                                         const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field: here the {t} temperature
-    virtual int Get_field_ncoords() override { return 1; }
+    virtual int GetFieldNumCoords() override { return 1; }
 
     /// Get the number of DOFs sub-blocks.
     virtual int GetSubBlocks() override { return 4; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffsetW(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffsetVelLevel(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 1; }

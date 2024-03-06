@@ -59,7 +59,7 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
     virtual ChLinkPointTriface* Clone() const override { return new ChLinkPointTriface(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() override { return 3 + 3 + 3 + 3; }
+    virtual int GetNumAffectedCoords() override { return 3 + 3 + 3 + 3; }
 
     /// Number of scalar constraints
     virtual int GetNumConstraintsBilateral() override { return 3; }
@@ -220,7 +220,7 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
     virtual ChLinkPointTrifaceRot* Clone() const override { return new ChLinkPointTrifaceRot(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() override { return 3 + 6 + 6 + 6; }
+    virtual int GetNumAffectedCoords() override { return 3 + 6 + 6 + 6; }
 
     /// Number of scalar constraints
     virtual int GetNumConstraintsBilateral() override { return 3; }

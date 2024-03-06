@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
 
     auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
     melasticity->SetYoungModulus(0.5e9);
-    melasticity->SetGshearModulus(0.5e9 * 0.7);
+    melasticity->SetShearModulus(0.5e9 * 0.7);
     melasticity->SetAsCircularSection(wire_diameter);
 
     auto mdamping = chrono_types::make_shared<ChDampingCosseratLinear>();

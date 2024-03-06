@@ -27,16 +27,16 @@ void ChMeshExporter::WriteMesh(std::shared_ptr<ChMesh> mesh, const std::string& 
     std::vector<std::vector<int>> BrickElemNodes;
 
     std::vector<std::shared_ptr<ChNodeFEAbase>> myvector;
-    myvector.resize(mesh->GetNnodes());
+    myvector.resize(mesh->GetNumNodes());
 
-    for (unsigned int i = 0; i < mesh->GetNnodes(); i++) {
+    for (unsigned int i = 0; i < mesh->GetNumNodes(); i++) {
         myvector[i] = std::dynamic_pointer_cast<ChNodeFEAbase>(mesh->GetNode(i));
     }
 
     int numCables = 0;
     int numShells = 0;
     int numBricks = 0;
-    for (unsigned int iele = 0; iele < mesh->GetNelements(); iele++) {
+    for (unsigned int iele = 0; iele < mesh->GetNumElements(); iele++) {
         if (std::dynamic_pointer_cast<ChElementCableANCF>(mesh->GetElement(iele)))
             numCables++;
         if (std::dynamic_pointer_cast<ChElementShellANCF_3423>(mesh->GetElement(iele)))
@@ -44,10 +44,10 @@ void ChMeshExporter::WriteMesh(std::shared_ptr<ChMesh> mesh, const std::string& 
         if (std::dynamic_pointer_cast<ChElementHexaANCF_3813>(mesh->GetElement(iele)))
             numBricks++;
     }
-    out_stream << "\nCELLS " << mesh->GetNelements() << " "
+    out_stream << "\nCELLS " << mesh->GetNumElements() << " "
                << (unsigned int)(numCables * 3 + numShells * 5 + numBricks * 9) << "\n";
 
-    for (unsigned int iele = 0; iele < mesh->GetNelements(); iele++) {
+    for (unsigned int iele = 0; iele < mesh->GetNumElements(); iele++) {
         std::vector<int> mynodes;
 
         if (auto elementC = std::dynamic_pointer_cast<ChElementCableANCF>(mesh->GetElement(iele))) {
@@ -118,9 +118,9 @@ void ChMeshExporter::WriteMesh(std::shared_ptr<ChMesh> mesh, const std::string& 
         }
     }
 
-    out_stream << "\nCELL_TYPES " << mesh->GetNelements() << "\n";
+    out_stream << "\nCELL_TYPES " << mesh->GetNumElements() << "\n";
 
-    for (unsigned int iele = 0; iele < mesh->GetNelements(); iele++) {
+    for (unsigned int iele = 0; iele < mesh->GetNumElements(); iele++) {
         if (std::dynamic_pointer_cast<ChElementCableANCF>(mesh->GetElement(iele)))
             out_stream << "3\n";
         else if (std::dynamic_pointer_cast<ChElementShellANCF_3423>(mesh->GetElement(iele)))
@@ -143,8 +143,8 @@ void ChMeshExporter::WriteFrame(std::shared_ptr<ChMesh> mesh,
     out_stream << "ASCII" << std::endl;
     out_stream << "DATASET UNSTRUCTURED_GRID" << std::endl;
 
-    out_stream << "POINTS " << mesh->GetNnodes() << " float\n";
-    for (unsigned int i = 0; i < mesh->GetNnodes(); i++) {
+    out_stream << "POINTS " << mesh->GetNumNodes() << " float\n";
+    for (unsigned int i = 0; i < mesh->GetNumNodes(); i++) {
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(i));
         out_stream << node->GetPos().x() << " " << node->GetPos().y() << " " << node->GetPos().z() << "\n";
     }
@@ -153,7 +153,7 @@ void ChMeshExporter::WriteFrame(std::shared_ptr<ChMesh> mesh,
     out_stream << in_stream.rdbuf();
 
     int numCell = 0;
-    for (unsigned int iele = 0; iele < mesh->GetNelements(); iele++) {
+    for (unsigned int iele = 0; iele < mesh->GetNumElements(); iele++) {
         if (std::dynamic_pointer_cast<ChElementCableANCF>(mesh->GetElement(iele)))
             numCell++;
         else if (std::dynamic_pointer_cast<ChElementShellANCF_3423>(mesh->GetElement(iele)))
@@ -165,7 +165,7 @@ void ChMeshExporter::WriteFrame(std::shared_ptr<ChMesh> mesh,
     out_stream << "LOOKUP_TABLE default\n";
 
     double scalar = 0;
-    for (unsigned int iele = 0; iele < mesh->GetNelements(); iele++) {
+    for (unsigned int iele = 0; iele < mesh->GetNumElements(); iele++) {
         if (auto elementC = std::dynamic_pointer_cast<ChElementCableANCF>(mesh->GetElement(iele)))
             scalar = elementC->GetCurrLength() - elementC->GetRestLength();
         else if (auto elementS = std::dynamic_pointer_cast<ChElementShellANCF_3423>(mesh->GetElement(iele)))
@@ -175,7 +175,7 @@ void ChMeshExporter::WriteFrame(std::shared_ptr<ChMesh> mesh,
 
     out_stream << "VECTORS Strain float\n";
     ChVector3d StrainV;
-    for (unsigned int iele = 0; iele < mesh->GetNelements(); iele++) {
+    for (unsigned int iele = 0; iele < mesh->GetNumElements(); iele++) {
         if (auto elementC = std::dynamic_pointer_cast<ChElementCableANCF>(mesh->GetElement(iele)))
             elementC->EvaluateSectionStrain(0.0, StrainV);
         else if (auto elementS = std::dynamic_pointer_cast<ChElementShellANCF_3423>(mesh->GetElement(iele))) {
@@ -187,10 +187,10 @@ void ChMeshExporter::WriteFrame(std::shared_ptr<ChMesh> mesh,
         out_stream << StrainV.x() << " " << StrainV.y() << " " << StrainV.z() << "\n";
     }
 
-    out_stream << "\nPOINT_DATA " << mesh->GetNnodes() << "\n";
+    out_stream << "\nPOINT_DATA " << mesh->GetNumNodes() << "\n";
 
     out_stream << "VECTORS Velocity float\n";
-    for (unsigned int i = 0; i < mesh->GetNnodes(); i++) {
+    for (unsigned int i = 0; i < mesh->GetNumNodes(); i++) {
         ChVector3d vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(i))->GetPosDer();
         vel += ChVector3d(1e-20);
         out_stream << (double)vel.x() << " " << (double)vel.y() << " " << (double)vel.z() << "\n";
@@ -198,7 +198,7 @@ void ChMeshExporter::WriteFrame(std::shared_ptr<ChMesh> mesh,
 
     out_stream << "VECTORS Acceleration float\n";
 
-    for (unsigned int i = 0; i < mesh->GetNnodes(); i++) {
+    for (unsigned int i = 0; i < mesh->GetNumNodes(); i++) {
         ChVector3d acc = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(i))->GetPosDer2();
         acc += ChVector3d(1e-20);
         out_stream << (double)acc.x() << " " << (double)acc.y() << " " << (double)acc.z() << "\n";

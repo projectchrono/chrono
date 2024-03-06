@@ -44,26 +44,26 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
     ~ChElementHexaANCF_3813_9() {}
 
     /// Get number of nodes of this element.
-    virtual int GetNnodes() override { return 9; }
+    virtual int GetNumNodes() override { return 9; }
 
     /// Get the number of coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs() override { return 8 * 3 + 9; }
+    virtual int GetNumCoordsPosLevel() override { return 8 * 3 + 9; }
 
     /// Get the number of active coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs_active() override { return m_element_dof; }
+    virtual int GetNumCoordsPosLevelActive() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs(int n) override {
+    virtual int GetNodeNumCoordsPosLevel(int n) override {
         if (n < 8)
-            return m_nodes[n]->GetNdofX();
-        return m_central_node->GetNdofX();
+            return m_nodes[n]->GetNumCoordsPosLevel();
+        return m_central_node->GetNumCoordsPosLevel();
     }
 
     /// Get the number of active coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs_active(int n) override {
+    virtual int GetNodeNumCoordsPosLevelActive(int n) override {
         if (n < 8)
-            return m_nodes[n]->GetNdofX_active();
-        return m_central_node->GetNdofX_active();
+            return m_nodes[n]->GetNumCoordsPosLevelActive();
+        return m_central_node->GetNumCoordsPosLevelActive();
     }
 
     /// Access the n-th node of this element.
@@ -181,14 +181,14 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
     void ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double y, double z);
 
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement.
-    virtual int Get_field_ncoords() override { return 3; }
+    virtual int GetFieldNumCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
     virtual int GetSubBlocks() override { return 9; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override {
-        return (nblock < 8) ? m_nodes[nblock]->NodeGetOffsetW() : m_central_node->NodeGetOffsetW();
+        return (nblock < 8) ? m_nodes[nblock]->NodeGetOffsetVelLevel() : m_central_node->NodeGetOffsetVelLevel();
     }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
@@ -198,16 +198,16 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
     virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nblock]->IsFixed(); }
 
     /// Get the number of DOFs affected by this element (position part).
-    virtual int LoadableGet_ndof_x() override { return 8 * 3 + 9; }
+    virtual int GetLoadableNumCoordsPosLevel() override { return 8 * 3 + 9; }
 
     /// Get the number of DOFs affected by this element (speed part).
-    virtual int LoadableGet_ndof_w() override { return 8 * 3 + 9; }
+    virtual int GetLoadableNumCoordsVelLevel() override { return 8 * 3 + 9; }
 
     /// Get all the DOFs packed in a single vector (position part).
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Get all the DOFs packed in a single vector (speed part).
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,

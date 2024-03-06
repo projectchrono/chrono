@@ -32,9 +32,9 @@ class ChApi ChElementSpring : public ChElementGeneric {
     ChElementSpring();
     ~ChElementSpring();
 
-    virtual int GetNnodes() override { return 2; }
-    virtual int GetNdofs() override { return 2 * 3; }
-    virtual int GetNodeNdofs(int n) override { return 3; }
+    virtual int GetNumNodes() override { return 2; }
+    virtual int GetNumCoordsPosLevel() override { return 2 * 3; }
+    virtual int GetNodeNumCoordsPosLevel(int n) override { return 3; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
 
@@ -45,7 +45,7 @@ class ChApi ChElementSpring : public ChElementGeneric {
     //
 
     /// Fills the D vector with the current field values at the nodes of the element, with proper ordering.
-    /// If the D vector has not the size of this->GetNdofs(), it will be resized.
+    /// If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized.
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
     /// Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also

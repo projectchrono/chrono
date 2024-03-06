@@ -155,7 +155,7 @@ int ChLinkMask::SetActiveRedundantByArray(int* mvector, int mcount) {
 }
 
 // set lock =ON for constraints which were disabled because redundant
-int ChLinkMask::RestoreRedundant() {
+int ChLinkMask::ResetRedundant() {
     int tot = 0;
     for (int j = 0; j < nconstr; j++) {
         if (Constr_N(j).IsRedundant()) {

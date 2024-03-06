@@ -200,7 +200,7 @@ void FEAcontactTest::CreateCables(std::shared_ptr<ChContactMaterialSMC> cmat) {
     auto section = chrono_types::make_shared<ChBeamSectionCable>();
     section->SetDiameter(0.05);
     section->SetYoungModulus(0.01e9);
-    section->SetBeamRayleighDamping(0.05);
+    section->SetRayleighDamping(0.05);
 
     ChBuilderCableANCF builder;
 

@@ -49,7 +49,7 @@ beam_wy = 0.1
 beam_wz = 0.2
 beam_section.SetAsRectangularSection(beam_wy, beam_wz)
 beam_section.SetYoungModulus(0.01e9)
-beam_section.SetGshearModulus(0.01e9 * 0.3)
+beam_section.SetShearModulus(0.01e9 * 0.3)
 beam_section.SetBeamRaleyghDamping(0.200)
 beam_section.SetDensity(1500)
 

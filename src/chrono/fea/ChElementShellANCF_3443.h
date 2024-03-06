@@ -13,7 +13,7 @@
 // =============================================================================
 // Fully Parameterized ANCF shell element with 4 nodes (48DOF). A Description of this element can be found in: Aki M
 // Mikkola and Ahmed A Shabana. A non-incremental finite element procedure for the analysis of large deformation of
-// plates and shells in mechanical system applications. Multibody System Dynamics, 9(3) : 283–309, 2003.
+// plates and shells in mechanical system applications. Multibody System Dynamics, 9(3) : 283ï¿½309, 2003.
 // =============================================================================
 // The "Continuous Integration" style calculation for the generalized internal force is based on modifications to
 // (including a new analytical Jacobian):  Gerstmayr, J., Shabana, A.A.: Efficient integration of the elastic forces and
@@ -21,7 +21,7 @@
 // Dynamics Eccomas thematic Conference, Madrid(2005).
 //
 // The "Pre-Integration" style calculation is based on modifications
-// to Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid–flexible multibody system composed of
+// to Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigidï¿½flexible multibody system composed of
 // composite laminated plates." Multibody System Dynamics 26, no. 3 (2011): 283-305.
 //
 // A report covering the detailed mathematics and implementation both of these generalized internal force calculations
@@ -122,19 +122,19 @@ class ChApi ChElementShellANCF_3443 : public ChElementANCF,
     };
 
     /// Get the number of nodes used by this element.
-    virtual int GetNnodes() override { return 4; }
+    virtual int GetNumNodes() override { return 4; }
 
     /// Get the number of coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs() override { return 4 * 12; }
+    virtual int GetNumCoordsPosLevel() override { return 4 * 12; }
 
     /// Get the number of active coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs_active() override { return m_element_dof; }
+    virtual int GetNumCoordsPosLevelActive() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs(int n) override { return m_nodes[n]->GetNdofX(); }
+    virtual int GetNodeNumCoordsPosLevel(int n) override { return m_nodes[n]->GetNumCoordsPosLevel(); }
 
     /// Get the number of active coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs_active(int n) override { return m_nodes[n]->GetNdofX_active(); }
+    virtual int GetNodeNumCoordsPosLevelActive(int n) override { return m_nodes[n]->GetNumCoordsPosLevelActive(); }
 
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyzDDD> nodeA,
@@ -217,7 +217,7 @@ class ChApi ChElementShellANCF_3443 : public ChElementANCF,
     // -------------------------------------
 
     /// Fill the D vector (column matrix) with the current field values at the nodes of the element, with proper
-    /// ordering. If the D vector has not the size of this->GetNdofs(), it will be resized.
+    /// ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized.
     ///  {Pos_a Du_a Dv_a Dw_a  Pos_b Du_b Dv_b Dw_b  Pos_c Du_c Dv_c Dw_c  Pos_d Du_d Dv_d Dw_d}
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
@@ -276,16 +276,16 @@ class ChApi ChElementShellANCF_3443 : public ChElementANCF,
     // ----------------------------------
 
     /// Gets the number of DOFs affected by this element (position part).
-    virtual int LoadableGet_ndof_x() override { return 4 * 12; }
+    virtual int GetLoadableNumCoordsPosLevel() override { return 4 * 12; }
 
     /// Gets the number of DOFs affected by this element (velocity part).
-    virtual int LoadableGet_ndof_w() override { return 4 * 12; }
+    virtual int GetLoadableNumCoordsVelLevel() override { return 4 * 12; }
 
     /// Gets all the DOFs packed in a single vector (position part).
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (velocity part).
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,
@@ -296,13 +296,13 @@ class ChApi ChElementShellANCF_3443 : public ChElementANCF,
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual int Get_field_ncoords() override { return 12; }
+    virtual int GetFieldNumCoords() override { return 12; }
 
     /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
     virtual int GetSubBlocks() override { return 4; }
 
     /// Get the offset of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffsetW(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffsetVelLevel(); }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 12; }

@@ -156,17 +156,17 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void Update(bool update_assets = true) { Update(ChTime, update_assets); }
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
-    /// Child classes should implement this function if GetNumCoordinatesPos() > 0.
+    /// Child classes should implement this function if GetNumCoordsPosLevel() > 0.
     /// It is used by owner ChSystem for some static analysis.
     virtual void SetNoSpeedNoAcceleration() {}
 
     /// Get the number of coordinates at the position level.
     /// Might differ from coordinates at velocity level if quaternions are used for rotations.
-    virtual int GetNumCoordinatesPos() { return 0; }
+    virtual int GetNumCoordsPosLevel() { return 0; }
 
     /// Get the number of coordinates at the velocity level.
     /// Might differ from coordinates at position level if quaternions are used for rotations.
-    virtual int GetNumCoordinatesVel() { return GetNumCoordinatesPos(); }
+    virtual int GetNumCoordsVelLevel() { return GetNumCoordsPosLevel(); }
 
     /// Get the number of scalar constraints.
     virtual int GetNumConstraints() { return GetNumConstraintsBilateral() + GetNumConstraintsUnilateral(); }
@@ -243,7 +243,7 @@ class ChApi ChPhysicsItem : public ChObj {
                                    const unsigned int off_v,  ///< offset in v state vector
                                    const ChStateDelta& Dv     ///< state vector, increment
     ) {
-        for (int i = 0; i < GetNumCoordinatesPos(); ++i) {
+        for (int i = 0; i < GetNumCoordsPosLevel(); ++i) {
             x_new(off_x + i) = x(off_x + i) + Dv(off_v + i);
         }
     }
@@ -257,7 +257,7 @@ class ChApi ChPhysicsItem : public ChObj {
                                       const unsigned int off_v,  ///< offset in v state vector
                                       ChStateDelta& Dv           ///< state vector, increment. Here gets the result
     ) {
-        for (int i = 0; i < GetNumCoordinatesPos(); ++i) {
+        for (int i = 0; i < GetNumCoordsPosLevel(); ++i) {
             Dv(off_v + i) = x_new(off_x + i) - x(off_x + i);
         }
     }

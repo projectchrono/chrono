@@ -133,24 +133,24 @@ int ChLoadContactSurfaceMesh::LoadGet_ndof_w() {
 void ChLoadContactSurfaceMesh::LoadGetStateBlock_x(ChState& mD) {
     int ndoftot = 0;
     for (const auto& f : m_forces) {
-        f->loader.GetLoadable()->LoadableGetStateBlock_x(ndoftot, mD);
-        ndoftot += f->loader.GetLoadable()->LoadableGet_ndof_x();
+        f->loader.GetLoadable()->LoadableGetStateBlockPosLevel(ndoftot, mD);
+        ndoftot += f->loader.GetLoadable()->GetLoadableNumCoordsPosLevel();
     }
     for (const auto& f : m_forces_rot) {
-        f->loadable->LoadableGetStateBlock_x(ndoftot, mD);
-        ndoftot += f->loadable->LoadableGet_ndof_x();
+        f->loadable->LoadableGetStateBlockPosLevel(ndoftot, mD);
+        ndoftot += f->loadable->GetLoadableNumCoordsPosLevel();
     }
 }
 
 void ChLoadContactSurfaceMesh::LoadGetStateBlock_w(ChStateDelta& mD) {
     int ndoftot = 0;
     for (const auto& f : m_forces) {
-        f->loader.GetLoadable()->LoadableGetStateBlock_w(ndoftot, mD);
-        ndoftot += f->loader.GetLoadable()->LoadableGet_ndof_w();
+        f->loader.GetLoadable()->LoadableGetStateBlockVelLevel(ndoftot, mD);
+        ndoftot += f->loader.GetLoadable()->GetLoadableNumCoordsVelLevel();
     }
     for (const auto& f : m_forces_rot) {
-        f->loadable->LoadableGetStateBlock_w(ndoftot, mD);
-        ndoftot += f->loadable->LoadableGet_ndof_w();
+        f->loadable->LoadableGetStateBlockVelLevel(ndoftot, mD);
+        ndoftot += f->loadable->GetLoadableNumCoordsVelLevel();
     }
 }
 
@@ -159,13 +159,13 @@ void ChLoadContactSurfaceMesh::LoadStateIncrement(const ChState& x, const ChStat
     int ndoftotw = 0;
     for (const auto& f : m_forces) {
         f->loader.GetLoadable()->LoadableStateIncrement(ndoftotx, x_new, x, ndoftotw, dw);
-        ndoftotx += f->loader.GetLoadable()->LoadableGet_ndof_x();
-        ndoftotw += f->loader.GetLoadable()->LoadableGet_ndof_w();
+        ndoftotx += f->loader.GetLoadable()->GetLoadableNumCoordsPosLevel();
+        ndoftotw += f->loader.GetLoadable()->GetLoadableNumCoordsVelLevel();
     }
     for (const auto& f : m_forces_rot) {
         f->loadable->LoadableStateIncrement(ndoftotx, x_new, x, ndoftotw, dw);
-        ndoftotx += f->loadable->LoadableGet_ndof_x();
-        ndoftotw += f->loadable->LoadableGet_ndof_w();
+        ndoftotx += f->loadable->GetLoadableNumCoordsPosLevel();
+        ndoftotw += f->loadable->GetLoadableNumCoordsVelLevel();
     }
 }
 

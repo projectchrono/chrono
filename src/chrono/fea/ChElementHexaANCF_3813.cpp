@@ -1780,7 +1780,7 @@ void ChElementHexaANCF_3813::Basis_M(ChMatrixNM<double, 6, 9>& M, double x, doub
 
 // -----------------------------------------------------------------------------
 
-void ChElementHexaANCF_3813::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementHexaANCF_3813::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPos().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPos().eigen();
@@ -1791,7 +1791,7 @@ void ChElementHexaANCF_3813::LoadableGetStateBlock_x(int block_offset, ChState& 
     mD.segment(block_offset + 21, 3) = m_nodes[7]->GetPos().eigen();
 }
 
-void ChElementHexaANCF_3813::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementHexaANCF_3813::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPosDer().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPosDer().eigen();

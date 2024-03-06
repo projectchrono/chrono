@@ -58,21 +58,21 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
     virtual void SetMass(double mm) = 0;
 
     /// Get the number of degrees of freedom
-    virtual int GetNdofX() const override { return 3; }
+    virtual int GetNumCoordsPosLevel() const override { return 3; }
 
     // INTERFACE to ChLoadable
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() override { return 3; }
+    virtual int GetLoadableNumCoordsPosLevel() override { return 3; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() override { return 3; }
+    virtual int GetLoadableNumCoordsVelLevel() override { return 3; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,
@@ -83,13 +83,13 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, etc. Here is 6: xyz displ + xyz rots
-    virtual int Get_field_ncoords() override { return 3; }
+    virtual int GetFieldNumCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
     virtual int GetSubBlocks() override { return 1; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return NodeGetOffsetW(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return NodeGetOffsetVelLevel(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }

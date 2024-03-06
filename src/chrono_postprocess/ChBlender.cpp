@@ -1081,7 +1081,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
 
         if (auto particleclones = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
             state_file << " [";
-            for (unsigned int m = 0; m < particleclones->GetNparticles(); ++m) {
+            for (unsigned int m = 0; m < particleclones->GetNumParticles(); ++m) {
                 // Get the current coordinate frame of the i-th particle
                 ChCoordsys<> partframe = particleclones->GetParticle(m).GetCoordsys();
                 state_file << "[(" << partframe.pos.x() << "," << partframe.pos.y() << "," << partframe.pos.z() << "),";

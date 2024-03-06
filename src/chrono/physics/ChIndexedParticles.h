@@ -52,7 +52,7 @@ class ChApi ChIndexedParticles : public ChPhysicsItem {
     virtual ~ChIndexedParticles() {}
 
     /// Get the number of particles.
-    virtual size_t GetNparticles() const = 0;
+    virtual size_t GetNumParticles() const = 0;
 
     /// Access the N-th particle.
     virtual ChParticleBase& GetParticle(unsigned int n) = 0;
@@ -66,17 +66,17 @@ class ChApi ChIndexedParticles : public ChPhysicsItem {
 
     /// Number of coordinates of the particle cluster.
     /// (x 7 because quaternions are used for rotation)
-    virtual int GetNumCoordinatesPos() override { return 7 * (int)GetNparticles(); }
+    virtual int GetNumCoordsPosLevel() override { return 7 * (int)GetNumParticles(); }
 
     /// Number of coordinates of the particle cluster.
     /// (x 6 because derivatives use angular velocity)
-    virtual int GetNumCoordinatesVel() override { return 6 * (int)GetNparticles(); }
+    virtual int GetNumCoordsVelLevel() override { return 6 * (int)GetNumParticles(); }
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// For a ChIndexedParticles, this returns the frame of the corresponding particle.
     virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override;
 
-    virtual unsigned int GetNumVisualModelClones() const override { return (unsigned int)GetNparticles(); }
+    virtual unsigned int GetNumVisualModelClones() const override { return (unsigned int)GetNumParticles(); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

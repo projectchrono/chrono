@@ -47,16 +47,16 @@ class ChApi ChContactable {
     virtual bool IsContactActive() = 0;
 
     /// Get the number of DOFs affected by this object (position part).
-    virtual int ContactableGet_ndof_x() = 0;
+    virtual int GetContactableNumCoordsPosLevel() = 0;
 
     /// Get the number of DOFs affected by this object (speed part).
-    virtual int ContactableGet_ndof_w() = 0;
+    virtual int GetContactableNumCoordsVelLevel() = 0;
 
     /// Get all the DOFs packed in a single vector (position part).
-    virtual void ContactableGetStateBlock_x(ChState& x) = 0;
+    virtual void ContactableGetStateBlockPosLevel(ChState& x) = 0;
 
     /// Get all the DOFs packed in a single vector (speed part).
-    virtual void ContactableGetStateBlock_w(ChStateDelta& w) = 0;
+    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) = 0;
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
@@ -116,7 +116,7 @@ class ChApi ChContactable {
     enum eChContactableType {
         CONTACTABLE_UNKNOWN = 0,  ///< unknown contactable type
         CONTACTABLE_6,            ///< 1 variable with 6 DOFs (e.g., ChBody, ChNodeFEAxyzrot)
-        CONTACTABLE_3,            ///< 1 variable with 3 DOFS (e.g., ChNodeFEAxyz, ChAparticle)
+        CONTACTABLE_3,            ///< 1 variable with 3 DOFS (e.g., ChNodeFEAxyz, ChParticle)
         CONTACTABLE_333,          ///< 3 variables, each with 3 DOFs (e.g., triangle between 3 ChNodeFEAxyz nodes)
         CONTACTABLE_666           ///< 3 variables, each with 6 DOFs (e.g., triangle between 3 ChNodeFEAxyzrot nodes)
     };

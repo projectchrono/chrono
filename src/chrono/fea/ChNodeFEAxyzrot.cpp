@@ -259,12 +259,12 @@ void ChNodeFEAxyzrot::LoadableStateIncrement(const unsigned int off_x,
     this->NodeIntStateIncrement(off_x, x_new, x, off_v, Dv);
 }
 
-void ChNodeFEAxyzrot::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChNodeFEAxyzrot::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = this->GetCoordsys().pos.eigen();
     mD.segment(block_offset + 3, 4) = this->GetCoordsys().rot.eigen();
 }
 
-void ChNodeFEAxyzrot::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChNodeFEAxyzrot::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = this->GetPosDer().eigen();
     mD.segment(block_offset + 3, 3) = this->GetAngVelLocal().eigen();
 }

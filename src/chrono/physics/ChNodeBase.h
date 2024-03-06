@@ -35,35 +35,35 @@ class ChApi ChNodeBase {
     // Functions for interfacing to the state bookkeeping
 
     /// Get the number of degrees of freedom.
-    virtual int GetNdofX() const = 0;
+    virtual int GetNumCoordsPosLevel() const = 0;
 
     /// Get the number of degrees of freedom, derivative.
     /// This might be different from ndof_x if quaternions are used for rotations and derivative is angular velocity.
-    virtual int GetNdofW() const { return GetNdofX(); }
+    virtual int GetNumCoordsVelLevel() const { return GetNumCoordsPosLevel(); }
 
     /// Get the actual number of active degrees of freedom.
     /// The default implementation returns the full number of DOFs for this node, but derived classes may allow fixing
     /// some of the node variables.
-    virtual int GetNdofX_active() const { return GetNdofX(); }
+    virtual int GetNumCoordsPosLevelActive() const { return GetNumCoordsPosLevel(); }
 
     /// Get the actual number of active degrees of freedom, derivative.
     /// The default implementation returns the full number of DOFs for this node, but derived classes may allow fixing
     /// some of the node variables.
-    virtual int GetNdofW_active() const { return GetNdofW(); }
+    virtual int GetNumCoordsVelLevelActive() const { return GetNumCoordsVelLevel(); }
 
     /// Return true if all node DOFs are active (no node variable is fixed).
-    virtual bool UseFullDof() const { return true; }
+    virtual bool IsAllCoordsActive() const { return true; }
 
     /// Get offset in the state vector (position part).
-    unsigned int NodeGetOffsetX() { return offset_x; }
+    unsigned int NodeGetOffsetPosLevel() { return offset_x; }
 
     /// Get offset in the state vector (speed part).
-    unsigned int NodeGetOffsetW() { return offset_w; }
+    unsigned int NodeGetOffsetVelLevel() { return offset_w; }
 
     /// Set offset in the state vector (position part).
-    void NodeSetOffset_x(const unsigned int moff) { offset_x = moff; }
+    void NodeSetOffsetPosLevel(const unsigned int moff) { offset_x = moff; }
     /// Set offset in the state vector (speed part).
-    void NodeSetOffset_w(const unsigned int moff) { offset_w = moff; }
+    void NodeSetOffsetVelLevel(const unsigned int moff) { offset_w = moff; }
 
     virtual void NodeIntStateGather(const unsigned int off_x,
                                     ChState& x,

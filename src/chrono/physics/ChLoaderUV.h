@@ -57,8 +57,8 @@ class ChLoaderUVdistributed : public ChLoaderUV {
     virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                           ) override {
-        Q.setZero(loadable->LoadableGet_ndof_w());
-        ChVectorDynamic<> mF(loadable->Get_field_ncoords());
+        Q.setZero(loadable->GetLoadableNumCoordsVelLevel());
+        ChVectorDynamic<> mF(loadable->GetFieldNumCoords());
         mF.setZero();
 
         if (!loadable->IsTriangleIntegrationNeeded()) {
@@ -124,8 +124,8 @@ class ChLoaderUVatomic : public ChLoaderUV {
     virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                           ) override {
-        Q.setZero(loadable->LoadableGet_ndof_w());
-        ChVectorDynamic<> mF(loadable->Get_field_ncoords());
+        Q.setZero(loadable->GetLoadableNumCoordsVelLevel());
+        ChVectorDynamic<> mF(loadable->GetFieldNumCoords());
         mF.setZero();
 
         // Compute F=F(u,v)

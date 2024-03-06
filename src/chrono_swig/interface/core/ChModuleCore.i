@@ -194,7 +194,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChBodyEasyClusterOfSpheres)
 %shared_ptr(chrono::ChConveyor)
 %shared_ptr(chrono::ChFeeder)
-%shared_ptr(chrono::ChAparticle)
+%shared_ptr(chrono::ChParticle)
 %shared_ptr(chrono::ChParticleBase)
 %shared_ptr(chrono::ChIndexedParticles)
 %shared_ptr(chrono::ChParticleCloud)

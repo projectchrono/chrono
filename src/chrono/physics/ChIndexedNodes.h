@@ -35,7 +35,7 @@ class ChApi ChIndexedNodes : public ChPhysicsItem {
     //
 
     /// Get the number of nodes
-    virtual unsigned int GetNnodes() const = 0;
+    virtual unsigned int GetNumNodes() const = 0;
 
     /// Access the N-th node
     virtual std::shared_ptr<ChNodeBase> GetNode(unsigned int n) = 0;
@@ -49,7 +49,7 @@ class ChApi ChIndexedNodes : public ChPhysicsItem {
     //	virtual void ResizeNnodes(int newsize) =0;
 
     /// Number of coordinates of the node cluster
-    //	virtual int GetNumCoordinatesPos  ()   {return 3*GetNnodes();}
+    //	virtual int GetNumCoordsPosLevel  ()   {return 3*GetNumNodes();}
 
     //
     // SERIALIZATION

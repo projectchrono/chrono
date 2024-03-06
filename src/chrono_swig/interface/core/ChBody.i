@@ -76,8 +76,8 @@ std::shared_ptr<ChCollisionModel> GetCollisionModel()                           
 %csmethodmodifiers chrono::ChBody::Variables "public"
 %csmethodmodifiers chrono::ChBody::LoadableGetVariables "public"
 %csmethodmodifiers chrono::ChBody::LoadableStateIncrement "public"
-%csmethodmodifiers chrono::ChBody::LoadableGetStateBlock_x "public"
-%csmethodmodifiers chrono::ChBody::LoadableGetStateBlock_w "public"
+%csmethodmodifiers chrono::ChBody::LoadableGetStateBlockPosLevel "public"
+%csmethodmodifiers chrono::ChBody::LoadableGetStateBlockVelLevel "public"
 %csmethodmodifiers chrono::ChBody::ComputeNF "public"
 
 //// RADU:  Do we actually want to wrap methods of ChLoadable?

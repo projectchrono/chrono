@@ -155,9 +155,9 @@ int main(int argc, char* argv[]) {
         meshR =
             std::static_pointer_cast<ChTrackAssemblyBandANCF>(vehicle.GetTrackAssembly(VehicleSide::RIGHT))->GetMesh();
 
-        cout << "[FEA mesh left]  n_nodes = " << meshL->GetNnodes() << " n_elements = " << meshL->GetNelements()
+        cout << "[FEA mesh left]  n_nodes = " << meshL->GetNumNodes() << " n_elements = " << meshL->GetNumElements()
              << endl;
-        cout << "[FEA mesh right] n_nodes = " << meshR->GetNnodes() << " n_elements = " << meshR->GetNelements()
+        cout << "[FEA mesh right] n_nodes = " << meshR->GetNumNodes() << " n_elements = " << meshR->GetNumElements()
              << endl;
     }
 

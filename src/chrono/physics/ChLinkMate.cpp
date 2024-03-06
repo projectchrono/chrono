@@ -120,8 +120,8 @@ void ChLinkMateGeneric::SetBroken(bool mbro) {
         ChangedLinkMask();
 }
 
-int ChLinkMateGeneric::RestoreRedundant() {
-    int mchanges = mask.RestoreRedundant();
+int ChLinkMateGeneric::ResetRedundant() {
+    int mchanges = mask.ResetRedundant();
     if (mchanges)
         ChangedLinkMask();
     return mchanges;

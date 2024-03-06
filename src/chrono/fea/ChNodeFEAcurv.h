@@ -93,10 +93,10 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     virtual bool IsFixed() const override;
 
     /// Get the number of degrees of freedom.
-    virtual int GetNdofX() const override { return 9; }
+    virtual int GetNumCoordsPosLevel() const override { return 9; }
 
     /// Get the number of degrees of freedom, derivative.
-    virtual int GetNdofW() const override { return 9; }
+    virtual int GetNumCoordsVelLevel() const override { return 9; }
 
     // Functions for interfacing to the state bookkeeping
 

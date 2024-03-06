@@ -100,7 +100,7 @@ void ChFsiInterface::ResizeChronoCablesData(const std::vector<std::vector<int>>&
         return;
 
     size_t numCables = 0;
-    for (size_t i = 0; i < m_fsi_mesh->GetNelements(); i++) {
+    for (size_t i = 0; i < m_fsi_mesh->GetNumElements(); i++) {
         if (std::dynamic_pointer_cast<fea::ChElementCableANCF>(m_fsi_mesh->GetElement((unsigned int)i)))
             numCables++;
     }
@@ -132,7 +132,7 @@ void ChFsiInterface::ResizeChronoShellsData(const std::vector<std::vector<int>>&
         return;
 
     size_t numShells = 0;
-    for (unsigned int i = 0; i < m_fsi_mesh->GetNelements(); i++) {
+    for (unsigned int i = 0; i < m_fsi_mesh->GetNumElements(); i++) {
         if (std::dynamic_pointer_cast<fea::ChElementShellANCF_3423>(m_fsi_mesh->GetElement(i)))
             numShells++;
     }

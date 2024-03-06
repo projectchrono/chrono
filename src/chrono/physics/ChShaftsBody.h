@@ -50,7 +50,7 @@ class ChApi ChShaftsBody : public ChPhysicsItem {
     virtual ChShaftsBody* Clone() const override { return new ChShaftsBody(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() const { return 6 + 1; }
+    virtual int GetNumAffectedCoords() const { return 6 + 1; }
 
     /// Number of scalar constraints
     virtual int GetNumConstraintsBilateral() override { return 1; }
@@ -165,7 +165,7 @@ class ChApi ChShaftsBodyTranslation : public ChPhysicsItem {
     virtual ChShaftsBodyTranslation* Clone() const override { return new ChShaftsBodyTranslation(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() const { return 6 + 1; }
+    virtual int GetNumAffectedCoords() const { return 6 + 1; }
 
     /// Number of scalar constraints
     virtual int GetNumConstraintsBilateral() override { return 1; }

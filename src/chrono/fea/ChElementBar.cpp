@@ -33,7 +33,7 @@ void ChElementBar::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA, std::shared_ptr
 }
 
 void ChElementBar::GetStateBlock(ChVectorDynamic<>& mD) {
-    mD.setZero(this->GetNdofs());
+    mD.setZero(this->GetNumCoordsPosLevel());
     mD.segment(0, 3) = this->nodes[0]->GetPos().eigen();
     mD.segment(3, 3) = this->nodes[1]->GetPos().eigen();
 }

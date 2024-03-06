@@ -110,10 +110,10 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     unsigned int GetIndex() { return index; }
 
     /// Number of coordinates of body: 7 because uses quaternions for rotation.
-    virtual int GetNumCoordinatesPos() override { return 7; }
+    virtual int GetNumCoordsPosLevel() override { return 7; }
 
     /// Number of coordinates of body: 6 because derivatives use angular velocity.
-    virtual int GetNumCoordinatesVel() override { return 6; }
+    virtual int GetNumCoordsVelLevel() override { return 6; }
 
     /// Return a reference to the encapsulated ChVariablesBody, representing states (pos, speed, or accel.) and forces.
     /// The ChVariablesBodyOwnMass is the interface to the system solver.
@@ -382,10 +382,10 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
                                         const ChStateDelta& Dv) override;
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Evaluate Q=N'*F, for Q generalized lagrangian load, where N is some type of matrix evaluated at point P(U,V,W)
     /// assumed in absolute coordinates, and F is a load assumed in absolute coordinates. det[J] is unused.
@@ -524,16 +524,16 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     virtual bool IsContactActive() override { return this->IsActive(); }
 
     /// Get the number of DOFs affected by this object (position part)
-    virtual int ContactableGet_ndof_x() override { return 7; }
+    virtual int GetContactableNumCoordsPosLevel() override { return 7; }
 
     /// Get the number of DOFs affected by this object (speed part)
-    virtual int ContactableGet_ndof_w() override { return 6; }
+    virtual int GetContactableNumCoordsVelLevel() override { return 6; }
 
     /// Get all the DOFs packed in a single vector (position part)
-    virtual void ContactableGetStateBlock_x(ChState& x) override;
+    virtual void ContactableGetStateBlockPosLevel(ChState& x) override;
 
     /// Get all the DOFs packed in a single vector (speed part)
-    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override;
+    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override;
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
@@ -601,13 +601,13 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     // INTERFACE to ChLoadable
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() override { return 7; }
+    virtual int GetLoadableNumCoordsPosLevel() override { return 7; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() override { return 6; }
+    virtual int GetLoadableNumCoordsVelLevel() override { return 6; }
 
     /// Number of coordinates in the interpolated field. Here, 6: = xyz displ + xyz rots.
-    virtual int Get_field_ncoords() override { return 6; }
+    virtual int GetFieldNumCoords() override { return 6; }
 
     /// Tell the number of DOFs blocks.
     virtual int GetSubBlocks() override { return 1; }

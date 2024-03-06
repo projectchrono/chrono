@@ -202,7 +202,7 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     virtual void Update(double mtime, bool update_assets = true) override;
 
     /// If some constraint is redundant, return to normal state
-    virtual int RestoreRedundant() override;
+    virtual int ResetRedundant() override;
 
     /// User can use this to enable/disable all the constraint of
     /// the link as desired.

@@ -34,7 +34,7 @@ void ChContactNodeXYZ::ContactForceLoadResidual_F(const ChVector3d& F,
                                                   const ChVector3d& T,
                                                   const ChVector3d& abs_point,
                                                   ChVectorDynamic<>& R) {
-    R.segment(m_node->NodeGetOffsetW(), 3) += F.eigen();
+    R.segment(m_node->NodeGetOffsetVelLevel(), 3) += F.eigen();
 }
 
 void ChContactNodeXYZ::ComputeJacobianForContactPart(const ChVector3d& abs_point,
@@ -74,7 +74,7 @@ void ChContactNodeXYZROT::ContactForceLoadResidual_F(const ChVector3d& F,
                                                      const ChVector3d& T,
                                                      const ChVector3d& abs_point,
                                                      ChVectorDynamic<>& R) {
-    R.segment(m_node->NodeGetOffsetW(), 3) += F.eigen();
+    R.segment(m_node->NodeGetOffsetVelLevel(), 3) += F.eigen();
 }
 
 void ChContactNodeXYZROT::ComputeJacobianForContactPart(const ChVector3d& abs_point,
@@ -138,7 +138,7 @@ void ChContactSurfaceNodeCloud::AddAllNodes(const double point_radius) {
     if (!mesh)
         return;
 
-    for (unsigned int i = 0; i < mesh->GetNnodes(); ++i)
+    for (unsigned int i = 0; i < mesh->GetNumNodes(); ++i)
         if (auto nodeFEA = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(i)))
             this->AddNode(nodeFEA, point_radius);
         else if (auto nodeFEArot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(mesh->GetNode(i)))

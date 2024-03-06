@@ -923,7 +923,7 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     // Note that angular velocities are in node local frame because in C::E angular
     // increments are assumed in local frame csys.
     ChStateDelta velocities(24, nullptr);
-    this->LoadableGetStateBlock_w(0, velocities);
+    this->LoadableGetStateBlockVelLevel(0, velocities);
 
     // Note that, in case of ChDampingReissnerRayleigh (rayleigh damping), this
     // is like computing Fi_damping = -beta*[Km]*v   without explicitly building [Km],
@@ -1130,7 +1130,7 @@ void ChElementShellReissner4::EvaluateSectionPoint(const double u, const double 
 // -----------------------------------------------------------------------------
 
 // Gets all the DOFs packed in a single vector (position part).
-void ChElementShellReissner4::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementShellReissner4::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 4) = m_nodes[0]->GetRot().eigen();
     mD.segment(block_offset + 7, 3) = m_nodes[1]->GetPos().eigen();
@@ -1142,7 +1142,7 @@ void ChElementShellReissner4::LoadableGetStateBlock_x(int block_offset, ChState&
 }
 
 // Gets all the DOFs packed in a single vector (velocity part).
-void ChElementShellReissner4::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementShellReissner4::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetAngVelLocal().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPosDer().eigen();

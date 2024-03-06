@@ -39,17 +39,17 @@ class ChApi ChBeamSectionEuler : public ChBeamSection {
 
     // STIFFNESS INTERFACE
 
-    /// Gets the axial rigidity, usually A*E, but might be ad hoc
+    /// Gets the axial rigidity, usually A*E.
     virtual double GetAxialRigidity() const = 0;
 
-    /// Gets the torsion rigidity, for torsion about X axis at elastic center, usually J*G, but might be ad hoc
-    virtual double GetXtorsionRigidity() const = 0;
+    /// Gets the torsion rigidity, for torsion about X axis at elastic center, usually J*G.
+    virtual double GetTorsionRigidityX() const = 0;
 
-    /// Gets the bending rigidity, for bending about Y axis at elastic center, usually Iyy*E, but might be ad hoc
-    virtual double GetYbendingRigidity() const = 0;
+    /// Gets the bending rigidity, for bending about Y axis at elastic center, usually Iyy*E.
+    virtual double GetBendingRigidityY() const = 0;
 
-    /// Gets the bending rigidity, for bending about Z axis at elastic center, usually Izz*E, but might be ad hoc
-    virtual double GetZbendingRigidity() const = 0;
+    /// Gets the bending rigidity, for bending about Z axis at elastic center, usually Izz*E.
+    virtual double GetBendingRigidityZ() const = 0;
 
     /// Set the rotation of the Y Z section axes for which the YbendingRigidity and ZbendingRigidity are defined.
     virtual double GetSectionRotation() const = 0;
@@ -139,18 +139,18 @@ class ChApi ChBeamSectionEuler : public ChBeamSection {
 
     /// Set the "alpha" Rayleigh damping ratio,
     /// the mass-proportional structural damping in: R = alpha*M + beta*K
-    virtual void SetBeamRayleighDampingAlpha(double malpha) { this->rdamping_alpha = malpha; }
-    double GetBeamRayleighDampingAlpha() { return this->rdamping_alpha; }
+    virtual void SetRayleighDampingAlpha(double malpha) { this->rdamping_alpha = malpha; }
+    double GetRayleighDampingAlpha() { return this->rdamping_alpha; }
 
     /// Set the "beta" Rayleigh damping ratio,
     /// the stiffness-proportional structural damping in: R = alpha*M + beta*K
-    virtual void SetBeamRayleighDampingBeta(double mbeta) { this->rdamping_beta = mbeta; }
-    double GetBeamRayleighDampingBeta() { return this->rdamping_beta; }
+    virtual void SetRayleighDampingBeta(double mbeta) { this->rdamping_beta = mbeta; }
+    double GetRayleighDampingBeta() { return this->rdamping_beta; }
 
     /// Set both beta and alpha coefficients in Rayleigh damping model:  R = alpha*M + beta*K.
     /// For backward compatibility, if one provides only the first parameter, this would be the "beta"
     /// stiffness-proportional term, and the "alpha" mass proportional term would be left to default zero.
-    virtual void SetBeamRayleighDamping(double mbeta, double malpha = 0) {
+    virtual void SetRayleighDamping(double mbeta, double malpha = 0) {
         this->rdamping_beta = mbeta;
         this->rdamping_alpha = malpha;
     }
@@ -201,7 +201,7 @@ class ChApi ChBeamSectionEulerSimple : public ChBeamSectionEuler {
         : E(0.01e9),     // default E stiffness: (almost rubber)
           density(1000)  // default density: water
     {
-        SetGwithPoissonRatio(0.3);            // default G (low poisson ratio)
+        SetShearModulusFromPoisson(0.3);            // default G (low poisson ratio)
         SetAsRectangularSection(0.01, 0.01);  // defaults Area, Ixx, Iyy, Ks_y, Ks_z, J
     }
 
@@ -284,26 +284,26 @@ class ChApi ChBeamSectionEulerSimple : public ChBeamSectionEuler {
     void SetYoungModulus(double mE) { this->E = mE; }
     double GetYoungModulus() const { return this->E; }
 
-    /// Set G, the shear modulus, used for computing the torsion rigidity = J*G
-    void SetGshearModulus(double mG) { this->G = mG; }
-    double GetGshearModulus() const { return this->G; }
+    /// Set the shear modulus, used for computing the torsion rigidity = J*G
+    void SetShearModulus(double mG) { this->G = mG; }
+    double GetShearModulus() const { return this->G; }
 
-    /// Set G, the shear modulus, given current E and the specified Poisson ratio
-    void SetGwithPoissonRatio(double mpoisson) { this->G = this->E / (2.0 * (1.0 + mpoisson)); }
+    /// Set the shear modulus, given current Young modulus and the specified Poisson ratio.
+    void SetShearModulusFromPoisson(double mpoisson) { this->G = this->E / (2.0 * (1.0 + mpoisson)); }
 
     // INTERFACES
 
-    /// Gets the axial rigidity, usually A*E, but might be ad hoc
+    /// Gets the axial rigidity, usually A*E.
     virtual double GetAxialRigidity() const override { return this->Area * this->E; }
 
-    /// Gets the torsion rigidity, for torsion about X axis at elastic center, usually J*G, but might be ad hoc
-    virtual double GetXtorsionRigidity() const override { return this->J * this->G; }
+    /// Gets the torsion rigidity, for torsion about X axis at elastic center, usually J*G.
+    virtual double GetTorsionRigidityX() const override { return this->J * this->G; }
 
-    /// Gets the bending rigidity, for bending about Y axis at elastic center, usually Iyy*E, but might be ad hoc
-    virtual double GetYbendingRigidity() const override { return this->Iyy * this->E; }
+    /// Gets the bending rigidity, for bending about Y axis at elastic center, usually Iyy*E.
+    virtual double GetBendingRigidityY() const override { return this->Iyy * this->E; }
 
-    /// Gets the bending rigidity, for bending about Z axis at elastic center, usually Izz*E, but might be ad hoc
-    virtual double GetZbendingRigidity() const override { return this->Izz * this->E; }
+    /// Gets the bending rigidity, for bending about Z axis at elastic center, usually Izz*E.
+    virtual double GetBendingRigidityZ() const override { return this->Izz * this->E; }
 
     /// Set the rotation of the Y Z section axes for which the YbendingRigidity and ZbendingRigidity are defined.
     virtual double GetSectionRotation() const override { return 0; }
@@ -537,17 +537,17 @@ class ChApi ChBeamSectionEulerAdvancedGeneric : public ChBeamSectionEuler {
 
     // INTERFACES
 
-    /// Gets the axial rigidity, usually A*E, but might be ad hoc
+    /// Gets the axial rigidity, usually A*E.
     virtual double GetAxialRigidity() const override { return this->Ax; }
 
-    /// Gets the torsion rigidity, for torsion about X axis at elastic center, usually J*G, but might be ad hoc
-    virtual double GetXtorsionRigidity() const override { return this->Txx; }
+    /// Gets the torsion rigidity, for torsion about X axis at elastic center, usually J*G.
+    virtual double GetTorsionRigidityX() const override { return this->Txx; }
 
-    /// Gets the bending rigidity, for bending about Y axis at elastic center, usually Iyy*E, but might be ad hoc
-    virtual double GetYbendingRigidity() const override { return this->Byy; }
+    /// Gets the bending rigidity, for bending about Y axis at elastic center, usually Iyy*E.
+    virtual double GetBendingRigidityY() const override { return this->Byy; }
 
-    /// Gets the bending rigidity, for bending about Z axis at elastic center, usually Izz*E, but might be ad hoc
-    virtual double GetZbendingRigidity() const override { return this->Bzz; }
+    /// Gets the bending rigidity, for bending about Z axis at elastic center, usually Izz*E.
+    virtual double GetBendingRigidityZ() const override { return this->Bzz; }
 
     /// Set the rotation of the Y Z section axes for which the YbendingRigidity and ZbendingRigidity are defined.
     virtual double GetSectionRotation() const override { return this->alpha; }

@@ -80,13 +80,13 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
     // Functions for ChLoadable interface
 
     /// Get the number of DOFs affected by this element (position part).
-    virtual int LoadableGet_ndof_x() override { return 4 * 3; }
+    virtual int GetLoadableNumCoordsPosLevel() override { return 4 * 3; }
 
     /// Get the number of DOFs affected by this element (speed part).
-    virtual int LoadableGet_ndof_w() override { return 4 * 3; }
+    virtual int GetLoadableNumCoordsVelLevel() override { return 4 * 3; }
 
     /// Get all the DOFs packed in a single vector (position part).
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override {
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override {
         mD.segment(block_offset + 0, 3) = GetNodeN(0)->GetPos().eigen();
         mD.segment(block_offset + 3, 3) = GetNodeN(1)->GetPos().eigen();
         mD.segment(block_offset + 6, 3) = GetNodeN(2)->GetPos().eigen();
@@ -94,7 +94,7 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
     }
 
     /// Get all the DOFs packed in a single vector (speed part).
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override {
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override {
         mD.segment(block_offset + 0, 3) = GetNodeN(0)->GetPosDer().eigen();
         mD.segment(block_offset + 3, 3) = GetNodeN(1)->GetPosDer().eigen();
         mD.segment(block_offset + 6, 3) = GetNodeN(2)->GetPosDer().eigen();
@@ -113,13 +113,13 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
     }
 
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement.
-    virtual int Get_field_ncoords() override { return 3; }
+    virtual int GetFieldNumCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
     virtual int GetSubBlocks() override { return 4; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return GetNodeN(nblock)->NodeGetOffsetW(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return GetNodeN(nblock)->NodeGetOffsetVelLevel(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }

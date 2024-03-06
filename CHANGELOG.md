@@ -185,6 +185,7 @@ Note that this represents a major public API change and we expect most user code
 | -                                 | GetLog                        | remove                                           |
 | -                                 | SetLog                        | remove                                           |
 | -                                 | SetLogDefault                 | remove                                           |
+| ChAparticle                       |                               | rename: ChParticle                               |
 | ChArchiveAsciiDump                |                               | rename: ChOutputASCII                            |
 | ChArchiveExplorer                 |                               | rename: ChObjectExplorer                         |
 | ChAssembly                        |                               |                                                  |
@@ -193,27 +194,45 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_meshlist                  | rename: GetMeshes                                |
 |                                   | Get_otherphysicslist          | rename: GetShafts                                |
 |                                   | Get_shaftslist                | rename: GetOtherPhysicsItems                     |
-|                                   | GetNbodies                    | rename: GetNumBodies                             |
+|                                   | GetNbodies                    | rename: GetNumBodiesActive                       |
 |                                   | GetNbodiesFixed               | rename: GetNumBodiesFixed                        |
 |                                   | GetNbodiesSleeping            | rename: GetNumBodiesSleeping                     |
-|                                   | GetNbodiesTotal               | rename: GetNumBodiesTotal                        |
+|                                   | GetNbodiesTotal               | rename: GetNumBodies                             |
 |                                   | GetNcontacts                  | rename: GetNumContacts                           |
-|                                   | GetNcoords                    | rename: GetNumCoordinatesPos                     |
-|                                   | GetNcoords_w                  | rename: GetNumCoordinatesVel                     |
+|                                   | GetNcoords                    | rename: GetNumCoordsPosLevel                     |
+|                                   | GetNcoords_w                  | rename: GetNumCoordsVelLevel                     |
 |                                   | GetNdoc                       | remove: no constraints at position level         |
 |                                   | GetNdoc_w                     | rename: GetNumConstraints                        |
 |                                   | GetNdoc_w_C                   | rename: GetNumConstraintsBilateral               |
 |                                   | GetNdoc_w_D                   | rename: GetNumConstraintsUnilateral              |
 |                                   | GetNdof                       | remove: it was a rough estimate                  |
-|                                   | GetNlinks                     | rename: GetNumLinks                              |
+|                                   | GetNlinks                     | rename: GetNumLinksActive                        |
 |                                   | GetNmeshes                    | rename: GetNumMeshes                             |
-|                                   | GetNphysicsItems              | rename: GetNumOtherPhysicsItems                  |
+|                                   | GetNphysicsItems              | rename: GetNumOtherPhysicsItemsActive            |
 |                                   | GetNshafts                    | rename: GetNumShafts                             |
 |                                   | GetNshaftsFixed               | rename: GetNumShaftsFixed                        |
 |                                   | GetNshaftsSleeping            | rename: GetNumShaftsSleeping                     |
 |                                   | GetNshaftsTotal               | rename: GetNumShaftsTotal                        |
 |                                   | GetNsysvars                   | remove                                           |
 |                                   | GetNsysvars_w                 | remove                                           |
+| ChBeamSectionCable                |                               |                                                  |
+|                                   | GetBeamRayleighDamping        | rename: GetRayleighDamping                       |
+|                                   | SetBeamRayleighDamping        | rename: SetRayleighDamping                       |
+| ChBeamSectionEuler                |                               |                                                  |
+|                                   | GetBeamRayleighDampingAlpha   | rename: GetRayleighDampingAlpha                  |
+|                                   | GetBeamRayleighDampingBeta    | rename: GetRayleighDampingBeta                   |
+|                                   | SetBeamRayleighDampingAlpha   | rename: SetRayleighDampingAlpha                  |
+|                                   | SetBeamRayleighDampingBeta    | rename: SetRayleighDampingBeta                   |
+| ChBeamSectionEulerSimple          |                               |                                                  |
+|                                   | GetGshearModulus              | rename: GetShearModulus                          |
+|                                   | GetXtorsionRigidity           | rename: GetTorsionRigidityX                      |
+|                                   | GetYbendingRigidity           | rename: GetBendingRigidityY                      |
+|                                   | GetZbendingRigidity           | rename: GetBendingRigidityZ                      |
+|                                   | SetGshearModulus              | rename: SetShearModulus                          |
+|                                   | SetGwithPoissonRatio          | rename: SetShearModulusFromPoisson               |
+| ChBeamSectionShape                |                               |                                                  |
+|                                   | GetNofLines                   | rename: GetNumLines                              |
+|                                   | GetNofPoints                  | rename: GetNumPoints                             |
 | ChBezierCurve                     |                               |                                                  |
 |                                   | calcClosestPoint              | rename: CalcClosestPoint                         |
 |                                   | eval                          | rename: Eval                                     |
@@ -244,6 +263,17 @@ Note that this represents a major public API change and we expect most user code
 |                                   | To_abs_forcetorque            | remove                                           |
 |                                   |                               | added: AppliedForceLocalToWrenchParent           |
 |                                   |                               | added: AppliedForceParentToWrenchParent          |
+| ChContactable                     |                               |                                                  |
+|                                   | ContactableGet_ndof_x         | rename: GetContactableNumCoordsPosLevel          |
+|                                   | ContactableGet_ndof_w         | rename: GetContactableNumCoordsVelLevel          |
+|                                   | ContactableGetStateBlock_x    | rename: ContactableGetStateBlockPosLevel         |
+|                                   | ContactableGetStateBlock_w    | rename: ContactableGetStateBlockVelLevel         |
+| ChElementBse                      |                               |                                                  |
+|                                   | GetNdofs                      | rename: GetNumCoordsPosLevel                     |
+|                                   | GetNdofs_active               | rename: GetNumCoordsPosLevelActive               |
+|                                   | GetNodeNdofs                  | rename: GetNodeNumCoordsPosLevel                 |
+|                                   | GetNodeNdofs_active           | rename: GetNodeNumCoordsPosLevelActive           |
+|                                   | GetNnodes                     | rename: GetNumNodes                              |
 | ChException                       |                               | remove                                           |
 | ChFrame                           |                               |                                                  |
 |                                   | GetA                          | rename: GetRotMat                                |
@@ -432,24 +462,27 @@ Note that this represents a major public API change and we expect most user code
 | ChFunctionRotation_axis           |                               | rename: ChFunctionRotationAxis                   |
 | ChFunctionRotation_setpoint       |                               | rename: ChFunctionRotationSetpoint               |
 | ChFunctionRotation_spline         |                               | rename: ChFunctionRotationBSpline                |
-|                                   | Rotations                     | rename: GetRotations                             |
-|                                   | Knots                         | rename: GetKnots                                 |
 | ChFunctionRotation_SQUAD          |                               | rename: ChFunctionRotationSQUAD                  |
-|                                   | Rotations                     | rename: GetRotations                             |
-|                                   | Knots                         | rename: GetKnots                                 |
+| ChIndexedParticles                |                               |                                                  |
+|                                   | GetNparticles                 | rename: GetNumParticles                          |
 | ChIntegrable                      |                               |                                                  |
 |                                   | GetNconstr                    | rename: GetNumConstraints                        |
-|                                   | GetNcoords_dy                 | remove: split in GetNumCoordinatesVel/Acc        |
-|                                   | GetNcoords_x                  | rename: GetNumCoordinatesPos                     |
-|                                   | GetNcoords_v                  | rename: GetNumCoordinatesVel                     |
-|                                   | GetNcoords_y                  | remove: split in GetNumCoordinatesPos/Vel        |
+|                                   | GetNcoords_dy                 | remove: split in GetNumCoordsVelLevel/Acc        |
+|                                   | GetNcoords_x                  | rename: GetNumCoordsPosLevel                     |
+|                                   | GetNcoords_v                  | rename: GetNumCoordsVelLevel                     |
+|                                   | GetNcoords_y                  | remove: split in GetNumCoordsPosLevel/Vel        |
+| ChLink                            |                               |                                                  |
+|                                   | GetLeftDOF                    | remove                                           |
 | ChLinkBase                        |                               |                                                  |
+|                                   | GetNumCoords                  | rename: GetNumAffectedCoords                     |
 |                                   | Get_react_force               | rename: GetReactForce2                           |
 |                                   | Get_react_torque              | rename: GetReactTorque2                          |
 | ChLinkBrake                       |                               | rename: ChLinkLockBrake                          |
 | ChLinkClearance                   |                               | rename: ChLinkLockClearance                      |
 | ChLinkGear                        |                               | rename: ChLinkLockGear                           |
 | ChLinkLinActuator                 |                               | rename: ChLinkLockLinActuator                    |
+| ChLinkMate                        |                               |                                                  |
+|                                   | RestoreRedundant              | rename: ResetRedundant                           |
 | ChLinkMateCoaxial                 |                               | rename: ChLinkMateCylindrical                    |
 | ChLinkMatePlane                   |                               | rename: ChLinkMatePlanar                         |
 |                                   | GetSeparation                 | rename: GetDistance                              |
@@ -472,6 +505,12 @@ Note that this represents a major public API change and we expect most user code
 | ChLinkScrew                       |                               | rename: ChLinkLockScrew                          |
 | ChLinkTrajectory                  |                               | rename: ChLinkLockTrajectory                     |
 | ChList                            |                               | remove                                           |
+| ChLoadable                        |                               |                                                  |
+|                                   | Get_field_ncoords             | rename: GetFieldNumCoords                        |
+|                                   | LoadableGet_ndof_x            | rename: GetLoadableNumCoordsPosLevel             |
+|                                   | LoadableGet_ndof_w            | rename: GetLoadableNumCoordsVelLevel             |
+|                                   | LoadableGetStateBlock_x       | rename: LoadableGetStateBlockPosLevel            |
+|                                   | LoadableGetStateBlock_w       | rename: LoadableGetStateBlockVelLevel            |
 | ChLoaderUW                        |                               |                                                  |
 |                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
@@ -512,15 +551,29 @@ Note that this represents a major public API change and we expect most user code
 | ChMaterialCompositeNSC            |                               | rename: ChContactMaterialCompositeNSC            |
 | ChMaterialCompositeSMC            |                               | rename: ChContactMaterialCompositeSMC            |
 | ChMaterialCompositionStrategy     |                               | rename: ChContactMaterialCompositionStrategy     |
+| ChMesh                            |                               |                                                  |
+|                                   | GetNcontactSurfaces           | rename: GetNumContactSurfaces                    |
+|                                   | GetNelements                  | rename: GetNumElements                           |
+|                                   | GetNmeshSurfaces              | rename: GetNumMeshSurfaces                       |
 | ChMinMaxDistribution              |                               | rename: ChUniformDistribution                    |
 | ChModalAssembly                   |                               |                                                  |
-|                                   | refer to ChAssembly           | like ChAsembly with boundary/internal suffixes   |
+|                                   | refer to ChAssembly           | like ChAssembly with boundary/internal suffixes    |
+| ChNodeBase                        |                               |                                                  |
+|                                   | GetNdofX                      | rename: GetNumCoordsPosLevel                     |
+|                                   | GetNdofX_active               | rename: GetNumCoordsPosLevelActive               |
+|                                   | GetNdofW                      | rename: GetNumCoordsVelLevel                     |
+|                                   | GetNdofW_active               | rename: GetNumCoordsVelLevelActive               |
+|                                   | NodeGetOffsetX                | rename: NodeGetOffsetPosLevel                    |
+|                                   | NodeGetOffsetW                | rename: NodeGetOffsetVelLevel                    |
+|                                   | NodeSetOffset_x               | rename: NodeSetOffsetPosLevel                    |
+|                                   | NodeSetOffset_w               | rename: NodeSetOffsetVelLevel                    |
+|                                   | UseFullDof                    | rename: IsAllCoordsActive                        |
 | ChPhysicsItem                     |                               |                                                  |
 |                                   | GetDOC                        | rename: GetNumConstraints                        |
 |                                   | GetDOC_c                      | rename: GetNumConstraintsBilateral               |
 |                                   | GetDOC_d                      | rename: GetNumConstraintsUnilateral              |
-|                                   | GetDOF                        | rename: GetNumCoordinatesPos                     |
-|                                   | GetDOF_w                      | rename: GetNumCoordinatesVel                     |
+|                                   | GetDOF                        | rename: GetNumCoordsPosLevel                     |
+|                                   | GetDOF_w                      | rename: GetNumCoordsVelLevel                     |
 | ChQuaternion                      |                               |                                                  |
 |                                   | free functions                | rename and move to ChRotation.h (see Notes)      |
 |                                   | GetXaxis                      | rename: GetAxisX                                 |
@@ -583,22 +636,22 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetDOF_w                      | remove                                           |
 |                                   | GetMaxiter                    | remove                                           |
 |                                   | GetMinBounceSpeed             | remove                                           |
-|                                   | GetNbodies                    | rename: GetNumBodies                             |
+|                                   | GetNbodies                    | rename: GetNumBodiesActive                       |
 |                                   | GetNbodiesFixed               | rename: GetNumBodiesFixed                        |
 |                                   | GetNbodiesSleeping            | rename: GetNumBodiesSleeping                     |
-|                                   | GetNbodiesTotal               | rename: GetNumBodiesTotal                        |
+|                                   | GetNbodiesTotal               | rename: GetNumBodies                             |
 |                                   | GetNconstr                    | rename: GetNumConstraints                        |
 |                                   | GetNcontacts                  | rename: GetNumContacts                           |
-|                                   | GetNcoords                    | rename: GetNumCoordinatesPos                     |
-|                                   | GetNcoords_w                  | rename: GetNumCoordinatesVel                     |
+|                                   | GetNcoords                    | rename: GetNumCoordsPosLevel                     |
+|                                   | GetNcoords_w                  | rename: GetNumCoordsVelLevel                     |
 |                                   | GetNdoc                       | remove: no constraints at position level         |
 |                                   | GetNdoc_w                     | rename: GetNumConstraints                        |
 |                                   | GetNdoc_w_C                   | rename: GetNumConstraintsBilateral               |
 |                                   | GetNdoc_w_D                   | rename: GetNumConstraintsUnilateral              |
 |                                   | GetNdof                       | remove: it was a rough estimate                  |
-|                                   | GetNlinks                     | rename: GetNumLinks                              |
+|                                   | GetNlinks                     | rename: GetNumLinksActive                        |
 |                                   | GetNmeshes                    | rename: GetNumMeshes                             |
-|                                   | GetNphysicsItems              | rename: GetNumOtherPhysicsItems                  |
+|                                   | GetNphysicsItems              | rename: GetNumOtherPhysicsItemsActive            |
 |                                   | GetNshafts                    | rename: GetNumShafts                             |
 |                                   | GetNshaftsFixed               | rename: GetNumShaftsFixed                        |
 |                                   | GetNshaftsSleeping            | rename: GetNumShaftsSleeping                     |

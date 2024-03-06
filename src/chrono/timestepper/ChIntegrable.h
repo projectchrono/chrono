@@ -59,21 +59,21 @@ class ChApi ChIntegrable {
   public:
 
     /// Return the number of coordinates at the position level.
-    virtual int GetNumCoordinatesPos() = 0;
+    virtual int GetNumCoordsPosLevel() = 0;
 
     /// Return the number of coordinates at the velocity level.
-    virtual int GetNumCoordinatesVel() = 0;
+    virtual int GetNumCoordsVelLevel() = 0;
 
     /// Return the number of coordinates at the acceleration level.
-    virtual int GetNumCoordinatesAcc() { return GetNumCoordinatesVel(); }
+    virtual int GetNumCoordsAccLevel() { return GetNumCoordsVelLevel(); }
 
     /// Return the number of lagrangian multipliers i.e. of scalar constraints.
     virtual int GetNumConstraints() { return 0; }
 
     /// Set up the system state.
     virtual void StateSetup(ChState& y, ChStateDelta& dy) {
-        y.resize(GetNumCoordinatesPos() + GetNumCoordinatesVel());
-        dy.resize(GetNumCoordinatesVel() + GetNumCoordinatesAcc());
+        y.resize(GetNumCoordsPosLevel() + GetNumCoordsVelLevel());
+        dy.resize(GetNumCoordsVelLevel() + GetNumCoordsAccLevel());
     }
 
     /// Gather system state in specified array.

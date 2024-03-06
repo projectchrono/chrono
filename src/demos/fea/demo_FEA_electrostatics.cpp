@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Print some node potentials V..
-    for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
+    for (unsigned int inode = 0; inode < my_mesh->GetNumNodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
             if (mnode->GetP() < 6.2) {
                 // std::cout << "Node at y=" << mnode->GetPos().y << " has V=" << mnode->GetP() << std::endl;

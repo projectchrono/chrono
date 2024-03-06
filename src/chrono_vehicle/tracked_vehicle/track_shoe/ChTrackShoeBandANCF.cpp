@@ -97,7 +97,7 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
     // Get starting index for mesh nodes contributed by the track shoe
     assert(m_web_mesh);
-    m_starting_node_index = m_web_mesh->GetNnodes();
+    m_starting_node_index = m_web_mesh->GetNumNodes();
 
     int num_elements_length = GetNumElementsLength();
     int num_elements_width = GetNumElementsWidth();

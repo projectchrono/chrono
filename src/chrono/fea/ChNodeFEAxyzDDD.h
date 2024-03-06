@@ -80,16 +80,16 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
     bool IsFixedDDD() const;
 
     /// Get the number of degrees of freedom.
-    virtual int GetNdofX() const override { return 12; }
+    virtual int GetNumCoordsPosLevel() const override { return 12; }
 
     /// Get the number of degrees of freedom, derivative.
-    virtual int GetNdofW() const override { return 12; }
+    virtual int GetNumCoordsVelLevel() const override { return 12; }
 
     /// Get the actual number of active degrees of freedom.
-    virtual int GetNdofX_active() const override { return m_dof_actual; }
+    virtual int GetNumCoordsPosLevelActive() const override { return m_dof_actual; }
 
     /// Get the actual number of active degrees of freedom, derivative.
-    virtual int GetNdofW_active() const override { return m_dof_actual; }
+    virtual int GetNumCoordsVelLevelActive() const override { return m_dof_actual; }
 
     // Functions for interfacing to the state bookkeeping
 
@@ -142,16 +142,16 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
     // INTERFACE to ChLoadable
 
     /// Gets the number of DOFs affected by this element (position part).
-    virtual int LoadableGet_ndof_x() override { return m_dof_actual; }
+    virtual int GetLoadableNumCoordsPosLevel() override { return m_dof_actual; }
 
     /// Gets the number of DOFs affected by this element (speed part).
-    virtual int LoadableGet_ndof_w() override { return m_dof_actual; }
+    virtual int GetLoadableNumCoordsVelLevel() override { return m_dof_actual; }
 
     /// Gets all the DOFs packed in a single vector (position part).
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& S) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& S) override;
 
     /// Gets all the DOFs packed in a single vector (speed part).
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& S) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& S) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,
@@ -161,7 +161,7 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
                                         const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field.
-    virtual int Get_field_ncoords() override { return m_dof_actual; }
+    virtual int GetFieldNumCoords() override { return m_dof_actual; }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return m_dof_actual; }

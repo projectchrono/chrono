@@ -228,8 +228,8 @@ void ChLinkLock::SetBroken(bool mbro) {
         BuildLink();
 }
 
-int ChLinkLock::RestoreRedundant() {
-    int mchanges = mask.RestoreRedundant();
+int ChLinkLock::ResetRedundant() {
+    int mchanges = mask.ResetRedundant();
     if (mchanges)
         BuildLink();
 

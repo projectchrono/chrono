@@ -92,7 +92,7 @@ void ChElementShellANCF_3423::AddLayer(double thickness, double theta, std::shar
 void ChElementShellANCF_3423::SetupInitial(ChSystem* system) {
     m_element_dof = 0;
     for (int i = 0; i < 4; i++) {
-        m_element_dof += m_nodes[i]->GetNdofX();
+        m_element_dof += m_nodes[i]->GetNumCoordsPosLevel();
     }
 
     m_full_dof = (m_element_dof == 4 * 6);
@@ -101,7 +101,7 @@ void ChElementShellANCF_3423::SetupInitial(ChSystem* system) {
         m_mapping_dof.resize(m_element_dof);
         int dof = 0;
         for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < m_nodes[i]->GetNdofX(); j++)
+            for (int j = 0; j < m_nodes[i]->GetNumCoordsPosLevel(); j++)
                 m_mapping_dof(dof++) = i * 6 + j;
         }
     }
@@ -159,7 +159,7 @@ void ChElementShellANCF_3423::GetStateBlock(ChVectorDynamic<>& mD) {
 // Calculate the global matrix H as a linear combination of K, R, and M:
 //   H = Mfactor * [M] + Kfactor * [K] + Rfactor * [R]
 void ChElementShellANCF_3423::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.rows() == GetNdofs()) && (H.cols() == GetNdofs()));
+    assert((H.rows() == GetNumCoordsPosLevel()) && (H.cols() == GetNumCoordsPosLevel()));
 
     // Calculate the linear combination Kfactor*[K] + Rfactor*[R]
     ComputeInternalJacobians(Kfactor, Rfactor);
@@ -288,7 +288,7 @@ void ChElementShellANCF_3423::ComputeGravityForceScale() {
 
 // Compute the generalized force vector due to gravity using the efficient ANCF specific method
 void ChElementShellANCF_3423::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
-    assert(Fg.size() == GetNdofs());
+    assert(Fg.size() == GetNumCoordsPosLevel());
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
     // The generalized force due to gravity could be computed once prior to the start of the simulation if gravity was
@@ -1500,7 +1500,7 @@ void ChElementShellANCF_3423::EvaluateSectionPoint(const double u, const double 
 // -----------------------------------------------------------------------------
 
 // Gets all the DOFs packed in a single vector (position part).
-void ChElementShellANCF_3423::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementShellANCF_3423::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPos().eigen();
@@ -1512,7 +1512,7 @@ void ChElementShellANCF_3423::LoadableGetStateBlock_x(int block_offset, ChState&
 }
 
 // Gets all the DOFs packed in a single vector (velocity part).
-void ChElementShellANCF_3423::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementShellANCF_3423::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD_dt().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPosDer().eigen();

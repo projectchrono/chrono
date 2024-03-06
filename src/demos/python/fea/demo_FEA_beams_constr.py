@@ -93,7 +93,7 @@ minertia.SetAsRectangularSection(beam_wy, beam_wz, 2700)  # automatically sets A
 
 melasticity = fea.ChElasticityCosseratSimple()
 melasticity.SetYoungModulus(73.0e9)
-melasticity.SetGwithPoissonRatio(0.3)
+melasticity.SetShearModulusFromPoisson(0.3)
 melasticity.SetAsRectangularSection(beam_wy, beam_wz)
 
 msection1 = fea.ChBeamSectionCosserat(minertia, melasticity)
@@ -118,7 +118,7 @@ section2 = fea.ChBeamSectionEulerAdvanced()
 hbeam_d = 0.024
 section2.SetDensity(2700)
 section2.SetYoungModulus(73.0e9)
-section2.SetGwithPoissonRatio(0.3)
+section2.SetShearModulusFromPoisson(0.3)
 section2.SetBeamRaleyghDamping(0.000)
 section2.SetAsCircularSection(hbeam_d)
 
@@ -150,7 +150,7 @@ section3 = fea.ChBeamSectionEulerAdvanced()
 crankbeam_d = 0.048
 section3.SetDensity(2700)
 section3.SetYoungModulus(73.0e9)
-section3.SetGwithPoissonRatio(0.3)
+section3.SetShearModulusFromPoisson(0.3)
 section3.SetBeamRaleyghDamping(0.000)
 section3.SetAsCircularSection(crankbeam_d)
 builderB = fea.ChBuilderBeamEuler()

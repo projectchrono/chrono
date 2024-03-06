@@ -252,7 +252,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     msection_cable->SetDiameter(initSpace0);
     msection_cable->SetYoungModulus(E);
     msection_cable->SetDensity(density);
-    msection_cable->SetBeamRayleighDamping(BeamRayleighDamping);
+    msection_cable->SetRayleighDamping(BeamRayleighDamping);
 
     ChBuilderCableANCF builder;
     builder.BuildBeam(my_mesh,                               // FEA mesh with nodes and elements

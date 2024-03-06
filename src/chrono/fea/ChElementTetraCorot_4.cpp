@@ -56,7 +56,7 @@ void ChElementTetraCorot_4::ShapeFunctions(ShapeVector& N, double r, double s, d
 }
 
 void ChElementTetraCorot_4::GetStateBlock(ChVectorDynamic<>& mD) {
-    mD.setZero(this->GetNdofs());
+    mD.setZero(this->GetNumCoordsPosLevel());
     mD.segment(0, 3) = (A.transpose() * nodes[0]->pos - nodes[0]->GetX0()).eigen();
     mD.segment(3, 3) = (A.transpose() * nodes[1]->pos - nodes[1]->GetX0()).eigen();
     mD.segment(6, 3) = (A.transpose() * nodes[2]->pos - nodes[2]->GetX0()).eigen();
@@ -299,14 +299,14 @@ void ChElementTetraCorot_4::ComputeNodalMass() {
     nodes[3]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
 }
 
-void ChElementTetraCorot_4::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementTetraCorot_4::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 3) = nodes[1]->GetPos().eigen();
     mD.segment(block_offset + 6, 3) = nodes[2]->GetPos().eigen();
     mD.segment(block_offset + 9, 3) = nodes[3]->GetPos().eigen();
 }
 
-void ChElementTetraCorot_4::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementTetraCorot_4::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = nodes[0]->GetPosDer().eigen();
     mD.segment(block_offset + 3, 3) = nodes[1]->GetPosDer().eigen();
     mD.segment(block_offset + 6, 3) = nodes[2]->GetPosDer().eigen();
@@ -396,7 +396,7 @@ void ChElementTetraCorot_4_P::ShapeFunctions(ShapeVector& N, double z0, double z
 }
 
 void ChElementTetraCorot_4_P::GetStateBlock(ChVectorDynamic<>& mD) {
-    mD.setZero(this->GetNdofs());
+    mD.setZero(this->GetNumCoordsPosLevel());
     mD(0) = nodes[0]->GetP();
     mD(1) = nodes[1]->GetP();
     mD(2) = nodes[2]->GetP();
@@ -523,14 +523,14 @@ ChVectorN<double, 3> ChElementTetraCorot_4_P::GetPgradient() {
     return MatrB * displ;
 }
 
-void ChElementTetraCorot_4_P::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementTetraCorot_4_P::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD(block_offset) = this->nodes[0]->GetP();
     mD(block_offset + 1) = this->nodes[1]->GetP();
     mD(block_offset + 2) = this->nodes[2]->GetP();
     mD(block_offset + 3) = this->nodes[3]->GetP();
 }
 
-void ChElementTetraCorot_4_P::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementTetraCorot_4_P::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     mD(block_offset) = this->nodes[0]->GetP_dt();
     mD(block_offset + 1) = this->nodes[1]->GetP_dt();
     mD(block_offset + 2) = this->nodes[2]->GetP_dt();

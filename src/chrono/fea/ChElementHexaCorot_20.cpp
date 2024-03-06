@@ -132,9 +132,9 @@ void ChElementHexaCorot_20::ShapeFunctions(ShapeVector& N, double r, double s, d
 }
 
 void ChElementHexaCorot_20::GetStateBlock(ChVectorDynamic<>& mD) {
-    mD.setZero(this->GetNdofs());
+    mD.setZero(this->GetNumCoordsPosLevel());
 
-    for (int i = 0; i < GetNnodes(); i++)
+    for (int i = 0; i < GetNumNodes(); i++)
         mD.segment(i * 3, 3) = (A.transpose() * this->nodes[i]->GetPos() - nodes[i]->GetX0()).eigen();
 }
 
@@ -536,11 +536,11 @@ void ChElementHexaCorot_20::UpdateRotation() {
 
 ChStrainTensor<> ChElementHexaCorot_20::GetStrain(double z1, double z2, double z3) {
     // set up vector of nodal displacements (in local element system) u_l = R*p - p0
-    ChVectorDynamic<> displ(GetNdofs());
+    ChVectorDynamic<> displ(GetNumCoordsPosLevel());
     this->GetStateBlock(displ);
 
     double JacobianDet;
-    ChMatrixDynamic<> amatrB(6, GetNdofs());
+    ChMatrixDynamic<> amatrB(6, GetNumCoordsPosLevel());
     ComputeMatrB(amatrB, z1, z2, z3, JacobianDet);
 
     ChStrainTensor<> mstrain = amatrB * displ;
@@ -553,12 +553,12 @@ ChStressTensor<> ChElementHexaCorot_20::GetStress(double z1, double z2, double z
 }
 
 void ChElementHexaCorot_20::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.rows() == GetNdofs()) && (H.cols() == GetNdofs()));
+    assert((H.rows() == GetNumCoordsPosLevel()) && (H.cols() == GetNumCoordsPosLevel()));
 
     // warp the local stiffness matrix K in order to obtain global
     // tangent stiffness CKCt:
-    ChMatrixDynamic<> CK(GetNdofs(), GetNdofs());
-    ChMatrixDynamic<> CKCt(GetNdofs(), GetNdofs());  // the global, corotated, K matrix, for 20 nodes
+    ChMatrixDynamic<> CK(GetNumCoordsPosLevel(), GetNumCoordsPosLevel());
+    ChMatrixDynamic<> CKCt(GetNumCoordsPosLevel(), GetNumCoordsPosLevel());  // the global, corotated, K matrix, for 20 nodes
     ChMatrixCorotation::ComputeCK(StiffnessMatrix, this->A, 20, CK);
     ChMatrixCorotation::ComputeKCt(CK, this->A, 20, CKCt);
 
@@ -570,7 +570,7 @@ void ChElementHexaCorot_20::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfact
     // For M mass matrix:
     if (Mfactor) {
         double lumped_node_mass = (this->Volume * this->Material->Get_density()) / 20.0;
-        for (int id = 0; id < GetNdofs(); id++) {
+        for (int id = 0; id < GetNumCoordsPosLevel(); id++) {
             double amfactor = Mfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingM();
             H(id, id) += amfactor * lumped_node_mass;
         }
@@ -579,10 +579,10 @@ void ChElementHexaCorot_20::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfact
 }
 
 void ChElementHexaCorot_20::ComputeInternalForces(ChVectorDynamic<>& Fi) {
-    assert(Fi.size() == GetNdofs());
+    assert(Fi.size() == GetNumCoordsPosLevel());
 
     // set up vector of nodal displacements (in local element system) u_l = R*p - p0
-    ChVectorDynamic<> displ(GetNdofs());
+    ChVectorDynamic<> displ(GetNumCoordsPosLevel());
     this->GetStateBlock(displ);
 
     // [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
@@ -606,7 +606,7 @@ void ChElementHexaCorot_20::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     ChMatrixCorotation::ComputeCK(FiK_local, this->A, 20, Fi);
 }
 
-void ChElementHexaCorot_20::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementHexaCorot_20::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 3) = nodes[1]->GetPos().eigen();
     mD.segment(block_offset + 6, 3) = nodes[2]->GetPos().eigen();
@@ -629,7 +629,7 @@ void ChElementHexaCorot_20::LoadableGetStateBlock_x(int block_offset, ChState& m
     mD.segment(block_offset + 57, 3) = nodes[19]->GetPos().eigen();
 }
 
-void ChElementHexaCorot_20::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementHexaCorot_20::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = nodes[0]->GetPosDer().eigen();
     mD.segment(block_offset + 3, 3) = nodes[1]->GetPosDer().eigen();
     mD.segment(block_offset + 6, 3) = nodes[2]->GetPosDer().eigen();

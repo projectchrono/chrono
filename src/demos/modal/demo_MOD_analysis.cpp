@@ -90,9 +90,9 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
 
     section->SetDensity(beam_density);
     section->SetYoungModulus(beam_Young);
-    section->SetGwithPoissonRatio(0.31);
-    section->SetBeamRayleighDampingBeta(0.00001);
-    section->SetBeamRayleighDampingAlpha(0.001);
+    section->SetShearModulusFromPoisson(0.31);
+    section->SetRayleighDampingBeta(0.00001);
+    section->SetRayleighDampingAlpha(0.001);
     section->SetAsRectangularSection(beam_wy, beam_wz);
 
     // This helps creating sequences of nodes and ChElementBeamEuler elements:
@@ -227,9 +227,9 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
 
     section->SetDensity(beam_density);
     section->SetYoungModulus(beam_Young);
-    section->SetGwithPoissonRatio(0.31);
-    section->SetBeamRayleighDampingBeta(0.00001);
-    section->SetBeamRayleighDampingAlpha(0.001);
+    section->SetShearModulusFromPoisson(0.31);
+    section->SetRayleighDampingBeta(0.00001);
+    section->SetRayleighDampingAlpha(0.001);
     section->SetAsRectangularSection(beam_wy, beam_wz);
 
     // This helps creating sequences of nodes and ChElementBeamEuler elements:

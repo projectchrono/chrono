@@ -716,12 +716,12 @@ ChAABB ChBody::GetTotalAABB() {
     return ChAABB();  // default: inverted bounding box
 }
 
-void ChBody::ContactableGetStateBlock_x(ChState& x) {
+void ChBody::ContactableGetStateBlockPosLevel(ChState& x) {
     x.segment(0, 3) = GetCoordsys().pos.eigen();
     x.segment(3, 4) = GetCoordsys().rot.eigen();
 }
 
-void ChBody::ContactableGetStateBlock_w(ChStateDelta& w) {
+void ChBody::ContactableGetStateBlockVelLevel(ChStateDelta& w) {
     w.segment(0, 3) = GetPosDer().eigen();
     w.segment(3, 3) = GetAngVelLocal().eigen();
 }
@@ -933,12 +933,12 @@ void ChBody::LoadableStateIncrement(const unsigned int off_x,
     IntStateIncrement(off_x, x_new, x, off_v, Dv);
 }
 
-void ChBody::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChBody::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = GetCoordsys().pos.eigen();
     mD.segment(block_offset + 3, 4) = GetCoordsys().rot.eigen();
 }
 
-void ChBody::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChBody::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = GetPosDer().eigen();
     mD.segment(block_offset + 3, 3) = GetAngVelLocal().eigen();
 }

@@ -95,7 +95,7 @@ void FEATire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
                                      wheel_frame.GetPos(),
                                      wheel_frame.GetRotMat() * ChMatrix33<>(CH_C_PI_2, ChVector3d(0, 0, 1)));
 
-    for (unsigned int i = 0; i < m_mesh->GetNnodes(); i++) {
+    for (unsigned int i = 0; i < m_mesh->GetNumNodes(); i++) {
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyz>(m_mesh->GetNode(i));
         // Node position (expressed in wheel frame)
         ChVector3d loc = wheel_frame.TransformPointParentToLocal(node->GetPos());

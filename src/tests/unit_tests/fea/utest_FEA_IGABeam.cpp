@@ -93,14 +93,14 @@ Model::Model(int sec, int ord) {
 
 double AnalyticalTipDisp(std::shared_ptr<ChElasticityCosseratSimple> elast) {
 
-	double poisson = elast->GetYoungModulus() / (2.0 * elast->GetGshearModulus()) - 1.0;
+	double poisson = elast->GetYoungModulus() / (2.0 * elast->GetShearModulus()) - 1.0;
 
     double Ks_y = 10.0 * (1.0 + poisson) / (12.0 + 11.0 * poisson);
 	double analytic_timoshenko_displ =
         (tip_load * pow(beamL, 3)) /
             (3 * elast->GetYoungModulus() * (1. / 12.) * wz * pow(wy, 3)) +
         (tip_load * beamL) /
-            (Ks_y * elast->GetGshearModulus() * wz * wy);  // = (P*L^3)/(3*E*I) + (P*L)/(k*A*G)
+            (Ks_y * elast->GetShearModulus() * wz * wy);  // = (P*L^3)/(3*E*I) + (P*L)/(k*A*G)
     return analytic_timoshenko_displ;
 }
 

@@ -43,7 +43,7 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
                                       ChVector3d pos_transform,
                                       ChMatrix33<> rot_transform) {
     int totnodes = 0;
-    int nodes_offset = mesh->GetNnodes();
+    int nodes_offset = mesh->GetNumNodes();
     int added_nodes = 0;
 
     // Load .node TetGen file
@@ -487,7 +487,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
     int added_nodes = 0;
     int added_elements = 0;
     double dx, dy;
-    int nodes_offset = mesh->GetNnodes();
+    int nodes_offset = mesh->GetNumNodes();
     printf("Current number of nodes in mesh is %d \n", nodes_offset);
     ChMatrixDynamic<double> nodesXYZ(1, 4);
     ChMatrixDynamic<int> NumBEdges(1, 3);  // To store boundary nodes

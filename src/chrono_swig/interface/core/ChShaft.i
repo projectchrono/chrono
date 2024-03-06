@@ -6,12 +6,12 @@
 
 // Ensure that these functions are not marked as 'overrides' in the generated C# code.
 
-%csmethodmodifiers chrono::ChShaft::LoadableGet_ndof_x "public"
-%csmethodmodifiers chrono::ChShaft::LoadableGet_ndof_w "public"
-%csmethodmodifiers chrono::ChShaft::LoadableGetStateBlock_x "public"
-%csmethodmodifiers chrono::ChShaft::LoadableGetStateBlock_w "public"
+%csmethodmodifiers chrono::ChShaft::GetLoadableNumCoordsPosLevel "public"
+%csmethodmodifiers chrono::ChShaft::GetLoadableNumCoordsVelLevel "public"
+%csmethodmodifiers chrono::ChShaft::LoadableGetStateBlockPosLevel "public"
+%csmethodmodifiers chrono::ChShaft::LoadableGetStateBlockVelLevel "public"
 %csmethodmodifiers chrono::ChShaft::LoadableStateIncrement "public"
-%csmethodmodifiers chrono::ChShaft::Get_field_ncoords "public"
+%csmethodmodifiers chrono::ChShaft::GetFieldNumCoords "public"
 %csmethodmodifiers chrono::ChShaft::GetSubBlocks "public"
 %csmethodmodifiers chrono::ChShaft::GetSubBlockOffset "public"
 %csmethodmodifiers chrono::ChShaft::GetSubBlockSize "public"

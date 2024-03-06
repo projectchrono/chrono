@@ -69,13 +69,13 @@ class ChApi ChMesh : public ChIndexedNodes {
     std::shared_ptr<ChElementBase> GetElement(unsigned int n) { return velements[n]; }
 
     /// Get the number of nodes in the mesh.
-    virtual unsigned int GetNnodes() const override { return (unsigned int)vnodes.size(); }
+    virtual unsigned int GetNumNodes() const override { return (unsigned int)vnodes.size(); }
 
     /// Get the number of elements in the mesh.
-    unsigned int GetNelements() { return (unsigned int)velements.size(); }
+    unsigned int GetNumElements() { return (unsigned int)velements.size(); }
 
-    virtual int GetNumCoordinatesPos() override { return n_dofs; }
-    virtual int GetNumCoordinatesVel() override { return n_dofs_w; }
+    virtual int GetNumCoordsPosLevel() override { return n_dofs; }
+    virtual int GetNumCoordsVelLevel() override { return n_dofs_w; }
 
     /// Override default in ChPhysicsItem.
     virtual bool GetCollide() const override { return true; }
@@ -110,7 +110,7 @@ class ChApi ChMesh : public ChIndexedNodes {
     std::shared_ptr<ChContactSurface> GetContactSurface(unsigned int n) { return vcontactsurfaces[n]; }
 
     /// Get number of added contact surfaces.
-    unsigned int GetNcontactSurfaces() { return (unsigned int)vcontactsurfaces.size(); }
+    unsigned int GetNumContactSurfaces() { return (unsigned int)vcontactsurfaces.size(); }
 
     /// Remove all contact surfaces.
     void ClearContactSurfaces();
@@ -125,7 +125,7 @@ class ChApi ChMesh : public ChIndexedNodes {
     std::shared_ptr<ChMeshSurface> GetMeshSurface(unsigned int n) { return vmeshsurfaces[n]; }
 
     /// Get number of added mesh surfaces
-    unsigned int GetNmeshSurfaces() { return (unsigned int)vmeshsurfaces.size(); }
+    unsigned int GetNumMeshSurfaces() { return (unsigned int)vmeshsurfaces.size(); }
 
     /// Remove all mesh surfaces.
     void ClearMeshSurfaces() { vmeshsurfaces.clear(); }

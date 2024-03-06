@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Apply a force to a node
-    auto nodelast = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(mesh->GetNnodes() - 1));
+    auto nodelast = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(mesh->GetNumNodes() - 1));
     nodelast->SetForce(ChVector3d(50, 0, 50));
 
     // Add some HEXAHEDRONS (isoparametric bricks)
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
 
     // Create constraints between nodes and truss
     // (for example, fix to ground all nodes which are near y=0)
-    for (unsigned int inode = 0; inode < mesh->GetNnodes(); ++inode) {
+    for (unsigned int inode = 0; inode < mesh->GetNumNodes(); ++inode) {
         if (auto node = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(inode))) {
             if (node->GetPos().y() < 0.01) {
                 auto constraint = chrono_types::make_shared<ChLinkPointFrame>();

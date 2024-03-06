@@ -42,11 +42,11 @@ ChNodeXYZ& ChNodeXYZ::operator=(const ChNodeXYZ& other) {
     return *this;
 }
 
-void ChNodeXYZ::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChNodeXYZ::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset, 3) = pos.eigen();
 }
 
-void ChNodeXYZ::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChNodeXYZ::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset, 3) = pos_dt.eigen();
 }
 

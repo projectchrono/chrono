@@ -46,7 +46,7 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
     virtual ChLinkBeamIGAslider* Clone() const override { return new ChLinkBeamIGAslider(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() override { return (int)m_nodes.size() * 3 + 7; }
+    virtual int GetNumAffectedCoords() override { return (int)m_nodes.size() * 3 + 7; }
 
     /// Number of scalar constraints.
     virtual int GetNumConstraintsBilateral() override { return 2; }

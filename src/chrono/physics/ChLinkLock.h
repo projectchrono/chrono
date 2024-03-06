@@ -45,7 +45,7 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     virtual ChLinkLock* Clone() const override { return new ChLinkLock(*this); }
 
     /// If some constraint is redundant, return to normal state.
-    int RestoreRedundant() override;
+    int ResetRedundant() override;
 
     /// Enable/disable all constraints of the link.
     virtual void SetDisabled(bool mdis) override;

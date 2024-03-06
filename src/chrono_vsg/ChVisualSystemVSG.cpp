@@ -1320,7 +1320,7 @@ void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
 
 void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud) {
     const auto& vis_model = pcloud->GetVisualModel();
-    auto num_particles = pcloud->GetNparticles();
+    auto num_particles = pcloud->GetNumParticles();
 
     if (!vis_model)
         return;

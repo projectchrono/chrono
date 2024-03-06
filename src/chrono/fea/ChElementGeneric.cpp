@@ -20,7 +20,7 @@ namespace chrono {
 namespace fea {
 
 void ChElementGeneric::EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {
-    ChVectorDynamic<> Fi(GetNdofs());
+    ChVectorDynamic<> Fi(GetNumCoordsPosLevel());
     ComputeInternalForces(Fi);
     Fi *= c;
 
@@ -28,46 +28,46 @@ void ChElementGeneric::EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c
     //// Must use atomic increment when updating the global vector R.
 
     int stride = 0;
-    for (int in = 0; in < GetNnodes(); in++) {
-        int node_dofs = GetNodeNdofs_active(in);
+    for (int in = 0; in < GetNumNodes(); in++) {
+        int node_dofs = GetNodeNumCoordsPosLevelActive(in);
         if (!GetNodeN(in)->IsFixed()) {
             for (int j = 0; j < node_dofs; j++)
 #pragma omp atomic
-                R(GetNodeN(in)->NodeGetOffsetW() + j) += Fi(stride + j);
+                R(GetNodeN(in)->NodeGetOffsetVelLevel() + j) += Fi(stride + j);
         }
-        stride += GetNodeNdofs(in);
+        stride += GetNodeNumCoordsPosLevel(in);
     }
     // std::cout << "EleIntLoadResidual_F , R=" << R << std::endl;
 }
 
 void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, const double c) {
-    ChMatrixDynamic<> Mi(GetNdofs(), GetNdofs());
+    ChMatrixDynamic<> Mi(GetNumCoordsPosLevel(), GetNumCoordsPosLevel());
     ComputeMmatrixGlobal(Mi);
 
-    ChVectorDynamic<> mqi(GetNdofs());
+    ChVectorDynamic<> mqi(GetNumCoordsPosLevel());
     mqi.setZero();
     int stride = 0;
-    for (int in = 0; in < GetNnodes(); in++) {
-        int node_dofs = GetNodeNdofs_active(in);
+    for (int in = 0; in < GetNumNodes(); in++) {
+        int node_dofs = GetNodeNumCoordsPosLevelActive(in);
         if (!GetNodeN(in)->IsFixed()) {
-            mqi.segment(stride, node_dofs) = w.segment(GetNodeN(in)->NodeGetOffsetW(), node_dofs);
+            mqi.segment(stride, node_dofs) = w.segment(GetNodeN(in)->NodeGetOffsetVelLevel(), node_dofs);
         }
-        stride += GetNodeNdofs(in);
+        stride += GetNodeNumCoordsPosLevel(in);
     }
 
     ChVectorDynamic<> Fi = c * Mi * mqi;
 
     stride = 0;
-    for (int in = 0; in < GetNnodes(); in++) {
-        int node_dofs = GetNodeNdofs_active(in);
+    for (int in = 0; in < GetNumNodes(); in++) {
+        int node_dofs = GetNodeNumCoordsPosLevelActive(in);
         if (!GetNodeN(in)->IsFixed())
-            R.segment(GetNodeN(in)->NodeGetOffsetW(), node_dofs) += Fi.segment(stride, node_dofs);
-        stride += GetNodeNdofs(in);
+            R.segment(GetNodeN(in)->NodeGetOffsetVelLevel(), node_dofs) += Fi.segment(stride, node_dofs);
+        stride += GetNodeNumCoordsPosLevel(in);
     }
 }
 
 void ChElementGeneric::EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& error, const double c) {
-    ChMatrixDynamic<> Mi(GetNdofs(), GetNdofs());
+    ChMatrixDynamic<> Mi(GetNumCoordsPosLevel(), GetNumCoordsPosLevel());
     ComputeMmatrixGlobal(Mi);
 
     ChVectorDynamic<> dMi = c * Mi.diagonal();
@@ -75,17 +75,17 @@ void ChElementGeneric::EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& er
     error = Mi.sum() - Mi.diagonal().sum();
 
     int stride = 0;
-    for (int in = 0; in < GetNnodes(); in++) {
-        int node_dofs = GetNodeNdofs_active(in);
+    for (int in = 0; in < GetNumNodes(); in++) {
+        int node_dofs = GetNodeNumCoordsPosLevelActive(in);
         if (!GetNodeN(in)->IsFixed())
-            Md.segment(GetNodeN(in)->NodeGetOffsetW(), node_dofs) += dMi.segment(stride, node_dofs);
-        stride += GetNodeNdofs(in);
+            Md.segment(GetNodeN(in)->NodeGetOffsetVelLevel(), node_dofs) += dMi.segment(stride, node_dofs);
+        stride += GetNodeNumCoordsPosLevel(in);
     }
 }
 
 
 void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector3d& G_acc, const double c) {
-    ChVectorDynamic<> Fg(GetNdofs());
+    ChVectorDynamic<> Fg(GetNumCoordsPosLevel());
     ComputeGravityForces(Fg, G_acc);
     Fg *= c;
 
@@ -93,14 +93,14 @@ void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const 
     //// Must use atomic increment when updating the global vector R.
 
     int stride = 0;
-    for (int in = 0; in < GetNnodes(); in++) {
-        int node_dofs = GetNodeNdofs_active(in);
+    for (int in = 0; in < GetNumNodes(); in++) {
+        int node_dofs = GetNodeNumCoordsPosLevelActive(in);
         if (!GetNodeN(in)->IsFixed()) {
             for (int j = 0; j < node_dofs; j++)
 #pragma omp atomic
-                R(GetNodeN(in)->NodeGetOffsetW() + j) += Fg(stride + j);
+                R(GetNodeN(in)->NodeGetOffsetVelLevel() + j) += Fg(stride + j);
         }
-        stride += GetNodeNdofs(in);
+        stride += GetNodeNumCoordsPosLevel(in);
     }
 }
 

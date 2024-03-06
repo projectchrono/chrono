@@ -193,7 +193,7 @@ class ChApi ChLinkTSDA : public ChLink {
   private:
     virtual void Update(double mytime, bool update_assets = true) override;
 
-    virtual int GetNumCoordinatesPos() override { return m_nstates; }
+    virtual int GetNumCoordsPosLevel() override { return m_nstates; }
 
     // Interface to solver
     ChVariables& Variables() { return *m_variables; }

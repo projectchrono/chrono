@@ -375,8 +375,8 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
             }
         }
 
-        int TotalNumElements = m_div_circumference * m_div_width;  // my_mesh->GetNelements();
-        int TotalNumNodes = my_mesh->GetNnodes();
+        int TotalNumElements = m_div_circumference * m_div_width;  // my_mesh->GetNumElements();
+        int TotalNumNodes = my_mesh->GetNumNodes();
 
         _2D_elementsNodes_mesh.resize(TotalNumElements);
         NodeNeighborElement_mesh.resize(TotalNumNodes);

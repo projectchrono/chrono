@@ -30,13 +30,13 @@ class ChParticleCloud;
 
 /// Class for a single particle clone in the ChParticleCloud cluster.
 /// It does not define mass, inertia and shape because those are _shared_ among them.
-class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
+class ChApi ChParticle : public ChParticleBase, public ChContactable_1vars<6> {
   public:
-    ChAparticle();
-    ChAparticle(const ChAparticle& other);
-    ~ChAparticle();
+    ChParticle();
+    ChParticle(const ChParticle& other);
+    ~ChParticle();
 
-    ChAparticle& operator=(const ChAparticle& other);
+    ChParticle& operator=(const ChParticle& other);
 
     // Access the variables of the node
     virtual ChVariables& Variables() override { return variables; }
@@ -57,19 +57,19 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     virtual bool IsContactActive() override { return true; }
 
     /// Get the number of DOFs affected by this object (position part).
-    virtual int ContactableGet_ndof_x() override { return 7; }
+    virtual int GetContactableNumCoordsPosLevel() override { return 7; }
 
     /// Get the number of DOFs affected by this object (speed part).
-    virtual int ContactableGet_ndof_w() override { return 6; }
+    virtual int GetContactableNumCoordsVelLevel() override { return 6; }
 
     /// Get all the DOFs packed in a single vector (position part)
-    virtual void ContactableGetStateBlock_x(ChState& x) override {
+    virtual void ContactableGetStateBlockPosLevel(ChState& x) override {
         x.segment(0, 3) = GetCoordsys().pos.eigen();
         x.segment(3, 4) = GetCoordsys().rot.eigen();
     }
 
     /// Get all the DOFs packed in a single vector (speed part)
-    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override;
+    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override;
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
@@ -183,10 +183,10 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     bool GetLimitSpeed() const { return limit_speed; };
 
     /// Get the number of particles.
-    size_t GetNparticles() const override { return particles.size(); }
+    size_t GetNumParticles() const override { return particles.size(); }
 
     /// Get all particles in the cluster.
-    std::vector<ChAparticle*> GetParticles() const { return particles; }
+    std::vector<ChParticle*> GetParticles() const { return particles; }
 
     /// Get particle position.
     const ChVector3d& GetParticlePos(unsigned int n) const { return particles[n]->GetPos(); }
@@ -374,7 +374,7 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    std::vector<ChAparticle*> particles;  ///< the particles
+    std::vector<ChParticle*> particles;  ///< the particles
     ChSharedMassBody particle_mass;       ///< shared mass of particles
 
     std::shared_ptr<ColorCallback> m_color_fun;  ///< callback for dynamic coloring

@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
 
     auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
     melasticity->SetYoungModulus(73.0e9);
-    melasticity->SetGwithPoissonRatio(0.3);
+    melasticity->SetShearModulusFromPoisson(0.3);
     melasticity->SetAsRectangularSection(beam_wy, beam_wz);
 
     auto msection1 = chrono_types::make_shared<ChBeamSectionCosserat>(minertia, melasticity);
@@ -165,8 +165,8 @@ int main(int argc, char* argv[]) {
     double hbeam_d = 0.024;
     msection2->SetDensity(2700);
     msection2->SetYoungModulus(73.0e9);
-    msection2->SetGwithPoissonRatio(0.3);
-    msection2->SetBeamRayleighDamping(0.000);
+    msection2->SetShearModulusFromPoisson(0.3);
+    msection2->SetRayleighDamping(0.000);
     msection2->SetAsCircularSection(hbeam_d);
 
     ChBuilderBeamEuler builder;
@@ -194,8 +194,8 @@ int main(int argc, char* argv[]) {
     double crankbeam_d = 0.048;
     msection3->SetDensity(2700);
     msection3->SetYoungModulus(73.0e9);
-    msection3->SetGwithPoissonRatio(0.3);
-    msection3->SetBeamRayleighDamping(0.000);
+    msection3->SetShearModulusFromPoisson(0.3);
+    msection3->SetRayleighDamping(0.000);
     msection3->SetAsCircularSection(crankbeam_d);
 
     builder.BuildBeam(my_mesh,               // the mesh where to put the created nodes and elements

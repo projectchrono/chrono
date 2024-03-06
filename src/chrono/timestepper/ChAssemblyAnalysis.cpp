@@ -38,8 +38,8 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
 
         for (int m_iter = 0; m_iter < max_assembly_iters; m_iter++) {
             // Set up auxiliary vectors
-            Dx.setZero(integrable->GetNumCoordinatesVel(), GetIntegrable());
-            R.setZero(integrable->GetNumCoordinatesVel());
+            Dx.setZero(integrable->GetNumCoordsVelLevel(), GetIntegrable());
+            R.setZero(integrable->GetNumCoordsVelLevel());
             Qc.setZero(integrable->GetNumConstraints());
             L.setZero(integrable->GetNumConstraints());
 
@@ -73,8 +73,8 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
         ChStateDelta Vold;
 
         // setup auxiliary vectors
-        Vold.setZero(integrable->GetNumCoordinatesVel(), GetIntegrable());
-        R.setZero(integrable->GetNumCoordinatesVel());
+        Vold.setZero(integrable->GetNumCoordsVelLevel(), GetIntegrable());
+        R.setZero(integrable->GetNumCoordsVelLevel());
         Qc.setZero(integrable->GetNumConstraints());
         L.setZero(integrable->GetNumConstraints());
 

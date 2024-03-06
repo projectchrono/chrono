@@ -39,14 +39,14 @@ class ChApi ChBeamSectionShape {
     // Functions for drawing the shape via triangulation:
     //
 
-    /// Get the n. of lines making the profile of the section, for meshing purposes.
+    /// Get the number of lines making the profile of the section, for meshing purposes.
     /// C0 continuity is required between lines, C1 also required within each line.
     /// Ex. a circle has 1 line, a cube 4 lines, etc. Sharp corners can be done mith multiple lines.
-    virtual int GetNofLines() const = 0;
+    virtual int GetNumLines() const = 0;
 
-    /// Get the n. of points to be allocated per each section, for the i-th line in the section.
-    /// We assume one also allocates a n. of 3d normals equal to n of points.
-    virtual int GetNofPoints(const int i_line) const = 0;
+    /// Get the number of points to be allocated per each section, for the i-th line in the section.
+    /// We assume one also allocates same number of 3d normalss.
+    virtual int GetNumPoints(const int i_line) const = 0;
 
     /// Compute the points (in the reference of the section), for the i-th line in the section.
     /// Note: mpoints must already have the proper size.
@@ -78,9 +78,9 @@ class ChApi ChBeamSectionShapeCircular : public ChBeamSectionShape {
     // Functions for drawing the shape via triangulation:
     //
 
-    virtual int GetNofLines() const override { return 1; };
+    virtual int GetNumLines() const override { return 1; };
 
-    virtual int GetNofPoints(const int i_line) const override { return resolution + 1; };
+    virtual int GetNumPoints(const int i_line) const override { return resolution + 1; };
 
     /// Compute the points (in the reference of the section).
     /// Note: mpoints must already have the proper size.
@@ -123,9 +123,9 @@ class ChApi ChBeamSectionShapeRectangular : public ChBeamSectionShape {
     // Functions for drawing the shape via triangulation:
     //
 
-    virtual int GetNofLines() const override { return 4; };
+    virtual int GetNumLines() const override { return 4; };
 
-    virtual int GetNofPoints(const int i_line) const override { return 2; };
+    virtual int GetNumPoints(const int i_line) const override { return 2; };
 
     /// Compute the points (in the reference of the section).
     /// Note: mpoints must already have the proper size.
@@ -168,9 +168,9 @@ class ChApi ChBeamSectionShapePolyline : public ChBeamSectionShape {
     // Functions for drawing the shape via triangulation:
     //
 
-    virtual int GetNofLines() const override { return (int)this->ml_points.size(); };
+    virtual int GetNumLines() const override { return (int)this->ml_points.size(); };
 
-    virtual int GetNofPoints(const int i_line) const override { return (int)this->ml_points[i_line].size(); };
+    virtual int GetNumPoints(const int i_line) const override { return (int)this->ml_points[i_line].size(); };
 
     /// Compute the points (in the reference of the section).
     /// Note: mpoints must already have the proper size.

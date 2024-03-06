@@ -2605,7 +2605,7 @@ void ChElementHexaANCF_3813_9::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kf
 // -----------------------------------------------------------------------------
 
 // Get all the DOFs packed in a single vector (position part).
-void ChElementHexaANCF_3813_9::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementHexaANCF_3813_9::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     for (int i = 0; i < 8; i++) {
         mD.segment(block_offset + 3 * i, 3) = m_nodes[i]->GetPos().eigen();
     }
@@ -2615,7 +2615,7 @@ void ChElementHexaANCF_3813_9::LoadableGetStateBlock_x(int block_offset, ChState
 }
 
 // Get all the DOFs packed in a single vector (speed part).
-void ChElementHexaANCF_3813_9::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementHexaANCF_3813_9::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     for (int i = 0; i < 8; i++) {
         mD.segment(block_offset + 3 * i, 3) = m_nodes[i]->GetPosDer().eigen();
     }

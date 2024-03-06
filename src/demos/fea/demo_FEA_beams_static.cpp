@@ -87,8 +87,8 @@ int main(int argc, char* argv[]) {
             double beam_L = 0.508;
             msection->SetDensity(2700);
             msection->SetYoungModulus(71.7e9);
-            msection->SetGwithPoissonRatio(0.31);
-            msection->SetBeamRayleighDamping(0.0);
+            msection->SetShearModulusFromPoisson(0.31);
+            msection->SetRayleighDamping(0.0);
             msection->SetAsRectangularSection(beam_wy, beam_wz);
 
             // This helps creating sequences of nodes and ChElementBeamEuler elements:

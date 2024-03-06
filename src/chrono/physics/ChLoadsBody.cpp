@@ -54,7 +54,7 @@ void ChLoadBodyForce::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
         abs_point = m_point;
 
     // ChBody assumes F={force_abs, torque_abs}
-    ChVectorDynamic<> mF(loadable->Get_field_ncoords());
+    ChVectorDynamic<> mF(loadable->GetFieldNumCoords());
     mF(0) = abs_force.x();
     mF(1) = abs_force.y();
     mF(2) = abs_force.z();
@@ -113,7 +113,7 @@ void ChLoadBodyTorque::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     abs_torque *= m_scale;
 
     // ChBody assumes F={force_abs, torque_abs}
-    ChVectorDynamic<> mF(loadable->Get_field_ncoords());
+    ChVectorDynamic<> mF(loadable->GetFieldNumCoords());
     mF(0) = 0;
     mF(1) = 0;
     mF(2) = 0;

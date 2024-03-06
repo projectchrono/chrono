@@ -46,7 +46,7 @@ class Model1 {
         auto msection_cable = chrono_types::make_shared<ChBeamSectionCable>();
         msection_cable->SetDiameter(beam_diameter);
         msection_cable->SetYoungModulus(0.01e9);
-        msection_cable->SetBeamRayleighDamping(0.000);
+        msection_cable->SetRayleighDamping(0.000);
 
         // Create the nodes
         auto hnodeancf1 = chrono_types::make_shared<ChNodeFEAxyzD>(ChVector3d(0, 0, -0.2), ChVector3d(1, 0, 0));
@@ -109,7 +109,7 @@ class Model2 {
         auto msection_cable2 = chrono_types::make_shared<ChBeamSectionCable>();
         msection_cable2->SetDiameter(0.015);
         msection_cable2->SetYoungModulus(0.01e9);
-        msection_cable2->SetBeamRayleighDamping(0.000);
+        msection_cable2->SetRayleighDamping(0.000);
 
         // This ChBuilderCableANCF helper object is very useful because it will
         // subdivide 'beams' into sequences of finite elements of beam type, ex.
@@ -151,7 +151,7 @@ class Model3 {
         auto msection_cable2 = chrono_types::make_shared<ChBeamSectionCable>();
         msection_cable2->SetDiameter(0.015);
         msection_cable2->SetYoungModulus(0.01e9);
-        msection_cable2->SetBeamRayleighDamping(0.000);
+        msection_cable2->SetRayleighDamping(0.000);
 
         auto mtruss = chrono_types::make_shared<ChBody>();
         mtruss->SetBodyFixed(true);

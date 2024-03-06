@@ -96,13 +96,13 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     };
 
     /// Get the number of nodes used by this element.
-    virtual int GetNnodes() override { return 4; }
+    virtual int GetNumNodes() override { return 4; }
 
     /// Get the number of coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs() override { return 4 * 6; }
+    virtual int GetNumCoordsPosLevel() override { return 4 * 6; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs(int n) override { return 6; }
+    virtual int GetNodeNumCoordsPosLevel(int n) override { return 6; }
 
     /// Specify the nodes of this element.
     /// The node numbering is in ccw fashion as in the following scheme:
@@ -390,7 +390,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     // -------------------------------------
 
     /// Fill the D vector with the current field values at thenodes of the element, with proper ordering.
-    /// If the D vector has not the size of this->GetNdofs_x(), it will be resized.
+    /// If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized.
     ///  {x_a y_a z_a Rx_a Rx_a Rx_a x_b y_b z_b Rx_b Ry_b Rz_b}
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
@@ -449,29 +449,29 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
     // ----------------------------------
 
     /// Gets the number of DOFs affected by this element (position part).
-    virtual int LoadableGet_ndof_x() override { return 4 * 7; }
+    virtual int GetLoadableNumCoordsPosLevel() override { return 4 * 7; }
 
     /// Gets the number of DOFs affected by this element (velocity part).
-    virtual int LoadableGet_ndof_w() override { return 4 * 6; }
+    virtual int GetLoadableNumCoordsVelLevel() override { return 4 * 6; }
 
     /// Gets all the DOFs packed in a single vector (position part).
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (velocity part).
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual int Get_field_ncoords() override { return 6; }
+    virtual int GetFieldNumCoords() override { return 6; }
 
     /// Get the number of DOFs sub-blocks.
     virtual int GetSubBlocks() override { return 4; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffsetW(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffsetVelLevel(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }

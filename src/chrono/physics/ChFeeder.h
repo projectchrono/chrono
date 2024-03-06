@@ -92,9 +92,9 @@ class ChApi ChFeeder : public ChPhysicsItem {
     //
 
     /// Number of coordinates
-    virtual int GetNumCoordinatesPos() override { return 0; }
+    virtual int GetNumCoordsPosLevel() override { return 0; }
     /// Number of speed coordinates
-    virtual int GetNumCoordinatesVel() override { return 0; }
+    virtual int GetNumCoordsVelLevel() override { return 0; }
     /// Get the number of scalar constraints. 
     virtual int GetNumConstraintsBilateral() override { return 0; }
 

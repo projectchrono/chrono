@@ -925,10 +925,10 @@ void ChModalAssembly::SetupInitial() {
 void ChModalAssembly::Setup() {
     ChAssembly::Setup();  // parent
 
-    m_num_bodies_boundary = m_num_bodies;
-    m_num_links_boundary = m_num_links;
+    m_num_bodies_boundary = m_num_bodies_active;
+    m_num_links_boundary = m_num_links_active;
     m_num_meshes_boundary = m_num_meshes;
-    m_num_otherphysicsitems_boundary = m_num_otherphysicsitems;
+    m_num_otherphysicsitems_boundary = m_num_otherphysicsitems_active;
     m_num_coords_pos_boundary = m_num_coords_pos;
     m_num_coords_vel_boundary = m_num_coords_vel;
     m_num_constr_boundary = m_num_constr;
@@ -962,8 +962,8 @@ void ChModalAssembly::Setup() {
 
             body->Setup();  // currently, no-op
 
-            m_num_coords_pos_internal += body->GetNumCoordinatesPos();
-            m_num_coords_vel_internal += body->GetNumCoordinatesVel();
+            m_num_coords_pos_internal += body->GetNumCoordsPosLevel();
+            m_num_coords_vel_internal += body->GetNumCoordsVelLevel();
             m_num_constr_internal +=
                 body->GetNumConstraints();  // not really needed since ChBody introduces no constraints
         }
@@ -979,8 +979,8 @@ void ChModalAssembly::Setup() {
 
             link->Setup();  // compute DOFs etc. and sets the offsets also in child items, if any
 
-            m_num_coords_pos_internal += link->GetNumCoordinatesPos();
-            m_num_coords_vel_internal += link->GetNumCoordinatesVel();
+            m_num_coords_pos_internal += link->GetNumCoordsPosLevel();
+            m_num_coords_vel_internal += link->GetNumCoordsVelLevel();
             m_num_constr_internal += link->GetNumConstraints();
             m_num_constr_bil_internal += link->GetNumConstraintsBilateral();
             m_num_constr_uni_internal += link->GetNumConstraintsUnilateral();
@@ -996,8 +996,8 @@ void ChModalAssembly::Setup() {
 
         mesh->Setup();  // compute DOFs and iteratively call Setup for child items
 
-        m_num_coords_pos_internal += mesh->GetNumCoordinatesPos();
-        m_num_coords_vel_internal += mesh->GetNumCoordinatesVel();
+        m_num_coords_pos_internal += mesh->GetNumCoordsPosLevel();
+        m_num_coords_vel_internal += mesh->GetNumCoordsVelLevel();
         m_num_constr_internal += mesh->GetNumConstraints();
         m_num_constr_bil_internal += mesh->GetNumConstraintsBilateral();
         m_num_constr_uni_internal += mesh->GetNumConstraintsUnilateral();
@@ -1012,8 +1012,8 @@ void ChModalAssembly::Setup() {
 
         item->Setup();
 
-        m_num_coords_pos_internal += item->GetNumCoordinatesPos();
-        m_num_coords_vel_internal += item->GetNumCoordinatesVel();
+        m_num_coords_pos_internal += item->GetNumCoordsPosLevel();
+        m_num_coords_vel_internal += item->GetNumCoordsVelLevel();
         m_num_constr_internal += item->GetNumConstraints();
         m_num_constr_bil_internal += item->GetNumConstraintsBilateral();
         m_num_constr_uni_internal += item->GetNumConstraintsUnilateral();
@@ -1035,10 +1035,10 @@ void ChModalAssembly::Setup() {
         m_num_constr = m_num_constr_boundary + m_num_constr_internal;
         m_num_constr_bil = m_num_constr_bil_boundary + m_num_constr_bil_internal;
         m_num_constr_uni = m_num_constr_uni_boundary + m_num_constr_uni_internal;
-        m_num_bodies += m_num_bodies_internal;
-        m_num_links += m_num_links_internal;
+        m_num_bodies_active += m_num_bodies_internal;
+        m_num_links_active += m_num_links_internal;
         m_num_meshes += m_num_meshes_internal;
-        m_num_otherphysicsitems += m_num_otherphysicsitems_internal;
+        m_num_otherphysicsitems_active += m_num_otherphysicsitems_internal;
     } else {
         m_num_coords_pos = m_num_coords_pos_boundary +
                            m_num_modes_coords_vel;  // no need for a n_modes_coords, same as m_num_modes_coords_vel

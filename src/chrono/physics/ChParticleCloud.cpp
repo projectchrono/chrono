@@ -27,18 +27,18 @@ namespace chrono {
 // CLASS FOR A PARTICLE
 // -----------------------------------------------------------------------------
 
-ChAparticle::ChAparticle() : container(NULL), UserForce(VNULL), UserTorque(VNULL) {}
+ChParticle::ChParticle() : container(NULL), UserForce(VNULL), UserTorque(VNULL) {}
 
-ChAparticle::ChAparticle(const ChAparticle& other) : ChParticleBase(other) {
+ChParticle::ChParticle(const ChParticle& other) : ChParticleBase(other) {
     container = other.container;
     UserForce = other.UserForce;
     UserTorque = other.UserTorque;
     variables = other.variables;
 }
 
-ChAparticle::~ChAparticle() {}
+ChParticle::~ChParticle() {}
 
-ChAparticle& ChAparticle::operator=(const ChAparticle& other) {
+ChParticle& ChParticle::operator=(const ChParticle& other) {
     if (&other == this)
         return *this;
 
@@ -57,12 +57,12 @@ ChAparticle& ChAparticle::operator=(const ChAparticle& other) {
     return *this;
 }
 
-void ChAparticle::ContactableGetStateBlock_w(ChStateDelta& w) {
+void ChParticle::ContactableGetStateBlockVelLevel(ChStateDelta& w) {
     w.segment(0, 3) = GetPosDer().eigen();
     w.segment(3, 3) = GetAngVelLocal().eigen();
 }
 
-void ChAparticle::ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) {
+void ChParticle::ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) {
     // Increment position
     x_new(0) = x(0) + dw(0);
     x_new(1) = x(1) + dw(1);
@@ -79,12 +79,12 @@ void ChAparticle::ContactableIncrementState(const ChState& x, const ChStateDelta
     x_new.segment(3, 4) = mnewrot.eigen();
 }
 
-ChVector3d ChAparticle::GetContactPoint(const ChVector3d& loc_point, const ChState& state_x) {
+ChVector3d ChParticle::GetContactPoint(const ChVector3d& loc_point, const ChState& state_x) {
     ChCoordsys<> csys(state_x.segment(0, 7));
     return csys.TransformPointLocalToParent(loc_point);
 }
 
-ChVector3d ChAparticle::GetContactPointSpeed(const ChVector3d& loc_point,
+ChVector3d ChParticle::GetContactPointSpeed(const ChVector3d& loc_point,
                                              const ChState& state_x,
                                              const ChStateDelta& state_w) {
     ChCoordsys<> csys(state_x.segment(0, 7));
@@ -95,12 +95,12 @@ ChVector3d ChAparticle::GetContactPointSpeed(const ChVector3d& loc_point,
     return abs_vel + Vcross(abs_omg, loc_point);
 }
 
-ChVector3d ChAparticle::GetContactPointSpeed(const ChVector3d& abs_point) {
+ChVector3d ChParticle::GetContactPointSpeed(const ChVector3d& abs_point) {
     ChVector3d m_p1_loc = this->TransformPointParentToLocal(abs_point);
     return this->PointSpeedLocalToParent(m_p1_loc);
 }
 
-void ChAparticle::ContactForceLoadResidual_F(const ChVector3d& F,
+void ChParticle::ContactForceLoadResidual_F(const ChVector3d& F,
                                              const ChVector3d& T,
                                              const ChVector3d& abs_point,
                                              ChVectorDynamic<>& R) {
@@ -113,7 +113,7 @@ void ChAparticle::ContactForceLoadResidual_F(const ChVector3d& F,
     R.segment(Variables().GetOffset() + 3, 3) += torque1_loc.eigen();
 }
 
-void ChAparticle::ContactComputeQ(const ChVector3d& F,
+void ChParticle::ContactComputeQ(const ChVector3d& F,
                                     const ChVector3d& T,
                                     const ChVector3d& point,
                                     const ChState& state_x,
@@ -129,7 +129,7 @@ void ChAparticle::ContactComputeQ(const ChVector3d& F,
     Q.segment(offset + 3, 3) = torque_loc.eigen();
 }
 
-void ChAparticle::ComputeJacobianForContactPart(
+void ChParticle::ComputeJacobianForContactPart(
     const ChVector3d& abs_point,
     ChMatrix33<>& contact_plane,
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
@@ -156,7 +156,7 @@ void ChAparticle::ComputeJacobianForContactPart(
     jacobian_tuple_V.Get_Cq().segment(3, 3) = Jr1.row(2);
 }
 
-void ChAparticle::ComputeJacobianForRollingContactPart(
+void ChParticle::ComputeJacobianForRollingContactPart(
     const ChVector3d& abs_point,
     ChMatrix33<>& contact_plane,
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
@@ -175,13 +175,13 @@ void ChAparticle::ComputeJacobianForRollingContactPart(
     jacobian_tuple_V.Get_Cq().segment(3, 3) = Jr1.row(2);
 }
 
-ChPhysicsItem* ChAparticle::GetPhysicsItem() {
+ChPhysicsItem* ChParticle::GetPhysicsItem() {
     return container;
 }
 
-void ChAparticle::ArchiveOut(ChArchiveOut& archive_out) {
+void ChParticle::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    archive_out.VersionWrite<ChAparticle>();
+    archive_out.VersionWrite<ChParticle>();
 
     // serialize parent class
     ChParticleBase::ArchiveOut(archive_out);
@@ -194,9 +194,9 @@ void ChAparticle::ArchiveOut(ChArchiveOut& archive_out) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChAparticle::ArchiveIn(ChArchiveIn& archive_in) {
+void ChParticle::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/archive_in.VersionRead<ChAparticle>();
+    /*int version =*/archive_in.VersionRead<ChParticle>();
 
     // deserialize parent class:
     ChParticleBase::ArchiveIn(archive_in);
@@ -246,7 +246,7 @@ ChParticleCloud::ChParticleCloud(const ChParticleCloud& other) : ChIndexedPartic
     else
         particle_collision_model = nullptr;
 
-    ResizeNparticles((int)other.GetNparticles());
+    ResizeNparticles((int)other.GetNumParticles());
 
     max_speed = other.max_speed;
     max_wvel = other.max_wvel;
@@ -282,7 +282,7 @@ void ChParticleCloud::ResizeNparticles(int newsize) {
     particles.resize(newsize);
 
     for (unsigned int j = 0; j < particles.size(); j++) {
-        particles[j] = new ChAparticle;
+        particles[j] = new ChParticle;
 
         particles[j]->SetContainer(this);
 
@@ -300,7 +300,7 @@ void ChParticleCloud::ResizeNparticles(int newsize) {
 }
 
 void ChParticleCloud::AddParticle(ChCoordsys<double> initial_state) {
-    ChAparticle* newp = new ChAparticle;
+    ChParticle* newp = new ChParticle;
     newp->SetCoordsys(initial_state);
 
     newp->SetContainer(this);

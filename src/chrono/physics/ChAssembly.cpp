@@ -27,13 +27,13 @@ using namespace fea;
 CH_FACTORY_REGISTER(ChAssembly)
 
 ChAssembly::ChAssembly()
-    : m_num_bodies(0),
+    : m_num_bodies_active(0),
       m_num_bodies_sleep(0),
       m_num_bodies_fixed(0),
       m_num_shafts(0),
       m_num_shafts_sleep(0),
       m_num_shafts_fixed(0),
-      m_num_links(0),
+      m_num_links_active(0),
       m_num_meshes(0),
       m_num_otherphysicsitems(0),
       m_num_coords_pos(0),
@@ -43,13 +43,13 @@ ChAssembly::ChAssembly()
       m_num_constr_uni(0) {}
 
 ChAssembly::ChAssembly(const ChAssembly& other) : ChPhysicsItem(other) {
-    m_num_bodies = other.m_num_bodies;
+    m_num_bodies_active = other.m_num_bodies_active;
     m_num_bodies_sleep = other.m_num_bodies_sleep;
     m_num_bodies_fixed = other.m_num_bodies_fixed;
     m_num_shafts = other.m_num_shafts;
     m_num_shafts_sleep = other.m_num_shafts_sleep;
     m_num_shafts_fixed = other.m_num_shafts_fixed;
-    m_num_links = other.m_num_links;
+    m_num_links_active = other.m_num_links_active;
     m_num_meshes = other.m_num_meshes;
     m_num_otherphysicsitems = other.m_num_otherphysicsitems;
     m_num_coords_pos = other.m_num_coords_pos;
@@ -80,15 +80,15 @@ ChAssembly& ChAssembly::operator=(ChAssembly other) {
 // classes that have a ChAssembly member (currently only ChSystem) could use it, the same way we use std::swap here.
 void swap(ChAssembly& first, ChAssembly& second) {
     using std::swap;
-    swap(first.m_num_bodies, second.m_num_bodies);
+    swap(first.m_num_bodies_active, second.m_num_bodies_active);
     swap(first.m_num_bodies_sleep, second.m_num_bodies_sleep);
     swap(first.m_num_bodies_fixed, second.m_num_bodies_fixed);
     swap(first.m_num_shafts, second.m_num_shafts);
     swap(first.m_num_shafts_sleep, second.m_num_shafts_sleep);
     swap(first.m_num_shafts_fixed, second.m_num_shafts_fixed);
-    swap(first.m_num_links, second.m_num_links);
+    swap(first.m_num_links_active, second.m_num_links_active);
     swap(first.m_num_meshes, second.m_num_meshes);
-    swap(first.m_num_otherphysicsitems, second.m_num_otherphysicsitems);
+    swap(first.m_num_otherphysicsitems_active, second.m_num_otherphysicsitems_active);
     swap(first.m_num_coords_pos, second.m_num_coords_pos);
     swap(first.m_num_coords_vel, second.m_num_coords_vel);
     swap(first.m_num_constr, second.m_num_constr);
@@ -106,15 +106,15 @@ void ChAssembly::Clear() {
     RemoveAllMeshes();
     RemoveAllOtherPhysicsItems();
 
-    m_num_bodies = 0;
+    m_num_bodies_active = 0;
     m_num_bodies_sleep = 0;
     m_num_bodies_fixed = 0;
     m_num_shafts = 0;
     m_num_shafts_sleep = 0;
     m_num_shafts_fixed = 0;
-    m_num_links = 0;
+    m_num_links_active = 0;
     m_num_meshes = 0;
-    m_num_otherphysicsitems = 0;
+    m_num_otherphysicsitems_active = 0;
     m_num_constr = 0;
     m_num_constr_bil = 0;
     m_num_constr_uni = 0;
@@ -520,7 +520,7 @@ void ChAssembly::SetupInitial() {
 // Count all bodies, links, meshes, and other physics items.
 // Set counters (DOF, num constraints, etc) and offsets.
 void ChAssembly::Setup() {
-    m_num_bodies = 0;
+    m_num_bodies_active = 0;
     m_num_bodies_sleep = 0;
     m_num_bodies_fixed = 0;
     m_num_shafts = 0;
@@ -531,9 +531,9 @@ void ChAssembly::Setup() {
     m_num_constr = 0;
     m_num_constr_bil = 0;
     m_num_constr_uni = 0;
-    m_num_links = 0;
+    m_num_links_active = 0;
     m_num_meshes = 0;
-    m_num_otherphysicsitems = 0;
+    m_num_otherphysicsitems_active = 0;
 
     // Add any items queued for insertion in the assembly's lists.
     this->FlushBatch();
@@ -544,7 +544,7 @@ void ChAssembly::Setup() {
         else if (body->GetSleeping())
             m_num_bodies_sleep++;
         else {
-            m_num_bodies++;
+            m_num_bodies_active++;
 
             body->SetOffset_x(this->offset_x + m_num_coords_pos);
             body->SetOffset_w(this->offset_w + m_num_coords_vel);
@@ -552,8 +552,8 @@ void ChAssembly::Setup() {
 
             body->Setup();  // currently, no-op
 
-            m_num_coords_pos += body->GetNumCoordinatesPos();
-            m_num_coords_vel += body->GetNumCoordinatesVel();
+            m_num_coords_pos += body->GetNumCoordsPosLevel();
+            m_num_coords_vel += body->GetNumCoordsVelLevel();
             m_num_constr += body->GetNumConstraints();  // not really needed since ChBody introduces no constraints
             m_num_constr_bil +=
                 body->GetNumConstraintsBilateral();  // not really needed since ChBody introduces no constraints
@@ -576,8 +576,8 @@ void ChAssembly::Setup() {
 
             shaft->Setup();
 
-            m_num_coords_pos += shaft->GetNumCoordinatesPos();
-            m_num_coords_vel += shaft->GetNumCoordinatesVel();
+            m_num_coords_pos += shaft->GetNumCoordsPosLevel();
+            m_num_coords_vel += shaft->GetNumCoordsVelLevel();
             m_num_constr += shaft->GetNumConstraints();
             m_num_constr_bil += shaft->GetNumConstraintsBilateral();
             m_num_constr_uni += shaft->GetNumConstraintsUnilateral();
@@ -586,7 +586,7 @@ void ChAssembly::Setup() {
 
     for (auto& link : linklist) {
         if (link->IsActive()) {
-            m_num_links++;
+            m_num_links_active++;
 
             link->SetOffset_x(this->offset_x + m_num_coords_pos);
             link->SetOffset_w(this->offset_w + m_num_coords_vel);
@@ -594,8 +594,8 @@ void ChAssembly::Setup() {
 
             link->Setup();  // compute DOFs etc. and sets the offsets also in child items, if any
 
-            m_num_coords_pos += link->GetNumCoordinatesPos();
-            m_num_coords_vel += link->GetNumCoordinatesVel();
+            m_num_coords_pos += link->GetNumCoordsPosLevel();
+            m_num_coords_vel += link->GetNumCoordsVelLevel();
             m_num_constr += link->GetNumConstraints();
             m_num_constr_bil += link->GetNumConstraintsBilateral();
             m_num_constr_uni += link->GetNumConstraintsUnilateral();
@@ -611,8 +611,8 @@ void ChAssembly::Setup() {
 
         mesh->Setup();  // compute DOFs and iteratively call Setup for child items
 
-        m_num_coords_pos += mesh->GetNumCoordinatesPos();
-        m_num_coords_vel += mesh->GetNumCoordinatesVel();
+        m_num_coords_pos += mesh->GetNumCoordsPosLevel();
+        m_num_coords_vel += mesh->GetNumCoordsVelLevel();
         m_num_constr += mesh->GetNumConstraints();
         m_num_constr_bil += mesh->GetNumConstraintsBilateral();
         m_num_constr_uni += mesh->GetNumConstraintsUnilateral();
@@ -620,7 +620,7 @@ void ChAssembly::Setup() {
 
     for (auto& item : otherphysicslist) {
         if (item->IsActive()) {
-            m_num_otherphysicsitems++;
+            m_num_otherphysicsitems_active++;
 
             item->SetOffset_x(this->offset_x + m_num_coords_pos);
             item->SetOffset_w(this->offset_w + m_num_coords_vel);
@@ -628,8 +628,8 @@ void ChAssembly::Setup() {
 
             item->Setup();
 
-            m_num_coords_pos += item->GetNumCoordinatesPos();
-            m_num_coords_vel += item->GetNumCoordinatesVel();
+            m_num_coords_pos += item->GetNumCoordsPosLevel();
+            m_num_coords_vel += item->GetNumCoordsVelLevel();
             m_num_constr += item->GetNumConstraints();
             m_num_constr_bil += item->GetNumConstraintsBilateral();
             m_num_constr_uni += item->GetNumConstraintsUnilateral();

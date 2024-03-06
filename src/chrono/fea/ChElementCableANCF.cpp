@@ -382,7 +382,7 @@ void ChElementCableANCF::SetupInitial(ChSystem* system) {
 
     m_element_dof = 0;
     for (int i = 0; i < 2; i++) {
-        m_element_dof += m_nodes[i]->GetNdofX();
+        m_element_dof += m_nodes[i]->GetNumCoordsPosLevel();
     }
 
     m_full_dof = (m_element_dof == 2 * 6);
@@ -391,7 +391,7 @@ void ChElementCableANCF::SetupInitial(ChSystem* system) {
         m_mapping_dof.resize(m_element_dof);
         int dof = 0;
         for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < m_nodes[i]->GetNdofX(); j++)
+            for (int j = 0; j < m_nodes[i]->GetNumCoordsPosLevel(); j++)
                 m_mapping_dof(dof++) = i * 6 + j;
         }
     }
@@ -422,7 +422,7 @@ void ChElementCableANCF::SetupInitial(ChSystem* system) {
 // Sets H as the global stiffness matrix K, scaled  by Kfactor. Optionally, also superimposes global
 // damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
 void ChElementCableANCF::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.rows() == GetNdofs()) && (H.cols() == GetNdofs()));
+    assert((H.rows() == GetNumCoordsPosLevel()) && (H.cols() == GetNumCoordsPosLevel()));
     assert(m_section);
 
     // Calculate the linear combination Kfactor*[K] + Rfactor*[R]
@@ -452,7 +452,7 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector3d& pA,
                                                     const ChVector3d& pB_dt,
                                                     const ChVector3d& dB_dt,
                                                     ChVectorDynamic<>& Fi) {
-    assert(Fi.size() == GetNdofs());
+    assert(Fi.size() == GetNumCoordsPosLevel());
     assert(m_section);
 
     double Area = m_section->Area;
@@ -638,7 +638,7 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector3d& pA,
 
 // Compute the generalized force vector due to gravity using the efficient ANCF specific method
 void ChElementCableANCF::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
-    assert(Fg.size() == GetNdofs());
+    assert(Fg.size() == GetNumCoordsPosLevel());
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
     // The generalized force due to gravity could be computed once prior to the start of the simulation if gravity was
@@ -719,7 +719,7 @@ void ChElementCableANCF::EvaluateSectionStrain(const double eta, ChVector3d& Str
     ShapeFunctions(N, xi);  // Evaluate shape functions
     ShapeFunctionsDerivatives(Nd, xi);
     ShapeFunctionsDerivatives2(Ndd, xi);
-    ChVectorDynamic<> mD(GetNdofs());
+    ChVectorDynamic<> mD(GetNumCoordsPosLevel());
 
     GetStateBlock(mD);
 
@@ -757,7 +757,7 @@ void ChElementCableANCF::SetAlphaDamp(double a) {
         m_use_damping = true;
 }
 
-void ChElementCableANCF::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementCableANCF::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPos().eigen();
@@ -765,7 +765,7 @@ void ChElementCableANCF::LoadableGetStateBlock_x(int block_offset, ChState& mD) 
 }
 
 // Gets all the DOFs packed in a single vector (speed part)
-void ChElementCableANCF::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementCableANCF::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD_dt().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPosDer().eigen();

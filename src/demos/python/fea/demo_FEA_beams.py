@@ -46,7 +46,7 @@ beam_wy = 0.012
 beam_wz = 0.025
 msection.SetAsRectangularSection(beam_wy, beam_wz)
 msection.SetYoungModulus(0.01e9)
-msection.SetGshearModulus(0.01e9 * 0.3)
+msection.SetShearModulus(0.01e9 * 0.3)
 msection.SetBeamRaleyghDamping(0.000)
 #msection.SetCentroid(0,0.02)
 #msection.SetShearCenter(0,0.1)

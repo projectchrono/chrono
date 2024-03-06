@@ -90,10 +90,10 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     ChFrameMoving<>& Frame() { return *this; }
 
     /// Get the number of degrees of freedom (7 because quaternion for rotation).
-    virtual int GetNdofX() const override { return 7; }
+    virtual int GetNumCoordsPosLevel() const override { return 7; }
 
     /// Get the number of degrees of freedom, derivative (6 because angular velocity for rotation derivative).
-    virtual int GetNdofW() const override { return 6; }
+    virtual int GetNumCoordsVelLevel() const override { return 6; }
 
     // INTERFACE to ChVariableTupleCarrier_1vars
 
@@ -150,16 +150,16 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     // INTERFACE to ChLoadableUVW
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() override { return 7; }
+    virtual int GetLoadableNumCoordsPosLevel() override { return 7; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() override { return 6; }
+    virtual int GetLoadableNumCoordsVelLevel() override { return 6; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,
@@ -170,13 +170,13 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, etc. Here is 6: xyz displ + xyz rots
-    virtual int Get_field_ncoords() override { return 6; }
+    virtual int GetFieldNumCoords() override { return 6; }
 
     /// Get the number of DOFs sub-blocks.
     virtual int GetSubBlocks() override { return 1; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return this->NodeGetOffsetW(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return this->NodeGetOffsetVelLevel(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }

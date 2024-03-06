@@ -367,22 +367,22 @@ class ChApi ChLoadCustomMultiple : public ChLoadBase {
 
 template <class Tloader>
 inline int ChLoad<Tloader>::LoadGet_ndof_x() {
-    return this->loader.GetLoadable()->LoadableGet_ndof_x();
+    return this->loader.GetLoadable()->GetLoadableNumCoordsPosLevel();
 }
 
 template <class Tloader>
 inline int ChLoad<Tloader>::LoadGet_ndof_w() {
-    return this->loader.GetLoadable()->LoadableGet_ndof_w();
+    return this->loader.GetLoadable()->GetLoadableNumCoordsVelLevel();
 }
 
 template <class Tloader>
 inline void ChLoad<Tloader>::LoadGetStateBlock_x(ChState& mD) {
-    this->loader.GetLoadable()->LoadableGetStateBlock_x(0, mD);
+    this->loader.GetLoadable()->LoadableGetStateBlockPosLevel(0, mD);
 }
 
 template <class Tloader>
 inline void ChLoad<Tloader>::LoadGetStateBlock_w(ChStateDelta& mD) {
-    this->loader.GetLoadable()->LoadableGetStateBlock_w(0, mD);
+    this->loader.GetLoadable()->LoadableGetStateBlockVelLevel(0, mD);
 }
 
 template <class Tloader>
@@ -392,7 +392,7 @@ inline void ChLoad<Tloader>::LoadStateIncrement(const ChState& x, const ChStateD
 
 template <class Tloader>
 inline int ChLoad<Tloader>::LoadGet_field_ncoords() {
-    return this->loader.GetLoadable()->Get_field_ncoords();
+    return this->loader.GetLoadable()->GetFieldNumCoords();
 }
 
 template <class Tloader>

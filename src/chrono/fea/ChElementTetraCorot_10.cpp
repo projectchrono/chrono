@@ -88,9 +88,9 @@ void ChElementTetraCorot_10::ShapeFunctions(ShapeVector& N, double r, double s, 
 }
 
 void ChElementTetraCorot_10::GetStateBlock(ChVectorDynamic<>& mD) {
-    mD.setZero(this->GetNdofs());
+    mD.setZero(this->GetNumCoordsPosLevel());
 
-    for (int i = 0; i < GetNnodes(); i++)
+    for (int i = 0; i < GetNumNodes(); i++)
         mD.segment(i * 3, 3) = (A.transpose() * this->nodes[i]->GetPos() - nodes[i]->GetX0()).eigen();
 }
 
@@ -505,11 +505,11 @@ void ChElementTetraCorot_10::GetParameterForNodeID(const int nodeID, double& z1,
 
 ChStrainTensor<> ChElementTetraCorot_10::GetStrain(double z1, double z2, double z3, double z4) {
     // set up vector of nodal displacements (in local element system) u_l = R*p - p0
-    ChVectorDynamic<> displ(GetNdofs());
+    ChVectorDynamic<> displ(GetNumCoordsPosLevel());
     this->GetStateBlock(displ);
 
     double JacobianDet;
-    ChMatrixDynamic<> amatrB(6, GetNdofs());
+    ChMatrixDynamic<> amatrB(6, GetNumCoordsPosLevel());
     amatrB.setZero();
     ComputeMatrB(amatrB, z1, z2, z3, z4, JacobianDet);
 
@@ -559,22 +559,22 @@ void ChElementTetraCorot_10::UpdateRotation() {
 }
 
 void ChElementTetraCorot_10::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.rows() == GetNdofs()) && (H.cols() == GetNdofs()));
+    assert((H.rows() == GetNumCoordsPosLevel()) && (H.cols() == GetNumCoordsPosLevel()));
 
     // warp the local stiffness matrix K in order to obtain global tangent stiffness CKCt:
-    ChMatrixDynamic<> CK(GetNdofs(), GetNdofs());
-    ChMatrixDynamic<> CKCt(GetNdofs(), GetNdofs());  // the global, corotated, K matrix
+    ChMatrixDynamic<> CK(GetNumCoordsPosLevel(), GetNumCoordsPosLevel());
+    ChMatrixDynamic<> CKCt(GetNumCoordsPosLevel(), GetNumCoordsPosLevel());  // the global, corotated, K matrix
     ChMatrixCorotation::ComputeCK(StiffnessMatrix, this->A, 10, CK);
     ChMatrixCorotation::ComputeKCt(CK, this->A, 10, CKCt);
 
     // For K stiffness matrix and R damping matrix:
     double mkfactor = Kfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingK();
-    H.block(0, 0, GetNdofs(), GetNdofs()) = mkfactor * CKCt;
+    H.block(0, 0, GetNumCoordsPosLevel(), GetNumCoordsPosLevel()) = mkfactor * CKCt;
 
     // For M mass matrix:
     if (Mfactor) {
-        double lumped_node_mass = (this->GetVolume() * this->Material->Get_density()) / (double)this->GetNnodes();
-        for (int id = 0; id < GetNdofs(); id++) {
+        double lumped_node_mass = (this->GetVolume() * this->Material->Get_density()) / (double)this->GetNumNodes();
+        for (int id = 0; id < GetNumCoordsPosLevel(); id++) {
             double amfactor = Mfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingM();
             H(id, id) += amfactor * lumped_node_mass;
         }
@@ -583,10 +583,10 @@ void ChElementTetraCorot_10::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfac
 }
 
 void ChElementTetraCorot_10::ComputeInternalForces(ChVectorDynamic<>& Fi) {
-    assert(Fi.size() == GetNdofs());
+    assert(Fi.size() == GetNumCoordsPosLevel());
 
     // set up vector of nodal displacements (in local element system) u_l = R*p - p0
-    ChVectorDynamic<> displ(GetNdofs());
+    ChVectorDynamic<> displ(GetNumCoordsPosLevel());
     this->GetStateBlock(displ);
 
     // [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
@@ -604,7 +604,7 @@ void ChElementTetraCorot_10::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     displ.segment(24, 3) = A.transpose() * nodes[8]->pos_dt.eigen();
     displ.segment(27, 3) = A.transpose() * nodes[9]->pos_dt.eigen();
 
-    double lumped_node_mass = (GetVolume() * Material->Get_density()) / GetNnodes();
+    double lumped_node_mass = (GetVolume() * Material->Get_density()) / GetNumNodes();
     ChVectorDynamic<> FiR_local =
         Material->Get_RayleighDampingK() * (StiffnessMatrix * displ + lumped_node_mass * displ);
     //// TODO  better per-node lumping, or 12x12 consistent mass matrix.
@@ -616,7 +616,7 @@ void ChElementTetraCorot_10::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     ChMatrixCorotation::ComputeCK(FiK_local, this->A, 10, Fi);
 }
 
-void ChElementTetraCorot_10::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementTetraCorot_10::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = this->nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 3) = this->nodes[1]->GetPos().eigen();
     mD.segment(block_offset + 6, 3) = this->nodes[2]->GetPos().eigen();
@@ -629,7 +629,7 @@ void ChElementTetraCorot_10::LoadableGetStateBlock_x(int block_offset, ChState& 
     mD.segment(block_offset + 27, 3) = this->nodes[9]->GetPos().eigen();
 }
 
-void ChElementTetraCorot_10::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementTetraCorot_10::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = this->nodes[0]->GetPosDer().eigen();
     mD.segment(block_offset + 3, 3) = this->nodes[1]->GetPosDer().eigen();
     mD.segment(block_offset + 6, 3) = this->nodes[2]->GetPosDer().eigen();

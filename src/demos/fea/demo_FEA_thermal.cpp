@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
+    for (unsigned int inode = 0; inode < my_mesh->GetNumNodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
             mnode->SetPos(mnode->GetPos() * ChVector3d(3, 1, 3));
         }
@@ -87,15 +87,15 @@ int main(int argc, char* argv[]) {
     mnode3->SetF(20);  // thermal load: heat flux [W] into node
 
     // Impose field on two top nodes (remember the SetFixed(true); )
-    auto mnode1 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(my_mesh->GetNnodes() - 1));
+    auto mnode1 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(my_mesh->GetNumNodes() - 1));
     mnode1->SetFixed(true);
     mnode1->SetP(0.5);  // field: temperature [K]
-    auto mnode2 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(my_mesh->GetNnodes() - 2));
+    auto mnode2 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(my_mesh->GetNumNodes() - 2));
     mnode2->SetFixed(true);
     mnode2->SetP(0.5);  // field: temperature [K]
 
     // Impose field on the base points:
-    for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
+    for (unsigned int inode = 0; inode < my_mesh->GetNumNodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
             if (mnode->GetPos().y() < 0.01) {
                 mnode->SetFixed(true);
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Print some node temperatures..
-    for (unsigned int inode = 0; inode < my_mesh->GetNnodes(); ++inode) {
+    for (unsigned int inode = 0; inode < my_mesh->GetNumNodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
             if (mnode->GetPos().x() < 0.01) {
                 std::cout << "Node at y=" << mnode->GetPos().y() << " has T=" << mnode->GetP() << "\n";

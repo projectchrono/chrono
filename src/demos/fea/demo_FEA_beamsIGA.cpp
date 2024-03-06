@@ -167,7 +167,7 @@ void MakeAndRunDemo1(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis,
 
     auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
     melasticity->SetYoungModulus(0.02e10);
-    melasticity->SetGshearModulus(0.02e10 * 0.38);
+    melasticity->SetShearModulus(0.02e10 * 0.38);
     melasticity->SetAsRectangularSection(beam_wy, beam_wz);  // automatically sets A, Ixx, Iyy, Ksy, Ksz and J
 
     auto msection =
@@ -213,13 +213,13 @@ void MakeAndRunDemo1(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis,
     sys.DoStaticLinear();
 
     // For comparison with analytical results.
-    double poisson = melasticity->GetYoungModulus() / (2.0 * melasticity->GetGshearModulus()) - 1.0;
+    double poisson = melasticity->GetYoungModulus() / (2.0 * melasticity->GetShearModulus()) - 1.0;
     double Ks_y = 10.0 * (1.0 + poisson) / (12.0 + 11.0 * poisson);
     double analytic_timoshenko_displ =
         (beam_tip_load * pow(beam_L, 3)) /
             (3 * melasticity->GetYoungModulus() * (1. / 12.) * beam_wz * pow(beam_wy, 3)) +
         (beam_tip_load * beam_L) /
-            (Ks_y * melasticity->GetGshearModulus() * beam_wz * beam_wy);  // = (P*L^3)/(3*E*I) + (P*L)/(k*A*G)
+            (Ks_y * melasticity->GetShearModulus() * beam_wz * beam_wy);  // = (P*L^3)/(3*E*I) + (P*L)/(k*A*G)
     double numerical_displ =
         builder.GetLastBeamNodes().back()->GetPos().y() - builder.GetLastBeamNodes().back()->GetX0().GetPos().y();
 
@@ -352,7 +352,7 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
     melasticity->SetYoungModulus(0.02e10);
-    melasticity->SetGshearModulus(0.02e10 * 0.3);
+    melasticity->SetShearModulus(0.02e10 * 0.3);
     melasticity->SetAsRectangularSection(beam_wy, beam_wz);  // automatically sets A, Ixx, Iyy, Ksy, Ksz and J
 
     auto mplasticity = chrono_types::make_shared<ChPlasticityCosseratLumped>();
@@ -425,8 +425,8 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
         vis->EndScene();
 
         // Save to file: plastic flow of the 1st element, and other data
-        ChMatrixDynamic<> mK(builder.GetLastBeamElements()[0]->GetNdofs(),
-                             builder.GetLastBeamElements()[0]->GetNdofs());
+        ChMatrixDynamic<> mK(builder.GetLastBeamElements()[0]->GetNumCoordsPosLevel(),
+                             builder.GetLastBeamElements()[0]->GetNumCoordsPosLevel());
         builder.GetLastBeamElements()[0]->ComputeKRMmatricesGlobal(mK, 1, 0, 0);
         auto plasticdat = builder.GetLastBeamElements()[0]->GetPlasticData()[0].get();
         auto plasticdata = dynamic_cast<ChInternalDataLumpedCosserat*>(plasticdat);
@@ -480,7 +480,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
     melasticity->SetYoungModulus(210e9);
-    melasticity->SetGwithPoissonRatio(0.3);
+    melasticity->SetShearModulusFromPoisson(0.3);
     melasticity->SetArea(CH_C_PI * (pow(beam_ro, 2) - pow(beam_ri, 2)));
     melasticity->SetIyy((CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
     melasticity->SetIzz((CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));

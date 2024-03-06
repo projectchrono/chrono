@@ -321,7 +321,7 @@ void ChSystem::SetSolver(std::shared_ptr<ChSolver> newsolver) {
 }
 
 void ChSystem::SetCollisionSystemType(ChCollisionSystem::Type type) {
-    assert(assembly.GetNumBodies() == 0);
+    assert(assembly.GetNumBodiesActive() == 0);
 
     auto coll_sys_type = type;
 
@@ -650,9 +650,9 @@ void ChSystem::Setup() {
 
     bool check_bookkeeping = false;
     if (check_bookkeeping) {
-        ChState test_x(GetNumCoordinatesPos(), this);
-        ChStateDelta test_v(GetNumCoordinatesVel(), this);
-        ChStateDelta test_a(GetNumCoordinatesVel(), this);
+        ChState test_x(GetNumCoordsPosLevel(), this);
+        ChStateDelta test_v(GetNumCoordsVelLevel(), this);
+        ChStateDelta test_a(GetNumCoordsVelLevel(), this);
         ChVectorDynamic<> test_L(GetNumConstraints());
         double poison_x = -8888.888;
         double poison_v = -9999.999;
@@ -1100,7 +1100,7 @@ bool ChSystem::StateSolveCorrection(
 
         // Just for diagnostic, dump also unscaled loads (forces,torques),
         // since the .._f.dat vector dumped in WriteMatrixBlocks() might contain scaled loads, and also +M*v
-        ChVectorDynamic<> tempF(this->GetNumCoordinatesVel());
+        ChVectorDynamic<> tempF(this->GetNumCoordsVelLevel());
         tempF.setZero();
         LoadResidual_F(tempF, 1.0);
         std::ofstream file_F(output_dir + "/" + prefix + "F_pre.dat");
@@ -1118,7 +1118,7 @@ ChVector3d ChSystem::GetBodyAppliedForce(ChBody* body) {
         return ChVector3d(0, 0, 0);
 
     if (!applied_forces_current) {
-        applied_forces.setZero(this->GetNumCoordinatesVel());
+        applied_forces.setZero(this->GetNumCoordsVelLevel());
         LoadResidual_F(applied_forces, 1.0);
         applied_forces_current = true;
     }
@@ -1130,7 +1130,7 @@ ChVector3d ChSystem::GetBodyAppliedTorque(ChBody* body) {
         return ChVector3d(0, 0, 0);
 
     if (!applied_forces_current) {
-        applied_forces.setZero(this->GetNumCoordinatesVel());
+        applied_forces.setZero(this->GetNumCoordsVelLevel());
         LoadResidual_F(applied_forces, 1.0);
         applied_forces_current = true;
     }

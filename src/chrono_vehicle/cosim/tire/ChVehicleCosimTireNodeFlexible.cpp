@@ -130,11 +130,11 @@ void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> whe
     // Preprocess the tire mesh and store neighbor element information for each vertex
     // and vertex indices for each element. This data is used in output.
     auto mesh = m_tire_def->GetMesh();
-    m_adjElements.resize(mesh->GetNnodes());
-    m_adjVertices.resize(mesh->GetNelements());
+    m_adjElements.resize(mesh->GetNumNodes());
+    m_adjVertices.resize(mesh->GetNumElements());
 
     int nodeOrder[] = {0, 1, 2, 3};
-    for (unsigned int ie = 0; ie < mesh->GetNelements(); ie++) {
+    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ie++) {
         auto element = mesh->GetElement(ie);
         for (int in = 0; in < 4; in++) {
             auto node = element->GetNodeN(nodeOrder[in]);
@@ -233,20 +233,20 @@ void ChVehicleCosimTireNodeFlexible::OutputVisualizationData(int frame) {
 void ChVehicleCosimTireNodeFlexible::WriteTireStateInformation(utils::ChWriterCSV& csv) {
     // Extract vertex states from mesh
     auto mesh = m_tire_def->GetMesh();
-    ChState x(mesh->GetNumCoordinatesPos(), NULL);
-    ChStateDelta v(mesh->GetNumCoordinatesVel(), NULL);
+    ChState x(mesh->GetNumCoordsPosLevel(), NULL);
+    ChStateDelta v(mesh->GetNumCoordsVelLevel(), NULL);
     unsigned int offset_x = 0;
     unsigned int offset_v = 0;
     double t;
-    for (unsigned int in = 0; in < mesh->GetNnodes(); in++) {
+    for (unsigned int in = 0; in < mesh->GetNumNodes(); in++) {
         auto node = mesh->GetNode(in);
         node->NodeIntStateGather(offset_x, x, offset_v, v, t);
-        offset_x += node->GetNdofX();
-        offset_v += node->GetNdofW();
+        offset_x += node->GetNumCoordsPosLevel();
+        offset_v += node->GetNumCoordsVelLevel();
     }
 
     // Write number of vertices, number of DOFs
-    csv << mesh->GetNnodes() << mesh->GetNumCoordinatesPos() << mesh->GetNumCoordinatesVel() << endl;
+    csv << mesh->GetNumNodes() << mesh->GetNumCoordsPosLevel() << mesh->GetNumCoordsVelLevel() << endl;
 
     // Write mesh vertex positions and velocities
     for (int ix = 0; ix < x.size(); ix++)
@@ -260,9 +260,9 @@ void ChVehicleCosimTireNodeFlexible::WriteTireMeshInformation(utils::ChWriterCSV
     auto mesh = m_tire_def->GetMesh();
 
     // Print tire mesh connectivity
-    csv << "\n Connectivity " << mesh->GetNelements() << 5 * mesh->GetNelements() << endl;
+    csv << "\n Connectivity " << mesh->GetNumElements() << 5 * mesh->GetNumElements() << endl;
 
-    for (unsigned int ie = 0; ie < mesh->GetNelements(); ie++) {
+    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ie++) {
         for (unsigned int in = 0; in < m_adjVertices[ie].size(); in++) {
             csv << m_adjVertices[ie][in];
         }
@@ -272,7 +272,7 @@ void ChVehicleCosimTireNodeFlexible::WriteTireMeshInformation(utils::ChWriterCSV
     // Print strain information: eps_xx, eps_yy, eps_xy averaged over surrounding elements
     /*
     csv << "\n Vectors of Strains \n";
-    for (unsigned int in = 0; in < mesh->GetNnodes(); in++) {
+    for (unsigned int in = 0; in < mesh->GetNumNodes(); in++) {
         double areaX = 0, areaY = 0, areaZ = 0;
         double area = 0;
         for (unsigned int ie = 0; ie < m_adjElements[in].size(); ie++) {
@@ -294,7 +294,7 @@ void ChVehicleCosimTireNodeFlexible::WriteTireMeshInformation(utils::ChWriterCSV
 
 void ChVehicleCosimTireNodeFlexible::PrintLowestNode() {
     // Unfortunately, we do not have access to the node container of a mesh, so we cannot use some nice algorithm here.
-    unsigned int num_nodes = m_tire_def->GetMesh()->GetNnodes();
+    unsigned int num_nodes = m_tire_def->GetMesh()->GetNumNodes();
     unsigned int index = 0;
     double zmin = 1e10;
     for (unsigned int i = 0; i < num_nodes; ++i) {

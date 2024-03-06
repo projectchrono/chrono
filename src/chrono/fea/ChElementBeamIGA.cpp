@@ -223,13 +223,13 @@ void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
     // The K stiffness matrix of this element span:
     //
 
-    ChState state_x(this->LoadableGet_ndof_x(), nullptr);
-    ChStateDelta state_w(this->LoadableGet_ndof_w(), nullptr);
-    this->LoadableGetStateBlock_x(0, state_x);
-    this->LoadableGetStateBlock_w(0, state_w);
+    ChState state_x(this->GetLoadableNumCoordsPosLevel(), nullptr);
+    ChStateDelta state_w(this->GetLoadableNumCoordsVelLevel(), nullptr);
+    this->LoadableGetStateBlockPosLevel(0, state_x);
+    this->LoadableGetStateBlockVelLevel(0, state_w);
 
-    int mrows_w = this->LoadableGet_ndof_w();
-    int mrows_x = this->LoadableGet_ndof_x();
+    int mrows_w = this->GetLoadableNumCoordsVelLevel();
+    int mrows_x = this->GetLoadableNumCoordsPosLevel();
 
     // compute Q at current speed & position, x_0, v_0
     ChVectorDynamic<> Q0(mrows_w);
@@ -441,10 +441,10 @@ void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
 /// values in the Fi vector.
 
 void ChElementBeamIGA::ComputeInternalForces(ChVectorDynamic<>& Fi) {
-    ChState mstate_x(this->LoadableGet_ndof_x(), nullptr);
-    ChStateDelta mstate_w(this->LoadableGet_ndof_w(), nullptr);
-    this->LoadableGetStateBlock_x(0, mstate_x);
-    this->LoadableGetStateBlock_w(0, mstate_w);
+    ChState mstate_x(this->GetLoadableNumCoordsPosLevel(), nullptr);
+    ChStateDelta mstate_w(this->GetLoadableNumCoordsVelLevel(), nullptr);
+    this->LoadableGetStateBlockPosLevel(0, mstate_x);
+    this->LoadableGetStateBlockVelLevel(0, mstate_w);
     ComputeInternalForces_impl(Fi, mstate_x, mstate_w);
 }
 
@@ -695,11 +695,11 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
 
 void ChElementBeamIGA::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
     // no so efficient... a temporary mass matrix here:
-    ChMatrixDynamic<> mM(this->GetNdofs(), this->GetNdofs());
+    ChMatrixDynamic<> mM(this->GetNumCoordsPosLevel(), this->GetNumCoordsPosLevel());
     this->ComputeMmatrixGlobal(mM);
 
     // a vector of G accelerations (for translation degrees of freedom ie 3 xyz every 6 values)
-    ChVectorDynamic<> mG(this->GetNdofs());
+    ChVectorDynamic<> mG(this->GetNumCoordsPosLevel());
     mG.setZero();
     for (int i = 0; i < nodes.size(); ++i) {
         mG.segment(i * 6, 3) = G_acc.eigen();

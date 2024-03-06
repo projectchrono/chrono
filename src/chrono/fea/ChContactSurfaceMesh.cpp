@@ -54,21 +54,18 @@ ChPhysicsItem* ChContactTriangleXYZ::GetPhysicsItem() {
 
 // interface to ChLoadableUV
 
-// Gets all the DOFs packed in a single vector (position part).
-void ChContactTriangleXYZ::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChContactTriangleXYZ::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPos().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPos().eigen();
 }
 
-// Gets all the DOFs packed in a single vector (velocity part).
-void ChContactTriangleXYZ::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChContactTriangleXYZ::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPosDer().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPosDer().eigen();
 }
 
-/// Increment all DOFs using a delta.
 void ChContactTriangleXYZ::LoadableStateIncrement(const unsigned int off_x,
                                                   ChState& x_new,
                                                   const ChState& x,
@@ -78,20 +75,20 @@ void ChContactTriangleXYZ::LoadableStateIncrement(const unsigned int off_x,
     m_nodes[1]->NodeIntStateIncrement(off_x + 3, x_new, x, off_v + 3, Dv);
     m_nodes[2]->NodeIntStateIncrement(off_x + 6, x_new, x, off_v + 6, Dv);
 }
-// Get the pointers to the contained ChVariables, appending to the mvars vector.
+
 void ChContactTriangleXYZ::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
     mvars.push_back(&m_nodes[0]->Variables());
     mvars.push_back(&m_nodes[1]->Variables());
     mvars.push_back(&m_nodes[2]->Variables());
 }
 
-void ChContactTriangleXYZ::ContactableGetStateBlock_x(ChState& x) {
+void ChContactTriangleXYZ::ContactableGetStateBlockPosLevel(ChState& x) {
     x.segment(0, 3) = m_nodes[0]->pos.eigen();
     x.segment(3, 3) = m_nodes[1]->pos.eigen();
     x.segment(6, 3) = m_nodes[2]->pos.eigen();
 }
 
-void ChContactTriangleXYZ::ContactableGetStateBlock_w(ChStateDelta& w) {
+void ChContactTriangleXYZ::ContactableGetStateBlockVelLevel(ChStateDelta& w) {
     w.segment(0, 3) = m_nodes[0]->pos_dt.eigen();
     w.segment(3, 3) = m_nodes[1]->pos_dt.eigen();
     w.segment(6, 3) = m_nodes[2]->pos_dt.eigen();
@@ -151,9 +148,9 @@ void ChContactTriangleXYZ::ContactForceLoadResidual_F(const ChVector3d& F,
     double s2, s3;
     ComputeUVfromP(abs_point, s2, s3);
     double s1 = 1 - s2 - s3;
-    R.segment(m_nodes[0]->NodeGetOffsetW(), 3) += F.eigen() * s1;
-    R.segment(m_nodes[1]->NodeGetOffsetW(), 3) += F.eigen() * s2;
-    R.segment(m_nodes[2]->NodeGetOffsetW(), 3) += F.eigen() * s3;
+    R.segment(m_nodes[0]->NodeGetOffsetVelLevel(), 3) += F.eigen() * s1;
+    R.segment(m_nodes[1]->NodeGetOffsetVelLevel(), 3) += F.eigen() * s2;
+    R.segment(m_nodes[2]->NodeGetOffsetVelLevel(), 3) += F.eigen() * s3;
     // note: do nothing for torque T
 }
 
@@ -220,11 +217,11 @@ void ChContactTriangleXYZ::ComputeJacobianForContactPart(const ChVector3d& abs_p
 
 unsigned int ChContactTriangleXYZ::GetSubBlockOffset(int nblock) {
     if (nblock == 0)
-        return GetNode(0)->NodeGetOffsetW();
+        return GetNode(0)->NodeGetOffsetVelLevel();
     if (nblock == 1)
-        return GetNode(1)->NodeGetOffsetW();
+        return GetNode(1)->NodeGetOffsetVelLevel();
     if (nblock == 2)
-        return GetNode(2)->NodeGetOffsetW();
+        return GetNode(2)->NodeGetOffsetVelLevel();
     return 0;
 }
 
@@ -296,7 +293,7 @@ ChPhysicsItem* ChContactTriangleXYZROT::GetPhysicsItem() {
 // interface to ChLoadableUV
 
 // Gets all the DOFs packed in a single vector (position part).
-void ChContactTriangleXYZROT::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChContactTriangleXYZROT::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 4) = m_nodes[0]->GetRot().eigen();
 
@@ -308,7 +305,7 @@ void ChContactTriangleXYZROT::LoadableGetStateBlock_x(int block_offset, ChState&
 }
 
 // Gets all the DOFs packed in a single vector (velocity part).
-void ChContactTriangleXYZROT::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChContactTriangleXYZROT::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetAngVelLocal().eigen();
 
@@ -337,7 +334,7 @@ void ChContactTriangleXYZROT::LoadableGetVariables(std::vector<ChVariables*>& mv
     mvars.push_back(&m_nodes[2]->Variables());
 }
 
-void ChContactTriangleXYZROT::ContactableGetStateBlock_x(ChState& x) {
+void ChContactTriangleXYZROT::ContactableGetStateBlockPosLevel(ChState& x) {
     x.segment(0, 3) = m_nodes[0]->GetPos().eigen();
     x.segment(3, 4) = m_nodes[0]->GetRot().eigen();
 
@@ -348,7 +345,7 @@ void ChContactTriangleXYZROT::ContactableGetStateBlock_x(ChState& x) {
     x.segment(17, 4) = m_nodes[2]->GetRot().eigen();
 }
 
-void ChContactTriangleXYZROT::ContactableGetStateBlock_w(ChStateDelta& w) {
+void ChContactTriangleXYZROT::ContactableGetStateBlockVelLevel(ChStateDelta& w) {
     w.segment(0, 3) = m_nodes[0]->GetPosDer().eigen();
     w.segment(3, 3) = m_nodes[0]->GetAngVelLocal().eigen();
 
@@ -413,15 +410,15 @@ void ChContactTriangleXYZROT::ContactForceLoadResidual_F(const ChVector3d& F,
     double s2, s3;
     ComputeUVfromP(abs_point, s2, s3);
     double s1 = 1 - s2 - s3;
-    R.segment(m_nodes[0]->NodeGetOffsetW(), 3) += F.eigen() * s1;
-    R.segment(m_nodes[1]->NodeGetOffsetW(), 3) += F.eigen() * s2;
-    R.segment(m_nodes[2]->NodeGetOffsetW(), 3) += F.eigen() * s3;
+    R.segment(m_nodes[0]->NodeGetOffsetVelLevel(), 3) += F.eigen() * s1;
+    R.segment(m_nodes[1]->NodeGetOffsetVelLevel(), 3) += F.eigen() * s2;
+    R.segment(m_nodes[2]->NodeGetOffsetVelLevel(), 3) += F.eigen() * s3;
     
     // in case also torque is used:
     if (!T.IsNull()) {
-        R.segment(m_nodes[0]->NodeGetOffsetW() + 3, 3) += (m_nodes[0]->TransformDirectionParentToLocal(T * s1)).eigen();
-        R.segment(m_nodes[1]->NodeGetOffsetW() + 3, 3) += (m_nodes[1]->TransformDirectionParentToLocal(T * s2)).eigen();
-        R.segment(m_nodes[2]->NodeGetOffsetW() + 3, 3) += (m_nodes[2]->TransformDirectionParentToLocal(T * s3)).eigen();
+        R.segment(m_nodes[0]->NodeGetOffsetVelLevel() + 3, 3) += (m_nodes[0]->TransformDirectionParentToLocal(T * s1)).eigen();
+        R.segment(m_nodes[1]->NodeGetOffsetVelLevel() + 3, 3) += (m_nodes[1]->TransformDirectionParentToLocal(T * s2)).eigen();
+        R.segment(m_nodes[2]->NodeGetOffsetVelLevel() + 3, 3) += (m_nodes[2]->TransformDirectionParentToLocal(T * s3)).eigen();
     }
 }
 
@@ -497,11 +494,11 @@ void ChContactTriangleXYZROT::ComputeJacobianForContactPart(const ChVector3d& ab
 
 unsigned int ChContactTriangleXYZROT::GetSubBlockOffset(int nblock) {
     if (nblock == 0)
-        return GetNode(0)->NodeGetOffsetW();
+        return GetNode(0)->NodeGetOffsetVelLevel();
     if (nblock == 1)
-        return GetNode(1)->NodeGetOffsetW();
+        return GetNode(1)->NodeGetOffsetVelLevel();
     if (nblock == 2)
-        return GetNode(2)->NodeGetOffsetW();
+        return GetNode(2)->NodeGetOffsetVelLevel();
     return 0;
 }
 
@@ -675,7 +672,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     // Boundary faces of TETRAHEDRONS
     std::multimap<std::array<ChNodeFEAxyz*, 3>, ChTetrahedronFace> face_map;
 
-    for (unsigned int ie = 0; ie < mesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
         if (auto mtetra = std::dynamic_pointer_cast<ChElementTetrahedron>(mesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
                 ChTetrahedronFace mface(mtetra, nface);
@@ -686,7 +683,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             }
         }
     }
-    for (unsigned int ie = 0; ie < mesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
         if (auto mtetra = std::dynamic_pointer_cast<ChElementTetrahedron>(mesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
                 ChTetrahedronFace mface(mtetra, nface);
@@ -704,7 +701,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     // Boundary faces of HEXAHEDRONS
     std::multimap<std::array<ChNodeFEAxyz*, 4>, ChHexahedronFace> face_map_brick;
 
-    for (unsigned int ie = 0; ie < mesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
         if (auto mbrick = std::dynamic_pointer_cast<ChElementHexahedron>(mesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {
                 ChHexahedronFace mface(mbrick, nface);
@@ -715,7 +712,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
             }
         }
     }
-    for (unsigned int ie = 0; ie < mesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
         if (auto mbrick = std::dynamic_pointer_cast<ChElementHexahedron>(mesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {   // Each of the 6 faces of a brick
                 ChHexahedronFace mface(mbrick, nface);  // Create a face of the element
@@ -732,7 +729,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     }
 
     // Skin of ANCF SHELLS
-    for (unsigned int ie = 0; ie < mesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
         if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF_3423>(mesh->GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyz> nA = mshell->GetNodeA();
             std::shared_ptr<ChNodeFEAxyz> nB = mshell->GetNodeB();
@@ -748,7 +745,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         }
     }
 
-    for (unsigned int ie = 0; ie < mesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
         if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF_3443>(mesh->GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyz> nA = mshell->GetNodeA();
             std::shared_ptr<ChNodeFEAxyz> nB = mshell->GetNodeB();
@@ -764,7 +761,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         }
     }
 
-    for (unsigned int ie = 0; ie < mesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
         if (auto mshell = std::dynamic_pointer_cast<ChElementShellANCF_3833>(mesh->GetElement(ie))) {
             auto nA = mshell->GetNodeA();
             auto nB = mshell->GetNodeB();
@@ -793,7 +790,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     }
 
     // Skin of REISSNER SHELLS:
-    for (unsigned int ie = 0; ie < mesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
         if (auto mshell = std::dynamic_pointer_cast<ChElementShellReissner4>(mesh->GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyzrot> nA = mshell->GetNodeA();
             std::shared_ptr<ChNodeFEAxyzrot> nB = mshell->GetNodeB();
@@ -810,7 +807,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     }
 
     // Skin of BST shells
-    for (unsigned int ie = 0; ie < mesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
         if (auto mshell = std::dynamic_pointer_cast<ChElementShellBST>(mesh->GetElement(ie))) {
             auto n0 = mshell->GetNodeTriangleN(0);
             auto n1 = mshell->GetNodeTriangleN(1);
@@ -824,7 +821,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     }
 
     // EULER BEAMS (handles as a skinny triangle, with sphere swept radii, i.e. a capsule):
-    for (unsigned int ie = 0; ie < mesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
         if (auto mbeam = std::dynamic_pointer_cast<ChElementBeamEuler>(mesh->GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyzrot> nA = mbeam->GetNodeA();
             std::shared_ptr<ChNodeFEAxyzrot> nB = mbeam->GetNodeB();
@@ -855,7 +852,7 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     }
 
     // ANCF BEAMS (handled as a skinny triangle, with sphere swept radii, i.e. a capsule):
-    for (unsigned int ie = 0; ie < mesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
         if (auto cableANCF = std::dynamic_pointer_cast<ChElementCableANCF>(mesh->GetElement(ie))) {
             std::shared_ptr<ChNodeFEAxyzD> nA = cableANCF->GetNodeA();
             std::shared_ptr<ChNodeFEAxyzD> nB = cableANCF->GetNodeB();

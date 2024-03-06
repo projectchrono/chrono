@@ -145,11 +145,11 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
     double GetYoungModulus() const { return this->E; }
 
     /// Set G, the shear modulus
-    void SetGshearModulus(double mG) { this->G = mG; }
-    double GetGshearModulus() const { return this->G; }
+    void SetShearModulus(double mG) { this->G = mG; }
+    double GetShearModulus() const { return this->G; }
 
     /// Set G, the shear modulus, given current E and the specified Poisson ratio
-    void SetGwithPoissonRatio(double mpoisson) { this->G = this->E / (2.0 * (1.0 + mpoisson)); }
+    void SetShearModulusFromPoisson(double mpoisson) { this->G = this->E / (2.0 * (1.0 + mpoisson)); }
 
     // Interface to base:
 

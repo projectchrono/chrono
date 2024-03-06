@@ -44,7 +44,7 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     virtual ChShaftsPlanetary* Clone() const override { return new ChShaftsPlanetary(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() const { return 3; }
+    virtual int GetNumAffectedCoords() const { return 3; }
 
     /// Number of scalar constraints
     virtual int GetNumConstraintsBilateral() override { return 1; }

@@ -576,7 +576,7 @@ void test_anchorchain() {
             modal_freq(imode - 1, 1) = eig_i.eigen_val.imag();
             modal_freq(imode - 1, 2) = eig_i.eigen_val.imag() / CH_C_2PI;
 
-            ChMatrixDynamic<> modal_shape_i(sys.GetNumBodies(), 10);
+            ChMatrixDynamic<> modal_shape_i(sys.GetNumBodiesActive(), 10);
             int r = 0;
             for (auto ibody : sys.GetBodies()) {
                 if (ibody->IsActive()) {

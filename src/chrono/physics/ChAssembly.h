@@ -139,42 +139,63 @@ class ChApi ChAssembly : public ChPhysicsItem {
     // STATISTICS
     //
 
-    /// Get the number of active bodies (so, excluding those that are sleeping or are fixed to ground).
-    int GetNumBodies() const { return m_num_bodies; }
-    /// Get the number of bodies that are in sleeping mode (excluding fixed bodies).
+    /// Get the total number of bodies added to the assembly, including fixed and sleeping bodies.
+    int GetNumBodies() const { return m_num_bodies_active + m_num_bodies_fixed + m_num_bodies_sleep; }
+
+    /// Get the number of active bodies, excluding sleeping or fixed.
+    int GetNumBodiesActive() const { return m_num_bodies_active; }
+
+    /// Get the number of sleeping bodies.
     int GetNumBodiesSleeping() const { return m_num_bodies_sleep; }
-    /// Get the number of bodies that are fixed to ground.
+
+    /// Get the number of bodies fixed to ground.
     int GetNumBodiesFixed() const { return m_num_bodies_fixed; }
-    /// Get the total number of bodies added to the assembly, including the grounded and sleeping bodies.
-    int GetNumBodiesTotal() const { return m_num_bodies + m_num_bodies_fixed + m_num_bodies_sleep; }
+
 
     /// Get the number of shafts.
     int GetNumShafts() const { return m_num_shafts; }
+
     /// Get the number of shafts that are in sleeping mode (excluding fixed shafts).
     int GetNumShaftsSleeping() const { return m_num_shafts_sleep; }
+
     /// Get the number of shafts that are fixed to ground.
     int GetNumShaftsFixed() const { return m_num_shafts_fixed; }
+
     /// Get the total number of shafts added to the assembly, including the grounded and sleeping shafts.
     int GetNumShaftsTotal() const { return m_num_shafts + m_num_shafts_fixed + m_num_shafts_sleep; }
 
-    /// Get the number of links.
-    int GetNumLinks() const { return m_num_links; }
+
+    /// Get the number of links (including non active).
+    int GetNumLinks() const { return (int)linklist.size(); }
+
+    /// Get the number of active links.
+    int GetNumLinksActive() const { return m_num_links_active; }
+
 
     /// Get the number of meshes.
     int GetNumMeshes() const { return m_num_meshes; }
 
-    /// Get the number of other physics items (other than bodies, links, or meshes).
-    int GetNumOtherPhysicsItems() const { return m_num_otherphysicsitems; }
+    /// Get the number of other active physics items (including non active).
+    int GetNumOtherPhysicsItems() const { return otherphysicslist.size(); }
 
-    /// Get the number of scalar coordinates (ex. dim of position vector)
-    virtual int GetNumCoordinatesPos() override { return m_num_coords_pos; }
-    /// Get the number of scalar coordinates of variables derivatives (ex. dim of speed vector)
-    virtual int GetNumCoordinatesVel() override { return m_num_coords_vel; }
-    /// Get the number of scalar constraints, if any, in this item
+    /// Get the number of other active physics items.
+    int GetNumOtherPhysicsItemsActive() const { return m_num_otherphysicsitems_active; }
+
+
+    /// Get the number of scalar coordinates at the position level.
+    /// This count includes the 4th dimension of quaternions (if any), thus potentially differing from ::GetNumCoordsVelLevel().
+    virtual int GetNumCoordsPosLevel() override { return m_num_coords_pos; }
+
+    /// Get the number of scalar coordinates at the velocity level.
+    virtual int GetNumCoordsVelLevel() override { return m_num_coords_vel; }
+
+    /// Get the number of scalar constraints in the assembly.
     virtual int GetNumConstraints() override { return m_num_constr; }
-    /// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
+
+    /// Get the number of scalar bilateral constraints in the assembly.
     virtual int GetNumConstraintsBilateral() override { return m_num_constr_bil; }
-    /// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
+
+    /// Get the number of scalar unilateral constraints in the assembly.
     virtual int GetNumConstraintsUnilateral() override { return m_num_constr_uni; }
 
     // PHYSICS ITEM INTERFACE
@@ -319,15 +340,15 @@ class ChApi ChAssembly : public ChPhysicsItem {
     std::vector<std::shared_ptr<ChPhysicsItem>> batch_to_insert;   ///< list of items to insert at once
 
     // Statistics:
-    int m_num_bodies;             ///< number of bodies (currently active)
-    int m_num_bodies_sleep;       ///< number of bodies that are sleeping
-    int m_num_bodies_fixed;       ///< number of bodies that are fixed
-    int m_num_shafts;             ///< number of shafts (currently active)
-    int m_num_shafts_sleep;       ///< number of shafts that are sleeping
-    int m_num_shafts_fixed;       ///< number of shafts that are fixed
-    int m_num_links;              ///< number of links
+    int m_num_bodies_active;      ///< number of active bodies
+    int m_num_bodies_sleep;       ///< number of sleeping bodies
+    int m_num_bodies_fixed;       ///< number of fixed bodies
+    int m_num_shafts;             ///< number of active shafts
+    int m_num_shafts_sleep;       ///< number of sleeping shafts
+    int m_num_shafts_fixed;       ///< number of fixed shafts
+    int m_num_links_active;       ///< number of active links
     int m_num_meshes;             ///< number of meshes
-    int m_num_otherphysicsitems;  ///< number of other physics items
+    int m_num_otherphysicsitems_active;  ///< number of other active physics items
 
     int m_num_coords_pos;  ///< number of scalar coordinates (including 4th dimension of quaternions) for all active
                            ///< bodies

@@ -68,7 +68,7 @@ class ChApi ChLinkMotorRotationSpeed : public ChLinkMotorRotation {
     // STATE FUNCTIONS
     //
 
-    virtual int GetNumCoordinatesPos() override { return 1; }
+    virtual int GetNumCoordsPosLevel() override { return 1; }
 
     ChVariablesGeneric& Variables() { return variable; }
 

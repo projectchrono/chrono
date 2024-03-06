@@ -104,10 +104,10 @@ int main(int argc, char* argv[]) {
                                      mmaterial, node_sets, tire_center, tire_alignment);
 
     //
-    uint num_nodes = my_mesh->GetNnodes();
-    uint num_elements = my_mesh->GetNelements();
+    uint num_nodes = my_mesh->GetNumNodes();
+    uint num_elements = my_mesh->GetNumElements();
 
-    //    for (unsigned int i = 0; i < my_mesh->GetNnodes(); ++i) {
+    //    for (unsigned int i = 0; i < my_mesh->GetNumNodes(); ++i) {
     //        auto node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->GetPos();
     //        ChVector3d tang_vel = Vcross(ChVector3d(tire_w0, 0, 0), node_pos - tire_center);
     //        std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->SetPos_dt(ChVector3d(0, 0, 0) + tang_vel);

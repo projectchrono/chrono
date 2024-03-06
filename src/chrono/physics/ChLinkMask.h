@@ -84,7 +84,7 @@ class ChApi ChLinkMask {
     int SetActiveRedundantByArray(int* mvector, int mcount);
 
     /// Set lock =ON for constraints which were disabled because redundant
-    int RestoreRedundant();
+    int ResetRedundant();
 
     /// If SetAllDisabled(true), all the constraints are temporarily turned
     /// off (inactive) at once, because marked as 'disabled'. Return n.of changed

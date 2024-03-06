@@ -39,25 +39,25 @@ class ChApi ChElementBase {
     virtual ~ChElementBase() {}
 
     /// Get the number of nodes used by this element.
-    virtual int GetNnodes() = 0;
+    virtual int GetNumNodes() = 0;
 
     /// Get the number of coordinates in the field used by the referenced nodes.
     /// This is for example the size (number of rows/columns) of the local stiffness matrix.
-    virtual int GetNdofs() = 0;
+    virtual int GetNumCoordsPosLevel() = 0;
 
     /// Get the actual number of active degrees of freedom.
-    /// The default implementation returns the full number of DOFs for this element, but some elements may have nodes
+    /// The default implementation returns the full number of coordinates for this element, but some elements may have nodes
     /// with fixed variables.
-    virtual int GetNdofs_active() { return GetNdofs(); }
+    virtual int GetNumCoordsPosLevelActive() { return GetNumCoordsPosLevel(); }
 
     /// Get the number of coordinates from the specified node that are used by this element.
-    /// Note that this may be different from the value returned by GetNodeN(n)->GetNdofW().
-    virtual int GetNodeNdofs(int n) = 0;
+    /// Note that this may be different from the value returned by GetNodeN(n)->GetNumCoordsVelLevel().
+    virtual int GetNodeNumCoordsPosLevel(int n) = 0;
 
     /// Get the actual number of active coordinates from the specified node that are used by this element.
-    /// The default implementation returns the full number of DOFs for this element, but some elements may have nodes
+    /// The default implementation returns the full number of coordinates for this element, but some elements may have nodes
     /// with fixed variables.
-    virtual int GetNodeNdofs_active(int n) { return GetNodeNdofs(n); }
+    virtual int GetNodeNumCoordsPosLevelActive(int n) { return GetNodeNumCoordsPosLevel(n); }
 
     /// Access the nth node.
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) = 0;
@@ -65,7 +65,7 @@ class ChApi ChElementBase {
     // FEM functions
 
     /// Fill the D vector with the current field values at the nodes of the element, with proper ordering.
-    /// If the D vector size is not this->GetNdofs(), it will be resized.
+    /// If the D vector size is not this->GetNumCoordsPosLevel(), it will be resized.
     /// For corotational elements, field is assumed in local reference!
     virtual void GetStateBlock(ChVectorDynamic<>& mD) = 0;
 

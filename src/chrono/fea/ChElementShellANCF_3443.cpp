@@ -13,7 +13,7 @@
 // =============================================================================
 // Fully Parameterized ANCF shell element with 4 nodes (48DOF). A Description of this element can be found in: Aki M
 // Mikkola and Ahmed A Shabana. A non-incremental finite element procedure for the analysis of large deformation of
-// plates and shells in mechanical system applications. Multibody System Dynamics, 9(3) : 283–309, 2003.
+// plates and shells in mechanical system applications. Multibody System Dynamics, 9(3) : 283ï¿½309, 2003.
 // =============================================================================
 // The "Continuous Integration" style calculation for the generalized internal force is based on modifications to
 // (including a new analytical Jacobian):  Gerstmayr, J., Shabana, A.A.: Efficient integration of the elastic forces and
@@ -21,7 +21,7 @@
 // Dynamics Eccomas thematic Conference, Madrid(2005).
 //
 // The "Pre-Integration" style calculation is based on modifications
-// to Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid–flexible multibody system composed of
+// to Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigidï¿½flexible multibody system composed of
 // composite laminated plates." Multibody System Dynamics 26, no. 3 (2011): 283-305.
 //
 // A report covering the detailed mathematics and implementation both of these generalized internal force calculations
@@ -370,7 +370,7 @@ double ChElementShellANCF_3443::GetVonMissesStress(const double layer,
 void ChElementShellANCF_3443::SetupInitial(ChSystem* system) {
     m_element_dof = 0;
     for (int i = 0; i < 4; i++) {
-        m_element_dof += m_nodes[i]->GetNdofX();
+        m_element_dof += m_nodes[i]->GetNumCoordsPosLevel();
     }
 
     m_full_dof = (m_element_dof == 4 * 12);
@@ -379,7 +379,7 @@ void ChElementShellANCF_3443::SetupInitial(ChSystem* system) {
         m_mapping_dof.resize(m_element_dof);
         int dof = 0;
         for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < m_nodes[i]->GetNdofX(); j++)
+            for (int j = 0; j < m_nodes[i]->GetNumCoordsPosLevel(); j++)
                 m_mapping_dof(dof++) = i * 12 + j;
         }
     }
@@ -460,7 +460,7 @@ void ChElementShellANCF_3443::ComputeNodalMass() {
 // Compute the generalized internal force vector for the current nodal coordinates and set the value in the Fi vector.
 
 void ChElementShellANCF_3443::ComputeInternalForces(ChVectorDynamic<>& Fi) {
-    assert(Fi.size() == GetNdofs());
+    assert(Fi.size() == GetNumCoordsPosLevel());
 
     if (m_method == IntFrcMethod::ContInt) {
         if (m_damping_enabled) {  // If linear Kelvin-Voigt viscoelastic material model is enabled
@@ -477,7 +477,7 @@ void ChElementShellANCF_3443::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 //   H = Mfactor * [M] + Kfactor * [K] + Rfactor * [R]
 
 void ChElementShellANCF_3443::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.rows() == GetNdofs()) && (H.cols() == GetNdofs()));
+    assert((H.rows() == GetNumCoordsPosLevel()) && (H.cols() == GetNumCoordsPosLevel()));
 
     if (m_method == IntFrcMethod::ContInt) {
         if (m_damping_enabled) {  // If linear Kelvin-Voigt viscoelastic material model is enabled
@@ -509,7 +509,7 @@ void ChElementShellANCF_3443::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfa
 
 // Compute the generalized force vector due to gravity using the efficient ANCF specific method
 void ChElementShellANCF_3443::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
-    assert(Fg.size() == GetNdofs());
+    assert(Fg.size() == GetNumCoordsPosLevel());
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
     // The generalized force due to gravity could be computed once prior to the start of the simulation if gravity was
@@ -585,7 +585,7 @@ void ChElementShellANCF_3443::EvaluateSectionVelNorm(const double xi, const doub
 
 // Gets all the DOFs packed in a single vector (position part).
 
-void ChElementShellANCF_3443::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementShellANCF_3443::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[0]->GetDD().eigen();
@@ -609,7 +609,7 @@ void ChElementShellANCF_3443::LoadableGetStateBlock_x(int block_offset, ChState&
 
 // Gets all the DOFs packed in a single vector (velocity part).
 
-void ChElementShellANCF_3443::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementShellANCF_3443::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD_dt().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[0]->GetDD_dt().eigen();

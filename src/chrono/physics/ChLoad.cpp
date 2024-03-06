@@ -70,22 +70,22 @@ ChLoadCustom::ChLoadCustom(std::shared_ptr<ChLoadable> mloadable) : loadable(mlo
 }
 
 int ChLoadCustom::LoadGet_ndof_x() {
-    return loadable->LoadableGet_ndof_x();
+    return loadable->GetLoadableNumCoordsPosLevel();
 }
 int ChLoadCustom::LoadGet_ndof_w() {
-    return loadable->LoadableGet_ndof_w();
+    return loadable->GetLoadableNumCoordsVelLevel();
 }
 void ChLoadCustom::LoadGetStateBlock_x(ChState& mD) {
-    loadable->LoadableGetStateBlock_x(0, mD);
+    loadable->LoadableGetStateBlockPosLevel(0, mD);
 }
 void ChLoadCustom::LoadGetStateBlock_w(ChStateDelta& mD) {
-    loadable->LoadableGetStateBlock_w(0, mD);
+    loadable->LoadableGetStateBlockVelLevel(0, mD);
 }
 void ChLoadCustom::LoadStateIncrement(const ChState& x, const ChStateDelta& dw, ChState& x_new) {
     loadable->LoadableStateIncrement(0, x_new, x, 0, dw);
 }
 int ChLoadCustom::LoadGet_field_ncoords() {
-    return loadable->Get_field_ncoords();
+    return loadable->GetFieldNumCoords();
 }
 
 void ChLoadCustom::ComputeJacobian(ChState* state_x,       // state position to evaluate jacobians
@@ -232,30 +232,30 @@ ChLoadCustomMultiple::ChLoadCustomMultiple(std::shared_ptr<ChLoadable> mloadable
 int ChLoadCustomMultiple::LoadGet_ndof_x() {
     int ndoftot = 0;
     for (int i = 0; i < loadables.size(); ++i)
-        ndoftot += loadables[i]->LoadableGet_ndof_x();
+        ndoftot += loadables[i]->GetLoadableNumCoordsPosLevel();
     return ndoftot;
 }
 
 int ChLoadCustomMultiple::LoadGet_ndof_w() {
     int ndoftot = 0;
     for (int i = 0; i < loadables.size(); ++i)
-        ndoftot += loadables[i]->LoadableGet_ndof_w();
+        ndoftot += loadables[i]->GetLoadableNumCoordsVelLevel();
     return ndoftot;
 }
 
 void ChLoadCustomMultiple::LoadGetStateBlock_x(ChState& mD) {
     int ndoftot = 0;
     for (int i = 0; i < loadables.size(); ++i) {
-        loadables[i]->LoadableGetStateBlock_x(ndoftot, mD);
-        ndoftot += loadables[i]->LoadableGet_ndof_x();
+        loadables[i]->LoadableGetStateBlockPosLevel(ndoftot, mD);
+        ndoftot += loadables[i]->GetLoadableNumCoordsPosLevel();
     }
 }
 
 void ChLoadCustomMultiple::LoadGetStateBlock_w(ChStateDelta& mD) {
     int ndoftot = 0;
     for (int i = 0; i < loadables.size(); ++i) {
-        loadables[i]->LoadableGetStateBlock_w(ndoftot, mD);
-        ndoftot += loadables[i]->LoadableGet_ndof_w();
+        loadables[i]->LoadableGetStateBlockVelLevel(ndoftot, mD);
+        ndoftot += loadables[i]->GetLoadableNumCoordsVelLevel();
     }
 }
 
@@ -264,13 +264,13 @@ void ChLoadCustomMultiple::LoadStateIncrement(const ChState& x, const ChStateDel
     int ndoftotw = 0;
     for (int i = 0; i < loadables.size(); ++i) {
         loadables[i]->LoadableStateIncrement(ndoftotx, x_new, x, ndoftotw, dw);
-        ndoftotx += loadables[i]->LoadableGet_ndof_x();
-        ndoftotw += loadables[i]->LoadableGet_ndof_w();
+        ndoftotx += loadables[i]->GetLoadableNumCoordsPosLevel();
+        ndoftotw += loadables[i]->GetLoadableNumCoordsVelLevel();
     }
 }
 
 int ChLoadCustomMultiple::LoadGet_field_ncoords() {
-    return loadables[0]->Get_field_ncoords();
+    return loadables[0]->GetFieldNumCoords();
 }
 
 void ChLoadCustomMultiple::ComputeJacobian(ChState* state_x,       // state position to evaluate jacobians

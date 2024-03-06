@@ -41,7 +41,7 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
     virtual ChLinkPointPoint* Clone() const override { return new ChLinkPointPoint(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() override { return 3 + 3; }
+    virtual int GetNumAffectedCoords() override { return 3 + 3; }
 
     /// Number of scalar constraints
     virtual int GetNumConstraintsBilateral() override { return 3; }

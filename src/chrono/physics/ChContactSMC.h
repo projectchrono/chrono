@@ -381,7 +381,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
 
         // Compute and load the generalized contact forces.
         this->objA->ContactComputeQ(-m_force, -m_torque, p1_abs, stateA_x, Q, 0);
-        this->objB->ContactComputeQ(m_force, m_torque, p2_abs, stateB_x, Q, this->objA->ContactableGet_ndof_w());
+        this->objB->ContactComputeQ(m_force, m_torque, p2_abs, stateB_x, Q, this->objA->GetContactableNumCoordsVelLevel());
     }
 
     /// Create the Jacobian matrices.
@@ -401,14 +401,14 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
             vars.push_back(objA_333->GetVariables2());
             vars.push_back(objA_333->GetVariables3());
         }
-        ndof_w += this->objA->ContactableGet_ndof_w();
+        ndof_w += this->objA->GetContactableNumCoordsVelLevel();
 
         vars.push_back(this->objB->GetVariables1());
         if (auto objB_333 = dynamic_cast<ChContactable_3vars<3, 3, 3>*>(this->objB)) {
             vars.push_back(objB_333->GetVariables2());
             vars.push_back(objB_333->GetVariables3());
         }
-        ndof_w += this->objB->ContactableGet_ndof_w();
+        ndof_w += this->objB->GetContactableNumCoordsVelLevel();
 
         m_Jac->m_KRM.SetVariables(vars);
         m_Jac->m_K.setZero(ndof_w, ndof_w);
@@ -425,20 +425,20 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         // constant over the time step.
 
         // Get states for objA
-        int ndofA_x = this->objA->ContactableGet_ndof_x();
-        int ndofA_w = this->objA->ContactableGet_ndof_w();
+        int ndofA_x = this->objA->GetContactableNumCoordsPosLevel();
+        int ndofA_w = this->objA->GetContactableNumCoordsVelLevel();
         ChState stateA_x(ndofA_x, NULL);
         ChStateDelta stateA_w(ndofA_w, NULL);
-        this->objA->ContactableGetStateBlock_x(stateA_x);
-        this->objA->ContactableGetStateBlock_w(stateA_w);
+        this->objA->ContactableGetStateBlockPosLevel(stateA_x);
+        this->objA->ContactableGetStateBlockVelLevel(stateA_w);
 
         // Get states for objB
-        int ndofB_x = this->objB->ContactableGet_ndof_x();
-        int ndofB_w = this->objB->ContactableGet_ndof_w();
+        int ndofB_x = this->objB->GetContactableNumCoordsPosLevel();
+        int ndofB_w = this->objB->GetContactableNumCoordsVelLevel();
         ChState stateB_x(ndofB_x, NULL);
         ChStateDelta stateB_w(ndofB_w, NULL);
-        this->objB->ContactableGetStateBlock_x(stateB_x);
-        this->objB->ContactableGetStateBlock_w(stateB_w);
+        this->objB->ContactableGetStateBlockPosLevel(stateB_x);
+        this->objB->ContactableGetStateBlockVelLevel(stateB_w);
 
         // Compute Q at current state
         ChVectorDynamic<> Q0(ndofA_w + ndofB_w);

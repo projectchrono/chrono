@@ -257,15 +257,15 @@ void ChNodeFEAxyzD::VariablesQbIncrementPosition(double step) {
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAxyzD::LoadableGetStateBlock_x(int block_offset, ChState& S) {
-    ChNodeFEAxyz::LoadableGetStateBlock_x(block_offset, S);
+void ChNodeFEAxyzD::LoadableGetStateBlockPosLevel(int block_offset, ChState& S) {
+    ChNodeFEAxyz::LoadableGetStateBlockPosLevel(block_offset, S);
     if (!IsFixedD()) {
         S.segment(block_offset + 3, 3) = D.eigen();
     }
 }
 
-void ChNodeFEAxyzD::LoadableGetStateBlock_w(int block_offset, ChStateDelta& S) {
-    ChNodeFEAxyz::LoadableGetStateBlock_w(block_offset, S);
+void ChNodeFEAxyzD::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& S) {
+    ChNodeFEAxyz::LoadableGetStateBlockVelLevel(block_offset, S);
     if (!IsFixedD()) {
         S.segment(block_offset + 3, 3) = D_dt.eigen();
     }

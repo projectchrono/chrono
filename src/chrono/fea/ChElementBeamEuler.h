@@ -47,9 +47,9 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
 
     ~ChElementBeamEuler() {}
 
-    virtual int GetNnodes() override { return 2; }
-    virtual int GetNdofs() override { return 2 * 6; }
-    virtual int GetNodeNdofs(int n) override { return 6; }
+    virtual int GetNumNodes() override { return 2; }
+    virtual int GetNumCoordsPosLevel() override { return 2 * 6; }
+    virtual int GetNodeNumCoordsPosLevel(int n) override { return 6; }
 
     virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
 
@@ -123,14 +123,14 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     virtual void UpdateRotation() override;
 
     /// Fills the D vector with the current field values at the nodes of the element, with proper ordering.
-    /// If the D vector has not the size of this->GetNdofs(), it will be resized.
+    /// If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized.
     /// For corotational elements, field is assumed in local reference!
     /// Given that this element includes rotations at nodes, this gives:
     ///  {x_a y_a z_a Rx_a Ry_a Rz_a x_b y_b z_b Rx_b Ry_b Rz_b}
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
     /// Fills the Ddt vector with the current time derivatives of field values at the nodes of the element, with proper ordering.
-    /// If the D vector has not the size of this->GetNdofs(), it will be resized.
+    /// If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized.
     /// For corotational elements, field is assumed in local reference!
     /// Give that this element includes rotations at nodes, this gives:
     ///  {v_a v_a v_a wx_a wy_a wz_a v_b v_b v_b wx_b wy_b wz_b}
@@ -203,16 +203,16 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     //
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() override { return 2 * 7; }
+    virtual int GetLoadableNumCoordsPosLevel() override { return 2 * 7; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() override { return 2 * 6; }
+    virtual int GetLoadableNumCoordsVelLevel() override { return 2 * 6; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,
@@ -223,13 +223,13 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual int Get_field_ncoords() override { return 6; }
+    virtual int GetFieldNumCoords() override { return 6; }
 
     /// Get the number of DOFs sub-blocks.
     virtual int GetSubBlocks() override { return 2; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffsetW(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffsetVelLevel(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }

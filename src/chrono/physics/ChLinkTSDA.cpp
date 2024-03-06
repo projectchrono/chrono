@@ -255,11 +255,11 @@ void ChLinkTSDA::Update(double time, bool update_assets) {
     ChState state_x(14 + m_nstates, nullptr);
     ChStateDelta state_w(12 + m_nstates, nullptr);
 
-    static_cast<ChBody*>(Body1)->LoadableGetStateBlock_x(0, state_x);
-    static_cast<ChBody*>(Body2)->LoadableGetStateBlock_x(7, state_x);
+    static_cast<ChBody*>(Body1)->LoadableGetStateBlockPosLevel(0, state_x);
+    static_cast<ChBody*>(Body2)->LoadableGetStateBlockPosLevel(7, state_x);
 
-    static_cast<ChBody*>(Body1)->LoadableGetStateBlock_w(0, state_w);
-    static_cast<ChBody*>(Body2)->LoadableGetStateBlock_w(6, state_w);
+    static_cast<ChBody*>(Body1)->LoadableGetStateBlockVelLevel(0, state_w);
+    static_cast<ChBody*>(Body2)->LoadableGetStateBlockVelLevel(6, state_w);
 
     if (m_variables) {
         state_x.segment(14, m_nstates).setZero();

@@ -43,11 +43,8 @@ class ChApi ChLink : public ChLinkBase {
     ChLink(const ChLink& other);
     virtual ~ChLink() {}
 
-    /// Get the number of free degrees of freedom left by this link, between two bodies.
-    int GetLeftDOF() { return 6 - GetNumConstraints(); }
-
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() override { return 12; }
+    virtual int GetNumAffectedCoords() override { return 12; }
 
     /// Get the constrained body '1', the 'slave' body.
     ChBodyFrame* GetBody1() { return Body1; }
@@ -88,7 +85,7 @@ class ChApi ChLink : public ChLinkBase {
     virtual ChVector3d GetReactTorqueBody2() = 0;
 
     /// OBSOLETE If some constraint is redundant, return to normal state.
-    virtual int RestoreRedundant() { return 0; }
+    virtual int ResetRedundant() { return 0; }
 
     //
     // UPDATING FUNCTIONS

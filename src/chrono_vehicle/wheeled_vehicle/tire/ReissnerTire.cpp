@@ -209,7 +209,7 @@ void AttachNodeToShell(std::shared_ptr<ChMesh> m_mesh, std::shared_ptr<ChNodeFEA
     std::shared_ptr<ChNodeFEAxyzrot> best_fit_n2;
     std::shared_ptr<ChNodeFEAxyzrot> best_fit_n3;
     double best_fit_val = 1e23;
-    for (unsigned int ie = 0; ie < m_mesh->GetNelements(); ++ie) {
+    for (unsigned int ie = 0; ie < m_mesh->GetNumElements(); ++ie) {
         if (auto mshell = std::dynamic_pointer_cast<ChElementShellReissner4>(m_mesh->GetElement(ie))) {
             double val, u, v, w;
             bool is_into;

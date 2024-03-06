@@ -456,8 +456,8 @@ void ChVisualShapeFEA::UpdateBuffers_Beam(std::shared_ptr<fea::ChElementBase> el
     if (sectionshape) {
         unsigned int ivert_el = i_verts;
         int n_section_pts = 0;
-        for (int i = 0; i < sectionshape->GetNofLines(); ++i)
-            n_section_pts += sectionshape->GetNofPoints(i);
+        for (int i = 0; i < sectionshape->GetNumLines(); ++i)
+            n_section_pts += sectionshape->GetNumPoints(i);
 
         for (int in = 0; in < beam_resolution; ++in) {
             double eta = -1.0 + (2.0 * in / (beam_resolution - 1));
@@ -510,11 +510,11 @@ void ChVisualShapeFEA::UpdateBuffers_Beam(std::shared_ptr<fea::ChElementBase> el
 
             int subline_stride = 0;
 
-            for (int il = 0; il < sectionshape->GetNofLines(); ++il) {
+            for (int il = 0; il < sectionshape->GetNumLines(); ++il) {
                 std::vector<ChVector3d> msubline_pts(
-                    sectionshape->GetNofPoints(il));  // suboptimal temp - better store&transform in place
+                    sectionshape->GetNumPoints(il));  // suboptimal temp - better store&transform in place
                 std::vector<ChVector3d> msubline_normals(
-                    sectionshape->GetNofPoints(il));  // suboptimal temp - better store&transform in place
+                    sectionshape->GetNumPoints(il));  // suboptimal temp - better store&transform in place
 
                 // compute the point yz coords and yz normals in sectional frame
                 sectionshape->GetPoints(il, msubline_pts);
@@ -907,11 +907,11 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
                             beam3333->GetThicknessY(), beam3333->GetThicknessZ());
                     }
                     if (sectionshape) {
-                        for (int il = 0; il < sectionshape->GetNofLines(); ++il) {
-                            n_verts += sectionshape->GetNofPoints(il) * beam_resolution;
-                            n_vcols += sectionshape->GetNofPoints(il) * beam_resolution;
-                            n_vnorms += sectionshape->GetNofPoints(il) * beam_resolution;
-                            n_triangles += 2 * (sectionshape->GetNofPoints(il) - 1) * (beam_resolution - 1);
+                        for (int il = 0; il < sectionshape->GetNumLines(); ++il) {
+                            n_verts += sectionshape->GetNumPoints(il) * beam_resolution;
+                            n_vcols += sectionshape->GetNumPoints(il) * beam_resolution;
+                            n_vnorms += sectionshape->GetNumPoints(il) * beam_resolution;
+                            n_triangles += 2 * (sectionshape->GetNumPoints(il) - 1) * (beam_resolution - 1);
                         }
                     }
                 } else if (auto shell = std::dynamic_pointer_cast<ChElementShell>(element)) {
@@ -1024,7 +1024,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
     switch (fem_glyph) {
         case GlyphType::NODE_DOT_POS:
             m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_POINT);
-            for (unsigned int inode = 0; inode < FEMmesh->GetNnodes(); ++inode) {
+            for (unsigned int inode = 0; inode < FEMmesh->GetNumNodes(); ++inode) {
                 if (auto mynode1 = std::dynamic_pointer_cast<ChNodeFEAxyz>(FEMmesh->GetNode(inode))) {
                     m_glyphs_shape->SetGlyphPoint(inode, mynode1->GetPos(), symbolscolor);
                 } else if (auto mynode2 = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(FEMmesh->GetNode(inode))) {
@@ -1038,7 +1038,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
             break;
         case GlyphType::NODE_CSYS:
             m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_COORDSYS);
-            for (unsigned int inode = 0; inode < FEMmesh->GetNnodes(); ++inode) {
+            for (unsigned int inode = 0; inode < FEMmesh->GetNumNodes(); ++inode) {
                 if (auto mynode = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(FEMmesh->GetNode(inode))) {
                     m_glyphs_shape->SetGlyphCoordsys(inode, mynode->Frame().GetCoordsys());
                 }
@@ -1050,7 +1050,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
             break;
         case GlyphType::NODE_VECT_SPEED:
             m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
-            for (unsigned int inode = 0; inode < FEMmesh->GetNnodes(); ++inode)
+            for (unsigned int inode = 0; inode < FEMmesh->GetNumNodes(); ++inode)
                 if (auto mynode = std::dynamic_pointer_cast<ChNodeFEAxyz>(FEMmesh->GetNode(inode))) {
                     m_glyphs_shape->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPosDer() * symbols_scale,
                                                    symbolscolor);
@@ -1058,7 +1058,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
             break;
         case GlyphType::NODE_VECT_ACCEL:
             m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
-            for (unsigned int inode = 0; inode < FEMmesh->GetNnodes(); ++inode)
+            for (unsigned int inode = 0; inode < FEMmesh->GetNumNodes(); ++inode)
                 if (auto mynode = std::dynamic_pointer_cast<ChNodeFEAxyz>(FEMmesh->GetNode(inode))) {
                     m_glyphs_shape->SetGlyphVector(inode, mynode->GetPos(), mynode->GetPosDer2() * symbols_scale,
                                                    symbolscolor);
@@ -1066,7 +1066,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
             break;
         case GlyphType::ELEM_VECT_DP:
             m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
-            for (unsigned int iel = 0; iel < FEMmesh->GetNelements(); ++iel)
+            for (unsigned int iel = 0; iel < FEMmesh->GetNumElements(); ++iel)
                 if (auto myelement = std::dynamic_pointer_cast<ChElementTetraCorot_4_P>(FEMmesh->GetElement(iel))) {
                     ChVector3d mvP(myelement->GetPgradient());
                     auto n0 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNodeN(0));
@@ -1080,7 +1080,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
             break;
         case GlyphType::ELEM_TENS_STRAIN:
             m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
-            for (unsigned int iel = 0, nglyvect = 0; iel < FEMmesh->GetNelements(); ++iel)
+            for (unsigned int iel = 0, nglyvect = 0; iel < FEMmesh->GetNumElements(); ++iel)
                 if (auto myelement = std::dynamic_pointer_cast<ChElementTetraCorot_4>(FEMmesh->GetElement(iel))) {
                     ChStrainTensor<> mstrain = myelement->GetStrain();
                     // mstrain.Rotate(myelement->Rotation());
@@ -1110,7 +1110,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
             break;
         case GlyphType::ELEM_TENS_STRESS:
             m_glyphs_shape->SetDrawMode(ChGlyphs::GLYPH_VECTOR);
-            for (unsigned int iel = 0, nglyvect = 0; iel < FEMmesh->GetNelements(); ++iel)
+            for (unsigned int iel = 0, nglyvect = 0; iel < FEMmesh->GetNumElements(); ++iel)
                 if (auto myelement = std::dynamic_pointer_cast<ChElementTetraCorot_4>(FEMmesh->GetElement(iel))) {
                     ChStressTensor<> mstress = myelement->GetStress();
                     mstress.Rotate(myelement->Rotation());
@@ -1142,7 +1142,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
 
     //// TEST
     if (false)
-        for (unsigned int iel = 0; iel < FEMmesh->GetNelements(); ++iel) {
+        for (unsigned int iel = 0; iel < FEMmesh->GetNumElements(); ++iel) {
             // ------------ELEMENT IS A ChElementShellReissner4?
             if (auto myshell = std::dynamic_pointer_cast<ChElementShellReissner4>(FEMmesh->GetElement(iel))) {
                 m_glyphs_shape->SetGlyphsSize(0.4);

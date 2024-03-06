@@ -262,9 +262,9 @@ void ChElementShellBST::EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& e
     double nodemass = (1.0 / 3.0) * (this->area * mass_per_area);
     for (int n = 0; n < 3; n++) {
         // xyz masses of first 3 nodes of BST
-        Md(m_nodes[n]->NodeGetOffsetW()) += nodemass * c;
-        Md(m_nodes[n]->NodeGetOffsetW() + 1) += nodemass * c;
-        Md(m_nodes[n]->NodeGetOffsetW() + 2) += nodemass * c;
+        Md(m_nodes[n]->NodeGetOffsetVelLevel()) += nodemass * c;
+        Md(m_nodes[n]->NodeGetOffsetVelLevel() + 1) += nodemass * c;
+        Md(m_nodes[n]->NodeGetOffsetVelLevel() + 2) += nodemass * c;
     }
 }
 
@@ -282,7 +282,7 @@ void ChElementShellBST::GetStateBlock(ChVectorDynamic<>& mD) {
 // NOTE! we assume that this function is computed after one computed
 // ComputeInternalForces(), that updates inner data for the given node states.
 void ChElementShellBST::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.rows() == this->GetNdofs()) && (H.cols() == this->GetNdofs()));
+    assert((H.rows() == this->GetNumCoordsPosLevel()) && (H.cols() == this->GetNumCoordsPosLevel()));
 
     // BRUTE FORCE METHOD: USE NUMERICAL DIFFERENTIATION!
 
@@ -290,15 +290,15 @@ void ChElementShellBST::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, 
     // The K stiffness matrix of this element:
     //
 
-    ChState state_x(this->LoadableGet_ndof_x(), nullptr);
-    ChStateDelta state_w(this->LoadableGet_ndof_w(), nullptr);
-    this->LoadableGetStateBlock_x(0, state_x);
-    this->LoadableGetStateBlock_w(0, state_w);
+    ChState state_x(this->GetLoadableNumCoordsPosLevel(), nullptr);
+    ChStateDelta state_w(this->GetLoadableNumCoordsVelLevel(), nullptr);
+    this->LoadableGetStateBlockPosLevel(0, state_x);
+    this->LoadableGetStateBlockVelLevel(0, state_w);
 
     double Delta = 1e-10;
 
-    int mrows_w = this->LoadableGet_ndof_w();
-    int mrows_x = this->LoadableGet_ndof_x();
+    int mrows_w = this->GetLoadableNumCoordsVelLevel();
+    int mrows_x = this->GetLoadableNumCoordsPosLevel();
 
     // compute Q at current speed & position, x_0, v_0
     ChVectorDynamic<> Q0(mrows_w);
@@ -389,10 +389,10 @@ void ChElementShellBST::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, 
 // -----------------------------------------------------------------------------
 
 void ChElementShellBST::ComputeInternalForces(ChVectorDynamic<>& Fi) {
-    ChState mstate_x(this->LoadableGet_ndof_x(), nullptr);
-    ChStateDelta mstate_w(this->LoadableGet_ndof_w(), nullptr);
-    this->LoadableGetStateBlock_x(0, mstate_x);
-    this->LoadableGetStateBlock_w(0, mstate_w);
+    ChState mstate_x(this->GetLoadableNumCoordsPosLevel(), nullptr);
+    ChStateDelta mstate_w(this->GetLoadableNumCoordsVelLevel(), nullptr);
+    this->LoadableGetStateBlockPosLevel(0, mstate_x);
+    this->LoadableGetStateBlockVelLevel(0, mstate_w);
     ComputeInternalForces_impl(Fi, mstate_x, mstate_w);
 }
 
@@ -616,14 +616,14 @@ void ChElementShellBST::EvaluateSectionPoint(const double u, const double v, ChV
 // -----------------------------------------------------------------------------
 
 // Gets all the DOFs packed in a single vector (position part).
-void ChElementShellBST::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementShellBST::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     for (int i = 0; i < n_usednodes; ++i) {
         mD.segment(block_offset + 3 * i, 3) = m_nodes[nodes_used_to_six[i]]->GetPos().eigen();
     }
 }
 
 // Gets all the DOFs packed in a single vector (velocity part).
-void ChElementShellBST::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementShellBST::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     for (int i = 0; i < n_usednodes; ++i) {
         mD.segment(block_offset + 3 * i, 3) = m_nodes[nodes_used_to_six[i]]->GetPosDer().eigen();
     }

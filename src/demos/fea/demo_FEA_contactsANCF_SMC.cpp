@@ -127,8 +127,8 @@ int main(int argc, char* argv[]) {
     ////my_mesh->AddContactSurface(mcontactcloud);
     ////mcontactcloud->AddAllNodes(sphere_swept_thickness);
 
-    ////auto TotalNumNodes = my_mesh->GetNnodes();
-    auto TotalNumElements = my_mesh->GetNelements();
+    ////auto TotalNumNodes = my_mesh->GetNumNodes();
+    auto TotalNumElements = my_mesh->GetNumElements();
 
     for (unsigned int ele = 0; ele < TotalNumElements; ele++) {
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();

@@ -829,7 +829,7 @@ void ChPovRay::ExportData(const std::string& filename) {
             if (const auto& clones = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
                 pov_file << " " << std::endl;
                 pov_file << "#declare Index = 0; " << std::endl;
-                pov_file << "#while(Index < " << clones->GetNparticles() << ") " << std::endl;
+                pov_file << "#while(Index < " << clones->GetNumParticles() << ") " << std::endl;
                 pov_file << "  #read (MyDatFile, apx, apy, apz, aq0, aq1, aq2, aq3) " << std::endl;
                 pov_file << "  object{" << std::endl;
                 ChFrame<> nullframe(CSYSNORM);
@@ -842,7 +842,7 @@ void ChPovRay::ExportData(const std::string& filename) {
                 pov_file << " " << std::endl;
 
                 // Loop on all particle clones
-                for (unsigned int m = 0; m < clones->GetNparticles(); ++m) {
+                for (unsigned int m = 0; m < clones->GetNumParticles(); ++m) {
                     // Get the current coordinate frame of the i-th particle
                     ChCoordsys<> assetcsys = CSYSNORM;
                     assetcsys = clones->GetParticle(m).GetCoordsys();

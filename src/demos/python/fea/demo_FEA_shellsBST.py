@@ -125,7 +125,7 @@ if (False):  # set as 'true' to execute this
     mnode1.SetPos(mnode1.GetPos() + chrono.ChVector3d(0.1, 0, 0))
     
     sys.Update()
-    Fi = chrono.ChVectorDynamicd(melement.GetNdofs())
+    Fi = chrono.ChVectorDynamicd(melement.GetNumCoordsPosLevel())
     melement.ComputeInternalForces(Fi)
     print( "BST updated: \n" 
     		+ "phi: " + str(melement.phi) + "\n"

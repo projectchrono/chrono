@@ -22,7 +22,7 @@
 // Dynamics Eccomas thematic Conference, Madrid(2005).
 //
 // The "Pre-Integration" style calculation is based on modifications
-// to Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid–flexible multibody system composed of
+// to Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigidï¿½flexible multibody system composed of
 // composite laminated plates." Multibody System Dynamics 26, no. 3 (2011): 283-305.
 //
 // A report covering the detailed mathematics and implementation both of these generalized internal force calculations
@@ -101,19 +101,19 @@ class ChApi ChElementBeamANCF_3333 : public ChElementANCF,
     ~ChElementBeamANCF_3333() {}
 
     /// Get the number of nodes used by this element.
-    virtual int GetNnodes() override { return 3; }
+    virtual int GetNumNodes() override { return 3; }
 
     /// Get the number of coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs() override { return 3 * 9; }
+    virtual int GetNumCoordsPosLevel() override { return 3 * 9; }
 
     /// Get the number of active coordinates in the field used by the referenced nodes.
-    virtual int GetNdofs_active() override { return m_element_dof; }
+    virtual int GetNumCoordsPosLevelActive() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs(int n) override { return m_nodes[n]->GetNdofX(); }
+    virtual int GetNodeNumCoordsPosLevel(int n) override { return m_nodes[n]->GetNumCoordsPosLevel(); }
 
     /// Get the number of active coordinates from the n-th node used by this element.
-    virtual int GetNodeNdofs_active(int n) override { return m_nodes[n]->GetNdofX_active(); }
+    virtual int GetNodeNumCoordsPosLevelActive(int n) override { return m_nodes[n]->GetNumCoordsPosLevelActive(); }
 
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyzDD> nodeA,
@@ -179,7 +179,7 @@ class ChApi ChElementBeamANCF_3333 : public ChElementANCF,
     // -------------------------------------
 
     /// Fill the D vector (column matrix) with the current field values at the nodes of the element, with proper
-    /// ordering. If the D vector has not the size of this->GetNdofs(), it will be resized.
+    /// ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized.
     ///  {Pos_a Dv_a Dw_a  Pos_b Dv_b Dw_b  Pos_c Dv_c Dw_c}
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
@@ -240,16 +240,16 @@ class ChApi ChElementBeamANCF_3333 : public ChElementANCF,
     // ----------------------------------
 
     /// Gets the number of DOFs affected by this element (position part).
-    virtual int LoadableGet_ndof_x() override { return 3 * 9; }
+    virtual int GetLoadableNumCoordsPosLevel() override { return 3 * 9; }
 
     /// Gets the number of DOFs affected by this element (velocity part).
-    virtual int LoadableGet_ndof_w() override { return 3 * 9; }
+    virtual int GetLoadableNumCoordsVelLevel() override { return 3 * 9; }
 
     /// Gets all the DOFs packed in a single vector (position part).
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (velocity part).
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,
@@ -260,13 +260,13 @@ class ChApi ChElementBeamANCF_3333 : public ChElementANCF,
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual int Get_field_ncoords() override { return 9; }
+    virtual int GetFieldNumCoords() override { return 9; }
 
     /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
     virtual int GetSubBlocks() override { return 3; }
 
     /// Get the offset of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffsetW(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffsetVelLevel(); }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 9; }

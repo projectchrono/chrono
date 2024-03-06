@@ -197,10 +197,10 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
 
     /// Sets the damping parameters of section. You have a chance to assign different coefficients for axial, bending
     /// and torsion directions. This would be helpful for those anisotropic material, such as wind turbine blade.
-    virtual void SetBeamRayleighDamping(DampingCoefficients mdamping_coeff) { this->rdamping_coeff = mdamping_coeff; }
+    virtual void SetRayleighDamping(DampingCoefficients mdamping_coeff) { this->rdamping_coeff = mdamping_coeff; }
 
     ///  Gets the damping parameters of section.
-    virtual DampingCoefficients GetBeamRayleighDamping() const { return this->rdamping_coeff; }
+    virtual DampingCoefficients GetRayleighDamping() const { return this->rdamping_coeff; }
 
     /// Set the Jyy Jzz Jyz components of the sectional inertia per unit length,
     /// in centerline reference, measured along centerline main axes.
@@ -342,7 +342,7 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     );
 
     /// Get the average damping parameters of this tapered cross-section.
-    virtual DampingCoefficients GetBeamRayleighDamping() const;
+    virtual DampingCoefficients GetRayleighDamping() const;
 
     /// Compute the average section parameters: mass, inertia and rigidity, etc.
     virtual void ComputeAverageSectionParameters();

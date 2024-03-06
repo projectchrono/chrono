@@ -802,7 +802,7 @@ void ChSystemFsi::Initialize() {
     m_fsi_interface->ResizeChronoShellsData(m_fea_shell_nodes);
 
     // This also sets the referenceArray and counts numbers of various objects
-    size_t n_flexnodes = m_fsi_interface->m_fsi_mesh ? (size_t)m_fsi_interface->m_fsi_mesh->GetNnodes() : 0;
+    size_t n_flexnodes = m_fsi_interface->m_fsi_mesh ? (size_t)m_fsi_interface->m_fsi_mesh->GetNumNodes() : 0;
     m_sysFSI->ResizeData(m_fsi_interface->m_fsi_bodies.size(), m_num_cable_elements, m_num_shell_elements, n_flexnodes);
 
     if (m_verbose) {
@@ -1165,12 +1165,12 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
                                 int SIDE,
                                 int SIDE2D) {
     thrust::host_vector<Real4> posRadBCE;
-    int numElems = my_mesh->GetNelements();
+    int numElems = my_mesh->GetNumElements();
     std::vector<int> remove2D;
     std::vector<int> remove2D_s;
     std::vector<int> remove1D;
 
-    for (size_t i = 0; i < my_mesh->GetNnodes(); i++) {
+    for (size_t i = 0; i < my_mesh->GetNumNodes(); i++) {
         auto node = std::dynamic_pointer_cast<fea::ChNodeFEAxyzD>(my_mesh->GetNode((unsigned int)i));
         m_fsi_interface->m_fsi_nodes.push_back(node);
     }

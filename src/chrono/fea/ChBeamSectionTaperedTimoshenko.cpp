@@ -231,9 +231,9 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     double Qz1 = this->sectionA->GetInertiaQzPerUnitLength();
     // double Jmxx1 = this->sectionA->GetInertiaJxxPerUnitLengthInMassReference();
     double EA1 = this->sectionA->GetAxialRigidity();
-    double GJ1 = this->sectionA->GetXtorsionRigidity();
-    double EIyy1 = this->sectionA->GetYbendingRigidity();
-    double EIzz1 = this->sectionA->GetZbendingRigidity();
+    double GJ1 = this->sectionA->GetTorsionRigidityX();
+    double EIyy1 = this->sectionA->GetBendingRigidityY();
+    double EIzz1 = this->sectionA->GetBendingRigidityZ();
     double GAyy1 = this->sectionA->GetYshearRigidity();
     double GAzz1 = this->sectionA->GetZshearRigidity();
     double alpha1 = this->sectionA->GetSectionRotation();
@@ -258,7 +258,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     double EImzz1 = -EIyy1 * sinphi1 + EIzz1 * cosphi1;
     double GAmyy1 = GAyy1 * cosphi1 + GAzz1 * sinphi1;
     double GAmzz1 = -GAyy1 * sinphi1 + GAzz1 * cosphi1;
-    DampingCoefficients rdamping_coeff1 = this->sectionA->GetBeamRayleighDamping();
+    DampingCoefficients rdamping_coeff1 = this->sectionA->GetRayleighDamping();
     double artificial_factor_for_shear_damping1 = this->sectionA->GetArtificialFactorForShearDamping();
 
     double mu2 = this->sectionB->GetMassPerUnitLength();
@@ -270,9 +270,9 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     double Qz2 = this->sectionB->GetInertiaQzPerUnitLength();
     // double Jmxx2 = this->sectionB->GetInertiaJxxPerUnitLengthInMassReference();
     double EA2 = this->sectionB->GetAxialRigidity();
-    double GJ2 = this->sectionB->GetXtorsionRigidity();
-    double EIyy2 = this->sectionB->GetYbendingRigidity();
-    double EIzz2 = this->sectionB->GetZbendingRigidity();
+    double GJ2 = this->sectionB->GetTorsionRigidityX();
+    double EIyy2 = this->sectionB->GetBendingRigidityY();
+    double EIzz2 = this->sectionB->GetBendingRigidityZ();
     double GAyy2 = this->sectionB->GetYshearRigidity();
     double GAzz2 = this->sectionB->GetZshearRigidity();
     double alpha2 = this->sectionB->GetSectionRotation();
@@ -297,7 +297,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     double EImzz2 = -EIyy2 * sinphi2 + EIzz2 * cosphi2;
     double GAmyy2 = GAyy2 * cosphi2 + GAzz2 * sinphi2;
     double GAmzz2 = -GAyy2 * sinphi2 + GAzz2 * cosphi2;
-    DampingCoefficients rdamping_coeff2 = this->sectionB->GetBeamRayleighDamping();
+    DampingCoefficients rdamping_coeff2 = this->sectionB->GetRayleighDamping();
     double artificial_factor_for_shear_damping2 = this->sectionB->GetArtificialFactorForShearDamping();
 
     double L = this->GetLength();
@@ -876,7 +876,7 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeInertiaStiffnessMatri
     Ki.block<6, 6>(6, 6) = Ki_B;
 }
 
-DampingCoefficients ChBeamSectionTaperedTimoshenkoAdvancedGeneric::GetBeamRayleighDamping() const {
+DampingCoefficients ChBeamSectionTaperedTimoshenkoAdvancedGeneric::GetRayleighDamping() const {
     return this->avg_sec_par->rdamping_coeff;
 };
 
