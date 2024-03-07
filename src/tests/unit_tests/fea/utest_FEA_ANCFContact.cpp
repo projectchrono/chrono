@@ -194,7 +194,8 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
                      ChVector3d trans_elem2,
                      ChMatrix33<> rot_elem2,
                      bool AlsoPrint) {
-    ChSystemSMC sys(false);
+    ChSystemSMC sys;
+    sys.UseMaterialProperties(false);
 
     ChCollisionModel::SetDefaultSuggestedMargin(0.001);
     sys.SetContactForceModel(ChSystemSMC::Hooke);

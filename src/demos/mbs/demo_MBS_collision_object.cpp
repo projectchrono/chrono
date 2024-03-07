@@ -137,7 +137,8 @@ int main(int argc, char* argv[]) {
             break;
         }
         case ChContactMethod::SMC: {
-            auto sysSMC = new ChSystemSMC(use_mat_properties);
+            auto sysSMC = new ChSystemSMC();
+            sysSMC->UseMaterialProperties(use_mat_properties);
             sysSMC->SetContactForceModel(ChSystemSMC::Hertz);
             sysSMC->SetTangentialDisplacementModel(ChSystemSMC::OneStep);
             sys = sysSMC;

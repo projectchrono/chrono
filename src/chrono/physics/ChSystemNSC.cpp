@@ -29,19 +29,16 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSystemNSC)
 
-ChSystemNSC::ChSystemNSC(bool init_sys)
-    : ChSystem() {
-    if (init_sys) {
-        // Set default contact container
-        contact_container = chrono_types::make_shared<ChContactContainerNSC>();
-        contact_container->SetSystem(this);
+ChSystemNSC::ChSystemNSC() : ChSystem() {
+    // Set the system descriptor
+    descriptor = chrono_types::make_shared<ChSystemDescriptor>();
 
-        // Set the system descriptor
-        descriptor = chrono_types::make_shared<ChSystemDescriptor>();
+    // Set default solver
+    SetSolverType(ChSolver::Type::PSOR);
 
-        // Set default solver
-        SetSolverType(ChSolver::Type::PSOR);
-    }
+    // Set default contact container
+    contact_container = chrono_types::make_shared<ChContactContainerNSC>();
+    contact_container->SetSystem(this);
 
     // Set default collision envelope and margin.
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.03);
@@ -68,7 +65,7 @@ void ChSystemNSC::ArchiveOut(ChArchiveOut& archive_out) {
 // Method to allow de serialization of transient data from archives.
 void ChSystemNSC::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChSystemNSC>();
+    /*int version =*/archive_in.VersionRead<ChSystemNSC>();
 
     // deserialize parent class
     ChSystem::ArchiveIn(archive_in);

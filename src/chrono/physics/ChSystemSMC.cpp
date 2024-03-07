@@ -30,24 +30,27 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSystemSMC)
 
-ChSystemSMC::ChSystemSMC(bool use_material_properties)
+ChSystemSMC::ChSystemSMC()
     : ChSystem(),
-      m_use_mat_props(use_material_properties),
+      m_use_mat_props(true),
       m_contact_model(Hertz),
       m_adhesion_model(AdhesionForceModel::Constant),
       m_tdispl_model(OneStep),
       m_stiff_contact(false),
       m_force_algo(new ChDefaultContactForceTorqueSMC) {
+    // Set the system descriptor
     descriptor = chrono_types::make_shared<ChSystemDescriptor>();
 
+    // Set default solver
     SetSolverType(ChSolver::Type::PSOR);
+
+    // Set default contact container
+    contact_container = chrono_types::make_shared<ChContactContainerSMC>();
+    contact_container->SetSystem(this);
 
     // For default SMC there is no need to create contacts 'in advance'
     // when models are closer than the safety envelope, so set default envelope to 0
     ChCollisionModel::SetDefaultSuggestedEnvelope(0);
-
-    contact_container = chrono_types::make_shared<ChContactContainerSMC>();
-    contact_container->SetSystem(this);
 
     m_minSlipVelocity = 1e-4;
     m_characteristicVelocity = 1;

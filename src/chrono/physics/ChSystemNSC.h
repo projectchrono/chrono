@@ -30,8 +30,7 @@ class ChApi ChSystemNSC : public ChSystem {
 
   public:
     /// Create a physical system.
-    /// If init_sys is false, the collision system oand solver are not initialized.
-    ChSystemNSC(bool init_sys = true);
+    ChSystemNSC();
 
     /// Copy constructor
     ChSystemNSC(const ChSystemNSC& other);

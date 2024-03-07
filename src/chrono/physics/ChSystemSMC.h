@@ -52,7 +52,7 @@ class ChApi ChSystemSMC : public ChSystem {
     };
 
     /// Constructor for ChSystemSMC.
-    ChSystemSMC(bool use_material_properties = true);
+    ChSystemSMC();
 
     /// Copy constructor
     ChSystemSMC(const ChSystemSMC& other);
@@ -73,22 +73,26 @@ class ChApi ChSystemSMC : public ChSystem {
     /// If true, contact coefficients are estimated from physical material properties.
     /// Otherwise, explicit values of stiffness and damping coefficients are used.
     void UseMaterialProperties(bool val) { m_use_mat_props = val; }
+
     /// Return true if contact coefficients are estimated from physical material properties.
     bool UsingMaterialProperties() const { return m_use_mat_props; }
 
     /// Set the normal contact force model.
     void SetContactForceModel(ContactForceModel model) { m_contact_model = model; }
+
     /// Get the current normal contact force model.
     ContactForceModel GetContactForceModel() const { return m_contact_model; }
 
     /// Set the adhesion force model.
     void SetAdhesionForceModel(AdhesionForceModel model) { m_adhesion_model = model; }
+
     /// Get the current adhesion force model.
     AdhesionForceModel GetAdhesionForceModel() const { return m_adhesion_model; }
 
     /// Set the tangential displacement model.
     /// Note that currently MultiStep falls back to OneStep.
     void SetTangentialDisplacementModel(TangentialDisplacementModel model) { m_tdispl_model = model; }
+
     /// Get the current tangential displacement model.
     TangentialDisplacementModel GetTangentialDisplacementModel() const { return m_tdispl_model; }
 
@@ -115,23 +119,23 @@ class ChApi ChSystemSMC : public ChSystem {
         virtual ~ChContactForceTorqueSMC() {}
 
         /// Calculate contact force (resultant of both normal and tangential components) for a contact between two
-        /// objects, obj1 and obj2. Optionally, can compute torque, or leave it as zero. 
+        /// objects, obj1 and obj2. Optionally, can compute torque, or leave it as zero.
         /// Note that this function is always called with delta > 0.
-        virtual std::pair<ChVector3d,ChVector3d> CalculateForceTorque(
-            const ChSystemSMC& sys,             ///< containing system
-            const ChVector3d& normal_dir,       ///< normal contact direction (expressed in global frame)
-            const ChVector3d& p1,               ///< most penetrated point on obj1 (expressed in global frame)
-            const ChVector3d& p2,               ///< most penetrated point on obj2 (expressed in global frame)
-            const ChVector3d& vel1,             ///< velocity of contact point on obj1 (expressed in global frame)
-            const ChVector3d& vel2,             ///< velocity of contact point on obj2 (expressed in global frame)
+        virtual std::pair<ChVector3d, ChVector3d> CalculateForceTorque(
+            const ChSystemSMC& sys,        ///< containing system
+            const ChVector3d& normal_dir,  ///< normal contact direction (expressed in global frame)
+            const ChVector3d& p1,          ///< most penetrated point on obj1 (expressed in global frame)
+            const ChVector3d& p2,          ///< most penetrated point on obj2 (expressed in global frame)
+            const ChVector3d& vel1,        ///< velocity of contact point on obj1 (expressed in global frame)
+            const ChVector3d& vel2,        ///< velocity of contact point on obj2 (expressed in global frame)
             const ChContactMaterialCompositeSMC& mat,  ///< composite material for contact pair
-            double delta,                       ///< overlap in normal direction
-            double eff_radius,                  ///< effective radius of curvature at contact
-            double mass1,                       ///< mass of obj1
-            double mass2,                       ///< mass of obj2
-            ChContactable* objA,                ///< pointer to contactable obj1
-			ChContactable* objB                 ///< pointer to contactable obj2
-            ) const = 0;
+            double delta,                              ///< overlap in normal direction
+            double eff_radius,                         ///< effective radius of curvature at contact
+            double mass1,                              ///< mass of obj1
+            double mass2,                              ///< mass of obj2
+            ChContactable* objA,                       ///< pointer to contactable obj1
+            ChContactable* objB                        ///< pointer to contactable obj2
+        ) const = 0;
     };
 
     /// Change the default SMC contact force calculation (and torque, too, if needed).
