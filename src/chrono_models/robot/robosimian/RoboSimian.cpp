@@ -403,9 +403,8 @@ RoboSimian::RoboSimian(ChContactMethod contact_method, bool has_sled, bool fixed
                                                         : static_cast<ChSystem*>(new ChSystemSMC);
     m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
-    // Integration and Solver settings
+    // Solver settings
     m_system->SetSolverMaxIterations(150);
-    m_system->SetMaxPenetrationRecoverySpeed(4.0);
     m_system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
 
     Create(has_sled, fixed);

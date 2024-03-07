@@ -69,7 +69,6 @@ ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
     }
 
     m_system->SetSolverMaxIterations(150);
-    m_system->SetMaxPenetrationRecoverySpeed(4.0);
 }
 
 // Constructor for a ChVehicle using the specified Chrono ChSystem.

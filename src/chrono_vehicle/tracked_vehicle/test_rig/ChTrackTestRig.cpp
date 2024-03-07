@@ -272,7 +272,7 @@ double ChTrackTestRig::GetActuatorDisp(int index) {
 }
 
 double ChTrackTestRig::GetActuatorForce(int index) {
-    return m_post_linact[index]->Get_react_force().x();
+    return m_post_linact[index]->GetMotorForce();
 }
 
 double ChTrackTestRig::GetActuatorMarkerDist(int index) {

@@ -789,7 +789,7 @@ double ChSuspensionTestRigPlatform::GetActuatorDisp(int axle, VehicleSide side) 
 }
 
 double ChSuspensionTestRigPlatform::GetActuatorForce(int axle, VehicleSide side) {
-    return (side == LEFT) ? m_linact_L[axle]->Get_react_force().x() : m_linact_R[axle]->Get_react_force().x();
+    return (side == LEFT) ? m_linact_L[axle]->GetMotorForce() : m_linact_R[axle]->GetMotorForce();
 }
 
 double ChSuspensionTestRigPlatform::GetRideHeight(int axle) const {
