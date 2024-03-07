@@ -966,33 +966,39 @@ void ChModalAssembly::ComputeInertialKRMmatrix() {
         this->IntStateGatherAcceleration(0, a_mod);
 
         ChMatrixDynamic<> V;
-        ChMatrixDynamic<> O_B;
         V.setZero(bou_mod_coords_w, 6);
-        O_B.setZero(bou_mod_coords_w, bou_mod_coords_w);
         for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
             V.block(6 * i_bou, 3, 3, 3) =
                 ChStarMatrix33<>(floating_frame_F.GetRot().RotateBack(v_mod.segment(6 * i_bou, 3)));
-            O_B.block(6 * i_bou + 3, 6 * i_bou + 3, 3, 3) = ChStarMatrix33<>(v_mod.segment(6 * i_bou + 3, 3));
         }
 
         ChMatrixDynamic<> V_rmom;
-        ChMatrixDynamic<> O_thetamom;
         V_rmom.setZero(bou_mod_coords_w, 6);
-        O_thetamom.setZero(bou_mod_coords_w, bou_mod_coords_w);
         ChVectorDynamic<> momen = M_red * (P_W.transpose() * v_mod);
         for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
             V_rmom.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(momen.segment(6 * i_bou, 3));
-            O_thetamom.block(6 * i_bou + 3, 6 * i_bou + 3, 3, 3) = ChStarMatrix33<>(momen.segment(6 * i_bou + 3, 3));
         }
-
         ChMatrixDynamic<> MVPFQ = M_red * V * P_F * Q_0;
         ChMatrixDynamic<> VrPFQ = V_rmom * P_F * Q_0;
 
         Ri_sup += P_W * (-M_red * O_F) * P_W.transpose();
         Ri_sup += P_W * (MVPFQ - MVPFQ.transpose()) * P_W.transpose();
         Ri_sup += P_W * (VrPFQ.transpose() - VrPFQ) * P_W.transpose();
-        Ri_sup += -O_thetamom + O_B * M_red * P_W.transpose();
 
+        //// leading to divergence. NOT use it.
+        // ChMatrixDynamic<> O_B;
+        // O_B.setZero(bou_mod_coords_w, bou_mod_coords_w);
+        // for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
+        //     O_B.block(6 * i_bou + 3, 6 * i_bou + 3, 3, 3) = ChStarMatrix33<>(v_mod.segment(6 * i_bou + 3, 3));
+        // }
+        // ChMatrixDynamic<> O_thetamom;
+        // O_thetamom.setZero(bou_mod_coords_w, bou_mod_coords_w);
+        // for (int i_bou = 0; i_bou < n_boundary_coords_w / 6; i_bou++) {
+        //     O_thetamom.block(6 * i_bou + 3, 6 * i_bou + 3, 3, 3) = ChStarMatrix33<>(momen.segment(6 * i_bou + 3, 3));
+        // }
+        // Ri_sup += -O_thetamom + O_B * M_red * P_W.transpose();
+
+        ///*******************************************///
         //// Inertial stiffness matrix. Harmful for numerical integration, hence useless.
         // ChVectorDynamic<> f_loc_C = M_red * (P_W.transpose() * a_mod) +
         //                             ((O_F + O_B) * M_red + MVPFQ - MVPFQ.transpose()) * (P_W.transpose() * v_mod);
@@ -2426,22 +2432,26 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
 
             if (!use_linear_inertial_term) {
                 ChMatrixDynamic<> V;
-                ChMatrixDynamic<> O_B;
                 V.setZero(bou_mod_coords_w, 6);
-                O_B.setZero(bou_mod_coords_w, bou_mod_coords_w);
                 for (int i_bou = 0; i_bou < (int)(n_boundary_coords_w / 6.); i_bou++) {
                     V.block(6 * i_bou, 3, 3, 3) =
                         ChStarMatrix33<>(floating_frame_F.GetRot().RotateBack(v_mod.segment(6 * i_bou, 3)));
-                    O_B.block(6 * i_bou + 3, 6 * i_bou + 3, 3, 3) = ChStarMatrix33<>(v_mod.segment(6 * i_bou + 3, 3));
                 }
-
-                ChMatrixDynamic<> mat_OB = P_W * O_B * M_red * P_W.transpose();
                 ChMatrixDynamic<> mat_M = P_W * M_red * V * P_F * Q_0 * P_W.transpose();
-                g_quad += mat_OB * v_mod;  // leading to divergence
                 g_quad += (mat_M - mat_M.transpose()) * v_mod;
+
+                //// leading to divergence. NOT use it.
+                // ChMatrixDynamic<> O_B;
+                // O_B.setZero(bou_mod_coords_w, bou_mod_coords_w);
+                // for (int i_bou = 0; i_bou < (int)(n_boundary_coords_w / 6.); i_bou++) {
+                //     O_B.block(6 * i_bou + 3, 6 * i_bou + 3, 3, 3) = ChStarMatrix33<>(v_mod.segment(6 * i_bou + 3,
+                //     3));
+                // }
+                // ChMatrixDynamic<> mat_OB = P_W * O_B * M_red * P_W.transpose();
+                // g_quad += mat_OB * v_mod;
             }
 
-            //// note: - sign
+            // note: - sign
             R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) -= c * g_quad;
         }
 
