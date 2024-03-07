@@ -1353,7 +1353,7 @@ void ChSystem::ResetTimers() {
 //   PHYSICAL OPERATIONS
 // =============================================================================
 
-void ChSystem::GetMassMatrix(ChSparseMatrix* M) {
+void ChSystem::GetMassMatrix(ChSparseMatrix& M) {
     // IntToDescriptor(0, Dv, R, 0, L, Qc);
     // ConstraintsLoadJacobians();
 
@@ -1363,10 +1363,10 @@ void ChSystem::GetMassMatrix(ChSparseMatrix* M) {
     descriptor->SetMassFactor(1.0);
 
     // Fill system-level M matrix
-    this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, M, nullptr, nullptr, nullptr, nullptr, false, false);
+    this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, &M, nullptr, nullptr, nullptr, nullptr, false, false);
 }
 
-void ChSystem::GetStiffnessMatrix(ChSparseMatrix* K) {
+void ChSystem::GetStiffnessMatrix(ChSparseMatrix& K) {
     // IntToDescriptor(0, Dv, R, 0, L, Qc);
     // ConstraintsLoadJacobians();
 
@@ -1376,10 +1376,10 @@ void ChSystem::GetStiffnessMatrix(ChSparseMatrix* K) {
     descriptor->SetMassFactor(0.0);
 
     // Fill system-level K matrix
-    this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, K, nullptr, nullptr, nullptr, nullptr, false, false);
+    this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, &K, nullptr, nullptr, nullptr, nullptr, false, false);
 }
 
-void ChSystem::GetDampingMatrix(ChSparseMatrix* R) {
+void ChSystem::GetDampingMatrix(ChSparseMatrix& R) {
     // IntToDescriptor(0, Dv, R, 0, L, Qc);
     // ConstraintsLoadJacobians();
 
@@ -1389,47 +1389,47 @@ void ChSystem::GetDampingMatrix(ChSparseMatrix* R) {
     descriptor->SetMassFactor(0.0);
 
     // Fill system-level R matrix
-    this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, R, nullptr, nullptr, nullptr, nullptr, false, false);
+    this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, &R, nullptr, nullptr, nullptr, nullptr, false, false);
 }
 
-void ChSystem::GetConstraintJacobianMatrix(ChSparseMatrix* Cq) {
+void ChSystem::GetConstraintJacobianMatrix(ChSparseMatrix& Cq) {
     // IntToDescriptor(0, Dv, R, 0, L, Qc);
 
     // Load all jacobian matrices
     this->ConstraintsLoadJacobians();
 
     // Fill system-level R matrix
-    this->GetSystemDescriptor()->ConvertToMatrixForm(Cq, nullptr, nullptr, nullptr, nullptr, nullptr, false, false);
+    this->GetSystemDescriptor()->ConvertToMatrixForm(&Cq, nullptr, nullptr, nullptr, nullptr, nullptr, false, false);
 }
 
-void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path) {
+void ChSystem::WriteSystemMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path) {
     // Prepare lists of variables and constraints, if not already prepared.
     DescriptorPrepareInject(*descriptor);
 
     if (save_M) {
         ChSparseMatrix mM;
-        this->GetMassMatrix(&mM);
+        this->GetMassMatrix(mM);
         std::ofstream file_M(path + "_M.dat");
         file_M << std::setprecision(12) << std::scientific;
         StreamOutSparseMatlabFormat(mM, file_M);
     }
     if (save_K) {
         ChSparseMatrix mK;
-        this->GetStiffnessMatrix(&mK);
+        this->GetStiffnessMatrix(mK);
         std::ofstream file_K(path + "_K.dat");
         file_K << std::setprecision(12) << std::scientific;
         StreamOutSparseMatlabFormat(mK, file_K);
     }
     if (save_R) {
         ChSparseMatrix mR;
-        this->GetDampingMatrix(&mR);
+        this->GetDampingMatrix(mR);
         std::ofstream file_R(path + "_R.dat");
         file_R << std::setprecision(12) << std::scientific;
         StreamOutSparseMatlabFormat(mR, file_R);
     }
     if (save_Cq) {
         ChSparseMatrix mCq;
-        this->GetConstraintJacobianMatrix(&mCq);
+        this->GetConstraintJacobianMatrix(mCq);
         std::ofstream file_Cq(path + "_Cq.dat");
         file_Cq << std::setprecision(12) << std::scientific;
         StreamOutSparseMatlabFormat(mCq, file_Cq);

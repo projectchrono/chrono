@@ -669,24 +669,24 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// These can be later used for linearized motion, modal analysis, buckling analysis, etc.
     /// The name of the files will be [path]_M.dat [path]_K.dat [path]_R.dat [path]_Cq.dat
     /// Might throw exception if file can't be saved.
-    void DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path);
+    void WriteSystemMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path);
 
-    /// Compute the system-level mass matrix.
-    void GetMassMatrix(ChSparseMatrix* M);  ///< fill this system mass matrix
+    /// Compute the system-level mass matrix and load in the provided sparse matrix.
+    void GetMassMatrix(ChSparseMatrix& M);
 
-    /// Compute the system-level stiffness matrix.
+    /// Compute the system-level stiffness matrix and load in the provided sparse matrix.
     /// This is the Jacobian -dF/dq, where F are stiff loads.
     /// Note that not all loads provide a jacobian, as this is optional in their implementation.
-    void GetStiffnessMatrix(ChSparseMatrix* K);  ///< fill this system stiffness matrix
+    void GetStiffnessMatrix(ChSparseMatrix& K);
 
-    /// Compute the system-level damping matrix.
+    /// Compute the system-level damping matrix and load in the provided sparse matrix.
     /// This is the Jacobian -dF/dv, where F are stiff loads.
     /// Note that not all loads provide a Jacobian, as this is optional in their implementation.
-    void GetDampingMatrix(ChSparseMatrix* R);  ///< fill this system damping matrix
+    void GetDampingMatrix(ChSparseMatrix& R);
 
-    /// Compute the system-level constraint Jacobian matrix.
+    /// Compute the system-level constraint Jacobian matrix and load in the provided sparse matrix.
     /// This is the Jacobian Cq=-dC/dq, where C are constraints (the lower left part of the KKT matrix).
-    void GetConstraintJacobianMatrix(ChSparseMatrix* Cq);  ///< fill this system damping matrix
+    void GetConstraintJacobianMatrix(ChSparseMatrix& Cq);
 
     // ---- SYSTEM ASSEMBLY
 

@@ -60,10 +60,10 @@ class EigenSolver {
         ChSparseMatrix K_sp;
         ChSparseMatrix R_sp;
         ChSparseMatrix Cq_sp;
-        msys.GetMassMatrix(&M_sp);
-        msys.GetStiffnessMatrix(&K_sp);
-        msys.GetDampingMatrix(&R_sp);
-        msys.GetConstraintJacobianMatrix(&Cq_sp);
+        msys.GetMassMatrix(M_sp);
+        msys.GetStiffnessMatrix(K_sp);
+        msys.GetDampingMatrix(R_sp);
+        msys.GetConstraintJacobianMatrix(Cq_sp);
 
         int n_v = Cq_sp.cols();
         int n_c = Cq_sp.rows();

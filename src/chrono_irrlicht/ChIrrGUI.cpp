@@ -75,8 +75,8 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
                 return true;
             }
             case irr::KEY_F6:
-                std::cout << "Saving system vector and matrices to dump_xxyy.dat files.\n";
-                m_gui->DumpSystemMatrices();
+                std::cout << "Saving system vector and matrices to sys_xxyy.dat files.\n";
+                m_gui->WriteSystemMatrices();
                 return true;
             case irr::KEY_F7:
                 if (!m_gui->m_system->IsSolverMatrixWriteEnabled()) {
@@ -398,14 +398,14 @@ void ChIrrGUI::SetModalModesMax(int maxModes) {
 
 // -----------------------------------------------------------------------------
 
-void ChIrrGUI::DumpSystemMatrices() {
+void ChIrrGUI::WriteSystemMatrices() {
     // For safety
     m_system->Setup();
     m_system->Update();
 
     try {
         // Save M mass matrix, K stiffness matrix, R damping matrix, Cq jacobians:
-        m_system->DumpSystemMatrices(true, true, true, true, "dump_");
+        m_system->WriteSystemMatrices(true, true, true, true, "sys_");
 
     } catch (const std::exception& myexc) {
         std::cerr << myexc.what() << std::endl;
