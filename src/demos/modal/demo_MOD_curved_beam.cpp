@@ -54,7 +54,8 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
     // Parameters
     double radius = 100.0;
     double rotangle = 45.0 * CH_C_DEG_TO_RAD;
-    int n_elements = 16;
+    int n_parts = 4;
+    int n_totalelements = n_parts * 8;
 
     double b = 1.0;
     double h = 1.0;
@@ -71,14 +72,14 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
     double Jxx = rho * Ip;
     double Jyz = rho * Iyz;
 
-    // parent system
+    // Parent system: ground
     auto my_ground = chrono_types::make_shared<ChBody>();
     my_ground->SetMass(1.0);
     my_ground->SetPos(VNULL);
     my_ground->SetBodyFixed(true);
     sys.AddBody(my_ground);
 
-    // Prepare for mesh: Beam section:
+    // Prepare for mesh: Beam section
     auto section = chrono_types::make_shared<ChBeamSectionTimoshenkoAdvancedGenericFPM>();
     double Qy = 0;
     double Qz = 0;
@@ -108,61 +109,99 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
     tapered_section->SetSectionA(section);
     tapered_section->SetSectionB(section);
 
-    // for crank
-    auto assembly_beam = chrono_types::make_shared<ChModalAssembly>();
-    assembly_beam->use_linear_inertial_term = USE_LINEAR_INERTIAL_TERM;
-    if (USE_HERTING)
-        assembly_beam->modal_reduction_type = chrono::modal::ChModalAssembly::Reduction_Type::Herting;
-    else
-        assembly_beam->modal_reduction_type = chrono::modal::ChModalAssembly::Reduction_Type::Craig_Bampton;
-    sys.Add(assembly_beam);
-
-    auto mesh_internal_beam = chrono_types::make_shared<ChMesh>();
-    assembly_beam->AddInternal(mesh_internal_beam);  // NOTE: MESH FOR INTERNAL NODES: USE assembly->AddInternal()
-    auto mesh_boundary_beam = chrono_types::make_shared<ChMesh>();
-    assembly_beam->Add(mesh_boundary_beam);  // NOTE: MESH FOR BOUNDARY NODES: USE assembly->Add()
-    mesh_internal_beam->SetAutomaticGravity(false);
-    mesh_boundary_beam->SetAutomaticGravity(false);
-
-    auto beam_nodes = std::vector<std::shared_ptr<ChNodeFEAxyzrot>>(n_elements + 1);
-    for (int i_node = 0; i_node < n_elements + 1; i_node++) {
-        double loc_angle = rotangle / n_elements * i_node;
-        ChQuaternion qrot;
-        qrot.Q_from_AngZ(-loc_angle);
-        beam_nodes.at(i_node) = chrono_types::make_shared<ChNodeFEAxyzrot>(
-            ChFrame<>({radius * sin(loc_angle), -radius * (1.0 - cos(loc_angle)), 0}, qrot));
-
-        if (i_node == 0 || i_node == n_elements)
-            mesh_boundary_beam->AddNode(beam_nodes.at(i_node));
+    // A function to make a single modal assembly
+    auto MakeSingleModalAssembly = [&](std::shared_ptr<ChModalAssembly> mmodal_assembly, int mn_ele,
+                                       double mstart_angle, double mend_angle) {
+        // Settings
+        mmodal_assembly->use_linear_inertial_term = USE_LINEAR_INERTIAL_TERM;
+        if (USE_HERTING)
+            mmodal_assembly->modal_reduction_type = chrono::modal::ChModalAssembly::Reduction_Type::Herting;
         else
-            mesh_internal_beam->AddNode(beam_nodes.at(i_node));
-    }
-    ChVector<> tip_pos_x0 = beam_nodes.back()->GetPos();
+            mmodal_assembly->modal_reduction_type = chrono::modal::ChModalAssembly::Reduction_Type::Craig_Bampton;
 
+        sys.Add(mmodal_assembly);
+
+        // Initialize mesh
+        auto mesh_internal = chrono_types::make_shared<ChMesh>();
+        mmodal_assembly->AddInternalMesh(mesh_internal);
+        auto mesh_boundary = chrono_types::make_shared<ChMesh>();
+        mmodal_assembly->AddMesh(mesh_boundary);
+        mesh_internal->SetAutomaticGravity(false);
+        mesh_boundary->SetAutomaticGravity(false);
+
+        // Build nodes
+        auto mbeam_nodes = std::vector<std::shared_ptr<ChNodeFEAxyzrot>>(mn_ele + 1);
+        double mdelta_angle = (mend_angle - mstart_angle) / mn_ele;
+        for (int i_node = 0; i_node < mn_ele + 1; i_node++) {
+            double loc_angle = mstart_angle + mdelta_angle * i_node;
+            ChQuaternion qrot;
+            qrot.Q_from_AngZ(-loc_angle);
+            mbeam_nodes.at(i_node) = chrono_types::make_shared<ChNodeFEAxyzrot>(
+                ChFrame<>({radius * sin(loc_angle), -radius * (1.0 - cos(loc_angle)), 0}, qrot));
+
+            if (i_node == 0 || i_node == mn_ele)
+                mesh_boundary->AddNode(mbeam_nodes.at(i_node));
+            else
+                mesh_internal->AddNode(mbeam_nodes.at(i_node));
+        }
+
+        // Build elements
+        auto mbeam_elements = std::vector<std::shared_ptr<ChElementBeamTaperedTimoshenkoFPM>>(mn_ele);
+        for (int i_ele = 0; i_ele < mn_ele; i_ele++) {
+            mbeam_elements.at(i_ele) = chrono_types::make_shared<ChElementBeamTaperedTimoshenkoFPM>();
+
+            mbeam_elements.at(i_ele)->SetNodes(mbeam_nodes.at(i_ele), mbeam_nodes.at(i_ele + 1));
+
+            ChMatrix33<> mrot;
+            mrot.Set_A_Xdir(mbeam_nodes.at(i_ele + 1)->Frame().GetPos() - mbeam_nodes.at(i_ele)->Frame().GetPos(),
+                            VECT_Y);
+            ChQuaternion<> elrot = mrot.Get_A_quaternion();
+            mbeam_elements.at(i_ele)->SetNodeAreferenceRot(elrot.GetConjugate() *
+                                                           mbeam_elements.at(i_ele)->GetNodeA()->Frame().GetRot());
+            mbeam_elements.at(i_ele)->SetNodeBreferenceRot(elrot.GetConjugate() *
+                                                           mbeam_elements.at(i_ele)->GetNodeB()->Frame().GetRot());
+
+            mbeam_elements.at(i_ele)->SetTaperedSection(tapered_section);
+
+            mesh_internal->AddElement(mbeam_elements.at(i_ele));
+        }
+    };
+
+    // Mesh the curved beam with several seperate modal assemblies
+    std::vector<std::shared_ptr<ChModalAssembly>> modal_assembly_list;
+    double delta_angle = rotangle / n_parts;
+    for (int i_part = 0; i_part < n_parts; i_part++) {
+        auto my_assembly = chrono_types::make_shared<ChModalAssembly>();
+        modal_assembly_list.push_back(my_assembly);
+        MakeSingleModalAssembly(my_assembly, n_totalelements / n_parts, delta_angle * i_part,
+                                delta_angle * (i_part + 1));
+    }
+
+    // Build the fix links to connect modal assemblies
+    if (n_parts > 1)
+        for (int i_link = 0; i_link < n_parts - 1; i_link++) {
+            auto node_L = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(
+                modal_assembly_list.at(i_link)->Get_meshlist().front()->GetNodes().back());
+            auto node_R = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(
+                modal_assembly_list.at(i_link + 1)->Get_meshlist().front()->GetNodes().front());
+            auto my_link = chrono_types::make_shared<ChLinkMateFix>();
+            my_link->Initialize(node_L, node_R);
+            sys.AddLink(my_link);
+        }
+
+    // Root link
+    auto root_node = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(
+        modal_assembly_list.front()->Get_meshlist().front()->GetNodes().front());
     auto my_rootlink = chrono_types::make_shared<ChLinkMateFix>();
-    my_rootlink->Initialize(beam_nodes[0], my_ground, ChFrame<>(my_ground->GetPos(), QUNIT));
+    my_rootlink->Initialize(root_node, my_ground);
     sys.AddLink(my_rootlink);
 
-    auto beam_elements = std::vector<std::shared_ptr<ChElementBeamTaperedTimoshenkoFPM>>(n_elements);
-    for (int i_ele = 0; i_ele < n_elements; i_ele++) {
-        beam_elements.at(i_ele) = chrono_types::make_shared<ChElementBeamTaperedTimoshenkoFPM>();
+    // Retrieve the tip node
+    auto tip_node = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(
+        modal_assembly_list.back()->Get_meshlist().front()->GetNodes().back());
+    ChVector<> tip_pos_x0 = tip_node->GetPos();
 
-        beam_elements.at(i_ele)->SetNodes(beam_nodes.at(i_ele), beam_nodes.at(i_ele + 1));
-
-        ChMatrix33<> mrot;
-        mrot.Set_A_Xdir(beam_nodes.at(i_ele + 1)->Frame().GetPos() - beam_nodes.at(i_ele)->Frame().GetPos(), VECT_Y);
-        ChQuaternion<> elrot = mrot.Get_A_quaternion();
-        beam_elements.at(i_ele)->SetNodeAreferenceRot(elrot.GetConjugate() %
-                                                      beam_elements.at(i_ele)->GetNodeA()->Frame().GetRot());
-        beam_elements.at(i_ele)->SetNodeBreferenceRot(elrot.GetConjugate() %
-                                                      beam_elements.at(i_ele)->GetNodeB()->Frame().GetRot());
-
-        beam_elements.at(i_ele)->SetTaperedSection(tapered_section);
-
-        mesh_internal_beam->AddElement(beam_elements.at(i_ele));
-    }
-
-    // gravity is zero
+    // Gravity is zero
     sys.Set_G_acc(ChVector<>(0, 0, 0));
 
     // Set linear solver
@@ -177,25 +216,32 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
     sys.Setup();
     sys.Update();
 
+    // Do modal reduction for all modal assemblies
     if (do_modal_reduction) {
         // ChGeneralizedEigenvalueSolverLanczos eigen_solver;
         ChGeneralizedEigenvalueSolverKrylovSchur eigen_solver;
 
         auto modes_settings = ChModalSolveUndamped(12, 1e-5, 500, 1e-10, false, eigen_solver);
 
-        auto damping_beam = ChModalDampingReductionR(*assembly_beam);
-        assembly_beam->verbose = true;
-        assembly_beam->SwitchModalReductionON(modes_settings, damping_beam);
-        assembly_beam->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/assembly_curved_reduced").c_str());
+        for (int i_part = 0; i_part < n_parts; i_part++) {
+            auto damping_beam = ChModalDampingReductionR(*modal_assembly_list.at(i_part));
+            // modal_assembly_list.at(i_part)->verbose = true;
+            modal_assembly_list.at(i_part)->SwitchModalReductionON(modes_settings, damping_beam);
+            modal_assembly_list.at(i_part)->DumpSubassemblyMatrices(
+                true, true, true, true, (out_dir + "/modal_assembly_" + std::to_string(i_part)).c_str());
+        }
     }
 
+    // Apply the external load
     double Pz = 600;
-    beam_nodes.back()->SetForce(ChVector<>(0, 0, Pz));
+    tip_node->SetForce(ChVector<>(0, 0, Pz));
     GetLog() << "The applied force is: " << Pz << " N\n";
+
+    // Static analysis
     sys.DoStaticNonlinear(100);
 
-    ChVector<> tip_pos = beam_nodes.back()->GetPos();
-    ChVector<> tip_displ = tip_pos - tip_pos_x0;
+    // Postprocess: print the tip displacement
+    ChVector<> tip_displ = tip_node->GetPos() - tip_pos_x0;
     GetLog() << "Tip displacement:\t" << tip_displ.x() << "\t" << tip_displ.y() << "\t" << tip_displ.z() << "\n";
 }
 
@@ -209,15 +255,37 @@ int main(int argc, char* argv[]) {
     }
 
     if (create_directory(path(out_dir))) {
+
+        ChTimer m_timer_computation;
+        double time_corot = 0;
+        double time_modal = 0;
+
         if (RUN_ORIGIN) {
-            GetLog() << "Run corotational beam model:\n";
+            GetLog() << "1. Run corotational beam model:\n";
+
+            m_timer_computation.start();
             MakeAndRunDemo_CurvedBeam(false);
+            m_timer_computation.stop();
+
+            time_corot = m_timer_computation.GetTimeSeconds();
+            GetLog() << "Computation time of corotational beam model: t_corot = \t" << time_corot << " seconds\n";
+            m_timer_computation.reset();
         }
 
         if (RUN_MODAL) {
-            GetLog() << "\n\nRun modal reduction model:\n";
+            GetLog() << "\n\n2. Run modal reduction model:\n";
+
+            m_timer_computation.start();
             MakeAndRunDemo_CurvedBeam(true);
+            m_timer_computation.stop();
+
+            time_modal = m_timer_computation.GetTimeSeconds();
+            GetLog() << "Computation time of modal reduction model: t_modal = \t" << time_modal << " seconds\n";
+            m_timer_computation.reset();
         }
+
+        if (time_corot && time_modal)
+            GetLog() << "\n\n3. Ratio of computation time: t_modal / t_corot = \t" << time_modal / time_corot << "\n";
     } else {
         GetLog() << "  ...Error creating subdirectories\n";
     }
