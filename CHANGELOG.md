@@ -562,6 +562,11 @@ Note that this represents a major public API change and we expect most user code
 | ChStreamOutBinary                 |                               | remove                                           |
 | ChStreamOutBinaryFile             |                               | remove                                           |
 | ChSystem                          |                               |                                                  |
+|                                   | DoEntireDynamics              | remove                                           |
+|                                   | DoEntireKinematics            | remove                                           |
+|                                   | DoEntireUniformDynamics       | remove                                           |
+|                                   | DoFullAssembly                | remove - use DoAssembly(AssemblyLevel::FULL)     |
+|                                   | DumpSystemMatrices            | rename: WriteSystemMatrices                      |
 |                                   | Get_bodylist                  | rename: GetBodies                                |
 |                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
 |                                   | Get_linklist                  | rename: GetLinks                                 |
@@ -573,6 +578,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetDOC_d                      | remove                                           |
 |                                   | GetDOF                        | remove                                           |
 |                                   | GetDOF_w                      | remove                                           |
+|                                   | GetMaxiter                    | remove                                           |
 |                                   | GetNbodies                    | rename: GetNumBodies                             |
 |                                   | GetNbodiesFixed               | rename: GetNumBodiesFixed                        |
 |                                   | GetNbodiesSleeping            | rename: GetNumBodiesSleeping                     |
@@ -596,6 +602,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNsysvars                   | remove                                           |
 |                                   | GetNsysvars_w                 | remove                                           |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
+|                                   | SetMaxiter                    | remove                                           |
+|                                   | SetStep                       | remove                                           |
 | ChSystemFsi                       |                               |                                                  |
 |                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
