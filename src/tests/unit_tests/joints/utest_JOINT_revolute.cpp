@@ -341,10 +341,9 @@ bool TestRevolute(const ChVector3d& jointLoc,      // absolute location of joint
               << "Constraint_4"
               << "Cnstr_5" << std::endl;
 
-    // Perform a system assembly to ensure we have the correct accelerations at
-    // the initial time.
+    // Perform a system assembly to ensure we have the correct accelerations at the initial time.
     std::cout << "  Perform system assembly..." << std::endl;
-    sys.DoFullAssembly();
+    sys.DoAssembly(AssemblyLevel::FULL);
 
     // Total energy at initial time.
     ChMatrix33<> inertia = pendulum->GetInertia();

@@ -88,9 +88,8 @@ TEST(FullAssembly, Assemble) {
     ////revoluteJoint->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
     sys.AddLink(revoluteJoint);
 
-    // Perform a system assembly.
-    ////sys.DoAssembly(AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
-    sys.DoFullAssembly();
+    // Perform a full system assembly
+    sys.DoAssembly(AssemblyLevel::FULL);
 
     // Extract position, velocity, and acceleration of pendulum body.
     ChVector3d pos = pendulum->GetPos();

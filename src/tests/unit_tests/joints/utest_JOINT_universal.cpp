@@ -249,9 +249,8 @@ bool TestUniversal(const ChVector3d& jointLoc,      // absolute location of join
               << "Cnstr_3"
               << "Constraint_4" << std::endl;
 
-    // Perform a system assembly to ensure we have the correct accelerations at
-    // the initial time.
-    sys.DoFullAssembly();
+    // Perform a system assembly to ensure we have the correct accelerations at the initial time.
+    sys.DoAssembly(AssemblyLevel::FULL);
 
     // Total energy at initial time.
     ChMatrix33<> inertia = pendulum->GetInertia();

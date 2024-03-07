@@ -271,9 +271,8 @@ bool TestRevSpherical(
               << "Cnstr_1"
               << "Cnstr_2" << std::endl;
 
-    // Perform a system assembly to ensure we have the correct accelerations at
-    // the initial time.
-    sys.DoFullAssembly();
+    // Perform a system assembly to ensure we have the correct accelerations at the initial time.
+    sys.DoAssembly(AssemblyLevel::FULL);
 
     // Total energy at initial time.
     ChMatrix33<> inertia = pendulum->GetInertia();

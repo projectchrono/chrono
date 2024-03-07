@@ -259,10 +259,10 @@ void test_pendulum() {
               << "\tx:  " << my_mass->GetPos().x() << "\ty:  " << my_mass->GetPos().y()
               << "\tz:  " << my_mass->GetPos().z() << std::endl;
 
-    // Firstly, we call DoFullAssembly() to calculate the reaction forces/torques at the initial configuration of
-    // system.
-    sys.DoFullAssembly();
-    // Secondly, we perform the static analysis using the solver ChStaticNonLinearRigidMotion().
+    // First, perform a full assembly to calculate the reaction forces/torques at the initial system configuration
+    sys.DoAssembly(AssemblyLevel::FULL);
+
+    // Second, perform the static analysis using the solver ChStaticNonLinearRigidMotion()
     sys.DoStaticAnalysis(rigid_static_analysis);
 
     while (vis->Run()) {
@@ -476,10 +476,10 @@ void test_anchorchain() {
         std::cout << "anchorC position:\t" << anchorC->GetPos().x() << "\t" << anchorC->GetPos().y() << "\t"
                   << anchorC->GetPos().z() << std::endl;
 
-        // Firstly, we call DoFullAssembly() to calculate the reaction forces/torques at the initial configuration of
-        // system.
-        sys.DoFullAssembly();
-        // Secondly, we perform the static analysis using the solver ChStaticNonLinearRigidMotion().
+        // First, perform a full assembly to calculate the reaction forces/torques at the initial system configuration
+        sys.DoAssembly(AssemblyLevel::FULL);
+
+        // Second, perform the static analysis using the solver ChStaticNonLinearRigidMotion()
         sys.DoStaticAnalysis(rigid_static_analysis);
 
         std::cout << "\nAfter doing the static nonlinear analysis:" << std::endl;

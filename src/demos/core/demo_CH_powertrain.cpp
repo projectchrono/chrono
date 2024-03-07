@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
         // EXAMPLE 1:
         //
 
-        std::cout << " Example: create a simple power train with ChShaft objects:" << std::endl;
+        std::cout << "\n\nExample: create a simple power train with ChShaft objects:" << std::endl;
 
         // We will model a very basic powertrain with two shafts A and B,
         // connected by a reducer [ t ] with transmission ratio 't'. Shafts are
@@ -96,20 +96,19 @@ int main(int argc, char* argv[]) {
         my_shaft_gearAB->SetTransmissionRatio(-0.1);  // ex., a couple of spur gears with 20 and 200 teeth
         sys.Add(my_shaft_gearAB);
 
-        std::cout << "\n\nHere's the system hierarchy:\n" << std::endl;
+        std::cout << "\nHere's the system hierarchy:\n" << std::endl;
         sys.ShowHierarchy(std::cout);
 
-        // Perform a very simple simulation loop..
-        double chronoTime = 0;
-        while (chronoTime < 2.5) {
-            chronoTime += 0.01;
+        // Simulation loop
+        double end_time = 2.5;
+        double step_size = 0.01;
 
-            // PERFORM SIMULATION UP TO chronoTime
-            sys.DoFrameDynamics(chronoTime);
+        for (double frame_time = 0.05; frame_time < end_time; frame_time += 0.05) {
+            // Perform simulation up to frame_time
+            sys.DoFrameDynamics(frame_time, step_size);
 
-            // Print something on the console..
-
-            std::cout << "Time: " << chronoTime << std::endl
+            // Print results
+            std::cout << "Time: " << frame_time << std::endl
                       << "  shaft A rot: " << my_shaftA->GetPos() << "  speed: " << my_shaftA->GetPosDer()
                       << "  accel: " << my_shaftA->GetPosDer2() << std::endl
                       << "  shaft B  rot: " << my_shaftB->GetPos() << "  speed: " << my_shaftB->GetPosDer()
@@ -124,7 +123,7 @@ int main(int argc, char* argv[]) {
         // EXAMPLE 2:
         //
 
-        std::cout << " Example: a clutch between two shafts" << std::endl;
+        std::cout << "\n\nExample: a clutch between two shafts" << std::endl;
 
         // We will model a very basic powertrain with two shafts A and B,
         // connected by a clutch [ c ]. Shafts (see flywheels || in scheme)
@@ -162,24 +161,24 @@ int main(int argc, char* argv[]) {
         // Let's begin the simulation with the clutch disengaged:
         my_shaft_clutchAB->SetModulation(0);
 
-        std::cout << "\n\nHere's the system hierarchy:\n" << std::endl;
+        std::cout << "\nHere's the system hierarchy:\n" << std::endl;
         sys.ShowHierarchy(std::cout);
 
-        // Perform a very simple simulation loop..
-        double chronoTime = 0;
-        while (chronoTime < 1.5) {
-            chronoTime += 0.01;
+        // Simulation loop
+        double end_time = 2.5;
+        double step_size = 0.01;
 
-            // PERFORM SIMULATION UP TO chronoTime
-            sys.DoFrameDynamics(chronoTime);
+        for (double frame_time = 0.05; frame_time < end_time; frame_time += 0.05) {
+            // Perform simulation up to frame_time
+            sys.DoFrameDynamics(frame_time, step_size);
 
-            // Activate the clutch only after 0.8 seconds of simulation:
-            if (chronoTime > 0.8) {
+            // Activate the clutch only after 0.8 seconds of simulation
+            if (frame_time > 0.8) {
                 my_shaft_clutchAB->SetModulation(1);
             }
 
-            // Print something on the console..
-            std::cout << "Time: " << chronoTime << std::endl
+            // Print results
+            std::cout << "Time: " << frame_time << std::endl
                       << "  shaft A rot: " << my_shaftA->GetPos() << "  speed: " << my_shaftA->GetPosDer()
                       << "  accel: " << my_shaftA->GetPosDer2() << std::endl
                       << "  shaft B  rot: " << my_shaftB->GetPos() << "  speed: " << my_shaftB->GetPosDer()
@@ -194,7 +193,7 @@ int main(int argc, char* argv[]) {
         // EXAMPLE 3:
         //
 
-        std::cout << " Example: an epicycloidal reducer" << std::endl;
+        std::cout << "\n\nExample: an epicycloidal reducer" << std::endl;
 
         // We will model an epicycloidal reducer using the ChShaftsPlanetary
         // constraint.
@@ -262,19 +261,19 @@ int main(int argc, char* argv[]) {
         my_shaft_clutchBD->SetTorqueLimit(60);
         sys.Add(my_shaft_clutchBD);
 
-        std::cout << "\n\nHere's the system hierarchy:\n" << std::endl;
+        std::cout << "\nHere's the system hierarchy:\n" << std::endl;
         sys.ShowHierarchy(std::cout);
 
-        // Perform a very simple simulation loop..
-        double chronoTime = 0;
-        while (chronoTime < 1.5) {
-            chronoTime += 0.01;
+        // Simulation loop
+        double end_time = 2.5;
+        double step_size = 0.01;
 
-            // PERFORM SIMULATION UP TO chronoTime
-            sys.DoFrameDynamics(chronoTime);
+        for (double frame_time = 0.05; frame_time < end_time; frame_time += 0.05) {
+            // Perform simulation up to frame_time
+            sys.DoFrameDynamics(frame_time, step_size);
 
-            // Print something on the console..
-            std::cout << "Time: " << chronoTime << std::endl
+            // Print results
+            std::cout << "Time: " << frame_time << std::endl
                       << "  shaft A rot: " << my_shaftA->GetPos() << "  speed: " << my_shaftA->GetPosDer()
                       << "  accel: " << my_shaftA->GetPosDer2() << std::endl
                       << "  shaft B  rot: " << my_shaftB->GetPos() << "  speed: " << my_shaftB->GetPosDer()
@@ -291,7 +290,7 @@ int main(int argc, char* argv[]) {
         // EXAMPLE 4:
         //
 
-        std::cout << " Example: constraint between a ChBody and a ChShaft" << std::endl;
+        std::cout << "\n\nExample: constraint between a ChBody and a ChShaft" << std::endl;
 
         // Suppose you want to create a 3D model, for instance a slider-crank,
         // built with multiple ChBody objects; moreover you want to create a
@@ -339,19 +338,19 @@ int main(int argc, char* argv[]) {
         my_shaftbody_connection->Initialize(my_shaftA, my_bodyB, mshaftdir);
         sys.Add(my_shaftbody_connection);
 
-        std::cout << "\n\nHere's the system hierarchy:\n" << std::endl;
+        std::cout << "\nHere's the system hierarchy:\n" << std::endl;
         sys.ShowHierarchy(std::cout);
 
         // Perform a very simple simulation loop..
-        double chronoTime = 0;
-        while (chronoTime < 0.5) {
-            chronoTime += 0.01;
+        double end_time = 2.5;
+        double step_size = 0.01;
 
-            // PERFORM SIMULATION UP TO chronoTime
-            sys.DoFrameDynamics(chronoTime);
+        for (double frame_time = 0.05; frame_time < end_time; frame_time += 0.05) {
+            // Perform simulation up to frame_time
+            sys.DoFrameDynamics(frame_time, step_size);
 
-            // Print something on the console..
-            std::cout << "Time: " << chronoTime << std::endl
+            // Print results
+            std::cout << "Time: " << frame_time << std::endl
                       << "  shaft A rot: " << my_shaftA->GetPos() << "  speed: " << my_shaftA->GetPosDer()
                       << "  accel: " << my_shaftA->GetPosDer2() << std::endl
                       << "  Body B angular speed on z: " << my_bodyB->GetAngVelLocal().z()
@@ -370,7 +369,7 @@ int main(int argc, char* argv[]) {
         // EXAMPLE 5:
         //
 
-        std::cout << " Example 5: torque converter and thermal engine" << std::endl;
+        std::cout << "\n\nExample 5: torque converter and thermal engine" << std::endl;
 
         // In this example we use a torque converter.
         // The torque converter is represented by a ChShaftsTorqueConverter
@@ -479,19 +478,19 @@ int main(int argc, char* argv[]) {
         mTw->AddPoint(500, -60);  // torque curve must be defined beyond max speed too - engine might be 'pulled'
         my_motor->SetTorqueCurve(mTw);
 
-        std::cout << "\n\nHere's the system hierarchy:\n" << std::endl;
+        std::cout << "\nHere's the system hierarchy:\n" << std::endl;
         sys.ShowHierarchy(std::cout);
 
-        // Perform a very simple simulation loop..
-        double chronoTime = 0;
-        while (chronoTime < 4.5) {
-            chronoTime += 0.01;
+        // Simulation loop
+        double end_time = 2.5;
+        double step_size = 0.01;
 
-            // PERFORM SIMULATION UP TO chronoTime
-            sys.DoFrameDynamics(chronoTime);
+        for (double frame_time = 0.05; frame_time < end_time; frame_time += 0.05) {
+            // Perform simulation up to frame_time
+            sys.DoFrameDynamics(frame_time, step_size);
 
-            // Print something on the console..
-            std::cout << "Time: " << chronoTime << std::endl
+            // Print results
+            std::cout << "Time: " << frame_time << std::endl
                       << "  shaft A rot: " << my_shaftA->GetPos() << "  speed: " << my_shaftA->GetPosDer()
                       << "  accel: " << my_shaftA->GetPosDer2() << std::endl
                       << "  shaft B rot: " << my_shaftB->GetPos() << "  speed: " << my_shaftB->GetPosDer()
@@ -512,7 +511,7 @@ int main(int argc, char* argv[]) {
         // EXAMPLE 6:
         //
 
-        std::cout << " Example 6: a ratcheting freewheel, as a one-directional clutch" << std::endl;
+        std::cout << "\n\nExample 6: a ratcheting freewheel, as a one-directional clutch" << std::endl;
 
         // In this example we use a ratcheting freewheel, that acts as a one-directional
         // clutch (where the locking in reverse direction happens only at discrete
@@ -577,22 +576,20 @@ int main(int argc, char* argv[]) {
         my_clutch->SetTorqueLimit(100);
         sys.Add(my_clutch);
 
-        std::cout << "\n\nHere's the system hierarchy:\n" << std::endl;
+        std::cout << "\nHere's the system hierarchy:\n" << std::endl;
         sys.ShowHierarchy(std::cout);
 
         std::ofstream file_results(out_dir + "/test_clutch.txt");
 
-        // Perform a very simple simulation loop..
-        double chronoTime = 0;
+        // Simulation loop
         double step = 0.01;
-        while (chronoTime < 5.5) {
-            chronoTime += step;
 
-            // PERFORM SIMULATION UP TO chronoTime
+        while (sys.GetChTime() < 5.5) {
+            // Advance dynamics by one step
             sys.DoStepDynamics(step);
 
-            // Print something on the console..
-            std::cout << "Time: " << chronoTime << std::endl
+            // Print results
+            std::cout << "Time: " << sys.GetChTime() << std::endl
                       << "  shaft B rot: " << my_shaftB->GetPos() << "  speed: " << my_shaftB->GetPosDer()
                       << "  accel: " << my_shaftB->GetPosDer2() << std::endl
                       << "  shaft C rot: " << my_shaftC->GetPos() << "  speed: " << my_shaftC->GetPosDer()
@@ -601,7 +598,7 @@ int main(int argc, char* argv[]) {
                       << "  Tfreewheel=" << my_freewheel->GetTorqueReactionOn1()
                       << "  Tclutch=" << my_clutch->GetTorqueReactionOn1()
                       << "  ratchet vane=" << my_freewheel->GetCurrentTeethVane() << std::endl;
-            file_results << chronoTime << ", " << my_shaftB->GetPos() << ", " << my_shaftC->GetPos() << ", "
+            file_results << sys.GetChTime() << ", " << my_shaftB->GetPos() << ", " << my_shaftC->GetPos() << ", "
                          << my_shaftC->GetPosDer() << ", " << my_clutch->GetTorqueReactionOn1() << ", "
                          << my_freewheel->GetCurrentTeethVane() << "\n";
         }

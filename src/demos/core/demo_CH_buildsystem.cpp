@@ -176,23 +176,21 @@ int main(int argc, char* argv[]) {
         std::cout << std::endl << std::endl << "Here's the system hierarchy for slider-crank:\n" << std::endl;
         sys.ShowHierarchy(std::cout);
 
-        std::cout << "Now use an interator to scan through already-added constraints:\n" << std::endl;
+        std::cout << "Now use an iterator to scan through already-added constraints:" << std::endl;
         for (auto link : sys.GetLinks()) {
             std::cout << "   Link class: " << typeid(link).name() << std::endl;
         }
+        std::cout << std::endl;
 
-        // OK! NOW GET READY FOR THE DYNAMICAL SIMULATION!
+        // Simulation loop
+        double end_time = 2.5;
+        double step_size = 0.01;
 
-        // A very simple simulation loop..
-        double chronoTime = 0;
-        while (chronoTime < 2.5) {
-            chronoTime += 0.01;
+        for (double frame_time = 0.05; frame_time < end_time; frame_time += 0.05) {
+            // Perform simulation up to frame_time
+            sys.DoFrameDynamics(frame_time, step_size);
 
-            // PERFORM SIMULATION UP TO chronoTime
-            sys.DoFrameDynamics(chronoTime);
-
-            // Print something on the console..
-            std::cout << "Time: " << chronoTime
+            std::cout << "Time: " << frame_time << "  Steps: " << sys.GetStepcount()
                       << "  Slider X position: " << my_link_CA->GetMarker1()->GetAbsCoordsys().pos.x()
                       << "  Engine torque: " << my_motor_AB->GetMotorTorque() << std::endl;
         }
