@@ -157,8 +157,6 @@ int main(int argc, char* argv[]) {
     solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
     solver->SetVerbose(false);
 
-    sys.SetSolverForceTolerance(1e-14);
-
     // Change type of integrator:
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
     //  sys.SetTimestepperType(chrono::ChTimestepper::Type::HHT);  // precise,slower, might iterate each step

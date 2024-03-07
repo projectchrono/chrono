@@ -127,7 +127,7 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
             solver->SetTolerance(1e-10);
             solver->EnableDiagonalPreconditioner(true);
             solver->SetVerbose(false);
-            m_system->SetSolverForceTolerance(1e-10);
+            solver->SetTolerance(1e-12);
             break;
         }
         case SolverType::MKL: {

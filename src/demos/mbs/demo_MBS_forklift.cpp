@@ -419,7 +419,7 @@ int main(int argc, char* argv[]) {
 
     // Solver settings
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(20);  // the higher, the easier to keep the constraints satisfied.
+    sys.GetSolver()->AsIterative()->SetMaxIterations(20);
 
     // Simulation loop
     double timestep = 0.005;

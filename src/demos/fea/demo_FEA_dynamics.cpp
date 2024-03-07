@@ -103,8 +103,7 @@ void test_1() {
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
     sys.SetSolver(solver);
     solver->SetMaxIterations(40);
-
-    sys.SetSolverForceTolerance(1e-10);
+    solver->SetTolerance(1e-12);
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
@@ -184,10 +183,8 @@ void test_2() {
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
     sys.SetSolver(solver);
     solver->SetMaxIterations(100);
-    solver->SetTolerance(1e-8);
+    solver->SetTolerance(1e-12);
     solver->EnableDiagonalPreconditioner(true);
-
-    sys.SetSolverForceTolerance(1e-10);
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
 
@@ -269,8 +266,6 @@ void test_2b() {
     sys.SetSolver(solver);
     solver->SetMaxIterations(200);
     solver->SetTolerance(1e-12);
-
-    sys.SetSolverForceTolerance(1e-10);
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
 
@@ -363,9 +358,7 @@ void test_3() {
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
     sys.SetSolver(solver);
     solver->SetMaxIterations(40);
-    solver->SetTolerance(1e-8);
-
-    sys.SetSolverForceTolerance(1e-10);
+    solver->SetTolerance(1e-12);
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
@@ -457,10 +450,8 @@ void test_4() {
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
     sys.SetSolver(solver);
     solver->SetMaxIterations(100);
-    solver->SetTolerance(1e-8);
+    solver->SetTolerance(1e-12);
     solver->EnableDiagonalPreconditioner(true);
-
-    sys.SetSolverForceTolerance(1e-10);
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
 

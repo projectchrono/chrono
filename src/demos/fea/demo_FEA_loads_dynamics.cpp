@@ -474,8 +474,6 @@ int main(int argc, char* argv[]) {
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
 
-    sys.SetSolverForceTolerance(1e-13);
-
     // Set integrator type
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 

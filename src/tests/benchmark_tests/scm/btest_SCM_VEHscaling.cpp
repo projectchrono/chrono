@@ -249,7 +249,8 @@ int main(int argc, char* argv[]) {
     hmmwv.GetVehicle().EnableRealtime(false);
 
     // Solver settings
-    sys.SetSolverMaxIterations(50);
+    sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(50);
 
     // Initialize simulation frame counter
     int step_number = 0;

@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation
     sys.SetSolverType(ChSolver::Type::APGD);
-    sys.SetSolverMaxIterations(100);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(100);
 
     // Simulation loop
     double timestep = 0.005;

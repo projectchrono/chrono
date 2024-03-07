@@ -157,11 +157,9 @@ TEST(ANCFcables_rigid_constraints, Minres_MKL) {
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
     model1.GetSystem()->SetSolver(solver);
     solver->SetMaxIterations(200);
-    solver->SetTolerance(1e-10);
+    solver->SetTolerance(1e-12);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
-
-    model1.GetSystem()->SetSolverForceTolerance(1e-13);
 
     // MODEL2 uses PardisoMKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();

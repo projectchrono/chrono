@@ -673,7 +673,8 @@ int main(int argc, char* argv[]) {
     MyEventReceiver receiver(&sys, vis->GetDevice(), mycar);
     vis->AddUserEventReceiver(&receiver);
 
-    sys.SetSolverMaxIterations(20);  // the higher, the easier to keep the constraints satisifed.
+    sys.SetSolverType(ChSolver::Type::PSOR);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(20);
 
     // THE SOFT-REAL-TIME CYCLE, SHOWING THE SIMULATION
 

@@ -343,7 +343,7 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    sys.SetSolverMaxIterations(30);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(30);
 
     // Simulation loop
     double timestep = 0.02;

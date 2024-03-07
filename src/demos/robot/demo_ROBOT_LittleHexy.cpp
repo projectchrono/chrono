@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_PROJECTED);
 
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(30);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(30);
 
     // Simulation loop
 

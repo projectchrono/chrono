@@ -648,8 +648,7 @@ int main(int argc, char* argv[]) {
     solver->EnableDiagonalPreconditioner(true);
     solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
     solver->SetVerbose(false);
-
-    sys.SetSolverForceTolerance(1e-14);
+    solver->SetTolerance(1e-14);
 
 #ifdef USE_MKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();

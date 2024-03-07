@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
     // Modify some setting of the physical system for the simulation, if you want
 
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(20);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(20);
 
     // Cohesion in a contact depends on the cohesion in the surface property of
     // the touching bodies, but the user can override this value when each contact is created,

@@ -221,8 +221,6 @@ int main(int argc, char* argv[]) {
     solver->EnableDiagonalPreconditioner(true);
     solver->EnableWarmStart(true);  // Enable for better convergence if using Euler implicit linearized
 
-    sys.SetSolverForceTolerance(1e-10);
-
     // Change type of integrator:
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
 

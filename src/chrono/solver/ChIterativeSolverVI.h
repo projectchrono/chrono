@@ -97,6 +97,10 @@ class ChApi ChIterativeSolverVI : public ChIterativeSolver, public ChSolverVI {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   protected:
+    virtual bool IsIterative() const override { return true; }
+    virtual bool IsDirect() const override { return false; }
+    virtual ChIterativeSolver* AsIterative() { return this; }
+
     /// This method MUST be called by all iterative methods INSIDE their iteration loops
     /// (at the end). If history recording is enabled, this function will store the
     /// current values as passed as arguments.

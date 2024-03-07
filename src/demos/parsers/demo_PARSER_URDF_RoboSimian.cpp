@@ -253,8 +253,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Solver settings
-    sys.SetSolverMaxIterations(200);
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(200);
 
     // Simulation loop
     double step_size = 5e-4;

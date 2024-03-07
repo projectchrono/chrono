@@ -511,7 +511,7 @@ Note that this represents a major public API change and we expect most user code
 | ChMaterialCompositionStrategy     |                               | rename: ChContactMaterialCompositionStrategy     |
 | ChMinMaxDistribution              |                               | rename: ChUniformDistribution                    |
 | ChModalAssembly                   |                               |                                                  |
-|                                   | refer to ChAssembly           | as ChAsembly with boundary/internal suffixes     |
+|                                   | refer to ChAssembly           | like ChAsembly with boundary/internal suffixes   |
 | ChPhysicsItem                     |                               |                                                  |
 |                                   | GetDOC                        | rename: GetNumConstraints                        |
 |                                   | GetDOC_c                      | rename: GetNumConstraintsBilateral               |
@@ -526,7 +526,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | ImmQ_complete                 | remove                                           |
 |                                   | ImmQ_dt_complete              | remove                                           |
 |                                   | ImmQ_dtdtcomplete             | remove                                           |
-|                                   | operator%                     | remove (use operator*)                           |
+|                                   | operator%                     | remove  use operator*()                          |
 |                                   | Q_from_AngAxis                | rename: SetFromAngleAxis                         |
 |                                   | Q_from_AngX                   | rename: SetFromAngleX                            |
 |                                   | Q_from_AngY                   | rename: SetFromAngleY                            |
@@ -565,7 +565,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | DoEntireDynamics              | remove                                           |
 |                                   | DoEntireKinematics            | remove                                           |
 |                                   | DoEntireUniformDynamics       | remove                                           |
-|                                   | DoFullAssembly                | remove - use DoAssembly(AssemblyLevel::FULL)     |
+|                                   | DoFullAssembly                | remove  use DoAssembly(AssemblyLevel::FULL)      |
 |                                   | DumpSystemMatrices            | rename: WriteSystemMatrices                      |
 |                                   | Get_bodylist                  | rename: GetBodies                                |
 |                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
@@ -601,9 +601,15 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNshaftsTotal               | rename: GetNumShaftsTotal                        |
 |                                   | GetNsysvars                   | remove                                           |
 |                                   | GetNsysvars_w                 | remove                                           |
+|                                   | GetSolverForceTolerance       | remove                                           |
+|                                   | GetSolverMaxIterations        | remove                                           |
+|                                   | GetSolverTolerance            | remove                                           |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
 |                                   | SetMaxiter                    | remove                                           |
 |                                   | SetStep                       | remove                                           |
+|                                   | SetSolverForceTolerance       | remove (see Notes)                               |
+|                                   | SetSolverMaxIterations        | remove (see Notes)                               |
+|                                   | SetSolverTolerance            | remove (see Notes)                               |
 | ChSystemFsi                       |                               |                                                  |
 |                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
@@ -714,6 +720,26 @@ Note that this represents a major public API change and we expect most user code
   - auxiliary classes which, while still leveraging the `ChArchive` features, allow only export but not loading back objects were renamed:
     + `ChArchiveAsciiDump` --> `ChOutputASCII`
     + `ChArchiveExplorer` --> `ChObjectExplorer`
+
++ Solver access through `ChSystem` was removed. The functions `SetSolverMaxIterations`, `SetSolverTolerance`, and `SetSolverForceTolerance` were controlling only a subset of solver parameters and only for iterative solvers.
+  Instead, the user must set solver parameters directly on the solver object. This is straightforward for the case where the user explicitly creates a solver object and attaches it to the system with `ChSystem::SetSolver`.
+  For the case where the default solver is used or where the solver is set through `ChSystem::SetSolverType`, we implemented a mechanism on `ChSolver` and derived classes which permits identifying the solver type
+  and setting solver parameters without the need for dynamic casting and testing. This mechanism is provided through `ChSolver` functions and can be used as illustrated below:
+  ```cpp
+  if (my_system.GetSolver()->IsIterative()) {
+     my_system.GetSolver()->AsIterative()->SetMaxIterations(100);
+     my_system.GetSolver()->AsIterative()->SetTolerance(1e-6);
+  }
+  ```
+  or
++ ```cpp
+  my_system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+  my_system.GetSolver()->AsIterative()->SetMaxIterations(20);
+  ```
++ We removed the option of setting an integration step size for the types of analyses that require it. Instead, the desired step size value is always explicitly passed as an argument to the `ChSystem` function that initiates that analysis (e.g., `DoStepDynamics`).
+  The current value of the step size (which may be adjusted internally in certain situations) is cached and can still be queried with `ChSystem::GetStep`. This is typically needed only internally but can also be used in user code that requires it.
+
+  Similarly, we removed the function `ChSystem::SetMaxiter` which allowed setting the maximum number of iterations for the system assembly analysis. This quantitiy can now be passed through an optional argument to `ChSystem::DoAssembly` (default value: 6).
 
 ### [Changed] Updated Chrono::VSG module
 

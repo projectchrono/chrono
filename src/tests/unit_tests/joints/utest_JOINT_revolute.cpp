@@ -183,14 +183,13 @@ int main(int argc, char* argv[]) {
 //
 // Worker function for performing the simulation with specified parameters.
 //
-bool TestRevolute(const ChVector3d& jointLoc,      // absolute location of joint
-                  const ChQuaternion<>& jointRot,  // orientation of joint
-                  eChLinkFormulation formulation, // implementation type
-                  double simTimeStep,              // simulation time step
-                  double outTimeStep,              // output time step
+bool TestRevolute(const ChVector3d& jointLoc,        // absolute location of joint
+                  const ChQuaternion<>& jointRot,    // orientation of joint
+                  eChLinkFormulation formulation,    // joint formulation
+                  double simTimeStep,                // simulation time step
+                  double outTimeStep,                // output time step
                   const std::string& chronoTestName  // name of the Chrono test
-                )
-{
+) {
     std::cout << "TEST: " << chronoTestName << std::endl;
 
     // Settings
@@ -219,8 +218,8 @@ bool TestRevolute(const ChVector3d& jointLoc,      // absolute location of joint
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(100);
-    sys.SetSolverForceTolerance(1e-4);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(100);
+    sys.GetSolver()->AsIterative()->SetTolerance(simTimeStep * 1e-4);
 
     // Create the ground body
 

@@ -108,6 +108,7 @@ int main(int argc, char* argv[]) {
 
     float friction = 0.6f;
     double collision_envelope = .001;
+    double step_size = 1e-3;
 
     // -----------------
     // Create the sys
@@ -118,9 +119,11 @@ int main(int argc, char* argv[]) {
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Set solver settings
-    sys.SetSolverMaxIterations(100);
+    if (sys.GetSolver()->IsIterative()) {
+        sys.GetSolver()->AsIterative()->SetMaxIterations(100);
+        sys.GetSolver()->AsIterative()->SetTolerance(0 * step_size);
+    }
     sys.SetMaxPenetrationRecoverySpeed(1e8);
-    sys.SetSolverForceTolerance(0);
 
     // --------------------------------------------------
     // Create a contact material, shared among all bodies
@@ -245,7 +248,7 @@ int main(int argc, char* argv[]) {
         vis->RenderCOGFrames(1.0);
         vis->EndScene();
 
-        sys.DoStepDynamics(1e-3);
+        sys.DoStepDynamics(step_size);
 
         // Process contacts
         std::cout << sys.GetChTime() << "  " << sys.GetNumContacts() << std::endl;

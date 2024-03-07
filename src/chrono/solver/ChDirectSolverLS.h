@@ -172,6 +172,10 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
   protected:
     ChDirectSolverLS();
 
+    virtual bool IsIterative() const override { return false; }
+    virtual bool IsDirect() const override { return true; }
+    virtual ChDirectSolverLS* AsDirect() { return this; }
+
     /// Factorize the current sparse matrix and return true if successful.
     virtual bool FactorizeMatrix() = 0;
 

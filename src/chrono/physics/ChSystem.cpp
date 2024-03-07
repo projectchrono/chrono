@@ -53,7 +53,6 @@ ChSystem::ChSystem()
       ch_time(0),
       m_RTF(0),
       step(0.04),
-      tol_force(-1),
       use_sleeping(false),
       min_bounce_speed(0.15),
       max_penetration_recovery_speed(0.6),
@@ -98,7 +97,6 @@ ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr),
     write_matrix = other.write_matrix;
     output_dir = other.output_dir;
     SetTimestepperType(other.GetTimestepperType());
-    tol_force = other.tol_force;
     nthreads_chrono = other.nthreads_chrono;
     nthreads_eigen = other.nthreads_eigen;
     nthreads_collision = other.nthreads_collision;
@@ -250,32 +248,6 @@ void ChSystem::Remove(std::shared_ptr<ChPhysicsItem> item) {
 
 // -----------------------------------------------------------------------------
 
-void ChSystem::SetSolverMaxIterations(int max_iters) {
-    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
-        iter_solver->SetMaxIterations(max_iters);
-    }
-}
-
-int ChSystem::GetSolverMaxIterations() const {
-    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
-        return iter_solver->GetMaxIterations();
-    }
-    return 0;
-}
-
-void ChSystem::SetSolverTolerance(double tolerance) {
-    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
-        iter_solver->SetTolerance(tolerance);
-    }
-}
-
-double ChSystem::GetSolverTolerance() const {
-    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
-        return iter_solver->GetTolerance();
-    }
-    return 0;
-}
-
 void ChSystem::SetSolverType(ChSolver::Type type) {
     // Do nothing if changing to a CUSTOM solver.
     if (type == ChSolver::Type::CUSTOM)
@@ -319,18 +291,6 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
             std::cout << "Use SetSolver()." << std::endl;
             break;
     }
-}
-
-std::shared_ptr<ChSolver> ChSystem::GetSolver() {
-    // In case the solver is iterative, and if the user specified a force-level tolerance,
-    // overwrite the solver's tolerance threshold.
-    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
-        if (tol_force > 0) {
-            iter_solver->SetTolerance(tol_force * step);
-        }
-    }
-
-    return solver;
 }
 
 void ChSystem::EnableSolverMatrixWrite(bool val, const std::string& out_dir) {
@@ -1706,15 +1666,17 @@ bool ChSystem::DoAssembly(int action, int max_num_iterations) {
     Setup();
     Update();
 
-    // Overwrite various parameters
-    int new_max_iters = 300;       // if using an iterative solver
-    double new_tolerance = 1e-10;  // if using an iterative solver
-
-    int old_max_iters = GetSolverMaxIterations();
-    double old_tolerance = GetSolverTolerance();
-
-    SetSolverMaxIterations(std::max(old_max_iters, new_max_iters));
-    SetSolverTolerance(new_tolerance);
+    // Overwrite solver parameters (only if iterative)
+    int new_max_iters = 300;     
+    double new_tolerance = 1e-10; 
+    int old_max_iters = 0;
+    double old_tolerance = 0.0;
+    if (solver->IsIterative()) {
+        old_max_iters = solver->AsIterative()->GetMaxIterations();
+        old_tolerance = solver->AsIterative()->GetTolerance();
+        solver->AsIterative()->SetMaxIterations(std::max(old_max_iters, new_max_iters));
+        solver->AsIterative()->SetTolerance(old_tolerance);
+    }
 
     // Prepare lists of variables and constraints
     DescriptorPrepareInject(*descriptor);
@@ -1726,9 +1688,11 @@ bool ChSystem::DoAssembly(int action, int max_num_iterations) {
     step = 1e-6;
     manalysis.AssemblyAnalysis(action, step);
 
-    // Restore parameters
-    SetSolverMaxIterations(old_max_iters);
-    SetSolverTolerance(old_tolerance);
+    // Restore solver parameters
+    if (solver->IsIterative()) {
+        solver->AsIterative()->SetMaxIterations(old_max_iters);
+        solver->AsIterative()->SetTolerance(old_tolerance);
+    }
 
     // Update any attached visualization system
     if (visual_system)
@@ -1817,8 +1781,13 @@ bool ChSystem::DoStaticLinear() {
     Setup();
     Update();
 
-    int old_maxsteps = GetSolverMaxIterations();
-    SetSolverMaxIterations(std::max(old_maxsteps, 300));
+    // Overwrite solver parameters (only if iterative)
+    int new_max_iters = 300;
+    int old_max_iters = 0;
+    if (solver->IsIterative()) {
+        old_max_iters = solver->AsIterative()->GetMaxIterations();
+        solver->AsIterative()->SetMaxIterations(std::max(old_max_iters, new_max_iters));
+    }
 
     // Prepare lists of variables and constraints.
     DescriptorPrepareInject(*descriptor);
@@ -1828,7 +1797,10 @@ bool ChSystem::DoStaticLinear() {
     analysis.SetIntegrable(this);
     analysis.StaticAnalysis();
 
-    SetSolverMaxIterations(old_maxsteps);
+    // Restore solver parameters
+    if (solver->IsIterative()) {
+        solver->AsIterative()->SetMaxIterations(old_max_iters);
+    }
 
     bool dump_data = false;
 
@@ -1869,8 +1841,13 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
     Setup();
     Update();
 
-    int old_maxsteps = GetSolverMaxIterations();
-    SetSolverMaxIterations(std::max(old_maxsteps, 300));
+    // Overwrite solver parameters (only if iterative)
+    int new_max_iters = 300;
+    int old_max_iters = 0;
+    if (solver->IsIterative()) {
+        old_max_iters = solver->AsIterative()->GetMaxIterations();
+        solver->AsIterative()->SetMaxIterations(std::max(old_max_iters, new_max_iters));
+    }
 
     // Prepare lists of variables and constraints.
     DescriptorPrepareInject(*descriptor);
@@ -1882,7 +1859,10 @@ bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
     analysis.SetVerbose(verbose);
     analysis.StaticAnalysis();
 
-    SetSolverMaxIterations(old_maxsteps);
+    // Restore solver parameters
+    if (solver->IsIterative()) {
+        solver->AsIterative()->SetMaxIterations(old_max_iters);
+    }
 
     // Update any attached visualization system
     if (visual_system)
@@ -1905,8 +1885,13 @@ bool ChSystem::DoStaticNonlinearRheonomic(
     Setup();
     Update();
 
-    int old_maxsteps = GetSolverMaxIterations();
-    SetSolverMaxIterations(std::max(old_maxsteps, 300));
+    // Overwrite solver parameters (only if iterative)
+    int new_max_iters = 300;
+    int old_max_iters = 0;
+    if (solver->IsIterative()) {
+        old_max_iters = solver->AsIterative()->GetMaxIterations();
+        solver->AsIterative()->SetMaxIterations(std::max(old_max_iters, new_max_iters));
+    }
 
     // Prepare lists of variables and constraints.
     DescriptorPrepareInject(*descriptor);
@@ -1919,7 +1904,10 @@ bool ChSystem::DoStaticNonlinearRheonomic(
     analysis.SetCallbackIterationBegin(callback);
     analysis.StaticAnalysis();
 
-    SetSolverMaxIterations(old_maxsteps);
+    // Restore solver parameters
+    if (solver->IsIterative()) {
+        solver->AsIterative()->SetMaxIterations(old_max_iters);
+    }
 
     // Update any attached visualization system
     if (visual_system)
@@ -1978,7 +1966,6 @@ void ChSystem::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(stepcount);
     archive_out << CHNVP(write_matrix);
 
-    archive_out << CHNVP(tol_force);
     archive_out << CHNVP(use_sleeping);
 
     archive_out << CHNVP(descriptor);
@@ -2012,7 +1999,6 @@ void ChSystem::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(stepcount);
     archive_in >> CHNVP(write_matrix);
 
-    archive_in >> CHNVP(tol_force);
     archive_in >> CHNVP(use_sleeping);
 
     archive_in >> CHNVP(descriptor);

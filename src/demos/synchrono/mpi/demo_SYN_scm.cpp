@@ -149,7 +149,8 @@ int main(int argc, char* argv[]) {
 
     // Solver settings.
     hmmwv.GetSystem()->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
-    hmmwv.GetSystem()->SetSolverMaxIterations(50);
+    hmmwv.GetSystem()->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    hmmwv.GetSystem()->GetSolver()->AsIterative()->SetMaxIterations(50);
 
     // Add vehicle as an agent
     auto vehicle_agent = chrono_types::make_shared<SynWheeledVehicleAgent>(&hmmwv.GetVehicle());

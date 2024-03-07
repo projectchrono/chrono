@@ -235,7 +235,8 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_SEQ
 
-    sys->SetSolverMaxIterations(50);
+    m_system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    m_system->GetSolver()->AsIterative()->SetMaxIterations(50);
 
 #else
 

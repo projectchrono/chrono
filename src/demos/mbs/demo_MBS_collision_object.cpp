@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
         case ChContactMethod::NSC: {
             auto sysNSC = new ChSystemNSC();
             sysNSC->SetSolverType(ChSolver::Type::APGD);
-            sysNSC->SetSolverMaxIterations(100);
+            sysNSC->GetSolver()->AsIterative()->SetMaxIterations(100);
             sysNSC->SetMaxPenetrationRecoverySpeed(10);
             sys = sysNSC;
             break;

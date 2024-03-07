@@ -213,8 +213,9 @@ int main(int argc, char* argv[]) {
     switch (solver_type) {
         case DEFAULT_SOLVER: {
             std::cout << "Using DEFAULT solver.\n";
-            system.SetSolverMaxIterations(100);
-            system.SetSolverForceTolerance(1e-6);
+            system.SetSolverType(ChSolver::Type::PSOR);
+            system.GetSolver()->AsIterative()->SetMaxIterations(100);
+            system.GetSolver()->AsIterative()->SetTolerance(time_step * 1e-6);
             break;
         }
         case MINRES_SOLVER: {
@@ -225,7 +226,6 @@ int main(int argc, char* argv[]) {
             solver->SetTolerance(1e-8);
             solver->EnableDiagonalPreconditioner(true);
             solver->SetVerbose(false);
-            system.SetSolverForceTolerance(1e-6);
             break;
         }
         default:

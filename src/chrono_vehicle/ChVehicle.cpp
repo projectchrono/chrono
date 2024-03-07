@@ -68,7 +68,8 @@ ChVehicle::ChVehicle(const std::string& name, ChContactMethod contact_method)
             break;
     }
 
-    m_system->SetSolverMaxIterations(150);
+    if (m_system->GetSolver()->IsIterative())
+        m_system->GetSolver()->AsIterative()->SetMaxIterations(150);
 }
 
 // Constructor for a ChVehicle using the specified Chrono ChSystem.

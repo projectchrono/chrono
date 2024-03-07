@@ -45,10 +45,9 @@ int main(int argc, char* argv[]) {
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
     system->SetSolver(solver);
     solver->SetMaxIterations(100);
-    solver->SetTolerance(1e-10);
+    solver->SetTolerance(1e-12);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
-    system->SetSolverForceTolerance(1e-10);
 
     // Set up integrator
     system->SetTimestepperType(ChTimestepper::Type::HHT);

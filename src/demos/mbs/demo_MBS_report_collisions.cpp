@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(20);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(20);
 
     // Create a contact material shared by all collision shapes
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();

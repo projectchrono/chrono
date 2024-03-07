@@ -260,8 +260,6 @@ int main(int argc, char* argv[]) {
     solver->EnableDiagonalPreconditioner(true);
     solver->EnableWarmStart(true);  // Enable for better convergence when using Euler implicit linearized
 
-    sys.SetSolverForceTolerance(1e-10);
-
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();

@@ -58,8 +58,8 @@ int main() {
 
     // VI solver required
     auto solver = chrono_types::make_shared<ChSolverPSOR>();
+    solver->SetMaxIterations(500);
     system.SetSolver(solver);
-    system.SetSolverMaxIterations(500);
 
     // Perform a system assembly to ensure we have the correct accelerations at the initial time.
     system.DoAssembly(AssemblyLevel::FULL);

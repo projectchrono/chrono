@@ -125,7 +125,8 @@ int main(int argc, char* argv[]) {
 
     pov_exporter.ExportScript();
 
-    sys.SetSolverMaxIterations(50);
+    sys.SetSolverType(ChSolver::Type::PSOR);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(50);
 
     while (sys.GetChTime() < 0.7) {
         sys.DoStepDynamics(0.005);

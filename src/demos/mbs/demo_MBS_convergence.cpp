@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
     // Modify some setting of the physical system for the simulation, if you want
 
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    sys.SetSolverMaxIterations(60);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(60);
 
     // When using compliance, exp. for large compliances, the max. penetration recovery speed
     // also affects reaction forces, thus it must be deactivated (or used as a very large value)

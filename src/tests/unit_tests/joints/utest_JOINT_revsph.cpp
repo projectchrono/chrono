@@ -153,8 +153,8 @@ bool TestRevSpherical(
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(100);
-    sys.SetSolverForceTolerance(1e-4);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(100);
+    sys.GetSolver()->AsIterative()->SetTolerance(simTimeStep * 1e-4);
 
     // Create the ground body
 

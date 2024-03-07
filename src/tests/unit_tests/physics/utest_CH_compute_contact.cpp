@@ -158,8 +158,10 @@ ContactForceTest::ContactForceTest() {
     // -------------------
 
     std::cout << "Using default solver." << std::endl;
-    system->SetSolverMaxIterations(100);
-    system->SetSolverForceTolerance(1e-6);
+    if (system->GetSolver()->IsIterative()) {
+        system->GetSolver()->AsIterative()->SetMaxIterations(100);
+        system->GetSolver()->AsIterative()->SetTolerance(5e-9);
+    }
 
     // ----------------
     // Setup integrator

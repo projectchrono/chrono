@@ -32,6 +32,7 @@
 #include "chrono/physics/ChContactContainer.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/solver/ChSolver.h"
+#include "chrono/solver/ChIterativeSolver.h"
 #include "chrono/timestepper/ChAssemblyAnalysis.h"
 #include "chrono/timestepper/ChIntegrable.h"
 #include "chrono/timestepper/ChTimestepper.h"
@@ -128,7 +129,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     virtual void SetSolver(std::shared_ptr<ChSolver> newsolver);
 
     /// Access the solver currently associated with this system.
-    virtual std::shared_ptr<ChSolver> GetSolver();
+    virtual std::shared_ptr<ChSolver> GetSolver() { return solver; }
 
     /// Choose the solver type, to be used for the simultaneous solution of the constraints
     /// in dynamical simulations (as well as in kinematics, statics, etc.)
@@ -147,30 +148,6 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Gets the current solver type.
     ChSolver::Type GetSolverType() const { return solver->GetType(); }
-
-    /// Set the maximum number of iterations, if using an iterative solver.
-    /// \deprecated Prefer using SetSolver and setting solver parameters directly.
-    void SetSolverMaxIterations(int max_iters);
-
-    /// Get the current maximum number of iterations, if using an iterative solver.
-    /// \deprecated Prefer using GetSolver and accessing solver statistics directly.
-    int GetSolverMaxIterations() const;
-
-    /// Set the solver tolerance threshold (used with iterative solvers only).
-    /// Note that the stopping criteria differs from solver to solver.
-    void SetSolverTolerance(double tolerance);
-
-    /// Get the current tolerance value (used with iterative solvers only).
-    double GetSolverTolerance() const;
-
-    /// Set a solver tolerance threshold at force level (default: not specified).
-    /// Specify this value **only** if solving the problem at velocity level (e.g. solving a DVI problem).
-    /// If this tolerance is specified, it is multiplied by the current integration stepsize and overwrites the current
-    /// solver tolerance.  By default, this tolerance is invalid and hence the solver's own tolerance threshold is used.
-    void SetSolverForceTolerance(double tolerance) { tol_force = tolerance; }
-
-    /// Get the current value of the force-level tolerance (used with iterative solvers only).
-    double GetSolverForceTolerance() const { return tol_force; }
 
     /// Instead of using the default 'system descriptor', you can create your own custom descriptor
     /// (inherited from ChSystemDescriptor) and plug it into the system using this function.
@@ -798,8 +775,6 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     double ch_time;  ///< simulation time of the system
     double step;     ///< time step
-
-    double tol_force;  ///< tolerance for forces (used to obtain a tolerance for impulses)
 
     bool use_sleeping;  ///< if true, put to sleep objects that come to rest
 

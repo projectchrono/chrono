@@ -115,7 +115,8 @@ void SetSimParameters(
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sys->SetGravitationalAcceleration(gravity);
 
-    sys->SetSolverTolerance(1e-3);
+    if (sys->GetSolver()->IsIterative())
+        sys->GetSolver()->AsIterative()->SetTolerance(1e-3);
 
     sys->SetContactForceModel(fmodel);
     sys->SetTangentialDisplacementModel(tmodel);

@@ -165,7 +165,8 @@ void RunTest(double speed,
     // Create the containing system
     ChSystemSMC sys;
     sys.SetGravitationalAcceleration({0, 0, -9.81});
-    sys.SetSolverMaxIterations(150);
+    sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(150);
     sys.SetMaxPenetrationRecoverySpeed(4.0);
 
     // Create the terrain

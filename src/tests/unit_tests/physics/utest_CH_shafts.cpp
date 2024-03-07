@@ -43,10 +43,11 @@ class ChShaftTest : public ::testing::TestWithParam<ChContactMethod> {
         }
 
         // Edit system settings
-        if (GetParam() == ChContactMethod::NSC) {
+        if (GetParam() == ChContactMethod::NSC)
             system->SetSolverType(ChSolver::Type::APGD);
-        }
-        system->SetSolverMaxIterations(150);
+
+        if (system->GetSolver()->IsIterative())
+            system->GetSolver()->AsIterative()->SetMaxIterations(150);
     }
 
     ~ChShaftTest() { delete system; }

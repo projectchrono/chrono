@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
 //
 bool TestPrismatic(const ChVector3d& jointLoc,      // absolute location of joint
                    const ChQuaternion<>& jointRot,  // orientation of joint
-                   eChLinkFormulation formulation,  // formulation type
+                   eChLinkFormulation formulation,  // joint formulation
                    double simTimeStep,              // simulation time step
                    double outTimeStep,              // output time step
                    const std::string& testName)     // if true, also save animation data
@@ -214,8 +214,8 @@ bool TestPrismatic(const ChVector3d& jointLoc,      // absolute location of join
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(100);
-    sys.SetSolverForceTolerance(1e-4);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(100);
+    sys.GetSolver()->AsIterative()->SetTolerance(simTimeStep * 1e-6);
 
     // Create the ground body
 

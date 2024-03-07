@@ -157,7 +157,8 @@ int main(int argc, char* argv[]) {
 
     // Solver settings.
     m113.GetSystem()->SetNumThreads(std::min(8, ChOMP::GetNumProcs()));
-    m113.GetSystem()->SetSolverMaxIterations(50);
+    m113.GetSystem()->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    m113.GetSystem()->GetSolver()->AsIterative()->SetMaxIterations(50);
 
     // Add vehicle as an agent
     auto vehicle_agent = chrono_types::make_shared<SynTrackedVehicleAgent>(&m113.GetVehicle(),

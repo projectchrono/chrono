@@ -435,7 +435,7 @@ int main(int argc, char* argv[]) {
     // So switch to a more precise solver, ex. BARZILAIBORWEIN
 
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    sys.SetSolverMaxIterations(200);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(200);
 
     /*
     // Alternative: the ADMM solver offers higher precision and it can also support FEA + nonsmooth contacts

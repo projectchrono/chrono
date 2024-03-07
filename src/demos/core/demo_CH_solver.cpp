@@ -23,38 +23,11 @@
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/solver/ChSolverPSOR.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/solver/ChDirectSolverLS.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-// Remember to use the namespace 'chrono' because all classes
-// of Chrono::Engine belong to this namespace and its children...
-
 using namespace chrono;
-
-//  The HyperOCTANT solver is aimed at solving linear problems and
-// VI/LCP/CCP complementarity problems, as those arising
-// from QP optimization problems.
-//  The problem is described by a variational inequality VI(Z*x-d,K):
-//
-//  | M -Cq'|*|q|- | f|= |0| , l \in Y, C \in Ny, normal cone to Y
-//  | Cq -E | |l|  |-b|  |c|
-//
-// Also w.symmetric Z by flipping sign of l_i: |M  Cq'|*| q|-| f|=|0|
-//                                             |Cq  E | |-l| |-b| |c|
-// * case linear problem:  all Y_i = R, Ny=0, ex. all bilateral constr.
-// * case LCP: all Y_i = R+:  c>=0, l>=0, l*c=0 ex. unilateral constr.
-// * case CCP: Y_i are friction cones, etc.
-//
-//  The HyperOCTANT technology is mostly targeted
-// at solving multibody problems in Chrono::Engine
-// so it offers optimizations for the case where the M matrix
-// is diagonal or block-diagonal: each block refers to a
-// ChVariables object, and each line of jacobian Cq belongs
-// to a ChConstraint object.
-//
-// NOTE: the frictional contact problem is a special type of nonlinear
-// complementarity, called Cone Complementary (CCP) and this is
-// solved as well by HyperOctant, using the same framework.
 
 // Test 1
 // First example: how to manage the data structures of
@@ -132,19 +105,29 @@ void test_1(const std::string& out_dir) {
     // Solve the problem with an iterative fixed-point solver, for an
     // approximate (but very fast) solution:
 
-    // Create the solver...
+    // Create the solver
     ChSolverPSOR solver;
-    solver.SetMaxIterations(1);
+    solver.SetMaxIterations(20);
     solver.EnableWarmStart(false);
     solver.SetTolerance(0.0);
     solver.SetOmega(0.8);
 
-    // .. pass the constraint and the variables to the solver to solve
+    {
+        // Solver information (generic)
+        ChSolver* s = &solver;
+        std::cout << "Solver Info" << std::endl;
+        std::cout << "Type: " << static_cast<std::underlying_type<ChSolver::Type>::type>(s->GetType()) << std::endl;
+        std::cout << "Iterative? " << s->IsIterative() << std::endl;
+        std::cout << "Direct?    " << s->IsDirect() << std::endl;
+        std::cout << "Access as iterative solver: " << s->AsIterative() << std::endl;
+        std::cout << "Access as direct solver:    " << s->AsDirect() << std::endl;
+    }
+
+    // Pass the constraint and the variables to the solver to solve
     solver.Setup(mdescriptor);
     solver.Solve(mdescriptor);
 
-    // Ok, now present the result to the user, with some
-    // statistical information:
+    // Output results
     double max_res, max_LCPerr;
     mdescriptor.ComputeFeasabilityViolation(max_res, max_LCPerr);
 
@@ -170,7 +153,7 @@ void test_1(const std::string& out_dir) {
     std::cout << "**** Using ChSolverPSOR  **********\n" << std::endl;
     std::cout << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "\n" << std::endl;
     std::cout << "vars q_a and q_b -------------------" << std::endl;
-    std::cout << mvarA.Get_qb();
+    std::cout << mvarA.Get_qb() << std::endl;
     std::cout << mvarB.Get_qb() << "  " << std::endl;
     std::cout << "multipliers l_1 and l_2 ------------\n" << std::endl;
     std::cout << mca.Get_l_i() << " " << std::endl;
@@ -258,6 +241,17 @@ void test_2(const std::string& out_dir) {
     solver.SetMaxIterations(20);
     solver.SetTolerance(1e-5);
     solver.SetVerbose(true);
+
+    {
+        // Solver information (generic)
+        ChSolver* s = &solver;
+        std::cout << "Solver Info" << std::endl;
+        std::cout << "Type: " << static_cast<std::underlying_type<ChSolver::Type>::type>(s->GetType()) << std::endl;
+        std::cout << "Iterative? " << s->IsIterative() << std::endl;
+        std::cout << "Direct?    " << s->IsDirect() << std::endl;
+        std::cout << "Access as iterative solver: " << s->AsIterative() << std::endl;
+        std::cout << "Access as direct solver:    " << s->AsDirect() << std::endl;
+    }
 
     // .. pass the constraint and the variables to the solver to solve
     solver.Setup(mdescriptor);
@@ -383,6 +377,17 @@ void test_3(const std::string& out_dir) {
     solver.EnableDiagonalPreconditioner(true);
     solver.SetVerbose(true);
 
+    {
+        // Solver information (generic)
+        ChSolver* s = &solver;
+        std::cout << "Solver Info" << std::endl;
+        std::cout << "Type: " << static_cast<std::underlying_type<ChSolver::Type>::type>(s->GetType()) << std::endl;
+        std::cout << "Iterative? " << s->IsIterative() << std::endl;
+        std::cout << "Direct?    " << s->IsDirect() << std::endl;
+        std::cout << "Access as iterative solver: " << s->AsIterative() << std::endl;
+        std::cout << "Access as direct solver:    " << s->AsDirect() << std::endl;
+    }
+
     // .. solve the system (passing variables, constraints, stiffness
     //    blocks with the ChSystemDescriptor that we populated above)
     solver.Setup(mdescriptor);
@@ -406,6 +411,102 @@ void test_3(const std::string& out_dir) {
     */
 }
 
+// Test 4
+// Same as Test 1, but use a direct sparse linear solver.
+
+void test_4(const std::string& out_dir) {
+    std::cout << "\n-------------------------------------------------" << std::endl;
+    std::cout << "TEST: generic system with two constraints\n" << std::endl;
+
+    ChSystemDescriptor mdescriptor;
+    mdescriptor.BeginInsertion();  // ----- system description starts here
+
+    ChVariablesGeneric mvarA(3);
+    mvarA.GetMass().setIdentity();
+    mvarA.GetMass() *= 10;
+    mvarA.GetInvMass() = mvarA.GetMass().inverse();
+    mvarA.Get_fb()(0) = 1;
+    mvarA.Get_fb()(1) = 2;
+
+    ChVariablesGeneric mvarB(3);
+    mvarB.GetMass().setIdentity();
+    mvarB.GetMass() *= 20;
+    mvarB.GetInvMass() = mvarB.GetMass().inverse();
+
+    mdescriptor.InsertVariables(&mvarA);
+    mdescriptor.InsertVariables(&mvarB);
+
+    ChConstraintTwoGeneric mca(&mvarA, &mvarB);
+    mca.Set_b_i(-5);
+    mca.Get_Cq_a()(0) = 1;
+    mca.Get_Cq_a()(1) = 2;
+    mca.Get_Cq_a()(2) = -1;
+    mca.Get_Cq_b()(0) = 1;
+    mca.Get_Cq_b()(1) = -2;
+    mca.Get_Cq_b()(2) = 0;
+
+    ChConstraintTwoGeneric mcb(&mvarA, &mvarB);
+    mcb.Set_b_i(1);
+    mcb.Get_Cq_a()(0) = 0;
+    mcb.Get_Cq_a()(1) = 1;
+    mcb.Get_Cq_a()(2) = 0;
+    mcb.Get_Cq_b()(0) = 0;
+    mcb.Get_Cq_b()(1) = -2;
+    mcb.Get_Cq_b()(2) = 0;
+
+    mdescriptor.InsertConstraint(&mca);
+    mdescriptor.InsertConstraint(&mcb);
+
+    mdescriptor.EndInsertion();  // ----- system description ends here
+
+    // Create the solver...
+    ChSolverSparseQR solver;
+    solver.UseSparsityPatternLearner(true);
+    solver.LockSparsityPattern(true);
+    solver.SetVerbose(false);
+
+    {
+        // Solver information (generic)
+        ChSolver* s = &solver;
+        std::cout << "Solver Info" << std::endl;
+        std::cout << "Type: " << static_cast<std::underlying_type<ChSolver::Type>::type>(s->GetType()) << std::endl;
+        std::cout << "Iterative? " << s->IsIterative() << std::endl;
+        std::cout << "Direct?    " << s->IsDirect() << std::endl;
+        std::cout << "Access as iterative solver: " << s->AsIterative() << std::endl;
+        std::cout << "Access as direct solver:    " << s->AsDirect() << std::endl;
+    }
+
+    // .. pass the constraint and the variables to the solver to solve
+    solver.Setup(mdescriptor);
+    solver.Solve(mdescriptor);
+
+    // Print results
+    double max_res, max_LCPerr;
+    mdescriptor.ComputeFeasabilityViolation(max_res, max_LCPerr);
+
+    ChSparseMatrix matrM;
+    ChSparseMatrix matrCq;
+    mdescriptor.ConvertToMatrixForm(&matrCq, &matrM, 0, 0, 0, 0, false, false);
+    StreamOut(matrM, std::cout);
+    StreamOut(matrCq, std::cout);
+
+    std::cout << "**** Using ChSolverPSOR  **********\n" << std::endl;
+    std::cout << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "\n" << std::endl;
+    std::cout << "vars q_a and q_b -------------------" << std::endl;
+    std::cout << mvarA.Get_qb() << std::endl;
+    std::cout << mvarB.Get_qb() << "  " << std::endl;
+    std::cout << "multipliers l_1 and l_2 ------------\n" << std::endl;
+    std::cout << mca.Get_l_i() << " " << std::endl;
+    std::cout << mcb.Get_l_i() << " \n" << std::endl;
+    std::cout << "constraint residuals c_1 and c_2 ---" << std::endl;
+    std::cout << mca.Get_c_i() << " " << std::endl;
+    std::cout << mcb.Get_c_i() << " \n" << std::endl;
+
+    // reset variables
+    mvarA.Get_qb().setZero();
+    mvarB.Get_qb().setZero();
+}
+
 // Do some tests in a single run, inside the main() function.
 // Results will be simply text-formatted outputs in the console..
 
@@ -420,14 +521,17 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Test: an introductory problem:
+    // Test 1: an introductory problem:
     test_1(out_dir);
 
-    // Test: the 'inverted pendulum' benchmark (compute reactions with Krylov solver)
+    // Test 2: the 'inverted pendulum' benchmark (compute reactions with Krylov solver)
     test_2(out_dir);
 
-    // Test: the stiffness benchmark (add also sparse stiffness blocks over M)
+    // Test 3: the stiffness benchmark (add also sparse stiffness blocks over M)
     test_3(out_dir);
+
+    // Test 4: same as 1, but using a direct sparse linear solver
+    test_4(out_dir);
 
     return 0;
 }

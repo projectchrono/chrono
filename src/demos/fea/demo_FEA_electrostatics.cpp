@@ -150,8 +150,6 @@ int main(int argc, char* argv[]) {
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(true);
 
-    sys.SetSolverForceTolerance(1e-20);
-
     // In electrostatics, you have only a single linear (non transient) solution
     sys.DoStaticLinear();
 

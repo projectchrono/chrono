@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
 
         my_system.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
         my_system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-        my_system.SetSolverMaxIterations(20);
+        my_system.GetSolver()->AsIterative()->SetMaxIterations(20);
 
         // 2) Add a socket framework object
         ChSocketFramework socket_tools;

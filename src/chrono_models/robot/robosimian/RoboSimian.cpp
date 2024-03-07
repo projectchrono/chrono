@@ -404,8 +404,8 @@ RoboSimian::RoboSimian(ChContactMethod contact_method, bool has_sled, bool fixed
     m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     // Solver settings
-    m_system->SetSolverMaxIterations(150);
     m_system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    m_system->GetSolver()->AsIterative()->SetMaxIterations(150);
 
     Create(has_sled, fixed);
 

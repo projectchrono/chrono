@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    sys.SetSolverMaxIterations(150);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(150);
     sys.SetMaxPenetrationRecoverySpeed(4.0);
 
     // -------------------

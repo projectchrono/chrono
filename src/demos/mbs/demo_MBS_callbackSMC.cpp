@@ -173,6 +173,7 @@ int main(int argc, char* argv[]) {
     // ----------------
 
     float friction = 0.6f;
+    double step_size = 1e-3;
 
     // -----------------
     // Create the sys
@@ -183,8 +184,10 @@ int main(int argc, char* argv[]) {
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Set solver settings
-    sys.SetSolverMaxIterations(100);
-    sys.SetSolverForceTolerance(0);
+    if (sys.GetSolver()->IsIterative()) {
+        sys.GetSolver()->AsIterative()->SetMaxIterations(100);
+        sys.GetSolver()->AsIterative()->SetTolerance(0 * step_size);
+    }
 
     // Change default collision effective radius of curvature
     ////ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
@@ -322,7 +325,7 @@ int main(int argc, char* argv[]) {
         vis->Render();
         vis->RenderCOGFrames(1.0);
 
-        sys.DoStepDynamics(1e-3);
+        sys.DoStepDynamics(step_size);
         vis->EndScene();
 
         // Process contacts

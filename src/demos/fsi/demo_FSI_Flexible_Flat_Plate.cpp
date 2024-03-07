@@ -164,10 +164,9 @@ int main(int argc, char* argv[]) {
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
     sysMBS.SetSolver(solver);
     solver->SetMaxIterations(2000);
-    solver->SetTolerance(1e-10);
+    solver->SetTolerance(1e-12);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
-    sysMBS.SetSolverForceTolerance(1e-10);
 #endif
 
     // Simulation loop

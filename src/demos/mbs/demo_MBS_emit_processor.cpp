@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(40);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(40);
 
     // Simulation loop
     double timestep = 0.02;

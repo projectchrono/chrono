@@ -261,8 +261,6 @@ int main(int argc, char* argv[]) {
     solver->SetStepAdjustPolicy(ChSolverADMM::AdmmStepType::BALANCED_UNSCALED);
     sys.SetSolver(solver);
 
-    sys.SetSolverForceTolerance(1e-10);
-
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
