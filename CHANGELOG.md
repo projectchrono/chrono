@@ -723,6 +723,11 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetGid                        | remove                                           |
 |                                   | GetUseSleeping                | rename: GetAllowSleeping                         |
 |                                   | SetUseSleeping                | rename: SetAllowSleeping                         |
+| ChSolverBB                        |                               |                                                  |
+|                                   | GetMaxArmijoBacktrace         | rename: GetMaxStepsArmijoBacktrace               |
+|                                   | GetNarmijo                    | rename: GetMaxStepsArmijoLineSearch              |
+|                                   | SetMaxArmijoBacktrace         | rename: SetMaxStepsArmijoBacktrace               |
+|                                   | SetNarmijo                    | rename: SetMaxStepsArmijoLineSearch              |
 | ChStream                          |                               | remove                                           |
 | ChStreamFile                      |                               | remove                                           |
 | ChStreamIn                        |                               | remove                                           |
