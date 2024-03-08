@@ -196,7 +196,7 @@ ChHumanDriver::ChHumanDriver(const std::string& filename,
 void ChHumanDriver::Create() {
     // Create a fixed body to carry a visualization asset for the path
     auto road = chrono_types::make_shared<ChBody>();
-    road->SetBodyFixed(true);
+    road->SetFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
 
     auto num_points = static_cast<unsigned int>(m_path->GetNumPoints());

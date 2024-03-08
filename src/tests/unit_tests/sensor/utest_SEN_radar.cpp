@@ -61,7 +61,7 @@ TEST(ChRadarSensor, check_velocity) {
 //    // -------------------------------------------
 //    auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
 //    floor->SetPos({0, 0, -1});
-//    floor->SetBodyFixed(true);
+//    floor->SetFixed(true);
 //    //    floor->SetAngVelParent(ChVector3d(-0.2,-0.4,-0.3));
 //    //    floor->SetPosDer(ChVector3d(0.1, 0,0));
 //    sys.Add(floor);

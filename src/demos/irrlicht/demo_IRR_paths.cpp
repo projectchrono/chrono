@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     // Create a ChBody that contains the trajectory (a floor, fixed body)
 
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(3, 0.2, 3, 1000, true, false);
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     // floor->SetRot(QuatFromAngleZ(0.1));
     sys.Add(floor);
 

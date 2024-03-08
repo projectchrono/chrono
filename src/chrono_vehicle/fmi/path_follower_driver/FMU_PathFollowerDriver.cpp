@@ -158,7 +158,7 @@ void FmuComponent::CreateDriver() {
 
 #ifdef CHRONO_IRRLICHT
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     sys.AddBody(ground);
 
     auto num_points = static_cast<unsigned int>(path->getNumPoints());

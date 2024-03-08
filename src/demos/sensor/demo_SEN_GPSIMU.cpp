@@ -118,22 +118,22 @@ int main(int argc, char* argv[]) {
     // -------------------------------
     auto base = chrono_types::make_shared<ChBodyEasyBox>(.2, .2, 1, 1000, true, false);
     base->SetPos(ChVector3d(-.2, 0, .5));
-    base->SetBodyFixed(true);  // the truss does not move!
+    base->SetFixed(true);  // the truss does not move!
     sys.Add(base);
 
     auto pendulum_leg_1 = chrono_types::make_shared<ChBodyEasyBox>(.2, .4, .2, 1000, true, false);
     pendulum_leg_1->SetPos(ChVector3d(0, .2, 1));
-    pendulum_leg_1->SetBodyFixed(false);
+    pendulum_leg_1->SetFixed(false);
     sys.Add(pendulum_leg_1);
 
     auto pendulum_leg_2 = chrono_types::make_shared<ChBodyEasyBox>(.2, .4, .2, 1000, true, false);
     pendulum_leg_2->SetPos(ChVector3d(0, .6, 1));
-    pendulum_leg_2->SetBodyFixed(false);
+    pendulum_leg_2->SetFixed(false);
     sys.Add(pendulum_leg_2);
 
     auto plate = chrono_types::make_shared<ChBodyEasyBox>(.4, .2, .2, 1000, true, false);
     plate->SetPos(ChVector3d(0, 0, 4));
-    plate->SetBodyFixed(true);
+    plate->SetFixed(true);
     sys.Add(plate);
 
     auto link1 = chrono_types::make_shared<ChLinkLockRevolute>();

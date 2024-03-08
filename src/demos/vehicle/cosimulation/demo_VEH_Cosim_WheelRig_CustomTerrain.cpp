@@ -106,7 +106,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     auto ground = chrono_types::make_shared<ChBody>();
     m_system->AddBody(ground);
     ground->SetMass(1);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     ground->SetCollide(true);
 
     auto mat_terrain = chrono_types::make_shared<ChContactMaterialSMC>();

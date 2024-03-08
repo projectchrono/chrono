@@ -373,7 +373,7 @@ void AddFixedObstacles(ChSystem* system) {
 
     auto obstacle = chrono_types::make_shared<ChBody>();
     obstacle->SetPos(ChVector3d(0, 0, -1.8));
-    obstacle->SetBodyFixed(true);
+    obstacle->SetFixed(true);
     obstacle->SetCollide(true);
 
     // Visualization
@@ -419,7 +419,7 @@ void AddMovingObstacles(ChSystem* system) {
     ball->SetRot(rot);
     ball->SetPosDer(init_vel);
     ball->SetAngVelLocal(init_ang_vel);
-    ball->SetBodyFixed(false);
+    ball->SetFixed(false);
     ball->SetCollide(true);
 
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);

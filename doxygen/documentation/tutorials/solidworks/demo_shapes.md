@@ -273,7 +273,7 @@ my_ground = my_system.SearchBody('ground')
 if not my_ground :
     sys.exit('Error: cannot find ground  from its name in the C::E system!')
 	
-my_floor.SetBodyFixed(False)
+my_floor.SetFixed(False)
 link_shaker = chrono.ChLinkLockLock()
 link_shaker.Initialize(my_floor, my_ground, chrono.CSYSNORM)
 my_system.Add(link_shaker)

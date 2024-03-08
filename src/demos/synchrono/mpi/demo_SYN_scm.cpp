@@ -246,7 +246,7 @@ int main(int argc, char* argv[]) {
 
         // Give the camera a fixed place to live
         auto origin = chrono_types::make_shared<ChBody>();
-        origin->SetBodyFixed(true);
+        origin->SetFixed(true);
         hmmwv.GetSystem()->AddBody(origin);
 
         // Happens to be a reasonable-looking height

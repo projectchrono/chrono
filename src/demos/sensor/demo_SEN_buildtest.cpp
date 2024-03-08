@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
                                                           true, phys_mat);  // visualization?
     floor->SetPos({0, 0, -1.0});
     floor->SetRot(QuatFromAngleZ(CH_C_PI / 2.0));
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     sys.Add(floor);
 
     // place objects to visually test rotations
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
                                                              true,             // collide enable?
                                                              true, phys_mat);  // visualization?
     scalebox->SetPos({0, -1, 1});
-    scalebox->SetBodyFixed(true);
+    scalebox->SetFixed(true);
     sys.Add(scalebox);
 
     // test max reflections
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
                                                                true,             // collide enable?
                                                                true, phys_mat);  // visualization?
     top_mirror->SetPos({0, -1, 1.5});
-    top_mirror->SetBodyFixed(true);
+    top_mirror->SetFixed(true);
     sys.Add(top_mirror);
     {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
                                                                   true,             // collide enable?
                                                                   true, phys_mat);  // visualization?
     bottom_mirror->SetPos({0, -1, 0.5});
-    bottom_mirror->SetBodyFixed(true);
+    bottom_mirror->SetFixed(true);
     sys.Add(bottom_mirror);
     {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
@@ -152,22 +152,22 @@ int main(int argc, char* argv[]) {
     // walls to contain falling objects
     auto wall1 = chrono_types::make_shared<ChBodyEasyBox>(40.0, .1, 10.0, 1000, true, true, phys_mat);
     wall1->SetPos({0, -20, 4});
-    wall1->SetBodyFixed(true);
+    wall1->SetFixed(true);
     sys.Add(wall1);
 
     auto wall2 = chrono_types::make_shared<ChBodyEasyBox>(40.0, .1, 10.0, 1000, true, true, phys_mat);
     wall2->SetPos({0, 20, 4});
-    wall2->SetBodyFixed(true);
+    wall2->SetFixed(true);
     sys.Add(wall2);
 
     auto wall3 = chrono_types::make_shared<ChBodyEasyBox>(.1, 40.0, 10.0, 1000, true, true, phys_mat);
     wall3->SetPos({-20, 0, 4});
-    wall3->SetBodyFixed(true);
+    wall3->SetFixed(true);
     sys.Add(wall3);
 
     auto wall4 = chrono_types::make_shared<ChBodyEasyBox>(.1, 40.0, 10.0, 1000, true, true, phys_mat);
     wall4->SetPos({20, 0, 4});
-    wall4->SetBodyFixed(true);
+    wall4->SetFixed(true);
     sys.Add(wall4);
 
     auto texbox = chrono_types::make_shared<ChBodyEasyBox>(1, 1,
@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
                                                            true,              // vis enable?
                                                            false, phys_mat);  //
     texbox->SetPos({1, 0, 3});
-    texbox->SetBodyFixed(true);
+    texbox->SetFixed(true);
     sys.Add(texbox);
     {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
                                                                  true,              // vis enable?
                                                                  false, phys_mat);  //
     texsphere->SetPos({1, -2, 3});
-    texsphere->SetBodyFixed(true);
+    texsphere->SetFixed(true);
     sys.Add(texsphere);
     {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
                                                                 true,                 // vis enable?
                                                                 false, phys_mat);     //
     texcyl->SetPos({1, -4, 3});
-    texcyl->SetBodyFixed(true);
+    texcyl->SetFixed(true);
     sys.Add(texcyl);
     {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();

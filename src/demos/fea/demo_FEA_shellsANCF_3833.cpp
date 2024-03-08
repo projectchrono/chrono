@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
 
     // Create the ground body to connect the cantilever beam to
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     sys.Add(ground);
 
     // Create the first nodes

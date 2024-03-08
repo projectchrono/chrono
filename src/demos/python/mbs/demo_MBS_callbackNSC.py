@@ -107,7 +107,7 @@ material.SetFriction(friction)
 container = chrono.ChBody()
 sys.Add(container)
 container.SetPos(chrono.ChVector3d(0, 0, 0))
-container.SetBodyFixed(True)
+container.SetFixed(True)
 container.SetIdentifier(-1)
 
 container.SetCollide(True)

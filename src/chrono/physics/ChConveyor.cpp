@@ -268,7 +268,7 @@ void ChConveyor::Update(double mytime, bool update_assets) {
 
     conveyor_truss->Update(mytime, update_assets);
 
-    if (conveyor_truss->GetBodyFixed()) {
+    if (conveyor_truss->GetFixed()) {
         double largemass = 100000;
         conveyor_plate->SetMass(largemass);
         conveyor_plate->SetInertiaXX(ChVector3d(largemass, largemass, largemass));

@@ -69,7 +69,7 @@ CRGTerrain::CRGTerrain(ChSystem* system)
     m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector3d(0, 0, 0));
-    m_ground->SetBodyFixed(true);
+    m_ground->SetFixed(true);
     m_ground->SetCollide(false);
     system->Add(m_ground);
 

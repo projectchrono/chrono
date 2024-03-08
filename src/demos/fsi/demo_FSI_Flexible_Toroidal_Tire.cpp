@@ -250,7 +250,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     sysMBS.AddBody(ground);
 
     // Bottom collision plate
@@ -287,7 +287,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Set the absolute position of the body:
     wheel->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(Body_pos), ChQuaternion<>(Body_rot)));
-    wheel->SetBodyFixed(false);
+    wheel->SetFixed(false);
     wheel->SetCollide(false);
     sysMBS.AddBody(wheel);
 
@@ -296,7 +296,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     chassis->SetMass(total_mass * 1.0 / 2.0);
     chassis->SetPos(wheel->GetPos());
     chassis->SetCollide(false);
-    chassis->SetBodyFixed(false);
+    chassis->SetFixed(false);
     sysMBS.AddBody(chassis);
 
     // Create the axle
@@ -304,7 +304,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     axle->SetMass(total_mass * 1.0 / 2.0);
     axle->SetPos(wheel->GetPos());
     axle->SetCollide(false);
-    axle->SetBodyFixed(false);
+    axle->SetFixed(false);
     sysMBS.AddBody(axle);
 
     // Connect the chassis to the ground through a translational joint and create a linear actuator.

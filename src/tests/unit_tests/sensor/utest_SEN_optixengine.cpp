@@ -39,7 +39,7 @@ TEST(ChOptixEngine, assign_sensor_safety) {
     ChSystemNSC sys;
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
-    box->SetBodyFixed(true);
+    box->SetFixed(true);
     sys.Add(box);
 
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
@@ -93,7 +93,7 @@ TEST(ChOptixEngine, construct_scene_safety) {
     ChSystemNSC sys;
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
-    box->SetBodyFixed(true);
+    box->SetFixed(true);
     sys.Add(box);
 
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
@@ -125,7 +125,7 @@ TEST(ChOptixEngine, construct_scene_safety) {
         if (frame == 10) {
             auto b = chrono_types::make_shared<ChBodyEasyBox>(.5, .5, .5, 1000, true, false);
             b->SetPos({0, 0, 2});
-            b->SetBodyFixed(true);
+            b->SetFixed(true);
             sys.Add(b);
             engine->ConstructScene();
         }
@@ -141,7 +141,7 @@ TEST(ChOptixEngine, construct_scene_safety_2) {
     ChSystemNSC sys;
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
-    box->SetBodyFixed(true);
+    box->SetFixed(true);
     sys.Add(box);
 
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
@@ -174,7 +174,7 @@ TEST(ChOptixEngine, construct_scene_safety_2) {
         if (frame == 10) {
             auto b = chrono_types::make_shared<ChBodyEasyBox>(.5, .5, .5, 1000, true, false);
             b->SetPos({0, 0, 2});
-            b->SetBodyFixed(true);
+            b->SetFixed(true);
             sys.Add(b);
             manager->ReconstructScenes();
         }
@@ -190,7 +190,7 @@ TEST(ChOptixEngine, lights) {
     ChSystemNSC sys;
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
-    box->SetBodyFixed(true);
+    box->SetFixed(true);
     sys.Add(box);
 
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);

@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
 
     auto mfloor =
         chrono_types::make_shared<ChBodyEasyBox>(3, 0.2, 3, 1000, false, false);  // no visualization, no collision
-    mfloor->SetBodyFixed(true);
+    mfloor->SetFixed(true);
     sys.Add(mfloor);
 
     //

@@ -139,7 +139,7 @@ void create_items(ChSystem& sys) {
                                                                true,       // collision?
                                                                material);  // contact material
     rigidFloor->SetPos(ChVector3d(0, -2, 0));
-    rigidFloor->SetBodyFixed(true);
+    rigidFloor->SetFixed(true);
     rigidFloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
 
     sys.Add(rigidFloor);

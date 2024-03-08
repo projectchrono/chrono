@@ -131,7 +131,7 @@ class MySimpleCar {
         chassis->SetPos(ChVector3d(0, 1, 0));
         chassis->SetMass(150);
         chassis->SetInertiaXX(ChVector3d(4.8, 4.5, 1));
-        chassis->SetBodyFixed(false);
+        chassis->SetFixed(false);
         sys.AddBody(chassis);
 
         // --- Right Front suspension ---
@@ -614,7 +614,7 @@ int main(int argc, char* argv[]) {
     // ..ground body
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(60, 2, 60, 1.0, true, true, ground_mat);
     my_ground->SetPos(ChVector3d(0, -1, 0));
-    my_ground->SetBodyFixed(true);
+    my_ground->SetFixed(true);
     my_ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/blue.png"));
     sys.AddBody(my_ground);
 

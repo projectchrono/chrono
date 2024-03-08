@@ -52,7 +52,7 @@ vd = chrono.ChVector3d(0, 0, 0.0001)
 
 # Create a truss:
 body_truss = chrono.ChBody()
-body_truss.SetBodyFixed(True)
+body_truss.SetFixed(True)
 
 sys.AddBody(body_truss)
 

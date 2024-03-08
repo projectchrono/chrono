@@ -54,12 +54,12 @@ int main(int argc, char* argv[]) {
 
     auto floor = std::make_shared<ChBodyEasyBox>(100, 100, .01, 1000, true, false);
     floor->SetPos({0, 0, 0});
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     sys.Add(floor);
 
     auto cart = std::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, false, false);
     cart->SetPos({0, 0, 1});
-    cart->SetBodyFixed(true);
+    cart->SetFixed(true);
     sys.Add(cart);
 
     // create alternating walls on left and right
@@ -70,13 +70,13 @@ int main(int argc, char* argv[]) {
         auto wall_body = std::make_shared<ChBodyEasyCylinder>(ChAxis::Y, wall_size, 1, 1000, true, true);
         wall_body->SetPos({4 * i * wall_size, 4, wall_size / 2});
         wall_body->SetRot(QuatFromAngleX(CH_C_PI / 2));
-        wall_body->SetBodyFixed(true);
+        wall_body->SetFixed(true);
         sys.Add(wall_body);
 
         auto wall_body1 = std::make_shared<ChBodyEasyCylinder>(ChAxis::Y, wall_size, 1, 1000, true, true);
         wall_body1->SetPos({4 * i * wall_size, -4, wall_size / 2});
         wall_body1->SetRot(QuatFromAngleX(CH_C_PI / 2));
-        wall_body1->SetBodyFixed(true);
+        wall_body1->SetFixed(true);
         sys.Add(wall_body1);
     }
 

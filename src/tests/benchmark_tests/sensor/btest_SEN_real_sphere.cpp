@@ -79,17 +79,17 @@ int main(int argc, char* argv[]) {
 
     auto sphere1 = std::make_shared<ChBodyEasySphere>(.5, 1000, true, true, phys_mat);
     sphere1->SetPos({0, -1.2, 0});
-    sphere1->SetBodyFixed(true);
+    sphere1->SetFixed(true);
     sphere1->GetVisualModel()->GetShapes()[0].first->AddMaterial(color1);
 
     auto sphere2 = std::make_shared<ChBodyEasySphere>(.5, 1000, true, true, phys_mat);
     sphere2->SetPos({0, 0, 0});
-    sphere2->SetBodyFixed(true);
+    sphere2->SetFixed(true);
     sphere2->GetVisualModel()->GetShapes()[0].first->AddMaterial(color2);
 
     auto sphere3 = std::make_shared<ChBodyEasySphere>(.5, 1000, true, true, phys_mat);
     sphere3->SetPos({0, 1.2, 0});
-    sphere3->SetBodyFixed(true);
+    sphere3->SetFixed(true);
     sphere3->GetVisualModel()->GetShapes()[0].first->AddMaterial(color3);
 
     

@@ -65,7 +65,7 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
     bin->SetPos(ChVector3d(0, 0, 0));
     bin->SetRot(QuatFromAngleY(tilt_angle));
     bin->SetCollide(true);
-    bin->SetBodyFixed(true);
+    bin->SetFixed(true);
 
     utils::AddBoxContainer(bin, mat,                                 //
                            ChFrame<>(ChVector3d(0, 0, 0.5), QUNIT),  //
@@ -99,7 +99,7 @@ void AddFallingBalls(ChSystemMulticore* sys) {
             ball->SetInertiaXX(inertia);
             ball->SetPos(pos);
             ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-            ball->SetBodyFixed(false);
+            ball->SetFixed(false);
             ball->SetCollide(true);
 
             utils::AddSphereGeometry(ball.get(), ballMat, radius);

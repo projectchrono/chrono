@@ -36,7 +36,7 @@ ChShaft::ChShaft()
       fixed(false),
       limitspeed(false),
       sleeping(false) {
-    SetUseSleeping(true);
+    SetAllowSleeping(true);
     variables.SetShaft(this);
 }
 
@@ -212,7 +212,7 @@ void ChShaft::ClampSpeed() {
 }
 
 bool ChShaft::TrySleeping() {
-    if (GetUseSleeping()) {
+    if (GetAllowSleeping()) {
         if (GetSleeping())
             return true;
 

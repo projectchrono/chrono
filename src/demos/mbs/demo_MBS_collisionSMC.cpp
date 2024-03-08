@@ -105,7 +105,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
     auto fixedBody = chrono_types::make_shared<ChBody>();
 
     fixedBody->SetMass(1.0);
-    fixedBody->SetBodyFixed(true);
+    fixedBody->SetFixed(true);
     fixedBody->SetPos(ChVector3d());
     fixedBody->SetCollide(true);
 

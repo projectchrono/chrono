@@ -220,7 +220,7 @@ namespace ChronoDemo
                 double interval = 1.0; // The interval between points, make smaller to refine grid (slows simulation down however)
                 // Create a rigid body to store the terrian grid polylines
                 ChBody gridBody = new ChBody();
-                gridBody.SetBodyFixed(true);
+                gridBody.SetFixed(true);
 
                 // Calculate the start and end positions based on the grid size
                 double halfGridSize = gridSize / 2;

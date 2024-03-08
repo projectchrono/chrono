@@ -58,7 +58,7 @@ class RayCaster {
 RayCaster::RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2d& dims, double spacing)
     : m_sys(sys), m_origin(origin), m_dims(dims), m_spacing(spacing) {
     m_body = chrono_types::make_shared<ChBody>();
-    m_body->SetBodyFixed(true);
+    m_body->SetFixed(true);
     m_body->SetCollide(false);
     sys->AddBody(m_body);
 

@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     auto container = chrono_types::make_shared<ChBody>();
     sys.Add(container);
     container->SetPos(ChVector3d(0, 0, 0));
-    container->SetBodyFixed(true);
+    container->SetFixed(true);
     container->SetIdentifier(-1);
 
     container->SetCollide(true);

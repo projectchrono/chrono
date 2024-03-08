@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     ground->SetCollide(false);
 
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.04, 0.4);
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     auto pend = chrono_types::make_shared<ChBody>();
     sys.AddBody(pend);
     pend->SetIdentifier(1);
-    pend->SetBodyFixed(false);
+    pend->SetFixed(false);
     pend->SetCollide(false);
     pend->SetMass(1);
     pend->SetInertiaXX(ChVector3d(0.2, 1, 1));

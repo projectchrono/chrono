@@ -96,14 +96,14 @@ int main(int argc, char* argv[]) {
                     quat.Normalize();
                     mesh_body->SetRot(quat);
                     mesh_body->AddVisualShape(trimesh_shape,ChFrame<>());
-                    mesh_body->SetBodyFixed(true);
+                    mesh_body->SetFixed(true);
                     sys.Add(mesh_body);
                 }
             }
         }
 
         auto cam_body = chrono_types::make_shared<ChBodyEasyBox>(.01, .01, .01, 1000, false, false);
-        cam_body->SetBodyFixed(true);
+        cam_body->SetFixed(true);
         sys.Add(cam_body);
 
         // -----------------------

@@ -501,7 +501,7 @@ void my_system_serialization_example(ChArchiveOut& archive_out) {
     // ..create a truss
     auto my_body_A = chrono_types::make_shared<ChBody>();
     sys.AddBody(my_body_A);
-    my_body_A->SetBodyFixed(true);  // truss does not move!
+    my_body_A->SetFixed(true);  // truss does not move!
 
     // ..create a flywheel
     auto my_body_B = chrono_types::make_shared<ChBody>();

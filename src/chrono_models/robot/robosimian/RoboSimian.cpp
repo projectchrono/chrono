@@ -972,7 +972,7 @@ RS_Chassis::RS_Chassis(const std::string& name, bool fixed, std::shared_ptr<ChCo
     m_body->SetFrame_COG_to_REF(ChFrame<>(com, ChQuaternion<>(1, 0, 0, 0)));
     m_body->SetInertiaXX(inertia_xx);
     m_body->SetInertiaXY(inertia_xy);
-    m_body->SetBodyFixed(fixed);
+    m_body->SetFixed(fixed);
     system->Add(m_body);
 
     // Create the set of primitive shapes

@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
     auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(5, 2, 5, 1000, true, true, floor_mat);
     floor->SetPos(ChVector3d(0, -1, 0));
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     floor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
     sys.Add(floor);
 

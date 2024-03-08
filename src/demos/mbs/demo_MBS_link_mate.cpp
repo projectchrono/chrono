@@ -177,7 +177,7 @@ void test_pendulum() {
     my_root->SetMass(1e6);
     my_root->SetInertiaXX(ChVector3d(1, 1, 1));
     my_root->SetNameString("base");
-    my_root->SetBodyFixed(true);
+    my_root->SetFixed(true);
     my_root->SetCollide(false);
     sys.AddBody(my_root);
 
@@ -341,7 +341,7 @@ void test_anchorchain() {
     auto wallA = chrono_types::make_shared<ChBody>();
     wallA->SetNameString("wallA");
     wallA->SetPos({xA, 0, 0});
-    wallA->SetBodyFixed(true);
+    wallA->SetFixed(true);
     wallA->AddVisualShape(box);
     sys.AddBody(wallA);
 
@@ -362,7 +362,7 @@ void test_anchorchain() {
     auto wallB = chrono_types::make_shared<ChBody>();
     wallB->SetNameString("wallB");
     wallB->SetPos({xB, 0, 0});
-    wallB->SetBodyFixed(true);
+    wallB->SetFixed(true);
     wallB->AddVisualShape(box);
     sys.AddBody(wallB);
 

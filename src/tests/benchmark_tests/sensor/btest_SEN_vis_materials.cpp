@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
         for (int j = 0; j <= y_dim; j++) {
             auto sphere1 = chrono_types::make_shared<ChBodyEasySphere>(.4, 1000, true, false);
             sphere1->SetPos({0, i - (x_dim / 2.), j - (y_dim / 2.)});
-            sphere1->SetBodyFixed(true);
+            sphere1->SetFixed(true);
             
             auto color = chrono_types::make_shared<ChVisualMaterial>();
             color->SetDiffuseColor({.8f, 0.f, 0.f});
@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
 
     auto sphere2 = chrono_types::make_shared<ChBodyEasySphere>(.001, 1000, false, false);
     sphere2->SetPos({0, 0, 0});
-    sphere2->SetBodyFixed(true);
+    sphere2->SetFixed(true);
     sys.Add(sphere2);
 
     // -----------------------

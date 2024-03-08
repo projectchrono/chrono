@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     std::shared_ptr<ChBody> mtruss(new ChBody);
-    mtruss->SetBodyFixed(true);
+    mtruss->SetFixed(true);
     sys.Add(mtruss);
 
     // CREATE A DEFORMABLE TIRE

@@ -46,7 +46,7 @@ contact_material = chrono.ChContactMaterialNSC()
 
 # Create a floor
 mfloor = chrono.ChBodyEasyBox(3, 0.2, 3, 1000,True,True, contact_material)
-mfloor.SetBodyFixed(True)
+mfloor.SetFixed(True)
 mfloor.GetVisualShape(0).SetColor(chrono.ChColor(0.2, 0.2, 0.6))
 sys.Add(mfloor)
 

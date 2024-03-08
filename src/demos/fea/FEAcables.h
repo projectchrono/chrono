@@ -132,7 +132,7 @@ class Model2 {
         // For instance, now retrieve the A end and add a constraint to
         // block the position only of that node:
         auto mtruss = chrono_types::make_shared<ChBody>();
-        mtruss->SetBodyFixed(true);
+        mtruss->SetFixed(true);
 
         auto constraint_hinge = chrono_types::make_shared<ChLinkPointFrame>();
         constraint_hinge->Initialize(builder.GetLastBeamNodes().back(), mtruss);
@@ -154,7 +154,7 @@ class Model3 {
         msection_cable2->SetRayleighDamping(0.000);
 
         auto mtruss = chrono_types::make_shared<ChBody>();
-        mtruss->SetBodyFixed(true);
+        mtruss->SetFixed(true);
 
         for (int j = 0; j < n_chains; ++j) {
             ChBuilderCableANCF builder;

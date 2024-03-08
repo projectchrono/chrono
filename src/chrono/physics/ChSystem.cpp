@@ -463,7 +463,7 @@ void ChSystem::SetTimestepperType(ChTimestepper::Type type) {
 }
 
 bool ChSystem::ManageSleepingBodies() {
-    if (!GetUseSleeping())
+    if (!GetAllowSleeping())
         return 0;
 
     // STEP 1:
@@ -501,10 +501,10 @@ bool ChSystem::ManageSleepingBodies() {
                 return true;
             bool sleep1 = b1->GetSleeping();
             bool sleep2 = b2->GetSleeping();
-            bool could_sleep1 = b1->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
-            bool could_sleep2 = b2->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
-            bool ground1 = b1->GetBodyFixed();
-            bool ground2 = b2->GetBodyFixed();
+            bool could_sleep1 = b1->candidate_sleeping;
+            bool could_sleep2 = b2->candidate_sleeping;
+            bool ground1 = b1->GetFixed();
+            bool ground2 = b2->GetFixed();
             if (sleep1 && !(sleep2 || could_sleep2) && !ground2) {
                 b1->SetSleeping(false);
                 need_Setup_A = true;
@@ -514,10 +514,10 @@ bool ChSystem::ManageSleepingBodies() {
                 need_Setup_A = true;
             }
             if (could_sleep1 && !(sleep2 || could_sleep2) && !ground2) {
-                b1->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
+                b1->candidate_sleeping = false;
             }
             if (could_sleep2 && !(sleep1 || could_sleep1) && !ground1) {
-                b2->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
+                b2->candidate_sleeping = false;
             }
             someone_sleeps = someone_sleeps || sleep1 || sleep2;
 
@@ -547,8 +547,8 @@ bool ChSystem::ManageSleepingBodies() {
                     if (b1 && b2) {
                         bool sleep1 = b1->GetSleeping();
                         bool sleep2 = b2->GetSleeping();
-                        bool could_sleep1 = b1->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
-                        bool could_sleep2 = b2->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
+                        bool could_sleep1 = b1->candidate_sleeping;
+                        bool could_sleep2 = b2->candidate_sleeping;
                         if (sleep1 && !(sleep2 || could_sleep2)) {
                             b1->SetSleeping(false);
                             need_Setup_L = true;
@@ -558,10 +558,10 @@ bool ChSystem::ManageSleepingBodies() {
                             need_Setup_L = true;
                         }
                         if (could_sleep1 && !(sleep2 || could_sleep2)) {
-                            b1->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
+                            b1->candidate_sleeping = false;
                         }
                         if (could_sleep2 && !(sleep1 || could_sleep1)) {
-                            b2->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
+                            b2->candidate_sleeping = false;
                         }
                     }
                 }
@@ -579,7 +579,7 @@ bool ChSystem::ManageSleepingBodies() {
     /// If some body still must change from no sleep-> sleep, do it
     int need_Setup_B = 0;
     for (auto& body : assembly.bodylist) {
-        if (body->BFlagGet(ChBody::BodyFlag::COULDSLEEP)) {
+        if (body->candidate_sleeping) {
             body->SetSleeping(true);
             ++need_Setup_B;
         }

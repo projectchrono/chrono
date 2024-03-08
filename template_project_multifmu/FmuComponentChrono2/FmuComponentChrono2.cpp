@@ -46,7 +46,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);
 
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     sys.Add(ground);
 
     // Cart is moving along X axis, Pendulum rotates along Z axis

@@ -141,7 +141,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     if (fix_subassembly) {
         // BODY: the base:
         auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 200);
-        my_body_A->SetBodyFixed(true);
+        my_body_A->SetFixed(true);
         my_body_A->SetPos(ChVector3d(-0.5, 0, 0));
         assembly->Add(my_body_A);
 
@@ -153,7 +153,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     } else {
         // BODY: the base:
         auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 200);
-        my_body_A->SetBodyFixed(true);
+        my_body_A->SetFixed(true);
         my_body_A->SetPos(ChVector3d(-0.5, 0, 0));
         sys.Add(my_body_A);
 

@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     // Create a container fixed to ground
     auto bin = chrono_types::make_shared<ChBody>();
     bin->SetPos(ChVector3d(0, -1, 0));
-    bin->SetBodyFixed(true);
+    bin->SetFixed(true);
     bin->SetCollide(true);
 
     // Set rolling and friction coefficients for the container.

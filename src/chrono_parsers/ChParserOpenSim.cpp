@@ -336,7 +336,7 @@ void ChParserOpenSim::initFunctionTable() {
     function_table["mass"] = [](xml_node<>* fieldNode, std::shared_ptr<ChBodyAuxRef> newBody) {
         if (std::stod(fieldNode->value()) == 0) {
             // Ground-like body, massless => fixed
-            newBody->SetBodyFixed(true);
+            newBody->SetFixed(true);
             newBody->SetCollide(false);
             newBody->SetPos(ChVector3d(0, 0, 0));
         } else {
@@ -718,7 +718,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
         body_collision_struct& child_col_info = body_collision_info[child->GetName()];
 
         // If a body is fixed, treat it as level 0
-        if (parent->GetBodyFixed()) {
+        if (parent->GetFixed()) {
             parent_col_info.level = 0;
         }
         // Child is one more level than parent

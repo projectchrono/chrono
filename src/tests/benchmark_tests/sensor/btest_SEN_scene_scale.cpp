@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     manager->scene->AddPointLight({-100, -100, 100}, {1, 1, 1}, 5000);
 
     auto cam_body = chrono_types::make_shared<ChBodyEasyBox>(.01, .01, .01, 1000, false, false);
-    cam_body->SetBodyFixed(true);
+    cam_body->SetFixed(true);
     sys.Add(cam_body);
     auto cam = std::make_shared<ChCameraSensor>(
         cam_body,                                                           // body camera is attached to
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
                                                                 randf() + .05, 2 * randf() + .1,  //
                                                                 1000,                             //
                                                                 true, false);
-                cyl->SetBodyFixed(true);
+                cyl->SetFixed(true);
                 cyl->SetPos({2 * x_bound * (randf() - .5), 2 * y_bound * (randf() - .5), 2 * z_bound * (randf() - .5)});
 
                 auto vis_mat = std::make_shared<ChVisualMaterial>();
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
             } else if (obj_type == 1) {
                 // sphere
                 auto sphere = std::make_shared<ChBodyEasySphere>(randf() + .05, 1000, true, false);
-                sphere->SetBodyFixed(true);
+                sphere->SetFixed(true);
                 sphere->SetPos(
                     {2 * x_bound * (randf() - .5), 2 * y_bound * (randf() - .5), 2 * z_bound * (randf() - .5)});
                 auto vis_mat = std::make_shared<ChVisualMaterial>();
@@ -130,7 +130,7 @@ int main(int argc, char* argv[]) {
                 // box
                 auto box = std::make_shared<ChBodyEasyBox>(2 * randf() + .1, 2 * randf() + .1, 2 * randf() + .1, 1000,
                                                            true, false);
-                box->SetBodyFixed(true);
+                box->SetFixed(true);
                 box->SetPos({2 * x_bound * (randf() - .5), 2 * y_bound * (randf() - .5), 2 * z_bound * (randf() - .5)});
                 auto vis_mat = std::make_shared<ChVisualMaterial>();
                 vis_mat->SetAmbientColor({0.f, 0.f, 0.f});

@@ -680,7 +680,7 @@ void AddFixedObstacles(ChSystem* system) {
 
     auto obstacle = chrono_types::make_shared<ChBody>();
     obstacle->SetPos(ChVector3d(10, 0, -1.8));
-    obstacle->SetBodyFixed(true);
+    obstacle->SetFixed(true);
     obstacle->SetCollide(true);
 
     // Visualization
@@ -712,7 +712,7 @@ void AddFallingObjects(ChSystem* system) {
     ball->SetPos(initLoc + ChVector3d(-3, 0, 2));
     ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
     ball->SetPosDer(ChVector3d(3, 0, 0));
-    ball->SetBodyFixed(false);
+    ball->SetFixed(false);
 
     ChContactMaterialData minfo;
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());

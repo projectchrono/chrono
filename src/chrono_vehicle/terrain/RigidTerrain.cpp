@@ -166,7 +166,7 @@ void RigidTerrain::AddPatch(std::shared_ptr<Patch> patch,
     patch->m_body->SetNameString("patch_" + std::to_string(m_num_patches));
     patch->m_body->SetPos(position.pos);
     patch->m_body->SetRot(position.rot);
-    patch->m_body->SetBodyFixed(true);
+    patch->m_body->SetFixed(true);
     patch->m_body->SetCollide(true);
     m_system->AddBody(patch->m_body);
 

@@ -271,7 +271,7 @@ int main(int argc, char* argv[]) {
                                                            true,         // collide
                                                            ground_mat);  // contact material
     ground->SetPos(ChVector3d(0, -5, 0));
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 100, 100);
     sys.Add(ground);
 

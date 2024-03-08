@@ -78,7 +78,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Create a body for the wall
     auto body = chrono_types::make_shared<ChBody>();
     body->SetIdentifier(-1);
-    body->SetBodyFixed(true);
+    body->SetFixed(true);
     body->SetCollide(true);
 
     // Size and position of the bottom and top walls

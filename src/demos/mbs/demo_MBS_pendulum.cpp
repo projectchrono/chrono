@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
                                                                     true,       // visualization?
                                                                     false);     // collision?
         mrigidBody0->SetPos(ChVector3d(0, 0, z_step));
-        mrigidBody0->SetBodyFixed(true);  // the truss does not move!
+        mrigidBody0->SetFixed(true);  // the truss does not move!
         sys.Add(mrigidBody0);
 
         auto mrigidBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 6, 1,  // x,y,z size

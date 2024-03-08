@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     ground->SetCollide(false);
 
     // attach visualization assets to represent the revolute and cylindrical
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
     auto shaft_1 = chrono_types::make_shared<ChBody>();
     sys.AddBody(shaft_1);
     shaft_1->SetIdentifier(1);
-    shaft_1->SetBodyFixed(false);
+    shaft_1->SetFixed(false);
     shaft_1->SetCollide(false);
     shaft_1->SetMass(1);
     shaft_1->SetInertiaXX(ChVector3d(1, 1, 0.2));
@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
     auto shaft_2 = chrono_types::make_shared<ChBody>();
     sys.AddBody(shaft_2);
     shaft_2->SetIdentifier(1);
-    shaft_2->SetBodyFixed(false);
+    shaft_2->SetFixed(false);
     shaft_2->SetCollide(false);
     shaft_2->SetMass(1);
     shaft_2->SetInertiaXX(ChVector3d(1, 1, 0.2));

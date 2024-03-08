@@ -65,7 +65,7 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem& sys, double length, double width
     }
 
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     ground->SetPos(ChVector3d(offset, 0, height - 0.1));
     ground->SetCollide(true);
 
@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
     limb4_wheel->GetCollisionModel()->SetAllShapesMaterial(cmat);
 
     // Fix root body
-    robot.GetRootChBody()->SetBodyFixed(true);
+    robot.GetRootChBody()->SetFixed(true);
 
     // Read the list of actuated motors, cache the motor links, and set their actuation function
     int num_motors = 32;
@@ -279,7 +279,7 @@ int main(int argc, char* argv[]) {
             sys.GetCollisionSystem()->BindItem(ground);
 
             // Release robot
-            torso->SetBodyFixed(false);
+            torso->SetFixed(false);
 
             terrain_created = true;
         }

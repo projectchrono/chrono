@@ -81,8 +81,8 @@ rigidBody_hand     = make_body_from_name("Assem10/Assem9", root_frame)
 rigidBody_cylinder = make_body_from_name("Assem10/Assem3", root_frame)
 rigidBody_rod      = make_body_from_name("Assem10/Assem2", root_frame)
 
-rigidBody_base.SetBodyFixed(True)
-#rigidBody_hand.SetBodyFixed(True)
+rigidBody_base.SetFixed(True)
+#rigidBody_hand.SetFixed(True)
 
 # Create joints between two parts.
 # To understand where is the axis of the joint, we can exploit the fact
@@ -157,7 +157,7 @@ sys.Add(my_link9)
 
 floor = chrono.ChBodyEasyBox(5, 1, 5, 1000, True, True)
 floor.SetPos(chrono.ChVector3d(0,-0.5,0))
-floor.SetBodyFixed(True)
+floor.SetFixed(True)
 floor.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile('textures/blue.png'))
 sys.Add(floor)
 

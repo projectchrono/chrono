@@ -192,7 +192,7 @@ Copter<nop>::Copter(ChSystem& sys,
     // placeholder Data.
     chassis->SetMass(10);
     chassis->SetInertiaXX(ChVector3d(1, 1, 1));
-    chassis->SetBodyFixed(false);
+    chassis->SetFixed(false);
     sys.AddBody(chassis);
     h0 = chassis->GetPos() ^ up;
     // 26.4 inch propellers
@@ -207,7 +207,7 @@ Copter<nop>::Copter(ChSystem& sys,
         // Data from little hexy, page 132.
         prop->SetMass(1);
         prop->SetInertiaXX(ChVector3d(0.2, 0.2, 0.2));
-        prop->SetBodyFixed(false);
+        prop->SetFixed(false);
         sys.AddBody(prop);
 
         auto propmot = chrono_types::make_shared<ChLinkMotorRotationSpeed>();

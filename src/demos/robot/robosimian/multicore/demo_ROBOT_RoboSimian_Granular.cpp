@@ -393,7 +393,7 @@ int main(int argc, char* argv[]) {
                 cout << "  Terrain top:    " << terrain_settled_height.first << " " << terrain_settled_height.second << endl;
 
                 robot.Translate(ChVector3d(0, 0, terrain_settled_height.first - terrain_init_height.first));
-                robot.GetChassisBody()->SetBodyFixed(false);
+                robot.GetChassisBody()->SetFixed(false);
                 robot_released = true;
             }
 

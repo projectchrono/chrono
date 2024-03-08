@@ -91,7 +91,7 @@ TEST(ChronoMulticore, bodyauxref) {
 
     // Create the ground body
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     sys->AddBody(ground);
 
     // Attach a visualization asset representing the Y axis.
@@ -102,7 +102,7 @@ TEST(ChronoMulticore, bodyauxref) {
     auto pend_1 = chrono_types::make_shared<ChBody>();
     sys->AddBody(pend_1);
     pend_1->SetIdentifier(1);
-    pend_1->SetBodyFixed(false);
+    pend_1->SetFixed(false);
     pend_1->SetCollide(false);
     pend_1->SetMass(1);
     pend_1->SetInertiaXX(ChVector3d(0.2, 1, 1));
@@ -122,7 +122,7 @@ TEST(ChronoMulticore, bodyauxref) {
     auto pend_2 = chrono_types::make_shared<ChBodyAuxRef>();
     sys->Add(pend_2);
     pend_2->SetIdentifier(2);
-    pend_2->SetBodyFixed(false);
+    pend_2->SetFixed(false);
     pend_2->SetCollide(false);
     pend_2->SetMass(1);
     pend_2->SetInertiaXX(ChVector3d(0.2, 1, 1));

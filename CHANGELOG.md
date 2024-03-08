@@ -253,14 +253,18 @@ Note that this represents a major public API change and we expect most user code
 | ChBody                            |                               |                                                  |
 |                                   | Dir_Body2World                | remove                                           |
 |                                   | Dir_World2Body                | remove                                           |
+|                                   | GetBodyFixed                  | rename: GetFixed                                 |
 |                                   | GetId                         | rename: GetIndex (internal use only)             |
 |                                   | GetGid                        | remove                                           |
+|                                   | GetUseSleeping                | rename: GetAllowSleeping                         |
 |                                   | Point_Body2World              | remove                                           |
 |                                   | Point_World2Body              | remove                                           |
 |                                   | RelPoint_AbsAcc               | remove                                           |
 |                                   | RelPoint_AbsSpeed             | remove                                           |
+|                                   | SetBodyFixed                  | rename: SetFixed                                 |
 |                                   | SetId                         | remove                                           |
 |                                   | SetGid                        | remove                                           |
+|                                   | SetUseSleeping                | rename: SetAllowSleeping                         |
 | ChBodyFrame                       |                               |                                                  |
 |                                   | To_abs_forcetorque            | remove                                           |
 |                                   |                               | added: AppliedForceLocalToWrenchParent           |
@@ -701,6 +705,8 @@ Note that this represents a major public API change and we expect most user code
 | ChShaft                           |                               |                                                  |
 |                                   | GetId                         | rename: GetIndex (internal use only)             |
 |                                   | GetGid                        | remove                                           |
+|                                   | GetUseSleeping                | rename: GetAllowSleeping                         |
+|                                   | SetUseSleeping                | rename: SetAllowSleeping                         |
 | ChStream                          |                               | remove                                           |
 | ChStreamFile                      |                               | remove                                           |
 | ChStreamIn                        |                               | remove                                           |
@@ -757,6 +763,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetSolverForceTolerance       | remove                                           |
 |                                   | GetSolverMaxIterations        | remove                                           |
 |                                   | GetSolverTolerance            | remove                                           |
+|                                   | GetUseSleeping                | rename: GetAllowSleeping                         |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
 |                                   | SetMinBounceSpeed             | remove and move to ChSystemNSC                   |
 |                                   | SetMaxiter                    | remove                                           |
@@ -764,6 +771,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetSolverForceTolerance       | remove (see Notes)                               |
 |                                   | SetSolverMaxIterations        | remove (see Notes)                               |
 |                                   | SetSolverTolerance            | remove (see Notes)                               |
+|                                   | SetUseSleeping                | rename: SetAllowSleeping                         |
 | ChSystemFsi                       |                               |                                                  |
 |                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |

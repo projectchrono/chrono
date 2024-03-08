@@ -83,7 +83,7 @@ namespace ChronoDemo
             ball.SetRot(rot);
             ball.SetLinVel(init_vel);
             // ball.SetWvel_par(new ChVector3d(0,0,3));
-            ball.SetBodyFixed(false);
+            ball.SetFixed(false);
 
             ChCollisionShapeSphere sphere_coll = new ChCollisionShapeSphere(material, radius);
             ball.AddCollisionShape(sphere_coll, new ChFramed());
@@ -103,7 +103,7 @@ namespace ChronoDemo
             bin.SetMass(1);
             bin.SetPos(new ChVector3d(0, 0, 0));
             bin.SetRot(new ChQuaterniond(1, 0, 0, 0));
-            bin.SetBodyFixed(true);
+            bin.SetFixed(true);
 
             ChCollisionShapeBox box_coll = new ChCollisionShapeBox(material, width * 2, thickness * 2, length * 2);
             bin.AddCollisionShape(box_coll, new ChFramed());

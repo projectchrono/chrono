@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
     {
         // Create a fixed body (reference)
         auto ground = chrono_types::make_shared<ChBody>();
-        ground->SetBodyFixed(true);
+        ground->SetFixed(true);
         sys.Add(ground);
 
         int nnodes_x = 20;

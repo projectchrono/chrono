@@ -39,13 +39,13 @@ int main(int argc, char* argv[]) {
     // Create the ground body
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(3, 2, 0.1, 10, true, false);
     sys.AddBody(ground);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     // Create the sliding body
     // Give an initial angular velocity
     auto body = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 10, true, false);
     sys.AddBody(body);
-    body->SetBodyFixed(false);
+    body->SetFixed(false);
     body->SetPos(ChVector3d(-1.25, -0.75, 0.1));
     body->SetAngVelLocal(ChVector3d(0.1, 0.1, 0.1));
     body->GetVisualShape(0)->SetColor(ChColor(0.6f, 0, 0));

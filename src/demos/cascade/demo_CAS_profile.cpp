@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
 
     // Create the truss:
     auto mfloor = chrono_types::make_shared<ChBody>();
-    mfloor->SetBodyFixed(true);
+    mfloor->SetFixed(true);
     sys.Add(mfloor);
 
     //

@@ -162,7 +162,7 @@ bool TestUniversal(const ChVector3d& jointLoc,      // absolute location of join
 
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     // Create the pendulum body in an initial configuration at rest.
     // The pendulum CG is assumed to be at half its length.

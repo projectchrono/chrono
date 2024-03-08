@@ -52,17 +52,17 @@ int main(int argc, char* argv[]) {
 
     auto floor = std::make_shared<ChBodyEasyBox>(100, 100, .1, 1000, true, true);
     floor->SetPos({0, 0, -1});
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     sys.Add(floor);
 
     auto first_wall = std::make_shared<ChBodyEasyBox>(.1, 1, 1, 1000, true, true);
     first_wall->SetPos({50.05, 0, 0});
-    first_wall->SetBodyFixed(true);
+    first_wall->SetFixed(true);
     sys.Add(first_wall);
 
     auto second_wall = std::make_shared<ChBodyEasyBox>(.1, 10, 10, 1000, true, true);
     second_wall->SetPos({60.05, 0, 0});
-    second_wall->SetBodyFixed(true);
+    second_wall->SetFixed(true);
     sys.Add(second_wall);
 
     // -----------------------

@@ -217,7 +217,7 @@ void AddObstacle(ChSystem* sys) {
 
     auto body = chrono_types::make_shared<ChBody>();
     body->SetPos(pos);
-    body->SetBodyFixed(true);
+    body->SetFixed(true);
     body->SetCollide(true);
     sys->Add(body);
 

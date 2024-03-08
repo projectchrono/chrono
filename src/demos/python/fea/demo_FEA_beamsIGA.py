@@ -96,7 +96,7 @@ sys.Add(myjoint)
 
 # Create the truss
 truss = chrono.ChBody()
-truss.SetBodyFixed(True)
+truss.SetFixed(True)
 sys.Add(truss)
 
 # Create the end bearing 

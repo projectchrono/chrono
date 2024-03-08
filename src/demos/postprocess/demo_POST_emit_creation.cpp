@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
 
     auto floor_body = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
     floor_body->SetPos(ChVector3d(0, -5, 0));
-    floor_body->SetBodyFixed(true);
+    floor_body->SetFixed(true);
     floor_body->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom::Get()));
 
     auto shape1 = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);

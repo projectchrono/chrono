@@ -500,7 +500,7 @@ void Generator::createObjects(const PointVector& points, const ChVector3d& vel) 
         body->SetPos(points[i]);
         body->SetRot(ChQuaternion<>(1, 0, 0, 0));
         body->SetPosDer(vel);
-        body->SetBodyFixed(false);
+        body->SetFixed(false);
         body->SetCollide(true);
 
         // Get size and density; calculate geometric properties

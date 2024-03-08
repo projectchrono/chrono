@@ -59,7 +59,7 @@ floor = chrono.ChBodyEasyBox(1, 0.2, 1,   # x y z size
                              True,        # must collide?
                              material)    # collision material
 floor.SetPos(chrono.ChVector3d(0,-0.3,0))
-floor.SetBodyFixed(True)
+floor.SetFixed(True)
 floor.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile('textures/blue.png'))
 sys.Add(floor)
 

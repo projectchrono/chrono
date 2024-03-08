@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
             sys.Add(body_base);
 
             // The base is fixed to the ground
-            body_base->SetBodyFixed(true);
+            body_base->SetFixed(true);
             body_base->ConcatenatePreTransformation(root_frame);
         } else
             std::cerr << "WARNING: Desired object not found in document" << std::endl;
@@ -368,7 +368,7 @@ int main(int argc, char* argv[]) {
     // Create a large cube as a floor.
 
     std::shared_ptr<ChBodyEasyBox> mfloor(new ChBodyEasyBox(8, 1, 8, 1000, true, true, mysurfmaterial));
-    mfloor->SetBodyFixed(true);
+    mfloor->SetFixed(true);
     mfloor->SetPos(ChVector3d(0, -0.5, 0));
     mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/blue.png"));
     sys.Add(mfloor);

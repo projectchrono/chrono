@@ -77,7 +77,7 @@ void test_1() {
 
     // Create also a truss
     auto truss = chrono_types::make_shared<ChBody>();
-    truss->SetBodyFixed(true);
+    truss->SetFixed(true);
     sys.Add(truss);
 
     // Create a constraint between a node and the truss
@@ -163,7 +163,7 @@ void test_2() {
 
     // Create also a truss
     auto truss = chrono_types::make_shared<ChBody>();
-    truss->SetBodyFixed(true);
+    truss->SetFixed(true);
     sys.Add(truss);
 
     // Create a constraint between a node and the truss
@@ -278,7 +278,7 @@ void test_3() {
     // Create also a truss
     auto truss = chrono_types::make_shared<ChBody>();
     sys.Add(truss);
-    truss->SetBodyFixed(true);
+    truss->SetFixed(true);
 
     // Create a constraint between a node and the truss
     auto constraint1 = chrono_types::make_shared<ChLinkPointFrame>();
@@ -390,7 +390,7 @@ void test_4() {
     // Create also a truss
     auto truss = chrono_types::make_shared<ChBody>();
     sys.Add(truss);
-    truss->SetBodyFixed(true);
+    truss->SetFixed(true);
 
     // Create a constraint between a node and the truss
     auto constraint1 = chrono_types::make_shared<ChLinkPointFrame>();
@@ -543,7 +543,7 @@ void test_5() {
     // Create also a truss
     auto truss = chrono_types::make_shared<ChBody>();
     sys.Add(truss);
-    truss->SetBodyFixed(true);
+    truss->SetFixed(true);
 
     // Create a constraint between a node and the truss
     auto constraint1 = chrono_types::make_shared<ChLinkPointFrame>();

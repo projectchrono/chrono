@@ -31,7 +31,7 @@ def CreateSliderGuide(material,
                       pos) :
     guide = chrono.ChBodyEasyBox(4, 0.3, 0.6, 1000, True, True, material)
     guide.SetPos(pos)
-    guide.SetBodyFixed(True)
+    guide.SetFixed(True)
     guide.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.4, 0.4))
     system.Add(guide)
 
@@ -59,7 +59,7 @@ def CreateStatorRotor(material,
     stator = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, 0.5, 0.1, 1000, True, True, material)
     stator.SetPos(pos)
     stator.SetRot(chrono.QuatFromAngleAxis(chrono.CH_C_PI_2, chrono.VECT_X))
-    stator.SetBodyFixed(True)
+    stator.SetFixed(True)
     stator.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.4, 0.4))
     system.Add(stator)
     
@@ -83,7 +83,7 @@ material = chrono.ChContactMaterialNSC()
 # Create a floor that is fixed (that is used also to represent the absolute reference)
 floorBody = chrono.ChBodyEasyBox(20, 2, 20, 3000, True, True, material)
 floorBody.SetPos(chrono.ChVector3d(0, -2, 0))
-floorBody.SetBodyFixed(True)
+floorBody.SetFixed(True)
 floorBody.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/blue.png"))
 sys.Add(floorBody)
 

@@ -91,7 +91,7 @@ class Model(object):
 
 
       self.body_floor = chrono.ChBody()
-      self.body_floor.SetBodyFixed(True)
+      self.body_floor.SetFixed(True)
       self.body_floor.SetPos(chrono.ChVector3d(0, -5, 0 ))
 
 

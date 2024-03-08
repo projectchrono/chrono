@@ -763,7 +763,7 @@ void example5(const std::string& out_dir) {
     sys.AddBody(my_body_A);
     sys.AddBody(my_body_B);
 
-    my_body_A->SetBodyFixed(true);
+    my_body_A->SetFixed(true);
     my_body_B->SetMass(2.0);
     my_body_B->SetInertiaXX(ChVector3d(1e-7, 1e-7, 1e-7));  // to approximate point-like mass as in MyIntegrable
     my_body_B->SetPos(ChVector3d(0, -5, 0));

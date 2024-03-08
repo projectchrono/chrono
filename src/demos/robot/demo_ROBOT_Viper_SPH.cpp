@@ -326,7 +326,7 @@ void CreateSolidPhase(ChSystemNSC& sysMBS, ChSystemFsi& sysFSI) {
     // Create a body for the rigid soil container
     auto box = chrono_types::make_shared<ChBodyEasyBox>(10, 10, 0.02, 1000, false, false);
     box->SetPos(ChVector3d(0, 0, 0));
-    box->SetBodyFixed(true);
+    box->SetFixed(true);
     sysMBS.Add(box);
 
     // Get the initial SPH particle spacing

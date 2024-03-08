@@ -310,7 +310,7 @@ if (bench3):
         mstartnode.SetFixed(True)
 
     mtruss = chrono.ChBody()
-    mtruss.SetBodyFixed(True)
+    mtruss.SetFixed(True)
     sys.Add(mtruss)
     for mendnode in nodes_left :
         mlink = chrono.ChLinkMateGeneric(False, True, False, True, False, True)

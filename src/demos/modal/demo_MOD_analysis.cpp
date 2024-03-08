@@ -72,7 +72,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
     // BODY: the base:
 
     auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 200);
-    my_body_A->SetBodyFixed(base_fixed);
+    my_body_A->SetFixed(base_fixed);
     my_body_A->SetPos(ChVector3d(-0.5, 0, 0));
     assembly->Add(my_body_A);
 
@@ -255,14 +255,14 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
     // BODY: 1st end
 
     auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 200);
-    my_body_A->SetBodyFixed(body1fixed);
+    my_body_A->SetFixed(body1fixed);
     my_body_A->SetPos(ChVector3d(-0.25, 0, 0));
     assembly->Add(my_body_A);
 
     // BODY: 2nd end
 
     auto my_body_B = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 200);
-    my_body_B->SetBodyFixed(body2fixed);
+    my_body_B->SetFixed(body2fixed);
     my_body_B->SetPos(ChVector3d(beam_L, beam_L * 0.5 + 0.25, 0));
     assembly->Add(my_body_B);
 

@@ -19,7 +19,7 @@ class simulation:
 
         ground = chrono.ChBodyEasyBox(1000,40,1,1000,True,False)
         ground.SetPos(chrono.ChVector3d(0,0,-1))
-        ground.SetBodyFixed(True)
+        ground.SetFixed(True)
         ground.GetVisualShape(0).SetMaterial(0, green)
         self.system.Add(ground)
 

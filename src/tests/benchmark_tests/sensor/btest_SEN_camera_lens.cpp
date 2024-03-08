@@ -97,12 +97,12 @@ int main(int argc, char* argv[]) {
 
     auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.001, 10 * .023, 7 * .023, 1000, true, false);
     box_body->SetPos({1.9, 0, 0});
-    box_body->SetBodyFixed(true);
+    box_body->SetFixed(true);
     mphysicalSystem.Add(box_body);
 
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, false, false);
     floor->SetPos({0, 0, 0});
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     mphysicalSystem.Add(floor);
 
     auto checkerboard = chrono_types::make_shared<ChVisualMaterial>();

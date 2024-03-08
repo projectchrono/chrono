@@ -31,11 +31,21 @@ CH_UPCASTING_SANITIZED(ChBody, ChContactable_1vars<6>, ChBody_ChContactable_1var
 CH_UPCASTING(ChBody, ChLoadableUVW)
 
 ChBody::ChBody()
-    : index(0), fixed(false), collide(false), Xforce(VNULL), Xtorque(VNULL), Force_acc(VNULL), Torque_acc(VNULL) {
+    : index(0),
+      fixed(false),
+      collide(false),
+      limit_speed(false),
+      disable_gyrotorque(false),
+      is_sleeping(false),
+      allow_sleeping(false),
+      candidate_sleeping(false),
+      Xforce(VNULL),
+      Xtorque(VNULL),
+      Force_acc(VNULL),
+      Torque_acc(VNULL) {
+
     marklist.clear();
     forcelist.clear();
-
-    BFlagsSetAllOFF();  // no flags
 
     max_speed = 0.5f;
     max_wvel = 2.0f * float(CH_C_PI);
@@ -44,7 +54,7 @@ ChBody::ChBody()
     sleep_starttime = 0;
     sleep_minspeed = 0.1f;
     sleep_minwvel = 0.04f;
-    SetUseSleeping(true);
+    SetAllowSleeping(true);
 
     variables.SetUserData((void*)this);
 }
@@ -52,7 +62,12 @@ ChBody::ChBody()
 ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
     fixed = other.fixed;
     collide = other.collide;
-    bflags = other.bflags;
+    limit_speed = other.limit_speed;
+    disable_gyrotorque = other.disable_gyrotorque;
+    is_sleeping = other.is_sleeping;
+    allow_sleeping = other.allow_sleeping;
+    candidate_sleeping = other.candidate_sleeping;
+
 
     variables = other.variables;
     variables.SetUserData((void*)this);
@@ -394,16 +409,16 @@ void ChBody::ComputeGyro() {
 }
 
 bool ChBody::TrySleeping() {
-    BFlagSet(BodyFlag::COULDSLEEP, false);
+    candidate_sleeping = false;
 
-    if (GetUseSleeping()) {
+    if (GetAllowSleeping()) {
         if (!IsActive())
             return false;
 
         // if not yet sleeping:
         if ((GetPosDer().LengthInf() < sleep_minspeed) && (2.0 * GetRotDer().LengthInf() < sleep_minwvel)) {
             if ((GetChTime() - sleep_starttime) > sleep_time) {
-                BFlagSet(BodyFlag::COULDSLEEP, true);  // mark as sleep candidate
+                candidate_sleeping = true;
                 return true;                           // could go to sleep!
             }
         } else {
@@ -576,73 +591,50 @@ void ChBody::Update(double mytime, bool update_assets) {
 }
 
 // ---------------------------------------------------------------------------
-// Body flags management
-void ChBody::BFlagsSetAllOFF() {
-    bflags = 0;
-}
-void ChBody::BFlagsSetAllON() {
-    bflags = 0;
-    bflags = ~bflags;
-}
-void ChBody::BFlagSetON(BodyFlag mask) {
-    bflags |= mask;
-}
-void ChBody::BFlagSetOFF(BodyFlag mask) {
-    bflags &= ~mask;
-}
-bool ChBody::BFlagGet(BodyFlag mask) const {
-    return (bflags & mask) != 0;
-};
-void ChBody::BFlagSet(BodyFlag mask, bool state) {
-    if (state)
-        bflags |= mask;
-    else
-        bflags &= ~mask;
-}
 
-void ChBody::SetBodyFixed(bool state) {
+void ChBody::SetFixed(bool state) {
     variables.SetDisabled(state);
     fixed = state;
 }
 
-bool ChBody::GetBodyFixed() const {
+bool ChBody::GetFixed() const {
     return fixed;
 }
 
 void ChBody::SetLimitSpeed(bool state) {
-    BFlagSet(BodyFlag::LIMITSPEED, state);
+    limit_speed = state;
 }
 
 bool ChBody::GetLimitSpeed() const {
-    return BFlagGet(BodyFlag::LIMITSPEED);
+    return limit_speed;
 }
 
 void ChBody::SetNoGyroTorque(bool state) {
-    BFlagSet(BodyFlag::NOGYROTORQUE, state);
+    disable_gyrotorque = state;
 }
 
 bool ChBody::GetNoGyroTorque() const {
-    return BFlagGet(BodyFlag::NOGYROTORQUE);
+    return disable_gyrotorque;
 }
 
-void ChBody::SetUseSleeping(bool state) {
-    BFlagSet(BodyFlag::USESLEEPING, state);
+void ChBody::SetAllowSleeping(bool state) {
+    allow_sleeping = state;
 }
 
-bool ChBody::GetUseSleeping() const {
-    return BFlagGet(BodyFlag::USESLEEPING);
+bool ChBody::GetAllowSleeping() const {
+    return allow_sleeping;
 }
 
 void ChBody::SetSleeping(bool state) {
-    BFlagSet(BodyFlag::SLEEPING, state);
+    is_sleeping = state;
 }
 
 bool ChBody::GetSleeping() const {
-    return BFlagGet(BodyFlag::SLEEPING);
+    return is_sleeping;
 }
 
 bool ChBody::IsActive() const {
-    return !BFlagGet(BodyFlag::SLEEPING) && !fixed;
+    return !is_sleeping && !fixed;
 }
 
 // ---------------------------------------------------------------------------
@@ -989,16 +981,11 @@ void ChBody::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(fixed);
     archive_out << CHNVP(collide);
 
-    archive_out << CHNVP(bflags);
-    bool mflag;  // more readable flag output in case of ASCII in/out
-    mflag = BFlagGet(BodyFlag::LIMITSPEED);
-    archive_out << CHNVP(mflag, "limit_speed");
-    mflag = BFlagGet(BodyFlag::NOGYROTORQUE);
-    archive_out << CHNVP(mflag, "no_gyro_torque");
-    mflag = BFlagGet(BodyFlag::USESLEEPING);
-    archive_out << CHNVP(mflag, "use_sleeping");
-    mflag = BFlagGet(BodyFlag::SLEEPING);
-    archive_out << CHNVP(mflag, "is_sleeping");
+    archive_out << CHNVP(limit_speed);
+    archive_out << CHNVP(disable_gyrotorque);
+    archive_out << CHNVP(is_sleeping);
+    archive_out << CHNVP(allow_sleeping);
+    archive_out << CHNVP(candidate_sleeping);
 
     archive_out << CHNVP(marklist, "markers");
     archive_out << CHNVP(forcelist, "forces");
@@ -1033,16 +1020,11 @@ void ChBody::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(fixed);
     archive_in >> CHNVP(collide);
 
-    archive_in >> CHNVP(bflags);
-    bool mflag;  // more readable flag output in case of ASCII in/out
-    if (archive_in.in(CHNVP(mflag, "limit_speed")))
-        BFlagSet(BodyFlag::LIMITSPEED, mflag);
-    if (archive_in.in(CHNVP(mflag, "no_gyro_torque")))
-        BFlagSet(BodyFlag::NOGYROTORQUE, mflag);
-    if (archive_in.in(CHNVP(mflag, "use_sleeping")))
-        BFlagSet(BodyFlag::USESLEEPING, mflag);
-    if (archive_in.in(CHNVP(mflag, "is_sleeping")))
-        BFlagSet(BodyFlag::SLEEPING, mflag);
+    archive_in >> CHNVP(limit_speed);
+    archive_in >> CHNVP(disable_gyrotorque);
+    archive_in >> CHNVP(is_sleeping);
+    archive_in >> CHNVP(allow_sleeping);
+    archive_in >> CHNVP(candidate_sleeping);
 
     std::vector<std::shared_ptr<ChMarker>> tempmarkers;
     std::vector<std::shared_ptr<ChForce>> tempforces;

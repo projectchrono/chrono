@@ -227,7 +227,7 @@ bool TestRevolute(const ChVector3d& jointLoc,        // absolute location of joi
 
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     // Create the pendulum body in an initial configuration at rest, with an
     // orientation that matches the specified joint orientation and a position

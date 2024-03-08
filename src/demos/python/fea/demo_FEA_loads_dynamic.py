@@ -61,7 +61,7 @@ mesh.AddElement(elementA)
 
 # Create the ground body
 ground = chrono.ChBody()
-ground.SetBodyFixed(True)
+ground.SetFixed(True)
 sys.Add(ground)
 
 # Create a constraint the end of the beam

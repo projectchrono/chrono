@@ -368,7 +368,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     m_system->AddBody(container);
     container->SetIdentifier(-1);
     container->SetMass(1);
-    container->SetBodyFixed(true);
+    container->SetFixed(true);
     container->SetCollide(true);
 
     double hdimX = m_dimX / 2;
@@ -529,7 +529,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         body->SetRot(b.m_init_rot);
         body->SetMass(mass * b.m_density);
         body->SetInertia(inertia * b.m_density);
-        body->SetBodyFixed(false);
+        body->SetFixed(false);
         body->SetCollide(true);
 
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_g);
@@ -776,7 +776,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
         body->SetIdentifier(it);
         body->SetMass(mass_p);
         body->SetInertiaXX(inertia_p);
-        body->SetBodyFixed(m_fixed_proxies);
+        body->SetFixed(m_fixed_proxies);
         body->SetCollide(true);
 
         // Create contact shape.
@@ -809,7 +809,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateRigidProxy(unsigned int i) {
     body->SetIdentifier(0);
     body->SetMass(m_load_mass[i]);
     ////body->SetInertiaXX();   //// TODO
-    body->SetBodyFixed(m_fixed_proxies);
+    body->SetFixed(m_fixed_proxies);
     body->SetCollide(true);
 
     // Create visualization assets (use collision shapes)

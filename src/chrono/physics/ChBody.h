@@ -54,10 +54,10 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Sets the 'fixed' state of the body.
     /// If true, the body does not move with respect to the absolute reference frame.
-    void SetBodyFixed(bool state);
+    void SetFixed(bool state);
 
     /// Return true if this body is fixed to ground.
-    bool GetBodyFixed() const;
+    bool GetFixed() const;
 
     /// Enable/disable the collision for this rigid body.
     void SetCollide(bool state);
@@ -86,10 +86,10 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Enable/disable option for setting bodies to "sleep".
     /// If use sleeping = true, bodies which stay in same place for long enough time will be deactivated, for
     /// optimization. The realism is limited, but the simulation is faster.
-    void SetUseSleeping(bool state);
+    void SetAllowSleeping(bool state);
 
     /// Return true if 'sleep' mode is activated.
-    bool GetUseSleeping() const;
+    bool GetAllowSleeping() const;
 
     /// Force the body in sleeping mode or not.
     /// Usually, this state change is handled internally.
@@ -624,26 +624,14 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// This is not needed because not used in quadrature.
     virtual double GetDensity() override { return 0; }
 
-    /// Bit flags
-    enum BodyFlag {
-        LIMITSPEED = (1L << 0),    // body angular and linear speed is limited (clamped)
-        SLEEPING = (1L << 1),      // body is sleeping [internal]
-        USESLEEPING = (1L << 2),   // if body remains in same place for too long time, it will be frozen
-        NOGYROTORQUE = (1L << 3),  // do not get the gyroscopic (quadratic) term, for low-fi but stable simulation
-        COULDSLEEP = (1L << 4)     // if body remains in same place for too long time, it will be frozen
-    };
-
     bool fixed;    ///< flag indicating whether or not the body is fixed to global frame
     bool collide;  ///< flag indicating whether or not the body participates in collisions
-    int bflags;    ///< encoding for all body flags
-
-    /// Flags handling functions
-    void BFlagsSetAllOFF();
-    void BFlagsSetAllON();
-    void BFlagSetON(BodyFlag mask);
-    void BFlagSetOFF(BodyFlag mask);
-    void BFlagSet(BodyFlag mask, bool state);
-    bool BFlagGet(BodyFlag mask) const;
+    
+    bool limit_speed; ///< enable the clamping on body angular and linear speed
+    bool disable_gyrotorque;  ///< disable the gyroscopic (quadratic) term, help the stability of the simulation but reduces the accuracy
+    bool is_sleeping;         ///< flag indicating whether or not the body is currently in sleep mode
+    bool allow_sleeping;     ///< flag indicating whether or not the body can go to sleep mode
+    bool candidate_sleeping; ///< flag indicating whether or not the body is a candidate for sleep mode in the current simulation
 
     // Friend classes with private access
     friend class ChSystem;

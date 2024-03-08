@@ -45,7 +45,7 @@ CRMTerrain::CRMTerrain(ChSystem& sys, double spacing)
       m_verbose(false) {
     // Create ground body
     m_ground = chrono_types::make_shared<ChBody>();
-    m_ground->SetBodyFixed(true);
+    m_ground->SetFixed(true);
     sys.AddBody(m_ground);
 
     // Associate MBS system with underlying FSI system
@@ -106,7 +106,7 @@ void CRMTerrain::AddRigidObstacle(const std::string& obj_file,
     o.body->SetRot(pos.GetRot());
     o.body->SetMass(mass * density);
     o.body->SetInertia(inertia * density);
-    o.body->SetBodyFixed(false);
+    o.body->SetFixed(false);
     o.body->SetCollide(true);
 
     // Create obstacle visualization geometry

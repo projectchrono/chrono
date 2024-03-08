@@ -59,7 +59,7 @@ if (do_mesh_collision_floor) :
     # floor as a triangle mesh surface:
     mfloor = chrono.chronoChBody()
     mfloor.SetPos(chrono.ChVector3d(0, -1, 0))
-    mfloor.SetBodyFixed(True)
+    mfloor.SetFixed(True)
     sys.Add(mfloor)
     
     mfloor.GetCollisionModel().Clear()
@@ -80,7 +80,7 @@ else :
     # floor as a simple collision primitive:
     
     mfloor = chrono.ChBodyEasyBox(2, 0.1, 2, 2700, True, True, mysurfmaterial)
-    mfloor.SetBodyFixed(True)
+    mfloor.SetFixed(True)
     mfloor.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/concrete.jpg"))
     sys.Add(mfloor)
 

@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
 
         auto body = chrono_types::make_shared<ChBodyAuxRef>();
         sys.Add(body);
-        body->SetBodyFixed(false);
+        body->SetFixed(false);
         body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(rock_pos[i]), QUNIT));
         body->SetFrame_COG_to_REF(ChFrame<>(cog, principal_inertia_rot));
         body->SetMass(mass * rock_density);

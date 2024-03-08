@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
 
         // Create rigid bodies and add them to the system:
         auto my_body_A = chrono_types::make_shared<ChBody>();  // truss
-        my_body_A->SetBodyFixed(true);                         // truss does not move!
+        my_body_A->SetFixed(true);                         // truss does not move!
         my_system.AddBody(my_body_A);
 
         auto my_body_B = chrono_types::make_shared<ChBody>();  // moving body

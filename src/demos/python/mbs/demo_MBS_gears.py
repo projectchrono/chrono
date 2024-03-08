@@ -39,7 +39,7 @@ radB = 4
 # ...the truss
 mbody_truss = chrono.ChBodyEasyBox(20, 10, 2, 1000, True, False, mat)
 sys.Add(mbody_truss)
-mbody_truss.SetBodyFixed(True)
+mbody_truss.SetFixed(True)
 mbody_truss.SetPos(chrono.ChVector3d(0, 0, 3))
 
 # Shared visualization material

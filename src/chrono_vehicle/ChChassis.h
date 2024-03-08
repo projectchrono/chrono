@@ -124,10 +124,10 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     virtual void SetCollide(bool state) = 0;
 
     /// Set the "fixed to ground" status of the chassis body.
-    void SetFixed(bool val) { m_body->SetBodyFixed(val); }
+    void SetFixed(bool val) { m_body->SetFixed(val); }
 
     /// Return true if the chassis body is fixed to ground.
-    bool IsFixed() const { return m_body->GetBodyFixed(); }
+    bool IsFixed() const { return m_body->GetFixed(); }
 
     /// Return true if the vehicle model contains bushings.
     bool HasBushings() const { return m_container_bushings->GetNumLoads() > 0; }

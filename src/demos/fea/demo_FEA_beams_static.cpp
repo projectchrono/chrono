@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
     // Create a truss:
     auto my_body_A = chrono_types::make_shared<ChBody>();
 
-    my_body_A->SetBodyFixed(true);
+    my_body_A->SetFixed(true);
     sys.AddBody(my_body_A);
 
     // Attach a 'box' shape asset for visualization.

@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
                                                                  false  // add a collision model
             );
             sys.Add(body1);
-            body1->SetBodyFixed(true);
+            body1->SetFixed(true);
             // Move the body as for global displacement/rotation (also mbody1 %= root_frame; )
             body1->ConcatenatePreTransformation(root_frame);
         } else
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     // Create a large cube as a floor.
     std::shared_ptr<ChBodyEasyBox> floor(new ChBodyEasyBox(1, 0.2, 1, 1000));
     floor->SetPos(ChVector3d(0, -0.3, 0));
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     floor->GetVisualShape(0)->SetColor(ChColor(0.3f, 0.3f, 0.8f));
     sys.Add(floor);
 

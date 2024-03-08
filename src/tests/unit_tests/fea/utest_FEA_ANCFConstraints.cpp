@@ -82,12 +82,12 @@ void AddBodies(ChSystemNSC& sys) {
     // Defining the Body 1
     ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     // Defining the Body 2
     Body_1 = chrono_types::make_shared<ChBody>();
     sys.AddBody(Body_1);
-    Body_1->SetBodyFixed(false);
+    Body_1->SetFixed(false);
     Body_1->SetMass(1);
     Body_1->SetInertiaXX(ChVector3d(0.1, 0.1, 0.1));
     Body_1->SetPos(ChVector3d(-1, 0, 0));
@@ -95,7 +95,7 @@ void AddBodies(ChSystemNSC& sys) {
     // Defining the Body 3
     Body_2 = chrono_types::make_shared<ChBody>();
     sys.AddBody(Body_2);
-    Body_2->SetBodyFixed(false);
+    Body_2->SetFixed(false);
     Body_2->SetMass(2);
     Body_2->SetInertiaXX(ChVector3d(0.1, 0.1, 0.1));
     Body_2->SetPos(ChVector3d(0.25, 0, 0));

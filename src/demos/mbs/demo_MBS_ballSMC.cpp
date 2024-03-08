@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     ball->SetRot(rot);
     ball->SetPosDer(init_vel);
     // ball->SetAngVelParent(ChVector3d(0,0,3));
-    ball->SetBodyFixed(false);
+    ball->SetFixed(false);
 
     auto sphere_coll = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
     ball->AddCollisionShape(sphere_coll, ChFrame<>());
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     bin->SetMass(1);
     bin->SetPos(ChVector3d(0, 0, 0));
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    bin->SetBodyFixed(true);
+    bin->SetFixed(true);
 
     auto box_coll = chrono_types::make_shared<ChCollisionShapeBox>(material, width * 2, thickness * 2, length * 2);
     bin->AddCollisionShape(box_coll, ChFrame<>());

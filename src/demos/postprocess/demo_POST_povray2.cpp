@@ -67,7 +67,7 @@ int main(int argc, char* argv[]) {
 
     // Create the floor body
     auto floor = chrono_types::make_shared<ChBody>();
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
 
     auto floor_ct_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto floor_ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_ct_mat, 0.2, 0.04, 0.2);

@@ -78,7 +78,7 @@ def AddContainer(sys):
     fixedBody = chrono.ChBody()
 
     fixedBody.SetMass(1.0)
-    fixedBody.SetBodyFixed(True)
+    fixedBody.SetFixed(True)
     fixedBody.SetPos(chrono.ChVector3d())
     fixedBody.SetCollide(True)
 

@@ -231,7 +231,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     ground->SetCollide(false);
     sysMBS.AddBody(ground);
 

@@ -206,7 +206,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     container->SetIdentifier(body_id_terrain);
     container->SetNameString("container");
     container->SetMass(1);
-    container->SetBodyFixed(true);
+    container->SetFixed(true);
     container->SetCollide(true);
 
     auto vis_mat = std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
@@ -220,12 +220,12 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     // Since collision between two bodies fixed to ground is ignored, if the proxy bodies
     // are fixed, we make the container a free body connected through a weld joint to ground.
     if (m_fixed_proxies) {
-        container->SetBodyFixed(false);
+        container->SetFixed(false);
 
         auto ground = chrono_types::make_shared<ChBody>();
         ground->SetNameString("ground");
         ground->SetIdentifier(-2);
-        ground->SetBodyFixed(true);
+        ground->SetFixed(true);
         ground->SetCollide(false);
         m_system->AddBody(ground);
 
@@ -252,7 +252,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
         body->SetRot(b.m_init_rot);
         body->SetMass(mass * b.m_density);
         body->SetInertia(inertia * b.m_density);
-        body->SetBodyFixed(false);
+        body->SetFixed(false);
 
         body->SetCollide(true);
         auto ct_shape =
@@ -330,7 +330,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
         body->SetIdentifier(iv);
         body->SetMass(mass_p);
         body->SetInertiaXX(inertia_p);
-        body->SetBodyFixed(m_fixed_proxies);
+        body->SetFixed(m_fixed_proxies);
         body->SetCollide(true);
 
         utils::AddSphereGeometry(body.get(), material, m_radius_p, ChVector3d(0, 0, 0), ChQuaternion<>(1, 0, 0, 0),
@@ -360,7 +360,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateRigidProxy(unsigned int i) {
     body->SetIdentifier(0);
     body->SetMass(m_load_mass[i]);
     ////body->SetInertiaXX();   //// TODO
-    body->SetBodyFixed(m_fixed_proxies);
+    body->SetFixed(m_fixed_proxies);
     body->SetCollide(true);
 
     // Create visualization assets (use collision shapes)

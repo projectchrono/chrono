@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
 
     // Create a truss
     auto truss = chrono_types::make_shared<ChBody>();
-    truss->SetBodyFixed(true);
+    truss->SetFixed(true);
     sys.Add(truss);
 
     // Create constraints between nodes and truss

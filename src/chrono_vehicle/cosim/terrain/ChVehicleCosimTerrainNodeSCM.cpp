@@ -229,7 +229,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         body->SetRot(b.m_init_rot);
         body->SetMass(mass * b.m_density);
         body->SetInertia(inertia * b.m_density);
-        body->SetBodyFixed(false);
+        body->SetFixed(false);
 
         body->SetCollide(true);
         auto ct_shape =
@@ -340,7 +340,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
     body->SetIdentifier(0);
     body->SetMass(m_load_mass[i_shape]);
     ////body->SetInertiaXX();   //// TODO
-    body->SetBodyFixed(false);  // Cannot fix the proxies with SCM
+    body->SetFixed(false);  // Cannot fix the proxies with SCM
     body->SetCollide(true);
 
     // Create visualization asset (use collision shapes)

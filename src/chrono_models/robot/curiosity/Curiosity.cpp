@@ -608,7 +608,7 @@ void Curiosity::SetSuspensionVisualization(bool state) {
 void Curiosity::FixChassis(bool fixed) {
     if (!m_initialized)
         return;
-    m_chassis->GetBody()->SetBodyFixed(fixed);
+    m_chassis->GetBody()->SetFixed(fixed);
 }
 
 void Curiosity::FixSuspension(bool fixed) {

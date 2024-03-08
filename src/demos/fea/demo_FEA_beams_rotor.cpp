@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     // BODY: the base & tower:
 
     auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(10, 2, 10, 3000);
-    my_body_A->SetBodyFixed(true);
+    my_body_A->SetFixed(true);
     my_body_A->SetPos(ChVector3d(0, -10, 0));
     sys.Add(my_body_A);
 

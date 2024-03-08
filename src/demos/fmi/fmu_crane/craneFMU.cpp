@@ -89,7 +89,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 
     // Create bodies
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     ground->AddVisualShape(connection_sph, ChFrame<>());
     ground->AddVisualShape(connection_sph, ChFrame<>(m_point_ground, QUNIT));
     sys.AddBody(ground);

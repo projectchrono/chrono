@@ -36,7 +36,7 @@ int main() {
 
     // Bodies ------------------------------------------------------------------
     auto floor = chrono_types::make_shared<ChBody>();
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     system.Add(floor);
 
     auto body = chrono_types::make_shared<ChBody>();

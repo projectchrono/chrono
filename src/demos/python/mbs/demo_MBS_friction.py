@@ -96,7 +96,7 @@ for bi in range(10):
 # Create a container fixed to ground
 bin = chrono.ChBody()
 bin.SetPos(chrono.ChVector3d(0, -1, 0))
-bin.SetBodyFixed(True)
+bin.SetFixed(True)
 bin.SetCollide(True)
 
 # Set rolling and spinning friction coefficients for the container.

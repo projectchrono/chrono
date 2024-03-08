@@ -57,7 +57,7 @@ void assemble_fourbar(ChSystemNSC& system) {
 
     // Bodies
     auto floor = chrono_types::make_shared<ChBody>();
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     system.Add(floor);
 
     auto crank = chrono_types::make_shared<ChBody>();
@@ -99,7 +99,7 @@ void assemble_pendulum(ChSystemNSC& system) {
     system.SetGravitationalAcceleration(ChVector3d(0.0, -9.81, 0.0));
 
     auto floor = chrono_types::make_shared<ChBody>();
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     floor->SetName("floor");
     floor->SetIdentifier(100);
     system.Add(floor);
@@ -136,7 +136,7 @@ void assemble_gear_and_pulleys(ChSystemNSC& sys) {
     // ...the truss
     auto mbody_truss = chrono_types::make_shared<ChBodyEasyBox>(20, 10, 2, 1000, true, false, mat);
     sys.Add(mbody_truss);
-    mbody_truss->SetBodyFixed(true);
+    mbody_truss->SetFixed(true);
     mbody_truss->SetPos(ChVector3d(0, 0, 3));
 
     // ...the first gear
@@ -182,7 +182,7 @@ void assemble_pendulum_visual(ChSystemNSC& system) {
     system.SetGravitationalAcceleration(ChVector3d(0.0, -9.81, 0.0));
 
     auto floor = chrono_types::make_shared<ChBody>();
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     floor->SetName("floor");
     floor->SetIdentifier(100);
     system.Add(floor);
@@ -319,7 +319,7 @@ TEST(ChArchiveJSON, Pendulum) {
         system.SetGravitationalAcceleration(ChVector3d(0.0, -9.81, 0.0));
 
         auto floor = chrono_types::make_shared<ChBody>();
-        floor->SetBodyFixed(true);
+        floor->SetFixed(true);
         floor->SetName("floor");
         floor->SetIdentifier(100);
         system.Add(floor);

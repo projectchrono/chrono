@@ -49,7 +49,7 @@ def main():
     mesh_body = chrono.ChBody()
     mesh_body.SetPos(chrono.ChVector3d(0, 0, 0))
     mesh_body.AddVisualShape(trimesh_shape)
-    mesh_body.SetBodyFixed(True)
+    mesh_body.SetFixed(True)
     mphysicalSystem.Add(mesh_body)
 
     # -----------------------

@@ -52,7 +52,7 @@ mesh.AddElement(elementA)
 
 # Create also a truss
 truss = chrono.ChBody()
-truss.SetBodyFixed(True)
+truss.SetFixed(True)
 sys.Add(truss)
 
 # Create a constraat the end of the beam

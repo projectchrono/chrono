@@ -69,30 +69,30 @@ def AddContainer(sys):
     # Create the five walls of the rectangular container, using fixed rigid bodies of 'box' type
     floorBody = chrono.ChBodyEasyBox(20, 1, 20, 1000, True, True, ground_mat)
     floorBody.SetPos(chrono.ChVector3d(0, -5, 0))
-    floorBody.SetBodyFixed(True)
+    floorBody.SetFixed(True)
     floorBody.GetVisualShape(0).SetMaterial(0, ground_vis_mat)
     sys.Add(floorBody)
 
     wallBody1 = chrono.ChBodyEasyBox(1, 10, 20.99, 1000, True, True, ground_mat)
     wallBody1.SetPos(chrono.ChVector3d(-10, 0, 0))
-    wallBody1.SetBodyFixed(True)
+    wallBody1.SetFixed(True)
     wallBody1.GetVisualShape(0).SetMaterial(0, ground_vis_mat)
     sys.Add(wallBody1)
 
     wallBody2 = chrono.ChBodyEasyBox(1, 10, 20.99, 1000, True, True, ground_mat)
     wallBody2.SetPos(chrono.ChVector3d(10, 0, 0))
-    wallBody2.SetBodyFixed(True)
+    wallBody2.SetFixed(True)
     wallBody2.GetVisualShape(0).SetMaterial(0, ground_vis_mat)
     sys.Add(wallBody2)
 
     wallBody3 = chrono.ChBodyEasyBox(20.99, 10, 1, 1000, False, True, ground_mat)
     wallBody3.SetPos(chrono.ChVector3d(0, 0, -10))
-    wallBody3.SetBodyFixed(True)
+    wallBody3.SetFixed(True)
     sys.Add(wallBody3)
 
     wallBody4 = chrono.ChBodyEasyBox(20.99, 10, 1, 1000, True, True, ground_mat)
     wallBody4.SetPos(chrono.ChVector3d(0, 0, 10))
-    wallBody4.SetBodyFixed(True)
+    wallBody4.SetFixed(True)
     wallBody4.GetVisualShape(0).SetMaterial(0, ground_vis_mat)
     sys.Add(wallBody4)
 

@@ -165,7 +165,7 @@ int main(int argc, char* argv[]) {
     auto ground = chrono_types::make_shared<ChBody>();
     sys->AddBody(ground);
     ground->SetCollide(true);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     auto ground_vmat = chrono_types::make_shared<ChVisualMaterial>();
     ground_vmat->SetKdTexture(GetChronoDataFile("textures/blue.png"));

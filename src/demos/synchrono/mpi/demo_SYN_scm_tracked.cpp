@@ -249,7 +249,7 @@ int main(int argc, char* argv[]) {
     if (cli.HasValueInVector<int>("sens", node_id)) {
         // Give the camera a fixed place to live
         auto origin = chrono_types::make_shared<ChBody>();
-        origin->SetBodyFixed(true);
+        origin->SetFixed(true);
         m113.GetSystem()->AddBody(origin);
 
         // Happens to be a reasonable-looking height

@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     // RIGID BODIES
     // Create some rigid bodies, for instance a floor:
     auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.2, 6, 2700, true, true, mysurfmaterial);
-    mfloor->SetBodyFixed(true);
+    mfloor->SetFixed(true);
     mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
     sys.Add(mfloor);
 
@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
     if (false) {
         auto mfloor_step = chrono_types::make_shared<ChBodyEasyBox>(1, 0.2, 0.5, 2700, true, true, mysurfmaterial);
         mfloor_step->SetPos(ChVector3d(0, 0.1, -0.2));
-        mfloor_step->SetBodyFixed(true);
+        mfloor_step->SetFixed(true);
         sys.Add(mfloor_step);
     }
 
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
                                 ChVector3d(ChRandom::Get() - 0.5, 0, ChRandom::Get() - 0.5).Normalize());
             mcube->Move(ChCoordsys<>(VNULL, vrot));
             mcube->SetPos(ChVector3d((ChRandom::Get() - 0.5) * 1.8, ChRandom::Get() * 0.1, -ChRandom::Get() * 3.2 + 0.9));
-            mcube->SetBodyFixed(true);
+            mcube->SetFixed(true);
             sys.Add(mcube);
         }
     }

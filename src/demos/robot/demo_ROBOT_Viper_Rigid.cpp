@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     auto ground_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(30, 30, 1, 1000, true, true, ground_mat);
     ground->SetPos(ChVector3d(0, 0, -0.5));
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 60, 45);
     sys.Add(ground);
 

@@ -861,13 +861,13 @@ void ChSuspensionTestRigPushrod::InitializeRig() {
         // Create the two rod bodies (used only for visualization)
         auto rod_L = chrono_types::make_shared<ChBody>();
         rod_L->SetPos(pos_spindleL);
-        rod_L->SetBodyFixed(true);
+        rod_L->SetFixed(true);
         sys->Add(rod_L);
         AddRodVisualization(rod_L, ChColor(0.1f, 0.8f, 0.15f));
 
         auto rod_R = chrono_types::make_shared<ChBody>();
         rod_R->SetPos(pos_spindleR);
-        rod_R->SetBodyFixed(true);
+        rod_R->SetFixed(true);
         sys->Add(rod_R);
         AddRodVisualization(rod_R, ChColor(0.8f, 0.1f, 0.1f));
 

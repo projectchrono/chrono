@@ -546,7 +546,7 @@ void AddFixedObstacles(ChSystem* system) {
 
     auto obstacle = chrono_types::make_shared<ChBody>();
     obstacle->SetPos(ChVector3d(10, 0, -1.8));
-    obstacle->SetBodyFixed(true);
+    obstacle->SetFixed(true);
     obstacle->SetCollide(true);
 
     // Visualization

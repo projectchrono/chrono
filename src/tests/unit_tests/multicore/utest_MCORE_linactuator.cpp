@@ -110,7 +110,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     auto ground = chrono_types::make_shared<ChBody>();
 
     sys->AddBody(ground);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     auto box_g = chrono_types::make_shared<ChVisualShapeBox>(0.1, 0.1, 5);
     ground->AddVisualShape(box_g, ChFrame<>(2.5 * axis, rot));

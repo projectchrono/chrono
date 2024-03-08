@@ -35,7 +35,7 @@ sys = chrono.ChSystemNSC()
 
 # Create a floor
 mfloor = chrono.ChBodyEasyBox(3, 0.2, 3, 1000, False, False)
-mfloor.SetBodyFixed(True)
+mfloor.SetFixed(True)
 sys.Add(mfloor)
 
 #

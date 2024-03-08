@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
         rock1_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(rock1_pos), ChQuaternion<>(rock1_rot)));
         sys.Add(rock1_Body);
 
-        rock1_Body->SetBodyFixed(false);
+        rock1_Body->SetFixed(false);
 
         auto rock1_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_1_mmesh, false,
                                                                                 false, 0.005);
@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
         rock2_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(rock2_pos), ChQuaternion<>(rock2_rot)));
         sys.Add(rock2_Body);
 
-        rock2_Body->SetBodyFixed(false);
+        rock2_Body->SetFixed(false);
 
         auto rock2_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_2_mmesh,
                                                                                       false, false, 0.005);
@@ -310,7 +310,7 @@ int main(int argc, char* argv[]) {
         rock3_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(rock3_pos), ChQuaternion<>(rock3_rot)));
         sys.Add(rock3_Body);
 
-        rock3_Body->SetBodyFixed(false);
+        rock3_Body->SetFixed(false);
 
         auto rock3_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_3_mmesh,
                                                                                       false, false, 0.005);

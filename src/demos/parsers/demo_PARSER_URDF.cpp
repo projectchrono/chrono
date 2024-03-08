@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
 
     // Create a "floor" body
     auto floor = chrono_types::make_shared<ChBody>();
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     auto floor_box = chrono_types::make_shared<ChVisualShapeBox>(3, 2, 0.1);
     floor_box->SetTexture(GetChronoDataFile("textures/checker2.png"));
     floor->AddVisualShape(floor_box);
@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     auto root_loc = parser.GetRootChBody()->GetPos();
 
     // Fix root body
-    parser.GetRootChBody()->SetBodyFixed(true);
+    parser.GetRootChBody()->SetFixed(true);
 
     // Example: Change actuation function for a particular joint
     auto sfun = chrono_types::make_shared<ChFunctionSine>(1.0, 0.2);

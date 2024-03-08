@@ -51,7 +51,7 @@ void CreateSliderGuide(std::shared_ptr<ChBody>& guide,
                        const ChVector3d mpos) {
     guide = chrono_types::make_shared<ChBodyEasyBox>(4, 0.3, 0.6, 1000, material);
     guide->SetPos(mpos);
-    guide->SetBodyFixed(true);
+    guide->SetFixed(true);
     sys.Add(guide);
 
     slider = chrono_types::make_shared<ChBodyEasyBox>(0.4, 0.2, 0.5, 1000, material);
@@ -77,7 +77,7 @@ void CreateStatorRotor(std::shared_ptr<ChBody>& stator,
     stator = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.5, 0.1, 1000, material);
     stator->SetPos(mpos);
     stator->SetRot(QuatFromAngleX(CH_C_PI_2));
-    stator->SetBodyFixed(true);
+    stator->SetFixed(true);
     sys.Add(stator);
 
     rotor = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.1, 1000, material);
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     // Create a floor that is fixed (that is used also to represent the absolute reference)
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, material);
     floorBody->SetPos(ChVector3d(0, -2, 0));
-    floorBody->SetBodyFixed(true);
+    floorBody->SetFixed(true);
     floorBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/blue.png"));
     sys.Add(floorBody);
 

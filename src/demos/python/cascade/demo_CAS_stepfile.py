@@ -57,7 +57,7 @@ if load_ok:
     shape1 = TopoDS.TopoDS_Shape()
     if (mydoc.GetNamedShape(shape1, "Assem1/body1")):
         body1 = cascade.ChCascadeBodyEasy(shape1, 1000) # density
-        body1.SetBodyFixed(True) 
+        body1.SetFixed(True) 
         sys.Add(body1)
         
         # Move the body as for global displacement/rotation (also body1 %= root_frame; )
@@ -100,7 +100,7 @@ if (rigidBody1 and rigidBody2):
 # Create a large cube as a floor.
 floor = chrono.ChBodyEasyBox(1, 0.2, 1, 1000)
 floor.SetPos(chrono.ChVector3d(0,-0.3,0))
-floor.SetBodyFixed(True)
+floor.SetFixed(True)
 floor.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile('textures/blue.png'))
 sys.Add(floor)
 

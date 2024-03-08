@@ -454,7 +454,7 @@ void Viper::Initialize(const ChFrame<>& pos) {
     assert(m_driver);
 
     m_chassis->Initialize(m_system, pos);
-    m_chassis->GetBody()->SetBodyFixed(m_chassis_fixed);
+    m_chassis->GetBody()->SetFixed(m_chassis_fixed);
 
     for (int i = 0; i < 4; i++) {
         m_wheels[i]->Initialize(m_chassis->GetBody());
@@ -547,7 +547,7 @@ void Viper::Initialize(const ChFrame<>& pos) {
 
         auto steer_rod = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.1, 0.1, 1000, true, false);
         steer_rod->SetPos(m_wheels[i]->GetPos());
-        steer_rod->SetBodyFixed(false);
+        steer_rod->SetFixed(false);
         m_system->Add(steer_rod);
 
         ChQuaternion<> z2y;

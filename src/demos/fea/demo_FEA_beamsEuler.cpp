@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     // Fix a node to ground:
     // hnode1->SetFixed(true);
     auto mtruss = chrono_types::make_shared<ChBody>();
-    mtruss->SetBodyFixed(true);
+    mtruss->SetFixed(true);
     sys.Add(mtruss);
 
     auto constr_bc = chrono_types::make_shared<ChLinkMateFix>();

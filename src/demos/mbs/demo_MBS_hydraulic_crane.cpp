@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
 
     // Create the mechanism
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     ground->AddVisualShape(connection_sph, ChFrame<>());
     ground->AddVisualShape(connection_sph, ChFrame<>(attachment_ground, QUNIT));
     sys.AddBody(ground);

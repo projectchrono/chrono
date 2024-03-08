@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
     // ...the truss
     auto mbody_truss = chrono_types::make_shared<ChBodyEasyBox>(20, 10, 2, 1000, true, false, mat);
     sys.Add(mbody_truss);
-    mbody_truss->SetBodyFixed(true);
+    mbody_truss->SetFixed(true);
     mbody_truss->SetPos(ChVector3d(0, 0, 3));
 
     // ...the rotating bar support for the two epicycloidal wheels

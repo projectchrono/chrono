@@ -241,7 +241,7 @@ Using the / slash is like addressing a Unix directory (in fact the STEP file is 
 									shape_base);
 
 				// The base is fixed to the ground
-			mrigidBody_base->GetBody()->SetBodyFixed(true);
+			mrigidBody_base->GetBody()->SetFixed(true);
 
 				// Move the body as for global displacement/rotation by pre-transform its coords.
 				// Note, it could be written also as   mrigidBody_base->GetBody() %= root_frame; 
@@ -328,7 +328,7 @@ Using the / slash is like addressing a Unix directory (in fact the STEP file is 
 									&my_system, application.GetSceneManager(), 
 									shape_hand);
 
-			//mrigidBody_hand->GetBody()->SetBodyFixed(true);
+			//mrigidBody_hand->GetBody()->SetFixed(true);
 
 				// Move the body as for global displacement/rotation
 			mrigidBody_hand->GetBody()->ConcatenatePreTransformation(root_frame);
@@ -580,7 +580,7 @@ Set motions for Z and Y coordinates of the 'my_link_teacher' marker, so that the
 											ChVector3<>(0,-0.6,0),
 											ChQuaternion<>(1,0,0,0), 
 											ChVector3<>(20,1,20) );
-	mfloor->GetBody()->SetBodyFixed(true);
+	mfloor->GetBody()->SetFixed(true);
 	mfloor->GetBody()->SetCollide(true);
 	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture("../data/blu.png");
 	mfloor->setMaterialTexture(0,	cubeMap);

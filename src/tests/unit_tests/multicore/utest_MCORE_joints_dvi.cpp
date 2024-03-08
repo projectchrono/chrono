@@ -84,7 +84,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         // Create the ground body
         auto ground = chrono_types::make_shared<ChBody>();
         ground->SetIdentifier(-1);
-        ground->SetBodyFixed(true);
+        ground->SetFixed(true);
         ground->SetCollide(false);
         sys->AddBody(ground);
 
@@ -95,7 +95,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         sled->SetInertiaXX(ChVector3d(100, 100, 100));
         sled->SetPos(ChVector3d(0, 0, 0));
         sled->SetPosDer(ChVector3d(init_vel, 0, 0));
-        sled->SetBodyFixed(false);
+        sled->SetFixed(false);
         sled->SetCollide(false);
 
         auto box_sled = chrono_types::make_shared<ChVisualShapeBox>(2, 0.5, 0.5);
@@ -111,7 +111,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         wheel->SetPos(ChVector3d(2, 0, 0));
         wheel->SetRot(ChQuaternion<>(1, 0, 0, 0));
         wheel->SetPosDer(ChVector3d(init_vel, 0, 0));
-        wheel->SetBodyFixed(false);
+        wheel->SetFixed(false);
         wheel->SetCollide(true);
 
         auto wheel_mat = chrono_types::make_shared<ChContactMaterialNSC>();

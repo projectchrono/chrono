@@ -149,7 +149,7 @@ std::shared_ptr<ChBodyAuxRef> SynTrackedVehicleAgent::CreateChassisZombieBody(co
     auto zombie_body = chrono_types::make_shared<ChBodyAuxRef>();
     zombie_body->AddVisualShape(trimesh);
     zombie_body->SetCollide(false);
-    zombie_body->SetBodyFixed(true);
+    zombie_body->SetFixed(true);
     zombie_body->SetFrame_COG_to_REF(ChFrame<>({0, 0, -0.2}, {1, 0, 0, 0}));
     system->Add(zombie_body);
 
@@ -163,7 +163,7 @@ void SynTrackedVehicleAgent::AddMeshToVector(std::shared_ptr<ChVisualShapeTriang
         ref = chrono_types::make_shared<ChBodyAuxRef>();
         ref->AddVisualShape(trimesh);
         ref->SetCollide(false);
-        ref->SetBodyFixed(true);
+        ref->SetFixed(true);
         system->Add(ref);
     }
 }
@@ -177,14 +177,14 @@ void SynTrackedVehicleAgent::AddMeshToVector(std::shared_ptr<ChVisualShapeTriang
         ref_left = chrono_types::make_shared<ChBodyAuxRef>();
         ref_left->AddVisualShape(left);
         ref_left->SetCollide(false);
-        ref_left->SetBodyFixed(true);
+        ref_left->SetFixed(true);
         system->Add(ref_left);
 
         auto& ref_right = ref_list[ref_list.size() - i - 1];
         ref_right = chrono_types::make_shared<ChBodyAuxRef>();
         ref_right->AddVisualShape(right);
         ref_right->SetCollide(false);
-        ref_right->SetBodyFixed(true);
+        ref_right->SetFixed(true);
         system->Add(ref_right);
     }
 }

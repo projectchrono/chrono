@@ -98,7 +98,7 @@ for ix in range(0,nbricks_on_x):
 # and a visualization shape
 
 body_floor = chrono.ChBody()
-body_floor.SetBodyFixed(True)
+body_floor.SetFixed(True)
 body_floor.SetPos(chrono.ChVector3d(0, -2, 0 ))
 
 # Collision shape

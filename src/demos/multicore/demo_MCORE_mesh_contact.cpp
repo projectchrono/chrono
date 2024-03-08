@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
     object->SetPosDer(init_vel);
     object->SetAngVelParent(init_omg);
     object->SetCollide(true);
-    object->SetBodyFixed(false);
+    object->SetFixed(false);
 
     std::shared_ptr<ChContactMaterial> object_mat;
     switch (contact_method) {
@@ -187,7 +187,7 @@ int main(int argc, char* argv[]) {
     ground->SetPos(ChVector3d(0, 0, 0));
     ground->SetRot(z2y);
     ground->SetCollide(true);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     std::shared_ptr<ChContactMaterial> ground_mat;
     switch (contact_method) {

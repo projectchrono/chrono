@@ -31,7 +31,7 @@ sys      = chrono.ChSystemNSC()
 # Create a fixed rigid body
 
 mbody1 = chrono.ChBody()
-mbody1.SetBodyFixed(True)
+mbody1.SetFixed(True)
 mbody1.SetPos( chrono.ChVector3d(0,0,-0.2))
 sys.Add(mbody1)
 
@@ -43,7 +43,7 @@ mbody1.AddVisualShape(mboxasset)
 # Create a swinging rigid body
 
 mbody2 = chrono.ChBody()
-mbody2.SetBodyFixed(False)
+mbody2.SetFixed(False)
 sys.Add(mbody2)
 
 mboxasset = chrono.ChVisualShapeBox(0.4, 1.0, 0.2)

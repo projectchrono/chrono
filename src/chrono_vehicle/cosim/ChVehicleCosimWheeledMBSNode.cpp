@@ -133,7 +133,7 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    GetChassisBody()->SetBodyFixed(m_fix_chassis);
+    GetChassisBody()->SetFixed(m_fix_chassis);
 
     // For each TIRE, send initial location
     for (unsigned int i = 0; i < m_num_tire_nodes; i++) {

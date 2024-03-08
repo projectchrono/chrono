@@ -45,7 +45,7 @@ Some general information are fundamental to effectively use these classes:
 | 1 | Gear | Couple rotation over Z axes; gear-specific features | @ref chrono::ChLinkGear "ChLinkGear" |
 | 0 | Free | No constraints | @ref chrono::ChLinkLockFree "ChLinkLockFree" |
 
-Additionally, if a body has to be fixed to the global frame and reaction forces are of no interest, it is possible to use the @ref chrono::ChBody "ChBody"::SetBodyFixed() method; this will also eliminate the state from the system.
+Additionally, if a body has to be fixed to the global frame and reaction forces are of no interest, it is possible to use the @ref chrono::ChBody "ChBody"::SetFixed() method; this will also eliminate the state from the system.
 
 ## Actuators
 | ConDOF | MotDOF | Task | Description | Class |

@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     // Create a rigid body as usual, and add it
     // to the physical system:
     auto floor = chrono_types::make_shared<ChBody>();
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
 
     // Define a collision shape
     auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
 
     // Create the rigid body as usual (this won't move, it is only for visualization tests)
     auto body = chrono_types::make_shared<ChBody>();
-    body->SetBodyFixed(true);
+    body->SetFixed(true);
     sys.Add(body);
 
     // ==Asset== Attach a 'sphere' shape

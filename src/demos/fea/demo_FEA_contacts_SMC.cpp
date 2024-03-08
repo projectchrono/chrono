@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
         // floor as a triangle mesh surface:
         auto mfloor = chrono_types::make_shared<ChBody>();
         mfloor->SetPos(ChVector3d(0, -1, 0));
-        mfloor->SetBodyFixed(true);
+        mfloor->SetFixed(true);
         sys.Add(mfloor);
 
         auto floor_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mysurfmaterial, mmeshbox, false,
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     } else {
         // floor as a simple collision primitive:
         auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.1, 2, 2700, true, true, mysurfmaterial);
-        mfloor->SetBodyFixed(true);
+        mfloor->SetFixed(true);
         mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
         sys.Add(mfloor);
     }

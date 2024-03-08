@@ -592,10 +592,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// motion has almost come to a rest. This feature will allow faster simulation
     /// of large scenarios for real-time purposes, but it will affect the precision!
     /// This functionality can be turned off selectively for specific ChBodies.
-    void SetUseSleeping(bool ms) { use_sleeping = ms; }
+    void SetAllowSleeping(bool ms) { use_sleeping = ms; }
 
     /// Tell if the system will put to sleep the bodies whose motion has almost come to a rest.
-    bool GetUseSleeping() const { return use_sleeping; }
+    bool GetAllowSleeping() const { return use_sleeping; }
 
     /// Get the visual system to which this ChSystem is attached (if any).
     ChVisualSystem* GetVisualSystem() const { return visual_system; }

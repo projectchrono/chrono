@@ -132,7 +132,7 @@ void ChVehicleCosimTrackedMBSNode::Initialize() {
     InitializeMBS(terrain_size, terrain_height);
     auto num_track_shoes = GetNumTrackShoes();
 
-    GetChassisBody()->SetBodyFixed(m_fix_chassis);
+    GetChassisBody()->SetFixed(m_fix_chassis);
 
     // Send to TERRAIN node the number of interacting objects (here, total number of track shoes)
     MPI_Send(&num_track_shoes, 1, MPI_INT, TERRAIN_NODE_RANK, 0, MPI_COMM_WORLD);

@@ -50,7 +50,7 @@ class RotMotors : public ::testing::TestWithParam<Options> {
         system->ChangeSolverType(SolverType::BB);
 
         auto ground = chrono_types::make_shared<ChBody>();
-        ground->SetBodyFixed(true);
+        ground->SetFixed(true);
         system->AddBody(ground);
 
         auto body = chrono_types::make_shared<ChBody>();

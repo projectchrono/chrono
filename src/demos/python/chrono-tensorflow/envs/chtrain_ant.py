@@ -183,7 +183,7 @@ class Model(object):
     # Create the room floor: a simple fixed rigid body with a collision shape
     # and a visualization shape
       self.body_floor = chrono.ChBody()
-      self.body_floor.SetBodyFixed(True)
+      self.body_floor.SetFixed(True)
       self.body_floor.SetPos(chrono.ChVector3d(0, -1, 0 ))
       
       # Floor Collision.
@@ -199,7 +199,7 @@ class Model(object):
       body_floor_shape.SetTexture(chrono.GetChronoDataFile('vehicle/terrain/textures/grass.jpg'))
       self.body_floor.AddVisualShape(body_floor_shape)   
       self.ant_sys.Add(self.body_floor)
-      #self.body_abdomen.SetBodyFixed(True)
+      #self.body_abdomen.SetFixed(True)
    
       if (self.animate):
             self.vis.BindAll()

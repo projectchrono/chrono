@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     // Attach visualization assets
     auto sphere1_g = chrono_types::make_shared<ChVisualShapeSphere>(0.02);

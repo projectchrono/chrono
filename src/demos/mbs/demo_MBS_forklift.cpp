@@ -380,7 +380,7 @@ int main(int argc, char* argv[]) {
     // ..the world
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(40, 2, 40, 1000, true, true, ground_mat);
     sys.Add(my_ground);
-    my_ground->SetBodyFixed(true);
+    my_ground->SetFixed(true);
     my_ground->SetPos(ChVector3d(0, -1, 0));
     my_ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
 

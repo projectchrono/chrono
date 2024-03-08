@@ -60,7 +60,7 @@ Model::Model() {
     msection_cable2->SetRayleighDamping(0.000);
 
     auto mtruss = chrono_types::make_shared<ChBody>();
-    mtruss->SetBodyFixed(true);
+    mtruss->SetFixed(true);
 
     ChBuilderCableANCF builder;
 

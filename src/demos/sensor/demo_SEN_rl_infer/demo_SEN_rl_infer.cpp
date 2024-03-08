@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < 3; i++) {
         auto box = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 10, 1000, true, true);
         box->SetPos({25 + 25 * i, (((float)rand() / (float)RAND_MAX) - .5) * 10, 5.05});
-        box->SetBodyFixed(true);
+        box->SetFixed(true);
 
         // Add visual asset to be sensed by camera
         // Will be a solid blue color

@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
 
     // Create a ground object, useful reference for connecting constraints etc.
     auto mground = chrono_types::make_shared<ChBody>();
-    mground->SetBodyFixed(true);
+    mground->SetFixed(true);
     sys.Add(mground);
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.

@@ -57,7 +57,7 @@ void ChFsiVisualization::SetRenderMode(RenderMode mode) {}
 void ChFsiVisualization::EnableInfoOverlay(bool val) {}
 
 void ChFsiVisualization::AddProxyBody(std::shared_ptr<ChBody> body) {
-    body->SetBodyFixed(true);
+    body->SetFixed(true);
     m_system->AddBody(body);
 }
 

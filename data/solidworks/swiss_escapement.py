@@ -14,7 +14,7 @@ exported_items = []
 
 body_0= chrono.ChBodyAuxRef()
 body_0.SetName('ground')
-body_0.SetBodyFixed(True)
+body_0.SetFixed(True)
 exported_items.append(body_0)
 
 # Rigid body part
@@ -102,7 +102,7 @@ body_2.SetMass(1.02644190893078)
 body_2.SetInertiaXX(chrono.ChVector3d(0.00421426808616481,0.00449296635132803,0.000334399259807225))
 body_2.SetInertiaXY(chrono.ChVector3d(-1.30221244046362e-20,-1.60463939204644e-19,0.000147522492869351))
 body_2.SetFrame_COG_to_REF(chrono.ChFramed(chrono.ChVector3d(5.96881493747061e-20,-0.120998995444052,-0.0214658323718929),chrono.ChQuaterniond(1,0,0,0)))
-body_2.SetBodyFixed(True)
+body_2.SetFixed(True)
 
 # Visualization shape 
 body_2_1_shape = chrono.ChVisualShapeModelFile() 

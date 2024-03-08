@@ -147,7 +147,7 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
 
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     // Create the plate body.
 

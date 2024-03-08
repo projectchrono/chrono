@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
     object->SetPosDer(init_vel);
     object->SetAngVelParent(init_omg);
     object->SetCollide(true);
-    object->SetBodyFixed(false);
+    object->SetFixed(false);
 
     auto object_mat = ChContactMaterial::DefaultMaterial(contact_method);
     object_mat->SetFriction(object_friction);
@@ -261,7 +261,7 @@ int main(int argc, char* argv[]) {
     ground->SetMass(1);
     ground->SetPos(ChVector3d(0, 0, 0));
     ground->SetCollide(true);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     auto ground_mat = ChContactMaterial::DefaultMaterial(contact_method);
     ground_mat->SetFriction(ground_friction);

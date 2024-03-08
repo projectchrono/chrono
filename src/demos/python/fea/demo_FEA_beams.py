@@ -87,7 +87,7 @@ hnode3.SetTorque(chrono.ChVector3d(0, -0.04, 0))
 # otherwise fix it using constraints:
 
 mtruss = chrono.ChBody()
-mtruss.SetBodyFixed(True)
+mtruss.SetFixed(True)
 sys.Add(mtruss)
 
 constr_bc = chrono.ChLinkMateGeneric()

@@ -272,7 +272,7 @@ int main(int argc, char* argv[]) {
     // Ground body
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     ground->SetCollide(true);
 
     // Bottom box
@@ -405,9 +405,9 @@ int main(int argc, char* argv[]) {
         }
 
         // Release the vehicle chassis at the end of the hold time.
-        if (m113.GetChassisBody()->GetBodyFixed() && time > time_hold) {
+        if (m113.GetChassisBody()->GetFixed() && time > time_hold) {
             std::cout << "\nRelease vehicle t = " << time << std::endl;
-            m113.GetChassisBody()->SetBodyFixed(false);
+            m113.GetChassisBody()->SetFixed(false);
         }
 
         // Update modules (process inputs from other modules)

@@ -129,7 +129,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Create a container -- always FIRST body in the system
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     sysMBS.AddBody(ground);
 
     chrono::utils::AddBoxContainer(ground, cmaterial,                              //
@@ -181,7 +181,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     wheel->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(wheel_IniPos), ChQuaternion<>(wheel_Rot)));
     sysMBS.AddBody(wheel);
 
-    wheel->SetBodyFixed(false);
+    wheel->SetFixed(false);
     auto wheel_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(cmaterial, trimesh, false, false, 0.005);
     wheel->AddCollisionShape(wheel_shape);
     wheel->SetCollide(false);
@@ -197,7 +197,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     chassis->SetMass(total_mass * 1.0 / 2.0);
     chassis->SetPos(wheel->GetPos());
     chassis->SetCollide(false);
-    chassis->SetBodyFixed(false);
+    chassis->SetFixed(false);
 
     // Add geometry of the chassis.
     chrono::utils::AddBoxGeometry(chassis.get(), cmaterial, ChVector3d(0.2, 0.2, 0.2), ChVector3d(0, 0, 0));
@@ -208,7 +208,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     axle->SetMass(total_mass * 1.0 / 2.0);
     axle->SetPos(wheel->GetPos());
     axle->SetCollide(false);
-    axle->SetBodyFixed(false);
+    axle->SetFixed(false);
 
     // Add geometry of the axle.
     chrono::utils::AddSphereGeometry(axle.get(), cmaterial, 0.5, ChVector3d(0, 0, 0));

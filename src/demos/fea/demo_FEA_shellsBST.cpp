@@ -336,7 +336,7 @@ int main(int argc, char* argv[]) {
         // Create a fixed collision shape
         auto cylinder =
             chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.1, 1.0, 1000, true, true, mat);
-        cylinder->SetBodyFixed(true);
+        cylinder->SetFixed(true);
         cylinder->SetPos(ChVector3d(0.75, -0.25, 0.5));
         cylinder->SetRot(QuatFromAngleZ(CH_C_PI_2));
         cylinder->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.4f, 0.4f));

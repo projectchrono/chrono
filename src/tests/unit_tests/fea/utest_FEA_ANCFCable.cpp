@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
     my_mesh->AddElement(belementancf4);
 
     auto mtruss = chrono_types::make_shared<ChBody>();
-    mtruss->SetBodyFixed(true);
+    mtruss->SetFixed(true);
 
     auto constraint_hinge = chrono_types::make_shared<ChLinkPointFrame>();
     constraint_hinge->Initialize(hnodeancf1, mtruss);

@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     // Adding the ground
     if (true) {
         auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(3, 3, 0.2, 8000, true, true, mysurfmaterial);
-        mfloor->SetBodyFixed(true);
+        mfloor->SetFixed(true);
         mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
         sys.Add(mfloor);
     }

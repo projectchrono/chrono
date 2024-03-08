@@ -70,7 +70,7 @@ class RayCaster:
         self.m_points = []
         
         self.m_body = chrono.ChBody()
-        self.m_body.SetBodyFixed(True)
+        self.m_body.SetFixed(True)
         self.m_body.SetCollide(False)
         self.m_sys.AddBody(self.m_body)
         
@@ -116,7 +116,7 @@ def CreateTerrain(sys, length, width, height, offset) :
         matSMC.SetYoungModulus(1e7)
 
     ground = chrono.ChBody()
-    ground.SetBodyFixed(True)
+    ground.SetFixed(True)
     ground.SetCollide(True)
 
     ground_ct_shape = chrono.ChCollisionShapeBox(ground_mat, length, width, 0.2)
@@ -323,7 +323,7 @@ while (vis.Run()) :
 
         vis.BindItem(ground)
 
-        robot.GetChassisBody().SetBodyFixed(False)
+        robot.GetChassisBody().SetFixed(False)
         terrain_created = True
 
 

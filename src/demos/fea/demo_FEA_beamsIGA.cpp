@@ -386,7 +386,7 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     // up to repeated plasticization.
     auto truss = chrono_types::make_shared<ChBody>();
     sys.Add(truss);
-    truss->SetBodyFixed(true);
+    truss->SetFixed(true);
 
     auto motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
     sys.Add(motor);
@@ -522,7 +522,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     // Create the truss
     auto truss = chrono_types::make_shared<ChBody>();
-    truss->SetBodyFixed(true);
+    truss->SetFixed(true);
     sys.Add(truss);
 
     // Create the end bearing

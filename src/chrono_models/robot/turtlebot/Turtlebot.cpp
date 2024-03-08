@@ -220,7 +220,7 @@ void Turtlebot_Chassis::Initialize() {
     m_body->SetMass(mmass * m_density);
     m_body->SetInertiaXX(m_density * principal_I);
     m_body->SetFrame_REF_to_abs(ChFrame<>(m_pos, m_rot));
-    m_body->SetBodyFixed(m_fixed);
+    m_body->SetFixed(m_fixed);
 
     AddCollisionShapes();
 
@@ -282,7 +282,7 @@ void Turtlebot_ActiveWheel::Initialize() {
     ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
     m_body->SetFrame_REF_to_abs(X_GC);
-    m_body->SetBodyFixed(m_fixed);
+    m_body->SetFixed(m_fixed);
 
     AddCollisionShapes();
 
@@ -344,7 +344,7 @@ void Turtlebot_PassiveWheel::Initialize() {
     ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
     m_body->SetFrame_REF_to_abs(X_GC);
-    m_body->SetBodyFixed(m_fixed);
+    m_body->SetFixed(m_fixed);
 
     AddCollisionShapes();
 
@@ -406,7 +406,7 @@ void Turtlebot_Rod_Short::Initialize() {
     ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
     m_body->SetFrame_REF_to_abs(X_GC);
-    m_body->SetBodyFixed(m_fixed);
+    m_body->SetFixed(m_fixed);
 
     AddCollisionShapes();
 
@@ -470,7 +470,7 @@ void Turtlebot_BottomPlate::Initialize() {
     ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
     m_body->SetFrame_REF_to_abs(X_GC);
-    m_body->SetBodyFixed(m_fixed);
+    m_body->SetFixed(m_fixed);
 
     AddCollisionShapes();
 
@@ -533,7 +533,7 @@ void Turtlebot_MiddlePlate::Initialize() {
     ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
     m_body->SetFrame_REF_to_abs(X_GC);
-    m_body->SetBodyFixed(m_fixed);
+    m_body->SetFixed(m_fixed);
 
     AddCollisionShapes();
 
@@ -596,7 +596,7 @@ void Turtlebot_TopPlate::Initialize() {
     ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
     m_body->SetFrame_REF_to_abs(X_GC);
-    m_body->SetBodyFixed(m_fixed);
+    m_body->SetFixed(m_fixed);
 
     AddCollisionShapes();
 
@@ -661,7 +661,7 @@ void Turtlebot_Rod_Long::Initialize() {
     ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
     m_body->SetFrame_REF_to_abs(X_GC);
-    m_body->SetBodyFixed(m_fixed);
+    m_body->SetFixed(m_fixed);
 
     AddCollisionShapes();
 

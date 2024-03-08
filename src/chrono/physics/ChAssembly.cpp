@@ -539,7 +539,7 @@ void ChAssembly::Setup() {
     this->FlushBatch();
 
     for (auto& body : bodylist) {
-        if (body->GetBodyFixed())
+        if (body->GetFixed())
             m_num_bodies_fixed++;
         else if (body->GetSleeping())
             m_num_bodies_sleep++;

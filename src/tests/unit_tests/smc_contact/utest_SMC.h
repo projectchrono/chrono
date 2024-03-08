@@ -63,7 +63,7 @@ std::shared_ptr<ChBody> AddSphere(int id,
     body->SetPosDer(init_v);
     body->SetAngVelParent(init_w);
     body->SetInertiaXX(inertia);
-    body->SetBodyFixed(false);
+    body->SetFixed(false);
     body->SetCollide(true);
 
     utils::AddSphereGeometry(body.get(), mat, radius);
@@ -95,7 +95,7 @@ std::shared_ptr<ChBody> AddWall(int id,
     body->SetRot(rot);
     body->SetPosDer(init_v);
     body->SetInertiaXX(inertia);
-    body->SetBodyFixed(wall);
+    body->SetFixed(wall);
     body->SetCollide(true);
 
     utils::AddBoxGeometry(body.get(), mat, size);

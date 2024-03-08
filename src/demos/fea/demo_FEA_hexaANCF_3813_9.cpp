@@ -950,7 +950,7 @@ void SimpleBoxContact() {
     auto Plate =
         chrono_types::make_shared<ChBodyEasyBox>(plate_l, plate_w, plate_h, 1000, true, true, my_surfacematerial);
     sys.Add(Plate);
-    Plate->SetBodyFixed(true);
+    Plate->SetFixed(true);
     Plate->SetPos(ChVector3d(0.025, 0.025, -0.0015 - plate_h / 2));
     Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
     // Plate->SetPosDer(ChVector3d(0.0, 0.0, -0.1));
@@ -1242,7 +1242,7 @@ void SoilBin() {
     auto Plate =
         chrono_types::make_shared<ChBodyEasyBox>(plate_l, plate_w, plate_h, 1000, true, true, my_surfacematerial);
     sys.Add(Plate);
-    Plate->SetBodyFixed(false);
+    Plate->SetFixed(false);
     Plate->SetPos(ChVector3d(0.2, 0.2, 0.6001 + plate_h / 2));
     Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
     Plate->SetPosDer(ChVector3d(0.0, 0.0, 0.0));
@@ -1251,7 +1251,7 @@ void SoilBin() {
 
     //// Create ground body
     auto Ground = chrono_types::make_shared<ChBody>();
-    Ground->SetBodyFixed(true);
+    Ground->SetFixed(true);
     Ground->SetPos(ChVector3d(0.0, 0.0, -0.02));
     Ground->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
     sys.Add(Ground);
@@ -1878,7 +1878,7 @@ void SwingingShell() {
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     sys.AddBody(ground);
 
     std::cout << "--------------------------------------------------------------------" << std::endl;

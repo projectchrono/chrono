@@ -145,7 +145,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     box->SetPos(ChVector3d(0.0, 0.0, 0.0));
     box->SetRot(ChQuaternion<>(1, 0, 0, 0));
     box->SetIdentifier(-1);
-    box->SetBodyFixed(true);
+    box->SetFixed(true);
     sysMBS.AddBody(box);
 
     // Add collision geometry for the container walls
@@ -179,7 +179,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Set the collision and visualization geometry
     cylinder->SetCollide(true);
-    cylinder->SetBodyFixed(false);
+    cylinder->SetFixed(false);
     chrono::utils::AddCylinderGeometry(cylinder.get(), cmaterial, cyl_radius, cyl_length, VNULL,
                                        QuatFromAngleX(CH_C_PI_2));
     cylinder->GetCollisionModel()->SetSafeMargin(initSpace0);

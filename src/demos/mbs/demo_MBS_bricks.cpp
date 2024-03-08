@@ -70,7 +70,7 @@ void create_wall_bodies(ChSystemNSC& sys) {
                                                                 true,         // collision?
                                                                 mat);         // contact material
     mrigidFloor->SetPos(ChVector3d(0, -2, 0));
-    mrigidFloor->SetBodyFixed(true);
+    mrigidFloor->SetFixed(true);
 
     sys.Add(mrigidFloor);
 
@@ -138,7 +138,7 @@ void create_jengatower_bodies(ChSystemNSC& sys) {
                                                                 true,         // collision?
                                                                 mat);         // contact material
     mrigidFloor->SetPos(ChVector3d(0, -2, 0));
-    mrigidFloor->SetBodyFixed(true);
+    mrigidFloor->SetFixed(true);
 
     sys.Add(mrigidFloor);
 
@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
     solver->EnableWarmStart(true);
     sys.SetSolver(solver);
 
-    // sys.SetUseSleeping(true);
+    // sys.SetAllowSleeping(true);
     sys.SetMaxPenetrationRecoverySpeed(1.0);
 
     // Simulation loop

@@ -353,7 +353,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         for (const auto& p : pos) {
             auto body = chrono_types::make_shared<ChBody>();
             body->SetPos(p);
-            body->SetBodyFixed(true);
+            body->SetFixed(true);
             auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_radius_g);
             body->AddVisualShape(sph);
             m_system->AddBody(body);
@@ -378,7 +378,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         body->SetRot(b.m_init_rot);
         body->SetMass(mass * b.m_density);
         body->SetInertia(inertia * b.m_density);
-        body->SetBodyFixed(false);
+        body->SetFixed(false);
         body->SetCollide(true);
 
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_g);
@@ -632,7 +632,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateRigidProxy(unsigned int i) {
     body->SetIdentifier(0);
     body->SetMass(m_load_mass[i]);
     ////body->SetInertiaXX();   //// TODO
-    body->SetBodyFixed(m_fixed_proxies);
+    body->SetFixed(m_fixed_proxies);
     body->SetCollide(true);
 
     // Create visualization asset (use collision shapes)

@@ -105,7 +105,7 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
 
     // Create ground
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     m_system->AddBody(ground);
 
     // Create pendulums

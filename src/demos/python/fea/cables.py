@@ -113,7 +113,7 @@ class Model2 :
         # For instance, now retrieve the A end and add a constrato
         # block the position only of that node:
         mtruss = chrono.ChBody()
-        mtruss.SetBodyFixed(True)
+        mtruss.SetFixed(True)
 
         constraint_hinge = fea.ChLinkPointFrame()
         constraint_hinge.Initialize(builder.GetLastBeamNodes().back(), mtruss)
@@ -133,7 +133,7 @@ class Model3 :
         msection_cable2.SetRayleighDamping(0.000)
 
         mtruss = chrono.ChBody()
-        mtruss.SetBodyFixed(True)
+        mtruss.SetFixed(True)
 
         for j in range(n_chains):
             builder = fea.ChBuilderCableANCF()

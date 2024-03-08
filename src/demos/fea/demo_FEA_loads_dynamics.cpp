@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
 
     // Create the ground body
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     sys.Add(ground);
 
     // Create a constraint at the end of the beam

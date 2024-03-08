@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
         sys.AddBody(my_body_C);
 
         // Set initial position of the bodies (center of mass)
-        my_body_A->SetBodyFixed(true);  // truss does not move!
+        my_body_A->SetFixed(true);  // truss does not move!
         my_body_B->SetPos(ChVector3d(1, 0, 0));
         my_body_C->SetPos(ChVector3d(4, 0, 0));
 

@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({0, 0, 0});
     mesh_body->AddVisualShape(trimesh_shape, ChFrame<>());
-    mesh_body->SetBodyFixed(true);
+    mesh_body->SetFixed(true);
     // sys.Add(mesh_body);
 
     // --------------------------------------------
@@ -127,17 +127,17 @@ int main(int argc, char* argv[]) {
     // --------------------------------------------
     auto box_body = chrono_types::make_shared<ChBodyEasyBox>(100, 100, 1, 1000, true, false);
     box_body->SetPos({0, 0, -1});
-    box_body->SetBodyFixed(true);
+    box_body->SetFixed(true);
     sys.Add(box_body);
 
     auto box_body_1 = chrono_types::make_shared<ChBodyEasyBox>(100, 1, 100, 1000, true, false);
     box_body_1->SetPos({0, -10, -3});
-    box_body_1->SetBodyFixed(true);
+    box_body_1->SetFixed(true);
     sys.Add(box_body_1);
 
     auto box_body_2 = chrono_types::make_shared<ChBodyEasyBox>(100, 1, 100, 1000, true, false);
     box_body_2->SetPos({0, 10, -3});
-    box_body_2->SetBodyFixed(true);
+    box_body_2->SetFixed(true);
     sys.Add(box_body_2);
 
     // -----------------------

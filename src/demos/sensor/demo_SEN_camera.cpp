@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({-6, 0, 0});
     mesh_body->AddVisualShape(trimesh_shape, ChFrame<>(ChVector3d(0, 0, 0)));
-    mesh_body->SetBodyFixed(true);
+    mesh_body->SetFixed(true);
     sys.Add(mesh_body);
 
     auto vis_mat3 = chrono_types::make_shared<ChVisualMaterial>();
@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
 
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(20, 20, .1, 1000, true, false);
     floor->SetPos({0, 0, -1});
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     sys.Add(floor);
     {
         auto shape = floor->GetVisualModel()->GetShapes()[0].first;
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
 
     auto box_body = chrono_types::make_shared<ChBodyEasyBox>(1.0, 1.0, 1.0, 1000, true, false);
     box_body->SetPos({0, -2, 0});
-    box_body->SetBodyFixed(true);
+    box_body->SetFixed(true);
     sys.Add(box_body);
     {
         auto shape = box_body->GetVisualModel()->GetShapes()[0].first;
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
 
     auto sphere_body = chrono_types::make_shared<ChBodyEasySphere>(.5, 1000, true, false);
     sphere_body->SetPos({0, 0, 0});
-    sphere_body->SetBodyFixed(true);
+    sphere_body->SetFixed(true);
     sys.Add(sphere_body);
     {
         auto shape = sphere_body->GetVisualModel()->GetShapes()[0].first;
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
 
     auto cyl_body = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, .25, 1, 1000, true, false);
     cyl_body->SetPos({0, 2, 0});
-    cyl_body->SetBodyFixed(true);
+    cyl_body->SetFixed(true);
     sys.Add(cyl_body);
     {
         auto shape = cyl_body->GetVisualModel()->GetShapes()[0].first;
@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
 
     auto ground_body = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, false, false);
     ground_body->SetPos({0, 0, 0});
-    ground_body->SetBodyFixed(true);
+    ground_body->SetFixed(true);
     sys.Add(ground_body);
 
     // -----------------------

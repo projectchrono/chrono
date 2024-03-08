@@ -90,7 +90,7 @@ void ChGpuVisualization::SetCameraMoveScale(float scale) {
 }
 
 void ChGpuVisualization::AddProxyBody(std::shared_ptr<ChBody> body) {
-    body->SetBodyFixed(true);
+    body->SetFixed(true);
 #ifdef CHRONO_OPENGL
     m_system->AddBody(body);
 #endif

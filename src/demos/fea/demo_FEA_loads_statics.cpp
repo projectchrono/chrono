@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
 
     // Create also a truss
     auto truss = chrono_types::make_shared<ChBody>();
-    truss->SetBodyFixed(true);
+    truss->SetFixed(true);
     sys.Add(truss);
 
     // Create a constraint at the end of the beam

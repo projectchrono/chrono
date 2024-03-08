@@ -193,7 +193,7 @@ ChronoModel::ChronoModel() {
     m_ground = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_ground);
     m_ground->SetIdentifier(-1);
-    m_ground->SetBodyFixed(true);
+    m_ground->SetFixed(true);
 
     // Create the first pendulum body
     // ------------------------------

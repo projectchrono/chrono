@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
     }
 
     auto mtruss = chrono_types::make_shared<ChBody>();
-    mtruss->SetBodyFixed(true);
+    mtruss->SetFixed(true);
     sys.Add(mtruss);
 
     // Initialize output

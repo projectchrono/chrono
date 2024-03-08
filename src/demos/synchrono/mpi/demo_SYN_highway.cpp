@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
         sensor_manager.scene->AddPointLight({-100, 100, 100}, {1, 1, 1}, 6000);
 
         auto origin = chrono_types::make_shared<ChBody>();
-        origin->SetBodyFixed(true);
+        origin->SetFixed(true);
         vehicle.GetSystem()->AddBody(origin);
 
         // Rotations to get a nice angle

@@ -120,7 +120,7 @@ void ChChassis::Initialize(ChSystem* system,
     m_body->SetMass(GetBodyMass());
     m_body->SetFrame_COG_to_REF(GetBodyCOMFrame());
     m_body->SetInertia(GetBodyInertia());
-    m_body->SetBodyFixed(m_fixed);
+    m_body->SetFixed(m_fixed);
 
     m_body->SetFrame_REF_to_abs(chassis_pos);
     m_body->SetPosDer(chassisFwdVel * chassis_pos.TransformDirectionLocalToParent(ChVector3d(1, 0, 0)));
@@ -277,7 +277,7 @@ void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision
     m_body->SetMass(GetBodyMass());
     m_body->SetFrame_COG_to_REF(GetBodyCOMFrame());
     m_body->SetInertia(GetBodyInertia());
-    m_body->SetBodyFixed(m_fixed);
+    m_body->SetFixed(m_fixed);
 
     m_body->SetFrame_REF_to_abs(chassis_frame);
 

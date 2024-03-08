@@ -37,7 +37,7 @@ chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.0025)
 ground_mat = chrono.ChContactMaterialNSC()
 ground = chrono.ChBodyEasyBox(20, 20, 1, 1000, True, True, ground_mat)
 ground.SetPos(chrono.ChVector3d(0, 0, -0.5))
-ground.SetBodyFixed(True)
+ground.SetFixed(True)
 ground.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/concrete.jpg"))
 system.Add(ground)
 

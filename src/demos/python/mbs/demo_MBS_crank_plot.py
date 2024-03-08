@@ -42,7 +42,7 @@ rod_length   = 1.5
 # Create the floor truss
 mfloor = chrono.ChBodyEasyBox(3, 1, 3, 1000)
 mfloor.SetPos(chrono.ChVector3d(0,-0.5,0))
-mfloor.SetBodyFixed(True)
+mfloor.SetFixed(True)
 sys.Add(mfloor)
 
 # Create the flywheel crank

@@ -62,8 +62,8 @@ class ChApi ChConveyor : public ChPhysicsItem {
 
     // Shortcuts for ChBody-like transformations etc.
     // These, and others, can also be done as my_conveyor->GetTruss()->Ch***(...).
-    void SetBodyFixed(bool mev) { GetTruss()->SetBodyFixed(mev); }
-    bool GetBodyFixed() { return GetTruss()->GetBodyFixed(); }
+    void SetFixed(bool mev) { GetTruss()->SetFixed(mev); }
+    bool GetFixed() { return GetTruss()->GetFixed(); }
 
     ChCoordsys<>& GetCoordsys() { return GetTruss()->GetCoordsys(); }
     ChVector3d& GetPos() { return GetTruss()->GetPos(); }

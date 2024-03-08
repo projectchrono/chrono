@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
 
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, true, false);
     floorBody->SetPos(ChVector3d(0, -2, 0));
-    floorBody->SetBodyFixed(true);
+    floorBody->SetFixed(true);
     floorBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/blue.png"));
     sys.Add(floorBody);
 
@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
     sys.SetSolverType(ChSolver::Type::PSOR);
     sys.GetSolver()->AsIterative()->SetMaxIterations(50);
 
-    // sys.SetUseSleeping(true);
+    // sys.SetAllowSleeping(true);
 
     // Simulation loop
     double timestep = 0.005;

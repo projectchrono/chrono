@@ -63,7 +63,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
     bin->SetPos(ChVector3d(0, 0, 0));
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
     bin->SetCollide(true);
-    bin->SetBodyFixed(true);
+    bin->SetFixed(true);
 
     utils::AddBoxContainer(bin, mat,                                 //
                            ChFrame<>(ChVector3d(0, 0, 0.5), QUNIT),  //
@@ -80,7 +80,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
     mixer->SetMass(10.0);
     mixer->SetInertiaXX(ChVector3d(50, 50, 50));
     mixer->SetPos(ChVector3d(0, 0, 0.205));
-    mixer->SetBodyFixed(false);
+    mixer->SetFixed(false);
     mixer->SetCollide(true);
 
     ChVector3d hsize(0.8, 0.1, 0.2);

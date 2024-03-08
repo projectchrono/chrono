@@ -251,7 +251,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_system->AddBody(m_ground_body);
     m_ground_body->SetName("rig_ground");
     m_ground_body->SetIdentifier(0);
-    m_ground_body->SetBodyFixed(true);
+    m_ground_body->SetFixed(true);
     {
         auto box = chrono_types::make_shared<ChVisualShapeBox>(100, dim / 3, dim / 3);
         m_ground_body->AddVisualShape(box);
@@ -318,7 +318,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     }
 
     m_spindle_body = chrono_types::make_shared<ChBody>();
-    m_spindle_body->SetBodyFixed(mode == Mode::SUSPEND);
+    m_spindle_body->SetFixed(mode == Mode::SUSPEND);
     ChQuaternion<> qc;
     qc.SetFromAngleX(-m_camber_angle);
     m_system->AddBody(m_spindle_body);

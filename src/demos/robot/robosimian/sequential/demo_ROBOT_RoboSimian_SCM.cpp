@@ -460,7 +460,7 @@ int main(int argc, char* argv[]) {
             SetContactProperties(&robot);
 
             // Release robot
-            robot.GetChassisBody()->SetBodyFixed(false);
+            robot.GetChassisBody()->SetFixed(false);
 
             terrain_created = true;
         }

@@ -65,7 +65,7 @@ TEST(FullAssembly, Assemble) {
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
     ground->SetIdentifier(0);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     // Create the pendulum body in an initial configuration at rest, with an
     // orientation that matches the specified joint orientation and a position

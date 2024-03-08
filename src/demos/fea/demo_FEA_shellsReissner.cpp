@@ -378,7 +378,7 @@ int main(int argc, char* argv[]) {
         }
 
         auto mtruss = chrono_types::make_shared<ChBody>();
-        mtruss->SetBodyFixed(true);
+        mtruss->SetFixed(true);
         sys.Add(mtruss);
         for (auto mendnode : nodes_left) {
             auto mlink = chrono_types::make_shared<ChLinkMateGeneric>(false, true, false, true, false, true);

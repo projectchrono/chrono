@@ -141,7 +141,7 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
 
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     // Create the pinion body in an initial configuration at rest
     auto pinion = chrono_types::make_shared<ChBody>();

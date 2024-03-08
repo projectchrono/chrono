@@ -228,7 +228,7 @@ ANCFShellTest::ANCFShellTest(int num_elements, SolverType solver_type, int NumTh
 
     // Create a grounded body to connect the 3D pendulum to
     auto grounded = chrono_types::make_shared<ChBody>();
-    grounded->SetBodyFixed(true);
+    grounded->SetFixed(true);
     m_system->Add(grounded);
 
     // Create and add the nodes

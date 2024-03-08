@@ -36,7 +36,7 @@ sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 # Create a rigid body as usual, and add it
 # to the physical sys:
 floor = chrono.ChBody()
-floor.SetBodyFixed(True)
+floor.SetFixed(True)
 
 
 # Contact material
@@ -121,7 +121,7 @@ floor.AddVisualShape(nurbsasset)
 
 # Create the rigid body as usual (this won't move, it is only for visualization tests)
 body = chrono.ChBody()
-body.SetBodyFixed(True)
+body.SetFixed(True)
 sys.Add(body)
 
 # Create a shared visual material

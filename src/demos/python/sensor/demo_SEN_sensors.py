@@ -42,7 +42,7 @@ def main():
 
     floor = chrono.ChBodyEasyBox(10,10,1,1000,True,True,phys_mat)
     floor.SetPos(chrono.ChVector3d(0,0,-1))
-    floor.SetBodyFixed(True)
+    floor.SetFixed(True)
     mphysicalSystem.Add(floor)
 
     box = chrono.ChBodyEasyBox(1,1,1,1000,True,True,phys_mat)

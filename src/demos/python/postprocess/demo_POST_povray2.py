@@ -75,7 +75,7 @@ sys.Add(body_particles)
 # and a visualization shape
 
 body_floor = chrono.ChBody()
-body_floor.SetBodyFixed(True)
+body_floor.SetFixed(True)
 
 # Collision shape
 floor_material = chrono.ChContactMaterialNSC()

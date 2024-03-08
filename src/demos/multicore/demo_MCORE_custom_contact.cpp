@@ -175,7 +175,7 @@ int main(int argc, char* argv[]) {
     auto ground = chrono_types::make_shared<ChBody>();
     sys->AddBody(ground);
     ground->SetCollide(true);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     utils::AddBoxContainer(ground, ground_mat,                     //
                            ChFrame<>(ChVector3d(0, 1, 0), QUNIT),  //

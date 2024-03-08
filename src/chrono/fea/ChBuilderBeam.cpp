@@ -658,7 +658,7 @@ ChExtruderBeamEuler::ChExtruderBeamEuler(
     speed = mspeed;
 
     ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     mysystem->Add(ground);
 
     auto nodeA = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(outlet));
@@ -765,7 +765,7 @@ ChExtruderBeamIGA::ChExtruderBeamIGA(ChSystem* msystem,              // system t
     speed = mspeed;
 
     ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     mysystem->Add(ground);
 
     auto nodeA = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(outlet));

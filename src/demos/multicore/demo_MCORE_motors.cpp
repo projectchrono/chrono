@@ -42,7 +42,7 @@ void CreateSliderGuide(std::shared_ptr<ChBody>& mguide,
                        const ChVector3d mpos) {
     mguide = chrono_types::make_shared<ChBodyEasyBox>(4, 0.3, 0.6, 1000, material);
     mguide->SetPos(mpos);
-    mguide->SetBodyFixed(true);
+    mguide->SetFixed(true);
     msystem.Add(mguide);
 
     mslider = chrono_types::make_shared<ChBodyEasySphere>(0.14, 1000, material);
@@ -62,7 +62,7 @@ void CreateStatorRotor(std::shared_ptr<ChBody>& mstator,
     mstator = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.5, 0.1, 1000, material);
     mstator->SetPos(mpos);
     mstator->SetRot(QuatFromAngleX(CH_C_PI_2));
-    mstator->SetBodyFixed(true);
+    mstator->SetFixed(true);
     msystem.Add(mstator);
 
     mrotor = chrono_types::make_shared<ChBodyEasyBox>(1, 0.1, 0.1, 1000, material);
@@ -518,7 +518,7 @@ int main(int argc, char* argv[]) {
     // Create ground body
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, material);
     floorBody->SetPos(ChVector3d(0, -2, 0));
-    floorBody->SetBodyFixed(true);
+    floorBody->SetFixed(true);
     sys->Add(floorBody);
 
     // Add examples of rotational motors

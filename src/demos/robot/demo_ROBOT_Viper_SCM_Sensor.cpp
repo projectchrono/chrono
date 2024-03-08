@@ -268,7 +268,7 @@ int main(int argc, char* argv[]) {
         rock_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(rock_pos), ChQuaternion<>(rock_rot)));
         sys.Add(rock_Body);
 
-        rock_Body->SetBodyFixed(false);
+        rock_Body->SetFixed(false);
 
         auto rock_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_mmesh,
                                                                                       false, false, 0.005);

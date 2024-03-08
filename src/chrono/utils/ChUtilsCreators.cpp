@@ -426,7 +426,7 @@ bool AddTriangleMeshConvexDecompositionSplit(ChSystem* system,
         body->SetPos(pos);
         body->SetRot(rot);
         body->SetCollide(true);
-        body->SetBodyFixed(false);
+        body->SetFixed(false);
 
         std::vector<ChVector3d> convexhull;
         if (!used_decomposition->GetConvexHullResult(c, convexhull))
@@ -640,7 +640,7 @@ std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
     body->SetPos(pos);
     body->SetRot(rot);
     body->SetCollide(collide);
-    body->SetBodyFixed(true);
+    body->SetFixed(true);
 
     double o_lap = overlap ? thickness : 0.0;
     double hthick = thickness / 2;
@@ -703,7 +703,7 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
     body->SetPos(pos);
     body->SetRot(rot);
     body->SetCollide(collide);
-    body->SetBodyFixed(true);
+    body->SetFixed(true);
 
     double o_lap = overlap ? thickness : 0;
     double hthick = thickness / 2;

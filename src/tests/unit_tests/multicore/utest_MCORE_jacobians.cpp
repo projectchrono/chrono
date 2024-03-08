@@ -40,7 +40,7 @@ void CreateContainer(ChSystemMulticore* system) {
     mat_walls->SetFriction(0.3f);
 
     auto container = chrono_types::make_shared<ChBody>();
-    container->SetBodyFixed(true);
+    container->SetFixed(true);
     container->SetCollide(true);
     container->SetMass(10000.0);
 
@@ -75,7 +75,7 @@ void CreateGranularMaterial(ChSystemMulticore* sys) {
                 ball->SetInertiaXX(inertia);
                 ball->SetPos(pos + rnd);
                 ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-                ball->SetBodyFixed(false);
+                ball->SetFixed(false);
                 ball->SetCollide(true);
 
                 utils::AddSphereGeometry(ball.get(), ballMat, radius);

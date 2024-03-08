@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
 
     // Create a truss:
     auto body_truss = chrono_types::make_shared<ChBody>();
-    body_truss->SetBodyFixed(true);
+    body_truss->SetFixed(true);
 
     sys.AddBody(body_truss);
 

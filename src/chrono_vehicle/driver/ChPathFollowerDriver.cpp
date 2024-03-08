@@ -55,7 +55,7 @@ ChClosedLoopDriver::ChClosedLoopDriver(ChVehicle& vehicle,
 void ChClosedLoopDriver::Initialize() {
     // Create a fixed body to carry a visualization asset for the path
     auto road = chrono_types::make_shared<ChBody>();
-    road->SetBodyFixed(true);
+    road->SetFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
 
     auto bezier_curve = m_steeringPID->GetPath();

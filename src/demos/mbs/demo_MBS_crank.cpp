@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
     // ..the truss
     auto my_body_A = chrono_types::make_shared<ChBody>();
     sys.AddBody(my_body_A);
-    my_body_A->SetBodyFixed(true);  // truss does not move!
+    my_body_A->SetFixed(true);  // truss does not move!
     my_body_A->SetName("Ground-Truss");
 
     // ..the crank

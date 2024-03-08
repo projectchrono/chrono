@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     ground->SetCollide(false);
 
     // Visualization for revolute joint
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     body->SetPosDer(lin_vel);
     body->SetAngVelParent(ang_vel);
     body->SetIdentifier(1);
-    body->SetBodyFixed(false);
+    body->SetFixed(false);
     body->SetCollide(false);
     body->SetMass(1);
     body->SetInertiaXX(ChVector3d(1, 1, 1));

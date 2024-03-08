@@ -73,7 +73,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                               true,        // collision?
                                                               floor_mat);  // contact material
     floorBody->SetPos(ChVector3d(0, -5, 0));
-    floorBody->SetBodyFixed(true);
+    floorBody->SetFixed(true);
     sys.Add(floorBody);
 
     auto wallBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99,  // x,y,z size
@@ -82,7 +82,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                               true,          // collision?
                                                               floor_mat);    // contact material
     wallBody1->SetPos(ChVector3d(-10, 0, 0));
-    wallBody1->SetBodyFixed(true);
+    wallBody1->SetFixed(true);
     sys.Add(wallBody1);
 
     auto wallBody2 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99,  // x,y,z size
@@ -91,7 +91,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                               true,          // collision?
                                                               floor_mat);    // contact material
     wallBody2->SetPos(ChVector3d(10, 0, 0));
-    wallBody2->SetBodyFixed(true);
+    wallBody2->SetFixed(true);
     sys.Add(wallBody2);
 
     auto wallBody3 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1,  // x,y,z size
@@ -100,7 +100,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                               true,          // collision?
                                                               floor_mat);    // contact material
     wallBody3->SetPos(ChVector3d(0, 0, -10));
-    wallBody3->SetBodyFixed(true);
+    wallBody3->SetFixed(true);
     sys.Add(wallBody3);
 
     auto wallBody4 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1,  // x,y,z size
@@ -109,7 +109,7 @@ void create_some_falling_items(ChSystemNSC& sys) {
                                                               true,          // collision?
                                                               floor_mat);    // contact material
     wallBody4->SetPos(ChVector3d(0, 0, 10));
-    wallBody4->SetBodyFixed(true);
+    wallBody4->SetFixed(true);
     sys.Add(wallBody4);
 
     // Add the rotating mixer

@@ -31,13 +31,13 @@ sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, 0))
 
 # Create the ground body
 ground = chrono.ChBodyEasyBox(3, 2, 0.1, 10, True, False)
-ground.SetBodyFixed(True)
+ground.SetFixed(True)
 sys.Add(ground)
 
 # Create the sliding body
 # Give an initial angular velocity
 body = chrono.ChBodyEasyBox(0.5, 0.5, 0.5, 10, True, False)
-body.SetBodyFixed(False)
+body.SetFixed(False)
 sys.Add(body)
 body.SetPos(chrono.ChVector3d(-1.25, -0.75, 0.1))
 body.SetAngVelLocal(chrono.ChVector3d(0.1, 0.1, 0.1))

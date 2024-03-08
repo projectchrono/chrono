@@ -87,7 +87,7 @@ L4 = chrono.ChVector3d(-2,   L1.y, 0);
 pointsL = chrono.vector_ChVector3d([L1+Dz, L2+Dz, L3+Dz, L4+Dz, L1-Dz, L2-Dz, L3-Dz, L4-Dz])
 
 mbodyL = chrono.ChBodyEasyConvexHullAuxRef(pointsL, 1000,True,True,L_material)
-mbodyL.SetBodyFixed(fixed_L)
+mbodyL.SetFixed(fixed_L)
 sys.Add(mbodyL)
 
 
@@ -98,14 +98,14 @@ R4 = chrono.ChVector3d(1,   R1.y, 0);
 pointsR = chrono.vector_ChVector3d([R1+Dz, R2+Dz, R3+Dz, R4+Dz, R1-Dz, R2-Dz, R3-Dz, R4-Dz])
 
 mbodyR = chrono.ChBodyEasyConvexHullAuxRef(pointsR, 1000,True,True,brick_material)
-mbodyR.SetBodyFixed(True)
+mbodyR.SetFixed(True)
 sys.Add(mbodyR)
 
 
 if not(fixed_L):
     mbodyG = chrono.ChBodyEasyBox(1,0.5 , thick*2.2, 1000,True,True,brick_material)
     mbodyG.SetPos( chrono.ChVector3d(-1, L2.y-0.5/2, 0 ) )
-    mbodyG.SetBodyFixed(True)
+    mbodyG.SetFixed(True)
     sys.Add(mbodyG)
 
 

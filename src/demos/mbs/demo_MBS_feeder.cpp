@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
         bowl_mat,                                     // surface contact material
         0.002  // radius of 'inflating' of mesh (for more robust collision detection)
     );
-    feeder_bowl->SetBodyFixed(true);
+    feeder_bowl->SetFixed(true);
     feeder_bowl->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(0, -0.1, 0)));
     sys.Add(feeder_bowl);
 

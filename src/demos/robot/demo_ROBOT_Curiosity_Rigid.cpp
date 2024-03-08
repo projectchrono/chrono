@@ -183,28 +183,28 @@ void CreateTerrain(ChSystem& sys) {
     auto ground_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(30, 30, 1, 1000, true, true, ground_mat);
     ground->SetPos(ChVector3d(0, 0, -0.5));
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 60, 45);
     sys.Add(ground);
 
     // Create the first step of the stair-shaped obstacle
     auto mbox_1 = chrono_types::make_shared<ChBodyEasyBox>(2.4, 1.4, 0.1, 1000, true, true, ground_mat);
     mbox_1->SetPos(ChVector3d(3, 1, 0.05));
-    mbox_1->SetBodyFixed(true);
+    mbox_1->SetFixed(true);
     mbox_1->SetCollide(true);
     sys.Add(mbox_1);
 
     // Create the second step of the stair-shaped obstacle
     auto mbox_2 = chrono_types::make_shared<ChBodyEasyBox>(1.6, 1.2, 0.2, 1000, true, true, ground_mat);
     mbox_2->SetPos(ChVector3d(3, 1, 0.1));
-    mbox_2->SetBodyFixed(true);
+    mbox_2->SetFixed(true);
     mbox_2->SetCollide(true);
     sys.Add(mbox_2);
 
     // Create the third step of the stair-shaped obstacle
     auto mbox_3 = chrono_types::make_shared<ChBodyEasyBox>(0.8, 1.0, 0.3, 1000, true, true, ground_mat);
     mbox_3->SetPos(ChVector3d(3, 1, 0.15));
-    mbox_3->SetBodyFixed(true);
+    mbox_3->SetFixed(true);
     mbox_3->SetCollide(true);
     sys.Add(mbox_3);
 }

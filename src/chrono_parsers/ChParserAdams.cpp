@@ -340,7 +340,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
         adams_part_struct part = part_pair.second;
         auto newBody = chrono_types::make_shared<ChBodyAuxRef>();
         // std::cout << "fixed is " << part.fixed <<std::endl;
-        newBody->SetBodyFixed(part.fixed);
+        newBody->SetFixed(part.fixed);
         newBody->SetMass(part.mass);
         if (part.cm_marker_id.length() != 0) {
             // CM marker exists

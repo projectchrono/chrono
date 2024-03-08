@@ -146,7 +146,7 @@ sys.SetGravitationalAcceleration(chrono.ChVector3d(0, -9.8, 0))
 ground = chrono.ChBody()
 sys.AddBody(ground)
 ground.SetCollide(True)
-ground.SetBodyFixed(True)
+ground.SetFixed(True)
 
 
 cshape_1 = chrono.ChCollisionShapeBox(ground_mat, 10.0, 2.0, 10.0)

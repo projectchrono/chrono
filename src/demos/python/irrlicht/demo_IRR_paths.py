@@ -29,7 +29,7 @@ print ("Example: create a sys and visualize it in realtime 3D");
 sys      = chrono.ChSystemNSC()
 
 mfloor = chrono.ChBodyEasyBox(3, 0.2, 3, 1000)
-mfloor.SetBodyFixed(True)
+mfloor.SetFixed(True)
 sys.Add(mfloor)
 
 #

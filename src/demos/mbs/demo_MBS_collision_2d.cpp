@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
 
     // Create the truss:
     auto mfloor = chrono_types::make_shared<ChBody>();
-    mfloor->SetBodyFixed(true);
+    mfloor->SetFixed(true);
     sys.Add(mfloor);
 
     // Create a ChBody that contains a 2D convex collision shape:
@@ -74,7 +74,7 @@ int main(int argc, char* argv[]) {
 
     auto mhole = chrono_types::make_shared<ChBody>();
     mhole->SetPos(ChVector3d(4, 0, 0));
-    mhole->SetBodyFixed(true);
+    mhole->SetFixed(true);
     sys.Add(mhole);
 
     // Create a ChLinePath geometry, and insert sub-paths in clockwise order.

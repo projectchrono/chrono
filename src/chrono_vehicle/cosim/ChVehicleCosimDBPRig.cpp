@@ -189,7 +189,7 @@ void ChVehicleCosimDBPRigImposedSlip::InitializeRig(std::shared_ptr<ChBody> chas
 
     // Create a "ground" body
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     chassis->GetSystem()->AddBody(ground);
 
     // Create a "carrier" body.
@@ -241,7 +241,7 @@ void ChVehicleCosimDBPRigImposedAngVel::InitializeRig(std::shared_ptr<ChBody> ch
 
     // Create a "ground" body
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     chassis->GetSystem()->AddBody(ground);
 
     // Create a "carrier" body.

@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
     // -------------------------------------------
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(0.1, 0.1, 0.1, 1000, true, false);
     floor->SetPos({0, 0, -1});
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     //    floor->SetAngVelParent(ChVector3d(-0.2,-0.4,-0.3));
     //    floor->SetPosDer(ChVector3d(0.1, 0, 0));
     sys.Add(floor);
@@ -130,20 +130,20 @@ int main(int argc, char* argv[]) {
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
     box->SetPos({4,3,2});
-    box->SetBodyFixed(true);
+    box->SetFixed(true);
     sys.Add(box);
     box->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
 
 
     auto box1 = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
     box1->SetPos({4,-3,2});
-    box1->SetBodyFixed(true);
+    box1->SetFixed(true);
     sys.Add(box1);
     box1->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
 
     auto box2 = chrono_types::make_shared<ChBodyEasyBox>(1,1,1, 1000, true, false);
     box2->SetPos({4,0,2});
-    box2->SetBodyFixed(true);
+    box2->SetFixed(true);
     box2->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
     sys.Add(box2);
 
@@ -152,7 +152,7 @@ int main(int argc, char* argv[]) {
     // -------------------------------------------
 //    auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
 //    floor->SetPos({0, 0, -1});
-//    floor->SetBodyFixed(true);
+//    floor->SetFixed(true);
 //    sys.Add(floor);
 //    floor->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
 
