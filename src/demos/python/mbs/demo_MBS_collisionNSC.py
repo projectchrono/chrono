@@ -142,7 +142,7 @@ vis.AddTypicalLights()
 
 # Modify some setting of the physical syustem for the simulation, if you want
 sys.SetSolverType(chrono.ChSolver.Type_PSOR)
-sys.SetSolverMaxIterations(20)
+sys.GetSolver().AsIterative().SetMaxIterations(20)
 
 #  Run the simulation
 while vis.Run():

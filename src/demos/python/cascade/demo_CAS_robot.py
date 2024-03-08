@@ -231,7 +231,7 @@ vis.AddTypicalLights()
 
 sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN);
 #sys.SetSolverType(chrono.ChSolver.Type_MINRES);
-sys.SetSolverMaxIterations(300)
+sys.GetSolver().AsIterative().SetMaxIterations(300)
 
 # Run the simulation
 while vis.Run():

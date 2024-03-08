@@ -39,7 +39,7 @@ chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001)
 # per timestep, etc.
 
 #sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN) # precise, more slow
-sys.SetSolverMaxIterations(70)
+sys.GetSolver().AsIterative().SetMaxIterations(70)
 
 
 

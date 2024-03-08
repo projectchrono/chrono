@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create the contact surface(s).
-    // In this case it is a ChContactSurfaceMesh, that allows mesh-mesh collsions.
+    // In this case it is a ChContactSurfaceMesh, that allows mesh-mesh collisions.
 
     auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceMesh>(mysurfmaterial);
     my_mesh->AddContactSurface(mcontactsurf);

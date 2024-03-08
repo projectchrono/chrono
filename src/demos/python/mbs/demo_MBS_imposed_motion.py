@@ -128,8 +128,8 @@ mglyphasset = chrono.ChVisualShapeLine()
 mglyphasset.SetLineGeometry(mspline)
 impose_2.AddVisualShape(mglyphasset)
 
-mmoved_2.SetPos(f_line.GetVal(0) >> impose_2.GetFrame2()
-                >> impose_2.GetBody2().GetCsys())
+mmoved_2.SetPos(f_line.GetPos(0) >> impose_2.GetFrame2Rel()
+                >> impose_2.GetBody2().GetCoordsys())
 
 #
 # EXAMPLE 3

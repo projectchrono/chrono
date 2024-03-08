@@ -174,7 +174,7 @@ if  contact_method == chrono.ChContactMethod_SMC :
 
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
-sys.SetSolverMaxIterations(200)
+sys.GetSolver().AsIterative().SetMaxIterations(200)
 sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN)
 
 sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, -9.8))

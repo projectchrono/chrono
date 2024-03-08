@@ -119,7 +119,7 @@ hbeam_d = 0.024
 section2.SetDensity(2700)
 section2.SetYoungModulus(73.0e9)
 section2.SetShearModulusFromPoisson(0.3)
-section2.SetBeamRaleyghDamping(0.000)
+section2.SetRayleighDamping(0.000)
 section2.SetAsCircularSection(hbeam_d)
 
 builderA = fea.ChBuilderBeamEuler()
@@ -151,7 +151,7 @@ crankbeam_d = 0.048
 section3.SetDensity(2700)
 section3.SetYoungModulus(73.0e9)
 section3.SetShearModulusFromPoisson(0.3)
-section3.SetBeamRaleyghDamping(0.000)
+section3.SetRayleighDamping(0.000)
 section3.SetAsCircularSection(crankbeam_d)
 builderB = fea.ChBuilderBeamEuler()
 builderB.BuildBeam(mesh,               # the mesh where to put the created nodes and elements

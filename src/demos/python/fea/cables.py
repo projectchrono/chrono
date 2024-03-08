@@ -34,7 +34,7 @@ class Model1:
         msection_cable = fea.ChBeamSectionCable()
         msection_cable.SetDiameter(beam_diameter)
         msection_cable.SetYoungModulus(0.01e9)
-        msection_cable.SetBeamRaleyghDamping(0.000)
+        msection_cable.SetRayleighDamping(0.000)
 
         # Create the nodes
         hnodeancf1 = fea.ChNodeFEAxyzD(chrono.ChVector3d(0, 0, -0.2), chrono.ChVector3d(1, 0, 0))
@@ -90,7 +90,7 @@ class Model2 :
         msection_cable2 = fea.ChBeamSectionCable()
         msection_cable2.SetDiameter(0.015)
         msection_cable2.SetYoungModulus(0.01e9)
-        msection_cable2.SetBeamRaleyghDamping(0.000)
+        msection_cable2.SetRayleighDamping(0.000)
 
         # This ChBuilderCableANCF helper object is very useful because it will
         # subdivide 'beams' into sequences of finite elements of beam type, ex.
@@ -130,7 +130,7 @@ class Model3 :
         msection_cable2 = fea.ChBeamSectionCable()
         msection_cable2.SetDiameter(0.015)
         msection_cable2.SetYoungModulus(0.01e9)
-        msection_cable2.SetBeamRaleyghDamping(0.000)
+        msection_cable2.SetRayleighDamping(0.000)
 
         mtruss = chrono.ChBody()
         mtruss.SetBodyFixed(True)

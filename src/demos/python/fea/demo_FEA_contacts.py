@@ -155,7 +155,7 @@ my_mesh_beams = fea.ChMesh()
 msection_cable2 = fea.ChBeamSectionCable()
 msection_cable2.SetDiameter(0.05)
 msection_cable2.SetYoungModulus(0.01e9)
-msection_cable2.SetBeamRaleyghDamping(0.05)
+msection_cable2.SetRayleighDamping(0.05)
 
 builder = fea.ChBuilderCableANCF()
 
@@ -235,7 +235,7 @@ solver.SetTolerance(1e-12)
 solver.EnableDiagonalPreconditioner(True)
 solver.EnableWarmStart(True)  # Enable for better convergence when using Euler implicit linearized
 
-sys.SetSolverForceTolerance(1e-10)
+sys.GetSolver().AsIterative().SetTolerance(1e-10)
 
 # Simulation loop
 while vis.Run():

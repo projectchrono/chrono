@@ -163,7 +163,7 @@ emitter.RegisterAddBodyCallback(mcreation_callback)
 
 # Modify some setting of the physical sys for the simulation, if you want
 sys.SetSolverType(chrono.ChSolver.Type_PSOR)
-sys.SetSolverMaxIterations(40)
+sys.GetSolver().AsIterative().SetMaxIterations(40)
 
 # Turn off default -9.8 downward gravity
 sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, 0))

@@ -337,7 +337,7 @@ namespace ChronoDemo
             Console.WriteLine($"Gravity direction: {gravity.x}, {gravity.y}, {gravity.z}");
 
             // Solver settings
-            sys.SetSolverMaxIterations(150);
+            sys.GetSolver().AsIterative().SetMaxIterations(150);
             sys.SetMaxPenetrationRecoverySpeed(4.0);
 
             // ------------------

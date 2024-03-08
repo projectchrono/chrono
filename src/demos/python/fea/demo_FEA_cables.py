@@ -92,7 +92,7 @@ elif solver.GetType()== chrono.ChSolver.Type_MINRES :
 else:
 	print("Solver type not supported." )
     
-sys.SetSolverForceTolerance(1e-13)
+sys.GetSolver().AsIterative().SetTolerance(1e-13)
 
 # Set integrator
 ts = chrono.ChTimestepperEulerImplicitLinearized(sys)

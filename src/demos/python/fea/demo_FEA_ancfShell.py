@@ -189,8 +189,8 @@ sys.SetSolver(solver)
 solver.EnableDiagonalPreconditioner(True)
 #solver.SetVerbose(True)
 
-sys.SetSolverMaxIterations(100)
-sys.SetSolverForceTolerance(1e-10)
+sys.GetSolver().AsIterative().SetMaxIterations(100)
+sys.GetSolver().AsIterative().SetTolerance(1e-10)
 
 # Set up integrator
 

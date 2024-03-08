@@ -89,9 +89,9 @@ sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 sys.SetGravitationalAcceleration(chrono.ChVector3d(0, -10, 0))
 
 # Set solver settings
-sys.SetSolverMaxIterations(100)
+sys.GetSolver().AsIterative().SetMaxIterations(100)
+sys.GetSolver().AsIterative().SetTolerance(0)
 sys.SetMaxPenetrationRecoverySpeed(1e8)
-sys.SetSolverForceTolerance(0)
 
 # --------------------------------------------------
 # Create a contact material, shared among all bodies

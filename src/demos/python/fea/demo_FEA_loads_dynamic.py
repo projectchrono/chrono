@@ -50,7 +50,7 @@ beam_wz = 0.2
 beam_section.SetAsRectangularSection(beam_wy, beam_wz)
 beam_section.SetYoungModulus(0.01e9)
 beam_section.SetShearModulus(0.01e9 * 0.3)
-beam_section.SetBeamRaleyghDamping(0.200)
+beam_section.SetRayleighDamping(0.200)
 beam_section.SetDensity(1500)
 
 # Create an Eulero-Bernoulli beam with a single element
@@ -174,7 +174,7 @@ solver.SetTolerance(1e-15)
 solver.EnableDiagonalPreconditioner(True)
 solver.SetVerbose(False)
 
-sys.SetSolverForceTolerance(1e-13)
+sys.GetSolver().AsIterative().SetTolerance(1e-13)
 
 # Set integrator
 ts = chrono.ChTimestepperEulerImplicitLinearized(sys)

@@ -161,7 +161,7 @@ pov_exporter.SetShowContacts(True,
 pov_exporter.ExportScript()
 
 #sys.SetSolverType(chrono.ChSolver.Type_PMINRES)
-sys.SetSolverMaxIterations(50)
+sys.GetSolver().AsIterative().SetMaxIterations(50)
 
 
  # Perform a short simulation
