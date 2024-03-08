@@ -127,8 +127,8 @@ int main(int argc, char* argv[]) {
 
     // ...btw here is an example on how to setup a material:
     auto visual_material = chrono_types::make_shared<ChVisualMaterial>();
-    visual_material->SetMetallic(0.5);
-    visual_material->SetRoughness(0.1);
+    visual_material->SetMetallic(0.5f);
+    visual_material->SetRoughness(0.1f);
     sphere->AddMaterial(visual_material);
 
     // ==Asset== Attach a 'Wavefront mesh' asset, referencing a .obj file:
@@ -167,7 +167,7 @@ int main(int argc, char* argv[]) {
     trimesh->GetMesh()->GetIndicesNormals() = std::vector<chrono::ChVector3i>{{0, 0, 0}, {0, 0, 0}};
     // ... per-vertex colors, RGB:
     trimesh->GetMesh()->GetCoordsColors() =
-        std::vector<chrono::ChColor>{{0.9, 0.8, 0.1}, {0.8, 0.2, 0.3}, {0.2, 0.1, 0.9}, {0.2, 0.6, 0.6}};
+        std::vector<chrono::ChColor>{{0.9f, 0.8f, 0.1f}, {0.8f, 0.2f, 0.3f}, {0.2f, 0.1f, 0.9f}, {0.2f, 0.6f, 0.6f}};
 
     // NOTE: optionally, you can add a scalar or vector property, per vertex or per face, that can
     // be rendered via falsecolor in Blender. Note that optionally we can suggest a min-max range for falsecolor scale.
@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < 6; ++i)
         glyphs_points->SetGlyphPoint(i,                                // i-th glyph
                                      ChVector3d(1 + i * 0.2, 2, 0.2),  // the position
-                                     ChColor(0.3, i * 0.1, 0)          // the vector color
+                                     ChColor(0.3f, i * 0.1f, 0)          // the vector color
         );
     body->AddVisualShape(glyphs_points);
 
@@ -258,7 +258,7 @@ int main(int argc, char* argv[]) {
     auto my_arc = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector3d(1, 2, 1.6)), 0.5, 0, CH_C_PI,
                                                                  true);  // origin, rad, angle start&end
     line->SetLineGeometry(my_arc);
-    line->SetColor(ChColor(1, 0.3, 0));
+    line->SetColor(ChColor(1.0f, 0.3f, 0));
     line->SetThickness(10.0);
     body->AddVisualShape(line);
 
