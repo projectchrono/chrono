@@ -33,7 +33,7 @@ class ChApi ChShaftsClutch : public ChShaftsCouple {
     virtual ChShaftsClutch* Clone() const override { return new ChShaftsClutch(*this); }
 
     /// Number of scalar constraints, for statistical reasons
-    virtual int GetNumConstraintsBilateral() override { return 1; }
+    virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;

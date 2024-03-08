@@ -771,7 +771,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
     double mass_p = m_load_mass[i_shape] / nt;
     ChVector3d inertia_p = 1e-3 * mass_p * ChVector3d(0.1, 0.1, 0.1);
 
-    for (int it = 0; it < nt; it++) {
+    for (unsigned int it = 0; it < nt; it++) {
         auto body = chrono_types::make_shared<ChBody>();
         body->SetIdentifier(it);
         body->SetMass(mass_p);

@@ -391,7 +391,7 @@ void ChElementCableANCF::SetupInitial(ChSystem* system) {
         m_mapping_dof.resize(m_element_dof);
         int dof = 0;
         for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < m_nodes[i]->GetNumCoordsPosLevel(); j++)
+            for (unsigned int j = 0; j < m_nodes[i]->GetNumCoordsPosLevel(); j++)
                 m_mapping_dof(dof++) = i * 6 + j;
         }
     }

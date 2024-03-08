@@ -67,7 +67,7 @@ bool ChConvexDecomposition::AddTriangle(const ChTriangle& t1) {
 }
 
 bool ChConvexDecomposition::AddTriangleMesh(const ChTriangleMesh& tm) {
-    for (int i = 0; i < tm.GetNumTriangles(); i++) {
+    for (unsigned int i = 0; i < tm.GetNumTriangles(); i++) {
         if (!this->AddTriangle(tm.GetTriangle(i)))
             return false;
     }
@@ -135,7 +135,7 @@ bool ChConvexDecompositionHACD::AddTriangle(const ChVector3d& v1, const ChVector
 }
 
 bool ChConvexDecompositionHACD::AddTriangleMesh(const ChTriangleMesh& tm) {
-    for (int i = 0; i < tm.GetNumTriangles(); i++) {
+    for (unsigned int i = 0; i < tm.GetNumTriangles(); i++) {
         if (!this->ChConvexDecomposition::AddTriangle(tm.GetTriangle(i)))
             return false;
     }
@@ -317,7 +317,7 @@ bool ChConvexDecompositionHACDv2::AddTriangle(const ChVector3d& v1, const ChVect
 }
 
 bool ChConvexDecompositionHACDv2::AddTriangleMesh(const ChTriangleMesh& tm) {
-    for (int i = 0; i < tm.GetNumTriangles(); i++) {
+    for (unsigned int i = 0; i < tm.GetNumTriangles(); i++) {
         if (!this->ChConvexDecomposition::AddTriangle(tm.GetTriangle(i)))
             return false;
     }

@@ -36,8 +36,8 @@ void ChModalDampingFactorRmm::ComputeR(ChModalAssembly& assembly,
                                        const ChMatrixDynamic<>& modal_K,
                                        const ChMatrixDynamic<>& Psi,
                                        ChMatrixDynamic<>& modal_R) const {
-    int n_mod_coords = assembly.Get_n_modes_coords_w();
-    int n_bou_coords = assembly.GetNumCoordinatesVelBoundary();
+    unsigned int n_mod_coords = assembly.Get_n_modes_coords_w();
+    unsigned int n_bou_coords = assembly.GetNumCoordinatesVelBoundary();
 
     ChVectorDynamic<> omegas = CH_C_2PI * assembly.Get_modes_frequencies();
     ChVectorDynamic<> zetas;
@@ -49,7 +49,7 @@ void ChModalDampingFactorRmm::ComputeR(ChModalAssembly& assembly,
         zetas = this->damping_factors.segment(0, n_mod_coords);
     if (this->damping_factors.size() < n_mod_coords) {
         zetas.segment(0, this->damping_factors.size()) = this->damping_factors;
-        for (int i = this->damping_factors.size(); i < n_mod_coords; ++i) {
+        for (unsigned int i = this->damping_factors.size(); i < n_mod_coords; ++i) {
             zetas(i) = zetas(this->damping_factors.size() - 1);  // repeat last of user provided factors
         }
     }

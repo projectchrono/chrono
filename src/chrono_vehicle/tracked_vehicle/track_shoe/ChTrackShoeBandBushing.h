@@ -68,7 +68,7 @@ class CH_VEHICLE_API ChTrackShoeBandBushing : public ChTrackShoeBand {
     virtual void UpdateInertiaProperties() override;
 
     /// Return the number of segments that the web section is broken up into.
-    virtual int GetNumWebSegments() const = 0;
+    virtual unsigned int GetNumWebSegments() const = 0;
 
     /// Return the length of just one of the web sections (in the X direction).
     double GetWebSegmentLength() { return m_seg_length; }

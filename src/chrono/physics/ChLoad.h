@@ -450,7 +450,7 @@ inline void ChLoad<Tloader>::ComputeJacobian(ChState* state_x,
 template <class Tloader>
 inline void ChLoad<Tloader>::LoadIntLoadResidual_F(ChVectorDynamic<>& R, double c) {
     unsigned int rowQ = 0;
-    for (int i = 0; i < this->loader.GetLoadable()->GetSubBlocks(); ++i) {
+    for (unsigned int i = 0; i < this->loader.GetLoadable()->GetSubBlocks(); ++i) {
         if (this->loader.GetLoadable()->IsSubBlockActive(i)) {
             unsigned int moffset = this->loader.GetLoadable()->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < this->loader.GetLoadable()->GetSubBlockSize(i); ++row) {
@@ -469,7 +469,7 @@ inline void ChLoad<Tloader>::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const 
     ChVectorDynamic<> grouped_w(this->LoadGet_ndof_w());
     ChVectorDynamic<> grouped_cMv(this->LoadGet_ndof_w());
     unsigned int rowQ = 0;
-    for (int i = 0; i < this->loader.GetLoadable()->GetSubBlocks(); ++i) {
+    for (unsigned int i = 0; i < this->loader.GetLoadable()->GetSubBlocks(); ++i) {
         if (this->loader.GetLoadable()->IsSubBlockActive(i)) {
             unsigned int moffset = this->loader.GetLoadable()->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < this->loader.GetLoadable()->GetSubBlockSize(i); ++row) {
@@ -481,7 +481,7 @@ inline void ChLoad<Tloader>::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const 
     // do computation R=c*M*v
     grouped_cMv = c * this->jacobians->M * grouped_w;
     rowQ = 0;
-    for (int i = 0; i < this->loader.GetLoadable()->GetSubBlocks(); ++i) {
+    for (unsigned int i = 0; i < this->loader.GetLoadable()->GetSubBlocks(); ++i) {
         if (this->loader.GetLoadable()->IsSubBlockActive(i)) {
             unsigned int moffset = this->loader.GetLoadable()->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < this->loader.GetLoadable()->GetSubBlockSize(i); ++row) {
@@ -498,7 +498,7 @@ inline void ChLoad<Tloader>::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, dou
         return;
     // do computation Md=c*diag(M)
     unsigned int rowQ = 0;
-    for (int i = 0; i < this->loader.GetLoadable()->GetSubBlocks(); ++i) {
+    for (unsigned int i = 0; i < this->loader.GetLoadable()->GetSubBlocks(); ++i) {
         if (this->loader.GetLoadable()->IsSubBlockActive(i)) {
             unsigned int moffset = this->loader.GetLoadable()->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < this->loader.GetLoadable()->GetSubBlockSize(i); ++row) {

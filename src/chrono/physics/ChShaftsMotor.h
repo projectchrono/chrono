@@ -98,7 +98,7 @@ class ChApi ChShaftsMotor : public ChShaftsMotorBase {
     virtual ChShaftsMotor* Clone() const override { return new ChShaftsMotor(*this); }
 
     /// Number of scalar constraints
-    virtual int GetNumConstraintsBilateral() override { return (motor_mode == MOT_MODE_TORQUE) ? 0 : 1; }
+    virtual unsigned int GetNumConstraintsBilateral() override { return (motor_mode == MOT_MODE_TORQUE) ? 0 : 1; }
 
     //
     // STATE FUNCTIONS

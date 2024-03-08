@@ -80,16 +80,16 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
     bool IsFixedDDD() const;
 
     /// Get the number of degrees of freedom.
-    virtual int GetNumCoordsPosLevel() const override { return 12; }
+    virtual unsigned int GetNumCoordsPosLevel() const override { return 12; }
 
     /// Get the number of degrees of freedom, derivative.
-    virtual int GetNumCoordsVelLevel() const override { return 12; }
+    virtual unsigned int GetNumCoordsVelLevel() const override { return 12; }
 
     /// Get the actual number of active degrees of freedom.
-    virtual int GetNumCoordsPosLevelActive() const override { return m_dof_actual; }
+    virtual unsigned int GetNumCoordsPosLevelActive() const override { return m_dof_actual; }
 
     /// Get the actual number of active degrees of freedom, derivative.
-    virtual int GetNumCoordsVelLevelActive() const override { return m_dof_actual; }
+    virtual unsigned int GetNumCoordsVelLevelActive() const override { return m_dof_actual; }
 
     // Functions for interfacing to the state bookkeeping
 
@@ -142,10 +142,10 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
     // INTERFACE to ChLoadable
 
     /// Gets the number of DOFs affected by this element (position part).
-    virtual int GetLoadableNumCoordsPosLevel() override { return m_dof_actual; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return m_dof_actual; }
 
     /// Gets the number of DOFs affected by this element (speed part).
-    virtual int GetLoadableNumCoordsVelLevel() override { return m_dof_actual; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return m_dof_actual; }
 
     /// Gets all the DOFs packed in a single vector (position part).
     virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& S) override;
@@ -161,7 +161,7 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
                                         const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field.
-    virtual int GetFieldNumCoords() override { return m_dof_actual; }
+    virtual unsigned int GetFieldNumCoords() override { return m_dof_actual; }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return m_dof_actual; }

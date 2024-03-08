@@ -46,21 +46,21 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
     ChElementCableANCF();
     ~ChElementCableANCF() {}
 
-    virtual int GetNumNodes() override { return 2; }
+    virtual unsigned int GetNumNodes() override { return 2; }
 
     /// Get the number of coordinates in the field used by the referenced nodes.
-    virtual int GetNumCoordsPosLevel() override { return 2 * 6; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 2 * 6; }
 
     /// Get the number of active coordinates in the field used by the referenced nodes.
-    virtual int GetNumCoordsPosLevelActive() override { return m_element_dof; }
+    virtual unsigned int GetNumCoordsPosLevelActive() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNumCoordsPosLevel(int n) override { return m_nodes[n]->GetNumCoordsPosLevel(); }
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return m_nodes[n]->GetNumCoordsPosLevel(); }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNumCoordsPosLevelActive(int n) override { return m_nodes[n]->GetNumCoordsPosLevelActive(); }
+    virtual unsigned int GetNodeNumCoordsPosLevelActive(unsigned int n) override { return m_nodes[n]->GetNumCoordsPosLevelActive(); }
 
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(unsigned int n) override { return m_nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA, std::shared_ptr<ChNodeFEAxyzD> nodeB);
 
@@ -168,10 +168,10 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
     // Functions for ChLoadable interface
 
     /// Gets the number of DOFs affected by this element (position part).
-    virtual int GetLoadableNumCoordsPosLevel() override { return 2 * 6; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 2 * 6; }
 
     /// Gets the number of DOFs affected by this element (speed part).
-    virtual int GetLoadableNumCoordsVelLevel() override { return 2 * 6; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 2 * 6; }
 
     /// Gets all the DOFs packed in a single vector (position part).
     virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
@@ -187,10 +187,10 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
                                         const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field.
-    virtual int GetFieldNumCoords() override { return 6; }
+    virtual unsigned int GetFieldNumCoords() override { return 6; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual int GetSubBlocks() override { return 2; }
+    virtual unsigned int GetSubBlocks() override { return 2; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override { return m_nodes[nblock]->NodeGetOffsetVelLevel(); }

@@ -85,7 +85,7 @@ class ChApi ChContactContainerSMC : public ChContactContainer {
     virtual ChContactContainerSMC* Clone() const override { return new ChContactContainerSMC(*this); }
 
     /// Report the number of added contacts.
-    virtual int GetNumContacts() const override {
+    virtual unsigned int GetNumContacts() const override {
         return n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
                n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666;
     }

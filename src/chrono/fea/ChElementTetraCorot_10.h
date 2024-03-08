@@ -40,16 +40,16 @@ class ChApi ChElementTetraCorot_10 : public ChElementTetrahedron,
     ChElementTetraCorot_10();
     ~ChElementTetraCorot_10();
 
-    virtual int GetNumNodes() override { return 10; }
-    virtual int GetNumCoordsPosLevel() override { return 10 * 3; }
-    virtual int GetNodeNumCoordsPosLevel(int n) override { return 3; }
+    virtual unsigned int GetNumNodes() override { return 10; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 10 * 3; }
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return 3; }
 
     double GetVolume() { return Volume; }
 
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(unsigned int n) override { return nodes[n]; }
 
     /// Return the specified tetrahedron node (0 <= n <= 9).
-    virtual std::shared_ptr<ChNodeFEAxyz> GetTetrahedronNode(int n) override { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAxyz> GetTetrahedronNode(unsigned int n) override { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA,
                           std::shared_ptr<ChNodeFEAxyz> nodeB,
@@ -151,10 +151,10 @@ class ChApi ChElementTetraCorot_10 : public ChElementTetrahedron,
     //
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int GetLoadableNumCoordsPosLevel() override { return 10 * 3; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 10 * 3; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int GetLoadableNumCoordsVelLevel() override { return 10 * 3; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 10 * 3; }
 
     /// Gets all the DOFs packed in a single vector (position part)
     virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
@@ -170,10 +170,10 @@ class ChApi ChElementTetraCorot_10 : public ChElementTetrahedron,
                                         const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
-    virtual int GetFieldNumCoords() override { return 3; }
+    virtual unsigned int GetFieldNumCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual int GetSubBlocks() override { return 10; }
+    virtual unsigned int GetSubBlocks() override { return 10; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffsetVelLevel(); }

@@ -134,7 +134,7 @@ void ChElementHexaCorot_20::ShapeFunctions(ShapeVector& N, double r, double s, d
 void ChElementHexaCorot_20::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.setZero(this->GetNumCoordsPosLevel());
 
-    for (int i = 0; i < GetNumNodes(); i++)
+    for (unsigned int i = 0; i < GetNumNodes(); i++)
         mD.segment(i * 3, 3) = (A.transpose() * this->nodes[i]->GetPos() - nodes[i]->GetX0()).eigen();
 }
 
@@ -570,7 +570,7 @@ void ChElementHexaCorot_20::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfact
     // For M mass matrix:
     if (Mfactor) {
         double lumped_node_mass = (this->Volume * this->Material->Get_density()) / 20.0;
-        for (int id = 0; id < GetNumCoordsPosLevel(); id++) {
+        for (unsigned int id = 0; id < GetNumCoordsPosLevel(); id++) {
             double amfactor = Mfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingM();
             H(id, id) += amfactor * lumped_node_mass;
         }

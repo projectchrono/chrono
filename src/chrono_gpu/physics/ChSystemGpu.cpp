@@ -428,7 +428,7 @@ bool ChSystemGpu::GetBCReactionForces(size_t BC_id, ChVector3f& force) const {
     return ret;
 }
 
-int ChSystemGpu::GetNumContacts() const {
+unsigned int ChSystemGpu::GetNumContacts() const {
     return m_sys->GetNumContacts();
 }
 
@@ -579,7 +579,7 @@ void ChSystemGpuMesh::SetMeshes() {
     unsigned int tri_i = 0;
     // for each obj file data set
     for (const auto& mesh : m_meshes) {
-        for (int i = 0; i < mesh->GetNumTriangles(); i++) {
+        for (unsigned int i = 0; i < mesh->GetNumTriangles(); i++) {
             ChTriangle tri = mesh->GetTriangle(i);
 
             pMeshSoup->node1[tri_i] = make_float3((float)tri.p1.x(), (float)tri.p1.y(), (float)tri.p1.z());

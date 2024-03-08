@@ -72,7 +72,7 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
     virtual const ChVector3d& GetForce() const { return Force; }
 
     /// Get the number of degrees of freedom
-    virtual int GetNumCoordsPosLevel() const override { return 3; }
+    virtual unsigned int GetNumCoordsPosLevel() const override { return 3; }
 
     // INTERFACE to ChVariableTupleCarrier_1vars
     virtual ChVariables* GetVariables1() override { return &Variables(); }

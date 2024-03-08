@@ -115,7 +115,7 @@ void ChTimestepperHHT::Advance(const double dt) {
         Da_nrm_hist.fill(0.0);
         Dl_nrm_hist.fill(0.0);
         bool converged = false;
-        int it;
+        unsigned int it;
 
         for (it = 0; it < maxiters; it++) {
             if (verbose && modified_Newton && call_setup)

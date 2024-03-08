@@ -58,15 +58,15 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
     virtual void SetMass(double mm) = 0;
 
     /// Get the number of degrees of freedom
-    virtual int GetNumCoordsPosLevel() const override { return 3; }
+    virtual unsigned int GetNumCoordsPosLevel() const override { return 3; }
 
     // INTERFACE to ChLoadable
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int GetLoadableNumCoordsPosLevel() override { return 3; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 3; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int GetLoadableNumCoordsVelLevel() override { return 3; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 3; }
 
     /// Gets all the DOFs packed in a single vector (position part)
     virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
@@ -83,10 +83,10 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, etc. Here is 6: xyz displ + xyz rots
-    virtual int GetFieldNumCoords() override { return 3; }
+    virtual unsigned int GetFieldNumCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual int GetSubBlocks() override { return 1; }
+    virtual unsigned int GetSubBlocks() override { return 1; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override { return NodeGetOffsetVelLevel(); }

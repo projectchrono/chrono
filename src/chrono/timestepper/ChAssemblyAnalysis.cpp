@@ -36,7 +36,7 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
     if (action & AssemblyLevel::POSITION) {
         ChStateDelta Dx;
 
-        for (int m_iter = 0; m_iter < max_assembly_iters; m_iter++) {
+        for (unsigned int m_iter = 0; m_iter < max_assembly_iters; m_iter++) {
             // Set up auxiliary vectors
             Dx.setZero(integrable->GetNumCoordsVelLevel(), GetIntegrable());
             R.setZero(integrable->GetNumCoordsVelLevel());

@@ -47,7 +47,7 @@ class CH_MODELS_API MAN_7t_Vehicle : public ChWheeledVehicle {
 
     ~MAN_7t_Vehicle();
 
-    virtual int GetNumberAxles() const override { return 3; }
+    virtual unsigned int GetNumberAxles() const override { return 3; }
     virtual double GetWheelbase() const override { return 4.5; }  // average wheelbase
     virtual double GetMinTurningRadius() const override { return 13.1; }
     virtual double GetMaxSteeringAngle() const override { return 39.0 * CH_C_DEG_TO_RAD; }

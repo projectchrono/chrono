@@ -180,7 +180,7 @@ void ChVehicleCosimWheeledVehicleNode::ApplyTireInfo(const std::vector<ChVector3
 }
 
 // -----------------------------------------------------------------------------
-int ChVehicleCosimWheeledVehicleNode::GetNumSpindles() const {
+unsigned int ChVehicleCosimWheeledVehicleNode::GetNumSpindles() const {
     return m_num_spindles;
 }
 

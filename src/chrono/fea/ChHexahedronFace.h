@@ -44,7 +44,7 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
     ~ChHexahedronFace() {}
 
     // Get the specified face node (0 <= i <= 3).
-    std::shared_ptr<ChNodeFEAxyz> GetNodeN(int i) const {
+    std::shared_ptr<ChNodeFEAxyz> GetNodeN(unsigned int i) const {
         static int iface0[] = {0, 3, 2, 1};
         static int iface1[] = {0, 1, 5, 4};
         static int iface2[] = {1, 2, 6, 5};
@@ -80,10 +80,10 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
     // Functions for ChLoadable interface
 
     /// Get the number of DOFs affected by this element (position part).
-    virtual int GetLoadableNumCoordsPosLevel() override { return 4 * 3; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 4 * 3; }
 
     /// Get the number of DOFs affected by this element (speed part).
-    virtual int GetLoadableNumCoordsVelLevel() override { return 4 * 3; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 4 * 3; }
 
     /// Get all the DOFs packed in a single vector (position part).
     virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override {
@@ -113,10 +113,10 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
     }
 
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement.
-    virtual int GetFieldNumCoords() override { return 3; }
+    virtual unsigned int GetFieldNumCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual int GetSubBlocks() override { return 4; }
+    virtual unsigned int GetSubBlocks() override { return 4; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override { return GetNodeN(nblock)->NodeGetOffsetVelLevel(); }

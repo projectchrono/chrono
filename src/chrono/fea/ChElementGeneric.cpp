@@ -27,11 +27,11 @@ void ChElementGeneric::EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c
     //// Attention: this is called from within a parallel OMP for loop.
     //// Must use atomic increment when updating the global vector R.
 
-    int stride = 0;
-    for (int in = 0; in < GetNumNodes(); in++) {
-        int node_dofs = GetNodeNumCoordsPosLevelActive(in);
+    unsigned int stride = 0;
+    for (unsigned int in = 0; in < GetNumNodes(); in++) {
+        unsigned int node_dofs = GetNodeNumCoordsPosLevelActive(in);
         if (!GetNodeN(in)->IsFixed()) {
-            for (int j = 0; j < node_dofs; j++)
+            for (unsigned int j = 0; j < node_dofs; j++)
 #pragma omp atomic
                 R(GetNodeN(in)->NodeGetOffsetVelLevel() + j) += Fi(stride + j);
         }
@@ -46,9 +46,9 @@ void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVecto
 
     ChVectorDynamic<> mqi(GetNumCoordsPosLevel());
     mqi.setZero();
-    int stride = 0;
-    for (int in = 0; in < GetNumNodes(); in++) {
-        int node_dofs = GetNodeNumCoordsPosLevelActive(in);
+    unsigned int stride = 0;
+    for (unsigned int in = 0; in < GetNumNodes(); in++) {
+        unsigned int node_dofs = GetNodeNumCoordsPosLevelActive(in);
         if (!GetNodeN(in)->IsFixed()) {
             mqi.segment(stride, node_dofs) = w.segment(GetNodeN(in)->NodeGetOffsetVelLevel(), node_dofs);
         }
@@ -58,8 +58,8 @@ void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVecto
     ChVectorDynamic<> Fi = c * Mi * mqi;
 
     stride = 0;
-    for (int in = 0; in < GetNumNodes(); in++) {
-        int node_dofs = GetNodeNumCoordsPosLevelActive(in);
+    for (unsigned int in = 0; in < GetNumNodes(); in++) {
+        unsigned int node_dofs = GetNodeNumCoordsPosLevelActive(in);
         if (!GetNodeN(in)->IsFixed())
             R.segment(GetNodeN(in)->NodeGetOffsetVelLevel(), node_dofs) += Fi.segment(stride, node_dofs);
         stride += GetNodeNumCoordsPosLevel(in);
@@ -74,9 +74,9 @@ void ChElementGeneric::EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& er
     
     error = Mi.sum() - Mi.diagonal().sum();
 
-    int stride = 0;
-    for (int in = 0; in < GetNumNodes(); in++) {
-        int node_dofs = GetNodeNumCoordsPosLevelActive(in);
+    unsigned int stride = 0;
+    for (unsigned int in = 0; in < GetNumNodes(); in++) {
+        unsigned int node_dofs = GetNodeNumCoordsPosLevelActive(in);
         if (!GetNodeN(in)->IsFixed())
             Md.segment(GetNodeN(in)->NodeGetOffsetVelLevel(), node_dofs) += dMi.segment(stride, node_dofs);
         stride += GetNodeNumCoordsPosLevel(in);
@@ -92,11 +92,11 @@ void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const 
     //// Attention: this is called from within a parallel OMP for loop.
     //// Must use atomic increment when updating the global vector R.
 
-    int stride = 0;
-    for (int in = 0; in < GetNumNodes(); in++) {
-        int node_dofs = GetNodeNumCoordsPosLevelActive(in);
+    unsigned int stride = 0;
+    for (unsigned int in = 0; in < GetNumNodes(); in++) {
+        unsigned int node_dofs = GetNodeNumCoordsPosLevelActive(in);
         if (!GetNodeN(in)->IsFixed()) {
-            for (int j = 0; j < node_dofs; j++)
+            for (unsigned int j = 0; j < node_dofs; j++)
 #pragma omp atomic
                 R(GetNodeN(in)->NodeGetOffsetVelLevel() + j) += Fg(stride + j);
         }

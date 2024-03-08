@@ -761,7 +761,7 @@ void fillIrlichtMeshFromChTrimesh(IMesh* pMesh, chrono::ChTriangleMesh* chTrimes
     buffer->Vertices.set_used(chTrimesh->GetNumTriangles() * 3);
     buffer->Indices.set_used(chTrimesh->GetNumTriangles() * 3);
 
-    for (int i = 0; i < chTrimesh->GetNumTriangles(); i++) {
+    for (unsigned int i = 0; i < chTrimesh->GetNumTriangles(); i++) {
         chrono::ChVector3d normal = chTrimesh->GetTriangle(i).GetNormal();
         chrono::ChVector3d pos;
         pos = chTrimesh->GetTriangle(i).p1;

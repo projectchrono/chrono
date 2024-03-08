@@ -549,7 +549,7 @@ void ChCollisionModelBullet::injectTriangleMesh(std::shared_ptr<ChCollisionShape
     }
 
     cbtTriangleMesh* bulletMesh = new cbtTriangleMesh;
-    for (int i = 0; i < trimesh->GetNumTriangles(); i++) {
+    for (auto i = 0; i < trimesh->GetNumTriangles(); i++) {
         bulletMesh->addTriangle(cbtVector3CH(trimesh->GetTriangle(i).p1),  //
                                 cbtVector3CH(trimesh->GetTriangle(i).p2),  //
                                 cbtVector3CH(trimesh->GetTriangle(i).p3),  //

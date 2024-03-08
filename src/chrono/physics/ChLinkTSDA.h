@@ -147,7 +147,7 @@ class ChApi ChLinkTSDA : public ChLink {
         virtual ~ODE() {}
 
         /// Specify number of states (dimension of y).
-        virtual int GetNumStates() const = 0;
+        virtual unsigned int GetNumStates() const = 0;
 
         /// Set initial conditions.
         /// Must load y0 = y(0).
@@ -199,7 +199,7 @@ class ChApi ChLinkTSDA : public ChLink {
   private:
     virtual void Update(double mytime, bool update_assets = true) override;
 
-    virtual int GetNumCoordsPosLevel() override { return m_nstates; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return m_nstates; }
 
     // Interface to solver
     ChVariables& Variables() { return *m_variables; }

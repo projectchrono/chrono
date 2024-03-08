@@ -325,7 +325,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
     double mass_p = m_load_mass[i_shape] / nv;
     ChVector3d inertia_p = 0.4 * mass_p * m_radius_p * m_radius_p * ChVector3d(1, 1, 1);
 
-    for (int iv = 0; iv < nv; iv++) {
+    for (unsigned int iv = 0; iv < nv; iv++) {
         auto body = chrono_types::make_shared<ChBody>();
         body->SetIdentifier(iv);
         body->SetMass(mass_p);

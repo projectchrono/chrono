@@ -78,7 +78,7 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
     void SetMass(double mm) { variables.GetMass()(0) = mm; }
 
     /// Get the number of degrees of freedom
-    virtual int GetNumCoordsPosLevel() const override { return 1; }
+    virtual unsigned int GetNumCoordsPosLevel() const override { return 1; }
 
     // Functions for interfacing to the state bookkeeping
 

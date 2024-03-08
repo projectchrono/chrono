@@ -546,7 +546,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateLineShape(ChVisualModel::ShapeInsta
     scenegraph->addChild(transform);
 
     // calculate vertices
-    int numPoints = ls->GetNumRenderPoints();
+    unsigned int numPoints = ls->GetNumRenderPoints();
     double maxU = 1;
     if (auto mline_path = std::dynamic_pointer_cast<ChLinePath>(ls->GetLineGeometry()))
         maxU = mline_path->GetPathDuration();
@@ -554,7 +554,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateLineShape(ChVisualModel::ShapeInsta
     double ustep = maxU / (numPoints - 1);
     auto vertices = vsg::vec3Array::create(numPoints);
     auto colors = vsg::vec3Array::create(numPoints);
-    for (int i = 0; i < numPoints; i++) {
+    for (unsigned int i = 0; i < numPoints; i++) {
         double u = i * ustep;
         auto pos = ls->GetLineGeometry()->Evaluate(u);
         vertices->set(i, vsg::vec3CH(pos));
@@ -592,13 +592,13 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreatePathShape(ChVisualModel::ShapeInsta
     scenegraph->addChild(transform);
 
     // calculate vertices
-    int numPoints = ps->GetNumRenderPoints();
+    unsigned int numPoints = ps->GetNumRenderPoints();
     assert(numPoints > 2);
     double maxU = ps->GetPathGeometry()->GetPathDuration();
     double ustep = maxU / (numPoints - 1);
     auto vertices = vsg::vec3Array::create(numPoints);
     auto colors = vsg::vec3Array::create(numPoints);
-    for (int i = 0; i < numPoints; i++) {
+    for (unsigned int i = 0; i < numPoints; i++) {
         double u = i * ustep;
         auto pos = ps->GetPathGeometry()->Evaluate(u);
         vertices->set(i, vsg::vec3CH(pos));

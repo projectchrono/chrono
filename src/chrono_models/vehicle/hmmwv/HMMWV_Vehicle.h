@@ -40,7 +40,7 @@ class CH_MODELS_API HMMWV_Vehicle : public ChWheeledVehicle {
   public:
     virtual ~HMMWV_Vehicle() {}
 
-    virtual int GetNumberAxles() const override { return 2; }
+    virtual unsigned int GetNumberAxles() const override { return 2; }
 
     virtual double GetWheelbase() const override { return 3.378; }
     virtual double GetMinTurningRadius() const override { return 7.62; }

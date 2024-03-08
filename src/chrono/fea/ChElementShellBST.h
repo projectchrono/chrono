@@ -119,23 +119,23 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
 			      std::shared_ptr<ChNodeFEAxyz> node5);
 
     /// Get the number of nodes used by this element, not considering those marked with "nullptr" ex. if at boundary
-    virtual int GetNumNodes() override { return n_usednodes; }
+    virtual unsigned int GetNumNodes() override { return n_usednodes; }
 
     /// Get the number of coordinates in the field used by the referenced nodes.
-    virtual int GetNumCoordsPosLevel() override { return n_usednodes * 3; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return n_usednodes * 3; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNumCoordsPosLevel(int n) override { return 3; }
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return 3; }
 
 
     /// Access the n-th node of this element, not considering those marked with "nullptr" ex. if at boundary
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return m_nodes[nodes_used_to_six[n]]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(unsigned int n) override { return m_nodes[nodes_used_to_six[n]]; }
 
     /// Get a handle to the n node of this element, among the three of the triangle part, n=0..2
-    std::shared_ptr<ChNodeFEAxyz> GetNodeTriangleN(int n) const { return m_nodes[n]; }
+    std::shared_ptr<ChNodeFEAxyz> GetNodeTriangleN(unsigned int n) const { return m_nodes[n]; }
 
 	/// Get a handle to the n node from the three of the neighbouring triangles, n=0..2.  Even if nullptr.
-    std::shared_ptr<ChNodeFEAxyz> GetNodeNeighbourN(int n) const { return m_nodes[3+n]; }
+    std::shared_ptr<ChNodeFEAxyz> GetNodeNeighbourN(unsigned int n) const { return m_nodes[3+n]; }
 
     /// Sets the neutral rotations of nodes at once,
     /// assuming the current element position is for zero strain.
@@ -308,10 +308,10 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
     // ----------------------------------
 
     /// Gets the number of DOFs affected by this element (position part).
-    virtual int GetLoadableNumCoordsPosLevel() override { return n_usednodes * 3; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return n_usednodes * 3; }
 
     /// Gets the number of DOFs affected by this element (velocity part).
-    virtual int GetLoadableNumCoordsVelLevel() override { return n_usednodes * 3; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return n_usednodes * 3; }
 
     /// Gets all the DOFs packed in a single vector (position part).
     virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
@@ -324,10 +324,10 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual int GetFieldNumCoords() override { return 3; }
+    virtual unsigned int GetFieldNumCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual int GetSubBlocks() override { return n_usednodes; }
+    virtual unsigned int GetSubBlocks() override { return n_usednodes; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override {

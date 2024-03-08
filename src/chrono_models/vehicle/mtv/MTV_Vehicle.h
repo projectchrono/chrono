@@ -48,7 +48,7 @@ class CH_MODELS_API MTV_Vehicle : public ChWheeledVehicle {
 
     ~MTV_Vehicle();
 
-    virtual int GetNumberAxles() const override { return 3; }
+    virtual unsigned int GetNumberAxles() const override { return 3; }
 
     virtual double GetWheelbase() const override { return 4.1; }
     virtual double GetMinTurningRadius() const override { return 11.0; }

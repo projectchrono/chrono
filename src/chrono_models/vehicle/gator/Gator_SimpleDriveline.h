@@ -39,7 +39,7 @@ class CH_MODELS_API Gator_SimpleDriveline : public ChDrivelineWV {
 
     virtual std::string GetTemplateName() const override { return "GatorCustomDriveline"; }
 
-    virtual int GetNumDrivenAxles() const override { return 1; }  // RWD
+    virtual unsigned int GetNumDrivenAxles() const override { return 1; }  // RWD
 
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the specified axle subsystems.

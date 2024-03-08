@@ -237,14 +237,14 @@ class ChApi ChImplicitTimestepper {};
 /// a linear system must be solved.
 class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
   protected:
-    int maxiters;    ///< maximum number of iterations
+    unsigned int maxiters;    ///< maximum number of iterations
     double reltol;   ///< relative tolerance
     double abstolS;  ///< absolute tolerance (states)
     double abstolL;  ///< absolute tolerance (Lagrange multipliers)
 
-    int numiters;   ///< number of iterations
-    int numsetups;  ///< number of calls to the solver's Setup function
-    int numsolves;  ///< number of calls to the solver's Solve function
+    unsigned int numiters;   ///< number of iterations
+    unsigned int numsetups;  ///< number of calls to the solver's Setup function
+    unsigned int numsolves;  ///< number of calls to the solver's Solve function
 
   public:
     ChImplicitIterativeTimestepper()
@@ -280,13 +280,13 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
     }
 
     /// Return the number of iterations.
-    int GetNumIterations() const { return numiters; }
+    unsigned int GetNumIterations() const { return numiters; }
 
     /// Return the number of calls to the solver's Setup function.
-    int GetNumSetupCalls() const { return numsetups; }
+    unsigned int GetNumSetupCalls() const { return numsetups; }
 
     /// Return the number of calls to the solver's Solve function.
-    int GetNumSolveCalls() const { return numsolves; }
+    unsigned int GetNumSolveCalls() const { return numsolves; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) {

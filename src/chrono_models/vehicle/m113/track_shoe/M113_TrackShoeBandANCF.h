@@ -93,10 +93,10 @@ class CH_MODELS_API M113_TrackShoeBandANCF : public ChTrackShoeBandANCF {
     virtual double GetWebThickness() const override { return m_web_thickness; }
 
     /// Get the number of shell elements across the web length (from tread body to tread body).
-    virtual int GetNumElementsLength() const override { return m_num_elements_length; }
+    virtual unsigned int GetNumElementsLength() const override { return m_num_elements_length; }
 
     /// Get the number of shell elements across the web width (side to side).
-    virtual int GetNumElementsWidth() const override { return m_num_elements_width; }
+    virtual unsigned int GetNumElementsWidth() const override { return m_num_elements_width; }
 
     /// Get thickness of the inner steel layer.
     /// The rubber layer thicknesses are obtained from the total web thickness.

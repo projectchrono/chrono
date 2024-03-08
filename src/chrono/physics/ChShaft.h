@@ -77,7 +77,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     unsigned int GetIndex() const { return index; }
 
     /// Number of coordinates of the shaft
-    virtual int GetNumCoordsPosLevel() override { return 1; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 1; }
 
     /// Returns reference to the encapsulated ChVariables,
     ChVariablesShaft& Variables() { return variables; }
@@ -156,8 +156,8 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
 
     // INTERFACE to ChLoadable
 
-    virtual int GetLoadableNumCoordsPosLevel() override { return 1; }
-    virtual int GetLoadableNumCoordsVelLevel() override { return 1; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 1; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 1; }
     virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override { mD(block_offset) = this->GetPos(); }
     virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override {
         mD(block_offset) = this->GetPosDer();
@@ -169,8 +169,8 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
                                         const ChStateDelta& Dv) override {
         x_new(off_x) = x(off_x) + Dv(off_v);
     }
-    virtual int GetFieldNumCoords() override { return 1; }
-    virtual int GetSubBlocks() override { return 1; }
+    virtual unsigned int GetFieldNumCoords() override { return 1; }
+    virtual unsigned int GetSubBlocks() override { return 1; }
     virtual unsigned int GetSubBlockOffset(int nblock) override { return this->GetOffset_w(); }
     virtual unsigned int GetSubBlockSize(int nblock) override { return 1; }
     virtual bool IsSubBlockActive(int nblock) const override { return true; }

@@ -452,7 +452,7 @@ void ChSystemMulticore::UpdateLinks() {
     real clamp_speed = data_manager->settings.solver.bilateral_clamp_speed;
     bool clamp = data_manager->settings.solver.clamp_bilaterals;
 
-    for (int i = 0; i < assembly.linklist.size(); i++) {
+    for (auto i = 0; i < assembly.linklist.size(); i++) {
         auto& link = assembly.linklist[i];
 
         link->Update(ch_time, false);
@@ -464,7 +464,7 @@ void ChSystemMulticore::UpdateLinks() {
 
         link->InjectConstraints(*descriptor);
 
-        for (int j = 0; j < link->GetNumConstraintsBilateral(); j++)
+        for (unsigned int j = 0; j < link->GetNumConstraintsBilateral(); j++)
             data_manager->host_data.bilateral_type.push_back(BilateralType::BODY_BODY);
     }
 }
@@ -530,7 +530,7 @@ void ChSystemMulticore::UpdateOtherPhysics() {
 
         item->InjectConstraints(*descriptor);
 
-        for (int j = 0; j < item->GetNumConstraintsBilateral(); j++)
+        for (unsigned int j = 0; j < item->GetNumConstraintsBilateral(); j++)
             data_manager->host_data.bilateral_type.push_back(type);
     }
 }

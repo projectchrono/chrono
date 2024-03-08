@@ -110,10 +110,10 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     unsigned int GetIndex() { return index; }
 
     /// Number of coordinates of body: 7 because uses quaternions for rotation.
-    virtual int GetNumCoordsPosLevel() override { return 7; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 7; }
 
     /// Number of coordinates of body: 6 because derivatives use angular velocity.
-    virtual int GetNumCoordsVelLevel() override { return 6; }
+    virtual unsigned int GetNumCoordsVelLevel() override { return 6; }
 
     /// Return a reference to the encapsulated ChVariablesBody, representing states (pos, speed, or accel.) and forces.
     /// The ChVariablesBodyOwnMass is the interface to the system solver.
@@ -601,16 +601,16 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     // INTERFACE to ChLoadable
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int GetLoadableNumCoordsPosLevel() override { return 7; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 7; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int GetLoadableNumCoordsVelLevel() override { return 6; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 6; }
 
     /// Number of coordinates in the interpolated field. Here, 6: = xyz displ + xyz rots.
-    virtual int GetFieldNumCoords() override { return 6; }
+    virtual unsigned int GetFieldNumCoords() override { return 6; }
 
     /// Tell the number of DOFs blocks.
-    virtual int GetSubBlocks() override { return 1; }
+    virtual unsigned int GetSubBlocks() override { return 1; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override { return GetOffset_w(); }

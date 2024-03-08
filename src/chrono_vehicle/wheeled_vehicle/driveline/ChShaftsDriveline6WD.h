@@ -72,7 +72,7 @@ class CH_VEHICLE_API ChShaftsDriveline6WD : public ChDrivelineWV {
 
     /// Return the number of driven axles.
     /// A ChShaftsDriveline6WD driveline connects to three axles.
-    virtual int GetNumDrivenAxles() const final override { return 3; }
+    virtual unsigned int GetNumDrivenAxles() const final override { return 3; }
 
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the specified axle subsystems.

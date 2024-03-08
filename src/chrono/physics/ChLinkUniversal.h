@@ -39,7 +39,7 @@ class ChApi ChLinkUniversal : public ChLink {
     virtual ChLinkUniversal* Clone() const override { return new ChLinkUniversal(*this); }
 
     /// Get the number of (bilateral) constraints introduced by this joint.
-    virtual int GetNumConstraintsBilateral() override { return 4; }
+    virtual unsigned int GetNumConstraintsBilateral() override { return 4; }
 
     /// Get the link frame 1, relative to body 1.
     virtual ChFramed GetFrame1Rel() const override { return m_frame1; }

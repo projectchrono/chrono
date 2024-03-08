@@ -88,7 +88,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
         csv << std::endl;
 
         // Write number of collision shapes
-        int n_shapes = body->GetCollisionModel()->GetNumShapes();
+        unsigned int n_shapes = body->GetCollisionModel()->GetNumShapes();
         csv << n_shapes << std::endl;
 
         // Loop over each shape and write its data on a separate line.

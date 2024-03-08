@@ -38,7 +38,7 @@ class ChApi ChContactContainer : public ChPhysicsItem {
     virtual ~ChContactContainer() {}
 
     /// Get the number of added contacts.
-    virtual int GetNumContacts() const = 0;
+    virtual unsigned int GetNumContacts() const = 0;
 
     /// Remove (delete) all contained contact data.
     virtual void RemoveAllContacts() = 0;

@@ -268,6 +268,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | ContactableGet_ndof_w         | rename: GetContactableNumCoordsVelLevel          |
 |                                   | ContactableGetStateBlock_x    | rename: ContactableGetStateBlockPosLevel         |
 |                                   | ContactableGetStateBlock_w    | rename: ContactableGetStateBlockVelLevel         |
+| ChContactSurfaceNodeCloud         |                               |                                                  |
+|                                   | GetNnodesRot                  | rename: GetNumNodesRot                           |
 | ChElementBse                      |                               |                                                  |
 |                                   | GetNdofs                      | rename: GetNumCoordsPosLevel                     |
 |                                   | GetNdofs_active               | rename: GetNumCoordsPosLevelActive               |

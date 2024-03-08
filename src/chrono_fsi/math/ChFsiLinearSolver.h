@@ -69,7 +69,7 @@ class ChFsiLinearSolver {
     Real GetResidual() { return residual; }
 
     /// Return the number of current Iterations.
-    int GetNumIterations() { return Iterations; }
+    unsigned int GetNumIterations() { return Iterations; }
 
     /// Set the maximum number of iterations.
     void SetIterationLimit(int numIter) { max_iter = numIter; }

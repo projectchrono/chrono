@@ -44,7 +44,7 @@ class ChApi ChAssemblyAnalysis {
     ChStateDelta V;
     ChStateDelta A;
     ChVectorDynamic<> L;
-    int max_assembly_iters;
+    unsigned int max_assembly_iters;
 
   public:
     ChAssemblyAnalysis(ChIntegrableIIorder& mintegrable);

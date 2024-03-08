@@ -74,8 +74,8 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// Get the number of elements in the mesh.
     unsigned int GetNumElements() { return (unsigned int)velements.size(); }
 
-    virtual int GetNumCoordsPosLevel() override { return n_dofs; }
-    virtual int GetNumCoordsVelLevel() override { return n_dofs_w; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return n_dofs; }
+    virtual unsigned int GetNumCoordsVelLevel() override { return n_dofs_w; }
 
     /// Override default in ChPhysicsItem.
     virtual bool GetCollide() const override { return true; }
@@ -86,9 +86,9 @@ class ChApi ChMesh : public ChIndexedNodes {
         ncalls_KRMload = 0;
     }
     /// Get cumulative number of calls to internal forces evaluation.
-    int GetNumCallsInternalForces() { return ncalls_internal_forces; }
+    unsigned int GetNumCallsInternalForces() { return ncalls_internal_forces; }
     /// Get cumulative number of calls to load Jacobian information.
-    int GetNumCallsJacobianLoad() { return ncalls_KRMload; }
+    unsigned int GetNumCallsJacobianLoad() { return ncalls_KRMload; }
 
     /// Reset timers for internal force and Jacobian evaluations.
     void ResetTimers() {
@@ -289,8 +289,8 @@ class ChApi ChMesh : public ChIndexedNodes {
 
     ChTimer timer_internal_forces;
     ChTimer timer_KRMload;
-    int ncalls_internal_forces;
-    int ncalls_KRMload;
+    unsigned int ncalls_internal_forces;
+    unsigned int ncalls_KRMload;
 
 
     friend class chrono::ChSystem;

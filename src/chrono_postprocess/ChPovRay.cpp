@@ -675,8 +675,8 @@ void ChPovRay::ExportObjData(std::ofstream& pov_file,
     auto commands = m_custom_commands.find((size_t)item.get());
 
     auto vis_model = item->GetVisualModel();
-    int num_shapes = vis_model->GetNumShapes();
-    int num_shapesFEA = vis_model->GetNumShapesFEA();
+    unsigned int num_shapes = vis_model->GetNumShapes();
+    unsigned int num_shapesFEA = vis_model->GetNumShapesFEA();
     int num_cameras = (int)item->GetCameras().size();
     int num_commands = (commands == m_custom_commands.end()) ? 0 : 1;
     int num_csys = (parentframe.GetCoordsys() == CSYSNORM) ? 0 : 1;

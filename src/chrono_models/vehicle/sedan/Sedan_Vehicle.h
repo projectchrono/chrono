@@ -46,7 +46,7 @@ class CH_MODELS_API Sedan_Vehicle : public ChWheeledVehicle {
 
     ~Sedan_Vehicle();
 
-    virtual int GetNumberAxles() const override { return 2; }
+    virtual unsigned int GetNumberAxles() const override { return 2; }
 
     virtual double GetWheelbase() const override { return 2.776; }
     virtual double GetMinTurningRadius() const override { return 7.6; }

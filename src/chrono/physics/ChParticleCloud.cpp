@@ -246,7 +246,7 @@ ChParticleCloud::ChParticleCloud(const ChParticleCloud& other) : ChIndexedPartic
     else
         particle_collision_model = nullptr;
 
-    ResizeNparticles((int)other.GetNumParticles());
+    ResizeNparticles((unsigned int)other.GetNumParticles());
 
     max_speed = other.max_speed;
     max_wvel = other.max_wvel;

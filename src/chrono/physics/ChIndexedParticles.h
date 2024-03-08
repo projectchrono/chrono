@@ -66,11 +66,11 @@ class ChApi ChIndexedParticles : public ChPhysicsItem {
 
     /// Number of coordinates of the particle cluster.
     /// (x 7 because quaternions are used for rotation)
-    virtual int GetNumCoordsPosLevel() override { return 7 * (int)GetNumParticles(); }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 7 * (unsigned int)GetNumParticles(); }
 
     /// Number of coordinates of the particle cluster.
     /// (x 6 because derivatives use angular velocity)
-    virtual int GetNumCoordsVelLevel() override { return 6 * (int)GetNumParticles(); }
+    virtual unsigned int GetNumCoordsVelLevel() override { return 6 * (unsigned int)GetNumParticles(); }
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// For a ChIndexedParticles, this returns the frame of the corresponding particle.

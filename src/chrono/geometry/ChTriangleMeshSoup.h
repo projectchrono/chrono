@@ -53,10 +53,10 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     virtual void AddTriangle(const ChTriangle& atriangle) override { m_triangles.push_back(atriangle); }
 
     /// Get the number of triangles already added to this mesh
-    virtual int GetNumTriangles() const override { return (int)m_triangles.size(); }
+    virtual unsigned int GetNumTriangles() const override { return (unsigned int)m_triangles.size(); }
 
     /// Access the n-th triangle in mesh
-    virtual ChTriangle GetTriangle(int index) const override { return m_triangles[index]; }
+    virtual ChTriangle GetTriangle(unsigned int index) const override { return m_triangles[index]; }
 
     /// Get the list of triangles.
     std::vector<ChTriangle>& getTriangles() { return m_triangles; }

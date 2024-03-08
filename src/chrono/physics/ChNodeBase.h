@@ -35,21 +35,21 @@ class ChApi ChNodeBase {
     // Functions for interfacing to the state bookkeeping
 
     /// Get the number of degrees of freedom.
-    virtual int GetNumCoordsPosLevel() const = 0;
+    virtual unsigned int GetNumCoordsPosLevel() const = 0;
 
     /// Get the number of degrees of freedom, derivative.
     /// This might be different from ndof_x if quaternions are used for rotations and derivative is angular velocity.
-    virtual int GetNumCoordsVelLevel() const { return GetNumCoordsPosLevel(); }
+    virtual unsigned int GetNumCoordsVelLevel() const { return GetNumCoordsPosLevel(); }
 
     /// Get the actual number of active degrees of freedom.
     /// The default implementation returns the full number of DOFs for this node, but derived classes may allow fixing
     /// some of the node variables.
-    virtual int GetNumCoordsPosLevelActive() const { return GetNumCoordsPosLevel(); }
+    virtual unsigned int GetNumCoordsPosLevelActive() const { return GetNumCoordsPosLevel(); }
 
     /// Get the actual number of active degrees of freedom, derivative.
     /// The default implementation returns the full number of DOFs for this node, but derived classes may allow fixing
     /// some of the node variables.
-    virtual int GetNumCoordsVelLevelActive() const { return GetNumCoordsVelLevel(); }
+    virtual unsigned int GetNumCoordsVelLevelActive() const { return GetNumCoordsVelLevel(); }
 
     /// Return true if all node DOFs are active (no node variable is fixed).
     virtual bool IsAllCoordsActive() const { return true; }

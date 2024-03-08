@@ -298,7 +298,7 @@ class CH_GPU_API ChSystemGpu {
     bool GetBCReactionForces(size_t BC_id, ChVector3f& force) const;
 
     /// Return number of particle-particle contacts.
-    int GetNumContacts() const;
+    unsigned int GetNumContacts() const;
 
     /// Return number of subdomains in the big domain.
     unsigned int GetNumSDs() const;

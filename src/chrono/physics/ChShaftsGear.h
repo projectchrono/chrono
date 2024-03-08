@@ -47,7 +47,7 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     virtual ChShaftsGear* Clone() const override { return new ChShaftsGear(*this); }
 
     /// Number of scalar constraints
-    virtual int GetNumConstraintsBilateral() override { return 1; }
+    virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
 
     //
     // STATE FUNCTIONS

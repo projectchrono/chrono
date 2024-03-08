@@ -397,10 +397,10 @@ void ChElementShellANCF_3833::SetupInitial(ChSystem* system) {
 
     if (!m_full_dof) {
         m_mapping_dof.resize(m_element_dof);
-        int dof = 0;
+        unsigned int dof = 0;
         for (int i = 0; i < 8; i++) {
-            int node_dof = m_nodes[i]->GetNumCoordsPosLevel();
-            for (int j = 0; j < node_dof; j++)
+            unsigned int node_dof = m_nodes[i]->GetNumCoordsPosLevel();
+            for (unsigned int j = 0; j < node_dof; j++)
                 m_mapping_dof(dof++) = i * 9 + j;
         }
     }

@@ -49,7 +49,7 @@ class ChApi ChIndexedNodes : public ChPhysicsItem {
     //	virtual void ResizeNnodes(int newsize) =0;
 
     /// Number of coordinates of the node cluster
-    //	virtual int GetNumCoordsPosLevel  ()   {return 3*GetNumNodes();}
+    //	virtual unsigned int GetNumCoordsPosLevel  ()   {return 3*GetNumNodes();}
 
     //
     // SERIALIZATION

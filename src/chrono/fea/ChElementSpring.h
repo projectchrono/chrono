@@ -32,11 +32,11 @@ class ChApi ChElementSpring : public ChElementGeneric {
     ChElementSpring();
     ~ChElementSpring();
 
-    virtual int GetNumNodes() override { return 2; }
-    virtual int GetNumCoordsPosLevel() override { return 2 * 3; }
-    virtual int GetNodeNumCoordsPosLevel(int n) override { return 3; }
+    virtual unsigned int GetNumNodes() override { return 2; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 2 * 3; }
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return 3; }
 
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(unsigned int n) override { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA, std::shared_ptr<ChNodeFEAxyz> nodeB);
 

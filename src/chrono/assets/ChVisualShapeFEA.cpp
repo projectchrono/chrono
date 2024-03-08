@@ -455,8 +455,8 @@ void ChVisualShapeFEA::UpdateBuffers_Beam(std::shared_ptr<fea::ChElementBase> el
 
     if (sectionshape) {
         unsigned int ivert_el = i_verts;
-        int n_section_pts = 0;
-        for (int i = 0; i < sectionshape->GetNumLines(); ++i)
+        unsigned int n_section_pts = 0;
+        for (unsigned int i = 0; i < sectionshape->GetNumLines(); ++i)
             n_section_pts += sectionshape->GetNumPoints(i);
 
         for (int in = 0; in < beam_resolution; ++in) {
@@ -510,7 +510,7 @@ void ChVisualShapeFEA::UpdateBuffers_Beam(std::shared_ptr<fea::ChElementBase> el
 
             int subline_stride = 0;
 
-            for (int il = 0; il < sectionshape->GetNumLines(); ++il) {
+            for (unsigned int il = 0; il < sectionshape->GetNumLines(); ++il) {
                 std::vector<ChVector3d> msubline_pts(
                     sectionshape->GetNumPoints(il));  // suboptimal temp - better store&transform in place
                 std::vector<ChVector3d> msubline_normals(
@@ -907,7 +907,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
                             beam3333->GetThicknessY(), beam3333->GetThicknessZ());
                     }
                     if (sectionshape) {
-                        for (int il = 0; il < sectionshape->GetNumLines(); ++il) {
+                        for (unsigned int il = 0; il < sectionshape->GetNumLines(); ++il) {
                             n_verts += sectionshape->GetNumPoints(il) * beam_resolution;
                             n_vcols += sectionshape->GetNumPoints(il) * beam_resolution;
                             n_vnorms += sectionshape->GetNumPoints(il) * beam_resolution;

@@ -127,9 +127,9 @@ class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
     //
     // STATE FUNCTIONS
     //
-    virtual int GetNumCoordsPosLevel() override;
-    virtual int GetNumConstraints() override;
-    virtual int GetNumConstraintsBilateral() override;
+    virtual unsigned int GetNumCoordsPosLevel() override;
+    virtual unsigned int GetNumConstraints() override;
+    virtual unsigned int GetNumConstraintsBilateral() override;
 
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,

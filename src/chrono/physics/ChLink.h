@@ -44,7 +44,7 @@ class ChApi ChLink : public ChLinkBase {
     virtual ~ChLink() {}
 
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumAffectedCoords() override { return 12; }
+    virtual unsigned int GetNumAffectedCoords() override { return 12; }
 
     /// Get the constrained body 1.
     ChBodyFrame* GetBody1() const { return m_body1; }

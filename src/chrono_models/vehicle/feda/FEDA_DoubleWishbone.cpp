@@ -257,7 +257,7 @@ class FEDA_ShockODE : public ChLinkTSDA::ODE {
         m_lf_damper_table.AddPoint(5.0, 74851.94949);  // found by linear extrapolation
     }
 
-    virtual int GetNumStates() const override { return 2; }
+    virtual unsigned int GetNumStates() const override { return 2; }
     virtual void SetInitialConditions(ChVectorDynamic<>& states,  // output vector containig initial conditions
                                       const ChLinkTSDA& link      // associated link
                                       ) override {

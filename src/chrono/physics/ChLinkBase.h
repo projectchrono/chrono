@@ -54,7 +54,7 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     virtual bool IsActive() const override { return (valid && !disabled && !broken); }
 
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumAffectedCoords() = 0;
+    virtual unsigned int GetNumAffectedCoords() = 0;
 
     /// Get the link coordinate system in absolute reference.
     /// This represents the 'main' reference of the link: reaction forces and reaction torques are expressed in this

@@ -47,11 +47,11 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
 
     ~ChElementBeamEuler() {}
 
-    virtual int GetNumNodes() override { return 2; }
-    virtual int GetNumCoordsPosLevel() override { return 2 * 6; }
-    virtual int GetNodeNumCoordsPosLevel(int n) override { return 6; }
+    virtual unsigned int GetNumNodes() override { return 2; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 2 * 6; }
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return 6; }
 
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(unsigned int n) override { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA, std::shared_ptr<ChNodeFEAxyzrot> nodeB);
 
@@ -203,10 +203,10 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     //
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int GetLoadableNumCoordsPosLevel() override { return 2 * 7; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 2 * 7; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int GetLoadableNumCoordsVelLevel() override { return 2 * 6; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 2 * 6; }
 
     /// Gets all the DOFs packed in a single vector (position part)
     virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
@@ -223,10 +223,10 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual int GetFieldNumCoords() override { return 6; }
+    virtual unsigned int GetFieldNumCoords() override { return 6; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual int GetSubBlocks() override { return 2; }
+    virtual unsigned int GetSubBlocks() override { return 2; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override { return nodes[nblock]->NodeGetOffsetVelLevel(); }

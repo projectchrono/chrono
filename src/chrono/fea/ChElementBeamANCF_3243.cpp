@@ -322,7 +322,7 @@ double ChElementBeamANCF_3243::GetVonMissesStress(const double xi, const double 
 
 void ChElementBeamANCF_3243::SetupInitial(ChSystem* system) {
     m_element_dof = 0;
-    for (int i = 0; i < 2; i++) {
+    for (auto i = 0; i < 2; i++) {
         m_element_dof += m_nodes[i]->GetNumCoordsPosLevel();
     }
 
@@ -330,9 +330,9 @@ void ChElementBeamANCF_3243::SetupInitial(ChSystem* system) {
 
     if (!m_full_dof) {
         m_mapping_dof.resize(m_element_dof);
-        int dof = 0;
-        for (int i = 0; i < 2; i++) {
-            for (int j = 0; j < m_nodes[i]->GetNumCoordsPosLevel(); j++)
+        unsigned int dof = 0;
+        for (auto i = 0; i < 2; i++) {
+            for (unsigned int j = 0; j < m_nodes[i]->GetNumCoordsPosLevel(); j++)
                 m_mapping_dof(dof++) = i * 12 + j;
         }
     }
@@ -401,7 +401,7 @@ void ChElementBeamANCF_3243::ComputeNodalMass() {
 // Compute the generalized internal force vector for the current nodal coordinates and set the value in the Fi vector.
 
 void ChElementBeamANCF_3243::ComputeInternalForces(ChVectorDynamic<>& Fi) {
-    assert(Fi.size() == GetNumCoordsPosLevel());
+    assert((unsigned int)Fi.size() == GetNumCoordsPosLevel());
 
     if (m_method == IntFrcMethod::ContInt) {
         if (m_damping_enabled) {  // If linear Kelvin-Voigt viscoelastic material model is enabled
@@ -418,7 +418,7 @@ void ChElementBeamANCF_3243::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 //   H = Mfactor * [M] + Kfactor * [K] + Rfactor * [R]
 
 void ChElementBeamANCF_3243::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.rows() == GetNumCoordsPosLevel()) && (H.cols() == GetNumCoordsPosLevel()));
+    assert(((unsigned int)H.rows() == GetNumCoordsPosLevel()) && ((unsigned int)H.cols() == GetNumCoordsPosLevel()));
 
     if (m_method == IntFrcMethod::ContInt) {
         if (m_damping_enabled) {  // If linear Kelvin-Voigt viscoelastic material model is enabled
@@ -433,7 +433,7 @@ void ChElementBeamANCF_3243::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfac
 
 // Compute the generalized force vector due to gravity using the efficient ANCF specific method
 void ChElementBeamANCF_3243::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
-    assert(Fg.size() == GetNumCoordsPosLevel());
+    assert((unsigned int)Fg.size() == GetNumCoordsPosLevel());
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
     // The generalized force due to gravity could be computed once prior to the start of the simulation if gravity was
@@ -449,7 +449,7 @@ void ChElementBeamANCF_3243::ComputeGravityForces(ChVectorDynamic<>& Fg, const C
 // Interface to ChElementBeam base class (and similar methods)
 // -----------------------------------------------------------------------------
 
-void ChElementBeamANCF_3243::EvaluateSectionFrame(const double xi, ChVector3d& point, ChQuaternion<>& rot) {
+void ChElementBeamANCF_3243::EvaluateSectionFrame(double xi, ChVector3d& point, ChQuaternion<>& rot) {
     VectorN Sxi_compact;
     Calc_Sxi_compact(Sxi_compact, xi, 0, 0);
     VectorN Sxi_xi_compact;

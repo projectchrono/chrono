@@ -156,7 +156,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularGPU : public ChVehicleCosi
     virtual void Construct() override;
 
     /// Return current total number of contacts.
-    virtual int GetNumContacts() const override { return m_systemGPU->GetNumContacts(); }
+    virtual unsigned int GetNumContacts() const override { return m_systemGPU->GetNumContacts(); }
 
     virtual void CreateRigidProxy(unsigned int i) override;
     virtual void UpdateRigidProxy(unsigned int i, BodyState& rigid_state) override;

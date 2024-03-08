@@ -193,8 +193,8 @@ void ChSuspensionTestRig::IncludeSteeringMechanism(int index) {
 }
 
 void ChSuspensionTestRig::Initialize() {
-    for (auto ia : m_axle_index) {
-        if (ia < 0 || ia >= m_vehicle->GetNumberAxles()) {
+    for (int ia : m_axle_index) {
+        if (ia < 0 || ia >= (int)m_vehicle->GetNumberAxles()) {
             throw std::runtime_error("Incorrect axle index " + std::to_string(ia) + " for the given vehicle");
         }
         for (const auto& wheel : m_vehicle->GetAxle(ia)->GetWheels()) {

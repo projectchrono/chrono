@@ -124,9 +124,9 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
     double GetTimeSetup_SolverCall() const { return m_timer_setup_solvercall(); }
 
     /// Return the number of calls to the solver's Setup function.
-    int GetNumSetupCalls() const { return m_setup_call; }
+    unsigned int GetNumSetupCalls() const { return m_setup_call; }
     /// Return the number of calls to the solver's Setup function.
-    int GetNumSolveCalls() const { return m_solve_call; }
+    unsigned int GetNumSolveCalls() const { return m_solve_call; }
 
     /// Get a handle to the underlying matrix.
     ChSparseMatrix& GetMatrix() { return m_mat; }
@@ -198,8 +198,8 @@ class ChApi ChDirectSolverLS : public ChSolverLS {
     ChVectorDynamic<double> m_rhs;  ///< right-hand side vector
     ChVectorDynamic<double> m_sol;  ///< solution vector
 
-    int m_solve_call;  ///< counter for calls to Solve
-    int m_setup_call;  ///< counter for calls to Setup
+    unsigned int m_solve_call;  ///< counter for calls to Solve
+    unsigned int m_setup_call;  ///< counter for calls to Setup
 
     bool m_lock;          ///< is the matrix sparsity pattern locked?
     bool m_use_learner;   ///< use the sparsity pattern learner?

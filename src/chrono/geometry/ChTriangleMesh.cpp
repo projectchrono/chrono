@@ -25,7 +25,7 @@ void ChTriangleMesh::Transform(const ChVector3d displ, const ChQuaternion<> mqua
 
 ChAABB ChTriangleMesh::GetBoundingBox() const {
     ChAABB bbox;
-    for (int i = 0; i < GetNumTriangles(); i++) {
+    for (unsigned int i = 0; i < GetNumTriangles(); i++) {
         GetTriangle(i).InflateBoundingBox(bbox);
     }
     return bbox;

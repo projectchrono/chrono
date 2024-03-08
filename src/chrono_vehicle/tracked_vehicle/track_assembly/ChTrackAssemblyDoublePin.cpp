@@ -129,7 +129,7 @@ bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // Wrap around sprocket.
     // ATTENTION:  USING SOME MAGIC NUMBERS HERE (angle adjustments)!!!!
     double delta = sign * CH_C_2PI / m_sprocket->GetNumTeeth();
-    for (int is = 1; is <= m_sprocket->GetNumTeeth() / 2; is++) {
+    for (unsigned int is = 1; is <= m_sprocket->GetNumTeeth() / 2; is++) {
         A = sprocket_pos + sprocket_radius * ChVector2d(std::sin(is * delta), -std::cos(is * delta));
         double angle = sign * std::atan2(A.y() - p2.y(), sign * (A.x() - p2.x()));
         as = angle - sign * 0.07;

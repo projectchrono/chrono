@@ -154,7 +154,7 @@ void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
     double integral[10] = {(double)0.0, (double)0.0, (double)0.0, (double)0.0, (double)0.0,
                            (double)0.0, (double)0.0, (double)0.0, (double)0.0, (double)0.0};
 
-    for (int i = 0; i < this->GetNumTriangles(); i++) {
+    for (unsigned int i = 0; i < this->GetNumTriangles(); i++) {
         // Get vertices of triangle i.
         ChVector3d v0 = this->m_vertices[m_face_v_indices[i].x()];
         ChVector3d v1 = this->m_vertices[m_face_v_indices[i].y()];
@@ -1134,12 +1134,12 @@ void ChTriangleMeshConnected::RefineMeshEdges(
 }
 
 const std::vector<ChVector3d>& ChTriangleMeshConnected::getFaceVertices() {
-    int n_faces = GetNumTriangles();
+    unsigned int n_faces = GetNumTriangles();
 
     m_tmp_vectors.resize(3 * n_faces);
 
     // Collect vertices from all mesh faces
-    for (int it = 0; it < n_faces; it++) {
+    for (unsigned int it = 0; it < n_faces; it++) {
         m_tmp_vectors[3 * it + 0] = m_vertices[m_face_v_indices[it][0]];
         m_tmp_vectors[3 * it + 1] = m_vertices[m_face_v_indices[it][1]];
         m_tmp_vectors[3 * it + 2] = m_vertices[m_face_v_indices[it][2]];
@@ -1149,12 +1149,12 @@ const std::vector<ChVector3d>& ChTriangleMeshConnected::getFaceVertices() {
 }
 
 const std::vector<ChVector3d>& ChTriangleMeshConnected::getFaceNormals() {
-    int n_faces = GetNumTriangles();
+    unsigned int n_faces = GetNumTriangles();
 
     m_tmp_vectors.resize(3 * n_faces);
 
     // Calculate face normals and assign to each face vertex
-    for (int it = 0; it < n_faces; it++) {
+    for (unsigned int it = 0; it < n_faces; it++) {
         const auto& v0 = m_vertices[m_face_v_indices[it][0]];
         const auto& v1 = m_vertices[m_face_v_indices[it][1]];
         const auto& v2 = m_vertices[m_face_v_indices[it][2]];
@@ -1199,8 +1199,8 @@ const std::vector<ChColor>& ChTriangleMeshConnected::getFaceColors() {
 }
 
 const std::vector<ChVector3d>& ChTriangleMeshConnected::getAverageNormals() {
-    int n_verts = GetNumVertices();
-    int n_faces = GetNumTriangles();
+    unsigned int n_verts = GetNumVertices();
+    unsigned int n_faces = GetNumTriangles();
 
     m_tmp_vectors.resize(n_verts);
 
@@ -1208,7 +1208,7 @@ const std::vector<ChVector3d>& ChTriangleMeshConnected::getAverageNormals() {
     std::vector<int> accumulators(n_verts, 0);
 
     // Calculate normals and then average the normals from all adjacent faces
-    for (int it = 0; it < n_faces; it++) {
+    for (unsigned int it = 0; it < n_faces; it++) {
         // Calculate the triangle normal as a normalized cross product.
         ChVector3d nrm = Vcross(m_vertices[m_face_v_indices[it][1]] - m_vertices[m_face_v_indices[it][0]],
                                 m_vertices[m_face_v_indices[it][2]] - m_vertices[m_face_v_indices[it][0]]);
@@ -1226,7 +1226,7 @@ const std::vector<ChVector3d>& ChTriangleMeshConnected::getAverageNormals() {
     }
 
     // Set the normals to the average values
-    for (int in = 0; in < n_verts; in++) {
+    for (unsigned int in = 0; in < n_verts; in++) {
         m_tmp_vectors[in] /= (double)accumulators[in];
     }
 

@@ -32,10 +32,10 @@ class ChApi ChLoadable {
     virtual ~ChLoadable() {}
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int GetLoadableNumCoordsPosLevel() = 0;
+    virtual unsigned int GetLoadableNumCoordsPosLevel() = 0;
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int GetLoadableNumCoordsVelLevel() = 0;
+    virtual unsigned int GetLoadableNumCoordsVelLevel() = 0;
 
     /// Gets all the DOFs packed in a single vector (position part)
     virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) = 0;
@@ -54,10 +54,10 @@ class ChApi ChLoadable {
 
 
     /// Number of coordinates in the interpolated field (e.g., 3 for a tetrahedron, 1 for a thermal problem, etc.).
-    virtual int GetFieldNumCoords() = 0;
+    virtual unsigned int GetFieldNumCoords() = 0;
 
     /// Get the number of DOFs sub-blocks (e.g., 1 for a body, 4 for a tetrahedron, etc.).
-    virtual int GetSubBlocks() = 0;
+    virtual unsigned int GetSubBlocks() = 0;
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) = 0;

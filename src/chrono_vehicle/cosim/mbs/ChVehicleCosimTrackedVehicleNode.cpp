@@ -170,7 +170,7 @@ double ChVehicleCosimTrackedVehicleNode::GetTrackShoeMass() const {
 
 // -----------------------------------------------------------------------------
 
-int ChVehicleCosimTrackedVehicleNode::GetNumTracks() const {
+unsigned int ChVehicleCosimTrackedVehicleNode::GetNumTracks() const {
     return 2;
 }
 

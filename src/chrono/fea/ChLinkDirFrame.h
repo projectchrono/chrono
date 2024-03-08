@@ -42,10 +42,10 @@ class ChApi ChLinkDirFrame : public ChLinkBase {
     virtual ChLinkDirFrame* Clone() const override { return new ChLinkDirFrame(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link.
-    virtual int GetNumAffectedCoords() override { return 3 + 4; }
+    virtual unsigned int GetNumAffectedCoords() override { return 3 + 4; }
 
     /// Number of scalar constraints.
-    virtual int GetNumConstraintsBilateral() override { return 2; }
+    virtual unsigned int GetNumConstraintsBilateral() override { return 2; }
 
     // Get constraint violations
     virtual ChVectorDynamic<> GetConstraintViolation() const override;

@@ -55,7 +55,7 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     virtual ChShaftsTorqueConverter* Clone() const override { return new ChShaftsTorqueConverter(*this); }
 
     /// Number of scalar constraints
-    virtual int GetNumConstraintsBilateral() override { return 0; }
+    virtual unsigned int GetNumConstraintsBilateral() override { return 0; }
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;

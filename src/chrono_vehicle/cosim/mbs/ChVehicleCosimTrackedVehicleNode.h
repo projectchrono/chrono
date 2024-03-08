@@ -96,7 +96,7 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
     virtual void ApplyTrackShoeForce(int track_id, int shoe_id, const TerrainForce& force) override;
 
     /// Return the number of tracks in the vehicle system.
-    virtual int GetNumTracks() const override;
+    virtual unsigned int GetNumTracks() const override;
 
     /// Return the number of track shoes in the specified track subsystem.
     virtual size_t GetNumTrackShoes(int track_id) const override;

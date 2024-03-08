@@ -51,7 +51,7 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     virtual ChContactContainerNSC* Clone() const override { return new ChContactContainerNSC(*this); }
 
     /// Report the number of added contacts.
-    virtual int GetNumContacts() const override {
+    virtual unsigned int GetNumContacts() const override {
         return n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
                n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666 + n_added_6_6_rolling;
     }
@@ -116,7 +116,7 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
 
     /// Report the number of scalar unilateral constraints.
     /// Note: friction constraints aren't exactly unilaterals, but they are still counted.
-    virtual int GetNumConstraintsUnilateral() override {
+    virtual unsigned int GetNumConstraintsUnilateral() override {
         return 3 * (n_added_3_3 + n_added_6_3 + n_added_6_6 + n_added_333_3 + n_added_333_6 + n_added_333_333 +
                     n_added_666_3 + n_added_666_6 + n_added_666_333 + n_added_666_666) +
                6 * (n_added_6_6_rolling);

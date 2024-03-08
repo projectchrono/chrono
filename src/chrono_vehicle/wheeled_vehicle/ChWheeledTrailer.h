@@ -53,7 +53,7 @@ class CH_VEHICLE_API ChWheeledTrailer {
     void SetName(const std::string& name) { m_name = name; }
 
     /// Return the number of axles for this trailer.
-    virtual int GetNumberAxles() const = 0;
+    virtual unsigned int GetNumberAxles() const = 0;
 
     /// Get the name of the trailer system template.
     virtual std::string GetTemplateName() const { return "WheeledTrailer"; }

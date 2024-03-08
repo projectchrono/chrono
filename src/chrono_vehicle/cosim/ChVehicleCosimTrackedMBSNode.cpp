@@ -239,15 +239,15 @@ void ChVehicleCosimTrackedMBSNode::InitializeSystem() {
 // - receive and apply vertex contact forces
 // -----------------------------------------------------------------------------
 void ChVehicleCosimTrackedMBSNode::Synchronize(int step_number, double time) {
-    int num_shoes = (int)GetNumTrackShoes();
+    unsigned int num_shoes = (unsigned int)GetNumTrackShoes();
     std::vector<double> all_states(13 * num_shoes);
     std::vector<double> all_forces(6 * num_shoes);
-    int start_idx;
+    unsigned int start_idx;
 
     // Pack states of all track shoe bodies
     start_idx = 0;
-    for (int i = 0; i < GetNumTracks(); i++) {
-        for (int j = 0; j < GetNumTrackShoes(i); j++) {
+    for (unsigned int i = 0; i < GetNumTracks(); i++) {
+        for (unsigned int j = 0; j < GetNumTrackShoes(i); j++) {
             BodyState state = GetTrackShoeState(i, j);
             all_states[start_idx + 0] = state.pos.x();
             all_states[start_idx + 1] = state.pos.y();
@@ -276,8 +276,8 @@ void ChVehicleCosimTrackedMBSNode::Synchronize(int step_number, double time) {
 
     // Apply track shoe forces on each individual track shoe body
     start_idx = 0;
-    for (int i = 0; i < GetNumTracks(); i++) {
-        for (int j = 0; j < GetNumTrackShoes(i); j++) {
+    for (unsigned int i = 0; i < GetNumTracks(); i++) {
+        for (unsigned int j = 0; j < GetNumTrackShoes(i); j++) {
             TerrainForce force;
             force.point = GetTrackShoeBody(i, j)->GetPos();
             force.force = ChVector3d(all_forces[start_idx + 0], all_forces[start_idx + 1], all_forces[start_idx + 2]);

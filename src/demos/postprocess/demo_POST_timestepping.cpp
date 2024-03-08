@@ -43,9 +43,9 @@ void example1(const std::string& out_dir) {
         MyIntegrable() {}
 
         /// the number of coordinates in the state:
-        virtual int GetNumCoordsPosLevel() override { return 0; }
-        virtual int GetNumCoordsVelLevel() override { return 1; }
-        virtual int GetNumCoordsAccLevel() override { return 0; }
+        virtual unsigned int GetNumCoordsPosLevel() override { return 0; }
+        virtual unsigned int GetNumCoordsVelLevel() override { return 1; }
+        virtual unsigned int GetNumCoordsAccLevel() override { return 0; }
 
 
         /// compute  dy/dt=f(y,t)
@@ -129,9 +129,9 @@ void example2(const std::string& out_dir) {
         }
 
         /// the number of coordinates in the state:
-        virtual int GetNumCoordsPosLevel() override { return 1; }
-        virtual int GetNumCoordsVelLevel() override { return 1; }
-        virtual int GetNumCoordsAccLevel() override { return 1; }
+        virtual unsigned int GetNumCoordsPosLevel() override { return 1; }
+        virtual unsigned int GetNumCoordsVelLevel() override { return 1; }
+        virtual unsigned int GetNumCoordsAccLevel() override { return 1; }
 
         /// system -> state
         virtual void StateGather(ChState& y, double& mT) override {
@@ -246,9 +246,9 @@ void example3(const std::string& out_dir) {
         }
 
         /// the number of coordinates in the state, x position part:
-        virtual int GetNumCoordsPosLevel() override { return 1; }
-        virtual int GetNumCoordsVelLevel() override { return 1; }
-        virtual int GetNumCoordsAccLevel() override { return 1; }
+        virtual unsigned int GetNumCoordsPosLevel() override { return 1; }
+        virtual unsigned int GetNumCoordsVelLevel() override { return 1; }
+        virtual unsigned int GetNumCoordsAccLevel() override { return 1; }
 
         /// system -> state
         virtual void StateGather(ChState& x, ChStateDelta& v, double& mT) override {
@@ -360,9 +360,9 @@ void example4(const std::string& out_dir) {
         }
 
         /// the number of coordinates in the state, x position part:
-        virtual int GetNumCoordsPosLevel() override { return 1; }
-        virtual int GetNumCoordsVelLevel() override { return 1; }
-        virtual int GetNumCoordsAccLevel() override { return 1; }
+        virtual unsigned int GetNumCoordsPosLevel() override { return 1; }
+        virtual unsigned int GetNumCoordsVelLevel() override { return 1; }
+        virtual unsigned int GetNumCoordsAccLevel() override { return 1; }
 
         /// system -> state
         virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override {
@@ -576,12 +576,12 @@ void example5(const std::string& out_dir) {
         }
 
         /// the number of coordinates in the state, x position part:
-        virtual int GetNumCoordsPosLevel() override { return 2; }
-        virtual int GetNumCoordsVelLevel() override { return 2; }
-        virtual int GetNumCoordsAccLevel() override { return 2; }
+        virtual unsigned int GetNumCoordsPosLevel() override { return 2; }
+        virtual unsigned int GetNumCoordsVelLevel() override { return 2; }
+        virtual unsigned int GetNumCoordsAccLevel() override { return 2; }
 
         /// Tells the number of lagrangian multipliers (constraints)
-        virtual int GetNumConstraints() override { return 1; }
+        virtual unsigned int GetNumConstraints() override { return 1; }
 
         /// system -> state
         virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override {

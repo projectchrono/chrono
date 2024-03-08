@@ -39,28 +39,28 @@ class ChApi ChElementBase {
     virtual ~ChElementBase() {}
 
     /// Get the number of nodes used by this element.
-    virtual int GetNumNodes() = 0;
+    virtual unsigned int GetNumNodes() = 0;
 
     /// Get the number of coordinates in the field used by the referenced nodes.
     /// This is for example the size (number of rows/columns) of the local stiffness matrix.
-    virtual int GetNumCoordsPosLevel() = 0;
+    virtual unsigned int GetNumCoordsPosLevel() = 0;
 
     /// Get the actual number of active degrees of freedom.
     /// The default implementation returns the full number of coordinates for this element, but some elements may have nodes
     /// with fixed variables.
-    virtual int GetNumCoordsPosLevelActive() { return GetNumCoordsPosLevel(); }
+    virtual unsigned int GetNumCoordsPosLevelActive() { return GetNumCoordsPosLevel(); }
 
     /// Get the number of coordinates from the specified node that are used by this element.
     /// Note that this may be different from the value returned by GetNodeN(n)->GetNumCoordsVelLevel().
-    virtual int GetNodeNumCoordsPosLevel(int n) = 0;
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) = 0;
 
     /// Get the actual number of active coordinates from the specified node that are used by this element.
     /// The default implementation returns the full number of coordinates for this element, but some elements may have nodes
     /// with fixed variables.
-    virtual int GetNodeNumCoordsPosLevelActive(int n) { return GetNodeNumCoordsPosLevel(n); }
+    virtual unsigned int GetNodeNumCoordsPosLevelActive(unsigned int n) { return GetNodeNumCoordsPosLevel(n); }
 
     /// Access the nth node.
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) = 0;
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(unsigned int n) = 0;
 
     // FEM functions
 

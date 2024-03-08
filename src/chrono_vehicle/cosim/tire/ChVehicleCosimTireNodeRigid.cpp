@@ -66,10 +66,10 @@ void ChVehicleCosimTireNodeRigid::InitializeTire(std::shared_ptr<ChWheel> wheel,
     auto& idx_verts = trimesh->GetIndicesVertexes();
     m_adjElements.resize(num_verts);
     std::vector<double> triArea(num_triangles);
-    for (int ie = 0; ie < num_triangles; ie++) {
-        int iv1 = idx_verts[ie].x();
-        int iv2 = idx_verts[ie].y();
-        int iv3 = idx_verts[ie].z();
+    for (unsigned int ie = 0; ie < num_triangles; ie++) {
+        unsigned int iv1 = idx_verts[ie].x();
+        unsigned int iv2 = idx_verts[ie].y();
+        unsigned int iv3 = idx_verts[ie].z();
         ChVector3d v1 = verts[iv1];
         ChVector3d v2 = verts[iv2];
         ChVector3d v3 = verts[iv3];
@@ -81,7 +81,7 @@ void ChVehicleCosimTireNodeRigid::InitializeTire(std::shared_ptr<ChWheel> wheel,
 
     // Preprocess the tire mesh and store representative area for each vertex.
     m_vertexArea.resize(num_verts);
-    for (int in = 0; in < num_verts; in++) {
+    for (unsigned int in = 0; in < num_verts; in++) {
         double area = 0;
         for (unsigned int ie = 0; ie < m_adjElements[in].size(); ie++) {
             area += triArea[m_adjElements[in][ie]];

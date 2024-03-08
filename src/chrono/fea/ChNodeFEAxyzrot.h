@@ -90,10 +90,10 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     ChFrameMoving<>& Frame() { return *this; }
 
     /// Get the number of degrees of freedom (7 because quaternion for rotation).
-    virtual int GetNumCoordsPosLevel() const override { return 7; }
+    virtual unsigned int GetNumCoordsPosLevel() const override { return 7; }
 
     /// Get the number of degrees of freedom, derivative (6 because angular velocity for rotation derivative).
-    virtual int GetNumCoordsVelLevel() const override { return 6; }
+    virtual unsigned int GetNumCoordsVelLevel() const override { return 6; }
 
     // INTERFACE to ChVariableTupleCarrier_1vars
 
@@ -150,10 +150,10 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     // INTERFACE to ChLoadableUVW
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int GetLoadableNumCoordsPosLevel() override { return 7; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 7; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int GetLoadableNumCoordsVelLevel() override { return 6; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 6; }
 
     /// Gets all the DOFs packed in a single vector (position part)
     virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
@@ -170,10 +170,10 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, etc. Here is 6: xyz displ + xyz rots
-    virtual int GetFieldNumCoords() override { return 6; }
+    virtual unsigned int GetFieldNumCoords() override { return 6; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual int GetSubBlocks() override { return 1; }
+    virtual unsigned int GetSubBlocks() override { return 1; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override { return this->NodeGetOffsetVelLevel(); }

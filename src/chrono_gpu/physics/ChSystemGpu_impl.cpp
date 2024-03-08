@@ -1387,7 +1387,7 @@ bool ChSystemGpu_impl::IsFixed(int nSphere) const {
 }
 
 // Return number of particle-particle contacts
-int ChSystemGpu_impl::GetNumContacts() const {
+unsigned int ChSystemGpu_impl::GetNumContacts() const {
     auto contact_itr = contact_partners_map.begin();
     int total_nc = 0;
 

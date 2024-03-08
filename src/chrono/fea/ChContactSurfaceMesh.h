@@ -149,10 +149,10 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     // INTERFACE TO ChLoadable
 
     /// Gets the number of DOFs affected by this element (position part).
-    virtual int GetLoadableNumCoordsPosLevel() override { return 3 * 3; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 3 * 3; }
 
     /// Gets the number of DOFs affected by this element (velocity part).
-    virtual int GetLoadableNumCoordsVelLevel() override { return 3 * 3; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 3 * 3; }
 
     /// Gets all the DOFs packed in a single vector (position part).
     virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
@@ -169,10 +169,10 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual int GetFieldNumCoords() override { return 3; }
+    virtual unsigned int GetFieldNumCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual int GetSubBlocks() override { return 3; }
+    virtual unsigned int GetSubBlocks() override { return 3; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override;
@@ -342,10 +342,10 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     // INTERFACE TO ChLoadable
 
     /// Gets the number of DOFs affected by this element (position part).
-    virtual int GetLoadableNumCoordsPosLevel() override { return 3 * 7; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 3 * 7; }
 
     /// Gets the number of DOFs affected by this element (velocity part).
-    virtual int GetLoadableNumCoordsVelLevel() override { return 3 * 6; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 3 * 6; }
 
     /// Gets all the DOFs packed in a single vector (position part).
     virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
@@ -362,10 +362,10 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual int GetFieldNumCoords() override { return 6; }
+    virtual unsigned int GetFieldNumCoords() override { return 6; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual int GetSubBlocks() override { return 3; }
+    virtual unsigned int GetSubBlocks() override { return 3; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override;

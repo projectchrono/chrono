@@ -52,7 +52,7 @@ class ChApi ChLinkDistance : public ChLink {
     );
 
     /// Get the number of (bilateral) constraints introduced by this link.
-    virtual int GetNumConstraintsBilateral() override { return 1; }
+    virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
 
     /// Get the link frame 1, relative to body 1.
     /// For this class link frame 1 coincides with body 1.

@@ -80,8 +80,8 @@ class CH_MULTICORE_API Ch3DOFContainer : public ChPhysicsItem {
 
     // Helper Functions
     uint GetNumParticles() const { return num_fluid_bodies; }
-    virtual int GetNumConstraints() { return 0; }
-    virtual int GetNumNonZeros() { return 0; }
+    virtual unsigned int GetNumConstraints() { return 0; }
+    virtual unsigned int GetNumNonZeros() { return 0; }
     virtual void CalculateContactForces() {}
     virtual real3 GetBodyContactForce(uint body_id) { return real3(0); }
     virtual real3 GetBodyContactTorque(uint body_id) { return real3(0); }
@@ -138,8 +138,8 @@ class CH_MULTICORE_API ChFluidContainer : public Ch3DOFContainer {
     void AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     virtual void Update3DOF(double ChTime) override;
     virtual void UpdatePosition(double ChTime) override;
-    virtual int GetNumConstraints() override;
-    virtual int GetNumNonZeros() override;
+    virtual unsigned int GetNumConstraints() override;
+    virtual unsigned int GetNumNonZeros() override;
     virtual void Setup3DOF(int start_constraint) override;
     virtual void Initialize() override;
     virtual void PreSolve() override;
@@ -209,8 +209,8 @@ class CH_MULTICORE_API ChParticleContainer : public Ch3DOFContainer {
     void AddBodies(const std::vector<real3>& positions, const std::vector<real3>& velocities);
     virtual void Update3DOF(double ChTime) override;
     virtual void UpdatePosition(double ChTime) override;
-    virtual int GetNumConstraints() override;
-    virtual int GetNumNonZeros() override;
+    virtual unsigned int GetNumConstraints() override;
+    virtual unsigned int GetNumNonZeros() override;
     virtual void Setup3DOF(int start_constraint) override;
     virtual void Initialize() override;
     virtual void PreSolve() override;

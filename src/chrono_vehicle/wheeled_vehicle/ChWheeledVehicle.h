@@ -91,7 +91,7 @@ class CH_VEHICLE_API ChWheeledVehicle : public ChVehicle {
     std::shared_ptr<ChSubchassis> GetSubchassis(int id) const { return m_subchassis[id]; }
 
     /// Return the number of axles for this vehicle.
-    virtual int GetNumberAxles() const = 0;
+    virtual unsigned int GetNumberAxles() const = 0;
 
     /// Get the global location of the specified spindle.
     const ChVector3d& GetSpindlePos(int axle, VehicleSide side) const;

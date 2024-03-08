@@ -140,63 +140,63 @@ class ChApi ChAssembly : public ChPhysicsItem {
     //
 
     /// Get the total number of bodies added to the assembly, including fixed and sleeping bodies.
-    int GetNumBodies() const { return m_num_bodies_active + m_num_bodies_fixed + m_num_bodies_sleep; }
+    unsigned int GetNumBodies() const { return m_num_bodies_active + m_num_bodies_fixed + m_num_bodies_sleep; }
 
     /// Get the number of active bodies, excluding sleeping or fixed.
-    int GetNumBodiesActive() const { return m_num_bodies_active; }
+    unsigned int GetNumBodiesActive() const { return m_num_bodies_active; }
 
     /// Get the number of sleeping bodies.
-    int GetNumBodiesSleeping() const { return m_num_bodies_sleep; }
+    unsigned int GetNumBodiesSleeping() const { return m_num_bodies_sleep; }
 
     /// Get the number of bodies fixed to ground.
-    int GetNumBodiesFixed() const { return m_num_bodies_fixed; }
+    unsigned int GetNumBodiesFixed() const { return m_num_bodies_fixed; }
 
 
     /// Get the number of shafts.
-    int GetNumShafts() const { return m_num_shafts; }
+    unsigned int GetNumShafts() const { return m_num_shafts; }
 
     /// Get the number of shafts that are in sleeping mode (excluding fixed shafts).
-    int GetNumShaftsSleeping() const { return m_num_shafts_sleep; }
+    unsigned int GetNumShaftsSleeping() const { return m_num_shafts_sleep; }
 
     /// Get the number of shafts that are fixed to ground.
-    int GetNumShaftsFixed() const { return m_num_shafts_fixed; }
+    unsigned int GetNumShaftsFixed() const { return m_num_shafts_fixed; }
 
     /// Get the total number of shafts added to the assembly, including the grounded and sleeping shafts.
-    int GetNumShaftsTotal() const { return m_num_shafts + m_num_shafts_fixed + m_num_shafts_sleep; }
+    unsigned int GetNumShaftsTotal() const { return m_num_shafts + m_num_shafts_fixed + m_num_shafts_sleep; }
 
 
     /// Get the number of links (including non active).
-    int GetNumLinks() const { return (int)linklist.size(); }
+    unsigned int GetNumLinks() const { return (unsigned int)linklist.size(); }
 
     /// Get the number of active links.
-    int GetNumLinksActive() const { return m_num_links_active; }
+    unsigned int GetNumLinksActive() const { return m_num_links_active; }
 
 
     /// Get the number of meshes.
-    int GetNumMeshes() const { return m_num_meshes; }
+    unsigned int GetNumMeshes() const { return m_num_meshes; }
 
     /// Get the number of other active physics items (including non active).
-    int GetNumOtherPhysicsItems() const { return otherphysicslist.size(); }
+    unsigned int GetNumOtherPhysicsItems() const { return (unsigned int)otherphysicslist.size(); }
 
     /// Get the number of other active physics items.
-    int GetNumOtherPhysicsItemsActive() const { return m_num_otherphysicsitems_active; }
+    unsigned int GetNumOtherPhysicsItemsActive() const { return m_num_otherphysicsitems_active; }
 
 
     /// Get the number of scalar coordinates at the position level.
     /// This count includes the 4th dimension of quaternions (if any), thus potentially differing from ::GetNumCoordsVelLevel().
-    virtual int GetNumCoordsPosLevel() override { return m_num_coords_pos; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return m_num_coords_pos; }
 
     /// Get the number of scalar coordinates at the velocity level.
-    virtual int GetNumCoordsVelLevel() override { return m_num_coords_vel; }
+    virtual unsigned int GetNumCoordsVelLevel() override { return m_num_coords_vel; }
 
     /// Get the number of scalar constraints in the assembly.
-    virtual int GetNumConstraints() override { return m_num_constr; }
+    virtual unsigned int GetNumConstraints() override { return m_num_constr; }
 
     /// Get the number of scalar bilateral constraints in the assembly.
-    virtual int GetNumConstraintsBilateral() override { return m_num_constr_bil; }
+    virtual unsigned int GetNumConstraintsBilateral() override { return m_num_constr_bil; }
 
     /// Get the number of scalar unilateral constraints in the assembly.
-    virtual int GetNumConstraintsUnilateral() override { return m_num_constr_uni; }
+    virtual unsigned int GetNumConstraintsUnilateral() override { return m_num_constr_uni; }
 
     // PHYSICS ITEM INTERFACE
 

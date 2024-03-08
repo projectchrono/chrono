@@ -166,7 +166,7 @@ class ChApi ChCollisionModel {
     void ArchiveIn(ChArchiveIn& archive_in);
 
     /// Return the number of collision shapes in this model.
-    int GetNumShapes() const { return (int)m_shape_instances.size(); }
+    unsigned int GetNumShapes() const { return (unsigned int)m_shape_instances.size(); }
 
     /// Get the list of collision shapes in this model.
     const std::vector<ShapeInstance>& GetShapes() const { return m_shape_instances; }

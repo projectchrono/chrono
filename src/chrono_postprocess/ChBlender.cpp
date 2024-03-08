@@ -1058,7 +1058,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
                 state_file << "[";
                 if (shape->GetNumMaterials() && (!std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) &&
                     (!std::dynamic_pointer_cast<ChVisualShapePath>(shape))) {
-                    for (int im = 0; im < shape->GetNumMaterials(); ++im) {
+                    for (unsigned int im = 0; im < shape->GetNumMaterials(); ++im) {
                         state_file << "'";
                         auto mat = shape->GetMaterial(im);
                         std::string matname("material_" + unique_bl_id((size_t)mat.get()));

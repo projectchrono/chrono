@@ -60,7 +60,7 @@ class CH_MODELS_API UAZBUS_SAEVehicle : public ChWheeledVehicle {
 
     ~UAZBUS_SAEVehicle();
 
-    virtual int GetNumberAxles() const override { return 2; }
+    virtual unsigned int GetNumberAxles() const override { return 2; }
 
     virtual double GetWheelbase() const override { return 2.3; }
     virtual double GetMinTurningRadius() const override { return 5.8; }

@@ -28,10 +28,10 @@ void ChBeamSectionShape::GetAABB(double& ymin, double& ymax, double& zmin, doubl
     ymax = -1e30;
     zmin = 1e30;
     zmax = -1e30;
-    for (int nl = 0; nl < GetNumLines(); ++nl) {
+    for (unsigned int nl = 0; nl < GetNumLines(); ++nl) {
         std::vector<ChVector3d> mpoints(GetNumPoints(nl));
         GetPoints(nl, mpoints);
-        for (int np = 0; np < GetNumPoints(nl); ++nl) {
+        for (unsigned int np = 0; np < GetNumPoints(nl); ++nl) {
             if (mpoints[np].y() < ymin)
                 ymin = mpoints[np].y();
             if (mpoints[np].y() > ymax)

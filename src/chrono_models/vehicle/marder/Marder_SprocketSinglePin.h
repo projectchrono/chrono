@@ -40,7 +40,7 @@ class CH_MODELS_API Marder_SprocketSinglePin : public ChSprocketSinglePin {
     virtual ~Marder_SprocketSinglePin() {}
 
     /// Get the number of teeth of the gear.
-    virtual int GetNumTeeth() const override { return m_num_teeth; }
+    virtual unsigned int GetNumTeeth() const override { return m_num_teeth; }
 
     /// Get the radius of the gear.
     /// This quantity is used during the automatic track assembly.

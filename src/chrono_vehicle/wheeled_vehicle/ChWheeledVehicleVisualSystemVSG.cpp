@@ -48,8 +48,8 @@ void ChWheeledVehicleVisualSystemVSG::AppendGUIStats() {
 
     if (ImGui::BeginTable("TireTable", 3, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                           ImVec2(0.0f, 0.0f))) {
-        for (int i = 0; i < num_driven_axles; i++) {
-            int axle = driven_axles[i];
+        for (unsigned int i = 0; i < num_driven_axles; i++) {
+            unsigned int axle = driven_axles[i];
             ImGui::TableNextColumn();
             snprintf(label, nstr, "Axle %1d torques", driven_axles[i]);
             ImGui::Text(label);

@@ -73,8 +73,8 @@ double total_mass = 105.22;
 double m_rim_radius = 0.35;
 double m_height = 0.195;
 double m_thickness = 0.014;
-int m_div_circumference = 30;
-int m_div_width = 6;
+unsigned int m_div_circumference = 30;
+unsigned int m_div_width = 6;
 double m_alpha = 0.15;
 
 // Initial Position of wheel
@@ -347,9 +347,9 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
         // Create the mesh nodes.
         // The nodes are first created in the wheel local frame, assuming Y as the tire axis,
         // and are then transformed to the global frame.
-        for (int i = 0; i < m_div_circumference; i++) {
+        for (unsigned int i = 0; i < m_div_circumference; i++) {
             double phi = (CH_C_2PI * i) / m_div_circumference;
-            for (int j = 0; j <= m_div_width; j++) {
+            for (unsigned int j = 0; j <= m_div_width; j++) {
                 double theta = -CH_C_PI_2 + (CH_C_PI * j) / m_div_width;
 
                 double x = (m_rim_radius + m_height * cos(theta)) * cos(phi) + wheel_IniPos.x();
@@ -375,8 +375,8 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
             }
         }
 
-        int TotalNumElements = m_div_circumference * m_div_width;  // my_mesh->GetNumElements();
-        int TotalNumNodes = my_mesh->GetNumNodes();
+        unsigned int TotalNumElements = m_div_circumference * m_div_width;  // my_mesh->GetNumElements();
+        unsigned int TotalNumNodes = my_mesh->GetNumNodes();
 
         _2D_elementsNodes_mesh.resize(TotalNumElements);
         NodeNeighborElement_mesh.resize(TotalNumNodes);
@@ -385,11 +385,11 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
         double dz = m_thickness;
 
         // Create the ANCF shell elements
-        int num_elem = 0;
-        for (int i = 0; i < m_div_circumference; i++) {
-            for (int j = 0; j < m_div_width; j++) {
+        unsigned int num_elem = 0;
+        for (unsigned int i = 0; i < m_div_circumference; i++) {
+            for (unsigned int j = 0; j < m_div_width; j++) {
                 // Adjacent nodes
-                int inode0, inode1, inode2, inode3;
+                unsigned int inode0, inode1, inode2, inode3;
                 inode1 = j + i * (m_div_width + 1);
                 inode2 = j + 1 + i * (m_div_width + 1);
                 if (i == m_div_circumference - 1) {

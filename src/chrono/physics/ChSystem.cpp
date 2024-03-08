@@ -1224,7 +1224,7 @@ void ChSystem::LoadConstraint_Ct(ChVectorDynamic<>& Qc, const double c) {
 //   COLLISION OPERATIONS
 // -----------------------------------------------------------------------------
 
-int ChSystem::GetNumContacts() {
+unsigned int ChSystem::GetNumContacts() {
     return contact_container->GetNumContacts();
 }
 
@@ -1403,7 +1403,7 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
 
     ChSparseMatrix Cq;
     GetSystemDescriptor()->ConvertToMatrixForm(&Cq, nullptr, nullptr, nullptr, nullptr, nullptr, true, true);
-    int Cq_rows = Cq.rows();
+    unsigned int Cq_rows = Cq.rows();
 
     ChSparseMatrix CqT = Cq.transpose();
     CqT.makeCompressed();
@@ -1413,14 +1413,14 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     QR_dec.compute(CqT);
 
     double diag_val;
-    int independent_row_count = 0;
-    int max_diag = std::min(QR_dec.matrixR().rows(), QR_dec.matrixR().cols());
-    for (int diag_sel = 0; diag_sel < max_diag; diag_sel++) {
+    unsigned int independent_row_count = 0;
+    unsigned int max_diag = std::min(QR_dec.matrixR().rows(), QR_dec.matrixR().cols());
+    for (unsigned int diag_sel = 0; diag_sel < max_diag; diag_sel++) {
         diag_val = QR_dec.matrixR().coeff(diag_sel, diag_sel);
         if (std::abs(diag_val) > qr_tol)
             independent_row_count++;
     }
-    int dependent_row_count = Cq_rows - independent_row_count;
+    unsigned int dependent_row_count = Cq_rows - independent_row_count;
     ChVectorDynamic<int> redundant_constraints_idx = QR_dec.colsPermutation().indices().tail(dependent_row_count);
 
     if (verbose) {
@@ -1435,8 +1435,8 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
             // find corresponding link
             std::shared_ptr<ChLinkBase> corr_link;
             for (const auto& link : GetLinks()) {
-                if (redundant_constraints_idx[c_sel] >= link->GetOffset_L() &&
-                    redundant_constraints_idx[c_sel] < link->GetOffset_L() + link->GetNumConstraints()) {
+                if ((unsigned int)redundant_constraints_idx[c_sel] >= link->GetOffset_L() &&
+                    (unsigned int)redundant_constraints_idx[c_sel] < link->GetOffset_L() + link->GetNumConstraints()) {
                     corr_link = link;
                     break;
                 }
@@ -1455,14 +1455,14 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     GetSystemDescriptor()->UpdateCountsAndOffsets();
 
     // Remove Degrees of Constraint to ChLinkMate constraints
-    std::map<int, std::shared_ptr<ChLinkBase>> constr_map;  // store an ordered list of constraints offsets
-    for (int i = 0; i < GetLinks().size(); ++i) {
+    std::map<unsigned int, std::shared_ptr<ChLinkBase>> constr_map;  // store an ordered list of constraints offsets
+    for (unsigned int i = 0; i < (unsigned int)GetLinks().size(); ++i) {
         // store the link offset
         auto link = GetLinks()[i];
         constr_map[link->GetOffset_L()] = link;
     }
 
-    std::map<int, std::array<bool, 6>> constrnewmask_map;  // store the mask of ChLinkMate constraints (only if they are
+    std::map<unsigned int, std::array<bool, 6>> constrnewmask_map;  // store the mask of ChLinkMate constraints (only if they are
                                                            // ChLinkMate!) that have redundant equations
     for (auto r_sel = 0; r_sel < redundant_constraints_idx.size(); ++r_sel) {
         // pick the constraint with redundant degrees of constraints
@@ -1482,12 +1482,12 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
 
             // find which degree of constraint is redundant within the link
             auto redundant_offset = redundant_constraints_idx[r_sel] - sel_constr_offset;
-            int active_constraints = -1;
-            for (int m_sel = 0; m_sel < original_mask.size(); ++m_sel) {
+            unsigned int active_constraints = 0;
+            for (unsigned int m_sel = 0; m_sel < original_mask.size(); ++m_sel) {
                 if (original_mask[m_sel] == true) {
                     ++active_constraints;
                 }
-                if (active_constraints == redundant_offset) {
+                if (active_constraints == redundant_offset + 1) {
                     constrnewmask_map[sel_constr_offset][m_sel] = false;
                     break;
                 }

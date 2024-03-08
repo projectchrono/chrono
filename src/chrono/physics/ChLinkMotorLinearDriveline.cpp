@@ -118,15 +118,15 @@ void ChLinkMotorLinearDriveline::Update(double mytime, bool update_assets) {
     innerconstraint2rot->SetShaftDirection(shaftdir_b2rot);
 }
 
-int ChLinkMotorLinearDriveline::GetNumCoordsPosLevel() {
+unsigned int ChLinkMotorLinearDriveline::GetNumCoordsPosLevel() {
     return 3 + ChLinkMotorLinear::GetNumCoordsPosLevel();
 }
 
-int ChLinkMotorLinearDriveline::GetNumConstraints() {
+unsigned int ChLinkMotorLinearDriveline::GetNumConstraints() {
     return 3 + ChLinkMotorLinear::GetNumConstraints();
 }
 
-int ChLinkMotorLinearDriveline::GetNumConstraintsBilateral() {
+unsigned int ChLinkMotorLinearDriveline::GetNumConstraintsBilateral() {
     return 3 + ChLinkMotorLinear::GetNumConstraintsBilateral();
 }
 

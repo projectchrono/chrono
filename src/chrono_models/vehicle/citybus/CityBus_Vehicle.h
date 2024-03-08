@@ -46,7 +46,7 @@ class CH_MODELS_API CityBus_Vehicle : public ChWheeledVehicle {
 
     ~CityBus_Vehicle();
 
-    virtual int GetNumberAxles() const override { return 2; }
+    virtual unsigned int GetNumberAxles() const override { return 2; }
     virtual double GetWheelbase() const override { return 7.184; }
     virtual double GetMinTurningRadius() const override { return 13.1; }
     virtual double GetMaxSteeringAngle() const override { return 27.0 * CH_C_DEG_TO_RAD; }

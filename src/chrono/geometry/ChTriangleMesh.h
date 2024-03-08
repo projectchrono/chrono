@@ -35,10 +35,10 @@ class ChApi ChTriangleMesh : public ChGeometry {
     virtual void AddTriangle(const ChTriangle& atriangle) = 0;
 
     /// Get the number of triangles already added to this mesh
-    virtual int GetNumTriangles() const = 0;
+    virtual unsigned int GetNumTriangles() const = 0;
 
     /// Get the n-th triangle in mesh
-    virtual ChTriangle GetTriangle(int index) const = 0;
+    virtual ChTriangle GetTriangle(unsigned int index) const = 0;
 
     /// Clear all data
     virtual void Clear() = 0;

@@ -54,7 +54,7 @@ void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Create the required number of web segment bodies
     auto web_mat = m_body_matinfo.CreateMaterial(chassis->GetSystem()->GetContactMethod());
     ChVector3d seg_loc = loc + (0.5 * GetToothBaseLength()) * xdir;
-    for (int is = 0; is < GetNumWebSegments(); is++) {
+    for (unsigned int is = 0; is < GetNumWebSegments(); is++) {
         m_web_segments.push_back(chrono_types::make_shared<ChBody>());
         m_web_segments[is]->SetNameString(m_name + "_web_" + std::to_string(is));
         m_web_segments[is]->SetPos(seg_loc + ((2 * is + 1) * m_seg_length / 2) * xdir);
@@ -82,7 +82,7 @@ void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_shoe->SetPos(chassis->TransformPointLocalToParent(component_pos[0].pos));
     m_shoe->SetRot(chassis->GetRot() * component_pos[0].rot);
 
-    for (int is = 0; is < GetNumWebSegments(); is++) {
+    for (unsigned int is = 0; is < GetNumWebSegments(); is++) {
         m_web_segments[is]->SetPos(chassis->TransformPointLocalToParent(component_pos[is + 1].pos));
         m_web_segments[is]->SetRot(chassis->GetRot() * component_pos[is + 1].rot);
     }
@@ -98,7 +98,7 @@ void ChTrackShoeBandBushing::UpdateInertiaProperties() {
     // Calculate COM and inertia expressed in global frame
     utils::CompositeInertia composite;
     composite.AddComponent(m_shoe->GetFrame_COG_to_abs(), m_shoe->GetMass(), m_shoe->GetInertia());
-    for (int is = 0; is < GetNumWebSegments(); is++) {
+    for (unsigned int is = 0; is < GetNumWebSegments(); is++) {
         composite.AddComponent(m_web_segments[is]->GetFrame_COG_to_abs(), m_web_segments[is]->GetMass(),
                                m_web_segments[is]->GetInertia());
     }

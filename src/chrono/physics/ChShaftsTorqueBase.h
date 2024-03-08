@@ -35,7 +35,7 @@ class ChApi ChShaftsTorqueBase : public ChShaftsCouple {
     ~ChShaftsTorqueBase() {}
 
     /// Number of scalar constraints
-    virtual int GetNumConstraintsBilateral() override { return 0; }
+    virtual unsigned int GetNumConstraintsBilateral() override { return 0; }
 
     //
     // STATE FUNCTIONS

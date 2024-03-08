@@ -294,7 +294,7 @@ class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
     unsigned int GetNumNodes() const { return (unsigned int)m_nodes.size(); }
 
     /// Get the number of nodes with rotational dofs.
-    unsigned int GetNnodesRot() const { return (unsigned int)m_nodes_rot.size(); }
+    unsigned int GetNumNodesRot() const { return (unsigned int)m_nodes_rot.size(); }
 
     /// Access the n-th node.
     std::shared_ptr<ChContactNodeXYZsphere> GetNode(unsigned int n) { return m_nodes[n]; };

@@ -369,9 +369,9 @@ void ChElementHexaANCF_3843::SetupInitial(ChSystem* system) {
 
     if (!m_full_dof) {
         m_mapping_dof.resize(m_element_dof);
-        int dof = 0;
-        for (int i = 0; i < 8; i++) {
-            for (int j = 0; j < m_nodes[i]->GetNumCoordsPosLevel(); j++)
+        unsigned int dof = 0;
+        for (auto i = 0; i < 8; i++) {
+            for (unsigned int j = 0; j < m_nodes[i]->GetNumCoordsPosLevel(); j++)
                 m_mapping_dof(dof++) = i * 12 + j;
         }
     }

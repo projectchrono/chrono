@@ -108,8 +108,8 @@ class ChApi ChShaftsMotorSpeed : public ChShaftsMotorBase {
     //
 
     /// Number of scalar constraints
-    virtual int GetNumCoordsPosLevel() override { return 1; } 
-    virtual int GetNumConstraintsBilateral() override { return 1; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 1; } 
+    virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGather(const unsigned int off_x,

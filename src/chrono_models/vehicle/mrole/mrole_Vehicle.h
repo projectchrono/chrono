@@ -40,7 +40,7 @@ class CH_MODELS_API mrole_Vehicle : public ChWheeledVehicle {
   public:
     virtual ~mrole_Vehicle() {}
 
-    virtual int GetNumberAxles() const override { return 4; }
+    virtual unsigned int GetNumberAxles() const override { return 4; }
 
     virtual double GetWheelbase() const override { return 4.225; }  // front susp -> (susp3+susp4)/2
     virtual double GetMinTurningRadius() const override { return 9.1; }

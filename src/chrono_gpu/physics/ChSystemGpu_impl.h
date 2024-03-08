@@ -378,7 +378,7 @@ class ChSystemGpu_impl {
     float3 GetParticleLinAcc(int nSphere) const;
 
     /// Return number of particle-particle contacts.
-    int GetNumContacts() const;
+    unsigned int GetNumContacts() const;
 
     /// Return position of BC plane.
     float3 GetBCPlanePosition(size_t plane_id) const;

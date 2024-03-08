@@ -56,7 +56,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     virtual ~ChSprocket();
 
     /// Get the number of teeth of the gear.
-    virtual int GetNumTeeth() const = 0;
+    virtual unsigned int GetNumTeeth() const = 0;
 
     /// Get the track assembly radius.
     /// This quantity is used during the automatic track assembly. It represents a

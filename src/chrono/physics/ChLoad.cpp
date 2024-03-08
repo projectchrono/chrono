@@ -137,7 +137,7 @@ void ChLoadCustom::ComputeJacobian(ChState* state_x,       // state position to 
 
 void ChLoadCustom::LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {
     unsigned int rowQ = 0;
-    for (int i = 0; i < loadable->GetSubBlocks(); ++i) {
+    for (unsigned int i = 0; i < loadable->GetSubBlocks(); ++i) {
         if (loadable->IsSubBlockActive(i)) {
             unsigned int moffset = loadable->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < loadable->GetSubBlockSize(i); ++row) {
@@ -155,7 +155,7 @@ void ChLoadCustom::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDy
     ChVectorDynamic<> grouped_w(this->LoadGet_ndof_w());
     ChVectorDynamic<> grouped_cMv(this->LoadGet_ndof_w());
     unsigned int rowQ = 0;
-    for (int i = 0; i < loadable->GetSubBlocks(); ++i) {
+    for (unsigned int i = 0; i < loadable->GetSubBlocks(); ++i) {
         if (loadable->IsSubBlockActive(i)) {
             unsigned int moffset = loadable->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < loadable->GetSubBlockSize(i); ++row) {
@@ -167,7 +167,7 @@ void ChLoadCustom::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDy
     // do computation R=c*M*v
     grouped_cMv = c * this->jacobians->M * grouped_w;
     rowQ = 0;
-    for (int i = 0; i < loadable->GetSubBlocks(); ++i) {
+    for (unsigned int i = 0; i < loadable->GetSubBlocks(); ++i) {
         if (loadable->IsSubBlockActive(i)) {
             unsigned int moffset = loadable->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < loadable->GetSubBlockSize(i); ++row) {
@@ -183,7 +183,7 @@ void ChLoadCustom::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& err, 
         return;
     // do computation Md=c*diag(M)
     unsigned int rowQ = 0;
-    for (int i = 0; i < loadable->GetSubBlocks(); ++i) {
+    for (unsigned int i = 0; i < loadable->GetSubBlocks(); ++i) {
         if (loadable->IsSubBlockActive(i)) {
             unsigned int moffset = loadable->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < loadable->GetSubBlockSize(i); ++row) {
@@ -322,8 +322,8 @@ void ChLoadCustomMultiple::ComputeJacobian(ChState* state_x,       // state posi
 
 void ChLoadCustomMultiple::LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {
     unsigned int mQoffset = 0;
-    for (int k = 0; k < loadables.size(); ++k) {
-        for (int i = 0; i < loadables[k]->GetSubBlocks(); ++i) {
+    for (unsigned int k = 0; k < (unsigned int)loadables.size(); ++k) {
+        for (unsigned int i = 0; i < loadables[k]->GetSubBlocks(); ++i) {
             if (loadables[k]->IsSubBlockActive(i)) {
                 unsigned int mblockoffset = loadables[k]->GetSubBlockOffset(i);
                 for (unsigned int row = 0; row < loadables[k]->GetSubBlockSize(i); ++row) {
@@ -343,8 +343,8 @@ void ChLoadCustomMultiple::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const Ch
     ChVectorDynamic<> grouped_w(this->LoadGet_ndof_w());
     ChVectorDynamic<> grouped_cMv(this->LoadGet_ndof_w());
     unsigned int rowQ = 0;
-    for (int k = 0; k < loadables.size(); ++k) {
-        for (int i = 0; i < loadables[k]->GetSubBlocks(); ++i) {
+    for (unsigned int k = 0; k < (unsigned int)loadables.size(); ++k) {
+        for (unsigned int i = 0; i < loadables[k]->GetSubBlocks(); ++i) {
             if (loadables[k]->IsSubBlockActive(i)) {
                 unsigned int moffset = loadables[k]->GetSubBlockOffset(i);
                 for (unsigned int row = 0; row < loadables[k]->GetSubBlockSize(i); ++row) {
@@ -357,8 +357,8 @@ void ChLoadCustomMultiple::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const Ch
     // do computation R=c*M*v
     grouped_cMv = c * this->jacobians->M * grouped_w;
     rowQ = 0;
-    for (int k = 0; k < loadables.size(); ++k) {
-        for (int i = 0; i < loadables[k]->GetSubBlocks(); ++i) {
+    for (unsigned int k = 0; k < (unsigned int)loadables.size(); ++k) {
+        for (unsigned int i = 0; i < loadables[k]->GetSubBlocks(); ++i) {
             if (loadables[k]->IsSubBlockActive(i)) {
                 unsigned int moffset = loadables[k]->GetSubBlockOffset(i);
                 for (unsigned int row = 0; row < loadables[k]->GetSubBlockSize(i); ++row) {
@@ -376,7 +376,7 @@ void ChLoadCustomMultiple::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, doubl
     // do computation Md=c*diag(M)
     unsigned int rowQ = 0;
     for (int k = 0; k < loadables.size(); ++k) {
-        for (int i = 0; i < loadables[k]->GetSubBlocks(); ++i) {
+        for (unsigned int i = 0; i < loadables[k]->GetSubBlocks(); ++i) {
             if (loadables[k]->IsSubBlockActive(i)) {
                 unsigned int moffset = loadables[k]->GetSubBlockOffset(i);
                 for (unsigned int row = 0; row < loadables[k]->GetSubBlockSize(i); ++row) {

@@ -40,7 +40,7 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     virtual ChLinkRevoluteSpherical* Clone() const override { return new ChLinkRevoluteSpherical(*this); }
 
     /// Get the number of (bilateral) constraints introduced by this joint.
-    virtual int GetNumConstraintsBilateral() override { return 2; }
+    virtual unsigned int GetNumConstraintsBilateral() override { return 2; }
 
     /// Get the point on m_body1 (revolute side), expressed in body 1 coordinate system.
     const ChVector3d& GetPoint1Rel() const { return m_pos1; }

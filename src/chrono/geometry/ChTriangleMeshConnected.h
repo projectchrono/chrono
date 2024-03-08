@@ -108,16 +108,16 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     virtual void AddTriangle(const ChTriangle& atriangle) override;
 
     /// Get the number of vertices in this mesh.
-    int GetNumVertices() const { return (int)m_vertices.size(); }
+    unsigned int GetNumVertices() const { return (unsigned int)m_vertices.size(); }
 
     /// Get the number of normals in this mesh.
-    int GetNumNormals() const { return (int)m_normals.size(); }
+    unsigned int GetNumNormals() const { return (unsigned int)m_normals.size(); }
 
     /// Get the number of triangles already added to this mesh.
-    virtual int GetNumTriangles() const override { return (int)m_face_v_indices.size(); }
+    virtual unsigned int GetNumTriangles() const override { return (unsigned int)m_face_v_indices.size(); }
 
     /// Access the n-th triangle in mesh
-    virtual ChTriangle GetTriangle(int index) const override {
+    virtual ChTriangle GetTriangle(unsigned int index) const override {
         return ChTriangle(m_vertices[m_face_v_indices[index].x()], m_vertices[m_face_v_indices[index].y()],
                           m_vertices[m_face_v_indices[index].z()]);
     }

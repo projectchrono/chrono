@@ -206,7 +206,7 @@ void ChElementBeamIGA::SetIntegrationPoints(int npoints_s, int npoints_b) {
 
 // This class computes and adds corresponding masses to ElementGeneric member m_TotalMass
 void ChElementBeamIGA::ComputeNodalMass() {
-    for (int i = 0;i<nodes.size();++i)
+    for (auto i = 0;i<nodes.size();++i)
         nodes[i]->m_TotalMass += this->mass / nodes.size();
 }
 
@@ -214,7 +214,7 @@ void ChElementBeamIGA::ComputeNodalMass() {
 /// superimposes global damping matrix R, scaled by Rfactor, and global mass matrix M multiplied by Mfactor.
 
 void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.rows() == 6 * nodes.size()) && (H.cols() == 6 * nodes.size()));
+    assert(((unsigned int)H.rows() == 6 * nodes.size()) && ((unsigned int)H.cols() == 6 * nodes.size()));
     assert(section);
 
     // BRUTE FORCE METHOD: USE NUMERICAL DIFFERENTIATION!

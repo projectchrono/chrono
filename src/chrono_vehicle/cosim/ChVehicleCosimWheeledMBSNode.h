@@ -135,7 +135,7 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
 
     /// Get the number of spindles/wheels defined by the underlying MBS.
     /// A co-simulation must have a matching number of TIRE nodes.
-    virtual int GetNumSpindles() const = 0;
+    virtual unsigned int GetNumSpindles() const = 0;
 
     /// Get the spindle body to which the i-th wheel/tire is attached.
     virtual std::shared_ptr<ChBody> GetSpindleBody(unsigned int i) const = 0;

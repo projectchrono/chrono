@@ -44,30 +44,30 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
     ~ChElementHexaANCF_3813_9() {}
 
     /// Get number of nodes of this element.
-    virtual int GetNumNodes() override { return 9; }
+    virtual unsigned int GetNumNodes() override { return 9; }
 
     /// Get the number of coordinates in the field used by the referenced nodes.
-    virtual int GetNumCoordsPosLevel() override { return 8 * 3 + 9; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 8 * 3 + 9; }
 
     /// Get the number of active coordinates in the field used by the referenced nodes.
-    virtual int GetNumCoordsPosLevelActive() override { return m_element_dof; }
+    virtual unsigned int GetNumCoordsPosLevelActive() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual int GetNodeNumCoordsPosLevel(int n) override {
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override {
         if (n < 8)
             return m_nodes[n]->GetNumCoordsPosLevel();
         return m_central_node->GetNumCoordsPosLevel();
     }
 
     /// Get the number of active coordinates from the n-th node used by this element.
-    virtual int GetNodeNumCoordsPosLevelActive(int n) override {
+    virtual unsigned int GetNodeNumCoordsPosLevelActive(unsigned int n) override {
         if (n < 8)
             return m_nodes[n]->GetNumCoordsPosLevelActive();
         return m_central_node->GetNumCoordsPosLevelActive();
     }
 
     /// Access the n-th node of this element.
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(int n) override {
+    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(unsigned int n) override {
         if (n < 8)
             return m_nodes[n];
 
@@ -75,7 +75,7 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
     }
 
     /// Return the specified hexahedron node (0 <= n <= 7).
-    virtual std::shared_ptr<ChNodeFEAxyz> GetHexahedronNode(int n) override { return m_nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAxyz> GetHexahedronNode(unsigned int n) override { return m_nodes[n]; }
 
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyz> node1,
@@ -181,10 +181,10 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
     void ShapeFunctionsDerivativeZ(ShapeVector& Nz, double x, double y, double z);
 
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement.
-    virtual int GetFieldNumCoords() override { return 3; }
+    virtual unsigned int GetFieldNumCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual int GetSubBlocks() override { return 9; }
+    virtual unsigned int GetSubBlocks() override { return 9; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockOffset(int nblock) override {
@@ -198,10 +198,10 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
     virtual bool IsSubBlockActive(int nblock) const override { return !m_nodes[nblock]->IsFixed(); }
 
     /// Get the number of DOFs affected by this element (position part).
-    virtual int GetLoadableNumCoordsPosLevel() override { return 8 * 3 + 9; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 8 * 3 + 9; }
 
     /// Get the number of DOFs affected by this element (speed part).
-    virtual int GetLoadableNumCoordsVelLevel() override { return 8 * 3 + 9; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 8 * 3 + 9; }
 
     /// Get all the DOFs packed in a single vector (position part).
     virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
