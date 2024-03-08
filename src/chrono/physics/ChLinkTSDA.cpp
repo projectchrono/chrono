@@ -77,8 +77,8 @@ void ChLinkTSDA::Initialize(std::shared_ptr<ChBody> body1,
                             bool local,
                             const ChVector3d& loc1,
                             const ChVector3d& loc2) {
-    Body1 = (ChBodyFrame*)body1.get();
-    Body2 = (ChBodyFrame*)body2.get();
+    m_body1 = (ChBodyFrame*)body1.get();
+    m_body2 = (ChBodyFrame*)body2.get();
 
     if (local) {
         m_loc1 = loc1;
@@ -172,8 +172,8 @@ void ChLinkTSDA::CreateJacobianMatrices() {
 
     // Collect all variables associated with this element
     std::vector<ChVariables*> variables_list;
-    static_cast<ChBody*>(Body1)->LoadableGetVariables(variables_list);
-    static_cast<ChBody*>(Body2)->LoadableGetVariables(variables_list);
+    static_cast<ChBody*>(m_body1)->LoadableGetVariables(variables_list);
+    static_cast<ChBody*>(m_body2)->LoadableGetVariables(variables_list);
     if (m_variables) {
         variables_list.push_back(m_variables);
     }
@@ -205,8 +205,8 @@ void ChLinkTSDA::ComputeJacobians(double time,                 // current time
 
     for (int i = 0; i < 12; i++) {
         state_delta(i) += m_FD_delta;
-        static_cast<ChBody*>(Body1)->LoadableStateIncrement(0, state_x_perturbed, state_x, 0, state_delta);
-        static_cast<ChBody*>(Body2)->LoadableStateIncrement(7, state_x_perturbed, state_x, 6, state_delta);
+        static_cast<ChBody*>(m_body1)->LoadableStateIncrement(0, state_x_perturbed, state_x, 0, state_delta);
+        static_cast<ChBody*>(m_body2)->LoadableStateIncrement(7, state_x_perturbed, state_x, 6, state_delta);
         ComputeQ(time, state_x_perturbed, state_w, Qforce1);
         state_delta(i) -= m_FD_delta;
         Jcolumn = (Qforce1 - m_Qforce) * (1 / m_FD_delta);
@@ -255,11 +255,11 @@ void ChLinkTSDA::Update(double time, bool update_assets) {
     ChState state_x(14 + m_nstates, nullptr);
     ChStateDelta state_w(12 + m_nstates, nullptr);
 
-    static_cast<ChBody*>(Body1)->LoadableGetStateBlockPosLevel(0, state_x);
-    static_cast<ChBody*>(Body2)->LoadableGetStateBlockPosLevel(7, state_x);
+    static_cast<ChBody*>(m_body1)->LoadableGetStateBlockPosLevel(0, state_x);
+    static_cast<ChBody*>(m_body2)->LoadableGetStateBlockPosLevel(7, state_x);
 
-    static_cast<ChBody*>(Body1)->LoadableGetStateBlockVelLevel(0, state_w);
-    static_cast<ChBody*>(Body2)->LoadableGetStateBlockVelLevel(6, state_w);
+    static_cast<ChBody*>(m_body1)->LoadableGetStateBlockVelLevel(0, state_w);
+    static_cast<ChBody*>(m_body2)->LoadableGetStateBlockVelLevel(6, state_w);
 
     if (m_variables) {
         state_x.segment(14, m_nstates).setZero();
@@ -281,6 +281,11 @@ void ChLinkTSDA::Update(double time, bool update_assets) {
 
     // Update assets
     ChPhysicsItem::Update(ChTime, update_assets);
+    
+    // TODO: DARIOM double check if correct
+    ChVector3d dir = (m_aloc1 - m_aloc2).GetNormalized();
+    react_force = -m_force * dir;;
+    react_torque = VNULL;
 }
 
 // -----------------------------------------------------------------------------
@@ -358,13 +363,13 @@ void ChLinkTSDA::IntLoadResidual_F(const unsigned int off,  // offset in R resid
         return;
 
     // Add forces to connected bodies (from the current vector of forcing terms)
-    if (Body1->Variables().IsActive()) {
-        R.segment(Body1->Variables().GetOffset() + 0, 3) += c * m_Qforce.segment(0, 3);
-        R.segment(Body1->Variables().GetOffset() + 3, 3) += c * m_Qforce.segment(3, 3);
+    if (m_body1->Variables().IsActive()) {
+        R.segment(m_body1->Variables().GetOffset() + 0, 3) += c * m_Qforce.segment(0, 3);
+        R.segment(m_body1->Variables().GetOffset() + 3, 3) += c * m_Qforce.segment(3, 3);
     }
-    if (Body2->Variables().IsActive()) {
-        R.segment(Body2->Variables().GetOffset() + 0, 3) += c * m_Qforce.segment(6, 3);
-        R.segment(Body2->Variables().GetOffset() + 3, 3) += c * m_Qforce.segment(9, 3);
+    if (m_body2->Variables().IsActive()) {
+        R.segment(m_body2->Variables().GetOffset() + 0, 3) += c * m_Qforce.segment(6, 3);
+        R.segment(m_body2->Variables().GetOffset() + 3, 3) += c * m_Qforce.segment(9, 3);
     }
 
     // Add forcing term for internal variables
@@ -473,11 +478,11 @@ void ChLinkTSDA::ConstraintsFbLoadForces(double factor) {
         return;
 
     // Add forces to connected bodies (from the current vector of forcing terms)
-    Body1->Variables().Get_fb().segment(0, 3) += factor * m_Qforce.segment(0, 3);
-    Body1->Variables().Get_fb().segment(3, 3) += factor * m_Qforce.segment(3, 3);
+    m_body1->Variables().Get_fb().segment(0, 3) += factor * m_Qforce.segment(0, 3);
+    m_body1->Variables().Get_fb().segment(3, 3) += factor * m_Qforce.segment(3, 3);
 
-    Body2->Variables().Get_fb().segment(0, 3) += factor * m_Qforce.segment(6, 3);
-    Body2->Variables().Get_fb().segment(3, 3) += factor * m_Qforce.segment(9, 3);
+    m_body2->Variables().Get_fb().segment(0, 3) += factor * m_Qforce.segment(6, 3);
+    m_body2->Variables().Get_fb().segment(3, 3) += factor * m_Qforce.segment(9, 3);
 }
 
 // -----------------------------------------------------------------------------

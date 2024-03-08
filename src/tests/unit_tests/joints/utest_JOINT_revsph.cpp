@@ -308,7 +308,7 @@ bool TestRevSpherical(
             // expressed in the joint frame. Here, the 2nd body is the pendulum.
 
             //    joint frame on 2nd body (pendulum), expressed in the body frame
-            ChCoordsys<> linkCoordsys = revSphericalConstraint->GetLinkRelativeCoords();
+            ChFrame<> linkCoordsys = revSphericalConstraint->GetFrame2Rel();
 
             //    reaction force and torque on pendulum, expressed in joint frame
             //       at the joint frame origin (center of the revolute)

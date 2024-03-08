@@ -86,9 +86,9 @@ void ChLinkMotorRotationDriveline::Update(double mytime, bool update_assets) {
     ChLinkMotorRotation::Update(mytime, update_assets);
 
     // Update the direction of 1D-3D ChShaftBody constraints:
-    ChVector3d abs_shaftdir = this->GetLinkAbsoluteCoords().TransformDirectionLocalToParent(VECT_Z);
-    ChVector3d shaftdir_b1 = this->Body1->TransformDirectionParentToLocal(abs_shaftdir);
-    ChVector3d shaftdir_b2 = this->Body2->TransformDirectionParentToLocal(abs_shaftdir);
+    ChVector3d abs_shaftdir = this->GetFrame2Abs().TransformDirectionLocalToParent(VECT_Z);
+    ChVector3d shaftdir_b1 = this->m_body1->TransformDirectionParentToLocal(abs_shaftdir);
+    ChVector3d shaftdir_b2 = this->m_body2->TransformDirectionParentToLocal(abs_shaftdir);
 
     innerconstraint1->SetShaftDirection(shaftdir_b1);
     innerconstraint2->SetShaftDirection(shaftdir_b2);

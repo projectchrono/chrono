@@ -100,14 +100,14 @@ void ChLinkMotorLinearDriveline::Update(double mytime, bool update_assets) {
     ChLinkMotorLinear::Update(mytime, update_assets);
 
     // Update the direction of 1D-3D ChShaftBody constraints:
-    ChVector3d abs_shaftdir = this->GetLinkAbsoluteCoords().TransformDirectionLocalToParent(VECT_X);
-    ChVector3d shaftdir_b1 = this->Body1->TransformDirectionParentToLocal(abs_shaftdir);
-    ChVector3d shaftdir_b2 = this->Body2->TransformDirectionParentToLocal(abs_shaftdir);
-    ChVector3d shaftpos_b1 = this->Body1->TransformPointParentToLocal(this->GetLinkAbsoluteCoords().pos);
-    ChVector3d shaftpos_b2 = this->Body2->TransformPointParentToLocal(this->GetLinkAbsoluteCoords().pos);
+    ChVector3d abs_shaftdir = this->GetFrame2Abs().TransformDirectionLocalToParent(VECT_X);
+    ChVector3d shaftdir_b1 = this->m_body1->TransformDirectionParentToLocal(abs_shaftdir);
+    ChVector3d shaftdir_b2 = this->m_body2->TransformDirectionParentToLocal(abs_shaftdir);
+    ChVector3d shaftpos_b1 = this->m_body1->TransformPointParentToLocal(this->GetFrame2Abs().GetCoordsys().pos);
+    ChVector3d shaftpos_b2 = this->m_body2->TransformPointParentToLocal(this->GetFrame2Abs().GetCoordsys().pos);
     ChVector3d abs_shaft2_rotation_dir =
-        this->GetLinkAbsoluteCoords().TransformDirectionLocalToParent(this->shaft2_rotation_dir);
-    ChVector3d shaftdir_b2rot = this->Body2->TransformDirectionParentToLocal(abs_shaft2_rotation_dir);
+        this->GetFrame2Abs().TransformDirectionLocalToParent(this->shaft2_rotation_dir);
+    ChVector3d shaftdir_b2rot = this->m_body2->TransformDirectionParentToLocal(abs_shaft2_rotation_dir);
 
     innerconstraint1lin->SetShaftDirection(shaftdir_b1);
     innerconstraint1lin->SetShaftPos(shaftpos_b1);

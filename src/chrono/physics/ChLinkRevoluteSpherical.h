@@ -42,11 +42,11 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     /// Get the number of (bilateral) constraints introduced by this joint.
     virtual int GetNumConstraintsBilateral() override { return 2; }
 
-    /// Get the point on Body1 (revolute side), expressed in Body1 coordinate system.
+    /// Get the point on m_body1 (revolute side), expressed in body 1 coordinate system.
     const ChVector3d& GetPoint1Rel() const { return m_pos1; }
-    /// Get the direction of the revolute joint, expressed in Body1 coordinate system.
+    /// Get the direction of the revolute joint, expressed in body 1 coordinate system.
     const ChVector3d& GetDir1Rel() const { return m_dir1; }
-    /// Get the point on Body2 (spherical side), expressed in Body2 coordinate system.
+    /// Get the point on m_body2 (spherical side), expressed in body 2 coordinate system.
     const ChVector3d& GetPoint2Rel() const { return m_pos2; }
 
     /// Get the imposed distance (length of massless connector).
@@ -54,27 +54,28 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     /// Get the current distance between the two points.
     double GetCurrentDistance() const { return m_cur_dist; }
 
-    /// Get the point on Body1 (revolute side), expressed in absolute coordinate system.
-    ChVector3d GetPoint1Abs() const { return Body1->TransformPointLocalToParent(m_pos1); }
+    /// Get the point on m_body1 (revolute side), expressed in absolute coordinate system.
+    ChVector3d GetPoint1Abs() const { return m_body1->TransformPointLocalToParent(m_pos1); }
     /// Get the direction of the revolute joint, expressed in absolute coordinate system.
-    ChVector3d GetDir1Abs() const { return Body1->TransformDirectionLocalToParent(m_dir1); }
-    /// Get the point on Body2 (spherical side), expressed in absolute coordinate system.
-    ChVector3d GetPoint2Abs() const { return Body2->TransformPointLocalToParent(m_pos2); }
+    ChVector3d GetDir1Abs() const { return m_body1->TransformDirectionLocalToParent(m_dir1); }
+    /// Get the point on m_body2 (spherical side), expressed in absolute coordinate system.
+    ChVector3d GetPoint2Abs() const { return m_body2->TransformPointLocalToParent(m_pos2); }
 
-    /// Get the link coordinate system, expressed relative to Body2 (spherical side).
-    /// This represents the 'main' reference of the link: reaction forces
-    /// and reaction torques are reported in this coordinate system.
-    virtual ChCoordsys<> GetLinkRelativeCoords() override;
+    /// Get the link frame 1, relative to body 1.
+    virtual ChFrame<> GetFrame1Rel() const override;
+
+    /// Get the link frame 2, relative to body 2.
+    virtual ChFrame<> GetFrame2Rel() const override;
 
     /// Get the joint violation (residuals of the constraint equations)
     virtual ChVectorDynamic<> GetConstraintViolation() const override { return m_C; }
 
     /// Initialize this joint by specifying the two bodies to be connected, a
     /// coordinate system specified in the absolute frame, and the distance of
-    /// the massless connector.  The composite joint is constructed such that the
-    /// direction of the revolute joint is aligned with the z axis of the specified
+    /// the massless connector. The composite joint is constructed such that the
+    /// direction of the revolute joint is aligned with the Z axis of the specified
     /// coordinate system and the spherical joint is at the specified distance
-    /// along the x axis.
+    /// along the X axis.
     void Initialize(std::shared_ptr<ChBody> body1,  ///< first frame (revolute side)
                     std::shared_ptr<ChBody> body2,  ///< second frame (spherical side)
                     const ChCoordsys<>& csys,       ///< joint coordinate system (in absolute frame)

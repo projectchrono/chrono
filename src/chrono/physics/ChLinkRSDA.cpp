@@ -24,8 +24,8 @@ CH_FACTORY_REGISTER(ChLinkRSDA)
 ChLinkRSDA::ChLinkRSDA() : m_turns(0), m_auto_rest_angle(true), m_rest_angle(0), m_torque(0), m_k(0), m_r(0), m_t(0) {}
 
 ChLinkRSDA::ChLinkRSDA(const ChLinkRSDA& other) : ChLink(other), m_turns(0), m_torque(0) {
-    Body1 = other.Body1;
-    Body2 = other.Body2;
+    m_body1 = other.m_body1;
+    m_body2 = other.m_body2;
     system = other.system;
 
     m_csys1 = other.m_csys1;
@@ -49,11 +49,11 @@ ChLinkRSDA::ChLinkRSDA(const ChLinkRSDA& other) : ChLink(other), m_turns(0), m_t
 // Link initialization functions
 
 void ChLinkRSDA::Initialize(std::shared_ptr<ChBody> body1, std::shared_ptr<ChBody> body2, const ChFrame<>& frame) {
-    Body1 = body1.get();
-    Body2 = body2.get();
+    m_body1 = body1.get();
+    m_body2 = body2.get();
 
-    m_csys1 = Body1->GetCoordsys().TransformParentToLocal(frame.GetCoordsys());
-    m_csys2 = Body2->GetCoordsys().TransformParentToLocal(frame.GetCoordsys());
+    m_csys1 = m_body1->GetCoordsys().TransformParentToLocal(frame.GetCoordsys());
+    m_csys2 = m_body2->GetCoordsys().TransformParentToLocal(frame.GetCoordsys());
 
     CalcAngle();
     m_last_angle = m_angle;
@@ -66,15 +66,15 @@ void ChLinkRSDA::Initialize(std::shared_ptr<ChBody> body1,
                             bool local,
                             const ChFrame<>& frame1,
                             const ChFrame<>& frame2) {
-    Body1 = body1.get();
-    Body2 = body2.get();
+    m_body1 = body1.get();
+    m_body2 = body2.get();
 
     if (local) {
         m_csys1 = frame1.GetCoordsys();
         m_csys2 = frame2.GetCoordsys();
     } else {
-        m_csys1 = Body1->GetCoordsys().TransformParentToLocal(frame1.GetCoordsys());
-        m_csys2 = Body2->GetCoordsys().TransformParentToLocal(frame2.GetCoordsys());
+        m_csys1 = m_body1->GetCoordsys().TransformParentToLocal(frame1.GetCoordsys());
+        m_csys2 = m_body2->GetCoordsys().TransformParentToLocal(frame2.GetCoordsys());
     }
 
     CalcAngle();
@@ -116,20 +116,16 @@ double ChLinkRSDA::GetTorque() const {
     return m_torque;
 }
 
-ChCoordsys<> ChLinkRSDA::GetLinkRelativeCoords() {
-    return m_csys2;
-}
-
 ChFrame<> ChLinkRSDA::GetVisualModelFrame(unsigned int nclone) {
-    return ChFrame<>(m_csys1 >> Body1->GetCoordsys());
+    return ChFrame<>(m_csys1 >> m_body1->GetCoordsys());
 }
 
 // -----------------------------------------------------------------------------
 
 void ChLinkRSDA::CalcAngle() {
     // Express the RSDA frames in absolute frame
-    ChQuaternion<> rot1 = Body1->GetRot() * m_csys1.rot;
-    ChQuaternion<> rot2 = Body2->GetRot() * m_csys2.rot;
+    ChQuaternion<> rot1 = m_body1->GetRot() * m_csys1.rot;
+    ChQuaternion<> rot2 = m_body2->GetRot() * m_csys2.rot;
 
     // Extract unit vectors
     auto f1 = rot1.GetAxisX();
@@ -150,7 +146,7 @@ void ChLinkRSDA::CalcAngle() {
 
     // Get angle rate of change
     m_axis = rot1.GetAxisZ();
-    m_angle_dt = Vdot(m_axis, Body2->GetAngVelParent() - Body1->GetAngVelParent());
+    m_angle_dt = Vdot(m_axis, m_body2->GetAngVelParent() - m_body1->GetAngVelParent());
 }
 
 void ChLinkRSDA::AdjustAngle() {
@@ -212,11 +208,11 @@ void ChLinkRSDA::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R,
     ChVector3d torque = m_torque * m_axis;
 
     // Load torques in 'R' vector accumulator (torques in local coords)
-    if (Body1->Variables().IsActive()) {
-        R.segment(Body1->Variables().GetOffset() + 3, 3) -= c * Body1->TransformDirectionParentToLocal(torque).eigen();
+    if (m_body1->Variables().IsActive()) {
+        R.segment(m_body1->Variables().GetOffset() + 3, 3) -= c * m_body1->TransformDirectionParentToLocal(torque).eigen();
     }
-    if (Body2->Variables().IsActive()) {
-        R.segment(Body2->Variables().GetOffset() + 3, 3) += c * Body2->TransformDirectionParentToLocal(torque).eigen();
+    if (m_body2->Variables().IsActive()) {
+        R.segment(m_body2->Variables().GetOffset() + 3, 3) += c * m_body2->TransformDirectionParentToLocal(torque).eigen();
     }
 }
 
@@ -228,8 +224,8 @@ void ChLinkRSDA::ConstraintsFbLoadForces(double factor) {
     ChVector3d torque = m_torque * m_axis;
 
     // Load torques in 'fb' vector accumulator of body variables (torques in local coords)
-    Body1->Variables().Get_fb().segment(3, 3) -= factor * Body1->TransformDirectionParentToLocal(torque).eigen();
-    Body2->Variables().Get_fb().segment(3, 3) += factor * Body2->TransformDirectionParentToLocal(torque).eigen();
+    m_body1->Variables().Get_fb().segment(3, 3) -= factor * m_body1->TransformDirectionParentToLocal(torque).eigen();
+    m_body2->Variables().Get_fb().segment(3, 3) += factor * m_body2->TransformDirectionParentToLocal(torque).eigen();
 }
 
 void ChLinkRSDA::ArchiveOut(ChArchiveOut& archive_out) {

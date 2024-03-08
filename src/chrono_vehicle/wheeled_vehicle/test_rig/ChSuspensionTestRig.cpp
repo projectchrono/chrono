@@ -927,7 +927,7 @@ double ChSuspensionTestRigPushrod::GetActuatorDisp(int axle, VehicleSide side) {
 }
 
 double ChSuspensionTestRigPushrod::GetActuatorForce(int axle, VehicleSide side) {
-    return (side == LEFT) ? m_linact_L[axle]->GetReactForce2().x() : m_linact_R[axle]->GetReactForce2().x();
+    return (side == LEFT) ? m_linact_L[axle]->GetMotorForce() : m_linact_R[axle]->GetMotorForce();
 }
 
 double ChSuspensionTestRigPushrod::GetRideHeight(int axle) const {

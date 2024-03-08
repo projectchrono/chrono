@@ -131,19 +131,19 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class (ChLink), basically doing nothing :)
     ChLink::Update(mytime, update_assets);
 
-    if (this->Body1 && this->Body2) {
-        this->mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
+    if (this->m_body1 && this->m_body2) {
+        this->mask.SetTwoBodiesVariables(&m_body1->Variables(), &m_body2->Variables());
 
-        ChFrame<> F1_W = this->frame1 >> (*this->Body1);
-        ChFrame<> F2_W = this->frame2 >> (*this->Body2);
+        ChFrame<> F1_W = this->frame1 >> (*this->m_body1);
+        ChFrame<> F2_W = this->frame2 >> (*this->m_body2);
         ChFrame<> F1_wrt_F2 = F2_W.TransformParentToLocal(F1_W);
         // Now 'F1_wrt_F2' contains the position/rotation of frame 1 respect to frame 2, in frame 2 coords.
 
         ChMatrix33<> Jx1 = F2_W.GetRotMat().transpose();
         ChMatrix33<> Jx2 = -F2_W.GetRotMat().transpose();
 
-        ChMatrix33<> Jr1 = -F2_W.GetRotMat().transpose() * Body1->GetRotMat() * ChStarMatrix33<>(frame1.GetPos());
-        ChVector3d r12_B2 = Body2->GetRotMat().transpose() * (F1_W.GetPos() - F2_W.GetPos());
+        ChMatrix33<> Jr1 = -F2_W.GetRotMat().transpose() * m_body1->GetRotMat() * ChStarMatrix33<>(frame1.GetPos());
+        ChVector3d r12_B2 = m_body2->GetRotMat().transpose() * (F1_W.GetPos() - F2_W.GetPos());
         ChMatrix33<> Jr2 = this->frame2.GetRotMat().transpose() * ChStarMatrix33<>(frame2.GetPos() + r12_B2);
 
         // Premultiply by Jw1 and Jw2 by P = 0.5 * [Fp(q_resid^*)]'.bottomRow(3) to get residual as imaginary part of a
@@ -151,12 +151,12 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
         // is needed (if you want to use the stabilization term - if not, you can live without).
         this->P = 0.5 * (ChMatrix33<>(F1_wrt_F2.GetRot().e0()) + ChStarMatrix33<>(F1_wrt_F2.GetRot().GetVector()));
 
-        ChMatrix33<> Jw1 = this->P.transpose() * F2_W.GetRotMat().transpose() * Body1->GetRotMat();
-        ChMatrix33<> Jw2 = -this->P.transpose() * F2_W.GetRotMat().transpose() * Body2->GetRotMat();
+        ChMatrix33<> Jw1 = this->P.transpose() * F2_W.GetRotMat().transpose() * m_body1->GetRotMat();
+        ChMatrix33<> Jw2 = -this->P.transpose() * F2_W.GetRotMat().transpose() * m_body2->GetRotMat();
 
         // Another equivalent expression:
-        // ChMatrix33<> Jw1 = this->P * F1_W.GetRotMat().transpose() * Body1->GetRotMat();
-        // ChMatrix33<> Jw2 = -this->P * F1_W.GetRotMat().transpose() * Body2->GetRotMat();
+        // ChMatrix33<> Jw1 = this->P * F1_W.GetRotMat().transpose() * m_body1->GetRotMat();
+        // ChMatrix33<> Jw2 = -this->P * F1_W.GetRotMat().transpose() * m_body2->GetRotMat();
 
         // The Jacobian matrix of constraint is:
         // Cq = [ Jx1,  Jr1,  Jx2,  Jr2 ]
@@ -228,19 +228,19 @@ void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> body1,
                                    ChFrame<> frame2) {
     assert(body1.get() != body2.get());
 
-    this->Body1 = body1.get();
-    this->Body2 = body2.get();
+    this->m_body1 = body1.get();
+    this->m_body2 = body2.get();
     // this->SetSystem(body1->GetSystem());
 
-    this->mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
+    this->mask.SetTwoBodiesVariables(&m_body1->Variables(), &m_body2->Variables());
 
     if (pos_are_relative) {
         this->frame1 = frame1;
         this->frame2 = frame2;
     } else {
         // from abs to body-rel
-        this->frame1 = static_cast<ChFrame<>*>(this->Body1)->TransformParentToLocal(frame1);
-        this->frame2 = static_cast<ChFrame<>*>(this->Body2)->TransformParentToLocal(frame2);
+        this->frame1 = static_cast<ChFrame<>*>(this->m_body1)->TransformParentToLocal(frame1);
+        this->frame2 = static_cast<ChFrame<>*>(this->m_body2)->TransformParentToLocal(frame2);
     }
 }
 
@@ -254,11 +254,11 @@ void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> body1,
     if(body1.get() == body2.get())
         throw std::invalid_argument("Cannot constrain a body to itself.");
 
-    this->Body1 = body1.get();
-    this->Body2 = body2.get();
+    this->m_body1 = body1.get();
+    this->m_body2 = body2.get();
     // this->SetSystem(body1->GetSystem());
 
-    this->mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
+    this->mask.SetTwoBodiesVariables(&m_body1->Variables(), &m_body2->Variables());
 
     ChMatrix33<> mrot;
 
@@ -277,15 +277,15 @@ void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> body1,
         // from abs to body-relative coordinates
         ChVector3d link_dir_local;
 
-        link_dir_local = this->Body1->TransformDirectionParentToLocal(dir1);
+        link_dir_local = this->m_body1->TransformDirectionParentToLocal(dir1);
         mrot.SetFromAxisZ(link_dir_local);
         mfr1.SetRot(mrot);
-        mfr1.SetPos(this->Body1->TransformPointParentToLocal(point1));
+        mfr1.SetPos(this->m_body1->TransformPointParentToLocal(point1));
 
-        link_dir_local = this->Body2->TransformDirectionParentToLocal(dir2);
+        link_dir_local = this->m_body2->TransformDirectionParentToLocal(dir2);
         mrot.SetFromAxisZ(link_dir_local);
         mfr2.SetRot(mrot);
-        mfr2.SetPos(this->Body2->TransformPointParentToLocal(point2));
+        mfr2.SetPos(this->m_body2->TransformPointParentToLocal(point2));
     }
 
     this->frame1 = mfr1;
@@ -296,7 +296,7 @@ void ChLinkMateGeneric::SetUseTangentStiffness(bool useKc) {
 
     if (useKc && this->Kmatr == nullptr) {
 
-        this->Kmatr = chrono_types::make_unique<ChKblockGeneric>(&Body1->Variables(), &Body2->Variables());
+        this->Kmatr = chrono_types::make_unique<ChKblockGeneric>(&m_body1->Variables(), &m_body2->Variables());
         this->Kmatr->Get_K().resize(12, 12);
         this->Kmatr->Get_K().setZero();
 
@@ -319,12 +319,12 @@ void ChLinkMateGeneric::KRMmatricesLoad(double Kfactor, double Rfactor, double M
         return;
 
     if (this->Kmatr) {
-        ChMatrix33<> R_B1_W = Body1->GetRotMat();
-        ChMatrix33<> R_B2_W = Body2->GetRotMat();
+        ChMatrix33<> R_B1_W = m_body1->GetRotMat();
+        ChMatrix33<> R_B2_W = m_body2->GetRotMat();
         // ChMatrix33<> R_F1_B1 = frame1.GetRotMat();
         // ChMatrix33<> R_F2_B2 = frame2.GetRotMat();
-        ChFrame<> F1_W = this->frame1 >> (*this->Body1);
-        ChFrame<> F2_W = this->frame2 >> (*this->Body2);
+        ChFrame<> F1_W = this->frame1 >> (*this->m_body1);
+        ChFrame<> F2_W = this->frame2 >> (*this->m_body2);
         ChMatrix33<> R_F1_W = F1_W.GetRotMat();
         ChMatrix33<> R_F2_W = F2_W.GetRotMat();
         ChVector3d r12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
@@ -463,13 +463,13 @@ void ChLinkMateGeneric::IntStateScatterReactions(const unsigned int off_L, const
     // gamma = [ gamma_f ]
     //         [ gamma_m ]
     //
-    // The forces and torques acting on Body1 and Body2 are simply calculated as: Cq.T*gamma,
+    // The forces and torques acting on m_body1 and m_body2 are simply calculated as: Cq.T*gamma,
     // where the forces are expressed in the absolute frame,
     // the torques are expressed in the local frame of B1,B2, respectively.
     // This is consistent with the mixed basis of rigid bodies and nodes.
     react_force = gamma_f;
-    ChFrame<> F1_W = this->frame1 >> (*this->Body1);
-    ChFrame<> F2_W = this->frame2 >> (*this->Body2);
+    ChFrame<> F1_W = this->frame1 >> (*this->m_body1);
+    ChFrame<> F2_W = this->frame2 >> (*this->m_body2);
     ChVector3d r12_F2 = F2_W.GetRotMat().transpose() * (F1_W.GetPos() - F2_W.GetPos());
     react_torque = ChStarMatrix33<>(r12_F2) * gamma_f + this->P * gamma_m;
 }
@@ -648,8 +648,8 @@ void ChLinkMateGeneric::ConstraintsFetch_react(double factor) {
 
     react_force = gamma_f;
 
-    ChFrame<> F1_W = this->frame1 >> (*this->Body1);
-    ChFrame<> F2_W = this->frame2 >> (*this->Body2);
+    ChFrame<> F1_W = this->frame1 >> (*this->m_body1);
+    ChFrame<> F2_W = this->frame2 >> (*this->m_body2);
     ChVector3d r12_F2 = F2_W.GetRotMat().transpose() * (F1_W.GetPos() - F2_W.GetPos());
     react_torque = ChStarMatrix33<>(r12_F2) * gamma_f + this->P * gamma_m;
 }
@@ -847,24 +847,24 @@ void ChLinkMateRevolute::Initialize(std::shared_ptr<ChBodyFrame> body1,
 }
 
 double ChLinkMateRevolute::GetRelativeAngle() {
-    ChFrame<> F1_W = frame1 >> *Body1;
-    ChFrame<> F2_W = frame2 >> *Body2;
+    ChFrame<> F1_W = frame1 >> *m_body1;
+    ChFrame<> F2_W = frame2 >> *m_body2;
     ChFrame<> F1_F2 = F2_W.TransformParentToLocal(F1_W);
     double angle = std::remainder(F1_F2.GetRot().GetRotVec().z(), CH_C_2PI); // NB: assumes rotation along z
     return angle;
 }
 
 double ChLinkMateRevolute::GetRelativeAngle_dt() {
-    ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *Body1;
-    ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
+    ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *m_body1;
+    ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *m_body2;
     ChFrameMoving<> F1_F2 = F2_W.TransformParentToLocal(F1_W);
     double vel12_W = F1_F2.GetAngVelLocal().z(); // NB: assumes rotation along z
     return vel12_W;
 }
 
 double ChLinkMateRevolute::GetRelativeAngle_dtdt() {
-    ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *Body1;
-    ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
+    ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *m_body1;
+    ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *m_body2;
     ChFrameMoving<> F1_F2 = F2_W.TransformParentToLocal(F1_W);
     double acc12_W = F1_F2.GetAngAccLocal().z(); // NB: assumes rotation along z
     return acc12_W;
@@ -925,22 +925,22 @@ void ChLinkMatePrismatic::Initialize(std::shared_ptr<ChBodyFrame> body1,
 }
 
 double ChLinkMatePrismatic::GetRelativePos() {
-    ChFrame<> F1_W = frame1 >> *Body1;
-    ChFrame<> F2_W = frame2 >> *Body2;
+    ChFrame<> F1_W = frame1 >> *m_body1;
+    ChFrame<> F2_W = frame2 >> *m_body2;
     ChVector3d pos12_W = F1_W.GetPos() - F2_W.GetPos();
     return pos12_W.z(); // NB: assumes translation along Z
 }
 
 double ChLinkMatePrismatic::GetRelativePosDer() {
-    ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *Body1;
-    ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
+    ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *m_body1;
+    ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *m_body2;
     ChVector3d vel12_W = F1_W.GetPosDer() - F2_W.GetPosDer();
     return vel12_W.z(); // NB: assumes translation along Z
 }
 
 double ChLinkMatePrismatic::GetRelativePosDer2() {
-    ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *Body1;
-    ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *Body2;
+    ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *m_body1;
+    ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *m_body2;
     ChVector3d acc12_W = F1_W.GetPosDer2() - F2_W.GetPosDer2();
     return acc12_W.z(); // NB: assumes translation along Z
 }
@@ -1112,8 +1112,8 @@ void ChLinkMateOrthogonal::Initialize(std::shared_ptr<ChBodyFrame> body1,
     }
 
     // do this asap otherwise the following Update() won't work..
-    this->Body1 = body1.get();
-    this->Body2 = body2.get();
+    this->m_body1 = body1.get();
+    this->m_body2 = body2.get();
 
     // Force the alignment of frames so that the Z axis is cross product of two dirs, etc.
     // by calling the custom update function of ChLinkMateOrthogonal.
@@ -1132,9 +1132,9 @@ void ChLinkMateOrthogonal::Update(double mtime, bool update_assets) {
 
     ChVector3d absdir1, absdir2;
 
-    if (this->Body1 && this->Body2) {
-        absdir1 = this->Body1->TransformDirectionLocalToParent(m_reldir1);
-        absdir2 = this->Body2->TransformDirectionLocalToParent(m_reldir2);
+    if (this->m_body1 && this->m_body2) {
+        absdir1 = this->m_body1->TransformDirectionLocalToParent(m_reldir1);
+        absdir2 = this->m_body2->TransformDirectionLocalToParent(m_reldir2);
 
         ChVector3d Zcomm = Vcross(absdir2, absdir1);
         bool succ = Zcomm.Normalize();
@@ -1172,8 +1172,8 @@ void ChLinkMateOrthogonal::Update(double mtime, bool update_assets) {
         ChFrame<> absframe2(VNULL, R2);  // position not needed for orth. constr. computation
 
         // from abs to body-rel
-        this->frame1 = static_cast<ChFrame<>*>(this->Body1)->TransformParentToLocal(absframe1);
-        this->frame2 = static_cast<ChFrame<>*>(this->Body2)->TransformParentToLocal(absframe2);
+        this->frame1 = static_cast<ChFrame<>*>(this->m_body1)->TransformParentToLocal(absframe1);
+        this->frame2 = static_cast<ChFrame<>*>(this->m_body2)->TransformParentToLocal(absframe2);
     }
 
     // Parent class inherit
@@ -1255,32 +1255,32 @@ ChLinkMateRackPinion::ChLinkMateRackPinion(const ChLinkMateRackPinion& other) : 
 }
 
 ChVector3d ChLinkMateRackPinion::GetAbsPinionDir() {
-    if (this->Body1) {
-        ChFrame<double> absframe = ((ChFrame<double>*)Body1)->TransformLocalToParent(local_pinion);
+    if (this->m_body1) {
+        ChFrame<double> absframe = ((ChFrame<double>*)m_body1)->TransformLocalToParent(local_pinion);
         return absframe.GetRotMat().GetAxisZ();
     } else
         return VECT_Z;
 }
 
 ChVector3d ChLinkMateRackPinion::GetAbsPinionPos() {
-    if (this->Body1) {
-        ChFrame<double> absframe = ((ChFrame<double>*)Body1)->TransformLocalToParent(local_pinion);
+    if (this->m_body1) {
+        ChFrame<double> absframe = ((ChFrame<double>*)m_body1)->TransformLocalToParent(local_pinion);
         return absframe.GetPos();
     } else
         return VNULL;
 }
 
 ChVector3d ChLinkMateRackPinion::GetAbsRackDir() {
-    if (this->Body2) {
-        ChFrame<double> absframe = ((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack);
+    if (this->m_body2) {
+        ChFrame<double> absframe = ((ChFrame<double>*)m_body2)->TransformLocalToParent(local_rack);
         return absframe.GetRotMat().GetAxisZ();
     } else
         return VECT_Z;
 }
 
 ChVector3d ChLinkMateRackPinion::GetAbsRackPos() {
-    if (this->Body2) {
-        ChFrame<double> absframe = ((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack);
+    if (this->m_body2) {
+        ChFrame<double> absframe = ((ChFrame<double>*)m_body2)->TransformLocalToParent(local_rack);
         return absframe.GetPos();
     } else
         return VNULL;
@@ -1290,8 +1290,8 @@ void ChLinkMateRackPinion::UpdateTime(double mytime) {
     // First, inherit to parent class
     ChLinkMateGeneric::UpdateTime(mytime);
 
-    ChFrame<double> abs_pinion = ((ChFrame<double>*)Body1)->TransformLocalToParent(local_pinion);
-    ChFrame<double> abs_rack = ((ChFrame<double>*)Body2)->TransformLocalToParent(local_rack);
+    ChFrame<double> abs_pinion = ((ChFrame<double>*)m_body1)->TransformLocalToParent(local_pinion);
+    ChFrame<double> abs_rack = ((ChFrame<double>*)m_body2)->TransformLocalToParent(local_rack);
 
     ChVector3d abs_distpr = abs_pinion.GetPos() - abs_rack.GetPos(); // vector from rack to pinion
     ChVector3d abs_Dpin = abs_pinion.GetRotMat().GetAxisZ();  // direction of pinion shaft
@@ -1337,8 +1337,8 @@ void ChLinkMateRackPinion::UpdateTime(double mytime) {
     abs_contact.ConcatenatePostTransformation(mrotframe);  // or: abs_contact *= mrotframe;
 
     // Set the link frame 'abs_contact' to relative frames to the two connected ChBodyFrame
-    this->frame1 = ((ChFrame<double>*)Body1)->TransformParentToLocal(abs_contact);
-    this->frame2 = ((ChFrame<double>*)Body2)->TransformParentToLocal(abs_contact);
+    this->frame1 = ((ChFrame<double>*)m_body1)->TransformParentToLocal(abs_contact);
+    this->frame2 = ((ChFrame<double>*)m_body2)->TransformParentToLocal(abs_contact);
 }
 
 void ChLinkMateRackPinion::ArchiveOut(ChArchiveOut& archive_out) {

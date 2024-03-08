@@ -39,9 +39,9 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
     // Override the rotational jacobian [Cq] and the rotational residual C,
     // by assuming an additional hidden frame that rotates about frame1:
 
-    if (this->Body1 && this->Body2) {
-        ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
-        ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
+    if (this->m_body1 && this->m_body2) {
+        ChFrame<> aframe1 = this->frame1 >> (*this->m_body1);
+        ChFrame<> aframe2 = this->frame2 >> (*this->m_body2);
 
         //ChFrame<> aframe12 = aframe2.TransformParentToLocal(aframe1);
 
@@ -58,12 +58,12 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
         this->P = 0.5 * (ChMatrix33<>(aframe1rotating2.GetRot().e0()) +
                          ChStarMatrix33<>(aframe1rotating2.GetRot().GetVector()));
 
-        ChMatrix33<> Jw1 = this->P.transpose() * aframe2.GetRotMat().transpose() * Body1->GetRotMat();
-        ChMatrix33<> Jw2 = -this->P.transpose() * aframe2.GetRotMat().transpose() * Body2->GetRotMat();
+        ChMatrix33<> Jw1 = this->P.transpose() * aframe2.GetRotMat().transpose() * m_body1->GetRotMat();
+        ChMatrix33<> Jw2 = -this->P.transpose() * aframe2.GetRotMat().transpose() * m_body2->GetRotMat();
 
         // Another equivalent expression:
-        // ChMatrix33<> Jw1 = this->P * aframe1rotating.GetRotMat().transpose() * Body1->GetRotMat();
-        // ChMatrix33<> Jw2 = -this->P * aframe1rotating.GetRotMat().transpose() * Body2->GetRotMat();
+        // ChMatrix33<> Jw1 = this->P * aframe1rotating.GetRotMat().transpose() * m_body1->GetRotMat();
+        // ChMatrix33<> Jw2 = -this->P * aframe1rotating.GetRotMat().transpose() * m_body2->GetRotMat();
 
         int nc = 0;
 
@@ -109,12 +109,12 @@ void ChLinkMotorRotationAngle::KRMmatricesLoad(double Kfactor, double Rfactor, d
         return;
 
     if (this->Kmatr) {
-        ChMatrix33<> R_B1_W = Body1->GetRotMat();
-        ChMatrix33<> R_B2_W = Body2->GetRotMat();
+        ChMatrix33<> R_B1_W = m_body1->GetRotMat();
+        ChMatrix33<> R_B2_W = m_body2->GetRotMat();
         // ChMatrix33<> R_F1_B1 = frame1.GetRotMat();
         // ChMatrix33<> R_F2_B2 = frame2.GetRotMat();
-        ChFrame<> F1_W = this->frame1 >> (*this->Body1);
-        ChFrame<> F2_W = this->frame2 >> (*this->Body2);
+        ChFrame<> F1_W = this->frame1 >> (*this->m_body1);
+        ChFrame<> F2_W = this->frame2 >> (*this->m_body2);
         ChMatrix33<> R_F1_W = F1_W.GetRotMat();
         ChMatrix33<> R_F2_W = F2_W.GetRotMat();
         ChVector3d P12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());

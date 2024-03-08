@@ -365,7 +365,7 @@ bool TestTranSpringCB(const ChVector3d& jointLocGnd,   // absolute location of t
             ChVector3d springForceGlobal = springForce * springVector;
             out_rfrc << simTime << springForceGlobal << std::endl;
 
-            ChCoordsys<> linkCoordsys = spring->GetLinkRelativeCoords();
+            ChFrame<> linkCoordsys = spring->GetFrame2Rel();
             ChVector3d reactTorque = spring->GetReactTorque2();
             ChVector3d reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
             out_rtrq << simTime << reactTorqueGlobal << std::endl;

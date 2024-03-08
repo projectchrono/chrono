@@ -53,7 +53,7 @@ void ChLinkLockPointSpline::UpdateTime(double time) {
 
         // find nearest point
         vpoint = marker1->GetAbsCoordsys().pos;
-        vpoint = Body2->TransformPointParentToLocal(vpoint);
+        vpoint = m_body2->TransformPointParentToLocal(vpoint);
         trajectory_line->FindNearestLinePoint(vpoint, mu, 0, tolerance);
 
         param.y() = 0;
@@ -87,8 +87,8 @@ void ChLinkLockPointSpline::UpdateTime(double time) {
         }
         ChQuaterniond qabsdir = ma.GetQuaternion();
 
-        ptang = Body2->TransformPointLocalToParent(ptang);
-        qabsdir = Body2->GetRot() * qabsdir;
+        ptang = m_body2->TransformPointLocalToParent(ptang);
+        qabsdir = m_body2->GetRot() * qabsdir;
 
         marker2->ImposeAbsoluteTransform(ChFrame<>(ptang, qabsdir));  // move "main" marker2 into tangent position
         marker2->SetMotionType(ChMarker::MotionType::EXTERNAL);

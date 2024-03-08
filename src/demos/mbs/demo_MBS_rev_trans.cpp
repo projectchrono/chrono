@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
 
         // Render the connecting body.
         // Recall that the joint reference frame is given in the Body coordinates.
-        ChCoordsys<> joint_csys = ground->GetCoordsys() >> rev_trans->GetLinkRelativeCoords();
+        ChCoordsys<> joint_csys = ground->GetCoordsys() >> rev_trans->GetFrame2Rel();
         ChVector3d point1 = joint_csys.pos;
         ChVector3d point2 = joint_csys.TransformPointLocalToParent(ChVector3d(L, 0, 0));
         tools::drawSegment(vis.get(), point1, point2, ChColor(0, 0.2f, 0), true);

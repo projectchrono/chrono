@@ -71,6 +71,14 @@ class ChApi ChLinkMarkers : public ChLink {
     /// Return the 2nd referenced marker (the main marker, on 2nd body).
     ChMarker* GetMarker2() { return marker2; }
 
+    /// Get the link frame 1, relative to body 1.
+    /// For this class link frame 1 is actually marker 1.
+    virtual ChFrame<> GetFrame1Rel() const {return *marker1; }
+
+    /// Get the link frame 2, relative to body 2.
+    /// For this class link frame 2 is actually marker 2.
+    virtual ChFrame<> GetFrame2Rel() const { return *marker2; }
+
     /// Set the two markers associated with this link.
     virtual void SetUpMarkers(ChMarker* mark1, ChMarker* mark2);
 
@@ -101,11 +109,6 @@ class ChApi ChLinkMarkers : public ChLink {
         const ChFrame<>& frame1,         ///< position & alignment of 1st marker (absolute or relative to body1)
         const ChFrame<>& frame2          ///< position & alignment of 2nd marker (absolute or relative to body2)
     );
-
-    /// Get the link coordinate system, expressed relative to Body2 (the main body).
-    /// This represents the 'main' reference of the link (the coordinate system of the main marker2 on Body2).
-    /// Reaction forces and torques are expressed in this coordinate system.
-    virtual ChCoordsys<> GetLinkRelativeCoords() override { return marker2->GetCoordsys(); }
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// For a ChLinkMarkers, this returns the absolute coordinate system of the main marker2.

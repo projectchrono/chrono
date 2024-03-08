@@ -76,13 +76,8 @@ class ChApi ChLinkMotionImposed : public ChLinkMateGeneric {
 	/// expressed as the "moving" ChFrame M respect to frame2.
 	ChFrame<>& GetFrameM2() { return frameM2; }
 
-	/// Get the link coordinate system, expressed relative to Body2 (the 'master' body). This represents the 'main'
-    /// reference of the link: reaction forces and reaction torques are expressed in this coordinate system. 
-	/// Note: differently from most other ChLinkMate -inherited links, that assume the frame2 as link coodrinate system,
-	/// in this case we use the "moving" auxiliary frame M whose motion is concatenated to frame2 (in absolute coordinates,
-	/// such moving frame will be cohincident with frame1 if the constraint is well assembled - in fact this makes constraint
-	/// forces more intuitive, as one will get reaction forces and torques as applied to the frame1 of moving body 1).
-    virtual ChCoordsys<> GetLinkRelativeCoords() override { return (frameMb2).GetCoordsys(); }
+    /// Get the link frame 2, relative to body 2.
+    virtual ChFramed GetFrame2Rel() const override { return frameMb2; };
 
     void Update(double mytime, bool update_assets) override;
 

@@ -1541,8 +1541,8 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
         frameA = *link_markers->GetMarker1() >> *link_markers->GetBody1();
         frameB = *link_markers->GetMarker2() >> *link_markers->GetBody2();
     } else if (auto link_mate = std::dynamic_pointer_cast<ChLinkMateGeneric>(link)) {
-        frameA = link_mate->GetFrame1() >> *link_mate->GetBody1();
-        frameB = link_mate->GetFrame2() >> *link_mate->GetBody2();
+        frameA = link_mate->GetFrame1Rel() >> *link_mate->GetBody1();
+        frameB = link_mate->GetFrame2Rel() >> *link_mate->GetBody2();
     }
 
     auto joint_transform = vsg::MatrixTransform::create();
@@ -1648,8 +1648,8 @@ void ChVisualSystemVSG::UpdateFromMBS() {
                 frameA = *link_markers->GetMarker1() >> *link_markers->GetBody1();
                 frameB = *link_markers->GetMarker2() >> *link_markers->GetBody2();
             } else if (auto link_mate = std::dynamic_pointer_cast<ChLinkMateGeneric>(link)) {
-                frameA = link_mate->GetFrame1() >> *link_mate->GetBody1();
-                frameB = link_mate->GetFrame2() >> *link_mate->GetBody2();
+                frameA = link_mate->GetFrame1Rel() >> *link_mate->GetBody1();
+                frameB = link_mate->GetFrame2Rel() >> *link_mate->GetBody2();
             }
 
             transform->matrix = vsg::dmat4CH(frameB, m_joint_frame_scale);

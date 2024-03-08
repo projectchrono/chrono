@@ -41,9 +41,9 @@ void ChLinkMotionImposed::Update(double mytime, bool update_assets) {
     // Override the rotational jacobian [Cq] and the rotational residual C,
     // by assuming an additional hidden frame that rotates about frame2:
 
-    if (this->Body1 && this->Body2) {
-        ChFrame<> frame1W = this->frame1 >> (*this->Body1);
-        ChFrame<> frame2W = this->frame2 >> (*this->Body2);
+    if (this->m_body1 && this->m_body2) {
+        ChFrame<> frame1W = this->frame1 >> (*this->m_body1);
+        ChFrame<> frame2W = this->frame2 >> (*this->m_body2);
 
         frameM2.SetRot(rotation_function->GetQuat(mytime));
         frameM2.SetPos(position_function->GetPos(mytime));
@@ -61,21 +61,21 @@ void ChLinkMotionImposed::Update(double mytime, bool update_assets) {
         ChMatrix33<> Jx1 = planeMW.transpose();
         ChMatrix33<> Jx2 = -planeMW.transpose();
 
-        ChMatrix33<> Jr1 = -planeMW.transpose() * Body1->GetRotMat() * ChStarMatrix33<>(frame1.GetPos());
-        ChMatrix33<> Jr2 = planeMW.transpose() * Body2->GetRotMat() * ChStarMatrix33<>(frameMb2.GetPos());
+        ChMatrix33<> Jr1 = -planeMW.transpose() * m_body1->GetRotMat() * ChStarMatrix33<>(frame1.GetPos());
+        ChMatrix33<> Jr2 = planeMW.transpose() * m_body2->GetRotMat() * ChStarMatrix33<>(frameMb2.GetPos());
 
-        ChVector3d p2p1_base2 = Body2->GetRotMat().transpose() * (frame1W.GetPos() - frameMW.GetPos());
-        Jr2 += planeMW.transpose() * Body2->GetRotMat() * ChStarMatrix33<>(p2p1_base2);
+        ChVector3d p2p1_base2 = m_body2->GetRotMat().transpose() * (frame1W.GetPos() - frameMW.GetPos());
+        Jr2 += planeMW.transpose() * m_body2->GetRotMat() * ChStarMatrix33<>(p2p1_base2);
 
         // Premultiply by Jw1 and Jw2 by  0.5*[Fp(q_resid)]' to get residual as imaginary part of a quaternion.
         this->P = 0.5 * (ChMatrix33<>(frame1M.GetRot().e0()) + ChStarMatrix33<>(frame1M.GetRot().GetVector()));
 
-        ChMatrix33<> Jw1 = this->P * frame1W.GetRotMat().transpose() * Body1->GetRotMat();
-        ChMatrix33<> Jw2 = -this->P * frame1W.GetRotMat().transpose() * Body2->GetRotMat();
+        ChMatrix33<> Jw1 = this->P * frame1W.GetRotMat().transpose() * m_body1->GetRotMat();
+        ChMatrix33<> Jw2 = -this->P * frame1W.GetRotMat().transpose() * m_body2->GetRotMat();
 
         // Another equivalent expression:
-        // ChMatrix33<> Jw1 = this->P.transpose() * planeMW.transpose() * Body1->GetRotMat();
-        // ChMatrix33<> Jw2 = -this->P.transpose() * planeMW.transpose() * Body2->GetRotMat();
+        // ChMatrix33<> Jw1 = this->P.transpose() * planeMW.transpose() * m_body1->GetRotMat();
+        // ChMatrix33<> Jw2 = -this->P.transpose() * planeMW.transpose() * m_body2->GetRotMat();
 
         int nc = 0;
 
@@ -138,13 +138,13 @@ void ChLinkMotionImposed::KRMmatricesLoad(double Kfactor, double Rfactor, double
     if (this->Kmatr) {
         // The algorithm is quite similar as ChLinkMateGeneric(),
         // just replacing F2_W with the "moving" auxiliary frame M here.
-        ChFrame<> F1_W = this->frame1 >> (*this->Body1);
-        ChFrame<> frame2W = this->frame2 >> (*this->Body2);
+        ChFrame<> F1_W = this->frame1 >> (*this->m_body1);
+        ChFrame<> frame2W = this->frame2 >> (*this->m_body2);
         frameMb2 = frameM2 >> this->frame2;
         ChFrame<> F2_W = frameM2 >> frame2W;  // "moving" auxiliary frame M which is coincident with frame1
 
-        ChMatrix33<> R_B1_W = Body1->GetRotMat();
-        ChMatrix33<> R_B2_W = Body2->GetRotMat();
+        ChMatrix33<> R_B1_W = m_body1->GetRotMat();
+        ChMatrix33<> R_B2_W = m_body2->GetRotMat();
         ChMatrix33<> R_F1_W = F1_W.GetRotMat();
         ChMatrix33<> R_F2_W = F2_W.GetRotMat();
         ChVector3d P12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());

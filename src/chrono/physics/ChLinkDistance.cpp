@@ -28,45 +28,45 @@ class ChLinkDistance_Mode_enum_mapper : public ChLinkDistance {
     CH_ENUM_MAPPER_END(Mode);
 };
 
-ChLinkDistance::ChLinkDistance() : pos1(VNULL), pos2(VNULL), distance(0), curr_dist(0) {
+ChLinkDistance::ChLinkDistance() : m_pos1(VNULL), m_pos2(VNULL), distance(0), curr_dist(0) {
     this->SetMode(Mode::BILATERAL);
 }
 
 ChLinkDistance::ChLinkDistance(const ChLinkDistance& other) : ChLink(other) {
     this->SetMode(other.mode);
-    Body1 = other.Body1;
-    Body2 = other.Body2;
+    m_body1 = other.m_body1;
+    m_body2 = other.m_body2;
     system = other.system;
-    Cx.SetVariables(&other.Body1->Variables(), &other.Body2->Variables());
-    pos1 = other.pos1;
-    pos2 = other.pos2;
+    Cx.SetVariables(&other.m_body1->Variables(), &other.m_body2->Variables());
+    m_pos1 = other.m_pos1;
+    m_pos2 = other.m_pos2;
     distance = other.distance;
     curr_dist = other.curr_dist;
 }
 
-int ChLinkDistance::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
-                               std::shared_ptr<ChBodyFrame> mbody2,
+int ChLinkDistance::Initialize(std::shared_ptr<ChBodyFrame> body1,
+                               std::shared_ptr<ChBodyFrame> body2,
                                bool pos_are_relative,
-                               ChVector3d mpos1,
-                               ChVector3d mpos2,
+                               ChVector3d pos1,
+                               ChVector3d pos2,
                                bool auto_distance,
                                double mdistance,
                                Mode mode) {
     this->SetMode(mode);
 
-    Body1 = mbody1.get();
-    Body2 = mbody2.get();
-    Cx.SetVariables(&Body1->Variables(), &Body2->Variables());
+    m_body1 = body1.get();
+    m_body2 = body2.get();
+    Cx.SetVariables(&m_body1->Variables(), &m_body2->Variables());
 
     if (pos_are_relative) {
-        pos1 = mpos1;
-        pos2 = mpos2;
+        m_pos1 = pos1;
+        m_pos2 = pos2;
     } else {
-        pos1 = Body1->TransformPointParentToLocal(mpos1);
-        pos2 = Body2->TransformPointParentToLocal(mpos2);
+        m_pos1 = m_body1->TransformPointParentToLocal(pos1);
+        m_pos2 = m_body2->TransformPointParentToLocal(pos2);
     }
 
-    ChVector3d delta_pos = Body1->TransformPointLocalToParent(pos1) - Body2->TransformPointLocalToParent(pos2);
+    ChVector3d delta_pos = m_body1->TransformPointLocalToParent(m_pos1) - m_body2->TransformPointLocalToParent(m_pos2);
     curr_dist = delta_pos.Length();
 
     if (auto_distance) {
@@ -80,6 +80,17 @@ int ChLinkDistance::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
     return true;
 }
 
+inline ChFramed ChLinkDistance::GetFrame2Rel() const {
+    ChVector3d dir_F1_F2_W =
+        (Vnorm(m_body1->TransformPointLocalToParent(m_pos1) - m_body2->TransformPointLocalToParent(m_pos2)));
+    ChVector3d dir_F1_F2_B1 = m_body2->TransformDirectionParentToLocal(dir_F1_F2_W);
+    ChMatrix33<> rel_matrix;
+    rel_matrix.SetFromAxisX(dir_F1_F2_B1, VECT_Y);
+
+    ChQuaterniond Ql2 = rel_matrix.GetQuaternion();
+    return ChFrame<>(m_pos2, Ql2);
+}
+
 void ChLinkDistance::SetMode(Mode mode) {
     this->mode = mode;
     mode_sign = (this->mode == Mode::UNILATERAL_MAXDISTANCE ? -1.0 : +1.0);
@@ -87,34 +98,22 @@ void ChLinkDistance::SetMode(Mode mode) {
                                              : eChConstraintMode::CONSTRAINT_UNILATERAL);
 }
 
-ChCoordsys<> ChLinkDistance::GetLinkRelativeCoords() {
-    ChVector3d dir_F1_F2_W =
-        (Vnorm(Body1->TransformPointLocalToParent(pos1) - Body2->TransformPointLocalToParent(pos2)));
-    ChVector3d dir_F1_F2_B1 = Body2->TransformDirectionParentToLocal(dir_F1_F2_W);
-    ChVector3d Vx, Vy, Vz;
-    XdirToDxDyDz(dir_F1_F2_B1, VECT_Y, Vx, Vy, Vz);
-    ChMatrix33<> rel_matrix(Vx, Vy, Vz);
-
-    ChQuaterniond Ql2 = rel_matrix.GetQuaternion();
-    return ChCoordsys<>(pos2, Ql2);
-}
-
 void ChLinkDistance::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class (ChLink), basically doing nothing :)
     ChLink::Update(mytime, update_assets);
 
     // compute jacobians
-    ChVector3d delta_pos = Body1->TransformPointLocalToParent(pos1) - Body2->TransformPointLocalToParent(pos2);
+    ChVector3d delta_pos = m_body1->TransformPointLocalToParent(m_pos1) - m_body2->TransformPointLocalToParent(m_pos2);
     curr_dist = delta_pos.Length();
     ChVector3d dir_F1_F2_W = Vnorm(delta_pos);
-    ChVector3d dir_F1_F2_B2 = Body2->TransformDirectionParentToLocal(dir_F1_F2_W);
-    ChVector3d dir_F1_F2_B1 = Body1->TransformDirectionParentToLocal(dir_F1_F2_W);
+    ChVector3d dir_F1_F2_B2 = m_body2->TransformDirectionParentToLocal(dir_F1_F2_W);
+    ChVector3d dir_F1_F2_B1 = m_body1->TransformDirectionParentToLocal(dir_F1_F2_W);
 
     ChVector3d Cq_B1_pos = dir_F1_F2_W;
     ChVector3d Cq_B2_pos = -dir_F1_F2_W;
 
-    ChVector3d Cq_B1_rot = -Vcross(dir_F1_F2_B1, pos1);
-    ChVector3d Cq_B2_rot = Vcross(dir_F1_F2_B2, pos2);
+    ChVector3d Cq_B1_rot = -Vcross(dir_F1_F2_B1, m_pos1);
+    ChVector3d Cq_B2_rot = Vcross(dir_F1_F2_B2, m_pos2);
 
     Cx.Get_Cq_a()(0) = mode_sign * Cq_B1_pos.x();
     Cx.Get_Cq_a()(1) = mode_sign * Cq_B1_pos.y();
@@ -247,8 +246,8 @@ void ChLinkDistance::ArchiveOut(ChArchiveOut& archive_out) {
 
     // serialize all member data:
     archive_out << CHNVP(distance);
-    archive_out << CHNVP(pos1);
-    archive_out << CHNVP(pos2);
+    archive_out << CHNVP(m_pos1);
+    archive_out << CHNVP(m_pos2);
 
     ChLinkDistance_Mode_enum_mapper::Mode_mapper typemapper;
     archive_out << CHNVP(typemapper(mode), "ChLinkDistance__Mode");
@@ -264,10 +263,10 @@ void ChLinkDistance::ArchiveIn(ChArchiveIn& archive_in) {
 
     // deserialize all member data:
     archive_in >> CHNVP(distance);
-    archive_in >> CHNVP(pos1);
-    archive_in >> CHNVP(pos2);
+    archive_in >> CHNVP(m_pos1);
+    archive_in >> CHNVP(m_pos2);
 
-    Cx.SetVariables(&Body1->Variables(), &Body2->Variables());
+    Cx.SetVariables(&m_body1->Variables(), &m_body2->Variables());
 
     ChLinkDistance_Mode_enum_mapper::Mode_mapper typemapper;
     Mode mode_temp;

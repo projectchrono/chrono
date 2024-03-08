@@ -167,7 +167,7 @@ TerrainForce ChDeformableTire::ReportTireForce(ChTerrain* terrain) const {
     ChVector3d force;
     ChVector3d moment;
     for (size_t ic = 0; ic < m_connections.size(); ic++) {
-        ChCoordsys<> csys = m_connections[ic]->GetLinkAbsoluteCoords();
+        ChCoordsys<> csys = m_connections[ic]->GetFrameAbs().GetCoordsys();
         ChVector3d react = csys.TransformDirectionLocalToParent(m_connections[ic]->GetReactionOnBody());
         m_wheel->GetSpindle()->AppliedForceParentToWrenchParent(react, csys.pos, force, moment);
         tire_force.force += force;
@@ -175,13 +175,13 @@ TerrainForce ChDeformableTire::ReportTireForce(ChTerrain* terrain) const {
     }
 
     for (size_t ic = 0; ic < m_connectionsD.size(); ic++) {
-        ChCoordsys<> csys = m_connectionsD[ic]->GetLinkAbsoluteCoords();
+        ChCoordsys<> csys = m_connectionsD[ic]->GetFrameAbs().GetCoordsys();
         moment = csys.TransformDirectionLocalToParent(m_connectionsD[ic]->GetReactionOnBody());
         tire_force.moment += moment;
     }
 
     for (size_t ic = 0; ic < m_connectionsF.size(); ic++) {
-        ChCoordsys<> csys = m_connectionsF[ic]->GetLinkAbsoluteCoords();
+        ChCoordsys<> csys = m_connectionsF[ic]->GetFrame2Abs().GetCoordsys();
         ChVector3d react = csys.TransformDirectionLocalToParent(m_connectionsF[ic]->GetReactForce2());
         m_wheel->GetSpindle()->AppliedForceParentToWrenchParent(react, csys.pos, force, moment);
         tire_force.force += force;

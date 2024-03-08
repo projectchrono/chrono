@@ -120,10 +120,10 @@ void ChLinkLockClearance::UpdateForces(double mytime) {
 
     if (mask.Constr_X().IsActive()) {
         ChVector3d temp = Get_contact_P_abs();
-        ChVector3d pb1 = Body1->TransformPointParentToLocal(temp);
-        ChVector3d pb2 = Body2->TransformPointParentToLocal(temp);
-        ChVector3d m_V1_abs = Body1->PointSpeedLocalToParent(pb1);
-        ChVector3d m_V2_abs = Body2->PointSpeedLocalToParent(pb2);
+        ChVector3d pb1 = m_body1->TransformPointParentToLocal(temp);
+        ChVector3d pb2 = m_body2->TransformPointParentToLocal(temp);
+        ChVector3d m_V1_abs = m_body1->PointSpeedLocalToParent(pb1);
+        ChVector3d m_V2_abs = m_body2->PointSpeedLocalToParent(pb2);
         contact_V_abs = Vsub(m_V1_abs, m_V2_abs);
         ChVector3d m_tang_V_abs =
             Vsub(contact_V_abs, Vmul(Get_contact_N_abs(), Vdot(contact_V_abs, Get_contact_N_abs())));

@@ -51,6 +51,9 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
     /// Number of scalar constraints.
     virtual int GetNumConstraintsBilateral() override { return 2; }
 
+    virtual ChFrame<> GetFrameAbs() override;
+
+
     //
     // STATE FUNCTIONS
     //
@@ -89,8 +92,6 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
     // Other functions
-
-    virtual ChCoordsys<> GetLinkAbsoluteCoords() override;
 
     /// Initialize this constraint, given the node and element(s).
     /// The attachment position is the actual position of the node (unless

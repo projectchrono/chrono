@@ -238,9 +238,9 @@ int ChLinkLock::ResetRedundant() {
 
 void ChLinkLock::SetUpMarkers(ChMarker* mark1, ChMarker* mark2) {
     ChLinkMarkers::SetUpMarkers(mark1, mark2);
-    assert(this->Body1 && this->Body2);
+    assert(this->m_body1 && this->m_body2);
 
-    mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
+    mask.SetTwoBodiesVariables(&m_body1->Variables(), &m_body2->Variables());
 
     // We must call BuildLink here again, because only now are the constraints properly activated
     // (and hence the correct number of constraints is available).
@@ -372,8 +372,8 @@ void ChLinkLock::UpdateState() {
     ChStarMatrix33<> P1star(marker1->GetCoordsys().pos);  // [P] star matrix of rel pos of mark1
     ChStarMatrix33<> Q2star(marker2->GetCoordsys().pos);  // [Q] star matrix of rel pos of mark2
 
-    ChGlMatrix34<> body1Gl(Body1->GetCoordsys().rot);
-    ChGlMatrix34<> body2Gl(Body2->GetCoordsys().rot);
+    ChGlMatrix34<> body1Gl(m_body1->GetCoordsys().rot);
+    ChGlMatrix34<> body2Gl(m_body2->GetCoordsys().rot);
 
     // COMPUTE THE  Cq Ct Qc    matrices (temporary, for complete lock constraint)
 
@@ -383,9 +383,9 @@ void ChLinkLock::UpdateState() {
     marker2->ComputeRotMatDer2(m2_Rel_A_dtdt);
 
     // ----------- PARTIAL DERIVATIVE Ct OF CONSTRAINT
-    Ct_temp.pos = m2_Rel_A_dt.transpose() * (Body2->GetRotMat().transpose() * PQw) +
+    Ct_temp.pos = m2_Rel_A_dt.transpose() * (m_body2->GetRotMat().transpose() * PQw) +
                   marker2->GetRotMat().transpose() *
-                      (Body2->GetRotMat().transpose() * (Body1->GetRotMat() * marker1->GetCoordsysDer().pos) -
+                      (m_body2->GetRotMat().transpose() * (m_body1->GetRotMat() * marker1->GetCoordsysDer().pos) -
                        marker2->GetCoordsysDer().pos);
 
     Ct_temp.rot = q_AD;
@@ -396,17 +396,17 @@ void ChLinkLock::UpdateState() {
 
     //  JACOBIANS Cq1_temp, Cq2_temp:
 
-    ChMatrix33<> CqxT = marker2->GetRotMat().transpose() * Body2->GetRotMat().transpose();  // [CqxT]=[Aq]'[Ao2]'
-    ChStarMatrix33<> tmpStar(Body2->GetRotMat().transpose() * PQw);
+    ChMatrix33<> CqxT = marker2->GetRotMat().transpose() * m_body2->GetRotMat().transpose();  // [CqxT]=[Aq]'[Ao2]'
+    ChStarMatrix33<> tmpStar(m_body2->GetRotMat().transpose() * PQw);
 
     Cq1_temp.topLeftCorner<3, 3>() = CqxT;                                            // *- -- Cq1_temp(1-3) =  [Aqo2]
     Cq2_temp.topLeftCorner<3, 3>() = -CqxT;                                           // -- *- Cq2_temp(1-3) = -[Aqo2]
-    Cq1_temp.topRightCorner<3, 4>() = -CqxT * Body1->GetRotMat() * P1star * body1Gl;  // -* -- Cq1_temp(4-7)
-    Cq2_temp.topRightCorner<3, 4>() = CqxT * Body2->GetRotMat() * Q2star * body2Gl +  //
+    Cq1_temp.topRightCorner<3, 4>() = -CqxT * m_body1->GetRotMat() * P1star * body1Gl;  // -* -- Cq1_temp(4-7)
+    Cq2_temp.topRightCorner<3, 4>() = CqxT * m_body2->GetRotMat() * Q2star * body2Gl +  //
                                       marker2->GetRotMat().transpose() * tmpStar * body2Gl;  // -- -* Cq2_temp(4-7)
 
     {
-        ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCoordsys().rot), Qconjugate(Body2->GetCoordsys().rot)));
+        ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCoordsys().rot), Qconjugate(m_body2->GetCoordsys().rot)));
         ChStarMatrix44<> stempQ2(marker1->GetCoordsys().rot);
         stempQ2.semiTranspose();
         Cq1_temp.bottomRightCorner<4, 4>() = stempQ1 * stempQ2;  // =* == Cq1_temp(col 4-7, row 4-7) ... CqrR
@@ -414,7 +414,7 @@ void ChLinkLock::UpdateState() {
 
     {
         ChStarMatrix44<> stempQ1(Qconjugate(marker2->GetCoordsys().rot));
-        ChStarMatrix44<> stempQ2(Qcross(Body1->GetCoordsys().rot, marker1->GetCoordsys().rot));
+        ChStarMatrix44<> stempQ2(Qcross(m_body1->GetCoordsys().rot, marker1->GetCoordsys().rot));
         stempQ2.semiTranspose();
         stempQ2.semiNegate();
         Cq2_temp.bottomRightCorner<4, 4>() = stempQ1 * stempQ2;  // == =* Cq2_temp(col 4-7, row 4-7) ... CqrR
@@ -425,18 +425,18 @@ void ChLinkLock::UpdateState() {
     ChVector3d vtemp1;
     ChVector3d vtemp2;
 
-    vtemp1 = Vcross(Body1->GetAngVelLocal(), Vcross(Body1->GetAngVelLocal(), marker1->GetCoordsys().pos));
+    vtemp1 = Vcross(m_body1->GetAngVelLocal(), Vcross(m_body1->GetAngVelLocal(), marker1->GetCoordsys().pos));
     vtemp1 = Vadd(vtemp1, marker1->GetCoordsysDer2().pos);
-    vtemp1 = Vadd(vtemp1, Vmul(Vcross(Body1->GetAngVelLocal(), marker1->GetCoordsysDer().pos), 2));
+    vtemp1 = Vadd(vtemp1, Vmul(Vcross(m_body1->GetAngVelLocal(), marker1->GetCoordsysDer().pos), 2));
 
-    vtemp2 = Vcross(Body2->GetAngVelLocal(), Vcross(Body2->GetAngVelLocal(), marker2->GetCoordsys().pos));
+    vtemp2 = Vcross(m_body2->GetAngVelLocal(), Vcross(m_body2->GetAngVelLocal(), marker2->GetCoordsys().pos));
     vtemp2 = Vadd(vtemp2, marker2->GetCoordsysDer2().pos);
-    vtemp2 = Vadd(vtemp2, Vmul(Vcross(Body2->GetAngVelLocal(), marker2->GetCoordsysDer().pos), 2));
+    vtemp2 = Vadd(vtemp2, Vmul(Vcross(m_body2->GetAngVelLocal(), marker2->GetCoordsysDer().pos), 2));
 
-    Qcx = CqxT * (Body1->GetRotMat() * vtemp1 - Body2->GetRotMat() * vtemp2);
+    Qcx = CqxT * (m_body1->GetRotMat() * vtemp1 - m_body2->GetRotMat() * vtemp2);
 
-    ChStarMatrix33<> mtemp1(Body2->GetAngVelLocal());
-    ChMatrix33<> mtemp3 = Body2->GetRotMat() * mtemp1 * mtemp1;
+    ChStarMatrix33<> mtemp1(m_body2->GetAngVelLocal());
+    ChMatrix33<> mtemp3 = m_body2->GetRotMat() * mtemp1 * mtemp1;
     vtemp2 = marker2->GetRotMat().transpose() * (mtemp3.transpose() * PQw);  // [Aq]'[[A2][w2][w2]]'*Qpq,w
     Qcx = Vadd(Qcx, vtemp2);
     Qcx = Vadd(Qcx, q_4);  // [Adtdt]'[A]'q + 2[Adt]'[Adt]'q + 2[Adt]'[A]'qdt + 2[A]'[Adt]'qdt
@@ -583,8 +583,8 @@ static void Transform_Cq_to_Cqw(const ChLinkLock::ChConstraintMatrixX7& mCq,
 }
 
 void ChLinkLock::UpdateCqw() {
-    Transform_Cq_to_Cqw(Cq1, Cqw1, Body1);
-    Transform_Cq_to_Cqw(Cq2, Cqw2, Body2);
+    Transform_Cq_to_Cqw(Cq1, Cqw1, m_body1);
+    Transform_Cq_to_Cqw(Cq2, Cqw2, m_body2);
 }
 
 // Override UpdateForces to include possible contributions from joint limits.
@@ -761,7 +761,7 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
     react = L.segment(off_L, react.size());
 
     // From react vector to the 'intuitive' react_force and react_torque
-    // const ChQuaternion<>& q2 = Body2->GetRot();
+    // const ChQuaternion<>& q2 = m_body2->GetRot();
     // const ChQuaternion<>& q1p = marker1->GetAbsCoordsys().rot;
     // const ChQuaternion<>& qs = marker2->GetCoordsys().rot;
     // const ChMatrix33<>& Cs = marker2->GetRotMat();
@@ -808,7 +808,7 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
     // ChMatrix34<> Ts = 0.25 * Gl_q2 * Chi__q1p_barT * qs_tilde;
     //// Ts.rightCols(3) is equal to the rotational block of Cqw2.T for completely fixed joint.
     //// The rotational block of Cqw2.T is a part of Ts.
-    //// Cqw2.T*lambda is the reaction torque acting on Body2, expressed in the local frame of Body2
+    //// Cqw2.T*lambda is the reaction torque acting on m_body2, expressed in the local frame of m_body2
     //
     // Ts_F2 = CsT*Ts;
     //// The reaction torque is then rotated to the local frame of Marker2 (frame2, F2, master frame of link)
@@ -841,7 +841,7 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
         local_off++;
     }
 
-    ChVector3d m_torque_L;  // = Cqw2.T * lambda, reaction torque in local frame of Body2
+    ChVector3d m_torque_L;  // = Cqw2.T * lambda, reaction torque in local frame of m_body2
     if (mask.Constr_E1().IsActive()) {
         m_torque_L.x() += Cqw2T(3, local_off) * (react(local_off));
         m_torque_L.y() += Cqw2T(4, local_off) * (react(local_off));
@@ -1301,61 +1301,61 @@ void ChLinkLock::InjectConstraints(ChSystemDescriptor& mdescriptor) {
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
-            limit_X->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_X->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_X->constr_lower);
         }
         if (limit_X->constr_upper.IsActive()) {
-            limit_X->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_X->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_X->constr_upper);
         }
     }
     if (limit_Y && limit_Y->IsActive()) {
         if (limit_Y->constr_lower.IsActive()) {
-            limit_Y->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Y->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Y->constr_lower);
         }
         if (limit_Y->constr_upper.IsActive()) {
-            limit_Y->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Y->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Y->constr_upper);
         }
     }
     if (limit_Z && limit_Z->IsActive()) {
         if (limit_Z->constr_lower.IsActive()) {
-            limit_Z->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Z->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Z->constr_lower);
         }
         if (limit_Z->constr_upper.IsActive()) {
-            limit_Z->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Z->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Z->constr_upper);
         }
     }
     if (limit_Rx && limit_Rx->IsActive()) {
         if (limit_Rx->constr_lower.IsActive()) {
-            limit_Rx->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Rx->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Rx->constr_lower);
         }
         if (limit_Rx->constr_upper.IsActive()) {
-            limit_Rx->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Rx->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Rx->constr_upper);
         }
     }
     if (limit_Ry && limit_Ry->IsActive()) {
         if (limit_Ry->constr_lower.IsActive()) {
-            limit_Ry->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Ry->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Ry->constr_lower);
         }
         if (limit_Ry->constr_upper.IsActive()) {
-            limit_Ry->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Ry->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Ry->constr_upper);
         }
     }
     if (limit_Rz && limit_Rz->IsActive()) {
         if (limit_Rz->constr_lower.IsActive()) {
-            limit_Rz->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Rz->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Rz->constr_lower);
         }
         if (limit_Rz->constr_upper.IsActive()) {
-            limit_Rz->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Rz->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Rz->constr_upper);
         }
     }
@@ -1617,17 +1617,17 @@ void ChLinkLock::ConstraintsLoadJacobians() {
         }
     }
 
-    ChGlMatrix34<> Gl1(Body1->GetCoordsys().rot);
-    ChGlMatrix34<> Gl2(Body2->GetCoordsys().rot);
+    ChGlMatrix34<> Gl1(m_body1->GetCoordsys().rot);
+    ChGlMatrix34<> Gl2(m_body2->GetCoordsys().rot);
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
-            limit_X->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_X->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 0, limit_X->constr_lower.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 0, limit_X->constr_lower.Get_Cq_b(), 0, Gl2);
         }
         if (limit_X->constr_upper.IsActive()) {
-            limit_X->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_X->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 0, limit_X->constr_upper.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 0, limit_X->constr_upper.Get_Cq_b(), 0, Gl2);
             limit_X->constr_upper.Get_Cq_a() *= -1;
@@ -1636,12 +1636,12 @@ void ChLinkLock::ConstraintsLoadJacobians() {
     }
     if (limit_Y && limit_Y->IsActive()) {
         if (limit_Y->constr_lower.IsActive()) {
-            limit_Y->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Y->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 1, limit_Y->constr_lower.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 1, limit_Y->constr_lower.Get_Cq_b(), 0, Gl2);
         }
         if (limit_Y->constr_upper.IsActive()) {
-            limit_Y->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Y->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 1, limit_Y->constr_upper.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 1, limit_Y->constr_upper.Get_Cq_b(), 0, Gl2);
             limit_Y->constr_upper.Get_Cq_a() *= -1;
@@ -1650,12 +1650,12 @@ void ChLinkLock::ConstraintsLoadJacobians() {
     }
     if (limit_Z && limit_Z->IsActive()) {
         if (limit_Z->constr_lower.IsActive()) {
-            limit_Z->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Z->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 2, limit_Z->constr_lower.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 2, limit_Z->constr_lower.Get_Cq_b(), 0, Gl2);
         }
         if (limit_Z->constr_upper.IsActive()) {
-            limit_Z->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Z->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 2, limit_Z->constr_upper.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 2, limit_Z->constr_upper.Get_Cq_b(), 0, Gl2);
             limit_Z->constr_upper.Get_Cq_a() *= -1;
@@ -1664,12 +1664,12 @@ void ChLinkLock::ConstraintsLoadJacobians() {
     }
     if (limit_Rx && limit_Rx->IsActive()) {
         if (limit_Rx->constr_lower.IsActive()) {
-            limit_Rx->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Rx->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 4, limit_Rx->constr_lower.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 4, limit_Rx->constr_lower.Get_Cq_b(), 0, Gl2);
         }
         if (limit_Rx->constr_upper.IsActive()) {
-            limit_Rx->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Rx->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 4, limit_Rx->constr_upper.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 4, limit_Rx->constr_upper.Get_Cq_b(), 0, Gl2);
             limit_Rx->constr_upper.Get_Cq_a() *= -1;
@@ -1678,12 +1678,12 @@ void ChLinkLock::ConstraintsLoadJacobians() {
     }
     if (limit_Ry && limit_Ry->IsActive()) {
         if (limit_Ry->constr_lower.IsActive()) {
-            limit_Ry->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Ry->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 5, limit_Ry->constr_lower.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 5, limit_Ry->constr_lower.Get_Cq_b(), 0, Gl2);
         }
         if (limit_Ry->constr_upper.IsActive()) {
-            limit_Ry->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Ry->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 5, limit_Ry->constr_upper.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 5, limit_Ry->constr_upper.Get_Cq_b(), 0, Gl2);
             limit_Ry->constr_upper.Get_Cq_a() *= -1;
@@ -1692,12 +1692,12 @@ void ChLinkLock::ConstraintsLoadJacobians() {
     }
     if (limit_Rz && limit_Rz->IsActive()) {
         if (limit_Rz->constr_lower.IsActive()) {
-            limit_Rz->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Rz->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 6, limit_Rz->constr_lower.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 6, limit_Rz->constr_lower.Get_Cq_b(), 0, Gl2);
         }
         if (limit_Rz->constr_upper.IsActive()) {
-            limit_Rz->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Rz->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 6, limit_Rz->constr_upper.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 6, limit_Rz->constr_upper.Get_Cq_b(), 0, Gl2);
             limit_Rz->constr_upper.Get_Cq_a() *= -1;
@@ -1744,7 +1744,7 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
         n_constraint++;
     }
 
-    // Cqw2.T*lambda is the reaction torque acting on Body2, expressed in the local frame of Body2
+    // Cqw2.T*lambda is the reaction torque acting on m_body2, expressed in the local frame of m_body2
     ChMatrixDynamic<> Cqw2T = Cqw2.transpose();
     ChVector3d m_torque_L;  // = Cqw2.T * lambda
     if (mask.Constr_E1().IsActive()) {
@@ -1932,7 +1932,7 @@ void ChLinkLock::ArchiveIn(ChArchiveIn& archive_in) {
     ////archive_in >> CHNVP(limit_Rp);
     ////archive_in >> CHNVP(limit_D);
 
-    mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
+    mask.SetTwoBodiesVariables(&m_body1->Variables(), &m_body2->Variables());
 
     BuildLink();
 }
@@ -2198,8 +2198,8 @@ void ChLinkLockLock::UpdateState() {
     ChStarMatrix33<> P1star(marker1->GetCoordsys().pos);  // [P] star matrix of rel pos of mark1
     ChStarMatrix33<> Q2star(marker2->GetCoordsys().pos);  // [Q] star matrix of rel pos of mark2
 
-    ChGlMatrix34<> body1Gl(Body1->GetCoordsys().rot);
-    ChGlMatrix34<> body2Gl(Body2->GetCoordsys().rot);
+    ChGlMatrix34<> body1Gl(m_body1->GetCoordsys().rot);
+    ChGlMatrix34<> body2Gl(m_body2->GetCoordsys().rot);
 
     // ----------- RELATIVE LINK-LOCK COORDINATES (violations)
 
@@ -2231,9 +2231,9 @@ void ChLinkLockLock::UpdateState() {
     marker2->ComputeRotMatDer2(m2_Rel_A_dtdt);
 
     // ----------- PARTIAL DERIVATIVE Ct OF CONSTRAINT
-    Ct_temp.pos = m2_Rel_A_dt.transpose() * (Body2->GetRotMat().transpose() * PQw) +
+    Ct_temp.pos = m2_Rel_A_dt.transpose() * (m_body2->GetRotMat().transpose() * PQw) +
                   marker2->GetRotMat().transpose() *
-                      (Body2->GetRotMat().transpose() * (Body1->GetRotMat() * marker1->GetCoordsysDer().pos) -
+                      (m_body2->GetRotMat().transpose() * (m_body1->GetRotMat() * marker1->GetCoordsysDer().pos) -
                        marker2->GetCoordsysDer().pos);
     Ct_temp.pos -= deltaC_dt.pos;  // the deltaC contribute
 
@@ -2246,17 +2246,17 @@ void ChLinkLockLock::UpdateState() {
 
     //  JACOBIANS Cq1_temp, Cq2_temp:
 
-    ChMatrix33<> CqxT = marker2->GetRotMat().transpose() * Body2->GetRotMat().transpose();  // [CqxT]=[Aq]'[Ao2]'
-    ChStarMatrix33<> tmpStar(Body2->GetRotMat().transpose() * PQw);
+    ChMatrix33<> CqxT = marker2->GetRotMat().transpose() * m_body2->GetRotMat().transpose();  // [CqxT]=[Aq]'[Ao2]'
+    ChStarMatrix33<> tmpStar(m_body2->GetRotMat().transpose() * PQw);
 
     Cq1_temp.topLeftCorner<3, 3>() = CqxT;                                            // *- -- Cq1_temp(1-3)  =[Aqo2]
     Cq2_temp.topLeftCorner<3, 3>() = -CqxT;                                           // -- *- Cq2_temp(1-3)  =-[Aqo2]
-    Cq1_temp.topRightCorner<3, 4>() = -CqxT * Body1->GetRotMat() * P1star * body1Gl;  // -* -- Cq1_temp(4-7)
-    Cq2_temp.topRightCorner<3, 4>() = CqxT * Body2->GetRotMat() * Q2star * body2Gl +  //
+    Cq1_temp.topRightCorner<3, 4>() = -CqxT * m_body1->GetRotMat() * P1star * body1Gl;  // -* -- Cq1_temp(4-7)
+    Cq2_temp.topRightCorner<3, 4>() = CqxT * m_body2->GetRotMat() * Q2star * body2Gl +  //
                                       marker2->GetRotMat().transpose() * tmpStar * body2Gl;  // -- -* Cq2_temp(4-7)
 
     {
-        ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCoordsys().rot), Qconjugate(Body2->GetCoordsys().rot)));
+        ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCoordsys().rot), Qconjugate(m_body2->GetCoordsys().rot)));
         ChStarMatrix44<> stempQ2(marker1->GetCoordsys().rot);
         ChStarMatrix44<> stempDC(Qconjugate(deltaC.rot));
         stempQ2.semiTranspose();
@@ -2265,7 +2265,7 @@ void ChLinkLockLock::UpdateState() {
 
     {
         ChStarMatrix44<> stempQ1(Qconjugate(marker2->GetCoordsys().rot));
-        ChStarMatrix44<> stempQ2(Qcross(Body1->GetCoordsys().rot, marker1->GetCoordsys().rot));
+        ChStarMatrix44<> stempQ2(Qcross(m_body1->GetCoordsys().rot, marker1->GetCoordsys().rot));
         ChStarMatrix44<> stempDC(Qconjugate(deltaC.rot));
         stempQ2.semiTranspose();
         stempQ2.semiNegate();
@@ -2278,18 +2278,18 @@ void ChLinkLockLock::UpdateState() {
     ChVector3d vtemp1;
     ChVector3d vtemp2;
 
-    vtemp1 = Vcross(Body1->GetAngVelLocal(), Vcross(Body1->GetAngVelLocal(), marker1->GetCoordsys().pos));
+    vtemp1 = Vcross(m_body1->GetAngVelLocal(), Vcross(m_body1->GetAngVelLocal(), marker1->GetCoordsys().pos));
     vtemp1 = Vadd(vtemp1, marker1->GetCoordsysDer2().pos);
-    vtemp1 = Vadd(vtemp1, Vmul(Vcross(Body1->GetAngVelLocal(), marker1->GetCoordsysDer().pos), 2));
+    vtemp1 = Vadd(vtemp1, Vmul(Vcross(m_body1->GetAngVelLocal(), marker1->GetCoordsysDer().pos), 2));
 
-    vtemp2 = Vcross(Body2->GetAngVelLocal(), Vcross(Body2->GetAngVelLocal(), marker2->GetCoordsys().pos));
+    vtemp2 = Vcross(m_body2->GetAngVelLocal(), Vcross(m_body2->GetAngVelLocal(), marker2->GetCoordsys().pos));
     vtemp2 = Vadd(vtemp2, marker2->GetCoordsysDer2().pos);
-    vtemp2 = Vadd(vtemp2, Vmul(Vcross(Body2->GetAngVelLocal(), marker2->GetCoordsysDer().pos), 2));
+    vtemp2 = Vadd(vtemp2, Vmul(Vcross(m_body2->GetAngVelLocal(), marker2->GetCoordsysDer().pos), 2));
 
-    Qcx = CqxT * (Body1->GetRotMat() * vtemp1 - Body2->GetRotMat() * vtemp2);
+    Qcx = CqxT * (m_body1->GetRotMat() * vtemp1 - m_body2->GetRotMat() * vtemp2);
 
-    ChStarMatrix33<> mtemp1(Body2->GetAngVelLocal());
-    ChMatrix33<> mtemp3 = Body2->GetRotMat() * mtemp1 * mtemp1;
+    ChStarMatrix33<> mtemp1(m_body2->GetAngVelLocal());
+    ChMatrix33<> mtemp3 = m_body2->GetRotMat() * mtemp1 * mtemp1;
     vtemp2 = marker2->GetRotMat().transpose() * (mtemp3.transpose() * PQw);  // [Aq]'[[A2][w2][w2]]'*Qpq,w
     Qcx = Vadd(Qcx, vtemp2);
     Qcx = Vadd(Qcx, q_4);              // [Adtdt]'[A]'q + 2[Adt]'[Adt]'q + 2[Adt]'[A]'qdt + 2[A]'[Adt]'qdt

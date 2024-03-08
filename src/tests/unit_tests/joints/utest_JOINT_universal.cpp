@@ -288,7 +288,7 @@ bool TestUniversal(const ChVector3d& jointLoc,      // absolute location of join
             // expressed in the joint frame. Here, the 2nd body is the pendulum.
 
             //    joint frame on 2nd body (pendulum), expressed in the body frame
-            ChCoordsys<> linkCoordsys = universalJoint->GetLinkRelativeCoords();
+            ChFrame<> linkCoordsys = universalJoint->GetFrame2Rel();
 
             //    reaction force and torque on pendulum, expressed in joint frame
             ChVector3d reactForce = universalJoint->GetReactForce2();

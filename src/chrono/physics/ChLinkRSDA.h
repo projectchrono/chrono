@@ -112,9 +112,11 @@ class ChApi ChLinkRSDA : public ChLink {
     /// Get current torque (in the direction of the torque element).
     double GetTorque() const;
 
-    /// Get the link coordinate system, expressed relative to Body2.
-    /// This represents the 'main' reference of the link: reaction torques are expressed in this coordinate system.
-    virtual ChCoordsys<> GetLinkRelativeCoords() override;
+    /// Get the link frame 1, relative to body 1.
+    virtual ChFrame<> GetFrame1Rel() const override { return ChFramed(m_csys1); }
+
+    /// Get the link frame 2, relative to body 2.
+    virtual ChFrame<> GetFrame2Rel() const override { return ChFramed(m_csys2);}
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// Return the coordinate system on body1.

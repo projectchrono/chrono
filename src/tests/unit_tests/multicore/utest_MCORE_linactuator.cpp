@@ -218,7 +218,7 @@ void ChLinActuatorTest::VerifySolution(double time) {
 
     // These are expressed in the link coordinate system. We convert them to
     // the coordinate system of Body2 (in our case this is the ground).
-    ChCoordsys<> linkCoordsysP = prismatic->GetLinkRelativeCoords();
+    ChFrame<> linkCoordsysP = prismatic->GetFrame2Rel();
     ChVector3d rforceP = prismatic->GetReactForce2();
     ChVector3d rforceP_ground = linkCoordsysP.TransformDirectionLocalToParent(rforceP);
 

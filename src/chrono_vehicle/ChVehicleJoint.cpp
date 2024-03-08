@@ -46,7 +46,7 @@ bool ChVehicleJoint::IsKinematic() const {
 
 ChVector3d ChVehicleJoint::GetPos() const {
     if (m_joint.index() == 0) {
-        return mpark::get<Link>(m_joint)->GetLinkAbsoluteCoords().pos;
+        return mpark::get<Link>(m_joint)->GetFrame2Abs().GetCoordsys().pos;
     } else {
         return mpark::get<Bushing>(m_joint)->GetAbsoluteFrameB().GetPos();
     }

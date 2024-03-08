@@ -863,8 +863,8 @@ void ChPovRay::ExportData(const std::string& filename) {
             // saving a ChLinkMateGeneric constraint?
             if (auto linkmate = std::dynamic_pointer_cast<ChLinkMateGeneric>(item)) {
                 if (linkmate->GetBody1() && linkmate->GetBody2() && links_show) {
-                    ChFrame<> frAabs = linkmate->GetFrame1() >> *linkmate->GetBody1();
-                    ChFrame<> frBabs = linkmate->GetFrame2() >> *linkmate->GetBody2();
+                    ChFrame<> frAabs = linkmate->GetFrame1Rel() >> *linkmate->GetBody1();
+                    ChFrame<> frBabs = linkmate->GetFrame2Rel() >> *linkmate->GetBody2();
                     pov_file << "sh_csysFRM(";
                     pov_file << frAabs.GetPos().x() << "," << frAabs.GetPos().y() << "," << frAabs.GetPos().z() << ",";
                     pov_file << frAabs.GetRot().e0() << "," << frAabs.GetRot().e1() << "," << frAabs.GetRot().e2()

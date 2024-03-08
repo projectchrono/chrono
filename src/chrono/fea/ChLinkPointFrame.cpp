@@ -36,12 +36,12 @@ ChLinkPointFrameGeneric::ChLinkPointFrameGeneric(const ChLinkPointFrameGeneric& 
     c_z = other.c_z;
 }
 
-ChCoordsys<> ChLinkPointFrameGeneric::GetLinkAbsoluteCoords() {
+ChFrame<> ChLinkPointFrameGeneric::GetFrameAbs() {
     if (m_body) {
-        ChCoordsys<> linkcsys = m_csys >> (*m_body);
+        ChFrame<> linkcsys = ChFrame<>(m_csys >> *m_body);
         return linkcsys;
     }
-    return CSYSNORM;
+    return ChFrame<>();
 }
 
 int ChLinkPointFrameGeneric::Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///< xyz node (point) to join
@@ -343,12 +343,12 @@ ChLinkPointFrame::ChLinkPointFrame(const ChLinkPointFrame& other) : ChLinkBase(o
     m_react = other.m_react;
 }
 
-ChCoordsys<> ChLinkPointFrame::GetLinkAbsoluteCoords() {
+ChFrame<> ChLinkPointFrame::GetFrameAbs() {
     if (m_body) {
-        ChCoordsys<> linkcsys = m_csys >> (*m_body);
+        ChFrame<> linkcsys = ChFrame<>(m_csys >> *m_body);
         return linkcsys;
     }
-    return CSYSNORM;
+    return ChFrame<>();
 }
 
 int ChLinkPointFrame::Initialize(std::shared_ptr<ChNodeFEAxyz> node,

@@ -71,32 +71,32 @@ void ChLinkLockPulley::Set_r2(double mr) {
 }
 
 ChVector3d ChLinkLockPulley::Get_shaft_dir1() {
-    if (Body1) {
-        ChFrame<double> absframe = ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1);
+    if (m_body1) {
+        ChFrame<double> absframe = ((ChFrame<double>*)m_body1)->TransformLocalToParent(local_shaft1);
         return absframe.GetRotMat().GetAxisZ();
     } else
         return VECT_Z;
 }
 
 ChVector3d ChLinkLockPulley::Get_shaft_dir2() {
-    if (Body1) {
-        ChFrame<double> absframe = ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2);
+    if (m_body1) {
+        ChFrame<double> absframe = ((ChFrame<double>*)m_body2)->TransformLocalToParent(local_shaft2);
         return absframe.GetRotMat().GetAxisZ();
     } else
         return VECT_Z;
 }
 
 ChVector3d ChLinkLockPulley::Get_shaft_pos1() {
-    if (Body1) {
-        ChFrame<double> absframe = ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1);
+    if (m_body1) {
+        ChFrame<double> absframe = ((ChFrame<double>*)m_body1)->TransformLocalToParent(local_shaft1);
         return absframe.GetPos();
     } else
         return VNULL;
 }
 
 ChVector3d ChLinkLockPulley::Get_shaft_pos2() {
-    if (Body1) {
-        ChFrame<double> absframe = ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2);
+    if (m_body1) {
+        ChFrame<double> absframe = ((ChFrame<double>*)m_body2)->TransformLocalToParent(local_shaft2);
         return absframe.GetPos();
     } else
         return VNULL;
@@ -106,8 +106,8 @@ void ChLinkLockPulley::UpdateTime(double mytime) {
     // First, inherit to parent class
     ChLinkLockLock::UpdateTime(mytime);
 
-    ChFrame<double> abs_shaft1 = ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1);
-    ChFrame<double> abs_shaft2 = ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2);
+    ChFrame<double> abs_shaft1 = ((ChFrame<double>*)m_body1)->TransformLocalToParent(local_shaft1);
+    ChFrame<double> abs_shaft2 = ((ChFrame<double>*)m_body2)->TransformLocalToParent(local_shaft2);
 
     ChVector3d dcc_w = Vsub(Get_shaft_pos2(), Get_shaft_pos1());
 

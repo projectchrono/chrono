@@ -702,7 +702,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
 
     // Go through the motions of constructing collision models, but don't do it until we have all of the necessary info
     for (auto link : m_jointList) {
-        auto linkCoords = link->GetLinkAbsoluteCoords();
+        auto linkCoords = link->GetFrame2Abs().GetCoordsys();
         // These need to be ChBodyAuxRef, but hopefully that's all that we'll have
         auto parent = dynamic_cast<ChBodyAuxRef*>(link->GetBody1());
         auto child = dynamic_cast<ChBodyAuxRef*>(link->GetBody2());

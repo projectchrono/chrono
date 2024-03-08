@@ -89,7 +89,7 @@ class ChApi ChLinkDirFrame : public ChLinkBase {
     // Other functions
 
     // Get the link coordinate system, expressed in the absolute frame.
-    virtual ChCoordsys<> GetLinkAbsoluteCoords() override;
+    virtual ChFrame<> GetFrameAbs() override;
 
     /// Initialize this constraint, given the node and body frame to join.
     /// The constrained direction is the actual direction of the node (unless

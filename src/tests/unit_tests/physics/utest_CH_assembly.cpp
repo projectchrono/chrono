@@ -100,7 +100,7 @@ TEST(FullAssembly, Assemble) {
     ChVector3d ang_acc = pendulum->GetAngAccParent();
 
     // Joint frame on 2nd body (ground), expressed in the body frame
-    ChCoordsys<> linkCoordsys = revoluteJoint->GetLinkRelativeCoords();
+    ChFrame<> linkCoordsys = revoluteJoint->GetFrame2Rel();
 
     // Reaction force and torque on ground, expressed in joint frame
     ChVector3d rfrc = revoluteJoint->GetReactForce2();

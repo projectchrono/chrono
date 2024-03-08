@@ -70,23 +70,15 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMateGeneric* Clone() const override { return new ChLinkMateGeneric(*this); }
 
-    /// Get the link coordinate system, expressed relative to Body2 (the 'master'
-    /// body). This represents the 'main' reference of the link: reaction forces
-    /// are expressed in this coordinate system.
-    /// (It is the coordinate system of the contact plane relative to Body2)
-    virtual ChCoordsys<> GetLinkRelativeCoords() override { return frame2.GetCoordsys(); }
-
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// For a ChLinkMate, this returns the absolute coordinate system of the second body.
     virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override { return frame2 >> *GetBody2(); }
 
-    /// Access the coordinate system considered attached to body1.
-    /// Its position is expressed in the coordinate system of body1.
-    ChFrame<>& GetFrame1() { return frame1; }
+    /// Get the link frame 1, relative to body 1.
+    virtual ChFramed GetFrame1Rel() const override { return frame1; }
 
-    /// Access the coordinate system considered attached to body2.
-    /// Its position is expressed in the coordinate system of body2.
-    ChFrame<>& GetFrame2() { return frame2; }
+    /// Get the link frame 2, relative to body 2.
+    virtual ChFramed GetFrame2Rel() const override { return frame2; }
 
     /// Get the translational Lagrange multipliers, expressed in the master frame F2
     ChVector3d GetLagrangeMultiplier_f() { return gamma_f; }
@@ -135,62 +127,6 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
                             const ChVector3d& dir1,                    ///< X axis of slave plane 1 (rel. or abs.)
                             const ChVector3d& dir2                     ///< X axis of master plane 2 (rel. or abs.)
     );
-
-    /// Get reaction force, expressed on link frame 1.
-    virtual ChVector3d GetReactForce1() override {
-        return GetFrame1().TransformDirectionParentToLocal(
-                GetBody2()->TransformDirectionLocalToParent(
-                 GetReactForceBody2()));
-
-        return GetFrame1().TransformDirectionParentToLocal(GetReactForce2() >> GetFrame2() >> *GetBody2());
-    }
-
-    /// Get reaction torque, expressed on link frame 1.
-    virtual ChVector3d GetReactTorque1() override {
-        auto posF2_from_F1_inF1 = GetFrame1().TransformPointParentToLocal(GetBody2()->TransformPointLocalToParent(GetFrame2().GetPos()));
-        auto torque1_dueto_force2_inF1 = Vcross(posF2_from_F1_inF1, GetReactForce1());
-        auto torque1_dueto_torque2_inF1 =
-            GetFrame1().TransformDirectionParentToLocal(
-                GetBody2()->TransformDirectionLocalToParent(
-                 GetFrame2().TransformDirectionLocalToParent(
-                   GetReactTorque2())));
-        return torque1_dueto_torque2_inF1 + torque1_dueto_force2_inF1;
-    }
-
-    /// Get reaction force, expressed on body 1.
-    virtual ChVector3d GetReactForceBody1() override {
-        return GetBody1()->TransformDirectionParentToLocal(
-                GetBody2()->TransformDirectionLocalToParent(
-                 GetReactForceBody2()));
-    }
-
-    /// Get reaction force, expressed on body 2.
-    virtual ChVector3d GetReactForceBody2() override {
-        return GetFrame2().TransformDirectionLocalToParent(GetReactForce2());
-    }
-
-    /// Get reaction torque, expressed on body 1.
-    virtual ChVector3d GetReactTorqueBody1() override {
-        auto posF2_from_B1_inB1 = GetBody1()->TransformPointParentToLocal(GetBody2()->TransformPointLocalToParent(GetFrame2().GetPos()));
-        auto torque1_dueto_force2_inB1 = Vcross(posF2_from_B1_inB1, GetReactForceBody1());
-        auto torque1_dueto_torque2_inB1 =
-            GetBody1()->TransformDirectionParentToLocal(
-                GetBody2()->TransformDirectionLocalToParent(
-                 GetFrame2().TransformDirectionLocalToParent(
-                   GetReactTorque2())));
-        return torque1_dueto_torque2_inB1 + torque1_dueto_force2_inB1;
-    }
-
-    /// Get reaction torque, expressed on body 2.
-    virtual ChVector3d GetReactTorqueBody2() override {
-        auto posF2_from_B2_inB2 = GetFrame2().GetPos();
-        auto torque1_dueto_force2_inB2 = Vcross(posF2_from_B2_inB2, GetReactForceBody2());
-        auto torque1_dueto_torque2_inB2 = 
-                GetBody2()->TransformDirectionLocalToParent(
-                 GetFrame2().TransformDirectionLocalToParent(
-                   GetReactTorque2()));
-        return torque1_dueto_torque2_inB2 + torque1_dueto_force2_inB2;
-    }
 
     //
     // UPDATING FUNCTIONS

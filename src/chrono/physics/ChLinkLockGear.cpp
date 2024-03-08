@@ -58,32 +58,32 @@ ChLinkLockGear::ChLinkLockGear(const ChLinkLockGear& other) : ChLinkLock(other) 
 }
 
 ChVector3d ChLinkLockGear::Get_shaft_dir1() const {
-    if (Body1) {
-        ChFrame<double> absframe = ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1);
+    if (m_body1) {
+        ChFrame<double> absframe = ((ChFrame<double>*)m_body1)->TransformLocalToParent(local_shaft1);
         return absframe.GetRotMat().GetAxisZ();
     } else
         return VECT_Z;
 }
 
 ChVector3d ChLinkLockGear::Get_shaft_dir2() const {
-    if (Body1) {
-        ChFrame<double> absframe = ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2);
+    if (m_body1) {
+        ChFrame<double> absframe = ((ChFrame<double>*)m_body2)->TransformLocalToParent(local_shaft2);
         return absframe.GetRotMat().GetAxisZ();
     } else
         return VECT_Z;
 }
 
 ChVector3d ChLinkLockGear::Get_shaft_pos1() const {
-    if (Body1) {
-        ChFrame<double> absframe = ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1);
+    if (m_body1) {
+        ChFrame<double> absframe = ((ChFrame<double>*)m_body1)->TransformLocalToParent(local_shaft1);
         return absframe.GetPos();
     } else
         return VNULL;
 }
 
 ChVector3d ChLinkLockGear::Get_shaft_pos2() const {
-    if (Body1) {
-        ChFrame<double> absframe = ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2);
+    if (m_body1) {
+        ChFrame<double> absframe = ((ChFrame<double>*)m_body2)->TransformLocalToParent(local_shaft2);
         return absframe.GetPos();
     } else
         return VNULL;
@@ -104,8 +104,8 @@ void ChLinkLockGear::UpdateTime(double mytime) {
     ChVector3d lastX;
     ChVector3d vrota;
 
-    ChFrame<double> abs_shaft1 = ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1);
-    ChFrame<double> abs_shaft2 = ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2);
+    ChFrame<double> abs_shaft1 = ((ChFrame<double>*)m_body1)->TransformLocalToParent(local_shaft1);
+    ChFrame<double> abs_shaft2 = ((ChFrame<double>*)m_body2)->TransformLocalToParent(local_shaft2);
 
     ChVector3d vbdist = Vsub(Get_shaft_pos1(), Get_shaft_pos2());
     ////ChVector3d Trad1 = Vnorm(Vcross(Get_shaft_dir1(), Vnorm(Vcross(Get_shaft_dir1(), vbdist))));
@@ -237,7 +237,7 @@ void ChLinkLockGear::UpdateTime(double mytime) {
     double offset = Vdot(Get_shaft_dir1(), (contact_pt - Get_shaft_pos1()));
     ChVector3d moff = Get_shaft_dir1() * offset;
     if (fabs(offset) > 0.0001)
-        local_shaft1.SetPos(local_shaft1.GetPos() + Body1->TransformDirectionParentToLocal(moff));
+        local_shaft1.SetPos(local_shaft1.GetPos() + m_body1->TransformDirectionParentToLocal(moff));
 
     // ! Require that the BDF routine of marker won't handle speed and acc.calculus of the moved marker 2!
     marker2->SetMotionType(ChMarker::MotionType::EXTERNAL);
@@ -293,7 +293,7 @@ void ChLinkLockGear::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(local_shaft1);
     archive_in >> CHNVP(local_shaft2);
 
-    mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
+    mask.SetTwoBodiesVariables(&m_body1->Variables(), &m_body2->Variables());
     BuildLink();
 
 }

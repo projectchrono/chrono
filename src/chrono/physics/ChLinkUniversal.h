@@ -41,18 +41,11 @@ class ChApi ChLinkUniversal : public ChLink {
     /// Get the number of (bilateral) constraints introduced by this joint.
     virtual int GetNumConstraintsBilateral() override { return 4; }
 
-    /// Get the link coordinate system, expressed relative to Body2.
-    virtual ChCoordsys<> GetLinkRelativeCoords() override { return m_frame2.GetCoordsys(); }
+    /// Get the link frame 1, relative to body 1.
+    virtual ChFramed GetFrame1Rel() const override { return m_frame1; }
 
-    /// Get the joint frame on Body1, expressed in Body1 coordinate system.
-    const ChFrame<>& GetFrame1Rel() const { return m_frame1; }
-    /// Get the joint frame on Body2, expressed in Body2 coordinate system.
-    const ChFrame<>& GetFrame2Rel() const { return m_frame2; }
-
-    /// Get the joint frame on Body1, expressed in absolute coordinate system.
-    ChFrame<> GetFrame1Abs() const { return m_frame1 >> *Body1; }
-    /// Get the joint frame on Body2, expressed in absolute coordinate system.
-    ChFrame<> GetFrame2Abs() const { return m_frame2 >> *Body2; }
+    /// Get the link frame 2, relative to body 2.
+    virtual ChFramed GetFrame2Rel() const override { return m_frame2; }
 
     /// Get the joint violation (residuals of the constraint equations)
     virtual ChVectorDynamic<> GetConstraintViolation() const override { return m_C; }

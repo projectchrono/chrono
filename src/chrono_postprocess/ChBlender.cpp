@@ -1192,8 +1192,8 @@ void ChBlender::ExportData(const std::string& filename) {
             // saving a ChLinkMateGeneric constraint?
             if (auto linkmate = std::dynamic_pointer_cast<ChLinkMateGeneric>(item)) {
                 if (linkmate->GetBody1() && linkmate->GetBody2() && frames_links_show) {
-                    ChFrame<> frAabs = linkmate->GetFrame1() >> *linkmate->GetBody1() >> blender_frame;
-                    ChFrame<> frBabs = linkmate->GetFrame2() >> *linkmate->GetBody2() >> blender_frame;
+                    ChFrame<> frAabs = linkmate->GetFrame1Rel() >> *linkmate->GetBody1() >> blender_frame;
+                    ChFrame<> frBabs = linkmate->GetFrame2Rel() >> *linkmate->GetBody2() >> blender_frame;
                     state_file << "if chrono_view_links_csys:" << std::endl;
                     state_file << "\tmcsysA = make_chrono_csys(";
                     state_file << "(" << frAabs.GetPos().x() << ", " << frAabs.GetPos().y() << ", "

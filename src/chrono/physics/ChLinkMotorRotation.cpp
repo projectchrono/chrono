@@ -84,8 +84,8 @@ void ChLinkMotorRotation::Update(double mytime, bool update_assets) {
     ChLinkMotor::Update(mytime, update_assets);
 
     // compute aux data for future reference (istantaneous pos speed accel)
-    ChFrameMoving<> aframe1 = ChFrameMoving<>(this->frame1) >> (ChFrameMoving<>)(*this->Body1);
-    ChFrameMoving<> aframe2 = ChFrameMoving<>(this->frame2) >> (ChFrameMoving<>)(*this->Body2);
+    ChFrameMoving<> aframe1 = ChFrameMoving<>(this->frame1) >> (ChFrameMoving<>)(*this->m_body1);
+    ChFrameMoving<> aframe2 = ChFrameMoving<>(this->frame2) >> (ChFrameMoving<>)(*this->m_body2);
     ChFrameMoving<> aframe12 = aframe2.TransformParentToLocal(aframe1);
 
     // multi-turn rotation code

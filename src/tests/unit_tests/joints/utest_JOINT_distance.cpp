@@ -296,7 +296,7 @@ bool TestDistance(
             // Reaction Force and Torque
             // These are expressed in the link coordinate system. We convert them to
             // the coordinate system of Body2 (in our case this is the ground).
-            ChCoordsys<> linkCoordsys = distanceConstraint->GetLinkRelativeCoords();
+            ChFrame<> linkCoordsys = distanceConstraint->GetFrame2Rel();
             ChVector3d reactForce = distanceConstraint->GetReactForce2();
             ChVector3d reactForceGlobal = linkCoordsys.TransformDirectionLocalToParent(reactForce);
             out_rfrc << simTime << reactForceGlobal << std::endl;

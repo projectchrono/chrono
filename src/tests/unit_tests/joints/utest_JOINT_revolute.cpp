@@ -383,7 +383,7 @@ bool TestRevolute(const ChVector3d& jointLoc,        // absolute location of joi
             // expressed in the joint frame. Here, the 2nd body is the ground.
 
             //    joint frame on 2nd body (ground), expressed in the body frame
-            ChCoordsys<> linkCoordsys = revoluteJoint->GetLinkRelativeCoords();
+            ChFrame<> linkCoordsys = revoluteJoint->GetFrame2Rel();
 
             //    reaction force and torque on ground, expressed in joint frame
             ChVector3d reactForce = revoluteJoint->GetReactForce2();

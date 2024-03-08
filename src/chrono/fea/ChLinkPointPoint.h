@@ -88,7 +88,7 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
 
     // Other functions
 
-    virtual ChCoordsys<> GetLinkAbsoluteCoords() override { return CSYSNORM; }
+    virtual ChFrame<> GetFrameAbs() override { return ChFrame<>(); }
 
     /// Use this function after object creation, to initialize it, given
     /// the two nodes join.

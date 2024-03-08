@@ -22,11 +22,64 @@ namespace chrono {
 //CH_FACTORY_REGISTER(ChLink)   // NO! abstract class!
 
 ChLink::ChLink(const ChLink& other) : ChLinkBase(other) {
-    Body1 = NULL;
-    Body2 = NULL;
+    m_body1 = nullptr;
+    m_body2 = nullptr;
 
     react_force = other.react_force;
     react_torque = other.react_torque;
+}
+
+ChVector3d ChLink::GetReactForce1() {
+    return GetFrame1Rel().TransformDirectionParentToLocal(
+        GetBody2()->TransformDirectionLocalToParent(
+            GetReactForceBody2()));
+}
+
+
+ChVector3d ChLink::GetReactTorque1() {
+    auto posF2_from_F1_inF1 = GetFrame1Rel().TransformPointParentToLocal(GetBody2()->TransformPointLocalToParent(GetFrame2Rel().GetPos()));
+    auto torque1_dueto_force2_inF1 = Vcross(posF2_from_F1_inF1, GetReactForce1());
+    auto torque1_dueto_torque2_inF1 =
+        GetFrame1Rel().TransformDirectionParentToLocal(
+            GetBody2()->TransformDirectionLocalToParent(
+                GetFrame2Rel().TransformDirectionLocalToParent(
+                    GetReactTorque2())));
+    return torque1_dueto_torque2_inF1 + torque1_dueto_force2_inF1;
+}
+
+ChVector3d ChLink::GetReactForceBody1() {
+    return GetBody1()->TransformDirectionParentToLocal(
+        GetBody2()->TransformDirectionLocalToParent(
+            GetReactForceBody2()));
+}
+
+
+ChVector3d ChLink::GetReactForceBody2() {
+    return GetFrame2Rel().TransformDirectionLocalToParent(GetReactForce2());
+}
+
+
+ChVector3d ChLink::GetReactTorqueBody1() {
+    auto posF2_from_B1_inB1 = GetBody1()->TransformPointParentToLocal(GetBody2()->TransformPointLocalToParent(GetFrame2Rel().GetPos()));
+    auto torque1_dueto_force2_inB1 = Vcross(posF2_from_B1_inB1, GetReactForceBody1());
+    auto torque1_dueto_torque2_inB1 =
+        GetBody1()->TransformDirectionParentToLocal(
+            GetBody2()->TransformDirectionLocalToParent(
+                GetFrame2Rel().TransformDirectionLocalToParent(
+                    GetReactTorque2())));
+    return torque1_dueto_torque2_inB1 + torque1_dueto_force2_inB1;
+}
+
+/// Get reaction torque, expressed on body 2 frame.
+
+ChVector3d ChLink::GetReactTorqueBody2() {
+    auto posF2_from_B2_inB2 = GetFrame2Rel().GetPos();
+    auto torque1_dueto_force2_inB2 = Vcross(posF2_from_B2_inB2, GetReactForceBody2());
+    auto torque1_dueto_torque2_inB2 =
+        GetBody2()->TransformDirectionLocalToParent(
+            GetFrame2Rel().TransformDirectionLocalToParent(
+                GetReactTorque2()));
+    return torque1_dueto_torque2_inB2 + torque1_dueto_force2_inB2;
 }
 
 void ChLink::UpdateTime(double time) {
@@ -52,8 +105,8 @@ void ChLink::ArchiveOut(ChArchiveOut& archive_out) {
     ChLinkBase::ArchiveOut(archive_out);
 
     // serialize all member data:
-    archive_out << CHNVP(Body1);
-    archive_out << CHNVP(Body2);
+    archive_out << CHNVP(m_body1);
+    archive_out << CHNVP(m_body2);
     //archive_out << CHNVP(react_force);
     //archive_out << CHNVP(react_torque);
 }
@@ -66,8 +119,8 @@ void ChLink::ArchiveIn(ChArchiveIn& archive_in) {
     ChLinkBase::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    archive_in >> CHNVP(Body1);
-    archive_in >> CHNVP(Body2);
+    archive_in >> CHNVP(m_body1);
+    archive_in >> CHNVP(m_body2);
     //archive_in >> CHNVP(react_force);
     //archive_in >> CHNVP(react_torque);
 }

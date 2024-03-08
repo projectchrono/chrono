@@ -323,15 +323,15 @@ int drawAllLinks(ChVisualSystemIrrlicht* vis, double mlen, LinkDrawMode drawtype
     vis->GetVideoDriver()->setMaterial(mattransp);
 
     for (auto& link : vis->GetSystem(0).GetLinks()) {
-        ChCoordsys<> mlinkframe = link->GetLinkAbsoluteCoords();
-        ChVector3d v1abs = mlinkframe.pos;
+        ChFrame<> mlinkframe = link->GetFrameAbs();
+        ChVector3d v1abs = mlinkframe.GetCoordsys().pos;
         ChVector3d v2;
         switch (drawtype) {
             case LinkDrawMode::LINK_REACT_FORCE:
-                v2 = link->GetReactForce2();
+                v2 = link->GetReactForce();
                 break;
             case LinkDrawMode::LINK_REACT_TORQUE:
-                v2 = link->GetReactTorque2();
+                v2 = link->GetReactTorque();
                 break;
             default:
                 break;
@@ -355,7 +355,7 @@ int drawAllLinkLabels(ChVisualSystemIrrlicht* vis, LinkLabelMode labeltype, ChCo
         return 0;
 
     for (auto& link : vis->GetSystem(0).GetLinks()) {
-        ChCoordsys<> mlinkframe = link->GetLinkAbsoluteCoords();
+        ChCoordsys<> mlinkframe = link->GetFrameAbs().GetCoordsys();
 
         char buffer[25];
         irr::core::vector3df mpos((irr::f32)mlinkframe.pos.x(), (irr::f32)mlinkframe.pos.y(),
@@ -366,28 +366,28 @@ int drawAllLinkLabels(ChVisualSystemIrrlicht* vis, LinkLabelMode labeltype, ChCo
 
         switch (labeltype) {
             case LinkLabelMode::LINK_REACT_FORCE_VAL:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactForce2().Length());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactForce().Length());
                 break;
             case LinkLabelMode::LINK_REACT_FORCE_X:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactForce2().x());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactForce().x());
                 break;
             case LinkLabelMode::LINK_REACT_FORCE_Y:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactForce2().y());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactForce().y());
                 break;
             case LinkLabelMode::LINK_REACT_FORCE_Z:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactForce2().z());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactForce().z());
                 break;
             case LinkLabelMode::LINK_REACT_TORQUE_VAL:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactTorque2().Length());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactTorque().Length());
                 break;
             case LinkLabelMode::LINK_REACT_TORQUE_X:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactTorque2().x());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactTorque().x());
                 break;
             case LinkLabelMode::LINK_REACT_TORQUE_Y:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactTorque2().y());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactTorque().y());
                 break;
             case LinkLabelMode::LINK_REACT_TORQUE_Z:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactTorque2().z());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactTorque().z());
                 break;
             default:
                 break;
@@ -530,8 +530,8 @@ int drawAllLinkframes(ChVisualSystemIrrlicht* vis, double scale) {
         }
 
         if (auto mylink = std::dynamic_pointer_cast<ChLinkMateGeneric>(link)) {
-            frAabs = mylink->GetFrame1() >> *mylink->GetBody1();
-            frBabs = mylink->GetFrame2() >> *mylink->GetBody2();
+            frAabs = mylink->GetFrame1Rel() >> *mylink->GetBody1();
+            frBabs = mylink->GetFrame2Rel() >> *mylink->GetBody2();
         }
 
         irr::video::SColor mcol;
@@ -728,13 +728,11 @@ void drawSpring(ChVisualSystemIrrlicht* vis,
                 int resolution,
                 double turns,
                 bool use_Zbuffer) {
-    ChMatrix33<> rel_matrix;
     ChVector3d dist = end - start;
     ChVector3d Vx, Vy, Vz;
     double length = dist.Length();
-    ChVector3d dir = Vnorm(dist);
-    XdirToDxDyDz(dir, VECT_Y, Vx, Vy, Vz);
-    rel_matrix.SetFromDirectionAxes(Vx, Vy, Vz);
+    ChMatrix33<> rel_matrix;
+    rel_matrix.SetFromAxisX(dist, VECT_Y);
     ChQuaternion<> Q12 = rel_matrix.GetQuaternion();
     ChCoordsys<> pos(start, Q12);
 

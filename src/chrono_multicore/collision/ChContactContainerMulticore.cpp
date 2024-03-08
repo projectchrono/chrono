@@ -88,7 +88,6 @@ void ChContactContainerMulticore::ReportAllContacts(std::shared_ptr<ReportContac
     ChVector3d torque;
 
     // Contact plane
-    ChVector3d plane_x, plane_y, plane_z;
     ChMatrix33<> contact_plane;
 
     for (uint i = 0; i < cd_data->num_rigid_contacts; i++) {
@@ -99,8 +98,7 @@ void ChContactContainerMulticore::ReportAllContacts(std::shared_ptr<ReportContac
         auto pB = ToChVector(ptB[i]);  // in absolute frame
 
         // Contact plane coordinate system (normal in x direction from pB to pA)
-        XdirToDxDyDz(ToChVector(nrm[i]), VECT_Y, plane_x, plane_y, plane_z);
-        contact_plane.SetFromDirectionAxes(plane_x, plane_y, plane_z);
+        contact_plane.SetFromAxisX(ToChVector(nrm[i]), VECT_Y);
 
         // Contact force and torque expressed in the contact plane
         switch (GetSystem()->GetContactMethod()) {

@@ -72,9 +72,7 @@ class ChContactTuple {
         this->eff_radius = cinfo.eff_radius;
 
         // Contact plane
-        ChVector3d Vx, Vy, Vz;
-        XdirToDxDyDz(normal, VECT_Y, Vx, Vy, Vz);
-        contact_plane.SetFromDirectionAxes(Vx, Vy, Vz);
+        contact_plane.SetFromAxisX(normal, VECT_Y);
     }
 
     /// Get the colliding object A, with point P1

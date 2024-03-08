@@ -502,11 +502,11 @@ void test_anchorchain() {
         ChMatrixDynamic<> reactions;
         reactions.resize(sys.GetLinks().size(), 7);
         for (int i_link = 0; i_link < sys.GetLinks().size(); i_link++) {
-            reactions(i_link, 0) = sys.GetLinks().at(i_link)->GetLinkAbsoluteCoords().pos.x();
+            reactions(i_link, 0) = sys.GetLinks().at(i_link)->GetFrameAbs().GetCoordsys().pos.x();
 
-            ChVector3d f_loc = sys.GetLinks().at(i_link)->GetReactForce2();
-            ChVector3d m_loc = sys.GetLinks().at(i_link)->GetReactTorque2();
-            ChQuaternion<> q_link = sys.GetLinks().at(i_link)->GetLinkAbsoluteCoords().rot;
+            ChVector3d f_loc = sys.GetLinks().at(i_link)->GetReactForce();
+            ChVector3d m_loc = sys.GetLinks().at(i_link)->GetReactTorque();
+            ChQuaternion<> q_link = sys.GetLinks().at(i_link)->GetFrameAbs().GetCoordsys().rot;
             // Transform the reaction forces and torques of the joints from local frame to the absolute frame.
             // The horizontal reaction forces (along X direction) should be equal among all joints for the catenary
             // curve.

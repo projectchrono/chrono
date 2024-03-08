@@ -103,7 +103,7 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
 
     // Other functions
 
-    virtual ChCoordsys<> GetLinkAbsoluteCoords() override { return ChCoordsys<>(mnodeA->GetPos()); }
+    virtual ChFrame<> GetFrameAbs() override { return ChFrame<>(mnodeA->GetPos()); }
 
     /// Use this function after object creation, to initialize it, given
     /// the node and the triangle to join.
@@ -264,7 +264,7 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
 
     // Other functions
 
-    virtual ChCoordsys<> GetLinkAbsoluteCoords() override { return ChCoordsys<>(mnodeA->GetPos()); }
+    virtual ChFrame<> GetFrameAbs() override { return ChFrame<>(mnodeA->GetPos()); }
 
     /// Use this function after object creation, to initialize it, given
     /// the node and the triangle to join.

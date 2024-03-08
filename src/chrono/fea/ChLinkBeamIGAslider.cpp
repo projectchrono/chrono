@@ -28,12 +28,12 @@ ChLinkBeamIGAslider::ChLinkBeamIGAslider(const ChLinkBeamIGAslider& other) : ChL
     m_react = other.m_react;
 }
 
-ChCoordsys<> ChLinkBeamIGAslider::GetLinkAbsoluteCoords() {
+ChFrame<> ChLinkBeamIGAslider::GetFrameAbs() {
     if (m_body) {
-        ChCoordsys<> linkcsys = m_csys >> (*m_body);
+        ChFrame<> linkcsys = ChFrame<>(m_csys >> *m_body);
         return linkcsys;
     }
-    return CSYSNORM;
+    return ChFrame<>();
 }
 
 void ChLinkBeamIGAslider::UpdateNodes() {

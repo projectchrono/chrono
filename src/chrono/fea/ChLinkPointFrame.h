@@ -89,7 +89,7 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
 
     // Other functions
 
-    virtual ChCoordsys<> GetLinkAbsoluteCoords() override;
+    virtual ChFrame<> GetFrameAbs() override;
 
 
     /// Initialize this constraint, given the node and body frame to join.
@@ -250,7 +250,7 @@ public:
 
     // Other functions
 
-    virtual ChCoordsys<> GetLinkAbsoluteCoords() override;
+    virtual ChFrame<> GetFrameAbs() override;
 
 
     /// Initialize this constraint, given the node and body frame to join.

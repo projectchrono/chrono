@@ -36,8 +36,8 @@ void ChVisualShapePointPoint::Update(ChPhysicsItem* updater, const ChFrame<>& fr
         UpdateLineGeometry(frame.TransformPointParentToLocal(link_tsda->GetPoint1Abs()),
                            frame.TransformPointParentToLocal(link_tsda->GetPoint2Abs()));
     } else if (auto link_mate = dynamic_cast<ChLinkMateGeneric*>(updater)) {
-        auto pt1 = link_mate->GetBody1()->TransformPointLocalToParent(link_mate->GetFrame1().GetPos());
-        auto pt2 = link_mate->GetBody2()->TransformPointLocalToParent(link_mate->GetFrame2().GetPos());
+        auto pt1 = link_mate->GetBody1()->TransformPointLocalToParent(link_mate->GetFrame1Rel().GetPos());
+        auto pt2 = link_mate->GetBody2()->TransformPointLocalToParent(link_mate->GetFrame2Rel().GetPos());
         UpdateLineGeometry(frame.TransformPointParentToLocal(pt1), frame.TransformPointParentToLocal(pt2));
     } else if (auto link = dynamic_cast<ChLink*>(updater)) {
         UpdateLineGeometry(frame.TransformPointParentToLocal(link->GetBody1()->GetPos()),
@@ -62,10 +62,8 @@ void ChVisualShapeSpring::UpdateLineGeometry(const ChVector3d& endpoint1, const 
     ChVector3d dist = endpoint2 - endpoint1;
     ChVector3d Vx, Vy, Vz;
     double length = dist.Length();
-    ChVector3d dir = dist.GetNormalized();
-    XdirToDxDyDz(dir, VECT_Y, Vx, Vy, Vz);
-
-    ChMatrix33<> rel_matrix(Vx, Vy, Vz);
+    ChMatrix33<> rel_matrix;
+    rel_matrix.SetFromAxisX(dist, VECT_Y);
     ChCoordsys<> mpos(endpoint1, rel_matrix.GetQuaternion());
 
     double phaseA = 0;

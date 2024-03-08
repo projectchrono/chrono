@@ -35,7 +35,7 @@ ChAssembly::ChAssembly()
       m_num_shafts_fixed(0),
       m_num_links_active(0),
       m_num_meshes(0),
-      m_num_otherphysicsitems(0),
+      m_num_otherphysicsitems_active(0),
       m_num_coords_pos(0),
       m_num_coords_vel(0),
       m_num_constr(0),
@@ -51,7 +51,7 @@ ChAssembly::ChAssembly(const ChAssembly& other) : ChPhysicsItem(other) {
     m_num_shafts_fixed = other.m_num_shafts_fixed;
     m_num_links_active = other.m_num_links_active;
     m_num_meshes = other.m_num_meshes;
-    m_num_otherphysicsitems = other.m_num_otherphysicsitems;
+    m_num_otherphysicsitems_active = other.m_num_otherphysicsitems_active;
     m_num_coords_pos = other.m_num_coords_pos;
     m_num_coords_vel = other.m_num_coords_vel;
     m_num_constr = other.m_num_constr;

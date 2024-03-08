@@ -474,9 +474,10 @@ Note that this represents a major public API change and we expect most user code
 | ChLink                            |                               |                                                  |
 |                                   | GetLeftDOF                    | remove                                           |
 | ChLinkBase                        |                               |                                                  |
+|                                   | GetLinkAbsoluteCoords         | rename: GetFrameAbs                              |
 |                                   | GetNumCoords                  | rename: GetNumAffectedCoords                     |
-|                                   | Get_react_force               | rename: GetReactForce2                           |
-|                                   | Get_react_torque              | rename: GetReactTorque2                          |
+|                                   | Get_react_force               | rename: GetReactForce                            |
+|                                   | Get_react_torque              | rename: GetReactTorque                           |
 | ChLinkBrake                       |                               | rename: ChLinkLockBrake                          |
 | ChLinkClearance                   |                               | rename: ChLinkLockClearance                      |
 | ChLinkGear                        |                               | rename: ChLinkLockGear                           |
@@ -761,6 +762,8 @@ Note that this represents a major public API change and we expect most user code
   - when only 1 dof is left, the relevant axis is Z, in line with ChLinkLock formulation (e.g. Prismatic, Coaxial, ...);
   - when 2 dof are left, the relevant axes are X and Y; the exception is `ChLinkRackpinion` (`ChLinkMateRackPinion` in new naming) that kept Z as pinion and X as rack;
   - the 'flipped==true' state is now referring to axes that are counter-aligned.
+
++ `ChLinkBase::Get_react_force()` and `ChLinkBase::Get_react_torque()` have been renamed but especially put as `private` in those derived classes that can offer a more meaningful set of methods, referring to specific bodies or frames.
 
 + The signature of all ChLink `Initialize()` functions were changed to consistently use `ChFrame` objects to specify link position and alignment (where previously some of them used `ChCoordsys`).
   A corresponding change was done for the constructor of `vehicle::ChVehicleJoint`.

@@ -361,7 +361,7 @@ bool TestCylindrical(const ChVector3d& jointLoc,      // absolute location of jo
             // Reaction Force and Torque
             // These are expressed in the link coordinate system. We convert them to
             // the coordinate system of Body2 (in our case this is the ground).
-            ChCoordsys<> linkCoordsys = cylindricalJoint->GetLinkRelativeCoords();
+            ChFrame<> linkCoordsys = cylindricalJoint->GetFrame2Rel();
             ChVector3d reactForce = cylindricalJoint->GetReactForce2();
             ChVector3d reactForceGlobal = linkCoordsys.TransformDirectionLocalToParent(reactForce);
             out_rfrc << simTime << reactForceGlobal << std::endl;
