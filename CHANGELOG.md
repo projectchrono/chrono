@@ -185,6 +185,8 @@ Note that this represents a major public API change and we expect most user code
 | -                                 | GetLog                        | remove                                           |
 | -                                 | SetLog                        | remove                                           |
 | -                                 | SetLogDefault                 | remove                                           |
+| -                                 | StreamOut                     | remove                                           |
+| -                                 | XdirToDxDyDz                  | remove                                           |
 | ChAparticle                       |                               | rename: ChParticle                               |
 | ChArchiveAsciiDump                |                               | rename: ChOutputASCII                            |
 | ChArchiveExplorer                 |                               | rename: ChObjectExplorer                         |

@@ -147,9 +147,6 @@ void test_1(const std::string& out_dir) {
         std::cerr << "FILE ERROR: " << myex.what();
     }
 
-    StreamOut(matrM, std::cout);
-    StreamOut(matrCq, std::cout);
-
     std::cout << "**** Using ChSolverPSOR  **********\n" << std::endl;
     std::cout << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "\n" << std::endl;
     std::cout << "vars q_a and q_b -------------------" << std::endl;
@@ -487,8 +484,6 @@ void test_4(const std::string& out_dir) {
     ChSparseMatrix matrM;
     ChSparseMatrix matrCq;
     mdescriptor.ConvertToMatrixForm(&matrCq, &matrM, 0, 0, 0, 0, false, false);
-    StreamOut(matrM, std::cout);
-    StreamOut(matrCq, std::cout);
 
     std::cout << "**** Using ChSolverPSOR  **********\n" << std::endl;
     std::cout << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "\n" << std::endl;

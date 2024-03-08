@@ -270,23 +270,6 @@ inline void StreamOutSparseMatlabFormat(ChSparseMatrix& matr, std::ostream& mstr
     }
 }
 
-/// Serialization of a sparse matrix to an ASCII stream (for debugging; only the top-left 8x8 corner is printed).
-inline void StreamOut(ChSparseMatrix& matr, std::ostream& stream) {
-    int mrows = static_cast<int>(matr.rows());
-    int mcols = static_cast<int>(matr.cols());
-    stream << "\n"
-           << "Matrix " << mrows << " rows, " << mcols << " columns."
-           << "\n";
-    for (int i = 0; i < std::min(mrows, 8); i++) {
-        for (int j = 0; j < std::min(mcols, 8); j++)
-            stream << static_cast<double>(matr.coeff(i, j)) << "  ";
-        if (matr.cols() > 8)
-            stream << "...";
-        stream << "\n";
-    }
-    if (matr.rows() > 8)
-        stream << "... \n\n";
-}
 
 /// Utility function for slicing a vector based on an array of indices.
 /// Return a new vector which only contains the elements with specified indices.
