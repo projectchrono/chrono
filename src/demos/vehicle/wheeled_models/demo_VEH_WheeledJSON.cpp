@@ -20,12 +20,12 @@
 // =============================================================================
 
 #include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledTrailer.h"

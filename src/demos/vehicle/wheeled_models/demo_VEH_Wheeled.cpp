@@ -9,10 +9,10 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Justin Madsen
+// Authors: Radu Serban
 // =============================================================================
 //
-// Main driver function for the HMMWV full model.
+// Main driver function for a vehicle from the Chrono::Vehicle model library.
 //
 // The vehicle reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
@@ -21,13 +21,12 @@
 
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChFilters.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/output/ChVehicleOutputASCII.h"
-
-#include "chrono_models/vehicle/hmmwv/HMMWV.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -49,56 +48,15 @@ using namespace chrono::vsg3d;
 using namespace chrono::postprocess;
 #endif
 
-using namespace chrono;
-using namespace chrono::vehicle;
-using namespace chrono::vehicle::hmmwv;
+#include "VehicleModels.h"
 
 // =============================================================================
 
 // Run-time visualization system (IRRLICHT or VSG)
 ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
-// Initial vehicle location and orientation
-ChVector3d initLoc(0, 0, 0.5);
-ChQuaternion<> initRot(1, 0, 0, 0);
-// ChQuaternion<> initRot(0.866025, 0, 0, 0.5);
-// ChQuaternion<> initRot(0.7071068, 0, 0, 0.7071068);
-// ChQuaternion<> initRot(0.25882, 0, 0, 0.965926);
-// ChQuaternion<> initRot(0, 0, 0, 1);
-
 enum class DriverMode { DEFAULT, RECORD, PLAYBACK };
 DriverMode driver_mode = DriverMode::DEFAULT;
-
-// Visualization type for vehicle parts (PRIMITIVES, MESH, or NONE)
-VisualizationType chassis_vis_type = VisualizationType::MESH;
-VisualizationType suspension_vis_type = VisualizationType::PRIMITIVES;
-VisualizationType steering_vis_type = VisualizationType::PRIMITIVES;
-VisualizationType wheel_vis_type = VisualizationType::MESH;
-VisualizationType tire_vis_type = VisualizationType::MESH;
-
-// Collision type for chassis (PRIMITIVES, MESH, or NONE)
-CollisionType chassis_collision_type = CollisionType::NONE;
-
-// Type of engine model (SHAFTS, SIMPLE, SIMPLE_MAP)
-EngineModelType engine_model = EngineModelType::SHAFTS;
-
-// Type of transmission model (SHAFTS, SIMPLE_MAP)
-TransmissionModelType transmission_model = TransmissionModelType::AUTOMATIC_SHAFTS;
-
-// Drive type (FWD, RWD, or AWD)
-DrivelineTypeWV drive_type = DrivelineTypeWV::AWD;
-
-// Steering type (PITMAN_ARM or PITMAN_ARM_SHAFTS)
-SteeringTypeWV steering_type = SteeringTypeWV::PITMAN_ARM;
-
-// Brake type (SIMPLE or SHAFTS)
-BrakeType brake_type = BrakeType::SHAFTS;
-
-// Model tierods as bodies (true) or as distance constraints (false)
-bool use_tierod_bodies = true;
-
-// Type of tire model (RIGID, RIGID_MESH, TMEASY, FIALA, PAC89, PAC02, TMSIMPLE)
-TireModelType tire_model = TireModelType::PAC02;
 
 // Rigid terrain
 RigidTerrain::PatchType terrain_model = RigidTerrain::PatchType::BOX;
@@ -106,27 +64,14 @@ double terrainHeight = 0;      // terrain height (FLAT terrain only)
 double terrainLength = 200.0;  // size in X direction
 double terrainWidth = 200.0;   // size in Y direction
 
-// Point on chassis tracked by the camera
-ChVector3d trackPoint(0.0, 0.0, 1.75);
-
 // Contact method
 ChContactMethod contact_method = ChContactMethod::SMC;
-bool contact_vis = false;
 
 // Simulation step sizes
 double step_size = 2e-3;
-double tire_step_size = step_size;
-
-// Simulation end time
-double t_end = 1000;
 
 // Time interval between two render frames
 double render_step_size = 1.0 / 50;  // FPS = 50
-
-// Output directories
-const std::string out_dir = GetChronoOutputPath() + "HMMWV";
-const std::string pov_dir = out_dir + "/POVRAY";
-const std::string blender_dir = out_dir + "/BLENDER";
 
 // Record vehicle output
 bool vehicle_output = false;
@@ -141,42 +86,31 @@ bool blender_output = false;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2024 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
-    // --------------
-    // Create systems
-    // --------------
+    // Select vehicle model (see VehicleModel.h)
+    auto models = Vehicle_Model::List();
 
-    // Create the HMMWV vehicle, set parameters, and initialize
-    HMMWV_Full hmmwv;
-    hmmwv.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    hmmwv.SetContactMethod(contact_method);
-    hmmwv.SetChassisCollisionType(chassis_collision_type);
-    hmmwv.SetChassisFixed(false);
-    hmmwv.SetInitPosition(ChCoordsys<>(initLoc, initRot));
-    hmmwv.SetEngineType(engine_model);
-    hmmwv.SetTransmissionType(transmission_model);
-    hmmwv.SetDriveType(drive_type);
-    hmmwv.UseTierodBodies(use_tierod_bodies);
-    hmmwv.SetSteeringType(steering_type);
-    hmmwv.SetBrakeType(brake_type);
-    hmmwv.SetTireType(tire_model);
-    hmmwv.SetTireStepSize(tire_step_size);
-    hmmwv.Initialize();
+    int num_models = (int)models.size();
+    int which = 0;
+    std::cout << "Options:\n";
+    for (int i = 0; i < num_models; i++)
+        std::cout << i + 1 << "  " << models[i].second << std::endl;
+    std::cout << "\nSelect vehicle: ";
+    std::cin >> which;
+    std::cout << std::endl;
+    ChClampValue(which, 1, num_models);
 
-    if (tire_model == TireModelType::RIGID_MESH)
-        tire_vis_type = VisualizationType::MESH;
+    auto vehicle_model = models[which - 1].first;
 
-    hmmwv.SetChassisVisualizationType(chassis_vis_type);
-    hmmwv.SetSuspensionVisualizationType(suspension_vis_type);
-    hmmwv.SetSteeringVisualizationType(steering_vis_type);
-    hmmwv.SetWheelVisualizationType(wheel_vis_type);
-    hmmwv.SetTireVisualizationType(tire_vis_type);
+    // Create the vehicle model
+    vehicle_model->Create(contact_method, ChVector3d(0, 0, 0.5));
+    auto& vehicle = vehicle_model->GetVehicle();
 
-    auto& vehicle = hmmwv.GetVehicle();
+    vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the terrain
-    RigidTerrain terrain(hmmwv.GetSystem());
+    RigidTerrain terrain(vehicle.GetSystem());
 
     ChContactMaterialData minfo;
     minfo.mu = 0.9f;
@@ -207,8 +141,8 @@ int main(int argc, char* argv[]) {
     // Optionally, attach additional visual assets to ground.
     // Note: this must be done after initializing the terrain (so that its visual model is created).
     if (patch->GetGroundBody()->GetVisualModel()) {
-        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
-            GetChronoDataFile("models/trees/Tree.obj"), true, true);
+        auto trimesh =
+            ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/trees/Tree.obj"), true, true);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName("Trees");
@@ -216,14 +150,20 @@ int main(int argc, char* argv[]) {
         patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape, ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI_2)));
     }
 
-    // -----------------
     // Initialize output
-    // -----------------
-
+    std::string out_dir = GetChronoOutputPath() + "WHEELED";
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
+
+    out_dir = out_dir + "/" + vehicle_model->ModelName();
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
+        return 1;
+    }
+
+    std::string pov_dir = out_dir + "/POVRAY";
     if (povray_output) {
         if (!filesystem::create_directory(filesystem::path(pov_dir))) {
             std::cout << "Error creating directory " << pov_dir << std::endl;
@@ -231,6 +171,8 @@ int main(int argc, char* argv[]) {
         }
         terrain.ExportMeshPovray(out_dir);
     }
+
+    std::string blender_dir = out_dir + "/BLENDER";
     if (blender_output) {
         if (!filesystem::create_directory(filesystem::path(blender_dir))) {
             std::cout << "Error creating directory " << blender_dir << std::endl;
@@ -275,6 +217,7 @@ int main(int argc, char* argv[]) {
     double throttle_time = 1.0;  // time to go from 0 to +1
     double braking_time = 0.3;   // time to go from 0 to +1
 
+    std::string title = "Vehicle demo - " + vehicle_model->ModelName();
     std::shared_ptr<ChVehicleVisualSystem> vis;
     std::shared_ptr<ChDriver> driver;
     switch (vis_type) {
@@ -282,8 +225,9 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_IRRLICHT
             // Create the vehicle Irrlicht interface
             auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-            vis_irr->SetWindowTitle("HMMWV Demo");
-            vis_irr->SetChaseCamera(trackPoint, 6.0, 0.5);
+            vis_irr->SetWindowTitle(title);
+            vis_irr->SetChaseCamera(vehicle_model->TrackPoint(), vehicle_model->CameraDistance(),
+                                    vehicle_model->CameraHeight());
             vis_irr->Initialize();
             vis_irr->AddLightDirectional();
             vis_irr->AddSkyBox();
@@ -311,9 +255,10 @@ int main(int argc, char* argv[]) {
 #ifdef CHRONO_VSG
             // Create the vehicle VSG interface
             auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
-            vis_vsg->SetWindowTitle("HMMWV Demo");
+            vis_vsg->SetWindowTitle(title);
             vis_vsg->AttachVehicle(&vehicle);
-            vis_vsg->SetChaseCamera(trackPoint, 8.0, 0.5);
+            vis_vsg->SetChaseCamera(vehicle_model->TrackPoint(), vehicle_model->CameraDistance(),
+                                    vehicle_model->CameraHeight());
             vis_vsg->SetWindowSize(ChVector2i(1200, 900));
             vis_vsg->SetWindowPosition(ChVector2i(100, 300));
             vis_vsg->SetUseSkyBox(true);
@@ -346,7 +291,7 @@ int main(int argc, char* argv[]) {
         // ---------------------------------------------------------
 
 #ifdef CHRONO_POSTPROCESS
-    postprocess::ChBlender blender_exporter(hmmwv.GetSystem());
+    postprocess::ChBlender blender_exporter(vehicle.GetSystem());
     if (blender_output) {
         blender_exporter.SetBasePath(blender_dir);
         blender_exporter.SetCamera(ChVector3d(4.0, 2, 1.0), ChVector3d(0, 0, 0), 50);
@@ -365,11 +310,6 @@ int main(int argc, char* argv[]) {
     std::cout << "\n============ Vehicle subsystems ============" << std::endl;
     vehicle.LogSubsystemTypes();
 
-    if (debug_output) {
-        std::cout << "\n============ System Configuration ============" << std::endl;
-        hmmwv.LogHardpointLocations();
-    }
-
     // Number of simulation steps between miscellaneous events
     int render_steps = (int)std::ceil(render_step_size / step_size);
 
@@ -377,22 +317,13 @@ int main(int argc, char* argv[]) {
     int step_number = 0;
     int render_frame = 0;
 
-    ////if (contact_vis) {
-    ////    vis->SetSymbolScale(1e-4);
-    ////    vis->EnableContactDrawing(ContactsDrawMode::CONTACT_FORCES);
-    ////}
-
     vehicle.EnableRealtime(true);
 
     while (vis->Run()) {
-        double time = hmmwv.GetSystem()->GetChTime();
-
-        // End simulation
-        if (time >= t_end)
-            break;
+        double time = vehicle.GetSystem()->GetChTime();
 
         if (render_frame == 142) {
-            vis->WriteImageToFile(out_dir + "/hmmwv.png");  // does not work with frame == 0!
+            vis->WriteImageToFile(out_dir + "/snapshot.png");  // does not work with frame == 0!
         }
 
         // Render scene and output post-processing data
@@ -405,7 +336,7 @@ int main(int argc, char* argv[]) {
                 // Zero-pad frame numbers in file names for postprocessing
                 std::ostringstream filename;
                 filename << pov_dir << "/data_" << std::setw(4) << std::setfill('0') << render_frame + 1 << ".dat";
-                utils::WriteVisualizationAssets(hmmwv.GetSystem(), filename.str());
+                utils::WriteVisualizationAssets(vehicle.GetSystem(), filename.str());
             }
 
 #ifdef CHRONO_POSTPROCESS
@@ -451,13 +382,13 @@ int main(int argc, char* argv[]) {
         // Update modules (process inputs from other modules)
         driver->Synchronize(time);
         terrain.Synchronize(time);
-        hmmwv.Synchronize(time, driver_inputs, terrain);
+        vehicle_model->Synchronize(time, driver_inputs, terrain);
         vis->Synchronize(time, driver_inputs);
 
         // Advance simulation for one timestep for all modules
         driver->Advance(step_size);
         terrain.Advance(step_size);
-        hmmwv.Advance(step_size);
+        vehicle_model->Advance(step_size);
         vis->Advance(step_size);
 
         // Increment frame number
@@ -469,7 +400,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (debug_output) {
-        std::string filename = out_dir + "/debug_data_" + vehicle.GetTire(0, VehicleSide::LEFT)->GetTemplateName();
+        std::string filename = out_dir + "/debug_data";
         std::string data_file = filename + ".txt";
         vehicle_csv.WriteToFile(data_file);
 
@@ -484,7 +415,7 @@ int main(int argc, char* argv[]) {
         ChGnuPlot gplot(gpl_file);
 
         gplot.OutputPDF(pdf_file);
-        gplot.SetTitle("HMMWV Test " + vehicle.GetTire(0, VehicleSide::LEFT)->GetTemplateName());
+        gplot.SetTitle("Results");
 
         gplot.SetGrid(false, 0.2, ChColor(0.7f, 0.7f, 0.7f));
         gplot.SetLegend("bottom center box opaque fillcolor '0xcfbbbbbb'");
