@@ -83,10 +83,24 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
         std::unique_ptr<ChContactMaterialCompositionStrategy>&& strategy) override;
 
     virtual void PrintStepStats();
-    unsigned int GetNumBodies();
-    unsigned int GetNumShafts();
-    unsigned int GetNumContacts();
-    unsigned int GetNumBilaterals();
+
+    /// Get the total number of bodies added to the system, including fixed and sleeping bodies.
+    virtual unsigned int GetNumBodies() const override { return data_manager->num_rigid_bodies + data_manager->num_fluid_bodies; }
+
+    /// Get the number of shafts.
+    virtual unsigned int GetNumShafts() const override { return data_manager->num_shafts; }
+
+    /// Gets the number of contacts.
+    virtual unsigned int GetNumContacts() override;
+
+    /// Get the number of scalar constraints in the system.
+    virtual unsigned int GetNumConstraints() override { return GetNumConstraintsBilateral() + GetNumConstraintsUnilateral(); }
+
+    /// Get the number of bilateral scalar constraints.
+    virtual unsigned int GetNumConstraintsBilateral() override { return data_manager->num_bilaterals;; }
+
+    /// Get the number of unilateral scalar constraints.
+    virtual unsigned int GetNumConstraintsUnilateral() override { return data_manager->num_unilaterals;; }
 
     /// Return the time (in seconds) spent for computing the time step.
     virtual double GetTimerStep() const override;

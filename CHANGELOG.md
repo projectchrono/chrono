@@ -674,6 +674,8 @@ Note that this represents a major public API change and we expect most user code
 | ChSystemFsi                       |                               |                                                  |
 |                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
+| ChSystemMulticore                 |                               |                                                  |
+|                                   | GetNumBilaterals              | rename: GetNumConstraintsBilateral               |
 | ChTriangleMesh                    |                               |                                                  |
 |                                   | addTriangle                   | rename: AddTriangle                              |
 |                                   | getNumTriangles               | rename: GetNumTriangles                          |

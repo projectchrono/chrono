@@ -670,13 +670,6 @@ void ChSystemMulticore::PrintStepStats() {
     data_manager->system_timer.PrintReport();
 }
 
-unsigned int ChSystemMulticore::GetNumBodies() {
-    return data_manager->num_rigid_bodies + data_manager->num_fluid_bodies;
-}
-
-unsigned int ChSystemMulticore::GetNumShafts() {
-    return data_manager->num_shafts;
-}
 
 unsigned int ChSystemMulticore::GetNumContacts() {
     if (!data_manager->cd_data)
@@ -684,10 +677,6 @@ unsigned int ChSystemMulticore::GetNumContacts() {
 
     return data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_fluid_contacts +
            data_manager->cd_data->num_fluid_contacts;
-}
-
-unsigned int ChSystemMulticore::GetNumBilaterals() {
-    return data_manager->num_bilaterals;
 }
 
 // -------------------------------------------------------------

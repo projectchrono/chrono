@@ -287,47 +287,47 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     std::shared_ptr<ChPhysicsItem> Search(const std::string& name) const { return assembly.Search(name); }
 
     /// Get the total number of bodies added to the system, including fixed and sleeping bodies.
-    unsigned int GetNumBodies() const { return assembly.GetNumBodies(); }
+    virtual unsigned int GetNumBodies() const { return assembly.GetNumBodies(); }
 
     /// Get the number of active bodies, excluding sleeping or fixed.
-    unsigned int GetNumBodiesActive() const { return assembly.GetNumBodiesActive(); }
+    virtual unsigned int GetNumBodiesActive() const { return assembly.GetNumBodiesActive(); }
 
     /// Get the number of sleeping bodies.
-    unsigned int GetNumBodiesSleeping() const { return assembly.GetNumBodiesSleeping(); }
+    virtual unsigned int GetNumBodiesSleeping() const { return assembly.GetNumBodiesSleeping(); }
 
     /// Get the number of bodies fixed to ground.
-    unsigned int GetNumBodiesFixed() const { return assembly.GetNumBodiesFixed(); }
+    virtual unsigned int GetNumBodiesFixed() const { return assembly.GetNumBodiesFixed(); }
 
 
     /// Get the number of shafts.
-    unsigned int GetNumShafts() const { return assembly.GetNumShafts(); }
+    virtual unsigned int GetNumShafts() const { return assembly.GetNumShafts(); }
 
     /// Get the number of shafts that are in sleeping mode (excluding fixed shafts).
-    unsigned int GetNumShaftsSleeping() const { return assembly.GetNumBodiesSleeping(); }
+    virtual unsigned int GetNumShaftsSleeping() const { return assembly.GetNumBodiesSleeping(); }
 
     /// Get the number of shafts that are fixed to ground.
-    unsigned int GetNumShaftsFixed() const { return assembly.GetNumShaftsFixed(); }
+    virtual unsigned int GetNumShaftsFixed() const { return assembly.GetNumShaftsFixed(); }
 
     /// Get the total number of shafts added to the assembly, including the grounded and sleeping shafts.
-    unsigned int GetNumShaftsTotal() const { return assembly.GetNumShaftsTotal(); }
+    virtual unsigned int GetNumShaftsTotal() const { return assembly.GetNumShaftsTotal(); }
 
 
     /// Get the number of links (including non active).
-    unsigned int GetNumLinks() const { return assembly.GetNumLinks(); }
+    virtual unsigned int GetNumLinks() const { return assembly.GetNumLinks(); }
 
     /// Get the number of active links.
-    unsigned int GetNumLinksActive() const { return assembly.GetNumLinksActive(); }
+    virtual unsigned int GetNumLinksActive() const { return assembly.GetNumLinksActive(); }
 
 
     /// Get the number of meshes.
-    unsigned int GetNumMeshes() const { return assembly.GetNumMeshes(); }
+    virtual unsigned int GetNumMeshes() const { return assembly.GetNumMeshes(); }
 
 
     /// Get the number of other physics items (including non active).
-    unsigned int GetNumOtherPhysicsItems() const { return assembly.GetNumOtherPhysicsItems(); }
+    virtual unsigned int GetNumOtherPhysicsItems() const { return assembly.GetNumOtherPhysicsItems(); }
 
     /// Get the number of other active physics items.
-    unsigned int GetNumOtherPhysicsItemsActive() const { return assembly.GetNumOtherPhysicsItemsActive(); }
+    virtual unsigned int GetNumOtherPhysicsItemsActive() const { return assembly.GetNumOtherPhysicsItemsActive(); }
 
 
     /// Write the hierarchy of contained bodies, markers, etc. in ASCII
@@ -344,7 +344,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     // STATISTICS
 
     /// Gets the number of contacts.
-    unsigned int GetNumContacts();
+    virtual unsigned int GetNumContacts();
 
     /// Return the time (in seconds) spent for computing the time step.
     virtual double GetTimerStep() const { return timer_step(); }

@@ -97,7 +97,7 @@ void ChSystemMulticoreSMC::PrintStepStats() {
     std::cout << "------------------" << std::endl;
     std::cout << "  Number of bodies     " << GetNumBodiesActive() << std::endl;
     std::cout << "  Number of contacts   " << GetNumContacts() << std::endl;
-    std::cout << "  Number of bilaterals " << GetNumBilaterals() << std::endl;
+    std::cout << "  Number of bilaterals " << GetNumConstraintsUnilateral() << std::endl;
     std::cout << std::endl;
     std::cout << "Timing Information" << std::endl;
     std::cout << "------------------" << std::endl;
