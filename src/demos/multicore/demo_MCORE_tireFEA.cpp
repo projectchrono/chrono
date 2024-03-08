@@ -91,9 +91,9 @@ int main(int argc, char* argv[]) {
     // Create a material, that must be assigned to each solid element in the mesh, and set its parameters
     auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
     mmaterial->Set_E(0.016e9);  // rubber 0.01e9, steel 200e9
-    mmaterial->Set_v(0.4);
-    mmaterial->Set_RayleighDampingK(0.004);
-    mmaterial->Set_density(1000);
+    mmaterial->SetPoissonRatio(0.4);
+    mmaterial->SetRayleighDampingBeta(0.004);
+    mmaterial->SetDensity(1000);
 
     // Load an ABAQUS .INP tetahedron mesh file from disk, defining a tetahedron mesh.
     // Note that not all features of INP files are supported. Also, quadratic tetahedrons are promoted to linear.

@@ -401,7 +401,7 @@ void ChElementTetraCorot_10::ComputeStiffnessMatrix() {
     double zeta4 = 0.1381966;
     double JacobianDet;
     ComputeMatrB(this->MatrB[0], zeta1, zeta2, zeta3, zeta4, JacobianDet);
-    temp = (JacobianDet / 6.0 / 16.0) * (MatrB[0].transpose() * Material->Get_StressStrainMatrix() * MatrB[0]);
+    temp = (JacobianDet / 6.0 / 16.0) * (MatrB[0].transpose() * Material->GetStressStrainMatrix() * MatrB[0]);
     // Gauss integration weight = 1*1/4*1/4*1/4
     StiffnessMatrix = temp;
 
@@ -410,7 +410,7 @@ void ChElementTetraCorot_10::ComputeStiffnessMatrix() {
     zeta3 = 0.1381966;
     zeta4 = 0.1381966;
     ComputeMatrB(this->MatrB[1], zeta1, zeta2, zeta3, zeta4, JacobianDet);
-    temp = (JacobianDet / 6.0 / 16.0) * (MatrB[1].transpose() * Material->Get_StressStrainMatrix() * MatrB[1]);
+    temp = (JacobianDet / 6.0 / 16.0) * (MatrB[1].transpose() * Material->GetStressStrainMatrix() * MatrB[1]);
     // Gauss integration weight = 1*1/4*1/4*1/4
     StiffnessMatrix += temp;
 
@@ -419,7 +419,7 @@ void ChElementTetraCorot_10::ComputeStiffnessMatrix() {
     zeta3 = 0.58541020;
     zeta4 = 0.1381966;
     ComputeMatrB(this->MatrB[2], zeta1, zeta2, zeta3, zeta4, JacobianDet);
-    temp = (JacobianDet / 6.0 / 16.0) * (MatrB[2].transpose() * Material->Get_StressStrainMatrix() * MatrB[2]);
+    temp = (JacobianDet / 6.0 / 16.0) * (MatrB[2].transpose() * Material->GetStressStrainMatrix() * MatrB[2]);
     // Gauss integration weight = 1*1/4*1/4*1/4
     StiffnessMatrix += temp;
 
@@ -428,7 +428,7 @@ void ChElementTetraCorot_10::ComputeStiffnessMatrix() {
     zeta3 = 0.1381966;
     zeta4 = 0.58541020;
     ComputeMatrB(this->MatrB[3], zeta1, zeta2, zeta3, zeta4, JacobianDet);
-    temp = (JacobianDet / 6.0 / 16.0) * (MatrB[3].transpose() * Material->Get_StressStrainMatrix() * MatrB[3]);
+    temp = (JacobianDet / 6.0 / 16.0) * (MatrB[3].transpose() * Material->GetStressStrainMatrix() * MatrB[3]);
     // Gauss integration weight = 1*1/4*1/4*1/4
     StiffnessMatrix += temp;
 
@@ -518,7 +518,7 @@ ChStrainTensor<> ChElementTetraCorot_10::GetStrain(double z1, double z2, double 
 }
 
 ChStressTensor<> ChElementTetraCorot_10::GetStress(double z1, double z2, double z3, double z4) {
-    ChStressTensor<> mstress = this->Material->Get_StressStrainMatrix() * this->GetStrain(z1, z2, z3, z4);
+    ChStressTensor<> mstress = this->Material->GetStressStrainMatrix() * this->GetStrain(z1, z2, z3, z4);
     return mstress;
 }
 
@@ -568,14 +568,14 @@ void ChElementTetraCorot_10::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfac
     ChMatrixCorotation::ComputeKCt(CK, this->A, 10, CKCt);
 
     // For K stiffness matrix and R damping matrix:
-    double mkfactor = Kfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingK();
+    double mkfactor = Kfactor + Rfactor * this->GetMaterial()->GetRayleighDampingBeta();
     H.block(0, 0, GetNumCoordsPosLevel(), GetNumCoordsPosLevel()) = mkfactor * CKCt;
 
     // For M mass matrix:
     if (Mfactor) {
-        double lumped_node_mass = (this->GetVolume() * this->Material->Get_density()) / (double)this->GetNumNodes();
+        double lumped_node_mass = (this->GetVolume() * this->Material->GetDensity()) / (double)this->GetNumNodes();
         for (unsigned int id = 0; id < GetNumCoordsPosLevel(); id++) {
-            double amfactor = Mfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingM();
+            double amfactor = Mfactor + Rfactor * this->GetMaterial()->GetRayleighDampingAlpha();
             H(id, id) += amfactor * lumped_node_mass;
         }
     }
@@ -604,9 +604,9 @@ void ChElementTetraCorot_10::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     displ.segment(24, 3) = A.transpose() * nodes[8]->pos_dt.eigen();
     displ.segment(27, 3) = A.transpose() * nodes[9]->pos_dt.eigen();
 
-    double lumped_node_mass = (GetVolume() * Material->Get_density()) / GetNumNodes();
+    double lumped_node_mass = (GetVolume() * Material->GetDensity()) / GetNumNodes();
     ChVectorDynamic<> FiR_local =
-        Material->Get_RayleighDampingK() * (StiffnessMatrix * displ + lumped_node_mass * displ);
+        Material->GetRayleighDampingBeta() * (StiffnessMatrix * displ + lumped_node_mass * displ);
     //// TODO  better per-node lumping, or 12x12 consistent mass matrix.
 
     FiK_local += FiR_local;

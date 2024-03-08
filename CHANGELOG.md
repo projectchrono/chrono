@@ -4,98 +4,98 @@
 Change Log
 ==========
 
-- [Unreleased (development version)](#unreleased-development-branch)
-  - [Refactoring of class and function names](#changed-refactoring-of-class-and-function-names)
-  - [Updated Chrono::VSG module](#changed-updated-chronovsg-module)
-  - [New motion functions and filters](#added-new-motion-functions-and-filters)
-  - [Updated ChBlender exporter to Blender4.0](#changed-updated-chblender-exporter-to-blender40)
-  - [Added unilateral distance constraint](#added-added-unilateral-distance-constraint)
-  - [Collision detection refactoring](#changed-collision-detection-refactoring)
-  - [Application of terrain forces to vehicle systems](#changed-application-of-terrain-forces-to-vehicle-systems)
-  - [Modifications to the HHT integrator](#changed-modifications-to-the-hht-integrator)
-  - [Modeling hydraulic circuit elements and hydraulic actuators](#added-modeling-hydraulic-circuit-elements-and-hydraulic-actuators)
-  - [Support for modeling components with own dynamics](#added-support-for-modeling-components-with-own-dynamics)
-  - [Renamed SPHTerrain and RCCar vehicle classes](#changed-renamed-sphterrain-and-rccar-vehicle-classes)
-  - [Moved drive mode to automatic transmissions](#changed-moved-drive-mode-to-automatic-transmissions)
-  - [Changed gear numbering](#changed-changed-gear-numbering)
-  - [Redundant constraints remover](#added-redundant-constraints-remover)
-  - [Serialization expanded and improved](#changed-serialization-expanded-and-improved)
-  - [Rewrite of Pac02 handling tire model](#changed-rewrite-of-pac02-handling-tire-model)
-  - [New URDF parser](#added-new-urdf-parser)
-  - [Support for STL 3D file format](#added-support-for-stl-3d-file-format)
-  - [Definition and use of primitive geometric shapes](#changed-definition-and-use-of-primitive-geometric-shapes)
-  - [Chrono::Vehicle engine and transmission templates](#changed-chronovehicle-engine-and-transmission-templates)
-  - [New generic template for wheeled suspension subsystems](#added-new-generic-template-for-wheeled-suspension-subsystems)
-  - [CMake configuration and utility build scripts](#changed-cmake-configuration-and-utility-build-scripts)
-  - [SPHTerrain - continuum representation method for deformable terrain](#added-sphterrain---continuum-representation-method-for-deformable-terrain)
-  - [TMSimple tire model](#added-tmsimple-tire-model)
-  - [Blender plug-in for post-process visualization](#added-blender-plug-in-for-post-process-visualization)
-  - [VSG-based run-time visualization module](#added-vsg-based-run-time-visualization-module)
-  - [Support for linear and nonlinear vehicle force elements](#changed-support-for-linear-and-nonlinear-vehicle-force-elements)
-- [Release 8.0.0](#release-800---2022-12-21)
-  - [Chrono::Sensor features and updates](#added-chronosensor-features-and-updates)
-  - [Closed-loop vehicle paths](#fixed-closed-loop-vehicle-paths)
-  - [Miscellaneous Chrono::Vehicle extensions](#added-miscellaneous-chronovehicle-extensions)
-  - [Chrono::FSI API changes](#changed-chronofsi-api-changes)
-  - [User-defined SMC contact force calculation](#added-user-defined-smc-contact-force-calculation)
-  - [Redesigned run-time visualization system](#changed-redesigned-run-time-visualization-system)
-  - [Vehicle inertia properties](#changed-vehicle-inertia-properties)
-  - [CMake project configuration script](#changed-cmake-project-configuration-script)
-  - [Right-handed frames in Chrono::Irrlicht](#changed-right-handed-frames-in-chronoirrlicht)
-  - [Modal analysis module](#added-modal-analysis-module)
-  - [Callback mechanism for collision debug visualization](#added-callback-mechanism-for-collision-debug-visualization)
-  - [Translational and rotational spring-damper-actuators](#changed-translational-and-rotational-spring-damper-actuators)
-  - [Refactor Chrono::Vehicle suspension test rigs](#changed-refactor-chronovehicle-suspension-test-rigs)
-- [Release 7.0.3](#release-703---2022-04-17)
-- [Release 7.0.2](#release-702---2022-04-03)  
-- [Release 7.0.1](#release-701---2022-01-07)  
-- [Release 7.0.0](#release-700---2021-11-15) 
-  - [DDS communicator in Chrono::Synchrono module](#added-dds-communicator-in-chronosynchrono-module)
-  - [New terramechanics co-simulation module](#added-new-terramechanics-co-simulation-module)
-  - [Chrono::FSI API redesign](#changed-chronofsi-api-redesign)
-  - [Sensor performance improvements and feature additions](#changed-sensor-to-improve-performance-and-added-features)
-  - [ANCF element improvements and additions](#changed-ancf-element-improvements-and-additions)
-  - [New Chrono::Vehicle features](#added-new-chronovehicle-features)
-  - [New robot models](#added-new-robot-models)
-  - [New multicore collision detection system](#added-new-multicore-collision-detection-system)
-  - [Miscellaneous additions to Chrono::Gpu](#added-miscellaneous-additions-to-chronogpu)
-  - [New loads for ChNodeFEAxyzrot](#added-new-loads-for-chnodefeaxyzrot)
-  - [Analytical box-box collision detection algorithm in Chrono::Multicore](#added-analytical-box-box-collision-detection-algorithm-in-chronomulticore)
-  - [Checkpointing capabilities in Chrono::Gpu](#added-checkpointing-capabilities-in-chronogpu)
-  - [Fixes to particle volume samplers and generators](#fixed-fixes-to-particle-volume-samplers-and-generators)
-  - [SCM deformable terrain improvements](#changed-scm-deformable-terrain-improvements)
-  - [Miscellaneous fixes to Chrono::Vehicle API](#changed-miscellaneous-fixes-to-chronovehicle-api)
-  - [New tracked vehicle model](#added-new-tracked-vehicle-model)
-  - [Support for Z up camera in Chrono::Irrlicht](#changed-support-for-z-up-camera-in-chronoirrlicht)
-  - [Reading and writing collision meshes in Chrono::Gpu](#changed-reading-and-writing-collision-meshes-in-chronogpu)
-  - [Support compiling to WebAssembly](#added-support-for-the-emscripten-compiler-targeting-webassembly)
-- [Release 6.0.0](#release-600---2021-02-10) 
-  - [New Chrono::Csharp module](#added-new-chronocsharp-module)
-  - [RoboSimian, Viper, and LittleHexy models](#added-robosimian-viper-and-littlehexy-models)
-  - [Contact force reporting through user-provided callback](#added-contact-force-reporting-through-user-provided-callback)
-  - [Chrono::Gpu module rename](#changed-chronogpu-module-rename)
-  - [Chrono::Multicore module rename](#changed-chronomulticore-module-rename)
-  - [Geometric stiffness for Euler beams](#added-geometric-stiffness-for-euler-beams)
-  - [New Chrono::Synchrono module](#added-new-chronosynchrono-module)
-  - [Rename Intel MKL Pardiso interface module](#changed-rename-intel-mkl-pardiso-interface-module)
-  - [Saving POV-Ray files from Irrlicht interactive view](#added-saving-pov-ray-files-from-irrlicht-interactive-view)
-  - [Support for modelling wheeled trailers](#added-support-for-modelling-wheeled-trailers)
-  - [Enhancements to Chrono::FSI](#changed-enhancements-to-chronofsi)
-  - [New Chrono::Sensor module](#added-new-chronosensor-module)
-  - [Setting OpenMP number of threads](#changed-setting-openmp-number-of-threads)
-  - [Redesigned SCM deformable terrain](#changed-redesigned-scm-deformable-terrain)
-  - [Tracked vehicle support in PyChrono](#added-tracked-vehicle-support-in-pychrono)
-  - [Constitutive models for Euler beams](#changed-constitutive-models-for-euler-beams)
-  - [Constitutive models for IGA beams](#changed-constitutive-models-for-iga-beams)
-  - [Obtaining body applied forces](#added-obtaining-body-applied-forces)
-  - [Chrono::Vehicle simulation world frame](#added-chronovehicle-simulation-world-frame)
-  - [CASCADE module](#changed-cascade-module)
-  - [Collision shapes and contact materials](#changed-collision-shapes-and-contact-materials)
-- [Release 5.0.1](#release-501---2020-02-29)
-- [Release 5.0.0](#release-500---2020-02-24)
-  - [Eigen dense linear algebra](#changed-refactoring-of-dense-linear-algebra)
-  - [Eigen sparse matrices](#changed-eigen-sparse-matrices-and-updates-to-direct-sparse-linear-solvers)
-- [Release 4.0.0](#release-400---2019-02-22)
+- [Change Log](#change-log)
+  - [Unreleased (development branch)](#unreleased-development-branch)
+    - [\[Changed\] Refactoring of class and function names](#changed-refactoring-of-class-and-function-names)
+    - [\[Changed\] Application of terrain forces to vehicle systems](#changed-application-of-terrain-forces-to-vehicle-systems)
+    - [\[Changed\] Modifications to the HHT integrator](#changed-modifications-to-the-hht-integrator)
+    - [\[Added\] Modeling hydraulic circuit elements and hydraulic actuators](#added-modeling-hydraulic-circuit-elements-and-hydraulic-actuators)
+    - [\[Added\] Support for modeling components with own dynamics](#added-support-for-modeling-components-with-own-dynamics)
+    - [\[Changed\] Renamed SPHTerrain and RCCar vehicle classes](#changed-renamed-sphterrain-and-rccar-vehicle-classes)
+    - [\[Changed\] Moved drive mode to automatic transmissions](#changed-moved-drive-mode-to-automatic-transmissions)
+    - [\[Changed\] Changed gear numbering](#changed-changed-gear-numbering)
+    - [\[Added\] Redundant constraints remover](#added-redundant-constraints-remover)
+    - [\[Changed\] Serialization expanded and improved](#changed-serialization-expanded-and-improved)
+    - [\[Changed\] Rewrite of Pac02 handling tire model](#changed-rewrite-of-pac02-handling-tire-model)
+    - [\[Added\] New URDF parser](#added-new-urdf-parser)
+    - [\[Added\] Support for STL 3D file format](#added-support-for-stl-3d-file-format)
+    - [\[Changed\] Definition and use of primitive geometric shapes](#changed-definition-and-use-of-primitive-geometric-shapes)
+    - [\[Changed\] Chrono::Vehicle engine and transmission templates](#changed-chronovehicle-engine-and-transmission-templates)
+    - [\[Added\] New generic template for wheeled suspension subsystems](#added-new-generic-template-for-wheeled-suspension-subsystems)
+    - [\[Changed\] CMake configuration and utility build scripts](#changed-cmake-configuration-and-utility-build-scripts)
+    - [\[Added\] SPHTerrain - continuum representation method for deformable terrain](#added-sphterrain---continuum-representation-method-for-deformable-terrain)
+    - [\[Added\] TMSimple tire model](#added-tmsimple-tire-model)
+    - [\[Added\] Blender plug-in for post-process visualization](#added-blender-plug-in-for-post-process-visualization)
+    - [\[Added\] VSG-based run-time visualization module](#added-vsg-based-run-time-visualization-module)
+    - [\[Changed\] Support for linear and nonlinear vehicle force elements](#changed-support-for-linear-and-nonlinear-vehicle-force-elements)
+  - [Release 8.0.0 - 2022-12-21](#release-800---2022-12-21)
+    - [\[Added\] Chrono::Sensor features and updates](#added-chronosensor-features-and-updates)
+    - [\[Fixed\] Closed-loop vehicle paths](#fixed-closed-loop-vehicle-paths)
+    - [\[Added\] Miscellaneous Chrono::Vehicle extensions](#added-miscellaneous-chronovehicle-extensions)
+    - [\[Changed\] Chrono::FSI API changes](#changed-chronofsi-api-changes)
+    - [\[Added\] User-defined SMC contact force calculation](#added-user-defined-smc-contact-force-calculation)
+    - [\[Changed\] Redesigned run-time visualization system](#changed-redesigned-run-time-visualization-system)
+    - [\[Changed\] Vehicle inertia properties](#changed-vehicle-inertia-properties)
+    - [\[Changed\] CMake project configuration script](#changed-cmake-project-configuration-script)
+    - [\[Changed\] Right-handed frames in Chrono::Irrlicht](#changed-right-handed-frames-in-chronoirrlicht)
+    - [\[Added\] Modal analysis module](#added-modal-analysis-module)
+    - [\[Added\] Callback mechanism for collision debug visualization](#added-callback-mechanism-for-collision-debug-visualization)
+    - [\[Changed\] Translational and rotational spring-damper-actuators](#changed-translational-and-rotational-spring-damper-actuators)
+    - [\[Changed\] Refactor Chrono::Vehicle suspension test rigs](#changed-refactor-chronovehicle-suspension-test-rigs)
+    - [Release 7.0.3 - 2022-04-17](#release-703---2022-04-17)
+    - [\[Fixed\]](#fixed)
+    - [Release 7.0.2 - 2022-04-03](#release-702---2022-04-03)
+    - [\[Fixed\]](#fixed-1)
+  - [Release 7.0.1 - 2022-01-07](#release-701---2022-01-07)
+    - [\[Fixed\]](#fixed-2)
+  - [Release 7.0.0 - 2021-11-15](#release-700---2021-11-15)
+    - [\[Added\] DDS communicator in Chrono::Synchrono module](#added-dds-communicator-in-chronosynchrono-module)
+    - [\[Added\] New terramechanics co-simulation module](#added-new-terramechanics-co-simulation-module)
+    - [\[Changed\] Chrono::Fsi API redesign](#changed-chronofsi-api-redesign)
+    - [\[Changed\] Sensor to improve performance and added features](#changed-sensor-to-improve-performance-and-added-features)
+    - [\[Changed\] ANCF element improvements and additions](#changed-ancf-element-improvements-and-additions)
+    - [\[Added\] New Chrono::Vehicle features](#added-new-chronovehicle-features)
+    - [\[Added\] New robot models](#added-new-robot-models)
+    - [\[Added\] New multicore collision detection system](#added-new-multicore-collision-detection-system)
+    - [\[Added\] Miscellaneous additions to Chrono::Gpu](#added-miscellaneous-additions-to-chronogpu)
+    - [\[Added\] New loads for ChNodeFEAxyzrot](#added-new-loads-for-chnodefeaxyzrot)
+    - [\[Added\] Analytical box box collision detection algorithm in Chrono::Multicore](#added-analytical-box-box-collision-detection-algorithm-in-chronomulticore)
+    - [\[Added\] Checkpointing capabilities in Chrono::Gpu](#added-checkpointing-capabilities-in-chronogpu)
+    - [\[Fixed\] Fixes to particle volume samplers and generators](#fixed-fixes-to-particle-volume-samplers-and-generators)
+    - [\[Changed\] SCM deformable terrain improvements](#changed-scm-deformable-terrain-improvements)
+    - [\[Changed\] Miscellaneous fixes to Chrono::Vehicle API](#changed-miscellaneous-fixes-to-chronovehicle-api)
+    - [\[Added\] New tracked vehicle model](#added-new-tracked-vehicle-model)
+    - [\[Changed\] Support for Z up camera in Chrono::Irrlicht](#changed-support-for-z-up-camera-in-chronoirrlicht)
+    - [\[Changed\] Reading and writing collision meshes in Chrono::Gpu](#changed-reading-and-writing-collision-meshes-in-chronogpu)
+    - [\[Added\] Support for the Emscripten compiler targeting WebAssembly](#added-support-for-the-emscripten-compiler-targeting-webassembly)
+  - [Release 6.0.0 - 2021-02-10](#release-600---2021-02-10)
+    - [\[Added\] New Chrono::Csharp module](#added-new-chronocsharp-module)
+    - [\[Added\] RoboSimian, Viper, and LittleHexy models](#added-robosimian-viper-and-littlehexy-models)
+    - [\[Added\] Contact force reporting through user-provided callback](#added-contact-force-reporting-through-user-provided-callback)
+    - [\[Changed\] Chrono::Gpu module rename](#changed-chronogpu-module-rename)
+    - [\[Changed\] Chrono::Multicore module rename](#changed-chronomulticore-module-rename)
+    - [\[Added\] Geometric stiffness for Euler beams](#added-geometric-stiffness-for-euler-beams)
+    - [\[Added\] New Chrono::Synchrono module](#added-new-chronosynchrono-module)
+    - [\[Changed\] Rename Intel MKL Pardiso interface module](#changed-rename-intel-mkl-pardiso-interface-module)
+    - [\[Added\] Saving POV-Ray files from Irrlicht interactive view](#added-saving-pov-ray-files-from-irrlicht-interactive-view)
+    - [\[Added\] Support for modelling wheeled trailers](#added-support-for-modelling-wheeled-trailers)
+    - [\[Changed\] Enhancements to Chrono::FSI](#changed-enhancements-to-chronofsi)
+    - [\[Added\] New Chrono::Sensor module](#added-new-chronosensor-module)
+    - [\[Changed\] Setting OpenMP number of threads](#changed-setting-openmp-number-of-threads)
+    - [\[Changed\] Redesigned SCM deformable terrain](#changed-redesigned-scm-deformable-terrain)
+    - [\[Added\] Tracked vehicle support in PyChrono](#added-tracked-vehicle-support-in-pychrono)
+    - [\[Changed\] Constitutive models for EULER beams](#changed-constitutive-models-for-euler-beams)
+    - [\[Changed\] Constitutive models for IGA beams](#changed-constitutive-models-for-iga-beams)
+    - [\[Added\] Obtaining body applied forces](#added-obtaining-body-applied-forces)
+    - [\[Added\] Chrono::Vehicle simulation world frame](#added-chronovehicle-simulation-world-frame)
+    - [\[Changed\] CASCADE module](#changed-cascade-module)
+    - [\[Changed\] Collision shapes and contact materials](#changed-collision-shapes-and-contact-materials)
+  - [Release 5.0.1 - 2020-02-29](#release-501---2020-02-29)
+    - [\[Fixed\]](#fixed-3)
+  - [Release 5.0.0 - 2020-02-24](#release-500---2020-02-24)
+    - [\[Changed\] Refactoring of dense linear algebra](#changed-refactoring-of-dense-linear-algebra)
+    - [\[Changed\] Eigen sparse matrices and updates to direct sparse linear solvers](#changed-eigen-sparse-matrices-and-updates-to-direct-sparse-linear-solvers)
+  - [Release 4.0.0 - 2019-02-22](#release-400---2019-02-22)
 
 ## Unreleased (development branch)
 
@@ -270,6 +270,53 @@ Note that this represents a major public API change and we expect most user code
 |                                   | ContactableGetStateBlock_w    | rename: ContactableGetStateBlockVelLevel         |
 | ChContactSurfaceNodeCloud         |                               |                                                  |
 |                                   | GetNnodesRot                  | rename: GetNumNodesRot                           |
+| ChContinuumElastic                |                               |                                                  |
+|                                   | Get_BulkModulus               | rename: GetBulkModulus                           |
+|                                   | Get_E                         | rename: GetYoungModulus                          |
+|                                   | Get_G                         | rename: GetShearModulus                          |
+|                                   | Get_l                         | rename: GetLameFirstParam                        |
+|                                   | Get_StressStrainMatrix        | rename: GetStressStrainMatrix                    |
+|                                   | Get_RayleighDampingK          | rename: GetRayleighDampingBeta                   |
+|                                   | Get_RayleighDampingM          | rename: GetRayleighDampingAlpha                  |
+|                                   | Get_WaveModulus               | rename: GetPWaveModulus                          |
+|                                   | Get_v                         | rename: GetPoissonRatio                          |
+|                                   | Set_E                         | rename: SetYoungModulus                          |
+|                                   | Set_G                         | rename: SetShearModulus                          |
+|                                   | Set_RayleighDampingK          | rename: SetRayleighDampingBeta                   |
+|                                   | Set_RayleighDampingM          | rename: SetRayleighDampingAlpha                  |
+|                                   | Set_v                         | rename: SetPoissonRatio                          |
+| ChContinuumDruckerPrager          |                               |                                                  |
+|                                   | Get_alpha                     | rename: GetInternalFriction                      |
+|                                   | Get_dilatancy                 | rename: GetDilatancy                             |
+|                                   | Get_hardening_limit           | rename: GetHardeningLimit                        |
+|                                   | Get_hardening_speed           | rename: GetHardeningSpeed                        |
+|                                   | Set_alpha                     | rename: SetInternalFriction                      |
+|                                   | Set_dilatancy                 | rename: SetDilatancy                             |
+|                                   | Set_from_MohrCoulomb          | rename: SetFromMohrCoulomb                       |
+|                                   | Set_hardening_limit           | rename: SetHardeningLimit                        |
+|                                   | Set_hardening_speed           | rename: SetHardeningSpeed                        |
+| ChContinuumElastoplastic          |                               |                                                  |
+|                                   | ComputeYeldFunction           | rename: ComputeYieldFunction                     |
+|                                   | Get_flow_rate                 | rename: GetPlasticFlowRate                       |
+|                                   | Set_flow_rate                 | rename: SetPlasticFlowRate                       |
+| ChContinuumElectrostatics         |                               |                                                  |
+|                                   | Get_PermittivityEmatrix       | rename: GetPermittivityMatrix                    |
+| ChContinuumMaterial               |                               |                                                  |
+|                                   | Get_density                   | rename: GetDensity                               |
+|                                   | Set_density                   | rename: SetDensity                               |
+| ChContinuumPlasticVonMises        |                               |                                                  |
+|                                   | Get_elastic_yeld              | rename: GetElasticYield                          |
+|                                   | Get_plastic_yeld              | rename: GetPlasticYield                          |
+|                                   | Set_elastic_yeld              | rename: SetElasticYield                          |
+|                                   | Set_plastic_yeld              | rename: SetPlasticYield                          |
+| ChContinuumPoisson3D              |                               |                                                  |
+|                                   | Get_ConstitutiveMatrix        | rename: GetConstitutiveMatrix                    |
+| ChContinuumThermal                |                               |                                                  |
+|                                   | GetThermalConductivityK       | rename: GetThermalConductivity                   |
+|                                   | GetMassSpecificHeatCapacity   | rename: GetSpecificHeatCapacity                  |
+|                                   | Get_ThermalKmatrix            | rename: GetConductivityMatrix                    |
+|                                   | SetThermalConductivityK       | rename: SetThermalConductivity                   |
+|                                   | SetMassSpecificHeatCapacity   | rename: SetSpecificHeatCapacity                  |
 | ChElementBse                      |                               |                                                  |
 |                                   | GetNdofs                      | rename: GetNumCoordsPosLevel                     |
 |                                   | GetNdofs_active               | rename: GetNumCoordsPosLevelActive               |

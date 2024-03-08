@@ -126,7 +126,7 @@ void ChElementTetraCorot_4::ComputeStiffnessMatrix() {
     MatrB(69) = mM(14);
     MatrB(71) = mM(12);
 
-    StiffnessMatrix = Volume * MatrB.transpose() * Material->Get_StressStrainMatrix() * MatrB;
+    StiffnessMatrix = Volume * MatrB.transpose() * Material->GetStressStrainMatrix() * MatrB;
 
     // ***TEST*** SYMMETRIZE TO AVOID ROUNDOFF ASYMMETRY
     for (int row = 0; row < StiffnessMatrix.rows() - 1; ++row)
@@ -235,14 +235,14 @@ void ChElementTetraCorot_4::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfact
                   << ",   maxval=" << maxval << std::endl;
 
     // For K stiffness matrix and R damping matrix:
-    double mkfactor = Kfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingK();
+    double mkfactor = Kfactor + Rfactor * this->GetMaterial()->GetRayleighDampingBeta();
     H = mkfactor * CKCt;
 
     // For M mass matrix:
     if (Mfactor) {
-        double lumped_node_mass = (this->GetVolume() * this->Material->Get_density()) / 4.0;
+        double lumped_node_mass = (this->GetVolume() * this->Material->GetDensity()) / 4.0;
         for (int id = 0; id < 12; id++) {
-            double amfactor = Mfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingM();
+            double amfactor = Mfactor + Rfactor * this->GetMaterial()->GetRayleighDampingAlpha();
             H(id, id) += amfactor * lumped_node_mass;
         }
     }
@@ -263,10 +263,10 @@ void ChElementTetraCorot_4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     displ.segment(3, 3) = (A.transpose() * nodes[1]->pos_dt).eigen();
     displ.segment(6, 3) = (A.transpose() * nodes[2]->pos_dt).eigen();
     displ.segment(9, 3) = (A.transpose() * nodes[3]->pos_dt).eigen();
-    ChMatrixDynamic<> FiR_local = Material->Get_RayleighDampingK() * StiffnessMatrix * displ;
+    ChMatrixDynamic<> FiR_local = Material->GetRayleighDampingBeta() * StiffnessMatrix * displ;
 
-    double lumped_node_mass = (this->GetVolume() * this->Material->Get_density()) / 4.0;
-    displ *= lumped_node_mass * this->Material->Get_RayleighDampingM();
+    double lumped_node_mass = (this->GetVolume() * this->Material->GetDensity()) / 4.0;
+    displ *= lumped_node_mass * this->Material->GetRayleighDampingAlpha();
     FiR_local += displ;
 
     //// TODO  better per-node lumping, or 12x12 consistent mass matrix.
@@ -288,15 +288,15 @@ ChStrainTensor<> ChElementTetraCorot_4::GetStrain() {
 }
 
 ChStressTensor<> ChElementTetraCorot_4::GetStress() {
-    ChStressTensor<> mstress = this->Material->Get_StressStrainMatrix() * this->GetStrain();
+    ChStressTensor<> mstress = this->Material->GetStressStrainMatrix() * this->GetStrain();
     return mstress;
 }
 
 void ChElementTetraCorot_4::ComputeNodalMass() {
-    nodes[0]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
-    nodes[1]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
-    nodes[2]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
-    nodes[3]->m_TotalMass += this->GetVolume() * this->Material->Get_density() / 4.0;
+    nodes[0]->m_TotalMass += this->GetVolume() * this->Material->GetDensity() / 4.0;
+    nodes[1]->m_TotalMass += this->GetVolume() * this->Material->GetDensity() / 4.0;
+    nodes[2]->m_TotalMass += this->GetVolume() * this->Material->GetDensity() / 4.0;
+    nodes[3]->m_TotalMass += this->GetVolume() * this->Material->GetDensity() / 4.0;
 }
 
 void ChElementTetraCorot_4::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
@@ -442,7 +442,7 @@ void ChElementTetraCorot_4_P::ComputeStiffnessMatrix() {
     MatrB(2, 2) = mM(10);
     MatrB(2, 3) = mM(14);
 
-    StiffnessMatrix = Volume * MatrB.transpose() * Material->Get_ConstitutiveMatrix() * MatrB;
+    StiffnessMatrix = Volume * MatrB.transpose() * Material->GetConstitutiveMatrix() * MatrB;
 }
 
 void ChElementTetraCorot_4_P::SetupInitial(ChSystem* system) {

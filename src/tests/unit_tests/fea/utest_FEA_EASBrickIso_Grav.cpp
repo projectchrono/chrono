@@ -122,12 +122,11 @@ int main(int argc, char* argv[]) {
     }
 
     std::shared_ptr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
-    mmaterial->Set_RayleighDampingK(0.0);
-    mmaterial->Set_RayleighDampingM(0.0);
-    mmaterial->Set_density(MPROP(0, 0));
-    mmaterial->Set_E(MPROP(0, 1));
-    mmaterial->Set_G(MPROP(0, 1) / (2 + 2 * MPROP(0, 2)));
-    mmaterial->Set_v(MPROP(0, 2));
+    mmaterial->SetRayleighDampingBeta(0.0);
+    mmaterial->SetRayleighDampingAlpha(0.0);
+    mmaterial->SetDensity(MPROP(0, 0));
+    mmaterial->SetYoungModulus(MPROP(0, 1));
+    mmaterial->SetPoissonRatio(MPROP(0, 2));
 
     //!--------------- Element data--------------------
 

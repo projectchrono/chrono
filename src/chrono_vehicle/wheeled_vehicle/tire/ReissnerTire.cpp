@@ -358,10 +358,10 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
     if (m_num_lugs_copies > 0) {
         // Create a material for lugs
         auto lugs_material = chrono_types::make_shared<ChContinuumElastic>();
-        lugs_material->Set_E(m_lugs_young);
-        lugs_material->Set_v(m_lugs_poisson);
-        lugs_material->Set_RayleighDampingK(m_lugs_damping);
-        lugs_material->Set_density(m_lugs_density);
+        lugs_material->SetYoungModulus(m_lugs_young);
+        lugs_material->SetPoissonRatio(m_lugs_poisson);
+        lugs_material->SetRayleighDampingBeta(m_lugs_damping);
+        lugs_material->SetDensity(m_lugs_density);
 
         // repeat slices:
         for (unsigned int p = 0; p < m_num_lugs_copies; ++p) {

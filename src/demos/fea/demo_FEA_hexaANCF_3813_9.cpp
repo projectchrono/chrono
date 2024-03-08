@@ -152,14 +152,12 @@ void DPCapPress() {
     double rho = 2149.0;
     ChVector3d E(54.1e6, 54.1e6, 54.1e6);         // (1.379e7, 1.379e7, 1.379e7);
     ChVector3d nu(0.293021, 0.293021, 0.293021);  // (0.3, 0.3, 0.3);
-    // ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    // material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
 
     // Read hardening parameter look-up table
     FILE* inputfile;
@@ -499,14 +497,12 @@ void ShellBrickContact() {
     double rho = 200.0;
     ChVector3d E(1.379e7, 1.379e7, 1.379e7);
     ChVector3d nu(0.3, 0.3, 0.3);
-    // ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    // material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
     double rhoS = 8000;
     ChVector3d ES(2.1e10, 2.1e10, 2.1e10);                 // Modulus of elasticity
     ChVector3d nuS(0.3, 0.3, 0.3);                         // Poisson ratio
@@ -856,14 +852,12 @@ void SimpleBoxContact() {
     double rho = 8000.0;
     ChVector3d E(200e9, 200e9, 200e9);
     ChVector3d nu(0.3, 0.3, 0.3);
-    // ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    // material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
     std::shared_ptr<ChContactMaterialSMC> my_surfacematerial(new ChContactMaterialSMC);
     my_surfacematerial->SetKn(1e6f);
     my_surfacematerial->SetKt(1e6f);
@@ -1151,14 +1145,12 @@ void SoilBin() {
     double rho = 200.0;
     ChVector3d E(1.379e7, 1.379e7, 1.379e7);
     ChVector3d nu(0.3, 0.3, 0.3);
-    // ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    // material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
     std::shared_ptr<ChContactMaterialSMC> my_surfacematerial(new ChContactMaterialSMC);
     my_surfacematerial->SetKn(0.2e4);  // 0.2e6
     my_surfacematerial->SetKt(0.2e4);  // 0.2e6
@@ -1488,14 +1480,12 @@ void AxialDynamics() {
     double rho = 7850.0;
     ChVector3d E(1.0e7, 1.0e7, 1.0e7);
     ChVector3d nu(0.3, 0.3, 0.3);
-    ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    // material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
 
     ChMatrixNM<double, 9, 8> CCPInitial;
     for (int k = 0; k < 8; k++) {
@@ -1729,14 +1719,12 @@ void BendingQuasiStatic() {
     double rho = 500;
     ChVector3d E(2.1e8, 2.1e8, 2.1e8);
     ChVector3d nu(0.3, 0.3, 0.3);
-    ChVector3d G(8.0769231e7, 8.0769231e7, 8.0769231e7);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -1957,14 +1945,12 @@ void SwingingShell() {
     double rho = 1000;
     ChVector3d E(2.1e7, 2.1e7, 2.1e7);
     ChVector3d nu(0.3, 0.3, 0.3);
-    ChVector3d G(8.0769231e6, 8.0769231e6, 8.0769231e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {

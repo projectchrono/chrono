@@ -221,7 +221,7 @@ void ChElementHexaANCF_3813_9::ComputeMassMatrix() {
                                                           3              // order of integration
     );
 
-    m_MassMatrix *= m_material->Get_density();
+    m_MassMatrix *= m_material->GetDensity();
 }
 
 // -----------------------------------------------------------------------------
@@ -261,7 +261,7 @@ void ChElementHexaANCF_3813_9::ComputeGravityForceScale() {
                                                      2                  // order of integration
     );
 
-    m_GravForceScale *= m_material->Get_density();
+    m_GravForceScale *= m_material->GetDensity();
 }
 
 // Compute the generalized force vector due to gravity
@@ -344,10 +344,10 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
     DefF(1, 2) = Nz_d(0, 1);
     DefF(2, 2) = Nz_d(0, 2);
 
-    double E = m_element->GetMaterial()->Get_E();
-    double nu = m_element->GetMaterial()->Get_v();
+    double E = m_element->GetMaterial()->GetYoungModulus();
+    double nu = m_element->GetMaterial()->GetPoissonRatio();
     double C1 = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu));
-    double C2 = m_element->GetMaterial()->Get_G();
+    double C2 = m_element->GetMaterial()->GetShearModulus();
 
     // Matrix of elastic coefficients
     ChMatrixNM<double, 6, 6> E_eps;
@@ -1338,10 +1338,10 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
     DefF(1, 2) = Nz_d(0, 1);
     DefF(2, 2) = Nz_d(0, 2);
 
-    double E = m_element->GetMaterial()->Get_E();
-    double nu = m_element->GetMaterial()->Get_v();
+    double E = m_element->GetMaterial()->GetYoungModulus();
+    double nu = m_element->GetMaterial()->GetPoissonRatio();
     double C1 = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu));
-    double C2 = m_element->GetMaterial()->Get_G();
+    double C2 = m_element->GetMaterial()->GetShearModulus();
 
     // Matrix of elastic coefficients
     ChMatrixNM<double, 6, 6> E_eps;

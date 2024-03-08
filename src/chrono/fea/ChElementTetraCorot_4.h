@@ -187,7 +187,7 @@ class ChApi ChElementTetraCorot_4 : public ChElementTetrahedron,
                            ) override;
 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
-    virtual double GetDensity() override { return this->Material->Get_density(); }
+    virtual double GetDensity() override { return this->Material->GetDensity(); }
 
     /// If true, use quadrature over u,v,w in [0..1] range as tetrahedron volumetric coords, with z=1-u-v-w
     /// otherwise use quadrature over u,v,w in [-1..+1] as box isoparametric coords.

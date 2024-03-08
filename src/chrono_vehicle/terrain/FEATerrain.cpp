@@ -159,11 +159,11 @@ void FEATerrain::Initialize(const ChVector3d& start_point,
 
     // Basic material properties for soil.
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(m_rho);
-    material->Set_E(m_E);
-    material->Set_v(m_nu);
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(m_rho);
+    material->SetYoungModulus(m_E);
+    material->SetPoissonRatio(m_nu);
 
     // Initial plastic deformation tensor: Initially identity (elastic).
     ChMatrixNM<double, 9, 8> CCPInitial;

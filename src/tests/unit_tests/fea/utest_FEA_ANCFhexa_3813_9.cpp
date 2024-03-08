@@ -187,12 +187,11 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     ChVector3d nu(0.3, 0.3, 0.3);
     ChVector3d G(8.0769231e7, 8.0769231e7, 8.0769231e7);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -376,12 +375,11 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     ChVector3d nu(0.3, 0.3, 0.3);
     ChVector3d G(8.0769231e6, 8.0769231e6, 8.0769231e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -568,12 +566,11 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     ChVector3d nu(0.3, 0.3, 0.3);
     ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
     ChMatrixNM<double, 9, 8> CCPInitial;
     CCPInitial.setZero();
     for (int k = 0; k < 8; k++) {
@@ -770,12 +767,11 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     ChVector3d nu(0.3, 0.3, 0.3);
     ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
     ChMatrixNM<double, 9, 8> CCPInitial;
     CCPInitial.setZero();
     for (int k = 0; k < 8; k++) {

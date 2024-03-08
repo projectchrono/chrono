@@ -1123,8 +1123,8 @@ void ChElementHexaANCF_3813::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     d(7, 1) = pH.y();
     d(7, 2) = pH.z();
 
-    double v = m_Material->Get_v();
-    double E = m_Material->Get_E();
+    double v = m_Material->GetPoissonRatio();
+    double E = m_Material->GetYoungModulus();
 
     Fi.setZero();
 
@@ -1535,7 +1535,7 @@ void Brick_Mass::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, co
 }
 
 void ChElementHexaANCF_3813::ComputeMassMatrix() {
-    double rho = m_Material->Get_density();
+    double rho = m_Material->GetDensity();
     Brick_Mass myformula(&m_d0, this);
     m_MassMatrix.setZero();
     ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24>>(m_MassMatrix,  // result of integration will go there
@@ -1606,7 +1606,7 @@ void ChElementHexaANCF_3813::ComputeGravityForceScale() {
                                                     2                  // order of integration
     );
 
-    m_GravForceScale *= m_Material->Get_density();
+    m_GravForceScale *= m_Material->GetDensity();
 }
 
 // Compute the generalized force vector due to gravity
@@ -1648,7 +1648,7 @@ void ChElementHexaANCF_3813::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfac
 
     // For K stiffness matrix and R matrix: scale by factors
     // because [R] = r*[K] , so kf*[K]+rf*[R] = (kf+rf*r)*[K]
-    double kr_factor = Kfactor + Rfactor * m_Material->Get_RayleighDampingK();
+    double kr_factor = Kfactor + Rfactor * m_Material->GetRayleighDampingBeta();
 
     // Paste scaled K stiffness matrix and R matrix in resulting H and add scaled mass matrix.
     H.block(0, 0, 24, 24) = kr_factor * m_StiffnessMatrix + Mfactor * m_MassMatrix;

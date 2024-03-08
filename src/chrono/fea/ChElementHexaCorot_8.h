@@ -202,7 +202,7 @@ class ChApi ChElementHexaCorot_8 : public ChElementHexahedron,
                            ) override;
 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
-    virtual double GetDensity() override { return this->Material->Get_density(); }
+    virtual double GetDensity() override { return this->Material->GetDensity(); }
 
   private:
     virtual void SetupInitial(ChSystem* system) override { ComputeStiffnessMatrix(); }

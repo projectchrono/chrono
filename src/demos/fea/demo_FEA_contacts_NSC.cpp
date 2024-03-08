@@ -116,10 +116,10 @@ int main(int argc, char* argv[]) {
     // and set its parameters
 
     auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
-    mmaterial->Set_E(2e5);  // rubber 0.01e9, steel 200e9
-    mmaterial->Set_v(0.3);
-    mmaterial->Set_RayleighDampingK(0.01);
-    mmaterial->Set_density(1000);
+    mmaterial->SetYoungModulus(2e5);  // rubber 0.01e9, steel 200e9
+    mmaterial->SetPoissonRatio(0.3);
+    mmaterial->SetRayleighDampingBeta(0.01);
+    mmaterial->SetDensity(1000);
 
     // Example: stack of tetrahedral meshes, with collision on the skin
 

@@ -291,10 +291,10 @@ void test_3() {
     // Create a material, that must be assigned to each element,
     // and set its parameters
     auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
-    mmaterial->Set_E(0.01e9);  // rubber 0.01e9, steel 200e9
-    mmaterial->Set_v(0.3);
-    mmaterial->Set_RayleighDampingK(0.01);
-    mmaterial->Set_density(1000);
+    mmaterial->SetYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
+    mmaterial->SetPoissonRatio(0.3);
+    mmaterial->SetRayleighDampingBeta(0.01);
+    mmaterial->SetDensity(1000);
 
     // Create some nodes. These are the classical point-like
     // nodes with x,y,z degrees of freedom, that can be used

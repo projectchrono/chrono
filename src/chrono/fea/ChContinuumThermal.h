@@ -39,7 +39,7 @@ class ChContinuumThermal : public ChContinuumPoisson3D {
     /// expressed in watts per meter kelvin [ W/(m K) ].
     /// Ex. (approx.): water = 0.6, aluminium = 200, steel = 50, plastics=0.9-0.2
     /// Sets the conductivity matrix as isotropic (diagonal k)
-    void SetThermalConductivityK(double mk) {
+    void SetThermalConductivity(double mk) {
         k_thermal_conductivity = mk;
         ConstitutiveMatrix.setZero();
         ConstitutiveMatrix.fillDiagonal(k_thermal_conductivity);
@@ -47,20 +47,21 @@ class ChContinuumThermal : public ChContinuumPoisson3D {
 
     /// Gets the k conductivity constant of the material,
     /// expressed in watts per meter kelvin (W/(m K)).
-    double GetThermalConductivityK() const { return k_thermal_conductivity; }
+    double GetThermalConductivity() const { return k_thermal_conductivity; }
 
     /// Sets the c mass-specific heat capacity of the material,
     /// expressed as Joule per kg Kelvin [ J / (kg K) ]
-    void SetMassSpecificHeatCapacity(double mc) { c_mass_specific_heat_capacity = mc; }
+    void SetSpecificHeatCapacity(double mc) { c_mass_specific_heat_capacity = mc; }
+
     /// Sets the c mass-specific heat capacity of the material,
     /// expressed as Joule per kg Kelvin [ J / (kg K) ]
-    double GetMassSpecificHeatCapacity() const { return c_mass_specific_heat_capacity; }
+    double GetSpecificHeatCapacity() const { return c_mass_specific_heat_capacity; }
 
     /// Get the k conductivity matrix
-    ChMatrixDynamic<> Get_ThermalKmatrix() { return ConstitutiveMatrix; }
+    ChMatrixDynamic<> GetConductivityMatrix() { return ConstitutiveMatrix; }
 
     /// override base: (the dT/dt term has multiplier rho*c with rho=density, c=heat capacity)
-    virtual double Get_DtMultiplier() override { return density * c_mass_specific_heat_capacity; }
+    virtual double Get_DtMultiplier() override { return m_density * c_mass_specific_heat_capacity; }
 };
 
 }  // end namespace fea

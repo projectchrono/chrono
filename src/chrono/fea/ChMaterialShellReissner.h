@@ -98,7 +98,7 @@ class ChApi ChElasticityReissnerIsothropic : public ChElasticityReissner {
     );
 
     /// Return the elasticity moduli
-    double Get_E() const { return m_E; }
+    double GetYoungModulus() const { return m_E; }
     /// Return the Poisson ratio
     double Get_nu() const { return m_nu; }
     /// Return the shear factor

@@ -73,10 +73,10 @@ void FEATire::ProcessJSON(const rapidjson::Document& d) {
     double density = d["Continuum Material"]["Density"].GetDouble();
 
     m_material = chrono_types::make_shared<ChContinuumElastic>();
-    m_material->Set_E(E);
-    m_material->Set_v(nu);
-    m_material->Set_RayleighDampingK(rd);
-    m_material->Set_density(density);
+    m_material->SetYoungModulus(E);
+    m_material->SetPoissonRatio(nu);
+    m_material->SetRayleighDampingBeta(rd);
+    m_material->SetDensity(density);
 
     // Default tire pressure
     m_default_pressure = d["Default Pressure"].GetDouble();

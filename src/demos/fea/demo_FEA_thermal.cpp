@@ -54,8 +54,8 @@ int main(int argc, char* argv[]) {
     // Create a material, that must be assigned to each element,
     // and set its parameters
     auto mmaterial = chrono_types::make_shared<ChContinuumThermal>();
-    mmaterial->SetMassSpecificHeatCapacity(2);
-    mmaterial->SetThermalConductivityK(200);
+    mmaterial->SetSpecificHeatCapacity(2);
+    mmaterial->SetThermalConductivity(200);
 
     //
     // Add some TETAHEDRONS:

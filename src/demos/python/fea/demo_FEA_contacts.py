@@ -108,10 +108,10 @@ mesh = fea.ChMesh()
 # Create a material, that must be assigned to each solid element in the mesh,
 # and set its parameters
 mmaterial = fea.ChContinuumElastic()
-mmaterial.Set_E(0.01e9)  # rubber 0.01e9, steel 200e9
-mmaterial.Set_v(0.3)
-mmaterial.Set_RayleighDampingK(0.003)
-mmaterial.Set_density(1000)
+mmaterial.SetYoungModulus(0.01e9)  # rubber 0.01e9, steel 200e9
+mmaterial.SetPoissonRatio(0.3)
+mmaterial.SetRayleighDampingBeta(0.003)
+mmaterial.SetDensity(1000)
 
 
 for i in range(4) :

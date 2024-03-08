@@ -235,7 +235,7 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
 
     /// Return the material density.
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity.
-    virtual double GetDensity() override { return this->m_material->Get_density(); }
+    virtual double GetDensity() override { return this->m_material->GetDensity(); }
 
   private:
     // -----------------------------------

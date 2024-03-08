@@ -169,7 +169,7 @@ class ChApi ChElementHexaANCF_3813 : public ChElementANCF,
                            ) override;
 
     /// This is needed so that it can be accessed by ChLoaderVolumeGravity
-    virtual double GetDensity() override { return this->m_Material->Get_density(); }
+    virtual double GetDensity() override { return this->m_Material->GetDensity(); }
 
   private:
     enum JacobianType { ANALYTICAL, NUMERICAL };

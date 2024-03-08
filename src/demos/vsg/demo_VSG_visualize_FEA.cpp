@@ -47,10 +47,10 @@ int main(int argc, char* argv[]) {
 
     // Create a material, assigned to each element, and set its parameters
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_E(0.01e9);
-    material->Set_v(0.3);
-    material->Set_RayleighDampingK(0.001);
-    material->Set_density(1000);
+    material->SetYoungModulus(0.01e9);
+    material->SetPoissonRatio(0.3);
+    material->SetRayleighDampingBeta(0.001);
+    material->SetDensity(1000);
 
     // Add some TETAHEDRONS from .nmode and .ele input files
     try {

@@ -165,10 +165,10 @@ void FEAcontactTest::CreateBeams(std::shared_ptr<ChContactMaterialSMC> cmat) {
     m_system->Add(mesh);
 
     auto emat = chrono_types::make_shared<ChContinuumElastic>();
-    emat->Set_E(0.01e9);
-    emat->Set_v(0.3);
-    emat->Set_RayleighDampingK(0.003);
-    emat->Set_density(1000);
+    emat->SetYoungModulus(0.01e9);
+    emat->SetPoissonRatio(0.3);
+    emat->SetRayleighDampingBeta(0.003);
+    emat->SetDensity(1000);
 
     double angles[4] = {0.15, 0.3, 0.0, 0.7};
 

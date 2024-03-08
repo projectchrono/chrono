@@ -249,7 +249,7 @@ void ChElementHexaCorot_8::ComputeStiffnessMatrix() {
     for (unsigned int i = 0; i < GpVector.size(); i++) {
         ComputeMatrB(GpVector[i], Jdet);
         BT = GpVector[i]->MatrB->transpose();
-        *temp = (Jdet * GpVector[i]->GetWeight()) * (BT * Material->Get_StressStrainMatrix() * *(GpVector[i]->MatrB));
+        *temp = (Jdet * GpVector[i]->GetWeight()) * (BT * Material->GetStressStrainMatrix() * *(GpVector[i]->MatrB));
         StiffnessMatrix += *temp;
 
         // by the way also computes volume:
@@ -308,7 +308,7 @@ ChStrainTensor<> ChElementHexaCorot_8::GetStrain(double z1, double z2, double z3
 }
 
 ChStressTensor<> ChElementHexaCorot_8::GetStress(double z1, double z2, double z3) {
-    ChStressTensor<> mstress = this->Material->Get_StressStrainMatrix() * this->GetStrain(z1, z2, z3);
+    ChStressTensor<> mstress = this->Material->GetStressStrainMatrix() * this->GetStrain(z1, z2, z3);
     return mstress;
 }
 
@@ -324,14 +324,14 @@ void ChElementHexaCorot_8::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfacto
 
     // For K stiffness matrix and R damping matrix:
 
-    double mkfactor = Kfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingK();
+    double mkfactor = Kfactor + Rfactor * this->GetMaterial()->GetRayleighDampingBeta();
     H = mkfactor * CKCt;
 
     // For M mass matrix:
     if (Mfactor) {
-        double lumped_node_mass = (this->Volume * this->Material->Get_density()) / 8.0;
+        double lumped_node_mass = (this->Volume * this->Material->GetDensity()) / 8.0;
         for (unsigned int id = 0; id < GetNumCoordsPosLevel(); id++) {
-            double amfactor = Mfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingM();
+            double amfactor = Mfactor + Rfactor * this->GetMaterial()->GetRayleighDampingAlpha();
             H(id, id) += amfactor * lumped_node_mass;
         }
     }
@@ -351,10 +351,10 @@ void ChElementHexaCorot_8::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     for (int in = 0; in < 8; ++in) {
         displ.segment(in * 3, 3) = (A.transpose() * nodes[in]->pos_dt).eigen();  // nodal speeds, local
     }
-    ChMatrixDynamic<> FiR_local = Material->Get_RayleighDampingK() * StiffnessMatrix * displ;
+    ChMatrixDynamic<> FiR_local = Material->GetRayleighDampingBeta() * StiffnessMatrix * displ;
 
-    double lumped_node_mass = (this->Volume * this->Material->Get_density()) / 8.0;
-    displ *= (lumped_node_mass * Material->Get_RayleighDampingM());
+    double lumped_node_mass = (this->Volume * this->Material->GetDensity()) / 8.0;
+    displ *= (lumped_node_mass * Material->GetRayleighDampingAlpha());
     FiR_local += displ;
 
     //// TODO  better per-node lumping, or 12x12 consistent mass matrix.
