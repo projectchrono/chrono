@@ -59,7 +59,7 @@ class ChApi ChLinkMask {
     /// Utility: to change the size of the mask, reallocating constraints
     /// (all of type ChConstraintTwo).
     /// No action if newnconstr == nconstr
-    void ResetNconstr(int newnconstr);
+    void UpdateNumConstraints(int newnconstr);
 
     /// Add a ChConstraintTwoBodies to mask (NOTE: later, the constraint will
     /// be automatically deleted when the mask will be deleted)

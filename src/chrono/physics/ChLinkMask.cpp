@@ -58,7 +58,7 @@ ChLinkMask& ChLinkMask::operator=(const ChLinkMask& other) {
     return *this;
 }
 
-void ChLinkMask::ResetNconstr(int newnconstr) {
+void ChLinkMask::UpdateNumConstraints(int newnconstr) {
     if (nconstr != newnconstr) {
         for (int i = 0; i < nconstr; i++)
             if (constraints[i]) {
@@ -213,7 +213,7 @@ void ChLinkMask::ArchiveIn(ChArchiveIn& archive_in) {
 CH_FACTORY_REGISTER(ChLinkMaskLF)
 
 ChLinkMaskLF::ChLinkMaskLF() {
-    ResetNconstr(7);  // the LF formulation uses 7 constraint flags
+    UpdateNumConstraints(7);  // the LF formulation uses 7 constraint flags
 }
 
 ChLinkMaskLF& ChLinkMaskLF::operator=(const ChLinkMaskLF& other) {

@@ -587,6 +587,8 @@ Note that this represents a major public API change and we expect most user code
 | ChLinkLockScrew                   |                               |                                                  |
 |                                   | Get_thread                    | rename: GetThread                                |
 |                                   | Set_thread                    | rename: SetThread                                |
+| ChLinkMask                        |                               |                                                  |
+|                                   | ResetNconstr                  | rename: UpdateNumConstraints                     |
 | ChLinkMate                        |                               |                                                  |
 |                                   | RestoreRedundant              | rename: ResetRedundant                           |
 | ChLinkMateCoaxial                 |                               | rename: ChLinkMateCylindrical                    |

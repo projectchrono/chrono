@@ -91,7 +91,7 @@ void ChLinkMateGeneric::SetupLinkMask() {
     if (c_rz)
         nc++;
 
-    mask.ResetNconstr(nc);
+    mask.UpdateNumConstraints(nc);
 
     C.setZero(nc);
 
