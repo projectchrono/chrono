@@ -579,6 +579,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetDOF                        | remove                                           |
 |                                   | GetDOF_w                      | remove                                           |
 |                                   | GetMaxiter                    | remove                                           |
+|                                   | GetMinBounceSpeed             | remove                                           |
 |                                   | GetNbodies                    | rename: GetNumBodies                             |
 |                                   | GetNbodiesFixed               | rename: GetNumBodiesFixed                        |
 |                                   | GetNbodiesSleeping            | rename: GetNumBodiesSleeping                     |
@@ -605,6 +606,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetSolverMaxIterations        | remove                                           |
 |                                   | GetSolverTolerance            | remove                                           |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
+|                                   | SetMinBounceSpeed             | remove and move to ChSystemNSC                   |
 |                                   | SetMaxiter                    | remove                                           |
 |                                   | SetStep                       | remove                                           |
 |                                   | SetSolverForceTolerance       | remove (see Notes)                               |

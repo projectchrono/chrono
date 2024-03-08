@@ -110,16 +110,6 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Accessor for the current composition laws for contact surface material.
     const ChContactMaterialCompositionStrategy& GetMaterialCompositionStrategy() const { return *composition_strategy; }
 
-    /// For elastic collisions, with objects that have nonzero
-    /// restitution coefficient: objects will rebounce only if their
-    /// relative colliding speed is above this threshold. Default 0.15 m/s.
-    /// If this is too low, aliasing problems can happen with small high frequency
-    /// rebounces, and settling to static stacking might be more difficult.
-    void SetMinBounceSpeed(double mval) { min_bounce_speed = mval; }
-
-    /// Objects will rebounce only if their relative colliding speed is above this threshold.
-    double GetMinBounceSpeed() const { return min_bounce_speed; }
-
     /// Set the speed limit of exiting from penetration situations. 
     /// Usually set a positive value, (about 0.1...2 m/s, as exiting speed).
     /// Used only bt the EULER_IMPLICIT_LINEARIZED time stepper.
@@ -781,7 +771,6 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     std::shared_ptr<ChSystemDescriptor> descriptor;  ///< system descriptor
     std::shared_ptr<ChSolver> solver;                ///< solver for DVI or DAE problem
 
-    double min_bounce_speed;                ///< minimum speed for rebounce after impacts. Lower speeds are clamped to 0
     double max_penetration_recovery_speed;  ///< limit for speed of penetration recovery (positive)
 
     size_t stepcount;  ///< internal counter for steps

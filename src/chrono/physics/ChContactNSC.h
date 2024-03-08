@@ -25,6 +25,8 @@
 
 namespace chrono {
 
+class ChContactContainerNSC;
+
 /// Class for non-smooth contact between two generic ChContactable objects.
 /// Ta and Tb are of ChContactable sub classes.
 
@@ -35,6 +37,8 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
     typedef typename ChContactTuple<Ta, Tb>::typecarr_b typecarr_b;
 
   protected:
+    ChContactContainerNSC* container;  ///< associated contact container
+
     float* reactions_cache;  ///< N,U,V reactions which might be stored in a persistent contact manifold
 
     /// The three scalar constraints, to be fed into the system solver.
@@ -56,29 +60,31 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
         Nx.SetTangentialConstraintV(&Tv);
     }
 
-    ChContactNSC(ChContactContainer* mcontainer,           ///< contact container
-                 Ta* mobjA,                                ///< collidable object A
-                 Tb* mobjB,                                ///< collidable object B
-                 const ChCollisionInfo& cinfo,             ///< data for the collision pair
-                 const ChContactMaterialCompositeNSC& mat  ///< composite material
+    ChContactNSC(ChContactContainerNSC* contact_container,  ///< contact container
+                 Ta* obj_A,                                 ///< contactable object A
+                 Tb* obj_B,                                 ///< contactable object B
+                 const ChCollisionInfo& cinfo,              ///< data for the collision pair
+                 const ChContactMaterialCompositeNSC& mat   ///< composite material
                  )
-        : ChContactTuple<Ta, Tb>(mcontainer, mobjA, mobjB, cinfo) {
+        : ChContactTuple<Ta, Tb>(obj_A, obj_B), container(contact_container) {
+        assert(contact_container);
+
         Nx.SetTangentialConstraintU(&Tu);
         Nx.SetTangentialConstraintV(&Tv);
 
-        Reset(mobjA, mobjB, cinfo, mat);
+        Reset(obj_A, obj_B, cinfo, mat);
     }
 
     ~ChContactNSC() {}
 
     /// Reinitialize this contact for reuse.
-    virtual void Reset(Ta* mobjA,                                ///< collidable object A
-                       Tb* mobjB,                                ///< collidable object B
+    virtual void Reset(Ta* obj_A,                                ///< contactable object A
+                       Tb* obj_B,                                ///< contactable object B
                        const ChCollisionInfo& cinfo,             ///< data for the collision pair
                        const ChContactMaterialCompositeNSC& mat  ///< composite material
     ) {
         // Reset geometric information
-        this->Reset_cinfo(mobjA, mobjB, cinfo);
+        this->Reset_cinfo(obj_A, obj_B, cinfo);
 
         Nx.Get_tuple_a().SetVariables(*this->objA);
         Nx.Get_tuple_b().SetVariables(*this->objB);
@@ -183,7 +189,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 double h = this->container->GetSystem()->GetStep();  // = 1.0 / c;  // not all steppers have c = 1/h
 
                 double neg_rebounce_speed = Vrel_cplane.x() * this->restitution;
-                if (neg_rebounce_speed < -this->container->GetSystem()->GetMinBounceSpeed())
+                if (neg_rebounce_speed < -this->container->GetMinBounceSpeed())
                     if (this->norm_dist + neg_rebounce_speed * h < 0) {
                         // CASE: BOUNCE
                         bounced = true;
@@ -280,7 +286,7 @@ class ChContactNSC : public ChContactTuple<Ta, Tb> {
                 double h = 1.0 / factor;  // inverse timestep is factor
 
                 double neg_rebounce_speed = Vrel_cplane.x() * this->restitution;
-                if (neg_rebounce_speed < -this->container->GetSystem()->GetMinBounceSpeed())
+                if (neg_rebounce_speed < -this->container->GetMinBounceSpeed())
                     if (this->norm_dist + neg_rebounce_speed * h < 0) {
                         // CASE: BOUNCE
                         bounced = true;

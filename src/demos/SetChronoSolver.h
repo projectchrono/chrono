@@ -120,9 +120,6 @@ bool SetChronoSolver(chrono::ChSystem& sys,
                 solver->SetMaxIterations(100);
                 solver->SetOmega(0.8);
                 solver->SetSharpnessLambda(1.0);
-
-                ////sys.SetMaxPenetrationRecoverySpeed(1.5);
-                ////sys.SetMinBounceSpeed(2.0);
                 break;
             }
             case chrono::ChSolver::Type::BICGSTAB:

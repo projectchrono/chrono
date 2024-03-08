@@ -54,7 +54,6 @@ ChSystem::ChSystem()
       m_RTF(0),
       step(0.04),
       use_sleeping(false),
-      min_bounce_speed(0.15),
       max_penetration_recovery_speed(0.6),
       stepcount(0),
       setupcount(0),
@@ -104,7 +103,6 @@ ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr),
     is_updated = false;
     applied_forces_current = false;
 
-    min_bounce_speed = other.min_bounce_speed;
     max_penetration_recovery_speed = other.max_penetration_recovery_speed;
     SetSolverType(other.GetSolverType());
     use_sleeping = other.use_sleeping;
@@ -1675,7 +1673,7 @@ bool ChSystem::DoAssembly(int action, int max_num_iterations) {
         old_max_iters = solver->AsIterative()->GetMaxIterations();
         old_tolerance = solver->AsIterative()->GetTolerance();
         solver->AsIterative()->SetMaxIterations(std::max(old_max_iters, new_max_iters));
-        solver->AsIterative()->SetTolerance(old_tolerance);
+        solver->AsIterative()->SetTolerance(new_tolerance);
     }
 
     // Prepare lists of variables and constraints
@@ -1971,7 +1969,6 @@ void ChSystem::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(descriptor);
     archive_out << CHNVP(solver);
 
-    archive_out << CHNVP(min_bounce_speed);
     archive_out << CHNVP(max_penetration_recovery_speed);
 
     archive_out << CHNVP(composition_strategy);
@@ -2004,7 +2001,6 @@ void ChSystem::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(descriptor);
     archive_in >> CHNVP(solver);
 
-    archive_in >> CHNVP(min_bounce_speed);
     archive_in >> CHNVP(max_penetration_recovery_speed);
 
     archive_in >> CHNVP(composition_strategy);

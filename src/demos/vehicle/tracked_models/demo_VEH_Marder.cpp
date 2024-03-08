@@ -315,7 +315,6 @@ int main(int argc, char* argv[]) {
         marder.GetSystem()->SetSolver(solver);
 
         marder.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
-        marder.GetSystem()->SetMinBounceSpeed(2.0);
     }
 
     // ---------------

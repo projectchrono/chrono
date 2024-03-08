@@ -305,7 +305,6 @@ int main(int argc, char* argv[]) {
         m113.GetSystem()->SetSolver(solver);
 
         m113.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
-        m113.GetSystem()->SetMinBounceSpeed(2.0);
     }
 
     // ---------------

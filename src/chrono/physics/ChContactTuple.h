@@ -25,7 +25,6 @@ class ChContactContainer;
 
 /// Base class for contact between two generic ChContactable objects.
 /// T1 and T2 are of ChContactable sub classes.
-
 template <class Ta, class Tb>
 class ChContactTuple {
   public:
@@ -33,8 +32,6 @@ class ChContactTuple {
     typedef typename Tb::type_variable_tuple_carrier typecarr_b;
 
   protected:
-    ChContactContainer* container;  ///< associated contact container
-
     Ta* objA;  ///< first ChContactable object in the pair
     Tb* objB;  ///< second ChContactable object in the pair
 
@@ -48,40 +45,25 @@ class ChContactTuple {
     double eff_radius;  ///< effective radius of curvature at contact
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     ChContactTuple() {}
 
-    ChContactTuple(ChContactContainer* mcontainer,          ///< contact container
-                   Ta* mobjA,                               ///< ChContactable object A
-                   Tb* mobjB,                               ///< ChContactable object B
-                   const ChCollisionInfo& cinfo  ///< data for the contact pair
-    ) {
-        assert(mcontainer);
-        assert(mobjA);
-        assert(mobjB);
-
-        container = mcontainer;
+    ChContactTuple(Ta* obj_A, Tb* obj_B) : objA(obj_A), objB(obj_B) {
+        assert(obj_A);
+        assert(obj_B);
     }
 
     virtual ~ChContactTuple() {}
 
-    //
-    // FUNCTIONS
-    //
-
     /// Reinitialize geometric information for this contact for reuse.
-    void Reset_cinfo(Ta* mobjA,                               ///< ChContactable object A
-                     Tb* mobjB,                               ///< ChContactable object B
+    void Reset_cinfo(Ta* obj_A,                    ///< contactable object A
+                     Tb* obj_B,                    ///< contactable object B
                      const ChCollisionInfo& cinfo  ///< data for the contact pair
     ) {
-        assert(mobjA);
-        assert(mobjB);
+        assert(obj_A);
+        assert(obj_B);
 
-        this->objA = mobjA;
-        this->objB = mobjB;
+        this->objA = obj_A;
+        this->objB = obj_B;
 
         this->p1 = cinfo.vpA;
         this->p2 = cinfo.vpB;
@@ -139,9 +121,7 @@ class ChContactTuple {
     /// Get the contact torque, if computed, in contact coordinate system
     virtual ChVector3d GetContactTorque() const { return ChVector3d(0); }
 
-    //
     // UPDATING FUNCTIONS
-    //
 
     virtual void ContIntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {}
 
@@ -151,14 +131,14 @@ class ChContactTuple {
                                          ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
                                          const ChVectorDynamic<>& L,  ///< the L vector
                                          const double c               ///< a scaling factor
-                                         ) {}
+    ) {}
 
     virtual void ContIntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
                                          ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
                                          const double c,            ///< a scaling factor
                                          bool do_clamp,             ///< apply clamping to c*C?
                                          double recovery_clamp      ///< value for min/max clamping of c*C
-                                         ) {}
+    ) {}
 
     virtual void ContIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {}
 
@@ -169,11 +149,11 @@ class ChContactTuple {
     virtual void ContIntToDescriptor(const unsigned int off_L,    ///< offset in L, Qc
                                      const ChVectorDynamic<>& L,  ///< the L vector
                                      const ChVectorDynamic<>& Qc  ///< the Qc vector
-                                     ) {}
+    ) {}
 
     virtual void ContIntFromDescriptor(const unsigned int off_L,  ///< offset in L
                                        ChVectorDynamic<>& L       ///< the L vector
-                                       ) {}
+    ) {}
 
     virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) {}
 

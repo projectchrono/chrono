@@ -23,7 +23,6 @@
 
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChSystemSMC.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -45,7 +44,7 @@ class ChainTest : public utils::ChBenchmarkTest {
     void SimulateVis();
 
   private:
-    ChSystem* m_system;
+    ChSystemNSC* m_system;
     double m_length;
     double m_step;
 };

@@ -166,14 +166,14 @@ void ChContactContainerSMC::EndAddContact() {
 }
 
 template <class Tcont, class Titer, class Ta, class Tb>
-void _OptimalContactInsert(std::list<Tcont*>& contactlist,           // contact list
-                           Titer& lastcontact,                       // last contact acquired
-                           int& n_added,                             // number of contacts inserted
-                           ChContactContainer* container,            // contact container
-                           Ta* objA,                                 // collidable object A
-                           Tb* objB,                                 // collidable object B
-                           const ChCollisionInfo& cinfo,  // collision information
-                           const ChContactMaterialCompositeSMC& cmat        // composite material
+void _OptimalContactInsert(std::list<Tcont*>& contactlist,            // contact list
+                           Titer& lastcontact,                        // last contact acquired
+                           int& n_added,                              // number of contacts inserted
+                           ChContactContainerSMC* container,          // contact container
+                           Ta* objA,                                  // collidable object A
+                           Tb* objB,                                  // collidable object B
+                           const ChCollisionInfo& cinfo,              // collision information
+                           const ChContactMaterialCompositeSMC& cmat  // composite material
 ) {
     if (lastcontact != contactlist.end()) {
         // reuse old contacts

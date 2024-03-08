@@ -42,48 +42,6 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     typedef ChContactNSC<ChContactable_3vars<6, 6, 6>, ChContactable_3vars<6, 6, 6> > ChContactNSC_666_666;
 
     typedef ChContactNSCrolling<ChContactable_1vars<6>, ChContactable_1vars<6> > ChContactNSCrolling_6_6;
-
-  protected:
-    std::list<ChContactNSC_6_6*> contactlist_6_6;
-    std::list<ChContactNSC_6_3*> contactlist_6_3;
-    std::list<ChContactNSC_3_3*> contactlist_3_3;
-    std::list<ChContactNSC_333_3*> contactlist_333_3;
-    std::list<ChContactNSC_333_6*> contactlist_333_6;
-    std::list<ChContactNSC_333_333*> contactlist_333_333;
-    std::list<ChContactNSC_666_3*> contactlist_666_3;
-    std::list<ChContactNSC_666_6*> contactlist_666_6;
-    std::list<ChContactNSC_666_333*> contactlist_666_333;
-    std::list<ChContactNSC_666_666*> contactlist_666_666;
-
-    std::list<ChContactNSCrolling_6_6*> contactlist_6_6_rolling;
-
-    int n_added_6_6;
-    int n_added_6_3;
-    int n_added_3_3;
-    int n_added_333_3;
-    int n_added_333_6;
-    int n_added_333_333;
-    int n_added_666_3;
-    int n_added_666_6;
-    int n_added_666_333;
-    int n_added_666_666;
-    int n_added_6_6_rolling;
-
-    std::list<ChContactNSC_6_6*>::iterator lastcontact_6_6;
-    std::list<ChContactNSC_6_3*>::iterator lastcontact_6_3;
-    std::list<ChContactNSC_3_3*>::iterator lastcontact_3_3;
-    std::list<ChContactNSC_333_3*>::iterator lastcontact_333_3;
-    std::list<ChContactNSC_333_6*>::iterator lastcontact_333_6;
-    std::list<ChContactNSC_333_333*>::iterator lastcontact_333_333;
-    std::list<ChContactNSC_666_3*>::iterator lastcontact_666_3;
-    std::list<ChContactNSC_666_6*>::iterator lastcontact_666_6;
-    std::list<ChContactNSC_666_333*>::iterator lastcontact_666_333;
-    std::list<ChContactNSC_666_666*>::iterator lastcontact_666_666;
-
-    std::list<ChContactNSCrolling_6_6*>::iterator lastcontact_6_6_rolling;
-
-    std::unordered_map<ChContactable*, ForceTorque> contact_forces;
-
   public:
     ChContactContainerNSC();
     ChContactContainerNSC(const ChContactContainerNSC& other);
@@ -164,6 +122,9 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
                6 * (n_added_6_6_rolling);
     }
 
+    /// Objects will rebounce only if their relative colliding speed is above this threshold.
+    double GetMinBounceSpeed() const { return min_bounce_speed; }
+
     /// Update state of this contact container: compute jacobians, violations, etc.
     /// and store results in inner structures of contacts.
     virtual void Update(double mtime, bool update_assets = true) override;
@@ -178,9 +139,7 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     /// Return the resultant contact torque acting on the specified contactable object.
     virtual ChVector3d GetContactableTorque(ChContactable* contactable) override;
 
-    //
     // STATE FUNCTIONS
-    //
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
@@ -204,9 +163,7 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    //
     // SOLVER INTERFACE
-    //
 
     virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
     virtual void ConstraintsBiReset() override;
@@ -214,9 +171,7 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
-    //
     // SERIALIZATION
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
@@ -224,8 +179,53 @@ class ChApi ChContactContainerNSC : public ChContactContainer {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
+  protected:
+    std::list<ChContactNSC_6_6*> contactlist_6_6;
+    std::list<ChContactNSC_6_3*> contactlist_6_3;
+    std::list<ChContactNSC_3_3*> contactlist_3_3;
+    std::list<ChContactNSC_333_3*> contactlist_333_3;
+    std::list<ChContactNSC_333_6*> contactlist_333_6;
+    std::list<ChContactNSC_333_333*> contactlist_333_333;
+    std::list<ChContactNSC_666_3*> contactlist_666_3;
+    std::list<ChContactNSC_666_6*> contactlist_666_6;
+    std::list<ChContactNSC_666_333*> contactlist_666_333;
+    std::list<ChContactNSC_666_666*> contactlist_666_666;
+
+    std::list<ChContactNSCrolling_6_6*> contactlist_6_6_rolling;
+
+    int n_added_6_6;
+    int n_added_6_3;
+    int n_added_3_3;
+    int n_added_333_3;
+    int n_added_333_6;
+    int n_added_333_333;
+    int n_added_666_3;
+    int n_added_666_6;
+    int n_added_666_333;
+    int n_added_666_666;
+    int n_added_6_6_rolling;
+
+    std::list<ChContactNSC_6_6*>::iterator lastcontact_6_6;
+    std::list<ChContactNSC_6_3*>::iterator lastcontact_6_3;
+    std::list<ChContactNSC_3_3*>::iterator lastcontact_3_3;
+    std::list<ChContactNSC_333_3*>::iterator lastcontact_333_3;
+    std::list<ChContactNSC_333_6*>::iterator lastcontact_333_6;
+    std::list<ChContactNSC_333_333*>::iterator lastcontact_333_333;
+    std::list<ChContactNSC_666_3*>::iterator lastcontact_666_3;
+    std::list<ChContactNSC_666_6*>::iterator lastcontact_666_6;
+    std::list<ChContactNSC_666_333*>::iterator lastcontact_666_333;
+    std::list<ChContactNSC_666_666*>::iterator lastcontact_666_666;
+
+    std::list<ChContactNSCrolling_6_6*>::iterator lastcontact_6_6_rolling;
+
+    std::unordered_map<ChContactable*, ForceTorque> contact_forces;
+
   private:
     void InsertContact(const ChCollisionInfo& cinfo, const ChContactMaterialCompositeNSC& cmat);
+
+    double min_bounce_speed;  ///< minimum speed for rebounce after impacts. Lower speeds are clamped to 0
+
+    friend class ChSystemNSC;
 };
 
 CH_CLASS_VERSION(ChContactContainerNSC, 0)

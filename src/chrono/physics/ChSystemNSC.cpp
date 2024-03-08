@@ -52,6 +52,10 @@ void ChSystemNSC::SetContactContainer(std::shared_ptr<ChContactContainer> contai
         ChSystem::SetContactContainer(container);
 }
 
+void ChSystemNSC::SetMinBounceSpeed(double value) {
+    std::static_pointer_cast<ChContactContainerNSC>(contact_container)->min_bounce_speed = value;
+}
+
 void ChSystemNSC::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChSystemNSC>();
