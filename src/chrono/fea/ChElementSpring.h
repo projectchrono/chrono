@@ -65,12 +65,12 @@ class ChApi ChElementSpring : public ChElementGeneric {
     //
 
     /// Set the stiffness of the spring that connects the two nodes (N/m)
-    virtual void SetSpringK(double ms) { spring_k = ms; }
-    virtual double GetSpringK() { return spring_k; }
+    virtual void SetSpringCoefficient(double ms) { spring_k = ms; }
+    virtual double GetSpringCoefficient() { return spring_k; }
 
     /// Set the damping of the damper that connects the two nodes (Ns/M)
-    virtual void SetDamperR(double md) { damper_r = md; }
-    virtual double GetDamperR() { return damper_r; }
+    virtual void SetDampingCoefficient(double md) { damper_r = md; }
+    virtual double GetDampingCoefficient() { return damper_r; }
 
 	/// Get the current force transmitted along the spring direction, 
 	/// including the effect of the damper. Positive if pulled. (N)

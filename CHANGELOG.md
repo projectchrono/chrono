@@ -323,13 +323,27 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_ThermalKmatrix            | rename: GetConductivityMatrix                    |
 |                                   | SetThermalConductivityK       | rename: SetThermalConductivity                   |
 |                                   | SetMassSpecificHeatCapacity   | rename: SetSpecificHeatCapacity                  |
-| ChElementBse                      |                               |                                                  |
+| ChElementBar                      |                               |                                                  |
+|                                   | GetBarArea                    | rename: GetArea                                  |
+|                                   | GetBarDensity                 | rename: GetDensity                               |
+|                                   | GetBarRayleighDamping         | rename: GetRayleighDamping                       |
+|                                   | GetBarYoungModulus            | rename: GetYoungModulus                          |
+|                                   | SetBarArea                    | rename: SetArea                                  |
+|                                   | SetBarDensity                 | rename: SetDensity                               |
+|                                   | SetBarRayleighDamping         | rename: SetRayleighDamping                       |
+|                                   | SetBarYoungModulus            | rename: SetYoungModulus                          |
+| ChElementBase                     |                               |                                                  |
 |                                   | GetNdofs                      | rename: GetNumCoordsPosLevel                     |
 |                                   | GetNdofs_active               | rename: GetNumCoordsPosLevelActive               |
 |                                   | GetNodeN                      | rename: GetNode                                  |
 |                                   | GetNodeNdofs                  | rename: GetNodeNumCoordsPosLevel                 |
 |                                   | GetNodeNdofs_active           | rename: GetNodeNumCoordsPosLevelActive           |
 |                                   | GetNnodes                     | rename: GetNumNodes                              |
+| ChElementSpring                   |                               |                                                  |
+|                                   | GetDamperR                    | rename: GetDampingCoefficient                    |
+|                                   | GetSpringK                    | rename: GetSpringCoefficient                     |
+|                                   | SetDamperR                    | rename: SetDampingCoefficient                    |
+|                                   | SetSpringK                    | rename: SetSpringCoefficient                     |
 | ChException                       |                               | remove                                           |
 | ChFrame                           |                               |                                                  |
 |                                   | GetA                          | rename: GetRotMat                                |
@@ -657,7 +671,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNmeshSurfaces              | rename: GetNumMeshSurfaces                       |
 | ChMinMaxDistribution              |                               | rename: ChUniformDistribution                    |
 | ChModalAssembly                   |                               |                                                  |
-|                                   | refer to ChAssembly           | like ChAssembly with boundary/internal suffixes    |
+|                                   | refer to ChAssembly           | like ChAssembly with boundary/internal suffixes  |
 | ChNodeBase                        |                               |                                                  |
 |                                   | GetNdofX                      | rename: GetNumCoordsPosLevel                     |
 |                                   | GetNdofX_active               | rename: GetNumCoordsPosLevelActive               |

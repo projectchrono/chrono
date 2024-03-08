@@ -72,20 +72,20 @@ class ChApi ChElementBar : public ChElementGeneric {
     //
 
     /// Set the cross sectional area of the bar (m^2) (also changes stiffness keeping same E modulus)
-    void SetBarArea(double ma) { this->area = ma; }
-    double GetBarArea() { return this->area; }
+    void SetArea(double ma) { this->area = ma; }
+    double GetArea() { return this->area; }
 
     /// Set the density of the bar (kg/m^3)
-    void SetBarDensity(double md) { this->density = md; }
-    double GetBarDensity() { return this->density; }
+    void SetDensity(double md) { this->density = md; }
+    double GetDensity() { return this->density; }
 
     /// Set the Young elastic modulus (N/m^2) (also sets stiffness)
-    void SetBarYoungModulus(double mE) { this->E = mE; }
-    double GetBarYoungModulus() { return this->E; }
+    void SetYoungModulus(double mE) { this->E = mE; }
+    double GetYoungModulus() { return this->E; }
 
     /// Set the Rayleigh damping ratio r (as in: R = r * K )
-    void SetBarRayleighDamping(double mr) { this->rdamping = mr; }
-    double GetBarRayleighDamping() { return this->rdamping; }
+    void SetRayleighDamping(double mr) { this->rdamping = mr; }
+    double GetRayleighDamping() { return this->rdamping; }
 
     /// The full mass of the bar
     double GetMass() { return this->mass; }
@@ -100,7 +100,7 @@ class ChApi ChElementBar : public ChElementGeneric {
     double GetStrain() { return (GetCurrentLength() - GetRestLength()) / GetRestLength(); }
 
     /// Get the elastic stress (sigma), after deformation.
-    double GetStress() { return GetBarYoungModulus() * GetStrain(); }
+    double GetStress() { return GetYoungModulus() * GetStrain(); }
 
 	/// Get the current force transmitted along the bar direction, 
 	/// including the effect of the damper. Positive if pulled. (N)

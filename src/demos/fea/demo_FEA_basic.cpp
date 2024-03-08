@@ -67,7 +67,7 @@ void test_1() {
     // two 3D nodes:
     auto melementA = chrono_types::make_shared<ChElementSpring>();
     melementA->SetNodes(mnodeA, mnodeB);
-    melementA->SetSpringK(100000);
+    melementA->SetSpringCoefficient(100000);
 
     // Remember to add elements to the mesh!
     my_mesh->AddElement(melementA);

@@ -144,40 +144,40 @@ int main(int argc, char* argv[]) {
                 if (ex + 1 < nnodes_x) {
                     auto mspring_X = chrono_types::make_shared<ChElementSpring>();
                     mspring_X->SetNodes(mass_nodes[ex * nnodes_y + ey], mass_nodes[(ex + 1) * nnodes_y + ey]);
-                    mspring_X->SetSpringK(k_X);
+                    mspring_X->SetSpringCoefficient(k_X);
                     my_mesh->AddElement(mspring_X);
                     springs.push_back(mspring_X);  // for later easy reference
                 }
                 if (ey + 1 < nnodes_y) {
                     auto mspring_Y = chrono_types::make_shared<ChElementSpring>();
                     mspring_Y->SetNodes(mass_nodes[ex * nnodes_y + ey], mass_nodes[ex * nnodes_y + (ey + 1)]);
-                    mspring_Y->SetSpringK(k_Y);
+                    mspring_Y->SetSpringCoefficient(k_Y);
                     my_mesh->AddElement(mspring_Y);
                     springs.push_back(mspring_Y);  // for later easy reference
                 }
                 if (ex + 1 < nnodes_x && ey + 1 < nnodes_y) {
                     auto mspring_D00 = chrono_types::make_shared<ChElementSpring>();
                     mspring_D00->SetNodes(mass_nodes[ex * nnodes_y + ey], dumb_nodes[ex * (nnodes_y - 1) + ey]);
-                    mspring_D00->SetSpringK(k_00);
+                    mspring_D00->SetSpringCoefficient(k_00);
                     my_mesh->AddElement(mspring_D00);
                     springs.push_back(mspring_D00);  // for later easy reference
 
                     auto mspring_D01 = chrono_types::make_shared<ChElementSpring>();
                     mspring_D01->SetNodes(mass_nodes[ex * nnodes_y + ey + 1], dumb_nodes[ex * (nnodes_y - 1) + ey]);
-                    mspring_D01->SetSpringK(k_01);
+                    mspring_D01->SetSpringCoefficient(k_01);
                     my_mesh->AddElement(mspring_D01);
                     springs.push_back(mspring_D01);  // for later easy reference
 
                     auto mspring_D10 = chrono_types::make_shared<ChElementSpring>();
                     mspring_D10->SetNodes(mass_nodes[(ex + 1) * nnodes_y + ey], dumb_nodes[ex * (nnodes_y - 1) + ey]);
-                    mspring_D10->SetSpringK(k_10);
+                    mspring_D10->SetSpringCoefficient(k_10);
                     my_mesh->AddElement(mspring_D10);
                     springs.push_back(mspring_D10);  // for later easy reference
 
                     auto mspring_D11 = chrono_types::make_shared<ChElementSpring>();
                     mspring_D11->SetNodes(mass_nodes[(ex + 1) * nnodes_y + ey + 1],
                                           dumb_nodes[ex * (nnodes_y - 1) + ey]);
-                    mspring_D11->SetSpringK(k_11);
+                    mspring_D11->SetSpringCoefficient(k_11);
                     my_mesh->AddElement(mspring_D11);
                     springs.push_back(mspring_D11);  // for later easy reference
                 }
@@ -244,15 +244,15 @@ int main(int argc, char* argv[]) {
 
         // draw spring elements as lines
         for (auto mspring : springs) {
-            if (mspring->GetSpringK() > 0) {
+            if (mspring->GetSpringCoefficient() > 0) {
                 tools::drawSegment(vis.get(), std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNode(0))->GetPos(),
                                    std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNode(1))->GetPos(),
                                    ChColor(1, 1, 1), true);
             }
             // cut springs if beyond a stress limit
             if (fabs(mspring->GetCurrentForce()) > 100) {
-                mspring->SetSpringK(0);
-                mspring->SetDamperR(0);
+                mspring->SetSpringCoefficient(0);
+                mspring->SetDampingCoefficient(0);
             }
         }
 

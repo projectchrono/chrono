@@ -74,8 +74,8 @@ void test_1() {
     // two 3D nodes:
     auto melementA = chrono_types::make_shared<ChElementSpring>();
     melementA->SetNodes(mnodeA, mnodeB);
-    melementA->SetSpringK(2000);
-    melementA->SetDamperR(0);
+    melementA->SetSpringCoefficient(2000);
+    melementA->SetDampingCoefficient(0);
 
     // Remember to add elements to the mesh!
     my_mesh->AddElement(melementA);
@@ -150,11 +150,11 @@ void test_2() {
     // two 3D nodes:
     auto melementA = chrono_types::make_shared<ChElementBar>();
     melementA->SetNodes(mnodeA, mnodeB);
-    melementA->SetBarArea(0.1 * 0.02);
-    melementA->SetBarYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
-    melementA->SetBarRayleighDamping(0.01);
-    melementA->SetBarDensity(2. * 0.1 / (melementA->GetBarArea() * 1.0));
-    // melementA->SetBarDensity(0);
+    melementA->SetArea(0.1 * 0.02);
+    melementA->SetYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
+    melementA->SetRayleighDamping(0.01);
+    melementA->SetDensity(2. * 0.1 / (melementA->GetArea() * 1.0));
+    // melementA->SetDensity(0);
 
     // Remember to add elements to the mesh!
     my_mesh->AddElement(melementA);
@@ -235,8 +235,8 @@ void test_2b() {
     // two 3D nodes:
     auto melementA = chrono_types::make_shared<ChElementSpring>();
     melementA->SetNodes(mnodeA, mnodeB);
-    melementA->SetSpringK(20000);
-    melementA->SetDamperR(200);
+    melementA->SetSpringCoefficient(20000);
+    melementA->SetDampingCoefficient(200);
 
     // Remember to add elements to the mesh!
     my_mesh->AddElement(melementA);
@@ -410,17 +410,17 @@ void test_4() {
     // two 3D nodes:
     auto melementA = chrono_types::make_shared<ChElementBar>();
     melementA->SetNodes(mnodeA, mnodeB);
-    melementA->SetBarArea(0.1 * 0.02);
-    melementA->SetBarYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
-    melementA->SetBarRayleighDamping(0.01);
-    melementA->SetBarDensity(2. * 0.1 / (melementA->GetBarArea() * 1.0));
+    melementA->SetArea(0.1 * 0.02);
+    melementA->SetYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
+    melementA->SetRayleighDamping(0.01);
+    melementA->SetDensity(2. * 0.1 / (melementA->GetArea() * 1.0));
 
     auto melementB = chrono_types::make_shared<ChElementBar>();
     melementB->SetNodes(mnodeB, mnodeC);
-    melementB->SetBarArea(0.1 * 0.02);
-    melementB->SetBarYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
-    melementB->SetBarRayleighDamping(0.01);
-    melementB->SetBarDensity(2. * 0.1 / (melementB->GetBarArea() * 1.0));
+    melementB->SetArea(0.1 * 0.02);
+    melementB->SetYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
+    melementB->SetRayleighDamping(0.01);
+    melementB->SetDensity(2. * 0.1 / (melementB->GetArea() * 1.0));
 
     // Remember to add elements to the mesh!
     my_mesh->AddElement(melementA);
