@@ -40,10 +40,10 @@ class ChApi ChLinkLockScrew : public ChLinkLock {
     // Cdt, Cdtdt, [Cq] etc., in order to have z = tau * alpha.
     virtual void UpdateState() override;
 
-    double Get_tau() const { return tau; };
-    void Set_tau(double mset) { tau = mset; }
-    double Get_thread() const { return tau * (2 * CH_C_PI); };
-    void Set_thread(double mset) { tau = mset / (2 * CH_C_PI); }
+    double GetTransmissionRatio() const { return tau; };
+    void SetTransmissionRatio(double mset) { tau = mset; }
+    double GetThread() const { return tau * (2 * CH_C_PI); };
+    void SetThread(double mset) { tau = mset / (2 * CH_C_PI); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

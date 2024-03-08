@@ -486,7 +486,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Set_amp                       | rename: SetAmplitude                             |
 | ChFunction_Sine                   |                               | rename: ChFunctionSine                           |
 |                                   | (constructor)                 | changed args order to ampl, freq, phase          |
-|                                   | Get_phase                     | rename: SetPhase                                 |
+|                                   | Get_phase                     | rename: GetPhase                                 |
 |                                   | Set_phase                     | rename: SetPhase                                 |
 |                                   | SetFreq                       | rename: SetFrequency                             |
 |                                   | Get_w                         | rename: GetAngularRate                           |
@@ -532,6 +532,41 @@ Note that this represents a major public API change and we expect most user code
 | ChLinkClearance                   |                               | rename: ChLinkLockClearance                      |
 | ChLinkGear                        |                               | rename: ChLinkLockGear                           |
 | ChLinkLinActuator                 |                               | rename: ChLinkLockLinActuator                    |
+| ChLinkLockGear                    |                               |                                                  |
+|                                   | Get_a1                        | rename: GetRotation1                             |
+|                                   | Get_a2                        | rename: GetRotation2                             |
+|                                   | Get_alpha                     | rename: GetPressureAngle                         |
+|                                   | Get_beta                      | rename: GetPitchAngle                            |
+|                                   | Get_checkphase                | rename: GetEnforcePhase                          |
+|                                   | Get_epicyclic                 | rename: GetEpicyclic                             |
+|                                   | Get_local_shaft1              | rename: GetFrameShaft1                           |
+|                                   | Get_local_shaft2              | rename: GetFrameShaft2                           |
+|                                   | Get_phase                     | rename: GetPhase                                 |
+|                                   | Get_r1                        | rename: GetRadius1                               |
+|                                   | Get_r2                        | rename: GetRadius2                               |
+|                                   | Get_shaft_dir1                | rename: GetDirShaft1                             |
+|                                   | Get_shaft_dir2                | rename: GetDirShaft2                             |
+|                                   | Get_shaft_pos1                | rename: GetPosShaft1                             |
+|                                   | Get_shaft_pos2                | rename: GetPosShaft2                             |
+|                                   | Get_tau                       | rename: GetTransmissionRatio                     |
+|                                   | Reset_a1a2                    | rename: ResetRotations                           |
+|                                   | Set_alpha                     | rename: SetPressureAngle                         |
+|                                   | Set_beta                      | rename: SetPitchAngle                            |
+|                                   | Set_checkphase                | rename: SetEnforcePhase                          |
+|                                   | Set_local_shaft1              | rename: SetFrameShaft1                           |
+|                                   | Set_local_shaft2              | rename: SetFrameShaft2                           |
+|                                   | Set_epicyclic                 | rename: SetEpicyclic                             |
+|                                   | Set_tau                       | rename: SetTransmissionRatio                     |
+| ChLinkLockPulley                  |                               |                                                  |
+|                                   | Get_belt_up1                  | rename: GetBeltUpPos1                            |
+|                                   | Get_belt_up2                  | rename: GetBeltUpPos2                            |
+|                                   | Get_belt_low1                 | rename: GetBeltBottomPos1                        |
+|                                   | Get_belt_low2                 | rename: GetBeltBottomPos2                        |
+|                                   | Set_r1                        | rename: SetRadius1                               |
+|                                   | Set_r2                        | rename: SetRadius2                               |
+| ChLinkLockScrew                   |                               |                                                  |
+|                                   | Get_thread                    | rename: GetThread                                |
+|                                   | Set_thread                    | rename: SetThread                                |
 | ChLinkMate                        |                               |                                                  |
 |                                   | RestoreRedundant              | rename: ResetRedundant                           |
 | ChLinkMateCoaxial                 |                               | rename: ChLinkMateCylindrical                    |
@@ -553,6 +588,14 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetMotorRotTurns              | rename: GetMotorNumTurns                         |
 | ChLinkPointSpline                 |                               | rename: ChLinkLockPointSpline                    |
 | ChLinkPulley                      |                               | rename: ChLinkLockPulley                         |
+| ChLinkRackpinion                  |                               | rename: ChLinkMateRackPinion                     |
+|                                   | GetAlpha                      | rename: GetPressureAngle                         |
+|                                   | GetBeta                       | rename: GetPitchAngle                            |
+|                                   | GetCheckphase                 | rename: GetEnforcePhase                          |
+|                                   | SetAlpha                      | rename: SetPressureAngle                         |
+|                                   | SetBeta                       | rename: SetPitchAngle                            |
+|                                   | SetCheckphase                 | rename: SetEnforcePhase                          |
+|                                   | Reset_a1                      | rename: ResetRotation1                           |
 | ChLinkScrew                       |                               | rename: ChLinkLockScrew                          |
 | ChLinkTrajectory                  |                               | rename: ChLinkLockTrajectory                     |
 | ChList                            |                               | remove                                           |

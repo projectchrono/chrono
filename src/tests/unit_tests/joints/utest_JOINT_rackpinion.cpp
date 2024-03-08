@@ -178,9 +178,9 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
     rackpinionJoint->Initialize(pinion, rack, false, ChFrame<>(jointLoc, QuatFromAngleY(-CH_C_PI_2)),
                                 ChFrame<>(jointLoc + ChVector3d(0, 0, 0), QuatFromAngleY(-CH_C_PI_2)));
     rackpinionJoint->SetPinionRadius(-radiusPinion);
-    rackpinionJoint->SetAlpha(CH_C_PI_4);
-    rackpinionJoint->SetBeta(0);
-    rackpinionJoint->SetCheckphase(1);
+    rackpinionJoint->SetPressureAngle(CH_C_PI_4);
+    rackpinionJoint->SetPitchAngle(0);
+    rackpinionJoint->SetEnforcePhase(1);
     sys.AddLink(rackpinionJoint);
 
     // Perform the simulation (record results option)

@@ -683,21 +683,25 @@ class ChApi ChLinkMateRackPinion : public ChLinkMateGeneric {
 
     /// Get the primitive radius of the pinion.
     double GetPinionRadius() const { return R; }
+
     /// Set the primitive radius of the pinion.
     void SetPinionRadius(double mR) { R = mR; }
 
     /// Get the pressure angle (usually 20 deg for typical gears)
-    double GetAlpha() const { return alpha; }
+    double GetPressureAngle() const { return alpha; }
+
     /// Set the pressure angle (usually 20 deg for typical gears)
-    void SetAlpha(double mset) { alpha = mset; }
+    void SetPressureAngle(double mset) { alpha = mset; }
 
     /// Get the angle of teeth in bevel gears (0 deg for spur gears)
-    double GetBeta() const { return beta; }
+    double GetPitchAngle() const { return beta; }
+
     /// Set the angle of teeth in bevel gears (0 deg for spur gears)
-    void SetBeta(double mset) { beta = mset; }
+    void SetPitchAngle(double mset) { beta = mset; }
 
     /// Get the initial phase of rotation of pinion respect to rack
     double GetPhase() const { return phase; }
+
     /// Set the initial phase of rotation of pinion respect to rack
     void SetPhase(double mset) { phase = mset; }
 
@@ -710,17 +714,20 @@ class ChApi ChLinkMateRackPinion : public ChLinkMateGeneric {
     /// values, which might be affected by loss of numerical precision
     /// after few thousands of revolutions; keep in mind this if you do
     /// real-time simulations which must run for many hours.
-    void SetCheckphase(bool mset) { checkphase = mset; }
-    bool GetCheckphase() const { return checkphase; }
+    void SetEnforcePhase(bool mset) { checkphase = mset; }
+
+    bool GetEnforcePhase() const { return checkphase; }
 
     /// Get total rotation of 1st gear, respect to interaxis, in radians
-    double Get_a1() const { return a1; }
+    double GetRotation1() const { return a1; }
+
     /// Reset the total rotations of a1 and a2.
-    void Reset_a1() { a1 = 0; }
+    void ResetRotation1() { a1 = 0; }
 
     /// Set pinion shaft position and direction, in body1-relative reference.
     /// The shaft direction is the Z axis of that frame.
     void SetPinionFrame(ChFrame<double> mf) { local_pinion = mf; }
+
     /// Get pinion shaft position and direction, in body1-relative reference.
     /// The shaft direction is the Z axis of that frame.
     ChFrame<double> GetPinionFrame() const { return local_pinion; }
@@ -728,17 +735,20 @@ class ChApi ChLinkMateRackPinion : public ChLinkMateGeneric {
     /// Set rack position and direction, in body2-relative reference.
     /// The rack direction is the X axis of that frame.
     void SetRackFrame(ChFrame<double> mf) { local_rack = mf; }
+
     /// Get rack position and direction, in body2-relative reference.
     /// The rack direction is the X axis of that frame.
     ChFrame<double> GetRackFrame() const { return local_rack; }
 
     /// Get pinion shaft direction in absolute reference
     ChVector3d GetAbsPinionDir();
+
     /// Get pinion position in absolute reference
     ChVector3d GetAbsPinionPos();
 
     /// Get rack direction in absolute reference
     ChVector3d GetAbsRackDir();
+
     /// Get rack position in absolute reference
     ChVector3d GetAbsRackPos();
 

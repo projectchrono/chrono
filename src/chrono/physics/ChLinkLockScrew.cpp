@@ -20,7 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkLockScrew)
 
 ChLinkLockScrew::ChLinkLockScrew() {
-    Set_thread(0.05);
+    SetThread(0.05);
 
     // Mask: initialize our LinkMaskLF (lock formulation mask) to X,Y,Z,Rx Ry,
     // (note: the Z lock is not a standard LinkLock z-lock and will be handled as a custom screw constraint
@@ -57,8 +57,8 @@ void ChLinkLockScrew::UpdateState() {
 
         scr_C = mrelz - tau * 2.0 * zangle;
         // modulus correction..
-        scr_C = scr_C - Get_thread() * floor(scr_C / Get_thread());
-        double shiftedC = scr_C - Get_thread() * ceil(scr_C / Get_thread());
+        scr_C = scr_C - GetThread() * floor(scr_C / GetThread());
+        double shiftedC = scr_C - GetThread() * ceil(scr_C / GetThread());
         if (fabs(scr_C) > fabs(shiftedC))
             scr_C = shiftedC;
 
@@ -85,8 +85,8 @@ void ChLinkLockScrew::UpdateState() {
 
         scr_C = mrelz - tau * 2.0 * zangle;
         // modulus correction..
-        scr_C = scr_C - Get_thread() * floor(scr_C / Get_thread());
-        double shiftedC = scr_C - Get_thread() * ceil(scr_C / Get_thread());
+        scr_C = scr_C - GetThread() * floor(scr_C / GetThread());
+        double shiftedC = scr_C - GetThread() * ceil(scr_C / GetThread());
         if (fabs(scr_C) > fabs(shiftedC))
             scr_C = shiftedC;
 

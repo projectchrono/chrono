@@ -60,17 +60,17 @@ ChLinkLockPulley::ChLinkLockPulley(const ChLinkLockPulley& other) : ChLinkLockLo
     shaft_dist = other.shaft_dist;
 }
 
-void ChLinkLockPulley::Set_r1(double mr) {
+void ChLinkLockPulley::SetRadius1(double mr) {
     r1 = mr;
     tau = r1 / r2;
 }
 
-void ChLinkLockPulley::Set_r2(double mr) {
+void ChLinkLockPulley::SetRadius2(double mr) {
     r2 = mr;
     tau = r1 / r2;
 }
 
-ChVector3d ChLinkLockPulley::Get_shaft_dir1() {
+ChVector3d ChLinkLockPulley::GetDirShaft1() {
     if (m_body1) {
         ChFrame<double> absframe = ((ChFrame<double>*)m_body1)->TransformLocalToParent(local_shaft1);
         return absframe.GetRotMat().GetAxisZ();
@@ -78,7 +78,7 @@ ChVector3d ChLinkLockPulley::Get_shaft_dir1() {
         return VECT_Z;
 }
 
-ChVector3d ChLinkLockPulley::Get_shaft_dir2() {
+ChVector3d ChLinkLockPulley::GetDirShaft2() {
     if (m_body1) {
         ChFrame<double> absframe = ((ChFrame<double>*)m_body2)->TransformLocalToParent(local_shaft2);
         return absframe.GetRotMat().GetAxisZ();
@@ -86,7 +86,7 @@ ChVector3d ChLinkLockPulley::Get_shaft_dir2() {
         return VECT_Z;
 }
 
-ChVector3d ChLinkLockPulley::Get_shaft_pos1() {
+ChVector3d ChLinkLockPulley::GetPosShaft1() {
     if (m_body1) {
         ChFrame<double> absframe = ((ChFrame<double>*)m_body1)->TransformLocalToParent(local_shaft1);
         return absframe.GetPos();
@@ -94,7 +94,7 @@ ChVector3d ChLinkLockPulley::Get_shaft_pos1() {
         return VNULL;
 }
 
-ChVector3d ChLinkLockPulley::Get_shaft_pos2() {
+ChVector3d ChLinkLockPulley::GetPosShaft2() {
     if (m_body1) {
         ChFrame<double> absframe = ((ChFrame<double>*)m_body2)->TransformLocalToParent(local_shaft2);
         return absframe.GetPos();
@@ -109,7 +109,7 @@ void ChLinkLockPulley::UpdateTime(double mytime) {
     ChFrame<double> abs_shaft1 = ((ChFrame<double>*)m_body1)->TransformLocalToParent(local_shaft1);
     ChFrame<double> abs_shaft2 = ((ChFrame<double>*)m_body2)->TransformLocalToParent(local_shaft2);
 
-    ChVector3d dcc_w = Vsub(Get_shaft_pos2(), Get_shaft_pos1());
+    ChVector3d dcc_w = Vsub(GetPosShaft2(), GetPosShaft1());
 
     // compute actual rotation of the two wheels (relative to truss).
     ChVector3d md1 = abs_shaft1.GetRotMat().transpose() * dcc_w;
@@ -156,22 +156,22 @@ void ChLinkLockPulley::UpdateTime(double mytime) {
 
     // Move markers 1 and 2 to align them as pulley ends
 
-    ChVector3d d21_w = dcc_w - Get_shaft_dir1() * Vdot(Get_shaft_dir1(), dcc_w);
+    ChVector3d d21_w = dcc_w - GetDirShaft1() * Vdot(GetDirShaft1(), dcc_w);
     ChVector3d D21_w = Vnorm(d21_w);
 
     shaft_dist = d21_w.Length();
 
-    ChVector3d U1_w = Vcross(Get_shaft_dir1(), D21_w);
+    ChVector3d U1_w = Vcross(GetDirShaft1(), D21_w);
 
     double gamma1 = acos((r1 - r2) / shaft_dist);
 
     ChVector3d Ru_w = D21_w * cos(gamma1) + U1_w * sin(gamma1);
     ChVector3d Rl_w = D21_w * cos(gamma1) - U1_w * sin(gamma1);
 
-    belt_up1 = Get_shaft_pos1() + Ru_w * r1;
-    belt_low1 = Get_shaft_pos1() + Rl_w * r1;
-    belt_up2 = Get_shaft_pos1() + d21_w + Ru_w * r2;
-    belt_low2 = Get_shaft_pos1() + d21_w + Rl_w * r2;
+    belt_up1 = GetPosShaft1() + Ru_w * r1;
+    belt_low1 = GetPosShaft1() + Rl_w * r1;
+    belt_up2 = GetPosShaft1() + d21_w + Ru_w * r2;
+    belt_low2 = GetPosShaft1() + d21_w + Rl_w * r2;
 
     // marker alignment
     ChVector3d Dxu = Vnorm(belt_up2 - belt_up1);
