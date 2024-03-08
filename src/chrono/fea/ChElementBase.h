@@ -51,7 +51,7 @@ class ChApi ChElementBase {
     virtual unsigned int GetNumCoordsPosLevelActive() { return GetNumCoordsPosLevel(); }
 
     /// Get the number of coordinates from the specified node that are used by this element.
-    /// Note that this may be different from the value returned by GetNodeN(n)->GetNumCoordsVelLevel().
+    /// Note that this may be different from the value returned by GetNode(n)->GetNumCoordsVelLevel().
     virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) = 0;
 
     /// Get the actual number of active coordinates from the specified node that are used by this element.
@@ -60,7 +60,7 @@ class ChApi ChElementBase {
     virtual unsigned int GetNodeNumCoordsPosLevelActive(unsigned int n) { return GetNodeNumCoordsPosLevel(n); }
 
     /// Access the nth node.
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(unsigned int n) = 0;
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) = 0;
 
     // FEM functions
 

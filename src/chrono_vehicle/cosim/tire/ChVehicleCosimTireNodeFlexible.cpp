@@ -137,7 +137,7 @@ void ChVehicleCosimTireNodeFlexible::InitializeTire(std::shared_ptr<ChWheel> whe
     for (unsigned int ie = 0; ie < mesh->GetNumElements(); ie++) {
         auto element = mesh->GetElement(ie);
         for (int in = 0; in < 4; in++) {
-            auto node = element->GetNodeN(nodeOrder[in]);
+            auto node = element->GetNode(nodeOrder[in]);
             auto node_itr = std::find(mesh->GetNodes().begin(), mesh->GetNodes().end(), node);
             auto iv = std::distance(mesh->GetNodes().begin(), node_itr);
             m_adjElements[iv].push_back(ie);

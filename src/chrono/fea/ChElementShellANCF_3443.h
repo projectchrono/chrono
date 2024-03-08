@@ -146,7 +146,7 @@ class ChApi ChElementShellANCF_3443 : public ChElementANCF,
     void SetDimensions(double lenX, double lenY);
 
     /// Access the n-th node of this element.
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(unsigned int n) override { return m_nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return m_nodes[n]; }
 
     /// Get a handle to the first node of this element.
     std::shared_ptr<ChNodeFEAxyzDDD> GetNodeA() const { return m_nodes[0]; }

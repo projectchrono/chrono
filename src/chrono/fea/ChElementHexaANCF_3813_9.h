@@ -67,7 +67,7 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
     }
 
     /// Access the n-th node of this element.
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(unsigned int n) override {
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override {
         if (n < 8)
             return m_nodes[n];
 

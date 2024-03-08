@@ -129,7 +129,7 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
 
 
     /// Access the n-th node of this element, not considering those marked with "nullptr" ex. if at boundary
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(unsigned int n) override { return m_nodes[nodes_used_to_six[n]]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return m_nodes[nodes_used_to_six[n]]; }
 
     /// Get a handle to the n node of this element, among the three of the triangle part, n=0..2
     std::shared_ptr<ChNodeFEAxyz> GetNodeTriangleN(unsigned int n) const { return m_nodes[n]; }

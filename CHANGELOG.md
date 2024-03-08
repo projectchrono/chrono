@@ -320,6 +320,7 @@ Note that this represents a major public API change and we expect most user code
 | ChElementBse                      |                               |                                                  |
 |                                   | GetNdofs                      | rename: GetNumCoordsPosLevel                     |
 |                                   | GetNdofs_active               | rename: GetNumCoordsPosLevelActive               |
+|                                   | GetNodeN                      | rename: GetNode                                  |
 |                                   | GetNodeNdofs                  | rename: GetNodeNumCoordsPosLevel                 |
 |                                   | GetNodeNdofs_active           | rename: GetNodeNumCoordsPosLevelActive           |
 |                                   | GetNnodes                     | rename: GetNumNodes                              |

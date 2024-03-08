@@ -120,7 +120,7 @@ class ChApi ChElementShellReissner4 : public ChElementShell, public ChLoadableUV
                   std::shared_ptr<ChNodeFEAxyzrot> nodeD);
 
     /// Access the n-th node of this element.
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(unsigned int n) override { return m_nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return m_nodes[n]; }
 
     /// Get a handle to the first node of this element.
     std::shared_ptr<ChNodeFEAxyzrot> GetNodeA() const { return m_nodes[0]; }

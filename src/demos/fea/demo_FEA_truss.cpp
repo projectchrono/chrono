@@ -245,8 +245,8 @@ int main(int argc, char* argv[]) {
         // draw spring elements as lines
         for (auto mspring : springs) {
             if (mspring->GetSpringK() > 0) {
-                tools::drawSegment(vis.get(), std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNodeN(0))->GetPos(),
-                                   std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNodeN(1))->GetPos(),
+                tools::drawSegment(vis.get(), std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNode(0))->GetPos(),
+                                   std::dynamic_pointer_cast<ChNodeFEAxyz>(mspring->GetNode(1))->GetPos(),
                                    ChColor(1, 1, 1), true);
             }
             // cut springs if beyond a stress limit

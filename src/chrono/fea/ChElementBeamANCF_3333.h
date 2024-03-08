@@ -130,7 +130,7 @@ class ChApi ChElementBeamANCF_3333 : public ChElementANCF,
     std::shared_ptr<ChMaterialBeamANCF> GetMaterial() const { return m_material; }
 
     /// Access the n-th node of this element.
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(unsigned int n) override { return m_nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return m_nodes[n]; }
 
     /// Get a handle to the first node of this element.
     std::shared_ptr<ChNodeFEAxyzDD> GetNodeA() const { return m_nodes[0]; }

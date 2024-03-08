@@ -54,7 +54,7 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
     virtual unsigned int GetNumCoordsPosLevel() override { return GetNumNodes() * 6; }
     virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return 6; }
 
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(unsigned int n) override { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return nodes[n]; }
     virtual std::vector<std::shared_ptr<ChNodeFEAxyzrot>>& GetNodes() { return nodes; }
 
     virtual void SetNodesCubic(std::shared_ptr<ChNodeFEAxyzrot> nodeA,

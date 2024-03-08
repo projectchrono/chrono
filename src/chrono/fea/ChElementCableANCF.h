@@ -60,7 +60,7 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
     /// Get the number of coordinates from the n-th node used by this element.
     virtual unsigned int GetNodeNumCoordsPosLevelActive(unsigned int n) override { return m_nodes[n]->GetNumCoordsPosLevelActive(); }
 
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(unsigned int n) override { return m_nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return m_nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA, std::shared_ptr<ChNodeFEAxyzD> nodeB);
 

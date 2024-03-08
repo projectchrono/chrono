@@ -198,10 +198,10 @@ void ChVisualShapeFEA::UpdateBuffers_Tetrahedron(std::shared_ptr<fea::ChElementB
                                                  unsigned int& i_vcols,
                                                  unsigned int& i_triindex,
                                                  bool& need_automatic_smoothing) {
-    auto node0 = std::static_pointer_cast<ChNodeFEAxyz>(element->GetNodeN(0));
-    auto node1 = std::static_pointer_cast<ChNodeFEAxyz>(element->GetNodeN(1));
-    auto node2 = std::static_pointer_cast<ChNodeFEAxyz>(element->GetNodeN(2));
-    auto node3 = std::static_pointer_cast<ChNodeFEAxyz>(element->GetNodeN(3));
+    auto node0 = std::static_pointer_cast<ChNodeFEAxyz>(element->GetNode(0));
+    auto node1 = std::static_pointer_cast<ChNodeFEAxyz>(element->GetNode(1));
+    auto node2 = std::static_pointer_cast<ChNodeFEAxyz>(element->GetNode(2));
+    auto node3 = std::static_pointer_cast<ChNodeFEAxyz>(element->GetNode(3));
 
     unsigned int ivert_el = i_verts;
     unsigned int inorm_el = i_vnorms;
@@ -273,10 +273,10 @@ void ChVisualShapeFEA::UpdateBuffers_Tetra_4_P(std::shared_ptr<fea::ChElementBas
                                                unsigned int& i_vcols,
                                                unsigned int& i_triindex,
                                                bool& need_automatic_smoothing) {
-    auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(element->GetNodeN(0));
-    auto node1 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(element->GetNodeN(1));
-    auto node2 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(element->GetNodeN(2));
-    auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(element->GetNodeN(3));
+    auto node0 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(element->GetNode(0));
+    auto node1 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(element->GetNode(1));
+    auto node2 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(element->GetNode(2));
+    auto node3 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(element->GetNode(3));
 
     unsigned int ivert_el = i_verts;
     unsigned int inorm_el = i_vnorms;
@@ -350,7 +350,7 @@ void ChVisualShapeFEA::UpdateBuffers_Hex(std::shared_ptr<ChElementBase> element,
     ChVector3d pt[8];
 
     for (int in = 0; in < 8; ++in) {
-        nodes[in] = std::static_pointer_cast<ChNodeFEAxyz>(element->GetNodeN(in));
+        nodes[in] = std::static_pointer_cast<ChNodeFEAxyz>(element->GetNode(in));
         if (!undeformed_reference)
             pt[in] = nodes[in]->GetPos();
         else
@@ -731,9 +731,9 @@ void ChVisualShapeFEA::UpdateBuffers_LoadSurface(std::shared_ptr<ChMeshSurface> 
                                                  bool& need_automatic_smoothing) {
     for (const auto& face : surface->GetFacesList()) {
         if (auto face_tetra = std::dynamic_pointer_cast<ChTetrahedronFace>(face)) {
-            auto node0 = std::static_pointer_cast<ChNodeFEAxyz>(face_tetra->GetNodeN(0));
-            auto node1 = std::static_pointer_cast<ChNodeFEAxyz>(face_tetra->GetNodeN(1));
-            auto node2 = std::static_pointer_cast<ChNodeFEAxyz>(face_tetra->GetNodeN(2));
+            auto node0 = std::static_pointer_cast<ChNodeFEAxyz>(face_tetra->GetNode(0));
+            auto node1 = std::static_pointer_cast<ChNodeFEAxyz>(face_tetra->GetNode(1));
+            auto node2 = std::static_pointer_cast<ChNodeFEAxyz>(face_tetra->GetNode(2));
 
             unsigned int ivert_el = i_verts;
             unsigned int inorm_el = i_vnorms;
@@ -1069,10 +1069,10 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
             for (unsigned int iel = 0; iel < FEMmesh->GetNumElements(); ++iel)
                 if (auto myelement = std::dynamic_pointer_cast<ChElementTetraCorot_4_P>(FEMmesh->GetElement(iel))) {
                     ChVector3d mvP(myelement->GetPgradient());
-                    auto n0 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNodeN(0));
-                    auto n1 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNodeN(1));
-                    auto n2 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNodeN(2));
-                    auto n3 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNodeN(3));
+                    auto n0 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNode(0));
+                    auto n1 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNode(1));
+                    auto n2 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNode(2));
+                    auto n3 = std::static_pointer_cast<ChNodeFEAxyzP>(myelement->GetNode(3));
                     ChVector3d mPoint = (n0->GetPos() + n1->GetPos() + n2->GetPos() + n3->GetPos()) *
                                         0.25;  // to do: better placement in Gauss point
                     m_glyphs_shape->SetGlyphVector(iel, mPoint, mvP * symbols_scale, symbolscolor);
@@ -1091,10 +1091,10 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
                     v1.Normalize();
                     v2.Normalize();
                     v3.Normalize();
-                    auto n0 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNodeN(0));
-                    auto n1 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNodeN(1));
-                    auto n2 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNodeN(2));
-                    auto n3 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNodeN(3));
+                    auto n0 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNode(0));
+                    auto n1 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNode(1));
+                    auto n2 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNode(2));
+                    auto n3 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNode(3));
                     //// TODO: better placement in Gauss point
                     ChVector3d mPoint = (n0->GetPos() + n1->GetPos() + n2->GetPos() + n3->GetPos()) * 0.25;
                     m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v1 * e1 * symbols_scale,
@@ -1121,10 +1121,10 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
                     v1.Normalize();
                     v2.Normalize();
                     v3.Normalize();
-                    auto n0 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNodeN(0));
-                    auto n1 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNodeN(1));
-                    auto n2 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNodeN(2));
-                    auto n3 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNodeN(3));
+                    auto n0 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNode(0));
+                    auto n1 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNode(1));
+                    auto n2 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNode(2));
+                    auto n3 = std::static_pointer_cast<ChNodeFEAxyz>(myelement->GetNode(3));
                     //// TODO: better placement in Gauss point
                     ChVector3d mPoint = (n0->GetPos() + n1->GetPos() + n2->GetPos() + n3->GetPos()) * 0.25;
                     m_glyphs_shape->SetGlyphVector(nglyvect, mPoint, myelement->Rotation() * v1 * e1 * symbols_scale,

@@ -30,10 +30,10 @@ void ChElementGeneric::EleIntLoadResidual_F(ChVectorDynamic<>& R, const double c
     unsigned int stride = 0;
     for (unsigned int in = 0; in < GetNumNodes(); in++) {
         unsigned int node_dofs = GetNodeNumCoordsPosLevelActive(in);
-        if (!GetNodeN(in)->IsFixed()) {
+        if (!GetNode(in)->IsFixed()) {
             for (unsigned int j = 0; j < node_dofs; j++)
 #pragma omp atomic
-                R(GetNodeN(in)->NodeGetOffsetVelLevel() + j) += Fi(stride + j);
+                R(GetNode(in)->NodeGetOffsetVelLevel() + j) += Fi(stride + j);
         }
         stride += GetNodeNumCoordsPosLevel(in);
     }
@@ -49,8 +49,8 @@ void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVecto
     unsigned int stride = 0;
     for (unsigned int in = 0; in < GetNumNodes(); in++) {
         unsigned int node_dofs = GetNodeNumCoordsPosLevelActive(in);
-        if (!GetNodeN(in)->IsFixed()) {
-            mqi.segment(stride, node_dofs) = w.segment(GetNodeN(in)->NodeGetOffsetVelLevel(), node_dofs);
+        if (!GetNode(in)->IsFixed()) {
+            mqi.segment(stride, node_dofs) = w.segment(GetNode(in)->NodeGetOffsetVelLevel(), node_dofs);
         }
         stride += GetNodeNumCoordsPosLevel(in);
     }
@@ -60,8 +60,8 @@ void ChElementGeneric::EleIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVecto
     stride = 0;
     for (unsigned int in = 0; in < GetNumNodes(); in++) {
         unsigned int node_dofs = GetNodeNumCoordsPosLevelActive(in);
-        if (!GetNodeN(in)->IsFixed())
-            R.segment(GetNodeN(in)->NodeGetOffsetVelLevel(), node_dofs) += Fi.segment(stride, node_dofs);
+        if (!GetNode(in)->IsFixed())
+            R.segment(GetNode(in)->NodeGetOffsetVelLevel(), node_dofs) += Fi.segment(stride, node_dofs);
         stride += GetNodeNumCoordsPosLevel(in);
     }
 }
@@ -77,8 +77,8 @@ void ChElementGeneric::EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& er
     unsigned int stride = 0;
     for (unsigned int in = 0; in < GetNumNodes(); in++) {
         unsigned int node_dofs = GetNodeNumCoordsPosLevelActive(in);
-        if (!GetNodeN(in)->IsFixed())
-            Md.segment(GetNodeN(in)->NodeGetOffsetVelLevel(), node_dofs) += dMi.segment(stride, node_dofs);
+        if (!GetNode(in)->IsFixed())
+            Md.segment(GetNode(in)->NodeGetOffsetVelLevel(), node_dofs) += dMi.segment(stride, node_dofs);
         stride += GetNodeNumCoordsPosLevel(in);
     }
 }
@@ -95,10 +95,10 @@ void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const 
     unsigned int stride = 0;
     for (unsigned int in = 0; in < GetNumNodes(); in++) {
         unsigned int node_dofs = GetNodeNumCoordsPosLevelActive(in);
-        if (!GetNodeN(in)->IsFixed()) {
+        if (!GetNode(in)->IsFixed()) {
             for (unsigned int j = 0; j < node_dofs; j++)
 #pragma omp atomic
-                R(GetNodeN(in)->NodeGetOffsetVelLevel() + j) += Fg(stride + j);
+                R(GetNode(in)->NodeGetOffsetVelLevel() + j) += Fg(stride + j);
         }
         stride += GetNodeNumCoordsPosLevel(in);
     }

@@ -676,8 +676,8 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         if (auto mtetra = std::dynamic_pointer_cast<ChElementTetrahedron>(mesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
                 ChTetrahedronFace mface(mtetra, nface);
-                std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
-                                                          mface.GetNodeN(2).get()};
+                std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNode(0).get(), mface.GetNode(1).get(),
+                                                          mface.GetNode(2).get()};
                 std::sort(mface_key.begin(), mface_key.end());
                 face_map.insert({mface_key, mface});
             }
@@ -687,12 +687,12 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         if (auto mtetra = std::dynamic_pointer_cast<ChElementTetrahedron>(mesh->GetElement(ie))) {
             for (int nface = 0; nface < 4; ++nface) {
                 ChTetrahedronFace mface(mtetra, nface);
-                std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
-                                                          mface.GetNodeN(2).get()};
+                std::array<ChNodeFEAxyz*, 3> mface_key = {mface.GetNode(0).get(), mface.GetNode(1).get(),
+                                                          mface.GetNode(2).get()};
                 std::sort(mface_key.begin(), mface_key.end());
                 if (face_map.count(mface_key) == 1) {
                     // Found a face that is not shared.. so it is a boundary face.
-                    triangles_ptrs.push_back({{mface.GetNodeN(0), mface.GetNodeN(1), mface.GetNodeN(2)}});
+                    triangles_ptrs.push_back({{mface.GetNode(0), mface.GetNode(1), mface.GetNode(2)}});
                 }
             }
         }
@@ -705,8 +705,8 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         if (auto mbrick = std::dynamic_pointer_cast<ChElementHexahedron>(mesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {
                 ChHexahedronFace mface(mbrick, nface);
-                std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
-                                                          mface.GetNodeN(2).get(), mface.GetNodeN(3).get()};
+                std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNode(0).get(), mface.GetNode(1).get(),
+                                                          mface.GetNode(2).get(), mface.GetNode(3).get()};
                 std::sort(mface_key.begin(), mface_key.end());
                 face_map_brick.insert({mface_key, mface});
             }
@@ -716,13 +716,13 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
         if (auto mbrick = std::dynamic_pointer_cast<ChElementHexahedron>(mesh->GetElement(ie))) {
             for (int nface = 0; nface < 6; ++nface) {   // Each of the 6 faces of a brick
                 ChHexahedronFace mface(mbrick, nface);  // Create a face of the element
-                std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNodeN(0).get(), mface.GetNodeN(1).get(),
-                                                          mface.GetNodeN(2).get(), mface.GetNodeN(3).get()};
+                std::array<ChNodeFEAxyz*, 4> mface_key = {mface.GetNode(0).get(), mface.GetNode(1).get(),
+                                                          mface.GetNode(2).get(), mface.GetNode(3).get()};
                 std::sort(mface_key.begin(), mface_key.end());
                 if (face_map_brick.count(mface_key) == 1) {
                     // Found a face that is not shared.. so it is a boundary face: Make two triangles out of that face
-                    triangles_ptrs.push_back({{mface.GetNodeN(0), mface.GetNodeN(1), mface.GetNodeN(2)}});
-                    triangles_ptrs.push_back({{mface.GetNodeN(0), mface.GetNodeN(2), mface.GetNodeN(3)}});
+                    triangles_ptrs.push_back({{mface.GetNode(0), mface.GetNode(1), mface.GetNode(2)}});
+                    triangles_ptrs.push_back({{mface.GetNode(0), mface.GetNode(2), mface.GetNode(3)}});
                 }
             }
         }

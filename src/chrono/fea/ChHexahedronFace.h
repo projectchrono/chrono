@@ -26,7 +26,7 @@ namespace fea {
 /// @{
 
 /// Face of a hexahedron-shaped element.
-/// Corner nodes, obtainable with GetNodeN(), are in counterclockwise order seen from the outside.
+/// Corner nodes, obtainable with GetNode(), are in counterclockwise order seen from the outside.
 /// <pre>
 ///         v
 ///         ^
@@ -44,7 +44,7 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
     ~ChHexahedronFace() {}
 
     // Get the specified face node (0 <= i <= 3).
-    std::shared_ptr<ChNodeFEAxyz> GetNodeN(unsigned int i) const {
+    std::shared_ptr<ChNodeFEAxyz> GetNode(unsigned int i) const {
         static int iface0[] = {0, 3, 2, 1};
         static int iface1[] = {0, 1, 5, 4};
         static int iface2[] = {1, 2, 6, 5};
@@ -87,18 +87,18 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
 
     /// Get all the DOFs packed in a single vector (position part).
     virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override {
-        mD.segment(block_offset + 0, 3) = GetNodeN(0)->GetPos().eigen();
-        mD.segment(block_offset + 3, 3) = GetNodeN(1)->GetPos().eigen();
-        mD.segment(block_offset + 6, 3) = GetNodeN(2)->GetPos().eigen();
-        mD.segment(block_offset + 9, 3) = GetNodeN(3)->GetPos().eigen();
+        mD.segment(block_offset + 0, 3) = GetNode(0)->GetPos().eigen();
+        mD.segment(block_offset + 3, 3) = GetNode(1)->GetPos().eigen();
+        mD.segment(block_offset + 6, 3) = GetNode(2)->GetPos().eigen();
+        mD.segment(block_offset + 9, 3) = GetNode(3)->GetPos().eigen();
     }
 
     /// Get all the DOFs packed in a single vector (speed part).
     virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override {
-        mD.segment(block_offset + 0, 3) = GetNodeN(0)->GetPosDer().eigen();
-        mD.segment(block_offset + 3, 3) = GetNodeN(1)->GetPosDer().eigen();
-        mD.segment(block_offset + 6, 3) = GetNodeN(2)->GetPosDer().eigen();
-        mD.segment(block_offset + 9, 3) = GetNodeN(3)->GetPosDer().eigen();
+        mD.segment(block_offset + 0, 3) = GetNode(0)->GetPosDer().eigen();
+        mD.segment(block_offset + 3, 3) = GetNode(1)->GetPosDer().eigen();
+        mD.segment(block_offset + 6, 3) = GetNode(2)->GetPosDer().eigen();
+        mD.segment(block_offset + 9, 3) = GetNode(3)->GetPosDer().eigen();
     }
 
     /// Increment all DOFs using a delta.
@@ -108,7 +108,7 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
                                         const unsigned int off_v,
                                         const ChStateDelta& Dv) override {
         for (int i = 0; i < 4; ++i) {
-            GetNodeN(i)->NodeIntStateIncrement(off_x + i * 3, x_new, x, off_v + i * 3, Dv);
+            GetNode(i)->NodeIntStateIncrement(off_x + i * 3, x_new, x, off_v + i * 3, Dv);
         }
     }
 
@@ -119,18 +119,18 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
     virtual unsigned int GetSubBlocks() override { return 4; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return GetNodeN(nblock)->NodeGetOffsetVelLevel(); }
+    virtual unsigned int GetSubBlockOffset(int nblock) override { return GetNode(nblock)->NodeGetOffsetVelLevel(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return !GetNodeN(nblock)->IsFixed(); }
+    virtual bool IsSubBlockActive(int nblock) const override { return !GetNode(nblock)->IsFixed(); }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override {
         for (int i = 0; i < 4; ++i)
-            mvars.push_back(&GetNodeN(i)->Variables());
+            mvars.push_back(&GetNode(i)->Variables());
     };
 
     /// Evaluate N'*F , where N is some type of shape function evaluated at U,V coordinates of the surface, each ranging
@@ -148,9 +148,9 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
         ShapeFunctions(N, U, V);
 
         //// TODO  exact det of jacobian at u,v
-        detJ = ((GetNodeN(0)->GetPos() - GetNodeN(1)->GetPos()) - (GetNodeN(2)->GetPos() - GetNodeN(3)->GetPos()))
+        detJ = ((GetNode(0)->GetPos() - GetNode(1)->GetPos()) - (GetNode(2)->GetPos() - GetNode(3)->GetPos()))
                    .Length() *
-               ((GetNodeN(1)->GetPos() - GetNodeN(2)->GetPos()) - (GetNodeN(3)->GetPos() - GetNodeN(0)->GetPos()))
+               ((GetNode(1)->GetPos() - GetNode(2)->GetPos()) - (GetNode(3)->GetPos() - GetNode(0)->GetPos()))
                    .Length();
         // (approximate detJ, ok only for rectangular face)
 
@@ -165,9 +165,9 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
     /// Get the normal to the surface at the parametric coordinate u,v.
     /// Normal must be considered pointing outside in case the surface is a boundary to a volume.
     virtual ChVector3d ComputeNormal(const double U, const double V) override {
-        ChVector3d p0 = GetNodeN(0)->GetPos();
-        ChVector3d p1 = GetNodeN(1)->GetPos();
-        ChVector3d p2 = GetNodeN(2)->GetPos();
+        ChVector3d p0 = GetNode(0)->GetPos();
+        ChVector3d p1 = GetNode(1)->GetPos();
+        ChVector3d p2 = GetNode(2)->GetPos();
         return Vcross(p1 - p0, p2 - p0).GetNormalized();
     }
 

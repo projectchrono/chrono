@@ -56,7 +56,7 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     virtual unsigned int GetNumCoordsPosLevel() override { return 2 * 6; }
     virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return 6; }
 
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(unsigned int n) override { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyzrot> nodeA, std::shared_ptr<ChNodeFEAxyzrot> nodeB);
 

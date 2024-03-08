@@ -54,11 +54,11 @@ void ChMeshExporter::WriteMesh(std::shared_ptr<ChMesh> mesh, const std::string& 
             mynodes.resize(2);
             out_stream << "2 ";
             int nodeOrder[] = {0, 1};
-            mynodes[0] = elementC->GetNodeN(nodeOrder[0])->GetIndex();
-            mynodes[1] = elementC->GetNodeN(nodeOrder[1])->GetIndex();
+            mynodes[0] = elementC->GetNode(nodeOrder[0])->GetIndex();
+            mynodes[1] = elementC->GetNode(nodeOrder[1])->GetIndex();
             CableElemNodes.push_back(mynodes);
             for (int myNodeN = 0; myNodeN < mynodes.size(); myNodeN++) {
-                auto nodeA = (elementC->GetNodeN(nodeOrder[myNodeN]));
+                auto nodeA = (elementC->GetNode(nodeOrder[myNodeN]));
                 std::vector<std::shared_ptr<ChNodeFEAbase>>::iterator it;
                 it = find(myvector.begin(), myvector.end(), nodeA);
                 if (it == myvector.end()) {
@@ -73,13 +73,13 @@ void ChMeshExporter::WriteMesh(std::shared_ptr<ChMesh> mesh, const std::string& 
             mynodes.resize(4);
             out_stream << "4 ";
             int nodeOrder[] = {0, 1, 2, 3};
-            mynodes[0] = elementS->GetNodeN(nodeOrder[0])->GetIndex();
-            mynodes[1] = elementS->GetNodeN(nodeOrder[1])->GetIndex();
-            mynodes[2] = elementS->GetNodeN(nodeOrder[2])->GetIndex();
-            mynodes[3] = elementS->GetNodeN(nodeOrder[3])->GetIndex();
+            mynodes[0] = elementS->GetNode(nodeOrder[0])->GetIndex();
+            mynodes[1] = elementS->GetNode(nodeOrder[1])->GetIndex();
+            mynodes[2] = elementS->GetNode(nodeOrder[2])->GetIndex();
+            mynodes[3] = elementS->GetNode(nodeOrder[3])->GetIndex();
             ShellElemNodes.push_back(mynodes);
             for (int myNodeN = 0; myNodeN < mynodes.size(); myNodeN++) {
-                auto nodeA = (elementS->GetNodeN(nodeOrder[myNodeN]));
+                auto nodeA = (elementS->GetNode(nodeOrder[myNodeN]));
                 std::vector<std::shared_ptr<ChNodeFEAbase>>::iterator it;
                 it = find(myvector.begin(), myvector.end(), nodeA);
                 if (it == myvector.end()) {
@@ -94,17 +94,17 @@ void ChMeshExporter::WriteMesh(std::shared_ptr<ChMesh> mesh, const std::string& 
             mynodes.resize(8);
             out_stream << "8 ";
             int nodeOrder[] = {0, 1, 2, 3, 4, 5, 6, 7};
-            mynodes[0] = elementB->GetNodeN(nodeOrder[0])->GetIndex();
-            mynodes[1] = elementB->GetNodeN(nodeOrder[1])->GetIndex();
-            mynodes[2] = elementB->GetNodeN(nodeOrder[2])->GetIndex();
-            mynodes[3] = elementB->GetNodeN(nodeOrder[3])->GetIndex();
-            mynodes[4] = elementB->GetNodeN(nodeOrder[4])->GetIndex();
-            mynodes[5] = elementB->GetNodeN(nodeOrder[5])->GetIndex();
-            mynodes[6] = elementB->GetNodeN(nodeOrder[6])->GetIndex();
-            mynodes[7] = elementB->GetNodeN(nodeOrder[7])->GetIndex();
+            mynodes[0] = elementB->GetNode(nodeOrder[0])->GetIndex();
+            mynodes[1] = elementB->GetNode(nodeOrder[1])->GetIndex();
+            mynodes[2] = elementB->GetNode(nodeOrder[2])->GetIndex();
+            mynodes[3] = elementB->GetNode(nodeOrder[3])->GetIndex();
+            mynodes[4] = elementB->GetNode(nodeOrder[4])->GetIndex();
+            mynodes[5] = elementB->GetNode(nodeOrder[5])->GetIndex();
+            mynodes[6] = elementB->GetNode(nodeOrder[6])->GetIndex();
+            mynodes[7] = elementB->GetNode(nodeOrder[7])->GetIndex();
             BrickElemNodes.push_back(mynodes);
             for (int myNodeN = 0; myNodeN < mynodes.size(); myNodeN++) {
-                auto nodeA = (elementB->GetNodeN(nodeOrder[myNodeN]));
+                auto nodeA = (elementB->GetNode(nodeOrder[myNodeN]));
                 std::vector<std::shared_ptr<ChNodeFEAbase>>::iterator it;
                 it = find(myvector.begin(), myvector.end(), nodeA);
                 if (it == myvector.end()) {

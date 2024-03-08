@@ -50,7 +50,7 @@ class ChApi ChElementTetraCorot_4 : public ChElementTetrahedron,
 
     double GetVolume() { return Volume; }
 
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(unsigned int n) override { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return nodes[n]; }
 
     /// Return the specified tetrahedron node (0 <= n <= 3).
     virtual std::shared_ptr<ChNodeFEAxyz> GetTetrahedronNode(unsigned int n) override { return nodes[n]; }
@@ -226,7 +226,7 @@ class ChApi ChElementTetraCorot_4_P : public ChElementGeneric, public ChElementC
 
     double GetVolume() { return Volume; }
 
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(unsigned int n) override { return nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return nodes[n]; }
 
     virtual void SetNodes(std::shared_ptr<ChNodeFEAxyzP> nodeA,
                           std::shared_ptr<ChNodeFEAxyzP> nodeB,

@@ -137,7 +137,7 @@ class ChApi ChElementHexaANCF_3843 : public ChElementANCF,
     std::shared_ptr<ChMaterialHexaANCF> GetMaterial() const { return m_material; }
 
     /// Access the n-th node of this element.
-    virtual std::shared_ptr<ChNodeFEAbase> GetNodeN(unsigned int n) override { return m_nodes[n]; }
+    virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return m_nodes[n]; }
 
     /// Return the specified hexahedron node (0 <= n <= 7).
     virtual std::shared_ptr<ChNodeFEAxyz> GetHexahedronNode(unsigned int n) override { return m_nodes[n]; }
