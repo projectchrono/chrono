@@ -366,6 +366,7 @@ void Citybus_Model::Create(ChContactMethod contact_method, const ChVector3d& ini
     bus->SetChassisFixed(false);
     bus->SetInitPosition(ChCoordsys<>(ChVector3d(0, 0, 0.5), QUNIT));
     bus->SetTireType(TireModelType::PAC02);
+    bus->SetBrakeType(chrono::vehicle::BrakeType::SHAFTS);
     bus->Initialize();
 
     bus->SetChassisVisualizationType(VisualizationType::MESH);
@@ -384,7 +385,7 @@ void Duro_Model::Create(ChContactMethod contact_method, const ChVector3d& init_l
     duro->SetEngineType(EngineModelType::SHAFTS);
     duro->SetTransmissionType(TransmissionModelType::AUTOMATIC_SHAFTS);
     duro->SetTireType(TireModelType::TMEASY);
-    duro->SetBrakeType(BrakeType::SIMPLE);
+    duro->SetBrakeType(BrakeType::SHAFTS);
     duro->SetInitFwdVel(0.0);
     duro->Initialize();
 
@@ -404,7 +405,7 @@ void FEDA_Model::Create(ChContactMethod contact_method, const ChVector3d& init_l
     feda->SetEngineType(EngineModelType::SIMPLE_MAP);
     feda->SetTransmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP);
     feda->SetTireType(TireModelType::PAC02);
-    feda->SetBrakeType(BrakeType::SIMPLE);
+    feda->SetBrakeType(BrakeType::SHAFTS);
     feda->SetAerodynamicDrag(0.6, 3.8, 1.2041);
     feda->Initialize();
 
@@ -441,6 +442,7 @@ void Gator_Model::Create(ChContactMethod contact_method, const ChVector3d& init_
     gator->SetChassisFixed(false);
     gator->SetInitPosition(ChCoordsys<>(init_loc, QUNIT));
     gator->SetTireType(TireModelType::TMEASY);
+    gator->SetBrakeType(chrono::vehicle::BrakeType::SHAFTS);
     gator->SetAerodynamicDrag(0.5, 5.0, 1.2);
     gator->Initialize();
 

@@ -849,6 +849,8 @@ source_group("m113/driveline" FILES ${CVM_M113_DRIVELINE_FILES})
 source_group("m113/powertrain" FILES ${CVM_M113_POWERTRAIN_FILES})
 
 set(CVM_ARTCAR_FILES
+    artcar/ARTcar_BrakeShafts.cpp
+    artcar/ARTcar_BrakeShafts.h
     artcar/ARTcar_BrakeSimple.cpp
     artcar/ARTcar_BrakeSimple.h
     artcar/ARTcar_Chassis.cpp

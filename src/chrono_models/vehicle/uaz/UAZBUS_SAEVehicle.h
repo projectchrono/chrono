@@ -30,7 +30,7 @@
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
-#include "chrono_models/vehicle/uaz/UAZBUS_BrakeSimple.h"
+#include "chrono_models/vehicle/uaz/UAZBUS_BrakeShafts.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_Chassis.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_Driveline4WD.h"
 #include "chrono_models/vehicle/uaz/UAZBUS_SAELeafspringAxle.h"

@@ -30,7 +30,7 @@
 #include "chrono_models/ChApiModels.h"
 #include "chrono_models/vehicle/ChVehicleModelDefs.h"
 
-#include "chrono_models/vehicle/artcar/ARTcar_BrakeSimple.h"
+#include "chrono_models/vehicle/artcar/ARTcar_BrakeShafts.h"
 #include "chrono_models/vehicle/artcar/ARTcar_Chassis.h"
 #include "chrono_models/vehicle/artcar/ARTcar_DoubleWishbone.h"
 #include "chrono_models/vehicle/artcar/ARTcar_Driveline4WD.h"

@@ -62,10 +62,10 @@ void ARTcar_Vehicle::Create(bool fixed, CollisionType chassis_collision_type) {
     m_axles[1]->m_wheels[0] = chrono_types::make_shared<ARTcar_WheelLeft>("Wheel_RL");
     m_axles[1]->m_wheels[1] = chrono_types::make_shared<ARTcar_WheelLeft>("Wheel_RR");
 
-    m_axles[0]->m_brake_left = chrono_types::make_shared<ARTcar_BrakeSimple>("Brake_FL");
-    m_axles[0]->m_brake_right = chrono_types::make_shared<ARTcar_BrakeSimple>("Brake_FR");
-    m_axles[1]->m_brake_left = chrono_types::make_shared<ARTcar_BrakeSimple>("Brake_RL");
-    m_axles[1]->m_brake_right = chrono_types::make_shared<ARTcar_BrakeSimple>("Brake_RR");
+    m_axles[0]->m_brake_left = chrono_types::make_shared<ARTcar_BrakeShafts>("Brake_FL");
+    m_axles[0]->m_brake_right = chrono_types::make_shared<ARTcar_BrakeShafts>("Brake_FR");
+    m_axles[1]->m_brake_left = chrono_types::make_shared<ARTcar_BrakeShafts>("Brake_RL");
+    m_axles[1]->m_brake_right = chrono_types::make_shared<ARTcar_BrakeShafts>("Brake_RR");
 
     // Create the steering subsystem
     m_steerings.resize(1);
