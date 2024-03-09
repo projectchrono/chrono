@@ -225,6 +225,10 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetBeamRayleighDampingBeta    | rename: GetRayleighDampingBeta                   |
 |                                   | SetBeamRayleighDampingAlpha   | rename: SetRayleighDampingAlpha                  |
 |                                   | SetBeamRayleighDampingBeta    | rename: SetRayleighDampingBeta                   |
+| ChBeamSectionEulerAdvancedGeneric |                               |                                                  |
+|                                   | SetXtorsionRigidity           | rename: SetTorsionRigidityX                      |
+|                                   | SetYbendingRigidity           | rename: SetBendingRigidityY                      |
+|                                   | SetZbendingRigidity           | rename: SetBendingRigidityZ                      |
 | ChBeamSectionEulerSimple          |                               |                                                  |
 |                                   | GetGshearModulus              | rename: GetShearModulus                          |
 |                                   | GetXtorsionRigidity           | rename: GetTorsionRigidityX                      |

@@ -478,17 +478,17 @@ class ChApi ChBeamSectionEulerAdvancedGeneric : public ChBeamSectionEuler {
     /// Sets the torsion rigidity, for torsion about X axis, at elastic center,
     /// usually J*G for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetXtorsionRigidity(const double mv) { Txx = mv; }
+    virtual void SetTorsionRigidityX(const double mv) { Txx = mv; }
 
     /// Sets the bending rigidity, for bending about Y axis, at elastic center,
     /// usually Iyy*E for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetYbendingRigidity(const double mv) { Byy = mv; }
+    virtual void SetBendingRigidityY(const double mv) { Byy = mv; }
 
     /// Sets the bending rigidity, for bending about Z axis, at elastic center,
     /// usually Izz*E for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetZbendingRigidity(const double mv) { Bzz = mv; }
+    virtual void SetBendingRigidityZ(const double mv) { Bzz = mv; }
 
     /// Set the rotation in [rad], abour elastic center, of the Y Z axes for which the
     /// YbendingRigidity and ZbendingRigidity values are defined.
