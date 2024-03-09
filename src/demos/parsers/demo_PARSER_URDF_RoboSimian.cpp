@@ -67,7 +67,7 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem& sys, double length, double width
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
     ground->SetPos(ChVector3d(offset, 0, height - 0.1));
-    ground->SetCollide(true);
+    ground->EnableCollision(true);
 
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, length, width, 0.2);
     ground->AddCollisionShape(ct_shape);
@@ -125,11 +125,11 @@ int main(int argc, char* argv[]) {
     auto limb4_wheel = robot.GetChBody("limb4_link8");
 
     // Enable collsion and set contact material for selected bodies of the robot
-    sled->SetCollide(true);
-    limb1_wheel->SetCollide(true);
-    limb2_wheel->SetCollide(true);
-    limb3_wheel->SetCollide(true);
-    limb4_wheel->SetCollide(true);
+    sled->EnableCollision(true);
+    limb1_wheel->EnableCollision(true);
+    limb2_wheel->EnableCollision(true);
+    limb3_wheel->EnableCollision(true);
+    limb4_wheel->EnableCollision(true);
 
     ChContactMaterialData mat;
     mat.mu = 0.8f;

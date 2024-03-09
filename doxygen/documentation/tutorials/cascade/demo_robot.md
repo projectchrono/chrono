@@ -581,7 +581,7 @@ Set motions for Z and Y coordinates of the 'my_link_teacher' marker, so that the
 											ChQuaternion<>(1,0,0,0), 
 											ChVector3<>(20,1,20) );
 	mfloor->GetBody()->SetFixed(true);
-	mfloor->GetBody()->SetCollide(true);
+	mfloor->GetBody()->EnableCollision(true);
 	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture("../data/blu.png");
 	mfloor->setMaterialTexture(0,	cubeMap);
 ~~~

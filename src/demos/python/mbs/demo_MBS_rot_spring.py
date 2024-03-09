@@ -62,7 +62,7 @@ ground = chrono.ChBody()
 sys.AddBody(ground)
 ground.SetIdentifier(-1)
 ground.SetFixed(True)
-ground.SetCollide(False)
+ground.EnableCollision(False)
 
 # Visualization for revolute joint
 seg = chrono.ChLineSegment(rev_pos + rev_dir * 0.2, rev_pos - rev_dir * 0.2)
@@ -85,7 +85,7 @@ body.SetPosDer(lin_vel)
 body.SetAngVelParent(ang_vel)
 body.SetIdentifier(1)
 body.SetFixed(False)
-body.SetCollide(False)
+body.EnableCollision(False)
 body.SetMass(1)
 body.SetInertiaXX(chrono.ChVector3d(1, 1, 1))
 

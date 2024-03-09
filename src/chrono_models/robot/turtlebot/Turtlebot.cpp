@@ -169,7 +169,7 @@ void Turtlebot_Part::AddVisualizationAssets() {
     return;
 }
 
-void Turtlebot_Part::SetCollide(bool state) {
+void Turtlebot_Part::EnableCollision(bool state) {
     m_collide = state;
 }
 
@@ -181,7 +181,7 @@ void Turtlebot_Part::AddCollisionShapes() {
 
     auto shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_mat, trimesh, false, false, 0.005);
     m_body->AddCollisionShape(shape);
-    m_body->SetCollide(m_collide);
+    m_body->EnableCollision(m_collide);
 }
 
 // =============================================================================
@@ -232,9 +232,9 @@ void Turtlebot_Chassis::Initialize() {
     m_system->Add(m_body);
 }
 
-void Turtlebot_Chassis::SetCollide(bool state) {
+void Turtlebot_Chassis::EnableCollision(bool state) {
     m_collide = state;
-    m_body->SetCollide(state);
+    m_body->EnableCollision(state);
 }
 
 void Turtlebot_Chassis::Translate(const ChVector3d& shift) {
@@ -294,9 +294,9 @@ void Turtlebot_ActiveWheel::Initialize() {
     m_system->Add(m_body);
 }
 
-void Turtlebot_ActiveWheel::SetCollide(bool state) {
+void Turtlebot_ActiveWheel::EnableCollision(bool state) {
     m_collide = state;
-    m_body->SetCollide(state);
+    m_body->EnableCollision(state);
 }
 
 void Turtlebot_ActiveWheel::Translate(const ChVector3d& shift) {
@@ -356,9 +356,9 @@ void Turtlebot_PassiveWheel::Initialize() {
     m_system->Add(m_body);
 }
 
-void Turtlebot_PassiveWheel::SetCollide(bool state) {
+void Turtlebot_PassiveWheel::EnableCollision(bool state) {
     m_collide = state;
-    m_body->SetCollide(state);
+    m_body->EnableCollision(state);
 }
 
 void Turtlebot_PassiveWheel::Translate(const ChVector3d& shift) {
@@ -420,9 +420,9 @@ void Turtlebot_Rod_Short::Initialize() {
     m_system->Add(m_body);
 }
 
-void Turtlebot_Rod_Short::SetCollide(bool state) {
+void Turtlebot_Rod_Short::EnableCollision(bool state) {
     m_collide = state;
-    m_body->SetCollide(state);
+    m_body->EnableCollision(state);
 }
 
 void Turtlebot_Rod_Short::Translate(const ChVector3d& shift) {
@@ -483,9 +483,9 @@ void Turtlebot_BottomPlate::Initialize() {
     m_system->Add(m_body);
 }
 
-void Turtlebot_BottomPlate::SetCollide(bool state) {
+void Turtlebot_BottomPlate::EnableCollision(bool state) {
     m_collide = state;
-    m_body->SetCollide(state);
+    m_body->EnableCollision(state);
 }
 
 void Turtlebot_BottomPlate::Translate(const ChVector3d& shift) {
@@ -546,9 +546,9 @@ void Turtlebot_MiddlePlate::Initialize() {
     m_system->Add(m_body);
 }
 
-void Turtlebot_MiddlePlate::SetCollide(bool state) {
+void Turtlebot_MiddlePlate::EnableCollision(bool state) {
     m_collide = state;
-    m_body->SetCollide(state);
+    m_body->EnableCollision(state);
 }
 
 void Turtlebot_MiddlePlate::Translate(const ChVector3d& shift) {
@@ -611,9 +611,9 @@ void Turtlebot_TopPlate::Initialize() {
     m_system->Add(m_body);
 }
 
-void Turtlebot_TopPlate::SetCollide(bool state) {
+void Turtlebot_TopPlate::EnableCollision(bool state) {
     m_collide = state;
-    m_body->SetCollide(state);
+    m_body->EnableCollision(state);
 }
 
 void Turtlebot_TopPlate::Translate(const ChVector3d& shift) {
@@ -676,9 +676,9 @@ void Turtlebot_Rod_Long::Initialize() {
     m_system->Add(m_body);
 }
 
-void Turtlebot_Rod_Long::SetCollide(bool state) {
+void Turtlebot_Rod_Long::EnableCollision(bool state) {
     m_collide = state;
-    m_body->SetCollide(state);
+    m_body->EnableCollision(state);
 }
 
 void Turtlebot_Rod_Long::Translate(const ChVector3d& shift) {

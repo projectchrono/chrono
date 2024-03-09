@@ -379,7 +379,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         body->SetMass(mass * b.m_density);
         body->SetInertia(inertia * b.m_density);
         body->SetFixed(false);
-        body->SetCollide(true);
+        body->EnableCollision(true);
 
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_g);
         body->AddCollisionShape(ct_shape);
@@ -633,7 +633,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateRigidProxy(unsigned int i) {
     body->SetMass(m_load_mass[i]);
     ////body->SetInertiaXX();   //// TODO
     body->SetFixed(m_fixed_proxies);
-    body->SetCollide(true);
+    body->EnableCollision(true);
 
     // Create visualization asset (use collision shapes)
     m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::PRIMITIVES, true);

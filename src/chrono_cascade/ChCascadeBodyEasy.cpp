@@ -86,7 +86,7 @@ void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
             assert(mat);
             auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, 0.0);
             AddCollisionShape(ct_shape);
-            SetCollide(true);
+            EnableCollision(true);
         }
     }
 }
@@ -245,9 +245,9 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
         }
     }
     if (somefacecollide)
-        SetCollide(true);
+        EnableCollision(true);
     else
-        SetCollide(false);
+        EnableCollision(false);
 }
 
 const TopoDS_Wire ChCascadeBodyEasyProfile::FromChronoPathToCascadeWire(

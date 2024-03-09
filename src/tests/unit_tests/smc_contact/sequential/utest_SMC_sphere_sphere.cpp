@@ -118,7 +118,7 @@ class SphereSphereTest : public ::testing::TestWithParam<std::tuple<ShapeType, S
         body1->SetMass(mass);
         body1->SetPos(ChVector3d(+init_pos, 0, 0));
         body1->SetPosDer(ChVector3d(-init_vel, 0, 0));
-        body1->SetCollide(true);
+        body1->EnableCollision(true);
         body1->AddCollisionShape(CreateSphereShape(type1, radius, mat));
         sys->AddBody(body1);
 
@@ -126,7 +126,7 @@ class SphereSphereTest : public ::testing::TestWithParam<std::tuple<ShapeType, S
         body2->SetMass(mass);
         body2->SetPos(ChVector3d(-init_pos, 0, 0));
         body2->SetPosDer(ChVector3d(+init_vel, 0, 0));
-        body2->SetCollide(true);
+        body2->EnableCollision(true);
         body2->AddCollisionShape(CreateSphereShape(type2, radius, mat));
         sys->AddBody(body2);
     }

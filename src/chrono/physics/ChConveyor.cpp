@@ -32,7 +32,7 @@ ChConveyor::ChConveyor(double xlength, double ythick, double zwidth) : conveyor_
 
     auto cshape = chrono_types::make_shared<ChCollisionShapeBox>(conveyor_mat, xlength, ythick, zwidth);
     conveyor_plate->AddCollisionShape(cshape);
-    conveyor_plate->SetCollide(true);
+    conveyor_plate->EnableCollision(true);
 
     internal_link = new ChLinkLockLock;
     internal_link->SetMotion_X(chrono_types::make_shared<ChFunctionRamp>());
@@ -268,7 +268,7 @@ void ChConveyor::Update(double mytime, bool update_assets) {
 
     conveyor_truss->Update(mytime, update_assets);
 
-    if (conveyor_truss->GetFixed()) {
+    if (conveyor_truss->IsFixed()) {
         double largemass = 100000;
         conveyor_plate->SetMass(largemass);
         conveyor_plate->SetInertiaXX(ChVector3d(largemass, largemass, largemass));

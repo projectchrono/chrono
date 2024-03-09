@@ -216,7 +216,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         body->SetMass(mass * b.m_density);
         body->SetInertia(inertia * b.m_density);
         body->SetFixed(false);
-        body->SetCollide(true);
+        body->EnableCollision(true);
 
         auto trimesh_shape = chrono_types::make_shared<ChCollsionShapeTriangleMesh>(mat, trimesh,
                                                                                     false, false, m_radius_g);
@@ -265,7 +265,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
     body->SetIdentifier(0);
     body->SetMass(m_load_mass[i]);
     body->SetFixed(true);  // proxy body always fixed
-    body->SetCollide(false);
+    body->EnableCollision(false);
 
     // Create visualization asset (use collision shapes)
     m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::NONE, true);

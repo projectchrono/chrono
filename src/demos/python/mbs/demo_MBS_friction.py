@@ -97,7 +97,7 @@ for bi in range(10):
 bin = chrono.ChBody()
 bin.SetPos(chrono.ChVector3d(0, -1, 0))
 bin.SetFixed(True)
-bin.SetCollide(True)
+bin.EnableCollision(True)
 
 # Set rolling and spinning friction coefficients for the container.
 # By default, the composite material will use the minimum value for an interacting collision pair.

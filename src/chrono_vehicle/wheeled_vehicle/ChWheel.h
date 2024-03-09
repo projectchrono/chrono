@@ -73,7 +73,7 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     /// Enable/disable contact for the wheel.
     /// This function controls contact of the wheel with all other collision shapes in the simulation. Must be called
     /// after initialization and has effect only if the derived object has defined some collision shapes.
-    void SetCollide(bool state) { m_spindle->SetCollide(state); }
+    void EnableCollision(bool state) { m_spindle->EnableCollision(state); }
 
     /// Synchronize the wheel subsystem. 
     /// This version queries the forces from the attached tire and applies them to the associated suspension.

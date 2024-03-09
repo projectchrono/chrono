@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
     object->SetRot(z2y * QuatFromAngleX(init_roll));
     object->SetPosDer(init_vel);
     object->SetAngVelLocal(init_omg);
-    object->SetCollide(true);
+    object->EnableCollision(true);
     object->SetFixed(false);
 
     auto object_mat = ChContactMaterial::DefaultMaterial(contact_method);
@@ -268,7 +268,7 @@ int main(int argc, char* argv[]) {
     ground->SetName("ground");
     ground->SetMass(1);
     ground->SetPos(ChVector3d(0, 0, 0));
-    ground->SetCollide(true);
+    ground->EnableCollision(true);
     ground->SetFixed(true);
 
     auto ground_mat = ChContactMaterial::DefaultMaterial(contact_method);

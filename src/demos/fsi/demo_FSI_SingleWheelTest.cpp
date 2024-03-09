@@ -137,7 +137,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
                                    ChVector3d(bxDim, byDim, bzDim), 0.1,           //
                                    ChVector3i(0, 0, -1),                           //
                                    false);
-    ground->SetCollide(true);
+    ground->EnableCollision(true);
 
     // Add BCE particles attached on the walls into FSI system
     sysFSI.AddBoxContainerBCE(ground,                                     //
@@ -184,7 +184,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     wheel->SetFixed(false);
     auto wheel_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(cmaterial, trimesh, false, false, 0.005);
     wheel->AddCollisionShape(wheel_shape);
-    wheel->SetCollide(false);
+    wheel->EnableCollision(false);
 
     // Add this body to the FSI system
     std::vector<ChVector3d> BCE_wheel;
@@ -196,7 +196,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     auto chassis = chrono_types::make_shared<ChBody>();
     chassis->SetMass(total_mass * 1.0 / 2.0);
     chassis->SetPos(wheel->GetPos());
-    chassis->SetCollide(false);
+    chassis->EnableCollision(false);
     chassis->SetFixed(false);
 
     // Add geometry of the chassis.
@@ -207,7 +207,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     auto axle = chrono_types::make_shared<ChBody>();
     axle->SetMass(total_mass * 1.0 / 2.0);
     axle->SetPos(wheel->GetPos());
-    axle->SetCollide(false);
+    axle->EnableCollision(false);
     axle->SetFixed(false);
 
     // Add geometry of the axle.

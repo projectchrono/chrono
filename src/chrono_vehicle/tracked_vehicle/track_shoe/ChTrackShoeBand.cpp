@@ -102,7 +102,7 @@ void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_shoe->SetRot(rot);
     m_shoe->SetMass(GetTreadMass());
     m_shoe->SetInertiaXX(GetTreadInertia());
-    m_shoe->SetCollide(true);
+    m_shoe->EnableCollision(true);
     chassis->GetSystem()->AddBody(m_shoe);
 
     // Add contact geometry for the tread body and create material for the teeth (sprocket contact)

@@ -95,7 +95,7 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     auto bin = chrono_types::make_shared<ChBody>();
     bin->SetMass(1);
     bin->SetPos(ChVector3d(0, 0, 0));
-    bin->SetCollide(true);
+    bin->EnableCollision(true);
     bin->SetFixed(true);
 
     utils::AddBoxContainer(bin, mat,                                      //

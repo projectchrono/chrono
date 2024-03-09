@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     ChParserOpenSim parser;
     parser.SetVisualizationType(vis_type);
     parser.SetVerbose(true);
-    parser.SetCollide(collide);
+    parser.EnableCollision(collide);
     ////parser.ActivateActuators(true);
     parser.Parse(sys, filename);
 

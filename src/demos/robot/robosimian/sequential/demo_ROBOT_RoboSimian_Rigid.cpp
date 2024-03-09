@@ -86,7 +86,7 @@ RayCaster::RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2d& d
     : m_sys(sys), m_origin(origin), m_dims(dims), m_spacing(spacing) {
     m_body = chrono_types::make_shared<ChBody>();
     m_body->SetFixed(true);
-    m_body->SetCollide(false);
+    m_body->EnableCollision(false);
     sys->AddBody(m_body);
 
     m_glyphs = chrono_types::make_shared<ChGlyphs>();
@@ -138,7 +138,7 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem* sys, double length, double width
 
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetFixed(true);
-    ground->SetCollide(true);
+    ground->EnableCollision(true);
 
     auto shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, length, width, 0.2);
     ground->AddCollisionShape(shape, ChFrame<>(ChVector3d(offset, 0, height - 0.1), QUNIT));
@@ -215,10 +215,10 @@ int main(int argc, char* argv[]) {
 
     // Control collisions (default: true for sled and wheels only)
 
-    ////robot.SetCollide(robosimian::CollisionFlags::NONE);
-    ////robot.SetCollide(robosimian::CollisionFlags::ALL);
-    ////robot.SetCollide(robosimian::CollisionFlags::LIMBS);
-    ////robot.SetCollide(robosimian::CollisionFlags::CHASSIS | robosimian::CollisionFlags::WHEELS);
+    ////robot.EnableCollision(robosimian::CollisionFlags::NONE);
+    ////robot.EnableCollision(robosimian::CollisionFlags::ALL);
+    ////robot.EnableCollision(robosimian::CollisionFlags::LIMBS);
+    ////robot.EnableCollision(robosimian::CollisionFlags::CHASSIS | robosimian::CollisionFlags::WHEELS);
 
     // Set visualization modes (default: all COLLISION)
 

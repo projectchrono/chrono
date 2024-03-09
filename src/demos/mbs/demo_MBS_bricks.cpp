@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
     solver->EnableWarmStart(true);
     sys.SetSolver(solver);
 
-    // sys.SetAllowSleeping(true);
+    // sys.SetSleepingAllowed(true);
     sys.SetMaxPenetrationRecoverySpeed(1.0);
 
     // Simulation loop

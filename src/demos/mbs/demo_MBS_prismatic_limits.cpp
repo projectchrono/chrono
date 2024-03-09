@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetFixed(true);
-    ground->SetCollide(false);
+    ground->EnableCollision(false);
 
     auto rail1 = chrono_types::make_shared<ChVisualShapeBox>(8, 0.1, 0.1);
     ground->AddVisualShape(rail1, ChFrame<>(ChVector3d(0, 0, -1), QUNIT));
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(slider1);
     slider1->SetIdentifier(1);
     slider1->SetFixed(false);
-    slider1->SetCollide(false);
+    slider1->EnableCollision(false);
     slider1->SetMass(1);
     slider1->SetInertiaXX(ChVector3d(0.1, 0.1, 0.1));
     slider1->SetPos(ChVector3d(-4, 0, -1));
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(slider2);
     slider2->SetIdentifier(1);
     slider2->SetFixed(false);
-    slider2->SetCollide(false);
+    slider2->EnableCollision(false);
     slider2->SetMass(1);
     slider2->SetInertiaXX(ChVector3d(0.1, 0.1, 01));
     slider2->SetPos(ChVector3d(-4, 0, +1));

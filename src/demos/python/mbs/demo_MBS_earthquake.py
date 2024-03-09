@@ -83,7 +83,7 @@ for ix in range(0,nbricks_on_x):
         # Collision shape
         body_brick_ct_shape = chrono.ChCollisionShapeBox(brick_material, size_brick_x, size_brick_y, size_brick_z)
         body_brick.AddCollisionShape(body_brick_ct_shape)
-        body_brick.SetCollide(True)
+        body_brick.EnableCollision(True)
 
         # Visualization shape, for rendering animation
         body_brick_shape = chrono.ChVisualShapeBox(size_brick_x, size_brick_y, size_brick_z)
@@ -104,7 +104,7 @@ body_floor.SetPos(chrono.ChVector3d(0, -2, 0 ))
 # Collision shape
 body_floor_ct_shape = chrono.ChCollisionShapeBox(brick_material, 6, 2, 6)
 body_floor.AddCollisionShape(body_floor_ct_shape)
-body_floor.SetCollide(True)
+body_floor.EnableCollision(True)
 
 # Visualization shape
 body_floor_shape = chrono.ChVisualShapeBox(6, 2, 6)
@@ -127,7 +127,7 @@ body_table.SetPos(chrono.ChVector3d(0, -size_table_y/2, 0 ))
 # Collision shape
 body_table_ct_shape = chrono.ChCollisionShapeBox(brick_material, size_table_x, size_table_y, size_table_z)
 body_table.AddCollisionShape(body_table_ct_shape)
-body_table.SetCollide(True)
+body_table.EnableCollision(True)
 
 # Visualization shape
 body_table_shape = chrono.ChVisualShapeBox(size_table_x, size_table_y, size_table_z)

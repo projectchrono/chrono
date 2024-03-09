@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
             pov->Add(body);
 
             // Other stuff, ex. disable gyroscopic forces for increased integrator stabilty
-            body->SetNoGyroTorque(true);
+            body->SetUseGyroTorque(false);
         }
 
         ChVisualSystem* vis;

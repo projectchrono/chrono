@@ -54,16 +54,18 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Sets the 'fixed' state of the body.
     /// If true, the body does not move with respect to the absolute reference frame.
+    /// Its state is also removed by the system, thus reducing the global size of the system.
+    /// If this is not desired, use ChLinkMateFix or ChLinkLockLock instead.
     void SetFixed(bool state);
 
     /// Return true if this body is fixed to ground.
-    bool GetFixed() const;
+    bool IsFixed() const;
 
     /// Enable/disable the collision for this rigid body.
-    void SetCollide(bool state);
+    void EnableCollision(bool state);
 
     /// Return true if collision is enabled for this body.
-    virtual bool GetCollide() const override;
+    virtual bool IsCollisionEnabled() const override;
 
     /// Enable the maximum linear speed limit (beyond this limit it will be clamped).
     /// This is useful in virtual reality and real-time simulations, because
@@ -74,29 +76,31 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Return true if maximum linear speed is limited.
     bool GetLimitSpeed() const;
 
-    /// Deactivate the gyroscopic torque (quadratic term).
+    /// Enable/disable the gyroscopic torque (quadratic term).
     /// This is useful in virtual reality and real-time simulations, where objects that spin too fast with non-uniform
     /// inertia tensors (e.g., thin cylinders) might cause the integration to diverge quickly. The realism is limited,
     /// but the simulation is more stable.
-    void SetNoGyroTorque(bool state);
+    /// By default the gyroscopic torque is enabled.
+    void SetUseGyroTorque(bool state);
 
-    /// Return true if gyroscopic torque is deactivated.
-    bool GetNoGyroTorque() const;
+    /// Return true if gyroscopic torque is used (default=true).
+    bool IsUsingGyroTorque() const;
 
     /// Enable/disable option for setting bodies to "sleep".
-    /// If use sleeping = true, bodies which stay in same place for long enough time will be deactivated, for
-    /// optimization. The realism is limited, but the simulation is faster.
-    void SetAllowSleeping(bool state);
+    /// If the sleeping is allowed, bodies which stay in same place for long enough time will be deactivated, for
+    /// optimization.
+    /// By default the sleeping is enabled.
+    void SetSleepingAllowed(bool state);
 
-    /// Return true if 'sleep' mode is activated.
-    bool GetAllowSleeping() const;
+    /// Return true if 'sleep' mode is allowed for this specific body.
+    bool IsSleepingAllowed() const;
 
     /// Force the body in sleeping mode or not.
     /// Usually, this state change is handled internally.
     void SetSleeping(bool state);
 
     /// Return true if this body is currently in 'sleep' mode.
-    bool GetSleeping() const;
+    bool IsSleeping() const;
 
     /// Test if a body could go in sleeping state if requirements are satisfied.
     /// Return true if state could be changed from no sleep to sleep.

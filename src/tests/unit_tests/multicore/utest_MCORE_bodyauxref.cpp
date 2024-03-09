@@ -103,7 +103,7 @@ TEST(ChronoMulticore, bodyauxref) {
     sys->AddBody(pend_1);
     pend_1->SetIdentifier(1);
     pend_1->SetFixed(false);
-    pend_1->SetCollide(false);
+    pend_1->EnableCollision(false);
     pend_1->SetMass(1);
     pend_1->SetInertiaXX(ChVector3d(0.2, 1, 1));
 
@@ -123,7 +123,7 @@ TEST(ChronoMulticore, bodyauxref) {
     sys->Add(pend_2);
     pend_2->SetIdentifier(2);
     pend_2->SetFixed(false);
-    pend_2->SetCollide(false);
+    pend_2->EnableCollision(false);
     pend_2->SetMass(1);
     pend_2->SetInertiaXX(ChVector3d(0.2, 1, 1));
     // NOTE: the inertia tensor must still be expressed in the centroidal frame!

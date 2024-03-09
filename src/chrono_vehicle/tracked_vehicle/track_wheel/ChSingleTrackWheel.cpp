@@ -45,7 +45,7 @@ void ChSingleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     double radius = GetRadius();
     double width = GetWidth();
 
-    m_wheel->SetCollide(true);
+    m_wheel->EnableCollision(true);
 
     if (track->IsRoadwheelCylinder()) {
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(m_material, radius, width);

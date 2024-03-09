@@ -70,7 +70,7 @@ namespace ChronoDemo
 
             ChCollisionShapeSphere sphere_coll = new ChCollisionShapeSphere(material, radius);
             ball.AddCollisionShape(sphere_coll, new ChFramed());
-            ball.SetCollide(true);
+            ball.EnableCollision(true);
 
             ChVisualShapeSphere sphere_vis = new ChVisualShapeSphere(radius);
             sphere_vis.SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"));
@@ -90,7 +90,7 @@ namespace ChronoDemo
 
             ChCollisionShapeBox box_coll = new ChCollisionShapeBox(material, width * 2, thickness * 2, length * 2);
             bin.AddCollisionShape(box_coll, new ChFramed());
-            bin.SetCollide(true);
+            bin.EnableCollision(true);
 
             ChVisualShapeBox box_vis = new ChVisualShapeBox(width * 2, thickness * 2, length * 2);
             box_vis.SetColor(new ChColor(0.8f, 0.2f, 0.2f));

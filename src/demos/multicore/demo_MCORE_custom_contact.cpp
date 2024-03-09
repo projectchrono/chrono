@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
     // Add obstacle visualization (in a separate level with a different color).
     auto ground = chrono_types::make_shared<ChBody>();
     sys->AddBody(ground);
-    ground->SetCollide(true);
+    ground->EnableCollision(true);
     ground->SetFixed(true);
 
     utils::AddBoxContainer(ground, ground_mat,                     //
@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) {
     ball->SetInertiaXX(4 * ball_radius * ball_radius * ChVector3d(1, 1, 1));
     ball->SetPos(ChVector3d(-3, 1.2 * ball_radius, -3));
     ball->SetPosDer(ChVector3d(5, 0, 5));
-    ball->SetCollide(true);
+    ball->EnableCollision(true);
 
     utils::AddSphereGeometry(ball.get(), ball_mat, ball_radius);
 

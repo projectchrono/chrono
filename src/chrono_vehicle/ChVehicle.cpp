@@ -216,9 +216,9 @@ void ChVehicle::SetChassisRearVisualizationType(VisualizationType vis) {
 }
 
 void ChVehicle::SetChassisCollide(bool state) {
-    m_chassis->SetCollide(state);
+    m_chassis->EnableCollision(state);
     for (auto& c : m_chassis_rear)
-        c->SetCollide(state);
+        c->EnableCollision(state);
 }
 
 void ChVehicle::SetChassisOutput(bool state) {

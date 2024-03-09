@@ -70,7 +70,7 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     virtual ChVehicleGeometry GetGroundContactGeometry() const { return ChVehicleGeometry(); }
 
     /// Turn on/off collision flag for the shoe body.
-    void SetCollide(bool val) { m_shoe->SetCollide(val); }
+    void EnableCollision(bool val) { m_shoe->EnableCollision(val); }
 
     /// Initialize this track shoe subsystem.
     /// The track shoe is created within the specified system and initialized

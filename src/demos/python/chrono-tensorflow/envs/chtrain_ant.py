@@ -88,7 +88,7 @@ class Model(object):
       abdomen_ellipsoid = chrono.ChEllipsoid(chrono.ChVector3d(0, 0, 0 ), chrono.ChVector3d(self.abdomen_x, self.abdomen_y, self.abdomen_z ))
       self.abdomen_shape = chrono.ChEllipsoidShape(abdomen_ellipsoid)
       self.body_abdomen.AddVisualShape(self.abdomen_shape)
-      self.body_abdomen.SetCollide(True)
+      self.body_abdomen.EnableCollision(True)
       self.body_abdomen.GetCollisionModel().Clear()
       body_abdomen_ct_shape = chrono.ChCollisionShapeEllipsoid(self.ant_material, self.abdomen_x, self.abdomen_y, self.abdomen_z)
       self.body_abdomen.GetCollisionModel().AddShape(body_abdomen_ct_shape)
@@ -162,7 +162,7 @@ class Model(object):
              self.ankle_motor[i].Initialize(self.leg_body[i], self.ankle_body[i],self.anklejoint_frame[i])
              self.ant_sys.Add(self.ankle_motor[i])
              # Feet collisions
-             self.ankle_body[i].SetCollide(True)
+             self.ankle_body[i].EnableCollision(True)
              self.ankle_body[i].GetCollisionModel().Clear()
              ankle_ct_shape = chrono.ChCollisionShapeSphere(self.ant_material, self.ankle_radius)
              self.ankle_body[i].GetCollisionModel().AddShape(ankle_ct_shape, chrono.ChFramed(chrono.ChVector3d(self.ankle_length/2, 0, 0), chrono.QUNIT))
@@ -191,7 +191,7 @@ class Model(object):
       body_floor_ct_shape = chrono.ChCollisionShapeBox(self.ant_material, 50, 1, 50)
       self.body_floor.GetCollisionModel().AddShape(body_floor_ct_shape)
       self.body_floor.GetCollisionModel().Build()
-      self.body_floor.SetCollide(True)
+      self.body_floor.EnableCollision(True)
 
     # Visualization shape
       body_floor_shape = chrono.ChVisualShapeBox(10, 2, 10)

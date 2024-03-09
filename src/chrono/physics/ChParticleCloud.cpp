@@ -271,8 +271,8 @@ void ChParticleCloud::AddCollisionShape(std::shared_ptr<ChCollisionShape> shape,
 void ChParticleCloud::ResizeNparticles(int newsize) {
     //// TODO REVISIT THIS
 
-    bool oldcoll = GetCollide();
-    SetCollide(false);
+    bool oldcoll = IsCollisionEnabled();
+    EnableCollision(false);
 
     for (unsigned int j = 0; j < particles.size(); j++) {
         delete (particles[j]);
@@ -296,7 +296,7 @@ void ChParticleCloud::ResizeNparticles(int newsize) {
         }
     }
 
-    SetCollide(oldcoll);
+    EnableCollision(oldcoll);
 }
 
 void ChParticleCloud::AddParticle(ChCoordsys<double> initial_state) {
@@ -650,7 +650,7 @@ void ChParticleCloud::Update(double mytime, bool update_assets) {
     ClampSpeed();  // Apply limits (if in speed clamping mode) to speeds.
 }
 
-void ChParticleCloud::SetCollide(bool state) {
+void ChParticleCloud::EnableCollision(bool state) {
     // Nothing to do if no change in state
     if (state == collide)
         return;

@@ -544,11 +544,11 @@ void RoboSimian::Initialize(const ChCoordsys<>& pos) {
     }
 }
 
-void RoboSimian::SetCollide(int flags) {
-    m_chassis->SetCollide((flags & static_cast<int>(CollisionFlags::CHASSIS)) != 0);
+void RoboSimian::EnableCollision(int flags) {
+    m_chassis->EnableCollision((flags & static_cast<int>(CollisionFlags::CHASSIS)) != 0);
 
     if (m_sled)
-        m_sled->SetCollide((flags & static_cast<int>(CollisionFlags::SLED)) != 0);
+        m_sled->EnableCollision((flags & static_cast<int>(CollisionFlags::SLED)) != 0);
 
     for (auto limb : m_limbs) {
         limb->SetCollideLinks((flags & static_cast<int>(CollisionFlags::LIMBS)) != 0);
@@ -1019,12 +1019,12 @@ void RS_Chassis::Initialize(const ChCoordsys<>& pos) {
     m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::SLED);
 
     // Note: call this AFTER setting the collision family (required for Chrono::Multicore)
-    m_body->SetCollide(m_collide);
+    m_body->EnableCollision(m_collide);
 }
 
-void RS_Chassis::SetCollide(bool state) {
+void RS_Chassis::EnableCollision(bool state) {
     m_collide = state;
-    m_body->SetCollide(state);
+    m_body->EnableCollision(state);
 }
 
 void RS_Chassis::Translate(const ChVector3d& shift) {
@@ -1069,7 +1069,7 @@ void RS_Sled::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector3d
     m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::LIMB_FL);
 
     // Note: call this AFTER setting the collision family (required for Chrono::Multicore)
-    m_body->SetCollide(m_collide);
+    m_body->EnableCollision(m_collide);
 
     // Add joint (weld)
     auto joint = chrono_types::make_shared<ChLinkLockLock>();
@@ -1077,9 +1077,9 @@ void RS_Sled::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector3d
     chassis->GetSystem()->AddLink(joint);
 }
 
-void RS_Sled::SetCollide(bool state) {
+void RS_Sled::EnableCollision(bool state) {
     m_collide = state;
-    m_body->SetCollide(state);
+    m_body->EnableCollision(state);
 }
 
 void RS_Sled::Translate(const ChVector3d& shift) {
@@ -1122,7 +1122,7 @@ void RS_WheelDD::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
     m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::SLED);
 
     // Note: call this AFTER setting the collision family (required for Chrono::Multicore)
-    m_body->SetCollide(true);
+    m_body->EnableCollision(true);
 
     // Add joint
     auto joint = chrono_types::make_shared<ChLinkLockRevolute>();
@@ -1219,9 +1219,9 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
 
         // Note: call this AFTER setting the collision family (required for Chrono::Multicore)
         if (child == m_wheel)
-            child_body->SetCollide(m_collide_wheel);
+            child_body->EnableCollision(m_collide_wheel);
         else
-            child_body->SetCollide(m_collide_links);
+            child_body->EnableCollision(m_collide_links);
 
         // Weld joints
         if (joints[i].fixed) {
@@ -1377,13 +1377,13 @@ void RS_Limb::SetCollideLinks(bool state) {
     m_collide_links = state;
     for (auto link : m_links) {
         if (link.second != m_wheel)
-            link.second->m_body->SetCollide(state);
+            link.second->m_body->EnableCollision(state);
     }
 }
 
 void RS_Limb::SetCollideWheel(bool state) {
     m_collide_wheel = state;
-    m_wheel->m_body->SetCollide(state);
+    m_wheel->m_body->EnableCollision(state);
 }
 
 void RS_Limb::Translate(const ChVector3d& shift) {

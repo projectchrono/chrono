@@ -949,9 +949,9 @@ void ChModalAssembly::Setup() {
     //
 
     for (auto& body : internal_bodylist) {
-        if (body->GetFixed()) {
+        if (body->IsFixed()) {
             // throw std::runtime_error("Cannot use a fixed body as internal");
-        } else if (body->GetSleeping()) {
+        } else if (body->IsSleeping()) {
             // throw std::runtime_error("Cannot use a sleeping body as internal");
         } else {
             m_num_bodies_internal++;

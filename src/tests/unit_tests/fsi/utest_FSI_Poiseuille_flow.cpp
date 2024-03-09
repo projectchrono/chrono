@@ -79,7 +79,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     auto body = chrono_types::make_shared<ChBody>();
     body->SetIdentifier(-1);
     body->SetFixed(true);
-    body->SetCollide(true);
+    body->EnableCollision(true);
 
     // Size and position of the bottom and top walls
     auto initSpace0 = sysFSI.GetInitialSpacing();

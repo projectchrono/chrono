@@ -59,7 +59,7 @@ void AddBody(ChSystemMulticoreNSC* sys) {
     bin->SetMass(1);
     bin->SetPos(ChVector3d(0, 0, 0));
     bin->SetRot(QuatFromAngleY(-45 * CH_C_DEG_TO_RAD));
-    bin->SetCollide(true);
+    bin->EnableCollision(true);
     bin->SetFixed(true);
 
     utils::AddBoxGeometry(bin.get(), mat, ChVector3d(0.2, 0.2, 0.2), ChVector3d(0, 0, 0));

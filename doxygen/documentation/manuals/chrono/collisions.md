@@ -75,7 +75,7 @@ auto collmat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
 auto collshape = chrono_types::make_shared<ChCollisionShapeBox>(collmat, 0.1, 0.2, 0.3);
 
 body->AddCollisionShape(collshape);
-body->SetCollide(true);
+body->EnableCollision(true);
 ~~~
 
 Always remember to set a given collision system type in \ref chrono::ChSystem "ChSystem" e.g.

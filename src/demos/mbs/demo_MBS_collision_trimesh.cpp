@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
 
         falling->AddVisualModel(vis_model);
         falling->AddCollisionShape(coll_shape);
-        falling->SetCollide(true);
+        falling->EnableCollision(true);
     }
 
     // Shared contact material for falling objects

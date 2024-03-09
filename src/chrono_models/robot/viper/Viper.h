@@ -77,7 +77,7 @@ class CH_MODELS_API ViperPart {
     void SetVisualize(bool state) { m_visualize = state; }
 
     /// Enable/disable collision.
-    void SetCollide(bool state) { m_collide = state; }
+    void EnableCollision(bool state) { m_collide = state; }
 
     /// Initialize the rover part by attaching it to the specified chassis body.
     void Initialize(std::shared_ptr<ChBodyAuxRef> chassis);

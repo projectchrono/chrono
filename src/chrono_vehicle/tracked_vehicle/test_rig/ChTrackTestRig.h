@@ -112,7 +112,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     /// Set collision flags for the various subsystems.
     /// By default, collision is enabled for sprocket, idler, road wheels, and track shoes.
-    void SetCollide(int flags) { m_collide_flags = flags; }
+    void EnableCollision(int flags) { m_collide_flags = flags; }
 
     /// Enable/disable collision for the rig posts (default: true).
     void SetPostCollide(bool flag);

@@ -88,7 +88,7 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d
     chassis->GetSystem()->Add(m_axle_to_spindle);
 
     // Enable contact for the gear body and set contact material properties.
-    m_gear->SetCollide(true);
+    m_gear->EnableCollision(true);
     CreateContactMaterial(chassis->GetSystem()->GetContactMethod());
 
     // Set user-defined custom collision callback class for sprocket-shoes contact.

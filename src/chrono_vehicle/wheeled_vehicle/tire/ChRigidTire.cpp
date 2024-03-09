@@ -51,7 +51,7 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     CreateContactMaterial(wheel_body->GetSystem()->GetContactMethod());
     assert(m_material && m_material->GetContactMethod() == wheel_body->GetSystem()->GetContactMethod());
     
-    wheel_body->SetCollide(true);
+    wheel_body->EnableCollision(true);
 
     if (m_use_contact_mesh) {
         // Mesh contact

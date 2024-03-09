@@ -221,7 +221,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);
     ground->SetFixed(true);
-    ground->SetCollide(false);
+    ground->EnableCollision(false);
     sysMBS.AddBody(ground);
 
     // Fluid representation of walls

@@ -63,7 +63,7 @@ class ChApi ChConveyor : public ChPhysicsItem {
     // Shortcuts for ChBody-like transformations etc.
     // These, and others, can also be done as my_conveyor->GetTruss()->Ch***(...).
     void SetFixed(bool mev) { GetTruss()->SetFixed(mev); }
-    bool GetFixed() { return GetTruss()->GetFixed(); }
+    bool IsFixed() { return GetTruss()->IsFixed(); }
 
     ChCoordsys<>& GetCoordsys() { return GetTruss()->GetCoordsys(); }
     ChVector3d& GetPos() { return GetTruss()->GetPos(); }
@@ -168,7 +168,7 @@ class ChApi ChConveyor : public ChPhysicsItem {
 
     // Other functions
 
-    virtual bool GetCollide() const override { return true; }
+    virtual bool IsCollisionEnabled() const override { return true; }
     virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
     virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
     virtual void SyncCollisionModels() override;

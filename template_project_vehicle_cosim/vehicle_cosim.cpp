@@ -109,7 +109,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
     m_system->AddBody(ground);
     ground->SetMass(1);
     ground->SetFixed(true);
-    ground->SetCollide(true);
+    ground->EnableCollision(true);
 
     auto mat_terrain = chrono_types::make_shared<ChContactMaterialSMC>();
     mat_terrain->SetFriction(0.9f);
@@ -146,7 +146,7 @@ void MyTerrain::OnInitialize(unsigned int num_tires) {
         m_bodies[i] = chrono_types::make_shared<ChBody>();
         m_bodies[i]->SetMass(m_load_mass[0]);
         m_bodies[i]->SetInertiaXX(ChVector3d(0.1, 0.1, 0.1));
-        m_bodies[i]->SetCollide(true);
+        m_bodies[i]->EnableCollision(true);
 
         utils::AddCylinderGeometry(m_bodies[i].get(), mat_proxy, tire_radius, tire_width / 2);
 

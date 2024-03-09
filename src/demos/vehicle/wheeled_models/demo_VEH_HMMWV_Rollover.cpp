@@ -218,7 +218,7 @@ void AddObstacle(ChSystem* sys) {
     auto body = chrono_types::make_shared<ChBody>();
     body->SetPos(pos);
     body->SetFixed(true);
-    body->SetCollide(true);
+    body->EnableCollision(true);
     sys->Add(body);
 
     std::shared_ptr<ChContactMaterial> mat = ChContactMaterial::DefaultMaterial(sys->GetContactMethod());

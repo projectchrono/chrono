@@ -134,7 +134,7 @@ mesh_for_collision.LoadWavefrontMesh(chrono.GetChronoDataFile('models/bulldozer/
 mesh_for_collision.Transform(chrono.ChVector3d(0.01,0,0), chrono.ChMatrix33d(1))
 body_B_ct_shape = chrono.ChCollisionShapeTriangleMesh(contact_material, mesh_for_collision, False, False)
 body_B.AddCollisionShape(body_B_ct_shape)
-body_B.SetCollide(True)
+body_B.EnableCollision(True)
 
 sys.Add(body_B)
 

@@ -369,7 +369,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     container->SetIdentifier(-1);
     container->SetMass(1);
     container->SetFixed(true);
-    container->SetCollide(true);
+    container->EnableCollision(true);
 
     double hdimX = m_dimX / 2;
     double hdimY = m_dimY / 2;
@@ -530,7 +530,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         body->SetMass(mass * b.m_density);
         body->SetInertia(inertia * b.m_density);
         body->SetFixed(false);
-        body->SetCollide(true);
+        body->EnableCollision(true);
 
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_g);
         body->AddCollisionShape(ct_shape);
@@ -777,7 +777,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
         body->SetMass(mass_p);
         body->SetInertiaXX(inertia_p);
         body->SetFixed(m_fixed_proxies);
-        body->SetCollide(true);
+        body->EnableCollision(true);
 
         // Create contact shape.
         // Note that the vertex locations will be updated at every synchronization time.
@@ -810,7 +810,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateRigidProxy(unsigned int i) {
     body->SetMass(m_load_mass[i]);
     ////body->SetInertiaXX();   //// TODO
     body->SetFixed(m_fixed_proxies);
-    body->SetCollide(true);
+    body->EnableCollision(true);
 
     // Create visualization assets (use collision shapes)
     m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::PRIMITIVES, true);

@@ -165,8 +165,8 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     virtual ChParticleCloud* Clone() const override { return new ChParticleCloud(*this); }
 
     /// Enable/disable the collision for this cluster of particles.
-    void SetCollide(bool state);
-    virtual bool GetCollide() const override { return collide; }
+    void EnableCollision(bool state);
+    virtual bool IsCollisionEnabled() const override { return collide; }
 
     /// Set the state of all particles in the cluster to 'fixed' (default: false).
     /// If true, the particles do not move.

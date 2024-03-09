@@ -312,7 +312,7 @@ bool ChParserOpenSim::parseBody(xml_node<>* bodyNode, ChSystem& system) {
     newBody->SetNameString(name);
     system.AddBody(newBody);
 
-    newBody->SetCollide(m_collide);
+    newBody->EnableCollision(m_collide);
 
     // Traverse the list of fields and parse the information for each one
     xml_node<>* fieldNode = bodyNode->first_node();
@@ -337,7 +337,7 @@ void ChParserOpenSim::initFunctionTable() {
         if (std::stod(fieldNode->value()) == 0) {
             // Ground-like body, massless => fixed
             newBody->SetFixed(true);
-            newBody->SetCollide(false);
+            newBody->EnableCollision(false);
             newBody->SetPos(ChVector3d(0, 0, 0));
         } else {
             // Give new body mass
@@ -718,7 +718,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
         body_collision_struct& child_col_info = body_collision_info[child->GetName()];
 
         // If a body is fixed, treat it as level 0
-        if (parent->GetFixed()) {
+        if (parent->IsFixed()) {
             parent_col_info.level = 0;
         }
         // Child is one more level than parent
@@ -772,7 +772,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             std::cout << parent->GetName() << " family is " << body_collision_info[parent->GetName()].family
                       << std::endl;
 
-        if ((parent->GetCollide() == false) || (body_collision_info[parent->GetName()].family == m_family_2)) {
+        if ((parent->IsCollisionEnabled() == false) || (body_collision_info[parent->GetName()].family == m_family_2)) {
             if (m_verbose)
                 std::cout << "Setting " << child->GetName() << " to family " << m_family_1 << std::endl;
             body_collision_info[child->GetName()].family = m_family_1;
@@ -835,7 +835,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
         }
 
         // Set collision shapes
-        if (body_info.body->GetCollide()) {
+        if (body_info.body->IsCollisionEnabled()) {
             for (auto cyl_info : body_info.cylinders) {
                 utils::AddCylinderGeometry(body_info.body, mat, cyl_info.rad, cyl_info.hlen, cyl_info.pos, cyl_info.rot,
                                            false);

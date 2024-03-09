@@ -55,7 +55,7 @@ void Little_Hexy::AddCollisionShapes(std::shared_ptr<ChContactMaterial> material
     auto cyl = chrono_types::make_shared<ChCollisionShapeCylinder>(material, 0.762 + 0.6718 / 2, 0.2);
     chassis->AddCollisionShape(cyl, ChFrame<>(ChVector3d(0, 0, 0.2783), Q_ROTATE_Y_TO_Z));
 
-    chassis->SetCollide(true);
+    chassis->EnableCollision(true);
 }
 
 void Little_Hexy::Pitch_Down(double delta) {

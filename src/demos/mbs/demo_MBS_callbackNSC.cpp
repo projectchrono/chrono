@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
     container->SetFixed(true);
     container->SetIdentifier(-1);
 
-    container->SetCollide(true);
+    container->EnableCollision(true);
     utils::AddBoxGeometry(container.get(), material, ChVector3d(8, 1, 8), ChVector3d(0, -0.5, 0));
     container->GetCollisionModel()->SetEnvelope(collision_envelope);
     container->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.4f, 0.4f));
@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
     box1->SetPos(ChVector3d(-1, 0.21, -1));
     box1->SetPosDer(ChVector3d(5, 0, 0));
 
-    box1->SetCollide(true);
+    box1->EnableCollision(true);
     utils::AddBoxGeometry(box1.get(), material, ChVector3d(0.8, 0.4, 0.2));
     box1->GetCollisionModel()->SetEnvelope(collision_envelope);
     box1->GetVisualShape(0)->SetColor(ChColor(0.1f, 0.1f, 0.4f));
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
     box2->SetPos(ChVector3d(-1, 0.21, +1));
     box2->SetPosDer(ChVector3d(5, 0, 0));
 
-    box2->SetCollide(true);
+    box2->EnableCollision(true);
     utils::AddBoxGeometry(box2.get(), material, ChVector3d(0.8, 0.4, 0.2));
     box2->GetCollisionModel()->SetEnvelope(collision_envelope);
     box2->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.1f, 0.1f));

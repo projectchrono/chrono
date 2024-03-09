@@ -45,7 +45,7 @@ void SynCopterAgent::InitializeZombie(ChSystem* system) {
 
         auto prop = chrono_types::make_shared<ChBody>();
         prop->AddVisualShape(prop_trimesh);
-        prop->SetCollide(false);
+        prop->EnableCollision(false);
         prop->SetFixed(true);
         system->Add(prop);
 
@@ -113,7 +113,7 @@ std::shared_ptr<ChBody> SynCopterAgent::CreateChassisZombieBody(const std::strin
 
     auto zombie_body = chrono_types::make_shared<ChBody>();
     zombie_body->AddVisualShape(trimesh);
-    zombie_body->SetCollide(false);
+    zombie_body->EnableCollision(false);
     zombie_body->SetFixed(true);
     system->Add(zombie_body);
 

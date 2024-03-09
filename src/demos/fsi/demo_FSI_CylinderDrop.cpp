@@ -154,7 +154,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
                                    ChVector3d(bxDim, byDim, bzDim), 0.1,           //
                                    ChVector3i(2, 2, -1),                        //
                                    false);
-    box->SetCollide(true);
+    box->EnableCollision(true);
 
     // Add BCE particles attached on the walls into FSI system
     sysFSI.AddBoxContainerBCE(box,                                            //
@@ -178,7 +178,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     cylinder->SetInertiaXX(mass * gyration);
 
     // Set the collision and visualization geometry
-    cylinder->SetCollide(true);
+    cylinder->EnableCollision(true);
     cylinder->SetFixed(false);
     chrono::utils::AddCylinderGeometry(cylinder.get(), cmaterial, cyl_radius, cyl_length, VNULL,
                                        QuatFromAngleX(CH_C_PI_2));

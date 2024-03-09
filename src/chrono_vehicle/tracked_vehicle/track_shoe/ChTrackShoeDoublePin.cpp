@@ -94,7 +94,7 @@ void ChTrackShoeDoublePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_shoe->SetRot(rot);
     m_shoe->SetMass(GetShoeMass());
     m_shoe->SetInertiaXX(GetShoeInertia());
-    m_shoe->SetCollide(true);
+    m_shoe->EnableCollision(true);
     chassis->GetSystem()->AddBody(m_shoe);
 
     // Create the connector bodies.

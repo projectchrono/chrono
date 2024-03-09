@@ -52,7 +52,7 @@ void AddFallingItems(ChSystemSMC& sys) {
 
                 auto shape = chrono_types::make_shared<ChCollisionShapeSphere>(mat, radius);
                 body->AddCollisionShape(shape);
-                body->SetCollide(true);
+                body->EnableCollision(true);
 
                 auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
                 sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
@@ -72,7 +72,7 @@ void AddFallingItems(ChSystemSMC& sys) {
 
                 auto shape = chrono_types::make_shared<ChCollisionShapeBox>(mat, size.x(), size.y(), size.z());
                 body->AddCollisionShape(shape);
-                body->SetCollide(true);
+                body->EnableCollision(true);
 
                 auto box = chrono_types::make_shared<ChVisualShapeBox>(size);
                 box->SetTexture(GetChronoDataFile("textures/cubetexture_pinkwhite.png"));
@@ -107,7 +107,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
     fixedBody->SetMass(1.0);
     fixedBody->SetFixed(true);
     fixedBody->SetPos(ChVector3d());
-    fixedBody->SetCollide(true);
+    fixedBody->EnableCollision(true);
 
     // Contact material for container
     auto fixed_mat = chrono_types::make_shared<ChContactMaterialSMC>();
@@ -128,7 +128,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
     rotatingBody->SetMass(10.0);
     rotatingBody->SetInertiaXX(ChVector3d(50, 50, 50));
     rotatingBody->SetPos(ChVector3d(0, -1.6, 0));
-    rotatingBody->SetCollide(true);
+    rotatingBody->EnableCollision(true);
 
     // Contact material for mixer body
     auto rot_mat = chrono_types::make_shared<ChContactMaterialSMC>();

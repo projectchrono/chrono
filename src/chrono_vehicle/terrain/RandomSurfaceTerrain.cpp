@@ -81,7 +81,7 @@ RandomSurfaceTerrain::RandomSurfaceTerrain(ChSystem* system, double length, doub
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector3d(0, 0, 0));
     m_ground->SetFixed(true);
-    m_ground->SetCollide(false);
+    m_ground->EnableCollision(false);
     m_ground->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
     system->Add(m_ground);
 
@@ -535,7 +535,7 @@ void RandomSurfaceTerrain::EnableCollisionMesh(std::shared_ptr<ChContactMaterial
 void RandomSurfaceTerrain::SetupCollision() {
     GenerateMesh();
 
-    m_ground->SetCollide(true);
+    m_ground->EnableCollision(true);
 
     auto ct_shape =
         chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_material, m_mesh, true, false, m_sweep_sphere_radius);

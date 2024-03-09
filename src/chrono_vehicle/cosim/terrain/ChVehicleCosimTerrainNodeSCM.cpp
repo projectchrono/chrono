@@ -231,7 +231,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         body->SetInertia(inertia * b.m_density);
         body->SetFixed(false);
 
-        body->SetCollide(true);
+        body->EnableCollision(true);
         auto ct_shape =
             chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_p);
         body->AddCollisionShape(ct_shape);
@@ -341,7 +341,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
     body->SetMass(m_load_mass[i_shape]);
     ////body->SetInertiaXX();   //// TODO
     body->SetFixed(false);  // Cannot fix the proxies with SCM
-    body->SetCollide(true);
+    body->EnableCollision(true);
 
     // Create visualization asset (use collision shapes)
     m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::PRIMITIVES, true);

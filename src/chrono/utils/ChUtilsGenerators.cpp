@@ -501,7 +501,7 @@ void Generator::createObjects(const PointVector& points, const ChVector3d& vel) 
         body->SetRot(ChQuaternion<>(1, 0, 0, 0));
         body->SetPosDer(vel);
         body->SetFixed(false);
-        body->SetCollide(true);
+        body->EnableCollision(true);
 
         // Get size and density; calculate geometric properties
         ChVector3d size = m_mixture[index]->getSize();

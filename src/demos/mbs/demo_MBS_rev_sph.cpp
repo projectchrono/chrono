@@ -42,7 +42,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetFixed(true);
-    ground->SetCollide(false);
+    ground->EnableCollision(false);
 
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.04, 0.4);
     ground->AddVisualShape(cyl, ChFrame<>(ChVector3d(0, 0, 1), QUNIT));
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(pend);
     pend->SetIdentifier(1);
     pend->SetFixed(false);
-    pend->SetCollide(false);
+    pend->EnableCollision(false);
     pend->SetMass(1);
     pend->SetInertiaXX(ChVector3d(0.2, 1, 1));
 

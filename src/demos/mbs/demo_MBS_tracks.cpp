@@ -148,7 +148,7 @@ class MySimpleTank {
 
         wheelRF->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displA, QuatFromAngleX(CH_C_PI_2)));
         wheelRF->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displB, QuatFromAngleX(CH_C_PI_2)));
-        wheelRF->SetCollide(true);
+        wheelRF->EnableCollision(true);
 
         wheelRF->GetVisualShape(0)->SetMaterial(0, wheel_mat_vis);
 
@@ -178,7 +178,7 @@ class MySimpleTank {
 
         wheelLF->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displA, QuatFromAngleX(CH_C_PI_2)));
         wheelLF->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displB, QuatFromAngleX(CH_C_PI_2)));
-        wheelLF->SetCollide(true);
+        wheelLF->EnableCollision(true);
 
         wheelLF->GetVisualShape(0)->SetMaterial(0, wheel_mat_vis);
 
@@ -209,7 +209,7 @@ class MySimpleTank {
 
         wheelRB->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displA, QuatFromAngleX(CH_C_PI_2)));
         wheelRB->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displB, QuatFromAngleX(CH_C_PI_2)));
-        wheelRB->SetCollide(true);
+        wheelRB->EnableCollision(true);
 
         wheelRB->GetVisualShape(0)->SetMaterial(0, wheel_mat_vis);
 
@@ -241,7 +241,7 @@ class MySimpleTank {
 
         wheelLB->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displA, QuatFromAngleX(CH_C_PI_2)));
         wheelLB->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displB, QuatFromAngleX(CH_C_PI_2)));
-        wheelLB->SetCollide(true);
+        wheelLB->EnableCollision(true);
 
         wheelLB->GetVisualShape(0)->SetMaterial(0, wheel_mat_vis);
 
@@ -311,7 +311,7 @@ class MySimpleTank {
                 chrono_types::make_shared<ChContactMaterialNSC>(), trimesh, false, false, 0.005);
             coll_model->AddShape(coll_shape, ChFrame<>(mesh_displacement, QUNIT));
             firstBodyShoe->AddCollisionModel(coll_model);
-            firstBodyShoe->SetCollide(true);
+            firstBodyShoe->EnableCollision(true);
 
             // Avoid creation of contacts with neighbouring shoes, using
             // a collision family (=3) that does not collide with itself
@@ -428,7 +428,7 @@ class MySimpleTank {
 
         auto coll_model = chrono_types::make_shared<ChCollisionModel>(*template_shoe->GetCollisionModel());
         rigidBodyShoe->AddCollisionModel(coll_model);
-        rigidBodyShoe->SetCollide(true);
+        rigidBodyShoe->EnableCollision(true);
 
         // Other settings are already copied from template_shoe, except for family and mask.
         // Avoid creation of contacts with neighbouring shoes:

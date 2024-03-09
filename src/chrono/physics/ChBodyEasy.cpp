@@ -60,7 +60,7 @@ void ChBodyEasySphere::SetupBody(double radius,
         assert(material);
         auto cshape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
         AddCollisionShape(cshape);
-        SetCollide(true);
+        EnableCollision(true);
     }
     if (visualize) {
         auto vshape = chrono_types::make_shared<ChVisualShapeSphere>(radius);
@@ -115,7 +115,7 @@ void ChBodyEasyEllipsoid::SetupBody(ChVector3d axes,
         assert(material);
         auto cshape = chrono_types::make_shared<ChCollisionShapeEllipsoid>(material, axes);
         AddCollisionShape(cshape);
-        SetCollide(true);
+        EnableCollision(true);
     }
     if (visualize) {
         auto vshape = chrono_types::make_shared<ChVisualShapeEllipsoid>(axes);
@@ -192,7 +192,7 @@ void ChBodyEasyCylinder::SetupBody(ChAxis direction,
         assert(material);
         auto cshape = chrono_types::make_shared<ChCollisionShapeCylinder>(material, radius, height);
         AddCollisionShape(cshape, ChFrame<>(VNULL, rot));
-        SetCollide(true);
+        EnableCollision(true);
     }
 
     if (visualize) {
@@ -255,7 +255,7 @@ void ChBodyEasyBox::SetupBody(double Xsize,
         assert(material);
         auto cshape = chrono_types::make_shared<ChCollisionShapeBox>(material, Xsize, Ysize, Zsize);
         AddCollisionShape(cshape);
-        SetCollide(true);
+        EnableCollision(true);
     }
     if (visualize) {
         auto vshape = chrono_types::make_shared<ChVisualShapeBox>(Xsize, Ysize, Zsize);
@@ -337,7 +337,7 @@ void ChBodyEasyConvexHull::SetupBody(std::vector<ChVector3d>& points,
 
         auto cshape = chrono_types::make_shared<ChCollisionShapeConvexHull>(material, points_reduced);
         AddCollisionShape(cshape);
-        SetCollide(true);
+        EnableCollision(true);
     }
 
     m_mesh = vshape->GetMesh();
@@ -424,7 +424,7 @@ void ChBodyEasyConvexHullAuxRef::SetupBody(std::vector<ChVector3d>& points,
 
         auto cshape = chrono_types::make_shared<ChCollisionShapeConvexHull>(material, points_reduced);
         AddCollisionShape(cshape);
-        SetCollide(true);
+        EnableCollision(true);
     }
 
     m_mesh = vshape->GetMesh();
@@ -533,7 +533,7 @@ void ChBodyEasyMesh::SetupBody(std::shared_ptr<ChTriangleMeshConnected> trimesh,
         auto cshape =
             chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, trimesh, false, false, sphere_swept);
         AddCollisionShape(cshape);
-        SetCollide(true);
+        EnableCollision(true);
     }
 }
 
@@ -626,7 +626,7 @@ void ChBodyEasyClusterOfSpheres::SetupBody(std::vector<ChVector3d>& positions,
             collision_model->AddShape(cshape, ChFrame<>(offset_positions[i], QUNIT));
         }
         AddCollisionModel(collision_model);
-        SetCollide(true);
+        EnableCollision(true);
     }
     if (visualize) {
         auto vmodel = chrono_types::make_shared<ChVisualModel>();

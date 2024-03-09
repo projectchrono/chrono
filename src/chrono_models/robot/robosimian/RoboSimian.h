@@ -189,7 +189,7 @@ class CH_MODELS_API RS_Chassis : public RS_Part {
     void Initialize(const chrono::ChCoordsys<>& pos);
 
     /// Enable/disable collision for the sled (Default: false).
-    void SetCollide(bool state);
+    void EnableCollision(bool state);
 
   private:
     /// Translate the chassis by the specified value.
@@ -217,7 +217,7 @@ class CH_MODELS_API RS_Sled : public RS_Part {
     );
 
     /// Enable/disable collision for the sled (default: true).
-    void SetCollide(bool state);
+    void EnableCollision(bool state);
 
   private:
     /// Translate the sled by the specified value.
@@ -434,7 +434,7 @@ class CH_MODELS_API RoboSimian {
     /// Set collision flags for the various subsystems.
     /// By default, collision is enabled for the sled and wheels only.
     /// The 'flags' argument can be any of the CollisionFlag enums, or a combination thereof (using bit-wise operators).
-    void SetCollide(int flags);
+    void EnableCollision(int flags);
 
     /// Set coefficients of friction for sled-terrain and wheel-terrain contacts.
     /// Default values: 0.8.

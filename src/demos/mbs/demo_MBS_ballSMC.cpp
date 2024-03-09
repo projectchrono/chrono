@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
 
     auto sphere_coll = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
     ball->AddCollisionShape(sphere_coll, ChFrame<>());
-    ball->SetCollide(true);
+    ball->EnableCollision(true);
 
     auto sphere_vis = chrono_types::make_shared<ChVisualShapeSphere>(radius);
     sphere_vis->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
 
     auto box_coll = chrono_types::make_shared<ChCollisionShapeBox>(material, width * 2, thickness * 2, length * 2);
     bin->AddCollisionShape(box_coll, ChFrame<>());
-    bin->SetCollide(true);
+    bin->EnableCollision(true);
 
     auto box_vis = chrono_types::make_shared<ChVisualShapeBox>(width * 2, thickness * 2, length * 2);
     box_vis->SetColor(ChColor(0.8f, 0.2f, 0.2f));

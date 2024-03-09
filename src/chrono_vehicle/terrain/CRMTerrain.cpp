@@ -107,7 +107,7 @@ void CRMTerrain::AddRigidObstacle(const std::string& obj_file,
     o.body->SetMass(mass * density);
     o.body->SetInertia(inertia * density);
     o.body->SetFixed(false);
-    o.body->SetCollide(true);
+    o.body->EnableCollision(true);
 
     // Create obstacle visualization geometry
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();

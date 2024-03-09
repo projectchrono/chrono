@@ -463,7 +463,7 @@ void ChSystem::SetTimestepperType(ChTimestepper::Type type) {
 }
 
 bool ChSystem::ManageSleepingBodies() {
-    if (!GetAllowSleeping())
+    if (!IsSleepingAllowed())
         return 0;
 
     // STEP 1:
@@ -499,12 +499,12 @@ bool ChSystem::ManageSleepingBodies() {
             ChBody* b2 = dynamic_cast<ChBody*>(contactobjB);
             if (!(b1 && b2))
                 return true;
-            bool sleep1 = b1->GetSleeping();
-            bool sleep2 = b2->GetSleeping();
+            bool sleep1 = b1->IsSleeping();
+            bool sleep2 = b2->IsSleeping();
             bool could_sleep1 = b1->candidate_sleeping;
             bool could_sleep2 = b2->candidate_sleeping;
-            bool ground1 = b1->GetFixed();
-            bool ground2 = b2->GetFixed();
+            bool ground1 = b1->IsFixed();
+            bool ground2 = b2->IsFixed();
             if (sleep1 && !(sleep2 || could_sleep2) && !ground2) {
                 b1->SetSleeping(false);
                 need_Setup_A = true;
@@ -545,8 +545,8 @@ bool ChSystem::ManageSleepingBodies() {
                     ChBody* b1 = dynamic_cast<ChBody*>(Lpointer->GetBody1());
                     ChBody* b2 = dynamic_cast<ChBody*>(Lpointer->GetBody2());
                     if (b1 && b2) {
-                        bool sleep1 = b1->GetSleeping();
-                        bool sleep2 = b2->GetSleeping();
+                        bool sleep1 = b1->IsSleeping();
+                        bool sleep2 = b2->IsSleeping();
                         bool could_sleep1 = b1->candidate_sleeping;
                         bool could_sleep2 = b2->candidate_sleeping;
                         if (sleep1 && !(sleep2 || could_sleep2)) {

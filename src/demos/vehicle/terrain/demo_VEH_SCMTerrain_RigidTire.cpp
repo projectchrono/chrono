@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
             break;
         }
     }
-    wheel->SetCollide(true);
+    wheel->EnableCollision(true);
 
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);

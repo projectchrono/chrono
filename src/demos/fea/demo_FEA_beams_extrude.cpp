@@ -67,7 +67,7 @@ std::shared_ptr<ChBody> CreateLobedGear(ChVector3d gear_center,
     // central hub
     chrono::utils::AddCylinderGeometry(mgear.get(), mysurfmaterial, lobe_inner_rad, lobe_thickness * 0.5, VNULL, QUNIT,
                                        true);
-    mgear->SetCollide(true);
+    mgear->EnableCollision(true);
 
     return mgear;
 }

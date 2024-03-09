@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetFixed(true);
-    ground->SetCollide(false);
+    ground->EnableCollision(false);
 
     {
         auto cyl_1 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 0.4);
@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(pend_1);
     pend_1->SetIdentifier(1);
     pend_1->SetFixed(false);
-    pend_1->SetCollide(false);
+    pend_1->EnableCollision(false);
     pend_1->SetMass(1);
     pend_1->SetInertiaXX(ChVector3d(0.2, 1, 1));
 
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     sys.Add(pend_2);
     pend_2->SetIdentifier(2);
     pend_2->SetFixed(false);
-    pend_2->SetCollide(false);
+    pend_2->EnableCollision(false);
     pend_2->SetMass(1);
     pend_2->SetInertiaXX(ChVector3d(0.2, 1, 1));
     // NOTE: the inertia tensor must still be expressed in the centroidal frame!

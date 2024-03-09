@@ -61,7 +61,7 @@ void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         m_web_segments[is]->SetRot(rot);
         m_web_segments[is]->SetMass(m_seg_mass);
         m_web_segments[is]->SetInertiaXX(m_seg_inertia);
-        m_web_segments[is]->SetCollide(true);
+        m_web_segments[is]->EnableCollision(true);
         chassis->GetSystem()->AddBody(m_web_segments[is]);
 
         // Add contact geometry

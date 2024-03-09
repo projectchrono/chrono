@@ -59,7 +59,7 @@ RayCaster::RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2d& d
     : m_sys(sys), m_origin(origin), m_dims(dims), m_spacing(spacing) {
     m_body = chrono_types::make_shared<ChBody>();
     m_body->SetFixed(true);
-    m_body->SetCollide(false);
+    m_body->EnableCollision(false);
     sys->AddBody(m_body);
 
     m_glyphs = chrono_types::make_shared<ChGlyphs>();
@@ -209,7 +209,7 @@ void CreateMeshes(ChSystemSMC& sys) {
     m1->AddVisualShape(vismesh);
     auto m1_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, 0.01);
     m1->AddCollisionShape(m1_shape);
-    m1->SetCollide(true);
+    m1->EnableCollision(true);
     sys.Add(m1);
 }
 

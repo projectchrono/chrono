@@ -167,7 +167,7 @@ void RigidTerrain::AddPatch(std::shared_ptr<Patch> patch,
     patch->m_body->SetPos(position.pos);
     patch->m_body->SetRot(position.rot);
     patch->m_body->SetFixed(true);
-    patch->m_body->SetCollide(true);
+    patch->m_body->EnableCollision(true);
     m_system->AddBody(patch->m_body);
 
     // Cache coefficient of friction

@@ -191,20 +191,20 @@ void CreateTerrain(ChSystem& sys) {
     auto mbox_1 = chrono_types::make_shared<ChBodyEasyBox>(2.4, 1.4, 0.1, 1000, true, true, ground_mat);
     mbox_1->SetPos(ChVector3d(3, 1, 0.05));
     mbox_1->SetFixed(true);
-    mbox_1->SetCollide(true);
+    mbox_1->EnableCollision(true);
     sys.Add(mbox_1);
 
     // Create the second step of the stair-shaped obstacle
     auto mbox_2 = chrono_types::make_shared<ChBodyEasyBox>(1.6, 1.2, 0.2, 1000, true, true, ground_mat);
     mbox_2->SetPos(ChVector3d(3, 1, 0.1));
     mbox_2->SetFixed(true);
-    mbox_2->SetCollide(true);
+    mbox_2->EnableCollision(true);
     sys.Add(mbox_2);
 
     // Create the third step of the stair-shaped obstacle
     auto mbox_3 = chrono_types::make_shared<ChBodyEasyBox>(0.8, 1.0, 0.3, 1000, true, true, ground_mat);
     mbox_3->SetPos(ChVector3d(3, 1, 0.15));
     mbox_3->SetFixed(true);
-    mbox_3->SetCollide(true);
+    mbox_3->EnableCollision(true);
     sys.Add(mbox_3);
 }

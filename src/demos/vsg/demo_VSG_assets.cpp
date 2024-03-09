@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     // Define a collision shape
     auto floor_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
     floor->AddCollisionShape(floor_shape, ChFrame<>(ChVector3d(0, -1, 0), QUNIT));
-    floor->SetCollide(true);
+    floor->EnableCollision(true);
 
     // Add body to system
     sys.Add(floor);
@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
 
         auto particle_shape = chrono_types::make_shared<ChCollisionShapeSphere>(particle_mat, particle_radius);
         particles->AddCollisionShape(particle_shape);
-        particles->SetCollide(true);
+        particles->EnableCollision(true);
 
         for (int np = 0; np < 60; ++np)
             particles->AddParticle(ChCoordsys<>(ChVector3d(2 * ChRandom::Get() - 2, 1.5, 2 * ChRandom::Get() + 2)));
@@ -221,7 +221,7 @@ int main(int argc, char* argv[]) {
 
         auto particle_shape = chrono_types::make_shared<ChCollisionShapeBox>(particle_mat, size_x, size_y, size_z);
         particles->AddCollisionShape(particle_shape);
-        particles->SetCollide(true);
+        particles->EnableCollision(true);
 
         for (int np = 0; np < 30; ++np)
             particles->AddParticle(ChCoordsys<>(ChVector3d(2 * ChRandom::Get() + 4, 1.5, 2 * ChRandom::Get() - 4)));
@@ -248,7 +248,7 @@ int main(int argc, char* argv[]) {
         particles->SetMass(0.1);
         particles->SetInertiaXX(ChVector3d(0.001, 0.001, 0.001));
         particles->SetFixed(true);
-        particles->SetCollide(false);
+        particles->EnableCollision(false);
 
         auto particle_vis = chrono_types::make_shared<ChVisualShapeCapsule>(0.2, 0.2);
         particle_vis->SetColor(ChColor(0.3f, 0.3f, 0.7f));

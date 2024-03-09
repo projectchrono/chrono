@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
     // Define a collision shape
     auto floor_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
     floor->AddCollisionShape(floor_shape, ChFrame<>(ChVector3d(0, -1, 0), QUNIT));
-    floor->SetCollide(true);
+    floor->EnableCollision(true);
 
     sys.Add(floor);
 
@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
     auto particle_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto particle_shape = chrono_types::make_shared<ChCollisionShapeSphere>(particle_mat, particle_radius);
     particles->AddCollisionShape(particle_shape);
-    particles->SetCollide(true);
+    particles->EnableCollision(true);
 
     // Create the random particles
     for (int np = 0; np < 100; ++np)

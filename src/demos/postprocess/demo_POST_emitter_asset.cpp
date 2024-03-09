@@ -240,7 +240,7 @@ int main(int argc, char* argv[]) {
                 pov->Add(body);
 
                 // Disable gyroscopic forces for increased integrator stabilty
-                body->SetNoGyroTorque(true);
+                body->SetUseGyroTorque(false);
             }
             ChVisualSystem* vis;
             ChPovRay* pov;
