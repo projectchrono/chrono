@@ -36,8 +36,8 @@ double FEDA_EngineSimpleMap::GetMaxEngineSpeed() {
 void FEDA_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) {
     const double limit_factor = 0.9;
 
-    map0.AddPoint(-100 * rpm2rads, 0.000);
-    map0.AddPoint(0, 0.0);
+    map0.AddPoint(-10 * rpm2rads, 0.000);
+    map0.AddPoint(100 * rpm2rads, 0.000);
     map0.AddPoint(700 * rpm2rads, -40.0);
     map0.AddPoint(800 * rpm2rads, -41.0);
     map0.AddPoint(900 * rpm2rads, -43.0);
@@ -60,8 +60,7 @@ void FEDA_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctio
     map0.AddPoint(2525 * rpm2rads, -95.9);
     map0.AddPoint(2850 * rpm2rads, -99.9);
 
-    mapF.AddPoint(-10.472, 400.0 * limit_factor);
-    mapF.AddPoint(0, 400.0 * limit_factor);
+    mapF.AddPoint(-10 * rpm2rads, 400.0 * limit_factor);
     mapF.AddPoint(100 * rpm2rads, 400 * limit_factor);
     mapF.AddPoint(700 * rpm2rads, 400 * limit_factor);
     mapF.AddPoint(800 * rpm2rads, 410 * limit_factor);
