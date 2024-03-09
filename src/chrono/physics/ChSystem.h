@@ -648,12 +648,16 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     void EnableSolverMatrixWrite(bool val, const std::string& out_dir = ".");
     bool IsSolverMatrixWriteEnabled() const { return write_matrix; }
 
-    /// Dump the current M mass matrix, K damping matrix, R damping matrix, Cq constraint jacobian
-    /// matrix (at the current configuration).
-    /// These can be later used for linearized motion, modal analysis, buckling analysis, etc.
-    /// The name of the files will be [path]_M.dat [path]_K.dat [path]_R.dat [path]_Cq.dat
-    /// Might throw exception if file can't be saved.
-    void WriteSystemMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path);
+    /// Write the mass (M), damping (K), damping (R), and constraint Jacobian (C) matrices at current configuration.
+    /// These can be used for linearized motion, modal analysis, buckling analysis, etc.
+    /// The sparse matrices are saved in COO format in [path]_M.dat [path]_K.dat [path]_R.dat, and [path]_Cq.dat.
+    /// By default, uses 1-based indices (as in Matlab).
+    void WriteSystemMatrices(bool save_M,
+                             bool save_K,
+                             bool save_R,
+                             bool save_Cq,
+                             const std::string& path,
+                             bool one_indexed = true);
 
     /// Compute the system-level mass matrix and load in the provided sparse matrix.
     void GetMassMatrix(ChSparseMatrix& M);

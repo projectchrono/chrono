@@ -262,7 +262,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     // Just for later reference, dump  M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
     sys.Setup();
     sys.Update();
-    assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
+    assembly->WriteSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
 
     if (do_modal_reduction) {
         // HERE PERFORM THE MODAL REDUCTION!
@@ -290,7 +290,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         // OPTIONAL
 
         // Just for later reference, dump reduced M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
-        assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/dump_reduced").c_str());
+        assembly->WriteSubassemblyMatrices(true, true, true, true, (out_dir + "/dump_reduced").c_str());
 
         // Use this for high simulation performance (the internal nodes won't be updated for postprocessing)
         // assembly->SetInternalNodesUpdate(false);

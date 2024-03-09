@@ -332,15 +332,6 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
 
         m_JacobianMatrix += (E * I * length) * Kcurv;  // Iyy should be the same value (circular section assumption)
     }
-
-    //// DEBUG
-    /*
-    std::cout << "Stiffness matr file dump. L=" << length << " A=" << m_section->Area << " E=" <<
-    m_section->E << " I=" << m_section->Izz << std::endl;
-    std::cout << StiffnessMatrix;
-    std::ofstream mdump("dump_stiff.txt");
-    StiffnessMatrix.StreamOutDenseMatlabFormat(mdump);
-    */
 }
 
 // Computes the mass matrix of the element.

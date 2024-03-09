@@ -545,17 +545,17 @@ void test_anchorchain() {
             // coordinates of rigid bodies
             std::ofstream file_coords(out_dir + "/equilibrium_coords.dat");
             file_coords << std::setprecision(12) << std::scientific;
-            StreamOutDenseMatlabFormat(coords, file_coords);
+            StreamOut(coords, file_coords);
 
             // catinary curve for comparison with the analytical formula
             std::ofstream file_catenary(out_dir + "/catenary_cmp.dat");
             file_catenary << std::setprecision(12) << std::scientific;
-            StreamOutDenseMatlabFormat(catenary_cmp, file_catenary);
+            StreamOut(catenary_cmp, file_catenary);
 
             // reaction forces and torques of all joints
             std::ofstream file_reactions(out_dir + "/equilibrium_reactions.dat");
             file_reactions << std::setprecision(12) << std::scientific;
-            StreamOutDenseMatlabFormat(reactions, file_reactions);
+            StreamOut(reactions, file_reactions);
         } else {
             std::cerr << "  ...Error creating subdirectories" << std::endl;
         }
@@ -598,7 +598,7 @@ void test_anchorchain() {
             if (create_directory(path(out_dir))) {
                 std::ofstream file_shape(out_dir + "/modal_shape_" + std::to_string(imode) + ".dat");
                 file_shape << std::setprecision(12) << std::scientific;
-                StreamOutDenseMatlabFormat(modal_shape_i, file_shape);
+                StreamOut(modal_shape_i, file_shape);
             } else {
                 std::cerr << "  ...Error creating subdirectories" << std::endl;
             }
@@ -607,7 +607,7 @@ void test_anchorchain() {
         if (create_directory(path(out_dir))) {
             std::ofstream file_freq(out_dir + "/modal_freq.dat");
             file_freq << std::setprecision(12) << std::scientific;
-            StreamOutDenseMatlabFormat(modal_freq, file_freq);
+            StreamOut(modal_freq, file_freq);
         } else {
             std::cerr << "  ...Error creating subdirectories" << std::endl;
         }
@@ -683,7 +683,7 @@ void test_anchorchain() {
             if (create_directory(path(out_dir))) {
                 std::ofstream file_vibration(out_dir + "/" + filename + ".dat");
                 file_vibration << std::setprecision(12) << std::scientific;
-                StreamOutDenseMatlabFormat(vibration, file_vibration);
+                StreamOut(vibration, file_vibration);
             } else {
                 std::cout << "  ...Error creating subdirectories" << std::endl;
             }

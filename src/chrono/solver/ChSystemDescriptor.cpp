@@ -629,21 +629,7 @@ void ChSystemDescriptor::UnknownsProject(ChVectorDynamic<>& mx) {
 
 // -----------------------------------------------------------------------------
 
-void ChSystemDescriptor::WriteMatrix(const std::string& path, const std::string& prefix) {
-    ChSparseMatrix Z;
-    ChVectorDynamic<double> rhs;
-    ConvertToMatrixForm(&Z, &rhs);
-
-    std::ofstream file_Z(path + "/" + prefix + "_Z.dat");
-    file_Z << std::setprecision(12) << std::scientific;
-    StreamOutSparseMatlabFormat(Z, file_Z);
-
-    std::ofstream file_rhs(path + "/" + prefix + "_rhs.dat");
-    file_rhs << std::setprecision(12) << std::scientific;
-    StreamOutDenseMatlabFormat(rhs, file_rhs);
-}
-
-void ChSystemDescriptor::WriteMatrixBlocks(const std::string& path, const std::string& prefix) {
+void ChSystemDescriptor::WriteMatrixBlocks(const std::string& path, const std::string& prefix, bool one_indexed) {
     ChSparseMatrix mdM;
     ChSparseMatrix mdCq;
     ChSparseMatrix mdE;
@@ -654,30 +640,44 @@ void ChSystemDescriptor::WriteMatrixBlocks(const std::string& path, const std::s
 
     std::ofstream file_M(path + "/" + prefix + "_M.dat");
     file_M << std::setprecision(12) << std::scientific;
-    StreamOutSparseMatlabFormat(mdM, file_M);
+    StreamOut(mdM, file_M, one_indexed);
 
     std::ofstream file_Cq(path + "/" + prefix + "_Cq.dat");
     file_Cq << std::setprecision(12) << std::scientific;
-    StreamOutSparseMatlabFormat(mdCq, file_Cq);
+    StreamOut(mdCq, file_Cq, one_indexed);
 
     std::ofstream file_E(path + "/" + prefix + "_E.dat");
     file_E << std::setprecision(12) << std::scientific;
-    StreamOutSparseMatlabFormat(mdE, file_E);
+    StreamOut(mdE, file_E, one_indexed);
 
     std::ofstream file_f(path + "/" + prefix + "_f.dat");
     file_f << std::setprecision(12) << std::scientific;
-    StreamOutDenseMatlabFormat(mdf, file_f);
+    StreamOut(mdf, file_f);
 
     std::ofstream file_b(path + "/" + prefix + "_b.dat");
     file_b << std::setprecision(12) << std::scientific;
-    StreamOutDenseMatlabFormat(mdb, file_b);
+    StreamOut(mdb, file_b);
 
     std::ofstream file_fric(path + "/" + prefix + "_fric.dat");
     file_fric << std::setprecision(12) << std::scientific;
-    StreamOutDenseMatlabFormat(mdfric, file_fric);
+    StreamOut(mdfric, file_fric);
 }
 
-void ChSystemDescriptor::WriteMatrixSpmv(const std::string& path, const std::string& prefix) {
+void ChSystemDescriptor::WriteMatrix(const std::string& path, const std::string& prefix, bool one_indexed) {
+    ChSparseMatrix Z;
+    ChVectorDynamic<double> rhs;
+    ConvertToMatrixForm(&Z, &rhs);
+
+    std::ofstream file_Z(path + "/" + prefix + "_Z.dat");
+    file_Z << std::setprecision(12) << std::scientific;
+    StreamOut(Z, file_Z, one_indexed);
+
+    std::ofstream file_rhs(path + "/" + prefix + "_rhs.dat");
+    file_rhs << std::setprecision(12) << std::scientific;
+    StreamOut(rhs, file_rhs);
+}
+
+void ChSystemDescriptor::WriteMatrixSpmv(const std::string& path, const std::string& prefix, bool one_indexed) {
     // Count constraints.
     int mn_c = 0;
     for (auto& cnstr : vconstraints) {
@@ -705,14 +705,14 @@ void ChSystemDescriptor::WriteMatrixSpmv(const std::string& path, const std::str
     // Write sparse matrix to file
     std::ofstream file_Z(path + "/" + prefix + "_Z.dat");
     file_Z << std::setprecision(12) << std::scientific;
-    StreamOutSparseMatlabFormat(Z, file_Z);
+    StreamOut(Z, file_Z, one_indexed);
 
     // Write RHS to file
     ChVectorDynamic<double> rhs;
     ConvertToMatrixForm(nullptr, &rhs);
     std::ofstream file_rhs(path + "/" + prefix + "_rhs.dat");
     file_rhs << std::setprecision(12) << std::scientific;
-    StreamOutDenseMatlabFormat(rhs, file_rhs);
+    StreamOut(rhs, file_rhs);
 }
 
 }  // end namespace chrono

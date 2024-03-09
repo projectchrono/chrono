@@ -350,17 +350,19 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Get the number of boundary scalar constraints (only unilaterals).
     unsigned int GetNumConstraintsUnilateralBoundary() const { return m_num_constr_uni_boundary; }
 
-    //
     // OTHER FUNCTIONS
-    //
 
-    /// Dump the M mass matrix, K damping matrix, R damping matrix, Cq constraint jacobian
-    /// matrix (at the current configuration) for this subassembly,
-    /// Assumes the rows/columns of the matrices are ordered as the ChVariable objects used in this assembly,
-    /// first the all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal
-    /// assembly). The name of the files will be [path]_M.dat [path]_K.dat [path]_R.dat [path]_Cq.dat Might throw
-    /// exception if file can't be saved.
-    void DumpSubassemblyMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path);
+    /// Write the mass (M), damping (K), damping (R), and constraint Jacobian (C) matrices at current configuration.
+    /// Assumes the rows/columns of the matrices are ordered as the ChVariable objects used in this assembly, first all
+    /// the "boundary" variables then all the "inner" variables (or modal variables if switched to modal assembly).
+    /// The sparse matrices are saved in COO format in [path]_M.dat [path]_K.dat [path]_R.dat, and [path]_Cq.dat.
+    /// By default, uses 1-based indices (as in Matlab).
+    void WriteSubassemblyMatrices(bool save_M,
+                                  bool save_K,
+                                  bool save_R,
+                                  bool save_Cq,
+                                  const std::string& path,
+                                  bool one_indexed = true);
 
     /// Compute the mass matrix of the subassembly.
     /// Assumes the rows/columns of the matrix are ordered as the ChVariable objects used in this assembly,

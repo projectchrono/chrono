@@ -130,7 +130,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
     mesh->AddVisualShapeFEA(visualizebeamC);
 
     // Just for later reference, dump M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
-    assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
+    assembly->WriteSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
 
     // Here we perform the modal analysis on the ChModalAssembly.
     // - We compute only the first n modes. This helps dealing with very large
@@ -294,7 +294,7 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
     mesh->AddVisualShapeFEA(visualizebeamC);
 
     // Just for later reference, dump M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
-    assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
+    assembly->WriteSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
 
     // Here we perform the modal analysis on the ChModalAssembly.
     // - We compute only the first n modes. This helps dealing with very large

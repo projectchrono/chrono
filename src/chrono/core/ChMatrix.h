@@ -186,41 +186,6 @@ using ChSparseMatrix = Eigen::SparseMatrix<double, Eigen::RowMajor, int>;
 
 // -----------------------------------------------------------------------------
 
-/// Serialization of a dense matrix or vector into an ASCII stream (e.g. a file) in Matlab format.
-inline void StreamOutDenseMatlabFormat(ChMatrixConstRef A, std::ostream& stream) {
-    for (int ii = 0; ii < A.rows(); ii++) {
-        for (int jj = 0; jj < A.cols(); jj++) {
-            stream << A(ii, jj);
-            if (jj < A.cols() - 1)
-                stream << " ";
-        }
-        stream << "\n";
-    }
-}
-
-/// Parse numeric data from a file (eg. csv) and store into dense matrix.
-inline void StreamInDenseMatlabFormat(const std::string& filename, ChMatrixDynamic<>& matr, char delim = ',') {
-    std::ifstream file_input(filename);
-    std::vector<std::vector<double>> tmp_data;
-    std::string line;
-    while (std::getline(file_input, line, '\n')) {     // get line up to 'newline'
-        std::stringstream line_ss(line);               // tmp
-        std::string subline;                           // tmp
-        std::vector<double> data_row;                  // tmp
-        while (std::getline(line_ss, subline, delim))  // split line at delimiter (eg. ',')
-            data_row.push_back(std::stod(subline));    // store sub parts in double vector
-        tmp_data.push_back(data_row);                  // add new numerical row in temporary data container
-    }
-    size_t num_rows = tmp_data.size();     // get number of rows in file
-    size_t num_cols = tmp_data[0].size();  // get number of columns in file (assume all equal)
-    // Store parsed data in output ChMatrixDynamic<>
-    matr.resize(num_rows, num_cols);
-    for (int i = 0; i < num_rows; ++i)
-        for (int j = 0; j < num_cols; ++j)
-            matr(i, j) = tmp_data[i][j];
-    file_input.close();
-}
-
 //// RADU
 //// TODO: serialization of matrix classes
 
@@ -257,19 +222,7 @@ inline void PasteMatrix(ChSparseMatrix& matrTo,
     }
 }
 
-/// Serialization of a sparse matrix to an ASCI stream (e.g., a file) in Matlab sparse matrix format.
-/// Note that row and column indices start at 1.
-inline void StreamOutSparseMatlabFormat(ChSparseMatrix& matr, std::ostream& mstream) {
-    for (int ii = 0; ii < matr.rows(); ii++) {
-        for (int jj = 0; jj < matr.cols(); jj++) {
-            double elVal = matr.coeff(ii, jj);
-            if (elVal || (ii == matr.rows() - 1 && jj == matr.cols() - 1)) {
-                mstream << ii + 1 << " " << jj + 1 << " " << elVal << "\n";
-            }
-        }
-    }
-}
-
+// -----------------------------------------------------------------------------
 
 /// Utility function for slicing a vector based on an array of indices.
 /// Return a new vector which only contains the elements with specified indices.
@@ -280,6 +233,31 @@ ChVectorDynamic<T> SliceVector(ChVectorConstRef v, ChArrayConstRef<int> indices)
 #else
     return indices.unaryExpr(v);
 #endif
+}
+
+// -----------------------------------------------------------------------------
+
+/// Serialization of a dense matrix or vector into an ASCII stream (e.g. a file).
+inline void StreamOut(ChMatrixConstRef A, std::ostream& stream) {
+    for (int ii = 0; ii < A.rows(); ii++) {
+        for (int jj = 0; jj < A.cols(); jj++) {
+            stream << A(ii, jj);
+            if (jj < A.cols() - 1)
+                stream << " ";
+        }
+        stream << "\n";
+    }
+}
+
+/// Serialization of a sparse matrix to an ASCI stream (e.g., a file) in COO sparse matrix format.
+/// By default, uses 0-based indices. If one_index=true, row and column indices start at 1 (as in Matlab).
+inline void StreamOut(ChSparseMatrix& mat, std::ostream& stream, bool one_indexed = false) {
+    int offset = one_indexed ? 1 : 0;
+    for (int k = 0; k < mat.outerSize(); ++k)
+        for (ChSparseMatrix::InnerIterator it(mat, k); it; ++it) {
+            if (it.value())
+                stream << it.row() + offset << " " << it.col() + offset << " " << it.value() << "\n";
+        }
 }
 
 /// @} chrono_linalg

@@ -185,7 +185,9 @@ Note that this represents a major public API change and we expect most user code
 | -                                 | GetLog                        | remove                                           |
 | -                                 | SetLog                        | remove                                           |
 | -                                 | SetLogDefault                 | remove                                           |
-| -                                 | StreamOut                     | remove                                           |
+| -                                 | StreamInDenseMAtlabFormat     | remove                                           |
+| -                                 | StreamOutDenseMatlabFormat    | rename: ChStreamOut                              |
+| -                                 | StreamOutSparseMatlabFormat   | rename: ChStreamOut (0- or 1- indexed option)    |
 | -                                 | XdirToDxDyDz                  | remove                                           |
 | ChAparticle                       |                               | rename: ChParticle                               |
 | ChArchiveAsciiDump                |                               | rename: ChOutputASCII                            |
@@ -548,6 +550,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNcoords_x                  | rename: GetNumCoordsPosLevel                     |
 |                                   | GetNcoords_v                  | rename: GetNumCoordsVelLevel                     |
 |                                   | GetNcoords_y                  | remove: split in GetNumCoordsPosLevel/Vel        |
+| ChIterativeSolver                 |                               |                                                  |
+|                                   | SaveMatrix                    | rename: WriteMatrices                            |
 | ChLink                            |                               |                                                  |
 |                                   | GetLeftDOF                    | remove                                           |
 | ChLinkBase                        |                               |                                                  |
@@ -681,6 +685,7 @@ Note that this represents a major public API change and we expect most user code
 | ChMinMaxDistribution              |                               | rename: ChUniformDistribution                    |
 | ChModalAssembly                   |                               |                                                  |
 |                                   | refer to ChAssembly           | like ChAssembly with boundary/internal suffixes  |
+|                                   | DumpSubassemblyMatrices       | rename: WriteSubassemblyMatrices                 |
 | ChNodeBase                        |                               |                                                  |
 |                                   | GetNdofX                      | rename: GetNumCoordsPosLevel                     |
 |                                   | GetNdofX_active               | rename: GetNumCoordsPosLevelActive               |

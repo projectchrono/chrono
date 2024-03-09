@@ -27,6 +27,9 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
+#undef EIGEN_DBG_SPARSE
+#define EIGEN_DBG_SPARSE(X)
+
 using namespace chrono;
 
 // Test 1
@@ -141,11 +144,16 @@ void test_1(const std::string& out_dir) {
     try {
         std::ofstream fileM(out_dir + "/dump_M_1.dat");
         std::ofstream fileCq(out_dir + "/dump_Cq_1.dat");
-        StreamOutSparseMatlabFormat(matrM, fileM);
-        StreamOutSparseMatlabFormat(matrCq, fileCq);
+        StreamOut(matrM, fileM, true);
+        StreamOut(matrCq, fileCq, true);
     } catch (const std::exception& myex) {
         std::cerr << "FILE ERROR: " << myex.what();
     }
+
+    std::cout << "Matrix M (" << matrM.rows() << "x" << matrM.cols() << ")" << std::endl;
+    StreamOut(matrM, std::cout, true);
+    std::cout << "Matrix Cq (" << matrCq.rows() << "x" << matrCq.cols() << ")" << std::endl;
+    StreamOut(matrCq, std::cout, true);
 
     std::cout << "**** Using ChSolverPSOR  **********\n" << std::endl;
     std::cout << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "\n" << std::endl;
@@ -213,22 +221,22 @@ void test_2(const std::string& out_dir) {
         mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
 
         std::ofstream file_M(out_dir + "/dump_M_2.dat");
-        StreamOutSparseMatlabFormat(mdM, file_M);
+        StreamOut(mdM, file_M, true);
 
         std::ofstream file_Cq(out_dir + "/dump_Cq_2.dat");
-        StreamOutSparseMatlabFormat(mdCq, file_Cq);
+        StreamOut(mdCq, file_Cq, true);
 
         std::ofstream file_E(out_dir + "/dump_E_2.dat");
-        StreamOutSparseMatlabFormat(mdE, file_E);
+        StreamOut(mdE, file_E, true);
 
         std::ofstream file_f(out_dir + "/dump_f_2.dat");
-        StreamOutDenseMatlabFormat(mdf, file_f);
+        StreamOut(mdf, file_f);
 
         std::ofstream file_b(out_dir + "/dump_b_2.dat");
-        StreamOutDenseMatlabFormat(mdb, file_b);
+        StreamOut(mdb, file_b);
 
         std::ofstream file_fric(out_dir + "/dump_fric_2.dat");
-        StreamOutDenseMatlabFormat(mdfric, file_fric);
+        StreamOut(mdfric, file_fric);
     } catch (const std::exception& myexc) {
         std::cerr << myexc.what();
     }
@@ -485,7 +493,12 @@ void test_4(const std::string& out_dir) {
     ChSparseMatrix matrCq;
     mdescriptor.ConvertToMatrixForm(&matrCq, &matrM, 0, 0, 0, 0, false, false);
 
-    std::cout << "**** Using ChSolverPSOR  **********\n" << std::endl;
+    std::cout << "Matrix M (" << matrM.rows() << "x" << matrM.cols() << ")" << std::endl;
+    StreamOut(matrM, std::cout, true);
+    std::cout << "Matrix Cq (" << matrCq.rows() << "x" << matrCq.cols() << ")" << std::endl;
+    StreamOut(matrCq, std::cout, true);
+
+    std::cout << "**** Using ChSolverSparseQR  **********\n" << std::endl;
     std::cout << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "\n" << std::endl;
     std::cout << "vars q_a and q_b -------------------" << std::endl;
     std::cout << mvarA.Get_qb() << std::endl;

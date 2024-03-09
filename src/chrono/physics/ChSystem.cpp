@@ -1057,11 +1057,11 @@ bool ChSystem::StateSolveCorrection(
 
         std::ofstream file_x(output_dir + "/" + prefix + "_x_pre.dat");
         file_x << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(x, file_x);
+        StreamOut(x, file_x);
 
         std::ofstream file_v(output_dir + "/" + prefix + "_v_pre.dat");
         file_v << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(v, file_v);
+        StreamOut(v, file_v);
     }
 
     GetSolver()->EnableWrite(write_matrix, std::to_string(stepcount) + "_" + std::to_string(solvecount), output_dir);
@@ -1092,11 +1092,11 @@ bool ChSystem::StateSolveCorrection(
 
         std::ofstream file_Dv(output_dir + "/" + prefix + "Dv.dat");
         file_Dv << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(Dv, file_Dv);
+        StreamOut(Dv, file_Dv);
 
         std::ofstream file_Dl(output_dir + "/" + prefix + "Dl.dat");
         file_Dl << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(Dl, file_Dl);
+        StreamOut(Dl, file_Dl);
 
         // Just for diagnostic, dump also unscaled loads (forces,torques),
         // since the .._f.dat vector dumped in WriteMatrixBlocks() might contain scaled loads, and also +M*v
@@ -1105,7 +1105,7 @@ bool ChSystem::StateSolveCorrection(
         LoadResidual_F(tempF, 1.0);
         std::ofstream file_F(output_dir + "/" + prefix + "F_pre.dat");
         file_F << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(tempF, file_F);
+        StreamOut(tempF, file_F);
     }
 
     solvecount++;
@@ -1360,7 +1360,12 @@ void ChSystem::GetConstraintJacobianMatrix(ChSparseMatrix& Cq) {
     this->GetSystemDescriptor()->ConvertToMatrixForm(&Cq, nullptr, nullptr, nullptr, nullptr, nullptr, false, false);
 }
 
-void ChSystem::WriteSystemMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path) {
+void ChSystem::WriteSystemMatrices(bool save_M,
+                                   bool save_K,
+                                   bool save_R,
+                                   bool save_Cq,
+                                   const std::string& path,
+                                   bool one_indexed) {
     // Prepare lists of variables and constraints, if not already prepared.
     DescriptorPrepareInject(*descriptor);
 
@@ -1369,28 +1374,28 @@ void ChSystem::WriteSystemMatrices(bool save_M, bool save_K, bool save_R, bool s
         this->GetMassMatrix(mM);
         std::ofstream file_M(path + "_M.dat");
         file_M << std::setprecision(12) << std::scientific;
-        StreamOutSparseMatlabFormat(mM, file_M);
+        StreamOut(mM, file_M, one_indexed);
     }
     if (save_K) {
         ChSparseMatrix mK;
         this->GetStiffnessMatrix(mK);
         std::ofstream file_K(path + "_K.dat");
         file_K << std::setprecision(12) << std::scientific;
-        StreamOutSparseMatlabFormat(mK, file_K);
+        StreamOut(mK, file_K, one_indexed);
     }
     if (save_R) {
         ChSparseMatrix mR;
         this->GetDampingMatrix(mR);
         std::ofstream file_R(path + "_R.dat");
         file_R << std::setprecision(12) << std::scientific;
-        StreamOutSparseMatlabFormat(mR, file_R);
+        StreamOut(mR, file_R, one_indexed);
     }
     if (save_Cq) {
         ChSparseMatrix mCq;
         this->GetConstraintJacobianMatrix(mCq);
         std::ofstream file_Cq(path + "_Cq.dat");
         file_Cq << std::setprecision(12) << std::scientific;
-        StreamOutSparseMatlabFormat(mCq, file_Cq);
+        StreamOut(mCq, file_Cq, one_indexed);
     }
 }
 
@@ -1812,7 +1817,7 @@ bool ChSystem::DoStaticLinear() {
         ChVectorDynamic<double> mx;
         GetSystemDescriptor()->FromUnknownsToVector(mx, true);  // x ={q,-l}
         std::ofstream file_x("solve_x.dat");
-        StreamOutDenseMatlabFormat(mx, file_x);
+        StreamOut(mx, file_x);
 
         ChVectorDynamic<double> mZx;
         GetSystemDescriptor()->SystemProduct(mZx, mx);  // Zx = Z*x

@@ -156,10 +156,10 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(
     if (false) {
         std::ofstream fileA("dump_modal_A.dat");
         fileA << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(ChMatrixDynamic<>(A), fileA);
+        StreamOut(ChMatrixDynamic<>(A), fileA);
         std::ofstream fileB("dump_modal_B.dat");
         fileB << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(ChMatrixDynamic<>(B), fileB);
+        StreamOut(ChMatrixDynamic<>(B), fileB);
     }
 
     // The Krylov-Schur solver, using the shift and invert mode:
