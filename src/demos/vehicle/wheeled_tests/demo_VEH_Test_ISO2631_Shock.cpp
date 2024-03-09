@@ -17,8 +17,6 @@
 //
 // Halfround shaped obstacles
 //
-// If using the Irrlicht interface, driver inputs are obtained from the keyboard.
-//
 // The vehicle reference frame has Z up, X towards the front of the vehicle, and
 // Y pointing to the left.
 //
@@ -39,16 +37,30 @@
 #include "chrono_vehicle/wheeled_vehicle/tire/TMeasyTire.h"
 
 #ifdef CHRONO_IRRLICHT
+    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
-    // specify whether the demo should actually use Irrlicht
-    #define USE_IRRLICHT
+using namespace chrono::irrlicht;
 #endif
 
-// =============================================================================
+#ifdef CHRONO_VSG
+    #include "chrono_vehicle/driver/ChInteractiveDriverVSG.h"
+    #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
+
+#ifdef CHRONO_POSTPROCESS
+    #include "chrono_postprocess/ChGnuPlot.h"
+using namespace chrono::postprocess;
+#endif
 
 using namespace chrono;
 using namespace chrono::utils;
 using namespace chrono::vehicle;
+
+// =============================================================================
+
+// Run-time visualization system (IRRLICHT, VSG, or NONE)
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 
 // JSON file for vehicle model
 std::string vehicle_file("hmmwv/vehicle/HMMWV_Vehicle.json");
@@ -187,35 +199,75 @@ int main(int argc, char* argv[]) {
                                 vehicle::GetDataFile(speed_controller_file), path, "my_path", target_speed);
     driver.Initialize();
 
-#ifdef USE_IRRLICHT
-    std::string windowTitle = "Vehicle Shock Test Demo ";
+    // Create the vehicle run-time visualization
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
+
+    std::string title = "Vehicle Shock Test Demo ";
 
     switch (iTire) {
         default:
         case 1:
-            windowTitle.append("(TMeasy Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
+            title.append("(TMeasy Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
             break;
         case 2:
-            windowTitle.append("(Fiala Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
+            title.append("(Fiala Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
             break;
         case 3:
-            windowTitle.append("(Pacejka89 Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
+            title.append("(Pacejka89 Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
             break;
         case 4:
-            windowTitle.append("(Pacejka02 Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
+            title.append("(Pacejka02 Tire) - " + std::to_string(heightVals[iObstacle]) + " mm Obstacle Height");
             break;
     }
 
-    auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
-    vis->SetWindowTitle(windowTitle);
-    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
-    vis->Initialize();
-    vis->AddLightDirectional();
-    vis->AddSkyBox();
-    vis->AddLogo();
-    vis->AttachVehicle(&vehicle);
+    std::shared_ptr<ChVehicleVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            // Create the vehicle Irrlicht interface
+            auto vis_irr = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
+            vis_irr->SetWindowTitle(title);
+            vis_irr->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
+            vis_irr->Initialize();
+            vis_irr->AddLightDirectional();
+            vis_irr->AddSkyBox();
+            vis_irr->AddLogo();
+            vis_irr->AttachVehicle(&vehicle);
 
+            vis = vis_irr;
 #endif
+            break;
+        }
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            // Create the vehicle VSG interface
+            auto vis_vsg = chrono_types::make_shared<ChWheeledVehicleVisualSystemVSG>();
+            vis_vsg->SetWindowTitle(title);
+            vis_vsg->AttachVehicle(&vehicle);
+            vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
+            vis_vsg->SetWindowSize(ChVector2i(1200, 900));
+            vis_vsg->SetWindowPosition(ChVector2i(100, 300));
+            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetCameraAngleDeg(40);
+            vis_vsg->SetLightIntensity(1.0f);
+            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetShadows(true);
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+        default:
+            break;
+    }
 
     // ---------------
     // Simulation loop
@@ -225,66 +277,62 @@ int main(int argc, char* argv[]) {
     double xstart = 100.0;  // start logging when the vehicle crosses this x position
     double xend = 160.0;    // end logging here, this also the end of our world
 
-#ifdef USE_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::NONE) {
+        double v_pos;
+        while ((v_pos = vehicle.GetSpindlePos(0, LEFT).x()) < xend) {
+            // Driver inputs
+            DriverInputs driver_inputs = driver.GetInputs();
 
-    while (vis->Run()) {
-        // Render scene
-        vis->BeginScene();
-        vis->Render();
+            // Update modules (process inputs from other modules)
+            double time = vehicle.GetSystem()->GetChTime();
+            driver.Synchronize(time);
+            vehicle.Synchronize(time, driver_inputs, terrain);
+            terrain.Synchronize(time);
 
-        // Driver inputs
-        DriverInputs driver_inputs = driver.GetInputs();
+            // Advance simulation for one timestep for all modules
+            driver.Advance(step_size);
+            vehicle.Advance(step_size);
+            terrain.Advance(step_size);
 
-        // Update modules (process inputs from other modules)
-        double time = vehicle.GetSystem()->GetChTime();
-        driver.Synchronize(time);
-        vehicle.Synchronize(time, driver_inputs, terrain);
-        terrain.Synchronize(time);
-        vis->Synchronize(time, driver_inputs);
-
-        // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
-        vehicle.Advance(step_size);
-        terrain.Advance(step_size);
-        vis->Advance(step_size);
-
-        double xpos = vehicle.GetSpindlePos(0, LEFT).x();
-        if (xpos >= xend) {
-            break;
+            if (v_pos >= xstart) {
+                ChVector3d seat_acc = vehicle.GetPointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
+                seat_logger.AddData(seat_acc);
+            }
         }
-        if (xpos >= xstart) {
-            ChVector3d seat_acc = vehicle.GetPointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
-            seat_logger.AddData(seat_acc);
-        }
+    } else {
+        while (vis->Run()) {
+            // Render scene
+            vis->BeginScene();
+            vis->Render();
 
-        vis->EndScene();
-    }
+            // Driver inputs
+            DriverInputs driver_inputs = driver.GetInputs();
 
-#else
+            // Update modules (process inputs from other modules)
+            double time = vehicle.GetSystem()->GetChTime();
+            driver.Synchronize(time);
+            vehicle.Synchronize(time, driver_inputs, terrain);
+            terrain.Synchronize(time);
+            vis->Synchronize(time, driver_inputs);
 
-    double v_pos;
-    while ((v_pos = vehicle.GetSpindlePos(0, LEFT).x()) < xend) {
-        // Driver inputs
-        DriverInputs driver_inputs = driver.GetInputs();
+            // Advance simulation for one timestep for all modules
+            driver.Advance(step_size);
+            vehicle.Advance(step_size);
+            terrain.Advance(step_size);
+            vis->Advance(step_size);
 
-        // Update modules (process inputs from other modules)
-        double time = vehicle.GetSystem()->GetChTime();
-        driver.Synchronize(time);
-        vehicle.Synchronize(time, driver_inputs, terrain);
-        terrain.Synchronize(time);
+            double xpos = vehicle.GetSpindlePos(0, LEFT).x();
+            if (xpos >= xend) {
+                break;
+            }
+            if (xpos >= xstart) {
+                ChVector3d seat_acc = vehicle.GetPointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
+                seat_logger.AddData(seat_acc);
+            }
 
-        // Advance simulation for one timestep for all modules
-        driver.Advance(step_size);
-        vehicle.Advance(step_size);
-        terrain.Advance(step_size);
-
-        if (v_pos >= xstart) {
-            ChVector3d seat_acc = vehicle.GetPointAcceleration(vehicle.GetChassis()->GetLocalDriverCoordsys().pos);
-            seat_logger.AddData(seat_acc);
+            vis->EndScene();
         }
     }
-
-#endif
 
     double se_low = 0.5;
     double se_high = 0.8;

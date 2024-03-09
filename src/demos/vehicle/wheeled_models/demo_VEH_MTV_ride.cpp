@@ -30,7 +30,6 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #ifdef USE_IRRLICHT
-    #include "chrono_vehicle/driver/ChInteractiveDriverIRR.h"
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
 #endif
 
@@ -59,7 +58,7 @@ VisualizationType tire_vis_type = VisualizationType::MESH;
 
 RandomSurfaceTerrain::VisualisationType visType = RandomSurfaceTerrain::VisualisationType::MESH;
 
-// Type of tire model (TMEASY)
+// Type of tire model
 TireModelType tire_model = TireModelType::TMEASY;
 
 // Point on chassis tracked by the camera
@@ -74,7 +73,7 @@ double tire_step_size = step_size;
 // Simulation end time
 double tend = 300;
 
-// Simulation maximum x coordinate
+// Simulation end x coordinate
 double xend = 300;
 
 // Time interval between two render frames
@@ -101,7 +100,7 @@ std::string output_file_name("quality");
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    int terrainCode = 5;
+    int terrainCode = 1;
     RandomSurfaceTerrain::SurfaceType surface = RandomSurfaceTerrain::SurfaceType::FLAT;
     // read in argument as simulation duration
     switch (argc) {

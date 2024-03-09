@@ -1,34 +1,26 @@
 #=============================================================================
-# CMake configuration file for demos of various Chrono::Vehicle models.
-# These example programs require run-time visualization.
+# CMake configuration file for the ISO2631 demos.
+# These example programs work with and without Irrlicht run-time visualization.
 #=============================================================================
 
-if(NOT ENABLE_MODULE_IRRLICHT AND NOT ENABLE_MODULE_VSG)
-    return()
-endif()
-
 #--------------------------------------------------------------
-# List all demos
+# List all ISO2631 demos
 
-set(DEMOS
-    demo_VEH_FEDA_SSC
-    demo_VEH_HMMWV_Accel
-    demo_VEH_HMMWV_Rollover
-    demo_VEH_WheeledGeneric
-    demo_VEH_WheeledGenericSet
-    demo_VEH_Wheeled
-    demo_VEH_WheeledJSON
+SET(DEMOS
+    demo_VEH_Test_ISO2631_Ride
+    demo_VEH_Test_ISO2631_Shock
+    demo_VEH_Test_Accel
 )
 
-if(ENABLE_MODULE_IRRLICHT)
+if(HAVE_OPENCRG)
    set(DEMOS ${DEMOS}
-       demo_VEH_Gator_Accel
-       demo_VEH_HMMWV9_YUP
-       demo_VEH_Kraz_ClosedLoop
-       demo_VEH_LMTV_ride
-       demo_VEH_MTV_ride
-       demo_VEH_Sedan_Lockable_Diff
+       demo_VEH_Test_FEDA_RideTool
    )
+   if(ENABLE_MODULE_VSG)
+      set(DEMOS ${DEMOS}
+          demo_VEH_Test_FEDA_Ride
+   )
+   endif()
 endif()
 
 #--------------------------------------------------------------
@@ -53,18 +45,6 @@ if(ENABLE_MODULE_VSG)
     list(APPEND LIBS "ChronoEngine_vehicle_vsg")
 endif()
 
-if(ENABLE_MODULE_PARDISO_MKL)
-    include_directories(${CH_MKL_INCLUDES})
-    set(COMPILER_FLAGS "${COMPILER_FLAGS} ${CH_MKL_CXX_FLAGS}")
-    set(LINKER_FLAGS "${LINKER_FLAGS} ${CH_MKL_LINK_FLAGS}")
-    list(APPEND LIBS "ChronoEngine_pardisomkl")
-endif()
-
-if(ENABLE_MODULE_MUMPS)
-    include_directories(${CH_MUMPS_INCLUDES})
-    list(APPEND LIBS "ChronoEngine_mumps")
-endif()
-
 if(ENABLE_MODULE_POSTPROCESS)
     list(APPEND LIBS "ChronoEngine_postprocess")
 endif()
@@ -72,14 +52,10 @@ endif()
 #--------------------------------------------------------------
 # Create the executables
 
+set(MODELS ../WheeledVehicleModels.h)
+
 foreach(PROGRAM ${DEMOS})
     message(STATUS "...add ${PROGRAM}")
-
-    if(PROGRAM STREQUAL "demo_VEH_Wheeled")
-      set(MODELS ../WheeledVehicleModels.h)
-    else()
-      set(MODELS "")
-    endif()
 
     add_executable(${PROGRAM} ${PROGRAM}.cpp ${MODELS})
     source_group("" FILES ${PROGRAM}.cpp ${MODELS})

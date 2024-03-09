@@ -236,8 +236,8 @@ void RunTest(double speed,
         "FED Alpha Ride Test (RMS = " + std::string(cval) + " in | Speed = " + std::string(sval) + " mph)";
 
     std::shared_ptr<ChVehicleVisualSystem> vis;
-    int sentinelID;
-    int targetID;
+    int sentinelID = 0;
+    int targetID = 0;
     switch (vis_type) {
         case ChVisualSystem::Type::NONE:
             break;

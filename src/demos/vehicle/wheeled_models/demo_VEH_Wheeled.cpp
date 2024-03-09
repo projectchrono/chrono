@@ -48,7 +48,7 @@ using namespace chrono::vsg3d;
 using namespace chrono::postprocess;
 #endif
 
-#include "VehicleModels.h"
+#include "../WheeledVehicleModels.h"
 
 // =============================================================================
 
@@ -89,13 +89,13 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2024 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Select vehicle model (see VehicleModel.h)
-    auto models = Vehicle_Model::List();
+    auto models = WheeledVehicleModel::List();
 
     int num_models = (int)models.size();
     int which = 0;
     std::cout << "Options:\n";
     for (int i = 0; i < num_models; i++)
-        std::cout << i + 1 << "  " << models[i].second << std::endl;
+        std::cout << std::setw(2)  << i + 1 << "  " << models[i].second << std::endl;
     std::cout << "\nSelect vehicle: ";
     std::cin >> which;
     std::cout << std::endl;
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     auto vehicle_model = models[which - 1].first;
 
     // Create the vehicle model
-    vehicle_model->Create(contact_method, ChVector3d(0, 0, 0.5));
+    vehicle_model->Create(contact_method, ChCoordsys<>(ChVector3d(0, 0, 0.5), QUNIT));
     auto& vehicle = vehicle_model->GetVehicle();
 
     vehicle.GetSystem()->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
