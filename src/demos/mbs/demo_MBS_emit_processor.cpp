@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
                 coll->Add(mbody->GetCollisionModel());
 
             // Disable gyroscopic forces for increased integrator stabilty
-            mbody->SetNoGyroTorque(true);
+            mbody->SetUseGyroTorque(false);
         }
         ChVisualSystem* vis;
         ChCollisionSystem* coll;

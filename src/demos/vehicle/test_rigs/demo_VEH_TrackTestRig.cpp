@@ -194,8 +194,8 @@ int main(int argc, char* argv[]) {
     rig->SetDisplacementLimit(0.15);
     rig->SetMaxTorque(6000);
 
-    ////rig->SetCollide(TrackedCollisionFlag::NONE);
-    ////rig->SetCollide(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
+    ////rig->EnableCollision(TrackedCollisionFlag::NONE);
+    ////rig->EnableCollision(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
     ////rig->SetPostCollide(false);
 
     rig->MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT);

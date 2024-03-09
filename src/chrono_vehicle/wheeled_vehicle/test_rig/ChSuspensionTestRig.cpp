@@ -685,7 +685,7 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         auto post_L = chrono_types::make_shared<ChBody>();
         post_L->SetPos(pos_postL);
         post_L->SetMass(100);
-        post_L->SetCollide(true);
+        post_L->EnableCollision(true);
         sys->Add(post_L);
         AddPostVisualization(post_L, ChColor(0.1f, 0.8f, 0.15f));
 
@@ -698,7 +698,7 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         auto post_R = chrono_types::make_shared<ChBody>();
         post_R->SetPos(pos_postR);
         post_R->SetMass(100);
-        post_R->SetCollide(true);
+        post_R->EnableCollision(true);
         sys->Add(post_R);
         AddPostVisualization(post_R, ChColor(0.8f, 0.1f, 0.1f));
 

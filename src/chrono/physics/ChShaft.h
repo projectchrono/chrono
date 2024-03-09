@@ -57,14 +57,14 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     /// Trick. If use sleeping= true, shafts which do not rotate
     /// for too long time will be deactivated, for optimization.
     /// The realism is limited, but the simulation is faster.
-    void SetAllowSleeping(bool ms) { use_sleeping = ms; }
-    bool GetAllowSleeping() const { return use_sleeping; }
+    void SetSleepingAllowed(bool ms) { use_sleeping = ms; }
+    bool IsSleepingAllowed() const { return use_sleeping; }
 
     /// Force the shaft in sleeping mode or not (usually this state change is not
     /// handled by users, anyway, because it is mostly automatic).
     void SetSleeping(bool ms) { sleeping = ms; }
     /// Tell if the shaft is actually in sleeping state.
-    bool GetSleeping() const { return sleeping; }
+    bool IsSleeping() const { return sleeping; }
 
     /// Put the shaft in sleeping state if requirements are satisfied.
     bool TrySleeping();

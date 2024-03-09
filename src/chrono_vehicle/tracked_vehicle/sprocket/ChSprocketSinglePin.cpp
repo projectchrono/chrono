@@ -136,7 +136,7 @@ void SprocketSinglePinContactCB::OnCustomCollision(ChSystem* system) {
     // Return now if collision disabled on sprocket or track shoes.
     if (m_track->GetNumTrackShoes() == 0)
         return;
-    if (!m_sprocket->GetGearBody()->GetCollide() || !m_track->GetTrackShoe(0)->GetShoeBody()->GetCollide())
+    if (!m_sprocket->GetGearBody()->IsCollisionEnabled() || !m_track->GetTrackShoe(0)->GetShoeBody()->IsCollisionEnabled())
         return;
 
     // Sprocket gear center location, expressed in global frame

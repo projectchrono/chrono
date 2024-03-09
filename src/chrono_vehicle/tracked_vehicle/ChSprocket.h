@@ -81,7 +81,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     double GetAxleSpeed() const { return m_axle->GetPosDer(); }
 
     /// Turn on/off collision flag for the gear wheel.
-    void SetCollide(bool val) { m_gear->SetCollide(val); }
+    void EnableCollision(bool val) { m_gear->EnableCollision(val); }
 
     /// Get the sprocket contact material.
     std::shared_ptr<ChContactMaterial> GetContactMaterial() const { return m_material; }

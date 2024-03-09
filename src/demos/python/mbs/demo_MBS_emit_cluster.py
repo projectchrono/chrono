@@ -42,7 +42,7 @@ class MyCreatorForAll(chrono.ChRandomShapeCreator_AddBodyCallback):
         self.coll.BindItem(body)
 
         # Other stuff, ex. disable gyroscopic forces for increased integrator stability
-        body.SetNoGyroTorque(True)
+        body.SetUseGyroTorque(False)
 
 
 

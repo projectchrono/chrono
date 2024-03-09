@@ -81,7 +81,7 @@ GranularTerrain::GranularTerrain(ChSystem* system)
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector3d(0, 0, 0));
     m_ground->SetFixed(true);
-    m_ground->SetCollide(false);
+    m_ground->EnableCollision(false);
 
     // Create a collsion model for the ground body (required for the custom boundary detection algorithm)
     m_ground->AddCollisionModel(chrono_types::make_shared<ChCollisionModel>());

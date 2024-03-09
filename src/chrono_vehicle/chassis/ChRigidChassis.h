@@ -68,7 +68,7 @@ class CH_VEHICLE_API ChRigidChassis : public ChChassis {
     /// Enable/disable contact for the chassis.
     /// This function controls contact of the chassis with all other collision shapes in the simulation. Must be called
     /// after initialization and has effect only if the derived object has defined some collision shapes.
-    virtual void SetCollide(bool state) override { m_body->SetCollide(state); }
+    virtual void EnableCollision(bool state) override { m_body->EnableCollision(state); }
 
     /// Add visualization assets to this subsystem, for the specified visualization mode.
     virtual void AddVisualizationAssets(VisualizationType vis) override;
@@ -112,7 +112,7 @@ class CH_VEHICLE_API ChRigidChassisRear : public ChChassisRear {
 
     /// Enable/disable contact for the chassis. This function controls contact of
     /// the chassis with all other collision shapes in the simulation.
-    virtual void SetCollide(bool state) override { m_body->SetCollide(state); }
+    virtual void EnableCollision(bool state) override { m_body->EnableCollision(state); }
 
     /// Initialize the rear chassis relative to the specified front chassis.
     /// The orientation is set to be the same as that of the front chassis while the location is based on the connector

@@ -363,7 +363,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
         // << part.inertia[3] << "," << part.inertia[4] << "," << part.inertia[5] <<std::endl;
         newBody->SetInertiaXX(ChVector3d(part.inertia[0], part.inertia[1], part.inertia[2]));
         newBody->SetInertiaXY(ChVector3d(part.inertia[3], part.inertia[4], part.inertia[5]));
-        newBody->SetCollide(false);
+        newBody->EnableCollision(false);
         // Hacky way to allow lookups for markers later
         newBody->SetNameString(part_pair.first);
 

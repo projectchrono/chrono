@@ -234,9 +234,9 @@ int main(int argc, char* argv[]) {
     rig->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
     // Control internal collisions and contact monitoring
-    ////rig->SetCollide(TrackedCollisionFlag::NONE);
-    ////rig->SetCollide(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
-    ////rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->SetCollide(false);
+    ////rig->EnableCollision(TrackedCollisionFlag::NONE);
+    ////rig->EnableCollision(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
+    ////rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->EnableCollision(false);
 
     rig->Initialize();
 

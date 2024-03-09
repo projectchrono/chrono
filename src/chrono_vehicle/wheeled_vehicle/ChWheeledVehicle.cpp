@@ -208,7 +208,7 @@ void ChWheeledVehicle::SetTireVisualizationType(VisualizationType vis) {
 void ChWheeledVehicle::SetWheelCollide(bool state) {
     for (auto& axle : m_axles) {
         for (auto& wheel : axle->m_wheels) {
-            wheel->SetCollide(state);
+            wheel->EnableCollision(state);
         }
     }
 }

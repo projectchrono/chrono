@@ -264,7 +264,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
                                    ChVector3d(bxDim, byDim, bzDim), 0.1,           //
                                    ChVector3i(0, 0, -1),                           //
                                    false);
-    ground->SetCollide(true);
+    ground->EnableCollision(true);
 
     // Fluid representation of walls
     sysFSI.AddBoxContainerBCE(ground,                                         //
@@ -288,14 +288,14 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Set the absolute position of the body:
     wheel->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(Body_pos), ChQuaternion<>(Body_rot)));
     wheel->SetFixed(false);
-    wheel->SetCollide(false);
+    wheel->EnableCollision(false);
     sysMBS.AddBody(wheel);
 
     // Create the chassis
     auto chassis = chrono_types::make_shared<ChBody>();
     chassis->SetMass(total_mass * 1.0 / 2.0);
     chassis->SetPos(wheel->GetPos());
-    chassis->SetCollide(false);
+    chassis->EnableCollision(false);
     chassis->SetFixed(false);
     sysMBS.AddBody(chassis);
 
@@ -303,7 +303,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     auto axle = chrono_types::make_shared<ChBody>();
     axle->SetMass(total_mass * 1.0 / 2.0);
     axle->SetPos(wheel->GetPos());
-    axle->SetCollide(false);
+    axle->EnableCollision(false);
     axle->SetFixed(false);
     sysMBS.AddBody(axle);
 

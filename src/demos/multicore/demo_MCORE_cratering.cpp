@@ -312,7 +312,7 @@ void CreateFallingBall(ChSystemMulticore* system, double z, double vz) {
     ball->SetPos(ChVector3d(0, 0, z + r_g + R_b));
     ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
     ball->SetPosDer(ChVector3d(0, 0, -vz));
-    ball->SetCollide(true);
+    ball->EnableCollision(true);
     ball->SetFixed(false);
 
     utils::AddSphereGeometry(ball.get(), mat_b, R_b);

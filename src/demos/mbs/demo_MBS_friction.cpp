@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     auto bin = chrono_types::make_shared<ChBody>();
     bin->SetPos(ChVector3d(0, -1, 0));
     bin->SetFixed(true);
-    bin->SetCollide(true);
+    bin->EnableCollision(true);
 
     // Set rolling and friction coefficients for the container.
     // By default, the composite material will use the minimum value for an interacting collision pair.

@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     // Control internal collisions and contact monitoring.
 
     // Disable contact for all tracked vehicle parts
-    ////m113.GetVehicle().SetCollide(TrackedCollisionFlag::NONE);
+    ////m113.GetVehicle().EnableCollision(TrackedCollisionFlag::NONE);
 
     // Monitor internal contacts for the left sprocket, left idler, and first shoe on the left track.
     ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT |
@@ -374,7 +374,7 @@ void AddFixedObstacles(ChSystem* system) {
     auto obstacle = chrono_types::make_shared<ChBody>();
     obstacle->SetPos(ChVector3d(0, 0, -1.8));
     obstacle->SetFixed(true);
-    obstacle->SetCollide(true);
+    obstacle->EnableCollision(true);
 
     // Visualization
     auto cyl_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
@@ -420,7 +420,7 @@ void AddMovingObstacles(ChSystem* system) {
     ball->SetPosDer(init_vel);
     ball->SetAngVelLocal(init_ang_vel);
     ball->SetFixed(false);
-    ball->SetCollide(true);
+    ball->EnableCollision(true);
 
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
     ball->AddCollisionShape(ct_shape);

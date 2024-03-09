@@ -208,7 +208,7 @@ void ChVehicleGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body,
         materials.push_back(minfo.CreateMaterial(contact_method));
     }
 
-    body->SetCollide(true);
+    body->EnableCollision(true);
 
     for (auto& sphere : m_coll_spheres) {
         assert(materials[sphere.m_matID]);

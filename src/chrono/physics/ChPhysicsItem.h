@@ -106,7 +106,7 @@ class ChApi ChPhysicsItem : public ChObj {
 
     /// Tell if the object is subject to collision.
     /// Only for interface; child classes may override this, using internal flags.
-    virtual bool GetCollide() const { return false; }
+    virtual bool IsCollisionEnabled() const { return false; }
 
     /// Add to the provided collision system any collision models managed by this physics item.
     /// A derived calss should invoke ChCollisionSystem::Add for each of its collision models.

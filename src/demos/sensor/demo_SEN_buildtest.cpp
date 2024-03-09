@@ -283,7 +283,7 @@ int main(int argc, char* argv[]) {
         auto mesh_ct_shape =
             chrono_types::make_shared<ChCollisionShapeTriangleMesh>(phys_mat, mmesh, false, false, 0.005);
         mesh_body->AddCollisionShape(mesh_ct_shape);
-        mesh_body->SetCollide(true);
+        mesh_body->EnableCollision(true);
 
         mesh_body->AddVisualShape(trimesh_shape, ChFrame<>());
     }

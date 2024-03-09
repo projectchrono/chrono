@@ -103,7 +103,7 @@ class CH_MODELS_API Turtlebot_Part {
     void AddCollisionShapes();
 
     /// Enable/disable collision.
-    void SetCollide(bool state);
+    void EnableCollision(bool state);
 
     std::string m_name;                        ///< subsystem name
     std::shared_ptr<ChBodyAuxRef> m_body;      ///< rigid body
@@ -139,7 +139,7 @@ class CH_MODELS_API Turtlebot_Chassis : public Turtlebot_Part {
     void Initialize();
 
     /// Enable/disable collision for the robot chassis.
-    void SetCollide(bool state);
+    void EnableCollision(bool state);
 
   private:
     /// Translate the chassis by the specified value.
@@ -164,7 +164,7 @@ class CH_MODELS_API Turtlebot_ActiveWheel : public Turtlebot_Part {
     void Initialize();
 
     /// Enable/disable collision for the wheel.
-    void SetCollide(bool state);
+    void EnableCollision(bool state);
 
   private:
     /// Translate the chassis by the specified value.
@@ -189,7 +189,7 @@ class CH_MODELS_API Turtlebot_PassiveWheel : public Turtlebot_Part {
     void Initialize();
 
     /// Enable/disable collision for the wheel.
-    void SetCollide(bool state);
+    void EnableCollision(bool state);
 
   private:
     /// Translate the chassis by the specified value.
@@ -214,7 +214,7 @@ class CH_MODELS_API Turtlebot_Rod_Short : public Turtlebot_Part {
     void Initialize();
 
     /// Enable/disable collision for the wheel.
-    void SetCollide(bool state);
+    void EnableCollision(bool state);
 
   private:
     /// Translate the chassis by the specified value.
@@ -239,7 +239,7 @@ class CH_MODELS_API Turtlebot_BottomPlate : public Turtlebot_Part {
     void Initialize();
 
     /// Enable/disable collision for the wheel.
-    void SetCollide(bool state);
+    void EnableCollision(bool state);
 
   private:
     /// Translate the chassis by the specified value.
@@ -264,7 +264,7 @@ class CH_MODELS_API Turtlebot_MiddlePlate : public Turtlebot_Part {
     void Initialize();
 
     /// Enable/disable collision for the wheel.
-    void SetCollide(bool state);
+    void EnableCollision(bool state);
 
   private:
     /// Translate the chassis by the specified value.
@@ -289,7 +289,7 @@ class CH_MODELS_API Turtlebot_TopPlate : public Turtlebot_Part {
     void Initialize();
 
     /// Enable/disable collision for the wheel.
-    void SetCollide(bool state);
+    void EnableCollision(bool state);
 
   private:
     /// Translate the chassis by the specified value.
@@ -314,7 +314,7 @@ class CH_MODELS_API Turtlebot_Rod_Long : public Turtlebot_Part {
     void Initialize();
 
     /// Enable/disable collision for the wheel.
-    void SetCollide(bool state);
+    void EnableCollision(bool state);
 
   private:
     /// Translate the chassis by the specified value.

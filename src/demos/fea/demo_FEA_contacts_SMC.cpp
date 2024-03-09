@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
         auto floor_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mysurfmaterial, mmeshbox, false,
                                                                                    false, sphere_swept_thickness);
         mfloor->AddCollisionShape(floor_shape);
-        mfloor->SetCollide(true);
+        mfloor->EnableCollision(true);
 
         auto masset_meshbox = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         masset_meshbox->SetMesh(mmeshbox);

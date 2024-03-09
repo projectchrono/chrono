@@ -110,7 +110,7 @@ container.SetPos(chrono.ChVector3d(0, 0, 0))
 container.SetFixed(True)
 container.SetIdentifier(-1)
 
-container.SetCollide(True)
+container.EnableCollision(True)
 chrono.AddBoxGeometry(container, material, chrono.ChVector3d(8, 1, 8), chrono.ChVector3d(0, -0.5, 0))
 container.GetCollisionModel().SetEnvelope(collision_envelope)
 
@@ -122,7 +122,7 @@ box1.SetInertiaXX(chrono.ChVector3d(1, 1, 1))
 box1.SetPos(chrono.ChVector3d(-1, 0.21, -1))
 box1.SetPosDer(chrono.ChVector3d(5, 0, 0))
 
-box1.SetCollide(True)
+box1.EnableCollision(True)
 chrono.AddBoxGeometry(box1, material, chrono.ChVector3d(0.4, 0.2, 0.1))
 box1.GetCollisionModel().SetEnvelope(collision_envelope)
 
@@ -136,7 +136,7 @@ box2.SetInertiaXX(chrono.ChVector3d(1, 1, 1))
 box2.SetPos(chrono.ChVector3d(-1, 0.21, +1))
 box2.SetPosDer(chrono.ChVector3d(5, 0, 0))
 
-box2.SetCollide(True)
+box2.EnableCollision(True)
 chrono.AddBoxGeometry(box2, material, chrono.ChVector3d(0.4, 0.2, 0.1))
 box2.GetCollisionModel().SetEnvelope(collision_envelope)
 

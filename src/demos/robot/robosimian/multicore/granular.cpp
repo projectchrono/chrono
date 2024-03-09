@@ -36,7 +36,7 @@ GroundGranularB::GroundGranularB(ChSystemMulticore* sys) : GroundGranular(sys) {
     m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetIdentifier(-1);
     m_ground->SetFixed(true);
-    m_ground->SetCollide(true);
+    m_ground->EnableCollision(true);
     sys->AddBody(m_ground);
 }
 

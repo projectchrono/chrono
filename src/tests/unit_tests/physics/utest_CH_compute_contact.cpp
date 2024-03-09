@@ -131,7 +131,7 @@ ContactForceTest::ContactForceTest() {
         ball->SetRot(rot);
         ball->SetPosDer(init_vel);
         ball->SetAngVelParent(init_omg);
-        ball->SetCollide(true);
+        ball->EnableCollision(true);
         ball->SetFixed(false);
 
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);

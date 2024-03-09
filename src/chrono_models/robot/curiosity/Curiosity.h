@@ -80,7 +80,7 @@ class CH_MODELS_API CuriosityPart {
     void SetVisualize(bool state) { m_visualize = state; }
 
     /// Enable/disable collision.
-    void SetCollide(bool state) { m_collide = state; }
+    void EnableCollision(bool state) { m_collide = state; }
 
     /// Return the ChBody of the corresponding Curiosity part.
     std::shared_ptr<ChBodyAuxRef> GetBody() const { return m_body; }

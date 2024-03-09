@@ -45,7 +45,7 @@ class MyCreatorForAll : public ChRandomShapeCreator::AddBodyCallback {
             coll->Add(mbody->GetCollisionModel());
 
         // Dsable gyroscopic forces for increased integrator stability
-        mbody->SetNoGyroTorque(true);
+        mbody->SetUseGyroTorque(false);
     }
     ChVisualSystem* vis;
     ChCollisionSystem* coll;

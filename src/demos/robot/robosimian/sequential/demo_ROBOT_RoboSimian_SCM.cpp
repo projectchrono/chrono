@@ -299,10 +299,10 @@ int main(int argc, char* argv[]) {
 
     // Control collisions (default: true for sled and wheels only)
 
-    ////robot.SetCollide(robosimian::CollisionFlags::NONE);
-    ////robot.SetCollide(robosimian::CollisionFlags::ALL);
-    ////robot.SetCollide(robosimian::CollisionFlags::LIMBS);
-    ////robot.SetCollide(robosimian::CollisionFlags::CHASSIS | robosimian::CollisionFlags::WHEELS);
+    ////robot.EnableCollision(robosimian::CollisionFlags::NONE);
+    ////robot.EnableCollision(robosimian::CollisionFlags::ALL);
+    ////robot.EnableCollision(robosimian::CollisionFlags::LIMBS);
+    ////robot.EnableCollision(robosimian::CollisionFlags::CHASSIS | robosimian::CollisionFlags::WHEELS);
 
     // Set visualization modes (default: all COLLISION)
 

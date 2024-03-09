@@ -253,18 +253,21 @@ Note that this represents a major public API change and we expect most user code
 | ChBody                            |                               |                                                  |
 |                                   | Dir_Body2World                | remove                                           |
 |                                   | Dir_World2Body                | remove                                           |
-|                                   | GetBodyFixed                  | rename: GetFixed                                 |
+|                                   | GetBodyFixed                  | rename: IsFixed                                  |
+|                                   | GetCollide                    | rename: IsCollisionEnabled                       |
 |                                   | GetId                         | rename: GetIndex (internal use only)             |
 |                                   | GetGid                        | remove                                           |
-|                                   | GetUseSleeping                | rename: GetAllowSleeping                         |
+|                                   | GetSleeping                   | rename: IsSleeping                               |
+|                                   | GetUseSleeping                | rename: IsSleepingAllowed                        |
 |                                   | Point_Body2World              | remove                                           |
 |                                   | Point_World2Body              | remove                                           |
 |                                   | RelPoint_AbsAcc               | remove                                           |
 |                                   | RelPoint_AbsSpeed             | remove                                           |
 |                                   | SetBodyFixed                  | rename: SetFixed                                 |
+|                                   | SetCollide                    | rename: EnableCollision                          |
 |                                   | SetId                         | remove                                           |
 |                                   | SetGid                        | remove                                           |
-|                                   | SetUseSleeping                | rename: SetAllowSleeping                         |
+|                                   | SetUseSleeping                | rename: SetSleepingAllowed                       |
 | ChBodyFrame                       |                               |                                                  |
 |                                   | To_abs_forcetorque            | remove                                           |
 |                                   |                               | added: AppliedForceLocalToWrenchParent           |
@@ -721,8 +724,9 @@ Note that this represents a major public API change and we expect most user code
 | ChShaft                           |                               |                                                  |
 |                                   | GetId                         | rename: GetIndex (internal use only)             |
 |                                   | GetGid                        | remove                                           |
-|                                   | GetUseSleeping                | rename: GetAllowSleeping                         |
-|                                   | SetUseSleeping                | rename: SetAllowSleeping                         |
+|                                   | GetSleeping                   | rename: IsSleeping                               |
+|                                   | GetUseSleeping                | rename: IsSleepingAllowed                        |
+|                                   | SetUseSleeping                | rename: SetSleepingAllowed                       |
 | ChSolverBB                        |                               |                                                  |
 |                                   | GetMaxArmijoBacktrace         | rename: GetMaxStepsArmijoBacktrace               |
 |                                   | GetNarmijo                    | rename: GetMaxStepsArmijoLineSearch              |
@@ -784,7 +788,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetSolverForceTolerance       | remove                                           |
 |                                   | GetSolverMaxIterations        | remove                                           |
 |                                   | GetSolverTolerance            | remove                                           |
-|                                   | GetUseSleeping                | rename: GetAllowSleeping                         |
+|                                   | GetUseSleeping                | rename: IsSleepingAllowed                         |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
 |                                   | SetMinBounceSpeed             | remove and move to ChSystemNSC                   |
 |                                   | SetMaxiter                    | remove                                           |
@@ -792,7 +796,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetSolverForceTolerance       | remove (see Notes)                               |
 |                                   | SetSolverMaxIterations        | remove (see Notes)                               |
 |                                   | SetSolverTolerance            | remove (see Notes)                               |
-|                                   | SetUseSleeping                | rename: SetAllowSleeping                         |
+|                                   | SetUseSleeping                | rename: SetSleepingAllowed                         |
 | ChSystemFsi                       |                               |                                                  |
 |                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |

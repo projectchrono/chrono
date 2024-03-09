@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetFixed(true);
-    ground->SetCollide(false);
+    ground->EnableCollision(false);
 
     // attach visualization assets to represent the revolute and cylindrical
     // joints that connect the two shafts to ground
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(shaft_1);
     shaft_1->SetIdentifier(1);
     shaft_1->SetFixed(false);
-    shaft_1->SetCollide(false);
+    shaft_1->EnableCollision(false);
     shaft_1->SetMass(1);
     shaft_1->SetInertiaXX(ChVector3d(1, 1, 0.2));
     shaft_1->SetPos(ChVector3d(0, 0, -hl));
@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(shaft_2);
     shaft_2->SetIdentifier(1);
     shaft_2->SetFixed(false);
-    shaft_2->SetCollide(false);
+    shaft_2->EnableCollision(false);
     shaft_2->SetMass(1);
     shaft_2->SetInertiaXX(ChVector3d(1, 1, 0.2));
     shaft_2->SetPos(ChVector3d(0, -hl * sina, hl * cosa));

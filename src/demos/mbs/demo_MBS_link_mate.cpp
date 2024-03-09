@@ -178,7 +178,7 @@ void test_pendulum() {
     my_root->SetInertiaXX(ChVector3d(1, 1, 1));
     my_root->SetNameString("base");
     my_root->SetFixed(true);
-    my_root->SetCollide(false);
+    my_root->EnableCollision(false);
     sys.AddBody(my_root);
 
     auto cyl_rev = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, 0.4);
@@ -198,7 +198,7 @@ void test_pendulum() {
     my_mass->SetMass(tip_mass);
     my_mass->SetInertiaXX(ChVector3d(0, 0, 0));
     my_mass->SetNameString("mass");
-    my_mass->SetCollide(false);
+    my_mass->EnableCollision(false);
     sys.AddBody(my_mass);
 
     auto sph = chrono_types::make_shared<ChVisualShapeSphere>(0.3);

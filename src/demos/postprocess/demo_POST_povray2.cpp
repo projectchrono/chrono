@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
 
     auto particle_ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(particle_mat, 0.005);
     particles->AddCollisionShape(particle_ct_shape);
-    particles->SetCollide(true);
+    particles->EnableCollision(true);
 
     for (int ix = 0; ix < 5; ix++)
         for (int iy = 0; iy < 5; iy++)
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     auto floor_ct_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto floor_ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_ct_mat, 0.2, 0.04, 0.2);
     floor->AddCollisionShape(floor_ct_shape);
-    floor->SetCollide(true);
+    floor->EnableCollision(true);
 
     auto floor_vis_shape = chrono_types::make_shared<ChVisualShapeBox>(0.2, 0.04, 0.2);
     floor_vis_shape->SetColor(ChColor(0.5f, 0.5f, 0.5f));
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
 
             auto body_ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_ct_mat, 0.02, 0.02, 0.02);
             floor->AddCollisionShape(body_ct_shape);
-            body->SetCollide(true);
+            body->EnableCollision(true);
 
             auto body_vis_shape = chrono_types::make_shared<ChVisualShapeBox>(0.02, 0.02, 0.02);
             body->AddVisualShape(body_vis_shape);

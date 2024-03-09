@@ -70,7 +70,7 @@ void SynWheeledVehicleAgent::InitializeZombie(ChSystem* system) {
         auto wheel = chrono_types::make_shared<ChBodyAuxRef>();
         wheel->AddVisualShape(wheel_trimesh);
         wheel->AddVisualShape(tire_trimesh);
-        wheel->SetCollide(false);
+        wheel->EnableCollision(false);
         wheel->SetFixed(true);
         system->Add(wheel);
 
@@ -147,7 +147,7 @@ std::shared_ptr<ChBodyAuxRef> SynWheeledVehicleAgent::CreateChassisZombieBody(co
 
     auto zombie_body = chrono_types::make_shared<ChBodyAuxRef>();
     zombie_body->AddVisualShape(trimesh);
-    zombie_body->SetCollide(false);
+    zombie_body->EnableCollision(false);
     zombie_body->SetFixed(true);
     zombie_body->SetFrame_COG_to_REF(ChFrame<>({0, 0, -0.2}, {1, 0, 0, 0}));
     system->Add(zombie_body);

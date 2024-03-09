@@ -145,7 +145,7 @@ sys.SetGravitationalAcceleration(chrono.ChVector3d(0, -9.8, 0))
 # Create the ground body with a plate and side walls (both collision and visualization).
 ground = chrono.ChBody()
 sys.AddBody(ground)
-ground.SetCollide(True)
+ground.EnableCollision(True)
 ground.SetFixed(True)
 
 
@@ -195,7 +195,7 @@ comp = 4 * ball_radius * ball_radius
 ball.SetInertiaXX(chrono.ChVector3d(comp, comp, comp))
 ball.SetPos(chrono.ChVector3d(-3, 1.2 * ball_radius, -3))
 ball.SetPosDer(chrono.ChVector3d(5, 0, 5))
-ball.SetCollide(True)
+ball.EnableCollision(True)
 
 ball_ct_shape = chrono.ChCollisionShapeSphere(ball_mat, ball_radius)
 ball.AddCollisionShape(ball_ct_shape)

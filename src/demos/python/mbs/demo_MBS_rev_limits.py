@@ -34,7 +34,7 @@ ground = chrono.ChBody()
 sys.AddBody(ground)
 ground.SetIdentifier(-1)
 ground.SetFixed(True)
-ground.SetCollide(False)
+ground.EnableCollision(False)
 
 # Visualization for revolute joint
 cyl_rev = chrono.ChVisualShapeCylinder(0.04, 0.4)
@@ -45,7 +45,7 @@ pend = chrono.ChBody()
 sys.AddBody(pend)
 pend.SetIdentifier(1)
 pend.SetFixed(False)
-pend.SetCollide(False)
+pend.EnableCollision(False)
 pend.SetMass(1)
 pend.SetInertiaXX(chrono.ChVector3d(0.2, 1, 1))
 

@@ -413,7 +413,7 @@ int drawAllBoundingBoxes(ChVisualSystemIrrlicht* vis) {
     for (auto& body : vis->GetSystem(0).GetBodies()) {
         irr::video::SColor mcol;
 
-        if (body->GetSleeping())
+        if (body->IsSleeping())
             mcol = irr::video::SColor(70, 0, 50, 255);  // blue: sleeping
         else
             mcol = irr::video::SColor(70, 30, 200, 200);  // cyan: not sleeping

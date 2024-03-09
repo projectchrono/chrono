@@ -539,9 +539,9 @@ void ChAssembly::Setup() {
     this->FlushBatch();
 
     for (auto& body : bodylist) {
-        if (body->GetFixed())
+        if (body->IsFixed())
             m_num_bodies_fixed++;
-        else if (body->GetSleeping())
+        else if (body->IsSleeping())
             m_num_bodies_sleep++;
         else {
             m_num_bodies_active++;
@@ -565,7 +565,7 @@ void ChAssembly::Setup() {
     for (auto& shaft : shaftlist) {
         if (shaft->GetShaftFixed())
             m_num_shafts_fixed++;
-        else if (shaft->GetSleeping())
+        else if (shaft->IsSleeping())
             m_num_shafts_sleep++;
         else {
             m_num_shafts++;

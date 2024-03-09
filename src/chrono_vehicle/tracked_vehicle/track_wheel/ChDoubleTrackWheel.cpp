@@ -46,7 +46,7 @@ void ChDoubleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     double width = 0.5 * (GetWidth() - GetGap());
     double offset = 0.25 * (GetWidth() + GetGap());
 
-    m_wheel->SetCollide(true);
+    m_wheel->EnableCollision(true);
 
     if (track->IsRoadwheelCylinder()) {
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(m_material, radius, width);

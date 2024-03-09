@@ -190,10 +190,10 @@ int main(int argc, char* argv[]) {
         ->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
 
     // Enable contact on all tracked vehicle parts, except the left sprocket
-    ////vehicle.SetCollide(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
+    ////vehicle.EnableCollision(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
 
     // Disable contact for all tracked vehicle parts
-    ////vehicle.SetCollide(TrackedCollisionFlag::NONE);
+    ////vehicle.EnableCollision(TrackedCollisionFlag::NONE);
 
     // Disable all contacts for vehicle chassis (if chassis collision was defined)
     ////vehicle.SetChassisCollide(false);
@@ -547,7 +547,7 @@ void AddFixedObstacles(ChSystem* system) {
     auto obstacle = chrono_types::make_shared<ChBody>();
     obstacle->SetPos(ChVector3d(10, 0, -1.8));
     obstacle->SetFixed(true);
-    obstacle->SetCollide(true);
+    obstacle->EnableCollision(true);
 
     // Visualization
     auto vis_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);

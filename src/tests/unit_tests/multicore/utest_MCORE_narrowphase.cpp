@@ -43,7 +43,7 @@ void CreateContainer(ChSystemMulticore* system) {
 
     auto container = chrono_types::make_shared<ChBody>();
     container->SetFixed(true);
-    container->SetCollide(true);
+    container->EnableCollision(true);
     container->SetMass(10000.0);
 
     // Attach geometry of the containing bin
@@ -79,7 +79,7 @@ void CreateGranularMaterial(ChSystemMulticore* sys) {
                 ball->SetPos(pos + rnd);
                 ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
                 ball->SetFixed(false);
-                ball->SetCollide(true);
+                ball->EnableCollision(true);
 
                 utils::AddSphereGeometry(ball.get(), ballMat, radius);
 

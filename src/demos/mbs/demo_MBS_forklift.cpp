@@ -109,7 +109,7 @@ class MySimpleForklift {
         chassis->AddCollisionShape(cshape1, ChFrame<>(ChVector3d(-0.003, 1.019, 0.192), QUNIT));
         chassis->AddCollisionShape(cshape2, ChFrame<>(ChVector3d(0.486, 0.153, -0.047), QUNIT));
         chassis->AddCollisionShape(cshape3, ChFrame<>(ChVector3d(-0.486, 0.153, -0.047), QUNIT));
-        chassis->SetCollide(true);
+        chassis->EnableCollision(true);
 
         // visualization properties:
         auto chassis_mesh = chrono_types::make_shared<ChVisualShapeModelFile>();
@@ -135,7 +135,7 @@ class MySimpleForklift {
         wheelRF->SetInertiaXX(ChVector3d(2, 2, 2));
         // collision properties:
         wheelRF->AddCollisionShape(wshapeF, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI / 2)));
-        wheelRF->SetCollide(true);
+        wheelRF->EnableCollision(true);
         // visualization properties:
         wheelRF->AddVisualShape(wheel_mesh, ChFrame<>(-COG_wheelRF, QUNIT));
 
@@ -154,7 +154,7 @@ class MySimpleForklift {
         // collision properties:
         auto shapeLF = chrono_types::make_shared<ChCollisionShapeCylinder>(wheel_mat, RAD_front_wheel, 0.2);
         wheelLF->AddCollisionShape(wshapeF, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI / 2)));
-        wheelLF->SetCollide(true);
+        wheelLF->EnableCollision(true);
         // visualization properties:
         wheelLF->AddVisualShape(wheel_mesh, ChFrame<>(-COG_wheelRF, QUNIT));
 
@@ -185,7 +185,7 @@ class MySimpleForklift {
         wheelB->SetInertiaXX(ChVector3d(2, 2, 2));
         // collision properties:
         wheelB->AddCollisionShape(wshapeB, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
-        wheelB->SetCollide(true);
+        wheelB->EnableCollision(true);
         // visualization properties:
         wheelB->AddVisualShape(wheel_mesh, ChFrame<>(-COG_wheelRF, QUNIT));
 
@@ -227,7 +227,7 @@ class MySimpleForklift {
         fork->AddCollisionShape(fshape1, ChFrame<>(ChVector3d(-0.352, -0.312, 0.613), QUNIT));
         fork->AddCollisionShape(fshape2, ChFrame<>(ChVector3d(0.352, -0.312, 0.613), QUNIT));
         fork->AddCollisionShape(fshape3, ChFrame<>(ChVector3d(0.000, 0.321, -0.009), QUNIT));
-        fork->SetCollide(true);
+        fork->EnableCollision(true);
         // visualization properties:
         auto fork_mesh = chrono_types::make_shared<ChVisualShapeModelFile>();
         fork_mesh->SetFilename(GetChronoDataFile("models/forklift/forks.obj"));

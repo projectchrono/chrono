@@ -184,7 +184,7 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
         auto post = chrono_types::make_shared<ChBody>();
         post->SetPos(post_pos);
         post->SetMass(100);
-        post->SetCollide(true);
+        post->EnableCollision(true);
         m_system->Add(post);
 
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(post_mat, m_post_radius, m_post_height);
@@ -223,17 +223,17 @@ void ChTrackTestRig::Initialize() {
     m_track->SetTrackShoeVisualizationType(m_vis_shoe);
 
     // Set collisions
-    m_track->GetIdlerWheel()->SetCollide((m_collide_flags & static_cast<int>(TrackedCollisionFlag::IDLER_LEFT)) != 0);
+    m_track->GetIdlerWheel()->EnableCollision((m_collide_flags & static_cast<int>(TrackedCollisionFlag::IDLER_LEFT)) != 0);
 
-    m_track->GetSprocket()->SetCollide((m_collide_flags & static_cast<int>(TrackedCollisionFlag::SPROCKET_LEFT)) != 0);
+    m_track->GetSprocket()->EnableCollision((m_collide_flags & static_cast<int>(TrackedCollisionFlag::SPROCKET_LEFT)) != 0);
 
     bool collide_wheels = (m_collide_flags & static_cast<int>(TrackedCollisionFlag::WHEELS_LEFT)) != 0;
     for (size_t i = 0; i < m_track->GetNumTrackSuspensions(); ++i)
-        m_track->GetRoadWheel(i)->SetCollide(collide_wheels);
+        m_track->GetRoadWheel(i)->EnableCollision(collide_wheels);
 
     bool collide_shoes = (m_collide_flags & static_cast<int>(TrackedCollisionFlag::SHOES_LEFT)) != 0;
     for (size_t i = 0; i < m_track->GetNumTrackShoes(); ++i)
-        m_track->GetTrackShoe(i)->SetCollide(collide_shoes);
+        m_track->GetTrackShoe(i)->EnableCollision(collide_shoes);
 
     // Post locations (in X direction)
     auto idler_x = m_track->GetIdlerWheel()->GetBody()->GetPos().x();
@@ -261,7 +261,7 @@ void ChTrackTestRig::SetDriver(std::shared_ptr<ChTrackTestRigDriver> driver) {
 
 void ChTrackTestRig::SetPostCollide(bool flag) {
     for (auto& p : m_post)
-        p->SetCollide(flag);
+        p->EnableCollision(flag);
 }
 
 // -----------------------------------------------------------------------------

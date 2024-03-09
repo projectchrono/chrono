@@ -263,7 +263,7 @@ void SprocketBandContactCB::OnCustomCollision(ChSystem* system) {
     }
 
     // Return now if collision disabled on sproket.
-    if (!m_sprocket->GetGearBody()->GetCollide())
+    if (!m_sprocket->GetGearBody()->IsCollisionEnabled())
         return;
 
     // Sprocket gear center location, expressed in global frame

@@ -39,7 +39,7 @@ def AddFallingItems(sys):
 
             body_ct_shape = chrono.ChCollisionShapeSphere(mat, radius)
             body.AddCollisionShape(body_ct_shape)
-            body.SetCollide(True)
+            body.EnableCollision(True)
 
             sphere = chrono.ChVisualShapeSphere(radius)
             sphere.SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
@@ -57,7 +57,7 @@ def AddFallingItems(sys):
 
             body_ct_shape = chrono.ChCollisionShapeBox(mat, size.x, size.y, size.z)
             body.AddCollisionShape(body_ct_shape)
-            body.SetCollide(True)
+            body.EnableCollision(True)
 
             box = chrono.ChVisualShapeBox(size)
             box.SetTexture(chrono.GetChronoDataFile("textures/pinkwhite.png"))
@@ -80,7 +80,7 @@ def AddContainer(sys):
     fixedBody.SetMass(1.0)
     fixedBody.SetFixed(True)
     fixedBody.SetPos(chrono.ChVector3d())
-    fixedBody.SetCollide(True)
+    fixedBody.EnableCollision(True)
 
     # Contact material for container
     fixed_mat = chrono.ChContactMaterialSMC()
@@ -99,7 +99,7 @@ def AddContainer(sys):
     rotatingBody.SetMass(10.0)
     rotatingBody.SetInertiaXX(chrono.ChVector3d(50, 50, 50))
     rotatingBody.SetPos(chrono.ChVector3d(0, -1.6, 0))
-    rotatingBody.SetCollide(True)
+    rotatingBody.EnableCollision(True)
 
     # Contact material for mixer body
     rot_mat = chrono.ChContactMaterialSMC()

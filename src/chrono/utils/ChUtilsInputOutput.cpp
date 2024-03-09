@@ -73,7 +73,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 
     for (auto body : system->GetBodies()) {
         // Write body identifier, the body fixed flag, and the collide flag
-        csv << body->GetIdentifier() << body->GetFixed() << body->GetCollide() << tab;
+        csv << body->GetIdentifier() << body->IsFixed() << body->IsCollisionEnabled() << tab;
 
         // Write collision family information.
         csv << body->GetCollisionModel()->GetFamilyGroup() << body->GetCollisionModel()->GetFamilyMask() << tab;
@@ -253,7 +253,7 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
 
         body->SetIdentifier(bid);
         body->SetFixed(bfixed != 0);
-        body->SetCollide(bcollide != 0);
+        body->EnableCollision(bcollide != 0);
 
         body->SetMass(mass);
         body->SetInertiaXX(inertiaXX);

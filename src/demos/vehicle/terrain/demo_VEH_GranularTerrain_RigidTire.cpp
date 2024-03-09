@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
     body->AddCollisionShape(ct_shape);
     ////utils::AddSphereGeometry(body.get(), body_mat, tire_rad, ChVector3d(0, 0, 0));
 
-    body->SetCollide(true);
+    body->EnableCollision(true);
 
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);

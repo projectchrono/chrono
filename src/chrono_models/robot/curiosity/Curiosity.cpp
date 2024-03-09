@@ -226,7 +226,7 @@ void CuriosityPart::Construct(ChSystem* system) {
             chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_mat, trimesh_col, false, false, 0.005);
         m_body->AddCollisionShape(shape);
 
-        m_body->SetCollide(m_collide);
+        m_body->EnableCollision(m_collide);
     }
 
     system->AddBody(m_body);

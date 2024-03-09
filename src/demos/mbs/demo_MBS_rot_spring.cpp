@@ -69,7 +69,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetFixed(true);
-    ground->SetCollide(false);
+    ground->EnableCollision(false);
 
     // Visualization for revolute joint
     ChLineSegment seg(rev_pos + 0.2 * rev_dir, rev_pos - 0.2 * rev_dir);
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
     body->SetAngVelParent(ang_vel);
     body->SetIdentifier(1);
     body->SetFixed(false);
-    body->SetCollide(false);
+    body->EnableCollision(false);
     body->SetMass(1);
     body->SetInertiaXX(ChVector3d(1, 1, 1));
 

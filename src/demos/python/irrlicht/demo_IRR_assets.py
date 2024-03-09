@@ -46,7 +46,7 @@ floor_mat = chrono.ChContactMaterialNSC()
 # Define a collision shape
 floor_ct_shape = chrono.ChCollisionShapeBox(floor_mat, 20, 1, 20)
 floor.AddCollisionShape(floor_ct_shape, chrono.ChFramed(chrono.ChVector3d(0, -1, 0), chrono.QUNIT))
-floor.SetCollide(True)
+floor.EnableCollision(True)
 
 # Add body to sys
 sys.Add(floor)
@@ -187,7 +187,7 @@ particle_mat = chrono.ChContactMaterialNSC()
 
 particles_ct_shape = chrono.ChCollisionShapeSphere(particle_mat, 0.05)
 particles.AddCollisionShape(particles_ct_shape)
-particles.SetCollide(True)
+particles.EnableCollision(True)
 
 # Create the random particles
 for i in range(100):

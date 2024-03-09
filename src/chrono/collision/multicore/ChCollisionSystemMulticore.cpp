@@ -264,7 +264,7 @@ void ChCollisionSystemMulticore::PreProcess() {
         rotation[i] = quaternion(body_rot.e0(), body_rot.e1(), body_rot.e2(), body_rot.e3());
 
         active[i] = body->IsActive();
-        collide[i] = body->GetCollide();
+        collide[i] = body->IsCollisionEnabled();
     }
 }
 

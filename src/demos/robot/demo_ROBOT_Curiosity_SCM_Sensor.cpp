@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
         auto rock1_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_1_mmesh, false,
                                                                                 false, 0.005);
         rock1_Body->AddCollisionShape(rock1_ct_shape);
-        rock1_Body->SetCollide(true);
+        rock1_Body->EnableCollision(true);
 
         auto rock1_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         rock1_mesh->SetMesh(rock_1_mmesh);
@@ -260,7 +260,7 @@ int main(int argc, char* argv[]) {
         auto rock2_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_2_mmesh,
                                                                                       false, false, 0.005);
         rock2_Body->AddCollisionShape(rock2_ct_shape);
-        rock2_Body->SetCollide(true);
+        rock2_Body->EnableCollision(true);
 
         auto rock2_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         rock2_mesh->SetMesh(rock_2_mmesh);
@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
         auto rock3_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_3_mmesh,
                                                                                       false, false, 0.005);
         rock3_Body->AddCollisionShape(rock3_ct_shape);
-        rock3_Body->SetCollide(true);
+        rock3_Body->EnableCollision(true);
 
         auto rock3_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         rock3_mesh->SetMesh(rock_3_mmesh);

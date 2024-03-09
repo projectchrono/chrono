@@ -207,7 +207,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     container->SetNameString("container");
     container->SetMass(1);
     container->SetFixed(true);
-    container->SetCollide(true);
+    container->EnableCollision(true);
 
     auto vis_mat = std::make_shared<ChVisualMaterial>(*ChVisualMaterial::Default());
     vis_mat->SetKdTexture(GetChronoDataFile("textures/checker2.png"));
@@ -226,7 +226,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
         ground->SetNameString("ground");
         ground->SetIdentifier(-2);
         ground->SetFixed(true);
-        ground->SetCollide(false);
+        ground->EnableCollision(false);
         m_system->AddBody(ground);
 
         auto weld = chrono_types::make_shared<ChLinkLockLock>();
@@ -254,7 +254,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
         body->SetInertia(inertia * b.m_density);
         body->SetFixed(false);
 
-        body->SetCollide(true);
+        body->EnableCollision(true);
         auto ct_shape =
             chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_p);
         body->AddCollisionShape(ct_shape);
@@ -331,7 +331,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
         body->SetMass(mass_p);
         body->SetInertiaXX(inertia_p);
         body->SetFixed(m_fixed_proxies);
-        body->SetCollide(true);
+        body->EnableCollision(true);
 
         utils::AddSphereGeometry(body.get(), material, m_radius_p, ChVector3d(0, 0, 0), ChQuaternion<>(1, 0, 0, 0),
                                  true);
@@ -361,7 +361,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateRigidProxy(unsigned int i) {
     body->SetMass(m_load_mass[i]);
     ////body->SetInertiaXX();   //// TODO
     body->SetFixed(m_fixed_proxies);
-    body->SetCollide(true);
+    body->EnableCollision(true);
 
     // Create visualization assets (use collision shapes)
     m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::PRIMITIVES, true);

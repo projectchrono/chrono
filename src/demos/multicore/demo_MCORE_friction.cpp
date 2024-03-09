@@ -74,7 +74,7 @@ int main(int argc, char** argv) {
     container->SetPos(ChVector3d(0, 0, 0));
     container->SetFixed(true);
     container->SetIdentifier(-1);
-    container->SetCollide(true);
+    container->EnableCollision(true);
 
     // Set rolling and friction coefficients for the container.
     // By default, the composite material will use the minimum value for an interacting collision pair.
@@ -112,7 +112,7 @@ int main(int argc, char** argv) {
         ball->SetAngVelParent(ChVector3d(0, 0, -initial_angspeed));
 
         // Contact geometry
-        ball->SetCollide(true);
+        ball->EnableCollision(true);
         utils::AddSphereGeometry(ball.get(), mat, radius);
 
         // Add to the sys
@@ -136,7 +136,7 @@ int main(int argc, char** argv) {
         ball->SetAngVelParent(ChVector3d(0, 20, 0));
 
         // Contact geometry
-        ball->SetCollide(true);
+        ball->EnableCollision(true);
         utils::AddSphereGeometry(ball.get(), mat, radius);
 
         // Add to the sys

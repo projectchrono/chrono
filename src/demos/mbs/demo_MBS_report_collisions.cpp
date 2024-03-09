@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
     // Creeate a container fixed to ground (invisible).
     auto container = chrono_types::make_shared<ChBody>();
     container->SetFixed(true);
-    container->SetCollide(true);
+    container->EnableCollision(true);
     auto shape1 = chrono_types::make_shared<ChCollisionShapeBox>(mat, 40, 2, 40);
     auto shape2 = chrono_types::make_shared<ChCollisionShapeBox>(mat, 2, 80, 40);
     auto shape3 = chrono_types::make_shared<ChCollisionShapeBox>(mat, 2, 80, 40);

@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
     sys.SetSolverType(ChSolver::Type::PSOR);
     sys.GetSolver()->AsIterative()->SetMaxIterations(50);
 
-    // sys.SetAllowSleeping(true);
+    // sys.SetSleepingAllowed(true);
 
     // Simulation loop
     double timestep = 0.005;

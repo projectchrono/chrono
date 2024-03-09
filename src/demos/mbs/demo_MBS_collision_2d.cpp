@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
     mpathcoin->AddSubLine(msegcol1);
 
     // Add the collision shape to the body
-    mcoin->SetCollide(true);
+    mcoin->EnableCollision(true);
     auto coin_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathcoin);
     mcoin->AddCollisionShape(coin_coll, ChFrame<>());
     mcoin->GetCollisionModel()->SetSafeMargin(0.1f);
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     mpathhole->Set_closed(false);
 
     // Add the collision shape to the body
-    mhole->SetCollide(true);
+    mhole->EnableCollision(true);
     auto hole_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathhole);
     mhole->AddCollisionShape(hole_coll, ChFrame<>());
     mhole->GetCollisionModel()->SetSafeMargin(0.1f);
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Add the collision shape to the body
-    mgenevawheel->SetCollide(true);
+    mgenevawheel->EnableCollision(true);
     auto genevawheel_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathwheel);
     mgenevawheel->AddCollisionShape(genevawheel_coll, ChFrame<>());
     mgenevawheel->GetCollisionModel()->SetSafeMargin(0.02f);
@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
     mpathcrankstopper->AddSubLine(mstopperve2);
 
     // Add the collision shape to the body
-    mcrank->SetCollide(true);
+    mcrank->EnableCollision(true);
     auto crankpin_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathcrankpin);
     auto crankstopper_coll = chrono_types::make_shared<ChCollisionShapePath2D>(mat, mpathcrankstopper);
     mcrank->AddCollisionShape(crankpin_coll, ChFrame<>());

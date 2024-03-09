@@ -154,10 +154,10 @@ int main(int argc, char* argv[]) {
     // --------------------------------------------------
 
     // Enable contact on all tracked vehicle parts, except the left sprocket
-    ////marder.GetVehicle().SetCollide(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
+    ////marder.GetVehicle().EnableCollision(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
 
     // Disable contact for all tracked vehicle parts
-    ////marder.GetVehicle().SetCollide(TrackedCollisionFlag::NONE);
+    ////marder.GetVehicle().EnableCollision(TrackedCollisionFlag::NONE);
 
     // Disable all contacts for vehicle chassis (if chassis collision was defined)
     ////marder.GetVehicle().SetChassisCollide(false);
@@ -425,7 +425,7 @@ void AddFixedObstacles(ChSystem* system) {
     auto obstacle = chrono_types::make_shared<ChBody>();
     obstacle->SetPos(ChVector3d(10, 0, -1.8));
     obstacle->SetFixed(true);
-    obstacle->SetCollide(true);
+    obstacle->EnableCollision(true);
 
     // Visualization
     auto vis_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
@@ -461,7 +461,7 @@ void AddFallingObjects(ChSystem* system) {
     ChContactMaterialData minfo;
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
-    ball->SetCollide(true);
+    ball->EnableCollision(true);
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(obst_mat, radius);
     ball->AddCollisionShape(ct_shape);
 

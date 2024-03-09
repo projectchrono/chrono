@@ -592,10 +592,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// motion has almost come to a rest. This feature will allow faster simulation
     /// of large scenarios for real-time purposes, but it will affect the precision!
     /// This functionality can be turned off selectively for specific ChBodies.
-    void SetAllowSleeping(bool ms) { use_sleeping = ms; }
+    void SetSleepingAllowed(bool ms) { use_sleeping = ms; }
 
     /// Tell if the system will put to sleep the bodies whose motion has almost come to a rest.
-    bool GetAllowSleeping() const { return use_sleeping; }
+    bool IsSleepingAllowed() const { return use_sleeping; }
 
     /// Get the visual system to which this ChSystem is attached (if any).
     ChVisualSystem* GetVisualSystem() const { return visual_system; }
@@ -754,6 +754,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// etc). However, this does *not* include any constraint forces. In particular, contact torques are not included if
     /// using the NSC formulation, but are included when using the SMC formulation.
     virtual ChVector3d GetBodyAppliedTorque(ChBody* body);
+
     /// Put bodies to sleep if possible. Also awakens sleeping bodies, if needed.
     /// Returns true if some body changed from sleep to no sleep or viceversa,
     /// returns false if nothing changed. In the former case, also performs Setup()
@@ -762,7 +763,6 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Performs a single dynamical simulation step, according to
     /// current values of:  Y, time, step  (and other minor settings)
-    /// Depending on the integration type, it switches to one of the following:
     virtual bool Integrate_Y();
 
     ChAssembly assembly; ///< underlying mechanical assembly

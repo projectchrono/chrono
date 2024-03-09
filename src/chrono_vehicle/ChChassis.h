@@ -121,13 +121,13 @@ class CH_VEHICLE_API ChChassis : public ChPart {
     /// Enable/disable contact for the chassis.
     /// This function controls contact of the chassis with all other collision shapes in the simulation. Must be called
     /// after initialization and has effect only if the derived object has defined some collision shapes.
-    virtual void SetCollide(bool state) = 0;
+    virtual void EnableCollision(bool state) = 0;
 
     /// Set the "fixed to ground" status of the chassis body.
     void SetFixed(bool val) { m_body->SetFixed(val); }
 
     /// Return true if the chassis body is fixed to ground.
-    bool IsFixed() const { return m_body->GetFixed(); }
+    bool IsFixed() const { return m_body->IsFixed(); }
 
     /// Return true if the vehicle model contains bushings.
     bool HasBushings() const { return m_container_bushings->GetNumLoads() > 0; }

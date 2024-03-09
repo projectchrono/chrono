@@ -614,7 +614,7 @@ void ChTrackCustomContact::ApplyForces() {
             ComputeGroundContactForce(cInfo, ground_body, shoe_body, force_shoe);
 
             // Apply equal and opposite forces on the two bodies (ground and track shoe) in contact
-            if (!ground_body->GetFixed()) {
+            if (!ground_body->IsFixed()) {
                 Add(chrono_types::make_shared<ChLoadBodyForce>(ground_body, -force_shoe, false, cInfo.vpA, false));
             }
             Add(chrono_types::make_shared<ChLoadBodyForce>(shoe_body, +force_shoe, false, cInfo.vpB, false));

@@ -271,7 +271,7 @@ void ChSystemMulticore::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newit
     newitem->SetSystem(this);
     assembly.otherphysicslist.push_back(newitem);
 
-    ////if (newitem->GetCollide()) {
+    ////if (newitem->IsCollisionEnabled()) {
     ////    newitem->AddCollisionModelsToSystem();
     ////}
 }
@@ -375,7 +375,7 @@ void ChSystemMulticore::UpdateRigidBodies() {
         rotation[i] = quaternion(body_rot.e0(), body_rot.e1(), body_rot.e2(), body_rot.e3());
 
         active[i] = body->IsActive();
-        collide[i] = body->GetCollide();
+        collide[i] = body->IsCollisionEnabled();
 
         // Let derived classes set the specific material surface data.
         UpdateMaterialSurfaceData(i, body.get());

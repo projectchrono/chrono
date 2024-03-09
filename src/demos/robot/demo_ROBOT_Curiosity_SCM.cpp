@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
 
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rock_mat, mesh, false, false, 0.005);
         body->AddCollisionShape(ct_shape);
-        body->SetCollide(true);
+        body->EnableCollision(true);
 
         auto vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         vis_shape->SetMesh(mesh);

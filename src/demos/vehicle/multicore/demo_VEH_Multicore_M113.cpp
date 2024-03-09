@@ -273,7 +273,7 @@ int main(int argc, char* argv[]) {
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);
     ground->SetFixed(true);
-    ground->SetCollide(true);
+    ground->EnableCollision(true);
 
     // Bottom box
     utils::AddBoxGeometry(ground.get(),                                           //
@@ -341,9 +341,9 @@ int main(int argc, char* argv[]) {
     m113.SetRoadWheelVisualizationType(VisualizationType::MESH);
     m113.SetTrackShoeVisualizationType(VisualizationType::MESH);
 
-    ////m113.GetVehicle().SetCollide(TrackCollide::NONE);
-    ////m113.GetVehicle().SetCollide(TrackCollide::WHEELS_LEFT | TrackCollide::WHEELS_RIGHT);
-    ////m113.GetVehicle().SetCollide(TrackCollide::ALL & (~TrackCollide::SPROCKET_LEFT) &
+    ////m113.GetVehicle().EnableCollision(TrackCollide::NONE);
+    ////m113.GetVehicle().EnableCollision(TrackCollide::WHEELS_LEFT | TrackCollide::WHEELS_RIGHT);
+    ////m113.GetVehicle().EnableCollision(TrackCollide::ALL & (~TrackCollide::SPROCKET_LEFT) &
     ///(~TrackCollide::SPROCKET_RIGHT));
 
     // Create the driver sys
@@ -405,7 +405,7 @@ int main(int argc, char* argv[]) {
         }
 
         // Release the vehicle chassis at the end of the hold time.
-        if (m113.GetChassisBody()->GetFixed() && time > time_hold) {
+        if (m113.GetChassisBody()->IsFixed() && time > time_hold) {
             std::cout << "\nRelease vehicle t = " << time << std::endl;
             m113.GetChassisBody()->SetFixed(false);
         }

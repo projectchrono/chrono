@@ -70,7 +70,7 @@ CRGTerrain::CRGTerrain(ChSystem* system)
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector3d(0, 0, 0));
     m_ground->SetFixed(true);
-    m_ground->SetCollide(false);
+    m_ground->EnableCollision(false);
     system->Add(m_ground);
 
     crgMsgSetLevel(dCrgMsgLevelNone);
