@@ -315,6 +315,7 @@ void ChSystem::SetSystemDescriptor(std::shared_ptr<ChSystemDescriptor> newdescri
     assert(newdescriptor);
     descriptor = newdescriptor;
 }
+
 void ChSystem::SetSolver(std::shared_ptr<ChSolver> newsolver) {
     assert(newsolver);
     solver = newsolver;
@@ -1583,13 +1584,14 @@ bool ChSystem::Integrate_Y() {
     ////descriptor->UpdateCountsAndOffsets();
 
     // Set some settings in timestepper object
-    timestepper->SetQcDoClamp(true);
-    timestepper->SetQcClamping(max_penetration_recovery_speed);
-    if (std::dynamic_pointer_cast<ChTimestepperHHT>(timestepper) ||
-        std::dynamic_pointer_cast<ChTimestepperNewmark>(timestepper))
-        timestepper->SetQcDoClamp(false);
+    if (timestepper->GetType() == ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED) {
+        timestepper->Qc_do_clamp = true;
+        timestepper->Qc_clamping = max_penetration_recovery_speed;      
+    } else {
+        timestepper->Qc_do_clamp = false;        
+    }
 
-    // PERFORM TIME STEP HERE!
+    // Advance system state by one step
     {
         CH_PROFILE("Advance");
         timer_advance.start();

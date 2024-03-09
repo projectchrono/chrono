@@ -51,7 +51,7 @@ class ChApi ChSystemNSC : public ChSystem {
     /// For elastic collisions with nonzero restitution coefficient, objects will rebounce only if their relative
     /// colliding speed is above this threshold. Default 0.15 m/s. If this value is set too low, aliasing problems can
     /// happen with small high frequency rebounces and settling to static stacking might be more difficult.
-    void SetMinBounceSpeed(double mval);
+    void SetMinBounceSpeed(double value);
 
     // SERIALIZATION
 

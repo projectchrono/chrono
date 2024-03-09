@@ -80,12 +80,6 @@ class ChApi ChTimestepper {
     /// Turn on/off logging of messages.
     void SetVerbose(bool verb) { verbose = verb; }
 
-    /// Turn on/off clamping on the Qcterm.
-    void SetQcDoClamp(bool dc) { Qc_do_clamp = dc; }
-
-    /// Turn on/off clamping on the Qcterm.
-    void SetQcClamping(double cl) { Qc_clamping = cl; }
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive);
 
@@ -102,6 +96,8 @@ class ChApi ChTimestepper {
 
     bool Qc_do_clamp;
     double Qc_clamping;
+
+    friend class ChSystem;
 };
 
 /// Base class for 1st order timesteppers, that is a time integrator for a ChIntegrable.

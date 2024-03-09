@@ -55,8 +55,6 @@ void ChTimestepper::ArchiveOut(ChArchiveOut& archive) {
     archive << CHNVP(typemapper(type), "timestepper_type");
     // serialize all member data:
     archive << CHNVP(verbose);
-    archive << CHNVP(Qc_do_clamp);
-    archive << CHNVP(Qc_clamping);
 }
 
 void ChTimestepper::ArchiveIn(ChArchiveIn& archive) {
@@ -68,9 +66,8 @@ void ChTimestepper::ArchiveIn(ChArchiveIn& archive) {
     archive >> CHNVP(typemapper(type), "timestepper_type");
     // stream in all member data:
     archive >> CHNVP(verbose);
-    archive >> CHNVP(Qc_do_clamp);
-    archive >> CHNVP(Qc_clamping);
 }
+
 // -----------------------------------------------------------------------------
 
 // Register into the object factory, to enable run-time dynamic creation and persistence

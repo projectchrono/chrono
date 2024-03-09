@@ -88,7 +88,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     ChTimestepper::Type GetTimestepperType() const { return timestepper->GetType(); }
 
     /// Set the timestepper object to be used for time integration.
-    void SetTimestepper(std::shared_ptr<ChTimestepper> mstepper) { timestepper = mstepper; }
+    void SetTimestepper(std::shared_ptr<ChTimestepper> stepper) { timestepper = stepper; }
 
     /// Get the timestepper currently used for time integration
     std::shared_ptr<ChTimestepper> GetTimestepper() const { return timestepper; }
@@ -110,10 +110,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Accessor for the current composition laws for contact surface material.
     const ChContactMaterialCompositionStrategy& GetMaterialCompositionStrategy() const { return *composition_strategy; }
 
-    /// Set the speed limit of exiting from penetration situations. 
+    /// Set the speed limit of exiting from penetration situations (default: 0.6).
     /// Usually set a positive value, (about 0.1...2 m/s, as exiting speed).
-    /// Used only bt the EULER_IMPLICIT_LINEARIZED time stepper.
-    void SetMaxPenetrationRecoverySpeed(double mval) { max_penetration_recovery_speed = mval; }
+    /// Used form unilateral constraints with the EULER_IMPLICIT_LINEARIZED time stepper.
+    void SetMaxPenetrationRecoverySpeed(double value) { max_penetration_recovery_speed = value; }
 
     /// Attach a solver (derived from ChSolver) for use by this system.
     virtual void SetSolver(std::shared_ptr<ChSolver> newsolver);
