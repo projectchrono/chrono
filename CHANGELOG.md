@@ -785,6 +785,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNshaftsTotal               | rename: GetNumShaftsTotal                        |
 |                                   | GetNsysvars                   | remove                                           |
 |                                   | GetNsysvars_w                 | remove                                           |
+|                                   | GetSolverCallsCount           | rename: GetSolverSolveCount                      |
 |                                   | GetSolverForceTolerance       | remove                                           |
 |                                   | GetSolverMaxIterations        | remove                                           |
 |                                   | GetSolverTolerance            | remove                                           |

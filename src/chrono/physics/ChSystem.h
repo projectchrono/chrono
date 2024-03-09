@@ -619,11 +619,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Return the number of calls to the solver's Solve() function.
     /// This counter is reset at each timestep.
-    int GetSolverCallsCount() const { return solvecount; }
+    unsigned int GetSolverSolveCount() const { return solvecount; }
 
     /// Return the number of calls to the solver's Setup() function.
     /// This counter is reset at each timestep.
-    int GetSolverSetupCount() const { return setupcount; }
+    unsigned int  GetSolverSetupCount() const { return setupcount; }
 
     /// Set this to "true" to enable automatic saving of solver matrices at each time
     /// step, for debugging purposes. Note that matrices will be saved in the
@@ -792,8 +792,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     size_t stepcount;  ///< internal counter for steps
 
-    int setupcount;  ///< number of calls to the solver's Setup()
-    int solvecount;  ///< number of StateSolveCorrection (reset to 0 at each timestep of static analysis)
+    unsigned int setupcount;  ///< number of calls to the solver's Setup()
+    unsigned int solvecount;  ///< number of StateSolveCorrection (reset to 0 at each timestep of static analysis)
 
     bool write_matrix;       ///< write current system matrix to file(s); for debugging
     std::string output_dir;  ///< output directory for writing system matrices
