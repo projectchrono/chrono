@@ -18,8 +18,7 @@ if(ENABLE_MODULE_IRRLICHT OR ENABLE_MODULE_VSG)
     )
 endif()
 
-if(HAVE_OPENCRG)
-   
+if(HAVE_OPENCRG) 
    if (ENABLE_MODULE_IRRLICHT)
       set(DEMOS ${DEMOS}
           demo_VEH_CRGTerrain_IRR
@@ -29,7 +28,6 @@ if(HAVE_OPENCRG)
    if(ENABLE_MODULE_VSG)
       set(DEMOS ${DEMOS}
           demo_VEH_CRGTerrain_VSG
-          demo_VEH_FEDA_Road
     )
    endif()
 endif()

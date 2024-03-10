@@ -57,9 +57,6 @@ enum class DriverModelType {
     HUMAN     // simple realistic human driver
 };
 
-// Type of tire model (LUGRE, FIALA, PACEJKA, TMSIMPLE or TMEASY)
-TireModelType tire_model = TireModelType::TMSIMPLE;
-
 // Road visualization (mesh or boundary lines)
 bool useMesh = true;
 
@@ -71,8 +68,7 @@ double minimum_speed = 12;
 double maximum_speed = 30;
 
 // Simulation step size
-double step_size = 3e-3;
-double tire_step_size = 1e-3;
+double step_size = 1e-3;
 
 // Output frame images
 bool output_images = false;

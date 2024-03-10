@@ -11,8 +11,6 @@ endif()
 # List all demos
 
 set(DEMOS
-    demo_VEH_FEDA_SSC
-    demo_VEH_HMMWV_Accel
     demo_VEH_HMMWV_Rollover
     demo_VEH_WheeledGeneric
     demo_VEH_WheeledGenericSet
@@ -22,11 +20,8 @@ set(DEMOS
 
 if(ENABLE_MODULE_IRRLICHT)
    set(DEMOS ${DEMOS}
-       demo_VEH_Gator_Accel
+       demo_VEH_Gator_Incline
        demo_VEH_HMMWV9_YUP
-       demo_VEH_Kraz_ClosedLoop
-       demo_VEH_LMTV_ride
-       demo_VEH_MTV_ride
        demo_VEH_Sedan_Lockable_Diff
    )
 endif()
