@@ -139,7 +139,7 @@ void FmuComponent::CreateDriver() {
     std::cout << "Create driver FMU" << std::endl;
     std::cout << " Path file: " << path_file << std::endl;
 
-    auto path = ChBezierCurve::read(path_file, false);
+    auto path = ChBezierCurve::Read(path_file, false);
 
     speedPID = chrono_types::make_shared<ChSpeedController>();
     steeringPID = chrono_types::make_shared<ChPathSteeringController>(path);
@@ -148,8 +148,8 @@ void FmuComponent::CreateDriver() {
     steeringPID->SetGains(Kp_steering, Ki_steering, Kd_steering);
     speedPID->SetGains(Kp_speed, Ki_speed, Kd_speed);
 
-    auto point0 = path->getPoint(0);
-    auto point1 = path->getPoint(1);
+    auto point0 = path->GetPoint(0);
+    auto point1 = path->GetPoint(1);
     init_loc = point0;
     init_yaw = std::atan2(point1.y() - point0.y(), point1.x() - point0.x());
 
@@ -161,7 +161,7 @@ void FmuComponent::CreateDriver() {
     ground->SetFixed(true);
     sys.AddBody(ground);
 
-    auto num_points = static_cast<unsigned int>(path->getNumPoints());
+    auto num_points = static_cast<unsigned int>(path->GetNumPoints());
     auto path_asset = chrono_types::make_shared<ChVisualShapeLine>();
     path_asset->SetLineGeometry(chrono_types::make_shared<ChLineBezier>(path));
     path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));

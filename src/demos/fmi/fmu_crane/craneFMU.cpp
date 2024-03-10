@@ -201,7 +201,7 @@ void FmuComponent::_exitInitializationMode() {
 #endif
     }
 
-    sys.DoFullAssembly();
+    sys.DoAssembly(AssemblyLevel::FULL);
 }
 
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,

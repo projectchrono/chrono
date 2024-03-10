@@ -172,7 +172,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize combined output
     utils::ChWriterCSV csv;
-    csv.SetDelimitator(" ");
+    csv.SetDelimiter(" ");
 
     // Simulation loop
     double time = 0;

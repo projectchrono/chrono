@@ -121,7 +121,7 @@ void FmuComponent::_exitInitializationMode() {
     CalculatePistonPressures();
     CalculateValvePosition();
 
-    sys.DoFullAssembly();
+    sys.DoAssembly(AssemblyLevel::FULL);
 }
 
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,

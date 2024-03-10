@@ -72,7 +72,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     pendulum_rev->SetName("pendulum_rev");
     sys.Add(pendulum_rev);
 
-    sys.DoFullAssembly();
+    sys.DoAssembly(AssemblyLevel::FULL);
 
 #ifdef CHRONO_IRRLICHT
     vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
@@ -101,7 +101,7 @@ void FmuComponent::_preModelDescriptionExport() {
 void FmuComponent::_postModelDescriptionExport() {}
 
 void FmuComponent::_exitInitializationMode() {
-    sys.DoFullAssembly();
+    sys.DoAssembly(AssemblyLevel::FULL);
 };
 
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,
