@@ -432,8 +432,8 @@ void ChSuspensionTestRig::SetPlotOutput(double output_step) {
         auto trq = axle->m_suspension->ReportSuspensionTorque(LEFT);
 
         PlotData pd;
-        pd.csvL.SetDelimitator(" ");
-        pd.csvR.SetDelimitator(" ");
+        pd.csvL.SetDelimiter(" ");
+        pd.csvR.SetDelimiter(" ");
         pd.num_tsda = (int)frc.size();
         pd.num_rsda = (int)trq.size();
 

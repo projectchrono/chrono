@@ -287,6 +287,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNnodesRot                  | rename: GetNumNodesRot                           |
 | ChContinuumElastic                |                               |                                                  |
 |                                   | Get_BulkModulus               | rename: GetBulkModulus                           |
+|                                   | Get_density                   | rename: GetDensity                               |
 |                                   | Get_E                         | rename: GetYoungModulus                          |
 |                                   | Get_G                         | rename: GetShearModulus                          |
 |                                   | Get_l                         | rename: GetLameFirstParam                        |
@@ -295,6 +296,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_RayleighDampingM          | rename: GetRayleighDampingAlpha                  |
 |                                   | Get_WaveModulus               | rename: GetPWaveModulus                          |
 |                                   | Get_v                         | rename: GetPoissonRatio                          |
+|                                   | Set_density                   | rename: SetDensity                               |
 |                                   | Set_E                         | rename: SetYoungModulus                          |
 |                                   | Set_G                         | rename: SetShearModulus                          |
 |                                   | Set_RayleighDampingK          | rename: SetRayleighDampingBeta                   |
@@ -557,8 +559,8 @@ Note that this represents a major public API change and we expect most user code
 | ChLinkBase                        |                               |                                                  |
 |                                   | GetLinkAbsoluteCoords         | rename: GetFrameAbs                              |
 |                                   | GetNumCoords                  | rename: GetNumAffectedCoords                     |
-|                                   | Get_react_force               | rename: GetReactForce                            |
-|                                   | Get_react_torque              | rename: GetReactTorque                           |
+|                                   | Get_react_force               | rename: GetReactForce (see Notes)                |
+|                                   | Get_react_torque              | rename: GetReactTorque (see Notes)               |
 | ChLinkBrake                       |                               | rename: ChLinkLockBrake                          |
 | ChLinkClearance                   |                               | rename: ChLinkLockClearance                      |
 | ChLinkGear                        |                               | rename: ChLinkLockGear                           |
@@ -840,8 +842,8 @@ Note that this represents a major public API change and we expect most user code
 | ChVector                          |                               |                                                  |
 |                                   | DirToDxDyDz                   | rename: GetDirectionAxesAsX                      |
 | CSV_writer                        |                               | rename: ChWriterCSV                              |
-|                                   | delim                         | rename: GetDelimitator                           |
-|                                   | set_delim                     | rename: SetDelimitator                           |
+|                                   | delim                         | rename: GetDelimiter                             |
+|                                   | set_delim                     | rename: SetDelimiter                             |
 |                                   | stream                        | rename: Stream                                   |
 |                                   | write_to_file                 | rename: WriteToFile                              |
 

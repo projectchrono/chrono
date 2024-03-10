@@ -137,7 +137,7 @@ class Crane {
         integrator->SetAbsTolerances(1e-4, 1e2);
 
         // Initialize output
-        m_csv.SetDelimitator(" ");
+        m_csv.SetDelimiter(" ");
         double s, sd;
         GetActuatorLength(s, sd);
         m_csv << 0 << s << sd << std::endl;
@@ -221,7 +221,7 @@ class Actuator {
         integrator->SetAbsTolerances(1e-4, 1e2);
 
         // Initialize output
-        m_csv.SetDelimitator(" ");
+        m_csv.SetDelimiter(" ");
       }
 
       void SetActuation(double time, double Uref) { m_actuation->SetSetpoint(Uref, time); }

@@ -73,8 +73,8 @@ class ChApi ChWriterCSV {
         ofile.close();
     }
 
-    void SetDelimitator(const std::string& delim) { m_delim = delim; }
-    const std::string& GetDelimitator() const { return m_delim; }
+    void SetDelimiter(const std::string& delim) { m_delim = delim; }
+    const std::string& GetDelimiter() const { return m_delim; }
     std::ostringstream& Stream() { return m_ss; }
 
     template <typename T>
