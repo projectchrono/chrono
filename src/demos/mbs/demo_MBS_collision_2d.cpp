@@ -87,7 +87,7 @@ int main(int argc, char* argv[]) {
     ChLineSegment msegcol2(ChVector3d(1, 0, 0), ChVector3d(2, 0.04, 0));
     mpathhole->AddSubLine(marcol2);
     mpathhole->AddSubLine(msegcol2);
-    mpathhole->Set_closed(false);
+    mpathhole->SetClosed(false);
 
     // Add the collision shape to the body
     mhole->EnableCollision(true);

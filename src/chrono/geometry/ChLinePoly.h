@@ -41,8 +41,8 @@ class ChApi ChLinePoly : public ChLine {
     /// Get the class type as an enum.
     virtual Type GetType() const override { return Type::LINE_POLY; }
 
-    virtual int Get_complexity() const override { return (int)points.size(); }
-    virtual void Set_complexity(int mc) override{};
+    virtual int GetComplexity() const override { return (int)points.size(); }
+    virtual void SetComplexity(int mc) override{};
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
     virtual ChVector3d Evaluate(double U) const override;

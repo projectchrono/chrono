@@ -53,12 +53,12 @@ class ChApi ChLine : public ChGeometry {
     virtual ChVector3d GetTangent(double parU) const;
 
     /// Tell if the curve is closed
-    virtual bool Get_closed() const { return closed; }
-    virtual void Set_closed(bool mc) { closed = mc; }
+    virtual bool IsClosed() const { return closed; }
+    virtual void SetClosed(bool mc) { closed = mc; }
 
     /// Tell the complexity
-    virtual int Get_complexity() const { return complexityU; }
-    virtual void Set_complexity(int mc) { complexityU = mc; }
+    virtual int GetComplexity() const { return complexityU; }
+    virtual void SetComplexity(int mc) { complexityU = mc; }
 
     /// This is a line
     virtual int GetManifoldDimension() const override { return 1; }

@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
     path->AddSubLine(mseg2);
     ChLineArc marc2(ChCoordsys<>(ChVector3d(1, 2.5, 0)), 0.5, CH_C_PI_2, -CH_C_PI_2, true);
     path->AddSubLine(marc2);
-    path->Set_closed(true);
+    path->SetClosed(true);
 
     // Create a ChVisualShapeLine, a visualization asset for lines.
     // The ChLinePath is a special type of ChLine and it can be visualized.
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
     ChLineArc ma2(ChCoordsys<>(ChVector3d(-0.5, 0, 0)), 0.5, CH_C_PI_2, -CH_C_PI_2, true);
     glyph->AddSubLine(ma2);
     glyph->SetPathDuration(1);
-    glyph->Set_closed(true);
+    glyph->SetClosed(true);
 
     // Create a ChVisualShapeLine, a visualization asset for lines.
     // The ChLinePath is a special type of ChLine and it can be visualized.

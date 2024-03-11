@@ -46,7 +46,7 @@ mseg2 = chrono.ChLineSegment(chrono.ChVector3d(2, 3, 0), chrono.ChVector3d(1, 3,
 mpath.AddSubLine(mseg2)
 marc2 = chrono.ChLineArc(chrono.ChCoordsysd(chrono.ChVector3d(1, 2.5, 0)), 0.5, chrono.CH_C_PI_2, -chrono.CH_C_PI_2, True);
 mpath.AddSubLine(marc2)
-mpath.Set_closed(True)
+mpath.SetClosed(True)
 
 # Create a ChVisualShapeLine, a visualization asset for lines.
 # The ChLinePath is a special type of ChLine and it can be visualized.
@@ -107,7 +107,7 @@ mglyph.AddSubLine(ms2)
 ma2 = chrono.ChLineArc(chrono.ChCoordsysd(chrono.ChVector3d(-0.5, 0, 0)), 0.5, chrono.CH_C_PI_2, -chrono.CH_C_PI_2, True);
 mglyph.AddSubLine(ma2)
 mglyph.SetPathDuration(1)
-mglyph.Set_closed(True)
+mglyph.SetClosed(True)
 
 # Create a ChVisualShapeLine, a visualization asset for lines.
 # The ChLinePath is a special type of ChLine and it can be visualized.

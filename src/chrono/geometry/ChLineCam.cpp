@@ -21,7 +21,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLineCam)
 
 ChLineCam::ChLineCam() {
-    Set_complexity(10);
+    SetComplexity(10);
     this->closed = true;
     type = CAM_TYPE_SLIDEFOLLOWER;
     Rb = 1.0;

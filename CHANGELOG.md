@@ -563,6 +563,11 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNcoords_y                  | remove: split in GetNumCoordsPosLevel/Vel        |
 | ChIterativeSolver                 |                               |                                                  |
 |                                   | SaveMatrix                    | rename: WriteMatrices                            |
+| ChLine                            |                               |                                                  |
+|                                   | Get_closed                    | rename: IsClosed                                 |
+|                                   | Get_complexity                | rename: GetComplexity                            |
+|                                   | Set_closed                    | rename: SetClosed                                |
+|                                   | Set_complexity                | rename: SetComplexity                            |
 | ChLink                            |                               |                                                  |
 |                                   | GetLeftDOF                    | remove                                           |
 | ChLinkBase                        |                               |                                                  |
@@ -810,6 +815,9 @@ Note that this represents a major public API change and we expect most user code
 | ChStreamOutAsciiFile              |                               | remove                                           |
 | ChStreamOutBinary                 |                               | remove                                           |
 | ChStreamOutBinaryFile             |                               | remove                                           |
+| ChSurface                         |                               |                                                  |
+|                                   | Get_closed_U                  | rename: IsClosedU                                |
+|                                   | Get_closed_V                  | rename: IsClosedV                                |
 | ChSystem                          |                               |                                                  |
 |                                   | DoEntireDynamics              | remove                                           |
 |                                   | DoEntireKinematics            | remove                                           |
@@ -896,6 +904,10 @@ Note that this represents a major public API change and we expect most user code
 |                                   | getTriangle                   | rename: GetTriangle                              |
 | ChVector                          |                               |                                                  |
 |                                   | DirToDxDyDz                   | rename: GetDirectionAxesAsX                      |
+| ChVolume                          |                               |                                                  |
+|                                   | Get_closed_U                  | rename: IsClosedU                                |
+|                                   | Get_closed_V                  | rename: IsClosedV                                |
+|                                   | Get_closed_W                  | rename: IsClosedW                                |
 | CSV_writer                        |                               | rename: ChWriterCSV                              |
 |                                   | delim                         | rename: GetDelimiter                             |
 |                                   | set_delim                     | rename: SetDelimiter                             |

@@ -78,8 +78,8 @@ class ChApi ChLineCam : public ChLine {
     /// Get the class type as an enum.
     virtual Type GetType() const override { return Type::LINE_CAM; }
 
-    virtual bool Get_closed() const override { return true; }
-    virtual void Set_closed(bool mc) override {}
+    virtual bool IsClosed() const override { return true; }
+    virtual void SetClosed(bool mc) override {}
 
     void Set_Phase(double mf) { phase = mf; }
     double Get_Phase() const { return phase; }

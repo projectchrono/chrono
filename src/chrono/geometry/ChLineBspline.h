@@ -52,7 +52,7 @@ class ChApi ChLineBspline : public ChLine {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLineBspline* Clone() const override { return new ChLineBspline(*this); }
 
-    virtual int Get_complexity() const override { return (int)points.size(); }
+    virtual int GetComplexity() const override { return (int)points.size(); }
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
     virtual ChVector3d Evaluate(double U) const override;
@@ -66,6 +66,7 @@ class ChApi ChLineBspline : public ChLine {
     /// but knot range is not necessarily in 0..1. So you can convert u->U,
     /// where u is in knot range, calling this:
     double ComputeUfromKnotU(double u) const { return (u - knots(p)) / (knots(knots.size() - 1 - p) - knots(p)); }
+
     /// When using Evaluate() etc. you need U parameter to be in 0..1 range,
     /// but knot range is not necessarily in 0..1. So you can convert U->u,
     /// where u is in knot range, calling this:

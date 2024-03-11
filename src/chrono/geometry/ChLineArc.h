@@ -49,7 +49,7 @@ class ChApi ChLineArc : public ChLine {
     /// Get the class type as an enum.
     virtual Type GetType() const override { return Type::LINE_ARC; }
 
-    virtual int Get_complexity() const override { return 2; }
+    virtual int GetComplexity() const override { return 2; }
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
     virtual ChVector3d Evaluate(double U) const override;

@@ -178,7 +178,7 @@ a1 = chrono.ChLineArc(
             True)
 path.AddSubLine(a1)
 path.SetPathDuration(2)
-path.Set_closed(True)
+path.SetClosed(True)
 
 # Create a ChVisualShapeLine, a visualization asset for lines.
 pathasset = chrono.ChVisualShapeLine()

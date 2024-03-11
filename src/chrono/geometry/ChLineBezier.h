@@ -44,8 +44,8 @@ class ChApi ChLineBezier : public ChLine {
     /// Get the class type as an enum.
     virtual Type GetType() const override { return Type::LINE_BEZIER; }
 
-    virtual void Set_closed(bool mc) override {}
-    virtual void Set_complexity(int mc) override {}
+    virtual void SetClosed(bool mc) override {}
+    virtual void SetComplexity(int mc) override {}
 
     /// Compute bounding in the frame of the Bezier curve knots.
     virtual ChAABB GetBoundingBox() const override;
