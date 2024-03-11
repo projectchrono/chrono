@@ -1936,14 +1936,14 @@ bool ChSystem::DoStaticRelaxing(double step_size, int num_iterations) {
 
     for (int i = 0; i < num_iterations; i++) {
         double frame_time = current_time + (step_size * 1.8) * (num_iterations - i) / (double)num_iterations;
-        assembly.SetZeroVelocityZeroAcceleration();
+        assembly.SetNoSpeedNoAcceleration();
         success = DoFrameDynamics(frame_time, step_size);
         ch_time = current_time;
         if (!success)
             break;
     }
 
-    assembly.SetZeroVelocityZeroAcceleration();
+    assembly.SetNoSpeedNoAcceleration();
 
     // Update any attached visualization system
     if (visual_system)

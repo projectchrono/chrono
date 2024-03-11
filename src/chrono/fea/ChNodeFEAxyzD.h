@@ -52,7 +52,7 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     ChVariables& Variables_D() { return *variables_D; }
 
     /// Reset to no speed and acceleration.
-    virtual void SetZeroVelocityZeroAcceleration() override;
+    virtual void SetNoSpeedNoAcceleration() override;
 
     /// Get mass of the node.
     ChVectorDynamic<>& GetMassDiagonalD() { return variables_D->GetMassDiagonal(); }

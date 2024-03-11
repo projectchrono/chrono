@@ -1087,21 +1087,21 @@ void ChModalAssembly::Update(bool update_assets) {
     }
 }
 
-void ChModalAssembly::SetZeroVelocityZeroAcceleration() {
-    ChAssembly::SetZeroVelocityZeroAcceleration();  // parent
+void ChModalAssembly::SetNoSpeedNoAcceleration() {
+    ChAssembly::SetNoSpeedNoAcceleration();  // parent
 
     if (is_modal == false) {
         for (auto& body : internal_bodylist) {
-            body->SetZeroVelocityZeroAcceleration();
+            body->SetNoSpeedNoAcceleration();
         }
         for (auto& link : internal_linklist) {
-            link->SetZeroVelocityZeroAcceleration();
+            link->SetNoSpeedNoAcceleration();
         }
         for (auto& mesh : internal_meshlist) {
-            mesh->SetZeroVelocityZeroAcceleration();
+            mesh->SetNoSpeedNoAcceleration();
         }
         for (auto& item : internal_otherphysicslist) {
-            item->SetZeroVelocityZeroAcceleration();
+            item->SetNoSpeedNoAcceleration();
         }
     } else {
         this->modal_q_dt.setZero(this->m_num_modes_coords_vel);

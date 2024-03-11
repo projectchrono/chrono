@@ -181,7 +181,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position)
-    void SetZeroVelocityZeroAcceleration() override;
+    void SetNoSpeedNoAcceleration() override;
 
     /// Set the torque applied to the shaft
     void SetAppliedTorque(double mtorque) { torque = mtorque; }

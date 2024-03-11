@@ -578,7 +578,7 @@ void ChParticleCloud::VariablesQbIncrementPosition(double dt_step) {
     }
 }
 
-void ChParticleCloud::SetZeroVelocityZeroAcceleration() {
+void ChParticleCloud::SetNoSpeedNoAcceleration() {
     for (unsigned int j = 0; j < particles.size(); j++) {
         particles[j]->SetPosDer(VNULL);
         particles[j]->SetAngVelLocal(VNULL);

@@ -59,7 +59,7 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
     ChVariables& Variables_DDD() { return *variables_DDD; }
 
     /// Reset to no speed and acceleration.
-    virtual void SetZeroVelocityZeroAcceleration() override;
+    virtual void SetNoSpeedNoAcceleration() override;
 
     /// Get mass of the node (for DDD variables).
     ChVectorDynamic<>& GetMassDiagonalDDD() { return variables_DDD->GetMassDiagonal(); }
