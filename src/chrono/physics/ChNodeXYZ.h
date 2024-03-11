@@ -32,28 +32,30 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
 
     ChNodeXYZ& operator=(const ChNodeXYZ& other);
 
-    // FUNCTIONS
-
     // Access the xyz 'variables' of the node
     virtual ChVariablesNode& Variables() = 0;
 
     // Position of the node - in absolute csys.
     const ChVector3d& GetPos() const { return pos; }
+
     // Position of the node - in absolute csys.
     void SetPos(const ChVector3d& mpos) { pos = mpos; }
 
     // Velocity of the node - in absolute csys.
     const ChVector3d& GetPosDer() const { return pos_dt; }
+
     // Velocity of the node - in absolute csys.
     void SetPosDer(const ChVector3d& mposdt) { pos_dt = mposdt; }
 
     // Acceleration of the node - in absolute csys.
     const ChVector3d& GetPosDer2() const { return pos_dtdt; }
+
     // Acceleration of the node - in absolute csys.
     void SetPosDer2(const ChVector3d& mposdtdt) { pos_dtdt = mposdtdt; }
 
     // Get mass of the node. To be implemented in children classes
     virtual double GetMass() const = 0;
+
     // Set mass of the node. To be implemented in children classes
     virtual void SetMass(double mm) = 0;
 

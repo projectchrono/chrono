@@ -42,27 +42,27 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
     ChNodeFEAxyzDDD& operator=(const ChNodeFEAxyzDDD& other);
 
     /// Set the 3rd derivative vector.
-    void SetDDD(const ChVector3d& d) { DDD = d; }
+    void SetSlope3(const ChVector3d& d) { DDD = d; }
+
     /// Get the 3rd derivative vector.
-    const ChVector3d& GetDDD() const { return DDD; }
+    const ChVector3d& GetSlope3() const { return DDD; }
 
     /// Set the speed of the 3rd derivative vector.
-    void SetDDD_dt(const ChVector3d& dt) { DDD_dt = dt; }
+    void SetSlope3Der(const ChVector3d& dt) { DDD_dt = dt; }
+
     /// Get the speed of the 3rd derivative vector.
-    const ChVector3d& GetDDD_dt() const { return DDD_dt; }
+    const ChVector3d& GetSlope3Der() const { return DDD_dt; }
 
     /// Set the acceleration of the 3rd derivative vector.
-    void SetDDD_dtdt(const ChVector3d& dtt) { DDD_dtdt = dtt; }
-    /// Get the  acceleration of the 3rd derivative vector.
-    const ChVector3d& GetDDD_dtdt() const { return DDD_dtdt; }
+    void SetSlope3Der2(const ChVector3d& dtt) { DDD_dtdt = dtt; }
 
-    ChVariables& Variables_DDD() { return *variables_DDD; }
+    /// Get the  acceleration of the 3rd derivative vector.
+    const ChVector3d& GetSlope3Der2() const { return DDD_dtdt; }
+
+    ChVariables& VariablesSlope3() { return *variables_DDD; }
 
     /// Reset to no speed and acceleration.
     virtual void SetNoSpeedNoAcceleration() override;
-
-    /// Get mass of the node (for DDD variables).
-    ChVectorDynamic<>& GetMassDiagonalDDD() { return variables_DDD->GetMassDiagonal(); }
 
     /// Fix/release this node.
     /// If fixed, its state variables are not changed by the solver.
@@ -74,10 +74,10 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
     /// Fix/release the 3rd derivative vector states.
     /// If fixed, these states are not changed by the solver. Note that releasing the 3rd derivative vector forces the
     /// first 2 derivatives vector to also be released.
-    void SetFixedDDD(bool fixed);
+    void SetSlope3Fixed(bool fixed);
 
     /// Return true if the 3rd derivative vector states are fixed.
-    bool IsFixedDDD() const;
+    bool IsSlope3Fixed() const;
 
     /// Get the number of degrees of freedom.
     virtual unsigned int GetNumCoordsPosLevel() const override { return 12; }
@@ -183,7 +183,6 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
         ) override;
 
     // SERIALIZATION
-
     virtual void ArchiveOut(ChArchiveOut& archive) override;
     virtual void ArchiveIn(ChArchiveIn& archive) override;
 
@@ -192,6 +191,9 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
     virtual void SetupInitial(ChSystem* system) override;
 
   private:
+    /// Get mass of the node (corresponding to the 3rd slope derivative).
+    ChVectorDynamic<>& GetMassDiagonalSlope3() { return variables_DDD->GetMassDiagonal(); }
+
     ChVariablesGenericDiagonalMass* variables_DDD;  ///< 3rd derivative vector
     ChVector3d DDD;
     ChVector3d DDD_dt;

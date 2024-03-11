@@ -40,7 +40,7 @@ class ChApi ChNodeFEAbase : public virtual ChNodeBase {
 
     /// Fix/release this node.
     /// If fixed, its state variables are not changed by the solver.
-    virtual void SetFixed(bool mev) = 0;
+    virtual void SetFixed(bool fixed) = 0;
 
     /// Return true if the node is fixed (i.e., its state variables are not changed by the solver).
     virtual bool IsFixed() const = 0;

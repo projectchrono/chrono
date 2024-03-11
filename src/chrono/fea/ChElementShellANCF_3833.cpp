@@ -84,29 +84,29 @@ void ChElementShellANCF_3833::SetNodes(std::shared_ptr<ChNodeFEAxyzDD> nodeA,
 
     std::vector<ChVariables*> mvars;
     mvars.push_back(&m_nodes[0]->Variables());
-    mvars.push_back(&m_nodes[0]->Variables_D());
-    mvars.push_back(&m_nodes[0]->Variables_DD());
+    mvars.push_back(&m_nodes[0]->VariablesSlope1());
+    mvars.push_back(&m_nodes[0]->VariablesSlope2());
     mvars.push_back(&m_nodes[1]->Variables());
-    mvars.push_back(&m_nodes[1]->Variables_D());
-    mvars.push_back(&m_nodes[1]->Variables_DD());
+    mvars.push_back(&m_nodes[1]->VariablesSlope1());
+    mvars.push_back(&m_nodes[1]->VariablesSlope2());
     mvars.push_back(&m_nodes[2]->Variables());
-    mvars.push_back(&m_nodes[2]->Variables_D());
-    mvars.push_back(&m_nodes[2]->Variables_DD());
+    mvars.push_back(&m_nodes[2]->VariablesSlope1());
+    mvars.push_back(&m_nodes[2]->VariablesSlope2());
     mvars.push_back(&m_nodes[3]->Variables());
-    mvars.push_back(&m_nodes[3]->Variables_D());
-    mvars.push_back(&m_nodes[3]->Variables_DD());
+    mvars.push_back(&m_nodes[3]->VariablesSlope1());
+    mvars.push_back(&m_nodes[3]->VariablesSlope2());
     mvars.push_back(&m_nodes[4]->Variables());
-    mvars.push_back(&m_nodes[4]->Variables_D());
-    mvars.push_back(&m_nodes[4]->Variables_DD());
+    mvars.push_back(&m_nodes[4]->VariablesSlope1());
+    mvars.push_back(&m_nodes[4]->VariablesSlope2());
     mvars.push_back(&m_nodes[5]->Variables());
-    mvars.push_back(&m_nodes[5]->Variables_D());
-    mvars.push_back(&m_nodes[5]->Variables_DD());
+    mvars.push_back(&m_nodes[5]->VariablesSlope1());
+    mvars.push_back(&m_nodes[5]->VariablesSlope2());
     mvars.push_back(&m_nodes[6]->Variables());
-    mvars.push_back(&m_nodes[6]->Variables_D());
-    mvars.push_back(&m_nodes[6]->Variables_DD());
+    mvars.push_back(&m_nodes[6]->VariablesSlope1());
+    mvars.push_back(&m_nodes[6]->VariablesSlope2());
     mvars.push_back(&m_nodes[7]->Variables());
-    mvars.push_back(&m_nodes[7]->Variables_D());
-    mvars.push_back(&m_nodes[7]->Variables_DD());
+    mvars.push_back(&m_nodes[7]->VariablesSlope1());
+    mvars.push_back(&m_nodes[7]->VariablesSlope2());
 
     Kmatr.SetVariables(mvars);
 
@@ -420,29 +420,29 @@ void ChElementShellANCF_3833::SetupInitial(ChSystem* system) {
 
 void ChElementShellANCF_3833::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.segment(0, 3) = m_nodes[0]->GetPos().eigen();
-    mD.segment(3, 3) = m_nodes[0]->GetD().eigen();
-    mD.segment(6, 3) = m_nodes[0]->GetDD().eigen();
+    mD.segment(3, 3) = m_nodes[0]->GetSlope1().eigen();
+    mD.segment(6, 3) = m_nodes[0]->GetSlope2().eigen();
     mD.segment(9, 3) = m_nodes[1]->GetPos().eigen();
-    mD.segment(12, 3) = m_nodes[1]->GetD().eigen();
-    mD.segment(15, 3) = m_nodes[1]->GetDD().eigen();
+    mD.segment(12, 3) = m_nodes[1]->GetSlope1().eigen();
+    mD.segment(15, 3) = m_nodes[1]->GetSlope2().eigen();
     mD.segment(18, 3) = m_nodes[2]->GetPos().eigen();
-    mD.segment(21, 3) = m_nodes[2]->GetD().eigen();
-    mD.segment(24, 3) = m_nodes[2]->GetDD().eigen();
+    mD.segment(21, 3) = m_nodes[2]->GetSlope1().eigen();
+    mD.segment(24, 3) = m_nodes[2]->GetSlope2().eigen();
     mD.segment(27, 3) = m_nodes[3]->GetPos().eigen();
-    mD.segment(30, 3) = m_nodes[3]->GetD().eigen();
-    mD.segment(33, 3) = m_nodes[3]->GetDD().eigen();
+    mD.segment(30, 3) = m_nodes[3]->GetSlope1().eigen();
+    mD.segment(33, 3) = m_nodes[3]->GetSlope2().eigen();
     mD.segment(36, 3) = m_nodes[4]->GetPos().eigen();
-    mD.segment(39, 3) = m_nodes[4]->GetD().eigen();
-    mD.segment(42, 3) = m_nodes[4]->GetDD().eigen();
+    mD.segment(39, 3) = m_nodes[4]->GetSlope1().eigen();
+    mD.segment(42, 3) = m_nodes[4]->GetSlope2().eigen();
     mD.segment(45, 3) = m_nodes[5]->GetPos().eigen();
-    mD.segment(48, 3) = m_nodes[5]->GetD().eigen();
-    mD.segment(51, 3) = m_nodes[5]->GetDD().eigen();
+    mD.segment(48, 3) = m_nodes[5]->GetSlope1().eigen();
+    mD.segment(51, 3) = m_nodes[5]->GetSlope2().eigen();
     mD.segment(54, 3) = m_nodes[6]->GetPos().eigen();
-    mD.segment(57, 3) = m_nodes[6]->GetD().eigen();
-    mD.segment(60, 3) = m_nodes[6]->GetDD().eigen();
+    mD.segment(57, 3) = m_nodes[6]->GetSlope1().eigen();
+    mD.segment(60, 3) = m_nodes[6]->GetSlope2().eigen();
     mD.segment(63, 3) = m_nodes[7]->GetPos().eigen();
-    mD.segment(66, 3) = m_nodes[7]->GetD().eigen();
-    mD.segment(69, 3) = m_nodes[7]->GetDD().eigen();
+    mD.segment(66, 3) = m_nodes[7]->GetSlope1().eigen();
+    mD.segment(69, 3) = m_nodes[7]->GetSlope2().eigen();
 }
 
 // State update.
@@ -625,72 +625,72 @@ void ChElementShellANCF_3833::EvaluateSectionVelNorm(const double xi, const doub
 
 void ChElementShellANCF_3833::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
-    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD().eigen();
-    mD.segment(block_offset + 6, 3) = m_nodes[0]->GetDD().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetSlope1().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[0]->GetSlope2().eigen();
 
     mD.segment(block_offset + 9, 3) = m_nodes[1]->GetPos().eigen();
-    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetD().eigen();
-    mD.segment(block_offset + 15, 3) = m_nodes[1]->GetDD().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetSlope1().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[1]->GetSlope2().eigen();
 
     mD.segment(block_offset + 18, 3) = m_nodes[2]->GetPos().eigen();
-    mD.segment(block_offset + 21, 3) = m_nodes[2]->GetD().eigen();
-    mD.segment(block_offset + 24, 3) = m_nodes[2]->GetDD().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[2]->GetSlope1().eigen();
+    mD.segment(block_offset + 24, 3) = m_nodes[2]->GetSlope2().eigen();
 
     mD.segment(block_offset + 27, 3) = m_nodes[3]->GetPos().eigen();
-    mD.segment(block_offset + 30, 3) = m_nodes[3]->GetD().eigen();
-    mD.segment(block_offset + 33, 3) = m_nodes[3]->GetDD().eigen();
+    mD.segment(block_offset + 30, 3) = m_nodes[3]->GetSlope1().eigen();
+    mD.segment(block_offset + 33, 3) = m_nodes[3]->GetSlope2().eigen();
 
     mD.segment(block_offset + 36, 3) = m_nodes[4]->GetPos().eigen();
-    mD.segment(block_offset + 39, 3) = m_nodes[4]->GetD().eigen();
-    mD.segment(block_offset + 42, 3) = m_nodes[4]->GetDD().eigen();
+    mD.segment(block_offset + 39, 3) = m_nodes[4]->GetSlope1().eigen();
+    mD.segment(block_offset + 42, 3) = m_nodes[4]->GetSlope2().eigen();
 
     mD.segment(block_offset + 45, 3) = m_nodes[5]->GetPos().eigen();
-    mD.segment(block_offset + 48, 3) = m_nodes[5]->GetD().eigen();
-    mD.segment(block_offset + 51, 3) = m_nodes[5]->GetDD().eigen();
+    mD.segment(block_offset + 48, 3) = m_nodes[5]->GetSlope1().eigen();
+    mD.segment(block_offset + 51, 3) = m_nodes[5]->GetSlope2().eigen();
 
     mD.segment(block_offset + 54, 3) = m_nodes[6]->GetPos().eigen();
-    mD.segment(block_offset + 57, 3) = m_nodes[6]->GetD().eigen();
-    mD.segment(block_offset + 60, 3) = m_nodes[6]->GetDD().eigen();
+    mD.segment(block_offset + 57, 3) = m_nodes[6]->GetSlope1().eigen();
+    mD.segment(block_offset + 60, 3) = m_nodes[6]->GetSlope2().eigen();
 
     mD.segment(block_offset + 63, 3) = m_nodes[7]->GetPos().eigen();
-    mD.segment(block_offset + 66, 3) = m_nodes[7]->GetD().eigen();
-    mD.segment(block_offset + 69, 3) = m_nodes[7]->GetDD().eigen();
+    mD.segment(block_offset + 66, 3) = m_nodes[7]->GetSlope1().eigen();
+    mD.segment(block_offset + 69, 3) = m_nodes[7]->GetSlope2().eigen();
 }
 
 // Gets all the DOFs packed in a single vector (velocity part).
 
 void ChElementShellANCF_3833::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
-    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD_dt().eigen();
-    mD.segment(block_offset + 6, 3) = m_nodes[0]->GetDD_dt().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetSlope1Der().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[0]->GetSlope2Der().eigen();
 
     mD.segment(block_offset + 9, 3) = m_nodes[1]->GetPosDer().eigen();
-    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetD_dt().eigen();
-    mD.segment(block_offset + 15, 3) = m_nodes[1]->GetDD_dt().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetSlope1Der().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[1]->GetSlope2Der().eigen();
 
     mD.segment(block_offset + 18, 3) = m_nodes[2]->GetPosDer().eigen();
-    mD.segment(block_offset + 21, 3) = m_nodes[2]->GetD_dt().eigen();
-    mD.segment(block_offset + 24, 3) = m_nodes[2]->GetDD_dt().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[2]->GetSlope1Der().eigen();
+    mD.segment(block_offset + 24, 3) = m_nodes[2]->GetSlope2Der().eigen();
 
     mD.segment(block_offset + 27, 3) = m_nodes[3]->GetPosDer().eigen();
-    mD.segment(block_offset + 30, 3) = m_nodes[3]->GetD_dt().eigen();
-    mD.segment(block_offset + 33, 3) = m_nodes[3]->GetDD_dt().eigen();
+    mD.segment(block_offset + 30, 3) = m_nodes[3]->GetSlope1Der().eigen();
+    mD.segment(block_offset + 33, 3) = m_nodes[3]->GetSlope2Der().eigen();
 
     mD.segment(block_offset + 36, 3) = m_nodes[4]->GetPosDer().eigen();
-    mD.segment(block_offset + 39, 3) = m_nodes[4]->GetD_dt().eigen();
-    mD.segment(block_offset + 42, 3) = m_nodes[4]->GetDD_dt().eigen();
+    mD.segment(block_offset + 39, 3) = m_nodes[4]->GetSlope1Der().eigen();
+    mD.segment(block_offset + 42, 3) = m_nodes[4]->GetSlope2Der().eigen();
 
     mD.segment(block_offset + 45, 3) = m_nodes[5]->GetPosDer().eigen();
-    mD.segment(block_offset + 48, 3) = m_nodes[5]->GetD_dt().eigen();
-    mD.segment(block_offset + 51, 3) = m_nodes[5]->GetDD_dt().eigen();
+    mD.segment(block_offset + 48, 3) = m_nodes[5]->GetSlope1Der().eigen();
+    mD.segment(block_offset + 51, 3) = m_nodes[5]->GetSlope2Der().eigen();
 
     mD.segment(block_offset + 54, 3) = m_nodes[6]->GetPosDer().eigen();
-    mD.segment(block_offset + 57, 3) = m_nodes[6]->GetD_dt().eigen();
-    mD.segment(block_offset + 60, 3) = m_nodes[6]->GetDD_dt().eigen();
+    mD.segment(block_offset + 57, 3) = m_nodes[6]->GetSlope1Der().eigen();
+    mD.segment(block_offset + 60, 3) = m_nodes[6]->GetSlope2Der().eigen();
 
     mD.segment(block_offset + 63, 3) = m_nodes[7]->GetPosDer().eigen();
-    mD.segment(block_offset + 66, 3) = m_nodes[7]->GetD_dt().eigen();
-    mD.segment(block_offset + 69, 3) = m_nodes[7]->GetDD_dt().eigen();
+    mD.segment(block_offset + 66, 3) = m_nodes[7]->GetSlope1Der().eigen();
+    mD.segment(block_offset + 69, 3) = m_nodes[7]->GetSlope2Der().eigen();
 }
 
 /// Increment all DOFs using a delta.
@@ -710,8 +710,8 @@ void ChElementShellANCF_3833::LoadableStateIncrement(const unsigned int off_x,
 void ChElementShellANCF_3833::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
     for (int i = 0; i < m_nodes.size(); ++i) {
         mvars.push_back(&m_nodes[i]->Variables());
-        mvars.push_back(&m_nodes[i]->Variables_D());
-        mvars.push_back(&m_nodes[i]->Variables_DD());
+        mvars.push_back(&m_nodes[i]->VariablesSlope1());
+        mvars.push_back(&m_nodes[i]->VariablesSlope2());
     }
 }
 
@@ -2728,196 +2728,196 @@ void ChElementShellANCF_3833::Calc_Sxi_D(MatrixNx3c& Sxi_D,
 
 void ChElementShellANCF_3833::CalcCoordVector(Vector3N& e) {
     e.segment(0, 3) = m_nodes[0]->GetPos().eigen();
-    e.segment(3, 3) = m_nodes[0]->GetD().eigen();
-    e.segment(6, 3) = m_nodes[0]->GetDD().eigen();
+    e.segment(3, 3) = m_nodes[0]->GetSlope1().eigen();
+    e.segment(6, 3) = m_nodes[0]->GetSlope2().eigen();
 
     e.segment(9, 3) = m_nodes[1]->GetPos().eigen();
-    e.segment(12, 3) = m_nodes[1]->GetD().eigen();
-    e.segment(15, 3) = m_nodes[1]->GetDD().eigen();
+    e.segment(12, 3) = m_nodes[1]->GetSlope1().eigen();
+    e.segment(15, 3) = m_nodes[1]->GetSlope2().eigen();
 
     e.segment(18, 3) = m_nodes[2]->GetPos().eigen();
-    e.segment(21, 3) = m_nodes[2]->GetD().eigen();
-    e.segment(24, 3) = m_nodes[2]->GetDD().eigen();
+    e.segment(21, 3) = m_nodes[2]->GetSlope1().eigen();
+    e.segment(24, 3) = m_nodes[2]->GetSlope2().eigen();
 
     e.segment(27, 3) = m_nodes[3]->GetPos().eigen();
-    e.segment(30, 3) = m_nodes[3]->GetD().eigen();
-    e.segment(33, 3) = m_nodes[3]->GetDD().eigen();
+    e.segment(30, 3) = m_nodes[3]->GetSlope1().eigen();
+    e.segment(33, 3) = m_nodes[3]->GetSlope2().eigen();
 
     e.segment(36, 3) = m_nodes[4]->GetPos().eigen();
-    e.segment(39, 3) = m_nodes[4]->GetD().eigen();
-    e.segment(42, 3) = m_nodes[4]->GetDD().eigen();
+    e.segment(39, 3) = m_nodes[4]->GetSlope1().eigen();
+    e.segment(42, 3) = m_nodes[4]->GetSlope2().eigen();
 
     e.segment(45, 3) = m_nodes[5]->GetPos().eigen();
-    e.segment(48, 3) = m_nodes[5]->GetD().eigen();
-    e.segment(51, 3) = m_nodes[5]->GetDD().eigen();
+    e.segment(48, 3) = m_nodes[5]->GetSlope1().eigen();
+    e.segment(51, 3) = m_nodes[5]->GetSlope2().eigen();
 
     e.segment(54, 3) = m_nodes[6]->GetPos().eigen();
-    e.segment(57, 3) = m_nodes[6]->GetD().eigen();
-    e.segment(60, 3) = m_nodes[6]->GetDD().eigen();
+    e.segment(57, 3) = m_nodes[6]->GetSlope1().eigen();
+    e.segment(60, 3) = m_nodes[6]->GetSlope2().eigen();
 
     e.segment(63, 3) = m_nodes[7]->GetPos().eigen();
-    e.segment(66, 3) = m_nodes[7]->GetD().eigen();
-    e.segment(69, 3) = m_nodes[7]->GetDD().eigen();
+    e.segment(66, 3) = m_nodes[7]->GetSlope1().eigen();
+    e.segment(69, 3) = m_nodes[7]->GetSlope2().eigen();
 }
 
 void ChElementShellANCF_3833::CalcCoordMatrix(Matrix3xN& ebar) {
     ebar.col(0) = m_nodes[0]->GetPos().eigen();
-    ebar.col(1) = m_nodes[0]->GetD().eigen();
-    ebar.col(2) = m_nodes[0]->GetDD().eigen();
+    ebar.col(1) = m_nodes[0]->GetSlope1().eigen();
+    ebar.col(2) = m_nodes[0]->GetSlope2().eigen();
 
     ebar.col(3) = m_nodes[1]->GetPos().eigen();
-    ebar.col(4) = m_nodes[1]->GetD().eigen();
-    ebar.col(5) = m_nodes[1]->GetDD().eigen();
+    ebar.col(4) = m_nodes[1]->GetSlope1().eigen();
+    ebar.col(5) = m_nodes[1]->GetSlope2().eigen();
 
     ebar.col(6) = m_nodes[2]->GetPos().eigen();
-    ebar.col(7) = m_nodes[2]->GetD().eigen();
-    ebar.col(8) = m_nodes[2]->GetDD().eigen();
+    ebar.col(7) = m_nodes[2]->GetSlope1().eigen();
+    ebar.col(8) = m_nodes[2]->GetSlope2().eigen();
 
     ebar.col(9) = m_nodes[3]->GetPos().eigen();
-    ebar.col(10) = m_nodes[3]->GetD().eigen();
-    ebar.col(11) = m_nodes[3]->GetDD().eigen();
+    ebar.col(10) = m_nodes[3]->GetSlope1().eigen();
+    ebar.col(11) = m_nodes[3]->GetSlope2().eigen();
 
     ebar.col(12) = m_nodes[4]->GetPos().eigen();
-    ebar.col(13) = m_nodes[4]->GetD().eigen();
-    ebar.col(14) = m_nodes[4]->GetDD().eigen();
+    ebar.col(13) = m_nodes[4]->GetSlope1().eigen();
+    ebar.col(14) = m_nodes[4]->GetSlope2().eigen();
 
     ebar.col(15) = m_nodes[5]->GetPos().eigen();
-    ebar.col(16) = m_nodes[5]->GetD().eigen();
-    ebar.col(17) = m_nodes[5]->GetDD().eigen();
+    ebar.col(16) = m_nodes[5]->GetSlope1().eigen();
+    ebar.col(17) = m_nodes[5]->GetSlope2().eigen();
 
     ebar.col(18) = m_nodes[6]->GetPos().eigen();
-    ebar.col(19) = m_nodes[6]->GetD().eigen();
-    ebar.col(20) = m_nodes[6]->GetDD().eigen();
+    ebar.col(19) = m_nodes[6]->GetSlope1().eigen();
+    ebar.col(20) = m_nodes[6]->GetSlope2().eigen();
 
     ebar.col(21) = m_nodes[7]->GetPos().eigen();
-    ebar.col(22) = m_nodes[7]->GetD().eigen();
-    ebar.col(23) = m_nodes[7]->GetDD().eigen();
+    ebar.col(22) = m_nodes[7]->GetSlope1().eigen();
+    ebar.col(23) = m_nodes[7]->GetSlope2().eigen();
 }
 
 void ChElementShellANCF_3833::CalcCoordDerivVector(Vector3N& edot) {
     edot.segment(0, 3) = m_nodes[0]->GetPosDer().eigen();
-    edot.segment(3, 3) = m_nodes[0]->GetD_dt().eigen();
-    edot.segment(6, 3) = m_nodes[0]->GetDD_dt().eigen();
+    edot.segment(3, 3) = m_nodes[0]->GetSlope1Der().eigen();
+    edot.segment(6, 3) = m_nodes[0]->GetSlope2Der().eigen();
 
     edot.segment(9, 3) = m_nodes[1]->GetPosDer().eigen();
-    edot.segment(12, 3) = m_nodes[1]->GetD_dt().eigen();
-    edot.segment(15, 3) = m_nodes[1]->GetDD_dt().eigen();
+    edot.segment(12, 3) = m_nodes[1]->GetSlope1Der().eigen();
+    edot.segment(15, 3) = m_nodes[1]->GetSlope2Der().eigen();
 
     edot.segment(18, 3) = m_nodes[2]->GetPosDer().eigen();
-    edot.segment(21, 3) = m_nodes[2]->GetD_dt().eigen();
-    edot.segment(24, 3) = m_nodes[2]->GetDD_dt().eigen();
+    edot.segment(21, 3) = m_nodes[2]->GetSlope1Der().eigen();
+    edot.segment(24, 3) = m_nodes[2]->GetSlope2Der().eigen();
 
     edot.segment(27, 3) = m_nodes[3]->GetPosDer().eigen();
-    edot.segment(30, 3) = m_nodes[3]->GetD_dt().eigen();
-    edot.segment(33, 3) = m_nodes[3]->GetDD_dt().eigen();
+    edot.segment(30, 3) = m_nodes[3]->GetSlope1Der().eigen();
+    edot.segment(33, 3) = m_nodes[3]->GetSlope2Der().eigen();
 
     edot.segment(36, 3) = m_nodes[4]->GetPosDer().eigen();
-    edot.segment(39, 3) = m_nodes[4]->GetD_dt().eigen();
-    edot.segment(42, 3) = m_nodes[4]->GetDD_dt().eigen();
+    edot.segment(39, 3) = m_nodes[4]->GetSlope1Der().eigen();
+    edot.segment(42, 3) = m_nodes[4]->GetSlope2Der().eigen();
 
     edot.segment(45, 3) = m_nodes[5]->GetPosDer().eigen();
-    edot.segment(48, 3) = m_nodes[5]->GetD_dt().eigen();
-    edot.segment(51, 3) = m_nodes[5]->GetDD_dt().eigen();
+    edot.segment(48, 3) = m_nodes[5]->GetSlope1Der().eigen();
+    edot.segment(51, 3) = m_nodes[5]->GetSlope2Der().eigen();
 
     edot.segment(54, 3) = m_nodes[6]->GetPosDer().eigen();
-    edot.segment(57, 3) = m_nodes[6]->GetD_dt().eigen();
-    edot.segment(60, 3) = m_nodes[6]->GetDD_dt().eigen();
+    edot.segment(57, 3) = m_nodes[6]->GetSlope1Der().eigen();
+    edot.segment(60, 3) = m_nodes[6]->GetSlope2Der().eigen();
 
     edot.segment(63, 3) = m_nodes[7]->GetPosDer().eigen();
-    edot.segment(66, 3) = m_nodes[7]->GetD_dt().eigen();
-    edot.segment(69, 3) = m_nodes[7]->GetDD_dt().eigen();
+    edot.segment(66, 3) = m_nodes[7]->GetSlope1Der().eigen();
+    edot.segment(69, 3) = m_nodes[7]->GetSlope2Der().eigen();
 }
 
 void ChElementShellANCF_3833::CalcCoordDerivMatrix(Matrix3xN& ebardot) {
     ebardot.col(0) = m_nodes[0]->GetPosDer().eigen();
-    ebardot.col(1) = m_nodes[0]->GetD_dt().eigen();
-    ebardot.col(2) = m_nodes[0]->GetDD_dt().eigen();
+    ebardot.col(1) = m_nodes[0]->GetSlope1Der().eigen();
+    ebardot.col(2) = m_nodes[0]->GetSlope2Der().eigen();
 
     ebardot.col(3) = m_nodes[1]->GetPosDer().eigen();
-    ebardot.col(4) = m_nodes[1]->GetD_dt().eigen();
-    ebardot.col(5) = m_nodes[1]->GetDD_dt().eigen();
+    ebardot.col(4) = m_nodes[1]->GetSlope1Der().eigen();
+    ebardot.col(5) = m_nodes[1]->GetSlope2Der().eigen();
 
     ebardot.col(6) = m_nodes[2]->GetPosDer().eigen();
-    ebardot.col(7) = m_nodes[2]->GetD_dt().eigen();
-    ebardot.col(8) = m_nodes[2]->GetDD_dt().eigen();
+    ebardot.col(7) = m_nodes[2]->GetSlope1Der().eigen();
+    ebardot.col(8) = m_nodes[2]->GetSlope2Der().eigen();
 
     ebardot.col(9) = m_nodes[3]->GetPosDer().eigen();
-    ebardot.col(10) = m_nodes[3]->GetD_dt().eigen();
-    ebardot.col(11) = m_nodes[3]->GetDD_dt().eigen();
+    ebardot.col(10) = m_nodes[3]->GetSlope1Der().eigen();
+    ebardot.col(11) = m_nodes[3]->GetSlope2Der().eigen();
 
     ebardot.col(12) = m_nodes[4]->GetPosDer().eigen();
-    ebardot.col(13) = m_nodes[4]->GetD_dt().eigen();
-    ebardot.col(14) = m_nodes[4]->GetDD_dt().eigen();
+    ebardot.col(13) = m_nodes[4]->GetSlope1Der().eigen();
+    ebardot.col(14) = m_nodes[4]->GetSlope2Der().eigen();
 
     ebardot.col(15) = m_nodes[5]->GetPosDer().eigen();
-    ebardot.col(16) = m_nodes[5]->GetD_dt().eigen();
-    ebardot.col(17) = m_nodes[5]->GetDD_dt().eigen();
+    ebardot.col(16) = m_nodes[5]->GetSlope1Der().eigen();
+    ebardot.col(17) = m_nodes[5]->GetSlope2Der().eigen();
 
     ebardot.col(18) = m_nodes[6]->GetPosDer().eigen();
-    ebardot.col(19) = m_nodes[6]->GetD_dt().eigen();
-    ebardot.col(20) = m_nodes[6]->GetDD_dt().eigen();
+    ebardot.col(19) = m_nodes[6]->GetSlope1Der().eigen();
+    ebardot.col(20) = m_nodes[6]->GetSlope2Der().eigen();
 
     ebardot.col(21) = m_nodes[7]->GetPosDer().eigen();
-    ebardot.col(22) = m_nodes[7]->GetD_dt().eigen();
-    ebardot.col(23) = m_nodes[7]->GetDD_dt().eigen();
+    ebardot.col(22) = m_nodes[7]->GetSlope1Der().eigen();
+    ebardot.col(23) = m_nodes[7]->GetSlope2Der().eigen();
 }
 
 void ChElementShellANCF_3833::CalcCombinedCoordMatrix(MatrixNx6& ebar_ebardot) {
     ebar_ebardot.template block<1, 3>(0, 0) = m_nodes[0]->GetPos().eigen();
     ebar_ebardot.template block<1, 3>(0, 3) = m_nodes[0]->GetPosDer().eigen();
-    ebar_ebardot.template block<1, 3>(1, 0) = m_nodes[0]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(1, 3) = m_nodes[0]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(2, 0) = m_nodes[0]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(2, 3) = m_nodes[0]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(1, 0) = m_nodes[0]->GetSlope1().eigen();
+    ebar_ebardot.template block<1, 3>(1, 3) = m_nodes[0]->GetSlope1Der().eigen();
+    ebar_ebardot.template block<1, 3>(2, 0) = m_nodes[0]->GetSlope2().eigen();
+    ebar_ebardot.template block<1, 3>(2, 3) = m_nodes[0]->GetSlope2Der().eigen();
 
     ebar_ebardot.template block<1, 3>(3, 0) = m_nodes[1]->GetPos().eigen();
     ebar_ebardot.template block<1, 3>(3, 3) = m_nodes[1]->GetPosDer().eigen();
-    ebar_ebardot.template block<1, 3>(4, 0) = m_nodes[1]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(4, 3) = m_nodes[1]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(5, 0) = m_nodes[1]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(5, 3) = m_nodes[1]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(4, 0) = m_nodes[1]->GetSlope1().eigen();
+    ebar_ebardot.template block<1, 3>(4, 3) = m_nodes[1]->GetSlope1Der().eigen();
+    ebar_ebardot.template block<1, 3>(5, 0) = m_nodes[1]->GetSlope2().eigen();
+    ebar_ebardot.template block<1, 3>(5, 3) = m_nodes[1]->GetSlope2Der().eigen();
 
     ebar_ebardot.template block<1, 3>(6, 0) = m_nodes[2]->GetPos().eigen();
     ebar_ebardot.template block<1, 3>(6, 3) = m_nodes[2]->GetPosDer().eigen();
-    ebar_ebardot.template block<1, 3>(7, 0) = m_nodes[2]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(7, 3) = m_nodes[2]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(8, 0) = m_nodes[2]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(8, 3) = m_nodes[2]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(7, 0) = m_nodes[2]->GetSlope1().eigen();
+    ebar_ebardot.template block<1, 3>(7, 3) = m_nodes[2]->GetSlope1Der().eigen();
+    ebar_ebardot.template block<1, 3>(8, 0) = m_nodes[2]->GetSlope2().eigen();
+    ebar_ebardot.template block<1, 3>(8, 3) = m_nodes[2]->GetSlope2Der().eigen();
 
     ebar_ebardot.template block<1, 3>(9, 0) = m_nodes[3]->GetPos().eigen();
     ebar_ebardot.template block<1, 3>(9, 3) = m_nodes[3]->GetPosDer().eigen();
-    ebar_ebardot.template block<1, 3>(10, 0) = m_nodes[3]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(10, 3) = m_nodes[3]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(11, 0) = m_nodes[3]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(11, 3) = m_nodes[3]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(10, 0) = m_nodes[3]->GetSlope1().eigen();
+    ebar_ebardot.template block<1, 3>(10, 3) = m_nodes[3]->GetSlope1Der().eigen();
+    ebar_ebardot.template block<1, 3>(11, 0) = m_nodes[3]->GetSlope2().eigen();
+    ebar_ebardot.template block<1, 3>(11, 3) = m_nodes[3]->GetSlope2Der().eigen();
 
     ebar_ebardot.template block<1, 3>(12, 0) = m_nodes[4]->GetPos().eigen();
     ebar_ebardot.template block<1, 3>(12, 3) = m_nodes[4]->GetPosDer().eigen();
-    ebar_ebardot.template block<1, 3>(13, 0) = m_nodes[4]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(13, 3) = m_nodes[4]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(14, 0) = m_nodes[4]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(14, 3) = m_nodes[4]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(13, 0) = m_nodes[4]->GetSlope1().eigen();
+    ebar_ebardot.template block<1, 3>(13, 3) = m_nodes[4]->GetSlope1Der().eigen();
+    ebar_ebardot.template block<1, 3>(14, 0) = m_nodes[4]->GetSlope2().eigen();
+    ebar_ebardot.template block<1, 3>(14, 3) = m_nodes[4]->GetSlope2Der().eigen();
 
     ebar_ebardot.template block<1, 3>(15, 0) = m_nodes[5]->GetPos().eigen();
     ebar_ebardot.template block<1, 3>(15, 3) = m_nodes[5]->GetPosDer().eigen();
-    ebar_ebardot.template block<1, 3>(16, 0) = m_nodes[5]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(16, 3) = m_nodes[5]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(17, 0) = m_nodes[5]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(17, 3) = m_nodes[5]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(16, 0) = m_nodes[5]->GetSlope1().eigen();
+    ebar_ebardot.template block<1, 3>(16, 3) = m_nodes[5]->GetSlope1Der().eigen();
+    ebar_ebardot.template block<1, 3>(17, 0) = m_nodes[5]->GetSlope2().eigen();
+    ebar_ebardot.template block<1, 3>(17, 3) = m_nodes[5]->GetSlope2Der().eigen();
 
     ebar_ebardot.template block<1, 3>(18, 0) = m_nodes[6]->GetPos().eigen();
     ebar_ebardot.template block<1, 3>(18, 3) = m_nodes[6]->GetPosDer().eigen();
-    ebar_ebardot.template block<1, 3>(19, 0) = m_nodes[6]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(19, 3) = m_nodes[6]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(20, 0) = m_nodes[6]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(20, 3) = m_nodes[6]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(19, 0) = m_nodes[6]->GetSlope1().eigen();
+    ebar_ebardot.template block<1, 3>(19, 3) = m_nodes[6]->GetSlope1Der().eigen();
+    ebar_ebardot.template block<1, 3>(20, 0) = m_nodes[6]->GetSlope2().eigen();
+    ebar_ebardot.template block<1, 3>(20, 3) = m_nodes[6]->GetSlope2Der().eigen();
 
     ebar_ebardot.template block<1, 3>(21, 0) = m_nodes[7]->GetPos().eigen();
     ebar_ebardot.template block<1, 3>(21, 3) = m_nodes[7]->GetPosDer().eigen();
-    ebar_ebardot.template block<1, 3>(22, 0) = m_nodes[7]->GetD().eigen();
-    ebar_ebardot.template block<1, 3>(22, 3) = m_nodes[7]->GetD_dt().eigen();
-    ebar_ebardot.template block<1, 3>(23, 0) = m_nodes[7]->GetDD().eigen();
-    ebar_ebardot.template block<1, 3>(23, 3) = m_nodes[7]->GetDD_dt().eigen();
+    ebar_ebardot.template block<1, 3>(22, 0) = m_nodes[7]->GetSlope1().eigen();
+    ebar_ebardot.template block<1, 3>(22, 3) = m_nodes[7]->GetSlope1Der().eigen();
+    ebar_ebardot.template block<1, 3>(23, 0) = m_nodes[7]->GetSlope2().eigen();
+    ebar_ebardot.template block<1, 3>(23, 3) = m_nodes[7]->GetSlope2Der().eigen();
 }
 
 // Calculate the 3x3 Element Jacobian at the given point (xi,eta,zeta) in the element

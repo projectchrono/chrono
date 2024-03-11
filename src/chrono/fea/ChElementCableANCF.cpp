@@ -34,9 +34,9 @@ void ChElementCableANCF::SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA, std::sha
     m_nodes[1] = nodeB;
     std::vector<ChVariables*> mvars;
     mvars.push_back(&m_nodes[0]->Variables());
-    mvars.push_back(&m_nodes[0]->Variables_D());
+    mvars.push_back(&m_nodes[0]->VariablesSlope1());
     mvars.push_back(&m_nodes[1]->Variables());
-    mvars.push_back(&m_nodes[1]->Variables_D());
+    mvars.push_back(&m_nodes[1]->VariablesSlope1());
     Kmatr.SetVariables(mvars);
 }
 
@@ -75,9 +75,9 @@ void ChElementCableANCF::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.resize(12);
 
     mD.segment(0, 3) = m_nodes[0]->GetPos().eigen();
-    mD.segment(3, 3) = m_nodes[0]->GetD().eigen();
+    mD.segment(3, 3) = m_nodes[0]->GetSlope1().eigen();
     mD.segment(6, 3) = m_nodes[1]->GetPos().eigen();
-    mD.segment(9, 3) = m_nodes[1]->GetD().eigen();
+    mD.segment(9, 3) = m_nodes[1]->GetSlope1().eigen();
 }
 
 // Computes the stiffness matrix of the element:
@@ -102,9 +102,9 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         // of the Jacobian with finite differences is thread safe (otherwise, there would
         // be race conditions when adjacent elements attempt to perturb a common node).
         ChVector3d pos[2] = {m_nodes[0]->GetPos(), m_nodes[1]->GetPos()};
-        ChVector3d D[2] = {m_nodes[0]->GetD(), m_nodes[1]->GetD()};
+        ChVector3d D[2] = {m_nodes[0]->GetSlope1(), m_nodes[1]->GetSlope1()};
         ChVector3d pos_dt[2] = {m_nodes[0]->GetPosDer(), m_nodes[1]->GetPosDer()};
-        ChVector3d D_dt[2] = {m_nodes[0]->GetD_dt(), m_nodes[1]->GetD_dt()};
+        ChVector3d D_dt[2] = {m_nodes[0]->GetSlope1Der(), m_nodes[1]->GetSlope1Der()};
 
         // Add part of the Jacobian stemming from elastic forces
         for (int inode = 0; inode < 2; ++inode) {
@@ -182,9 +182,9 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         double I = m_section->I;
 
         ChVector3d pA = m_nodes[0]->GetPos();
-        ChVector3d dA = m_nodes[0]->GetD();
+        ChVector3d dA = m_nodes[0]->GetSlope1();
         ChVector3d pB = m_nodes[1]->GetPos();
-        ChVector3d dB = m_nodes[1]->GetD();
+        ChVector3d dB = m_nodes[1]->GetSlope1();
 
         // this matrix will be used in both CableANCF_StiffnessAxial and CableANCF_StiffnessCurv integrators
         ChMatrixNM<double, 4, 3> d;
@@ -426,9 +426,9 @@ void ChElementCableANCF::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
 // Computes the internal forces and set values in the Fi vector.
 // (e.g. the actual position of nodes is not in relaxed reference position).
 void ChElementCableANCF::ComputeInternalForces(ChVectorDynamic<>& Fi) {
-    ComputeInternalForces_Impl(m_nodes[0]->GetPos(), m_nodes[0]->GetD(), m_nodes[1]->GetPos(), m_nodes[1]->GetD(),
-                               m_nodes[0]->GetPosDer(), m_nodes[0]->GetD_dt(), m_nodes[1]->GetPosDer(),
-                               m_nodes[1]->GetD_dt(), Fi);
+    ComputeInternalForces_Impl(m_nodes[0]->GetPos(), m_nodes[0]->GetSlope1(), m_nodes[1]->GetPos(), m_nodes[1]->GetSlope1(),
+                               m_nodes[0]->GetPosDer(), m_nodes[0]->GetSlope1Der(), m_nodes[1]->GetPosDer(),
+                               m_nodes[1]->GetSlope1Der(), Fi);
 }
 
 // Worker function for computing the internal forces.
@@ -659,9 +659,9 @@ void ChElementCableANCF::EvaluateSectionFrame(const double eta, ChVector3d& poin
     ShapeFunctions(N, xi);
 
     ChVector3d pA = m_nodes[0]->GetPos();
-    ChVector3d dA = m_nodes[0]->GetD();
+    ChVector3d dA = m_nodes[0]->GetSlope1();
     ChVector3d pB = m_nodes[1]->GetPos();
-    ChVector3d dB = m_nodes[1]->GetD();
+    ChVector3d dB = m_nodes[1]->GetSlope1();
 
     point.x() = N(0) * pA.x() + N(1) * dA.x() + N(2) * pB.x() + N(3) * dB.x();
     point.y() = N(0) * pA.y() + N(1) * dA.y() + N(2) * pB.y() + N(3) * dB.y();
@@ -750,17 +750,17 @@ void ChElementCableANCF::SetAlphaDamp(double a) {
 
 void ChElementCableANCF::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
-    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetSlope1().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPos().eigen();
-    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetD().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetSlope1().eigen();
 }
 
 // Gets all the DOFs packed in a single vector (speed part)
 void ChElementCableANCF::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
-    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD_dt().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetSlope1Der().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPosDer().eigen();
-    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetD_dt().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetSlope1Der().eigen();
 }
 
 // Increment all DOFs using a delta.
@@ -776,9 +776,9 @@ void ChElementCableANCF::LoadableStateIncrement(const unsigned int off_x,
 // Get the pointers to the contained ChVariables, appending to the mvars vector.
 void ChElementCableANCF::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
     mvars.push_back(&m_nodes[0]->Variables());
-    mvars.push_back(&m_nodes[0]->Variables_D());
+    mvars.push_back(&m_nodes[0]->VariablesSlope1());
     mvars.push_back(&m_nodes[1]->Variables());
-    mvars.push_back(&m_nodes[1]->Variables_D());
+    mvars.push_back(&m_nodes[1]->VariablesSlope1());
 };
 
 // Evaluate N'*F , where N is some type of shape function evaluated at U,V coordinates of the surface,

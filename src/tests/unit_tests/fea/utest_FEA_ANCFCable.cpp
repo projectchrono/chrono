@@ -195,9 +195,9 @@ int main(int argc, char* argv[]) {
     /*
     // This code snippet creates the benchmark file.
     m_data[0][it] = sys.GetChTime();
-    m_data[1][it] = hnodeancf1->GetD().x(),
-    m_data[2][it] = hnodeancf1->GetD().y();
-    m_data[3][it] = hnodeancf1->GetD().z();
+    m_data[1][it] = hnodeancf1->GetSlope1().x(),
+    m_data[2][it] = hnodeancf1->GetSlope1().y();
+    m_data[3][it] = hnodeancf1->GetSlope1().z();
     m_data[4][it] = hnodeancf3->GetPos().y();
     m_data[5][it] = hnodeancf5->GetPos().x();
     m_data[6][it] = hnodeancf5->GetPos().z();

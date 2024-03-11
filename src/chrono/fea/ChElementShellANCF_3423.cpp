@@ -62,13 +62,13 @@ void ChElementShellANCF_3423::SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA,
     m_nodes[3] = nodeD;
     std::vector<ChVariables*> mvars;
     mvars.push_back(&m_nodes[0]->Variables());
-    mvars.push_back(&m_nodes[0]->Variables_D());
+    mvars.push_back(&m_nodes[0]->VariablesSlope1());
     mvars.push_back(&m_nodes[1]->Variables());
-    mvars.push_back(&m_nodes[1]->Variables_D());
+    mvars.push_back(&m_nodes[1]->VariablesSlope1());
     mvars.push_back(&m_nodes[2]->Variables());
-    mvars.push_back(&m_nodes[2]->Variables_D());
+    mvars.push_back(&m_nodes[2]->VariablesSlope1());
     mvars.push_back(&m_nodes[3]->Variables());
-    mvars.push_back(&m_nodes[3]->Variables_D());
+    mvars.push_back(&m_nodes[3]->VariablesSlope1());
     Kmatr.SetVariables(mvars);
 
     // Initial positions and slopes of the element nodes
@@ -147,13 +147,13 @@ void ChElementShellANCF_3423::Update() {
 // Fill the D vector with the current field values at the element nodes.
 void ChElementShellANCF_3423::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.segment(0, 3) = m_nodes[0]->GetPos().eigen();
-    mD.segment(3, 3) = m_nodes[0]->GetD().eigen();
+    mD.segment(3, 3) = m_nodes[0]->GetSlope1().eigen();
     mD.segment(6, 3) = m_nodes[1]->GetPos().eigen();
-    mD.segment(9, 3) = m_nodes[1]->GetD().eigen();
+    mD.segment(9, 3) = m_nodes[1]->GetSlope1().eigen();
     mD.segment(12, 3) = m_nodes[2]->GetPos().eigen();
-    mD.segment(15, 3) = m_nodes[2]->GetD().eigen();
+    mD.segment(15, 3) = m_nodes[2]->GetSlope1().eigen();
     mD.segment(18, 3) = m_nodes[3]->GetPos().eigen();
-    mD.segment(21, 3) = m_nodes[3]->GetD().eigen();
+    mD.segment(21, 3) = m_nodes[3]->GetSlope1().eigen();
 }
 
 // Calculate the global matrix H as a linear combination of K, R, and M:
@@ -1126,13 +1126,13 @@ double ChElementShellANCF_3423::Calc_detJ0(double x, double y, double z) {
 
 void ChElementShellANCF_3423::CalcCoordMatrix(ChMatrixNM<double, 8, 3>& d) {
     const ChVector3d& pA = m_nodes[0]->GetPos();
-    const ChVector3d& dA = m_nodes[0]->GetD();
+    const ChVector3d& dA = m_nodes[0]->GetSlope1();
     const ChVector3d& pB = m_nodes[1]->GetPos();
-    const ChVector3d& dB = m_nodes[1]->GetD();
+    const ChVector3d& dB = m_nodes[1]->GetSlope1();
     const ChVector3d& pC = m_nodes[2]->GetPos();
-    const ChVector3d& dC = m_nodes[2]->GetD();
+    const ChVector3d& dC = m_nodes[2]->GetSlope1();
     const ChVector3d& pD = m_nodes[3]->GetPos();
-    const ChVector3d& dD = m_nodes[3]->GetD();
+    const ChVector3d& dD = m_nodes[3]->GetSlope1();
 
     d(0, 0) = pA.x();
     d(0, 1) = pA.y();
@@ -1165,13 +1165,13 @@ void ChElementShellANCF_3423::CalcCoordMatrix(ChMatrixNM<double, 8, 3>& d) {
 
 void ChElementShellANCF_3423::CalcCoordDerivMatrix(ChVectorN<double, 24>& dt) {
     const ChVector3d& pA_dt = m_nodes[0]->GetPosDer();
-    const ChVector3d& dA_dt = m_nodes[0]->GetD_dt();
+    const ChVector3d& dA_dt = m_nodes[0]->GetSlope1Der();
     const ChVector3d& pB_dt = m_nodes[1]->GetPosDer();
-    const ChVector3d& dB_dt = m_nodes[1]->GetD_dt();
+    const ChVector3d& dB_dt = m_nodes[1]->GetSlope1Der();
     const ChVector3d& pC_dt = m_nodes[2]->GetPosDer();
-    const ChVector3d& dC_dt = m_nodes[2]->GetD_dt();
+    const ChVector3d& dC_dt = m_nodes[2]->GetSlope1Der();
     const ChVector3d& pD_dt = m_nodes[3]->GetPosDer();
-    const ChVector3d& dD_dt = m_nodes[3]->GetD_dt();
+    const ChVector3d& dD_dt = m_nodes[3]->GetSlope1Der();
 
     dt(0) = pA_dt.x();
     dt(1) = pA_dt.y();
@@ -1502,25 +1502,25 @@ void ChElementShellANCF_3423::EvaluateSectionPoint(const double u, const double 
 // Gets all the DOFs packed in a single vector (position part).
 void ChElementShellANCF_3423::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
-    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetSlope1().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPos().eigen();
-    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetD().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetSlope1().eigen();
     mD.segment(block_offset + 12, 3) = m_nodes[2]->GetPos().eigen();
-    mD.segment(block_offset + 15, 3) = m_nodes[2]->GetD().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[2]->GetSlope1().eigen();
     mD.segment(block_offset + 18, 3) = m_nodes[3]->GetPos().eigen();
-    mD.segment(block_offset + 21, 3) = m_nodes[3]->GetD().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[3]->GetSlope1().eigen();
 }
 
 // Gets all the DOFs packed in a single vector (velocity part).
 void ChElementShellANCF_3423::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
-    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD_dt().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetSlope1Der().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPosDer().eigen();
-    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetD_dt().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetSlope1Der().eigen();
     mD.segment(block_offset + 12, 3) = m_nodes[2]->GetPosDer().eigen();
-    mD.segment(block_offset + 15, 3) = m_nodes[2]->GetD_dt().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[2]->GetSlope1Der().eigen();
     mD.segment(block_offset + 18, 3) = m_nodes[3]->GetPosDer().eigen();
-    mD.segment(block_offset + 21, 3) = m_nodes[3]->GetD_dt().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[3]->GetSlope1Der().eigen();
 }
 
 void ChElementShellANCF_3423::LoadableStateIncrement(const unsigned int off_x,
@@ -1546,7 +1546,7 @@ void ChElementShellANCF_3423::EvaluateSectionVelNorm(double U, double V, ChVecto
 void ChElementShellANCF_3423::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
     for (int i = 0; i < m_nodes.size(); ++i) {
         mvars.push_back(&m_nodes[i]->Variables());
-        mvars.push_back(&m_nodes[i]->Variables_D());
+        mvars.push_back(&m_nodes[i]->VariablesSlope1());
     }
 }
 

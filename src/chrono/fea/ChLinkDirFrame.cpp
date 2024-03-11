@@ -59,10 +59,10 @@ int ChLinkDirFrame::Initialize(std::shared_ptr<ChNodeFEAxyzD> node,
     m_body = body;
     m_node = node;
 
-    constraint1.SetVariables(&(node->Variables_D()), &(body->Variables()));
-    constraint2.SetVariables(&(node->Variables_D()), &(body->Variables()));
+    constraint1.SetVariables(&(node->VariablesSlope1()), &(body->Variables()));
+    constraint2.SetVariables(&(node->VariablesSlope1()), &(body->Variables()));
 
-    ChVector3d dir_abs = dir ? *dir : node->GetD();
+    ChVector3d dir_abs = dir ? *dir : node->GetSlope1();
     SetDirectionInAbsoluteCoords(dir_abs);
 
     return true;
@@ -77,7 +77,7 @@ void ChLinkDirFrame::Update(double mytime, bool update_assets) {
 
 ChVectorDynamic<> ChLinkDirFrame::GetConstraintViolation() const {
     ChMatrix33<> Arw = m_csys.rot >> m_body->GetRot();
-    ChVector3d res = Arw.transpose() * m_node->GetD();
+    ChVector3d res = Arw.transpose() * m_node->GetSlope1();
     ChVectorN<double, 2> C;
     C(0) = res.y();
     C(1) = res.z();
@@ -90,7 +90,7 @@ ChVector3d ChLinkDirFrame::GetReactionOnBody() const {
     ChMatrix33<> C(m_csys.rot);
 
     // (A^T*d)  and  ~(A^T*d)
-    ChVector3d z = A.transpose() * m_node->GetD();
+    ChVector3d z = A.transpose() * m_node->GetSlope1();
     ChStarMatrix33<> ztilde(z);
 
     // Constraint Jacobians  PhiQ = C^T * ~(A^T*d)
@@ -137,7 +137,7 @@ void ChLinkDirFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset in
         return;
 
     ChMatrix33<> Arw = m_csys.rot >> m_body->GetRot();
-    ChVector3d cres = c * (Arw.transpose() * m_node->GetD());
+    ChVector3d cres = c * (Arw.transpose() * m_node->GetSlope1());
 
     if (do_clamp) {
         cres.y() = std::min(std::max(cres.y(), -recovery_clamp), recovery_clamp);
@@ -195,7 +195,7 @@ void ChLinkDirFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
     //	return;
 
     ChMatrix33<> Arw = m_csys.rot >> m_body->GetRot();
-    ChVector3d res = Arw.transpose() * m_node->GetD();
+    ChVector3d res = Arw.transpose() * m_node->GetSlope1();
 
     constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.y());
     constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.z());
@@ -214,7 +214,7 @@ void ChLinkDirFrame::ConstraintsLoadJacobians() {
     ChMatrix33<> Aro(m_csys.rot);
     ChMatrix33<> Arw(m_csys.rot >> m_body->GetRot());
 
-    ChVector3d Zo = Aow.transpose() * m_node->GetD();
+    ChVector3d Zo = Aow.transpose() * m_node->GetSlope1();
 
     ChStarMatrix33<> ztilde(Zo);
 

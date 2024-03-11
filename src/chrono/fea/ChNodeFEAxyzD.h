@@ -35,27 +35,27 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     ChNodeFEAxyzD& operator=(const ChNodeFEAxyzD& other);
 
     /// Set the derivative vector.
-    void SetD(const ChVector3d& d) { D = d; }
+    void SetSlope1(const ChVector3d& d) { D = d; }
+
     /// Get the derivative vector.
-    const ChVector3d& GetD() const { return D; }
+    const ChVector3d& GetSlope1() const { return D; }
 
     /// Set the speed of the derivative vector.
-    void SetD_dt(const ChVector3d& dt) { D_dt = dt; }
+    void SetSlope1Der(const ChVector3d& dt) { D_dt = dt; }
+
     /// Get the speed of the derivative vector.
-    const ChVector3d& GetD_dt() const { return D_dt; }
+    const ChVector3d& GetSlope1Der() const { return D_dt; }
 
     /// Set the acceleration of the derivative vector.
-    void SetD_dtdt(const ChVector3d& dtt) { D_dtdt = dtt; }
+    void SetSlope1Der2(const ChVector3d& dtt) { D_dtdt = dtt; }
+    
     /// Get the  acceleration of the derivative vector.
-    const ChVector3d& GetD_dtdt() const { return D_dtdt; }
+    const ChVector3d& GetSlope1Der2() const { return D_dtdt; }
 
-    ChVariables& Variables_D() { return *variables_D; }
+    ChVariables& VariablesSlope1() { return *variables_D; }
 
     /// Reset to no speed and acceleration.
     virtual void SetNoSpeedNoAcceleration() override;
-
-    /// Get mass of the node.
-    ChVectorDynamic<>& GetMassDiagonalD() { return variables_D->GetMassDiagonal(); }
 
     /// Fix/release this node.
     /// If fixed, its state variables are not changed by the solver.
@@ -66,10 +66,10 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
 
     /// Fix/release the derivative vector states.
     /// If fixed, these states are not changed by the solver.
-    void SetFixedD(bool fixed);
+    void SetSlope1Fixed(bool fixed);
 
     /// Return true if the derivative vector states are fixed.
-    bool IsFixedD() const;
+    bool IsSlope1Fixed() const;
 
     /// Get the number of degrees of freedom.
     virtual unsigned int GetNumCoordsPosLevel() const override { return 6; }
@@ -175,7 +175,6 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
         ) override;
 
     // SERIALIZATION
-
     virtual void ArchiveOut(ChArchiveOut& archive) override;
     virtual void ArchiveIn(ChArchiveIn& archive) override;
 
@@ -186,6 +185,9 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     unsigned int m_dof_actual;  ///< actual number of degrees of freedom
 
   private:
+    /// Get mass of the node (corresponding to the slope derivative).
+    ChVectorDynamic<>& GetMassDiagonalSlope1() { return variables_D->GetMassDiagonal(); }
+
     ChVariablesGenericDiagonalMass* variables_D;  ///< derivative vector
     ChVector3d D;
     ChVector3d D_dt;

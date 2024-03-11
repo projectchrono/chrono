@@ -74,7 +74,7 @@ void ChANCFTire::CreateRimConnections(std::shared_ptr<ChBody> wheel) {
 
         m_connectionsD[in] = chrono_types::make_shared<ChLinkDirFrame>();
         m_connectionsD[in]->Initialize(node, wheel);
-        m_connectionsD[in]->SetDirectionInAbsoluteCoords(node->GetD());
+        m_connectionsD[in]->SetDirectionInAbsoluteCoords(node->GetSlope1());
         wheel->GetSystem()->Add(m_connectionsD[in]);
     }
 }

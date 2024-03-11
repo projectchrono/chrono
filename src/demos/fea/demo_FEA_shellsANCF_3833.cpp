@@ -186,9 +186,9 @@ int main(int argc, char* argv[]) {
     sys.Add(constraintD);
 
     // Constrain curvature at the base nodes (keep at initial value)
-    nodeA->SetFixedDD(true);
-    nodeD->SetFixedDD(true);
-    nodeH->SetFixedDD(true);
+    nodeA->SetSlope2Fixed(true);
+    nodeD->SetSlope2Fixed(true);
+    nodeH->SetSlope2Fixed(true);
 
     // Store the starting nodes so that their coordinates can be inspected
     auto nodebaseA_beam2 = nodeA;
@@ -289,10 +289,10 @@ int main(int argc, char* argv[]) {
                   << nodetipB_beam1->GetPos().z() - nodetipB_beam2->GetPos().z() << "\n";
         std::cout << "  Beam2 Base Node A Coordinates (xyz):   " << nodebaseA_beam2->GetPos().x() << " "
                   << nodebaseA_beam2->GetPos().y() << " " << nodebaseA_beam2->GetPos().z() << "\n";
-        std::cout << "  Beam2 Base Node A Coordinates (D):     " << nodebaseA_beam2->GetD().x() << " "
-                  << nodebaseA_beam2->GetD().y() << " " << nodebaseA_beam2->GetD().z() << "\n";
-        std::cout << "  Beam2 Base Node A Coordinates (DD):    " << nodebaseA_beam2->GetDD().x() << " "
-                  << nodebaseA_beam2->GetDD().y() << " " << nodebaseA_beam2->GetDD().z() << "\n";
+        std::cout << "  Beam2 Base Node A Coordinates (D):     " << nodebaseA_beam2->GetSlope1().x() << " "
+                  << nodebaseA_beam2->GetSlope1().y() << " " << nodebaseA_beam2->GetSlope1().z() << "\n";
+        std::cout << "  Beam2 Base Node A Coordinates (DD):    " << nodebaseA_beam2->GetSlope2().x() << " "
+                  << nodebaseA_beam2->GetSlope2().y() << " " << nodebaseA_beam2->GetSlope2().z() << "\n";
 
         vis->BeginScene();
         vis->Render();

@@ -698,6 +698,36 @@ Note that this represents a major public API change and we expect most user code
 |                                   | NodeSetOffset_x               | rename: NodeSetOffsetPosLevel                    |
 |                                   | NodeSetOffset_w               | rename: NodeSetOffsetVelLevel                    |
 |                                   | UseFullDof                    | rename: IsAllCoordsActive                        |
+| ChNodeFEAxyzD                     |                               |                                                  |
+|                                   | GetD                          | rename: GetSlope1                                |
+|                                   | GetD_dt                       | rename: GetSlope1Der                             |
+|                                   | GetD_dtdt                     | rename: GetSlope1Der2                            |
+|                                   | IsFixedD                      | rename: IsSlope1Fixed                            |
+|                                   | SetD                          | rename: SetSlope1                                |
+|                                   | SetD_dt                       | rename: SetSlope1Der                             |
+|                                   | SetD_dtdt                     | rename: SetSlope1Der2                            |
+|                                   | SetFixedD                     | rename: SetSlope1Fixed                           |
+|                                   | Variable_D                    | rename: VariablesSlope1                          |
+| ChNodeFEAxyzDD                    |                               |                                                  |
+|                                   | GetDD                         | rename: GetSlope2                                |
+|                                   | GetDD_dt                      | rename: GetSlope2Der                             |
+|                                   | GetDD_dtdt                    | rename: GetSlope2Der2                            |
+|                                   | IsFixedDD                     | rename: IsSlope2Fixed                            |
+|                                   | SetDD                         | rename: SetSlope2                                |
+|                                   | SetDD_dt                      | rename: SetSlope2Der                             |
+|                                   | SetDD_dtdt                    | rename: SetSlope2Der2                            |
+|                                   | SetFixedDD                    | rename: SetSlope2Fixed                           |
+|                                   | Variable_DD                   | rename: VariablesSlope2                          |
+| ChNodeFEAxyzDDD                   |                               |                                                  |
+|                                   | GetDDD                        | rename: GetSlope3                                |
+|                                   | GetDDD_dt                     | rename: GetSlope3Der                             |
+|                                   | GetDDD_dtdt                   | rename: GetSlope3Der2                            |
+|                                   | IsFixedDDD                    | rename: IsSlope3Fixed                            |
+|                                   | SetDDD                        | rename: SetSlope3                                |
+|                                   | SetDDD_dt                     | rename: SetSlope3Der                             |
+|                                   | SetDDD_dtdt                   | rename: SetSlope3Der2                            |
+|                                   | SetFixedDDD                   | rename: SetSlope3Fixed                           |
+|                                   | Variable_DDD                  | rename: VariablesSlope3                          |
 | ChPhysicsItem                     |                               |                                                  |
 |                                   | GetDOC                        | rename: GetNumConstraints                        |
 |                                   | GetDOC_c                      | rename: GetNumConstraintsBilateral               |

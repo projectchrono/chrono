@@ -219,7 +219,7 @@ bool CheckConstraints() {
 
     // Explicitly check orthogonality between Body_2 x-axis and node D vector
     ChVector3d body_axis = Body_2->TransformDirectionLocalToParent(ChVector3d(0.25, 0, 0));
-    violation(3) = Vdot(body_axis, Node_1->GetD());
+    violation(3) = Vdot(body_axis, Node_1->GetSlope1());
 
     // Check violation in weld joint
     violation.segment(4, 6) = joint_weld->GetConstraintViolation();
@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
         printf("Body_2 tip:      %12.4e  %12.4e  %12.4e\n", tip.x(), tip.y(), tip.z());
 
         printf("Node position:   %12.4e  %12.4e  %12.4e\n", Node_1->GetPos().x(), Node_1->GetPos().y(), Node_1->GetPos().z());
-        printf("Direction of node:  %12.4e  %12.4e  %12.4e\n", Node_1->GetD().x(), Node_1->GetD().y(), Node_1->GetD().z());
+        printf("Direction of node:  %12.4e  %12.4e  %12.4e\n", Node_1->GetSlope1().x(), Node_1->GetSlope1().y(), Node_1->GetSlope1().z());
 
         // Get direction of constraint (in body local frame) and convert to global frame
         ChVector3d dirB = Body_2->TransformDirectionLocalToParent(constraint_dir->GetDirection());
@@ -284,7 +284,7 @@ int main(int argc, char* argv[]) {
         ChVector3d body_axis = Body_2->TransformDirectionLocalToParent(ChVector3d(0.25, 0, 0));
         printf("Body axis dir:      %12.4e  %12.4e  %12.4e\n", body_axis.x(), body_axis.y(), body_axis.z());
         // Body axis should always be perpendicular to node normal
-        double dot = Vdot(body_axis, Node_1->GetD());
+        double dot = Vdot(body_axis, Node_1->GetSlope1());
         printf("Dot product = %e\n", dot);
 
         ChVectorN<double, 3> Cp = constraint_point->GetConstraintViolation();

@@ -297,7 +297,7 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                     auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node_idx));
                     // Overwrite node position and direction
                     node->SetPos(node_loc);
-                    node->SetD(node_dir);
+                    node->SetSlope1(node_dir);
                 }
             }
 
@@ -325,7 +325,7 @@ void ChTrackShoeBandANCF::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
                     auto node = std::dynamic_pointer_cast<ChNodeFEAxyzDD>(m_web_mesh->GetNode(node_idx));
                     // Overwrite node position and direction
                     node->SetPos(node_loc);
-                    node->SetD(node_dir);
+                    node->SetSlope1(node_dir);
                     node_idx++;
                 }
             }
@@ -394,7 +394,7 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next,
                 int node_idx = m_starting_node_index + y_idx + 0 * N_y;
                 auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node_idx));
 
-                node->SetD(rot_cur_shoe.GetAxisZ());
+                node->SetSlope1(rot_cur_shoe.GetAxisZ());
 
                 auto constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
                 constraintxyz->Initialize(node, m_shoe);
@@ -413,7 +413,7 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next,
                 int node_idx = m_starting_node_index + y_idx + num_elements_length * N_y;
                 auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(m_web_mesh->GetNode(node_idx));
 
-                node->SetD(rot_next_shoe.GetAxisZ());
+                node->SetSlope1(rot_next_shoe.GetAxisZ());
 
                 auto constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
                 constraintxyz->Initialize(node, next->GetShoeBody());
@@ -441,7 +441,7 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next,
                 int node_idx = m_starting_node_index + y_idx;
                 auto node = std::dynamic_pointer_cast<ChNodeFEAxyzDD>(m_web_mesh->GetNode(node_idx));
 
-                node->SetD(rot_cur_shoe.GetAxisZ());
+                node->SetSlope1(rot_cur_shoe.GetAxisZ());
 
                 auto constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
                 constraintxyz->Initialize(node, m_shoe);
@@ -453,7 +453,7 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next,
                 system->Add(constraintD);
                 m_connections.push_back(constraintD);
 
-                node->SetFixedDD(m_constrain_curvature);
+                node->SetSlope2Fixed(m_constrain_curvature);
             }
 
             // Change the gradient on the boundary nodes that will connect to the second fixed body
@@ -462,7 +462,7 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next,
                 int node_idx = m_starting_node_index + y_idx + num_elements_length * (N_y_edge + N_y_mid);
                 auto node = std::dynamic_pointer_cast<ChNodeFEAxyzDD>(m_web_mesh->GetNode(node_idx));
 
-                node->SetD(rot_next_shoe.GetAxisZ());
+                node->SetSlope1(rot_next_shoe.GetAxisZ());
 
                 auto constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
                 constraintxyz->Initialize(node, next->GetShoeBody());
@@ -474,7 +474,7 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next,
                 system->Add(constraintD);
                 m_connections.push_back(constraintD);
 
-                node->SetFixedDD(m_constrain_curvature);
+                node->SetSlope2Fixed(m_constrain_curvature);
             }
 
             break;

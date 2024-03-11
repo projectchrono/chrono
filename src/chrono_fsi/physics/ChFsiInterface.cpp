@@ -90,7 +90,7 @@ void ChFsiInterface::Copy_FsiNodes_ChSystem_to_FsiSystem(std::shared_ptr<FsiMesh
         m_sysFSI.fsiMeshH->pos_fsi_fea_H[i] = utils::ToReal3(node->GetPos());
         m_sysFSI.fsiMeshH->vel_fsi_fea_H[i] = utils::ToReal3(node->GetPosDer());
         m_sysFSI.fsiMeshH->acc_fsi_fea_H[i] = utils::ToReal3(node->GetPosDer2());
-        m_sysFSI.fsiMeshH->dir_fsi_fea_H[i] = utils::ToReal3(node->GetD());
+        m_sysFSI.fsiMeshH->dir_fsi_fea_H[i] = utils::ToReal3(node->GetSlope1());
     }
     FsiMeshD->CopyFromH(*m_sysFSI.fsiMeshH);
 }
