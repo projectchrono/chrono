@@ -47,9 +47,9 @@ void ChFsiInterface::Add_Rigid_ForceTorques_To_ChSystem() {
 
         // note: when this FSI body goes back to Chrono system, the gravity
         // will be automaticly added. Here only accumulate force from fluid
-        body->Empty_forces_accumulators();
-        body->Accumulate_force(mforce, body->GetPos(), false);
-        body->Accumulate_torque(mtorque, false);
+        body->EmptyAccumulators();
+        body->AccumulateForce(mforce, body->GetPos(), false);
+        body->AccumulateTorque(mtorque, false);
     }
 }
 

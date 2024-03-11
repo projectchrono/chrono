@@ -43,7 +43,7 @@ void apply_fan_force(ChSystemNSC* msystem,    // contains all bodies
 {
     for (auto body : msystem->GetBodies()) {
         // Remember to reset 'user forces accumulators':
-        body->Empty_forces_accumulators();
+        body->EmptyAccumulators();
 
         // initialize speed of air (steady, if outside fan stream):
         ChVector3d abs_wind(0, 0, 0);
@@ -66,7 +66,7 @@ void apply_fan_force(ChSystemNSC* msystem,    // contains all bodies
         // and fluid density (NOTE! pretty simplified physics..)
         ChVector3d abs_force = (abs_wind - body->GetPosDer()) * adensity;
         // apply this force at the body COG
-        body->Accumulate_force(abs_force, body->GetPos(), false);
+        body->AccumulateForce(abs_force, body->GetPos(), false);
     }
 }
 

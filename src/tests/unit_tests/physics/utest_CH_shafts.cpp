@@ -181,7 +181,7 @@ TEST_P(ChShaftTest, shaft_body) {
     // Create 'B', a 3D rigid body
     auto bodyB = chrono_types::make_shared<ChBody>();
 
-    bodyB->Accumulate_torque(ChVector3d(0, 0, 3), true);  // set some constant torque to body
+    bodyB->AccumulateTorque(ChVector3d(0, 0, 3), true);  // set some constant torque to body
     system->Add(bodyB);
 
     // Make the torsional spring-damper between shafts A and C.

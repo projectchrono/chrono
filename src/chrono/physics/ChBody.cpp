@@ -375,12 +375,12 @@ void ChBody::ComputeQInertia(ChMatrix44<>& mQInertia) {
 
 //////
 
-void ChBody::Empty_forces_accumulators() {
+void ChBody::EmptyAccumulators() {
     Force_acc = VNULL;
     Torque_acc = VNULL;
 }
 
-void ChBody::Accumulate_force(const ChVector3d& force, const ChVector3d& appl_point, bool local) {
+void ChBody::AccumulateForce(const ChVector3d& force, const ChVector3d& appl_point, bool local) {
     ChVector3d absforce;
     ChVector3d abstorque;
     if (local)
@@ -392,7 +392,7 @@ void ChBody::Accumulate_force(const ChVector3d& force, const ChVector3d& appl_po
     Torque_acc += TransformDirectionParentToLocal(abstorque);
 }
 
-void ChBody::Accumulate_torque(const ChVector3d& torque, bool local) {
+void ChBody::AccumulateTorque(const ChVector3d& torque, bool local) {
     if (local) {
         Torque_acc += torque;
     } else {

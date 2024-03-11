@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
         // Apply custom forcefield (brute force approach..)
         // A) reset 'user forces accumulators':
         for (auto body : sys.GetBodies()) {
-            body->Empty_forces_accumulators();
+            body->EmptyAccumulators();
         }
 
         // B) store user computed force:
@@ -194,8 +194,8 @@ int main(int argc, char* argv[]) {
                 double f_attract = G_constant * (abodyA->GetMass() * abodyB->GetMass()) / (pow(r_attract, 2));
                 ChVector3d F_attract = (D_attract / r_attract) * f_attract;
 
-                abodyA->Accumulate_force(F_attract, abodyA->GetPos(), false);
-                abodyB->Accumulate_force(-F_attract, abodyB->GetPos(), false);
+                abodyA->AccumulateForce(F_attract, abodyA->GetPos(), false);
+                abodyB->AccumulateForce(-F_attract, abodyB->GetPos(), false);
             }
         }
 

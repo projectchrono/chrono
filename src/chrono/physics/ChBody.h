@@ -302,7 +302,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// It is the caller's responsibility to clear the force and torque accumulators at each integration step.
     /// If local = true, the provided applied force is assumed to be expressed in body coordinates.
     /// If local = false, the provided applied force is assumed to be expressed in absolute coordinates.
-    void Accumulate_force(const ChVector3d& force,       ///< applied force
+    void AccumulateForce(const ChVector3d& force,       ///< applied force
                           const ChVector3d& appl_point,  ///< application point
                           bool local                     ///< force and point expressed in body local frame?
     );
@@ -311,20 +311,20 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// It is the caller's responsibility to clear the force and torque accumulators at each integration step.
     /// If local = true, the provided applied torque is assumed to be expressed in body coordinates.
     /// If local = false, the provided applied torque is assumed to be expressed in absolute coordinates.
-    void Accumulate_torque(const ChVector3d& torque,  ///< applied torque
+    void AccumulateTorque(const ChVector3d& torque,  ///< applied torque
                            bool local                 ///< torque expressed in body local frame?
     );
 
     /// Clear the force and torque accumulators.
-    void Empty_forces_accumulators();
+    void EmptyAccumulators();
 
     /// Return the current value of the accumulator force.
     /// Note that this is a resultant force as applied to the COM and expressed in the absolute frame.
-    const ChVector3d& Get_accumulated_force() const { return Force_acc; }
+    const ChVector3d& GetAccumulatedForce() const { return Force_acc; }
 
     /// Return the current value of the accumulator torque.
     /// Note that this is a resultant torque expressed in the body local frame.
-    const ChVector3d& Get_accumulated_torque() const { return Torque_acc; }
+    const ChVector3d& GetAccumulatedTorque() const { return Torque_acc; }
 
     // UPDATE FUNCTIONS
 

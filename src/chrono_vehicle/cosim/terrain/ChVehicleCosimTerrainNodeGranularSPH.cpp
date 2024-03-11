@@ -358,8 +358,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::UpdateRigidProxy(unsigned int i, Body
 void ChVehicleCosimTerrainNodeGranularSPH::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
     rigid_contact.point = ChVector3d(0, 0, 0);
-    rigid_contact.force = proxy->bodies[0]->Get_accumulated_force();
-    rigid_contact.moment = proxy->bodies[0]->Get_accumulated_torque();
+    rigid_contact.force = proxy->bodies[0]->GetAccumulatedForce();
+    rigid_contact.moment = proxy->bodies[0]->GetAccumulatedTorque();
 }
 
 // -----------------------------------------------------------------------------

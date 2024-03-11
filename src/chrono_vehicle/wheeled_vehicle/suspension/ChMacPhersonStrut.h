@@ -116,8 +116,8 @@ class CH_VEHICLE_API ChMacPhersonStrut : public ChSuspension {
     /// Get the current deformation velocity of the shock (damper) element.
     double GetShockVelocity(VehicleSide side) const { return m_shock[side]->GetVelocity(); }
 
-    /// Global coordinates, LCA ball joint position
-    ChVector3d Get_LCA_sph_pos(VehicleSide side) { return m_sphericalLCA[side]->GetPos(); }
+    /// Get position of the LCA ball joint (expressed in the global frame).
+    ChVector3d GetBallJointPosLCA(VehicleSide side) { return m_sphericalLCA[side]->GetPos(); }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;

@@ -182,7 +182,7 @@ while vis.Run():
     # Apply custom forcefield (brute force approach..)
     # A) reset 'user forces accumulators':
     for body in sys.GetBodies() :
-        body.Empty_forces_accumulators()
+        body.EmptyAccumulators()
 
 
     # B) store user computed force:
@@ -197,8 +197,8 @@ while vis.Run():
         r_attract = D_attract.Length()
         f_attract = G_constant * (abodyA.GetMass() * abodyB.GetMass()) /(pow(r_attract, 2))
         F_attract = (D_attract / r_attract) * f_attract
-        abodyA.Accumulate_force(F_attract, abodyA.GetPos(), False)
-        abodyB.Accumulate_force(-F_attract, abodyB.GetPos(), False)
+        abodyA.AccumulateForce(F_attract, abodyA.GetPos(), False)
+        abodyB.AccumulateForce(-F_attract, abodyB.GetPos(), False)
 
     sys.DoStepDynamics(stepsize)
 

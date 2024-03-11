@@ -262,8 +262,13 @@ Note that this represents a major public API change and we expect most user code
 |                                   | reset                         | rename: Reset                                    |
 | ChBinaryArchive                   |                               | remove                                           |
 | ChBody                            |                               |                                                  |
+|                                   | Accumulate_force              | rename: AccumulateForce                          |
+|                                   | Accumulate_torque             | rename: AccumulateTorque                         |
 |                                   | Dir_Body2World                | remove                                           |
 |                                   | Dir_World2Body                | remove                                           |
+|                                   | Empty_forces_accumulators     | rename: EmptyAccumulators                        |
+|                                   | Get_accumulated_force         | rename: GetAccumulatedForce                      |
+|                                   | Get_accumulated_torque        | rename: GetAccumulatedTorque                     |
 |                                   | GetBodyFixed                  | rename: IsFixed                                  |
 |                                   | GetCollide                    | rename: IsCollisionEnabled                       |
 |                                   | GetGid                        | remove                                           |

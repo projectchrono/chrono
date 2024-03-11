@@ -100,8 +100,8 @@ void ChWheel::Synchronize() {
 }
 
 void ChWheel::Synchronize(const TerrainForce& tire_force) {
-    m_spindle->Accumulate_force(tire_force.force, tire_force.point, false);
-    m_spindle->Accumulate_torque(tire_force.moment, false);
+    m_spindle->AccumulateForce(tire_force.force, tire_force.point, false);
+    m_spindle->AccumulateTorque(tire_force.moment, false);
 
     ////m_spindle_terrain_force->SetForce(tire_force.force, false);
     ////m_spindle_terrain_force->SetApplicationPoint(tire_force.point, false);

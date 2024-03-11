@@ -320,7 +320,7 @@ int main(int argc, char* argv[]) {
 
         // Create 'B', a 3D rigid body
         auto my_bodyB = chrono_types::make_shared<ChBody>();
-        my_bodyB->Accumulate_torque(ChVector3d(0, 0, 3), true);  // set some constant torque to body
+        my_bodyB->AccumulateTorque(ChVector3d(0, 0, 3), true);  // set some constant torque to body
         sys.Add(my_bodyB);
 
         // Make the torsional spring-damper between shafts A and C.
