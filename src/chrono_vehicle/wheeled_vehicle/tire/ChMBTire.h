@@ -306,6 +306,8 @@ class MBTireModel : public ChPhysicsItem {
 
         void Initialize();
         void CalculateForce();
+        ChMatrixNM<double, 6, 9> CalculateJacobianBlockJ1(double Kfactor, double Rfactor);
+        ChMatrixNM<double, 6, 9> CalculateJacobianBlockJ2(double Kfactor, double Rfactor);
     };
 
     struct GridSpring2 : public Spring2 {
