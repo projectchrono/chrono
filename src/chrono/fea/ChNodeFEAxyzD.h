@@ -83,6 +83,14 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     /// Get the actual number of active degrees of freedom, derivative.
     virtual unsigned int GetNumCoordsVelLevelActive() const override { return m_dof_actual; }
 
+    // SERIALIZATION
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
+
+  protected:
+    /// Initial setup. Set number of degrees of freedom for this node.
+    virtual void SetupInitial(ChSystem* system) override;
+
     // Functions for interfacing to the state bookkeeping
 
     virtual void NodeIntStateGather(const unsigned int off_x,
@@ -174,14 +182,6 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
         ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
         ) override;
 
-    // SERIALIZATION
-    virtual void ArchiveOut(ChArchiveOut& archive) override;
-    virtual void ArchiveIn(ChArchiveIn& archive) override;
-
-  protected:
-    /// Initial setup. Set number of degrees of freedom for this node.
-    virtual void SetupInitial(ChSystem* system) override;
-
     unsigned int m_dof_actual;  ///< actual number of degrees of freedom
 
   private:
@@ -192,6 +192,9 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     ChVector3d D;
     ChVector3d D_dt;
     ChVector3d D_dtdt;
+
+    friend class ChElementCableANCF;
+    friend class ChElementShellANCF_3423;
 };
 
 /// @} fea_nodes

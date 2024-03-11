@@ -52,22 +52,22 @@ class ChApi ChMaterialBeamANCF {
     /// Return the material density.
     double GetDensity() const { return m_rho; }
 
+  private:
+    /// Upper 3x3 block of the elasticity matrix with the terms contributing to the Poisson effect
+    const ChMatrixNM<double, 3, 3>& Get_Dv() const { return m_Dv; }
+
     /// Complete Elasticity Tensor in 6x6 matrix form
     void Get_D(ChMatrix66d& D);
 
     /// Diagonal components of the 6x6 elasticity matrix form without the terms contributing to the Poisson effect
     const ChVectorN<double, 6>& Get_D0() const { return m_D0; }
 
-    /// Upper 3x3 block of the elasticity matrix with the terms contributing to the Poisson effect
-    const ChMatrixNM<double, 3, 3>& Get_Dv() const { return m_Dv; }
+    /// Return the matrix of elastic coefficients: Coupling terms. (For compatibility with ChElementBeam only)
+    const ChMatrix66d& Get_E_eps_Nu() const { return m_E_eps_Nu; }
 
     /// Return the matrix of elastic coefficients: Diagonal terms. (For compatibility with ChElementBeam only)
     const ChMatrix66d& Get_E_eps() const { return m_E_eps; }
 
-    /// Return the matrix of elastic coefficients: Coupling terms. (For compatibility with ChElementBeam only)
-    const ChMatrix66d& Get_E_eps_Nu() const { return m_E_eps_Nu; }
-
-  private:
     /// Calculate the matrix form of two stiffness tensors used by the ANCF beam for selective reduced integration of
     /// the Poisson effect k1 and k2 are Timoshenko shear correction factors.
     void Calc_D0_Dv(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G, double k1, double k2);
@@ -84,6 +84,9 @@ class ChApi ChMaterialBeamANCF {
     ChMatrixNM<double, 3, 3> m_Dv;  ///< Upper 3x3 block of the elasticity matrix with Poisson effect terms
     ChMatrix66d m_E_eps;            ///< matrix of elastic coefficients (For compatibility with ChElementBeam only)
     ChMatrix66d m_E_eps_Nu;         ///< matrix of elastic coefficients (For compatibility with ChElementBeam only)
+
+    friend class ChElementBeamANCF_3243;
+    friend class ChElementBeamANCF_3333;
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

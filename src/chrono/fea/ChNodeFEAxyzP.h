@@ -80,6 +80,11 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
     /// Get the number of degrees of freedom
     virtual unsigned int GetNumCoordsPosLevel() const override { return 1; }
 
+    // SERIALIZATION
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
     // Functions for interfacing to the state bookkeeping
 
     virtual void NodeIntStateGather(const unsigned int off_x,
@@ -120,17 +125,13 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbIncrementPosition(double step) override;
 
-    // SERIALIZATION
-
-    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
-    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
-
-  private:
     ChVariablesGeneric variables;  /// solver proxy: variable with scalar field P
     double P;                      ///< field
     double P_dt;                   ///< field derivative, if needed
     double F;                      ///< applied term
     ChVector3d pos;
+
+    friend class ChElementTetraCorot_4_P;
 };
 
 /// @} fea_nodes

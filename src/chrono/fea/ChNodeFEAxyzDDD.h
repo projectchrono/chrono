@@ -91,6 +91,14 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
     /// Get the actual number of active degrees of freedom, derivative.
     virtual unsigned int GetNumCoordsVelLevelActive() const override { return m_dof_actual; }
 
+    // SERIALIZATION
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
+
+  protected:
+    /// Initial setup. Set number of degrees of freedom for this node.
+    virtual void SetupInitial(ChSystem* system) override;
+
     // Functions for interfacing to the state bookkeeping
 
     virtual void NodeIntStateGather(const unsigned int off_x,
@@ -182,14 +190,6 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
         ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
         ) override;
 
-    // SERIALIZATION
-    virtual void ArchiveOut(ChArchiveOut& archive) override;
-    virtual void ArchiveIn(ChArchiveIn& archive) override;
-
-  protected:
-    /// Initial setup. Set number of degrees of freedom for this node.
-    virtual void SetupInitial(ChSystem* system) override;
-
   private:
     /// Get mass of the node (corresponding to the 3rd slope derivative).
     ChVectorDynamic<>& GetMassDiagonalSlope3() { return variables_DDD->GetMassDiagonal(); }
@@ -198,6 +198,10 @@ class ChApi ChNodeFEAxyzDDD : public ChNodeFEAxyzDD {
     ChVector3d DDD;
     ChVector3d DDD_dt;
     ChVector3d DDD_dtdt;
+
+    friend class ChElementHexaANCF_3843;
+    friend class ChElementBeamANCF_3243;
+    friend class ChElementShellANCF_3443;
 };
 
 /// @} fea_nodes

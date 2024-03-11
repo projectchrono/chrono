@@ -74,6 +74,12 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
     /// Get the number of degrees of freedom
     virtual unsigned int GetNumCoordsPosLevel() const override { return 3; }
 
+    // SERIALIZATION
+
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
+
+  protected:
     // INTERFACE to ChVariableTupleCarrier_1vars
     virtual ChVariables* GetVariables1() override { return &Variables(); }
 
@@ -125,15 +131,21 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbIncrementPosition(double step) override;
 
-    // SERIALIZATION
-
-    virtual void ArchiveOut(ChArchiveOut& archive) override;
-    virtual void ArchiveIn(ChArchiveIn& archive) override;
-
-  protected:
     ChVariablesNode variables;  ///< 3D node variables, with x,y,z
     ChVector3d X0;              ///< reference position
     ChVector3d Force;           ///< applied force
+
+    friend class ChContactNodeXYZ;
+    friend class ChContactTriangleXYZ;
+    friend class ChElementTetraCorot_4;
+    friend class ChElementTetraCorot_10;
+    friend class ChElementHexaCorot_8;
+    friend class ChElementHexaCorot_20;
+    friend class ChHexahedronFace;
+    friend class ChTetrahedronFace;
+    friend class ChElementShellBST;
+    friend class ChElementHexaANCF_3813;
+    friend class ChElementHexaANCF_3813_9;
 };
 
 /// @} fea_nodes

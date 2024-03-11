@@ -98,6 +98,15 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     /// Get the number of degrees of freedom, derivative.
     virtual unsigned int GetNumCoordsVelLevel() const override { return 9; }
 
+    // SERIALIZATION
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
     // Functions for interfacing to the state bookkeeping
 
     virtual void NodeIntStateGather(const unsigned int off_x,
@@ -118,10 +127,10 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
                                        const unsigned int off_v,
                                        const ChStateDelta& Dv) override;
     virtual void NodeIntStateGetIncrement(const unsigned int off_x,
-                                       const ChState& x_new,
-                                       const ChState& x,
-                                       const unsigned int off_v,
-                                       ChStateDelta& Dv) override;
+                                          const ChState& x_new,
+                                          const ChState& x,
+                                          const unsigned int off_v,
+                                          ChStateDelta& Dv) override;
     virtual void NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void NodeIntLoadResidual_Mv(const unsigned int off,
                                         ChVectorDynamic<>& R,
@@ -146,15 +155,6 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbIncrementPosition(double step) override;
 
-    // SERIALIZATION
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
-
-    /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
-
-  private:
     ChVariablesGenericDiagonalMass* m_variables;
 
     ChVector3d m_rxx;
@@ -169,6 +169,8 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     ChVector3d m_rxx_dtdt;
     ChVector3d m_ryy_dtdt;
     ChVector3d m_rzz_dtdt;
+
+    friend class ChElementHexaANCF_3813_9;
 };
 
 /// @} fea_nodes

@@ -70,6 +70,7 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     /// Note that if you add nodes, these should belong to the referenced mesh.
     std::vector<std::shared_ptr<ChLoadXYZnode>>& GetForces() { return m_forces; }
 
+  private:
     // ChLoadBase interface
 
     virtual int LoadGet_ndof_x() override;
@@ -104,7 +105,6 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
 
-  private:
     std::shared_ptr<ChContactSurfaceMesh> m_contact_mesh;
     std::vector<std::shared_ptr<ChLoadXYZnode>> m_forces;
     std::vector<std::shared_ptr<ChLoadXYZROTnodeForceAbsolute>> m_forces_rot;

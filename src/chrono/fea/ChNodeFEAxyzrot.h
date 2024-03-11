@@ -95,6 +95,11 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     /// Get the number of degrees of freedom, derivative (6 because angular velocity for rotation derivative).
     virtual unsigned int GetNumCoordsVelLevel() const override { return 6; }
 
+    // SERIALIZATION
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
     // INTERFACE to ChVariableTupleCarrier_1vars
 
     virtual ChVariables* GetVariables1() override { return &Variables(); }
@@ -119,10 +124,10 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
                                        const unsigned int off_v,
                                        const ChStateDelta& Dv) override;
     virtual void NodeIntStateGetIncrement(const unsigned int off_x,
-                                       const ChState& x_new,
-                                       const ChState& x,
-                                       const unsigned int off_v,
-                                       ChStateDelta& Dv) override;
+                                          const ChState& x_new,
+                                          const ChState& x,
+                                          const unsigned int off_v,
+                                          ChStateDelta& Dv) override;
     virtual void NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void NodeIntLoadResidual_Mv(const unsigned int off,
                                         ChVectorDynamic<>& R,
@@ -202,17 +207,18 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
 
     /// This is not needed because not used in quadrature.
     virtual double GetDensity() override { return 1; }
-
-    // SERIALIZATION
-
-    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
-    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
-
-  private:
+ 
     ChVariablesBodyOwnMass variables;  ///< 3D node variables, with x,y,z displ. and 3D rot.
     ChFrame<> X0;                      ///< reference frame
     ChVector3d Force;                  ///< applied force
     ChVector3d Torque;                 ///< applied torque
+
+    friend class ChContactNodeXYZROT;
+    friend class ChContactTriangleXYZROT;
+    friend class ChElementBeamIGA;
+    friend class ChElementBeamEuler;
+    friend class ChElementBeamTaperedTimoshenko;
+    friend class ChElementShellReissner4;
 };
 
 /// @} fea_nodes

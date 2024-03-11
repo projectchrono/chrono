@@ -45,15 +45,21 @@ class ChApi ChMaterialShellANCF {
     /// Return the material density.
     double GetDensity() const { return m_rho; }
 
+  private:
     /// Return the matrix of elastic coefficients.
     const ChMatrix66d& Get_E_eps() const { return m_E_eps; }
 
-  private:
     /// Calculate the matrix of elastic coefficients.
     void Calc_E_eps(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G);
 
     double m_rho;                      ///< density
     ChMatrix66d m_E_eps;  ///< matrix of elastic coefficients
+
+    friend class ChElementShellANCF_3833;
+    friend class ChElementShellANCF_3443;
+    friend class ChElementShellANCF_3423;
+    friend class ShellANCF_Force;
+    friend class ShellANCF_Jacobian;
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
