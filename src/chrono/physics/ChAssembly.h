@@ -228,7 +228,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     virtual void Update(bool update_assets = true) override;
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
-    virtual void SetNoSpeedNoAcceleration() override;
+    virtual void SetZeroVelocityZeroAcceleration() override;
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGather(const unsigned int off_x,

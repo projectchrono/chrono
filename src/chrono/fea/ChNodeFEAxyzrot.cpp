@@ -51,7 +51,7 @@ ChNodeFEAxyzrot& ChNodeFEAxyzrot::operator=(const ChNodeFEAxyzrot& other) {
     return *this;
 }
 
-void ChNodeFEAxyzrot::SetNoSpeedNoAcceleration() {
+void ChNodeFEAxyzrot::SetZeroVelocityZeroAcceleration() {
     this->GetPosDer() = VNULL;
     this->GetRotDer2() = QNULL;
     this->GetPosDer2() = VNULL;

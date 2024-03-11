@@ -299,7 +299,7 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position)
-    void SetNoSpeedNoAcceleration() override;
+    void SetZeroVelocityZeroAcceleration() override;
 
     /// Add collision models (if any) for all particles to the provided collision system.
     virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
@@ -334,15 +334,15 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     /// be clamped). This is useful in virtual reality and real-time
     /// simulations, because it reduces the risk of bad collision detection.
     /// This speed limit is active only if you set  SetLimitSpeed(true);
-    void SetMaxSpeed(float m_max_speed) { max_speed = m_max_speed; }
-    float GetMaxSpeed() const { return max_speed; }
+    void SetMaxLinVel(float m_max_speed) { max_speed = m_max_speed; }
+    float GetMaxLinVel() const { return max_speed; }
 
     /// Trick. Set the maximum angular speed (beyond this limit it will
     /// be clamped). This is useful in virtual reality and real-time
     /// simulations, because it reduces the risk of bad collision detection.
     /// This speed limit is active only if you set  SetLimitSpeed(true);
-    void SetMaxWvel(float m_max_wvel) { max_wvel = m_max_wvel; }
-    float GetMaxWvel() const { return max_wvel; }
+    void SetMaxAngVel(float m_max_wvel) { max_wvel = m_max_wvel; }
+    float GetMaxAngVel() const { return max_wvel; }
 
     /// When this function is called, the speed of particles is clamped
     /// into limits posed by max_speed and max_wvel  - but remember to
@@ -355,12 +355,12 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     float GetSleepTime() const { return sleep_time; }
 
     /// Set the max linear speed to be kept for 'sleep_time' before freezing.
-    void SetSleepMinSpeed(float m_t) { sleep_minspeed = m_t; }
-    float GetSleepMinSpeed() const { return sleep_minspeed; }
+    void SetSleepMinLinVel(float m_t) { sleep_minspeed = m_t; }
+    float GetSleepMinLinVel() const { return sleep_minspeed; }
 
     /// Set the max linear speed to be kept for 'sleep_time' before freezing.
-    void SetSleepMinWvel(float m_t) { sleep_minwvel = m_t; }
-    float GetSleepMinWvel() const { return sleep_minwvel; }
+    void SetSleepMinAngVel(float m_t) { sleep_minwvel = m_t; }
+    float GetSleepMinAngVel() const { return sleep_minwvel; }
 
     // UPDATE FUNCTIONS
 

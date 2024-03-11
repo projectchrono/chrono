@@ -411,7 +411,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     virtual void Update(bool update_assets = true) override;
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
-    virtual void SetNoSpeedNoAcceleration() override;
+    virtual void SetZeroVelocityZeroAcceleration() override;
 
     /// Get the number of scalar coordinates (ex. dim of position vector)
     virtual unsigned int GetNumCoordsPosLevel() override { return m_num_coords_pos; }

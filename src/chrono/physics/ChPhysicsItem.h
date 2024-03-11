@@ -155,10 +155,10 @@ class ChApi ChPhysicsItem : public ChObj {
     /// data. By default, calls Update(mytime) using item's current time.
     virtual void Update(bool update_assets = true) { Update(ChTime, update_assets); }
 
-    /// Set zero speed (and zero accelerations) in state, without changing the position.
+    /// Set zero velocity (and zero accelerations) in state, without changing the position.
     /// Child classes should implement this function if GetNumCoordsPosLevel() > 0.
     /// It is used by owner ChSystem for some static analysis.
-    virtual void SetNoSpeedNoAcceleration() {}
+    virtual void SetZeroVelocityZeroAcceleration() {}
 
     /// Get the number of coordinates at the position level.
     /// Might differ from coordinates at velocity level if quaternions are used for rotations.

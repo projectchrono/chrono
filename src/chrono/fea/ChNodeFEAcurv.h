@@ -83,7 +83,7 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     virtual void Relax() override;
 
     /// Reset to no speed and acceleration.
-    virtual void SetNoSpeedNoAcceleration() override;
+    virtual void SetZeroVelocityZeroAcceleration() override;
 
     /// Fix/release this node.
     /// If fixed, its state variables are not changed by the solver.

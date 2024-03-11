@@ -36,7 +36,7 @@ class ChApi ChNodeFEAbase : public virtual ChNodeBase {
     virtual void Relax() = 0;
 
     /// Reset to no speed and acceleration.
-    virtual void SetNoSpeedNoAcceleration() = 0;
+    virtual void SetZeroVelocityZeroAcceleration() = 0;
 
     /// Fix/release this node.
     /// If fixed, its state variables are not changed by the solver.

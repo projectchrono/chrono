@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
     diam = sqrt(1e-6 / CH_C_PI) * 2.0 * f_const;
     msection_cable->SetDiameter(diam);
     msection_cable->SetYoungModulus(1e9 / pow(f_const, 4));
-    msection_cable->SetI(CH_C_PI / 4.0 * pow(diam / 2, 4));
+    msection_cable->SetInertia(CH_C_PI / 4.0 * pow(diam / 2, 4));
     rho = 8000 / pow(f_const, 2);
     msection_cable->SetDensity(rho);
 

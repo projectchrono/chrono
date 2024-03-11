@@ -42,11 +42,11 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     /// Set the rest position as the actual position.
     virtual void Relax() override {
         X0 = *this;
-        SetNoSpeedNoAcceleration();
+        SetZeroVelocityZeroAcceleration();
     }
 
     /// Reset to no speed and acceleration.
-    virtual void SetNoSpeedNoAcceleration() override;
+    virtual void SetZeroVelocityZeroAcceleration() override;
 
     /// Fix/release this node.
     /// If fixed, its state variables are not changed by the solver.

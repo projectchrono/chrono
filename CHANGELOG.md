@@ -198,6 +198,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_meshlist                  | rename: GetMeshes                                |
 |                                   | Get_otherphysicslist          | rename: GetShafts                                |
 |                                   | Get_shaftslist                | rename: GetOtherPhysicsItems                     |
+|                                   | GetForceList                  | rename: GetForces                               |
+|                                   | GetMarkerList                 | rename: GetMarkers                               |
 |                                   | GetNbodies                    | rename: GetNumBodiesActive                       |
 |                                   | GetNbodiesFixed               | rename: GetNumBodiesFixed                        |
 |                                   | GetNbodiesSleeping            | rename: GetNumBodiesSleeping                     |
@@ -221,7 +223,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNsysvars_w                 | remove                                           |
 | ChBeamSectionCable                |                               |                                                  |
 |                                   | GetBeamRayleighDamping        | rename: GetRayleighDamping                       |
+|                                   | GetI                          | rename: GetInertia                               |
 |                                   | SetBeamRayleighDamping        | rename: SetRayleighDamping                       |
+|                                   | SetI                          | rename: SetInertia                               |
 | ChBeamSectionEuler                |                               |                                                  |
 |                                   | GetBeamRayleighDampingAlpha   | rename: GetRayleighDampingAlpha                  |
 |                                   | GetBeamRayleighDampingBeta    | rename: GetRayleighDampingBeta                   |
@@ -261,9 +265,13 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Dir_World2Body                | remove                                           |
 |                                   | GetBodyFixed                  | rename: IsFixed                                  |
 |                                   | GetCollide                    | rename: IsCollisionEnabled                       |
-|                                   | GetId                         | rename: GetIndex (internal use only)             |
 |                                   | GetGid                        | remove                                           |
+|                                   | GetId                         | rename: GetIndex (internal use only)             |
+|                                   | GetMaxSpeed                   | rename: GetMaxLinVel                             |
+|                                   | GetMaxWvel                    | rename: GetMaxAngVel                             |
 |                                   | GetSleeping                   | rename: IsSleeping                               |
+|                                   | GetSleepMinSpeed              | rename: GetSleepMinLinVel                        |
+|                                   | GetSleepMinWvel               | rename: GetSleepMinAngVel                        |
 |                                   | GetUseSleeping                | rename: IsSleepingAllowed                        |
 |                                   | Point_Body2World              | remove                                           |
 |                                   | Point_World2Body              | remove                                           |
@@ -271,8 +279,12 @@ Note that this represents a major public API change and we expect most user code
 |                                   | RelPoint_AbsSpeed             | remove                                           |
 |                                   | SetBodyFixed                  | rename: SetFixed                                 |
 |                                   | SetCollide                    | rename: EnableCollision                          |
-|                                   | SetId                         | remove                                           |
 |                                   | SetGid                        | remove                                           |
+|                                   | SetId                         | remove                                           |
+|                                   | SetMaxSpeed                   | rename: SetMaxLinVel                             |
+|                                   | SetMaxWvel                    | rename: SetMaxAngVel                             |
+|                                   | SetSleepMinSpeed              | rename: SetSleepMinLinVel                        |
+|                                   | SetSleepMinWvel               | rename: SetSleepMinAngVel                        |
 |                                   | SetUseSleeping                | rename: SetSleepingAllowed                       |
 | ChBodyFrame                       |                               |                                                  |
 |                                   | To_abs_forcetorque            | remove                                           |
@@ -705,6 +717,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetDOC_d                      | rename: GetNumConstraintsUnilateral              |
 |                                   | GetDOF                        | rename: GetNumCoordsPosLevel                     |
 |                                   | GetDOF_w                      | rename: GetNumCoordsVelLevel                     |
+|                                   | SetNoSpeedNoAcceleration      | rename: SetZeroVelocityZeroAcceleration          |
 | ChQuaternion                      |                               |                                                  |
 |                                   | free functions                | rename and move to ChRotation.h (see Notes)      |
 |                                   | GetXaxis                      | rename: GetAxisX                                 |
@@ -917,7 +930,7 @@ Note that this represents a major public API change and we expect most user code
 + The signature of all ChLink `Initialize()` functions were changed to consistently use `ChFrame` objects to specify link position and alignment (where previously some of them used `ChCoordsys`).
   A corresponding change was done for the constructor of `vehicle::ChVehicleJoint`.
 
-+ `ChStream` classes were simple wrappers around C++ ouptut streams. The entire code has been now refactored to operate on STL streams directly, in order to simplify the API and to allow the user a more familiar interaction with streams in Chrono.
++ `ChStream` classes were simple wrappers around C++ output streams. The entire code has been now refactored to operate on STL streams directly, in order to simplify the API and to allow the user a more familiar interaction with streams in Chrono.
   - the `operator<<` associated to `ChStreamOutAscii` has been removed: this means that it is not possible to stream custom classes through this operator;
   this option has been replaced by appropriate overloads of STL streams (clearly limited to data members publicly accessible) or by the direct usage of `ChOutputASCII`.
   - `ChStream[In/Out]Binary` features to operate on streams through the `read|write` methods have been incorporated into the one class that was using it, namely `ChArchiveBinary`. 

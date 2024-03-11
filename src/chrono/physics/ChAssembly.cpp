@@ -668,21 +668,21 @@ void ChAssembly::Update(bool update_assets) {
     }
 }
 
-void ChAssembly::SetNoSpeedNoAcceleration() {
+void ChAssembly::SetZeroVelocityZeroAcceleration() {
     for (auto& body : bodylist) {
-        body->SetNoSpeedNoAcceleration();
+        body->SetZeroVelocityZeroAcceleration();
     }
     for (auto& shaft : shaftlist) {
-        shaft->SetNoSpeedNoAcceleration();
+        shaft->SetZeroVelocityZeroAcceleration();
     }
     for (auto& link : linklist) {
-        link->SetNoSpeedNoAcceleration();
+        link->SetZeroVelocityZeroAcceleration();
     }
     for (auto& mesh : meshlist) {
-        mesh->SetNoSpeedNoAcceleration();
+        mesh->SetZeroVelocityZeroAcceleration();
     }
     for (auto& item : otherphysicslist) {
-        item->SetNoSpeedNoAcceleration();
+        item->SetZeroVelocityZeroAcceleration();
     }
 }
 
@@ -1484,11 +1484,11 @@ void ChAssembly::ShowHierarchy(std::ostream& outstream, int level) const {
     for (auto& body : bodylist) {
         outstream << mtabs << "  BODY:       " << body->GetName() << std::endl;
 
-        for (auto& marker : body->GetMarkerList()) {
+        for (auto& marker : body->GetMarkers()) {
             outstream << mtabs << "    MARKER:  " << marker->GetName() << std::endl;
         }
 
-        for (auto& force : body->GetForceList()) {
+        for (auto& force : body->GetForces()) {
             outstream << mtabs << "    FORCE:  " << force->GetName() << std::endl;
         }
     }

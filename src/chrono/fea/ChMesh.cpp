@@ -76,10 +76,10 @@ void ChMesh::Relax() {
     }
 }
 
-void ChMesh::SetNoSpeedNoAcceleration() {
+void ChMesh::SetZeroVelocityZeroAcceleration() {
     for (unsigned int i = 0; i < vnodes.size(); i++) {
         // set null speeds, null accelerations
-        vnodes[i]->SetNoSpeedNoAcceleration();
+        vnodes[i]->SetZeroVelocityZeroAcceleration();
     }
 }
 
