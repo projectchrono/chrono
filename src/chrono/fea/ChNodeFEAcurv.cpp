@@ -87,7 +87,7 @@ void ChNodeFEAcurv::Relax() {
     m_rzz_dtdt = VNULL;
 }
 
-void ChNodeFEAcurv::SetNoSpeedNoAcceleration() {
+void ChNodeFEAcurv::ForceToRest() {
     m_rxx_dt = VNULL;
     m_ryy_dt = VNULL;
     m_rzz_dt = VNULL;

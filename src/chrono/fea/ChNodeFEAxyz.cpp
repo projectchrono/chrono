@@ -53,10 +53,10 @@ bool ChNodeFEAxyz::IsFixed() const {
 
 void ChNodeFEAxyz::Relax() {
     X0 = pos;
-    SetNoSpeedNoAcceleration();
+    ForceToRest();
 }
 
-void ChNodeFEAxyz::SetNoSpeedNoAcceleration() {
+void ChNodeFEAxyz::ForceToRest() {
     pos_dt = VNULL;
     pos_dtdt = VNULL;
 }

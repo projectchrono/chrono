@@ -55,7 +55,7 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     ChVariables& VariablesSlope1() { return *variables_D; }
 
     /// Reset to no speed and acceleration.
-    virtual void SetNoSpeedNoAcceleration() override;
+    virtual void ForceToRest() override;
 
     /// Fix/release this node.
     /// If fixed, its state variables are not changed by the solver.

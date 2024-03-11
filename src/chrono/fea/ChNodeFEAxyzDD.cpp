@@ -53,8 +53,8 @@ ChNodeFEAxyzDD& ChNodeFEAxyzDD::operator=(const ChNodeFEAxyzDD& other) {
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAxyzDD::SetNoSpeedNoAcceleration() {
-    ChNodeFEAxyzD::SetNoSpeedNoAcceleration();
+void ChNodeFEAxyzDD::ForceToRest() {
+    ChNodeFEAxyzD::ForceToRest();
 
     DD_dt = VNULL;
     DD_dtdt = VNULL;

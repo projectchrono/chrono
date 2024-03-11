@@ -196,7 +196,7 @@ void ChShaft::VariablesQbIncrementPosition(double dt_step) {
     pos = pos + newspeed * dt_step;
 }
 
-void ChShaft::SetNoSpeedNoAcceleration() {
+void ChShaft::ForceToRest() {
     pos_dt = 0;
     pos_dtdt = 0;
 }

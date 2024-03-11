@@ -41,7 +41,7 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
     virtual void Relax() override;
 
     /// Reset to no speed and acceleration.
-    virtual void SetNoSpeedNoAcceleration() override { P_dt = 0; }
+    virtual void ForceToRest() override { P_dt = 0; }
 
     /// Fix/release this node.
     /// If fixed, its state variables are not changed by the solver.

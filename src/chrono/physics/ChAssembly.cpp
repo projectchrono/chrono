@@ -668,21 +668,21 @@ void ChAssembly::Update(bool update_assets) {
     }
 }
 
-void ChAssembly::SetNoSpeedNoAcceleration() {
+void ChAssembly::ForceToRest() {
     for (auto& body : bodylist) {
-        body->SetNoSpeedNoAcceleration();
+        body->ForceToRest();
     }
     for (auto& shaft : shaftlist) {
-        shaft->SetNoSpeedNoAcceleration();
+        shaft->ForceToRest();
     }
     for (auto& link : linklist) {
-        link->SetNoSpeedNoAcceleration();
+        link->ForceToRest();
     }
     for (auto& mesh : meshlist) {
-        mesh->SetNoSpeedNoAcceleration();
+        mesh->ForceToRest();
     }
     for (auto& item : otherphysicslist) {
-        item->SetNoSpeedNoAcceleration();
+        item->ForceToRest();
     }
 }
 

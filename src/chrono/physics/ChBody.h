@@ -124,7 +124,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     virtual ChVariables& Variables() override { return variables; }
 
     /// Set no speed and no accelerations (but does not change the position).
-    void SetNoSpeedNoAcceleration() override;
+    void ForceToRest() override;
 
     /// Add the body collision model (if any) to the provided collision system.
     virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;

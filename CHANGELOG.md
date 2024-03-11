@@ -219,6 +219,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNshaftsTotal               | rename: GetNumShaftsTotal                        |
 |                                   | GetNsysvars                   | remove                                           |
 |                                   | GetNsysvars_w                 | remove                                           |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 | ChBeamSectionCable                |                               |                                                  |
 |                                   | GetBeamRayleighDamping        | rename: GetRayleighDamping                       |
 |                                   | SetBeamRayleighDamping        | rename: SetRayleighDamping                       |
@@ -273,6 +274,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetCollide                    | rename: EnableCollision                          |
 |                                   | SetId                         | remove                                           |
 |                                   | SetGid                        | remove                                           |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 |                                   | SetUseSleeping                | rename: SetSleepingAllowed                       |
 | ChBodyFrame                       |                               |                                                  |
 |                                   | To_abs_forcetorque            | remove                                           |
@@ -684,10 +686,12 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNcontactSurfaces           | rename: GetNumContactSurfaces                    |
 |                                   | GetNelements                  | rename: GetNumElements                           |
 |                                   | GetNmeshSurfaces              | rename: GetNumMeshSurfaces                       |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 | ChMinMaxDistribution              |                               | rename: ChUniformDistribution                    |
 | ChModalAssembly                   |                               |                                                  |
 |                                   | refer to ChAssembly           | like ChAssembly with boundary/internal suffixes  |
 |                                   | DumpSubassemblyMatrices       | rename: WriteSubassemblyMatrices                 |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 | ChNodeBase                        |                               |                                                  |
 |                                   | GetNdofX                      | rename: GetNumCoordsPosLevel                     |
 |                                   | GetNdofX_active               | rename: GetNumCoordsPosLevelActive               |
@@ -698,6 +702,12 @@ Note that this represents a major public API change and we expect most user code
 |                                   | NodeSetOffset_x               | rename: NodeSetOffsetPosLevel                    |
 |                                   | NodeSetOffset_w               | rename: NodeSetOffsetVelLevel                    |
 |                                   | UseFullDof                    | rename: IsAllCoordsActive                        |
+| ChNodeFEAbase                     |                               |                                                  |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+| ChNodeFEAcurv                     |                               |                                                  |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+| ChNodeFEAxyz                      |                               |                                                  |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 | ChNodeFEAxyzD                     |                               |                                                  |
 |                                   | GetD                          | rename: GetSlope1                                |
 |                                   | GetD_dt                       | rename: GetSlope1Der                             |
@@ -707,6 +717,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetD_dt                       | rename: SetSlope1Der                             |
 |                                   | SetD_dtdt                     | rename: SetSlope1Der2                            |
 |                                   | SetFixedD                     | rename: SetSlope1Fixed                           |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 |                                   | Variable_D                    | rename: VariablesSlope1                          |
 | ChNodeFEAxyzDD                    |                               |                                                  |
 |                                   | GetDD                         | rename: GetSlope2                                |
@@ -717,6 +728,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetDD_dt                      | rename: SetSlope2Der                             |
 |                                   | SetDD_dtdt                    | rename: SetSlope2Der2                            |
 |                                   | SetFixedDD                    | rename: SetSlope2Fixed                           |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 |                                   | Variable_DD                   | rename: VariablesSlope2                          |
 | ChNodeFEAxyzDDD                   |                               |                                                  |
 |                                   | GetDDD                        | rename: GetSlope3                                |
@@ -727,7 +739,12 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetDDD_dt                     | rename: SetSlope3Der                             |
 |                                   | SetDDD_dtdt                   | rename: SetSlope3Der2                            |
 |                                   | SetFixedDDD                   | rename: SetSlope3Fixed                           |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 |                                   | Variable_DDD                  | rename: VariablesSlope3                          |
+| ChNodeFEAxyzrot                   |                               |                                                  |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+| ChParticleCloud                   |                               |                                                  |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 | ChPhysicsItem                     |                               |                                                  |
 |                                   | GetDOC                        | rename: GetNumConstraints                        |
 |                                   | GetDOC_c                      | rename: GetNumConstraintsBilateral               |
@@ -766,6 +783,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetId                         | rename: GetIndex (internal use only)             |
 |                                   | GetGid                        | remove                                           |
 |                                   | GetSleeping                   | rename: IsSleeping                               |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 |                                   | GetUseSleeping                | rename: IsSleepingAllowed                        |
 |                                   | SetUseSleeping                | rename: SetSleepingAllowed                       |
 | ChSolverBB                        |                               |                                                  |

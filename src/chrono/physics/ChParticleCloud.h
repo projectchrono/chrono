@@ -299,7 +299,7 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position)
-    void SetNoSpeedNoAcceleration() override;
+    void ForceToRest() override;
 
     /// Add collision models (if any) for all particles to the provided collision system.
     virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;

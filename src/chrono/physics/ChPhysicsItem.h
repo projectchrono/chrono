@@ -158,7 +158,7 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Set zero speed (and zero accelerations) in state, without changing the position.
     /// Child classes should implement this function if GetNumCoordsPosLevel() > 0.
     /// It is used by owner ChSystem for some static analysis.
-    virtual void SetNoSpeedNoAcceleration() {}
+    virtual void ForceToRest() {}
 
     /// Get the number of coordinates at the position level.
     /// Might differ from coordinates at velocity level if quaternions are used for rotations.

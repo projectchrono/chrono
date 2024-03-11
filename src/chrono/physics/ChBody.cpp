@@ -308,7 +308,7 @@ void ChBody::VariablesQbIncrementPosition(double dt_step) {
     SetRot(mnewrot);
 }
 
-void ChBody::SetNoSpeedNoAcceleration() {
+void ChBody::ForceToRest() {
     SetPosDer(VNULL);
     SetAngVelLocal(VNULL);
     SetPosDer2(VNULL);
