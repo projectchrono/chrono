@@ -111,7 +111,7 @@ void ChElementShellANCF_3423::SetupInitial(ChSystem* system) {
     m_thickness = 0;
     for (size_t kl = 0; kl < m_numLayers; kl++) {
         m_layers[kl].SetupInitial();
-        m_thickness += m_layers[kl].Get_thickness();
+        m_thickness += m_layers[kl].GetThickness();
     }
 
     // Loop again over the layers and calculate the range for Gauss integration in the
@@ -119,7 +119,7 @@ void ChElementShellANCF_3423::SetupInitial(ChSystem* system) {
     m_GaussZ.push_back(-1);
     double z = 0;
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        z += m_layers[kl].Get_thickness();
+        z += m_layers[kl].GetThickness();
         m_GaussZ.push_back(2 * z / m_thickness - 1);
     }
 
@@ -215,7 +215,7 @@ void ChElementShellANCF_3423::ComputeMassMatrix() {
     m_MassMatrix.setZero();
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        double rho = m_layers[kl].GetMaterial()->Get_rho();
+        double rho = m_layers[kl].GetMaterial()->GetDensity();
         ShellANCF_Mass myformula(this);
         ChMatrixNM<double, 24, 24> TempMassMatrix;
         TempMassMatrix.setZero();
@@ -270,7 +270,7 @@ void ChElementShellANCF_3423::ComputeGravityForceScale() {
     m_GravForceScale.setZero();
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        double rho = m_layers[kl].GetMaterial()->Get_rho();
+        double rho = m_layers[kl].GetMaterial()->GetDensity();
         ShellANCF_Gravity myformula(this);
         VectorN Fgravity;
         Fgravity.setZero();
@@ -373,7 +373,7 @@ void ShellANCF_Force::Evaluate(ChVectorN<double, 54>& result, const double x, co
     A2.Cross(A3, A1);
 
     // Direction for orthotropic material
-    double theta = m_element->GetLayer(m_kl).Get_theta();  // Fiber angle
+    double theta = m_element->GetLayer(m_kl).GetFiberAngle();  // Fiber angle
     ChVector3d AA1;
     ChVector3d AA2;
     ChVector3d AA3;
@@ -714,7 +714,7 @@ void ShellANCF_Jacobian::Evaluate(ChVectorN<double, 696>& result, const double x
     A2.Cross(A3, A1);
 
     // Direction for orthotropic material
-    double theta = m_element->GetLayer(m_kl).Get_theta();  // Fiber angle
+    double theta = m_element->GetLayer(m_kl).GetFiberAngle();  // Fiber angle
     ChVector3d AA1;
     ChVector3d AA2;
     ChVector3d AA3;
@@ -1697,8 +1697,8 @@ void ChElementShellANCF_3423::ComputeNF(
 double ChElementShellANCF_3423::GetDensity() {
     double tot_density = 0;
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        double rho = m_layers[kl].GetMaterial()->Get_rho();
-        double layerthick = m_layers[kl].Get_thickness();
+        double rho = m_layers[kl].GetMaterial()->GetDensity();
+        double layerthick = m_layers[kl].GetThickness();
         tot_density += rho * layerthick;
     }
     return tot_density / m_thickness;

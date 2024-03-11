@@ -100,11 +100,11 @@ class ChApi ChElasticityReissnerIsothropic : public ChElasticityReissner {
     /// Return the elasticity moduli
     double GetYoungModulus() const { return m_E; }
     /// Return the Poisson ratio
-    double Get_nu() const { return m_nu; }
+    double GetPoissonRatio() const { return m_nu; }
     /// Return the shear factor
-    double Get_alpha() const { return m_alpha; }
+    double GetShearFactor() const { return m_alpha; }
     /// Return the torque factor
-    double Get_beta() const { return m_beta; }
+    double GetTorqueFactor() const { return m_beta; }
 
     /// The FE code will evaluate this function to compute
     /// per-unit-length forces/torques given the u,v strains/curvatures.
@@ -172,23 +172,23 @@ class ChApi ChElasticityReissnerOrthotropic : public ChElasticityReissner {
     );
 
     /// Return the elasticity moduli, on x
-    double Get_E_x() const { return E_x; }
+    double GetYoungModulusX() const { return E_x; }
     /// Return the elasticity moduli, on y
-    double Get_E_y() const { return E_y; }
+    double GetYoungModulusY() const { return E_y; }
     /// Return the Poisson ratio, for xy
-    double Get_nu_xy() const { return nu_xy; }
+    double GetPoissonRatioXY() const { return nu_xy; }
     /// Return the Poisson ratio, for yx (follows xy as it must be nu_yx*E_x = nu_xy*E_y)
-    double Get_nu_yx() const { return nu_xy * (E_y / E_x); }
+    double GetPoissonRatioYX() const { return nu_xy * (E_y / E_x); }
     /// Return the shear mod, in plane
-    double Get_G_xy() const { return G_xy; }
+    double GetShearModulusXY() const { return G_xy; }
     /// Return the shear mod, transverse
-    double Get_G_xz() const { return G_xz; }
+    double GetShearModulusXZ() const { return G_xz; }
     /// Return the shear mod, transverse
-    double Get_G_yz() const { return G_yz; }
+    double GetShearModulusYZ() const { return G_yz; }
     /// Return the shear factor
-    double Get_alpha() const { return alpha; }
+    double GetShearFactor() const { return alpha; }
     /// Return the torque factor
-    double Get_beta() const { return beta; }
+    double GetTorqueFactor() const { return beta; }
 
     /// The FE code will evaluate this function to compute
     /// per-unit-length forces/torques  given the u,v strains/curvatures.
@@ -611,9 +611,6 @@ class ChApi ChMaterialShellReissner  {
 	/// Set the density of the shell (kg/m^3)
     void SetDensity(double md) { this->density = md; }
     double GetDensity() const { return this->density; }
-
-	///for backward compatibility - use GetDensity instead
-	double Get_rho() const { return this->density; }
 
   private:
 

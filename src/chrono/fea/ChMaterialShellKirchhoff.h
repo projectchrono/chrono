@@ -88,7 +88,7 @@ class ChApi ChElasticityKirchhoffIsothropic : public ChElasticityKirchhoff {
     /// Return the elasticity moduli
     double GetYoungModulus() const { return m_E; }
     /// Return the Poisson ratio
-    double Get_nu() const { return m_nu; }
+    double GetPoissonRatio() const { return m_nu; }
 
     /// The FE code will evaluate this function to compute
     /// per-unit-length forces/torques given the strains/curvatures.
@@ -139,15 +139,15 @@ class ChApi ChElasticityKirchhoffOrthotropic : public ChElasticityKirchhoff {
     );
 
     /// Return the elasticity moduli, on x
-    double Get_E_x() const { return E_x; }
+    double GetYoungModulusX() const { return E_x; }
     /// Return the elasticity moduli, on y
-    double Get_E_y() const { return E_y; }
+    double GetYoungModulusY() const { return E_y; }
     /// Return the Poisson ratio, for xy
-    double Get_nu_xy() const { return nu_xy; }
+    double GetPoissonRatioXY() const { return nu_xy; }
     /// Return the Poisson ratio, for yx (follows xy as it must be nu_yx*E_x = nu_xy*E_y)
-    double Get_nu_yx() const { return nu_xy * (E_y / E_x); }
+    double GetPoissonRatioYX() const { return nu_xy * (E_y / E_x); }
     /// Return the shear mod, in plane
-    double Get_G_xy() const { return G_xy; }
+    double GetShearModulusXY() const { return G_xy; }
 
     /// The FE code will evaluate this function to compute
     /// per-unit-length forces/torques given the strains/curvatures.

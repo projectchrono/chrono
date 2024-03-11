@@ -781,7 +781,7 @@ void ChElementHexaANCF_3843::ComputeNF(
 // Return the element density (needed for ChLoaderVolumeGravity).
 
 double ChElementHexaANCF_3843::GetDensity() {
-    return GetMaterial()->Get_rho();
+    return GetMaterial()->GetDensity();
 }
 
 // -----------------------------------------------------------------------------
@@ -808,7 +808,7 @@ void ChElementHexaANCF_3843::ComputeMassMatrixAndGravityForce() {
     MassMatrixCompactSquare.setZero();
     m_GravForceScale.setZero();
 
-    double rho = GetMaterial()->Get_rho();  // Density of the material for the element
+    double rho = GetMaterial()->GetDensity();  // Density of the material for the element
 
     // Sum the contribution to the mass matrix and generalized force due to gravity at the current point
     for (unsigned int it_xi = 0; it_xi < GQTable->Lroots[GQ_idx_xi_eta_zeta].size(); it_xi++) {

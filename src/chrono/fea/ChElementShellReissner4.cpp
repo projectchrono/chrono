@@ -369,14 +369,14 @@ void ChElementShellReissner4::SetLayerZreferenceCentered() {
     // accumulate element thickness.
     tot_thickness = 0;
     for (size_t kl = 0; kl < m_layers.size(); kl++) {
-        tot_thickness += m_layers[kl].Get_thickness();
+        tot_thickness += m_layers[kl].GetThickness();
     }
 
     // Loop again over the layers and calculate the z levels of layers, by centering them
     m_layers_z.clear();
     m_layers_z.push_back(-0.5 * this->GetThickness());
     for (size_t kl = 0; kl < m_layers.size(); kl++) {
-        m_layers_z.push_back(m_layers_z[kl] + m_layers[kl].Get_thickness());
+        m_layers_z.push_back(m_layers_z[kl] + m_layers[kl].GetThickness());
     }
 }
 
@@ -384,14 +384,14 @@ void ChElementShellReissner4::SetLayerZreference(double z_from_bottom) {
     // accumulate element thickness.
     tot_thickness = 0;
     for (size_t kl = 0; kl < m_layers.size(); kl++) {
-        tot_thickness += m_layers[kl].Get_thickness();
+        tot_thickness += m_layers[kl].GetThickness();
     }
 
     // Loop again over the layers and calculate the z levels of layers, by centering them
     m_layers_z.clear();
     m_layers_z.push_back(z_from_bottom);
     for (size_t kl = 0; kl < m_layers.size(); kl++) {
-        m_layers_z.push_back(m_layers_z[kl] + m_layers[kl].Get_thickness());
+        m_layers_z.push_back(m_layers_z[kl] + m_layers[kl].GetThickness());
     }
 }
 
@@ -866,7 +866,7 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
         for (size_t il = 0; il < this->m_layers.size(); ++il) {
             // compute layer stresses (per-unit-length forces and torques), and accumulate
             m_layers[il].GetMaterial()->ComputeStress(l_n1, l_n2, l_m1, l_m2, eps_tot_1, eps_tot_2, k_tot_1, k_tot_2,
-                                                      m_layers_z[il], m_layers_z[il + 1], m_layers[il].Get_theta());
+                                                      m_layers_z[il], m_layers_z[il + 1], m_layers[il].GetFiberAngle());
             n1 += l_n1;
             n2 += l_n2;
             m1 += l_m1;
@@ -951,7 +951,7 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
                 // compute layer stresses (per-unit-length forces and torques), and accumulate  [C]*[B_i]*v
                 m_layers[il].GetMaterial()->GetDamping()->ComputeStress(l_n1, l_n2, l_m1, l_m2, eps_dt_1, eps_dt_2,
                                                                         k_dt_1, k_dt_2, m_layers_z[il],
-                                                                        m_layers_z[il + 1], m_layers[il].Get_theta());
+                                                                        m_layers_z[il + 1], m_layers[il].GetFiberAngle());
                 n1 += l_n1;
                 n2 += l_n2;
                 m1 += l_m1;
@@ -999,7 +999,7 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
             m_layers[il].GetMaterial()->ComputeStiffnessMatrix(
                 l_C, eps_tilde_1_i[i], eps_tilde_2_i[i], k_tilde_1_i[i], k_tilde_2_i[i], m_layers_z[il],
                 m_layers_z[il + 1],
-                m_layers[il].Get_theta());  // ***TODO*** use the total epsilon including the 'hat' component from EAS
+                m_layers[il].GetFiberAngle());  // ***TODO*** use the total epsilon including the 'hat' component from EAS
             C += l_C;
         }
 
@@ -1045,7 +1045,7 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
                 m_layers[il].GetMaterial()->GetDamping()->ComputeDampingMatrix(
                     l_C, VNULL, VNULL, VNULL, VNULL,  //// TODO  should be more general: eps_dt_tilde_1_i[i],
                                                       //eps_dt_tilde_2_i[i], k_dt_tilde_1_i[i], k_dt_tilde_2_i[i],
-                    m_layers_z[il], m_layers_z[il + 1], m_layers[il].Get_theta());
+                    m_layers_z[il], m_layers_z[il + 1], m_layers[il].GetFiberAngle());
                 C += l_C;
             }
         }
@@ -1245,8 +1245,8 @@ void ChElementShellReissner4::ComputeNF(
 double ChElementShellReissner4::GetDensity() {
     double tot_density = 0;
     for (size_t kl = 0; kl < m_layers.size(); kl++) {
-        double rho = m_layers[kl].GetMaterial()->Get_rho();
-        double layerthick = m_layers[kl].Get_thickness();
+        double rho = m_layers[kl].GetMaterial()->GetDensity();
+        double layerthick = m_layers[kl].GetThickness();
         tot_density += rho * layerthick;
     }
     return tot_density / tot_thickness;

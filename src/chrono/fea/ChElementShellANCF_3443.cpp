@@ -216,8 +216,8 @@ ChMatrix33<> ChElementShellANCF_3443::GetPK2Stress(const double layer,
                                                    const double layer_zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     double layer_midsurface_offset =
-        -m_thicknessZ / 2 + m_layer_zoffsets[layer] + m_layers[layer].Get_thickness() / 2 + m_midsurfoffset;
-    Calc_Sxi_D(Sxi_D, xi, eta, layer_zeta, m_layers[layer].Get_thickness(), layer_midsurface_offset);
+        -m_thicknessZ / 2 + m_layer_zoffsets[layer] + m_layers[layer].GetThickness() / 2 + m_midsurfoffset;
+    Calc_Sxi_D(Sxi_D, xi, eta, layer_zeta, m_layers[layer].GetThickness(), layer_midsurface_offset);
 
     ChMatrix33<double> J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
     J_0xi.noalias() = m_ebar0 * Sxi_D;
@@ -262,7 +262,7 @@ ChMatrix33<> ChElementShellANCF_3443::GetPK2Stress(const double layer,
     // this element compared to what is used in ChMaterialShellANCF
 
     ChMatrixNM<double, 6, 6> D = m_layers[layer].GetMaterial()->Get_E_eps();
-    RotateReorderStiffnessMatrix(D, m_layers[layer].Get_theta());
+    RotateReorderStiffnessMatrix(D, m_layers[layer].GetFiberAngle());
 
     ChVectorN<double, 6> sigmaPK2 = D * epsilon_combined;  // 2nd Piola Kirchhoff Stress tensor in Voigt notation
 
@@ -290,8 +290,8 @@ double ChElementShellANCF_3443::GetVonMissesStress(const double layer,
                                                    const double layer_zeta) {
     MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
     double layer_midsurface_offset =
-        -m_thicknessZ / 2 + m_layer_zoffsets[layer] + m_layers[layer].Get_thickness() / 2 + m_midsurfoffset;
-    Calc_Sxi_D(Sxi_D, xi, eta, layer_zeta, m_layers[layer].Get_thickness(), layer_midsurface_offset);
+        -m_thicknessZ / 2 + m_layer_zoffsets[layer] + m_layers[layer].GetThickness() / 2 + m_midsurfoffset;
+    Calc_Sxi_D(Sxi_D, xi, eta, layer_zeta, m_layers[layer].GetThickness(), layer_midsurface_offset);
 
     ChMatrix33<double> J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
     J_0xi.noalias() = m_ebar0 * Sxi_D;
@@ -336,7 +336,7 @@ double ChElementShellANCF_3443::GetVonMissesStress(const double layer,
     // this element compared to what is used in ChMaterialShellANCF
 
     ChMatrixNM<double, 6, 6> D = m_layers[layer].GetMaterial()->Get_E_eps();
-    RotateReorderStiffnessMatrix(D, m_layers[layer].Get_theta());
+    RotateReorderStiffnessMatrix(D, m_layers[layer].GetFiberAngle());
 
     ChVectorN<double, 6> sigmaPK2 = D * epsilon_combined;  // 2nd Piola Kirchhoff Stress tensor in Voigt notation
 
@@ -797,8 +797,8 @@ void ChElementShellANCF_3443::ComputeNF(
 double ChElementShellANCF_3443::GetDensity() {
     double tot_density = 0;
     for (int kl = 0; kl < m_numLayers; kl++) {
-        double rho = m_layers[kl].GetMaterial()->Get_rho();
-        double layerthick = m_layers[kl].Get_thickness();
+        double rho = m_layers[kl].GetMaterial()->GetDensity();
+        double layerthick = m_layers[kl].GetThickness();
         tot_density += rho * layerthick;
     }
     return tot_density / m_thicknessZ;
@@ -845,11 +845,11 @@ void ChElementShellANCF_3443::ComputeMassMatrixAndGravityForce() {
     m_GravForceScale.setZero();
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        double rho = m_layers[kl].GetMaterial()->Get_rho();  // Density of the material for the current layer
-        double thickness = m_layers[kl].Get_thickness();
+        double rho = m_layers[kl].GetMaterial()->GetDensity();  // Density of the material for the current layer
+        double thickness = m_layers[kl].GetThickness();
         double zoffset = m_layer_zoffsets[kl];
         double layer_midsurface_offset =
-            -m_thicknessZ / 2 + m_layer_zoffsets[kl] + m_layers[kl].Get_thickness() / 2 + m_midsurfoffset;
+            -m_thicknessZ / 2 + m_layer_zoffsets[kl] + m_layers[kl].GetThickness() / 2 + m_midsurfoffset;
 
         // Sum the contribution to the mass matrix and generalized force due to gravity at the current point
         for (unsigned int it_xi = 0; it_xi < GQTable->Lroots[GQ_idx_xi_eta].size(); it_xi++) {
@@ -907,7 +907,7 @@ void ChElementShellANCF_3443::PrecomputeInternalForceMatricesWeightsContInt() {
     ChMatrixNM<double, NSF, 3> SD_precompute_D;
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        double thickness = m_layers[kl].Get_thickness();
+        double thickness = m_layers[kl].GetThickness();
         double layer_midsurface_offset = -m_thicknessZ / 2 + m_layer_zoffsets[kl] + thickness / 2 + m_midsurfoffset;
 
         for (unsigned int it_xi = 0; it_xi < GQTable->Lroots[GQ_idx_xi_eta].size(); it_xi++) {
@@ -959,9 +959,9 @@ void ChElementShellANCF_3443::PrecomputeInternalForceMatricesWeightsPreInt() {
     m_O1.setZero();
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        double thickness = m_layers[kl].Get_thickness();
+        double thickness = m_layers[kl].GetThickness();
         double layer_midsurface_offset =
-            -m_thicknessZ / 2 + m_layer_zoffsets[kl] + m_layers[kl].Get_thickness() / 2 + m_midsurfoffset;
+            -m_thicknessZ / 2 + m_layer_zoffsets[kl] + m_layers[kl].GetThickness() / 2 + m_midsurfoffset;
 
         // =============================================================================
         // Get the stiffness tensor in 6x6 matrix form for the current layer and rotate it in the midsurface according
@@ -970,7 +970,7 @@ void ChElementShellANCF_3443::PrecomputeInternalForceMatricesWeightsPreInt() {
         // =============================================================================
 
         ChMatrixNM<double, 6, 6> D = m_layers[kl].GetMaterial()->Get_E_eps();
-        RotateReorderStiffnessMatrix(D, m_layers[kl].Get_theta());
+        RotateReorderStiffnessMatrix(D, m_layers[kl].GetFiberAngle());
 
         // =============================================================================
         // Pull the required entries from the 4th order stiffness tensor that are needed for K3.  Note that D is written
@@ -1214,7 +1214,7 @@ void ChElementShellANCF_3443::ComputeInternalForcesContIntDamping(ChVectorDynami
         // =============================================================================
 
         ChMatrixNM<double, 6, 6> D = m_layers[kl].GetMaterial()->Get_E_eps();
-        RotateReorderStiffnessMatrix(D, m_layers[kl].Get_theta());
+        RotateReorderStiffnessMatrix(D, m_layers[kl].GetFiberAngle());
 
         // =============================================================================
         // Calculate the 2nd Piola-Kirchoff stresses in Voigt notation across all the Gauss quadrature points in the
@@ -1385,7 +1385,7 @@ void ChElementShellANCF_3443::ComputeInternalForcesContIntNoDamping(ChVectorDyna
         // =============================================================================
 
         ChMatrixNM<double, 6, 6> D = m_layers[kl].GetMaterial()->Get_E_eps();
-        RotateReorderStiffnessMatrix(D, m_layers[kl].Get_theta());
+        RotateReorderStiffnessMatrix(D, m_layers[kl].GetFiberAngle());
 
         // =============================================================================
         // Calculate the 2nd Piola-Kirchoff stresses in Voigt notation across all the Gauss quadrature points in the
@@ -1755,7 +1755,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntDamping(ChMatrixRef&
         // =============================================================================
 
         ChMatrixNM<double, 6, 6> D = m_layers[kl].GetMaterial()->Get_E_eps();
-        RotateReorderStiffnessMatrix(D, m_layers[kl].Get_theta());
+        RotateReorderStiffnessMatrix(D, m_layers[kl].GetFiberAngle());
 
         // =============================================================================
         // Multiply the scaled and combined partial derivative block matrix by the stiffness matrix for each individual
@@ -2207,7 +2207,7 @@ void ChElementShellANCF_3443::ComputeInternalJacobianContIntNoDamping(ChMatrixRe
         // =============================================================================
 
         ChMatrixNM<double, 6, 6> D = m_layers[kl].GetMaterial()->Get_E_eps();
-        RotateReorderStiffnessMatrix(D, m_layers[kl].Get_theta());
+        RotateReorderStiffnessMatrix(D, m_layers[kl].GetFiberAngle());
 
         // =============================================================================
         // Multiply the scaled and combined partial derivative block matrix by the stiffness matrix for each individual

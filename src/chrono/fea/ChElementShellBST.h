@@ -65,10 +65,10 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
     class Layer {
       public:
         /// Return the layer thickness.
-        double Get_thickness() const { return m_thickness; }
+        double GetThickness() const { return m_thickness; }
 
         /// Return the fiber angle.
-        double Get_theta() const { return m_theta; }
+        double GetFiberAngle() const { return m_theta; }
 
         /// Return the layer material.
         std::shared_ptr<ChMaterialShellKirchhoff> GetMaterial() const { return m_material; }

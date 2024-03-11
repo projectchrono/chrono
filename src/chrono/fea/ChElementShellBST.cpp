@@ -89,14 +89,14 @@ void ChElementShellBST::SetLayerZreferenceCentered() {
     // accumulate element thickness.
     tot_thickness = 0;
     for (size_t kl = 0; kl < m_layers.size(); kl++) {
-        tot_thickness += m_layers[kl].Get_thickness();
+        tot_thickness += m_layers[kl].GetThickness();
     }
 
     // Loop again over the layers and calculate the z levels of layers, by centering them
     m_layers_z.clear();
     m_layers_z.push_back(-0.5 * this->GetThickness());
     for (size_t kl = 0; kl < m_layers.size(); kl++) {
-        m_layers_z.push_back(m_layers_z[kl] + m_layers[kl].Get_thickness());
+        m_layers_z.push_back(m_layers_z[kl] + m_layers[kl].GetThickness());
     }
 }
 
@@ -104,14 +104,14 @@ void ChElementShellBST::SetLayerZreference(double z_from_bottom) {
     // accumulate element thickness.
     tot_thickness = 0;
     for (size_t kl = 0; kl < m_layers.size(); kl++) {
-        tot_thickness += m_layers[kl].Get_thickness();
+        tot_thickness += m_layers[kl].GetThickness();
     }
 
     // Loop again over the layers and calculate the z levels of layers, by centering them
     m_layers_z.clear();
     m_layers_z.push_back(z_from_bottom);
     for (size_t kl = 0; kl < m_layers.size(); kl++) {
-        m_layers_z.push_back(m_layers_z[kl] + m_layers[kl].Get_thickness());
+        m_layers_z.push_back(m_layers_z[kl] + m_layers[kl].GetThickness());
     }
 }
 
@@ -472,7 +472,7 @@ void ChElementShellBST::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
     for (size_t il = 0; il < this->m_layers.size(); ++il) {
         // compute layer stresses (per-unit-length forces and torques), and accumulate
         m_layers[il].GetMaterial()->ComputeStress(l_n, l_m, this->e, this->k, m_layers_z[il], m_layers_z[il + 1],
-                                                  m_layers[il].Get_theta());
+                                                  m_layers[il].GetFiberAngle());
         this->n += l_n;
         this->m += l_m;
 
@@ -487,7 +487,7 @@ void ChElementShellBST::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
                     m_sp,
                     e_dt, ???
                     k_dt, ???
-                    m_layers_z[il], m_layers_z[il + 1], m_layers[il].Get_theta());
+                    m_layers_z[il], m_layers_z[il + 1], m_layers[il].GetFiberAngle());
             this->n += n_sp;
             this->n += m_sp;
         }
@@ -718,7 +718,7 @@ double ChElementShellBST::GetDensity() {
     double tot_density = 0;
     for (size_t kl = 0; kl < m_layers.size(); kl++) {
         double rho = m_layers[kl].GetMaterial()->GetDensity();
-        double layerthick = m_layers[kl].Get_thickness();
+        double layerthick = m_layers[kl].GetThickness();
         tot_density += rho * layerthick;
     }
     return tot_density / tot_thickness;

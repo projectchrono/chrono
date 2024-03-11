@@ -705,7 +705,7 @@ void ChElementBeamANCF_3333::ComputeNF(
 // Return the element density (needed for ChLoaderVolumeGravity).
 
 double ChElementBeamANCF_3333::GetDensity() {
-    return GetMaterial()->Get_rho();
+    return GetMaterial()->GetDensity();
 }
 
 // Calculate tangent to the centerline at coordinate xi [-1 to 1].
@@ -749,7 +749,7 @@ void ChElementBeamANCF_3333::ComputeMassMatrixAndGravityForce() {
     MassMatrixCompactSquare.setZero();
     m_GravForceScale.setZero();
 
-    double rho = GetMaterial()->Get_rho();  // Density of the material for the element
+    double rho = GetMaterial()->GetDensity();  // Density of the material for the element
 
     // Sum the contribution to the mass matrix and generalized force due to gravity at the current point
     for (unsigned int it_xi = 0; it_xi < GQTable->Lroots[GQ_idx_xi].size(); it_xi++) {

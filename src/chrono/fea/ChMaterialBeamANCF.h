@@ -50,7 +50,7 @@ class ChApi ChMaterialBeamANCF {
     );
 
     /// Return the material density.
-    double Get_rho() const { return m_rho; }
+    double GetDensity() const { return m_rho; }
 
     /// Complete Elasticity Tensor in 6x6 matrix form
     void Get_D(ChMatrix66d& D);

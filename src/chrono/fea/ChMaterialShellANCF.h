@@ -43,7 +43,7 @@ class ChApi ChMaterialShellANCF {
     );
 
     /// Return the material density.
-    double Get_rho() const { return m_rho; }
+    double GetDensity() const { return m_rho; }
 
     /// Return the matrix of elastic coefficients.
     const ChMatrix66d& Get_E_eps() const { return m_E_eps; }

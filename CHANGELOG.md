@@ -361,6 +361,20 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_ThermalKmatrix            | rename: GetConductivityMatrix                    |
 |                                   | SetThermalConductivityK       | rename: SetThermalConductivity                   |
 |                                   | SetMassSpecificHeatCapacity   | rename: SetSpecificHeatCapacity                  |
+| ChElasticityKirchhoffIsothropic   |                               |                                                  |
+|                                   | Get_nu                        | rename: GetPoissonRatio                          |
+| ChElasticityKirchhoffOrthotropic  |                               |                                                  |
+|                                   | Get_E_x                       | rename: GetYoungModulusX                         |
+|                                   | Get_E_y                       | rename: GetYoungModulusY                         |
+|                                   | Get_G_xy                      | rename: GetShearModulusXY                        |
+|                                   | Get_nu_xy                     | rename: GetPoissonRatioXY                        |
+|                                   | Get_nu_yx                     | rename: GetPoissonRatioYX                        |
+| ChElasticityReissnerIsothropic    |                               |                                                  |
+|                                   | Get_alpha                     | rename: GetShearFactor                           |
+|                                   | Get_beta                      | rename: GetTorqueFactor                          |
+| ChElasticityReissnerOrthotropic   |                               |                                                  |
+|                                   | Get_G_xz                      | rename: GetShearModulusXZ                        |
+|                                   | Get_G_yz                      | rename: GetShearModulusYZ                        |
 | ChElementBar                      |                               |                                                  |
 |                                   | GetBarArea                    | rename: GetArea                                  |
 |                                   | GetBarDensity                 | rename: GetDensity                               |
@@ -377,6 +391,11 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNodeNdofs                  | rename: GetNodeNumCoordsPosLevel                 |
 |                                   | GetNodeNdofs_active           | rename: GetNodeNumCoordsPosLevelActive           |
 |                                   | GetNnodes                     | rename: GetNumNodes                              |
+| ChElementShellANCF                |                               |                                                  |
+|                                   | Get_rho                       | rename: GetDensity                               |
+| ChElementShellBST                 |                               |                                                  |
+|                                   | Get_theta                     | rename: GetFiberAngle                            |
+|                                   | Get_thickness                 | rename: GetThickness                             |
 | ChElementSpring                   |                               |                                                  |
 |                                   | GetDamperR                    | rename: GetDampingCoefficient                    |
 |                                   | GetSpringK                    | rename: GetSpringCoefficient                     |
