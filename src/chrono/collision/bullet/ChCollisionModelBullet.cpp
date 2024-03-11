@@ -661,14 +661,13 @@ ChAABB ChCollisionModelBullet::GetBoundingBox() const {
 }
 
 void ChCollisionModelBullet::SyncPosition() {
-    ChCoordsys<> mcsys = GetContactable()->GetCsysForCollisionModel();
+    auto frame = GetContactable()->GetCollisionModelFrame();
+    const auto& R = frame.GetRotMat();
+    cbtMatrix3x3 basisA((cbtScalar)R(0, 0), (cbtScalar)R(0, 1), (cbtScalar)R(0, 2), (cbtScalar)R(1, 0),
+                        (cbtScalar)R(1, 1), (cbtScalar)R(1, 2), (cbtScalar)R(2, 0), (cbtScalar)R(2, 1),
+                        (cbtScalar)R(2, 2));
 
-    bt_collision_object->getWorldTransform().setOrigin(
-        cbtVector3((cbtScalar)mcsys.pos.x(), (cbtScalar)mcsys.pos.y(), (cbtScalar)mcsys.pos.z()));
-    const ChMatrix33<>& rA(mcsys.rot);
-    cbtMatrix3x3 basisA((cbtScalar)rA(0, 0), (cbtScalar)rA(0, 1), (cbtScalar)rA(0, 2), (cbtScalar)rA(1, 0),
-                        (cbtScalar)rA(1, 1), (cbtScalar)rA(1, 2), (cbtScalar)rA(2, 0), (cbtScalar)rA(2, 1),
-                        (cbtScalar)rA(2, 2));
+    bt_collision_object->getWorldTransform().setOrigin(cbtVector3CH(frame.GetPos()));
     bt_collision_object->getWorldTransform().setBasis(basisA);
 }
 

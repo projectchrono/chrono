@@ -104,10 +104,8 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     /// surface. Easy in this case because there are no rotations..
     virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override;
 
-    /// Return the coordinate system for the associated collision model.
-    /// ChCollisionModel might call this to get the position of the
-    /// contact model (when rigid) and sync it.
-    virtual ChCoordsys<> GetCsysForCollisionModel() override { return ChCoordsys<>(VNULL, QUNIT); }
+    /// Return the frame of the associated collision model relative to the contactable object.
+    virtual ChFrame<> GetCollisionModelFrame() override { return ChFrame<>(VNULL, QUNIT); }
 
     /// Apply the force & torque, expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.
@@ -297,10 +295,8 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     /// surface. Easy in this case because there are no rotations..
     virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override;
 
-    /// Return the coordinate system for the associated collision model.
-    /// ChCollisionModel might call this to get the position of the
-    /// contact model (when rigid) and sync it.
-    virtual ChCoordsys<> GetCsysForCollisionModel() override { return ChCoordsys<>(VNULL, QUNIT); }
+    /// Return the frame of the associated collision model relative to the contactable object.
+    virtual ChFrame<> GetCollisionModelFrame() override { return ChFrame<>(VNULL, QUNIT); }
 
     /// Apply the force & torque, expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.

@@ -344,8 +344,8 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
     ) {
         // Express contact points in local frames.
         // We assume that these points remain fixed to their respective contactable objects.
-        ChVector3d p1_loc = this->objA->GetCsysForCollisionModel().TransformPointParentToLocal(this->p1);
-        ChVector3d p2_loc = this->objB->GetCsysForCollisionModel().TransformPointParentToLocal(this->p2);
+        ChVector3d p1_loc = this->objA->GetCollisionModelFrame().TransformPointParentToLocal(this->p1);
+        ChVector3d p2_loc = this->objB->GetCollisionModelFrame().TransformPointParentToLocal(this->p2);
 
         // Express the local points in global frame
         ChVector3d p1_abs = this->objA->GetContactPoint(p1_loc, stateA_x);

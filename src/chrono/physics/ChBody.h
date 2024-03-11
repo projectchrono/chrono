@@ -556,10 +556,9 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Get the absolute speed of point abs_point if attached to the surface.
     virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override;
 
-    /// Return the coordinate system for the associated collision model.
-    /// ChCollisionModel might call this to get the position of the
-    /// contact model (when rigid) and sync it.
-    virtual ChCoordsys<> GetCsysForCollisionModel() override;
+    /// Return the frame of the associated collision model relative to the contactable object.
+    /// ChCollisionModel might call this to get the position of the contact model (when rigid) and sync it.
+    virtual ChFrame<> GetCollisionModelFrame() override;
 
     /// Apply the force & torque expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.

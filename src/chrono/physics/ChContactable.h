@@ -75,10 +75,9 @@ class ChApi ChContactable {
     /// Get the absolute speed of point abs_point if attached to the surface.
     virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) = 0;
 
-    /// Return the coordinate system for the associated collision model.
-    /// ChCollisionModel might call this to get the position of the
-    /// contact model (when rigid) and sync it.
-    virtual ChCoordsys<> GetCsysForCollisionModel() = 0;
+    /// Return the frame of the associated collision model relative to the contactable object.
+    /// ChCollisionModel might call this to get the position of the contact model (when rigid) and sync it.
+    virtual ChFrame<> GetCollisionModelFrame() = 0;
 
     /// Apply the given force & torque at the given location and load into the global generalized force array.
     /// The force  F and its application point are specified in the absolute reference frame. 

@@ -92,7 +92,7 @@ class ChApi ChParticle : public ChParticleBase, public ChContactable_1vars<6> {
     /// Return the coordinate system for the associated collision model.
     /// ChCollisionModel might call this to get the position of the
     /// contact model (when rigid) and sync it.
-    virtual ChCoordsys<> GetCsysForCollisionModel() override { return this->m_csys; }
+    virtual ChFrame<> GetCollisionModelFrame() override { return ChFrame<>(m_csys); }
 
     /// Apply the force & torque, expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.

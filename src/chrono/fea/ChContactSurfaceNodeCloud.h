@@ -88,9 +88,8 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
     /// Get the absolute speed of point abs_point if attached to the surface.
     virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override { return m_node->pos_dt; }
 
-    /// Return the coordinate system for the associated collision model.
-    /// ChCollisionModel might call this to get the position of the contact model (when rigid) and sync it.
-    virtual ChCoordsys<> GetCsysForCollisionModel() override { return ChCoordsys<>(m_node->pos, QNULL); }
+    /// Return the frame of the associated collision model relative to the contactable object.
+    virtual ChFrame<> GetCollisionModelFrame() override { return ChFrame<>(m_node->pos, QUNIT); }
 
     /// Apply the force & torque, expressed in absolute reference, to the coordinates of the variables.
     virtual void ContactForceLoadResidual_F(const ChVector3d& F,
@@ -207,9 +206,8 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
     /// Get the absolute speed of point abs_point if attached to the surface.
     virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override { return m_node->GetPosDer(); }
 
-    /// Return the coordinate system for the associated collision model.
-    /// ChCollisionModel might call this to get the position of the contact model (when rigid) and sync it.
-    virtual ChCoordsys<> GetCsysForCollisionModel() override { return m_node->GetCoordsys(); }
+    /// Return the frame of the associated collision model relative to the contactable object.
+    virtual ChFrame<> GetCollisionModelFrame() override { return ChFrame<>(m_node->GetCoordsys()); }
 
     /// Apply the force & torque, expressed in absolute reference, to the coordinates of the variables.
     virtual void ContactForceLoadResidual_F(const ChVector3d& F,

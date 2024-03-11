@@ -742,8 +742,8 @@ ChVector3d ChBody::GetContactPointSpeed(const ChVector3d& abs_point) {
     return PointSpeedLocalToParent(point_loc);
 }
 
-ChCoordsys<> ChBody::GetCsysForCollisionModel() {
-    return ChCoordsys<>(GetFrameRefToAbs().GetCoordsys());
+ChFrame<> ChBody::GetCollisionModelFrame() {
+    return GetFrameRefToAbs();
 }
 
 void ChBody::ContactForceLoadResidual_F(const ChVector3d& F,
