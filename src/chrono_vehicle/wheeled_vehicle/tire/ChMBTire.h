@@ -259,17 +259,17 @@ class MBTireModel : public ChPhysicsItem {
 
     // Linear spring between two FEA nodes.
     struct Spring2 {
-        int inode1;        // index of first node
-        int inode2;        // index of second node
+        int inode1;  // index of first node
+        int inode2;  // index of second node
 
         fea::ChNodeFEAxyz* node1;
         fea::ChNodeFEAxyz* node2;
 
         ChBody* wheel;
 
-        double l0;        // spring free length
-        double k;         // spring coefficient
-        double c;         // damping coefficient
+        double l0;  // spring free length
+        double k;   // spring coefficient
+        double c;   // damping coefficient
 
         ChVector3d force1;
         ChVector3d force2;
@@ -311,6 +311,7 @@ class MBTireModel : public ChPhysicsItem {
     struct GridSpring2 : public Spring2 {
         void Initialize(bool stiff);
         void CalculateJacobian(double Kfactor, double Rfactor);
+        ChMatrixNM<double, 6, 6> CalculateJacobianFD(double Kfactor, double Rfactor);
     };
 
     struct EdgeSpring2 : public Spring2 {
@@ -321,6 +322,7 @@ class MBTireModel : public ChPhysicsItem {
     struct GridSpring3 : public Spring3 {
         void Initialize(bool stiff);
         void CalculateJacobian(double Kfactor, double Rfactor);
+        ChMatrixNM<double, 9, 9> CalculateJacobianFD(double Kfactor, double Rfactor);
     };
 
     struct EdgeSpring3 : public Spring3 {

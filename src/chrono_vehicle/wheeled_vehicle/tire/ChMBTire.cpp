@@ -231,6 +231,9 @@ static const double zero_length = 1e-6;
 // Constant threshold for checking zero angles
 static const double zero_angle = 1e-3;
 
+// Perturbation for FD Jacobian approximation
+static const double FD_step = 1e-3;
+
 void MBTireModel::Spring2::Initialize() {
     const auto& pos1 = node1->GetPos();
     const auto& pos2 = node2->GetPos();
@@ -322,6 +325,74 @@ void MBTireModel::GridSpring2::CalculateJacobian(double Kfactor, double Rfactor)
     K.block(0, 3, 3, 3) = A;   // block for F1 and node2
     K.block(3, 0, 3, 3) = A;   // block for F2 and node1
     K.block(3, 3, 3, 3) = -A;  // block for F2 and node2
+
+    ////auto J = CalculateJacobianFD(Kfactor, Rfactor);
+    ////std::cout << "Grid spring2 " << inode1 << "-" << inode2 << std::endl << "-------" << std::endl;
+    ////std::cout << K << std::endl;
+    ////std::cout << "-------\n";
+    ////std::cout << J << std::endl;
+    ////std::cout << "-------\n";
+    ////std::cout << "err_2   = " << (J - K).norm() / K.norm() << "\n";
+    ////std::cout << "err_1   = " << (J - K).lpNorm<1>() / K.lpNorm<1>() << "\n";
+    ////std::cout << "err_inf = " << (J - K).lpNorm<Eigen::Infinity>() / K.lpNorm<Eigen::Infinity>() << "\n";
+    ////std::cout << "=======" << std::endl;
+}
+
+ChMatrixNM<double, 6, 6> MBTireModel::GridSpring2::CalculateJacobianFD(double Kfactor, double Rfactor) {
+    ChMatrixNM<double, 6, 6> K;
+    ChMatrixNM<double, 6, 6> R;
+
+    K.setZero();
+    R.setZero();
+
+    ChVector3d pos1 = node1->GetPos();
+    ChVector3d pos2 = node2->GetPos();
+    ChVector3d vel1 = node1->GetPosDer();
+    ChVector3d vel2 = node2->GetPosDer();
+
+    CalculateForce();
+    auto force1_0 = force1;
+    auto force2_0 = force2;
+
+    // node1 states (columns 0,1,2)
+    for (int i = 0; i < 3; i++) {
+        pos1[i] += FD_step;
+        node1->SetPos(pos1);
+        CalculateForce();
+        K.col(i).segment(0, 3) = (force1.eigen() - force1_0.eigen()) / FD_step;
+        K.col(i).segment(3, 3) = (force2.eigen() - force2_0.eigen()) / FD_step;
+        pos1[i] -= FD_step;
+        node1->SetPos(pos1);
+
+        vel1[i] += FD_step;
+        node1->SetPosDer(vel1);
+        CalculateForce();
+        R.col(i).segment(0, 3) = (force1.eigen() - force1_0.eigen()) / FD_step;
+        R.col(i).segment(3, 3) = (force2.eigen() - force2_0.eigen()) / FD_step;
+        vel1[i] -= FD_step;
+        node1->SetPosDer(vel1);
+    }
+
+    // node2 states (columms 3,4,5)
+    for (int i = 0; i < 3; i++) {
+        pos2[i] += FD_step;
+        node2->SetPos(pos2);
+        CalculateForce();
+        K.col(3 + i).segment(0, 3) = (force1.eigen() - force1_0.eigen()) / FD_step;
+        K.col(3 + i).segment(3, 3) = (force2.eigen() - force2_0.eigen()) / FD_step;
+        pos2[i] -= FD_step;
+        node2->SetPos(pos2);
+
+        vel2[i] += FD_step;
+        node2->SetPosDer(vel2);
+        CalculateForce();
+        R.col(3 + i).segment(0, 3) = (force1.eigen() - force1_0.eigen()) / FD_step;
+        R.col(3 + i).segment(3, 3) = (force2.eigen() - force2_0.eigen()) / FD_step;
+        vel2[i] -= FD_step;
+        node2->SetPosDer(vel2);
+    }
+
+    return Kfactor * K + Rfactor * R;
 }
 
 // For a linear spring connecting a rim node and a grid node, the Jacobian is a:
@@ -455,16 +526,7 @@ void MBTireModel::GridSpring3::CalculateJacobian(double Kfactor, double Rfactor)
     double length_cross = cross.Length();
     double a = std::asin(length_cross);
 
-    if (std::abs(a - a0) < zero_angle) {
-        force_p = VNULL;
-        force_c = VNULL;
-        force_n = VNULL;
-        return;
-    }
-
-    if (length_cross > zero_length) {
-        // cross /= length_cross;
-    } else {  // colinear points
+    if (length_cross <= zero_length) {
         cross = wheel->TransformDirectionLocalToParent(t0);
     }
 
@@ -512,6 +574,9 @@ void MBTireModel::GridSpring3::CalculateJacobian(double Kfactor, double Rfactor)
     // multipliers, which are applied to jacobian_1 and jacobian_2, respectfully
     double scale1 = k / (length_cross * l_p * l_n);
     double scale2 = scale1 * (a - a0);
+
+    scale1 *= Kfactor;
+    scale2 *= Kfactor;
 
     // Calculate AA1 (weird naming, just keeping here because I defined such in Matlab)
     // AA1 = (lt - abs(A)*(a-a0)) / (lt^2*abs(A)) ;
@@ -563,6 +628,102 @@ void MBTireModel::GridSpring3::CalculateJacobian(double Kfactor, double Rfactor)
     K.block(6, 0, 3, 3) = scale1 * Jn_11 + scale2 * Jn_21;
     K.block(6, 3, 3, 3) = scale1 * Jn_12 + scale2 * Jn_22;
     K.block(6, 6, 3, 3) = scale1 * Jn_13 + scale2 * Jn_23;
+
+    ////auto J = CalculateJacobianFD(Kfactor, Rfactor);
+    ////std::cout << "Grid spring3 " << inode_p << "-" << inode_c << "-" << inode_n << std::endl << "-------" << std::endl;
+    ////std::cout << K << std::endl;
+    ////std::cout << "-------\n";
+    ////std::cout << J << std::endl;
+    ////std::cout << "-------\n";
+    ////std::cout << "err_2   = " << (J - K).norm() / K.norm() << "\n";
+    ////std::cout << "err_1   = " << (J - K).lpNorm<1>() / K.lpNorm<1>() << "\n";
+    ////std::cout << "err_inf = " << (J - K).lpNorm<Eigen::Infinity>() / K.lpNorm<Eigen::Infinity>() << "\n";
+    ////std::cout << "=======" << std::endl;
+}
+
+ChMatrixNM<double, 9, 9> MBTireModel::GridSpring3::CalculateJacobianFD(double Kfactor, double Rfactor) {
+    ChMatrixNM<double, 9, 9> K;
+    ChMatrixNM<double, 9, 9> R;
+
+    K.setZero();
+    R.setZero();
+
+    ChVector3d pos_p = node_p->GetPos();
+    ChVector3d pos_c = node_c->GetPos();
+    ChVector3d pos_n = node_n->GetPos();
+    ChVector3d vel_p = node_p->GetPosDer();
+    ChVector3d vel_c = node_c->GetPosDer();
+    ChVector3d vel_n = node_n->GetPosDer();
+
+    CalculateForce();
+    auto force_p_0 = force_p;
+    auto force_c_0 = force_c;
+    auto force_n_0 = force_n;
+
+    // node_p states (columns 0,1,2)
+    for (int i = 0; i < 3; i++) {
+        pos_p[i] += FD_step;
+        node_p->SetPos(pos_p);
+        CalculateForce();
+        K.col(i).segment(0, 3) = (force_p.eigen() - force_p_0.eigen()) / FD_step;
+        K.col(i).segment(3, 3) = (force_c.eigen() - force_c_0.eigen()) / FD_step;
+        K.col(i).segment(6, 3) = (force_n.eigen() - force_n_0.eigen()) / FD_step;
+        pos_p[i] -= FD_step;
+        node_p->SetPos(pos_p);
+
+        vel_p[i] += FD_step;
+        node_p->SetPosDer(vel_p);
+        CalculateForce();
+        R.col(i).segment(0, 3) = (force_p.eigen() - force_p_0.eigen()) / FD_step;
+        R.col(i).segment(3, 3) = (force_c.eigen() - force_c_0.eigen()) / FD_step;
+        R.col(i).segment(6, 3) = (force_n.eigen() - force_n_0.eigen()) / FD_step;
+        vel_p[i] -= FD_step;
+        node_p->SetPosDer(vel_p);
+    }
+
+    // node_c states (columns 3,4,5)
+    for (int i = 0; i < 3; i++) {
+        pos_c[i] += FD_step;
+        node_c->SetPos(pos_c);
+        CalculateForce();
+        K.col(3 + i).segment(0, 3) = (force_p.eigen() - force_p_0.eigen()) / FD_step;
+        K.col(3 + i).segment(3, 3) = (force_c.eigen() - force_c_0.eigen()) / FD_step;
+        K.col(3 + i).segment(6, 3) = (force_n.eigen() - force_n_0.eigen()) / FD_step;
+        pos_c[i] -= FD_step;
+        node_c->SetPos(pos_c);
+
+        vel_c[i] += FD_step;
+        node_c->SetPosDer(vel_c);
+        CalculateForce();
+        R.col(3 + i).segment(0, 3) = (force_p.eigen() - force_p_0.eigen()) / FD_step;
+        R.col(3 + i).segment(3, 3) = (force_c.eigen() - force_c_0.eigen()) / FD_step;
+        R.col(3 + i).segment(6, 3) = (force_n.eigen() - force_n_0.eigen()) / FD_step;
+        vel_c[i] -= FD_step;
+        node_c->SetPosDer(vel_c);
+    }
+
+    // node_n states (columns 6,7,8)
+    for (int i = 0; i < 3; i++) {
+        pos_n[i] += FD_step;
+        node_n->SetPos(pos_n);
+        CalculateForce();
+        K.col(6 + i).segment(0, 3) = (force_p.eigen() - force_p_0.eigen()) / FD_step;
+        K.col(6 + i).segment(3, 3) = (force_c.eigen() - force_c_0.eigen()) / FD_step;
+        K.col(6 + i).segment(6, 3) = (force_n.eigen() - force_n_0.eigen()) / FD_step;
+        pos_n[i] -= FD_step;
+        node_n->SetPos(pos_n);
+
+        vel_n[i] += FD_step;
+        node_n->SetPosDer(vel_n);
+        CalculateForce();
+        R.col(6 + i).segment(0, 3) = (force_p.eigen() - force_p_0.eigen()) / FD_step;
+        R.col(6 + i).segment(3, 3) = (force_c.eigen() - force_c_0.eigen()) / FD_step;
+        R.col(6 + i).segment(6, 3) = (force_n.eigen() - force_n_0.eigen()) / FD_step;
+        vel_n[i] -= FD_step;
+        node_n->SetPosDer(vel_n);
+    }
+
+    return Kfactor * K + Rfactor * R;
 }
 
 // For a rotational spring connecting a rim node and 2 grid nodes, the Jacobian is a:
@@ -643,6 +804,9 @@ void MBTireModel::EdgeSpring3::CalculateJacobian(bool full_jac, double Kfactor, 
     // multipliers, which are applied to jacobian_1 and jacobian_2, respectfully
     double scale1 = k / (length_cross * l_p * l_n);
     double scale2 = scale1 * (a - a0);
+
+    scale1 *= Kfactor;
+    scale2 *= Kfactor;
 
     // Calculate AA1 (weird naming, just keeping here because I defined such in Matlab)
     double AA1 = (length_cross - abs(A) * (a - a0)) / (length_cross * length_cross * abs(A));
