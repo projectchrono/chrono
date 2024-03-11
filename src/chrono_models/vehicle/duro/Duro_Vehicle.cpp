@@ -135,7 +135,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     std::shared_ptr<ChBody> rockerArmL = chrono_types::make_shared<ChBody>();
     rockerArmL->SetNameString("rockerL");
     rockerArmL->SetPos(p3L);
-    rockerArmL->SetRot(m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    rockerArmL->SetRot(m_chassis->GetBody()->GetFrameRefToAbs().GetRot());
     rockerArmL->SetMass(25);
     rockerArmL->SetInertiaXX(ChVector3d(0.05, 0.1, 0.1));
     m_chassis->GetBody()->GetSystem()->AddBody(rockerArmL);
@@ -144,7 +144,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     rockerPivL->SetNameString("rockerPivotL");
     rockerPivL->Initialize(
         rockerArmL, m_chassis->GetBody(),
-        ChFrame<>(p3L, m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot() * QuatFromAngleX(CH_C_PI_2)));
+        ChFrame<>(p3L, m_chassis->GetBody()->GetFrameRefToAbs().GetRot() * QuatFromAngleX(CH_C_PI_2)));
     m_chassis->GetSystem()->AddLink(rockerPivL);
 
     AddVisualizationLink(rockerArmL, p2L, p4L, 0.03, ChColor(0.8f, 0.2f, 0.2f));
@@ -154,7 +154,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     std::shared_ptr<ChBody> rockerArmR = chrono_types::make_shared<ChBody>();
     rockerArmR->SetNameString("rockerR");
     rockerArmR->SetPos(p3R);
-    rockerArmR->SetRot(m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    rockerArmR->SetRot(m_chassis->GetBody()->GetFrameRefToAbs().GetRot());
     rockerArmR->SetMass(25);
     rockerArmR->SetInertiaXX(ChVector3d(0.05, 0.1, 0.1));
     m_chassis->GetBody()->GetSystem()->AddBody(rockerArmR);
@@ -163,7 +163,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     rockerPivR->SetNameString("rockerPivotR");
     rockerPivR->Initialize(
         rockerArmR, m_chassis->GetBody(),
-        ChFrame<>(p3R, m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot() * QuatFromAngleX(CH_C_PI_2)));
+        ChFrame<>(p3R, m_chassis->GetBody()->GetFrameRefToAbs().GetRot() * QuatFromAngleX(CH_C_PI_2)));
     m_chassis->GetSystem()->AddLink(rockerPivR);
 
     AddVisualizationLink(rockerArmR, p2R, p4R, 0.03, ChColor(0.8f, 0.2f, 0.2f));
@@ -173,7 +173,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     std::shared_ptr<ChBody> frontRodL = chrono_types::make_shared<ChBody>();
     frontRodL->SetNameString("frontRodL");
     frontRodL->SetPos((p1L + p2L) / 2);
-    frontRodL->SetRot(m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    frontRodL->SetRot(m_chassis->GetBody()->GetFrameRefToAbs().GetRot());
     frontRodL->SetMass(10);
     frontRodL->SetInertiaXX(ChVector3d(0.04, 0.04, 0.01));
     m_chassis->GetBody()->GetSystem()->AddBody(frontRodL);
@@ -193,7 +193,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     std::shared_ptr<ChBody> frontRodR = chrono_types::make_shared<ChBody>();
     frontRodR->SetNameString("frontRodR");
     frontRodR->SetPos((p1R + p2R) / 2);
-    frontRodR->SetRot(m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    frontRodR->SetRot(m_chassis->GetBody()->GetFrameRefToAbs().GetRot());
     frontRodR->SetMass(10);
     frontRodR->SetInertiaXX(ChVector3d(0.04, 0.04, 0.01));
     m_chassis->GetBody()->GetSystem()->AddBody(frontRodR);
@@ -213,7 +213,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     std::shared_ptr<ChBody> rearRodL = chrono_types::make_shared<ChBody>();
     rearRodL->SetNameString("rearRodL");
     rearRodL->SetPos((p4L + p5L) / 2);
-    rearRodL->SetRot(m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    rearRodL->SetRot(m_chassis->GetBody()->GetFrameRefToAbs().GetRot());
     rearRodL->SetMass(10);
     rearRodL->SetInertiaXX(ChVector3d(0.04, 0.04, 0.01));
     m_chassis->GetBody()->GetSystem()->AddBody(rearRodL);
@@ -223,7 +223,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     std::shared_ptr<ChBody> rearRodR = chrono_types::make_shared<ChBody>();
     rearRodR->SetNameString("rearRodR");
     rearRodR->SetPos((p4R + p5R) / 2);
-    rearRodR->SetRot(m_chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    rearRodR->SetRot(m_chassis->GetBody()->GetFrameRefToAbs().GetRot());
     rearRodR->SetMass(10);
     rearRodR->SetInertiaXX(ChVector3d(0.04, 0.04, 0.01));
     m_chassis->GetBody()->GetSystem()->AddBody(rearRodR);

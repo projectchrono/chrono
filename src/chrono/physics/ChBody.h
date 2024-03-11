@@ -143,11 +143,11 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     /// Get the rigid body coordinate system that is used for defining the collision shapes and the ChMarker objects.
     /// For the base ChBody, this is always the same reference of the COG.
-    virtual const ChFrameMoving<>& GetFrame_REF_to_abs() const { return *this; }
+    virtual const ChFrameMoving<>& GetFrameRefToAbs() const { return *this; }
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// For a ChBody, this is the main coordinate system of the rigid body.
-    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override { return (GetFrame_REF_to_abs()); }
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override { return (GetFrameRefToAbs()); }
 
     /// Get the axis-aligned bounding (AABB) box of the object.
     /// The body AABB is the AABB of its collision model (if any).

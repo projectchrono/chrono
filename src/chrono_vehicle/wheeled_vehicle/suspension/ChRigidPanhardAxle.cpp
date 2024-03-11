@@ -81,7 +81,7 @@ void ChRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Transform the location of the axle body COM to absolute frame.
     ChVector3d axleCOM_local = getAxleTubeCOM();
@@ -116,7 +116,7 @@ void ChRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleTubeBody = chrono_types::make_shared<ChBody>();
     m_axleTubeBody->SetNameString(m_name + "_axleTube");
     m_axleTubeBody->SetPos(axleCOM);
-    m_axleTubeBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_axleTubeBody->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_axleTubeBody->SetMass(getAxleTubeMass());
     m_axleTubeBody->SetInertiaXX(getAxleTubeInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_axleTubeBody);
@@ -124,7 +124,7 @@ void ChRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // Fix the axle body to the chassis
     m_axleTubeGuide = chrono_types::make_shared<ChLinkLockPlanar>();
     m_axleTubeGuide->SetNameString(m_name + "_planePlaneAxleTube");
-    const ChQuaternion<>& guideRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
+    const ChQuaternion<>& guideRot = chassis->GetBody()->GetFrameRefToAbs().GetRot();
     m_axleTubeGuide->Initialize(chassis->GetBody(), m_axleTubeBody,
                                 ChFrame<>(axleCOM, guideRot * QuatFromAngleY(CH_C_PI_2)));
     chassis->GetBody()->GetSystem()->AddLink(m_axleTubeGuide);
@@ -134,7 +134,7 @@ void ChRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_panhardRodBody = chrono_types::make_shared<ChBody>();
     m_panhardRodBody->SetNameString(m_name + "_panhardRod");
     m_panhardRodBody->SetPos(ptPanhardCom);
-    m_panhardRodBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_panhardRodBody->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_panhardRodBody->SetMass(getPanhardRodMass());
     m_panhardRodBody->SetInertiaXX(getPanhardRodInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_panhardRodBody);
@@ -185,7 +185,7 @@ void ChRigidPanhardAxle::InitializeSide(VehicleSide side,
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassisBody->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassisBody->GetFrameRefToAbs().GetRot();
 
     // Spindle orientation (based on camber and toe angles)
     double sign = (side == LEFT) ? -1 : +1;

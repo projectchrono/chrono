@@ -104,7 +104,7 @@ body_B.SetPos(chrono.ChVector3d(0,0.5,0))
 body_B.SetMass(16)
 body_B.SetInertiaXX(chrono.ChVector3d(0.270,0.400,0.427))
 body_B.SetInertiaXY(chrono.ChVector3d(0.057,0.037,-0.062))
-body_B.SetFrame_COG_to_REF(chrono.ChFramed(
+body_B.SetFrameCOMToRef(chrono.ChFramed(
             chrono.ChVector3d( 0.12,0.0,0),
             chrono.ChQuaterniond(1,0,0,0)))
 
@@ -155,5 +155,3 @@ while vis.Run():
     vis.Render()
     vis.EndScene()
     sys.DoStepDynamics(5e-3)
-
-

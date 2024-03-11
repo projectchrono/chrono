@@ -129,17 +129,17 @@ int main(int argc, char* argv[]) {
 
     // In this case, we must specify the centroidal frame, relative to the body
     // reference frame.
-    pend_2->SetFrame_COG_to_REF(ChFrame<>(ChVector3d(1, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
+    pend_2->SetFrameCOMToRef(ChFrame<>(ChVector3d(1, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
 
     // Specify the initial position of the pendulum (horizontal, pointing towards
     // positive X).  Here, we want to specify the position of the body reference
     // frame (relative to the absolute frame). Recall that the body reference
     // frame is located at the pin.
-    pend_2->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(0, 0, -1)));
+    pend_2->SetFrameRefToAbs(ChFrame<>(ChVector3d(0, 0, -1)));
 
     // Note: Beware of using the method SetPos() to specify the initial position
     // (as we did for the first pendulum)!  SetPos() specifies the position of the
-    // centroidal frame.  So one could use it (instead of SetFrame_REF_to_abs) but
+    // centroidal frame.  So one could use it (instead of SetFrameRefToAbs) but
     // using:
     //   pend_2->SetPos(ChVector3d(1, 0, -1));
     // However, this defeats the goal of specifying the body through the desired
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
     // Alternatively, one could use SetPos() and pass it the position of the body
     // reference frame; i.e.
     //   pend_2->SetPos(ChVector3d(0, 0, -1));
-    // provided we do this BEFORE the call to SetFrame_COG_to_REF().
+    // provided we do this BEFORE the call to SetFrameCOMToRef().
     //
     // This also applies to SetRot().
 
@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
 
             // But it's quite likely that, for the second pendulum, what we want is
             // the position of the body reference frame.  This is available with:
-            ChFrame<> frame_2 = pend_2->GetFrame_REF_to_abs();
+            ChFrame<> frame_2 = pend_2->GetFrameRefToAbs();
             pos_2 = frame_2.GetPos();
             std::cout << "      " << pos_2.x() << "  " << pos_2.y() << "\n";
 
@@ -246,8 +246,8 @@ int main(int argc, char* argv[]) {
 
             // To obtain the absolute linear velocity of the body reference frame,
             // we use again GetPosDer(), but this time for the reference frame,
-            // using GetFrame_REF_to_abs() similarly for what we did for positions:
-            lin_vel_2 = pend_2->GetFrame_REF_to_abs().GetPosDer();
+            // using GetFrameRefToAbs() similarly for what we did for positions:
+            lin_vel_2 = pend_2->GetFrameRefToAbs().GetPosDer();
             std::cout << "      " << lin_vel_2.x() << "  " << lin_vel_2.y() << "\n";
 
             log_info = false;

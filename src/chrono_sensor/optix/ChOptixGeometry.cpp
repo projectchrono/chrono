@@ -102,8 +102,8 @@ void ChOptixGeometry::AddGenericObject(unsigned int mat_id,
     // add to list of box instances
     m_obj_mat_ids.push_back(mat_id);
     m_bodies.push_back(body);
-    m_obj_body_frames_start.push_back(body->GetFrame_REF_to_abs());
-    m_obj_body_frames_end.push_back(body->GetFrame_REF_to_abs());
+    m_obj_body_frames_start.push_back(body->GetFrameRefToAbs());
+    m_obj_body_frames_end.push_back(body->GetFrameRefToAbs());
 
     // create the motion transform for this box
     m_motion_transforms.emplace_back();
@@ -660,7 +660,7 @@ void ChOptixGeometry::UpdateBodyTransformsStart(float t_start, float t_target_en
     // std::cout << "Updating body transforms for start keyframe\n";
     std::vector<ChFrame<double>> frames = std::vector<ChFrame<double>>(m_bodies.size());
     for (int i = 0; i < frames.size(); i++) {
-        frames[i] = m_bodies[i]->GetFrame_REF_to_abs();
+        frames[i] = m_bodies[i]->GetFrameRefToAbs();
     }
     auto keyframe = std::make_tuple(t_start, t_target_end, std::move(frames));
     m_obj_body_frames_start_tmps.push_back(keyframe);
@@ -672,7 +672,7 @@ void ChOptixGeometry::UpdateBodyTransformsEnd(float t_end) {
     // pack the end frame
     m_end_time = t_end;
     for (int i = 0; i < m_bodies.size(); i++) {
-        m_obj_body_frames_end[i] = m_bodies[i]->GetFrame_REF_to_abs();
+        m_obj_body_frames_end[i] = m_bodies[i]->GetFrameRefToAbs();
     }
 
     // need a default start time that will trigger first transform to always be valid

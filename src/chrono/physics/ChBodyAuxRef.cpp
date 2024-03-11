@@ -21,23 +21,23 @@ CH_FACTORY_REGISTER(ChBodyAuxRef)
 CH_UPCASTING(ChBodyAuxRef, ChBody)
 
 ChBodyAuxRef::ChBodyAuxRef(const ChBodyAuxRef& other) : ChBody(other) {
-    auxref_to_cog = other.auxref_to_cog;
-    auxref_to_abs = other.auxref_to_abs;
+    ref_to_com = other.ref_to_com;
+    ref_to_abs = other.ref_to_abs;
 }
 
-void ChBodyAuxRef::SetFrame_COG_to_REF(const ChFrame<>& cog_to_ref) {
+void ChBodyAuxRef::SetFrameCOMToRef(const ChFrame<>& frame) {
     ChFrameMoving<> old_cog_to_abs = *this;
 
-    ChFrameMoving<> ref_to_abs = this->TransformLocalToParent(this->auxref_to_cog);
+    ChFrameMoving<> ref_to_abs = TransformLocalToParent(ref_to_com);
 
-    ChFrameMoving<> new_cog_to_abs = ref_to_abs.TransformLocalToParent(ChFrameMoving<>(cog_to_ref));
+    ChFrameMoving<> new_cog_to_abs = ref_to_abs.TransformLocalToParent(ChFrameMoving<>(frame));
 
-    this->SetCoordsys(new_cog_to_abs.GetCoordsys());
-    this->SetCoordsysDer(new_cog_to_abs.GetCoordsysDer());
-    this->SetCoordsysDer2(new_cog_to_abs.GetCoordsysDer2());
+    SetCoordsys(new_cog_to_abs.GetCoordsys());
+    SetCoordsysDer(new_cog_to_abs.GetCoordsysDer());
+    SetCoordsysDer2(new_cog_to_abs.GetCoordsysDer2());
 
-    this->auxref_to_cog = cog_to_ref.GetInverse();
-    this->auxref_to_abs = this->TransformLocalToParent(this->auxref_to_cog);
+    ref_to_com = frame.GetInverse();
+    ref_to_abs = TransformLocalToParent(ref_to_com);
 
     // Restore marker/forces positions, keeping unchanged respect to aux ref.
     ChFrameMoving<> cog_oldnew = old_cog_to_abs >> new_cog_to_abs.GetInverse();
@@ -60,10 +60,10 @@ void ChBodyAuxRef::SetFrame_COG_to_REF(const ChFrame<>& cog_to_ref) {
     */
 }
 
-void ChBodyAuxRef::SetFrame_REF_to_abs(const ChFrame<>& ref_to_abs) {
-    auto cog_to_abs = ref_to_abs.TransformLocalToParent(this->auxref_to_cog.GetInverse());
-    this->SetCoordsys(cog_to_abs.GetCoordsys());
-    this->auxref_to_abs = ref_to_abs;
+void ChBodyAuxRef::SetFrameRefToAbs(const ChFrame<>& frame) {
+    auto cog_to_abs = frame.TransformLocalToParent(ref_to_com.GetInverse());
+    SetCoordsys(cog_to_abs.GetCoordsys());
+    ref_to_abs = frame;
 }
 
 void ChBodyAuxRef::Update(bool update_assets) {
@@ -71,7 +71,7 @@ void ChBodyAuxRef::Update(bool update_assets) {
     ChBody::Update(update_assets);
 
     // update own data
-    this->auxref_to_abs = this->TransformLocalToParent(this->auxref_to_cog);
+    ref_to_abs = TransformLocalToParent(ref_to_com);
 }
 
 //////// FILE I/O
@@ -84,22 +84,21 @@ void ChBodyAuxRef::ArchiveOut(ChArchiveOut& archive_out) {
     ChBody::ArchiveOut(archive_out);
 
     // serialize all member data:
-    archive_out << CHNVP(auxref_to_cog);
-    archive_out << CHNVP(auxref_to_abs);
+    archive_out << CHNVP(ref_to_com);
+    archive_out << CHNVP(ref_to_abs);
 }
 
 /// Method to allow de serialization of transient data from archives.
 void ChBodyAuxRef::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChBodyAuxRef>();
+    /*int version =*/archive_in.VersionRead<ChBodyAuxRef>();
 
     // deserialize parent class
     ChBody::ArchiveIn(archive_in);
 
     // stream in all member data:
-    archive_in >> CHNVP(auxref_to_cog);
-    archive_in >> CHNVP(auxref_to_abs);
-
+    archive_in >> CHNVP(ref_to_com);
+    archive_in >> CHNVP(ref_to_abs);
 }
 
 }  // end namespace chrono

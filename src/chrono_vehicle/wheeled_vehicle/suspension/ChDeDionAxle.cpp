@@ -86,7 +86,7 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Transform the location of the axle body COM to absolute frame.
     ChVector3d axleCOM_local = getAxleTubeCOM();
@@ -120,7 +120,7 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleTube = chrono_types::make_shared<ChBody>();
     m_axleTube->SetNameString(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
-    m_axleTube->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_axleTube->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_axleTube->SetMass(getAxleTubeMass());
     m_axleTube->SetInertiaXX(getAxleTubeInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_axleTube);
@@ -137,7 +137,7 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_wattCenterLinkBody = chrono_types::make_shared<ChBody>();
     m_wattCenterLinkBody->SetNameString(m_name + "_wattCenterBody");
     m_wattCenterLinkBody->SetPos(cntrPos);
-    m_wattCenterLinkBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_wattCenterLinkBody->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_wattCenterLinkBody->SetMass(getWattCenterMass());
     m_wattCenterLinkBody->SetInertiaXX(getWattCenterInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_wattCenterLinkBody);
@@ -147,7 +147,7 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_wattLeftLinkBody = chrono_types::make_shared<ChBody>();
     m_wattLeftLinkBody->SetNameString(m_name + "_wattLeftBody");
     m_wattLeftLinkBody->SetPos(lftPos);
-    m_wattLeftLinkBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_wattLeftLinkBody->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_wattLeftLinkBody->SetMass(getWattSideMass());
     m_wattLeftLinkBody->SetInertiaXX(getWattSideInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_wattLeftLinkBody);
@@ -157,7 +157,7 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_wattRightLinkBody = chrono_types::make_shared<ChBody>();
     m_wattRightLinkBody->SetNameString(m_name + "_wattRightBody");
     m_wattRightLinkBody->SetPos(rghtPos);
-    m_wattRightLinkBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_wattRightLinkBody->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_wattRightLinkBody->SetMass(getWattSideMass());
     m_wattRightLinkBody->SetInertiaXX(getWattSideInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_wattRightLinkBody);
@@ -232,7 +232,7 @@ void ChDeDionAxle::InitializeSide(VehicleSide side,
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassis->GetFrameRefToAbs().GetRot();
 
     // Spindle orientation (based on camber and toe angles)
     double sign = (side == LEFT) ? -1 : +1;

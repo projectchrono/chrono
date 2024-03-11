@@ -286,7 +286,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     wheel->SetAngVelLocal(ChVector3d(0.0, 0.0, 0.0));  // set an initial anular velocity (rad/s)
 
     // Set the absolute position of the body:
-    wheel->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(Body_pos), ChQuaternion<>(Body_rot)));
+    wheel->SetFrameRefToAbs(ChFrame<>(ChVector3d(Body_pos), ChQuaternion<>(Body_rot)));
     wheel->SetFixed(false);
     wheel->EnableCollision(false);
     sysMBS.AddBody(wheel);

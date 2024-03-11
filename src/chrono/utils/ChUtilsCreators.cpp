@@ -102,7 +102,7 @@ void AddBiSphereGeometry(ChBody* body,
     ChFrame<> frame;
     frame = ChFrame<>(pos, rot);
     if (ChBodyAuxRef* body_ar = dynamic_cast<ChBodyAuxRef*>(body)) {
-        frame = frame >> body_ar->GetFrame_REF_to_COG();
+        frame = frame >> body_ar->GetFrameRefToCOM();
     }
     const ChVector3d& position = frame.GetPos();
 

@@ -93,7 +93,7 @@ void ChToeBarPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Transform the location of the axle body COM to absolute frame.
     ChVector3d axleCOM_local = getAxleTubeCOM();
@@ -124,7 +124,7 @@ void ChToeBarPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleTube = chrono_types::make_shared<ChBody>();
     m_axleTube->SetNameString(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
-    m_axleTube->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_axleTube->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_axleTube->SetMass(getAxleTubeMass());
     m_axleTube->SetInertiaXX(getAxleTubeInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_axleTube);
@@ -142,7 +142,7 @@ void ChToeBarPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_panhardRod = chrono_types::make_shared<ChBody>();
     m_panhardRod->SetNameString(m_name + "_panhardRod");
     m_panhardRod->SetPos(panCom);
-    m_panhardRod->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_panhardRod->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_panhardRod->SetMass(getPanhardRodMass());
     m_panhardRod->SetInertiaXX(getPanhardRodInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_panhardRod);
@@ -172,7 +172,7 @@ void ChToeBarPushPipeAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_tierod = chrono_types::make_shared<ChBody>();
     m_tierod->SetNameString(m_name + "_tierodBody");
     m_tierod->SetPos((m_tierodOuterL + m_tierodOuterR) / 2);
-    m_tierod->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_tierod->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_tierod->SetMass(getTierodMass());
     m_tierod->SetInertiaXX(getTierodInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_tierod);
@@ -275,7 +275,7 @@ void ChToeBarPushPipeAxle::InitializeSide(VehicleSide side,
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassis->GetFrameRefToAbs().GetRot();
 
     // Spindle orientation (based on camber and toe angles)
     double sign = (side == LEFT) ? -1 : +1;

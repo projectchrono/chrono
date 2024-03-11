@@ -330,7 +330,7 @@ int main(int argc, char* argv[]) {
 
         // Debugging output
         if (dbg_output) {
-            const ChFrameMoving<>& c_ref = rig->GetChassisBody()->GetFrame_REF_to_abs();
+            const ChFrameMoving<>& c_ref = rig->GetChassisBody()->GetFrameRefToAbs();
             const ChVector3d& i_pos_abs = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
             const ChVector3d& s_pos_abs = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
             ChVector3d i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);

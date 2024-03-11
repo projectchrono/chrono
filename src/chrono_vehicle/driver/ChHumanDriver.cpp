@@ -218,7 +218,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
         m_run_once = false;
     }
 
-    auto& chassis_frame = m_vehicle.GetChassisBody()->GetFrame_REF_to_abs();  // chassis ref-to-world frame
+    auto& chassis_frame = m_vehicle.GetChassisBody()->GetFrameRefToAbs();  // chassis ref-to-world frame
     auto& chassis_rot = chassis_frame.GetRot();                               // chassis ref-to-world rotation
     double u = m_vehicle.GetSpeed();                                          // vehicle speed
 

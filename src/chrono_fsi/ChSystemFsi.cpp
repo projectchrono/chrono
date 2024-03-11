@@ -1801,8 +1801,8 @@ void ChSystemFsi::AddBCE(std::shared_ptr<ChBody> body,
     for (const auto& p : bce) {
         auto pos_shape = utils::ToChVector(p);
         auto pos_body = rel_frame.TransformPointLocalToParent(pos_shape);
-        auto pos_abs = body->GetFrame_REF_to_abs().TransformPointLocalToParent(pos_body);
-        auto vel_abs = body->GetFrame_REF_to_abs().PointSpeedLocalToParent(pos_body);
+        auto pos_abs = body->GetFrameRefToAbs().TransformPointLocalToParent(pos_body);
+        auto vel_abs = body->GetFrameRefToAbs().PointSpeedLocalToParent(pos_body);
 
         m_sysFSI->sphMarkersH->posRadH.push_back(mR4(utils::ToReal3(pos_abs), p.w));
         m_sysFSI->sphMarkersH->velMasH.push_back(utils::ToReal3(vel_abs));

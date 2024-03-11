@@ -87,27 +87,27 @@ class CH_MODELS_API CuriosityPart {
 
     /// Return the position of the Curiosity part.
     /// This is the absolute location of the part reference frame.
-    const ChVector3d& GetPos() const { return m_body->GetFrame_REF_to_abs().GetPos(); }
+    const ChVector3d& GetPos() const { return m_body->GetFrameRefToAbs().GetPos(); }
 
     /// Return the rotation of the Curiosity part.
     /// This is the orientation wrt the global frame of the part reference frame.
-    const ChQuaternion<>& GetRot() const { return m_body->GetFrame_REF_to_abs().GetRot(); }
+    const ChQuaternion<>& GetRot() const { return m_body->GetFrameRefToAbs().GetRot(); }
 
     /// Return the linear velocity of the Curiopsity part.
     /// This is the absolute linear velocity of the part reference frame.
-    const ChVector3d& GetLinVel() const { return m_body->GetFrame_REF_to_abs().GetPosDer(); }
+    const ChVector3d& GetLinVel() const { return m_body->GetFrameRefToAbs().GetPosDer(); }
 
     /// Return the angular velocity of the Curiosity part.
     /// This is the absolute angular velocity of the part reference frame.
-    const ChVector3d GetAngVel() const { return m_body->GetFrame_REF_to_abs().GetAngVelParent(); }
+    const ChVector3d GetAngVel() const { return m_body->GetFrameRefToAbs().GetAngVelParent(); }
 
     /// Return the linear acceleration of the Curiosity part.
     /// This is the absolute linear acceleration of the part reference frame.
-    const ChVector3d& GetLinAcc() const { return m_body->GetFrame_REF_to_abs().GetPosDer2(); }
+    const ChVector3d& GetLinAcc() const { return m_body->GetFrameRefToAbs().GetPosDer2(); }
 
     /// Return the angular acceleratino of the Curiosity part.
     /// This is the absolute angular acceleratin of the part reference frame.
-    const ChVector3d GetAngAcc() const { return m_body->GetFrame_REF_to_abs().GetAngAccParent(); }
+    const ChVector3d GetAngAcc() const { return m_body->GetFrameRefToAbs().GetAngAccParent(); }
 
     /// Initialize the rover part by attaching it to the specified chassis body.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis);

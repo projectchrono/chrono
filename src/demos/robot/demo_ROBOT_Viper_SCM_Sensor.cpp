@@ -260,12 +260,12 @@ int main(int argc, char* argv[]) {
         else if (i == 19)
             rock_pos = ChVector3d(-2.0, 1.8, 0.0);
 
-        rock_Body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+        rock_Body->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
 
         rock_Body->SetMass(mmass * mdensity);  // mmass * mdensity
         rock_Body->SetInertiaXX(mdensity * principal_I);
 
-        rock_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(rock_pos), ChQuaternion<>(rock_rot)));
+        rock_Body->SetFrameRefToAbs(ChFrame<>(ChVector3d(rock_pos), ChQuaternion<>(rock_rot)));
         sys.Add(rock_Body);
 
         rock_Body->SetFixed(false);

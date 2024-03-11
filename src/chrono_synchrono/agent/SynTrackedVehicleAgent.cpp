@@ -66,15 +66,15 @@ void SynTrackedVehicleAgent::InitializeZombie(ChSystem* system) {
 
 void SynTrackedVehicleAgent::SynchronizeZombie(std::shared_ptr<SynMessage> message) {
     if (auto state = std::dynamic_pointer_cast<SynTrackedVehicleStateMessage>(message)) {
-        m_zombie_body->SetFrame_REF_to_abs(state->chassis.GetFrame());
+        m_zombie_body->SetFrameRefToAbs(state->chassis.GetFrame());
         for (int i = 0; i < state->track_shoes.size(); i++)
-            m_track_shoe_list[i]->SetFrame_REF_to_abs(state->track_shoes[i].GetFrame());
+            m_track_shoe_list[i]->SetFrameRefToAbs(state->track_shoes[i].GetFrame());
         for (int i = 0; i < state->sprockets.size(); i++)
-            m_sprocket_list[i]->SetFrame_REF_to_abs(state->sprockets[i].GetFrame());
+            m_sprocket_list[i]->SetFrameRefToAbs(state->sprockets[i].GetFrame());
         for (int i = 0; i < state->idlers.size(); i++)
-            m_idler_list[i]->SetFrame_REF_to_abs(state->idlers[i].GetFrame());
+            m_idler_list[i]->SetFrameRefToAbs(state->idlers[i].GetFrame());
         for (int i = 0; i < state->road_wheels.size(); i++)
-            m_road_wheel_list[i]->SetFrame_REF_to_abs(state->road_wheels[i].GetFrame());
+            m_road_wheel_list[i]->SetFrameRefToAbs(state->road_wheels[i].GetFrame());
     }
 }
 
@@ -82,7 +82,7 @@ void SynTrackedVehicleAgent::Update() {
     if (!m_vehicle)
         return;
 
-    SynPose chassis(m_vehicle->GetChassisBody()->GetFrame_REF_to_abs().GetPos(), m_vehicle->GetChassisBody()->GetRot());
+    SynPose chassis(m_vehicle->GetChassisBody()->GetFrameRefToAbs().GetPos(), m_vehicle->GetChassisBody()->GetRot());
 
     std::vector<SynPose> track_shoes;
     BodyStates left_states(m_vehicle->GetNumTrackShoes(LEFT));
@@ -98,19 +98,19 @@ void SynTrackedVehicleAgent::Update() {
     auto right_assembly = m_vehicle->GetTrackAssembly(RIGHT);
 
     std::vector<SynPose> sprockets;
-    sprockets.emplace_back(left_assembly->GetSprocket()->GetGearBody()->GetFrame_REF_to_abs());
-    sprockets.emplace_back(right_assembly->GetSprocket()->GetGearBody()->GetFrame_REF_to_abs());
+    sprockets.emplace_back(left_assembly->GetSprocket()->GetGearBody()->GetFrameRefToAbs());
+    sprockets.emplace_back(right_assembly->GetSprocket()->GetGearBody()->GetFrameRefToAbs());
 
     std::vector<SynPose> idlers;
-    idlers.emplace_back(left_assembly->GetIdler()->GetWheelBody()->GetFrame_REF_to_abs());
-    idlers.emplace_back(right_assembly->GetIdler()->GetWheelBody()->GetFrame_REF_to_abs());
+    idlers.emplace_back(left_assembly->GetIdler()->GetWheelBody()->GetFrameRefToAbs());
+    idlers.emplace_back(right_assembly->GetIdler()->GetWheelBody()->GetFrameRefToAbs());
 
     std::vector<SynPose> road_wheels;
     for (int i = 0; i < m_vehicle->GetTrackAssembly(LEFT)->GetNumTrackSuspensions(); i++)
-        road_wheels.emplace_back(left_assembly->GetRoadWheel(i)->GetBody()->GetFrame_REF_to_abs());
+        road_wheels.emplace_back(left_assembly->GetRoadWheel(i)->GetBody()->GetFrameRefToAbs());
 
     for (int i = 0; i < m_vehicle->GetTrackAssembly(RIGHT)->GetNumTrackSuspensions(); i++)
-        road_wheels.emplace_back(right_assembly->GetRoadWheel(i)->GetBody()->GetFrame_REF_to_abs());
+        road_wheels.emplace_back(right_assembly->GetRoadWheel(i)->GetBody()->GetFrameRefToAbs());
 
     auto time = m_vehicle->GetSystem()->GetChTime();
     m_state->SetState(time, chassis, track_shoes, sprockets, idlers, road_wheels);
@@ -150,7 +150,7 @@ std::shared_ptr<ChBodyAuxRef> SynTrackedVehicleAgent::CreateChassisZombieBody(co
     zombie_body->AddVisualShape(trimesh);
     zombie_body->EnableCollision(false);
     zombie_body->SetFixed(true);
-    zombie_body->SetFrame_COG_to_REF(ChFrame<>({0, 0, -0.2}, {1, 0, 0, 0}));
+    zombie_body->SetFrameCOMToRef(ChFrame<>({0, 0, -0.2}, {1, 0, 0, 0}));
     system->Add(zombie_body);
 
     return zombie_body;

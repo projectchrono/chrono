@@ -130,13 +130,13 @@ TEST(ChronoMulticore, bodyauxref) {
 
     // In this case, we must specify the centroidal frame, relative to the body
     // reference frame.
-    pend_2->SetFrame_COG_to_REF(ChFrame<>(ChVector3d(1, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
+    pend_2->SetFrameCOMToRef(ChFrame<>(ChVector3d(1, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
 
     // Specify the initial position of the pendulum (horizontal, pointing towards
     // positive X).  Here, we want to specify the position of the body reference
     // frame (relative to the absolute frame). Recall that the body reference
     // frame is located at the pin.
-    pend_2->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(0, -1, 0)));
+    pend_2->SetFrameRefToAbs(ChFrame<>(ChVector3d(0, -1, 0)));
 
     // Create a revolute joint to connect pendulum to ground. We specify the link
     // coordinate frame in the absolute frame.

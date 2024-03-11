@@ -1173,7 +1173,7 @@ void ChBlender::ExportData(const std::string& filename) {
             // saving a body?
             if (const auto& body = std::dynamic_pointer_cast<ChBody>(item)) {
                 // Get the current coordinate frame of the i-th object
-                const ChFrame<>& bodyframe = body->GetFrame_REF_to_abs();
+                const ChFrame<>& bodyframe = body->GetFrameRefToAbs();
 
                 // Dump the POV macro that generates the contained asset(s) tree
                 ExportItemState(state_file, body, bodyframe >> blender_frame);

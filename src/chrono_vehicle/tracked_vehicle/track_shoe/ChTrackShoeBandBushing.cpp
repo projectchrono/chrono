@@ -93,7 +93,7 @@ void ChTrackShoeBandBushing::InitializeInertiaProperties() {
 }
 
 void ChTrackShoeBandBushing::UpdateInertiaProperties() {
-    m_xform = m_shoe->GetFrame_REF_to_abs();
+    m_xform = m_shoe->GetFrameRefToAbs();
 
     // Calculate COM and inertia expressed in global frame
     utils::CompositeInertia composite;

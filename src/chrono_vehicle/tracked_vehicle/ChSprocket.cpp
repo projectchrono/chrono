@@ -50,8 +50,8 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d
     m_rel_loc = location;
 
     // The sprocket reference frame is aligned with that of the chassis and centered at the specified location.
-    ChVector3d loc = chassis->GetBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(location);
-    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
+    ChVector3d loc = chassis->GetBody()->GetFrameRefToAbs().TransformPointLocalToParent(location);
+    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrameRefToAbs().GetRot();
     ChQuaternion<> y2z = QuatFromAngleX(CH_C_PI_2);
     ChMatrix33<> rot_y2z(y2z);
 
@@ -107,7 +107,7 @@ void ChSprocket::InitializeInertiaProperties() {
 }
 
 void ChSprocket::UpdateInertiaProperties() {
-    m_xform = m_gear->GetFrame_REF_to_abs();
+    m_xform = m_gear->GetFrameRefToAbs();
 }
 
 // -----------------------------------------------------------------------------

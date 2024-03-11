@@ -184,7 +184,7 @@ void ChParserURDF::PopulateSystem(ChSystem& sys) {
     ChFrame<> frame = m_init_pose;
     if (root_link->inertial) {
         m_root_body = toChBody(root_link);
-        m_root_body->SetFrame_REF_to_abs(frame);
+        m_root_body->SetFrameRefToAbs(frame);
         m_sys->AddBody(m_root_body);
     }
     createChildren(root_link, frame);
@@ -202,7 +202,7 @@ void ChParserURDF::createChildren(urdf::LinkConstSharedPtr parent, const ChFrame
         // Create the child Chrono body
         auto body = toChBody(*child);
         if (body) {
-            body->SetFrame_REF_to_abs(child_frame);
+            body->SetFrameRefToAbs(child_frame);
             m_sys->AddBody(body);
         }
 
@@ -437,7 +437,7 @@ std::shared_ptr<ChBodyAuxRef> ChParserURDF::toChBody(urdf::LinkConstSharedPtr li
     // Create the Chrono body
     auto body = chrono_types::make_shared<ChBodyAuxRef>();
     body->SetNameString(link->name);
-    body->SetFrame_COG_to_REF(toChFrame(inertial->origin));
+    body->SetFrameCOMToRef(toChFrame(inertial->origin));
     body->SetMass(mass);
     body->SetInertiaXX(inertia_moments);
     body->SetInertiaXY(inertia_products);
@@ -488,7 +488,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
     joint_axis.GetDirectionAxesAsX(d1, d2, d3);
 
     // Create motors or passive joints
-    ChFrame<> joint_frame = child->GetFrame_REF_to_abs();  // default joint frame == child body frame
+    ChFrame<> joint_frame = child->GetFrameRefToAbs();  // default joint frame == child body frame
 
     if (m_actuated_joints.find(joint->name) != m_actuated_joints.end()) {
         // Create a motor (with a default zero constant motor function)

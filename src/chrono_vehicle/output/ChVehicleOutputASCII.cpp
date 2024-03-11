@@ -58,9 +58,9 @@ void ChVehicleOutputASCII::WriteBodies(const std::vector<std::shared_ptr<ChBody>
 
 void ChVehicleOutputASCII::WriteAuxRefBodies(const std::vector<std::shared_ptr<ChBodyAuxRef>>& bodies) {
     for (auto body : bodies) {
-        auto& ref_pos = body->GetFrame_REF_to_abs().GetPos();
-        auto& ref_vel = body->GetFrame_REF_to_abs().GetPosDer();
-        auto& ref_acc = body->GetFrame_REF_to_abs().GetPosDer2();
+        auto& ref_pos = body->GetFrameRefToAbs().GetPos();
+        auto& ref_vel = body->GetFrameRefToAbs().GetPosDer();
+        auto& ref_acc = body->GetFrameRefToAbs().GetPosDer2();
 
         m_stream << "    body auxref: " << body->GetIdentifier() << " \"" << body->GetNameString() << "\" ";
         m_stream << body->GetPos() << " " << body->GetRot() << " ";

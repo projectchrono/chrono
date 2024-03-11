@@ -153,8 +153,8 @@ class CH_MODELS_API RS_Part {
     void SetVisualizationType(VisualizationType vis);
 
     std::shared_ptr<chrono::ChBodyAuxRef> GetBody() const { return m_body; }
-    const chrono::ChVector3d& GetPos() const { return m_body->GetFrame_REF_to_abs().GetPos(); }
-    const chrono::ChQuaternion<>& GetRot() const { return m_body->GetFrame_REF_to_abs().GetRot(); }
+    const chrono::ChVector3d& GetPos() const { return m_body->GetFrameRefToAbs().GetPos(); }
+    const chrono::ChQuaternion<>& GetRot() const { return m_body->GetFrameRefToAbs().GetRot(); }
 
   protected:
     void AddVisualizationAssets(VisualizationType vis);

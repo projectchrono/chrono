@@ -46,7 +46,7 @@ void ChBalancer::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d
 
     // Express the subchassis reference frame in the absolute coordinate system
     ChFrame<> to_abs(location);
-    to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Transform all hardpoints to absolute frame
     m_pointsL.resize(NUM_POINTS);
@@ -76,7 +76,7 @@ void ChBalancer::InitializeSide(VehicleSide side,
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrameRefToAbs().GetRot();
 
     // Orientation of revolute joint
     ChVector3d w = dir.GetNormalized();

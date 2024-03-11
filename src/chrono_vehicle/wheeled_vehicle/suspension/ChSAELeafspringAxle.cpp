@@ -132,7 +132,7 @@ void ChSAELeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Transform the location of the axle body COM to absolute frame.
     ChVector3d axleCOM_local = getAxleTubeCOM();
@@ -151,7 +151,7 @@ void ChSAELeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleTube = chrono_types::make_shared<ChBody>();
     m_axleTube->SetNameString(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
-    m_axleTube->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_axleTube->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_axleTube->SetMass(getAxleTubeMass());
     m_axleTube->SetInertiaXX(getAxleTubeInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_axleTube);
@@ -185,7 +185,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrameRefToAbs().GetRot();
 
     // Spindle orientation (based on camber and toe angles)
     double sign = (side == LEFT) ? -1 : +1;
@@ -241,7 +241,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     m_shackle[side] = chrono_types::make_shared<ChBody>();
     m_shackle[side]->SetNameString(m_name + "_shackle" + suffix);
     m_shackle[side]->SetPos((points[REAR_HANGER] + points[SHACKLE]) / 2.0);
-    m_shackle[side]->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_shackle[side]->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_shackle[side]->SetMass(getShackleMass());
     m_shackle[side]->SetInertiaXX(getShackleInertia());
     chassis->GetSystem()->AddBody(m_shackle[side]);
@@ -256,7 +256,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     m_frontleaf[side] = chrono_types::make_shared<ChBody>();
     m_frontleaf[side]->SetNameString(m_name + "_frontleaf" + suffix);
     m_frontleaf[side]->SetPos((points[FRONT_HANGER] + points[CLAMP_A]) / 2.0);
-    m_frontleaf[side]->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_frontleaf[side]->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_frontleaf[side]->SetMass(getFrontLeafMass());
     m_frontleaf[side]->SetInertiaXX(getFrontLeafInertia());
     chassis->GetSystem()->AddBody(m_frontleaf[side]);
@@ -271,7 +271,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     m_rearleaf[side] = chrono_types::make_shared<ChBody>();
     m_rearleaf[side]->SetNameString(m_name + "_rearleaf" + suffix);
     m_rearleaf[side]->SetPos((points[SHACKLE] + points[CLAMP_B]) / 2.0);
-    m_rearleaf[side]->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_rearleaf[side]->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_rearleaf[side]->SetMass(getRearLeafMass());
     m_rearleaf[side]->SetInertiaXX(getRearLeafInertia());
     chassis->GetSystem()->AddBody(m_rearleaf[side]);
@@ -287,7 +287,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     m_clampA[side] = chrono_types::make_shared<ChBody>();
     m_clampA[side]->SetNameString(m_name + "_clampA" + suffix);
     m_clampA[side]->SetPos((points[CLAMP_A] + mid) / 2.0);
-    m_clampA[side]->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_clampA[side]->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_clampA[side]->SetMass(getClampMass());
     m_clampA[side]->SetInertiaXX(getClampInertia());
     chassis->GetSystem()->AddBody(m_clampA[side]);
@@ -309,7 +309,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     m_clampB[side] = chrono_types::make_shared<ChBody>();
     m_clampB[side]->SetNameString(m_name + "_clampB" + suffix);
     m_clampB[side]->SetPos((points[CLAMP_B] + mid) / 2.0);
-    m_clampB[side]->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_clampB[side]->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_clampB[side]->SetMass(getClampMass());
     m_clampB[side]->SetInertiaXX(getClampInertia());
     chassis->GetSystem()->AddBody(m_clampB[side]);

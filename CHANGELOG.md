@@ -276,6 +276,13 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetGid                        | remove                                           |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 |                                   | SetUseSleeping                | rename: SetSleepingAllowed                       |
+| ChBodyAuxRef                      |                               |                                                  |
+|                                   | GetFrame_COG_to_REF           | rename: GetFrameCOMToRef                         |
+|                                   | GetFrame_REF_to_abs           | rename: GetFrameRefToAbs                         |
+|                                   | GetFrame_REF_to_COG           | rename: GetFrameRefToCOM                         |
+|                                   | SetFrame_COG_to_REF           | rename: SetFrameCOMToRef                         |
+|                                   | SetFrame_REF_to_abs           | rename: SetFrameRefToAbs                         |
+|                                   | SetFrame_REF_to_COG           | rename: SetFrameRefToCOM                         |
 | ChBodyFrame                       |                               |                                                  |
 |                                   | To_abs_forcetorque            | remove                                           |
 |                                   |                               | added: AppliedForceLocalToWrenchParent           |

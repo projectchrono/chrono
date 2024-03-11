@@ -36,7 +36,7 @@ void ChChassisConnectorHitch::Initialize(std::shared_ptr<ChChassis> front, std::
 
     // Express the connector reference frame in the absolute coordinate system
     ChFrame<> to_abs(rear->GetLocalPosFrontConnector());
-    to_abs.ConcatenatePreTransformation(rear->GetBody()->GetFrame_REF_to_abs());
+    to_abs.ConcatenatePreTransformation(rear->GetBody()->GetFrameRefToAbs());
 
     // Create the revolute joint connection
     m_joint = chrono_types::make_shared<ChLinkLockSpherical>();

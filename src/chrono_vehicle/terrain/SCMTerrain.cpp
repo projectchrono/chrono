@@ -915,7 +915,7 @@ void SCMLoader::UpdateMovingPatch(MovingPatchInfo& p, const ChVector3d& Z) {
         // OOBB corner in body frame
         ChVector3d c_body = p.m_center + p.m_hdims * ChVector3d(2.0 * ix - 1, 2.0 * iy - 1, 2.0 * iz - 1);
         // OOBB corner in absolute frame
-        ChVector3d c_abs = p.m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(c_body);
+        ChVector3d c_abs = p.m_body->GetFrameRefToAbs().TransformPointLocalToParent(c_body);
         // OOBB corner expressed in SCM frame
         ChVector3d c_scm = m_plane.TransformPointParentToLocal(c_abs);
 

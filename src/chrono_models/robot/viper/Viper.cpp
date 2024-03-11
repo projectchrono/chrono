@@ -100,7 +100,7 @@ void AddRevoluteJoint(std::shared_ptr<ChBody> body1,
                       const ChVector3d& rel_pos,
                       const ChQuaternion<>& rel_rot) {
     // Express relative frame in global
-    ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
+    ChFrame<> X_GC = chassis->GetBody()->GetFrameRefToAbs() * ChFrame<>(rel_pos, rel_rot);
 
     // Create joint (DOF about Z axis of X_GC frame)
     auto joint = chrono_types::make_shared<ChLinkLockRevolute>();
@@ -116,7 +116,7 @@ void AddUniversalJoint(std::shared_ptr<ChBody> body1,
                        const ChVector3d& rel_pos,
                        const ChQuaternion<>& rel_rot) {
     // Express relative frame in global
-    ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
+    ChFrame<> X_GC = chassis->GetBody()->GetFrameRefToAbs() * ChFrame<>(rel_pos, rel_rot);
 
     // Create joint (DOFs about X and Y axes of X_GC frame)
     auto joint = chrono_types::make_shared<ChLinkUniversal>();
@@ -132,7 +132,7 @@ std::shared_ptr<ChLinkMotorRotationSpeed> AddMotorSpeed(std::shared_ptr<ChBody> 
                                                         const ChVector3d& rel_pos,
                                                         const ChQuaternion<>& rel_rot) {
     // Express relative frame in global
-    ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
+    ChFrame<> X_GC = chassis->GetBody()->GetFrameRefToAbs() * ChFrame<>(rel_pos, rel_rot);
 
     // Create motor (actuated DOF about Z axis of X_GC frame)
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
@@ -150,7 +150,7 @@ std::shared_ptr<ChLinkMotorRotationAngle> AddMotorAngle(std::shared_ptr<ChBody> 
                                                         const ChVector3d& rel_pos,
                                                         const ChQuaternion<>& rel_rot) {
     // Express relative frame in global
-    ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
+    ChFrame<> X_GC = chassis->GetBody()->GetFrameRefToAbs() * ChFrame<>(rel_pos, rel_rot);
 
     // Create motor (actuated DOF about Z axis of X_GC frame)
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
@@ -168,7 +168,7 @@ std::shared_ptr<ChLinkMotorRotationTorque> AddMotorTorque(std::shared_ptr<ChBody
                                                           const ChVector3d& rel_pos,
                                                           const ChQuaternion<>& rel_rot) {
     // Express relative frame in global
-    ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
+    ChFrame<> X_GC = chassis->GetBody()->GetFrameRefToAbs() * ChFrame<>(rel_pos, rel_rot);
 
     // Create motor (actuated DOF about Z axis of X_GC frame)
     auto motor = chrono_types::make_shared<ChLinkMotorRotationTorque>();
@@ -185,7 +185,7 @@ std::shared_ptr<ChLinkTSDA> AddSuspensionSpring(std::shared_ptr<ChBodyAuxRef> bo
                                                 std::shared_ptr<ViperChassis> chassis,
                                                 const ChVector3d& pos1,
                                                 const ChVector3d& pos2) {
-    const ChFrame<>& X_GP = chassis->GetBody()->GetFrame_REF_to_abs();
+    const ChFrame<>& X_GP = chassis->GetBody()->GetFrameRefToAbs();
     auto p1 = X_GP.TransformPointLocalToParent(pos1);
     auto p2 = X_GP.TransformPointLocalToParent(pos2);
 
@@ -212,7 +212,7 @@ void ViperPart::Construct(ChSystem* system) {
     m_body->SetNameString(m_name + "_body");
     m_body->SetMass(m_mass);
     m_body->SetInertiaXX(m_inertia);
-    m_body->SetFrame_COG_to_REF(m_cog);
+    m_body->SetFrameCOMToRef(m_cog);
 
     // Add visualization shape
     if (m_visualize) {
@@ -264,8 +264,8 @@ void ViperPart::Initialize(std::shared_ptr<ChBodyAuxRef> chassis) {
     Construct(chassis->GetSystem());
 
     // Set absolute position
-    ChFrame<> X_GC = chassis->GetFrame_REF_to_abs() * m_pos;
-    m_body->SetFrame_REF_to_abs(X_GC);
+    ChFrame<> X_GC = chassis->GetFrameRefToAbs() * m_pos;
+    m_body->SetFrameRefToAbs(X_GC);
 }
 
 // =============================================================================
@@ -281,7 +281,7 @@ ViperChassis::ViperChassis(const std::string& name, std::shared_ptr<ChContactMat
 void ViperChassis::Initialize(ChSystem* system, const ChFrame<>& pos) {
     Construct(system);
 
-    m_body->SetFrame_REF_to_abs(pos);
+    m_body->SetFrameRefToAbs(pos);
 }
 
 // =============================================================================

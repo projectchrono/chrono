@@ -430,8 +430,8 @@ void WriteVisualizationAssets(ChSystem* system,
             if (!selector(*body))
                 continue;
 
-            const ChVector3d& body_pos = body->GetFrame_REF_to_abs().GetPos();
-            const ChQuaternion<>& body_rot = body->GetFrame_REF_to_abs().GetRot();
+            const ChVector3d& body_pos = body->GetFrameRefToAbs().GetPos();
+            const ChQuaternion<>& body_rot = body->GetFrameRefToAbs().GetRot();
 
             csv << body->GetIdentifier() << body->IsActive() << body_pos << body_rot << std::endl;
 
@@ -451,7 +451,7 @@ void WriteVisualizationAssets(ChSystem* system,
         // Loop over visual shapes -- write information for supported types.
         for (auto& shape_instance : body->GetVisualModel()->GetShapes()) {
             auto& shape = shape_instance.first;
-            auto X_GS = body->GetFrame_REF_to_abs() * shape_instance.second;
+            auto X_GS = body->GetFrameRefToAbs() * shape_instance.second;
             auto& pos = X_GS.GetPos();
             auto& rot = X_GS.GetRot();
 

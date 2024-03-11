@@ -415,7 +415,7 @@ void ChTrackTestRig::SetPlotOutput(double output_step) {
 void ChTrackTestRig::CollectPlotData(double time) {
     *m_csv << time;
 
-    ////const ChFrameMoving<>& c_ref = GetChassisBody()->GetFrame_REF_to_abs();
+    ////const ChFrameMoving<>& c_ref = GetChassisBody()->GetFrameRefToAbs();
     ////const ChVector3d& i_pos_abs = m_track->GetIdler()->GetWheelBody()->GetPos();
     ////const ChVector3d& s_pos_abs = m_track->GetSprocket()->GetGearBody()->GetPos();
     ////ChVector3d i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);

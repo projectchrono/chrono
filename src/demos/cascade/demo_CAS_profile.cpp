@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
         true,                                                               // enable 2D collision
         material                                                            // contact material
     );
-    mgenevawheel->SetFrame_REF_to_abs(ChFrame<>(geneva_center));
+    mgenevawheel->SetFrameRefToAbs(ChFrame<>(geneva_center));
     mgenevawheel->SetAngVelLocal(ChVector3d(0, 0, -0.08));
     sys.Add(mgenevawheel);
 
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
                        material                                                            // contact material
     );
 
-    mcrank->SetFrame_REF_to_abs(
+    mcrank->SetFrameRefToAbs(
         ChFrame<>(crank_center));  // the REF is the coordinate where the path has been defined, the COG maybe elsewhere
     sys.Add(mcrank);
 

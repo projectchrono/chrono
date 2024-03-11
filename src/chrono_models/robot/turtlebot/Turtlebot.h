@@ -90,10 +90,10 @@ class CH_MODELS_API Turtlebot_Part {
     std::shared_ptr<ChBodyAuxRef> GetChassis() const { return m_chassis; }
 
     /// Return the Position of the Turtlebot part.
-    const ChVector3d& GetPos() const { return m_body->GetFrame_REF_to_abs().GetPos(); }
+    const ChVector3d& GetPos() const { return m_body->GetFrameRefToAbs().GetPos(); }
 
     /// Return the Rotation of the Turtlebot part.
-    const ChQuaternion<>& GetRot() const { return m_body->GetFrame_REF_to_abs().GetRot(); }
+    const ChQuaternion<>& GetRot() const { return m_body->GetFrameRefToAbs().GetRot(); }
 
   protected:
     /// Initialize the visulization mesh of the Turtlebot part.

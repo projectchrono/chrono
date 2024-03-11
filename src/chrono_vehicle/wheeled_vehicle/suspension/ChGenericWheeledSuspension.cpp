@@ -333,11 +333,11 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrameRefToAbs().GetRot();
 
     // Express the suspension reference frame in the absolute coordinate system.
     m_X_SA.SetPos(location);
-    m_X_SA.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    m_X_SA.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Initialize all bodies in the suspension subsystem
     for (auto& item : m_bodies) {

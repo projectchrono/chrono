@@ -73,7 +73,7 @@ void ChChaseCamera::Initialize(const ChVector3d& ptOnChassis,
 
     if (m_chassis) {
         ChVector3d localOffset(-m_dist, 0, m_height);
-        m_loc = m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_ptOnChassis + localOffset);
+        m_loc = m_chassis->GetFrameRefToAbs().TransformPointLocalToParent(m_ptOnChassis + localOffset);
         m_lastLoc = m_loc;
     }
 }
@@ -182,7 +182,7 @@ void ChChaseCamera::SetChassis(std::shared_ptr<ChBody> chassis) {
     m_chassis = chassis;
 
     ChVector3d localOffset(-m_dist, 0, m_height);
-    m_loc = m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_ptOnChassis + localOffset);
+    m_loc = m_chassis->GetFrameRefToAbs().TransformPointLocalToParent(m_ptOnChassis + localOffset);
     m_lastLoc = m_loc;
 }
 
@@ -195,9 +195,9 @@ void ChChaseCamera::SetChassis(std::shared_ptr<ChBody> chassis) {
 // -----------------------------------------------------------------------------
 ChVector3d ChChaseCamera::GetCameraPos() const {
     if (m_state == Inside) {
-        ChVector3d driverPos = m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_driverCsys.pos);
+        ChVector3d driverPos = m_chassis->GetFrameRefToAbs().TransformPointLocalToParent(m_driverCsys.pos);
         ChVector3d driverViewDir =
-            m_chassis->GetFrame_REF_to_abs().TransformDirectionLocalToParent(m_driverCsys.rot.GetAxisX());
+            m_chassis->GetFrameRefToAbs().TransformDirectionLocalToParent(m_driverCsys.rot.GetAxisX());
         return driverPos - 1.1 * driverViewDir;
     }
 
@@ -209,7 +209,7 @@ ChVector3d ChChaseCamera::GetCameraPos() const {
 
 ChVector3d ChChaseCamera::GetTargetPos() const {
     if (m_state == Inside) {
-        return m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_driverCsys.pos);
+        return m_chassis->GetFrameRefToAbs().TransformPointLocalToParent(m_driverCsys.pos);
     }
 
     if(m_state == Free) {
@@ -217,7 +217,7 @@ ChVector3d ChChaseCamera::GetTargetPos() const {
         return m_loc + rot.GetAxisX() * 1.0;
     }
 
-    return m_chassis->GetFrame_REF_to_abs().TransformPointLocalToParent(m_ptOnChassis);
+    return m_chassis->GetFrameRefToAbs().TransformPointLocalToParent(m_ptOnChassis);
 }
 
 // -----------------------------------------------------------------------------
@@ -237,7 +237,7 @@ void ChChaseCamera::Update(double step) {
         return;
 
     // If in 'Track' mode, force a state change if too far from tracked body.
-    double dist2 = (m_chassis->GetFrame_REF_to_abs().GetPos() - m_lastLoc).Length2();
+    double dist2 = (m_chassis->GetFrameRefToAbs().GetPos() - m_lastLoc).Length2();
     if (dist2 > m_maxTrackDist2)
         SetState(Chase);
 }

@@ -58,7 +58,7 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Express the steering reference frame in the absolute coordinate system.
     ChFrame<> steering_to_abs(location, rotation);
-    steering_to_abs.ConcatenatePreTransformation(chassisBody->GetFrame_REF_to_abs());
+    steering_to_abs.ConcatenatePreTransformation(chassisBody->GetFrameRefToAbs());
 
     // Create and initialize the steering link body
     ChVector3d link_pos = steering_to_abs.TransformPointLocalToParent(ChVector3d(0, GetSteeringLinkCOM(), 0));

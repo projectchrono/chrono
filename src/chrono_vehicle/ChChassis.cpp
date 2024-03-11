@@ -48,35 +48,35 @@ ChChassis::~ChChassis() {
 
 // -----------------------------------------------------------------------------
 const ChVector3d& ChChassis::GetPos() const {
-    return m_body->GetFrame_REF_to_abs().GetPos();
+    return m_body->GetFrameRefToAbs().GetPos();
 }
 
 ChQuaternion<> ChChassis::GetRot() const {
-    return m_body->GetFrame_REF_to_abs().GetRot() * ChWorldFrame::Quaternion();
+    return m_body->GetFrameRefToAbs().GetRot() * ChWorldFrame::Quaternion();
 }
 
 ChVector3d ChChassis::GetPointLocation(const ChVector3d& locpos) const {
-    return m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(locpos);
+    return m_body->GetFrameRefToAbs().TransformPointLocalToParent(locpos);
 }
 
 ChVector3d ChChassis::GetPointVelocity(const ChVector3d& locpos) const {
-    return m_body->GetFrame_REF_to_abs().PointSpeedLocalToParent(locpos);
+    return m_body->GetFrameRefToAbs().PointSpeedLocalToParent(locpos);
 }
 
 ChVector3d ChChassis::GetPointAcceleration(const ChVector3d& locpos) const {
-    ChVector3d acc_abs = m_body->GetFrame_REF_to_abs().PointAccelerationLocalToParent(locpos);
-    return m_body->GetFrame_REF_to_abs().TransformDirectionParentToLocal(acc_abs);
+    ChVector3d acc_abs = m_body->GetFrameRefToAbs().PointAccelerationLocalToParent(locpos);
+    return m_body->GetFrameRefToAbs().TransformDirectionParentToLocal(acc_abs);
 }
 
 // Return the global driver position
 ChVector3d ChChassis::GetDriverPos() const {
-    return m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(GetLocalDriverCoordsys().pos);
+    return m_body->GetFrameRefToAbs().TransformPointLocalToParent(GetLocalDriverCoordsys().pos);
 }
 
 // Return the speed measured at the origin of the chassis reference frame.
 double ChChassis::GetSpeed() const {
     const auto& x_dir = m_body->GetRotMat().GetAxisX();
-    const auto& vel = m_body->GetFrame_REF_to_abs().GetPosDer();
+    const auto& vel = m_body->GetFrameRefToAbs().GetPosDer();
     return Vdot(vel, x_dir);
 }
 
@@ -88,22 +88,22 @@ double ChChassis::GetCOMSpeed() const {
 }
 
 double ChChassis::GetRollRate() const {
-    auto w = m_body->GetFrame_REF_to_abs().GetAngVelLocal();
+    auto w = m_body->GetFrameRefToAbs().GetAngVelLocal();
     return w.x();
 }
 
 double ChChassis::GetPitchRate() const {
-    auto w = m_body->GetFrame_REF_to_abs().GetAngVelLocal();
+    auto w = m_body->GetFrameRefToAbs().GetAngVelLocal();
     return w.y();
 }
 
 double ChChassis::GetYawRate() const {
-    auto w = m_body->GetFrame_REF_to_abs().GetAngVelLocal();
+    auto w = m_body->GetFrameRefToAbs().GetAngVelLocal();
     return w.z();
 }
 
 double ChChassis::GetTurnRate() const {
-    auto w = m_body->GetFrame_REF_to_abs().GetAngVelParent();
+    auto w = m_body->GetFrameRefToAbs().GetAngVelParent();
     return Vdot(w, ChWorldFrame::Vertical());
 }
 
@@ -118,11 +118,11 @@ void ChChassis::Initialize(ChSystem* system,
     m_body->SetIdentifier(0);
     m_body->SetNameString(m_name + " body");
     m_body->SetMass(GetBodyMass());
-    m_body->SetFrame_COG_to_REF(GetBodyCOMFrame());
+    m_body->SetFrameCOMToRef(GetBodyCOMFrame());
     m_body->SetInertia(GetBodyInertia());
     m_body->SetFixed(m_fixed);
 
-    m_body->SetFrame_REF_to_abs(chassis_pos);
+    m_body->SetFrameRefToAbs(chassis_pos);
     m_body->SetPosDer(chassisFwdVel * chassis_pos.TransformDirectionLocalToParent(ChVector3d(1, 0, 0)));
 
     system->Add(m_body);
@@ -147,7 +147,7 @@ void ChChassis::AddMarker(const std::string& name, const ChFrame<>& frame) {
 
     // Note: marker local positions are assumed to be relative to the centroidal frame
     //       of the associated body.
-    ChFrame<> frame_com = m_body->GetFrame_REF_to_COG().TransformLocalToParent(frame);
+    ChFrame<> frame_com = m_body->GetFrameRefToCOM().TransformLocalToParent(frame);
 
     // Create the marker, attach it to the chassis body, add it to the list
     auto marker = chrono_types::make_shared<ChMarker>();
@@ -201,7 +201,7 @@ void ChChassis::InitializeInertiaProperties() {
 }
 
 void ChChassis::UpdateInertiaProperties() {
-    m_xform = m_body->GetFrame_REF_to_abs();
+    m_xform = m_body->GetFrameRefToAbs();
 }
 
 // -----------------------------------------------------------------------------
@@ -267,7 +267,7 @@ void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision
     const ChVector3d& rear_loc = GetLocalPosFrontConnector();
 
     ChFrame<> chassis_frame(front_loc - rear_loc);
-    chassis_frame.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    chassis_frame.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     auto system = chassis->GetBody()->GetSystem();
 
@@ -275,11 +275,11 @@ void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision
     m_body->SetIdentifier(0);
     m_body->SetNameString(m_name + " body");
     m_body->SetMass(GetBodyMass());
-    m_body->SetFrame_COG_to_REF(GetBodyCOMFrame());
+    m_body->SetFrameCOMToRef(GetBodyCOMFrame());
     m_body->SetInertia(GetBodyInertia());
     m_body->SetFixed(m_fixed);
 
-    m_body->SetFrame_REF_to_abs(chassis_frame);
+    m_body->SetFrameRefToAbs(chassis_frame);
 
     system->Add(m_body);
 

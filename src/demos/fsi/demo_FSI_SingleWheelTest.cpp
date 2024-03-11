@@ -169,7 +169,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Set the COG coordinates to barycenter, without displacing the REF reference.
     // Make the COG frame a principal frame.
-    wheel->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+    wheel->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
 
     // Set inertia
     wheel->SetMass(total_mass * 1.0 / 2.0);
@@ -178,7 +178,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     wheel->SetAngVelLocal(ChVector3d(0.0, 0.0, 0.0));  // set an initial anular velocity (rad/s)
 
     // Set the absolute position of the body:
-    wheel->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(wheel_IniPos), ChQuaternion<>(wheel_Rot)));
+    wheel->SetFrameRefToAbs(ChFrame<>(ChVector3d(wheel_IniPos), ChQuaternion<>(wheel_Rot)));
     sysMBS.AddBody(wheel);
 
     wheel->SetFixed(false);
@@ -410,7 +410,7 @@ int main(int argc, char* argv[]) {
             sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/wheel." + std::to_string(counter++) + ".vtk";
-            WriteWheelVTK(filename, wheel_mesh, wheel->GetFrame_REF_to_abs());
+            WriteWheelVTK(filename, wheel_mesh, wheel->GetFrameRefToAbs());
         }
 
         // Render SPH particles

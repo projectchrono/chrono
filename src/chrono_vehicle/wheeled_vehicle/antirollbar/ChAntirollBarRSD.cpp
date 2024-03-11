@@ -59,11 +59,11 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> subsystem_to_abs(location);
-    subsystem_to_abs.ConcatenatePreTransformation(chassisBody->GetFrame_REF_to_abs());
+    subsystem_to_abs.ConcatenatePreTransformation(chassisBody->GetFrameRefToAbs());
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the subsystem reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassisBody->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassisBody->GetFrameRefToAbs().GetRot();
 
     // Convenience names
     double L = getArmLength();

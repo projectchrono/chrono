@@ -73,7 +73,7 @@ void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
                                  ChTrackAssembly* track) {
     // Express the idler reference frame in the absolute coordinate system
     ChFrame<> idler_to_abs(location);
-    idler_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    idler_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Transform all points and directions to absolute frame
     m_points.resize(NUM_POINTS);

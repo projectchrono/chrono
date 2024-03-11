@@ -105,26 +105,25 @@ pend_2.AddVisualShape(cyl_2, chrono.ChFramed(chrono.ChVector3d(1, 0, 0), chrono.
 
 # In this case, we must specify the centroidal frame, relative to the body
 # reference frame
-pend_2.SetFrame_COG_to_REF(chrono.ChFramed(chrono.ChVector3d(1, 0, 0), chrono.ChQuaterniond(1, 0, 0, 0)))
+pend_2.SetFrameCOMToRef(chrono.ChFramed(chrono.ChVector3d(1, 0, 0), chrono.ChQuaterniond(1, 0, 0, 0)))
 
 # Specify the initial position of the pendulum (horizontal, pointing towards
 # positive X).  Here, we want to specify the position of the body reference
 # frame (relative to the absolute frame). Recall that the body reference
 # frame is located at the pin.
-pend_2.SetFrame_REF_to_abs(chrono.ChFramed(chrono.ChVector3d(0, 0, -1)))
+pend_2.SetFrameRefToAbs(chrono.ChFramed(chrono.ChVector3d(0, 0, -1)))
 
 
 # Note: Beware of using the method SetPos() to specify the initial position
 # (as we did for the first pendulum)!  SetPos() specifies the position of the
-# centroidal frame.  So one could use it (instead of SetFrame_REF_to_abs) but
-# using:
+# centroidal frame.  So one could use it (instead of SetFrameRefToAbs):
 #   pend_2->SetPos(ChVector<>(1, 0, -1));
 # However, this defeats the goal of specifying the body through the desired
 # body reference frame.
 # Alternatively, one could use SetPos() and pass it the position of the body
 # reference frame; i.e.
 #   pend_2->SetPos(ChVector<>(0, 0, -1));
-# provided we do this BEFORE the call to SetFrame_COG_to_REF().
+# provided we do this BEFORE the call to SetFrameCOMToRef().
 #
 # This also applies to SetRot().
 #
@@ -162,7 +161,7 @@ while vis.Run():
         print("t = ", sys.GetChTime())
         print("     ", pos_1.x, "  ", pos_1.y)
         print("     ", pos_2.x, "  ", pos_2.y)
-        frame_2 = pend_2.GetFrame_REF_to_abs()
+        frame_2 = pend_2.GetFrameRefToAbs()
         pos_2 = frame_2.GetPos()
 
 
@@ -177,10 +176,8 @@ while vis.Run():
 
         # To obtain the absolute linear velocity of the body reference frame, 
         # we use again GetPosDer(), but this time for the reference frame,
-        # using GetFrame_REF_to_abs() similarly for what we did for positions:
-        lin_vel_2 = pend_2.GetFrame_REF_to_abs().GetPosDer()
+        # using GetFrameRefToAbs() similarly for what we did for positions:
+        lin_vel_2 = pend_2.GetFrameRefToAbs().GetPosDer()
         print("    ", lin_vel_2.x, "  ", lin_vel_2.y)
 
         log_info = False
-
-

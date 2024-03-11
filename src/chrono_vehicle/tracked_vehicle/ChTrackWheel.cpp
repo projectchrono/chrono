@@ -47,7 +47,7 @@ void ChTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Express the wheel reference frame in the absolute coordinate system.
     ChFrame<> wheel_to_abs(location);
-    wheel_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    wheel_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Create and initialize the wheel body.
     m_wheel = chrono_types::make_shared<ChBody>();
@@ -79,7 +79,7 @@ void ChTrackWheel::InitializeInertiaProperties() {
 }
 
 void ChTrackWheel::UpdateInertiaProperties() {
-    m_xform = m_wheel->GetFrame_REF_to_abs();
+    m_xform = m_wheel->GetFrameRefToAbs();
 }
 
 // -----------------------------------------------------------------------------

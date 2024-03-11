@@ -55,7 +55,7 @@ void ChCollisionModelMulticore::Populate() {
         // Create collision shapes relative to the body COG frame
         auto frame = shape_instance.second;
         if (ChBodyAuxRef* body_ar = dynamic_cast<ChBodyAuxRef*>(GetBody())) {
-            frame = frame >> body_ar->GetFrame_REF_to_COG();
+            frame = frame >> body_ar->GetFrameRefToCOM();
         }
         const ChVector3d& position = frame.GetPos();
         const ChQuaternion<>& rotation = frame.GetRot();
@@ -265,7 +265,7 @@ void ChCollisionModelMulticore::Populate() {
 void TransformToCOG(ChBody* body, const ChVector3d& pos, const ChMatrix33<>& rot, ChFrame<>& frame) {
     frame = ChFrame<>(pos, rot);
     if (ChBodyAuxRef* body_ar = dynamic_cast<ChBodyAuxRef*>(body)) {
-        frame = frame >> body_ar->GetFrame_REF_to_COG();
+        frame = frame >> body_ar->GetFrameRefToCOM();
     }
 }
 

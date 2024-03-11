@@ -94,7 +94,7 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Transform the location of the axle body COM to absolute frame.
     ChVector3d axleCOM_local = getAxlehousingCOM();
@@ -112,7 +112,7 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axlehousing = chrono_types::make_shared<ChBody>();
     m_axlehousing->SetNameString(m_name + "_axlehousing");
     m_axlehousing->SetPos(axleCOM);
-    m_axlehousing->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_axlehousing->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_axlehousing->SetMass(getAxlehousingMass());
     m_axlehousing->SetInertiaXX(getAxlehousingInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_axlehousing);
@@ -145,7 +145,7 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChChassis> chassis,
     m_transversebeam = chrono_types::make_shared<ChBody>();
     m_transversebeam->SetNameString(m_name + "_transversebeam");
     m_transversebeam->SetPos(tbCOM);
-    m_transversebeam->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_transversebeam->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_transversebeam->SetMass(getTransversebeamMass());
     m_transversebeam->SetInertiaXX(getTransversebeamInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_transversebeam);
@@ -166,7 +166,7 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrameRefToAbs().GetRot();
 
     // Unit vectors for orientation matrices.
     ChVector3d u;

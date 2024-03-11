@@ -192,12 +192,12 @@ int main(int argc, char* argv[]) {
             rock1_pos = ChVector3d(-2.5, -0.3, 1.0);
         }
 
-        rock1_Body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+        rock1_Body->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
 
         rock1_Body->SetMass(mmass * mdensity);  // mmass * mdensity
         rock1_Body->SetInertiaXX(mdensity * principal_I);
 
-        rock1_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(rock1_pos), ChQuaternion<>(rock1_rot)));
+        rock1_Body->SetFrameRefToAbs(ChFrame<>(ChVector3d(rock1_pos), ChQuaternion<>(rock1_rot)));
         sys.Add(rock1_Body);
 
         rock1_Body->SetFixed(false);
@@ -247,12 +247,12 @@ int main(int argc, char* argv[]) {
             rock2_pos = ChVector3d(-1.0, -0.3, 1.0);
         }
 
-        rock2_Body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+        rock2_Body->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
 
         rock2_Body->SetMass(mmass * mdensity);  // mmass * mdensity
         rock2_Body->SetInertiaXX(mdensity * principal_I);
 
-        rock2_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(rock2_pos), ChQuaternion<>(rock2_rot)));
+        rock2_Body->SetFrameRefToAbs(ChFrame<>(ChVector3d(rock2_pos), ChQuaternion<>(rock2_rot)));
         sys.Add(rock2_Body);
 
         rock2_Body->SetFixed(false);
@@ -302,12 +302,12 @@ int main(int argc, char* argv[]) {
             rock3_pos = ChVector3d(0.5, -0.3, 1.0);
         }
 
-        rock3_Body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+        rock3_Body->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
 
         rock3_Body->SetMass(mmass * mdensity);  // mmass * mdensity
         rock3_Body->SetInertiaXX(mdensity * principal_I);
 
-        rock3_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(rock3_pos), ChQuaternion<>(rock3_rot)));
+        rock3_Body->SetFrameRefToAbs(ChFrame<>(ChVector3d(rock3_pos), ChQuaternion<>(rock3_rot)));
         sys.Add(rock3_Body);
 
         rock3_Body->SetFixed(false);

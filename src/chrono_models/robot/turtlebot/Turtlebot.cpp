@@ -72,7 +72,7 @@ void AddRevoluteJoint(std::shared_ptr<ChBodyAuxRef> body_1,
                       ChSystem* system,
                       const ChVector3d& rel_joint_pos,
                       const ChQuaternion<>& rel_joint_rot) {
-    const ChFrame<>& X_GP = chassis->GetFrame_REF_to_abs();  // global -> parent
+    const ChFrame<>& X_GP = chassis->GetFrameRefToAbs();  // global -> parent
     ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);            // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
 
@@ -89,7 +89,7 @@ void AddRevoluteJoint(std::shared_ptr<ChBodyEasyBox> body_1,
                       ChSystem* system,
                       const ChVector3d& rel_joint_pos,
                       const ChQuaternion<>& rel_joint_rot) {
-    const ChFrame<>& X_GP = chassis->GetFrame_REF_to_abs();  // global -> parent
+    const ChFrame<>& X_GP = chassis->GetFrameRefToAbs();  // global -> parent
     ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);            // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
 
@@ -106,7 +106,7 @@ void AddLockJoint(std::shared_ptr<ChBodyAuxRef> body_1,
                   ChSystem* system,
                   const ChVector3d& rel_joint_pos,
                   const ChQuaternion<>& rel_joint_rot) {
-    const ChFrame<>& X_GP = chassis->GetFrame_REF_to_abs();  // global -> parent
+    const ChFrame<>& X_GP = chassis->GetFrameRefToAbs();  // global -> parent
     ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);            // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
 
@@ -125,7 +125,7 @@ std::shared_ptr<ChLinkMotorRotationSpeed> AddMotor(std::shared_ptr<ChBody> body_
                                                    const ChVector3d& rel_joint_pos,
                                                    const ChQuaternion<>& rel_joint_rot,
                                                    std::shared_ptr<ChFunctionConst> speed_func) {
-    const ChFrame<>& X_GP = chassis->GetFrame_REF_to_abs();  // global -> parent
+    const ChFrame<>& X_GP = chassis->GetFrameRefToAbs();  // global -> parent
     ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);            // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
 
@@ -214,12 +214,12 @@ void Turtlebot_Chassis::Initialize() {
     ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
 
-    m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+    m_body->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
 
     // Set inertia
     m_body->SetMass(mmass * m_density);
     m_body->SetInertiaXX(m_density * principal_I);
-    m_body->SetFrame_REF_to_abs(ChFrame<>(m_pos, m_rot));
+    m_body->SetFrameRefToAbs(ChFrame<>(m_pos, m_rot));
     m_body->SetFixed(m_fixed);
 
     AddCollisionShapes();
@@ -271,17 +271,17 @@ void Turtlebot_ActiveWheel::Initialize() {
     ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
 
-    m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+    m_body->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
 
     // Set inertia
     m_body->SetMass(mmass * m_density);
     m_body->SetInertiaXX(m_density * principal_I);
 
     // set relative position to chassis
-    const ChFrame<>& X_GP = m_chassis->GetFrame_REF_to_abs();  // global -> parent
+    const ChFrame<>& X_GP = m_chassis->GetFrameRefToAbs();  // global -> parent
     ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
-    m_body->SetFrame_REF_to_abs(X_GC);
+    m_body->SetFrameRefToAbs(X_GC);
     m_body->SetFixed(m_fixed);
 
     AddCollisionShapes();
@@ -333,17 +333,17 @@ void Turtlebot_PassiveWheel::Initialize() {
     ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
 
-    m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+    m_body->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
 
     // Set inertia
     m_body->SetMass(mmass * m_density);
     m_body->SetInertiaXX(m_density * principal_I);
 
     // set relative position to chassis
-    const ChFrame<>& X_GP = m_chassis->GetFrame_REF_to_abs();  // global -> parent
+    const ChFrame<>& X_GP = m_chassis->GetFrameRefToAbs();  // global -> parent
     ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
-    m_body->SetFrame_REF_to_abs(X_GC);
+    m_body->SetFrameRefToAbs(X_GC);
     m_body->SetFixed(m_fixed);
 
     AddCollisionShapes();
@@ -395,17 +395,17 @@ void Turtlebot_Rod_Short::Initialize() {
     ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
 
-    m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+    m_body->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
 
     // Set inertia
     m_body->SetMass(mmass * m_density);
     m_body->SetInertiaXX(m_density * principal_I);
 
     // set relative position to chassis
-    const ChFrame<>& X_GP = m_chassis->GetFrame_REF_to_abs();  // global -> parent
+    const ChFrame<>& X_GP = m_chassis->GetFrameRefToAbs();  // global -> parent
     ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
-    m_body->SetFrame_REF_to_abs(X_GC);
+    m_body->SetFrameRefToAbs(X_GC);
     m_body->SetFixed(m_fixed);
 
     AddCollisionShapes();
@@ -459,17 +459,17 @@ void Turtlebot_BottomPlate::Initialize() {
     ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
 
-    m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+    m_body->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
 
     // Set inertia
     m_body->SetMass(mmass * m_density);
     m_body->SetInertiaXX(m_density * principal_I);
 
     // set relative position to chassis
-    const ChFrame<>& X_GP = m_chassis->GetFrame_REF_to_abs();  // global -> parent
+    const ChFrame<>& X_GP = m_chassis->GetFrameRefToAbs();  // global -> parent
     ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
-    m_body->SetFrame_REF_to_abs(X_GC);
+    m_body->SetFrameRefToAbs(X_GC);
     m_body->SetFixed(m_fixed);
 
     AddCollisionShapes();
@@ -522,17 +522,17 @@ void Turtlebot_MiddlePlate::Initialize() {
     ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
 
-    m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+    m_body->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
 
     // Set inertia
     m_body->SetMass(mmass * m_density);
     m_body->SetInertiaXX(m_density * principal_I);
 
     // set relative position to chassis
-    const ChFrame<>& X_GP = m_chassis->GetFrame_REF_to_abs();  // global -> parent
+    const ChFrame<>& X_GP = m_chassis->GetFrameRefToAbs();  // global -> parent
     ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
-    m_body->SetFrame_REF_to_abs(X_GC);
+    m_body->SetFrameRefToAbs(X_GC);
     m_body->SetFixed(m_fixed);
 
     AddCollisionShapes();
@@ -585,17 +585,17 @@ void Turtlebot_TopPlate::Initialize() {
     ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
 
-    m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+    m_body->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
 
     // Set inertia
     m_body->SetMass(mmass * m_density);
     m_body->SetInertiaXX(m_density * principal_I);
 
     // set relative position to chassis
-    const ChFrame<>& X_GP = m_chassis->GetFrame_REF_to_abs();  // global -> parent
+    const ChFrame<>& X_GP = m_chassis->GetFrameRefToAbs();  // global -> parent
     ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
-    m_body->SetFrame_REF_to_abs(X_GC);
+    m_body->SetFrameRefToAbs(X_GC);
     m_body->SetFixed(m_fixed);
 
     AddCollisionShapes();
@@ -650,17 +650,17 @@ void Turtlebot_Rod_Long::Initialize() {
     ChVector3d principal_I;
     ChInertiaUtils::PrincipalInertia(minertia, principal_I, principal_inertia_rot);
 
-    m_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+    m_body->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
 
     // Set inertia
     m_body->SetMass(mmass * m_density);
     m_body->SetInertiaXX(m_density * principal_I);
 
     // set relative position to chassis
-    const ChFrame<>& X_GP = m_chassis->GetFrame_REF_to_abs();  // global -> parent
+    const ChFrame<>& X_GP = m_chassis->GetFrameRefToAbs();  // global -> parent
     ChFrame<> X_PC(m_pos, m_rot);                              // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                              // global -> child
-    m_body->SetFrame_REF_to_abs(X_GC);
+    m_body->SetFrameRefToAbs(X_GC);
     m_body->SetFixed(m_fixed);
 
     AddCollisionShapes();

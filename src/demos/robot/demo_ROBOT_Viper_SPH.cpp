@@ -391,7 +391,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
     // save the VIPER body to obj/vtk files
     for (int i = 0; i < 1; i++) {
         auto body = rover->GetChassis()->GetBody();
-        ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
+        ChFrame<> body_ref_frame = body->GetFrameRefToAbs();
         ChVector3d body_pos = body_ref_frame.GetPos();      // body->GetPos();
         ChQuaternion<> body_rot = body_ref_frame.GetRot();  // body->GetRot();
 
@@ -451,7 +451,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
             body = rover->GetWheel(ViperWheelID::V_RB)->GetBody();
         }
 
-        ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
+        ChFrame<> body_ref_frame = body->GetFrameRefToAbs();
         ChVector3d body_pos = body_ref_frame.GetPos();      // body->GetPos();
         ChQuaternion<> body_rot = body_ref_frame.GetRot();  // body->GetRot();
         if (i == 0 || i == 2) {
@@ -513,7 +513,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         if (i == 3) {
             body = rover->GetUpright(ViperWheelID::V_RB)->GetBody();
         }
-        ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
+        ChFrame<> body_ref_frame = body->GetFrameRefToAbs();
         ChVector3d body_pos = body_ref_frame.GetPos();      // body->GetPos();
         ChQuaternion<> body_rot = body_ref_frame.GetRot();  // body->GetRot();
 
@@ -578,7 +578,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         if (i == 3) {
             body = rover->GetLowerArm(ViperWheelID::V_RB)->GetBody();
         }
-        ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
+        ChFrame<> body_ref_frame = body->GetFrameRefToAbs();
         ChVector3d body_pos = body_ref_frame.GetPos();      // body->GetPos();
         ChQuaternion<> body_rot = body_ref_frame.GetRot();  // body->GetRot();
 
@@ -643,7 +643,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         if (i == 3) {
             body = rover->GetUpperArm(ViperWheelID::V_RB)->GetBody();
         }
-        ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
+        ChFrame<> body_ref_frame = body->GetFrameRefToAbs();
         ChVector3d body_pos = body_ref_frame.GetPos();      // body->GetPos();
         ChQuaternion<> body_rot = body_ref_frame.GetRot();  // body->GetRot();
 
@@ -750,7 +750,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
     // save rigid body position and rotation
     for (int i = 1; i < sysMBS.GetBodies().size(); i++) {
         auto body = sysMBS.GetBodies()[i];
-        ChFrame<> ref_frame = body->GetFrame_REF_to_abs();
+        ChFrame<> ref_frame = body->GetFrameRefToAbs();
         ChVector3d pos = ref_frame.GetPos();
         ChQuaternion<> rot = ref_frame.GetRot();
         ChVector3d vel = body->GetPosDer();

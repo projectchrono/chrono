@@ -119,7 +119,7 @@ std::shared_ptr<ChLinkLockRevolute> AddRevoluteJoint(std::shared_ptr<ChBodyAuxRe
                                                      std::shared_ptr<CuriosityChassis> chassis,
                                                      const ChVector3d& rel_joint_pos,
                                                      const ChQuaternion<>& rel_joint_rot) {
-    const ChFrame<>& X_GP = chassis->GetBody()->GetFrame_REF_to_abs();  // global -> parent
+    const ChFrame<>& X_GP = chassis->GetBody()->GetFrameRefToAbs();  // global -> parent
     ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);                       // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                                       // global -> child
 
@@ -138,7 +138,7 @@ std::shared_ptr<ChLinkMotorRotationSpeed> AddMotorSpeed(std::shared_ptr<ChBody> 
                                                         const ChVector3d& rel_pos,
                                                         const ChQuaternion<>& rel_rot) {
     // Express relative frame in global
-    ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
+    ChFrame<> X_GC = chassis->GetBody()->GetFrameRefToAbs() * ChFrame<>(rel_pos, rel_rot);
 
     // Create motor (actuated DOF about Z axis of X_GC frame)
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
@@ -156,7 +156,7 @@ std::shared_ptr<ChLinkMotorRotationAngle> AddMotorAngle(std::shared_ptr<ChBody> 
                                                         const ChVector3d& rel_pos,
                                                         const ChQuaternion<>& rel_rot) {
     // Express relative frame in global
-    ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
+    ChFrame<> X_GC = chassis->GetBody()->GetFrameRefToAbs() * ChFrame<>(rel_pos, rel_rot);
 
     // Create motor (actuated DOF about Z axis of X_GC frame)
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
@@ -174,7 +174,7 @@ std::shared_ptr<ChLinkMotorRotationTorque> AddMotorTorque(std::shared_ptr<ChBody
                                                           const ChVector3d& rel_pos,
                                                           const ChQuaternion<>& rel_rot) {
     // Express relative frame in global
-    ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
+    ChFrame<> X_GC = chassis->GetBody()->GetFrameRefToAbs() * ChFrame<>(rel_pos, rel_rot);
 
     // Create motor (actuated DOF about Z axis of X_GC frame)
     auto motor = chrono_types::make_shared<ChLinkMotorRotationTorque>();
@@ -198,7 +198,7 @@ void CuriosityPart::Construct(ChSystem* system) {
     m_body->SetNameString(m_name + "_body");
     m_body->SetMass(m_mass);
     m_body->SetInertiaXX(m_inertia);
-    m_body->SetFrame_COG_to_REF(m_cog);
+    m_body->SetFrameCOMToRef(m_cog);
 
     // Add visualization shape
     if (m_visualize) {
@@ -253,8 +253,8 @@ void CuriosityPart::Initialize(std::shared_ptr<ChBodyAuxRef> chassis) {
     Construct(chassis->GetSystem());
 
     // Set absolute position
-    ChFrame<> X_GC = chassis->GetFrame_REF_to_abs() * m_pos;
-    m_body->SetFrame_REF_to_abs(X_GC);
+    ChFrame<> X_GC = chassis->GetFrameRefToAbs() * m_pos;
+    m_body->SetFrameRefToAbs(X_GC);
 }
 
 // =============================================================================
@@ -285,7 +285,7 @@ CuriosityChassis::CuriosityChassis(const std::string& name,
 void CuriosityChassis::Initialize(ChSystem* system, const ChFrame<>& pos) {
     Construct(system);
 
-    m_body->SetFrame_REF_to_abs(pos);
+    m_body->SetFrameRefToAbs(pos);
 }
 
 // Curiosity Wheel

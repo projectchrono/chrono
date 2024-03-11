@@ -350,7 +350,7 @@ void ChParserOpenSim::initFunctionTable() {
         // Set COM in reference frame
         auto COM = strToChVector3<double>(fieldNode->value());
         // Opensim doesn't really use a rotated COM to REF frame, so unit quaternion
-        newBody->SetFrame_COG_to_REF(ChFrame<>(COM, ChQuaternion<>(1, 0, 0, 0)));
+        newBody->SetFrameCOMToRef(ChFrame<>(COM, ChQuaternion<>(1, 0, 0, 0)));
         // Only add vis balls if we're using primitives
     };
 
@@ -432,7 +432,7 @@ void ChParserOpenSim::initFunctionTable() {
         }
 
         // Global to parent transform
-        auto X_G_P = parent->GetFrame_REF_to_abs();
+        auto X_G_P = parent->GetFrameRefToAbs();
 
         // Get joint's position in parent frame
         auto elems = ChParserOpenSim::strToSTLVector<double>(jointNode->first_node("location_in_parent")->value());
@@ -580,7 +580,7 @@ void ChParserOpenSim::initFunctionTable() {
         auto X_G_B = X_G_P * X_P_F * X_F_M * X_B_M.GetInverse();
 
         // Set body frame, not necessarily centroidal
-        newBody->SetFrame_REF_to_abs(X_G_B);
+        newBody->SetFrameRefToAbs(X_G_B);
 
         // Used for following output
         ChFrame<> jointFrame = X_G_P * X_P_F;
@@ -602,13 +602,13 @@ void ChParserOpenSim::initFunctionTable() {
                       << jointPosInChild.z() << "|" << jointOrientationInChild.e0() << ","
                       << jointOrientationInChild.e1() << "," << jointOrientationInChild.e2() << ","
                       << jointOrientationInChild.e3() << std::endl;
-            std::cout << "Putting body " << newBody->GetName() << " at " << newBody->GetFrame_REF_to_abs().GetPos().x()
-                      << "," << newBody->GetFrame_REF_to_abs().GetPos().y() << ","
-                      << newBody->GetFrame_REF_to_abs().GetPos().z() << std::endl;
-            std::cout << "Orientation is " << newBody->GetFrame_REF_to_abs().GetRot().e0() << ","
-                      << newBody->GetFrame_REF_to_abs().GetRot().e1() << ","
-                      << newBody->GetFrame_REF_to_abs().GetRot().e2() << ","
-                      << newBody->GetFrame_REF_to_abs().GetRot().e3() << std::endl;
+            std::cout << "Putting body " << newBody->GetName() << " at " << newBody->GetFrameRefToAbs().GetPos().x()
+                      << "," << newBody->GetFrameRefToAbs().GetPos().y() << ","
+                      << newBody->GetFrameRefToAbs().GetPos().z() << std::endl;
+            std::cout << "Orientation is " << newBody->GetFrameRefToAbs().GetRot().e0() << ","
+                      << newBody->GetFrameRefToAbs().GetRot().e1() << ","
+                      << newBody->GetFrameRefToAbs().GetRot().e2() << ","
+                      << newBody->GetFrameRefToAbs().GetRot().e3() << std::endl;
         }
 
         // This is slightly cleaner than before, but still gross
@@ -732,9 +732,9 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
         ChVector3d p1, p2;
         // Make cylinder from parent to outbound joint
         // First end is at parent COM
-        p1 = parent->GetFrame_COG_to_REF().GetPos();
+        p1 = parent->GetFrameCOMToRef().GetPos();
         // Second end is at joint location
-        p2 = parent->GetFrame_REF_to_abs().TransformPointParentToLocal(linkCoords.pos);
+        p2 = parent->GetFrameRefToAbs().TransformPointParentToLocal(linkCoords.pos);
 
         // Don't make a connection between overlapping bodies
         if ((p2 - p1).Length() > 1e-5) {
@@ -750,9 +750,9 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
         }
 
         // First end is at joint location
-        p1 = child->GetFrame_REF_to_abs().TransformPointParentToLocal(linkCoords.pos);
+        p1 = child->GetFrameRefToAbs().TransformPointParentToLocal(linkCoords.pos);
         // Second end is at child COM
-        p2 = child->GetFrame_COG_to_REF().GetPos();
+        p2 = child->GetFrameCOMToRef().GetPos();
 
         // Don't make a connection between overlapping bodies
         if ((p2 - p1).Length() > 1e-5) {
@@ -799,7 +799,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             // Create a sphere at the body COM
             auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
             sphere->AddMaterial(vis_mat);
-            body_info.body->AddVisualShape(sphere, ChFrame<>(body_info.body->GetFrame_COG_to_REF().GetPos()));
+            body_info.body->AddVisualShape(sphere, ChFrame<>(body_info.body->GetFrameCOMToRef().GetPos()));
 
             // Create visualization cylinders
             for (auto cyl_info : body_info.cylinders) {

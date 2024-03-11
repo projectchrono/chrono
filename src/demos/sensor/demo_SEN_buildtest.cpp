@@ -274,10 +274,10 @@ int main(int argc, char* argv[]) {
         }
 
         auto mesh_body = chrono_types::make_shared<ChBodyAuxRef>();
-        mesh_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+        mesh_body->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
         mesh_body->SetMass(mmass * mdensity);
         mesh_body->SetInertiaXX(mdensity * principal_I);
-        mesh_body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(ChRandom::Get(), ChRandom::Get(), 2.0 + i)));
+        mesh_body->SetFrameRefToAbs(ChFrame<>(ChVector3d(ChRandom::Get(), ChRandom::Get(), 2.0 + i)));
         sys.Add(mesh_body);
 
         auto mesh_ct_shape =

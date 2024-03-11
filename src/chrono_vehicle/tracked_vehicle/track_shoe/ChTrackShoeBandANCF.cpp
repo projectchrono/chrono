@@ -340,7 +340,7 @@ void ChTrackShoeBandANCF::InitializeInertiaProperties() {
 }
 
 void ChTrackShoeBandANCF::UpdateInertiaProperties() {
-    m_xform = m_shoe->GetFrame_REF_to_abs();
+    m_xform = m_shoe->GetFrameRefToAbs();
 
     // Calculate web mesh inertia properties
     double mesh_mass;

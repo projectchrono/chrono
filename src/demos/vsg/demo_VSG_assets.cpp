@@ -277,7 +277,7 @@ int main(int argc, char* argv[]) {
     points.push_back(ChVector3d(0.8, 0.0, 0.3) + displ);
     auto hull = chrono_types::make_shared<ChBodyEasyConvexHullAuxRef>(
         points, 1000, true, true, chrono_types::make_shared<ChContactMaterialNSC>());
-    ////hull->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(2,0.3,0)));
+    ////hull->SetFrameRefToAbs(ChFrame<>(ChVector3d(2,0.3,0)));
     ////hull->SetPos(ChVector3d(2,0.3,0));
     hull->Move(ChVector3d(2, 0.3, 0));
 

@@ -411,7 +411,7 @@ void ChBodyEasyConvexHullAuxRef::SetupBody(std::vector<ChVector3d>& points,
     SetInertiaXX(ChVector3d(principal_I) * density);
 
     // Set the COG coordinates to barycenter, without displacing the REF reference
-    SetFrame_COG_to_REF(ChFrame<>(baricenter, principal_inertia_csys));
+    SetFrameCOMToRef(ChFrame<>(baricenter, principal_inertia_csys));
 
     if (collide) {
         assert(material);
@@ -524,7 +524,7 @@ void ChBodyEasyMesh::SetupBody(std::shared_ptr<ChTriangleMeshConnected> trimesh,
         SetInertiaXX(ChVector3d(principal_I) * density);
 
         // Set the COG coordinates to barycenter, without displacing the REF reference
-        SetFrame_COG_to_REF(ChFrame<>(baricenter, principal_inertia_csys));
+        SetFrameCOMToRef(ChFrame<>(baricenter, principal_inertia_csys));
     }
 
     if (collide) {

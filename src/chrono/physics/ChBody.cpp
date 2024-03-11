@@ -743,7 +743,7 @@ ChVector3d ChBody::GetContactPointSpeed(const ChVector3d& abs_point) {
 }
 
 ChCoordsys<> ChBody::GetCsysForCollisionModel() {
-    return ChCoordsys<>(GetFrame_REF_to_abs().GetCoordsys());
+    return ChCoordsys<>(GetFrameRefToAbs().GetCoordsys());
 }
 
 void ChBody::ContactForceLoadResidual_F(const ChVector3d& F,
