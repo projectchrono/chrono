@@ -145,7 +145,7 @@ void ChTrackShoeBand::AddShoeContact(ChContactMethod contact_method) {
     m_shoe->AddCollisionShape(t_shape, ChFrame<>(t_loc, QUNIT));
 
     m_shoe->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
-    m_shoe->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
+    m_shoe->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
 }
 
 // -----------------------------------------------------------------------------

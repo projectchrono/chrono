@@ -225,7 +225,7 @@ void Turtlebot_Chassis::Initialize() {
     AddCollisionShapes();
 
     m_body->GetCollisionModel()->SetFamily(CollisionFamily::CHASSIS);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::ACTIVE_WHEEL);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::ACTIVE_WHEEL);
 
     AddVisualizationAssets();
 
@@ -287,7 +287,7 @@ void Turtlebot_ActiveWheel::Initialize() {
     AddCollisionShapes();
 
     m_body->GetCollisionModel()->SetFamily(CollisionFamily::ACTIVE_WHEEL);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::CHASSIS);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::CHASSIS);
 
     AddVisualizationAssets();
 
@@ -349,7 +349,7 @@ void Turtlebot_PassiveWheel::Initialize() {
     AddCollisionShapes();
 
     m_body->GetCollisionModel()->SetFamily(CollisionFamily::PASSIVE_WHEEL);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::CHASSIS);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::CHASSIS);
 
     AddVisualizationAssets();
 
@@ -411,9 +411,9 @@ void Turtlebot_Rod_Short::Initialize() {
     AddCollisionShapes();
 
     m_body->GetCollisionModel()->SetFamily(CollisionFamily::ROD);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::CHASSIS);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::BOTTOM_PLATE);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::MIDDLE_PLATE);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::CHASSIS);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::BOTTOM_PLATE);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::MIDDLE_PLATE);
 
     AddVisualizationAssets();
 
@@ -475,8 +475,8 @@ void Turtlebot_BottomPlate::Initialize() {
     AddCollisionShapes();
 
     m_body->GetCollisionModel()->SetFamily(CollisionFamily::BOTTOM_PLATE);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::ROD);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::CHASSIS);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::ROD);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::CHASSIS);
 
     AddVisualizationAssets();
 
@@ -538,8 +538,8 @@ void Turtlebot_MiddlePlate::Initialize() {
     AddCollisionShapes();
 
     m_body->GetCollisionModel()->SetFamily(CollisionFamily::MIDDLE_PLATE);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::ROD);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::CHASSIS);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::ROD);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::CHASSIS);
 
     AddVisualizationAssets();
 
@@ -601,10 +601,10 @@ void Turtlebot_TopPlate::Initialize() {
     AddCollisionShapes();
 
     m_body->GetCollisionModel()->SetFamily(CollisionFamily::TOP_PLATE);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::ROD);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::CHASSIS);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::MIDDLE_PLATE);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::BOTTOM_PLATE);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::ROD);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::CHASSIS);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::MIDDLE_PLATE);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::BOTTOM_PLATE);
 
     AddVisualizationAssets();
 
@@ -666,10 +666,10 @@ void Turtlebot_Rod_Long::Initialize() {
     AddCollisionShapes();
 
     m_body->GetCollisionModel()->SetFamily(CollisionFamily::ROD);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::CHASSIS);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::BOTTOM_PLATE);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::MIDDLE_PLATE);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::ROD);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::CHASSIS);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::BOTTOM_PLATE);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::MIDDLE_PLATE);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::ROD);
 
     AddVisualizationAssets();
 

@@ -118,7 +118,7 @@ void ChTrackShoeBandBushing::AddWebContact(std::shared_ptr<ChBody> segment,
     segment->AddCollisionShape(shape);
 
     segment->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
-    segment->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
+    segment->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
 }
 
 // -----------------------------------------------------------------------------

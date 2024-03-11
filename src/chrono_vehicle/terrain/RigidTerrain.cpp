@@ -182,7 +182,7 @@ void RigidTerrain::InitializePatch(std::shared_ptr<Patch> patch) {
 
     // All patches are added to the same collision family and collision with other models in this family is disabled
     patch->m_body->GetCollisionModel()->SetFamily(m_collision_family);
-    patch->m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(m_collision_family);
+    patch->m_body->GetCollisionModel()->DisallowCollisionsWith(m_collision_family);
 }
 
 // -----------------------------------------------------------------------------

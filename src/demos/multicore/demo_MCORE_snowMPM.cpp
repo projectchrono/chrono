@@ -64,7 +64,7 @@ void AddBody(ChSystemMulticoreNSC* sys) {
 
     utils::AddBoxGeometry(bin.get(), mat, ChVector3d(0.2, 0.2, 0.2), ChVector3d(0, 0, 0));
     bin->GetCollisionModel()->SetFamily(1);
-    bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
+    bin->GetCollisionModel()->DisallowCollisionsWith(2);
 
     sys->AddBody(bin);
 }

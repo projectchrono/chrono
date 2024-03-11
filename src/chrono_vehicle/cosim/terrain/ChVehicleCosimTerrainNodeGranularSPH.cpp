@@ -277,7 +277,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
             mesh.m_radius = m_radius;
         m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
         body->GetCollisionModel()->SetFamily(1);
-        body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+        body->GetCollisionModel()->DisallowCollisionsWith(1);
     }
 
     // Add this body to the Chrono and FSI systems

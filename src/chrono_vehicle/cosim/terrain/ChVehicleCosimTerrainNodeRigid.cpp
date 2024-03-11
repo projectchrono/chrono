@@ -336,7 +336,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
         utils::AddSphereGeometry(body.get(), material, m_radius_p, ChVector3d(0, 0, 0), ChQuaternion<>(1, 0, 0, 0),
                                  true);
         body->GetCollisionModel()->SetFamily(1);
-        body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+        body->GetCollisionModel()->DisallowCollisionsWith(1);
 
         m_system->AddBody(body);
         m_system->GetCollisionSystem()->BindItem(body);
@@ -371,7 +371,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateRigidProxy(unsigned int i) {
         mesh.m_radius = m_radius_p;
     m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
     body->GetCollisionModel()->SetFamily(1);
-    body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+    body->GetCollisionModel()->DisallowCollisionsWith(1);
 
     m_system->AddBody(body);
     m_system->GetCollisionSystem()->BindItem(body);

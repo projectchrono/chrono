@@ -17,7 +17,7 @@
 //   collisions and constraints)
 // - using different meshes for collision and visualization
 // - using clones of collision shapes
-// - using SetFamilyMaskNoCollisionWithFamily, SetFamily etc. to avoid
+// - using DisallowCollisionsWith, SetFamily etc. to avoid
 //   collisions between different families of bodies.
 //
 // =============================================================================
@@ -316,7 +316,7 @@ class MySimpleTank {
             // Avoid creation of contacts with neighbouring shoes, using
             // a collision family (=3) that does not collide with itself
             firstBodyShoe->GetCollisionModel()->SetFamily(3);
-            firstBodyShoe->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(3);
+            firstBodyShoe->GetCollisionModel()->DisallowCollisionsWith(3);
 
             std::shared_ptr<ChBody> previous_rigidBodyShoe;
             previous_rigidBodyShoe = firstBodyShoe;
@@ -433,7 +433,7 @@ class MySimpleTank {
         // Other settings are already copied from template_shoe, except for family and mask.
         // Avoid creation of contacts with neighbouring shoes:
         rigidBodyShoe->GetCollisionModel()->SetFamily(3);
-        rigidBodyShoe->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(3);
+        rigidBodyShoe->GetCollisionModel()->DisallowCollisionsWith(3);
 
         // Create revolute constraint
         if (previous_shoe) {

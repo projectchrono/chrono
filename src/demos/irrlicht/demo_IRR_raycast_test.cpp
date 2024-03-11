@@ -111,14 +111,14 @@ void CreateSpheres(ChSystemSMC& sys) {
     s1->SetPos(ChVector3d(0, 0, 0));
     s1->GetVisualShape(0)->SetColor(ChColor(0.4f, 0, 0));
     s1->GetCollisionModel()->SetFamily(1);
-    s1->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+    s1->GetCollisionModel()->DisallowCollisionsWith(1);
     sys.Add(s1);
 
     auto s2 = chrono_types::make_shared<ChBodyEasySphere>(2.0, 1, mat);
     s2->SetPos(ChVector3d(2, 0, 3));
     s2->GetVisualShape(0)->SetColor(ChColor(0.4f, 0, 0));
     s2->GetCollisionModel()->SetFamily(1);
-    s2->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+    s2->GetCollisionModel()->DisallowCollisionsWith(1);
     sys.Add(s2);
 }
 
@@ -130,14 +130,14 @@ void CreateBoxes(ChSystemSMC& sys) {
     b1->SetRot(ChQuaternion<>(ChRandom::Get(), ChRandom::Get(), ChRandom::Get(), ChRandom::Get()).GetNormalized());
     b1->GetVisualShape(0)->SetColor(ChColor(0, 0.4f, 0));
     b1->GetCollisionModel()->SetFamily(1);
-    b1->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+    b1->GetCollisionModel()->DisallowCollisionsWith(1);
     sys.Add(b1);
 
     auto b2 = chrono_types::make_shared<ChBodyEasyBox>(5.0, 4.0, 1.0, 1, mat);
     b2->SetPos(ChVector3d(0, 0, +3));
     b2->GetVisualShape(0)->SetColor(ChColor(0, 0.4f, 0));
     b2->GetCollisionModel()->SetFamily(1);
-    b2->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+    b2->GetCollisionModel()->DisallowCollisionsWith(1);
     sys.Add(b2);
 }
 
@@ -149,7 +149,7 @@ void CreateCylinders(ChSystemSMC& sys) {
     c1->SetRot(ChQuaternion<>(ChRandom::Get(), ChRandom::Get(), ChRandom::Get(), ChRandom::Get()).GetNormalized());
     c1->GetVisualShape(0)->SetColor(ChColor(0, 0, 0.4f));
     c1->GetCollisionModel()->SetFamily(1);
-    c1->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+    c1->GetCollisionModel()->DisallowCollisionsWith(1);
     sys.Add(c1);
 
     auto c2 = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 2.0, 4.0, 1, mat);
@@ -157,7 +157,7 @@ void CreateCylinders(ChSystemSMC& sys) {
     c2->SetRot(QuatFromAngleZ(CH_C_PI / 4));
     c2->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.6f, 0.7f));
     c2->GetCollisionModel()->SetFamily(1);
-    c2->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+    c2->GetCollisionModel()->DisallowCollisionsWith(1);
     sys.Add(c2);
 }
 
@@ -174,7 +174,7 @@ void CreateShapes(ChSystemSMC& sys) {
         s->SetPos(points[3 * i + 0]);
         s->GetVisualShape(0)->SetColor(ChColor(0.4f, 0, 0));
         s->GetCollisionModel()->SetFamily(1);
-        s->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+        s->GetCollisionModel()->DisallowCollisionsWith(1);
         sys.Add(s);
 
         auto b =
@@ -183,7 +183,7 @@ void CreateShapes(ChSystemSMC& sys) {
         b->SetRot(ChQuaternion<>(ChRandom::Get(), ChRandom::Get(), ChRandom::Get(), ChRandom::Get()).GetNormalized());
         b->GetVisualShape(0)->SetColor(ChColor(0, 0.4f, 0));
         b->GetCollisionModel()->SetFamily(1);
-        b->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+        b->GetCollisionModel()->DisallowCollisionsWith(1);
         sys.Add(b);
 
         auto c = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.75 * scale, 0.75 * scale, 1, mat);
@@ -191,7 +191,7 @@ void CreateShapes(ChSystemSMC& sys) {
         c->SetRot(ChQuaternion<>(ChRandom::Get(), ChRandom::Get(), ChRandom::Get(), ChRandom::Get()).GetNormalized());
         c->GetVisualShape(0)->SetColor(ChColor(0, 0, 0.4f));
         c->GetCollisionModel()->SetFamily(1);
-        c->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+        c->GetCollisionModel()->DisallowCollisionsWith(1);
         sys.Add(c);
     }
 }
@@ -247,7 +247,7 @@ void CreateTestSet(ChSystemSMC& sys) {
         b->SetPos(loc[i] - ChVector3d(5, 5, 0));
         b->GetVisualShape(0)->SetColor(ChColor(0, 0.4f, 0));
         b->GetCollisionModel()->SetFamily(1);
-        b->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+        b->GetCollisionModel()->DisallowCollisionsWith(1);
         sys.Add(b);
     }
 }

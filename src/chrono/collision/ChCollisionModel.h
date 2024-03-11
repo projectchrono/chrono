@@ -86,35 +86,34 @@ class ChApi ChCollisionModel {
     /// Set the collision family for this model (0...15).
     /// By default, all collision objects belong to family 0.
     void SetFamily(int family);
+
+    /// Return the collision family for this model.
     int GetFamily();
 
     /// By default, family mask is all turned on, so all families can collide with this object, but you can turn on-off
     /// some bytes of this mask so that some families do not collide. When two objects collide, the contact is created
     /// only if the family is within the 'family mask' of the other, and viceversa.
-    void SetFamilyMaskNoCollisionWithFamily(int family);
-    void SetFamilyMaskDoCollisionWithFamily(int family);
+    void DisallowCollisionsWith(int family);
+    void AllowCollisionsWith(int family);
 
-    /// Indicate if the family mask of this collision object allows for the collision with another collision object
-    /// belonging to a given family.
-    bool GetFamilyMaskDoesCollisionWithFamily(int family);
+    /// Return true if this model is allowed to collide with objects in the specified collision family.
+    bool CollidesWith(int family);
 
-    /// Return the collision family group of this model.
+    /// [INTERNAL USE] Return the collision family group of this model.
     /// The collision family of this model is the position of the single set bit in the return value.
     short int GetFamilyGroup() const { return family_group; }
 
-    /// Set the collision family group of this model.
-    /// This is an alternative way of specifying the collision family for this object. The value family_group must have
-    /// a single bit set (i.e. it must be a power of 2). The corresponding family is then the bit position.
+    /// [INTERNAL USE] Set the collision family group of this model.
+    /// This is an alternative way of specifying the collision family for this object. The group must have
+    /// a single set bit; its position represents the collision family.
     void SetFamilyGroup(short int group);
 
-    /// Return the collision mask for this model.
-    /// Each bit of the return value indicates whether this model collides with the corresponding family (bit set) or
-    /// not (bit unset).
+    /// [INTERNAL USE] Return the collision mask for this model.
+    /// A bit in the mask indicates if this model collides with the corresponding family (bit set) or not (bit unset).
     short int GetFamilyMask() const { return family_mask; }
 
-    /// Set the collision mask for this model.
-    /// Any set bit in the specified mask indicates that this model collides with all objects whose family is equal to
-    /// the bit position.
+    /// [INTERNAL USE] Set the collision mask for this model.
+    /// A set bit in the mask indicates that this model collides with the family equal to the bit position.
     void SetFamilyMask(short int mask);
 
     // TOLERANCES, ENVELOPES, THRESHOLDS

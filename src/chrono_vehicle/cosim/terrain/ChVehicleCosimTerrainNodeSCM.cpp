@@ -351,7 +351,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
         mesh.m_radius = m_radius_p;
     m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
     body->GetCollisionModel()->SetFamily(1);
-    body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+    body->GetCollisionModel()->DisallowCollisionsWith(1);
 
     m_system->AddBody(body);
     m_system->GetCollisionSystem()->BindItem(body);

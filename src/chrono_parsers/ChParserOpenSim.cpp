@@ -842,7 +842,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             }
 
             body_info.body->GetCollisionModel()->SetFamily(body_info.family);
-            body_info.body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(body_info.family_mask_nocollide);
+            body_info.body->GetCollisionModel()->DisallowCollisionsWith(body_info.family_mask_nocollide);
         }
     }
 }

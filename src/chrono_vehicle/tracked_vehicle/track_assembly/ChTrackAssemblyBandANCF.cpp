@@ -201,7 +201,7 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
                 // Place all collision triangles in the same collision family and disable contact with each other
                 for (auto& node : contact_surf->GetNodeList()) {
                     node->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
-                    node->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
+                    node->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
                 }
 
                 break;
@@ -214,7 +214,7 @@ bool ChTrackAssemblyBandANCF::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
                 // Place all collision triangles in the same collision family and disable contact with each other
                 for (auto& face : contact_surf->GetTriangleList()) {
                     face->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
-                    face->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
+                    face->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
                 }
 
                 break;

@@ -304,6 +304,10 @@ Note that this represents a major public API change and we expect most user code
 |                                   | To_abs_forcetorque            | remove                                           |
 |                                   |                               | added: AppliedForceLocalToWrenchParent           |
 |                                   |                               | added: AppliedForceParentToWrenchParent          |
+| ChCollisionModel                  |                               |                                                  |
+|                                   | GetFamilyMaskDoesCollisionWithFamily | rename: CollidesWith                      |
+|                                   | SetFamilyMaskDoCollisionWithFamily   | rename: AllowCollisionsWith               | 
+|                                   | SetFamilyMaskNoCollisionWithFamily   | rename: DisallowCollisionsWith            |
 | ChContactable                     |                               |                                                  |
 |                                   | ContactableGet_ndof_x         | rename: GetContactableNumCoordsPosLevel          |
 |                                   | ContactableGet_ndof_w         | rename: GetContactableNumCoordsVelLevel          |

@@ -55,7 +55,7 @@ void ChWheel::Initialize(std::shared_ptr<ChChassis> chassis,
 
     if (m_spindle->GetCollisionModel()) {
         m_spindle->GetCollisionModel()->SetFamily(WheeledCollisionFamily::WHEEL);
-        m_spindle->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::WHEEL);
+        m_spindle->GetCollisionModel()->DisallowCollisionsWith(WheeledCollisionFamily::WHEEL);
     }
 
     // Create ChLoad objects to apply terrain forces on spindle

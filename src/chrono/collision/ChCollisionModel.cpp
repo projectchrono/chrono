@@ -116,7 +116,7 @@ int ChCollisionModel::GetFamily() {
 }
 
 // Clear the family_mask bit in position mfamily.
-void ChCollisionModel::SetFamilyMaskNoCollisionWithFamily(int family) {
+void ChCollisionModel::DisallowCollisionsWith(int family) {
     assert(family >= 0 && family < 15);
     family_mask &= ~(1 << family);
     if (impl)
@@ -124,7 +124,7 @@ void ChCollisionModel::SetFamilyMaskNoCollisionWithFamily(int family) {
 }
 
 // Set the family_mask bit in position mfamily.
-void ChCollisionModel::SetFamilyMaskDoCollisionWithFamily(int family) {
+void ChCollisionModel::AllowCollisionsWith(int family) {
     assert(family >= 0 && family < 15);
     family_mask |= (1 << family);
     if (impl)
@@ -132,7 +132,7 @@ void ChCollisionModel::SetFamilyMaskDoCollisionWithFamily(int family) {
 }
 
 // Return true if the family_mask bit in position mfamily is set.
-bool ChCollisionModel::GetFamilyMaskDoesCollisionWithFamily(int family) {
+bool ChCollisionModel::CollidesWith(int family) {
     assert(family >= 0 && family < 15);
     return (family_mask & (1 << family)) != 0;
 }

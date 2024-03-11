@@ -787,7 +787,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
         utils::AddTriangleGeometry(body.get(), material, ChVector3d(len, 0, 0), ChVector3d(0, len, 0),
                                    ChVector3d(0, 0, len), name);
         body->GetCollisionModel()->SetFamily(1);
-        body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+        body->GetCollisionModel()->DisallowCollisionsWith(1);
 
         m_system->AddBody(body);
         m_system->GetCollisionSystem()->BindItem(body);
@@ -820,7 +820,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateRigidProxy(unsigned int i) {
         mesh.m_radius = m_radius_p;
     m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
     body->GetCollisionModel()->SetFamily(1);
-    body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+    body->GetCollisionModel()->DisallowCollisionsWith(1);
 
     m_system->AddBody(body);
     m_system->GetCollisionSystem()->BindItem(body);

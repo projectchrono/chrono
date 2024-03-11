@@ -1012,11 +1012,11 @@ void RS_Chassis::Initialize(const ChCoordsys<>& pos) {
     AddCollisionShapes();
 
     m_body->GetCollisionModel()->SetFamily(CollisionFamily::CHASSIS);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::LIMB_FR);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::LIMB_RR);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::LIMB_RL);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::LIMB_FL);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::SLED);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::LIMB_FR);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::LIMB_RR);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::LIMB_RL);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::LIMB_FL);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::SLED);
 
     // Note: call this AFTER setting the collision family (required for Chrono::Multicore)
     m_body->EnableCollision(m_collide);
@@ -1063,10 +1063,10 @@ void RS_Sled::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector3d
     AddCollisionShapes();
 
     m_body->GetCollisionModel()->SetFamily(CollisionFamily::SLED);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::LIMB_FR);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::LIMB_RR);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::LIMB_RL);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::LIMB_FL);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::LIMB_FR);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::LIMB_RR);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::LIMB_RL);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::LIMB_FL);
 
     // Note: call this AFTER setting the collision family (required for Chrono::Multicore)
     m_body->EnableCollision(m_collide);
@@ -1118,8 +1118,8 @@ void RS_WheelDD::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVecto
     AddCollisionShapes();
 
     m_body->GetCollisionModel()->SetFamily(CollisionFamily::WHEEL_DD);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::CHASSIS);
-    m_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(CollisionFamily::SLED);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::CHASSIS);
+    m_body->GetCollisionModel()->DisallowCollisionsWith(CollisionFamily::SLED);
 
     // Note: call this AFTER setting the collision family (required for Chrono::Multicore)
     m_body->EnableCollision(true);
@@ -1214,7 +1214,7 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         if (child_body->GetCollisionModel()) {
             // Place all links from this limb in the same collision family
             child_body->GetCollisionModel()->SetFamily(collision_family);
-            child_body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(collision_family);
+            child_body->GetCollisionModel()->DisallowCollisionsWith(collision_family);
         }
 
         // Note: call this AFTER setting the collision family (required for Chrono::Multicore)
