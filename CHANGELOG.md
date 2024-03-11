@@ -198,7 +198,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_meshlist                  | rename: GetMeshes                                |
 |                                   | Get_otherphysicslist          | rename: GetShafts                                |
 |                                   | Get_shaftslist                | rename: GetOtherPhysicsItems                     |
-|                                   | GetForceList                  | rename: GetForces                               |
+|                                   | GetForceList                  | rename: GetForces                                |
 |                                   | GetMarkerList                 | rename: GetMarkers                               |
 |                                   | GetNbodies                    | rename: GetNumBodiesActive                       |
 |                                   | GetNbodiesFixed               | rename: GetNumBodiesFixed                        |
@@ -609,6 +609,34 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_complexity                | rename: GetComplexity                            |
 |                                   | Set_closed                    | rename: SetClosed                                |
 |                                   | Set_complexity                | rename: SetComplexity                            |
+| ChLineCam                         |                               |                                                  |
+|                                   | Get_b0                        | rename: GetFollowerInitPhase                     |
+|                                   | Get_center                    | rename: GetCenter                                |
+|                                   | Get_d                         | rename: GetFollowerDistance                      |
+|                                   | Get_e                         | remove                                           |
+|                                   | Get_internal                  | rename: IsInternal                               |
+|                                   | Get_motion_law                | rename: GetMotionLaw                             |
+|                                   | Get_negative                  | rename: IsNegative                               |
+|                                   | Get_Phase                     | rename: GetPhase                                 |
+|                                   | Get_Rb                        | rename: GetCamRadius                             |
+|                                   | Get_Rr                        | rename: GetWheelRadius                           |
+|                                   | Get_s                         | remove                                           |
+|                                   | Get_type                      | rename: GetCamType                               |
+|                                   | Set_center                    | rename: SetCenter                                |
+|                                   | Set_flat_oscillate            | rename: SetFlatOscillate                         |
+|                                   | Set_internal                  | rename: SetInternal                              |
+|                                   | Set_motion_law                | rename: SetMotionLaw                             |
+|                                   | Set_negative                  | rename: SetNegative                              |
+|                                   | Set_Phase                     | rename: SetPhase                                 |
+|                                   | Set_Rb                        | rename: SetCamRadius                             |
+|                                   | Set_Rr                        | rename: SetWheelRadius                           |
+|                                   | Set_rotating_follower         | rename: SetRotatingFollower                      |
+|                                   | Set_sliding_eccentrical       | rename: SetSlidingEccentrical                    |
+|                                   | Set_type                      | rename: SetCamType                               |
+| ChLinePoly                        |                               |                                                  |
+|                                   | Get_degree                    | rename: GetDegree                                |
+|                                   | Get_numpoints                 | rename: GetNumPoints                             |
+|                                   | Set_point                     | rename: SetPoint                                 |
 | ChLink                            |                               |                                                  |
 |                                   | GetLeftDOF                    | remove                                           |
 |                                   | GetLinkRelativeCoords         | rename: GetFrame2Rel (see Notes)                 |

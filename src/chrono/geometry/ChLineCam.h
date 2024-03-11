@@ -25,49 +25,19 @@ namespace chrono {
 /// @addtogroup chrono_geometry
 /// @{
 
-/// For ChLineCam: types of cams
-enum eChCamType {
-    CAM_TYPE_SLIDEFOLLOWER = 0,
-    CAM_TYPE_ROTATEFOLLOWER,
-    CAM_TYPE_ECCENTRICFOLLOWER,
-    CAM_TYPE_FLAT,
-    CAM_TYPE_FLATOSCILLATE,
-};
-
-/// @cond
-CH_ENUM_MAPPER_BEGIN(eChCamType);
-CH_ENUM_VAL(CAM_TYPE_SLIDEFOLLOWER);
-CH_ENUM_VAL(CAM_TYPE_ROTATEFOLLOWER);
-CH_ENUM_VAL(CAM_TYPE_ECCENTRICFOLLOWER);
-CH_ENUM_VAL(CAM_TYPE_FLAT);
-CH_ENUM_VAL(CAM_TYPE_FLATOSCILLATE);
-CH_ENUM_MAPPER_END(eChCamType);
-/// @endcond
-
 /// Geometric object describing the profile of a cam.
 /// The shape of a cam is specified through a ChFunction which defines the motion law of the follower.
 class ChApi ChLineCam : public ChLine {
-  private:
-    eChCamType type;                  ///< type of cam
-    std::shared_ptr<ChFunction> law;  ///< follower motion law
-    double phase;                     ///< 0..2PI  phase (rotation). Def=0, neutral position
-
-    double Rb;  ///< base radius
-    double Rr;  ///< radius of contact wheel
-
-    double p;   ///< length of rotating mover
-    double d;   ///< distance center of cam - center of rotation of mover
-    double b0;  ///< initial rotation for mover
-
-    double e;  ///< eccentricity of sliding follower
-    double s;  ///< distance of sliding follower
-
-    bool negative;  ///< negative cam: for desmodromic stuff, (cam is also Y or X mirrored, depend.on type )
-    bool internal;  ///< follower roller is inside the cam
-
-    ChVector3d center;  ///< center of cam in space (def.alignment on xy plane)
-
   public:
+    /// Cam types.
+    enum class CamType {
+        SLIDEFOLLOWER,
+        ROTATEFOLLOWER,
+        ECCENTRICFOLLOWER,
+        FLAT,
+        FLATOSCILLATE
+    };
+
     ChLineCam();
     ChLineCam(const ChLineCam& source);
     ~ChLineCam() {}
@@ -78,54 +48,61 @@ class ChApi ChLineCam : public ChLine {
     /// Get the class type as an enum.
     virtual Type GetType() const override { return Type::LINE_CAM; }
 
-    virtual bool IsClosed() const override { return true; }
-    virtual void SetClosed(bool mc) override {}
+    /// Set the cam type.
+    void SetCamType(CamType t) { type = t; }
 
-    void Set_Phase(double mf) { phase = mf; }
-    double Get_Phase() const { return phase; }
+    /// Get the cam type.
+    CamType GetCamType() const { return type; }
+
+    virtual void SetClosed(bool closed) override {}
+
+    virtual bool IsClosed() const override { return true; }
+
+    void SetPhase(double f) { phase = f; }
+
+    double GetPhase() const { return phase; }
 
     /// Base radius of cam
-    void Set_Rb(double mrb);
-    double Get_Rb() const { return Rb; }
+    void SetCamRadius(double r);
+
+    double GetCamRadius() const { return Rb; }
 
     /// Radius of contact wheel
-    void Set_Rr(double mrr) { Rr = mrr; }
-    double Get_Rr() const { return Rr; }
+    void SetWheelRadius(double r) { Rr = r; }
+
+    double GetWheelRadius() const { return Rr; }
 
     /// The motion law, as a ChFunction.
-    void Set_motion_law(std::shared_ptr<ChFunction> mlaw) { law = mlaw; }
+    void SetMotionLaw(std::shared_ptr<ChFunction> motion_law) { law = motion_law; }
 
-    std::shared_ptr<ChFunction> Get_motion_law() const { return law; }
+    std::shared_ptr<ChFunction> GetMotionLaw() const { return law; }
 
-    /// Type of cam (see the eChCamType enum values below).
-    void Set_type(eChCamType mt) { type = mt; }
-    eChCamType Get_type() const { return type; }
+    /// Position of center of cam in 3d space.
+    void SetCenter(ChVector3d mc) { center = mc; }
+    ChVector3d GetCenter() const { return center; }
 
-    /// position of center of cam in 3d space.
-    void Set_center(ChVector3d mc) { center = mc; }
-    ChVector3d Get_center() const { return center; }
+    /// If true, create a negative cam.
+    void SetNegative(bool val) { negative = val; }
 
-    /// If true, creates a negative cam.
-    void Set_Negative(bool val) { negative = val; }
-    bool Get_Negative() const { return negative; }
+    bool IsNegative() const { return negative; }
 
     /// If true, creates an internal cam.
-    void Set_Internal(bool val) { internal = val; }
-    bool Get_Internal() const { return internal; }
+    void SetInternal(bool val) { internal = val; }
+
+    bool IsInternal() const { return internal; }
 
     /// Sets the data for the rotating follower (length, distance from cam center, initial phase mb0)
-    void Set_rotating_follower(double mp, double md, double mb0);
+    void SetRotatingFollower(double mp, double md, double mb0);
+
     double GetVal() const { return p; }
-    double Get_d() const { return d; }
-    double Get_b0() const { return b0; }
+    double GetFollowerDistance() const { return d; }
+    double GetFollowerInitPhase() const { return b0; }
 
     /// Sets the data for the sliding follower (if eccentric, with me eccentricity)
-    void Set_sliding_eccentrical(double me) { e = me; };
-    double Get_e() const { return e; }
-    double Get_s() const { return sqrt(Rb * Rb - e * e); }
+    void SetSlidingEccentrical(double me) { e = me; };
 
     /// Sets the data for the flat rotating follower (length, distance from cam center, initial phase mb0)
-    void Set_flat_oscillate(double me, double md, double mb0);
+    void SetFlatOscillate(double me, double md, double mb0);
 
     /// Evaluate at once all important properties of cam, function of rotation 'par'
     /// (par in range 0..1, with 1 corresponding to 360 degrees):
@@ -146,6 +123,26 @@ class ChApi ChLineCam : public ChLine {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    CamType type;                     ///< type of cam
+    std::shared_ptr<ChFunction> law;  ///< follower motion law
+    double phase;                     ///< 0..2PI  phase (rotation). Def=0, neutral position
+
+    double Rb;  ///< base radius
+    double Rr;  ///< radius of contact wheel
+
+    double p;   ///< length of rotating mover
+    double d;   ///< distance center of cam - center of rotation of mover
+    double b0;  ///< initial rotation for mover
+
+    double e;  ///< eccentricity of sliding follower
+    double s;  ///< distance of sliding follower
+
+    bool negative;  ///< negative cam: for desmodromic stuff, (cam is also Y or X mirrored, depend.on type )
+    bool internal;  ///< follower roller is inside the cam
+
+    ChVector3d center;  ///< center of cam in space (def.alignment on xy plane)
 };
 
 /// @} chrono_geometry
