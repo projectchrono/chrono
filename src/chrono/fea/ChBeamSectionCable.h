@@ -52,8 +52,8 @@ class ChApi ChBeamSectionCable : public ChBeamSection {
 
     /// Set the I moment of inertia of the beam (for flexion about y axis or z axis)
     /// Note: since this simple section assumes circular section, Iyy=Izz=I
-    void SetI(double ma) { this->I = ma; }
-    double GetI() const { return this->I; }
+    void SetInertia(double ma) { this->I = ma; }
+    double GetInertia() const { return this->I; }
 
     /// Shortcut: set Area and I inertia at once,
     /// given the diameter of the beam assumed

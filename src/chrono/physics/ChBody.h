@@ -189,12 +189,12 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Gets the list of children markers.
     /// NOTE: to modify this list, use the appropriate Remove..
     /// and Add.. functions.
-    const std::vector<std::shared_ptr<ChMarker>>& GetMarkerList() const { return marklist; }
+    const std::vector<std::shared_ptr<ChMarker>>& GetMarkers() const { return marklist; }
 
     /// Gets the list of children forces.
     /// NOTE: to modify this list, use the appropriate Remove..
     /// and Add.. functions.
-    const std::vector<std::shared_ptr<ChForce>>& GetForceList() const { return forcelist; }
+    const std::vector<std::shared_ptr<ChForce>>& GetForces() const { return forcelist; }
 
     /// Set the body mass.
     /// Try not to mix bodies with too high/too low values of mass, for numerical stability.
@@ -258,15 +258,15 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// This is useful in virtual reality and real-time simulations, because
     /// it reduces the risk of bad collision detection.
     /// This speed limit is active only if you set  SetLimitSpeed(true);
-    void SetMaxSpeed(float m_max_speed) { max_speed = m_max_speed; }
-    float GetMaxSpeed() const { return max_speed; }
+    void SetMaxLinVel(float m_max_speed) { max_speed = m_max_speed; }
+    float GetMaxLinVel() const { return max_speed; }
 
     /// Set the maximum angular speed (beyond this limit it will be clamped).
     /// This is useful in virtual reality and real-time simulations, because
     /// it reduces the risk of bad collision detection.
     /// This speed limit is active only if you set  SetLimitSpeed(true);
-    void SetMaxWvel(float m_max_wvel) { max_wvel = m_max_wvel; }
-    float GetMaxWvel() const { return max_wvel; }
+    void SetMaxAngVel(float m_max_wvel) { max_wvel = m_max_wvel; }
+    float GetMaxAngVel() const { return max_wvel; }
 
     /// Clamp the body speed to the provided limits.
     /// When this function is called, the speed of the body is clamped
@@ -280,12 +280,12 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     float GetSleepTime() const { return sleep_time; }
 
     /// Set the max linear speed to be kept for 'sleep_time' before freezing.
-    void SetSleepMinSpeed(float m_t) { sleep_minspeed = m_t; }
-    float GetSleepMinSpeed() const { return sleep_minspeed; }
+    void SetSleepMinLinVel(float m_t) { sleep_minspeed = m_t; }
+    float GetSleepMinLinVel() const { return sleep_minspeed; }
 
     /// Set the max linear speed to be kept for 'sleep_time' before freezing.
-    void SetSleepMinWvel(float m_t) { sleep_minwvel = m_t; }
-    float GetSleepMinWvel() const { return sleep_minwvel; }
+    void SetSleepMinAngVel(float m_t) { sleep_minwvel = m_t; }
+    float GetSleepMinAngVel() const { return sleep_minwvel; }
 
     /// Computes the 4x4 inertia tensor in quaternion space, if needed.
     void ComputeQInertia(ChMatrix44<>& mQInertia);

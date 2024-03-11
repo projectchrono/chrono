@@ -68,7 +68,7 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     /// Access the list of applied forces, so you can add new ones by using push_back(),
     /// remove them, count them, etc.
     /// Note that if you add nodes, these should belong to the referenced mesh.
-    std::vector<std::shared_ptr<ChLoadXYZnode>>& GetForceList() { return m_forces; }
+    std::vector<std::shared_ptr<ChLoadXYZnode>>& GetForces() { return m_forces; }
 
     // ChLoadBase interface
 

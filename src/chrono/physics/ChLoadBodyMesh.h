@@ -63,7 +63,7 @@ class ChApi ChLoadBodyMesh : public ChLoadBase {
 
     /// Access the list of applied forces, to allow adding new ones, removing them, counting them, etc.
     /// Note that only nodes from the reference mesh should be added.
-    std::vector<std::shared_ptr<ChLoadBodyForce>>& GetForceList() { return forces; }
+    std::vector<std::shared_ptr<ChLoadBodyForce>>& GetForces() { return forces; }
 
     //
     // ChLoadBase interface

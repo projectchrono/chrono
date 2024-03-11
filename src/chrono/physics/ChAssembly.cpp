@@ -1484,11 +1484,11 @@ void ChAssembly::ShowHierarchy(std::ostream& outstream, int level) const {
     for (auto& body : bodylist) {
         outstream << mtabs << "  BODY:       " << body->GetName() << std::endl;
 
-        for (auto& marker : body->GetMarkerList()) {
+        for (auto& marker : body->GetMarkers()) {
             outstream << mtabs << "    MARKER:  " << marker->GetName() << std::endl;
         }
 
-        for (auto& force : body->GetForceList()) {
+        for (auto& force : body->GetForces()) {
             outstream << mtabs << "    FORCE:  " << force->GetName() << std::endl;
         }
     }

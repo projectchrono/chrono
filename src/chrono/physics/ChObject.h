@@ -73,17 +73,6 @@ class ChApi ChObj {
     /// Sets the name of this object, as std::string
     void SetNameString(const std::string& myname) { m_name = myname; }
 
-    // Set-get generic LONG flags, passed as reference
-
-    void MFlagsSetAllOFF(int& mflag) { mflag = 0; }
-    void MFlagsSetAllON(int& mflag) {
-        mflag = 0;
-        mflag = ~mflag;
-    }
-    void MFlagSetON(int& mflag, int mask) { mflag |= mask; }
-    void MFlagSetOFF(int& mflag, int mask) { mflag &= ~mask; }
-    int MFlagGet(int& mflag, int mask) { return (mflag & mask); }
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out);
 
