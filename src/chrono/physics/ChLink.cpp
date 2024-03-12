@@ -19,7 +19,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-//CH_FACTORY_REGISTER(ChLink)   // NO! abstract class!
+// CH_FACTORY_REGISTER(ChLink)   // NO! abstract class!
 
 ChLink::ChLink(const ChLink& other) : ChLinkBase(other) {
     m_body1 = nullptr;
@@ -29,58 +29,47 @@ ChLink::ChLink(const ChLink& other) : ChLinkBase(other) {
     react_torque = other.react_torque;
 }
 
-ChVector3d ChLink::GetReactForce1() {
+ChVector3d ChLink::GetReactForce1() const {
     return GetFrame1Rel().TransformDirectionParentToLocal(
-        GetBody2()->TransformDirectionLocalToParent(
-            GetReactForceBody2()));
+        GetBody2()->TransformDirectionLocalToParent(GetReactForceBody2()));
 }
 
-
-ChVector3d ChLink::GetReactTorque1() {
-    auto posF2_from_F1_inF1 = GetFrame1Rel().TransformPointParentToLocal(GetBody2()->TransformPointLocalToParent(GetFrame2Rel().GetPos()));
+ChVector3d ChLink::GetReactTorque1() const {
+    auto posF2_from_F1_inF1 =
+        GetFrame1Rel().TransformPointParentToLocal(GetBody2()->TransformPointLocalToParent(GetFrame2Rel().GetPos()));
     auto torque1_dueto_force2_inF1 = Vcross(posF2_from_F1_inF1, GetReactForce1());
-    auto torque1_dueto_torque2_inF1 =
-        GetFrame1Rel().TransformDirectionParentToLocal(
-            GetBody2()->TransformDirectionLocalToParent(
-                GetFrame2Rel().TransformDirectionLocalToParent(
-                    GetReactTorque2())));
+    auto torque1_dueto_torque2_inF1 = GetFrame1Rel().TransformDirectionParentToLocal(
+        GetBody2()->TransformDirectionLocalToParent(GetFrame2Rel().TransformDirectionLocalToParent(GetReactTorque2())));
     return torque1_dueto_torque2_inF1 + torque1_dueto_force2_inF1;
 }
 
-ChVector3d ChLink::GetReactForceBody1() {
-    return GetBody1()->TransformDirectionParentToLocal(
-        GetBody2()->TransformDirectionLocalToParent(
-            GetReactForceBody2()));
-}
-
-
-ChVector3d ChLink::GetReactForceBody2() {
+ChVector3d ChLink::GetReactForceBody2() const {
     return GetFrame2Rel().TransformDirectionLocalToParent(GetReactForce2());
 }
 
+ChVector3d ChLink::GetReactTorqueBody2() const {
+    auto posF2_from_B2_inB2 = GetFrame2Rel().GetPos();
+    auto torque2_dueto_force2_inB2 = Vcross(posF2_from_B2_inB2, GetReactForceBody2());
+    auto torque2_dueto_torque2_inB2 =
+        GetBody2()->TransformDirectionLocalToParent(GetFrame2Rel().TransformDirectionLocalToParent(GetReactTorque2()));
+    return torque2_dueto_torque2_inB2 + torque2_dueto_force2_inB2;
+}
 
-ChVector3d ChLink::GetReactTorqueBody1() {
-    auto posF2_from_B1_inB1 = GetBody1()->TransformPointParentToLocal(GetBody2()->TransformPointLocalToParent(GetFrame2Rel().GetPos()));
+ChVector3d ChLink::GetReactForceBody1() const {
+    return GetBody1()->TransformDirectionParentToLocal(
+        GetBody2()->TransformDirectionLocalToParent(GetReactForceBody2()));
+}
+
+ChVector3d ChLink::GetReactTorqueBody1() const {
+    auto posF2_from_B1_inB1 =
+        GetBody1()->TransformPointParentToLocal(GetBody2()->TransformPointLocalToParent(GetFrame2Rel().GetPos()));
     auto torque1_dueto_force2_inB1 = Vcross(posF2_from_B1_inB1, GetReactForceBody1());
-    auto torque1_dueto_torque2_inB1 =
-        GetBody1()->TransformDirectionParentToLocal(
-            GetBody2()->TransformDirectionLocalToParent(
-                GetFrame2Rel().TransformDirectionLocalToParent(
-                    GetReactTorque2())));
+    auto torque1_dueto_torque2_inB1 = GetBody1()->TransformDirectionParentToLocal(
+        GetBody2()->TransformDirectionLocalToParent(GetFrame2Rel().TransformDirectionLocalToParent(GetReactTorque2())));
     return torque1_dueto_torque2_inB1 + torque1_dueto_force2_inB1;
 }
 
 /// Get reaction torque, expressed on body 2 frame.
-
-ChVector3d ChLink::GetReactTorqueBody2() {
-    auto posF2_from_B2_inB2 = GetFrame2Rel().GetPos();
-    auto torque1_dueto_force2_inB2 = Vcross(posF2_from_B2_inB2, GetReactForceBody2());
-    auto torque1_dueto_torque2_inB2 =
-        GetBody2()->TransformDirectionLocalToParent(
-            GetFrame2Rel().TransformDirectionLocalToParent(
-                GetReactTorque2()));
-    return torque1_dueto_torque2_inB2 + torque1_dueto_force2_inB2;
-}
 
 void ChLink::UpdateTime(double time) {
     ChTime = time;
@@ -107,13 +96,13 @@ void ChLink::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize all member data:
     archive_out << CHNVP(m_body1);
     archive_out << CHNVP(m_body2);
-    //archive_out << CHNVP(react_force);
-    //archive_out << CHNVP(react_torque);
+    // archive_out << CHNVP(react_force);
+    // archive_out << CHNVP(react_torque);
 }
 
 void ChLink::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLink>();
+    /*int version =*/archive_in.VersionRead<ChLink>();
 
     // deserialize parent class
     ChLinkBase::ArchiveIn(archive_in);
@@ -121,8 +110,8 @@ void ChLink::ArchiveIn(ChArchiveIn& archive_in) {
     // deserialize all member data:
     archive_in >> CHNVP(m_body1);
     archive_in >> CHNVP(m_body2);
-    //archive_in >> CHNVP(react_force);
-    //archive_in >> CHNVP(react_torque);
+    // archive_in >> CHNVP(react_force);
+    // archive_in >> CHNVP(react_torque);
 }
 
 }  // end namespace chrono

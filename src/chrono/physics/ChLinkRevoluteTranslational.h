@@ -41,13 +41,17 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
 
     /// Get the point on body 1 (revolute side), expressed in body 1 coordinate system.
     const ChVector3d& GetPoint1Rel() const { return m_p1; }
+
     /// Get the direction of the revolute joint, expressed in body 1 coordinate system.
     const ChVector3d& GetDirZ1Rel() const { return m_z1; }
+    
     /// Get the point on m_body2 (spherical side), expressed in body 2 coordinate system.
     const ChVector3d& GetPoint2Rel() const { return m_p2; }
+    
     /// Get the first direction of the translational joint, expressed in body 2 coordinate system.
     /// The translational axis is orthogonal to the direction.
     const ChVector3d& GetDirX2Rel() const { return m_x2; }
+    
     /// Get the second direction of the translational joint, expressed in body 2 coordinate system.
     /// The translational axis is orthogonal to the direction.
     const ChVector3d& GetDirY2Rel() const { return m_y2; }
@@ -60,18 +64,23 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
 
     /// Get the imposed distance (length of massless connector).
     double GetImposedDistance() const { return m_dist; }
+
     /// Get the current distance between the two points.
     double GetCurrentDistance() const { return m_cur_dist; }
 
     /// Get the point on m_body1 (revolute side), expressed in absolute coordinate system.
     ChVector3d GetPoint1Abs() const { return m_body1->TransformPointLocalToParent(m_p1); }
+
     /// Get the direction of the revolute joint, expressed in absolute coordinate system.
     ChVector3d GetDirZ1Abs() const { return m_body1->TransformDirectionLocalToParent(m_z1); }
+    
     /// Get the point on m_body2 (translational side), expressed in absolute coordinate system.
     ChVector3d GetPoint2Abs() const { return m_body2->TransformPointLocalToParent(m_p2); }
+    
     /// Get the first direction of the translational joint, expressed in absolute coordinate system.
     /// The translational axis is orthogonal to the direction.
     ChVector3d GetDirX2Abs() const { return m_body2->TransformDirectionLocalToParent(m_x2); }
+    
     /// Get the second direction of the translational joint, expressed in absolute coordinate system.
     /// The translational axis is orthogonal to the direction.
     ChVector3d GetDirY2Abs() const { return m_body2->TransformDirectionLocalToParent(m_y2); }

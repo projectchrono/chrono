@@ -228,14 +228,6 @@ void ChLinkLock::SetBroken(bool mbro) {
         BuildLink();
 }
 
-int ChLinkLock::ResetRedundant() {
-    int mchanges = mask.ResetRedundant();
-    if (mchanges)
-        BuildLink();
-
-    return mchanges;
-}
-
 void ChLinkLock::SetupMarkers(ChMarker* mark1, ChMarker* mark2) {
     ChLinkMarkers::SetupMarkers(mark1, mark2);
     assert(this->m_body1 && this->m_body2);

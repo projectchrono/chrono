@@ -21,12 +21,6 @@ namespace chrono {
 
 /// Base class for all types of constraints that act like mechanical joints ('links') in 3D space.
 class ChApi ChLinkBase : public ChPhysicsItem {
-
-  protected:
-    bool disabled;  ///< all constraints of link disabled because of user needs
-    bool valid;     ///< link data is valid
-    bool broken;    ///< link is broken because of excessive pulling/pushing.
-
   public:
     ChLinkBase() : disabled(false), valid(true), broken(false) {}
     ChLinkBase(const ChLinkBase& other);
@@ -35,16 +29,19 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     /// Tells if the link data is currently valid.
     /// (i.e. pointers to other items are correct)
     bool IsValid() { return valid; }
+
     /// Set the status of link validity
     void SetValid(bool mon) { valid = mon; }
 
     /// Tells if all constraints of this link are currently turned on or off by the user.
     bool IsDisabled() { return disabled; }
+
     /// User can use this to enable/disable all the constraint of the link as desired.
     virtual void SetDisabled(bool mdis) { disabled = mdis; }
 
     /// Tells if the link is broken, for excess of pulling/pushing.
     bool IsBroken() { return broken; }
+
     /// Set the 'broken' status vof this link.
     virtual void SetBroken(bool mon) { broken = mon; }
 
@@ -56,17 +53,6 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     /// Get the number of scalar variables affected by constraints in this link
     virtual unsigned int GetNumAffectedCoords() = 0;
 
-    /// Get the link coordinate system in absolute reference.
-    /// This represents the 'main' reference of the link: reaction forces and reaction torques are expressed in this
-    /// coordinate system. Child classes should implement this.
-    virtual ChFramed GetFrameAbs() { return ChFrame<>(); }
-
-    /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
-    /// For a ChLink, the default implementation returns the link coordinate frame.
-    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override {
-        return ChFrame<>(GetFrameAbs());
-    }
-
     /// Get the current constraint violations.
     virtual ChVectorDynamic<> GetConstraintViolation() const { return ChVectorDynamic<>(); }
 
@@ -75,25 +61,35 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     /// child classes might return false for optimizing sleeping, in case no time-dependant.
     virtual bool IsRequiringWaking() { return true; }
 
-    /// [INTERNAL USE ONLY] Get the reaction force. The meaning is up to the derived classes.
-    virtual ChVector3d GetReactForce() = 0;
-
-    /// [INTERNAL USE ONLY] Get the reaction torque. The meaning is up to the derived classes.
-    virtual ChVector3d GetReactTorque() = 0;
-
-    //
-    // SERIALIZATION
-    //
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+    /// [INTERNAL USE ONLY] Get the link coordinate system in absolute reference.
+    /// This represents the 'main' reference of the link: reaction forces and reaction torques are expressed in this
+    /// coordinate system. Child classes should implement this.
+    virtual ChFramed GetFrameAbs() const = 0;
+
+    /// [INTERNAL USE ONLY] Get the reaction force. The meaning is up to the derived classes.
+    virtual ChVector3d GetReactForce() const = 0;
+
+    /// [INTERNAL USE ONLY] Get the reaction torque. The meaning is up to the derived classes.
+    virtual ChVector3d GetReactTorque() const = 0;
+
+    /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
+    /// For a ChLink, the default implementation returns the link coordinate frame.
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override { return GetFrameAbs(); }
+
+  protected:
+    bool disabled;  ///< all constraints of link disabled because of user needs
+    bool valid;     ///< link data is valid
+    bool broken;    ///< link is broken because of excessive pulling/pushing.
 };
 
-CH_CLASS_VERSION(ChLinkBase,0)
+CH_CLASS_VERSION(ChLinkBase, 0)
 
-}  // end namespace
+}  // namespace chrono
 
 #endif

@@ -640,6 +640,7 @@ Note that this represents a major public API change and we expect most user code
 | ChLink                            |                               |                                                  |
 |                                   | GetLeftDOF                    | remove                                           |
 |                                   | GetLinkRelativeCoords         | rename: GetFrame2Rel (see Notes)                 |
+|                                   | ResetRedundant                | remove                                           |
 | ChLinkBase                        |                               |                                                  |
 |                                   | GetLinkAbsoluteCoords         | rename: GetFrameAbs (see Notes)                  |
 |                                   | GetNumCoords                  | rename: GetNumAffectedCoords                     |
@@ -783,8 +784,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetMaskDoc                    | rename: GetNumConstraintsActive                  |
 |                                   | GetMaskDoc_c                  | rename: GetNumConstraintsBilateralActive         |
 |                                   | GetMaskDoc_d                  | rename: GetNumConstraintsUnilateralActive        |
-|                                   | ResetNconstr                  | rename: SetNumConstraints                        |
 |                                   | nconstr                       | rename: GetNumConstraints                        |
+|                                   | ResetNconstr                  | rename: SetNumConstraints                        |
+|                                   | ResetRedundant                | remove                                           |
 |                                   | SetActiveRedundantByArray     | remove                                           |
 | ChLinkMarkers                     |                               |                                                  |
 |                                   | GetDist                       | rename: GetDistance                              |

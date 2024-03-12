@@ -120,13 +120,6 @@ void ChLinkMateGeneric::SetBroken(bool mbro) {
         ChangedLinkMask();
 }
 
-int ChLinkMateGeneric::ResetRedundant() {
-    int mchanges = mask.ResetRedundant();
-    if (mchanges)
-        ChangedLinkMask();
-    return mchanges;
-}
-
 void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class (ChLink), basically doing nothing :)
     ChLink::Update(mytime, update_assets);

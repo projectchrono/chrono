@@ -49,9 +49,35 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
     // Get constraint violations
     virtual ChVectorDynamic<> GetConstraintViolation() const override;
 
-    //
+    /// Return the link frame, expressed in absolute coordinates.
+    ChFrame<> GetFrameNodeAbs() const { return ChFrame<>(mnodeB->GetPos(), QUNIT); }
+
+    /// Initialize the constraint, given the two nodes to join.
+    /// The attachment position is the actual position of the node.
+    /// Note that nodes must belong to the same ChSystem.
+    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> nodeA,  ///< xyz node (point) to join
+                           std::shared_ptr<ChNodeFEAxyz> nodeB   ///< xyz node (point) to join
+    );
+
+    /// Get the 1st connected xyz node (point)
+    std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeA() const { return this->mnodeA; }
+
+    /// Get the 2nd connected xyz node (point)
+    std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeB() const { return this->mnodeB; }
+
+    /// Get the reaction force considered as applied to ChShaft.
+    ChVector3d GetReactionOnNode() const { return -react; }
+
+    /// Update all auxiliary data of the gear transmission at given time
+    virtual void Update(double mytime, bool update_assets = true) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
     // STATE FUNCTIONS
-    //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
@@ -86,45 +112,7 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
     virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
-    // Other functions
-
-    virtual ChFrame<> GetFrameAbs() override { return ChFrame<>(); }
-
-    /// Use this function after object creation, to initialize it, given
-    /// the two nodes join.
-    /// The attachment position is the actual position of the node.
-    /// Note, mnodes must belong to the same ChSystem.
-    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,  ///< xyz node (point) to join
-                           std::shared_ptr<ChNodeFEAxyz> anodeB   ///< xyz node (point) to join
-                           );
-
-    /// Get the 1st connected xyz node (point)
-    std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeA() const { return this->mnodeA; }
-
-    /// Get the 2nd connected xyz node (point)
-    std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeB() const { return this->mnodeB; }
-
-    /// Get the reaction force considered as applied to ChShaft.
-    ChVector3d GetReactionOnNode() const { return -react; }
-
-    //
-    // UPDATE FUNCTIONS
-    //
-
-    /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true) override;
-
-    //
-    // STREAMING
-    //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
-
-private:
+  private:
     ChVector3d react;
 
     // used as an interface to the solver.
@@ -135,11 +123,14 @@ private:
     std::shared_ptr<fea::ChNodeFEAxyz> mnodeA;
     std::shared_ptr<fea::ChNodeFEAxyz> mnodeB;
 
+    /// [INTERNAL USE ONLY]
+    virtual ChFrame<> GetFrameAbs() const override { return GetFrameNodeAbs(); }
+
     /// [INTERNAL USE ONLY] Reaction force on the node, at node position and oriented as the absolute reference.
-    virtual ChVector3d GetReactForce() override { return GetReactionOnNode(); }
+    virtual ChVector3d GetReactForce() const override { return GetReactionOnNode(); }
 
     /// [INTERNAL USE ONLY] Reaction torque on the node, at node position and oriented as the absolute reference.
-    virtual ChVector3d GetReactTorque() override { return VNULL; }
+    virtual ChVector3d GetReactTorque() const override { return VNULL; }
 };
 
 /// @} fea_constraints

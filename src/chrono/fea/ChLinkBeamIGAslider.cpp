@@ -28,12 +28,8 @@ ChLinkBeamIGAslider::ChLinkBeamIGAslider(const ChLinkBeamIGAslider& other) : ChL
     m_react = other.m_react;
 }
 
-ChFrame<> ChLinkBeamIGAslider::GetFrameAbs() {
-    if (m_body) {
-        ChFrame<> linkcsys = ChFrame<>(m_csys >> *m_body);
-        return linkcsys;
-    }
-    return ChFrame<>();
+ChFrame<> ChLinkBeamIGAslider::GetFrameBodyAbs() const {
+    return ChFrame<>(m_csys >> *m_body);
 }
 
 void ChLinkBeamIGAslider::UpdateNodes() {

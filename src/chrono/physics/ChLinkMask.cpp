@@ -135,19 +135,6 @@ ChConstraintTwoBodies* ChLinkMask::GetActiveConstraint(unsigned int mnum) {
     return NULL;
 }
 
-
-// set lock =ON for constraints which were disabled because redundant
-unsigned int ChLinkMask::ResetRedundant() {
-    unsigned int tot = 0;
-    for (unsigned int j = 0; j < nconstr; j++) {
-        if (GetConstraint(j).IsRedundant()) {
-            GetConstraint(j).SetRedundant(false);
-            tot++;
-        }
-    }
-    return tot;
-}
-
 unsigned int ChLinkMask::SetAllDisabled(bool mdis) {
     unsigned int cnt = 0;
 

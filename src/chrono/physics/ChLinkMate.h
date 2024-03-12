@@ -92,18 +92,19 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
 
     /// Initialize the link given the two bodies to be connected and the absolute position of the link.
     /// Two frames, moving together with each of the two bodies, will be automatically created.
-    /// This method guarantees that the constraint is satisfied, given that the bodies will not be moved before the simulation starts.
+    /// This method guarantees that the constraint is satisfied, given that the bodies will not be moved before the
+    /// simulation starts.
     virtual void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> body2,  ///< second body to link
                             ChFrame<> absframe                   ///< link frame, in abs. coordinate
     );
 
-    /// Initialize the link given the two bodies to be connected and two frames (either referring to absolute or body coordinates) in which the link must be placed.
-    /// It is recommended to place the bodies so that the constraints are satisfied.
-    /// Starting the simulation with constraints violation might lead to unstable results.
+    /// Initialize the link given the two bodies to be connected and two frames (either referring to absolute or body
+    /// coordinates) in which the link must be placed. It is recommended to place the bodies so that the constraints are
+    /// satisfied. Starting the simulation with constraints violation might lead to unstable results.
     virtual void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> body2,  ///< second body to link
-                            bool pos_are_relative,                ///< true: following pos. are relative to bodies
+                            bool pos_are_relative,               ///< true: following pos. are relative to bodies
                             ChFrame<> frame1,                    ///< slave frame 1 (rel. or abs.)
                             ChFrame<> frame2                     ///< master frame 2 (rel. or abs.)
     );
@@ -114,24 +115,19 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     /// Starting the simulation with constraints violation might lead to unstable results.
     virtual void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> body2,  ///< second body to link
-                            bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                            const ChVector3d& point1,                      ///< origin of slave frame 1 (rel. or abs.)
-                            const ChVector3d& point2,                      ///< origin of master frame 2 (rel. or abs.)
-                            const ChVector3d& dir1,                    ///< X axis of slave plane 1 (rel. or abs.)
-                            const ChVector3d& dir2                     ///< X axis of master plane 2 (rel. or abs.)
+                            bool pos_are_relative,               ///< true: following pos. are relative to bodies
+                            const ChVector3d& point1,            ///< origin of slave frame 1 (rel. or abs.)
+                            const ChVector3d& point2,            ///< origin of master frame 2 (rel. or abs.)
+                            const ChVector3d& dir1,              ///< X axis of slave plane 1 (rel. or abs.)
+                            const ChVector3d& dir2               ///< X axis of master plane 2 (rel. or abs.)
     );
 
-    //
     // UPDATING FUNCTIONS
-    //
 
     /// Update link state. This is called automatically by the solver at each time step.
     /// Update constraint jacobian and frames.
     /// Derived classes must call this parent method and then take care of updating their own assets.
     virtual void Update(double mtime, bool update_assets = true) override;
-
-    /// If some constraint is redundant, return to normal state
-    virtual int ResetRedundant() override;
 
     /// User can use this to enable/disable all the constraint of
     /// the link as desired.
@@ -154,9 +150,7 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     /// Link violation (residuals of the link constraint equations).
     virtual ChVectorDynamic<> GetConstraintViolation() const override { return C; }
 
-    //
     // STATE FUNCTIONS
-    //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
@@ -182,9 +176,7 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    //
     // SOLVER INTERFACE
-    //
 
     virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
     virtual void ConstraintsBiReset() override;
@@ -201,9 +193,7 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     /// The K matrices are load with scaling values Kfactor.
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
 
-    //
     // SERIALIZATION
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
@@ -225,7 +215,7 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     bool c_ry;
     bool c_rz;
 
-    int m_num_constr;    ///< number of constraints
+    int m_num_constr;      ///< number of constraints
     int m_num_constr_bil;  ///< number of bilateral constraints
     int m_num_constr_uni;  ///< number of unilateral constraints
 
@@ -246,7 +236,7 @@ CH_CLASS_VERSION(ChLinkMateGeneric, 0)
 
 // -----------------------------------------------------------------------------
 
-/// Mate constraint of plane-to-plane type. 
+/// Mate constraint of plane-to-plane type.
 /// The planes are defined by the X and Y axes of the two frames i.e. the two Z axes are parallel.
 /// An offset distance can be provided.
 
@@ -275,15 +265,15 @@ class ChApi ChLinkMatePlanar : public ChLinkMateGeneric {
     /// Get the requested distance between the two planes, in normal direction.
     double GetDistance() const { return m_distance; }
 
-    /// Initialize the link by providing a point and a normal direction on each plane, each expressed in body or abs reference.
-    /// Normals can be either aligned or opposed depending on the ::SetFlipped() method.
+    /// Initialize the link by providing a point and a normal direction on each plane, each expressed in body or abs
+    /// reference. Normals can be either aligned or opposed depending on the ::SetFlipped() method.
     virtual void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> body2,  ///< second body to link
-                            bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                            const ChVector3d& point1,                      ///< point on slave plane 1 (rel. or abs.)
-                            const ChVector3d& point2,                      ///< point on master plane 2 (rel. or abs.)
-                            const ChVector3d& norm1,                    ///< normal of slave plane 1 (rel. or abs.)
-                            const ChVector3d& norm2                     ///< normal of master plane 2 (rel. or abs.)
+                            bool pos_are_relative,               ///< true: following pos. are relative to bodies
+                            const ChVector3d& point1,            ///< point on slave plane 1 (rel. or abs.)
+                            const ChVector3d& point2,            ///< point on master plane 2 (rel. or abs.)
+                            const ChVector3d& norm1,             ///< normal of slave plane 1 (rel. or abs.)
+                            const ChVector3d& norm2              ///< normal of master plane 2 (rel. or abs.)
                             ) override;
 
     /// Update link state. This is called automatically by the solver at each time step.
@@ -323,16 +313,15 @@ class ChApi ChLinkMateCylindrical : public ChLinkMateGeneric {
 
     using ChLinkMateGeneric::Initialize;
 
-
     /// Specialized initialization for coaxial mate, given the two bodies to be connected, two points, two directions
     /// (each expressed in body or abs. coordinates).
     virtual void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> body2,  ///< second body to link
-                            bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                            const ChVector3d& point1,                      ///< point on slave axis 1 (rel. or abs.)
-                            const ChVector3d& point2,                      ///< point on master axis 2 (rel. or abs.)
-                            const ChVector3d& dir1,                     ///< direction of slave axis 1 (rel. or abs.)
-                            const ChVector3d& dir2                      ///< direction of master axis 2 (rel. or abs.)
+                            bool pos_are_relative,               ///< true: following pos. are relative to bodies
+                            const ChVector3d& point1,            ///< point on slave axis 1 (rel. or abs.)
+                            const ChVector3d& point2,            ///< point on master axis 2 (rel. or abs.)
+                            const ChVector3d& dir1,              ///< direction of slave axis 1 (rel. or abs.)
+                            const ChVector3d& dir2               ///< direction of master axis 2 (rel. or abs.)
                             ) override;
 
     /// Method to allow serialization of transient data to archives.
@@ -371,13 +360,13 @@ class ChApi ChLinkMateRevolute : public ChLinkMateGeneric {
     /// (each expressed in body or abs. coordinates). These two directions are the Z axes of slave frame F1 and master
     /// frame F2
     virtual void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
-        std::shared_ptr<ChBodyFrame> body2,                      ///< second body to link
-        bool pos_are_relative,                                    ///< true: following pos. are relative to bodies
-        const ChVector3d& point1,                                          ///< point on slave axis 1 (rel. or abs.)
-        const ChVector3d& point2,                                          ///< point on master axis 2 (rel. or abs.)
-        const ChVector3d& dir1,                                         ///< direction of slave axis 1 (rel. or abs.)
-        const ChVector3d& dir2                                          ///< direction of master axis 2 (rel. or abs.)
-    ) override;
+                            std::shared_ptr<ChBodyFrame> body2,  ///< second body to link
+                            bool pos_are_relative,               ///< true: following pos. are relative to bodies
+                            const ChVector3d& point1,            ///< point on slave axis 1 (rel. or abs.)
+                            const ChVector3d& point2,            ///< point on master axis 2 (rel. or abs.)
+                            const ChVector3d& dir1,              ///< direction of slave axis 1 (rel. or abs.)
+                            const ChVector3d& dir2               ///< direction of master axis 2 (rel. or abs.)
+                            ) override;
 
     /// Get relative angle of slave frame with respect to master frame.
     double GetRelativeAngle();
@@ -425,11 +414,11 @@ class ChApi ChLinkMatePrismatic : public ChLinkMateGeneric {
     /// frame F2
     virtual void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> body2,  ///< second body to link
-                            bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                            const ChVector3d& point1,                      ///< point on slave axis 1 (rel. or abs.)
-                            const ChVector3d& point2,                      ///< point on master axis 2 (rel. or abs.)
-                            const ChVector3d& dir1,                     ///< direction of slave axis 1 (rel. or abs.)
-                            const ChVector3d& dir2                      ///< direction of master axis 2 (rel. or abs.)
+                            bool pos_are_relative,               ///< true: following pos. are relative to bodies
+                            const ChVector3d& point1,            ///< point on slave axis 1 (rel. or abs.)
+                            const ChVector3d& point2,            ///< point on master axis 2 (rel. or abs.)
+                            const ChVector3d& dir1,              ///< direction of slave axis 1 (rel. or abs.)
+                            const ChVector3d& dir2               ///< direction of master axis 2 (rel. or abs.)
                             ) override;
 
     /// Get relative position of slave frame with respect to master frame.
@@ -470,9 +459,9 @@ class ChApi ChLinkMateSpherical : public ChLinkMateGeneric {
     /// (each expressed in body or abs. coordinates).
     void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
                     std::shared_ptr<ChBodyFrame> body2,  ///< second body to link
-                    bool pos_are_relative,                ///< true: following pos. are relative to bodies.
-                    ChVector3d point1,                      ///< point slave 1 (rel. or abs.)
-                    ChVector3d point2                       ///< point master 2 (rel. or abs.)
+                    bool pos_are_relative,               ///< true: following pos. are relative to bodies.
+                    ChVector3d point1,                   ///< point slave 1 (rel. or abs.)
+                    ChVector3d point2                    ///< point master 2 (rel. or abs.)
     );
 };
 
@@ -506,9 +495,9 @@ class ChApi ChLinkMateDistanceZ : public ChLinkMateGeneric {
     /// \a dir2 will be the Z axis of both frame 1 and 2.
     void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
                     std::shared_ptr<ChBodyFrame> body2,  ///< second body to link
-                    bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                    ChVector3d point1,                      ///< point slave 1 (rel. or abs.)
-                    ChVector3d point2,                      ///< point master 2 (rel. or abs.)
+                    bool pos_are_relative,               ///< true: following pos. are relative to bodies
+                    ChVector3d point1,                   ///< point slave 1 (rel. or abs.)
+                    ChVector3d point2,                   ///< point master 2 (rel. or abs.)
                     ChVector3d dir2                      ///< direction of master axis 2 (rel. or abs.)
     );
 
@@ -552,11 +541,11 @@ class ChApi ChLinkMateParallel : public ChLinkMateGeneric {
     /// directions (each expressed in body or abs. coordinates).
     virtual void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> body2,  ///< second body to link
-                            bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                            const ChVector3d& point1,                      ///< point on slave axis 1 (rel. or abs.)
-                            const ChVector3d& point2,                      ///< point on master axis 2 (rel. or abs.)
-                            const ChVector3d& dir1,                     ///< direction of slave axis 1 (rel. or abs.)
-                            const ChVector3d& dir2                      ///< direction of master axis 2 (rel. or abs.)
+                            bool pos_are_relative,               ///< true: following pos. are relative to bodies
+                            const ChVector3d& point1,            ///< point on slave axis 1 (rel. or abs.)
+                            const ChVector3d& point2,            ///< point on master axis 2 (rel. or abs.)
+                            const ChVector3d& dir1,              ///< direction of slave axis 1 (rel. or abs.)
+                            const ChVector3d& dir2               ///< direction of master axis 2 (rel. or abs.)
                             ) override;
 
     /// Method to allow serialization of transient data to archives.
@@ -593,11 +582,11 @@ class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
     /// directions (each expressed in body or abs. coordinates).
     virtual void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> body2,  ///< second body to link
-                            bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                            const ChVector3d& point1,                      ///< point on slave axis 1 (rel. or abs.)
-                            const ChVector3d& point2,                      ///< point on master axis 2 (rel. or abs.)
-                            const ChVector3d& dir1,                     ///< direction of slave axis 1 (rel. or abs.)
-                            const ChVector3d& dir2                      ///< direction of master axis 2 (rel. or abs.)
+                            bool pos_are_relative,               ///< true: following pos. are relative to bodies
+                            const ChVector3d& point1,            ///< point on slave axis 1 (rel. or abs.)
+                            const ChVector3d& point2,            ///< point on master axis 2 (rel. or abs.)
+                            const ChVector3d& dir1,              ///< direction of slave axis 1 (rel. or abs.)
+                            const ChVector3d& dir2               ///< direction of master axis 2 (rel. or abs.)
                             ) override;
 
     /// Update link state. This is called automatically by the solver at each time step.
@@ -646,7 +635,6 @@ CH_CLASS_VERSION(ChLinkMateFix, 0)
 /// given the teeth pressure angle.
 
 class ChApi ChLinkMateRackPinion : public ChLinkMateGeneric {
-
   protected:
     double R;         ///< primitive radius of the pinion
     double alpha;     ///< inclination of action line
@@ -752,7 +740,7 @@ class ChApi ChLinkMateRackPinion : public ChLinkMateGeneric {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
-CH_CLASS_VERSION(ChLinkMateRackPinion,0)
+CH_CLASS_VERSION(ChLinkMateRackPinion, 0)
 
 }  // end namespace chrono
 

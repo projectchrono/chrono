@@ -35,7 +35,6 @@ namespace fea {
 /// by the x axis of a coordinate system floating with a ChBodyFrame.
 /// The parameteric coordinate of the point of the spline that correspond
 /// to the outlet is automatically updated during the sliding motion.
-
 class ChApi ChLinkBeamIGAslider : public ChLinkBase {
   public:
     ChLinkBeamIGAslider();
@@ -51,47 +50,8 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
     /// Number of scalar constraints.
     virtual unsigned int GetNumConstraintsBilateral() override { return 2; }
 
-    virtual ChFrame<> GetFrameAbs() override;
-
-
-    //
-    // STATE FUNCTIONS
-    //
-
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
-    virtual void IntLoadResidual_CqL(const unsigned int off_L,
-                                     ChVectorDynamic<>& R,
-                                     const ChVectorDynamic<>& L,
-                                     const double c) override;
-    virtual void IntLoadConstraint_C(const unsigned int off,
-                                     ChVectorDynamic<>& Qc,
-                                     const double c,
-                                     bool do_clamp,
-                                     double recovery_clamp) override;
-    virtual void IntToDescriptor(const unsigned int off_v,
-                                 const ChStateDelta& v,
-                                 const ChVectorDynamic<>& R,
-                                 const unsigned int off_L,
-                                 const ChVectorDynamic<>& L,
-                                 const ChVectorDynamic<>& Qc) override;
-    virtual void IntFromDescriptor(const unsigned int off_v,
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,
-                                   ChVectorDynamic<>& L) override;
-
-    // Override/implement system functions of ChPhysicsItem
-    // (to assemble/manage data for system solver)
-
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
-    virtual void ConstraintsBiReset() override;
-    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
-    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
-    virtual void ConstraintsLoadJacobians() override;
-    virtual void ConstraintsFetch_react(double factor = 1) override;
-
-    // Other functions
+    /// Return the link frame, expressed in absolute coordinates.
+    ChFrame<> GetFrameBodyAbs() const;
 
     /// Initialize this constraint, given the node and element(s).
     /// The attachment position is the actual position of the node (unless
@@ -141,22 +101,49 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
     /// Get the reaction force on the body, at the attachment point, expressed in the link coordinate system.
     ChVector3d GetReactionOnBody() const { return -m_react; }
 
-    //
-    // UPDATE FUNCTIONS
-    //
-
-    /// Update all auxiliary data of the gear transmission at given time
+    /// Update all auxiliary data of the gear transmission at given time.
     virtual void Update(double mytime, bool update_assets = true) override;
-
-    //
-    // STREAMING
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+    // STATE FUNCTIONS
+
+    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
+    virtual void IntLoadResidual_CqL(const unsigned int off_L,
+                                     ChVectorDynamic<>& R,
+                                     const ChVectorDynamic<>& L,
+                                     const double c) override;
+    virtual void IntLoadConstraint_C(const unsigned int off,
+                                     ChVectorDynamic<>& Qc,
+                                     const double c,
+                                     bool do_clamp,
+                                     double recovery_clamp) override;
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
+
+    // Override/implement system functions of ChPhysicsItem
+    // (to assemble/manage data for system solver)
+
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1) override;
 
   private:
     virtual void UpdateNodes();
@@ -181,11 +168,14 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
     // constrained to coincide with the node's position.
     ChCoordsys<> m_csys;
 
+    /// [INTERNAL USE ONLY]
+    virtual ChFrame<> GetFrameAbs() const override { return GetFrameBodyAbs(); }
+
     /// [INTERNAL USE ONLY] Reaction force on the body, at attachment point, in body coordinate system.
-    virtual ChVector3d GetReactForce() override { return GetReactionOnBody(); }
+    virtual ChVector3d GetReactForce() const override { return GetReactionOnBody(); }
 
     /// [INTERNAL USE ONLY] Reaction torque on the body, at attachment point, in body coordinate system.
-    virtual ChVector3d GetReactTorque() override { return VNULL; }
+    virtual ChVector3d GetReactTorque() const override { return VNULL; }
 };
 
 /// @} fea_constraints

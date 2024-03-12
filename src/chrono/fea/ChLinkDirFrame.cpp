@@ -29,12 +29,8 @@ ChLinkDirFrame::ChLinkDirFrame(const ChLinkDirFrame& other) : ChLinkBase(other) 
     m_csys = other.m_csys;
 }
 
-ChFrame<> ChLinkDirFrame::GetFrameAbs() {
-    if (m_body) {
-        ChFrame<> frame(m_node->GetPos(), m_csys.rot >> m_body->GetRot());
-        return frame;
-    }
-    return ChFrame<>();
+ChFrame<> ChLinkDirFrame::GetFrameNodeAbs() const {
+    return ChFrame<>(m_node->GetPos(), m_csys.rot >> m_body->GetRot());
 }
 
 void ChLinkDirFrame::SetDirectionInBodyCoords(const ChVector3d& dir_loc) {

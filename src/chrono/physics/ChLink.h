@@ -31,13 +31,6 @@ class ChSystem;
 /// Note that there are many specializations of this base class. In fact, this base
 /// ChLink class does basically nothing, unless it is specialized by some child class.
 class ChApi ChLink : public ChLinkBase {
-
-  protected:
-    ChBodyFrame* m_body1;       ///< first connected body
-    ChBodyFrame* m_body2;       ///< second connected body
-    ChVector3d react_force;   ///< store the xyz reactions, expressed in local coordinate system of link;
-    ChVector3d react_torque;  ///< store the torque reactions, expressed in local coordinate system of link;
-
   public:
     ChLink() : m_body1(NULL), m_body2(NULL), react_force(VNULL), react_torque(VNULL) {}
     ChLink(const ChLink& other);
@@ -58,44 +51,37 @@ class ChApi ChLink : public ChLinkBase {
     /// Get the link frame 2, relative to body 2.
     virtual ChFramed GetFrame2Rel() const = 0;
 
-    /// Get the link frame 1, relative to the absolute frame.
-    virtual ChFramed GetFrame1Abs() const { return ((ChFramed*)GetBody1())->TransformLocalToParent(GetFrame1Rel()); }
-
-    /// Get the link frame 2, relative to the absolute frame.
-    virtual ChFramed GetFrame2Abs() const { return ((ChFramed*)GetBody2())->TransformLocalToParent(GetFrame2Rel()); }
-
-
     /// Get reaction force, expressed on link frame 2.
-    virtual ChVector3d GetReactForce2() { return react_force; }
+    virtual ChVector3d GetReactForce2() const { return react_force; }
 
     /// Get reaction torque, expressed on link frame 2.
-    virtual ChVector3d GetReactTorque2() { return react_torque; }
-
+    virtual ChVector3d GetReactTorque2() const { return react_torque; }
 
     /// Get reaction force, expressed on link frame 1.
-    virtual ChVector3d GetReactForce1();
+    ChVector3d GetReactForce1() const;
 
     /// Get reaction torque, expressed on link frame 1.
-    virtual ChVector3d GetReactTorque1();
+    ChVector3d GetReactTorque1() const;
 
-    /// Get reaction force, expressed on body 1.
-    virtual ChVector3d GetReactForceBody1();
+    /// Get the link frame 2, relative to the absolute frame.
+    ChFramed GetFrame2Abs() const { return GetFrame2Rel() >> *m_body2; }
+
+    /// Get the link frame 1, relative to the absolute frame.
+    ChFramed GetFrame1Abs() const { return GetFrame1Rel() >> *m_body1; }
 
     /// Get reaction force, expressed on body 2.
-    virtual ChVector3d GetReactForceBody2();
-
-    /// Get reaction torque, expressed on body 1 frame.
-    virtual ChVector3d GetReactTorqueBody1();
+    ChVector3d GetReactForceBody2() const;
 
     /// Get reaction torque, expressed on body 2 frame.
-    virtual ChVector3d GetReactTorqueBody2();
+    ChVector3d GetReactTorqueBody2() const;
 
-    /// OBSOLETE If some constraint is redundant, return to normal state.
-    virtual int ResetRedundant() { return 0; }
+    /// Get reaction force, expressed on body 1.
+    ChVector3d GetReactForceBody1() const;
 
-    //
+    /// Get reaction torque, expressed on body 1 frame.
+    ChVector3d GetReactTorqueBody1() const;
+
     // UPDATING FUNCTIONS
-    //
 
     /// Given new time, current body state, update time-dependent quantities in link state,
     /// for example motion laws, moving markers, etc.
@@ -113,33 +99,32 @@ class ChApi ChLink : public ChLinkBase {
     /// Called from a external package (i.e. a plugin, a CAD app.) to report that time has changed.
     virtual void UpdatedExternalTime(double prevtime, double time) {}
 
-    //
-    // SERIALIZATION
-    //
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-private:
+  protected:
+    ChBodyFrame* m_body1;     ///< first connected body
+    ChBodyFrame* m_body2;     ///< second connected body
+    ChVector3d react_force;   ///< store the xyz reactions, expressed in local coordinate system of link;
+    ChVector3d react_torque;  ///< store the torque reactions, expressed in local coordinate system of link;
 
+  private:
     /// [INTERNAL USE ONLY] Reaction force on the link frame 2.
-    virtual ChVector3d GetReactForce() override { return GetReactForce2(); }
+    virtual ChVector3d GetReactForce() const override { return GetReactForce2(); }
 
     /// [INTERNAL USE ONLY] Reaction torque on the link frame 2.
-    virtual ChVector3d GetReactTorque() override { return GetReactTorque2(); }
+    virtual ChVector3d GetReactTorque() const override { return GetReactTorque2(); }
 
     /// Get the link coordinate system in absolute reference.
     /// This represents the 'main' reference of the link: reaction forces and reaction torques are expressed in this
     /// coordinate system. Child classes should implement this.
-    virtual ChFramed GetFrameAbs() { return GetFrame2Abs(); }
-
-
+    virtual ChFramed GetFrameAbs() const override { return GetFrame2Abs(); }
 };
 
-CH_CLASS_VERSION(ChLink,0)
+CH_CLASS_VERSION(ChLink, 0)
 
 }  // end namespace chrono
 

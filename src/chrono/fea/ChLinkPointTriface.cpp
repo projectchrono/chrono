@@ -377,16 +377,16 @@ ChLinkPointTrifaceRot::ChLinkPointTrifaceRot(const ChLinkPointTrifaceRot& other)
     d = other.d;
 }
 
-int ChLinkPointTrifaceRot::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
-                                      std::shared_ptr<ChNodeFEAxyzrot> anodeB1,
-                                      std::shared_ptr<ChNodeFEAxyzrot> anodeB2,
-                                      std::shared_ptr<ChNodeFEAxyzrot> anodeB3) {
-    assert(anodeA && anodeB1 && anodeB2 && anodeB3);
+int ChLinkPointTrifaceRot::Initialize(std::shared_ptr<ChNodeFEAxyz> nodeA,
+                                      std::shared_ptr<ChNodeFEAxyzrot> nodeB1,
+                                      std::shared_ptr<ChNodeFEAxyzrot> nodeB2,
+                                      std::shared_ptr<ChNodeFEAxyzrot> nodeB3) {
+    assert(nodeA && nodeB1 && nodeB2 && nodeB3);
 
-    mnodeA = anodeA;
-    mtriangle.mnodeB1 = anodeB1;
-    mtriangle.mnodeB2 = anodeB2;
-    mtriangle.mnodeB3 = anodeB3;
+    mnodeA = nodeA;
+    mtriangle.mnodeB1 = nodeB1;
+    mtriangle.mnodeB2 = nodeB2;
+    mtriangle.mnodeB3 = nodeB3;
 
     constraint1.Get_tuple_a().SetVariables(*mnodeA);
     constraint1.Get_tuple_b().SetVariables(mtriangle);

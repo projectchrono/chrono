@@ -44,9 +44,6 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLock* Clone() const override { return new ChLinkLock(*this); }
 
-    /// If some constraint is redundant, return to normal state.
-    int ResetRedundant() override;
-
     /// Enable/disable all constraints of the link.
     virtual void SetDisabled(bool mdis) override;
 
@@ -92,7 +89,9 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     //@}
 
     /// Get the number of scalar constraints for this link.
-    virtual unsigned int GetNumConstraints() override { return GetNumConstraintsBilateral() + GetNumConstraintsUnilateral(); }
+    virtual unsigned int GetNumConstraints() override {
+        return GetNumConstraintsBilateral() + GetNumConstraintsUnilateral();
+    }
 
     /// Get the number of bilateral constraints for this link.
     virtual unsigned int GetNumConstraintsBilateral() override { return m_num_constr_bil; }
@@ -194,7 +193,7 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     ChLinkMaskLF mask;  ///< scalar constraints
 
     // Degrees of constraint (excluding constraints from joint limits)
-    int m_num_constr;    ///< number of degrees of constraint
+    int m_num_constr;      ///< number of degrees of constraint
     int m_num_constr_bil;  ///< number of degrees of constraint (bilateral constraintss)
     int m_num_constr_uni;  ///< number of degrees of constraint (unilateral constraints, excluding joint limits)
 
@@ -224,8 +223,8 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     ChConstraintMatrixX7 Cq1;  ///< [Cq1], the jacobian of the constraint, for coords1, [m_num_constr,7]
     ChConstraintMatrixX7 Cq2;  ///< [Cq2], the jacobian of the constraint, for coords2. [m_num_constr,7]
 
-    ChConstraintMatrixX6 Cqw1;  ///< [Cqw1], the jacobian [m_num_constr,6] for 3 Wl rot.coordinates instead of quaternions
-    ChConstraintMatrixX6 Cqw2;  ///< [Cqw2], the jacobian [m_num_constr,6] for 3 Wl rot.coordinates instead of quaternions
+    ChConstraintMatrixX6 Cqw1;  ///< Jacobian [m_num_constr,6] for 3 Wl rot.coordinates instead of quaternions
+    ChConstraintMatrixX6 Cqw2;  ///< Jacobian [m_num_constr,6] for 3 Wl rot.coordinates instead of quaternions
 
     ChConstraintVectorX Qc;     ///< {Qc}, the known part, {Qc}=-{C_dtdt}-([Cq]{q_dt})q-2[Cq_dt]{q_dt}
     ChConstraintVectorX Ct;     ///< partial derivative of the link kin. equation wrt to time

@@ -36,12 +36,8 @@ ChLinkPointFrameGeneric::ChLinkPointFrameGeneric(const ChLinkPointFrameGeneric& 
     c_z = other.c_z;
 }
 
-ChFrame<> ChLinkPointFrameGeneric::GetFrameAbs() {
-    if (m_body) {
-        ChFrame<> linkcsys = ChFrame<>(m_csys >> *m_body);
-        return linkcsys;
-    }
-    return ChFrame<>();
+ChFrame<> ChLinkPointFrameGeneric::GetFrameNodeAbs() const {
+        return ChFrame<>(m_csys >> *m_body);
 }
 
 int ChLinkPointFrameGeneric::Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///< xyz node (point) to join
@@ -343,12 +339,8 @@ ChLinkPointFrame::ChLinkPointFrame(const ChLinkPointFrame& other) : ChLinkBase(o
     m_react = other.m_react;
 }
 
-ChFrame<> ChLinkPointFrame::GetFrameAbs() {
-    if (m_body) {
-        ChFrame<> linkcsys = ChFrame<>(m_csys >> *m_body);
-        return linkcsys;
-    }
-    return ChFrame<>();
+ChFrame<> ChLinkPointFrame::GetFrameNodeAbs() const {
+        return ChFrame<>(m_csys >> *m_body);
 }
 
 int ChLinkPointFrame::Initialize(std::shared_ptr<ChNodeFEAxyz> node,

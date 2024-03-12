@@ -107,7 +107,7 @@ int main(int argc, char* argv[]) {
         ChCoordsys<> joint_csys = ground->GetCoordsys() >> rev_trans->GetFrame2Rel();
         ChVector3d point1 = joint_csys.pos;
         ChVector3d point2 = joint_csys.TransformPointLocalToParent(ChVector3d(L, 0, 0));
-        tools::drawSegment(vis.get(), point1, point2, ChColor(0, 0.2f, 0), true);
+        tools::drawSegment(vis.get(), point1, point2, ChColor(0, 1, 0), true);
 
         // Render a line between the two points of the revolute-translational joint.
         tools::drawSegment(vis.get(), rev_trans->GetPoint1Abs(), rev_trans->GetPoint2Abs(),

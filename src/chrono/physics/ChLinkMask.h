@@ -27,10 +27,9 @@ namespace chrono {
 class ChApi ChLinkMask {
   protected:
     std::vector<ChConstraintTwoBodies*> constraints;  ///< array of pointers to 'n' scalar constraints
-    unsigned int nconstr;  ///< number of scalar constraint equations.
+    unsigned int nconstr;                             ///< number of scalar constraint equations.
 
   public:
-
     /// Build a link mask with no constraints.
     ChLinkMask();
 
@@ -64,7 +63,7 @@ class ChApi ChLinkMask {
     bool IsEqual(ChLinkMask& mask2);
 
     /// Get the number of constraints.
-    unsigned int GetNumConstraints() { return nconstr;}
+    unsigned int GetNumConstraints() { return nconstr; }
 
     /// Set a new number of constraints.
     /// If \a newnconstr differs from current size a reallocation will be triggered.
@@ -78,9 +77,6 @@ class ChApi ChLinkMask {
 
     /// Get the number of active unilateral constraints.
     unsigned int GetNumConstraintsUnilateralActive();
-
-    /// Set lock =ON for constraints which were disabled because redundant
-    unsigned int ResetRedundant();
 
     /// If SetAllDisabled(true), all the constraints are temporarily turned
     /// off (inactive) at once, because marked as 'disabled'. Return n.of changed

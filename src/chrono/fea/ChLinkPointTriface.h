@@ -64,46 +64,8 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
     /// Number of scalar constraints
     virtual unsigned int GetNumConstraintsBilateral() override { return 3; }
 
-    //
-    // STATE FUNCTIONS
-    //
-
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
-    virtual void IntLoadResidual_CqL(const unsigned int off_L,
-                                     ChVectorDynamic<>& R,
-                                     const ChVectorDynamic<>& L,
-                                     const double c) override;
-    virtual void IntLoadConstraint_C(const unsigned int off,
-                                     ChVectorDynamic<>& Qc,
-                                     const double c,
-                                     bool do_clamp,
-                                     double recovery_clamp) override;
-    virtual void IntToDescriptor(const unsigned int off_v,
-                                 const ChStateDelta& v,
-                                 const ChVectorDynamic<>& R,
-                                 const unsigned int off_L,
-                                 const ChVectorDynamic<>& L,
-                                 const ChVectorDynamic<>& Qc) override;
-    virtual void IntFromDescriptor(const unsigned int off_v,
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,
-                                   ChVectorDynamic<>& L) override;
-
-    // Override/implement system functions of ChPhysicsItem
-    // (to assemble/manage data for system solver)
-
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
-    virtual void ConstraintsBiReset() override;
-    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
-    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
-    virtual void ConstraintsLoadJacobians() override;
-    virtual void ConstraintsFetch_react(double factor = 1) override;
-
-    // Other functions
-
-    virtual ChFrame<> GetFrameAbs() override { return ChFrame<>(mnodeA->GetPos()); }
+    /// Return the link frame, expressed in absolute coordinates.
+    ChFrame<> GetFrameNodeAbs() const { return ChFrame<>(mnodeA->GetPos(), QUNIT); }
 
     /// Use this function after object creation, to initialize it, given
     /// the node and the triangle to join.
@@ -151,16 +113,8 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
     /// Get the reaction force considered as applied to node A, in abs coords.
     ChVector3d GetReactionOnNode() const { return -react; }
 
-    //
-    // UPDATE FUNCTIONS
-    //
-
     /// Update all auxiliary data of the gear transmission at given time
     virtual void Update(double mytime, bool update_assets = true) override;
-
-    //
-    // STREAMING
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
@@ -168,7 +122,42 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-private:
+    // STATE FUNCTIONS
+
+    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
+    virtual void IntLoadResidual_CqL(const unsigned int off_L,
+                                     ChVectorDynamic<>& R,
+                                     const ChVectorDynamic<>& L,
+                                     const double c) override;
+    virtual void IntLoadConstraint_C(const unsigned int off,
+                                     ChVectorDynamic<>& Qc,
+                                     const double c,
+                                     bool do_clamp,
+                                     double recovery_clamp) override;
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
+
+    // Override/implement system functions of ChPhysicsItem
+    // (to assemble/manage data for system solver)
+
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1) override;
+
+  private:
     ChVector3d react;
 
     // used as an interface to the solver.
@@ -182,11 +171,14 @@ private:
     double s2, s3;
     double d;
 
+    /// [INTERNAL USE ONLY]
+    virtual ChFrame<> GetFrameAbs() const override { return GetFrameNodeAbs(); }
+
     /// [INTERNAL USE ONLY] Reaction force on the node, at node position, according to absolute orientation.
-    virtual ChVector3d GetReactForce() override { return GetReactionOnNode(); }
+    virtual ChVector3d GetReactForce() const override { return GetReactionOnNode(); }
 
     /// [INTERNAL USE ONLY] Reaction torque on the node, at node position, according to absolute orientation.
-    virtual ChVector3d GetReactTorque() override { return VNULL; }
+    virtual ChVector3d GetReactTorque() const override { return VNULL; }
 };
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -225,55 +217,19 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
     /// Number of scalar constraints
     virtual unsigned int GetNumConstraintsBilateral() override { return 3; }
 
-    //
-    // STATE FUNCTIONS
-    //
-
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
-    virtual void IntLoadResidual_CqL(const unsigned int off_L,
-                                     ChVectorDynamic<>& R,
-                                     const ChVectorDynamic<>& L,
-                                     const double c) override;
-    virtual void IntLoadConstraint_C(const unsigned int off,
-                                     ChVectorDynamic<>& Qc,
-                                     const double c,
-                                     bool do_clamp,
-                                     double recovery_clamp) override;
-    virtual void IntToDescriptor(const unsigned int off_v,
-                                 const ChStateDelta& v,
-                                 const ChVectorDynamic<>& R,
-                                 const unsigned int off_L,
-                                 const ChVectorDynamic<>& L,
-                                 const ChVectorDynamic<>& Qc) override;
-    virtual void IntFromDescriptor(const unsigned int off_v,
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,
-                                   ChVectorDynamic<>& L) override;
-
-    // Override/implement system functions of ChPhysicsItem
-    // (to assemble/manage data for system solver)
-
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
-    virtual void ConstraintsBiReset() override;
-    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
-    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
-    virtual void ConstraintsLoadJacobians() override;
-    virtual void ConstraintsFetch_react(double factor = 1) override;
-
     // Other functions
 
-    virtual ChFrame<> GetFrameAbs() override { return ChFrame<>(mnodeA->GetPos()); }
+    /// Return the link frame, expressed in absolute coordinates.
+    ChFrame<> GetFrameNodeAbs() const { return ChFrame<>(mnodeA->GetPos(), QUNIT); }
 
     /// Use this function after object creation, to initialize it, given
     /// the node and the triangle to join.
     /// The attachment position is the actual position of the node.
     /// Note, nodes must belong to the same ChSystem.
-    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,      ///< xyz node (point) to join
-                           std::shared_ptr<ChNodeFEAxyzrot> anodeB1,  ///< triangle: corner n.1
-                           std::shared_ptr<ChNodeFEAxyzrot> anodeB2,  ///< triangle: corner n.2
-                           std::shared_ptr<ChNodeFEAxyzrot> anodeB3   ///< triangle: corner n.3
+    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> nodeA,      ///< xyz node (point) to join
+                           std::shared_ptr<ChNodeFEAxyzrot> nodeB1,  ///< triangle: corner n.1
+                           std::shared_ptr<ChNodeFEAxyzrot> nodeB2,  ///< triangle: corner n.2
+                           std::shared_ptr<ChNodeFEAxyzrot> nodeB3   ///< triangle: corner n.3
     );
 
     /// Set the area coordinates to specify where the point A is connected on triangle.
@@ -312,16 +268,8 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
     /// Get the reaction force considered as applied to node A, in abs coords.
     ChVector3d GetReactionOnNode() const { return -react; }
 
-    //
-    // UPDATE FUNCTIONS
-    //
-
     /// Update all auxiliary data of the gear transmission at given time
     virtual void Update(double mytime, bool update_assets = true) override;
-
-    //
-    // STREAMING
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
@@ -329,7 +277,42 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-private:
+    // STATE FUNCTIONS
+
+    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
+    virtual void IntLoadResidual_CqL(const unsigned int off_L,
+                                     ChVectorDynamic<>& R,
+                                     const ChVectorDynamic<>& L,
+                                     const double c) override;
+    virtual void IntLoadConstraint_C(const unsigned int off,
+                                     ChVectorDynamic<>& Qc,
+                                     const double c,
+                                     bool do_clamp,
+                                     double recovery_clamp) override;
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
+
+    // Override/implement system functions of ChPhysicsItem
+    // (to assemble/manage data for system solver)
+
+    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1) override;
+
+  private:
     ChVector3d react;
 
     // used as an interface to the solver.
@@ -343,11 +326,14 @@ private:
     double s2, s3;
     double d;
 
+    /// [INTERNAL USE ONLY]
+    virtual ChFrame<> GetFrameAbs() const override { return GetFrameNodeAbs(); }
+
     /// [INTERNAL USE ONLY] Reaction force on the node, at node position, according to absolute orientation.
-    virtual ChVector3d GetReactForce() override { return GetReactionOnNode(); }
+    virtual ChVector3d GetReactForce() const override { return GetReactionOnNode(); }
 
     /// [INTERNAL USE ONLY] Reaction torque on the node, at node position, according to absolute orientation.
-    virtual ChVector3d GetReactTorque() override { return VNULL; }
+    virtual ChVector3d GetReactTorque() const override { return VNULL; }
 };
 
 /// @} fea_constraints

@@ -43,12 +43,6 @@ class ChApi ChLinkRevolute : public ChLink {
     /// Get the link frame 2, relative to body 2.
     virtual ChFramed GetFrame2Rel() const override { return m_frame2; }
 
-    /// Get the joint frame on body 1, expressed in absolute coordinate system.
-    virtual ChFramed GetFrame1Abs() const override { return m_frame1 >> *m_body1; }
-
-    /// Get the joint frame on body 2, expressed in absolute coordinate system.
-    virtual ChFramed GetFrame2Abs() const override { return m_frame2 >> *m_body2; }
-
     /// Get the joint violation (residuals of the constraint equations)
     virtual ChVectorDynamic<> GetConstraintViolation() const override { return m_C; }
 
@@ -140,7 +134,7 @@ class ChApi ChLinkRevolute : public ChLink {
     double m_multipliers[5];
 };
 
-CH_CLASS_VERSION(ChLinkRevolute,0)
+CH_CLASS_VERSION(ChLinkRevolute, 0)
 
 }  // end namespace chrono
 
