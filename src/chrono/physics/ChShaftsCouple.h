@@ -73,11 +73,11 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     virtual double GetTorqueReactionOn2() const { return 0; }
 
     /// Get the actual relative angle in terms of phase of shaft 1 respect to 2.
-    double GetRelativeRotation() const { return (this->shaft1->GetPos() - this->shaft2->GetPos()); }
+    double GetRelativeAngle() const { return (this->shaft1->GetPos() - this->shaft2->GetPos()); }
     /// Get the actual relative speed in terms of speed of shaft 1 respect to 2.
-    double GetRelativeRotation_dt() const { return (this->shaft1->GetPosDer() - this->shaft2->GetPosDer()); }
+    double GetRelativeAngleDer() const { return (this->shaft1->GetPosDer() - this->shaft2->GetPosDer()); }
     /// Get the actual relative acceleration in terms of speed of shaft 1 respect to 2.
-    double GetRelativeRotation_dtdt() const { return (this->shaft1->GetPosDer2() - this->shaft2->GetPosDer2()); }
+    double GetRelativeAngleDer2() const { return (this->shaft1->GetPosDer2() - this->shaft2->GetPosDer2()); }
 
     //
     // SERIALIZATION

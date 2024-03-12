@@ -111,11 +111,11 @@ class ChApi ChShaftsClutch : public ChShaftsCouple {
     double GetModulation() const { return modulation; }
 
     /// Get the actual angle slippage of the clutch, in terms of phase of shaft 1 respect to 2.
-    double GetSlippage() const { return GetRelativeRotation(); }
+    double GetSlippage() const { return GetRelativeAngle(); }
     /// Get the actual slippage speed of the clutch, in terms of speed of shaft 1 respect to 2.
-    double GetSlippage_dt() const { return GetRelativeRotation_dt(); }
+    double GetSlippageDer() const { return GetRelativeAngleDer(); }
     /// Get the actual slippage acceleration of the clutch, in terms of accel. of shaft 1 respect to 2.
-    double GetSlippage_dtdt() const { return GetRelativeRotation_dtdt(); }
+    double GetSlippageDer2() const { return GetRelativeAngleDer2(); }
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 1st axis.

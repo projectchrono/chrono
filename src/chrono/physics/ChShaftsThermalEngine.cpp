@@ -34,7 +34,7 @@ ChShaftsThermalEngine::ChShaftsThermalEngine(const ChShaftsThermalEngine& other)
 
 double ChShaftsThermalEngine::ComputeTorque() {
     // COMPUTE THE TORQUE HERE!
-    double mw = GetRelativeRotation_dt();
+    double mw = GetRelativeAngleDer();
 
     if (mw < 0)
         error_backward = true;

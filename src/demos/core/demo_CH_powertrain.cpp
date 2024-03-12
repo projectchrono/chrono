@@ -502,7 +502,7 @@ int main(int argc, char* argv[]) {
                       << "  Tstator=" << my_torqueconverter->GetTorqueReactionOnStator() << std::endl
                       << "  T.Motor: "
                       << "  T(w)=" << my_motor->GetTorqueReactionOn1() << "[Nm]"
-                      << "  w=" << my_motor->GetRelativeRotation_dt() << "[rad/s]" << std::endl;
+                      << "  w=" << my_motor->GetRelativeAngleDer() << "[rad/s]" << std::endl;
         }
     }
 

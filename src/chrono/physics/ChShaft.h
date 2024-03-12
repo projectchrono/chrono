@@ -38,6 +38,60 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChShaft* Clone() const override { return new ChShaft(*this); }
 
+    
+    /// Set no speed and no accelerations (but does not change the position)
+    void ForceToRest() override;
+
+    /// Set the torque applied to the shaft
+    void SetAppliedTorque(double mtorque) { torque = mtorque; }
+    /// Get the torque applied to the shaft
+    double GetAppliedTorque() const { return torque; }
+
+    /// Set the angular position
+    void SetPos(double mp) { pos = mp; }
+    /// Get the angular position
+    double GetPos() const { return pos; }
+
+    /// Set the angular velocity
+    void SetPosDer(double mp) { pos_dt = mp; }
+    /// Get the angular velocity
+    double GetPosDer() const { return pos_dt; }
+
+    /// Set the angular acceleration
+    void SetPosDer2(double mp) { pos_dtdt = mp; }
+    /// Get the angular acceleration
+    double GetPosDer2() const { return pos_dtdt; }
+
+    /// Inertia of the shaft. Must be positive.
+    /// Try not to mix bodies with too high/too low values of mass, for numerical stability.
+    void SetInertia(double newJ);
+    double GetInertia() const { return inertia; }
+
+    /// Trick. Set the maximum velocity (beyond this limit it will
+    /// be clamped). This is useful in virtual reality and real-time
+    /// simulations, to increase robustness at the cost of realism.
+    /// This limit is active only if you set  SetLimitSpeed(true);
+    void SetMaxSpeed(float m_max_speed) { max_speed = m_max_speed; }
+    float GetMaxSpeed() const { return max_speed; }
+
+    /// When this function is called, the speed of the shaft is clamped
+    /// into limits posed by max_speed and max_wvel  - but remember to
+    /// put the shaft in the SetLimitSpeed(true) mode.
+    void ClampSpeed();
+
+    /// Set the amount of time which must pass before going automatically in
+    /// sleep mode when the shaft has very small movements.
+    void SetSleepTime(float m_t) { sleep_time = m_t; }
+    float GetSleepTime() const { return sleep_time; }
+
+    /// Set the max linear speed to be kept for 'sleep_time' before freezing.
+    void SetSleepMinSpeed(float m_t) { sleep_minspeed = m_t; }
+    float GetSleepMinSpeed() const { return sleep_minspeed; }
+
+    /// Set the max linear speed to be kept for 'sleep_time' before freezing.
+    void SetSleepMinWvel(float m_t) { sleep_minwvel = m_t; }
+    float GetSleepMinWvel() const { return sleep_minwvel; }
+
     // FLAGS
 
     /// Sets the 'fixed' state of the shaft. If true, it does not rotate
@@ -177,61 +231,6 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override {
         mvars.push_back(&this->Variables());
     };
-
-    // Other functions
-
-    /// Set no speed and no accelerations (but does not change the position)
-    void ForceToRest() override;
-
-    /// Set the torque applied to the shaft
-    void SetAppliedTorque(double mtorque) { torque = mtorque; }
-    /// Get the torque applied to the shaft
-    double GetAppliedTorque() const { return torque; }
-
-    /// Set the angular position
-    void SetPos(double mp) { pos = mp; }
-    /// Get the angular position
-    double GetPos() const { return pos; }
-
-    /// Set the angular velocity
-    void SetPosDer(double mp) { pos_dt = mp; }
-    /// Get the angular velocity
-    double GetPosDer() const { return pos_dt; }
-
-    /// Set the angular acceleration
-    void SetPosDer2(double mp) { pos_dtdt = mp; }
-    /// Get the angular acceleration
-    double GetPosDer2() const { return pos_dtdt; }
-
-    /// Inertia of the shaft. Must be positive.
-    /// Try not to mix bodies with too high/too low values of mass, for numerical stability.
-    void SetInertia(double newJ);
-    double GetInertia() const { return inertia; }
-
-    /// Trick. Set the maximum velocity (beyond this limit it will
-    /// be clamped). This is useful in virtual reality and real-time
-    /// simulations, to increase robustness at the cost of realism.
-    /// This limit is active only if you set  SetLimitSpeed(true);
-    void SetMaxSpeed(float m_max_speed) { max_speed = m_max_speed; }
-    float GetMaxSpeed() const { return max_speed; }
-
-    /// When this function is called, the speed of the shaft is clamped
-    /// into limits posed by max_speed and max_wvel  - but remember to
-    /// put the shaft in the SetLimitSpeed(true) mode.
-    void ClampSpeed();
-
-    /// Set the amount of time which must pass before going automatically in
-    /// sleep mode when the shaft has very small movements.
-    void SetSleepTime(float m_t) { sleep_time = m_t; }
-    float GetSleepTime() const { return sleep_time; }
-
-    /// Set the max linear speed to be kept for 'sleep_time' before freezing.
-    void SetSleepMinSpeed(float m_t) { sleep_minspeed = m_t; }
-    float GetSleepMinSpeed() const { return sleep_minspeed; }
-
-    /// Set the max linear speed to be kept for 'sleep_time' before freezing.
-    void SetSleepMinWvel(float m_t) { sleep_minwvel = m_t; }
-    float GetSleepMinWvel() const { return sleep_minwvel; }
 
     // UPDATE FUNCTIONS
 
