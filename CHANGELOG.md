@@ -1072,15 +1072,17 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetSolverForceTolerance       | remove                                           |
 |                                   | GetSolverMaxIterations        | remove                                           |
 |                                   | GetSolverTolerance            | remove                                           |
-|                                   | GetUseSleeping                | rename: IsSleepingAllowed                         |
+|                                   | GetStepcount                  | rename: GetNumSteps                              |
+|                                   | GetUseSleeping                | rename: IsSleepingAllowed                        |
+|                                   | ResetStepcount                | rename: ResetNumSteps                            |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
-|                                   | SetMinBounceSpeed             | remove and move to ChSystemNSC                   |
 |                                   | SetMaxiter                    | remove                                           |
-|                                   | SetStep                       | remove                                           |
+|                                   | SetMinBounceSpeed             | remove and move to ChSystemNSC                   |
 |                                   | SetSolverForceTolerance       | remove (see Notes)                               |
 |                                   | SetSolverMaxIterations        | remove (see Notes)                               |
 |                                   | SetSolverTolerance            | remove (see Notes)                               |
-|                                   | SetUseSleeping                | rename: SetSleepingAllowed                         |
+|                                   | SetStep                       | remove                                           |
+|                                   | SetUseSleeping                | rename: SetSleepingAllowed                       |
 | ChSystemFsi                       |                               |                                                  |
 |                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |

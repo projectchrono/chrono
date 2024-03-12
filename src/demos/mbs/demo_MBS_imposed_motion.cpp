@@ -280,7 +280,7 @@ int main(int argc, char* argv[]) {
 
         double t = sys.GetChTime();
 
-        if (sys.GetStepcount() % 10 == 0) {
+        if (sys.GetNumSteps() % 10 == 0) {
             f_pos_setpoint->SetSetpoint(0.2 * ChVector3d(cos(t * 12), sin(t * 12), 0), t);
             // f_rot_setpoint->SetSetpoint(QuatFromAngleZ(t*0.5), t );
             // std::cout << "set p = " << f_setpoint->GetVal(t).y() << " at t=" << t  << std::endl;

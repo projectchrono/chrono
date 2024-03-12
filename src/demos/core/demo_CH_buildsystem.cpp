@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
             // Perform simulation up to frame_time
             sys.DoFrameDynamics(frame_time, step_size);
 
-            std::cout << "Time: " << frame_time << "  Steps: " << sys.GetStepcount()
+            std::cout << "Time: " << frame_time << "  Steps: " << sys.GetNumSteps()
                       << "  Slider X position: " << my_link_CA->GetMarker1()->GetAbsCoordsys().pos.x()
                       << "  Engine torque: " << my_motor_AB->GetMotorTorque() << std::endl;
         }

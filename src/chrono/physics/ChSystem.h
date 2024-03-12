@@ -612,10 +612,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     bool DoFrameDynamics(double frame_time, double step_size);
 
     /// Return the total number of time steps taken so far.
-    size_t GetStepcount() const { return stepcount; }
+    size_t GetNumSteps() const { return stepcount; }
 
     /// Reset to 0 the total number of time steps.
-    void ResetStepcount() { stepcount = 0; }
+    void ResetNumSteps() { stepcount = 0; }
 
     /// Return the number of calls to the solver's Solve() function.
     /// This counter is reset at each timestep.
