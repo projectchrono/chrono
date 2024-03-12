@@ -241,7 +241,7 @@ void ChLinkLock::SetupMarkers(ChMarker* mark1, ChMarker* mark2) {
 
 void ChLinkLock::BuildLink() {
     // set m_num_constr by counting non-dofs
-    m_num_constr = mask.GetNumConstraints();
+    m_num_constr = mask.GetNumConstraintsActive();
     m_num_constr_bil = mask.GetNumConstraintsBilateralActive();
     m_num_constr_uni = mask.GetNumConstraintsUnilateralActive();
 
