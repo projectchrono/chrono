@@ -587,7 +587,9 @@ bool ChTriangleMeshConnected::ComputeNeighbouringTriangleMap(std::vector<std::ar
             }
         }
     }
-    return pathological_edges;
+
+    // Return true on success, false if pathological edges exist
+    return !pathological_edges;
 }
 
 bool ChTriangleMeshConnected::ComputeWingedEdges(std::map<std::pair<int, int>, std::pair<int, int>>& winged_edges,
@@ -644,6 +646,8 @@ bool ChTriangleMeshConnected::ComputeWingedEdges(std::map<std::pair<int, int>, s
             // two triangles." << std::endl;
         }
     }
+
+    // Return true on success, false if pathological edges exist
     return pathological_edges;
 }
 
@@ -909,7 +913,6 @@ bool ChTriangleMeshConnected::SplitEdge(
             // for m_face_v_indices buffer (vertex indexes) only:
             if (ibuffer == 0) {
                 // Update triangle neighboring map
-
                 std::array<int, 4> topo_A_1 = tri_map[itA];
                 std::array<int, 4> topo_A_2 = tri_map[itA];
                 topo_A_1[1 + neA] = itB_1;
@@ -922,12 +925,20 @@ bool ChTriangleMeshConnected::SplitEdge(
                 topo_A_2[is2] = itA_1;
                 int itD = topo_A_1[is2];
                 int itC = topo_A_2[is1];
-                for (int in = 1; in < 4; ++in)
-                    if (tri_map[itD][in] == itA)
-                        tri_map[itD][in] = itA_1;  // not needed?
-                for (int in = 1; in < 4; ++in)
-                    if (tri_map[itC][in] == itA)
-                        tri_map[itC][in] = itA_2;
+
+                for (int in = 1; in < 4; ++in) {
+                    if (itD >= 0 && itD < tri_map.size()) {
+                        if (tri_map[itD][in] == itA)
+                            tri_map[itD][in] = itA_1;
+                    }
+                }
+                for (int in = 1; in < 4; ++in) {
+                    if (itC >= 0 && itC < tri_map.size()) {
+                        if (tri_map[itC][in] == itA)
+                            tri_map[itC][in] = itA_2;
+                    }
+                }
+
                 tri_map[itA] = topo_A_1;      // reuse
                 tri_map.push_back(topo_A_2);  // allocate
                 topo_A_2[0] = (int)tri_map.size() - 1;
@@ -945,12 +956,20 @@ bool ChTriangleMeshConnected::SplitEdge(
                     topo_B_2[is2] = itB_1;
                     int itF = topo_B_1[is2];
                     int itE = topo_B_2[is1];
-                    for (int in = 1; in < 4; ++in)
-                        if (tri_map[itF][in] == itB)
-                            tri_map[itF][in] = itB_1;  // not needed?
-                    for (int in = 1; in < 4; ++in)
-                        if (tri_map[itE][in] == itB)
-                            tri_map[itE][in] = itB_2;
+
+                    for (int in = 1; in < 4; ++in) {
+                        if (itF >= 0 && itF < tri_map.size()) {
+                            if (tri_map[itF][in] == itB)
+                                tri_map[itF][in] = itB_1;
+                        }
+                    }
+                    for (int in = 1; in < 4; ++in) {
+                        if (itE >= 0 && itE < tri_map.size()) {
+                            if (tri_map[itE][in] == itB)
+                                tri_map[itE][in] = itB_2;
+                        }
+                    }
+
                     tri_map[itB] = topo_B_1;      // reuse
                     tri_map.push_back(topo_B_2);  // allocate
                     topo_B_2[0] = (int)tri_map.size() - 1;
@@ -1055,7 +1074,7 @@ void ChTriangleMeshConnected::RefineMeshEdges(
             }
 
             if (L_max < edge_maxlen) {
-                //  std::cerr << "  already small triangle - pop it and break while " << std::endl;
+                ////std::cerr << "  already small triangle - pop it and break while " << std::endl;
                 mlist.pop_back();
                 break;
             }
@@ -1063,8 +1082,11 @@ void ChTriangleMeshConnected::RefineMeshEdges(
             // add longest-edge neighbour to the list
             mlist.push_back(t_N1);
 
-            if (mlist.size() > 1000)
-                throw std::runtime_error("overflow in ChTriangleMeshConnected::RefineMeshEdges");
+            if (mlist.size() > 1000) {
+                ////std::cerr << "overflow in ChTriangleMeshConnected::RefineMeshEdges" << std::endl;
+                ////throw std::runtime_error("overflow in ChTriangleMeshConnected::RefineMeshEdges");            
+                continue;  // set the cap, exit this triangle loop, continue to the next
+            }
 
             // if boundary edge: always terminal edge
             if (t_N1 == -1) {
@@ -1082,9 +1104,11 @@ void ChTriangleMeshConnected::RefineMeshEdges(
                     }
                 }
 
-                // remove from list
-                mlist.pop_back();
-                mlist.pop_back();
+                // remove from list, but ensure pop_back not called if empty
+                if (!mlist.empty())
+                    mlist.pop_back();
+                if (!mlist.empty())
+                    mlist.pop_back();
 
             } else {
                 //  find longest-edge in neighboring triangle
@@ -1124,8 +1148,10 @@ void ChTriangleMeshConnected::RefineMeshEdges(
                     }
 
                     // remove from list
-                    mlist.pop_back();
-                    mlist.pop_back();
+                    if (!mlist.empty())
+                        mlist.pop_back();
+                    if (!mlist.empty())
+                        mlist.pop_back();
                 }
             }
         }

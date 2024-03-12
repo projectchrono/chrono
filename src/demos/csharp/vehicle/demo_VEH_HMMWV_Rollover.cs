@@ -238,7 +238,7 @@ namespace ChronoDemo
                     {
                         double x = -halfGridSize + i * interval + gridCentre.x;
                         double height = terrain.GetHeight(new ChVector3d(x, (isYUp ? 1000 : gridAxis), (isYUp ? gridAxis : 1000))); // Height query of terrain at set point
-                        polyline.Set_point(i, new ChVector3d(x, (isYUp ? height : gridAxis), (isYUp ? gridAxis : height)));  // Set each point along the polyline
+                        polyline.SetPoint(i, new ChVector3d(x, (isYUp ? height : gridAxis), (isYUp ? gridAxis : height)));  // Set each point along the polyline
                     }
 
                     // Add polyline to visualisation
@@ -258,7 +258,7 @@ namespace ChronoDemo
                     {
                         double crossAxis = -halfGridSize + j * interval + (isYUp ? gridCentre.z : gridCentre.y);
                         double height = terrain.GetHeight(new ChVector3d(x, (isYUp ? 1000 : crossAxis), (isYUp ? crossAxis : 1000))); // Query the height
-                        polyline.Set_point(j, new ChVector3d(x, (isYUp ? height : crossAxis), (isYUp ? crossAxis : height)));  // Set each point along the polyline
+                        polyline.SetPoint(j, new ChVector3d(x, (isYUp ? height : crossAxis), (isYUp ? crossAxis : height)));  // Set each point along the polyline
                     }
 
                     // Add polyline to visualisation
