@@ -91,7 +91,7 @@ void ChLinkMateGeneric::SetupLinkMask() {
     if (c_rz)
         nc++;
 
-    mask.UpdateNumConstraints(nc);
+    mask.SetNumConstraints(nc);
 
     C.setZero(nc);
 
@@ -101,9 +101,9 @@ void ChLinkMateGeneric::SetupLinkMask() {
 }
 
 void ChLinkMateGeneric::ChangedLinkMask() {
-    m_num_constr = mask.GetMaskDoc();
-    m_num_constr_bil = mask.GetMaskDoc_c();
-    m_num_constr_uni = mask.GetMaskDoc_d();
+    m_num_constr = mask.GetNumConstraintsActive();
+    m_num_constr_bil = mask.GetNumConstraintsBilateralActive();
+    m_num_constr_uni = mask.GetNumConstraintsUnilateralActive();
 }
 
 void ChLinkMateGeneric::SetDisabled(bool mdis) {
@@ -166,50 +166,50 @@ void ChLinkMateGeneric::Update(double mytime, bool update_assets) {
 
         if (c_x) {
             C(nc) = F1_wrt_F2.GetPos().x();
-            mask.Constr_N(nc).Get_Cq_a().segment(0, 3) = Jx1.row(0);
-            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jr1.row(0);
-            mask.Constr_N(nc).Get_Cq_b().segment(0, 3) = Jx2.row(0);
-            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jr2.row(0);
+            mask.GetConstraint(nc).Get_Cq_a().segment(0, 3) = Jx1.row(0);
+            mask.GetConstraint(nc).Get_Cq_a().segment(3, 3) = Jr1.row(0);
+            mask.GetConstraint(nc).Get_Cq_b().segment(0, 3) = Jx2.row(0);
+            mask.GetConstraint(nc).Get_Cq_b().segment(3, 3) = Jr2.row(0);
             nc++;
         }
         if (c_y) {
             C(nc) = F1_wrt_F2.GetPos().y();
-            mask.Constr_N(nc).Get_Cq_a().segment(0, 3) = Jx1.row(1);
-            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jr1.row(1);
-            mask.Constr_N(nc).Get_Cq_b().segment(0, 3) = Jx2.row(1);
-            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jr2.row(1);
+            mask.GetConstraint(nc).Get_Cq_a().segment(0, 3) = Jx1.row(1);
+            mask.GetConstraint(nc).Get_Cq_a().segment(3, 3) = Jr1.row(1);
+            mask.GetConstraint(nc).Get_Cq_b().segment(0, 3) = Jx2.row(1);
+            mask.GetConstraint(nc).Get_Cq_b().segment(3, 3) = Jr2.row(1);
             nc++;
         }
         if (c_z) {
             C(nc) = F1_wrt_F2.GetPos().z();
-            mask.Constr_N(nc).Get_Cq_a().segment(0, 3) = Jx1.row(2);
-            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jr1.row(2);
-            mask.Constr_N(nc).Get_Cq_b().segment(0, 3) = Jx2.row(2);
-            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jr2.row(2);
+            mask.GetConstraint(nc).Get_Cq_a().segment(0, 3) = Jx1.row(2);
+            mask.GetConstraint(nc).Get_Cq_a().segment(3, 3) = Jr1.row(2);
+            mask.GetConstraint(nc).Get_Cq_b().segment(0, 3) = Jx2.row(2);
+            mask.GetConstraint(nc).Get_Cq_b().segment(3, 3) = Jr2.row(2);
             nc++;
         }
         if (c_rx) {
             C(nc) = F1_wrt_F2.GetRot().e1();
-            mask.Constr_N(nc).Get_Cq_a().setZero();
-            mask.Constr_N(nc).Get_Cq_b().setZero();
-            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(0);
-            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(0);
+            mask.GetConstraint(nc).Get_Cq_a().setZero();
+            mask.GetConstraint(nc).Get_Cq_b().setZero();
+            mask.GetConstraint(nc).Get_Cq_a().segment(3, 3) = Jw1.row(0);
+            mask.GetConstraint(nc).Get_Cq_b().segment(3, 3) = Jw2.row(0);
             nc++;
         }
         if (c_ry) {
             C(nc) = F1_wrt_F2.GetRot().e2();
-            mask.Constr_N(nc).Get_Cq_a().setZero();
-            mask.Constr_N(nc).Get_Cq_b().setZero();
-            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(1);
-            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(1);
+            mask.GetConstraint(nc).Get_Cq_a().setZero();
+            mask.GetConstraint(nc).Get_Cq_b().setZero();
+            mask.GetConstraint(nc).Get_Cq_a().segment(3, 3) = Jw1.row(1);
+            mask.GetConstraint(nc).Get_Cq_b().segment(3, 3) = Jw2.row(1);
             nc++;
         }
         if (c_rz) {
             C(nc) = F1_wrt_F2.GetRot().e3();
-            mask.Constr_N(nc).Get_Cq_a().setZero();
-            mask.Constr_N(nc).Get_Cq_b().setZero();
-            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(2);
-            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(2);
+            mask.GetConstraint(nc).Get_Cq_a().setZero();
+            mask.GetConstraint(nc).Get_Cq_b().setZero();
+            mask.GetConstraint(nc).Get_Cq_a().segment(3, 3) = Jw1.row(2);
+            mask.GetConstraint(nc).Get_Cq_b().segment(3, 3) = Jw2.row(2);
             nc++;
         }
     }
@@ -382,32 +382,32 @@ void ChLinkMateGeneric::IntStateGatherReactions(const unsigned int off_L, ChVect
 
     int nc = 0;
     if (c_x) {
-        if (mask.Constr_N(nc).IsActive())
+        if (mask.GetConstraint(nc).IsActive())
             L(off_L + nc) = -gamma_f.x();
         nc++;
     }
     if (c_y) {
-        if (mask.Constr_N(nc).IsActive())
+        if (mask.GetConstraint(nc).IsActive())
             L(off_L + nc) = -gamma_f.y();
         nc++;
     }
     if (c_z) {
-        if (mask.Constr_N(nc).IsActive())
+        if (mask.GetConstraint(nc).IsActive())
             L(off_L + nc) = -gamma_f.z();
         nc++;
     }
     if (c_rx) {
-        if (mask.Constr_N(nc).IsActive())
+        if (mask.GetConstraint(nc).IsActive())
             L(off_L + nc) = -gamma_m.x();
         nc++;
     }
     if (c_ry) {
-        if (mask.Constr_N(nc).IsActive())
+        if (mask.GetConstraint(nc).IsActive())
             L(off_L + nc) = -gamma_m.y();
         nc++;
     }
     if (c_rz) {
-        if (mask.Constr_N(nc).IsActive())
+        if (mask.GetConstraint(nc).IsActive())
             L(off_L + nc) = -gamma_m.z();
         nc++;
     }
@@ -424,32 +424,32 @@ void ChLinkMateGeneric::IntStateScatterReactions(const unsigned int off_L, const
 
     int nc = 0;
     if (c_x) {
-        if (mask.Constr_N(nc).IsActive())
+        if (mask.GetConstraint(nc).IsActive())
             gamma_f.x() = -L(off_L + nc);
         nc++;
     }
     if (c_y) {
-        if (mask.Constr_N(nc).IsActive())
+        if (mask.GetConstraint(nc).IsActive())
             gamma_f.y() = -L(off_L + nc);
         nc++;
     }
     if (c_z) {
-        if (mask.Constr_N(nc).IsActive())
+        if (mask.GetConstraint(nc).IsActive())
             gamma_f.z() = -L(off_L + nc);
         nc++;
     }
     if (c_rx) {
-        if (mask.Constr_N(nc).IsActive())
+        if (mask.GetConstraint(nc).IsActive())
             gamma_m.x() = -L(off_L + nc);
         nc++;
     }
     if (c_ry) {
-        if (mask.Constr_N(nc).IsActive())
+        if (mask.GetConstraint(nc).IsActive())
             gamma_m.y() = -L(off_L + nc);
         nc++;
     }
     if (c_rz) {
-        if (mask.Constr_N(nc).IsActive())
+        if (mask.GetConstraint(nc).IsActive())
             gamma_m.z() = -L(off_L + nc);
         nc++;
     }
@@ -479,9 +479,9 @@ void ChLinkMateGeneric::IntLoadResidual_CqL(const unsigned int off_L,
                                             const ChVectorDynamic<>& L,
                                             const double c) {
     int cnt = 0;
-    for (int i = 0; i < mask.nconstr; i++) {
-        if (mask.Constr_N(i).IsActive()) {
-            mask.Constr_N(i).MultiplyTandAdd(R, L(off_L + cnt) * c);
+    for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+        if (mask.GetConstraint(i).IsActive()) {
+            mask.GetConstraint(i).MultiplyTandAdd(R, L(off_L + cnt) * c);
             cnt++;
         }
     }
@@ -493,10 +493,10 @@ void ChLinkMateGeneric::IntLoadConstraint_C(const unsigned int off_L,
                                             bool do_clamp,
                                             double recovery_clamp) {
     int cnt = 0;
-    for (int i = 0; i < mask.nconstr; i++) {
-        if (mask.Constr_N(i).IsActive()) {
+    for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+        if (mask.GetConstraint(i).IsActive()) {
             if (do_clamp) {
-                if (mask.Constr_N(i).IsUnilateral())
+                if (mask.GetConstraint(i).IsUnilateral())
                     Qc(off_L + cnt) += std::max(c * C(cnt), -recovery_clamp);
                 else
                     Qc(off_L + cnt) += std::min(std::max(c * C(cnt), -recovery_clamp), recovery_clamp);
@@ -518,10 +518,10 @@ void ChLinkMateGeneric::IntToDescriptor(const unsigned int off_v,
                                         const ChVectorDynamic<>& L,
                                         const ChVectorDynamic<>& Qc) {
     int cnt = 0;
-    for (int i = 0; i < mask.nconstr; i++) {
-        if (mask.Constr_N(i).IsActive()) {
-            mask.Constr_N(i).Set_l_i(L(off_L + cnt));
-            mask.Constr_N(i).Set_b_i(Qc(off_L + cnt));
+    for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+        if (mask.GetConstraint(i).IsActive()) {
+            mask.GetConstraint(i).Set_l_i(L(off_L + cnt));
+            mask.GetConstraint(i).Set_b_i(Qc(off_L + cnt));
             cnt++;
         }
     }
@@ -532,9 +532,9 @@ void ChLinkMateGeneric::IntFromDescriptor(const unsigned int off_v,
                                           const unsigned int off_L,
                                           ChVectorDynamic<>& L) {
     int cnt = 0;
-    for (int i = 0; i < mask.nconstr; i++) {
-        if (mask.Constr_N(i).IsActive()) {
-            L(off_L + cnt) = mask.Constr_N(i).Get_l_i();
+    for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+        if (mask.GetConstraint(i).IsActive()) {
+            L(off_L + cnt) = mask.GetConstraint(i).Get_l_i();
             cnt++;
         }
     }
@@ -546,9 +546,9 @@ void ChLinkMateGeneric::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     if (!this->IsActive())
         return;
 
-    for (int i = 0; i < mask.nconstr; i++) {
-        if (mask.Constr_N(i).IsActive())
-            mdescriptor.InsertConstraint(&mask.Constr_N(i));
+    for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+        if (mask.GetConstraint(i).IsActive())
+            mdescriptor.InsertConstraint(&mask.GetConstraint(i));
     }
 }
 
@@ -556,8 +556,8 @@ void ChLinkMateGeneric::ConstraintsBiReset() {
     if (!this->IsActive())
         return;
 
-    for (int i = 0; i < mask.nconstr; i++) {
-        mask.Constr_N(i).Set_b_i(0.);
+    for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+        mask.GetConstraint(i).Set_b_i(0.);
     }
 }
 
@@ -577,17 +577,17 @@ void ChLinkMateGeneric::ConstraintsBiLoad_C(double factor, double recovery_clamp
         std::cout << *this->C << std::endl;
     */
     int cnt = 0;
-    for (int i = 0; i < mask.nconstr; i++) {
-        if (mask.Constr_N(i).IsActive()) {
+    for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+        if (mask.GetConstraint(i).IsActive()) {
             if (do_clamp) {
-                if (mask.Constr_N(i).IsUnilateral())
-                    mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() +
+                if (mask.GetConstraint(i).IsUnilateral())
+                    mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() +
                                               std::max(factor * C(cnt), -recovery_clamp));
                 else
-                    mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() +
+                    mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() +
                                               std::min(std::max(factor * C(cnt), -recovery_clamp), recovery_clamp));
             } else
-                mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() + factor * C(cnt));
+                mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() + factor * C(cnt));
 
             cnt++;
         }
@@ -616,33 +616,33 @@ void ChLinkMateGeneric::ConstraintsFetch_react(double factor) {
 
     int nc = 0;
     if (c_x) {
-        if (mask.Constr_N(nc).IsActive())
-            gamma_f.x() = -mask.Constr_N(nc).Get_l_i() * factor;
+        if (mask.GetConstraint(nc).IsActive())
+            gamma_f.x() = -mask.GetConstraint(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_y) {
-        if (mask.Constr_N(nc).IsActive())
-            gamma_f.y() = -mask.Constr_N(nc).Get_l_i() * factor;
+        if (mask.GetConstraint(nc).IsActive())
+            gamma_f.y() = -mask.GetConstraint(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_z) {
-        if (mask.Constr_N(nc).IsActive())
-            gamma_f.z() = -mask.Constr_N(nc).Get_l_i() * factor;
+        if (mask.GetConstraint(nc).IsActive())
+            gamma_f.z() = -mask.GetConstraint(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_rx) {
-        if (mask.Constr_N(nc).IsActive())
-            gamma_m.x() = -mask.Constr_N(nc).Get_l_i() * factor;
+        if (mask.GetConstraint(nc).IsActive())
+            gamma_m.x() = -mask.GetConstraint(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_ry) {
-        if (mask.Constr_N(nc).IsActive())
-            gamma_m.y() = -mask.Constr_N(nc).Get_l_i() * factor;
+        if (mask.GetConstraint(nc).IsActive())
+            gamma_m.y() = -mask.GetConstraint(nc).Get_l_i() * factor;
         nc++;
     }
     if (c_rz) {
-        if (mask.Constr_N(nc).IsActive())
-            gamma_m.z() = -mask.Constr_N(nc).Get_l_i() * factor;
+        if (mask.GetConstraint(nc).IsActive())
+            gamma_m.z() = -mask.GetConstraint(nc).Get_l_i() * factor;
         nc++;
     }
 
@@ -854,7 +854,7 @@ double ChLinkMateRevolute::GetRelativeAngle() {
     return angle;
 }
 
-double ChLinkMateRevolute::GetRelativeAngle_dt() {
+double ChLinkMateRevolute::GetRelativeAngleDer() {
     ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *m_body1;
     ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *m_body2;
     ChFrameMoving<> F1_F2 = F2_W.TransformParentToLocal(F1_W);
@@ -862,7 +862,7 @@ double ChLinkMateRevolute::GetRelativeAngle_dt() {
     return vel12_W;
 }
 
-double ChLinkMateRevolute::GetRelativeAngle_dtdt() {
+double ChLinkMateRevolute::GetRelativeAngleDer2() {
     ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *m_body1;
     ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *m_body2;
     ChFrameMoving<> F1_F2 = F2_W.TransformParentToLocal(F1_W);

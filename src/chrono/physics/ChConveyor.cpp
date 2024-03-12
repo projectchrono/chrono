@@ -35,14 +35,14 @@ ChConveyor::ChConveyor(double xlength, double ythick, double zwidth) : conveyor_
     conveyor_plate->EnableCollision(true);
 
     internal_link = new ChLinkLockLock;
-    internal_link->SetMotion_X(chrono_types::make_shared<ChFunctionRamp>());
+    internal_link->SetMotionX(chrono_types::make_shared<ChFunctionRamp>());
 
     std::shared_ptr<ChMarker> mmark1(new ChMarker);
     std::shared_ptr<ChMarker> mmark2(new ChMarker);
     conveyor_truss->AddMarker(mmark1);
     conveyor_plate->AddMarker(mmark2);
 
-    internal_link->SetUpMarkers(mmark1.get(), mmark2.get());
+    internal_link->SetupMarkers(mmark1.get(), mmark2.get());
 }
 
 ChConveyor::ChConveyor(const ChConveyor& other) : ChPhysicsItem(other) {
@@ -287,9 +287,9 @@ void ChConveyor::Update(double mytime, bool update_assets) {
 
     conveyor_plate->Update(mytime, update_assets);
 
-    std::static_pointer_cast<ChFunctionRamp>(internal_link->GetMotion_X())->SetAngularCoeff(-conveyor_speed);
+    std::static_pointer_cast<ChFunctionRamp>(internal_link->GetMotionX())->SetAngularCoeff(-conveyor_speed);
     // always zero pos. offset (trick):
-    std::static_pointer_cast<ChFunctionRamp>(internal_link->GetMotion_X())->SetStartVal(+conveyor_speed * GetChTime());
+    std::static_pointer_cast<ChFunctionRamp>(internal_link->GetMotionX())->SetStartVal(+conveyor_speed * GetChTime());
 
     internal_link->Update(mytime, update_assets);
 }

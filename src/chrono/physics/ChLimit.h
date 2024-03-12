@@ -52,8 +52,6 @@ class ChApi ChLinkLimit {
     double GetKmin() const { return m_Kmin; }
     double GetRmax() const { return m_Rmax; }
     double GetRmin() const { return m_Rmin; }
-    double GetMaxElastic() const { return m_maxElastic; }
-    double GetMinElastic() const { return m_minElastic; }
     double GetMaxPolarAngle(double pol_ang) const;
 
     void SetMax(double val);
@@ -64,8 +62,6 @@ class ChApi ChLinkLimit {
     void SetKmin(double val) { m_Kmin = val; }
     void SetRmax(double val) { m_Rmax = val; }
     void SetRmin(double val) { m_Rmin = val; }
-    void SetMaxElastic(double val) { m_maxElastic = val; }
-    void SetMinElastic(double val) { m_minElastic = val; }
 
     void SetModulationKmax(std::shared_ptr<ChFunction> funct) { m_Kmax_modul = funct; }
     void SetModulationKmin(std::shared_ptr<ChFunction> funct) { m_Kmin_modul = funct; }
@@ -82,7 +78,7 @@ class ChApi ChLinkLimit {
     /// Return negative violation when x<min, or positive if x>max
     double GetViolation(double x) const;
 
-    double GetForce(double x, double x_dt) const;
+    double GetForceTorque(double x, double x_dt) const;
     double GetPolarForce(double x, double x_dt, double pol_ang) const;
 
     /// Method to allow serialization of transient data to archives.
@@ -105,8 +101,6 @@ class ChApi ChLinkLimit {
     double m_Kmin;
     double m_Rmax;
     double m_Rmin;
-    double m_maxElastic;
-    double m_minElastic;
 
     std::shared_ptr<ChFunction> m_Kmax_modul;
     std::shared_ptr<ChFunction> m_Kmin_modul;

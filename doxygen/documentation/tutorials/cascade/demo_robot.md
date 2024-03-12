@@ -568,8 +568,8 @@ Set motions for Z and Y coordinates of the 'my_link_teacher' marker, so that the
 	motlaw_y->SetRepeatedFunction(motlaw_y_seq);
 	motlaw_y->SetSliceWidth(4);
 
-	my_marker_move->SetMotion_Z(motlaw_z);
-	my_marker_move->SetMotion_Y(motlaw_y);
+	my_marker_move->SetMotionZ(motlaw_z);
+	my_marker_move->SetMotionY(motlaw_y);
 
 
 	// Create a large cube as a floor.

@@ -94,9 +94,9 @@ int main(int argc, char* argv[]) {
     auto mod = chrono_types::make_shared<ChFunctionSine>(ampl, freq);
 
     // Actuate first slider using a link force
-    prismatic1->GetForce_Z().SetActive(true);
-    prismatic1->GetForce_Z().SetF(1);
-    prismatic1->GetForce_Z().SetModulationF(mod);
+    prismatic1->ForceZ().SetActive(true);
+    prismatic1->ForceZ().SetActuatorForceTorque(1);
+    prismatic1->ForceZ().SetActuatorModulation(mod);
 
     // Actuate second slider using a body force
     auto frc2 = chrono_types::make_shared<ChForce>();

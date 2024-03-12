@@ -64,9 +64,9 @@ sys.AddLink(rev)
 # Add limits to the Z rotation of the revolute joint
 min_angle = 0
 max_angle = 0.75 * m.pi
-rev.GetLimit_Rz().SetActive(True)
-rev.GetLimit_Rz().SetMin(min_angle)
-rev.GetLimit_Rz().SetMax(max_angle)
+rev.LimitRz().SetActive(True)
+rev.LimitRz().SetMin(min_angle)
+rev.LimitRz().SetMax(max_angle)
 
 # Initialize the joint specifying a coordinate sys (expressed in the absolute frame).
 rev.Initialize(ground, pend, chrono.ChFramed(chrono.VNULL, chrono.QUNIT))

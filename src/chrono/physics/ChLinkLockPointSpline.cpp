@@ -38,7 +38,7 @@ ChLinkLockPointSpline::ChLinkLockPointSpline(const ChLinkLockPointSpline& other)
     tolerance = other.tolerance;
 }
 
-void ChLinkLockPointSpline::Set_trajectory_line(std::shared_ptr<ChLine> mline) {
+void ChLinkLockPointSpline::SetTrajectory(std::shared_ptr<ChLine> mline) {
     trajectory_line = mline;
 }
 
@@ -103,8 +103,8 @@ void ChLinkLockPointSpline::UpdateTime(double time) {
         deltaC_dt.pos = VNULL;
         deltaC_dtdt.pos.x() = 0;  // csys X axis aligned to vdir: just
         deltaC_dtdt.pos.y() = 0;  // impose centripetal acceleration
-        // deltaC_dtdt.pos.z() =   pow(Vdot(this->GetRelM_dt().pos, vdir), 2) / mrad;
-        deltaC_dtdt.pos.z() = pow(GetRelM_dt().pos.x(), 2) / mrad;
+        // deltaC_dtdt.pos.z() =   pow(Vdot(this->GetRelCoordsysDer().pos, vdir), 2) / mrad;
+        deltaC_dtdt.pos.z() = pow(GetRelCoordsysDer().pos.x(), 2) / mrad;
 
         deltaC.rot = QUNIT;
         deltaC_dt.rot = QNULL;

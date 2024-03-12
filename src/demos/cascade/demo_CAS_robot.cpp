@@ -362,8 +362,8 @@ int main(int argc, char* argv[]) {
     auto motlaw_y = chrono_types::make_shared<ChFunctionRepeat>(motlaw_y_seq);
     motlaw_y->SetSliceWidth(4);
 
-    my_marker_move->SetMotionAxisZ(motlaw_z);
-    my_marker_move->SetMotionAxisY(motlaw_y);
+    my_marker_move->SetMotionZ(motlaw_z);
+    my_marker_move->SetMotionY(motlaw_y);
 
     // Create a large cube as a floor.
 

@@ -122,9 +122,9 @@ int main(int argc, char* argv[]) {
         auto my_link_01 = chrono_types::make_shared<ChLinkLockPointLine>();
         my_link_01->Initialize(mrigidBody1, mrigidBody0, ChFrame<>(ChVector3d(0, 0, z_step)));
 
-        my_link_01->GetLimit_X().SetActive(true);
-        my_link_01->GetLimit_X().SetMax(1.0);
-        my_link_01->GetLimit_X().SetMin(-1.0);
+        my_link_01->LimitX().SetActive(true);
+        my_link_01->LimitX().SetMax(1.0);
+        my_link_01->LimitX().SetMin(-1.0);
 
         sys.AddLink(my_link_01);
 

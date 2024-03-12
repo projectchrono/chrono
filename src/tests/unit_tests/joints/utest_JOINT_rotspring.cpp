@@ -194,12 +194,12 @@ bool TestRotSpring(const ChVector3d& jointLoc,      // absolute location of join
     auto force = chrono_types::make_unique<ChLinkForce>();
     auto customSpring = chrono_types::make_shared<ChFunctionCustomSpring>();
 
-    revoluteJoint->GetForce_Rz().SetActive(true);
-    revoluteJoint->GetForce_Rz().SetK(200);
-    revoluteJoint->GetForce_Rz().SetR(10);
+    revoluteJoint->ForceRz().SetActive(true);
+    revoluteJoint->ForceRz().SetSpringCoefficient(200);
+    revoluteJoint->ForceRz().SetDampingCoefficient(10);
     if (customSpringType == 2) {
-        revoluteJoint->GetForce_Rz().SetK(1);
-        revoluteJoint->GetForce_Rz().SetModulationK(customSpring);
+        revoluteJoint->ForceRz().SetSpringCoefficient(1);
+        revoluteJoint->ForceRz().SetSpringModulation(customSpring);
     }
 
     // Perform the simulation (record results option)
@@ -317,8 +317,8 @@ bool TestRotSpring(const ChVector3d& jointLoc,      // absolute location of join
             ChVector3d reactTorque = revoluteJoint->GetReactTorque2();
 
             //    force and torque from the spring damper on ground, expressed in joint frame
-            ChVector3d springForce = revoluteJoint->GetC_force();
-            ChVector3d springTorque = revoluteJoint->GetC_torque();
+            ChVector3d springForce = revoluteJoint->GetAccumulatedForce();
+            ChVector3d springTorque = revoluteJoint->GetAccumulatedTorque();
 
             // Combine the joint reactions with the spring force and torque to match
             // ADAMS comparison files

@@ -105,9 +105,9 @@ void ChBalancer::InitializeSide(VehicleSide side,
 
     if (m_balancer_joint[side]->IsKinematic()) {
         auto rev = std::static_pointer_cast<ChLinkLock>(m_balancer_joint[side]->GetAsLink());
-        rev->GetLimit_Rz().SetActive(true);
-        rev->GetLimit_Rz().SetMin(-GetBalancerMaxPitch());
-        rev->GetLimit_Rz().SetMax(+GetBalancerMaxPitch());
+        rev->LimitRz().SetActive(true);
+        rev->LimitRz().SetMin(-GetBalancerMaxPitch());
+        rev->LimitRz().SetMax(+GetBalancerMaxPitch());
     }
 }
 

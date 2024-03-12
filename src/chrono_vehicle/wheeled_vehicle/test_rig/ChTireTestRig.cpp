@@ -215,7 +215,7 @@ void ChTireTestRig::Initialize(Mode mode) {
     if (m_rs_actuated)
         m_rot_motor->SetSpeedFunction(chrono_types::make_shared<DelayedFun>(m_rs_fun, m_time_delay));
 
-    m_slip_lock->SetMotion_ang(chrono_types::make_shared<DelayedFun>(m_sa_fun, m_time_delay));
+    m_slip_lock->SetMotionAng1(chrono_types::make_shared<DelayedFun>(m_sa_fun, m_time_delay));
 }
 
 // -----------------------------------------------------------------------------
@@ -353,7 +353,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_slip_lock = chrono_types::make_shared<ChLinkLockLock>();
     m_system->AddLink(m_slip_lock);
     m_slip_lock->Initialize(m_chassis_body, m_slip_body, ChFrame<>(VNULL, QUNIT));
-    m_slip_lock->SetMotion_axis(ChVector3d(0, 0, 1));
+    m_slip_lock->SetMotionAxis(ChVector3d(0, 0, 1));
 
     ChQuaternion<> z2y;
     z2y.SetFromAngleX(-CH_C_PI_2 - m_camber_angle);

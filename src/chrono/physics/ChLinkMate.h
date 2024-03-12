@@ -80,13 +80,6 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     /// Get the link frame 2, relative to body 2.
     virtual ChFramed GetFrame2Rel() const override { return frame2; }
 
-    /// Get the translational Lagrange multipliers, expressed in the master frame F2
-    ChVector3d GetLagrangeMultiplier_f() { return gamma_f; }
-
-    /// Get the rotational Lagrange multipliers, expressed in a ghost frame determined by the
-    /// projection matrix (this->P) for rho_F1(F2)
-    ChVector3d GetLagrangeMultiplier_m() { return gamma_m; }
-
     bool IsConstrainedX() const { return c_x; }
     bool IsConstrainedY() const { return c_y; }
     bool IsConstrainedZ() const { return c_z; }
@@ -390,10 +383,10 @@ class ChApi ChLinkMateRevolute : public ChLinkMateGeneric {
     double GetRelativeAngle();
 
     /// Get relative angular velocity of slave frame with respect to master frame.
-    double GetRelativeAngle_dt();
+    double GetRelativeAngleDer();
 
     /// Get relative angular acceleration of slave frame with respect to master frame.
-    double GetRelativeAngle_dtdt();
+    double GetRelativeAngleDer2();
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

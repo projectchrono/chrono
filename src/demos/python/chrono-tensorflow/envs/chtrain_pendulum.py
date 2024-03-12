@@ -159,7 +159,7 @@ class Model(object):
        self.steps += 1
        self.ac = chrono.ChFunctionConst(action)
        self.actuator.SetForceFunction(self.ac)
-       self.omega = self.pin_joint.GetRelWvel().Length()  
+       self.omega = self.pin_joint.GetRelativeAngVel().Length()  
        
        if self.render:
               self.vis.Run()
@@ -180,12 +180,12 @@ class Model(object):
    def get_ob(self):
            
 
-          self.state = [self.link_slider.GetDist(), self.link_slider.GetDist_dt(), self.pin_joint.GetRelAngle(), self.omega]
+          self.state = [self.link_slider.GetDistance(), self.link_slider.GetDistanceDer(), self.pin_joint.GetRelAngle(), self.omega]
           return np.asarray(self.state)
 
                  
    def is_done(self):
-          if abs(self.link_slider.GetDist()) > 2 or self.steps> 100000 or abs(self.pin_joint.GetRelAngle()) >  0.2  :
+          if abs(self.link_slider.GetDistance()) > 2 or self.steps> 100000 or abs(self.pin_joint.GetRelAngle()) >  0.2  :
                  self.isdone = True
                         
        

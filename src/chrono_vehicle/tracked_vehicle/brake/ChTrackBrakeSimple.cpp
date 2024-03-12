@@ -58,7 +58,7 @@ void ChTrackBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis, std::sha
 
 void ChTrackBrakeSimple::Synchronize(double braking) {
     m_braking = braking;
-    m_brake->Set_brake_torque(braking * GetMaxBrakingTorque());
+    m_brake->SetBrakeTorque(braking * GetMaxBrakingTorque());
 }
 
 }  // end namespace vehicle

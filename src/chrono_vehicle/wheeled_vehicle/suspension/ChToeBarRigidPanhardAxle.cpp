@@ -388,9 +388,9 @@ void ChToeBarRigidPanhardAxle::InitializeSide(VehicleSide side,
                                       ChFrame<>(m_ptARBCenter, chassisRot * QuatFromAngleX(CH_C_PI_2)));
         chassis->GetSystem()->AddLink(m_revARBLeftRight);
 
-        m_revARBLeftRight->GetForce_Rz().SetActive(1);
-        m_revARBLeftRight->GetForce_Rz().SetK(getARBStiffness());
-        m_revARBLeftRight->GetForce_Rz().SetR(getARBDamping());
+        m_revARBLeftRight->ForceRz().SetActive(1);
+        m_revARBLeftRight->ForceRz().SetSpringCoefficient(getARBStiffness());
+        m_revARBLeftRight->ForceRz().SetDampingCoefficient(getARBDamping());
     }
 
     m_slideARB[side] = chrono_types::make_shared<ChVehicleJoint>(

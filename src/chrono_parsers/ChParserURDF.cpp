@@ -539,9 +539,9 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
         if (joint_type == urdf::Joint::REVOLUTE || joint_type == urdf::Joint::CONTINUOUS) {
             auto revolute = chrono_types::make_shared<ChLinkLockRevolute>();
             if (joint_type == urdf::Joint::REVOLUTE) {
-                revolute->GetLimit_Rz().SetActive(true);
-                revolute->GetLimit_Rz().SetMin(joint->limits->lower);
-                revolute->GetLimit_Rz().SetMax(joint->limits->upper);
+                revolute->LimitRz().SetActive(true);
+                revolute->LimitRz().SetMin(joint->limits->lower);
+                revolute->LimitRz().SetMax(joint->limits->upper);
             }
             joint_frame.SetRot(joint_frame.GetRotMat() * ChMatrix33<>(d2, d3, d1));  // Chrono revolute axis along Z
             revolute->Initialize(parent, child, joint_frame);
@@ -552,9 +552,9 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
         if (joint_type == urdf::Joint::PRISMATIC) {
             auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
             {
-                prismatic->GetLimit_Rz().SetActive(true);
-                prismatic->GetLimit_Rz().SetMin(joint->limits->lower);
-                prismatic->GetLimit_Rz().SetMax(joint->limits->upper);
+                prismatic->LimitRz().SetActive(true);
+                prismatic->LimitRz().SetMin(joint->limits->lower);
+                prismatic->LimitRz().SetMax(joint->limits->upper);
             }
             joint_frame.SetRot(joint_frame.GetRotMat() * ChMatrix33<>(d2, d3, d1));  // Chrono prismatic axis along Z
             prismatic->Initialize(parent, child, joint_frame);

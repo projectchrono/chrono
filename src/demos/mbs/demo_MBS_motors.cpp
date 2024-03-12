@@ -635,9 +635,9 @@ int main(int argc, char* argv[]) {
     // Note: they adds up to 3D inertia when 3D parts translate about the link shaft.
     // Note: do not use too small values compared to 3D inertias: it might negatively affect
     // the precision of some solvers; if so, rather diminish the 3D inertia of guide/slider parts and add to these.
-    motor5->GetInnerShaft1lin()->SetInertia(3.0);  // [kg]
-    motor5->GetInnerShaft2lin()->SetInertia(3.0);  // [kg]
-    motor5->GetInnerShaft2rot()->SetInertia(0.8);  // [kg/m^2]
+    motor5->GetInnerShaft1Lin()->SetInertia(3.0);  // [kg]
+    motor5->GetInnerShaft2Lin()->SetInertia(3.0);  // [kg]
+    motor5->GetInnerShaft2Rot()->SetInertia(0.8);  // [kg/m^2]
 
     // Now create the driveline. We want to model a drive+reducer sytem.
     // This driveline must connect "inner shafts" of s1 and s2, where:
@@ -674,7 +674,7 @@ int main(int argc, char* argv[]) {
 
     auto my_driveli = chrono_types::make_shared<ChShaftsMotorAngle>();
     my_driveli->Initialize(my_shaftB,                   // B    , the rotor of the drive
-                           motor5->GetInnerShaft2rot()  // S2rot, the stator of the drive
+                           motor5->GetInnerShaft2Rot()  // S2rot, the stator of the drive
     );
     sys.Add(my_driveli);
 
@@ -702,9 +702,9 @@ int main(int argc, char* argv[]) {
     // - S1lin, the out (translational) shaft.
 
     auto my_rackpinion = chrono_types::make_shared<ChShaftsPlanetary>();
-    my_rackpinion->Initialize(motor5->GetInnerShaft2lin(),  // S2lin, the carrier (truss)
+    my_rackpinion->Initialize(motor5->GetInnerShaft2Lin(),  // S2lin, the carrier (truss)
                               my_shaftB,                    // B,     the input shaft
-                              motor5->GetInnerShaft1lin()   // S1lin, the output shaft
+                              motor5->GetInnerShaft1Lin()   // S1lin, the output shaft
     );
     my_rackpinion->SetTransmissionRatios(-1, -1.0 / 100.0, 1);
     sys.Add(my_rackpinion);

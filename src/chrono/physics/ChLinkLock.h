@@ -57,7 +57,7 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     ChLinkMask& GetMask() { return mask; }
 
     /// Set the two markers associated with this link.
-    virtual void SetUpMarkers(ChMarker* mark1, ChMarker* mark2) override;
+    virtual void SetupMarkers(ChMarker* mark1, ChMarker* mark2) override;
 
     //@{
     /// Accessors for internal forces on free degrees of freedom.
@@ -65,14 +65,14 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     /// forces acting on different degrees of freedom of the joint.
     /// Note that they use "lazy initialization"; an internal link force object is
     /// created on the first invocation of the corresponding accessor function.
-    ChLinkForce& GetForce_D();
-    ChLinkForce& GetForce_R();
-    ChLinkForce& GetForce_X();
-    ChLinkForce& GetForce_Y();
-    ChLinkForce& GetForce_Z();
-    ChLinkForce& GetForce_Rx();
-    ChLinkForce& GetForce_Ry();
-    ChLinkForce& GetForce_Rz();
+    ChLinkForce& ForceX();
+    ChLinkForce& ForceY();
+    ChLinkForce& ForceZ();
+    ChLinkForce& ForceRx();
+    ChLinkForce& ForceRy();
+    ChLinkForce& ForceRz();
+    ChLinkForce& ForceD();
+    ChLinkForce& ForceRp();
     //@}
 
     //@{
@@ -81,14 +81,14 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     /// limits on different free degrees of freedom of the joint.
     /// Note that they use "lazy initialization"; an internal link limit object is
     /// created on the first invocation of the corresponding accessor function.
-    ChLinkLimit& GetLimit_X();
-    ChLinkLimit& GetLimit_Y();
-    ChLinkLimit& GetLimit_Z();
-    ChLinkLimit& GetLimit_Rx();
-    ChLinkLimit& GetLimit_Ry();
-    ChLinkLimit& GetLimit_Rz();
-    ChLinkLimit& GetLimit_Rp();
-    ChLinkLimit& GetLimit_D();
+    ChLinkLimit& LimitX();
+    ChLinkLimit& LimitY();
+    ChLinkLimit& LimitZ();
+    ChLinkLimit& LimitRx();
+    ChLinkLimit& LimitRy();
+    ChLinkLimit& LimitRz();
+    ChLinkLimit& LimitD();
+    ChLinkLimit& LimitRp();
     //@}
 
     /// Get the number of scalar constraints for this link.
@@ -106,9 +106,10 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     virtual ChVectorDynamic<> GetConstraintViolation() const override { return C; }
 
     /// Time derivatives of link violation.
-    const ChConstraintVectorX& GetConstraintViolation_dt() const { return C_dt; }
+    const ChConstraintVectorX& GetConstraintViolationDer() const { return C_dt; }
+
     /// Second time derivatives of link violation.
-    const ChConstraintVectorX& GetConstraintViolation_dtdt() const { return C_dtdt; }
+    const ChConstraintVectorX& GetConstraintViolationDer2() const { return C_dtdt; }
 
     // LINK STATE MATRICES
 
@@ -167,7 +168,7 @@ class ChApi ChLinkLock : public ChLinkMarkers {
 
   protected:
     /// Type of link-lock
-    enum class LinkType {
+    enum class Type {
         LOCK,
         SPHERICAL,
         POINTPLANE,
@@ -186,7 +187,7 @@ class ChApi ChLinkLock : public ChLinkMarkers {
         REVOLUTEPRISMATIC
     };
 
-    LinkType type;  ///< type of link_lock joint
+    Type type;  ///< type of link_lock joint
 
     // The mask of the locked coords, with the status of the scalar constraints.
     // This object also encapsulates the jacobians and residuals for the solver.
@@ -245,10 +246,10 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     void BuildLink();
 
     /// Set the mask and then resize matrices.
-    void BuildLinkType(LinkType link_type);
+    void BuildLinkType(Type link_type);
     void BuildLink(bool x, bool y, bool z, bool e0, bool e1, bool e2, bool e3);
 
-    void ChangeLinkType(LinkType new_link_type);
+    void ChangeType(Type new_link_type);
 
     // Extend parent functions to account for any ChLinkLimit objects.
     ////virtual void IntLoadResidual_F(const unsigned int off,	ChVectorDynamic<>& R, const double c );
@@ -308,32 +309,34 @@ class ChApi ChLinkLockLock : public ChLinkLock {
 
     // Imposed motion functions
 
-    void SetMotion_X(std::shared_ptr<ChFunction> m_funct);
-    void SetMotion_Y(std::shared_ptr<ChFunction> m_funct);
-    void SetMotion_Z(std::shared_ptr<ChFunction> m_funct);
-    void SetMotion_ang(std::shared_ptr<ChFunction> m_funct);
-    void SetMotion_ang2(std::shared_ptr<ChFunction> m_funct);
-    void SetMotion_ang3(std::shared_ptr<ChFunction> m_funct);
-    void SetMotion_axis(ChVector3d m_axis);
+    void SetMotionX(std::shared_ptr<ChFunction> m_funct);
+    void SetMotionY(std::shared_ptr<ChFunction> m_funct);
+    void SetMotionZ(std::shared_ptr<ChFunction> m_funct);
+    void SetMotionAng1(std::shared_ptr<ChFunction> m_funct);
+    void SetMotionAng2(std::shared_ptr<ChFunction> m_funct);
+    void SetMotionAng3(std::shared_ptr<ChFunction> m_funct);
+    void SetMotionAxis(ChVector3d m_axis);
 
     void SetRotationRepresentation(RotRepresentation rot_rep);
 
-    std::shared_ptr<ChFunction> GetMotion_X() const { return motion_X; }
-    std::shared_ptr<ChFunction> GetMotion_Y() const { return motion_Y; }
-    std::shared_ptr<ChFunction> GetMotion_Z() const { return motion_Z; }
-    std::shared_ptr<ChFunction> GetMotion_ang() const { return motion_ang; }
-    std::shared_ptr<ChFunction> GetMotion_ang2() const { return motion_ang2; }
-    std::shared_ptr<ChFunction> GetMotion_ang3() const { return motion_ang3; }
-    const ChVector3d& GetMotion_axis() const { return motion_axis; }
+    std::shared_ptr<ChFunction> GetMotionX() const { return motion_X; }
+    std::shared_ptr<ChFunction> GetMotionY() const { return motion_Y; }
+    std::shared_ptr<ChFunction> GetMotionZ() const { return motion_Z; }
+    std::shared_ptr<ChFunction> GetMotionAng1() const { return motion_ang; }
+    std::shared_ptr<ChFunction> GetMotionAng2() const { return motion_ang2; }
+    std::shared_ptr<ChFunction> GetMotionAng3() const { return motion_ang3; }
+    const ChVector3d& GetMotionAxis() const { return motion_axis; }
 
     RotRepresentation GetRotationRepresentation() const { return angleset; }
 
     /// Get constraint violations in pos/rot coordinates.
-    const ChCoordsysd& GetRelC() const { return relC; }
+    const ChCoordsysd& GetRelCoordsysViolation() const { return relC; }
+
     /// Get first time derivative of constraint violations in pos/rot coordinates.
-    const ChCoordsysd& GetRelC_dt() const { return relC_dt; }
+    const ChCoordsysd& GetRelCoordsysViolationDer() const { return relC_dt; }
+
     /// Get second time derivative of constraint violations in pos/rot coordinates.
-    const ChCoordsysd& GetRelC_dtdt() const { return relC_dtdt; }
+    const ChCoordsysd& GetRelCoordsysViolationDer2() const { return relC_dtdt; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
@@ -377,7 +380,7 @@ CH_CLASS_VERSION(ChLinkLockLock, 0)
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 class ChApi ChLinkLockRevolute : public ChLinkLock {
   public:
-    ChLinkLockRevolute() { ChangeLinkType(LinkType::REVOLUTE); }
+    ChLinkLockRevolute() { ChangeType(Type::REVOLUTE); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockRevolute* Clone() const override { return new ChLinkLockRevolute(*this); }
@@ -392,7 +395,7 @@ class ChApi ChLinkLockRevolute : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 class ChApi ChLinkLockSpherical : public ChLinkLock {
   public:
-    ChLinkLockSpherical() { ChangeLinkType(LinkType::SPHERICAL); }
+    ChLinkLockSpherical() { ChangeType(Type::SPHERICAL); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockSpherical* Clone() const override { return new ChLinkLockSpherical(*this); }
@@ -407,7 +410,7 @@ class ChApi ChLinkLockSpherical : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 class ChApi ChLinkLockCylindrical : public ChLinkLock {
   public:
-    ChLinkLockCylindrical() { ChangeLinkType(LinkType::CYLINDRICAL); }
+    ChLinkLockCylindrical() { ChangeType(Type::CYLINDRICAL); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockCylindrical* Clone() const override { return new ChLinkLockCylindrical(*this); }
@@ -422,7 +425,7 @@ class ChApi ChLinkLockCylindrical : public ChLinkLock {
 /// Default axis along +z
 class ChApi ChLinkLockPrismatic : public ChLinkLock {
   public:
-    ChLinkLockPrismatic() { ChangeLinkType(LinkType::PRISMATIC); }
+    ChLinkLockPrismatic() { ChangeType(Type::PRISMATIC); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockPrismatic* Clone() const override { return new ChLinkLockPrismatic(*this); }
@@ -437,7 +440,7 @@ class ChApi ChLinkLockPrismatic : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 class ChApi ChLinkLockPointPlane : public ChLinkLock {
   public:
-    ChLinkLockPointPlane() { ChangeLinkType(LinkType::POINTPLANE); }
+    ChLinkLockPointPlane() { ChangeType(Type::POINTPLANE); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockPointPlane* Clone() const override { return new ChLinkLockPointPlane(*this); }
@@ -452,7 +455,7 @@ class ChApi ChLinkLockPointPlane : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 class ChApi ChLinkLockPointLine : public ChLinkLock {
   public:
-    ChLinkLockPointLine() { ChangeLinkType(LinkType::POINTLINE); }
+    ChLinkLockPointLine() { ChangeType(Type::POINTLINE); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockPointLine* Clone() const override { return new ChLinkLockPointLine(*this); }
@@ -467,7 +470,7 @@ class ChApi ChLinkLockPointLine : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 class ChApi ChLinkLockPlanar : public ChLinkLock {
   public:
-    ChLinkLockPlanar() { ChangeLinkType(LinkType::PLANEPLANE); }
+    ChLinkLockPlanar() { ChangeType(Type::PLANEPLANE); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockPlanar* Clone() const override { return new ChLinkLockPlanar(*this); }
@@ -482,7 +485,7 @@ class ChApi ChLinkLockPlanar : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 class ChApi ChLinkLockOldham : public ChLinkLock {
   public:
-    ChLinkLockOldham() { ChangeLinkType(LinkType::OLDHAM); }
+    ChLinkLockOldham() { ChangeType(Type::OLDHAM); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockOldham* Clone() const override { return new ChLinkLockOldham(*this); }
@@ -497,7 +500,7 @@ class ChApi ChLinkLockOldham : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 class ChApi ChLinkLockFree : public ChLinkLock {
   public:
-    ChLinkLockFree() { ChangeLinkType(LinkType::FREE); }
+    ChLinkLockFree() { ChangeType(Type::FREE); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockFree* Clone() const override { return new ChLinkLockFree(*this); }
@@ -512,7 +515,7 @@ class ChApi ChLinkLockFree : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 class ChApi ChLinkLockAlign : public ChLinkLock {
   public:
-    ChLinkLockAlign() { ChangeLinkType(LinkType::ALIGN); }
+    ChLinkLockAlign() { ChangeType(Type::ALIGN); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockAlign* Clone() const override { return new ChLinkLockAlign(*this); }
@@ -527,7 +530,7 @@ class ChApi ChLinkLockAlign : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 class ChApi ChLinkLockParallel : public ChLinkLock {
   public:
-    ChLinkLockParallel() { ChangeLinkType(LinkType::PARALLEL); }
+    ChLinkLockParallel() { ChangeType(Type::PARALLEL); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockParallel* Clone() const override { return new ChLinkLockParallel(*this); }
@@ -542,7 +545,7 @@ class ChApi ChLinkLockParallel : public ChLinkLock {
 /// (allows a simpler creation of a link as a sub-type of ChLinkLock).
 class ChApi ChLinkLockPerpend : public ChLinkLock {
   public:
-    ChLinkLockPerpend() { ChangeLinkType(LinkType::PERPEND); }
+    ChLinkLockPerpend() { ChangeType(Type::PERPEND); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockPerpend* Clone() const override { return new ChLinkLockPerpend(*this); }
@@ -557,7 +560,7 @@ class ChApi ChLinkLockPerpend : public ChLinkLock {
 /// Translates along x-dir, rotates about z-axis
 class ChApi ChLinkLockRevolutePrismatic : public ChLinkLock {
   public:
-    ChLinkLockRevolutePrismatic() { ChangeLinkType(LinkType::REVOLUTEPRISMATIC); }
+    ChLinkLockRevolutePrismatic() { ChangeType(Type::REVOLUTEPRISMATIC); }
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkLockRevolutePrismatic* Clone() const override { return new ChLinkLockRevolutePrismatic(*this); }

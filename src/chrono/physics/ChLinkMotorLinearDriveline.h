@@ -71,17 +71,17 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
 
     /// Access the inner 1D shaft connected to the translation of body1 about dir of linear guide.
     /// The shaft can be connected to other shafts with ChShaftsMotor or similar items.
-    std::shared_ptr<ChShaft> GetInnerShaft1lin() const { return innershaft1lin; }
+    std::shared_ptr<ChShaft> GetInnerShaft1Lin() const { return innershaft1lin; }
 
     /// Access the inner 1D shaft connected to the translation of body2 about dir of linear guide.
     /// The shaft can be connected to other shafts with ChShaftsMotor or similar items.
-    std::shared_ptr<ChShaft> GetInnerShaft2lin() const { return innershaft2lin; }
+    std::shared_ptr<ChShaft> GetInnerShaft2Lin() const { return innershaft2lin; }
 
     /// Access the inner 1D shaft connected to the rotation of body2 about dir of linear guide.
     /// This is needed because one might need to design a driveline with rotational 1D components
     /// such as ChShaftsMotor, that require an anchoring to a rotational shaft.
     /// The shaft can be connected to other shafts with ChShaftsMotor or similar items.
-    std::shared_ptr<ChShaft> GetInnerShaft2rot() const { return innershaft2rot; }
+    std::shared_ptr<ChShaft> GetInnerShaft2Rot() const { return innershaft2rot; }
 
     /// Set the direction of the inner rotation axis for body2, expressed in link coordinates 
     /// Default is VECT_X, same dir of guide, i.e. useful when anchoring drives with screw transmission.

@@ -78,26 +78,26 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
         }
         if (c_rx) {
             C(nc) = aframe1rotating2.GetRot().e1();
-            mask.Constr_N(nc).Get_Cq_a().setZero();
-            mask.Constr_N(nc).Get_Cq_b().setZero();
-            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(0);
-            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(0);
+            mask.GetConstraint(nc).Get_Cq_a().setZero();
+            mask.GetConstraint(nc).Get_Cq_b().setZero();
+            mask.GetConstraint(nc).Get_Cq_a().segment(3, 3) = Jw1.row(0);
+            mask.GetConstraint(nc).Get_Cq_b().segment(3, 3) = Jw2.row(0);
             nc++;
         }
         if (c_ry) {
             C(nc) = aframe1rotating2.GetRot().e2();
-            mask.Constr_N(nc).Get_Cq_a().setZero();
-            mask.Constr_N(nc).Get_Cq_b().setZero();
-            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(1);
-            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(1);
+            mask.GetConstraint(nc).Get_Cq_a().setZero();
+            mask.GetConstraint(nc).Get_Cq_b().setZero();
+            mask.GetConstraint(nc).Get_Cq_a().segment(3, 3) = Jw1.row(1);
+            mask.GetConstraint(nc).Get_Cq_b().segment(3, 3) = Jw2.row(1);
             nc++;
         }
         if (c_rz) {
             C(nc) = aframe1rotating2.GetRot().e3();
-            mask.Constr_N(nc).Get_Cq_a().setZero();
-            mask.Constr_N(nc).Get_Cq_b().setZero();
-            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(2);
-            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(2);
+            mask.GetConstraint(nc).Get_Cq_a().setZero();
+            mask.GetConstraint(nc).Get_Cq_b().setZero();
+            mask.GetConstraint(nc).Get_Cq_a().segment(3, 3) = Jw1.row(2);
+            mask.GetConstraint(nc).Get_Cq_b().segment(3, 3) = Jw2.row(2);
             nc++;
         }
     }
@@ -174,8 +174,8 @@ void ChLinkMotorRotationAngle::KRMmatricesLoad(double Kfactor, double Rfactor, d
 
 void ChLinkMotorRotationAngle::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
     double mCt = -0.5 * m_func->GetDer(this->GetChTime());
-    int ncrz = mask.nconstr - 1;
-    if (mask.Constr_N(ncrz).IsActive()) {
+    unsigned int ncrz = mask.GetNumConstraints() - 1;
+    if (mask.GetConstraint(ncrz).IsActive()) {
         Qc(off_L + ncrz) += c * mCt;
     }
 }
@@ -185,9 +185,9 @@ void ChLinkMotorRotationAngle::ConstraintsBiLoad_Ct(double factor) {
         return;
 
     double mCt = -0.5 * m_func->GetDer(this->GetChTime());
-    int ncrz = mask.nconstr - 1;
-    if (mask.Constr_N(ncrz).IsActive()) {
-        mask.Constr_N(ncrz).Set_b_i(mask.Constr_N(ncrz).Get_b_i() + factor * mCt);
+    unsigned int ncrz = mask.GetNumConstraints() - 1;
+    if (mask.GetConstraint(ncrz).IsActive()) {
+        mask.GetConstraint(ncrz).Set_b_i(mask.GetConstraint(ncrz).Get_b_i() + factor * mCt);
     }
 }
 

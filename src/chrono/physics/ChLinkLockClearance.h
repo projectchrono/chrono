@@ -27,8 +27,6 @@ class ChApi ChLinkLockClearance : public ChLinkLockLock {
     double clearance;           ///< distance offset
     double c_friction;          ///< friction coeff.
     double c_restitution;       ///< restitution coeff.
-    double c_tang_restitution;  ///< restitution coeff tangential
-    double c_viscous;           ///< viscous friction in contact point
 
     double diameter;  ///< radius of shaft (in case of circular shaft)
 
@@ -50,36 +48,24 @@ class ChApi ChLinkLockClearance : public ChLinkLockLock {
     virtual void UpdateForces(double mytime) override;
 
     // data get/set
-    double Get_clearance() { return clearance; }
-    void Set_clearance(double mset) {
-        clearance = mset;
-        limit_X->SetMax(clearance);
-    }
-    double Get_c_friction() { return c_friction; }
-    void Set_c_friction(double mset) { c_friction = mset; }
-    double Get_c_restitution() { return c_restitution; }
-    void Set_c_restitution(double mset) {
-        c_restitution = mset;
-        limit_X->SetMaxElastic(c_restitution);
-    }
-    double Get_c_tang_restitution() { return c_tang_restitution; }
-    void Set_c_tang_restitution(double mset) { c_tang_restitution = mset; }
-    double Get_c_viscous() { return c_viscous; }
-    void Set_c_viscous(double mset) { c_viscous = mset; }
-    double Get_diameter() { return diameter; }
-    void Set_diameter(double mset) { diameter = mset; }
+    double GetClearance() const { return clearance; }
+    void SetClearance(double mset);
+    double GetFriction() const { return c_friction; }
+    void SetFriction(double mset) { c_friction = mset; }
+    double GetRestitution() const { return c_restitution; }
+    void SetRestitution(double mset);
+    double GetDiameter() const { return diameter; }
+    void SetDiameter(double mset) { diameter = mset; }
 
-    double Get_axis_eccentricity();  // distance between the two shafts
-    double Get_axis_phase();         // phase of center of shaft, respect to hole
-    double Get_rotation_angle();     // rotation of shafti in hole (relative)
-    ChVector3d Get_contact_P_abs();   // absolute contact point
-    ChVector3d Get_contact_N_abs();   // absolute normal to contact
-    ChVector3d Get_contact_F_abs();   // absolute force in contact
-    double Get_contact_F_n();        // normal  part of force
-    double Get_contact_F_t();        // tangent part of force
-    double Get_contact_V_t();        // tangent part of speed
-
-    int Get_is_in_contact();  // returns: 1= is sliding contact, 0= is flying
+    double GetEccentricity() const;  // distance between the two shafts
+    double GetAxisAngularLocation() const;         // phase of center of shaft, respect to hole
+    double GetRotationAngle() const;     // rotation of shafti in hole (relative)
+    ChVector3d GetContactPosAbs() const;   // absolute contact point
+    ChVector3d GetContactNormalAbs() const;   // absolute normal to contact
+    ChVector3d GetContactForceAbs() const;   // absolute force in contact
+    double GetContactForceNormal() const;        // normal part of force
+    double GetContactForceTangential() const;        // tangent part of force
+    double GetContactSpeedTangential() const;        // tangent part of speed
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

@@ -78,7 +78,7 @@ void ChLinkLockLinActuator::UpdateTime(double mytime) {
 
     // add also the centripetal acceleration if distance vector's rotating,
     // as centripetal acc. of point sliding on a sphere surface.
-    ChVector3d tang_speed = GetRelM_dt().pos;
+    ChVector3d tang_speed = GetRelCoordsysDer().pos;
     tang_speed.x() = 0;                     // only z-y coords in relative tang speed vector
     double len_absdist = Vlength(absdist);  // don't divide by zero
     if (len_absdist > 1E-6)

@@ -115,9 +115,9 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
     m_revolute->Initialize(m_arm_left, m_arm_right, rev_frame);
     sys->AddLink(m_revolute);
 
-    m_revolute->GetForce_Rz().SetActive(1);
-    m_revolute->GetForce_Rz().SetK(getSpringCoefficient());
-    m_revolute->GetForce_Rz().SetR(getDampingCoefficient());
+    m_revolute->ForceRz().SetActive(1);
+    m_revolute->ForceRz().SetSpringCoefficient(getSpringCoefficient());
+    m_revolute->ForceRz().SetDampingCoefficient(getDampingCoefficient());
 
     // Create distance constraint to model left droplink.
     m_link_left = chrono_types::make_shared<ChLinkDistance>();

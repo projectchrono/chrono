@@ -93,15 +93,15 @@ ChMarker::~ChMarker() {}
 
 // Setup the functions when user changes them.
 
-void ChMarker::SetMotionAxisX(std::shared_ptr<ChFunction> funct) {
+void ChMarker::SetMotionX(std::shared_ptr<ChFunction> funct) {
     m_motion_X = funct;
 }
 
-void ChMarker::SetMotionAxisY(std::shared_ptr<ChFunction> funct) {
+void ChMarker::SetMotionY(std::shared_ptr<ChFunction> funct) {
     m_motion_Y = funct;
 }
 
-void ChMarker::SetMotionAxisZ(std::shared_ptr<ChFunction> funct) {
+void ChMarker::SetMotionZ(std::shared_ptr<ChFunction> funct) {
     m_motion_Z = funct;
 }
 

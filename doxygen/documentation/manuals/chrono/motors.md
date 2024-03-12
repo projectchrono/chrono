@@ -716,13 +716,13 @@ Some guidelines:
 
 - In order to connect the two 3D parts to the 1D powertrain, you must use two 
   invisible "inner shafts" of chrono::ChShaft class, that you can access via 
-  mymotor->GetInnerShaft1lin() and mymotor->GetInnerShaft2lin().  
+  mymotor->GetInnerShaft1Lin() and mymotor->GetInnerShaft2Lin().  
   
 - Note: in the part 2 there is an additional inner shaft that operates on rotation;
   this is needed because, for example, maybe you want to model a driveline like a 
   drive+screw; you will anchor the drive to part 2 using this rotational shaft; so 
   reaction torques arising because of inner flywheel accelerations can be transmitted 
-  to this shaft. Use  mymotor->GetInnerShaft2rot()  to access it.
+  to this shaft. Use  mymotor->GetInnerShaft2Rot()  to access it.
   
 - Most often the driveline is like a graph starting at inner shaft 2 (consider 
   it to be the truss of the linear guide, that holds the motor drive and supports for reducers 
@@ -769,9 +769,9 @@ mphysicalSystem.Add(motor5);
 
 // You may want to change the inertia of 'inner' 1D shafts, ("translating" shafts: each has default 1kg)
 // Note: do not use too small values compared to 3D inertias: it might slow solver convergence.
-motor5->GetInnerShaft1lin()->SetInertia(3.0); // [kg]
-motor5->GetInnerShaft2lin()->SetInertia(3.0); // [kg]
-motor5->GetInnerShaft2rot()->SetInertia(0.8); // [kg/m^2] 
+motor5->GetInnerShaft1Lin()->SetInertia(3.0); // [kg]
+motor5->GetInnerShaft2Lin()->SetInertia(3.0); // [kg]
+motor5->GetInnerShaft2Rot()->SetInertia(0.8); // [kg/m^2] 
 
 // Now create the driveline. We want to model a drive+reducer sytem.
 // This driveline must connect "inner shafts" of s1 and s2, where:
@@ -809,7 +809,7 @@ mphysicalSystem.Add(my_shaftB);
 auto my_driveli = chrono_types::make_shared<ChShaftsMotorAngle>();
 my_driveli->Initialize(
                     my_shaftB,                   // B    , the rotor of the drive
-                    motor5->GetInnerShaft2rot()  // S2rot, the stator of the drive  
+                    motor5->GetInnerShaft2Rot()  // S2rot, the stator of the drive  
         );
 mphysicalSystem.Add(my_driveli);
 
@@ -839,9 +839,9 @@ my_driveli->SetAngleFunction(my_functangle);
 
 auto my_rackpinion = chrono_types::make_shared<ChShaftsPlanetary>();
 my_rackpinion->Initialize(
-    motor5->GetInnerShaft2lin(),// S2lin, the carrier (truss) 
+    motor5->GetInnerShaft2Lin(),// S2lin, the carrier (truss) 
     my_shaftB,                  // B,     the input shaft
-    motor5->GetInnerShaft1lin() // S1lin, the output shaft
+    motor5->GetInnerShaft1Lin() // S1lin, the output shaft
     );
 my_rackpinion->SetTransmissionRatios(-1, -1.0/100.0, 1);
 mphysicalSystem.Add(my_rackpinion);

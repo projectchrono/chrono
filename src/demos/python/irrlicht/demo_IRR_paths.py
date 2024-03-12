@@ -132,7 +132,7 @@ mglyphconstraint.Initialize(mpendulum2,  # body1 that follows the trajectory
                             chrono.ChFramed(chrono.ChVector3d(0, 0.5, 0)), # point on body1 that will follow the trajectory
                             chrono.ChFramed())
 
-mglyphconstraint.Set_trajectory_line(mglyph)
+mglyphconstraint.SetTrajectory(mglyph)
 
 sys.Add(mglyphconstraint)
 

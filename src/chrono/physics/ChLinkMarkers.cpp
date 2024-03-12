@@ -51,7 +51,7 @@ ChLinkMarkers::ChLinkMarkers(const ChLinkMarkers& other) : ChLink(other) {
     C_torque = other.C_torque;
 }
 
-void ChLinkMarkers::SetUpMarkers(ChMarker* mark1, ChMarker* mark2) {
+void ChLinkMarkers::SetupMarkers(ChMarker* mark1, ChMarker* mark2) {
     // take care of the first link marker
     marker1 = mark1;
     if (mark1)
@@ -73,7 +73,7 @@ void ChLinkMarkers::Initialize(std::shared_ptr<ChMarker> mark1, std::shared_ptr<
     assert(mark1->GetBody() && mark2->GetBody());
     assert(mark1->GetBody()->GetSystem() == mark2->GetBody()->GetSystem());
 
-    SetUpMarkers(mark1.get(), mark2.get());
+    SetupMarkers(mark1.get(), mark2.get());
 }
 
 void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1, std::shared_ptr<ChBody> mbody2, const ChFrame<>& frame) {
@@ -96,7 +96,7 @@ void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1,
 
     ChMarker* mm1 = mmark1.get();
     ChMarker* mm2 = mmark2.get();
-    SetUpMarkers(mm1, mm2);
+    SetupMarkers(mm1, mm2);
 
     if (rel_frames) {
         mmark1->ImposeRelativeTransform(frame1);

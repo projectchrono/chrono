@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
                                 ChFrame<>(ChVector3d(0, 0.5, 0)),  // point on body1 that will follow the trajectory
                                 ChFrame<>());
 
-    glyphconstraint->Set_trajectory_line(glyph);
+    glyphconstraint->SetTrajectory(glyph);
 
     sys.Add(glyphconstraint);
 

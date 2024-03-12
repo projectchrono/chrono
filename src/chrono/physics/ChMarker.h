@@ -119,13 +119,13 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     void SetMotionType(MotionType motion_type) { m_motion_type = motion_type; }
 
     /// Set the imposed motion law, for translation on X body axis.
-    void SetMotionAxisX(std::shared_ptr<ChFunction> funct);
+    void SetMotionX(std::shared_ptr<ChFunction> funct);
 
     /// Set the imposed motion law, for translation on Y body axis.
-    void SetMotionAxisY(std::shared_ptr<ChFunction> funct);
+    void SetMotionY(std::shared_ptr<ChFunction> funct);
 
     /// Set the imposed motion law, for translation on Z body axis.
-    void SetMotionAxisZ(std::shared_ptr<ChFunction> funct);
+    void SetMotionZ(std::shared_ptr<ChFunction> funct);
 
     /// Set the imposed motion law, for rotation about an axis.
     void SetMotionAngle(std::shared_ptr<ChFunction> funct);
@@ -137,13 +137,13 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     MotionType GetMotionType() const { return m_motion_type; }
 
     /// Get imposed motion law, for translation on X body axis.
-    std::shared_ptr<ChFunction> GetMotionAxisX() const { return m_motion_X; }
+    std::shared_ptr<ChFunction> GetMotionX() const { return m_motion_X; }
 
     /// Get imposed motion law, for translation on Y body axis.
-    std::shared_ptr<ChFunction> GetMotionAxisY() const { return m_motion_Y; }
+    std::shared_ptr<ChFunction> GetMotionY() const { return m_motion_Y; }
 
     /// Get imposed motion law, for translation on Z body axis.
-    std::shared_ptr<ChFunction> GetMotionAxisZ() const { return m_motion_Z; }
+    std::shared_ptr<ChFunction> GetMotionZ() const { return m_motion_Z; }
 
     /// Get imposed motion law, for rotation about an axis.
     std::shared_ptr<ChFunction> GetMotionAngle() const { return m_motion_ang; }

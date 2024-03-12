@@ -290,7 +290,7 @@ my_funct.SetFirstOperandFunction(my_functA)
 my_funct.SetSecondOperandFunction(my_functB)
 my_funct.SetOperationType(chrono.ChOP_MUL)
 my_funct.thisown = 0
-link_shaker.SetMotion_X(my_funct)
+link_shaker.SetMotionX(my_funct)
 ~~~
 
 + It is wise to define a better position for the camera and viewpoint, for instance we changed the default position to:

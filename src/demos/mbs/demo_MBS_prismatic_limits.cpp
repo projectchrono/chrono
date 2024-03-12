@@ -86,8 +86,8 @@ int main(int argc, char* argv[]) {
     // The limit value relates to the Z component of the relative marker position 2->1
     auto prismatic1 = chrono_types::make_shared<ChLinkLockPrismatic>();
     prismatic1->Initialize(ground, slider1, ChFrame<>(ChVector3d(0, 0, -1), QuatFromAngleY(CH_C_PI_2)));
-    prismatic1->GetLimit_Z().SetActive(true);
-    prismatic1->GetLimit_Z().SetMin(-6);
+    prismatic1->LimitZ().SetActive(true);
+    prismatic1->LimitZ().SetMin(-6);
     sys.AddLink(prismatic1);
 
     auto prismatic2 = chrono_types::make_shared<ChLinkLockPrismatic>();
@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         // Enable also the Z max limit on the 1st prismatic joint
         if (!max_lim_enabled && slider1->GetPos().x() > 0) {
-            prismatic1->GetLimit_Z().SetMax(-3);
+            prismatic1->LimitZ().SetMax(-3);
             max_lim_enabled = true;
         }
 

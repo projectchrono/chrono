@@ -81,50 +81,50 @@ void ChLinkMotionImposed::Update(double mytime, bool update_assets) {
 
         if (c_x) {
             C(nc) = frame1M.GetPos().x();
-            mask.Constr_N(nc).Get_Cq_a().segment(0, 3) = Jx1.row(0);
-            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jr1.row(0);
-            mask.Constr_N(nc).Get_Cq_b().segment(0, 3) = Jx2.row(0);
-            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jr2.row(0);
+            mask.GetConstraint(nc).Get_Cq_a().segment(0, 3) = Jx1.row(0);
+            mask.GetConstraint(nc).Get_Cq_a().segment(3, 3) = Jr1.row(0);
+            mask.GetConstraint(nc).Get_Cq_b().segment(0, 3) = Jx2.row(0);
+            mask.GetConstraint(nc).Get_Cq_b().segment(3, 3) = Jr2.row(0);
             nc++;
         }
         if (c_y) {
             C(nc) = frame1M.GetPos().y();
-            mask.Constr_N(nc).Get_Cq_a().segment(0, 3) = Jx1.row(1);
-            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jr1.row(1);
-            mask.Constr_N(nc).Get_Cq_b().segment(0, 3) = Jx2.row(1);
-            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jr2.row(1);
+            mask.GetConstraint(nc).Get_Cq_a().segment(0, 3) = Jx1.row(1);
+            mask.GetConstraint(nc).Get_Cq_a().segment(3, 3) = Jr1.row(1);
+            mask.GetConstraint(nc).Get_Cq_b().segment(0, 3) = Jx2.row(1);
+            mask.GetConstraint(nc).Get_Cq_b().segment(3, 3) = Jr2.row(1);
             nc++;
         }
         if (c_z) {
             C(nc) = frame1M.GetPos().z();
-            mask.Constr_N(nc).Get_Cq_a().segment(0, 3) = Jx1.row(2);
-            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jr1.row(2);
-            mask.Constr_N(nc).Get_Cq_b().segment(0, 3) = Jx2.row(2);
-            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jr2.row(2);
+            mask.GetConstraint(nc).Get_Cq_a().segment(0, 3) = Jx1.row(2);
+            mask.GetConstraint(nc).Get_Cq_a().segment(3, 3) = Jr1.row(2);
+            mask.GetConstraint(nc).Get_Cq_b().segment(0, 3) = Jx2.row(2);
+            mask.GetConstraint(nc).Get_Cq_b().segment(3, 3) = Jr2.row(2);
             nc++;
         }
         if (c_rx) {
             C(nc) = frame1M.GetRot().e1();
-            mask.Constr_N(nc).Get_Cq_a().setZero();
-            mask.Constr_N(nc).Get_Cq_b().setZero();
-            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(0);
-            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(0);
+            mask.GetConstraint(nc).Get_Cq_a().setZero();
+            mask.GetConstraint(nc).Get_Cq_b().setZero();
+            mask.GetConstraint(nc).Get_Cq_a().segment(3, 3) = Jw1.row(0);
+            mask.GetConstraint(nc).Get_Cq_b().segment(3, 3) = Jw2.row(0);
             nc++;
         }
         if (c_ry) {
             C(nc) = frame1M.GetRot().e2();
-            mask.Constr_N(nc).Get_Cq_a().setZero();
-            mask.Constr_N(nc).Get_Cq_b().setZero();
-            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(1);
-            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(1);
+            mask.GetConstraint(nc).Get_Cq_a().setZero();
+            mask.GetConstraint(nc).Get_Cq_b().setZero();
+            mask.GetConstraint(nc).Get_Cq_a().segment(3, 3) = Jw1.row(1);
+            mask.GetConstraint(nc).Get_Cq_b().segment(3, 3) = Jw2.row(1);
             nc++;
         }
         if (c_rz) {
             C(nc) = frame1M.GetRot().e3();
-            mask.Constr_N(nc).Get_Cq_a().setZero();
-            mask.Constr_N(nc).Get_Cq_b().setZero();
-            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(2);
-            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(2);
+            mask.GetConstraint(nc).Get_Cq_a().setZero();
+            mask.GetConstraint(nc).Get_Cq_b().setZero();
+            mask.GetConstraint(nc).Get_Cq_a().segment(3, 3) = Jw1.row(2);
+            mask.GetConstraint(nc).Get_Cq_b().segment(3, 3) = Jw2.row(2);
             nc++;
         }
     }
@@ -204,32 +204,32 @@ void ChLinkMotionImposed::IntLoadConstraint_Ct(const unsigned int off_L, ChVecto
 
 	int nc = 0;
     if (c_x) {
-        if (mask.Constr_N(nc).IsActive())
+        if (mask.GetConstraint(nc).IsActive())
 			Qc(off_L + nc) += c * mv_rot.x();
         nc++;
     }
     if (c_y) {
-        if (mask.Constr_N(nc).IsActive())
+        if (mask.GetConstraint(nc).IsActive())
             Qc(off_L + nc) += c * mv_rot.y();
         nc++;
     }
     if (c_z) {
-        if (mask.Constr_N(nc).IsActive())
+        if (mask.GetConstraint(nc).IsActive())
             Qc(off_L + nc) += c * mv_rot.z();
         nc++;
     }
     if (c_rx) {
-        if (mask.Constr_N(nc).IsActive())
+        if (mask.GetConstraint(nc).IsActive())
             Qc(off_L + nc) += c * 0.5 * mw_loc.x();
         nc++;
     }
     if (c_ry) {
-        if (mask.Constr_N(nc).IsActive())
+        if (mask.GetConstraint(nc).IsActive())
             Qc(off_L + nc) += c * 0.5 * mw_loc.y();
         nc++;
     }
     if (c_rz) {
-        if (mask.Constr_N(nc).IsActive())
+        if (mask.GetConstraint(nc).IsActive())
             Qc(off_L + nc) += c * 0.5 * mw_loc.z();
         nc++;
     }
@@ -246,23 +246,23 @@ void ChLinkMotionImposed::ConstraintsBiLoad_Ct(double factor) {
 	ChVector3d mw_loc = -rotation_function->GetAngVel(T);
 	ChVector3d mv_rot = rotation_function->GetQuat(T).RotateBack(mv); // need velocity in local rotated system
 
-    if (mask.Constr_N(0).IsActive()) {
-        mask.Constr_N(0).Set_b_i(mask.Constr_N(0).Get_b_i() + factor * mv_rot.x());
+    if (mask.GetConstraint(0).IsActive()) {
+        mask.GetConstraint(0).Set_b_i(mask.GetConstraint(0).Get_b_i() + factor * mv_rot.x());
     }
-	if (mask.Constr_N(1).IsActive()) {
-        mask.Constr_N(1).Set_b_i(mask.Constr_N(1).Get_b_i() + factor * mv_rot.y());
+	if (mask.GetConstraint(1).IsActive()) {
+        mask.GetConstraint(1).Set_b_i(mask.GetConstraint(1).Get_b_i() + factor * mv_rot.y());
     }
-	if (mask.Constr_N(2).IsActive()) {
-        mask.Constr_N(2).Set_b_i(mask.Constr_N(2).Get_b_i() + factor * mv_rot.z());
+	if (mask.GetConstraint(2).IsActive()) {
+        mask.GetConstraint(2).Set_b_i(mask.GetConstraint(2).Get_b_i() + factor * mv_rot.z());
     }
-	if (mask.Constr_N(3).IsActive()) {
-        mask.Constr_N(3).Set_b_i(mask.Constr_N(3).Get_b_i() + factor * 0.5 * mw_loc.x());
+	if (mask.GetConstraint(3).IsActive()) {
+        mask.GetConstraint(3).Set_b_i(mask.GetConstraint(3).Get_b_i() + factor * 0.5 * mw_loc.x());
     }
-	if (mask.Constr_N(4).IsActive()) {
-        mask.Constr_N(4).Set_b_i(mask.Constr_N(4).Get_b_i() + factor * 0.5 * mw_loc.y());
+	if (mask.GetConstraint(4).IsActive()) {
+        mask.GetConstraint(4).Set_b_i(mask.GetConstraint(4).Get_b_i() + factor * 0.5 * mw_loc.y());
     }
-	if (mask.Constr_N(5).IsActive()) {
-        mask.Constr_N(5).Set_b_i(mask.Constr_N(5).Get_b_i() + factor * 0.5 * mw_loc.z());
+	if (mask.GetConstraint(5).IsActive()) {
+        mask.GetConstraint(5).Set_b_i(mask.GetConstraint(5).Get_b_i() + factor * 0.5 * mw_loc.z());
     }
 }
 

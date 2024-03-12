@@ -34,10 +34,10 @@ class ChApi ChLinkLockPointSpline : public ChLinkLockLock {
     virtual ChLinkLockPointSpline* Clone() const override { return new ChLinkLockPointSpline(*this); }
 
     /// Get the address of the trajectory line
-    std::shared_ptr<ChLine> Get_trajectory_line() const { return trajectory_line; }
+    std::shared_ptr<ChLine> GetTrajectory() const { return trajectory_line; }
 
     /// Sets the trajectory line (take ownership - does not copy line)
-    void Set_trajectory_line(std::shared_ptr<ChLine> mline);
+    void SetTrajectory(std::shared_ptr<ChLine> mline);
 
     /// Set the tolerance controlling the accuracy of nearest point search (default: 1e-6)
     void SetTolerance(double tol) { tolerance = tol; }

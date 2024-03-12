@@ -647,8 +647,98 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_react_torque              | rename: GetReactTorque (see Notes)               |
 | ChLinkBrake                       |                               | rename: ChLinkLockBrake                          |
 | ChLinkClearance                   |                               | rename: ChLinkLockClearance                      |
+| ChLinkForce                       |                               |                                                  |
+|                                   | GetF                          | rename: GetActuatorForceTorque                   |
+|                                   | GetFcurrent                   | rename: GetCurrentActuatorForceTorque            |
+|                                   | GetForce                      | rename: GetForceTorque                           |
+|                                   | GetK                          | rename: GetSpringCoefficient                     |
+|                                   | GetKcurrent                   | rename: GetCurrentSpringCoefficient              |
+|                                   | GetModulationActuator         | rename: GetActuatorModulation                    |
+|                                   | GetModulationK                | rename: GetSpringModulation                      |
+|                                   | GetModulationR                | rename: GetDamperModulation                      |
+|                                   | GetR                          | rename: GetDampingCoefficient                    |
+|                                   | GetRcurrent                   | rename: GetCurrentDampingCoefficient             |
+|                                   | SetF                          | rename: SetActuatorForceTorque                   |
+|                                   | SetModulationF                | rename: SetActuatorModulation                    |
+|                                   | SetModulationK                | rename: SetSpringModulation                      |
+|                                   | SetModulationR                | rename: SetDamperModulation                      |
 | ChLinkGear                        |                               | rename: ChLinkLockGear                           |
 | ChLinkLinActuator                 |                               | rename: ChLinkLockLinActuator                    |
+| ChLinkLock                        |                               |                                                  |
+|                                   | ChangeLinkType                | rename: ChangeType                |
+|                                   | GetConstraintViolation_dt     | rename: GetConstraintViolationDer                |
+|                                   | GetConstraintViolation_dtdt   | rename: GetConstraintViolationDer2               |
+|                                   | GetForce_D                    | rename: ForceD                                   |
+|                                   | GetForce_R                    | rename: ForceRp                                  |
+|                                   | GetForce_Rx                   | rename: ForceRx                                  |
+|                                   | GetForce_Ry                   | rename: ForceRy                                  |
+|                                   | GetForce_Rz                   | rename: ForceRz                                  |
+|                                   | GetForce_X                    | rename: ForceX                                   |
+|                                   | GetForce_Y                    | rename: ForceY                                   |
+|                                   | GetForce_Z                    | rename: ForceZ                                   |
+|                                   | GetLimit_D                    | rename: LimitD                                   |
+|                                   | GetLimit_Rp                   | rename: LimitRp                                  |
+|                                   | GetLimit_Rx                   | rename: LimitRx                                  |
+|                                   | GetLimit_Ry                   | rename: LimitRy                                  |
+|                                   | GetLimit_Rz                   | rename: LimitRz                                  |
+|                                   | GetLimit_X                    | rename: LimitX                                   |
+|                                   | GetLimit_Y                    | rename: LimitY                                   |
+|                                   | GetLimit_Z                    | rename: LimitZ                                   |
+|                                   | GetRelM                       | rename: GetRelCoordsys                           |
+|                                   | GetRelM_dt                    | rename: GetRelCoordsysDer                        |
+|                                   | GetRelM_dtdt                  | rename: GetRelCoordsysDer2                       |
+|                                   | SetUpMarkers                  | rename: SetupMarkers                             |
+| ChLinkLockBrake                   |                               |                                                  |
+|                                   | Get_brake_mode                | rename: GetBrakeMode                             |
+|                                   | Get_brake_torque              | rename: GetBrakeTorque                           |
+|                                   | Get_stick_ratio               | rename: GetStickingCoeff                         |
+|                                   | Set_brake_mode                | rename: SetBrakeMode                             |
+|                                   | Set_brake_torque              | rename: SetBrakeTorque                           |
+|                                   | Set_stick_ratio               | rename: SetStickingCoeff                         |
+| ChLinkLockClearance               |                               |                                                  |
+|                                   | Get_axis_eccentricity         | rename: GetEccentricity                          |
+|                                   | Get_axis_phase                | rename: GetAxisAngularLocation                   |
+|                                   | Get_c_friction                | rename: GetFriction                              |
+|                                   | Get_c_restitution             | rename: GetRestitution                           |
+|                                   | Get_c_tang_restitution        | remove                                           |
+|                                   | Get_c_viscous                 | remove                                           |
+|                                   | Get_clearance                 | rename: GetClearance                             |
+|                                   | Get_contact_F_abs             | rename: GetContactForceAbs                       |
+|                                   | Get_contact_F_n               | rename: GetContactForceNormal                    |
+|                                   | Get_contact_F_t               | rename: GetContactForceTangential                |
+|                                   | Get_contact_N_abs             | rename: GetContactNormalAbs                      |
+|                                   | Get_contact_P_abs             | rename: GetContactPosAbs                         |
+|                                   | Get_contact_V_t               | rename: GetContactSpeedTangential                |
+|                                   | Get_diameter                  | rename: GetDiameter                              |
+|                                   | Get_is_in_contact             | remove                                           |
+|                                   | Get_rotation_angle            | rename: GetRotationAngle                         |
+|                                   | GetC_force                    | rename: GetAccumulatedForce                      |
+|                                   | GetC_torque                   | rename: GetAccumulatedTorque                     |
+|                                   | GetRelRotaxis                 | rename: GetRelAngleAxis                          |
+|                                   | Set_c_friction                | rename: SetFriction                              |
+|                                   | Set_c_restitution             | rename: SetRestitution                           |
+|                                   | Set_c_tang_restitution        | remove                                           |
+|                                   | Set_c_viscous                 | remove                                           |
+|                                   | Set_clearance                 | rename: SetClearance                             |
+|                                   | Set_diameter                  | rename: SetDiameter                              |
+| ChLinkLockLock                    |                               |                                                  |
+|                                   | GetMotion_ang                 | rename: GetMotionAng1                            |
+|                                   | GetMotion_ang2                | rename: GetMotionAng2                            |
+|                                   | GetMotion_ang3                | rename: GetMotionAng3                            |
+|                                   | GetMotion_axis                | rename: GetMotionAxis                            |
+|                                   | GetMotion_X                   | rename: GetMotionX                               |
+|                                   | GetMotion_Y                   | rename: GetMotionY                               |
+|                                   | GetMotion_Z                   | rename: GetMotionZ                               |
+|                                   | GetRelC                       | rename: GetRelCoordsysViolation                  |
+|                                   | GetRelC_dt                    | rename: GetRelCoordsysViolationDer               |
+|                                   | GetRelC_dtdt                  | rename: GetRelCoordsysViolationDer2              |
+|                                   | SetMotion_ang                 | rename: SetMotionAng1                            |
+|                                   | SetMotion_ang2                | rename: SetMotionAng2                            |
+|                                   | SetMotion_ang3                | rename: SetMotionAng3                            |
+|                                   | SetMotion_axis                | rename: SetMotionAxis                            |
+|                                   | SetMotion_X                   | rename: SetMotionX                               |
+|                                   | SetMotion_Y                   | rename: SetMotionY                               |
+|                                   | SetMotion_Z                   | rename: SetMotionZ                               |
 | ChLinkLockGear                    |                               |                                                  |
 |                                   | Get_a1                        | rename: GetRotation1                             |
 |                                   | Get_a2                        | rename: GetRotation2                             |
@@ -674,6 +764,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Set_local_shaft2              | rename: SetFrameShaft2                           |
 |                                   | Set_epicyclic                 | rename: SetEpicyclic                             |
 |                                   | Set_tau                       | rename: SetTransmissionRatio                     |
+| ChLinkLockPointSpline             |                               |                                                  |
+|                                   | Get_trajectory_line           | rename: GetTrajectory                            |
+|                                   | Set_trajectory_line           | rename: SetTrajectory                            |
 | ChLinkLockPulley                  |                               |                                                  |
 |                                   | Get_belt_up1                  | rename: GetBeltUpPos1                            |
 |                                   | Get_belt_up2                  | rename: GetBeltUpPos2                            |
@@ -685,17 +778,38 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_thread                    | rename: GetThread                                |
 |                                   | Set_thread                    | rename: SetThread                                |
 | ChLinkMask                        |                               |                                                  |
-|                                   | ResetNconstr                  | rename: UpdateNumConstraints                     |
+|                                   | Constr_N                      | rename: GetConstraint                            |
+|                                   | GetActiveConstrByNum          | rename: GetActiveConstraint                      |
+|                                   | GetMaskDoc                    | rename: GetNumConstraintsActive                  |
+|                                   | GetMaskDoc_c                  | rename: GetNumConstraintsBilateralActive         |
+|                                   | GetMaskDoc_d                  | rename: GetNumConstraintsUnilateralActive        |
+|                                   | ResetNconstr                  | rename: SetNumConstraints                        |
+|                                   | nconstr                       | rename: GetNumConstraints                        |
+|                                   | SetActiveRedundantByArray     | remove                                           |
+| ChLinkMarkers                     |                               |                                                  |
+|                                   | GetDist                       | rename: GetDistance                              |
+|                                   | GetDist_dt                    | rename: GetDistanceDer                           |
+|                                   | GetRelWvel                    | rename: GetRelativeAngVel                        |
+|                                   | GetRelWacc                    | rename: GetRelativeAngAcc                        |
 | ChLinkMate                        |                               |                                                  |
 |                                   | RestoreRedundant              | rename: ResetRedundant                           |
 | ChLinkMateCoaxial                 |                               | rename: ChLinkMateCylindrical                    |
-| ChLinkMatePlane                   |                               | rename: ChLinkMatePlanar                         |
+| ChLinkMateGeneric                 |                               |                                                  |
 |                                   | GetSeparation                 | rename: GetDistance                              |
-|                                   | SetSeparation                 | rename: SetDistance                              |
+| ChLinkMatePlane                   |                               | rename: ChLinkMatePlanar                         |
+|                                   | GetLagrangeMultiplier_f       | remove                                           |
+|                                   | GetLagrangeMultiplier_m       | remove                                           |
 | ChLinkMatePrismatic               |                               |                                                  |
 |                                   | GetRelativePos_dt             | rename: GetRelativePosDer                        |
 |                                   | GetRelativePos_dtdt           | rename: GetRelativePosDer2                       |
+| ChLinkMateRevolute                |                               |                                                  |
+|                                   | GetRelativeAngle_dt           | rename: GetRelativeAngleDer                      |
+|                                   | GetRelativeAngle_dtdt         | rename: GetRelativeAngleDer2                     |
 | ChLinkMateXdistance               |                               | rename: ChLinkMateDistanceZ                      |
+| ChLinkMotorLinearDriveline        |                               |                                                  |
+|                                   | GetInnerShaft1lin             | rename: GetInnerShaft1Lin                        |
+|                                   | GetInnerShaft2lin             | rename: GetInnerShaft2Lin                        |
+|                                   | GetInnerShaft2rot             | rename: GetInnerShaft2Rot                        |
 | ChLinkMotorPosition               |                               |                                                  |
 |                                   | GetMotorPos_dt                | rename: GetMotorPosDer                           |
 |                                   | GetMotorPos_dtdt              | rename: GetMotorPosDer2                          |
@@ -737,11 +851,11 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetAbsCoord                   | rename: GetAbsCoordsys                           |
 |                                   | GetAbsCoord_dt                | rename: GetAbsCoordsysDer                        |
 |                                   | GetAbsCoord_dtdt              | rename: GetAbsCoordsysDer2                       |
-|                                   | GetMotion_ang                 | rename: GetMotionAngle                           |
+|                                   | GetMotionAng1                 | rename: GetMotionAngle                           |
 |                                   | GetMotion_axis                | rename: GetMotionAxis                            |
-|                                   | GetMotion_X                   | rename: GetMotionAxisX                           |
-|                                   | GetMotion_Y                   | rename: GetMotionAxisY                           |
-|                                   | GetMotion_Z                   | rename: GetMotionAxisZ                           |
+|                                   | GetMotionX                   | rename: GetMotionX                           |
+|                                   | GetMotionY                   | rename: GetMotionY                           |
+|                                   | GetMotionZ                   | rename: GetMotionZ                           |
 |                                   | GetRest_Coord                 | rename: GetRestCoordsys                          |
 |                                   | Impose_Rel_Coord              | rename: ImposeRelativeTransform                  |
 |                                   | Impose_Abs_Coord              | rename: ImposeAbsoluteTransform                  |
@@ -752,9 +866,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetAbsCoord_dtdt              | rename: SetAbsCoordsysDer2                       |
 |                                   | SetMotion_ang                 | rename: SetMotionAngle                           |
 |                                   | SetMotion_axis                | rename: SetMotionAxis                            |
-|                                   | SetMotion_X                   | rename: SetMotionAxisX                           |
-|                                   | SetMotion_Y                   | rename: SetMotionAxisY                           |
-|                                   | SetMotion_Z                   | rename: SetMotionAxisZ                           |
+|                                   | SetMotion_X                   | rename: SetMotionX                           |
+|                                   | SetMotion_Y                   | rename: SetMotionY                           |
+|                                   | SetMotion_Z                   | rename: SetMotionZ                           |
 | ChMaterialSurface                 |                               | rename: ChContactMaterial                        |
 |                                   | SetSfriction                  | rename: SetStaticFriction                        |
 |                                   | GetSfriction                  | rename: GetStaticFriction                        |

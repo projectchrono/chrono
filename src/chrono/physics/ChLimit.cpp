@@ -28,9 +28,7 @@ ChLinkLimit::ChLinkLimit()
       m_Kmax(1000),
       m_Kmin(1000),
       m_Rmax(100),
-      m_Rmin(100),
-      m_minElastic(0),
-      m_maxElastic(0) {
+      m_Rmin(100) {
     // Default: no modulation
     m_Kmax_modul = chrono_types::make_shared<ChFunctionConst>(1);
     m_Kmin_modul = chrono_types::make_shared<ChFunctionConst>(1);
@@ -56,8 +54,6 @@ ChLinkLimit::ChLinkLimit(const ChLinkLimit& other) {
     m_Kmin = other.m_Kmin;
     m_Rmax = other.m_Rmax;
     m_Rmin = other.m_Rmin;
-    m_minElastic = other.m_minElastic;
-    m_maxElastic = other.m_maxElastic;
 
     m_Kmax_modul = std::shared_ptr<ChFunction>(other.m_Kmax_modul->Clone());
     m_Kmin_modul = std::shared_ptr<ChFunction>(other.m_Kmin_modul->Clone());
@@ -122,8 +118,6 @@ void ChLinkLimit::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(m_Kmin);
     archive_out << CHNVP(m_Rmax);
     archive_out << CHNVP(m_Rmin);
-    archive_out << CHNVP(m_maxElastic);
-    archive_out << CHNVP(m_minElastic);
     archive_out << CHNVP(m_Kmax_modul);
     archive_out << CHNVP(m_Kmin_modul);
     archive_out << CHNVP(m_Rmax_modul);
@@ -148,8 +142,6 @@ void ChLinkLimit::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(m_Kmin);
     archive_in >> CHNVP(m_Rmax);
     archive_in >> CHNVP(m_Rmin);
-    archive_in >> CHNVP(m_maxElastic);
-    archive_in >> CHNVP(m_minElastic);
     archive_in >> CHNVP(m_Kmax_modul);
     archive_in >> CHNVP(m_Kmin_modul);
     archive_in >> CHNVP(m_Rmax_modul);
@@ -171,7 +163,7 @@ double ChLinkLimit::GetViolation(double x) const {
     return 0;
 }
 
-double ChLinkLimit::GetForce(double x, double x_dt) const {
+double ChLinkLimit::GetForceTorque(double x, double x_dt) const {
     double cush_coord;
     double cush_coord_norm;
     double force;

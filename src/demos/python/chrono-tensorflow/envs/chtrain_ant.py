@@ -171,12 +171,12 @@ class Model(object):
              
              self.ankle_body[i].AddVisualShape(self.foot_shape)
              
-             self.Leg_rev[i].GetLimit_Rz().SetActive(True)
-             self.Leg_rev[i].GetLimit_Rz().SetMin(-math.pi/3)
-             self.Leg_rev[i].GetLimit_Rz().SetMax(math.pi/3)
-             self.Ankle_rev[i].GetLimit_Rz().SetActive(True)
-             self.Ankle_rev[i].GetLimit_Rz().SetMin(-math.pi/2)
-             self.Ankle_rev[i].GetLimit_Rz().SetMax(math.pi/4)
+             self.Leg_rev[i].LimitRz().SetActive(True)
+             self.Leg_rev[i].LimitRz().SetMin(-math.pi/3)
+             self.Leg_rev[i].LimitRz().SetMax(math.pi/3)
+             self.Ankle_rev[i].LimitRz().SetActive(True)
+             self.Ankle_rev[i].LimitRz().SetMin(-math.pi/2)
+             self.Ankle_rev[i].LimitRz().SetMax(math.pi/4)
              
 
            
@@ -250,10 +250,10 @@ class Model(object):
                  
                  self.q_mot[i] = self.Leg_rev[i].GetRelAngle()
                  self.q_mot[i+4] = self.Ankle_rev[i].GetRelAngle() 
-                 self.q_dot_mot[i]  = self.Leg_rev[i].GetRelWvel().z
-                 self.q_dot_mot[i+4]  = self.Ankle_rev[i].GetRelWvel().z
-                 joint_at_limit = np.append(joint_at_limit,  [ self.Leg_rev[i].GetLimit_Rz().GetMax()   < self.q_mot[i]   or self.Leg_rev[i].GetLimit_Rz().GetMin()   > self.q_mot[i] ,
-                                                               self.Ankle_rev[i].GetLimit_Rz().GetMax() < self.q_mot[i+4] or self.Ankle_rev[i].GetLimit_Rz().GetMin() > self.q_mot[i+4]])
+                 self.q_dot_mot[i]  = self.Leg_rev[i].GetRelativeAngVel().z
+                 self.q_dot_mot[i+4]  = self.Ankle_rev[i].GetRelativeAngVel().z
+                 joint_at_limit = np.append(joint_at_limit,  [ self.Leg_rev[i].LimitRz().GetMax()   < self.q_mot[i]   or self.Leg_rev[i].LimitRz().GetMin()   > self.q_mot[i] ,
+                                                               self.Ankle_rev[i].LimitRz().GetMax() < self.q_mot[i+4] or self.Ankle_rev[i].LimitRz().GetMin() > self.q_mot[i+4]])
                  feet_contact = np.append(feet_contact, [self.ankle_body[i].GetContactForce().Length()] )
            
 

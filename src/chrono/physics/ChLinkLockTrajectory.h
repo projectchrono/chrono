@@ -52,10 +52,10 @@ class ChApi ChLinkLockTrajectory : public ChLinkLockLock {
     void Set_modulo_one_fx(bool mmod) { modulo_s = mmod; }
 
     /// Get the address of the trajectory line
-    std::shared_ptr<ChLine> Get_trajectory_line() const { return trajectory_line; }
+    std::shared_ptr<ChLine> GetTrajectory() const { return trajectory_line; }
 
     /// Sets the trajectory line (take ownership - does not copy line)
-    void Set_trajectory_line(std::shared_ptr<ChLine> mline);
+    void SetTrajectory(std::shared_ptr<ChLine> mline);
 
     /// Initialize the link to join two rigid bodies.
     /// Both rigid bodies must belong to the same system. Two markers will be created and added to the rigid bodies.

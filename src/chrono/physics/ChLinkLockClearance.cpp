@@ -20,13 +20,11 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkLockClearance)
 
 ChLinkLockClearance::ChLinkLockClearance() {
-    type = LinkType::CLEARANCE;
+    type = Type::CLEARANCE;
 
     clearance = 0.1;
     c_friction = 0.;
-    c_viscous = 0.;
     c_restitution = 0.9;
-    c_tang_restitution = 0.9;
     diameter = 0.8;
 
     contact_F_abs = VNULL;
@@ -34,7 +32,7 @@ ChLinkLockClearance::ChLinkLockClearance() {
 
     limit_X->SetActive(true);
     limit_X->SetMax(clearance);
-    limit_X->SetMaxElastic(c_restitution);
+    limit_X->SetKmax(c_restitution);
     limit_X->SetMin(-1000.0);
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
@@ -46,19 +44,17 @@ ChLinkLockClearance::ChLinkLockClearance(const ChLinkLockClearance& other) : ChL
     clearance = other.clearance;
     c_friction = other.c_friction;
     c_restitution = other.c_restitution;
-    c_tang_restitution = other.c_tang_restitution;
-    c_viscous = other.c_viscous;
     diameter = other.diameter;
 
     contact_F_abs = other.contact_F_abs;
     contact_V_abs = other.contact_V_abs;
 }
 
-double ChLinkLockClearance::Get_axis_eccentricity() {
-    return GetDist();
+double ChLinkLockClearance::GetEccentricity() const {
+    return GetDistance();
 }
 
-double ChLinkLockClearance::Get_axis_phase() {
+double ChLinkLockClearance::GetAxisAngularLocation() const {
     if (!GetMarker2())
         return 0;
     double angle;
@@ -71,39 +67,39 @@ double ChLinkLockClearance::Get_axis_phase() {
     return angle;
 }
 
-double ChLinkLockClearance::Get_rotation_angle() {
+double ChLinkLockClearance::GetRotationAngle() const {
     return GetRelAngle();
 }
 
-ChVector3d ChLinkLockClearance::Get_contact_P_abs() {
+ChVector3d ChLinkLockClearance::GetContactPosAbs() const {
     if (!GetMarker2())
         return VNULL;
-    return GetMarker2()->GetAbsCoordsys().pos - (clearance + diameter / 2) * Get_contact_N_abs();
+    return GetMarker2()->GetAbsCoordsys().pos - (clearance + diameter / 2) * GetContactNormalAbs();
 }
 
-ChVector3d ChLinkLockClearance::Get_contact_N_abs() {
+ChVector3d ChLinkLockClearance::GetContactNormalAbs() const {
     if (!GetMarker2())
         return VECT_X;
     return GetMarker2()->GetAbsFrame().TransformDirectionLocalToParent(-VECT_X);
 }
 
-ChVector3d ChLinkLockClearance::Get_contact_F_abs() {
+ChVector3d ChLinkLockClearance::GetContactForceAbs() const {
     return contact_F_abs;
 }
 
-double ChLinkLockClearance::Get_contact_F_n() {
+double ChLinkLockClearance::GetContactForceNormal() const {
     if (!GetMarker2())
         return 0;
     return GetMarker2()->GetAbsFrame().TransformDirectionParentToLocal(contact_F_abs).x();
 }
 
-double ChLinkLockClearance::Get_contact_F_t() {
+double ChLinkLockClearance::GetContactForceTangential() const {
     if (!GetMarker2())
         return 0;
     return GetMarker2()->GetAbsFrame().TransformDirectionParentToLocal(contact_F_abs).y();
 }
 
-double ChLinkLockClearance::Get_contact_V_t() {
+double ChLinkLockClearance::GetContactSpeedTangential() const {
     if (!GetMarker2())
         return 0;
     return GetMarker2()->GetAbsFrame().TransformDirectionParentToLocal(contact_V_abs).y();
@@ -119,24 +115,34 @@ void ChLinkLockClearance::UpdateForces(double mytime) {
     // Add Coulomb kinematic friction
 
     if (mask.Constr_X().IsActive()) {
-        ChVector3d temp = Get_contact_P_abs();
+        ChVector3d temp = GetContactPosAbs();
         ChVector3d pb1 = m_body1->TransformPointParentToLocal(temp);
         ChVector3d pb2 = m_body2->TransformPointParentToLocal(temp);
         ChVector3d m_V1_abs = m_body1->PointSpeedLocalToParent(pb1);
         ChVector3d m_V2_abs = m_body2->PointSpeedLocalToParent(pb2);
         contact_V_abs = Vsub(m_V1_abs, m_V2_abs);
         ChVector3d m_tang_V_abs =
-            Vsub(contact_V_abs, Vmul(Get_contact_N_abs(), Vdot(contact_V_abs, Get_contact_N_abs())));
+            Vsub(contact_V_abs, Vmul(GetContactNormalAbs(), Vdot(contact_V_abs, GetContactNormalAbs())));
 
         // absolute friction force, as applied in contact point
-        m_friction_F_abs = Vmul(Vnorm(m_tang_V_abs), Get_c_friction() * (-m_norm_force));
+        m_friction_F_abs = Vmul(Vnorm(m_tang_V_abs), GetFriction() * (-m_norm_force));
 
         // transform the friction force in link master coords ***TO CHECK*** (new version!)
         C_force = marker2->GetAbsFrame().TransformDirectionParentToLocal(m_friction_F_abs);
     }
 
     // update internal data: the abs. vector of all contact forces, is a sum of reaction and friction
-    contact_F_abs = Vadd(Vmul(Get_contact_N_abs(), m_norm_force), m_friction_F_abs);
+    contact_F_abs = Vadd(Vmul(GetContactNormalAbs(), m_norm_force), m_friction_F_abs);
+}
+
+void ChLinkLockClearance::SetClearance(double mset) {
+    clearance = mset;
+    limit_X->SetMax(clearance);
+}
+
+void ChLinkLockClearance::SetRestitution(double mset) {
+    c_restitution = mset;
+    limit_X->SetKmax(c_restitution);
 }
 
 void ChLinkLockClearance::UpdateTime(double mytime) {
@@ -173,7 +179,7 @@ void ChLinkLockClearance::UpdateTime(double mytime) {
 
     // add also the centripetal acceleration if distance vector's rotating,
     // as centripetal acc. of point sliding on a sphere surface.
-    ChVector3d tang_speed = GetRelM_dt().pos;
+    ChVector3d tang_speed = GetRelCoordsysDer().pos;
     tang_speed.x() = 0;  // only z-y coords in relative tang speed vector
     double Rcurvature = Vlength(absdist);
     deltaC_dtdt.pos.x() = -pow(Vlength(tang_speed), 2) / Rcurvature;  // An =  -(Vt^2 / r)
@@ -195,8 +201,6 @@ void ChLinkLockClearance::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(c_friction);
     archive_out << CHNVP(c_restitution);
     archive_out << CHNVP(diameter);
-    archive_out << CHNVP(c_tang_restitution);
-    archive_out << CHNVP(c_viscous);
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -212,8 +216,6 @@ void ChLinkLockClearance::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(c_friction);
     archive_in >> CHNVP(c_restitution);
     archive_in >> CHNVP(diameter);
-    archive_in >> CHNVP(c_tang_restitution);
-    archive_in >> CHNVP(c_viscous);
 }
 
 }  // end namespace chrono

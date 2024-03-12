@@ -19,8 +19,16 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLinkLockBrake)
 
+class ChLinkLockBrake_Mode_enum_mapper : public ChLinkLockBrake {
+  public:
+    CH_ENUM_MAPPER_BEGIN(Mode);
+    CH_ENUM_VAL(Mode::ROTATION);
+    CH_ENUM_VAL(Mode::TRANSLATEX);
+    CH_ENUM_MAPPER_END(Mode);
+};
+
 ChLinkLockBrake::ChLinkLockBrake()
-    : brake_torque(0), stick_ratio(1.1), brake_mode(BRAKE_ROTATION), last_dir(0), must_stick(false) {
+    : brake_torque(0), stick_ratio(1.1), brake_mode(Mode::ROTATION), last_dir(0), must_stick(false) {
     // Mask: initialize our LinkMaskLF (lock formulation mask)
     mask.SetLockMask(false, false, false, false, false, false, false);
     BuildLink();
@@ -35,7 +43,7 @@ ChLinkLockBrake::ChLinkLockBrake(const ChLinkLockBrake& other) : ChLinkLock(othe
     must_stick = other.must_stick;
 }
 
-void ChLinkLockBrake::Set_brake_mode(int mmode) {
+void ChLinkLockBrake::SetBrakeMode(Mode mmode) {
     if (mmode != brake_mode) {
         brake_mode = mmode;
 
@@ -69,7 +77,7 @@ void ChLinkLockBrake::UpdateForces(double mytime) {
 
     // then, if not sticking,
     if (this->brake_torque) {
-        if (brake_mode == BRAKE_ROTATION) {
+        if (brake_mode == Mode::ROTATION) {
             if (mask.Constr_E3().IsActive() == false) {
                 int mdir;
 
@@ -89,7 +97,7 @@ void ChLinkLockBrake::UpdateForces(double mytime) {
                 C_torque = Vadd(C_torque, mv_torque);
             }
         }
-        if (brake_mode == BRAKE_TRANSLATEX) {
+        if (brake_mode == Mode::TRANSLATEX) {
             if (mask.Constr_X().IsActive() == false) {
                 int mdir;
 
@@ -126,7 +134,9 @@ void ChLinkLockBrake::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize all member data:
     archive_out << CHNVP(brake_torque);
     archive_out << CHNVP(stick_ratio);
-    archive_out << CHNVP(brake_mode);
+
+    ChLinkLockBrake_Mode_enum_mapper::Mode_mapper typemapper;
+    archive_out << CHNVP(typemapper(brake_mode), "ChLinkLockBrake__Mode");
 }
 
 /// Method to allow de serialization of transient data from archives.
@@ -140,7 +150,9 @@ void ChLinkLockBrake::ArchiveIn(ChArchiveIn& archive_in) {
     // deserialize all member data:
     archive_in >> CHNVP(brake_torque);
     archive_in >> CHNVP(stick_ratio);
-    archive_in >> CHNVP(brake_mode);
+
+    ChLinkLockBrake_Mode_enum_mapper::Mode_mapper typemapper;
+    archive_in >> CHNVP(typemapper(brake_mode), "ChLinkLockBrake__Mode");
 }
 
 }  // end namespace chrono

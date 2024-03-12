@@ -148,11 +148,11 @@ sys.Add(link_shaker)
 
 # ..create the function for imposed x horizontal motion, etc.
 mfunY = chrono.ChFunctionSine(0.001,1.5)  # amplitude, frequency
-link_shaker.SetMotion_Y(mfunY)
+link_shaker.SetMotionY(mfunY)
 
 # ..create the function for imposed y vertical motion, etc.
 mfunZ = chrono.ChFunctionSine(0.12,1.5)  # amplitude, frequency
-link_shaker.SetMotion_Z(mfunZ)
+link_shaker.SetMotionZ(mfunZ)
 
 # Note that you could use other types of ChFunction objects, or create
 # your custom function by class inheritance (see demo_python.py), or also

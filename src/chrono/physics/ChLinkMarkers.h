@@ -66,10 +66,10 @@ class ChApi ChLinkMarkers : public ChLink {
     virtual ChLinkMarkers* Clone() const override { return new ChLinkMarkers(*this); }
 
     /// Return the 1st referenced marker (the secondary marker, on 1st body).
-    ChMarker* GetMarker1() { return marker1; }
+    ChMarker* GetMarker1() const { return marker1; }
 
     /// Return the 2nd referenced marker (the main marker, on 2nd body).
-    ChMarker* GetMarker2() { return marker2; }
+    ChMarker* GetMarker2() const { return marker2; }
 
     /// Get the link frame 1, relative to body 1.
     /// For this class link frame 1 is actually marker 1.
@@ -79,8 +79,45 @@ class ChApi ChLinkMarkers : public ChLink {
     /// For this class link frame 2 is actually marker 2.
     virtual ChFrame<> GetFrame2Rel() const { return *marker2; }
 
+    // LINK COORDINATES and other functions
+
+    /// Relative position of marker 1 respect to marker 2.
+    const ChCoordsysd& GetRelCoordsys() const { return relM; }
+
+    /// Relative speed of marker 1 respect to marker 2.
+    const ChCoordsysd& GetRelCoordsysDer() const { return relM_dt; }
+
+    /// Relative acceleration of marker 1 respect to marker 2.
+    const ChCoordsysd& GetRelCoordsysDer2() const { return relM_dtdt; }
+
+    /// Relative rotation angle of marker 1 respect to marker 2 (best with revolute joints..).
+    double GetRelAngle() const { return relAngle; }
+    
+    /// Relative finite rotation axis of marker 1 respect to marker 2.
+    const ChVector3d& GetRelAxis() const { return relAxis; }
+    
+    const ChVector3d& GetRelAngleAxis() const { return relRotaxis; }
+    
+    /// Relative angular speed of marker 1 respect to marker 2.
+    const ChVector3d& GetRelativeAngVel() const { return relWvel; }
+    
+    /// Relative angular acceleration of marker 1 respect to marker 2.
+    const ChVector3d& GetRelativeAngAcc() const { return relWacc; }
+    
+    /// Relative 'polar' distance of marker 1 respect to marker 2.
+    double GetDistance() const { return dist; }
+    
+    /// Relative speed of marker 1 respect to marker 2, along the polar distance vector.
+    double GetDistanceDer() const { return dist_dt; }
+
+    /// Get the total applied force accumulators (force, momentum) in link coords.
+    /// These forces might be affected by additional springs, dampers, etc. but they do not
+    /// include the reaction forces.
+    const ChVector3d& GetAccumulatedForce() const { return C_force; }
+    const ChVector3d& GetAccumulatedTorque() const { return C_torque; }
+
     /// Set the two markers associated with this link.
-    virtual void SetUpMarkers(ChMarker* mark1, ChMarker* mark2);
+    virtual void SetupMarkers(ChMarker* mark1, ChMarker* mark2);
 
     /// Initialize the link to join two markers.
     /// Each marker must belong to a rigid body, and both rigid bodies must belong to the same system.
@@ -145,43 +182,6 @@ class ChApi ChLinkMarkers : public ChLink {
     /// reference coordsystem of marker2 (the MAIN marker),
     /// and their application point is the origin of marker1 (the SLAVE marker).
     virtual void ConstraintsFbLoadForces(double factor = 1) override;
-
-    // LINK COORDINATES and other functions
-
-    /// Relative position of marker 1 respect to marker 2.
-    const ChCoordsysd& GetRelM() const { return relM; }
-
-    /// Relative speed of marker 1 respect to marker 2.
-    const ChCoordsysd& GetRelM_dt() const { return relM_dt; }
-
-    /// Relative acceleration of marker 1 respect to marker 2.
-    const ChCoordsysd& GetRelM_dtdt() const { return relM_dtdt; }
-
-    /// Relative rotation angle of marker 1 respect to marker 2 (best with revolute joints..).
-    double GetRelAngle() const { return relAngle; }
-    
-    /// Relative finite rotation axis of marker 1 respect to marker 2.
-    const ChVector3d& GetRelAxis() const { return relAxis; }
-    
-    const ChVector3d& GetRelRotaxis() const { return relRotaxis; }
-    
-    /// Relative angular speed of marker 1 respect to marker 2.
-    const ChVector3d& GetRelWvel() const { return relWvel; }
-    
-    /// Relative angular acceleration of marker 1 respect to marker 2.
-    const ChVector3d& GetRelWacc() const { return relWacc; }
-    
-    /// Relative 'polar' distance of marker 1 respect to marker 2.
-    double GetDist() const { return dist; }
-    
-    /// Relative speed of marker 1 respect to marker 2, along the polar distance vector.
-    double GetDist_dt() const { return dist_dt; }
-
-    /// Get the total applied force accumulators (force, momentum) in link coords.
-    /// These forces might be affected by additional springs, dampers, etc. but they do not
-    /// include the reaction forces.
-    const ChVector3d& GetC_force() const { return C_force; }
-    const ChVector3d& GetC_torque() const { return C_torque; }
 
     // SERIALIZATION
 

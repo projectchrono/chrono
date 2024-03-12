@@ -89,7 +89,7 @@ void ChLinkMotorLinearDriveline::Setup() {
         innershaft2rot->SetOffset_x(this->offset_x + 2);
         innershaft2rot->SetOffset_w(this->offset_w + 2);
     }
-    int nc = mask.nconstr;
+    unsigned int nc = mask.GetNumConstraints();
     innerconstraint1lin->SetOffset_L(this->offset_L + nc + 0);
     innerconstraint2lin->SetOffset_L(this->offset_L + nc + 1);
     innerconstraint2rot->SetOffset_L(this->offset_L + nc + 2);
@@ -207,7 +207,7 @@ void ChLinkMotorLinearDriveline::IntStateGatherReactions(const unsigned int off_
     // First, inherit to parent class
     ChLinkMotorLinear::IntStateGatherReactions(off_L, L);
 
-    int nc = mask.nconstr;
+    unsigned int nc = mask.GetNumConstraints();
     innerconstraint1lin->IntStateGatherReactions(off_L + nc + 0, L);
     innerconstraint2lin->IntStateGatherReactions(off_L + nc + 1, L);
     innerconstraint2rot->IntStateGatherReactions(off_L + nc + 2, L);
@@ -217,7 +217,7 @@ void ChLinkMotorLinearDriveline::IntStateScatterReactions(const unsigned int off
     // First, inherit to parent class
     ChLinkMotorLinear::IntStateScatterReactions(off_L, L);
 
-    int nc = mask.nconstr;
+    unsigned int nc = mask.GetNumConstraints();
     innerconstraint1lin->IntStateScatterReactions(off_L + nc + 0, L);
     innerconstraint2lin->IntStateScatterReactions(off_L + nc + 1, L);
     innerconstraint2rot->IntStateScatterReactions(off_L + nc + 2, L);
@@ -263,7 +263,7 @@ void ChLinkMotorLinearDriveline::IntLoadResidual_CqL(const unsigned int off_L,
     // First, inherit to parent class
     ChLinkMotorLinear::IntLoadResidual_CqL(off_L, R, L, c);
 
-    int nc = mask.nconstr;
+    unsigned int nc = mask.GetNumConstraints();
     innerconstraint1lin->IntLoadResidual_CqL(off_L + nc + 0, R, L, c);
     innerconstraint2lin->IntLoadResidual_CqL(off_L + nc + 1, R, L, c);
     innerconstraint2rot->IntLoadResidual_CqL(off_L + nc + 2, R, L, c);
@@ -277,7 +277,7 @@ void ChLinkMotorLinearDriveline::IntLoadConstraint_C(const unsigned int off_L,
     // First, inherit to parent class
     ChLinkMotorLinear::IntLoadConstraint_C(off_L, Qc, c, do_clamp, recovery_clamp);
 
-    int nc = mask.nconstr;
+    unsigned int nc = mask.GetNumConstraints();
 
     // compute custom violation C:
     double cnstr_pos_error1 =  this->GetMotorPos() - (this->innershaft1lin->GetPos());// - this->innershaft2lin->GetPos());
@@ -306,7 +306,7 @@ void ChLinkMotorLinearDriveline::IntLoadConstraint_Ct(const unsigned int off_L, 
     // First, inherit to parent class
     ChLinkMotorLinear::IntLoadConstraint_Ct(off_L, Qc, c);
 
-    int nc = mask.nconstr;
+    unsigned int nc = mask.GetNumConstraints();
     innerconstraint1lin->IntLoadConstraint_Ct(off_L + nc + 0, Qc, c);
     innerconstraint2lin->IntLoadConstraint_Ct(off_L + nc + 1, Qc, c);
     innerconstraint2rot->IntLoadConstraint_Ct(off_L + nc + 2, Qc, c);
@@ -324,7 +324,7 @@ void ChLinkMotorLinearDriveline::IntToDescriptor(const unsigned int off_v,
     innershaft1lin->IntToDescriptor(off_v, v, R, off_L, L, Qc);
     innershaft2lin->IntToDescriptor(off_v + 1, v, R, off_L, L, Qc);
     innershaft2rot->IntToDescriptor(off_v + 2, v, R, off_L, L, Qc);
-    int nc = mask.nconstr;
+    unsigned int nc = mask.GetNumConstraints();
     innerconstraint1lin->IntToDescriptor(off_v, v, R, off_L + nc + 0, L, Qc);
     innerconstraint2lin->IntToDescriptor(off_v, v, R, off_L + nc + 1, L, Qc);
     innerconstraint2rot->IntToDescriptor(off_v, v, R, off_L + nc + 2, L, Qc);
@@ -340,7 +340,7 @@ void ChLinkMotorLinearDriveline::IntFromDescriptor(const unsigned int off_v,
     innershaft1lin->IntFromDescriptor(off_v, v, off_L, L);
     innershaft2lin->IntFromDescriptor(off_v + 1, v, off_L, L);
     innershaft2rot->IntFromDescriptor(off_v + 2, v, off_L, L);
-    int nc = mask.nconstr;
+    unsigned int nc = mask.GetNumConstraints();
     innerconstraint1lin->IntFromDescriptor(off_v, v, off_L + nc + 0, L);
     innerconstraint2lin->IntFromDescriptor(off_v, v, off_L + nc + 1, L);
     innerconstraint2rot->IntFromDescriptor(off_v, v, off_L + nc + 2, L);
