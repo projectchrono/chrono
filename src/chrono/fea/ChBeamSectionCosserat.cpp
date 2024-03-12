@@ -335,7 +335,7 @@ void ChElasticityCosseratAdvancedGenericFPM::ComputeTransformMatrix() {
     this->T = RotA * Ts * Tc;
 }
 
-void ChElasticityCosseratAdvancedGenericFPM::UpdateEMatrix() {
+void ChElasticityCosseratAdvancedGenericFPM::UpdateStiffnessMatrix() {
     if (!updated) {  // do it only once
         // compute T
         ComputeTransformMatrix();

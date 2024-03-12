@@ -283,10 +283,10 @@ class ChApi ChContactSurfaceNodeCloud : public ChContactSurface {
     void AddNodesFromNodeSet(std::vector<std::shared_ptr<ChNodeFEAbase>>& node_set, const double point_radius = 0.001);
 
     /// Get the list of nodes.
-    std::vector<std::shared_ptr<ChContactNodeXYZsphere>>& GetNodeList() { return m_nodes; }
+    std::vector<std::shared_ptr<ChContactNodeXYZsphere>>& GetNodes() { return m_nodes; }
 
     /// Get the list of nodes with rotational dofs.
-    std::vector<std::shared_ptr<ChContactNodeXYZROTsphere>>& GetNodeListRot() { return m_nodes_rot; }
+    std::vector<std::shared_ptr<ChContactNodeXYZROTsphere>>& GetNodesRot() { return m_nodes_rot; }
 
     /// Get the number of nodes.
     unsigned int GetNumNodes() const { return (unsigned int)m_nodes.size(); }

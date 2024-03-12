@@ -153,7 +153,7 @@ void ChElementBeamEuler::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.segment(9, 3) = delta_rot_angle * delta_rot_dir.eigen();
 }
 
-void ChElementBeamEuler::GetField_dt(ChVectorDynamic<>& mD_dt) {
+void ChElementBeamEuler::GetFieldDer(ChVectorDynamic<>& mD_dt) {
     mD_dt.resize(12);
 
     // Node 0, velocity (in local element frame, corotated back by A' )
@@ -726,7 +726,7 @@ void ChElementBeamEuler::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 
     // set up vector of nodal velocities (in local element system)
     ChVectorDynamic<> displ_dt(12);
-    this->GetField_dt(displ_dt);
+    this->GetFieldDer(displ_dt);
 
     // Rayleigh damping - stiffness proportional
     ChMatrixDynamic<> FiR_local = section->GetRayleighDampingBeta() * Km * displ_dt;

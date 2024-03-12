@@ -134,7 +134,7 @@ class ChApi ChElementBeamEuler : public ChElementBeam,
     /// For corotational elements, field is assumed in local reference!
     /// Give that this element includes rotations at nodes, this gives:
     ///  {v_a v_a v_a wx_a wy_a wz_a v_b v_b v_b wx_b wy_b wz_b}
-    void GetField_dt(ChVectorDynamic<>& mD_dt);
+    void GetFieldDer(ChVectorDynamic<>& mD_dt);
 
     /// Add contribution of element inertia to total nodal masses
     virtual void ComputeNodalMass() override;

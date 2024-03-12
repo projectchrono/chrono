@@ -294,7 +294,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateMeshProxy(unsigned int i) {
     // Create maps from pointer-based to index-based for the nodes in the mesh contact surface.
     // Note that here, the contact surface includes all faces in the geometry trimesh..
     int vertex_index = 0;
-    for (const auto& tri : surface->GetTriangleList()) {
+    for (const auto& tri : surface->GetTrianglesXYZ()) {
         if (proxy->ptr2ind_map.insert({tri->GetNode(0), vertex_index}).second) {
             proxy->ind2ptr_map.insert({vertex_index, tri->GetNode(0)});
             ++vertex_index;

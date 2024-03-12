@@ -413,12 +413,12 @@ class ChApi ChElasticityCosseratAdvancedGeneric : public ChElasticityCosserat {
     /// Sets the shear rigidity, for shear about Y axis, at shear center,
     /// usually A*G*(Timoshenko correction factor) for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetYshearRigidity(const double mv) { Hyy = mv; }
+    virtual void SetShearRigidityY(const double mv) { Hyy = mv; }
 
     /// Sets the shear rigidity, for shear about Z axis, at shear center,
     /// usually A*G*(Timoshenko correction factor) for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetZshearRigidity(const double mv) { Hzz = mv; }
+    virtual void SetShearRigidityZ(const double mv) { Hzz = mv; }
 
     /// Set the rotation in [rad]  of the Y Z axes for which the
     /// YbendingRigidity and ZbendingRigidity values are defined.
@@ -490,9 +490,9 @@ class ChApi ChElasticityCosseratAdvancedGenericFPM : public ChElasticityCosserat
     virtual ~ChElasticityCosseratAdvancedGenericFPM() {}
 
     /// Set the FPM section & material of beam element, giving the stiffness FPM directly.
-    virtual void SetEMatrix(const ChMatrix66d& mKlaw) { Klaw = mKlaw; }
+    virtual void SetStiffnessMatrix(const ChMatrix66d& mKlaw) { Klaw = mKlaw; }
     /// Get the stiffness FPM of section & material of beam element.
-    virtual ChMatrix66d& GetEMatrix() { return Klaw; }
+    virtual ChMatrix66d& GetStiffnessMatrix() { return Klaw; }
 
     /// Set the rotation in [rad]  of the Y Z axes for which the
     /// YbendingRigidity and ZbendingRigidity values are defined.
@@ -529,7 +529,7 @@ class ChApi ChElasticityCosseratAdvancedGenericFPM : public ChElasticityCosserat
     /// Need to update the material stiffness matrix Klaw
     /// after input section rotation and elastic center/shear center offset.
     /// This should be called by end user.
-    void UpdateEMatrix();
+    void UpdateStiffnessMatrix();
 
     /// Get the tranformation matrix of seciton, may be useful for debug
     virtual ChMatrix66d& GetTransformMatrix() { return this->T; }

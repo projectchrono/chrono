@@ -788,7 +788,7 @@ void ChVisualShapeFEA::UpdateBuffers_ContactSurfaceMesh(std::shared_ptr<ChContac
                                                         bool& need_automatic_smoothing) {
     auto msurface = std::static_pointer_cast<ChContactSurfaceMesh>(surface);
 
-    for (const auto& face : msurface->GetTriangleList()) {
+    for (const auto& face : msurface->GetTrianglesXYZ()) {
         unsigned int ivert_el = i_verts;
         unsigned int inorm_el = i_vnorms;
 
@@ -858,10 +858,10 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
         case DataType::CONTACTSURFACES:
             for (const auto& surface : FEMmesh->GetContactSurfaces()) {
                 if (auto msurface = std::dynamic_pointer_cast<ChContactSurfaceMesh>(surface)) {
-                    n_verts += 3 * msurface->GetTriangleList().size();
-                    n_vcols += 3 * msurface->GetTriangleList().size();
-                    n_vnorms += msurface->GetTriangleList().size();
-                    n_triangles += msurface->GetTriangleList().size();
+                    n_verts += 3 * msurface->GetTrianglesXYZ().size();
+                    n_vcols += 3 * msurface->GetTrianglesXYZ().size();
+                    n_vnorms += msurface->GetTrianglesXYZ().size();
+                    n_triangles += msurface->GetTrianglesXYZ().size();
                 }
                 //// TODO: other types of contact surfaces
             }

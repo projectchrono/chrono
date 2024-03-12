@@ -246,6 +246,11 @@ Note that this represents a major public API change and we expect most user code
 | ChBeamSectionShape                |                               |                                                  |
 |                                   | GetNofLines                   | rename: GetNumLines                              |
 |                                   | GetNofPoints                  | rename: GetNumPoints                             |
+| ChBeamSectionTimoshenkoAdvancedGeneric  |                         |                                                  |
+|                                   | GetYshearRigidity             | rename: GetShearRigidityY                        |
+|                                   | GetZshearRigidity             | rename: GetShearRigidityZ                        |
+|                                   | SetYshearRigidity             | rename: SetShearRigidityY                        |
+|                                   | SetZshearRigidity             | rename: SetShearRigidityZ                        |
 | ChBezierCurve                     |                               |                                                  |
 |                                   | calcClosestPoint              | rename: CalcClosestPoint                         |
 |                                   | eval                          | rename: Eval                                     |
@@ -314,8 +319,13 @@ Note that this represents a major public API change and we expect most user code
 |                                   | ContactableGetStateBlock_x    | rename: ContactableGetStateBlockPosLevel         |
 |                                   | ContactableGetStateBlock_w    | rename: ContactableGetStateBlockVelLevel         |
 |                                   | GetCsysForCollisionModel      | rename: GetCollisionModelFrame                   |
+| ChContactSurfaceMesh              |                               |                                                  |
+|                                   | GetTriangleList               | rename: GetTrianglesXYZ                          |
+|                                   | GetTriangleListRot            | rename: GetTrianglesXYZROT                       |
 | ChContactSurfaceNodeCloud         |                               |                                                  |
 |                                   | GetNnodesRot                  | rename: GetNumNodesRot                           |
+|                                   | GetNodeList                   | rename: GetNodes                                 |
+|                                   | GetNodeListRot                | rename: GetNodesRot                              |
 | ChContinuumElastic                |                               |                                                  |
 |                                   | Get_BulkModulus               | rename: GetBulkModulus                           |
 |                                   | Get_density                   | rename: GetDensity                               |
@@ -365,6 +375,10 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_ThermalKmatrix            | rename: GetConductivityMatrix                    |
 |                                   | SetThermalConductivityK       | rename: SetThermalConductivity                   |
 |                                   | SetMassSpecificHeatCapacity   | rename: SetSpecificHeatCapacity                  |
+| ChElasticityCosseratAdvancedGenericFPM |                          |                                                  |
+|                                   | GetEMatrix                    | rename: GetStiffnessMatrix                       |
+|                                   | SetEMatrix                    | rename: SetStiffnessMatrix                       |
+|                                   | UpdateEMatrix                 | rename: UpdateStiffnessMatrix                    |
 | ChElasticityKirchhoffIsothropic   |                               |                                                  |
 |                                   | Get_nu                        | rename: GetPoissonRatio                          |
 | ChElasticityKirchhoffOrthotropic  |                               |                                                  |
@@ -395,11 +409,16 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNodeNdofs                  | rename: GetNodeNumCoordsPosLevel                 |
 |                                   | GetNodeNdofs_active           | rename: GetNodeNumCoordsPosLevelActive           |
 |                                   | GetNnodes                     | rename: GetNumNodes                              |
+| ChElementBeamEuler                |                               |                                                  |
+|                                   | GetField_dt                   | rename: GetFieldDer                              |
+|                                   | GetField_dtdt                 | rename: GetFieldDer2                             |
 | ChElementShellANCF                |                               |                                                  |
 |                                   | Get_rho                       | rename: GetDensity                               |
 | ChElementShellBST                 |                               |                                                  |
 |                                   | Get_theta                     | rename: GetFiberAngle                            |
 |                                   | Get_thickness                 | rename: GetThickness                             |
+|                                   | GetNodeNeighbourN             | rename: GetNodeNeighbour                         |
+|                                   | GetNodeTriangleN              | rename: GetNodeMainTriangle                      |
 | ChElementSpring                   |                               |                                                  |
 |                                   | GetDamperR                    | rename: GetDampingCoefficient                    |
 |                                   | GetSpringK                    | rename: GetSpringCoefficient                     |

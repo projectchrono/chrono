@@ -234,8 +234,8 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     double GJ1 = this->sectionA->GetTorsionRigidityX();
     double EIyy1 = this->sectionA->GetBendingRigidityY();
     double EIzz1 = this->sectionA->GetBendingRigidityZ();
-    double GAyy1 = this->sectionA->GetYshearRigidity();
-    double GAzz1 = this->sectionA->GetZshearRigidity();
+    double GAyy1 = this->sectionA->GetShearRigidityY();
+    double GAzz1 = this->sectionA->GetShearRigidityZ();
     double alpha1 = this->sectionA->GetSectionRotation();
     double Cy1 = this->sectionA->GetCentroidY();
     double Cz1 = this->sectionA->GetCentroidZ();
@@ -273,8 +273,8 @@ void ChBeamSectionTaperedTimoshenkoAdvancedGeneric::ComputeAverageSectionParamet
     double GJ2 = this->sectionB->GetTorsionRigidityX();
     double EIyy2 = this->sectionB->GetBendingRigidityY();
     double EIzz2 = this->sectionB->GetBendingRigidityZ();
-    double GAyy2 = this->sectionB->GetYshearRigidity();
-    double GAzz2 = this->sectionB->GetZshearRigidity();
+    double GAyy2 = this->sectionB->GetShearRigidityY();
+    double GAzz2 = this->sectionB->GetShearRigidityZ();
     double alpha2 = this->sectionB->GetSectionRotation();
     double Cy2 = this->sectionB->GetCentroidY();
     double Cz2 = this->sectionB->GetCentroidZ();

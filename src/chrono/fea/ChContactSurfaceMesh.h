@@ -505,10 +505,10 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     void ConstructFromTrimesh(std::shared_ptr<ChTriangleMeshConnected> trimesh, double sphere_swept = 0.0);
 
     /// Get the list of triangles.
-    std::vector<std::shared_ptr<ChContactTriangleXYZ>>& GetTriangleList() { return m_faces; }
+    std::vector<std::shared_ptr<ChContactTriangleXYZ>>& GetTrianglesXYZ() { return m_faces; }
 
     /// Get the list of triangles for nodes with rotational dofs.
-    std::vector<std::shared_ptr<ChContactTriangleXYZROT>>& GetTriangleListRot() { return m_faces_rot; }
+    std::vector<std::shared_ptr<ChContactTriangleXYZROT>>& GetTrianglesXYZROT() { return m_faces_rot; }
 
     /// Get the number of triangles.
     unsigned int GetNumTriangles() const { return (unsigned int)(m_faces.size() + m_faces_rot.size()); }

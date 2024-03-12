@@ -45,7 +45,7 @@ void ChLoadContactSurfaceMesh::InputSimpleForces(const std::vector<ChVector3d>& 
         std::map<ChNodeFEAxyz*, int> ptr_ind_map;                  // map from pointer-based mesh to index-based mesh
         std::map<int, std::shared_ptr<ChNodeFEAxyz>> ind_ptr_map;  // map from index-based mesh to pointer-based mesh
 
-        for (const auto& tri : m_contact_mesh->GetTriangleList()) {
+        for (const auto& tri : m_contact_mesh->GetTrianglesXYZ()) {
             if (ptr_ind_map.insert({tri->GetNode(0).get(), vertex_index}).second) {
                 ind_ptr_map.insert({vertex_index, tri->GetNode(0)});
                 ++vertex_index;
@@ -74,7 +74,7 @@ void ChLoadContactSurfaceMesh::InputSimpleForces(const std::vector<ChVector3d>& 
         std::map<ChNodeFEAxyzrot*, int> ptr_ind_map;                  // map from pointer-based mesh to index-based mesh
         std::map<int, std::shared_ptr<ChNodeFEAxyzrot>> ind_ptr_map;  // map from index-based mesh to pointer-based mesh
 
-        for (const auto& tri : m_contact_mesh->GetTriangleListRot()) {
+        for (const auto& tri : m_contact_mesh->GetTrianglesXYZROT()) {
             if (ptr_ind_map.insert({tri->GetNode(0).get(), vertex_index}).second) {
                 ind_ptr_map.insert({vertex_index, tri->GetNode(0)});
                 ++vertex_index;

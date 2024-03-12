@@ -155,13 +155,13 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     /// ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized. For corotational elements,
     /// field is assumed in local reference! Give that this element includes rotations at nodes, this gives:
     ///  {v_a v_a v_a wx_a wy_a wz_a v_b v_b v_b wx_b wy_b wz_b}
-    void GetField_dt(ChVectorDynamic<>& mD_dt);
+    void GetFieldDer(ChVectorDynamic<>& mD_dt);
 
     /// Fills the Ddtdt vector with the current time derivatives of field values at the nodes of the element, with
     /// proper ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized. For corotational
     /// elements, field is assumed in local reference! Give that this element includes rotations at nodes, this gives:
     ///  {acc_a acc_a acc_a accx_a accy_a accz_a acc_b acc_b acc_b accx_b accy_b accz_b}
-    void GetField_dtdt(ChVectorDynamic<>& mD_dtdt);
+    void GetFieldDer2(ChVectorDynamic<>& mD_dtdt);
 
     /// Add contribution of element inertia to total nodal masses
     virtual void ComputeNodalMass() override;

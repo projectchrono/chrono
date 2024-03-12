@@ -304,7 +304,7 @@ void ChElementBeamTaperedTimoshenko::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.segment(9, 3) = delta_rot_angle * delta_rot_dir.eigen();
 }
 
-void ChElementBeamTaperedTimoshenko::GetField_dt(ChVectorDynamic<>& mD_dt) {
+void ChElementBeamTaperedTimoshenko::GetFieldDer(ChVectorDynamic<>& mD_dt) {
     mD_dt.resize(12);
 
     // Node 0, velocity (in local element frame, corotated back by A' )
@@ -320,7 +320,7 @@ void ChElementBeamTaperedTimoshenko::GetField_dt(ChVectorDynamic<>& mD_dt) {
     mD_dt.segment(9, 3) = q_element_abs_rot.RotateBack(nodes[1]->Frame().GetAngVelParent()).eigen();
 }
 
-void ChElementBeamTaperedTimoshenko::GetField_dtdt(ChVectorDynamic<>& mD_dtdt) {
+void ChElementBeamTaperedTimoshenko::GetFieldDer2(ChVectorDynamic<>& mD_dtdt) {
     mD_dtdt.resize(12);
 
     // Node 0, accelaration (in local element frame, corotated back by A' )
@@ -1158,7 +1158,7 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
 
     // set up vector of nodal velocities (in local element system)
     ChVectorDynamic<> displ_dt(12);
-    this->GetField_dt(displ_dt);
+    this->GetFieldDer(displ_dt);
 
     // ChMatrixDynamic<> FiR_local = this->tapered_section->GetRayleighDamping() * this->Km * displ_dt;
     ChMatrixDynamic<> FiR_local = this->Rm * displ_dt;
@@ -1230,7 +1230,7 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
     if (Mfactor && true) {
         // set up vector of nodal accelerations (in local element system)
         ChVectorDynamic<> displ_dtdt(12);
-        this->GetField_dtdt(displ_dtdt);
+        this->GetFieldDer2(displ_dtdt);
 
         ChVectorDynamic<> FiM_local = this->M * displ_dtdt;  // this->M is the local mass matrix of element
         FiMKR_local -= FiM_local;
@@ -1248,7 +1248,7 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
     if (Rfactor) {
         // set up vector of nodal velocities (in local element system)
         ChVectorDynamic<> displ_dt(12);
-        this->GetField_dt(displ_dt);
+        this->GetFieldDer(displ_dt);
 
         // ChMatrixDynamic<> FiR_local = this->tapered_section->GetRayleighDamping() * this->Km * displ_dt;
         ChMatrixDynamic<> FiR_local = this->Rm * displ_dt;
@@ -1281,7 +1281,7 @@ void ChElementBeamTaperedTimoshenko::ComputeInternalForces(ChVectorDynamic<>& Fi
     //    displ_dtdt.segment(6, 3) = nodes[1]->Frame().GetPosDer2().eigen();
     //    // displ_dtdt.segment(9, 3) = nodes[1]->Frame().GetAngAccParent().eigen();
     //    displ_dtdt.segment(9, 3) = nodes[1]->Frame().GetAngAccLocal().eigen();
-    //    // this->GetField_dtdt(displ_dtdt);
+    //    // this->GetFieldDer2(displ_dtdt);
 
     //    ChMatrixDynamic<> Mabs(12, 12);
     //    Mabs.setZero();
@@ -1607,7 +1607,7 @@ void ChElementBeamTaperedTimoshenko::EvaluateElementDampingEnergy(ChVector3d& Da
     ChVectorDynamic<> displ(this->GetNumCoordsPosLevel());
     this->GetStateBlock(displ);
     ChVectorDynamic<> displ_dt(this->GetNumCoordsPosLevel());
-    this->GetField_dt(displ_dt);
+    this->GetFieldDer(displ_dt);
 
     ChVectorN<double, 12> damping_energy = 1.0 / 2.0 * displ.asDiagonal() * this->Rm * displ_dt;
     ChVectorN<double, 6> damping_energy_v;

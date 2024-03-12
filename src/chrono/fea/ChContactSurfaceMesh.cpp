@@ -809,9 +809,9 @@ void ChContactSurfaceMesh::AddFacesFromBoundary(double sphere_swept, bool ccw) {
     // Skin of BST shells
     for (unsigned int ie = 0; ie < mesh->GetNumElements(); ++ie) {
         if (auto mshell = std::dynamic_pointer_cast<ChElementShellBST>(mesh->GetElement(ie))) {
-            auto n0 = mshell->GetNodeTriangleN(0);
-            auto n1 = mshell->GetNodeTriangleN(1);
-            auto n2 = mshell->GetNodeTriangleN(2);
+            auto n0 = mshell->GetNodeMainTriangle(0);
+            auto n1 = mshell->GetNodeMainTriangle(1);
+            auto n2 = mshell->GetNodeMainTriangle(2);
             if (ccw) {
                 triangles_ptrs.push_back({{n0, n1, n2}});
             } else {

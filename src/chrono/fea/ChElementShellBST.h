@@ -128,14 +128,14 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
     virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return 3; }
 
 
-    /// Access the n-th node of this element, not considering those marked with "nullptr" ex. if at boundary
+    /// Access the n-th node of this element, not considering those marked with "nullptr" ex. if at boundary n=0..5
     virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return m_nodes[nodes_used_to_six[n]]; }
 
     /// Get a handle to the n node of this element, among the three of the triangle part, n=0..2
-    std::shared_ptr<ChNodeFEAxyz> GetNodeTriangleN(unsigned int n) const { return m_nodes[n]; }
+    std::shared_ptr<ChNodeFEAxyz> GetNodeMainTriangle(unsigned int n) const { return m_nodes[n]; }
 
 	/// Get a handle to the n node from the three of the neighbouring triangles, n=0..2.  Even if nullptr.
-    std::shared_ptr<ChNodeFEAxyz> GetNodeNeighbourN(unsigned int n) const { return m_nodes[3+n]; }
+    std::shared_ptr<ChNodeFEAxyz> GetNodeNeighbour(unsigned int n) const { return m_nodes[3+n]; }
 
     /// Sets the neutral rotations of nodes at once,
     /// assuming the current element position is for zero strain.
