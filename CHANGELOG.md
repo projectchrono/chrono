@@ -1004,6 +1004,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 |                                   | GetUseSleeping                | rename: IsSleepingAllowed                        |
 |                                   | SetUseSleeping                | rename: SetSleepingAllowed                       |
+| ChShaftMotor                      |                               |                                                  |
+|                                   | SetMotorRot                   | rename: SetMotorAngle                            |
+|                                   | SetMotorRot_dt                | rename: SetMotorAngleDer                         |
 | ChSolverBB                        |                               |                                                  |
 |                                   | GetMaxArmijoBacktrace         | rename: GetMaxStepsArmijoBacktrace               |
 |                                   | GetNarmijo                    | rename: GetMaxStepsArmijoLineSearch              |

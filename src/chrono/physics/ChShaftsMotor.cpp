@@ -49,7 +49,7 @@ void ChShaftsMotorBase::ArchiveIn(ChArchiveIn& archive_in) {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChShaftsMotor)
 
-ChShaftsMotor::ChShaftsMotor() : motor_torque(0), motor_set_rot(0), motor_set_rot_dt(0), motor_mode(MOT_MODE_TORQUE) {}
+ChShaftsMotor::ChShaftsMotor() : motor_torque(0), motor_set_rot(0), motor_set_rot_dt(0), motor_mode(Mode::TORQUE) {}
 
 ChShaftsMotor::ChShaftsMotor(const ChShaftsMotor& other) : ChShaftsMotorBase(other) {
     motor_torque = other.motor_torque;
@@ -84,12 +84,12 @@ void ChShaftsMotor::Update(double mytime, bool update_assets) {
 //// STATE BOOKKEEPING FUNCTIONS
 
 void ChShaftsMotor::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    if (motor_mode != MOT_MODE_TORQUE)
+    if (motor_mode != Mode::TORQUE)
         L(off_L) =  motor_torque;
 }
 
 void ChShaftsMotor::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    if (motor_mode != MOT_MODE_TORQUE)
+    if (motor_mode != Mode::TORQUE)
         motor_torque =  L(off_L);
 }
 
@@ -97,7 +97,7 @@ void ChShaftsMotor::IntLoadResidual_F(const unsigned int off,  // offset in R re
                                       ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                       const double c           // a scaling factor
                                       ) {
-    if (motor_mode == MOT_MODE_TORQUE) {
+    if (motor_mode == Mode::TORQUE) {
         if (shaft1->IsActive())
             R(shaft1->GetOffset_w()) += motor_torque * c;
         if (shaft2->IsActive())
@@ -110,7 +110,7 @@ void ChShaftsMotor::IntLoadResidual_CqL(const unsigned int off_L,    // offset i
                                         const ChVectorDynamic<>& L,  // the L vector
                                         const double c               // a scaling factor
                                         ) {
-    if (motor_mode != MOT_MODE_TORQUE)
+    if (motor_mode != Mode::TORQUE)
         constraint.MultiplyTandAdd(R, L(off_L) * c);
 }
 
@@ -120,13 +120,13 @@ void ChShaftsMotor::IntLoadConstraint_C(const unsigned int off_L,  // offset in 
                                         bool do_clamp,             // apply clamping to c*C?
                                         double recovery_clamp      // value for min/max clamping of c*C
                                         ) {
-    if (motor_mode != MOT_MODE_TORQUE) {
+    if (motor_mode != Mode::TORQUE) {
         double res = 0;
 
-        if (motor_mode == MOT_MODE_SPEED)
+        if (motor_mode == Mode::SPEED)
             res = 0;  // no need to stabilize positions
 
-        if (motor_mode == MOT_MODE_ROTATION)
+        if (motor_mode == Mode::ANGLE)
             res = c * (GetMotorAngle() - motor_set_rot);
 
         if (do_clamp) {
@@ -141,7 +141,7 @@ void ChShaftsMotor::IntLoadConstraint_Ct(const unsigned int off_L,  // offset in
                                          ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*Ct
                                          const double c             // a scaling factor
                                          ) {
-    if (motor_mode == MOT_MODE_SPEED) {
+    if (motor_mode == Mode::SPEED) {
         double ct = - motor_set_rot_dt;
         Qc(off_L) += c * ct;
     }
@@ -153,7 +153,7 @@ void ChShaftsMotor::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                                     const unsigned int off_L,  // offset in L, Qc
                                     const ChVectorDynamic<>& L,
                                     const ChVectorDynamic<>& Qc) {
-    if (motor_mode != MOT_MODE_TORQUE) {
+    if (motor_mode != Mode::TORQUE) {
         constraint.Set_l_i(L(off_L));
 
         constraint.Set_b_i(Qc(off_L));
@@ -164,7 +164,7 @@ void ChShaftsMotor::IntFromDescriptor(const unsigned int off_v,  // offset in v
                                       ChStateDelta& v,
                                       const unsigned int off_L,  // offset in L
                                       ChVectorDynamic<>& L) {
-    if (motor_mode != MOT_MODE_TORQUE) {
+    if (motor_mode != Mode::TORQUE) {
         L(off_L) = constraint.Get_l_i();
     }
 }
@@ -174,25 +174,25 @@ void ChShaftsMotor::IntFromDescriptor(const unsigned int off_v,  // offset in v
 void ChShaftsMotor::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // if (!IsActive())
     //	return;
-    if (motor_mode != MOT_MODE_TORQUE)
+    if (motor_mode != Mode::TORQUE)
         mdescriptor.InsertConstraint(&constraint);
 }
 
 void ChShaftsMotor::ConstraintsBiReset() {
-    if (motor_mode != MOT_MODE_TORQUE)
+    if (motor_mode != Mode::TORQUE)
         constraint.Set_b_i(0.);
 }
 
 void ChShaftsMotor::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
     // if (!IsActive())
     //	return;
-    if (motor_mode != MOT_MODE_TORQUE) {
+    if (motor_mode != Mode::TORQUE) {
         double res = 0;
 
-        if (motor_mode == MOT_MODE_SPEED)
+        if (motor_mode == Mode::SPEED)
             res = 0;  // no need to stabilize positions
 
-        if (motor_mode == MOT_MODE_ROTATION)
+        if (motor_mode == Mode::ANGLE)
             res = GetMotorAngle() - motor_set_rot;
 
         constraint.Set_b_i(constraint.Get_b_i() + factor * res);
@@ -203,21 +203,21 @@ void ChShaftsMotor::ConstraintsBiLoad_Ct(double factor) {
     // if (!IsActive())
     //	return;
 
-    if (motor_mode == MOT_MODE_SPEED) {
+    if (motor_mode == Mode::SPEED) {
         double ct = - motor_set_rot_dt;
         constraint.Set_b_i(constraint.Get_b_i() + factor * ct);
     }
 }
 
 void ChShaftsMotor::ConstraintsFbLoadForces(double factor) {
-    if (motor_mode == MOT_MODE_TORQUE) {
+    if (motor_mode == Mode::TORQUE) {
         shaft1->Variables().Get_fb()(0) += motor_torque * factor;
         shaft2->Variables().Get_fb()(0) += -motor_torque * factor;
     }
 }
 
 void ChShaftsMotor::ConstraintsLoadJacobians() {
-    if (motor_mode != MOT_MODE_TORQUE) {
+    if (motor_mode != Mode::TORQUE) {
         constraint.Get_Cq_a()(0) = 1;
         constraint.Get_Cq_b()(0) = -1;
     }
@@ -225,7 +225,7 @@ void ChShaftsMotor::ConstraintsLoadJacobians() {
 
 void ChShaftsMotor::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    if (motor_mode != MOT_MODE_TORQUE)
+    if (motor_mode != Mode::TORQUE)
         motor_torque = - constraint.Get_l_i() * factor;
 }
 
@@ -235,11 +235,11 @@ void ChShaftsMotor::ConstraintsFetch_react(double factor) {
 // enclose macros in local 'ChShaftsMotor_Mode_enum_mapper', just to avoid avoiding cluttering of the parent class.
 class ChShaftsMotor_Mode_enum_mapper : public ChShaftsMotor {
   public:
-    CH_ENUM_MAPPER_BEGIN(eCh_shaftsmotor_mode);
-    CH_ENUM_VAL(MOT_MODE_ROTATION);
-    CH_ENUM_VAL(MOT_MODE_SPEED);
-    CH_ENUM_VAL(MOT_MODE_TORQUE);
-    CH_ENUM_MAPPER_END(eCh_shaftsmotor_mode);
+    CH_ENUM_MAPPER_BEGIN(Mode);
+    CH_ENUM_VAL(Mode::ANGLE);
+    CH_ENUM_VAL(Mode::SPEED);
+    CH_ENUM_VAL(Mode::TORQUE);
+    CH_ENUM_MAPPER_END(Mode);
 };
 
 void ChShaftsMotor::ArchiveOut(ChArchiveOut& archive_out) {
@@ -250,7 +250,7 @@ void ChShaftsMotor::ArchiveOut(ChArchiveOut& archive_out) {
     ChShaftsMotorBase::ArchiveOut(archive_out);
 
     // serialize all member data:
-    ChShaftsMotor_Mode_enum_mapper::eCh_shaftsmotor_mode_mapper mmapper;
+    ChShaftsMotor_Mode_enum_mapper::Mode_mapper mmapper;
     archive_out << CHNVP(mmapper(motor_mode), "motor_mode");
     archive_out << CHNVP(motor_torque);
     archive_out << CHNVP(motor_set_rot);
@@ -266,7 +266,7 @@ void ChShaftsMotor::ArchiveIn(ChArchiveIn& archive_in) {
     ChShaftsMotorBase::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    ChShaftsMotor_Mode_enum_mapper::eCh_shaftsmotor_mode_mapper mmapper;
+    ChShaftsMotor_Mode_enum_mapper::Mode_mapper mmapper;
     archive_in >> CHNVP(mmapper(motor_mode), "motor_mode");
     archive_in >> CHNVP(motor_torque);
     archive_in >> CHNVP(motor_set_rot);

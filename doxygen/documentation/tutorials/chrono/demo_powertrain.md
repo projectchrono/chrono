@@ -247,8 +247,8 @@ the torque converter. Note that the thermal engine also
 requires shaft D, which is used to transmit the
 reaction torque back to a truss (the motor block).
 
-**Option A**: use a ChShaftsMotor in MOT_MODE_TORQUE mode.
-It works, but most often this is more useful when in MOT_MODE_SPEED.
+**Option A**: use a ChShaftsMotor in TORQUE mode.
+It works, but most often this is more useful when in SPEED.
 
 \skip auto my_motor = chrono_types::make_shared<ChShaftsMotor>();
 \until my_system.Add(my_motor);

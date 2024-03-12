@@ -439,12 +439,12 @@ int main(int argc, char* argv[]) {
         // requires another shaft D, that is used to transmit the
         // reaction torque back to a truss (the motor block).
 
-        // Option A: use a ChShaftsMotor, in the MOT_MODE_TORQUE mode.
-        //  It works, but most often this is more useful when in MOT_MODE_SPEED.
+        // Option A: use a ChShaftsMotor, in the TORQUE mode.
+        //  It works, but most often this is more useful when in SPEED.
         /*
         auto my_motor = chrono_types::make_shared<ChShaftsMotor>();
         my_motor->Initialize(my_shaftA, my_shaftD);
-        my_motor->SetMotorMode(ChShaftsMotor::MOT_MODE_TORQUE);
+        my_motor->SetMotorMode(ChShaftsMotor::TORQUE);
         my_motor->SetMotorTorque(30);
         sys.Add(my_motor);
         */
