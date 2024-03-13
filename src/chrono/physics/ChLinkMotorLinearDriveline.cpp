@@ -22,7 +22,8 @@ CH_FACTORY_REGISTER(ChLinkMotorLinearDriveline)
 
 ChLinkMotorLinearDriveline::ChLinkMotorLinearDriveline() {
     
-    this->c_x = false;
+    // the constraint along Z axis is guaranteed by the auxiliary ChShaftsBody constraints
+    this->c_z = false;
     SetupLinkMask();
 
     innershaft1lin = chrono_types::make_shared<ChShaft>();
@@ -31,7 +32,7 @@ ChLinkMotorLinearDriveline::ChLinkMotorLinearDriveline() {
     innerconstraint1lin = chrono_types::make_shared<ChShaftsBodyTranslation>();
     innerconstraint2lin = chrono_types::make_shared<ChShaftsBodyTranslation>(); 
     innerconstraint2rot = chrono_types::make_shared<ChShaftsBody>(); 
-    shaft2_rotation_dir = VECT_X;
+    shaft2_rotation_dir = VECT_Z;
 }
 
 ChLinkMotorLinearDriveline::ChLinkMotorLinearDriveline(const ChLinkMotorLinearDriveline& other) : ChLinkMotorLinear(other) {
@@ -58,9 +59,9 @@ void ChLinkMotorLinearDriveline::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
                                             ChFrame<> mframe1,
                                             ChFrame<> mframe2) {
     ChLinkMotorLinear::Initialize(mbody1, mbody2, pos_are_relative, mframe1, mframe2);
-    innerconstraint1lin->Initialize(innershaft1lin, mbody1, VECT_X, VNULL);
-    innerconstraint2lin->Initialize(innershaft2lin, mbody2, VECT_X, VNULL);
-    innerconstraint2rot->Initialize(innershaft2rot, mbody2, VECT_X);
+    innerconstraint1lin->Initialize(innershaft1lin, mbody1, VECT_Z, VNULL);
+    innerconstraint2lin->Initialize(innershaft2lin, mbody2, VECT_Z, VNULL);
+    innerconstraint2rot->Initialize(innershaft2rot, mbody2, VECT_Z);
 }
 
 void ChLinkMotorLinearDriveline::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
@@ -71,9 +72,9 @@ void ChLinkMotorLinearDriveline::Initialize(std::shared_ptr<ChBodyFrame> mbody1,
                                             const ChVector3d& mnorm1,
                                             const ChVector3d& mnorm2) {
     ChLinkMotorLinear::Initialize(mbody1, mbody2, pos_are_relative, mpt1, mpt2, mnorm1, mnorm2);
-    innerconstraint1lin->Initialize(innershaft1lin, mbody1, VECT_X, VNULL);
-    innerconstraint2lin->Initialize(innershaft2lin, mbody2, VECT_X, VNULL);
-    innerconstraint2rot->Initialize(innershaft2rot, mbody2, VECT_X);
+    innerconstraint1lin->Initialize(innershaft1lin, mbody1, VECT_Z, VNULL);
+    innerconstraint2lin->Initialize(innershaft2lin, mbody2, VECT_Z, VNULL);
+    innerconstraint2rot->Initialize(innershaft2rot, mbody2, VECT_Z);
 }
 
 void ChLinkMotorLinearDriveline::Setup() {
@@ -100,7 +101,7 @@ void ChLinkMotorLinearDriveline::Update(double mytime, bool update_assets) {
     ChLinkMotorLinear::Update(mytime, update_assets);
 
     // Update the direction of 1D-3D ChShaftBody constraints:
-    ChVector3d abs_shaftdir = this->GetFrame2Abs().TransformDirectionLocalToParent(VECT_X);
+    ChVector3d abs_shaftdir = this->GetFrame2Abs().TransformDirectionLocalToParent(VECT_Z);
     ChVector3d shaftdir_b1 = this->m_body1->TransformDirectionParentToLocal(abs_shaftdir);
     ChVector3d shaftdir_b2 = this->m_body2->TransformDirectionParentToLocal(abs_shaftdir);
     ChVector3d shaftpos_b1 = this->m_body1->TransformPointParentToLocal(this->GetFrame2Abs().GetCoordsys().pos);

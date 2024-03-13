@@ -23,26 +23,34 @@
 namespace chrono {
 
 
-/// This is an "interface" from 3D to a powertrain/powertrain that is modeled via
-/// 1D elements such as ChShaft, ChShaftsMotor, ChShaftsGearbox, ChShaftsClutch, etc. 
+/// Couples the relative translation of two bodies (along Z direction of the link frames) with the rotation of a 1D shaft.
 ///
-/// This is the most avanced type of "linear motor" because using many of those 1D
-/// elements one can build very complex drivelines, for example use
-/// this ChLinkMotorLinearDriveline to represent a drive+reducer,
-/// where usually the drive moves a recirculating screw or a pulley or a rack-pinion.
-/// Hence this takes into account of the inertia of the motor shaft (as in
-/// many cases of robotic actuators, that has electric drives+reducers.)
-/// At the same time, using 1D elements avoids the unnecessary complication 
-/// of using complete 3D parts to make screws, spindles, 3D rack-pinions, etc. 
+/// This link adds three additional ChShaft objects:
+/// - two of them on Body 2, representing a rotational (Shaft2Rot) and a translational (Shfat2Lin) inertia.
+/// - one ChShaft object to Body 1, representing a translational inertia (Shaft1Lin).
+/// Each _translational_ shaft is connected to the Z degree of freedom of its body (through a ChShaftsBodyTranslation).
+/// The _rotational_ shaft is connected to Body 2 (through a ChShaftsBody) along a direction (default: Z axis) that can
+/// be later set through ::SetInnerShaft2RotDirection(). Any action applied to the shafts is then reflected back to the
+/// respective bodies along their given directions.
 ///
-/// The 1D driveline is "interfaced" to the two connected three-dimensional
-/// parts using two "inner" 1D shafts, each connected to 3D part translation;
-/// it is up to the user to build the driveline that connects those two shafts.
+///                  [************ ChLinkMotorLinearDriveline ********]
+///     [ Body2 ]----[----(ChShaftsBody)---------------[Shaft2Rot]----]---->
+///     [ Body2 ]----[----(ChShaftsBodyTranslation)----[Shaft2Lin]----]---->
+///     [ Body1 ]----[----(ChShaftsBodyTranslation)----[Shaft1Lin]----]---->
+
+/// Typical usage is to model a linear actuator between two 3D bodies by taking into account also the actuator driveline
+/// (e.g. inertia, friction, ...).
 ///
-/// Most often the driveline is a graph starting at inner shaft 2 (consider 
-/// it to be the truss for holding the motor drive, also the support for reducers 
-/// if any) and ending at inner shaft 1 (consider it to be the output, i.e. the 
-/// slow-moving slider).
+///                  [************ ChLinkMotorLinearDriveline ********]
+///     [ Body2 ]----[----(ChShaftsBody)---------------[Shaft2Rot]----]--->
+///     [ Body2 ]----[----(ChShaftsBodyTranslation)----[Shaft2Lin]----]--->
+///     [ Body1 ]----[----(ChShaftsBodyTranslation)----[Shaft1Lin]----]--->
+///
+///                                        [***** ChShaftsPlanetary *****]
+///     >-[ChShaftsMotor]----[ChShaft] -----[----[shaft2]                 ]
+///     >-----------------------------------[----[shaft1]                 ]
+///     >-----------------------------------[----[shaft3]                 ]
+///     
 
 class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
 
@@ -69,26 +77,26 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
 		innershaft2rot->SetSystem(m_system);
 	}
 
-    /// Access the inner 1D shaft connected to the translation of body1 about dir of linear guide.
+    /// Access the inner 1D shaft connected to the translation of body 1 about dir of linear guide.
     /// The shaft can be connected to other shafts with ChShaftsMotor or similar items.
     std::shared_ptr<ChShaft> GetInnerShaft1Lin() const { return innershaft1lin; }
 
-    /// Access the inner 1D shaft connected to the translation of body2 about dir of linear guide.
+    /// Access the inner 1D shaft connected to the translation of body 2 about dir of linear guide.
     /// The shaft can be connected to other shafts with ChShaftsMotor or similar items.
     std::shared_ptr<ChShaft> GetInnerShaft2Lin() const { return innershaft2lin; }
 
-    /// Access the inner 1D shaft connected to the rotation of body2 about dir of linear guide.
+    /// Access the inner 1D shaft connected to the rotation of body 2 about dir of linear guide.
     /// This is needed because one might need to design a driveline with rotational 1D components
     /// such as ChShaftsMotor, that require an anchoring to a rotational shaft.
     /// The shaft can be connected to other shafts with ChShaftsMotor or similar items.
     std::shared_ptr<ChShaft> GetInnerShaft2Rot() const { return innershaft2rot; }
 
-    /// Set the direction of the inner rotation axis for body2, expressed in link coordinates 
-    /// Default is VECT_X, same dir of guide, i.e. useful when anchoring drives with screw transmission.
+    /// Set the direction of the inner rotation axis for body 2, expressed in link coordinates 
+    /// Default is VECT_Z, same dir of guide, i.e. useful when anchoring drives with screw transmission.
     void SetInnerShaft2RotDirection(ChVector3d md) { shaft2_rotation_dir = md; }
 
-    /// Get the direction of the inner rotation axis for body2, expressed in link coordinates 
-    /// Default is VECT_X, same dir of guide, i.e. useful when anchoring drives with screw transmission.
+    /// Get the direction of the inner rotation axis for body 2, expressed in link coordinates 
+    /// Default is VECT_Z, same dir of guide, i.e. useful when anchoring drives with screw transmission.
     ChVector3d GetInnerShaft2RotDirection() const { return shaft2_rotation_dir; }
 
 
@@ -123,7 +131,7 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
                             ) override;
 
     /// Specialized initialization for LinkMotorLinearDriveline based on passing two vectors (point + dir) on the two
-    /// bodies, which will represent the X axes of the two frames (Y and Z will be built from the X vector via Gram
+    /// bodies, which will represent the Z axes of the two frames (X and Y will be built from the Z vector via Gram
     /// Schmidt orthonormalization).
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link

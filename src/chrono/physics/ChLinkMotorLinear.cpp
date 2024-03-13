@@ -22,6 +22,9 @@ namespace chrono {
 ChLinkMotorLinear::ChLinkMotorLinear() : m_actuated_idx(0) {
     this->SetGuideConstraint(GuideConstraint::PRISMATIC);
 
+    // DEVELOPER NOTES: c_z flag should be set by derived classes according to the type of constraint
+    //                  e.g. force constraints has c_z=false since no proper constraint should be added
+
     mpos = 0;
     mpos_dt = 0;
     mpos_dtdt = 0;

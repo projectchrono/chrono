@@ -23,7 +23,10 @@ ChLinkMotorLinearSpeed::ChLinkMotorLinearSpeed() {
     variable.GetMass()(0, 0) = 1.0;
     variable.GetInvMass()(0, 0) = 1.0;
 
-    m_func = chrono_types::make_shared<ChFunctionConst>(1.0);
+    this->c_z = true;
+    SetupLinkMask();
+
+    m_func = chrono_types::make_shared<ChFunctionConst>(0.0);
 
     pos_offset = 0;
 

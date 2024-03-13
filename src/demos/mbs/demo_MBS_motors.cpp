@@ -616,6 +616,17 @@ int main(int argc, char* argv[]) {
     // drive+screw; you will anchor the drive to part 2 using this rotational shaft; so
     // reaction torques arising because of inner flywheel accelerations can be transmitted to this shaft.
 
+
+    //               [************ motor5 ********]
+    //  [ guide5  ]----[----(ChShaftsBody)---------------[Shaft2Rot]----]--->
+    //  [ guide5  ]----[----(ChShaftsBodyTranslation)----[Shaft2Lin]----]--->
+    //  [ slider5 ]----[----(ChShaftsBodyTranslation)----[Shaft1Lin]----]--->
+    //
+    //                                     [***** my_rackpinion *****]
+    //  >-[my_driveli]----[my_shaftB] -----[----[shaft2]             ]
+    //  >----------------------------------[----[shaft1]             ]
+    //  >----------------------------------[----[shaft3]             ]
+
     ChVector3d positionB5(0, 0, 1);
     std::shared_ptr<ChBody> guide5;
     std::shared_ptr<ChBody> slider5;
@@ -627,7 +638,7 @@ int main(int argc, char* argv[]) {
     // Connect the rotor and the stator and add the motor to the system:
     motor5->Initialize(slider5,               // body A (slave)
                        guide5,                // body B (master)
-                       ChFrame<>(positionB5)  // motor frame, in abs. coords
+                       ChFrame<>(positionB5, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor5);
 
@@ -639,38 +650,14 @@ int main(int argc, char* argv[]) {
     motor5->GetInnerShaft2Lin()->SetInertia(3.0);  // [kg]
     motor5->GetInnerShaft2Rot()->SetInertia(0.8);  // [kg/m^2]
 
-    // Now create the driveline. We want to model a drive+reducer sytem.
-    // This driveline must connect "inner shafts" of s1 and s2, where:
-    //  s1, is the 3D "slider5" part B (ex. a gantry robot gripper) and
-    //  s2, is the 3D "guide5"  part A (ex. a gantry robot base).
-    // In the following scheme, the motor is [ DRIVE ], the reducer is [ RACKPINION ],
-    // the shafts ( shown with symbol || to mean inertia) are:
-    //  S1: the 1D inner shaft for s1 robot arm (already present in ChLinkMotorLinearDriveline)
-    //  S2: the 1D inner shaft for s2 robot base (already present in ChLinkMotorLinearDriveline)
-    //  B : the shaft of the electric drive
-    // Note that s1 and s2 are translational degrees of freedom, differently
-    // from ChLinkMotorLinearDriveline.
-    //
-    //     S2rot              B                      S1lin
-    //    <--||---[ DRIVE ]---||-----[ RACKPINION ]----||--> 3d
-    // 3d <                          [            ]          s1
-    // s2 < S2lin                    [            ]
-    //    <--||----------------------[            ]
-    //
+    // Tell the motor that the inner shaft 'Shaft2Rot' is along Y, orthogonal to
+    // the Z direction of the guide (default was Z, as for screw actuators)
 
-    // Tell the motor that the inner shaft  'S2rot' is Z, orthogonal to
-    // the X direction of the guide (default was X, as for screw actuators)
-
-    motor5->SetInnerShaft2RotDirection(VECT_Z);  // in link coordinates
-
-    // Create 'B', a 1D shaft. This is the shaft of the electric drive, representing its inertia.
+    motor5->SetInnerShaft2RotDirection(VECT_Y);  // in link coordinates
 
     auto my_shaftB = chrono_types::make_shared<ChShaft>();
     my_shaftB->SetInertia(0.33);  // [kg/m^2]
     sys.AddShaft(my_shaftB);
-
-    // Create 'DRIVE', the hispeed motor - as a simple example use a 'imposed speed' motor: this
-    // is the equivalent of the ChLinkMotorRotationAngle, but for 1D elements:
 
     auto my_driveli = chrono_types::make_shared<ChShaftsMotorAngle>();
     my_driveli->Initialize(my_shaftB,                   // B    , the rotor of the drive
@@ -694,12 +681,6 @@ int main(int argc, char* argv[]) {
     auto my_functangle = chrono_types::make_shared<ChFunctionRepeat>(my_functsequence);
     my_functangle->SetSliceWidth(0.5 + 0.2 + 0.3 + 0.2);
     my_driveli->SetAngleFunction(my_functangle);
-
-    // Create the RACKPINION.
-    // It will connect three parts:
-    // - S2lin, the carrier (here the truss) to transmit reaction force,
-    // - B,     the in (rotational) shaft,
-    // - S1lin, the out (translational) shaft.
 
     auto my_rackpinion = chrono_types::make_shared<ChShaftsPlanetary>();
     my_rackpinion->Initialize(motor5->GetInnerShaft2Lin(),  // S2lin, the carrier (truss)

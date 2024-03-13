@@ -20,7 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkMotorLinearForce)
 
 ChLinkMotorLinearForce::ChLinkMotorLinearForce() {
-    this->c_z = false;
+    this->c_z = false; // no actual constraint is set on the actuated axis
     SetupLinkMask();
     m_func = chrono_types::make_shared<ChFunctionConst>(0.0);
 }

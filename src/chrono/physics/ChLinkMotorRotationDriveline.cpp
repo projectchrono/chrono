@@ -20,6 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkMotorRotationDriveline)
 
 ChLinkMotorRotationDriveline::ChLinkMotorRotationDriveline() {
+
     this->c_rz = false;
     SetupLinkMask();
 

@@ -568,18 +568,29 @@ motor4.SetForceFunction(mFcallback)
 # generic 1D powertrain inside this 3D motor.
 # Powertrains/drivelines are defined by connecting a variable number of
 # 1D objects such as ChShaft, ChClutch, ChShaftsMotor, etc. In this way, for
-# example, you can represent a drive+flywheel+reducer+pulley sys, hence taking into account
+# example, you can represent a drive+flywheel+reducer+pulley system, hence taking into account
 # of the inertia of the flywheel and the elasticity of the synchro belt without
 # the complication of adding full 3D shapes that represents all parts.
 # The 1D driveline is "interfaced" to the two connected threedimensional
-# parts using two "inner" 1D shafts, each translating as the connected 3D part
+# parts using two "inner" 1D shafts, each translating as the connected 3D part;
 # it is up to the user to build the driveline that connects those two shafts.
 # Most often the driveline is like a graph starting at inner shaft 2 and ending
 # at inner shaft 1.
-# Note: in the part 2 there is an additional inner shaft that operates on rotation
+# Note: in the part 2 there is an additional inner shaft that operates on rotation;
 # this is needed because, for example, maybe you want to model a driveline like a
-# drive+screw you will anchor the drive to part 2 using this rotational shaft so
+# drive+screw; you will anchor the drive to part 2 using this rotational shaft; so
 # reaction torques arising because of inner flywheel accelerations can be transmitted to this shaft.
+#
+#
+#               [************ motor5 ********]
+#  [ guide5  ]----[----(ChShaftsBody)---------------[Shaft2Rot]----]--->
+#  [ guide5  ]----[----(ChShaftsBodyTranslation)----[Shaft2Lin]----]--->
+#  [ slider5 ]----[----(ChShaftsBodyTranslation)----[Shaft1Lin]----]--->
+#
+#                                     [***** my_rackpinion *****]
+#  >-[my_driveli]----[my_shaftB] -----[----[shaft2]             ]
+#  >----------------------------------[----[shaft1]             ]
+#  >----------------------------------[----[shaft3]             ]
 
 positionB5 = chrono.ChVector3d(0, 0, 1)
 guide5, slider5 = CreateSliderGuide(material, sys, positionB5)
@@ -590,7 +601,7 @@ motor5 = chrono.ChLinkMotorLinearDriveline()
 # Connect the rotor and the stator and add the motor to the sys:
 motor5.Initialize(slider5,               # body A (slave)
                    guide5,                # body B (master)
-                   chrono.ChFramed(positionB5) ) # motor frame, in abs. coords
+                   chrono.ChFramed(positionB5, chrono.Q_ROTATE_Z_TO_X) ) # motor frame, in abs. coords
 
 sys.Add(motor5)
 
@@ -602,29 +613,10 @@ motor5.GetInnerShaft1Lin().SetInertia(3.0)  # [kg]
 motor5.GetInnerShaft2Lin().SetInertia(3.0)  # [kg]
 motor5.GetInnerShaft2Rot().SetInertia(0.8)  # [kg/m^2]
 
-# Now create the driveline. We want to model a drive+reducer sytem.
-# This driveline must connect "inner shafts" of s1 and s2, where:
-#  s1, is the 3D "slider5" part B (ex. a gantry robot gripper) and
-#  s2, is the 3D "guide5"  part A (ex. a gantry robot base).
-# In the following scheme, the motor is [ DRIVE ], the reducer is [ RACKPINION ],
-# the shafts ( shown with symbol || to mean inertia) are:
-#  S1: the 1D inner shaft for s1 robot arm (already present in ChLinkMotorLinearDriveline)
-#  S2: the 1D inner shaft for s2 robot base (already present in ChLinkMotorLinearDriveline)
-#  B : the shaft of the electric drive
-# Note that s1 and s2 are translational degrees of freedom, differently
-# from ChLinkMotorLinearDriveline.
-#
-#     S2rot              B                      S1lin
-#    <--||---[ DRIVE ]---||-----[ RACKPINION ]----||-. 3d
-# 3d <                          [            ]          s1
-# s2 < S2lin                    [            ]
-#    <--||----------------------[            ]
-#
+# Tell the motor that the inner shaft 'S2rot' is Y, orthogonal to
+# the Z direction of the guide (default was Z, as for screw actuators)
 
-# Tell the motor that the inner shaft  'S2rot' is Z, orthogonal to
-# the X direction of the guide (default was X, as for screw actuators)
-
-motor5.SetInnerShaft2RotDirection(chrono.VECT_Z)  # in link coordinates
+motor5.SetInnerShaft2RotDirection(chrono.VECT_Y)  # in link coordinates
 
 # Create 'B', a 1D shaft. This is the shaft of the electric drive, representing its inertia.
 
