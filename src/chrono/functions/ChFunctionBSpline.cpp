@@ -69,7 +69,7 @@ void ChFunctionBSpline::Setup(int p, ChVectorDynamic<> cpoints, ChVectorDynamic<
     m_p = p;                     // order
     m_cpoints = cpoints;         // control points
     m_n = cpoints.size() + m_p;  // number of knots
-    m_basis_tool = chrono_types::make_shared<ChBasisToolsBspline>();
+    m_basis_tool = chrono_types::make_shared<ChBasisToolsBSpline>();
 
     // If empty knot vector, set to equispaced and clamped at ends
     if (knots)
@@ -177,7 +177,7 @@ void ChFunctionBSpline::ApplyInterpolationConstraints(
                 ++off;
 
         ChMatrixDynamic<> DN(d + 1, m_p + 1);
-        ChBasisToolsBspline::BasisEvaluateDeriv(m_p, spanU, x, m_knots, DN);
+        ChBasisToolsBSpline::BasisEvaluateDeriv(m_p, spanU, x, m_knots, DN);
         ChVectorDynamic<> N = DN.row(d);
         for (int j = 0; j < m_p + 1; ++j)
             A(i, j + off) = N(j);

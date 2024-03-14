@@ -17,7 +17,7 @@
 #include "chrono/functions/ChFunctionRotationSQUAD.h"
 #include "chrono/functions/ChFunctionConst.h"
 #include "chrono/functions/ChFunctionRamp.h"
-#include "chrono/geometry/ChBasisToolsBspline.h"
+#include "chrono/geometry/ChBasisToolsBSpline.h"
 
 namespace chrono {
 
@@ -73,7 +73,7 @@ namespace chrono {
 			this->knots = *mknots;
 		else {
 			this->knots.setZero(n);
-			ChBasisToolsBspline::ComputeKnotUniform(this->knots, 1);
+			ChBasisToolsBSpline::ComputeKnotUniform(this->knots, 1);
 		}
 	}
 
@@ -181,7 +181,7 @@ void ChFunctionRotationSQUAD::SetClosed(bool mc) {
 		this->knots.setZero(n);
 		
 		// recompute knot vector spacing
-        ChBasisToolsBspline::ComputeKnotUniform(this->knots, 1);
+        ChBasisToolsBSpline::ComputeKnotUniform(this->knots, 1);
 		
 		// wrap last control point
 		this->rotations[n - 1] = this->rotations[0];
@@ -196,7 +196,7 @@ void ChFunctionRotationSQUAD::SetClosed(bool mc) {
 		this->knots.setZero(n);
 
 		// recompute knot vector spacing
-        ChBasisToolsBspline::ComputeKnotUniform(this->knots, 1);
+        ChBasisToolsBSpline::ComputeKnotUniform(this->knots, 1);
 	}
 
 	this->closed = mc;

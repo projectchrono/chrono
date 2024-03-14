@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "chrono/geometry/ChLine.h"
-#include "chrono/geometry/ChBasisToolsBspline.h"
+#include "chrono/geometry/ChBasisToolsBSpline.h"
 
 namespace chrono {
 

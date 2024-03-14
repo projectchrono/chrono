@@ -51,10 +51,10 @@ ChVector3d ChLineBspline::Evaluate(double parU) const {
 
     double u = ComputeKnotUfromU(mU);
 
-    int spanU = ChBasisToolsBspline::FindSpan(this->p, u, this->knots);
+    int spanU = ChBasisToolsBSpline::FindSpan(this->p, u, this->knots);
 
     ChVectorDynamic<> N(this->p + 1);
-    ChBasisToolsBspline::BasisEvaluate(this->p, spanU, u, this->knots, N);
+    ChBasisToolsBSpline::BasisEvaluate(this->p, spanU, u, this->knots, N);
 
     ChVector3d pos = VNULL;
     int uind = spanU - p;
@@ -74,10 +74,10 @@ ChVector3d ChLineBspline::GetTangent(double parU) const {
 
     double u = ComputeKnotUfromU(mU);
 
-    int spanU = ChBasisToolsBspline::FindSpan(this->p, u, this->knots);
+    int spanU = ChBasisToolsBSpline::FindSpan(this->p, u, this->knots);
 
     ChMatrixDynamic<> NdN(2, p + 1);  // basis on 1st row and their 1st derivatives on 2nd row
-    ChBasisToolsBspline::BasisEvaluateDeriv(this->p, spanU, u, this->knots, NdN);
+    ChBasisToolsBSpline::BasisEvaluateDeriv(this->p, spanU, u, this->knots, NdN);
 
     ChVector3d dir = VNULL;
     int uind = spanU - p;
@@ -110,7 +110,7 @@ void ChLineBspline::Setup(
         this->knots = *mknots;
     else {
         this->knots.setZero(n + p + 1);
-        ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(this->knots, p);
+        ChBasisToolsBSpline::ComputeKnotUniformMultipleEnds(this->knots, p);
     }
 }
 
@@ -127,7 +127,7 @@ void ChLineBspline::SetClosed(bool mc) {
 		this->knots.setZero(n + p + 1);
 		
 		// recompute knot vector spacing
-        ChBasisToolsBspline::ComputeKnotUniform(this->knots, p);
+        ChBasisToolsBSpline::ComputeKnotUniform(this->knots, p);
 		
 		// wrap last control points
 		for (int i = 0; i < p; ++i)
@@ -143,7 +143,7 @@ void ChLineBspline::SetClosed(bool mc) {
 		this->knots.setZero(n + p + 1);
 
 		// recompute knot vector spacing
-        ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(this->knots, p);
+        ChBasisToolsBSpline::ComputeKnotUniformMultipleEnds(this->knots, p);
 	}
 
 	this->closed = mc;

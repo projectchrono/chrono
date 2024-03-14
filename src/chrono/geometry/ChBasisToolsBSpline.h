@@ -28,7 +28,7 @@ namespace chrono {
 /// Tools for evaluating basis functions for B-splines, parametrized with parameter u (as lines)
 /// These bases are often called "N" in literature.
 
-class ChApi ChBasisToolsBspline {
+class ChApi ChBasisToolsBSpline {
   public:
     /// Find the knot span of a b-spline given the parameter u,
     /// the order p, the knot vector knotU
@@ -236,13 +236,13 @@ class ChApi ChBasisToolsBsplineSurfaces {
                               const ChVectorDynamic<>& Knots_v,  ///< knots vu
                               ChMatrixDynamic<>& R  ///< here return bases (u increases along columns, v along rows)
     ) {
-        int spanU = ChBasisToolsBspline::FindSpan(p_u, u, Knots_u);
-        int spanV = ChBasisToolsBspline::FindSpan(p_v, v, Knots_v);
+        int spanU = ChBasisToolsBSpline::FindSpan(p_u, u, Knots_u);
+        int spanV = ChBasisToolsBSpline::FindSpan(p_v, v, Knots_v);
 
         ChVectorDynamic<> N_u(p_u + 1);
-        ChBasisToolsBspline::BasisEvaluate(p_u, spanU, u, Knots_u, N_u);
+        ChBasisToolsBSpline::BasisEvaluate(p_u, spanU, u, Knots_u, N_u);
         ChVectorDynamic<> N_v(p_v + 1);
-        ChBasisToolsBspline::BasisEvaluate(p_v, spanV, v, Knots_v, N_v);
+        ChBasisToolsBSpline::BasisEvaluate(p_v, spanV, v, Knots_v, N_v);
 
         for (int iv = 0; iv <= p_v; iv++) {
             for (int iu = 0; iu <= p_u; iu++) {
@@ -267,13 +267,13 @@ class ChApi ChBasisToolsBsplineSurfaces {
         ChMatrixDynamic<>& dRdu,           ///< here return du-derivatives (u increases along columns, v along rows)
         ChMatrixDynamic<>& dRdv            ///< here return dv-derivatives (u increases along columns, v along rows)
     ) {
-        int spanU = ChBasisToolsBspline::FindSpan(p_u, u, Knots_u);
-        int spanV = ChBasisToolsBspline::FindSpan(p_v, v, Knots_v);
+        int spanU = ChBasisToolsBSpline::FindSpan(p_u, u, Knots_u);
+        int spanV = ChBasisToolsBSpline::FindSpan(p_v, v, Knots_v);
 
         ChVectorDynamic<> N_u(p_u + 1);
-        ChBasisToolsBspline::BasisEvaluate(p_u, spanU, u, Knots_u, N_u);
+        ChBasisToolsBSpline::BasisEvaluate(p_u, spanU, u, Knots_u, N_u);
         ChVectorDynamic<> N_v(p_v + 1);
-        ChBasisToolsBspline::BasisEvaluate(p_v, spanV, v, Knots_v, N_v);
+        ChBasisToolsBSpline::BasisEvaluate(p_v, spanV, v, Knots_v, N_v);
 
         for (int iv = 0; iv <= p_v; iv++) {
             for (int iu = 0; iu <= p_u; iu++) {
@@ -304,13 +304,13 @@ class ChApi ChBasisToolsBsplineSurfaces {
         ChMatrixDynamic<>& d2Rdvdv,  ///< here return dvdv-second derivatives (u increases along columns, v along rows)
         ChMatrixDynamic<>& d2Rdudv   ///< here return dudv-second derivatives (u increases along columns, v along rows)
     ) {
-        int spanU = ChBasisToolsBspline::FindSpan(p_u, u, Knots_u);
-        int spanV = ChBasisToolsBspline::FindSpan(p_v, v, Knots_v);
+        int spanU = ChBasisToolsBSpline::FindSpan(p_u, u, Knots_u);
+        int spanV = ChBasisToolsBSpline::FindSpan(p_v, v, Knots_v);
 
         ChVectorDynamic<> N_u(p_u + 1);
-        ChBasisToolsBspline::BasisEvaluate(p_u, spanU, u, Knots_u, N_u);
+        ChBasisToolsBSpline::BasisEvaluate(p_u, spanU, u, Knots_u, N_u);
         ChVectorDynamic<> N_v(p_v + 1);
-        ChBasisToolsBspline::BasisEvaluate(p_v, spanV, v, Knots_v, N_v);
+        ChBasisToolsBSpline::BasisEvaluate(p_v, spanV, v, Knots_v, N_v);
 
         for (int iv = 0; iv <= p_v; iv++) {
             for (int iu = 0; iu <= p_u; iu++) {

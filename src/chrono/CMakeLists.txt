@@ -592,7 +592,7 @@ set(ChronoEngine_geometry_HEADERS
     geometry/ChSurface.h
     geometry/ChSurfaceNurbs.h
     geometry/ChVolume.h
-    geometry/ChBasisToolsBspline.h
+    geometry/ChBasisToolsBSpline.h
     geometry/ChBasisToolsNurbs.h
     geometry/ChProperty.h
     )

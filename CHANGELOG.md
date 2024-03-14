@@ -154,6 +154,7 @@ Note that this represents a major public API change and we expect most user code
 | ChFunctionRotation_setpoint.h       | rename: ChFunctionRotationSetpoint.h      |
 | ChFunctionRotation_spline.h         | rename: ChFunctionRotationBSpline.h       |
 | ChFunctionRotation_SQUAD.h          | rename: ChFunctionRotationSQUAD.h         |
+| ChLineBspline.h                     | rename: ChLineBSpline.h                   |
 | ChLinkBrake.h                       | rename: ChLinkLockBrake.h                 |
 | ChLinkClearance.h                   | rename: ChLinkLockClearance.h             |
 | ChLinkGear.h                        | rename: ChLinkLockGear.h                  |
@@ -222,6 +223,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNsysvars                   | remove                                           |
 |                                   | GetNsysvars_w                 | remove                                           |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+| ChBasisToolsBspline               |                               | rename: ChBasisToolsBSpline                      |
 | ChBeamSectionCable                |                               |                                                  |
 |                                   | GetBeamRayleighDamping        | rename: GetRayleighDamping                       |
 |                                   | GetI                          | rename: GetInertia                               |

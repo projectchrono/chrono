@@ -56,8 +56,8 @@ ChVector3d ChSurfaceNurbs::Evaluate(double parU, double parV) const {
     ChMatrixDynamic<> mR(p_u + 1, p_v + 1);
     ChBasisToolsNurbsSurfaces::BasisEvaluate(p_u, p_v, u, v, weights, knots_u, knots_v, mR);
 
-    int spanU = ChBasisToolsBspline::FindSpan(p_u, u, knots_u);
-    int spanV = ChBasisToolsBspline::FindSpan(p_v, v, knots_v);
+    int spanU = ChBasisToolsBSpline::FindSpan(p_u, u, knots_u);
+    int spanV = ChBasisToolsBSpline::FindSpan(p_v, v, knots_v);
 
     ChVector3d pos = VNULL;
     int uind = spanU - p_u;
@@ -108,13 +108,13 @@ void ChSurfaceNurbs::Setup(
         this->knots_u = *mknots_u;
     else {
         this->knots_u.setZero(n_u + p_u + 1);
-        ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(this->knots_u, p_u);
+        ChBasisToolsBSpline::ComputeKnotUniformMultipleEnds(this->knots_u, p_u);
     }
     if (mknots_v)
         this->knots_v = *mknots_v;
     else {
         this->knots_v.setZero(n_v + p_v + 1);
-        ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(this->knots_v, p_v);
+        ChBasisToolsBSpline::ComputeKnotUniformMultipleEnds(this->knots_v, p_v);
     }
 
     if (weights)

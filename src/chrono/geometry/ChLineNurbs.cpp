@@ -47,7 +47,7 @@ ChVector3d ChLineNurbs::Evaluate(double parU) const {
     ChVectorDynamic<> mR(this->p + 1);
     ChBasisToolsNurbs::BasisEvaluate(this->p, u, this->weights, this->knots, mR);
 
-    int spanU = ChBasisToolsBspline::FindSpan(this->p, u, this->knots);
+    int spanU = ChBasisToolsBSpline::FindSpan(this->p, u, this->knots);
 
     ChVector3d pos = VNULL;
     int uind = spanU - p;
@@ -65,7 +65,7 @@ ChVector3d ChLineNurbs::GetTangent(double parU) const {
     ChVectorDynamic<> mdR(this->p + 1);
     ChBasisToolsNurbs::BasisEvaluateDeriv(this->p, u, this->weights, this->knots, mR, mdR);
 
-    int spanU = ChBasisToolsBspline::FindSpan(this->p, u, this->knots);
+    int spanU = ChBasisToolsBSpline::FindSpan(this->p, u, this->knots);
 
     ChVector3d dir = VNULL;
     int uind = spanU - p;
@@ -102,7 +102,7 @@ void ChLineNurbs::Setup(
         this->knots = *mknots;
     else {
         this->knots.setZero(n + p + 1);
-        ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(this->knots, p);
+        ChBasisToolsBSpline::ComputeKnotUniformMultipleEnds(this->knots, p);
     }
 
     if (weights)

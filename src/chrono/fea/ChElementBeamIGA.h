@@ -20,7 +20,7 @@
 #include "chrono/fea/ChElementBeam.h"
 #include "chrono/fea/ChBeamSectionCosserat.h"
 #include "chrono/fea/ChNodeFEAxyzrot.h"
-#include "chrono/geometry/ChBasisToolsBspline.h"
+#include "chrono/geometry/ChBasisToolsBSpline.h"
 #include "chrono/core/ChQuadrature.h"
 
 namespace chrono {
@@ -177,7 +177,7 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
 
         ChVectorDynamic<> N((int)nodes.size());
 
-        ChBasisToolsBspline::BasisEvaluate(this->order, nspan, u, knots,
+        ChBasisToolsBSpline::BasisEvaluate(this->order, nspan, u, knots,
                                                      N);  ///< here return  in N
 
         point = VNULL;
@@ -198,7 +198,7 @@ class ChApi ChElementBeamIGA : public ChElementBeam, public ChLoadableU, public 
         int nspan = order;
 
         ChVectorDynamic<> N((int)nodes.size());
-        ChBasisToolsBspline::BasisEvaluate(this->order, nspan, u, knots, N);
+        ChBasisToolsBSpline::BasisEvaluate(this->order, nspan, u, knots, N);
 
         point = VNULL;
         for (int i = 0; i < nodes.size(); ++i) {

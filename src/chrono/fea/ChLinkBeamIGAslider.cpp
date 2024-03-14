@@ -272,7 +272,7 @@ void ChLinkBeamIGAslider::ConstraintsLoadJacobians() {
     int nspan = this->order;
 
     ChVectorDynamic<> N((int)this->m_nodes.size());
-    ChBasisToolsBspline::BasisEvaluate(this->order, nspan, this->tau,
+    ChBasisToolsBSpline::BasisEvaluate(this->order, nspan, this->tau,
                                                  this->m_beams[this->active_element]->GetKnotSequence(),
                                                  N);  ///< here return  in N
 

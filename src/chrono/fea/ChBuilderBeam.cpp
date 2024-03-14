@@ -161,7 +161,7 @@ void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 /
 
     // Create the 'complete' knot vector, with multiple at the ends
     ChVectorDynamic<> myknots(N + p + p + 1);
-    ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(myknots, p, 0.0, 1.0);
+    ChBasisToolsBSpline::ComputeKnotUniformMultipleEnds(myknots, p, 0.0, 1.0);
 
     // Create the 'complete' stl vector of control points, with uniform distribution
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>> mynodes;

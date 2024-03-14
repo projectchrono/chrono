@@ -18,7 +18,7 @@
 #include <cmath>
 #include <vector>
 
-#include "chrono/geometry/ChBasisToolsBspline.h"
+#include "chrono/geometry/ChBasisToolsBSpline.h"
 
 namespace chrono {
 
@@ -40,10 +40,10 @@ class ChApi ChBasisToolsNurbs {
                               const ChVectorDynamic<>& Knots,    ///< knots
                               ChVectorDynamic<>& R  ///< here return basis functions R evaluated at u, that is: R(u)
     ) {
-        int spanU = ChBasisToolsBspline::FindSpan(p, u, Knots);
+        int spanU = ChBasisToolsBSpline::FindSpan(p, u, Knots);
 
         ChVectorDynamic<> N(p + 1);
-        ChBasisToolsBspline::BasisEvaluate(p, spanU, u, Knots, N);
+        ChBasisToolsBSpline::BasisEvaluate(p, spanU, u, Knots, N);
 
         int i;
 
@@ -72,11 +72,11 @@ class ChApi ChBasisToolsNurbs {
         ChVectorDynamic<>& R,              ///< here return basis functions R evaluated at u, that is: R(u)
         ChVectorDynamic<>& dRdu            ///< here return basis functions derivatives dR/du evaluated at u
     ) {
-        int spanU = ChBasisToolsBspline::FindSpan(p, u, Knots);
+        int spanU = ChBasisToolsBSpline::FindSpan(p, u, Knots);
 
         // Compute bases N and first derivatives dNdu:
         ChMatrixDynamic<> N(2, p + 1);
-        ChBasisToolsBspline::BasisEvaluateDeriv(p, spanU, u, Knots, N);
+        ChBasisToolsBSpline::BasisEvaluateDeriv(p, spanU, u, Knots, N);
 
         int i;
         int uind = spanU - p;
@@ -114,11 +114,11 @@ class ChApi ChBasisToolsNurbs {
         ChVectorDynamic<>& dRdu,           ///< here return basis functions derivatives dR/du evaluated at u
         ChVectorDynamic<>& ddRddu          ///< here return basis functions derivatives ddR/ddu evaluated at u
     ) {
-        int spanU = ChBasisToolsBspline::FindSpan(p, u, Knots);
+        int spanU = ChBasisToolsBSpline::FindSpan(p, u, Knots);
 
         // Compute bases N and first derivatives dNdu and second derivatives ddNddu:
         ChMatrixDynamic<> N(3, p + 1);
-        ChBasisToolsBspline::BasisEvaluateDeriv(p, spanU, u, Knots, N);
+        ChBasisToolsBSpline::BasisEvaluateDeriv(p, spanU, u, Knots, N);
 
         int i;
         int uind = spanU - p;
@@ -166,13 +166,13 @@ class ChApi ChBasisToolsNurbsSurfaces {
                               const ChVectorDynamic<>& Knots_v,  ///< knots vu
                               ChMatrixDynamic<>& R  ///< here return bases (u increases along columns, v along rows)
     ) {
-        int spanU = ChBasisToolsBspline::FindSpan(p_u, u, Knots_u);
-        int spanV = ChBasisToolsBspline::FindSpan(p_v, v, Knots_v);
+        int spanU = ChBasisToolsBSpline::FindSpan(p_u, u, Knots_u);
+        int spanV = ChBasisToolsBSpline::FindSpan(p_v, v, Knots_v);
 
         ChVectorDynamic<> N_u(p_u + 1);
-        ChBasisToolsBspline::BasisEvaluate(p_u, spanU, u, Knots_u, N_u);
+        ChBasisToolsBSpline::BasisEvaluate(p_u, spanU, u, Knots_u, N_u);
         ChVectorDynamic<> N_v(p_v + 1);
-        ChBasisToolsBspline::BasisEvaluate(p_v, spanV, v, Knots_v, N_v);
+        ChBasisToolsBSpline::BasisEvaluate(p_v, spanV, v, Knots_v, N_v);
 
         int uind = spanU - p_u;
         int vind = spanV - p_v;
@@ -209,13 +209,13 @@ class ChApi ChBasisToolsNurbsSurfaces {
         ChMatrixDynamic<>& dRdu,           ///< here return du-derivatives (u increases along columns, v along rows)
         ChMatrixDynamic<>& dRdv            ///< here return dv-derivatives (u increases along columns, v along rows)
     ) {
-        int spanU = ChBasisToolsBspline::FindSpan(p_u, u, Knots_u);
-        int spanV = ChBasisToolsBspline::FindSpan(p_v, v, Knots_v);
+        int spanU = ChBasisToolsBSpline::FindSpan(p_u, u, Knots_u);
+        int spanV = ChBasisToolsBSpline::FindSpan(p_v, v, Knots_v);
 
         ChVectorDynamic<> N_u(p_u + 1);
-        ChBasisToolsBspline::BasisEvaluate(p_u, spanU, u, Knots_u, N_u);
+        ChBasisToolsBSpline::BasisEvaluate(p_u, spanU, u, Knots_u, N_u);
         ChVectorDynamic<> N_v(p_v + 1);
-        ChBasisToolsBspline::BasisEvaluate(p_v, spanV, v, Knots_v, N_v);
+        ChBasisToolsBSpline::BasisEvaluate(p_v, spanV, v, Knots_v, N_v);
 
         int uind = spanU - p_u;
         int vind = spanV - p_v;
@@ -264,13 +264,13 @@ class ChApi ChBasisToolsNurbsSurfaces {
         ChMatrixDynamic<>& d2Rdvdv,  ///< here return dvdv-second derivatives (u increases along columns, v along rows)
         ChMatrixDynamic<>& d2Rdudv   ///< here return dudv-second derivatives (u increases along columns, v along rows)
     ) {
-        int spanU = ChBasisToolsBspline::FindSpan(p_u, u, Knots_u);
-        int spanV = ChBasisToolsBspline::FindSpan(p_v, v, Knots_v);
+        int spanU = ChBasisToolsBSpline::FindSpan(p_u, u, Knots_u);
+        int spanV = ChBasisToolsBSpline::FindSpan(p_v, v, Knots_v);
 
         ChVectorDynamic<> N_u(p_u + 1);
-        ChBasisToolsBspline::BasisEvaluate(p_u, spanU, u, Knots_u, N_u);
+        ChBasisToolsBSpline::BasisEvaluate(p_u, spanU, u, Knots_u, N_u);
         ChVectorDynamic<> N_v(p_v + 1);
-        ChBasisToolsBspline::BasisEvaluate(p_v, spanV, v, Knots_v, N_v);
+        ChBasisToolsBSpline::BasisEvaluate(p_v, spanV, v, Knots_v, N_v);
 
         int uind = spanU - p_u;
         int vind = spanV - p_v;
