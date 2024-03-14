@@ -83,8 +83,8 @@ bool use_JSON = false;
 // Output directory
 const std::string out_dir = GetChronoOutputPath() + "TIRE_TEST_RIG";
 
-bool gnuplot_output = true;
-bool blender_output = true;
+bool gnuplot_output = false;
+bool blender_output = false;
 
 // -----------------------------------------------------------------------------
 
@@ -197,11 +197,11 @@ int main() {
     switch (contact_method) {
         case ChContactMethod::SMC:
             sys = new ChSystemSMC;
-            step_size = 2e-5;
+            step_size = 5e-5;
             ////solver_type = ChSolver::Type::PARDISO_MKL;
             solver_type = ChSolver::Type::SPARSE_QR;
-            ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
-            integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
+            integrator_type = ChTimestepper::Type::EULER_IMPLICIT_PROJECTED;
+            ////integrator_type = ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED;
             std::static_pointer_cast<ChDeformableTire>(tire)->SetContactFaceThickness(0.02);
             break;
 

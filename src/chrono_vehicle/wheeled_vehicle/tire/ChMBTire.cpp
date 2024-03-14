@@ -424,10 +424,9 @@ void MBTireModel::Spring3::Initialize() {
 
     auto dir_p = (pos_c - pos_p).GetNormalized();
     auto dir_n = (pos_n - pos_c).GetNormalized();
-    auto cross = Vcross(dir_p, dir_n);
-    double length_cross = cross.Length();
 
-    a0 = std::asin(length_cross);
+    double cosA = Vdot(dir_p, dir_n);
+    a0 = std::acos(cosA);
 }
 
 void MBTireModel::GridSpring3::Initialize(bool stiff) {
@@ -470,9 +469,8 @@ void MBTireModel::Spring3::CalculateForce() {
     d_p /= l_p;
     d_n /= l_n;
 
-    auto cross = Vcross(d_p, d_n);
-    double length_cross = cross.Length();
-    double a = std::asin(length_cross);
+    double cosA = Vdot(d_p, d_n);
+    double a = std::acos(cosA);
 
     if (std::abs(a - a0) < zero_angle) {
         force_p = VNULL;
@@ -481,6 +479,8 @@ void MBTireModel::Spring3::CalculateForce() {
         return;
     }
 
+    auto cross = Vcross(d_p, d_n);
+    double length_cross = cross.Length();
     if (length_cross > zero_length) {
         cross /= length_cross;
     } else {  // colinear points
@@ -514,56 +514,51 @@ ChMatrixNM<double, 6, 9> MBTireModel::Spring3::CalculateJacobianBlockJ1(double K
 
     auto t = Vcross(np, nn);
     double lt = t.Length();
-    double a = std::asin(lt);  // check that
-
     if (lt < zero_length) {
         t = wheel->TransformDirectionLocalToParent(t0);
         lt = 1;
     }
 
-    double cosA = Vdot(dp, dn);
+    double cosA = Vdot(np, nn);
+    double a = std::acos(cosA);
     double sinA = std::sin(a);
 
     // Calculate D_pp, D_nn, D_pn
     ChMatrix33<> D_pp = np.eigen() * np.eigen().transpose();
     ChMatrix33<> D_nn = nn.eigen() * nn.eigen().transpose();
-    ChMatrix33<> D_pn = np.eigen() * nn.eigen().transpose();
 
     // multiplier
     double scale = k / (lt * lp * ln);
     scale *= Kfactor;
+    double scale2 = (sinA * cosA - (a - a0)) / (lt * lt);
 
     auto Bp = 1 / lp * Vcross(t, np);
     auto Bn = 1 / ln * Vcross(t, nn);
 
     // common vector
     ChVectorN<double, 6> B;
-    B.block(0, 0, 3, 1) = Bp.eigen();
-    B.block(3, 0, 3, 1) = Bn.eigen();
-
-    double scale2 = (sinA * cosA - (a - a0)) / (lt * lt);
+    B.block(0, 0, 3, 1) = scale * Bp.eigen();
+    B.block(3, 0, 3, 1) = scale * Bn.eigen();
 
     ChMatrix33<> dA1 = skew_dn * (ChMatrix33<>::Identity() - D_pp);
     ChMatrix33<> dA3 = skew_dp * (ChMatrix33<>::Identity() - D_nn);
 
-    ChVectorN<double, 3> dA_dalp_13 =
-        scale2 * dA1.transpose() * t.eigen() + sinA * (ChMatrix33<>::Identity() - D_pp).transpose() * dn.eigen();
-    ChVectorN<double, 3> dA_dalp_79 =
-        scale2 * dA3.transpose() * t.eigen() - sinA * (ChMatrix33<>::Identity() - D_nn).transpose() * dp.eigen();
+    ChVectorN<double, 3> dA_dalp_13 = scale2 * dA1.transpose() * t.eigen() + sinA * (ChMatrix33<>::Identity() - D_pp).transpose() * dn.eigen();
+    ChVectorN<double, 3> dA_dalp_79 = scale2 * dA3.transpose() * t.eigen() - sinA * (ChMatrix33<>::Identity() - D_nn).transpose() * dp.eigen();
     ChVectorN<double, 3> dA_dalp_46 = -dA_dalp_13 - dA_dalp_79;
 
     ChMatrixNM<double, 6, 9> J1;
-    J1.block(0, 0, 6, 1) = scale * dA_dalp_13[0] * B;
-    J1.block(0, 1, 6, 1) = scale * dA_dalp_13[1] * B;
-    J1.block(0, 2, 6, 1) = scale * dA_dalp_13[2] * B;
+    J1.block(0, 0, 6, 1) = dA_dalp_13[0] * B;
+    J1.block(0, 1, 6, 1) = dA_dalp_13[1] * B;
+    J1.block(0, 2, 6, 1) = dA_dalp_13[2] * B;
 
-    J1.block(0, 3, 6, 1) = scale * dA_dalp_46[0] * B;
-    J1.block(0, 4, 6, 1) = scale * dA_dalp_46[1] * B;
-    J1.block(0, 5, 6, 1) = scale * dA_dalp_46[2] * B;
+    J1.block(0, 3, 6, 1) = dA_dalp_46[0] * B;
+    J1.block(0, 4, 6, 1) = dA_dalp_46[1] * B;
+    J1.block(0, 5, 6, 1) = dA_dalp_46[2] * B;
 
-    J1.block(0, 6, 6, 1) = scale * dA_dalp_79[0] * B;
-    J1.block(0, 7, 6, 1) = scale * dA_dalp_79[1] * B;
-    J1.block(0, 8, 6, 1) = scale * dA_dalp_79[2] * B;
+    J1.block(0, 6, 6, 1) = dA_dalp_79[0] * B;
+    J1.block(0, 7, 6, 1) = dA_dalp_79[1] * B;
+    J1.block(0, 8, 6, 1) = dA_dalp_79[2] * B;
 
     return J1;
 }
@@ -585,14 +580,13 @@ ChMatrixNM<double, 6, 9> MBTireModel::Spring3::CalculateJacobianBlockJ2(double K
 
     auto t = Vcross(np, nn);
     double lt = t.Length();
-    double a = std::asin(lt);  // check that
-
     if (lt < zero_length) {
         t = wheel->TransformDirectionLocalToParent(t0);
         lt = 1;
     }
 
-    double cosA = Vdot(dp, dn);
+    double cosA = Vdot(np, nn);
+    double a = std::acos(cosA);
 
     // Calculate D_pp, D_nn, D_pn
     ChMatrix33<> D_pp = np.eigen() * np.eigen().transpose();
@@ -602,12 +596,6 @@ ChMatrixNM<double, 6, 9> MBTireModel::Spring3::CalculateJacobianBlockJ2(double K
     // multiplier
     double scale = k * (a - a0) / (lt * lp * ln);
     scale *= Kfactor;
-
-    /*
-    dBp_dalp = [ ln/lp * (D_pn + D_pn' + cosA*(I-3*D_pp))  -(ln/lp * (D_pn + D_pn' + cosA*(I-3*D_pp)) +
-    ((I-D_nn)*(I-D_pp))' )                    ((I-D_nn)*(I-D_pp))']; dBn_dalp = [ (I-D_nn)*(I-D_pp)  -(lp/ln * (D_pn +
-    D_pn' + cosA*(I-3*D_nn)) +  (I-D_nn)*(I-D_pp)   )  lp/ln*(D_pn + D_pn' + cosA*(I-3*D_nn))];
-    */
 
     ChMatrix33<> dBn_dalp_1 = (ChMatrix33<>::Identity() - D_nn) * (ChMatrix33<>::Identity() - D_pp);
     ChMatrix33<> dBn_dalp_3 = (lp / ln) * (D_pn + D_pn.transpose() + cosA * (ChMatrix33<>::Identity() - 3 * D_nn));
@@ -641,13 +629,16 @@ void MBTireModel::GridSpring3::CalculateJacobian(double Kfactor, double Rfactor)
     auto J1 = CalculateJacobianBlockJ1(Kfactor, Rfactor);
     auto J2 = CalculateJacobianBlockJ2(Kfactor, Rfactor);
 
-    ChMatrixNM<double, 3, 9> Jp = J1.topRows(3) + J2.topRows(3);
+    ChMatrixNM<double, 3, 9> Jp = J1.topRows(3)    + J2.topRows(3);
     ChMatrixNM<double, 3, 9> Jn = J1.bottomRows(3) + J2.bottomRows(3);
 
-    // substitution of all into matrix
-    K.block(0, 0, 3, 9) = Jp;
-    K.block(3, 0, 3, 9) = -Jp - Jn;
-    K.block(6, 0, 3, 9) = Jn;
+    // assemble Jacobian matrix
+    //    force_p = -F_p;
+    //    force_c = +F_p + F_n;
+    //    force_n = -F_n;
+    K.block(0, 0, 3, 9) = -Jp;
+    K.block(3, 0, 3, 9) =  Jp + Jn;
+    K.block(6, 0, 3, 9) = -Jn;
 
     ////auto J = CalculateJacobianFD(Kfactor, Rfactor);
     ////std::cout << "Grid spring3 " << inode_p << "-" << inode_c << "-" << inode_n << std::endl << "-------" << std::endl;
@@ -655,9 +646,11 @@ void MBTireModel::GridSpring3::CalculateJacobian(double Kfactor, double Rfactor)
     ////std::cout << "-------\n";
     ////std::cout << J << std::endl;
     ////std::cout << "-------\n";
-    ////std::cout << "err_2   = " << (J - K).norm() / K.norm() << "\n";
-    ////std::cout << "err_1   = " << (J - K).lpNorm<1>() / K.lpNorm<1>() << "\n";
-    ////std::cout << "err_inf = " << (J - K).lpNorm<Eigen::Infinity>() / K.lpNorm<Eigen::Infinity>() << "\n";
+    ////std::cout << "err_2   = " << (J - K).norm() << "  " << (J - K).norm() / K.norm() << "\n";
+    ////std::cout << "err_1   = " << (J - K).lpNorm<1>() << "  " << (J - K).lpNorm<1>() / K.lpNorm<1>() << "\n";
+    ////std::cout << "err_inf = " << (J - K).lpNorm<Eigen::Infinity>()
+    ////          << "  " << (J - K).lpNorm<Eigen::Infinity>() / K.lpNorm<Eigen::Infinity>()
+    ////          << "\n";
     ////std::cout << "=======" << std::endl;
 }
 
@@ -768,8 +761,8 @@ void MBTireModel::EdgeSpring3::CalculateJacobian(bool full_jac, double Kfactor, 
     // substitution of all into matrix
     if (!full_jac) {
         // substitution of all into matrix
-        K.block(0, 0, 3, 6) = -Jn.rightCols(6);
-        K.block(3, 0, 3, 6) = Jn.rightCols(6);
+        K.block(0, 0, 3, 6) = Jn.rightCols(6);
+        K.block(3, 0, 3, 6) = -Jn.rightCols(6);
         return;
     }
 }
