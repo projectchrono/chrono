@@ -648,7 +648,7 @@ bool ChTriangleMeshConnected::ComputeWingedEdges(std::map<std::pair<int, int>, s
     }
 
     // Return true on success, false if pathological edges exist
-    return pathological_edges;
+    return !pathological_edges;
 }
 
 int ChTriangleMeshConnected::RepairDuplicateVertexes(double tolerance) {
