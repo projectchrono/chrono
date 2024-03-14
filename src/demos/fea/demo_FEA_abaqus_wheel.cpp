@@ -191,8 +191,8 @@ int main(int argc, char* argv[]) {
     auto mloadcontainer = chrono_types::make_shared<ChLoadContainer>();
     sys.Add(mloadcontainer);
 
-    for (auto i = 0; i < mmeshsurf->GetFacesList().size(); ++i) {
-        auto aface = std::shared_ptr<ChLoadableUV>(mmeshsurf->GetFacesList()[i]);
+    for (auto i = 0; i < mmeshsurf->GetFaces().size(); ++i) {
+        auto aface = std::shared_ptr<ChLoadableUV>(mmeshsurf->GetFaces()[i]);
         auto faceload = chrono_types::make_shared<ChLoad<ChLoaderPressure>>(aface);
         faceload->loader.SetPressure(10000);  // low pressure... the tire has no ply!
         mloadcontainer->Add(faceload);

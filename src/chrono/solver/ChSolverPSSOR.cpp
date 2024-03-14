@@ -22,8 +22,8 @@ CH_FACTORY_REGISTER(ChSolverPSSOR)
 ChSolverPSSOR::ChSolverPSSOR() : maxviolation(0) {}
 
 double ChSolverPSSOR::Solve(ChSystemDescriptor& sysd) {
-    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
+    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
+    std::vector<ChVariables*>& mvariables = sysd.GetVariables();
 
     maxviolation = 0;
     double maxdeltalambda = 0.;

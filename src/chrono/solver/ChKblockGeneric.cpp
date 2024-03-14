@@ -54,15 +54,15 @@ void ChKblockGeneric::SetVariables(std::vector<ChVariables*> mvariables) {
 
 void ChKblockGeneric::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect) const {
     int kio = 0;
-    for (unsigned int iv = 0; iv < this->GetNvars(); iv++) {
-        int io = this->GetVariableN(iv)->GetOffset();
-        int in = this->GetVariableN(iv)->Get_ndof();
-        if (this->GetVariableN(iv)->IsActive()) {
+    for (unsigned int iv = 0; iv < this->GetNumVariables(); iv++) {
+        int io = this->GetVariable(iv)->GetOffset();
+        int in = this->GetVariable(iv)->Get_ndof();
+        if (this->GetVariable(iv)->IsActive()) {
             int kjo = 0;
-            for (unsigned int jv = 0; jv < this->GetNvars(); jv++) {
-                int jo = this->GetVariableN(jv)->GetOffset();
-                int jn = this->GetVariableN(jv)->Get_ndof();
-                if (this->GetVariableN(jv)->IsActive()) {
+            for (unsigned int jv = 0; jv < this->GetNumVariables(); jv++) {
+                int jo = this->GetVariable(jv)->GetOffset();
+                int jn = this->GetVariable(jv)->Get_ndof();
+                if (this->GetVariable(jv)->IsActive()) {
                     for (int r = 0; r < in; r++) {
                         double tot = 0;
                         for (int c = 0; c < jn; c++) {
@@ -82,10 +82,10 @@ void ChKblockGeneric::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect) 
 
 void ChKblockGeneric::DiagonalAdd(ChVectorRef result) {
     int kio = 0;
-    for (unsigned int iv = 0; iv < this->GetNvars(); iv++) {
-        int io = this->GetVariableN(iv)->GetOffset();
-        int in = this->GetVariableN(iv)->Get_ndof();
-        if (this->GetVariableN(iv)->IsActive()) {
+    for (unsigned int iv = 0; iv < this->GetNumVariables(); iv++) {
+        int io = this->GetVariable(iv)->GetOffset();
+        int in = this->GetVariable(iv)->Get_ndof();
+        if (this->GetVariable(iv)->IsActive()) {
             for (int r = 0; r < in; r++) {
                 result(io + r) += K(kio + r, kio + r);
             }
@@ -101,17 +101,17 @@ void ChKblockGeneric::Build_K(ChSparseMatrix& storage, bool add) {
         return;
 
     int kio = 0;
-    for (unsigned int iv = 0; iv < this->GetNvars(); iv++) {
-        int io = this->GetVariableN(iv)->GetOffset();
-        int in = this->GetVariableN(iv)->Get_ndof();
+    for (unsigned int iv = 0; iv < this->GetNumVariables(); iv++) {
+        int io = this->GetVariable(iv)->GetOffset();
+        int in = this->GetVariable(iv)->Get_ndof();
 
-        if (this->GetVariableN(iv)->IsActive()) {
+        if (this->GetVariable(iv)->IsActive()) {
             int kjo = 0;
-            for (unsigned int jv = 0; jv < this->GetNvars(); jv++) {
-                int jo = this->GetVariableN(jv)->GetOffset();
-                int jn = this->GetVariableN(jv)->Get_ndof();
+            for (unsigned int jv = 0; jv < this->GetNumVariables(); jv++) {
+                int jo = this->GetVariable(jv)->GetOffset();
+                int jn = this->GetVariable(jv)->Get_ndof();
 
-                if (this->GetVariableN(jv)->IsActive()) {
+                if (this->GetVariable(jv)->IsActive()) {
                     if (add)
                         PasteMatrix(storage, K.block(kio, kjo, in, jn), io, jo, false);
                     else

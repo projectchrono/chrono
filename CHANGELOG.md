@@ -626,6 +626,10 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNcoords_y                  | remove: split in GetNumCoordsPosLevel/Vel        |
 | ChIterativeSolver                 |                               |                                                  |
 |                                   | SaveMatrix                    | rename: WriteMatrices                            |
+| ChKblock                          |                               |                                                  |
+|                                   | GetNvars                      | rename: GetNumVariables                          |
+| ChKblockGeneric                   |                               |                                                  |
+|                                   | GetVariableN                  | rename: GetVariable                              |
 | ChLine                            |                               |                                                  |
 |                                   | Get_closed                    | rename: IsClosed                                 |
 |                                   | Get_complexity                | rename: GetComplexity                            |
@@ -869,6 +873,9 @@ Note that this represents a major public API change and we expect most user code
 | ChLinkScrew                       |                               | rename: ChLinkLockScrew                          |
 | ChLinkTrajectory                  |                               | rename: ChLinkLockTrajectory                     |
 | ChList                            |                               | remove                                           |
+| ChLoad                            |                               |                                                  |
+|                                   | LoadGet_ndof_x                | rename: LoadGetNumCoordsPosLevel                 |
+|                                   | LoadGet_ndof_w                | rename: LoadGetNumCoordsVelLevel                 |
 | ChLoadable                        |                               |                                                  |
 |                                   | Get_field_ncoords             | rename: GetFieldNumCoords                        |
 |                                   | GetSubBlocks                  | rename: GetNumSubBlocks                          |
@@ -876,9 +883,14 @@ Note that this represents a major public API change and we expect most user code
 |                                   | LoadableGet_ndof_w            | rename: GetLoadableNumCoordsVelLevel             |
 |                                   | LoadableGetStateBlock_x       | rename: LoadableGetStateBlockPosLevel            |
 |                                   | LoadableGetStateBlock_w       | rename: LoadableGetStateBlockVelLevel            |
+| ChLoadBase                        |                               |                                                  |
+|                                   | LoadGet_field_ncoords         | rename: LoadGetFieldNumCoords                    |
 | ChLoaderUW                        |                               |                                                  |
 |                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
+| ChLoadsBody                       |                               |                                                  |
+|                                   | GetYeld                       | rename: GetYield                                 |
+|                                   | SetYeld                       | rename: SetYield                                 |
 | ChLog                             |                               | remove                                           |
 | ChLogConsole                      |                               | remove                                           |
 | ChMarker                          |                               |                                                  |
@@ -921,6 +933,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNelements                  | rename: GetNumElements                           |
 |                                   | GetNmeshSurfaces              | rename: GetNumMeshSurfaces                       |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+| ChMeshSurface                     |                               |                                                  |
+|                                   | GetFacesList                  | rename: GetFaces                                 |
 | ChMinMaxDistribution              |                               | rename: ChUniformDistribution                    |
 | ChModalAssembly                   |                               |                                                  |
 |                                   | refer to ChAssembly           | like ChAssembly with boundary/internal suffixes  |
@@ -1107,6 +1121,10 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetSolverTolerance            | remove (see Notes)                               |
 |                                   | SetStep                       | remove                                           |
 |                                   | SetUseSleeping                | rename: SetSleepingAllowed                       |
+| ChSystemDescriptor                |                               |                                                  |
+|                                   | GetConstraintsList            | rename: GetConstraints                           |
+|                                   | GetKblocksList                | rename: GetKblocks                               |
+|                                   | GetVariablesList              | rename: GetVariables                             |
 | ChSystemFsi                       |                               |                                                  |
 |                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |

@@ -92,13 +92,13 @@ class ChApi ChSystemDescriptor {
     // DATA MANAGEMENT FUNCTIONS
 
     /// Access the vector of constraints
-    std::vector<ChConstraint*>& GetConstraintsList() { return vconstraints; }
+    std::vector<ChConstraint*>& GetConstraints() { return vconstraints; }
 
     /// Access the vector of variables
-    std::vector<ChVariables*>& GetVariablesList() { return vvariables; }
+    std::vector<ChVariables*>& GetVariables() { return vvariables; }
 
     /// Access the vector of stiffness matrix blocks
-    std::vector<ChKblock*>& GetKblocksList() { return vstiffness; }
+    std::vector<ChKblock*>& GetKblocks() { return vstiffness; }
 
     /// Begin insertion of items
     virtual void BeginInsertion() {

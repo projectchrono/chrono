@@ -60,7 +60,7 @@ bool SetChronoSolver(chrono::ChSystem& sys,
 
     // Barzilai-Borwein cannot be used with stiffness matrices
     if (slvr_type == chrono::ChSolver::Type::BARZILAIBORWEIN &&
-        sys.GetSystemDescriptor()->GetKblocksList().size() > 0) {
+        sys.GetSystemDescriptor()->GetKblocks().size() > 0) {
         cout << prefix << "BARZILAIBORWEIN cannot be used for a system that includes stiffness matrices!" << endl;
         return false;
     }

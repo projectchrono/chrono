@@ -49,10 +49,10 @@ class ChApi ChKblockGeneric : public ChKblock {
     void SetVariables(std::vector<ChVariables*> mvariables);
 
     /// Returns the number of referenced ChVariables items
-    virtual size_t GetNvars() const override { return variables.size(); }
+    virtual size_t GetNumVariables() const override { return variables.size(); }
 
     /// Access the m-th vector variable object
-    ChVariables* GetVariableN(unsigned int m_var) const { return variables[m_var]; }
+    ChVariables* GetVariable(unsigned int m_var) const { return variables[m_var]; }
 
     /// Access the K stiffness matrix as a single block,
     /// referring only to the referenced ChVariable objects

@@ -408,11 +408,11 @@ void test_3(const std::string& out_dir) {
     // result, you could just loop over the variables (q values) and
     // over the constraints (l values), as already shown in previous examples:
 
-    for (int im = 0; im < mdescriptor.GetVariablesList().size(); im++)
-        std::cout << "   " << mdescriptor.GetVariablesList()[im]->Get_qb()(0) << std::endl;
+    for (int im = 0; im < mdescriptor.GetVariables().size(); im++)
+        std::cout << "   " << mdescriptor.GetVariables()[im]->Get_qb()(0) << std::endl;
 
-    for (int ic = 0; ic < mdescriptor.GetConstraintsList().size(); ic++)
-        std::cout << "   " << mdescriptor.GetConstraintsList()[ic]->Get_l_i() << std::endl;
+    for (int ic = 0; ic < mdescriptor.GetConstraints().size(); ic++)
+        std::cout << "   " << mdescriptor.GetConstraints()[ic]->Get_l_i() << std::endl;
     */
 }
 

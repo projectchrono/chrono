@@ -113,7 +113,7 @@ bool ChSystemMulticore::Integrate_Y() {
 
     // Iterate over the active bilateral constraints and store their Lagrange
     // multiplier.
-    std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraints();
     for (int index = 0; index < (signed)data_manager->num_bilaterals; index++) {
         int cntr = data_manager->host_data.bilateral_mapping[index];
         mconstraints[cntr]->Set_l_i(data_manager->host_data.gamma[data_manager->num_unilaterals + index]);
@@ -541,7 +541,7 @@ void ChSystemMulticore::UpdateOtherPhysics() {
 //
 void ChSystemMulticore::UpdateBilaterals() {
     data_manager->nnz_bilaterals = 0;
-    std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraints();
 
     for (uint ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive()) {
@@ -651,7 +651,7 @@ void ChSystemMulticore::SetCollisionSystemType(ChCollisionSystem::Type type) {
 // Calculate the (linearized) bilateral constraint violations and store them in
 // the provided vector. Return the maximum constraint violation.
 double ChSystemMulticore::CalculateConstraintViolation(std::vector<double>& cvec) {
-    std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraints();
     cvec.resize(data_manager->num_bilaterals);
     double max_c = 0;
 

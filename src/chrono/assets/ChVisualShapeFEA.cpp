@@ -729,7 +729,7 @@ void ChVisualShapeFEA::UpdateBuffers_LoadSurface(std::shared_ptr<ChMeshSurface> 
                                                  unsigned int& i_vcols,
                                                  unsigned int& i_triindex,
                                                  bool& need_automatic_smoothing) {
-    for (const auto& face : surface->GetFacesList()) {
+    for (const auto& face : surface->GetFaces()) {
         if (auto face_tetra = std::dynamic_pointer_cast<ChTetrahedronFace>(face)) {
             auto node0 = std::static_pointer_cast<ChNodeFEAxyz>(face_tetra->GetNode(0));
             auto node1 = std::static_pointer_cast<ChNodeFEAxyz>(face_tetra->GetNode(1));
@@ -844,7 +844,7 @@ void ChVisualShapeFEA::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
             break;
         case DataType::LOADSURFACES:
             for (const auto& surface : FEMmesh->GetMeshSurfaces()) {
-                for (const auto& face : surface->GetFacesList()) {
+                for (const auto& face : surface->GetFaces()) {
                     if (std::dynamic_pointer_cast<ChTetrahedronFace>(face)) {
                         n_verts += 3;
                         n_vcols += 3;

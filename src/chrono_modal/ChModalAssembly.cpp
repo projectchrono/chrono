@@ -320,7 +320,7 @@ void ChModalAssembly::SetupModalData(int nmodes_reduction) {
             mesh->InjectVariables(temporary_descriptor);
         for (auto& item : otherphysicslist)
             item->InjectVariables(temporary_descriptor);
-        mvars = temporary_descriptor.GetVariablesList();
+        mvars = temporary_descriptor.GetVariables();
         // - for the MODAL variables:
         mvars.push_back(this->modal_variables);
 

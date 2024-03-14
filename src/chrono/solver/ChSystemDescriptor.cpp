@@ -109,8 +109,8 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
                                              ChVectorDynamic<>* Frict,
                                              bool only_bilaterals,
                                              bool skip_contacts_uv) {
-    std::vector<ChConstraint*>& mconstraints = GetConstraintsList();
-    std::vector<ChVariables*>& mvariables = GetVariablesList();
+    std::vector<ChConstraint*>& mconstraints = GetConstraints();
+    std::vector<ChVariables*>& mvariables = GetVariables();
 
     auto mv_size = mvariables.size();
     auto mc_size = mconstraints.size();
@@ -196,8 +196,8 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
 }
 
 void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<>* rhs) {
-    std::vector<ChConstraint*>& mconstraints = GetConstraintsList();
-    std::vector<ChVariables*>& mvariables = GetVariablesList();
+    std::vector<ChConstraint*>& mconstraints = GetConstraints();
+    std::vector<ChVariables*>& mvariables = GetVariables();
 
     auto mv_size = mvariables.size();
     auto mc_size = mconstraints.size();

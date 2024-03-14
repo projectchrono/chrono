@@ -34,9 +34,9 @@ ChLoadBase::~ChLoadBase() {
 
 void ChLoadBase::Update(double time) {
     // current state speed & position
-    ChState mstate_x(LoadGet_ndof_x(), 0);
+    ChState mstate_x(LoadGetNumCoordsPosLevel(), 0);
     LoadGetStateBlock_x(mstate_x);
-    ChStateDelta mstate_w(LoadGet_ndof_w(), 0);
+    ChStateDelta mstate_w(LoadGetNumCoordsVelLevel(), 0);
     LoadGetStateBlock_w(mstate_w);
     // compute the applied load, at current state
     ComputeQ(&mstate_x, &mstate_w);
@@ -66,13 +66,13 @@ void ChLoadBase::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor)
 // -----------------------------------------------------------------------------
 
 ChLoadCustom::ChLoadCustom(std::shared_ptr<ChLoadable> mloadable) : loadable(mloadable) {
-    load_Q.setZero(LoadGet_ndof_w());
+    load_Q.setZero(LoadGetNumCoordsVelLevel());
 }
 
-int ChLoadCustom::LoadGet_ndof_x() {
+int ChLoadCustom::LoadGetNumCoordsPosLevel() {
     return loadable->GetLoadableNumCoordsPosLevel();
 }
-int ChLoadCustom::LoadGet_ndof_w() {
+int ChLoadCustom::LoadGetNumCoordsVelLevel() {
     return loadable->GetLoadableNumCoordsVelLevel();
 }
 void ChLoadCustom::LoadGetStateBlock_x(ChState& mD) {
@@ -84,7 +84,7 @@ void ChLoadCustom::LoadGetStateBlock_w(ChStateDelta& mD) {
 void ChLoadCustom::LoadStateIncrement(const ChState& x, const ChStateDelta& dw, ChState& x_new) {
     loadable->LoadableStateIncrement(0, x_new, x, 0, dw);
 }
-int ChLoadCustom::LoadGet_field_ncoords() {
+int ChLoadCustom::LoadGetFieldNumCoords() {
     return loadable->GetFieldNumCoords();
 }
 
@@ -96,8 +96,8 @@ void ChLoadCustom::ComputeJacobian(ChState* state_x,       // state position to 
 {
     double Delta = 1e-8;
 
-    int mrows_w = LoadGet_ndof_w();
-    int mrows_x = LoadGet_ndof_x();
+    int mrows_w = LoadGetNumCoordsVelLevel();
+    int mrows_x = LoadGetNumCoordsPosLevel();
 
     // compute Q at current speed & position, x_0, v_0
     ChVectorDynamic<> Q0(mrows_w);
@@ -137,7 +137,7 @@ void ChLoadCustom::ComputeJacobian(ChState* state_x,       // state position to 
 
 void ChLoadCustom::LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {
     unsigned int rowQ = 0;
-    for (unsigned int i = 0; i < loadable->GetSubBlocks(); ++i) {
+    for (unsigned int i = 0; i < loadable->GetNumSubBlocks(); ++i) {
         if (loadable->IsSubBlockActive(i)) {
             unsigned int moffset = loadable->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < loadable->GetSubBlockSize(i); ++row) {
@@ -152,10 +152,10 @@ void ChLoadCustom::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDy
     if (!this->jacobians)
         return;
     // fetch w as a contiguous vector
-    ChVectorDynamic<> grouped_w(this->LoadGet_ndof_w());
+    ChVectorDynamic<> grouped_w(this->LoadGetNumCoordsVelLevel());
     grouped_w.setZero();
     unsigned int rowQ = 0;
-    for (unsigned int i = 0; i < loadable->GetSubBlocks(); ++i) {
+    for (unsigned int i = 0; i < loadable->GetNumSubBlocks(); ++i) {
         if (loadable->IsSubBlockActive(i)) {
             unsigned int moffset = loadable->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < loadable->GetSubBlockSize(i); ++row) {
@@ -165,10 +165,10 @@ void ChLoadCustom::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDy
         }
     }
     // do computation R=c*M*v
-    ChVectorDynamic<> grouped_cMv(this->LoadGet_ndof_w());
+    ChVectorDynamic<> grouped_cMv(this->LoadGetNumCoordsVelLevel());
     grouped_cMv = c * this->jacobians->M * grouped_w;
     rowQ = 0;
-    for (unsigned int i = 0; i < loadable->GetSubBlocks(); ++i) {
+    for (unsigned int i = 0; i < loadable->GetNumSubBlocks(); ++i) {
         if (loadable->IsSubBlockActive(i)) {
             unsigned int moffset = loadable->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < loadable->GetSubBlockSize(i); ++row) {
@@ -184,7 +184,7 @@ void ChLoadCustom::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& err, 
         return;
     // do computation Md=c*diag(M)
     unsigned int rowQ = 0;
-    for (unsigned int i = 0; i < loadable->GetSubBlocks(); ++i) {
+    for (unsigned int i = 0; i < loadable->GetNumSubBlocks(); ++i) {
         if (loadable->IsSubBlockActive(i)) {
             unsigned int moffset = loadable->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < loadable->GetSubBlockSize(i); ++row) {
@@ -211,14 +211,14 @@ void ChLoadCustom::CreateJacobianMatrices() {
 
 ChLoadCustomMultiple::ChLoadCustomMultiple(std::vector<std::shared_ptr<ChLoadable>>& mloadables)
     : loadables(mloadables) {
-    load_Q.setZero(LoadGet_ndof_w());
+    load_Q.setZero(LoadGetNumCoordsVelLevel());
 }
 
 ChLoadCustomMultiple::ChLoadCustomMultiple(std::shared_ptr<ChLoadable> mloadableA,
                                            std::shared_ptr<ChLoadable> mloadableB) {
     loadables.push_back(mloadableA);
     loadables.push_back(mloadableB);
-    load_Q.setZero(LoadGet_ndof_w());
+    load_Q.setZero(LoadGetNumCoordsVelLevel());
 }
 
 ChLoadCustomMultiple::ChLoadCustomMultiple(std::shared_ptr<ChLoadable> mloadableA,
@@ -227,17 +227,17 @@ ChLoadCustomMultiple::ChLoadCustomMultiple(std::shared_ptr<ChLoadable> mloadable
     loadables.push_back(mloadableA);
     loadables.push_back(mloadableB);
     loadables.push_back(mloadableC);
-    load_Q.setZero(LoadGet_ndof_w());
+    load_Q.setZero(LoadGetNumCoordsVelLevel());
 }
 
-int ChLoadCustomMultiple::LoadGet_ndof_x() {
+int ChLoadCustomMultiple::LoadGetNumCoordsPosLevel() {
     int ndoftot = 0;
     for (int i = 0; i < loadables.size(); ++i)
         ndoftot += loadables[i]->GetLoadableNumCoordsPosLevel();
     return ndoftot;
 }
 
-int ChLoadCustomMultiple::LoadGet_ndof_w() {
+int ChLoadCustomMultiple::LoadGetNumCoordsVelLevel() {
     int ndoftot = 0;
     for (int i = 0; i < loadables.size(); ++i)
         ndoftot += loadables[i]->GetLoadableNumCoordsVelLevel();
@@ -270,7 +270,7 @@ void ChLoadCustomMultiple::LoadStateIncrement(const ChState& x, const ChStateDel
     }
 }
 
-int ChLoadCustomMultiple::LoadGet_field_ncoords() {
+int ChLoadCustomMultiple::LoadGetFieldNumCoords() {
     return loadables[0]->GetFieldNumCoords();
 }
 
@@ -282,8 +282,8 @@ void ChLoadCustomMultiple::ComputeJacobian(ChState* state_x,       // state posi
 {
     double Delta = 1e-8;
 
-    int mrows_w = LoadGet_ndof_w();
-    int mrows_x = LoadGet_ndof_x();
+    int mrows_w = LoadGetNumCoordsVelLevel();
+    int mrows_x = LoadGetNumCoordsPosLevel();
 
     // compute Q at current speed & position, x_0, v_0
     ChVectorDynamic<> Q0(mrows_w);
@@ -324,7 +324,7 @@ void ChLoadCustomMultiple::ComputeJacobian(ChState* state_x,       // state posi
 void ChLoadCustomMultiple::LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c) {
     unsigned int mQoffset = 0;
     for (unsigned int k = 0; k < (unsigned int)loadables.size(); ++k) {
-        for (unsigned int i = 0; i < loadables[k]->GetSubBlocks(); ++i) {
+        for (unsigned int i = 0; i < loadables[k]->GetNumSubBlocks(); ++i) {
             if (loadables[k]->IsSubBlockActive(i)) {
                 unsigned int mblockoffset = loadables[k]->GetSubBlockOffset(i);
                 for (unsigned int row = 0; row < loadables[k]->GetSubBlockSize(i); ++row) {
@@ -341,11 +341,11 @@ void ChLoadCustomMultiple::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const Ch
     if (!this->jacobians)
         return;
     // fetch w as a contiguous vector
-    ChVectorDynamic<> grouped_w(this->LoadGet_ndof_w());
+    ChVectorDynamic<> grouped_w(this->LoadGetNumCoordsVelLevel());
     grouped_w.setZero();
     unsigned int rowQ = 0;
     for (unsigned int k = 0; k < (unsigned int)loadables.size(); ++k) {
-        for (unsigned int i = 0; i < loadables[k]->GetSubBlocks(); ++i) {
+        for (unsigned int i = 0; i < loadables[k]->GetNumSubBlocks(); ++i) {
             if (loadables[k]->IsSubBlockActive(i)) {
                 unsigned int moffset = loadables[k]->GetSubBlockOffset(i);
                 for (unsigned int row = 0; row < loadables[k]->GetSubBlockSize(i); ++row) {
@@ -357,11 +357,11 @@ void ChLoadCustomMultiple::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const Ch
     }
 
     // do computation R=c*M*v
-    ChVectorDynamic<> grouped_cMv(this->LoadGet_ndof_w());
+    ChVectorDynamic<> grouped_cMv(this->LoadGetNumCoordsVelLevel());
     grouped_cMv = c * this->jacobians->M * grouped_w;
     rowQ = 0;
     for (unsigned int k = 0; k < (unsigned int)loadables.size(); ++k) {
-        for (unsigned int i = 0; i < loadables[k]->GetSubBlocks(); ++i) {
+        for (unsigned int i = 0; i < loadables[k]->GetNumSubBlocks(); ++i) {
             if (loadables[k]->IsSubBlockActive(i)) {
                 unsigned int moffset = loadables[k]->GetSubBlockOffset(i);
                 for (unsigned int row = 0; row < loadables[k]->GetSubBlockSize(i); ++row) {
@@ -379,7 +379,7 @@ void ChLoadCustomMultiple::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, doubl
     // do computation Md=c*diag(M)
     unsigned int rowQ = 0;
     for (int k = 0; k < loadables.size(); ++k) {
-        for (unsigned int i = 0; i < loadables[k]->GetSubBlocks(); ++i) {
+        for (unsigned int i = 0; i < loadables[k]->GetNumSubBlocks(); ++i) {
             if (loadables[k]->IsSubBlockActive(i)) {
                 unsigned int moffset = loadables[k]->GetSubBlockOffset(i);
                 for (unsigned int row = 0; row < loadables[k]->GetSubBlockSize(i); ++row) {

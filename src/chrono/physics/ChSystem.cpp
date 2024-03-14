@@ -1455,7 +1455,7 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     }
 
     // Remove identified redundant constraints
-    std::vector<ChConstraint*>& constrList = GetSystemDescriptor()->GetConstraintsList();
+    std::vector<ChConstraint*>& constrList = GetSystemDescriptor()->GetConstraints();
     for (auto c_sel = 0; c_sel < redundant_constraints_idx.size(); c_sel++)
         constrList[redundant_constraints_idx[c_sel]]->SetRedundant(true);
     GetSystemDescriptor()->UpdateCountsAndOffsets();

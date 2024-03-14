@@ -110,22 +110,22 @@ void ChLoadContactSurfaceMesh::SetContactMesh(std::shared_ptr<ChContactSurfaceMe
 
 // -----------------------------------------------------------------------------
 
-int ChLoadContactSurfaceMesh::LoadGet_ndof_x() {
+int ChLoadContactSurfaceMesh::LoadGetNumCoordsPosLevel() {
     int ndoftot = 0;
     for (const auto& f : m_forces)
-        ndoftot += f->LoadGet_ndof_x();
+        ndoftot += f->LoadGetNumCoordsPosLevel();
     for (const auto& f : m_forces_rot)
-        ndoftot += f->LoadGet_ndof_x();
+        ndoftot += f->LoadGetNumCoordsPosLevel();
 
     return ndoftot;
 }
 
-int ChLoadContactSurfaceMesh::LoadGet_ndof_w() {
+int ChLoadContactSurfaceMesh::LoadGetNumCoordsVelLevel() {
     int ndoftot = 0;
     for (const auto& f : m_forces)
-        ndoftot += f->LoadGet_ndof_w();
+        ndoftot += f->LoadGetNumCoordsVelLevel();
     for (const auto& f : m_forces_rot)
-        ndoftot += f->LoadGet_ndof_w();
+        ndoftot += f->LoadGetNumCoordsVelLevel();
 
     return ndoftot;
 }

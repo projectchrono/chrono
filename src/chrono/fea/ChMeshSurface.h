@@ -42,7 +42,7 @@ class ChApi ChMeshSurface {
     void SetMesh(ChMesh* mm) { mmesh = mm; }
 
     /// Direct access to the list of faces.
-    std::vector<std::shared_ptr<ChLoadableUV> >& GetFacesList() { return faces; }
+    std::vector<std::shared_ptr<ChLoadableUV> >& GetFaces() { return faces; }
 
     /// Add a single mesh face.
     /// Note that this function does not check for double insertion of the same face.

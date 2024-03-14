@@ -31,7 +31,7 @@
 using namespace chrono;
 
 void ChConstraintBilateral::Build_b() {
-    std::vector<ChConstraint*>& mconstraints = data_manager->system_descriptor->GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = data_manager->system_descriptor->GetConstraints();
 
 #pragma omp parallel for
     for (int index = 0; index < (signed)data_manager->num_bilaterals; index++) {
@@ -51,7 +51,7 @@ void ChConstraintBilateral::Build_E() {
 void ChConstraintBilateral::Build_D() {
     // Grab the list of all bilateral constraints present in the system
     // (note that this includes possibly inactive constraints)
-    std::vector<ChConstraint*>& mconstraints = data_manager->system_descriptor->GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = data_manager->system_descriptor->GetConstraints();
 
     // Loop over the active constraints and fill in the rows of the Jacobian,
     // taking into account the type of each constraint.
@@ -166,7 +166,7 @@ void ChConstraintBilateral::GenerateSparsity() {
     // Grab the list of all bilateral constraints present in the system
     // (note that this includes possibly inactive constraints)
 
-    std::vector<ChConstraint*>& mconstraints = data_manager->system_descriptor->GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = data_manager->system_descriptor->GetConstraints();
 
     // Loop over the active constraints and fill in the sparsity pattern of the
     // Jacobian, taking into account the type of each constraint.
