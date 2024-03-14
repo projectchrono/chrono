@@ -338,7 +338,7 @@ void DPCapPress() {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(25);
+    mystepper->SetMaxIters(25);
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(true);
 
@@ -717,7 +717,7 @@ void ShellBrickContact() {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(true);
 
@@ -1015,7 +1015,7 @@ void SimpleBoxContact() {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-3, 1e-2);
     mystepper->SetVerbose(true);
 
@@ -1336,7 +1336,7 @@ void SoilBin() {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(false);
 
@@ -1602,7 +1602,7 @@ void AxialDynamics() {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(false);
 
@@ -1828,7 +1828,7 @@ void BendingQuasiStatic() {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(2000);
+    mystepper->SetMaxIters(2000);
     mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(true);
 
@@ -2053,7 +2053,7 @@ void SwingingShell() {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(true);
 

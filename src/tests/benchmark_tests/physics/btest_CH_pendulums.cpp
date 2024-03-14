@@ -92,7 +92,7 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
             m_system->SetTimestepperType(ChTimestepper::Type::HHT);
             auto integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
             integrator->SetAlpha(-0.2);
-            integrator->SetMaxiters(50);
+            integrator->SetMaxIters(50);
             integrator->SetAbsTolerances(1e-4, 1e2);
             integrator->SetStepControl(false);
             integrator->SetModifiedNewton(false);

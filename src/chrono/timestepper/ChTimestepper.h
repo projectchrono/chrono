@@ -248,9 +248,9 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
     virtual ~ChImplicitIterativeTimestepper() {}
 
     /// Set the max number of iterations using the Newton Raphson procedure
-    void SetMaxiters(int iters) { maxiters = iters; }
+    void SetMaxIters(int iters) { maxiters = iters; }
     /// Get the max number of iterations using the Newton Raphson procedure
-    double GetMaxiters() { return maxiters; }
+    double GetMaxIters() { return maxiters; }
 
     /// Set the relative tolerance.
     /// This tolerance is optionally used by derived classes in the Newton-Raphson

@@ -258,7 +258,7 @@ int main(int argc, char* argv[]) {
     auto integrator = chrono_types::make_shared<ChTimestepperHHT>(&sys);
     sys.SetTimestepper(integrator);
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetRelTolerance(1e-3);
     integrator->SetAbsTolerances(1e-3);
     integrator->SetVerbose(true);

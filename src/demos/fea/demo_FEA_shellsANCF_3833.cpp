@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(50);
+    mystepper->SetMaxIters(50);
     mystepper->SetAbsTolerances(1e-4, 1e2);
     mystepper->SetStepControl(false);
     mystepper->SetModifiedNewton(true);

@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
     // if later you want to change integrator settings:
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
         mystepper->SetAlpha(0.0);
-        mystepper->SetMaxiters(60);
+        mystepper->SetMaxIters(60);
         mystepper->SetAbsTolerances(1e-14);
     }
 

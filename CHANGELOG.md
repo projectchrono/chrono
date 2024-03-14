@@ -613,6 +613,9 @@ Note that this represents a major public API change and we expect most user code
 | ChFunctionRotation_setpoint       |                               | rename: ChFunctionRotationSetpoint               |
 | ChFunctionRotation_spline         |                               | rename: ChFunctionRotationBSpline                |
 | ChFunctionRotation_SQUAD          |                               | rename: ChFunctionRotationSQUAD                  |
+| ChImplicitTimestepper             |                               |                                                  |
+|                                   | GetMaxiters                   | rename: GetMaxIters                              |
+|                                   | SetMaxiters                   | rename: SetMaxIters                              |
 | ChIndexedParticles                |                               |                                                  |
 |                                   | GetNparticles                 | rename: GetNumParticles                          |
 | ChIntegrable                      |                               |                                                  |

@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(10);
+    mystepper->SetMaxIters(10);
     mystepper->SetAbsTolerances(1e-10);
     mystepper->SetVerbose(true);
     mystepper->SetModifiedNewton(false);

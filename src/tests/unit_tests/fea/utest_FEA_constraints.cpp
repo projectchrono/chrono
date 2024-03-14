@@ -131,7 +131,7 @@ Model::Model() {
 
     if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper())) {
         mystepper->SetAlpha(-0.2);
-        mystepper->SetMaxiters(2);
+        mystepper->SetMaxIters(2);
         mystepper->SetAbsTolerances(1e-6);
     }
 }

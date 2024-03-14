@@ -181,7 +181,7 @@ ANCFHexaTest::ANCFHexaTest(int num_elements, SolverType solver_type, int NumThre
     m_system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);

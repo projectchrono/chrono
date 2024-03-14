@@ -198,7 +198,7 @@ stepper = chrono.ChTimestepperHHT(sys)
 sys.SetTimestepper(stepper)
 
 stepper.SetAlpha(-0.2)
-stepper.SetMaxiters(5)
+stepper.SetMaxIters(5)
 stepper.SetAbsTolerances(1e-2)
 stepper.SetStepControl(True)
 stepper.SetMinStepSize(1e-4)

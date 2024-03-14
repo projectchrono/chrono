@@ -133,7 +133,7 @@ class Crane {
 
         sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
         auto integrator = std::static_pointer_cast<chrono::ChTimestepperEulerImplicit>(sys.GetTimestepper());
-        integrator->SetMaxiters(50);
+        integrator->SetMaxIters(50);
         integrator->SetAbsTolerances(1e-4, 1e2);
 
         // Initialize output
@@ -217,7 +217,7 @@ class Actuator {
 
         sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
         auto integrator = std::static_pointer_cast<chrono::ChTimestepperEulerImplicit>(sys.GetTimestepper());
-        integrator->SetMaxiters(50);
+        integrator->SetMaxIters(50);
         integrator->SetAbsTolerances(1e-4, 1e2);
 
         // Initialize output

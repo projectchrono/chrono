@@ -141,7 +141,7 @@ ANCFBrickTest::ANCFBrickTest(bool useContInt) {
     m_system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(false);
@@ -1239,7 +1239,7 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -1435,7 +1435,7 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -1636,7 +1636,7 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -1793,7 +1793,7 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);

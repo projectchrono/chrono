@@ -481,7 +481,7 @@ int main(int argc, char* argv[]) {
     ////sys.SetTimestepperType(ChTimestepper::Type::HHT);
     ////if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
     ////    mystepper->SetAlpha(-0.2);
-    ////    mystepper->SetMaxiters(6);
+    ////    mystepper->SetMaxIters(6);
     ////    mystepper->SetAbsTolerances(1e-12);
     ////    mystepper->SetVerbose(false);
     ////    mystepper->SetStepControl(false);

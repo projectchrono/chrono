@@ -251,7 +251,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(false);
     sys.Setup();
@@ -447,7 +447,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(false);
 
@@ -640,7 +640,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-8, 1e-1);
     mystepper->SetVerbose(false);
     sys.Setup();
@@ -846,7 +846,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-8, 1e-1);
     mystepper->SetVerbose(false);
     sys.Setup();

@@ -455,7 +455,7 @@ int main(int argc, char* argv[]) {
     // sys.SetTimestepperType(ChTimestepper::Type::HHT);
 
     if (auto mint = std::dynamic_pointer_cast<ChImplicitIterativeTimestepper>(sys.GetTimestepper())) {
-        mint->SetMaxiters(5);
+        mint->SetMaxIters(5);
         mint->SetAbsTolerances(1e-12, 1e-12);
     }
 

@@ -294,7 +294,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(40);
+    mystepper->SetMaxIters(40);
     mystepper->SetAbsTolerances(1e-2, 1e-1);
     mystepper->SetVerbose(false);
     auto container = chrono_types::make_shared<MyContactContainer>();

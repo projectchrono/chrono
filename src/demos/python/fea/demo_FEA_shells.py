@@ -378,7 +378,7 @@ sys.SetSolver(mkl_solver)
 ts = chrono.ChTimestepperEulerImplicit(sys)
 sys.SetTimestepper(ts)
 
-ts.SetMaxiters(5)
+ts.SetMaxIters(5)
 ts.SetAbsTolerances(1e-12, 1e-12)
 
 timestep = 0.1

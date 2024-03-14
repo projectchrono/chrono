@@ -7,14 +7,14 @@
 
 // First, ensure that these functions are not marked as 'overrides' in the generated C# code.
 
-%csmethodmodifiers chrono::ChTimestepperHHT::SetMaxiters "public"
+%csmethodmodifiers chrono::ChTimestepperHHT::SetMaxIters "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::SetRelTolerance "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::SetAbsTolerances "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::GetNumIterations "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::GetNumSetupCalls "public"
 %csmethodmodifiers chrono::ChTimestepperHHT::GetNumSolveCalls "public"
 
-%csmethodmodifiers chrono::ChTimestepperEulerImplicit::SetMaxiters "public"
+%csmethodmodifiers chrono::ChTimestepperEulerImplicit::SetMaxIters "public"
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::SetRelTolerance "public"
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::SetAbsTolerances "public"
 %csmethodmodifiers chrono::ChTimestepperEulerImplicit::GetNumIterations "public"
@@ -28,7 +28,7 @@
 
 %extend chrono::ChTimestepperHHT
 {
-    void SetMaxiters(int iters)                             {$self->SetMaxiters(iters);}
+    void SetMaxIters(int iters)                             {$self->SetMaxIters(iters);}
     void SetRelTolerance(double rel_tol)                    {$self->SetRelTolerance(rel_tol);}
     void SetAbsTolerances(double abs_tolS, double abs_tolL) {$self->SetAbsTolerances(abs_tolS, abs_tolL);}
     void SetAbsTolerances(double abs_tol)                   {$self->SetAbsTolerances(abs_tol);}
@@ -39,7 +39,7 @@
 
 %extend chrono::ChTimestepperEulerImplicit
 {
-    void SetMaxiters(int iters)                             {$self->SetMaxiters(iters);}
+    void SetMaxIters(int iters)                             {$self->SetMaxIters(iters);}
     void SetRelTolerance(double rel_tol)                    {$self->SetRelTolerance(rel_tol);}
     void SetAbsTolerances(double abs_tolS, double abs_tolL) {$self->SetAbsTolerances(abs_tolS, abs_tolL);}
     void SetAbsTolerances(double abs_tol)                   {$self->SetAbsTolerances(abs_tol);}

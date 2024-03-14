@@ -226,7 +226,7 @@ solver.SetVerbose(False)
 mystepper = chrono.ChTimestepperHHT(sys)
 sys.SetTimestepper(mystepper)
 mystepper.SetAlpha(-0.2)
-mystepper.SetMaxiters(100)
+mystepper.SetMaxIters(100)
 mystepper.SetAbsTolerances(1e-2)
 
 # Simulation loop

@@ -206,7 +206,7 @@ int main(int argc, char* argv[]) {
     auto stepper = chrono_types::make_shared<ChTimestepperHHT>();
     sys.SetTimestepper(stepper);
     stepper->SetAlpha(-0.2);
-    stepper->SetMaxiters(6);
+    stepper->SetMaxIters(6);
     stepper->SetAbsTolerances(1e-12);
     stepper->SetVerbose(true);
     stepper->SetStepControl(false);

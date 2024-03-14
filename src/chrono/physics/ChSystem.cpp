@@ -423,7 +423,7 @@ void ChSystem::SetTimestepperType(ChTimestepper::Type type) {
     switch (type) {
         case ChTimestepper::Type::EULER_IMPLICIT:
             timestepper = chrono_types::make_shared<ChTimestepperEulerImplicit>(this);
-            std::static_pointer_cast<ChTimestepperEulerImplicit>(timestepper)->SetMaxiters(4);
+            std::static_pointer_cast<ChTimestepperEulerImplicit>(timestepper)->SetMaxIters(4);
             break;
         case ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED:
             timestepper = chrono_types::make_shared<ChTimestepperEulerImplicitLinearized>(this);
@@ -433,15 +433,15 @@ void ChSystem::SetTimestepperType(ChTimestepper::Type type) {
             break;
         case ChTimestepper::Type::TRAPEZOIDAL:
             timestepper = chrono_types::make_shared<ChTimestepperTrapezoidal>(this);
-            std::static_pointer_cast<ChTimestepperTrapezoidal>(timestepper)->SetMaxiters(4);
+            std::static_pointer_cast<ChTimestepperTrapezoidal>(timestepper)->SetMaxIters(4);
             break;
         case ChTimestepper::Type::TRAPEZOIDAL_LINEARIZED:
             timestepper = chrono_types::make_shared<ChTimestepperTrapezoidalLinearized>(this);
-            std::static_pointer_cast<ChTimestepperTrapezoidalLinearized>(timestepper)->SetMaxiters(4);
+            std::static_pointer_cast<ChTimestepperTrapezoidalLinearized>(timestepper)->SetMaxIters(4);
             break;
         case ChTimestepper::Type::HHT:
             timestepper = chrono_types::make_shared<ChTimestepperHHT>(this);
-            std::static_pointer_cast<ChTimestepperHHT>(timestepper)->SetMaxiters(4);
+            std::static_pointer_cast<ChTimestepperHHT>(timestepper)->SetMaxIters(4);
             break;
         case ChTimestepper::Type::HEUN:
             timestepper = chrono_types::make_shared<ChTimestepperHeun>(this);

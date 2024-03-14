@@ -209,13 +209,13 @@ int main(int argc, char* argv[]) {
     ////sys.SetTimestepperType(ChTimestepper::Type::HHT);
     ////auto integrator = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     ////integrator->SetAlpha(-0.2);
-    ////integrator->SetMaxiters(100);
+    ////integrator->SetMaxIters(100);
     ////integrator->SetAbsTolerances(1e-3);
     ////integrator->SetStepControl(false);
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
     auto integrator = std::static_pointer_cast<chrono::ChTimestepperEulerImplicit>(sys.GetTimestepper());
-    integrator->SetMaxiters(50);
+    integrator->SetMaxIters(50);
     integrator->SetAbsTolerances(1e-4, 1e2);
 
     // Simulation loop

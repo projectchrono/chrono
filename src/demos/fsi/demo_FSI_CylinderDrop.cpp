@@ -269,7 +269,7 @@ int main(int argc, char* argv[]) {
     sysMBS.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sysMBS.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(1000);
+    mystepper->SetMaxIters(1000);
     mystepper->SetAbsTolerances(1e-6);
 
     // Create a run-tme visualizer

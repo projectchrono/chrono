@@ -32,7 +32,7 @@
 // - Tip angle of twist with a small torque about the beam axis
 //
 // The multilayer formulation is checked against the solution given in Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics
-// of a large scale rigid–flexible multibody system composed of composite laminated plates." Multibody System Dynamics
+// of a large scale rigidï¿½flexible multibody system composed of composite laminated plates." Multibody System Dynamics
 // 26, no. 3 (2011): 283-305.
 // =============================================================================
 
@@ -149,7 +149,7 @@ ANCFShellTest::ANCFShellTest(bool useContInt) {
     m_system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(false);
@@ -1245,7 +1245,7 @@ bool ANCFShellTest::AxialDisplacementCheck(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -1420,7 +1420,7 @@ bool ANCFShellTest::CantileverTipLoadCheck(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -1601,7 +1601,7 @@ bool ANCFShellTest::CantileverGravityCheck(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -1740,7 +1740,7 @@ bool ANCFShellTest::AxialTwistCheck(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -1900,7 +1900,7 @@ bool ANCFShellTest::AxialTwistCheck(int msglvl) {
 bool ANCFShellTest::MLCantileverCheck1A(int msglvl) {
     // =============================================================================
     //  Check the Displacement of a Composite Layup
-    //  Test Problem From Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid–flexible multibody
+    //  Test Problem From Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigidï¿½flexible multibody
     //  system composed of composite laminated plates." Multibody System Dynamics 26, no. 3 (2011): 283-305.
     //  Layup 1 - All 4 Orthotropic Layers Aligned - 1st Load Case
     // =============================================================================
@@ -1919,7 +1919,7 @@ bool ANCFShellTest::MLCantileverCheck1A(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -2050,7 +2050,7 @@ bool ANCFShellTest::MLCantileverCheck1A(int msglvl) {
 bool ANCFShellTest::MLCantileverCheck1B(int msglvl) {
     // =============================================================================
     //  Check the Displacement of a Composite Layup
-    //  Test Problem From Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid–flexible multibody
+    //  Test Problem From Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigidï¿½flexible multibody
     //  system composed of composite laminated plates." Multibody System Dynamics 26, no. 3 (2011): 283-305.
     //  Layup 1 - All 4 Orthotropic Layers Aligned - 2nd Load Case
     // =============================================================================
@@ -2069,7 +2069,7 @@ bool ANCFShellTest::MLCantileverCheck1B(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -2203,7 +2203,7 @@ bool ANCFShellTest::MLCantileverCheck1B(int msglvl) {
 bool ANCFShellTest::MLCantileverCheck2A(int msglvl) {
     // =============================================================================
     //  Check the Displacement of a Composite Layup
-    //  Test Problem From Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid–flexible multibody
+    //  Test Problem From Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigidï¿½flexible multibody
     //  system composed of composite laminated plates." Multibody System Dynamics 26, no. 3 (2011): 283-305.
     //  Layup 2 - Top and Bottom Orthotropic Layers Aligned, Middle Aligned at 90deg - 1st Load Case
     // =============================================================================
@@ -2222,7 +2222,7 @@ bool ANCFShellTest::MLCantileverCheck2A(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -2356,7 +2356,7 @@ bool ANCFShellTest::MLCantileverCheck2A(int msglvl) {
 bool ANCFShellTest::MLCantileverCheck2B(int msglvl) {
     // =============================================================================
     //  Check the Displacement of a Composite Layup
-    //  Test Problem From Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid–flexible multibody
+    //  Test Problem From Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigidï¿½flexible multibody
     //  system composed of composite laminated plates." Multibody System Dynamics 26, no. 3 (2011): 283-305.
     //  Layup 2 - Top and Bottom Orthotropic Layers Aligned, Middle Aligned at 90deg - 2nd Load Case
     // =============================================================================
@@ -2375,7 +2375,7 @@ bool ANCFShellTest::MLCantileverCheck2B(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);

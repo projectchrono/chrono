@@ -291,7 +291,7 @@ int main(int argc, char* argv[]) {
     rig->GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(rig->GetSystem()->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(50);
+    integrator->SetMaxIters(50);
     integrator->SetAbsTolerances(1e-2, 1e2);
     integrator->SetStepControl(false);
     integrator->SetModifiedNewton(true);

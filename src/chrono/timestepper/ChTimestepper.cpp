@@ -452,7 +452,7 @@ void ChTimestepperEulerImplicit::Advance(const double dt) {
     numsetups = 0;
     numsolves = 0;
 
-    for (int i = 0; i < this->GetMaxiters(); ++i) {
+    for (int i = 0; i < this->GetMaxIters(); ++i) {
         mintegrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
         R.setZero();
         Qc.setZero();
@@ -770,7 +770,7 @@ void ChTimestepperTrapezoidal::Advance(const double dt) {
     numsetups = 0;
     numsolves = 0;
 
-    for (int i = 0; i < this->GetMaxiters(); ++i) {
+    for (int i = 0; i < this->GetMaxIters(); ++i) {
         mintegrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
         R = Rold;
         Qc.setZero();
@@ -1084,7 +1084,7 @@ void ChTimestepperNewmark::Advance(const double dt) {
     numsolves = 0;
     bool call_setup = true;
 
-    for (int i = 0; i < this->GetMaxiters(); ++i) {
+    for (int i = 0; i < this->GetMaxIters(); ++i) {
         mintegrable->StateScatter(Xnew, Vnew, T + dt, false);  // state -> system
 
         R.setZero(mintegrable->GetNumCoordsVelLevel());

@@ -292,7 +292,7 @@ int main(int argc, char* argv[]) {
         system->SetTimestepperType(ChTimestepper::Type::HHT);
         auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
         integrator->SetAlpha(-0.2);
-        integrator->SetMaxiters(50);
+        integrator->SetMaxIters(50);
         integrator->SetAbsTolerances(1e-1, 10);
         integrator->SetModifiedNewton(false);
         integrator->SetVerbose(true);

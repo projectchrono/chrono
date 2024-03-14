@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
     ////auto stepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
 
     stepper->SetAlpha(-0.2);
-    stepper->SetMaxiters(5);
+    stepper->SetMaxIters(5);
     stepper->SetAbsTolerances(1e-2);
     stepper->SetStepControl(true);
     stepper->SetMinStepSize(1e-4);
