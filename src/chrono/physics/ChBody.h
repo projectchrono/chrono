@@ -613,16 +613,16 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     virtual unsigned int GetFieldNumCoords() override { return 6; }
 
     /// Tell the number of DOFs blocks.
-    virtual unsigned int GetSubBlocks() override { return 1; }
+    virtual unsigned int GetNumSubBlocks() override { return 1; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return GetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return GetOffset_w(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
+    virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 6; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return variables.IsActive(); }
+    virtual bool IsSubBlockActive(unsigned int nblock) const override { return variables.IsActive(); }
 
     /// This is not needed because not used in quadrature.
     virtual double GetDensity() override { return 0; }

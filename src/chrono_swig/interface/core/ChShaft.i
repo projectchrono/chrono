@@ -12,7 +12,7 @@
 %csmethodmodifiers chrono::ChShaft::LoadableGetStateBlockVelLevel "public"
 %csmethodmodifiers chrono::ChShaft::LoadableStateIncrement "public"
 %csmethodmodifiers chrono::ChShaft::GetFieldNumCoords "public"
-%csmethodmodifiers chrono::ChShaft::GetSubBlocks "public"
+%csmethodmodifiers chrono::ChShaft::GetNumSubBlocks "public"
 %csmethodmodifiers chrono::ChShaft::GetSubBlockOffset "public"
 %csmethodmodifiers chrono::ChShaft::GetSubBlockSize "public"
 %csmethodmodifiers chrono::ChShaft::IsSubBlockActive "public"

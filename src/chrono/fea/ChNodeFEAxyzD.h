@@ -164,7 +164,7 @@ class ChApi ChNodeFEAxyzD : public ChNodeFEAxyz {
     virtual unsigned int GetFieldNumCoords() override { return m_dof_actual; }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) override { return m_dof_actual; }
+    virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return m_dof_actual; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& vars) override;

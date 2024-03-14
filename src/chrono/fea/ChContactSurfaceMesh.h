@@ -170,19 +170,19 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     virtual unsigned int GetFieldNumCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual unsigned int GetSubBlocks() override { return 3; }
+    virtual unsigned int GetNumSubBlocks() override { return 3; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override;
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override;
 
     /// Get the size of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) override { return 3; }
+    virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 3; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override;
+    virtual bool IsSubBlockActive(unsigned int nblock) const override;
 
     /// Evaluate N'*F , where N is some type of shape function
     /// evaluated at U,V coordinates of the surface, each ranging in 0..+1 (as IsTriangleIntegrationNeeded() is true)
@@ -361,16 +361,16 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     virtual unsigned int GetFieldNumCoords() override { return 6; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual unsigned int GetSubBlocks() override { return 3; }
+    virtual unsigned int GetNumSubBlocks() override { return 3; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override;
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override;
 
     /// Get the size of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
+    virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 6; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override;
+    virtual bool IsSubBlockActive(unsigned int nblock) const override;
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;

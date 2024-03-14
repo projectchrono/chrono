@@ -215,7 +215,7 @@ void ChContactTriangleXYZ::ComputeJacobianForContactPart(const ChVector3d& abs_p
     jacobian_tuple_V.Get_Cq_3() *= s3;
 }
 
-unsigned int ChContactTriangleXYZ::GetSubBlockOffset(int nblock) {
+unsigned int ChContactTriangleXYZ::GetSubBlockOffset(unsigned int nblock) {
     if (nblock == 0)
         return GetNode(0)->NodeGetOffsetVelLevel();
     if (nblock == 1)
@@ -225,7 +225,7 @@ unsigned int ChContactTriangleXYZ::GetSubBlockOffset(int nblock) {
     return 0;
 }
 
-bool ChContactTriangleXYZ::IsSubBlockActive(int nblock) const {
+bool ChContactTriangleXYZ::IsSubBlockActive(unsigned int nblock) const {
     if (nblock == 0)
         return !GetNode(0)->IsFixed();
     if (nblock == 1)
@@ -492,7 +492,7 @@ void ChContactTriangleXYZROT::ComputeJacobianForContactPart(const ChVector3d& ab
     jacobian_tuple_V.Get_Cq_3() *= s3;
 }
 
-unsigned int ChContactTriangleXYZROT::GetSubBlockOffset(int nblock) {
+unsigned int ChContactTriangleXYZROT::GetSubBlockOffset(unsigned int nblock) {
     if (nblock == 0)
         return GetNode(0)->NodeGetOffsetVelLevel();
     if (nblock == 1)
@@ -502,7 +502,7 @@ unsigned int ChContactTriangleXYZROT::GetSubBlockOffset(int nblock) {
     return 0;
 }
 
-bool ChContactTriangleXYZROT::IsSubBlockActive(int nblock) const {
+bool ChContactTriangleXYZROT::IsSubBlockActive(unsigned int nblock) const {
     if (nblock == 0)
         return !GetNode(0)->IsFixed();
     if (nblock == 1)

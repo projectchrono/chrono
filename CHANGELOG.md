@@ -868,6 +868,7 @@ Note that this represents a major public API change and we expect most user code
 | ChList                            |                               | remove                                           |
 | ChLoadable                        |                               |                                                  |
 |                                   | Get_field_ncoords             | rename: GetFieldNumCoords                        |
+|                                   | GetSubBlocks                  | rename: GetNumSubBlocks                          |
 |                                   | LoadableGet_ndof_x            | rename: GetLoadableNumCoordsPosLevel             |
 |                                   | LoadableGet_ndof_w            | rename: GetLoadableNumCoordsVelLevel             |
 |                                   | LoadableGetStateBlock_x       | rename: LoadableGetStateBlockPosLevel            |

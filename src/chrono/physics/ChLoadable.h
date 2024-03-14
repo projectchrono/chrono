@@ -57,16 +57,16 @@ class ChApi ChLoadable {
     virtual unsigned int GetFieldNumCoords() = 0;
 
     /// Get the number of DOFs sub-blocks (e.g., 1 for a body, 4 for a tetrahedron, etc.).
-    virtual unsigned int GetSubBlocks() = 0;
+    virtual unsigned int GetNumSubBlocks() = 0;
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) = 0;
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) = 0;
 
     /// Get the size of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) = 0;
+    virtual unsigned int GetSubBlockSize(unsigned int nblock) = 0;
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const = 0;
+    virtual bool IsSubBlockActive(unsigned int nblock) const = 0;
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) = 0;
