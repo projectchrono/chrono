@@ -147,9 +147,9 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
     ChVector3d m_react;
 
     // used as an interface to the solver.
-    ChConstraintTwoGeneric constraint1;
-    ChConstraintTwoGeneric constraint2;
-    ChConstraintTwoGeneric constraint3;
+    ChConstraintTwoGeneric m_constraint1;
+    ChConstraintTwoGeneric m_constraint2;
+    ChConstraintTwoGeneric m_constraint3;
 
     std::shared_ptr<fea::ChNodeFEAxyz> m_node;
     std::shared_ptr<ChBodyFrame> m_body;
@@ -158,15 +158,23 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
     // constrained to coincide with the node's position.
     ChCoordsys<> m_csys;
 
-    /// [INTERNAL USE ONLY]
-    virtual ChFrame<> GetFrameAbs() const override { return GetFrameNodeAbs(); }
+    /// Get the link frame 1, on the connected node, expressed in the absolute frame.
+    virtual ChFramed GetFrame1Abs() const override { return GetFrameNodeAbs(); }
 
-    /// [INTERNAL USE ONLY] Reaction force on the body, at the attachment point, expressed in the body coordinate frame.
-    virtual ChVector3d GetReactForce() const override { return GetReactionOnBody(); }
+    /// Get the link frame 2, on the body, expressed in the absolute frame.
+    virtual ChFramed GetFrame2Abs() const override { return ChFramed(); }  //// TODO
 
-    /// [INTERNAL USE ONLY] Reaction torque on the body, at the attachment point, expressed in the body coordinate
-    /// frame.
-    virtual ChVector3d GetReactTorque() const override { return VNULL; }
+    /// Get reaction force on node, expressed on link frame 1.
+    virtual ChVector3d GetReactForce1() const override { return GetReactionOnNode(); }
+
+    /// Get reaction torque on node, expressed on link frame 1.
+    virtual ChVector3d GetReactTorque1() const override { return VNULL; }
+
+    /// Get reaction force on frame, expressed on link frame 2.
+    virtual ChVector3d GetReactForce2() const override { return GetReactionOnBody(); }
+
+    /// Get reaction torque on frame, expressed on link frame 2.
+    virtual ChVector3d GetReactTorque2() const override { return VNULL; }
 };
 
 /// Class for creating a constraint between an FEA node of ChNodeFEAxyz type and a ChBodyFrame (frame) object.
@@ -312,9 +320,9 @@ class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
     bool c_z;
 
     // used as an interface to the solver.
-    ChConstraintTwoGeneric constraint1;
-    ChConstraintTwoGeneric constraint2;
-    ChConstraintTwoGeneric constraint3;
+    ChConstraintTwoGeneric m_constraint1;
+    ChConstraintTwoGeneric m_constraint2;
+    ChConstraintTwoGeneric m_constraint3;
 
     std::shared_ptr<fea::ChNodeFEAxyz> m_node;
     std::shared_ptr<ChBodyFrame> m_body;
@@ -323,14 +331,23 @@ class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
     // constrained to coincide with the node's position.
     ChCoordsys<> m_csys;
 
-    /// [INTERNAL USE ONLY]
-    virtual ChFrame<> GetFrameAbs() const override { return GetFrameNodeAbs(); }
+    /// Get the link frame 1, on the connected node, expressed in the absolute frame.
+    virtual ChFramed GetFrame1Abs() const override { return GetFrameNodeAbs(); }
 
-    /// [INTERNAL USE ONLY] Reaction force on the body, at the attachment point, expressed in the body coordinate frame.
-    virtual ChVector3d GetReactForce() const override { return GetReactionOnBody(); }
+    /// Get the link frame 2, on the body, expressed in the absolute frame.
+    virtual ChFramed GetFrame2Abs() const override { return ChFramed(); }  //// TODO
 
-    /// [INTERNAL USE ONLY] Reaction force on the body, at the attachment point, expressed in the body coordinate frame.
-    virtual ChVector3d GetReactTorque() const override { return VNULL; }
+    /// Get reaction force on node, expressed on link frame 1.
+    virtual ChVector3d GetReactForce1() const override { return GetReactionOnNode(); }
+
+    /// Get reaction torque on node, expressed on link frame 1.
+    virtual ChVector3d GetReactTorque1() const override { return VNULL; }
+
+    /// Get reaction force on frame, expressed on link frame 2.
+    virtual ChVector3d GetReactForce2() const override { return GetReactionOnBody(); }
+
+    /// Get reaction torque on frame, expressed on link frame 2.
+    virtual ChVector3d GetReactTorque2() const override { return VNULL; }
 };
 
 /// @} fea_constraints

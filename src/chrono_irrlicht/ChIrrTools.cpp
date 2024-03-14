@@ -69,6 +69,7 @@ namespace irrlicht {
 namespace tools {
 
 using namespace irr;
+using namespace irr::core;
 
 // -----------------------------------------------------------------------------
 
@@ -323,25 +324,25 @@ int drawAllLinks(ChVisualSystemIrrlicht* vis, double mlen, LinkDrawMode drawtype
     vis->GetVideoDriver()->setMaterial(mattransp);
 
     for (auto& link : vis->GetSystem(0).GetLinks()) {
-        ChFrame<> mlinkframe = link->GetFrameAbs();
-        ChVector3d v1abs = mlinkframe.GetCoordsys().pos;
+        ChFrame<> frame = link->GetFrame2Abs();
+        ChVector3d v1abs = frame.GetCoordsys().pos;
         ChVector3d v2;
         switch (drawtype) {
             case LinkDrawMode::LINK_REACT_FORCE:
-                v2 = link->GetReactForce();
+                v2 = link->GetReactForce2();
                 break;
             case LinkDrawMode::LINK_REACT_TORQUE:
-                v2 = link->GetReactTorque();
+                v2 = link->GetReactTorque2();
                 break;
             default:
                 break;
         }
         v2 *= mlen;
-        ChVector3d v2abs = v2 >> mlinkframe;
+        ChVector3d v2abs = v2 >> frame;
 
-        irr::video::SColor mcol(200, 250, 250, 0);  // yellow vectors
+        video::SColor mcol(200, 250, 250, 0);  // yellow vectors
 
-        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(v1abs), irr::core::vector3dfCH(v2abs), mcol);
+        vis->GetVideoDriver()->draw3DLine(vector3dfCH(v1abs), vector3dfCH(v2abs), mcol);
     }
 
     return 0;
@@ -354,47 +355,50 @@ int drawAllLinkLabels(ChVisualSystemIrrlicht* vis, LinkLabelMode labeltype, ChCo
     if (labeltype == LinkLabelMode::LINK_NONE_VAL)
         return 0;
 
-    for (auto& link : vis->GetSystem(0).GetLinks()) {
-        ChCoordsys<> mlinkframe = link->GetFrameAbs().GetCoordsys();
+    auto device = vis->GetDevice();
+    char buffer[25];
 
-        char buffer[25];
-        irr::core::vector3df mpos((irr::f32)mlinkframe.pos.x(), (irr::f32)mlinkframe.pos.y(),
-                                  (irr::f32)mlinkframe.pos.z());
-        irr::core::position2d<s32> spos =
-            vis->GetDevice()->getSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(mpos);
-        gui::IGUIFont* font = vis->GetDevice()->getGUIEnvironment()->getBuiltInFont();
+    for (auto& link : vis->GetSystem(0).GetLinks()) {
+        const auto& frame = link->GetFrame2Abs();
+        const auto& force = link->GetReactForce2();
+        const auto& torque = link->GetReactTorque2();
+
+        position2d<s32> spos =
+            device->getSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(
+                vector3dfCH(frame.GetPos()));
+        gui::IGUIFont* font = device->getGUIEnvironment()->getBuiltInFont();
 
         switch (labeltype) {
             case LinkLabelMode::LINK_REACT_FORCE_VAL:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactForce().Length());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", force.Length());
                 break;
             case LinkLabelMode::LINK_REACT_FORCE_X:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactForce().x());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", force.x());
                 break;
             case LinkLabelMode::LINK_REACT_FORCE_Y:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactForce().y());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", force.y());
                 break;
             case LinkLabelMode::LINK_REACT_FORCE_Z:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactForce().z());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", force.z());
                 break;
             case LinkLabelMode::LINK_REACT_TORQUE_VAL:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactTorque().Length());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", torque.Length());
                 break;
             case LinkLabelMode::LINK_REACT_TORQUE_X:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactTorque().x());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", torque.x());
                 break;
             case LinkLabelMode::LINK_REACT_TORQUE_Y:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactTorque().y());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", torque.y());
                 break;
             case LinkLabelMode::LINK_REACT_TORQUE_Z:
-                snprintf(buffer, sizeof(buffer), "% 6.3g", link->GetReactTorque().z());
+                snprintf(buffer, sizeof(buffer), "% 6.3g", torque.z());
                 break;
             default:
                 break;
         }
 
-        font->draw(irr::core::stringw(buffer).c_str(),
-                   irr::core::rect<s32>(spos.X - 15, spos.Y, spos.X + 15, spos.Y + 10), tools::ToIrrlichtSColor(col));
+        font->draw(stringw(buffer).c_str(), rect<s32>(spos.X - 15, spos.Y, spos.X + 15, spos.Y + 10),
+                   tools::ToIrrlichtSColor(col));
     }
 
     return 0;
@@ -514,51 +518,34 @@ int drawAllLinkframes(ChVisualSystemIrrlicht* vis, double scale) {
     vis->GetVideoDriver()->setMaterial(mattransp);
 
     for (auto& link : vis->GetSystem(0).GetLinks()) {
-        ChFrame<> frAabs;
-        ChFrame<> frBabs;
+        ChFrame<> frame1 = link->GetFrame1Abs();
+        ChFrame<> fram2 = link->GetFrame2Abs();
 
-        // default frame alignment:
+        irr::video::SColor col;
 
-        frAabs = link->GetVisualModelFrame();
-        frBabs = frAabs;
+        ChVector3d p0 = frame1.GetPos();
+        ChVector3d px = p0 + frame1.GetRotMat().GetAxisX() * 0.7 * scale;
+        ChVector3d py = p0 + frame1.GetRotMat().GetAxisY() * 0.7 * scale;
+        ChVector3d pz = p0 + frame1.GetRotMat().GetAxisZ() * 0.7 * scale;
 
-        // special cases:
+        col = irr::video::SColor(70, 125, 0, 0);  // X red
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), col);
+        col = irr::video::SColor(70, 0, 125, 0);  // Y green
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(py), col);
+        col = irr::video::SColor(70, 0, 0, 125);  // Z blue
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(pz), col);
 
-        if (auto mylink = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
-            frAabs = *mylink->GetMarker1() >> *mylink->GetBody1();
-            frBabs = *mylink->GetMarker2() >> *mylink->GetBody2();
-        }
+        p0 = fram2.GetPos();
+        px = p0 + fram2.GetRotMat().GetAxisX() * scale;
+        py = p0 + fram2.GetRotMat().GetAxisY() * scale;
+        pz = p0 + fram2.GetRotMat().GetAxisZ() * scale;
 
-        if (auto mylink = std::dynamic_pointer_cast<ChLinkMateGeneric>(link)) {
-            frAabs = mylink->GetFrame1Rel() >> *mylink->GetBody1();
-            frBabs = mylink->GetFrame2Rel() >> *mylink->GetBody2();
-        }
-
-        irr::video::SColor mcol;
-
-        ChVector3d p0 = frAabs.GetPos();
-        ChVector3d px = p0 + frAabs.GetRotMat().GetAxisX() * 0.7 * scale;
-        ChVector3d py = p0 + frAabs.GetRotMat().GetAxisY() * 0.7 * scale;
-        ChVector3d pz = p0 + frAabs.GetRotMat().GetAxisZ() * 0.7 * scale;
-
-        mcol = irr::video::SColor(70, 125, 0, 0);  // X red
-        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), mcol);
-        mcol = irr::video::SColor(70, 0, 125, 0);  // Y green
-        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(py), mcol);
-        mcol = irr::video::SColor(70, 0, 0, 125);  // Z blue
-        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(pz), mcol);
-
-        p0 = frBabs.GetPos();
-        px = p0 + frBabs.GetRotMat().GetAxisX() * scale;
-        py = p0 + frBabs.GetRotMat().GetAxisY() * scale;
-        pz = p0 + frBabs.GetRotMat().GetAxisZ() * scale;
-
-        mcol = irr::video::SColor(70, 255, 0, 0);  // X red
-        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), mcol);
-        mcol = irr::video::SColor(70, 0, 255, 0);  // Y green
-        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(py), mcol);
-        mcol = irr::video::SColor(70, 0, 0, 255);  // Z blue
-        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(pz), mcol);
+        col = irr::video::SColor(70, 255, 0, 0);  // X red
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), col);
+        col = irr::video::SColor(70, 0, 255, 0);  // Y green
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(py), col);
+        col = irr::video::SColor(70, 0, 0, 255);  // Z blue
+        vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(pz), col);
     }
 
     return 0;

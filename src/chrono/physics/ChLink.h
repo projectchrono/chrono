@@ -51,35 +51,35 @@ class ChApi ChLink : public ChLinkBase {
     /// Get the link frame 2, relative to body 2.
     virtual ChFramed GetFrame2Rel() const = 0;
 
-    /// Get reaction force, expressed on link frame 2.
-    virtual ChVector3d GetReactForce2() const { return react_force; }
-
-    /// Get reaction torque, expressed on link frame 2.
-    virtual ChVector3d GetReactTorque2() const { return react_torque; }
+    /// Get the link frame 1, on body 1, expressed in the absolute frame.
+    virtual ChFramed GetFrame1Abs() const override;
 
     /// Get reaction force, expressed on link frame 1.
-    ChVector3d GetReactForce1() const;
+    virtual ChVector3d GetReactForce1() const override;
 
     /// Get reaction torque, expressed on link frame 1.
-    ChVector3d GetReactTorque1() const;
+    virtual ChVector3d GetReactTorque1() const override;
 
-    /// Get the link frame 2, relative to the absolute frame.
-    ChFramed GetFrame2Abs() const { return GetFrame2Rel() >> *m_body2; }
+    /// Get the link frame 2, on body 2, expressed in the absolute frame.
+    virtual ChFramed GetFrame2Abs() const override;
 
-    /// Get the link frame 1, relative to the absolute frame.
-    ChFramed GetFrame1Abs() const { return GetFrame1Rel() >> *m_body1; }
+    /// Get reaction force, expressed on link frame 2.
+    virtual ChVector3d GetReactForce2() const override;
 
-    /// Get reaction force, expressed on body 2.
-    ChVector3d GetReactForceBody2() const;
-
-    /// Get reaction torque, expressed on body 2 frame.
-    ChVector3d GetReactTorqueBody2() const;
+    /// Get reaction torque, expressed on link frame 2.
+    virtual ChVector3d GetReactTorque2() const override;
 
     /// Get reaction force, expressed on body 1.
     ChVector3d GetReactForceBody1() const;
 
     /// Get reaction torque, expressed on body 1 frame.
     ChVector3d GetReactTorqueBody1() const;
+
+    /// Get reaction force, expressed on body 2.
+    ChVector3d GetReactForceBody2() const;
+
+    /// Get reaction torque, expressed on body 2 frame.
+    ChVector3d GetReactTorqueBody2() const;
 
     // UPDATING FUNCTIONS
 
@@ -110,18 +110,6 @@ class ChApi ChLink : public ChLinkBase {
     ChBodyFrame* m_body2;     ///< second connected body
     ChVector3d react_force;   ///< store the xyz reactions, expressed in local coordinate system of link;
     ChVector3d react_torque;  ///< store the torque reactions, expressed in local coordinate system of link;
-
-  private:
-    /// [INTERNAL USE ONLY] Reaction force on the link frame 2.
-    virtual ChVector3d GetReactForce() const override { return GetReactForce2(); }
-
-    /// [INTERNAL USE ONLY] Reaction torque on the link frame 2.
-    virtual ChVector3d GetReactTorque() const override { return GetReactTorque2(); }
-
-    /// Get the link coordinate system in absolute reference.
-    /// This represents the 'main' reference of the link: reaction forces and reaction torques are expressed in this
-    /// coordinate system. Child classes should implement this.
-    virtual ChFramed GetFrameAbs() const override { return GetFrame2Abs(); }
 };
 
 CH_CLASS_VERSION(ChLink, 0)

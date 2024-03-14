@@ -142,14 +142,23 @@ class ChApi ChLinkDirFrame : public ChLinkBase {
     // constrained to remain parallel to the node's D direction.
     ChCoordsys<> m_csys;
 
-    /// [INTERNAL USE ONLY]
-    virtual ChFrame<> GetFrameAbs() const override { return GetFrameNodeAbs(); }
+    /// Get the link frame 1, on the connected node, expressed in the absolute frame.
+    virtual ChFramed GetFrame1Abs() const override { return GetFrameNodeAbs(); }
 
-    /// [INTERNAL USE ONLY] Reaction force on the body, at attachment point, in body coordinate system.
-    virtual ChVector3d GetReactForce() const override { return GetReactionOnBody(); }
+    /// Get the link frame 2, on the body, expressed in the absolute frame.
+    virtual ChFramed GetFrame2Abs() const override { return ChFramed(); }  //// TODO
 
-    /// [INTERNAL USE ONLY] Reaction torque on the body, at attachment point, in body coordinate system.
-    virtual ChVector3d GetReactTorque() const override { return VNULL; }
+    /// Get reaction force on node, expressed on link frame 1.
+    virtual ChVector3d GetReactForce1() const override { return GetReactionOnNode(); }
+
+    /// Get reaction torque on node, expressed on link frame 1.
+    virtual ChVector3d GetReactTorque1() const override { return VNULL; }
+
+    /// Get reaction force on frame, expressed on link frame 2.
+    virtual ChVector3d GetReactForce2() const override { return GetReactionOnBody(); }
+
+    /// Get reaction torque on frame, expressed on link frame 2.
+    virtual ChVector3d GetReactTorque2() const override { return VNULL; }  //// TODO
 };
 
 /// @} fea_constraints

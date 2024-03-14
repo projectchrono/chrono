@@ -49,24 +49,30 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
     // Get constraint violations
     virtual ChVectorDynamic<> GetConstraintViolation() const override;
 
-    /// Return the link frame, expressed in absolute coordinates.
-    ChFrame<> GetFrameNodeAbs() const { return ChFrame<>(mnodeB->GetPos(), QUNIT); }
+    /// Return the link frame at node 1, expressed in absolute coordinates.
+    ChFrame<> GetFrameNode1Abs() const { return ChFrame<>(m_node1->GetPos(), QUNIT); }
+
+    /// Return the link frame at node 2, expressed in absolute coordinates.
+    ChFrame<> GetFrameNode2Abs() const { return ChFrame<>(m_node2->GetPos(), QUNIT); }
 
     /// Initialize the constraint, given the two nodes to join.
     /// The attachment position is the actual position of the node.
     /// Note that nodes must belong to the same ChSystem.
-    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> nodeA,  ///< xyz node (point) to join
-                           std::shared_ptr<ChNodeFEAxyz> nodeB   ///< xyz node (point) to join
+    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> node1,  ///< xyz node (point) to join
+                           std::shared_ptr<ChNodeFEAxyz> node2   ///< xyz node (point) to join
     );
 
-    /// Get the 1st connected xyz node (point)
-    std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeA() const { return this->mnodeA; }
+    /// Get the 1st connected xyz node.
+    std::shared_ptr<fea::ChNodeFEAxyz> GetNode1() const { return m_node1; }
 
-    /// Get the 2nd connected xyz node (point)
-    std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeB() const { return this->mnodeB; }
+    /// Get the 2nd connected xyz node.
+    std::shared_ptr<fea::ChNodeFEAxyz> GetNode2() const { return m_node2; }
 
-    /// Get the reaction force considered as applied to ChShaft.
-    ChVector3d GetReactionOnNode() const { return -react; }
+    /// Get the reaction force considered as applied to the 1st node.
+    ChVector3d GetReactionOnNode1() const { return +react; }
+
+    /// Get the reaction force considered as applied to the 2nd node.
+    ChVector3d GetReactionOnNode2() const { return -react; }
 
     /// Update all auxiliary data of the gear transmission at given time
     virtual void Update(double mytime, bool update_assets = true) override;
@@ -116,21 +122,31 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
     ChVector3d react;
 
     // used as an interface to the solver.
-    ChConstraintTwoGeneric constraint1;
-    ChConstraintTwoGeneric constraint2;
-    ChConstraintTwoGeneric constraint3;
+    ChConstraintTwoGeneric m_constraint1;
+    ChConstraintTwoGeneric m_constraint2;
+    ChConstraintTwoGeneric m_constraint3;
 
-    std::shared_ptr<fea::ChNodeFEAxyz> mnodeA;
-    std::shared_ptr<fea::ChNodeFEAxyz> mnodeB;
+    std::shared_ptr<fea::ChNodeFEAxyz> m_node1;
+    std::shared_ptr<fea::ChNodeFEAxyz> m_node2;
 
-    /// [INTERNAL USE ONLY]
-    virtual ChFrame<> GetFrameAbs() const override { return GetFrameNodeAbs(); }
+    /// Get the link frame 1, on the 1st node, expressed in the absolute frame.
+    virtual ChFramed GetFrame1Abs() const override { return GetFrameNode1Abs(); }
 
-    /// [INTERNAL USE ONLY] Reaction force on the node, at node position and oriented as the absolute reference.
-    virtual ChVector3d GetReactForce() const override { return GetReactionOnNode(); }
+    /// Get the link frame 2, on the 2nd node, expressed in the absolute frame.
+    virtual ChFramed GetFrame2Abs() const override { return GetFrameNode2Abs(); }
 
-    /// [INTERNAL USE ONLY] Reaction torque on the node, at node position and oriented as the absolute reference.
-    virtual ChVector3d GetReactTorque() const override { return VNULL; }
+
+    /// Get reaction force on 1st node, expressed on link frame 1.
+    virtual ChVector3d GetReactForce1() const override { return GetReactionOnNode1(); }
+
+    /// Get reaction torque on 1st node, expressed on link frame 1.
+    virtual ChVector3d GetReactTorque1() const override { return VNULL; }
+
+    /// Get reaction force on 2nd node, expressed on link frame 2.
+    virtual ChVector3d GetReactForce2() const override { return GetReactionOnNode2(); }
+
+    /// Get reaction torque on 2nd node, expressed on link frame 2.
+    virtual ChVector3d GetReactTorque2() const override { return VNULL; }
 };
 
 /// @} fea_constraints

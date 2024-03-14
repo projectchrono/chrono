@@ -483,7 +483,7 @@ void ChTrackShoeBandANCF::Connect(std::shared_ptr<ChTrackShoe> next,
 }
 
 ChVector3d ChTrackShoeBandANCF::GetTension() const {
-    return m_connections[0]->GetReactForce();
+    return m_connections[0]->GetReactForce2();
 }
 
 // -----------------------------------------------------------------------------

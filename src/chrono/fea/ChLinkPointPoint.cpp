@@ -28,15 +28,15 @@ ChLinkPointPoint::ChLinkPointPoint(const ChLinkPointPoint& other) : ChLinkBase(o
     react = other.react;
 }
 
-int ChLinkPointPoint::Initialize(std::shared_ptr<ChNodeFEAxyz> nodeA, std::shared_ptr<ChNodeFEAxyz> nodeB) {
-    assert(nodeA && nodeB);
+int ChLinkPointPoint::Initialize(std::shared_ptr<ChNodeFEAxyz> node1, std::shared_ptr<ChNodeFEAxyz> node2) {
+    assert(node1 && node2);
 
-    mnodeA = nodeA;
-    mnodeB = nodeB;
+    m_node1 = node1;
+    m_node2 = node2;
 
-    constraint1.SetVariables(&(mnodeA->Variables()), &(mnodeB->Variables()));
-    constraint2.SetVariables(&(mnodeA->Variables()), &(mnodeB->Variables()));
-    constraint3.SetVariables(&(mnodeA->Variables()), &(mnodeB->Variables()));
+    m_constraint1.SetVariables(&(m_node1->Variables()), &(m_node2->Variables()));
+    m_constraint2.SetVariables(&(m_node1->Variables()), &(m_node2->Variables()));
+    m_constraint3.SetVariables(&(m_node1->Variables()), &(m_node2->Variables()));
 
     // SetSystem(body->GetSystem());
 
@@ -52,7 +52,7 @@ void ChLinkPointPoint::Update(double mytime, bool update_assets) {
 }
 
 ChVectorDynamic<> ChLinkPointPoint::GetConstraintViolation() const {
-    ChVector3d res = mnodeA->GetPos() - mnodeB->GetPos();
+    ChVector3d res = m_node1->GetPos() - m_node2->GetPos();
     ChVectorN<double, 3> C;
     C(0) = res.x();
     C(1) = res.y();
@@ -82,9 +82,9 @@ void ChLinkPointPoint::IntLoadResidual_CqL(const unsigned int off_L,    // offse
     if (!IsActive())
         return;
 
-    constraint1.MultiplyTandAdd(R, L(off_L + 0) * c);
-    constraint2.MultiplyTandAdd(R, L(off_L + 1) * c);
-    constraint3.MultiplyTandAdd(R, L(off_L + 2) * c);
+    m_constraint1.MultiplyTandAdd(R, L(off_L + 0) * c);
+    m_constraint2.MultiplyTandAdd(R, L(off_L + 1) * c);
+    m_constraint3.MultiplyTandAdd(R, L(off_L + 2) * c);
 }
 
 void ChLinkPointPoint::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
@@ -96,7 +96,7 @@ void ChLinkPointPoint::IntLoadConstraint_C(const unsigned int off_L,  // offset 
     if (!IsActive())
         return;
 
-    ChVector3d res = mnodeA->GetPos() - mnodeB->GetPos();
+    ChVector3d res = m_node1->GetPos() - m_node2->GetPos();
     ChVector3d cres = res * c;
 
     if (do_clamp) {
@@ -118,13 +118,13 @@ void ChLinkPointPoint::IntToDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    constraint1.Set_l_i(L(off_L + 0));
-    constraint2.Set_l_i(L(off_L + 1));
-    constraint3.Set_l_i(L(off_L + 2));
+    m_constraint1.Set_l_i(L(off_L + 0));
+    m_constraint2.Set_l_i(L(off_L + 1));
+    m_constraint3.Set_l_i(L(off_L + 2));
 
-    constraint1.Set_b_i(Qc(off_L + 0));
-    constraint2.Set_b_i(Qc(off_L + 1));
-    constraint3.Set_b_i(Qc(off_L + 2));
+    m_constraint1.Set_b_i(Qc(off_L + 0));
+    m_constraint2.Set_b_i(Qc(off_L + 1));
+    m_constraint3.Set_b_i(Qc(off_L + 2));
 }
 
 void ChLinkPointPoint::IntFromDescriptor(const unsigned int off_v,
@@ -134,9 +134,9 @@ void ChLinkPointPoint::IntFromDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    L(off_L + 0) = constraint1.Get_l_i();
-    L(off_L + 1) = constraint2.Get_l_i();
-    L(off_L + 2) = constraint3.Get_l_i();
+    L(off_L + 0) = m_constraint1.Get_l_i();
+    L(off_L + 1) = m_constraint2.Get_l_i();
+    L(off_L + 2) = m_constraint3.Get_l_i();
 }
 
 // SOLVER INTERFACES
@@ -145,23 +145,23 @@ void ChLinkPointPoint::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     if (!IsActive())
         return;
 
-    mdescriptor.InsertConstraint(&constraint1);
-    mdescriptor.InsertConstraint(&constraint2);
-    mdescriptor.InsertConstraint(&constraint3);
+    mdescriptor.InsertConstraint(&m_constraint1);
+    mdescriptor.InsertConstraint(&m_constraint2);
+    mdescriptor.InsertConstraint(&m_constraint3);
 }
 
 void ChLinkPointPoint::ConstraintsBiReset() {
-    constraint1.Set_b_i(0.);
-    constraint2.Set_b_i(0.);
-    constraint3.Set_b_i(0.);
+    m_constraint1.Set_b_i(0.);
+    m_constraint2.Set_b_i(0.);
+    m_constraint3.Set_b_i(0.);
 }
 
 void ChLinkPointPoint::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-    ChVector3d res = mnodeA->GetPos() - mnodeB->GetPos();
+    ChVector3d res = m_node1->GetPos() - m_node2->GetPos();
 
-    constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
-    constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y());
-    constraint3.Set_b_i(constraint3.Get_b_i() + factor * res.z());
+    m_constraint1.Set_b_i(m_constraint1.Get_b_i() + factor * res.x());
+    m_constraint2.Set_b_i(m_constraint2.Get_b_i() + factor * res.y());
+    m_constraint3.Set_b_i(m_constraint3.Get_b_i() + factor * res.z());
 }
 
 void ChLinkPointPoint::ConstraintsBiLoad_Ct(double factor) {
@@ -177,20 +177,20 @@ void ChLinkPointPoint::ConstraintsLoadJacobians() {
 
     ChMatrix33<> Jxb(-1.0);
 
-    constraint1.Get_Cq_a().segment(0, 3) = Jxa.row(0);
-    constraint2.Get_Cq_a().segment(0, 3) = Jxa.row(1);
-    constraint3.Get_Cq_a().segment(0, 3) = Jxa.row(2);
+    m_constraint1.Get_Cq_a().segment(0, 3) = Jxa.row(0);
+    m_constraint2.Get_Cq_a().segment(0, 3) = Jxa.row(1);
+    m_constraint3.Get_Cq_a().segment(0, 3) = Jxa.row(2);
 
-    constraint1.Get_Cq_b().segment(0, 3) = Jxb.row(0);
-    constraint2.Get_Cq_b().segment(0, 3) = Jxb.row(1);
-    constraint3.Get_Cq_b().segment(0, 3) = Jxb.row(2);
+    m_constraint1.Get_Cq_b().segment(0, 3) = Jxb.row(0);
+    m_constraint2.Get_Cq_b().segment(0, 3) = Jxb.row(1);
+    m_constraint3.Get_Cq_b().segment(0, 3) = Jxb.row(2);
 }
 
 void ChLinkPointPoint::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    react.x() = constraint1.Get_l_i() * factor;
-    react.y() = constraint2.Get_l_i() * factor;
-    react.z() = constraint3.Get_l_i() * factor;
+    react.x() = m_constraint1.Get_l_i() * factor;
+    react.y() = m_constraint2.Get_l_i() * factor;
+    react.z() = m_constraint3.Get_l_i() * factor;
 }
 
 // FILE I/O

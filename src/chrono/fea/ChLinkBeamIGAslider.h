@@ -168,14 +168,23 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
     // constrained to coincide with the node's position.
     ChCoordsys<> m_csys;
 
-    /// [INTERNAL USE ONLY]
-    virtual ChFrame<> GetFrameAbs() const override { return GetFrameBodyAbs(); }
+    /// Get the link frame 1, on the beam, expressed in the absolute frame.
+    virtual ChFramed GetFrame1Abs() const override { return ChFramed(); }  //// TODO
 
-    /// [INTERNAL USE ONLY] Reaction force on the body, at attachment point, in body coordinate system.
-    virtual ChVector3d GetReactForce() const override { return GetReactionOnBody(); }
+    /// Get the link frame 2, on the connected body, expressed in the absolute frame.
+    virtual ChFramed GetFrame2Abs() const override { return GetFrameBodyAbs(); }
 
-    /// [INTERNAL USE ONLY] Reaction torque on the body, at attachment point, in body coordinate system.
-    virtual ChVector3d GetReactTorque() const override { return VNULL; }
+    /// Get reaction force on beam, expressed on link frame 1.
+    virtual ChVector3d GetReactForce1() const override { return GetReactionOnSpline(); }
+
+    /// Get reaction torque on beam, expressed on link frame 1.
+    virtual ChVector3d GetReactTorque1() const override { return VNULL; }
+
+    /// Get reaction force on body, expressed on link frame 2.
+    virtual ChVector3d GetReactForce2() const override { return GetReactionOnBody(); }
+
+    /// Get reaction torque on body, expressed on link frame 2.
+    virtual ChVector3d GetReactTorque2() const override { return VNULL; }
 };
 
 /// @} fea_constraints

@@ -658,10 +658,14 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Set_point                     | rename: SetPoint                                 |
 | ChLink                            |                               |                                                  |
 |                                   | GetLeftDOF                    | remove                                           |
-|                                   | GetLinkRelativeCoords         | rename: GetFrame2Rel (see Notes)                 |
+|                                   | GetLinkRelativeCoords         | remove (see Notes)                               |
+|                                   |                               | add: GetFrame1Rel                                |
+|                                   |                               | add: GetFrame2Rel                                |
 |                                   | ResetRedundant                | remove                                           |
 | ChLinkBase                        |                               |                                                  |
-|                                   | GetLinkAbsoluteCoords         | rename: GetFrameAbs (see Notes)                  |
+|                                   | GetLinkAbsoluteCoords         | remove                                           |
+|                                   |                               | add: ChFrameAbs1                                 |
+|                                   |                               | add: ChFrameAbs2                                 |
 |                                   | GetNumCoords                  | rename: GetNumAffectedCoords                     |
 |                                   | Get_react_force               | rename: GetReactForce (see Notes)                |
 |                                   | Get_react_torque              | rename: GetReactTorque (see Notes)               |
@@ -685,7 +689,7 @@ Note that this represents a major public API change and we expect most user code
 | ChLinkGear                        |                               | rename: ChLinkLockGear                           |
 | ChLinkLinActuator                 |                               | rename: ChLinkLockLinActuator                    |
 | ChLinkLock                        |                               |                                                  |
-|                                   | ChangeLinkType                | rename: ChangeType                |
+|                                   | ChangeLinkType                | rename: ChangeType                               |
 |                                   | GetConstraintViolation_dt     | rename: GetConstraintViolationDer                |
 |                                   | GetConstraintViolation_dtdt   | rename: GetConstraintViolationDer2               |
 |                                   | GetForce_D                    | rename: ForceD                                   |
@@ -840,6 +844,15 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetMotorRot_dtdt              | rename: GetMotorAngleDer2                        |
 |                                   | GetMotorRotPeriodic           | rename: GetMotorAngleWrapped                     |
 |                                   | GetMotorRotTurns              | rename: GetMotorNumTurns                         |
+| ChLinkPointPoint                  |                               |                                                  |
+|                                   | GetConstrainedNodeA           | rename: GetNode1                                 |
+|                                   | GetConstrainedNodeB           | rename: GetNode2                                 |
+| ChLinkPointTriface                |                               |                                                  |
+|                                   | GetConstrainedNodeA           | rename: GetNode                                  |
+|                                   | GetConstrainedTriangle        | rename: GetTriangle                              |
+| ChLinkPointTrifaceRot             |                               |                                                  |
+|                                   | GetConstrainedNodeA           | rename: GetNode                                  |
+|                                   | GetConstrainedTriangle        | rename: GetTriangle                              |
 | ChLinkPointSpline                 |                               | rename: ChLinkLockPointSpline                    |
 | ChLinkPulley                      |                               | rename: ChLinkLockPulley                         |
 | ChLinkRackpinion                  |                               | rename: ChLinkMateRackPinion                     |
@@ -874,9 +887,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetAbsCoord_dtdt              | rename: GetAbsCoordsysDer2                       |
 |                                   | GetMotionAng1                 | rename: GetMotionAngle                           |
 |                                   | GetMotion_axis                | rename: GetMotionAxis                            |
-|                                   | GetMotionX                   | rename: GetMotionX                           |
-|                                   | GetMotionY                   | rename: GetMotionY                           |
-|                                   | GetMotionZ                   | rename: GetMotionZ                           |
+|                                   | GetMotionX                    | rename: GetMotionX                               |
+|                                   | GetMotionY                    | rename: GetMotionY                               |
+|                                   | GetMotionZ                    | rename: GetMotionZ                               |
 |                                   | GetRest_Coord                 | rename: GetRestCoordsys                          |
 |                                   | Impose_Rel_Coord              | rename: ImposeRelativeTransform                  |
 |                                   | Impose_Abs_Coord              | rename: ImposeAbsoluteTransform                  |
@@ -887,9 +900,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetAbsCoord_dtdt              | rename: SetAbsCoordsysDer2                       |
 |                                   | SetMotion_ang                 | rename: SetMotionAngle                           |
 |                                   | SetMotion_axis                | rename: SetMotionAxis                            |
-|                                   | SetMotion_X                   | rename: SetMotionX                           |
-|                                   | SetMotion_Y                   | rename: SetMotionY                           |
-|                                   | SetMotion_Z                   | rename: SetMotionZ                           |
+|                                   | SetMotion_X                   | rename: SetMotionX                               |
+|                                   | SetMotion_Y                   | rename: SetMotionY                               |
+|                                   | SetMotion_Z                   | rename: SetMotionZ                               |
 | ChMaterialSurface                 |                               | rename: ChContactMaterial                        |
 |                                   | SetSfriction                  | rename: SetStaticFriction                        |
 |                                   | GetSfriction                  | rename: GetStaticFriction                        |
@@ -1190,13 +1203,11 @@ Note that this represents a major public API change and we expect most user code
   - when 2 dof are left, the relevant axes are X and Y; the exception is `ChLinkRackpinion` (`ChLinkMateRackPinion` in new naming) that kept Z as pinion and X as rack;
   - the 'flipped==true' state is now referring to axes that are counter-aligned.
 
-+ `ChLink`s used to consider just one frame as 'principal' (usually 'frame 2', when multiple were available), thus returning reaction forces, frame position, as well as any other information with respect to this frame only.
-  While this still applies for some cases (e.g. `ChLink`s for FEA nodes), for many others (`ChLink` and derived classes) it made more sense to provide more options to get, for example:
-  - body frames `GetBody[1|2]`
-  - link frames, either relative to the constrained bodies `GetFrame[1|2]Rel` or to absolute/world frame `GetFrame[1|2]Abs`
-  - reaction forces and torques on body 1 and 2 `GetReact[Force|Torque]Body[1|2]`
-  - reaction forces and torques on link frames 1 and 2 `GetReact[Force|Torque][1|2]`
-  Single-frame methods `GetFrameAbs`, `GetReactForce` and `GetReactTorque` are still available at the base class level `ChLinkBase` but are now hidden (set as private members, and forwarded to the equivalent methods) in those derived classes that can offer more specific alternatives.
++ Link objects used to consider just one frame as 'principal' (usually 'frame 2'), thus returning reaction forces, frame position, as well as any other information with respect to this frame only.
+  - For consistency and to remove ambiguity, all links (connections between two physical items) now report two frames, one on each connected object. These frames, expressed in the absolute coordinate frame can be obtained through the functions `GetFrame1Abs` and `GetFrame2Abs`.
+    Certain derived classes (notably those connecting two `ChBody` objects, in particular all classes representing kinematic joints) also provide functions to return the link frames expressed in the frame of the corresponding connected body (`GetFrame1Rel` and `GetFrame2Rel`).
+  - Similarly, all link objects now provide functions to return the reaction force and torque at the location of the link frame on the connected object. These reactions are expressed in the corresponding link frame and can be obtained through calls to `GetReact[Force|Torque][1|2]`.
+    Certain derived classes (notably those connecting two `ChBody` objects) also provide functions to return the corresponding reaction forces and torques as expressed in the corresponding body frames (see `GetReact[Force|Torque]Body[1|2]`).
 
 + The signature of all ChLink `Initialize()` functions were changed to consistently use `ChFrame` objects to specify link position and alignment (where previously some of them used `ChCoordsys`).
   A corresponding change was done for the constructor of `vehicle::ChVehicleJoint`.

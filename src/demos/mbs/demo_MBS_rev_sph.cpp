@@ -109,6 +109,9 @@ int main(int argc, char* argv[]) {
         // Render the point trajectory
         tools::drawPolyline(vis.get(), trajectory, ChColor(0, 0.6f, 0), false);
 
+        tools::drawCoordsys(vis.get(), rev_sph->GetFrame1Abs().GetCoordsys());
+        tools::drawCoordsys(vis.get(), rev_sph->GetFrame2Abs().GetCoordsys());
+
         vis->EndScene();
 
         sys.DoStepDynamics(0.005);

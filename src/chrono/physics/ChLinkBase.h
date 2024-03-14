@@ -61,26 +61,33 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     /// child classes might return false for optimizing sleeping, in case no time-dependant.
     virtual bool IsRequiringWaking() { return true; }
 
+    /// Get the link frame 1, on the 1st connected object, expressed in the absolute frame.
+    virtual ChFramed GetFrame1Abs() const = 0;
+
+    /// Get the reaction force on the 1st connected object, expressed in the link frame 1.
+    virtual ChVector3d GetReactForce1() const = 0;
+
+    /// Get the reaction torque on the 1st connected object, expressed in the link frame 1.
+    virtual ChVector3d GetReactTorque1() const = 0;
+
+    /// Get the link frame 2, on the 2nd connected object, expressed in the absolute frame.
+    virtual ChFramed GetFrame2Abs() const = 0;
+
+    /// Get the reaction force on the 2nd connected object, expressed in the link frame 2.
+    virtual ChVector3d GetReactForce2() const = 0;
+
+    /// Get the reaction torque on the 2nd connected object, expressed in the link frame 2.
+    virtual ChVector3d GetReactTorque2() const = 0;
+
+    /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
+    /// For a ChLink, the default implementation returns the link coordinate frame 1.
+    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override { return GetFrame1Abs(); }
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
-
-    /// [INTERNAL USE ONLY] Get the link coordinate system in absolute reference.
-    /// This represents the 'main' reference of the link: reaction forces and reaction torques are expressed in this
-    /// coordinate system. Child classes should implement this.
-    virtual ChFramed GetFrameAbs() const = 0;
-
-    /// [INTERNAL USE ONLY] Get the reaction force. The meaning is up to the derived classes.
-    virtual ChVector3d GetReactForce() const = 0;
-
-    /// [INTERNAL USE ONLY] Get the reaction torque. The meaning is up to the derived classes.
-    virtual ChVector3d GetReactTorque() const = 0;
-
-    /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
-    /// For a ChLink, the default implementation returns the link coordinate frame.
-    virtual ChFrame<> GetVisualModelFrame(unsigned int nclone = 0) override { return GetFrameAbs(); }
 
   protected:
     bool disabled;  ///< all constraints of link disabled because of user needs

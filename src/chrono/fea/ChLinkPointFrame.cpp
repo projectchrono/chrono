@@ -48,9 +48,9 @@ int ChLinkPointFrameGeneric::Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///
     m_body = body;
     m_node = node;
 
-    constraint1.SetVariables(&(node->Variables()), &(body->Variables()));
-    constraint2.SetVariables(&(node->Variables()), &(body->Variables()));
-    constraint3.SetVariables(&(node->Variables()), &(body->Variables()));
+    m_constraint1.SetVariables(&(node->Variables()), &(body->Variables()));
+    m_constraint2.SetVariables(&(node->Variables()), &(body->Variables()));
+    m_constraint3.SetVariables(&(node->Variables()), &(body->Variables()));
 
     m_csys = m_body->GetCoordsys().TransformParentToLocal(csys_abs);
 
@@ -93,15 +93,15 @@ ChVectorDynamic<> ChLinkPointFrameGeneric::GetConstraintViolation() const {
 
 void ChLinkPointFrameGeneric::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     int nc = 0;
-    if (c_x && this->constraint1.IsActive()) {
+    if (c_x && this->m_constraint1.IsActive()) {
         L(off_L + nc) = m_react.x();
         nc++;
     }
-    if (c_y && this->constraint2.IsActive()) {
+    if (c_y && this->m_constraint2.IsActive()) {
         L(off_L + nc) = m_react.y();
         nc++;
     }
-    if (c_z && this->constraint3.IsActive()) {
+    if (c_z && this->m_constraint3.IsActive()) {
         L(off_L + nc) = m_react.z();
         // nc++;
     }
@@ -109,15 +109,15 @@ void ChLinkPointFrameGeneric::IntStateGatherReactions(const unsigned int off_L, 
 
 void ChLinkPointFrameGeneric::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
     int nc = 0;
-    if (c_x && this->constraint1.IsActive()) {
+    if (c_x && this->m_constraint1.IsActive()) {
         m_react.x() = L(off_L + nc);
         nc++;
     }
-    if (c_y && this->constraint2.IsActive()) {
+    if (c_y && this->m_constraint2.IsActive()) {
         m_react.y() = L(off_L + nc);
         nc++;
     }
-    if (c_z && this->constraint3.IsActive()) {
+    if (c_z && this->m_constraint3.IsActive()) {
         m_react.z() = L(off_L + nc);
         // nc++;
     }
@@ -132,16 +132,16 @@ void ChLinkPointFrameGeneric::IntLoadResidual_CqL(const unsigned int off_L,    /
         return;
 
     int cnt = 0;
-    if (c_x && this->constraint1.IsActive()) {
-        constraint1.MultiplyTandAdd(R, L(off_L + cnt) * c);
+    if (c_x && this->m_constraint1.IsActive()) {
+        m_constraint1.MultiplyTandAdd(R, L(off_L + cnt) * c);
         cnt++;
     }
-    if (c_y && this->constraint2.IsActive()) {
-        constraint1.MultiplyTandAdd(R, L(off_L + cnt) * c);
+    if (c_y && this->m_constraint2.IsActive()) {
+        m_constraint1.MultiplyTandAdd(R, L(off_L + cnt) * c);
         cnt++;
     }
-    if (c_y && this->constraint3.IsActive()) {
-        constraint1.MultiplyTandAdd(R, L(off_L + cnt) * c);
+    if (c_y && this->m_constraint3.IsActive()) {
+        m_constraint1.MultiplyTandAdd(R, L(off_L + cnt) * c);
         // cnt++;
     }
 }
@@ -167,15 +167,15 @@ void ChLinkPointFrameGeneric::IntLoadConstraint_C(const unsigned int off_L,  // 
     }
 
     int cnt = 0;
-    if (c_x && this->constraint1.IsActive()) {
+    if (c_x && this->m_constraint1.IsActive()) {
         Qc(off_L + cnt) += cres.x();
         cnt++;
     }
-    if (c_y && this->constraint2.IsActive()) {
+    if (c_y && this->m_constraint2.IsActive()) {
         Qc(off_L + cnt) += cres.y();
         cnt++;
     }
-    if (c_z && this->constraint3.IsActive()) {
+    if (c_z && this->m_constraint3.IsActive()) {
         Qc(off_L + cnt) += cres.z();
         // cnt++;
     }
@@ -191,19 +191,19 @@ void ChLinkPointFrameGeneric::IntToDescriptor(const unsigned int off_v,
         return;
 
     int cnt = 0;
-    if (c_x && this->constraint1.IsActive()) {
-        constraint1.Set_l_i(L(off_L + cnt));
-        constraint1.Set_b_i(Qc(off_L + cnt));
+    if (c_x && this->m_constraint1.IsActive()) {
+        m_constraint1.Set_l_i(L(off_L + cnt));
+        m_constraint1.Set_b_i(Qc(off_L + cnt));
         cnt++;
     }
-    if (c_y && this->constraint2.IsActive()) {
-        constraint2.Set_l_i(L(off_L + cnt));
-        constraint2.Set_b_i(Qc(off_L + cnt));
+    if (c_y && this->m_constraint2.IsActive()) {
+        m_constraint2.Set_l_i(L(off_L + cnt));
+        m_constraint2.Set_b_i(Qc(off_L + cnt));
         cnt++;
     }
-    if (c_z && this->constraint3.IsActive()) {
-        constraint3.Set_l_i(L(off_L + cnt));
-        constraint3.Set_b_i(Qc(off_L + cnt));
+    if (c_z && this->m_constraint3.IsActive()) {
+        m_constraint3.Set_l_i(L(off_L + cnt));
+        m_constraint3.Set_b_i(Qc(off_L + cnt));
         // cnt++;
     }
 }
@@ -216,16 +216,16 @@ void ChLinkPointFrameGeneric::IntFromDescriptor(const unsigned int off_v,
         return;
 
     int cnt = 0;
-    if (c_x && this->constraint1.IsActive()) {
-        L(off_L + cnt) = constraint1.Get_l_i();
+    if (c_x && this->m_constraint1.IsActive()) {
+        L(off_L + cnt) = m_constraint1.Get_l_i();
         cnt++;
     }
-    if (c_y && this->constraint2.IsActive()) {
-        L(off_L + cnt) = constraint2.Get_l_i();
+    if (c_y && this->m_constraint2.IsActive()) {
+        L(off_L + cnt) = m_constraint2.Get_l_i();
         cnt++;
     }
-    if (c_z && this->constraint3.IsActive()) {
-        L(off_L + cnt) = constraint3.Get_l_i();
+    if (c_z && this->m_constraint3.IsActive()) {
+        L(off_L + cnt) = m_constraint3.Get_l_i();
         // cnt++;
     }
 }
@@ -236,20 +236,20 @@ void ChLinkPointFrameGeneric::InjectConstraints(ChSystemDescriptor& mdescriptor)
     if (!IsActive())
         return;
 
-    if (c_x && this->constraint1.IsActive())
-        mdescriptor.InsertConstraint(&constraint1);
+    if (c_x && this->m_constraint1.IsActive())
+        mdescriptor.InsertConstraint(&m_constraint1);
 
-    if (c_y && this->constraint2.IsActive())
-        mdescriptor.InsertConstraint(&constraint2);
+    if (c_y && this->m_constraint2.IsActive())
+        mdescriptor.InsertConstraint(&m_constraint2);
 
-    if (c_z && this->constraint3.IsActive())
-        mdescriptor.InsertConstraint(&constraint3);
+    if (c_z && this->m_constraint3.IsActive())
+        mdescriptor.InsertConstraint(&m_constraint3);
 }
 
 void ChLinkPointFrameGeneric::ConstraintsBiReset() {
-    constraint1.Set_b_i(0.);
-    constraint2.Set_b_i(0.);
-    constraint3.Set_b_i(0.);
+    m_constraint1.Set_b_i(0.);
+    m_constraint2.Set_b_i(0.);
+    m_constraint3.Set_b_i(0.);
 }
 
 void ChLinkPointFrameGeneric::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -263,14 +263,14 @@ void ChLinkPointFrameGeneric::ConstraintsBiLoad_C(double factor, double recovery
 
     ChVector3d res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
 
-    if (c_x && this->constraint1.IsActive()) {
-        constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
+    if (c_x && this->m_constraint1.IsActive()) {
+        m_constraint1.Set_b_i(m_constraint1.Get_b_i() + factor * res.x());
     }
-    if (c_y && this->constraint2.IsActive()) {
-        constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y());
+    if (c_y && this->m_constraint2.IsActive()) {
+        m_constraint2.Set_b_i(m_constraint2.Get_b_i() + factor * res.y());
     }
-    if (c_z && this->constraint3.IsActive()) {
-        constraint3.Set_b_i(constraint3.Get_b_i() + factor * res.z());
+    if (c_z && this->m_constraint3.IsActive()) {
+        m_constraint3.Set_b_i(m_constraint3.Get_b_i() + factor * res.z());
     }
 }
 
@@ -296,27 +296,27 @@ void ChLinkPointFrameGeneric::ConstraintsLoadJacobians() {
     ChMatrix33<> Jrb = Aro.transpose() * atilde;
 
     if (c_x) {
-        constraint1.Get_Cq_a().segment(0, 3) = Jxn.row(0);
-        constraint1.Get_Cq_b().segment(0, 3) = Jxb.row(0);
-        constraint1.Get_Cq_b().segment(3, 3) = Jrb.row(0);
+        m_constraint1.Get_Cq_a().segment(0, 3) = Jxn.row(0);
+        m_constraint1.Get_Cq_b().segment(0, 3) = Jxb.row(0);
+        m_constraint1.Get_Cq_b().segment(3, 3) = Jrb.row(0);
     }
     if (c_y) {
-        constraint2.Get_Cq_a().segment(0, 3) = Jxn.row(1);
-        constraint2.Get_Cq_b().segment(0, 3) = Jxb.row(1);
-        constraint2.Get_Cq_b().segment(3, 3) = Jrb.row(1);
+        m_constraint2.Get_Cq_a().segment(0, 3) = Jxn.row(1);
+        m_constraint2.Get_Cq_b().segment(0, 3) = Jxb.row(1);
+        m_constraint2.Get_Cq_b().segment(3, 3) = Jrb.row(1);
     }
     if (c_z) {
-        constraint3.Get_Cq_a().segment(0, 3) = Jxn.row(2);
-        constraint3.Get_Cq_b().segment(0, 3) = Jxb.row(2);
-        constraint3.Get_Cq_b().segment(3, 3) = Jrb.row(2);
+        m_constraint3.Get_Cq_a().segment(0, 3) = Jxn.row(2);
+        m_constraint3.Get_Cq_b().segment(0, 3) = Jxb.row(2);
+        m_constraint3.Get_Cq_b().segment(3, 3) = Jrb.row(2);
     }
 }
 
 void ChLinkPointFrameGeneric::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    m_react.x() = constraint1.Get_l_i() * factor;
-    m_react.y() = constraint2.Get_l_i() * factor;
-    m_react.z() = constraint3.Get_l_i() * factor;
+    m_react.x() = m_constraint1.Get_l_i() * factor;
+    m_react.y() = m_constraint2.Get_l_i() * factor;
+    m_react.z() = m_constraint3.Get_l_i() * factor;
 }
 
 // FILE I/O
@@ -351,9 +351,9 @@ int ChLinkPointFrame::Initialize(std::shared_ptr<ChNodeFEAxyz> node,
     m_body = body;
     m_node = node;
 
-    constraint1.SetVariables(&(node->Variables()), &(body->Variables()));
-    constraint2.SetVariables(&(node->Variables()), &(body->Variables()));
-    constraint3.SetVariables(&(node->Variables()), &(body->Variables()));
+    m_constraint1.SetVariables(&(node->Variables()), &(body->Variables()));
+    m_constraint2.SetVariables(&(node->Variables()), &(body->Variables()));
+    m_constraint3.SetVariables(&(node->Variables()), &(body->Variables()));
 
     ChVector3d pos_abs = pos ? *pos : node->GetPos();
     SetAttachPositionInAbsoluteCoords(pos_abs);
@@ -401,9 +401,9 @@ void ChLinkPointFrame::IntLoadResidual_CqL(const unsigned int off_L,    // offse
     if (!IsActive())
         return;
 
-    constraint1.MultiplyTandAdd(R, L(off_L + 0) * c);
-    constraint2.MultiplyTandAdd(R, L(off_L + 1) * c);
-    constraint3.MultiplyTandAdd(R, L(off_L + 2) * c);
+    m_constraint1.MultiplyTandAdd(R, L(off_L + 0) * c);
+    m_constraint2.MultiplyTandAdd(R, L(off_L + 1) * c);
+    m_constraint3.MultiplyTandAdd(R, L(off_L + 2) * c);
 }
 
 void ChLinkPointFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
@@ -439,13 +439,13 @@ void ChLinkPointFrame::IntToDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    constraint1.Set_l_i(L(off_L + 0));
-    constraint2.Set_l_i(L(off_L + 1));
-    constraint3.Set_l_i(L(off_L + 2));
+    m_constraint1.Set_l_i(L(off_L + 0));
+    m_constraint2.Set_l_i(L(off_L + 1));
+    m_constraint3.Set_l_i(L(off_L + 2));
 
-    constraint1.Set_b_i(Qc(off_L + 0));
-    constraint2.Set_b_i(Qc(off_L + 1));
-    constraint3.Set_b_i(Qc(off_L + 2));
+    m_constraint1.Set_b_i(Qc(off_L + 0));
+    m_constraint2.Set_b_i(Qc(off_L + 1));
+    m_constraint3.Set_b_i(Qc(off_L + 2));
 }
 
 void ChLinkPointFrame::IntFromDescriptor(const unsigned int off_v,
@@ -455,9 +455,9 @@ void ChLinkPointFrame::IntFromDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    L(off_L + 0) = constraint1.Get_l_i();
-    L(off_L + 1) = constraint2.Get_l_i();
-    L(off_L + 2) = constraint3.Get_l_i();
+    L(off_L + 0) = m_constraint1.Get_l_i();
+    L(off_L + 1) = m_constraint2.Get_l_i();
+    L(off_L + 2) = m_constraint3.Get_l_i();
 }
 
 // SOLVER INTERFACES
@@ -466,15 +466,15 @@ void ChLinkPointFrame::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     if (!IsActive())
         return;
 
-    mdescriptor.InsertConstraint(&constraint1);
-    mdescriptor.InsertConstraint(&constraint2);
-    mdescriptor.InsertConstraint(&constraint3);
+    mdescriptor.InsertConstraint(&m_constraint1);
+    mdescriptor.InsertConstraint(&m_constraint2);
+    mdescriptor.InsertConstraint(&m_constraint3);
 }
 
 void ChLinkPointFrame::ConstraintsBiReset() {
-    constraint1.Set_b_i(0.);
-    constraint2.Set_b_i(0.);
-    constraint3.Set_b_i(0.);
+    m_constraint1.Set_b_i(0.);
+    m_constraint2.Set_b_i(0.);
+    m_constraint3.Set_b_i(0.);
 }
 
 void ChLinkPointFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -488,9 +488,9 @@ void ChLinkPointFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp,
 
     ChVector3d res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
 
-    constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
-    constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y());
-    constraint3.Set_b_i(constraint3.Get_b_i() + factor * res.z());
+    m_constraint1.Set_b_i(m_constraint1.Get_b_i() + factor * res.x());
+    m_constraint2.Set_b_i(m_constraint2.Get_b_i() + factor * res.y());
+    m_constraint3.Set_b_i(m_constraint3.Get_b_i() + factor * res.z());
 }
 
 void ChLinkPointFrame::ConstraintsBiLoad_Ct(double factor) {
@@ -513,24 +513,24 @@ void ChLinkPointFrame::ConstraintsLoadJacobians() {
     ChStarMatrix33<> atilde(Aow.transpose() * (m_node->GetPos() - m_body->GetPos()));
     ChMatrix33<> Jrb = Aro.transpose() * atilde;
 
-    constraint1.Get_Cq_a().segment(0, 3) = Jxn.row(0);
-    constraint2.Get_Cq_a().segment(0, 3) = Jxn.row(1);
-    constraint3.Get_Cq_a().segment(0, 3) = Jxn.row(2);
+    m_constraint1.Get_Cq_a().segment(0, 3) = Jxn.row(0);
+    m_constraint2.Get_Cq_a().segment(0, 3) = Jxn.row(1);
+    m_constraint3.Get_Cq_a().segment(0, 3) = Jxn.row(2);
 
-    constraint1.Get_Cq_b().segment(0, 3) = Jxb.row(0);
-    constraint2.Get_Cq_b().segment(0, 3) = Jxb.row(1);
-    constraint3.Get_Cq_b().segment(0, 3) = Jxb.row(2);
+    m_constraint1.Get_Cq_b().segment(0, 3) = Jxb.row(0);
+    m_constraint2.Get_Cq_b().segment(0, 3) = Jxb.row(1);
+    m_constraint3.Get_Cq_b().segment(0, 3) = Jxb.row(2);
 
-    constraint1.Get_Cq_b().segment(3, 3) = Jrb.row(0);
-    constraint2.Get_Cq_b().segment(3, 3) = Jrb.row(1);
-    constraint3.Get_Cq_b().segment(3, 3) = Jrb.row(2);
+    m_constraint1.Get_Cq_b().segment(3, 3) = Jrb.row(0);
+    m_constraint2.Get_Cq_b().segment(3, 3) = Jrb.row(1);
+    m_constraint3.Get_Cq_b().segment(3, 3) = Jrb.row(2);
 }
 
 void ChLinkPointFrame::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    m_react.x() = constraint1.Get_l_i() * factor;
-    m_react.y() = constraint2.Get_l_i() * factor;
-    m_react.z() = constraint3.Get_l_i() * factor;
+    m_react.x() = m_constraint1.Get_l_i() * factor;
+    m_react.y() = m_constraint2.Get_l_i() * factor;
+    m_react.z() = m_constraint3.Get_l_i() * factor;
 }
 
 // FILE I/O

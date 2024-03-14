@@ -35,13 +35,13 @@ namespace fea {
 /// Utility class for using the ChLinkPointTriface constraint
 class ChApi ChTriangleOfXYZnodes : public ChVariableTupleCarrier_3vars<3, 3, 3> {
   public:
-    std::shared_ptr<fea::ChNodeFEAxyz> mnodeB1;
-    std::shared_ptr<fea::ChNodeFEAxyz> mnodeB2;
-    std::shared_ptr<fea::ChNodeFEAxyz> mnodeB3;
+    std::shared_ptr<fea::ChNodeFEAxyz> node1;
+    std::shared_ptr<fea::ChNodeFEAxyz> node2;
+    std::shared_ptr<fea::ChNodeFEAxyz> node3;
 
-    virtual ChVariables* GetVariables1() override { return &mnodeB1->Variables(); }
-    virtual ChVariables* GetVariables2() override { return &mnodeB2->Variables(); }
-    virtual ChVariables* GetVariables3() override { return &mnodeB3->Variables(); }
+    virtual ChVariables* GetVariables1() override { return &node1->Variables(); }
+    virtual ChVariables* GetVariables2() override { return &node2->Variables(); }
+    virtual ChVariables* GetVariables3() override { return &node3->Variables(); }
 };
 
 /// Class for creating a constraint between a xyz FEA node (point)
@@ -65,7 +65,7 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
     virtual unsigned int GetNumConstraintsBilateral() override { return 3; }
 
     /// Return the link frame, expressed in absolute coordinates.
-    ChFrame<> GetFrameNodeAbs() const { return ChFrame<>(mnodeA->GetPos(), QUNIT); }
+    ChFrame<> GetFrameNodeAbs() const { return ChFrame<>(m_node->GetPos(), QUNIT); }
 
     /// Use this function after object creation, to initialize it, given
     /// the node and the triangle to join.
@@ -93,25 +93,28 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
         ms3 = s3;
     }
 
-    /// Set an optional offset of point A respect to triangle, along triangle normal.
+    /// Set an optional offset of the point with respect to triangle, along triangle normal.
     /// Note that it is better to avoid large offsets. Better if offset is zero.
     /// The Initialize() function initialize this automatically.
     virtual void SetOffset(const double md) { d = md; }
 
-    /// Get the imposed offset of point A respect to triangle
+    /// Get the imposed offset of the point with respect to triangle.
     virtual double GetOffset(double md) const { return d; }
 
-    /// Get the connected xyz node (point)
-    std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeA() const { return this->mnodeA; }
+    /// Get the connected xyz node (point).
+    std::shared_ptr<fea::ChNodeFEAxyz> GetNode() const { return this->m_node; }
 
-    /// Get the connected triangle
-    std::array<std::shared_ptr<fea::ChNodeFEAxyz>, 3> GetConstrainedTriangle() const {
+    /// Get the connected triangle.
+    std::array<std::shared_ptr<fea::ChNodeFEAxyz>, 3> GetTriangle() const {
         return std::array<std::shared_ptr<fea::ChNodeFEAxyz>, 3>{
-            {this->mtriangle.mnodeB1, this->mtriangle.mnodeB2, this->mtriangle.mnodeB3}};
+            {this->m_triangle.node1, this->m_triangle.node2, this->m_triangle.node3}};
     }
 
-    /// Get the reaction force considered as applied to node A, in abs coords.
+    /// Get the reaction force considered as applied to the node, in abs coords.
     ChVector3d GetReactionOnNode() const { return -react; }
+
+    /// Get the reaction force considered as applied to the triangle, in abs coords.
+    ChVector3d GetReactionOnTriangle() const { return -react; }
 
     /// Update all auxiliary data of the gear transmission at given time
     virtual void Update(double mytime, bool update_assets = true) override;
@@ -165,20 +168,33 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
     ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZnodes> constraint2;
     ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZnodes> constraint3;
 
-    std::shared_ptr<ChNodeFEAxyz> mnodeA;
-    ChTriangleOfXYZnodes mtriangle;
+    std::shared_ptr<ChNodeFEAxyz> m_node;
+    ChTriangleOfXYZnodes m_triangle;
 
     double s2, s3;
     double d;
 
-    /// [INTERNAL USE ONLY]
-    virtual ChFrame<> GetFrameAbs() const override { return GetFrameNodeAbs(); }
+    /// Get the link frame 1, on the connected node, expressed in the absolute frame.
+    virtual ChFramed GetFrame1Abs() const override { return GetFrameNodeAbs(); }
 
-    /// [INTERNAL USE ONLY] Reaction force on the node, at node position, according to absolute orientation.
-    virtual ChVector3d GetReactForce() const override { return GetReactionOnNode(); }
+    /// Get the link frame 2, on the face, expressed in the absolute frame.
+    virtual ChFramed GetFrame2Abs() const override { return ChFramed(); }  //// TODO
 
-    /// [INTERNAL USE ONLY] Reaction torque on the node, at node position, according to absolute orientation.
-    virtual ChVector3d GetReactTorque() const override { return VNULL; }
+    /// Get reaction force on node, expressed on link frame 1.
+    virtual ChVector3d GetReactForce1() const override {
+        return GetFrame1Abs().TransformDirectionParentToLocal(GetReactionOnNode());
+    }
+
+    /// Get reaction torque on node, expressed on link frame 1.
+    virtual ChVector3d GetReactTorque1() const override { return VNULL; }
+
+    /// Get reaction force on triangle, expressed on link frame 2.
+    virtual ChVector3d GetReactForce2() const override {
+        return GetFrame2Abs().TransformDirectionParentToLocal(GetReactionOnTriangle());
+    }
+
+    /// Get reaction torque on triangle, expressed on link frame 2.
+    virtual ChVector3d GetReactTorque2() const override { return VNULL; }  //// TODO
 };
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -189,13 +205,13 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
 /// Utility class for using the ChLinkPointTriface constraint
 class ChApi ChTriangleOfXYZROTnodes : public ChVariableTupleCarrier_3vars<6, 6, 6> {
   public:
-    std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeB1;
-    std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeB2;
-    std::shared_ptr<fea::ChNodeFEAxyzrot> mnodeB3;
+    std::shared_ptr<fea::ChNodeFEAxyzrot> node1;
+    std::shared_ptr<fea::ChNodeFEAxyzrot> node2;
+    std::shared_ptr<fea::ChNodeFEAxyzrot> node3;
 
-    virtual ChVariables* GetVariables1() { return &mnodeB1->Variables(); };
-    virtual ChVariables* GetVariables2() { return &mnodeB2->Variables(); };
-    virtual ChVariables* GetVariables3() { return &mnodeB3->Variables(); };
+    virtual ChVariables* GetVariables1() { return &node1->Variables(); };
+    virtual ChVariables* GetVariables2() { return &node2->Variables(); };
+    virtual ChVariables* GetVariables3() { return &node3->Variables(); };
 };
 
 /// Class for creating a constraint between a xyz FEA node (point)
@@ -220,7 +236,7 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
     // Other functions
 
     /// Return the link frame, expressed in absolute coordinates.
-    ChFrame<> GetFrameNodeAbs() const { return ChFrame<>(mnodeA->GetPos(), QUNIT); }
+    ChFrame<> GetFrameNodeAbs() const { return ChFrame<>(m_node->GetPos(), QUNIT); }
 
     /// Use this function after object creation, to initialize it, given
     /// the node and the triangle to join.
@@ -256,17 +272,20 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
     /// Get the imposed offset of point A respect to triangle
     virtual double GetOffset(double md) const { return d; }
 
-    /// Get the connected xyz node (point)
-    std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeA() const { return this->mnodeA; }
+    /// Get the connected xyz node (point).
+    std::shared_ptr<fea::ChNodeFEAxyz> GetNode() const { return this->m_node; }
 
-    /// Get the connected triangle
-    std::array<std::shared_ptr<fea::ChNodeFEAxyzrot>, 3> GetConstrainedTriangle() const {
+    /// Get the connected triangle.
+    std::array<std::shared_ptr<fea::ChNodeFEAxyzrot>, 3> GetTriangle() const {
         return std::array<std::shared_ptr<fea::ChNodeFEAxyzrot>, 3>{
-            {this->mtriangle.mnodeB1, this->mtriangle.mnodeB2, this->mtriangle.mnodeB3}};
+            {this->m_triangle.node1, this->m_triangle.node2, this->m_triangle.node3}};
     }
 
     /// Get the reaction force considered as applied to node A, in abs coords.
     ChVector3d GetReactionOnNode() const { return -react; }
+
+    /// Get the reaction force considered as applied to the triangle, in abs coords.
+    ChVector3d GetReactionOnTriangle() const { return -react; }
 
     /// Update all auxiliary data of the gear transmission at given time
     virtual void Update(double mytime, bool update_assets = true) override;
@@ -320,20 +339,33 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
     ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZROTnodes> constraint2;
     ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZROTnodes> constraint3;
 
-    std::shared_ptr<ChNodeFEAxyz> mnodeA;
-    ChTriangleOfXYZROTnodes mtriangle;
+    std::shared_ptr<ChNodeFEAxyz> m_node;
+    ChTriangleOfXYZROTnodes m_triangle;
 
     double s2, s3;
     double d;
 
-    /// [INTERNAL USE ONLY]
-    virtual ChFrame<> GetFrameAbs() const override { return GetFrameNodeAbs(); }
+    /// Get the link frame 1, on the connected node, expressed in the absolute frame.
+    virtual ChFramed GetFrame1Abs() const override { return GetFrameNodeAbs(); }
 
-    /// [INTERNAL USE ONLY] Reaction force on the node, at node position, according to absolute orientation.
-    virtual ChVector3d GetReactForce() const override { return GetReactionOnNode(); }
+    /// Get the link frame 2, on the face, expressed in the absolute frame.
+    virtual ChFramed GetFrame2Abs() const override { return ChFramed(); }  //// TODO
 
-    /// [INTERNAL USE ONLY] Reaction torque on the node, at node position, according to absolute orientation.
-    virtual ChVector3d GetReactTorque() const override { return VNULL; }
+    /// Get reaction force on node, expressed on link frame 1.
+    virtual ChVector3d GetReactForce1() const override {
+        return GetFrame1Abs().TransformDirectionParentToLocal(GetReactionOnNode());
+    }
+
+    /// Get reaction torque on node, expressed on link frame 1.
+    virtual ChVector3d GetReactTorque1() const override { return VNULL; }
+
+    /// Get reaction force on triangle, expressed on link frame 2.
+    virtual ChVector3d GetReactForce2() const override {
+        return GetFrame2Abs().TransformDirectionParentToLocal(GetReactionOnTriangle());
+    }
+
+    /// Get reaction torque on triangle, expressed on link frame 2.
+    virtual ChVector3d GetReactTorque2() const override { return VNULL; }  //// TODO
 };
 
 /// @} fea_constraints
