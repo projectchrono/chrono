@@ -199,7 +199,7 @@ void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 /
 
 void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 // mesh to store the resulting elements
                                  std::shared_ptr<ChBeamSectionCosserat> sect,  // section material for beam elements
-                                 ChLineBspline& spline,  // the B-spline to be used as the centerline
+                                 ChLineBSpline& spline,  // the B-spline to be used as the centerline
                                  const ChVector3d Ydir   // the 'up' Y direction of the beam
 ) {
     beam_elems.clear();

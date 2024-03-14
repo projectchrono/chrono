@@ -23,7 +23,7 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkLockTrajectory.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/geometry/ChLineBspline.h"
+#include "chrono/geometry/ChLineBSpline.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
     mmoved_2->SetPos(ChVector3d(0.5, 0, 0));
 
     // Create a spline geometry:
-    auto mspline = chrono_types::make_shared<ChLineBspline>(
+    auto mspline = chrono_types::make_shared<ChLineBSpline>(
         3,  // spline order
         std::vector<ChVector3d>{
             // std::vector with ChVector3d controlpoints
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
             {0, .5, .1}});
     mspline->SetClosed(true);
 
-    // Create a line motion that uses the 3D ChLineBspline above (but in SetLine() you
+    // Create a line motion that uses the 3D ChLineBSpline above (but in SetLine() you
     // might use also other ChLine objects such as a ChLinePath, a ChLineArc, etc.)
     auto f_line = chrono_types::make_shared<ChFunctionPositionLine>();
     f_line->SetLine(mspline);

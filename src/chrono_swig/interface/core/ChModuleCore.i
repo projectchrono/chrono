@@ -273,7 +273,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinePoly)
 %shared_ptr(chrono::ChLineBezier)
 %shared_ptr(chrono::ChLineCam)
-%shared_ptr(chrono::ChLineBspline)
+%shared_ptr(chrono::ChLineBSpline)
 %shared_ptr(chrono::ChTriangle)
 %shared_ptr(chrono::ChSurfaceNurbs)
 %shared_ptr(chrono::ChTriangleMesh)

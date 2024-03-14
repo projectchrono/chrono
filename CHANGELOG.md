@@ -637,6 +637,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_complexity                | rename: GetComplexity                            |
 |                                   | Set_closed                    | rename: SetClosed                                |
 |                                   | Set_complexity                | rename: SetComplexity                            |
+| ChLineBspline                     |                               | rename: ChLineBSpline                            |
 | ChLineCam                         |                               |                                                  |
 |                                   | Get_b0                        | rename: GetFollowerInitPhase                     |
 |                                   | Get_center                    | rename: GetCenter                                |

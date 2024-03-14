@@ -98,7 +98,7 @@ v4 = chrono.ChVector3d(0.6, 0.3, 0)
 v5 = chrono.ChVector3d(0.5, 0.5, 0.1)
 v6 = chrono.ChVector3d(0, 0.5, 0.1)
 splinepoints = chrono.vector_ChVector3d([v1, v2, v3, v4, v5, v6])
-mspline = chrono.ChLineBspline(3, splinepoints)
+mspline = chrono.ChLineBSpline(3, splinepoints)
 mspline.SetClosed(True)
 
 f_line = chrono.ChFunctionPositionLine()

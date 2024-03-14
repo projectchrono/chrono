@@ -29,7 +29,7 @@
 #include "chrono/physics/ChLinkMotorLinearSpeed.h"
 #include "chrono/physics/ChContactMaterialSMC.h"
 
-#include "chrono/geometry/ChLineBspline.h"
+#include "chrono/geometry/ChLineBSpline.h"
 
 namespace chrono {
 namespace fea {
@@ -183,7 +183,7 @@ class ChApi ChBuilderBeamIGA {
     /// line in 3D space. Before running, each time resets lists of beam_elems and beam_nodes.
     void BuildBeam(std::shared_ptr<ChMesh> mesh,                 ///< mesh to store the resulting elements
                    std::shared_ptr<ChBeamSectionCosserat> sect,  ///< section material for beam elements
-                   ChLineBspline& spline,              ///< the B-spline to be used as the centerline
+                   ChLineBSpline& spline,              ///< the B-spline to be used as the centerline
                    const ChVector3d Ydirn                        ///< the 'up' Y direction of the beam
     );
 

@@ -27,7 +27,7 @@ namespace chrono {
 /// @{
 
 /// Geometric object representing a Bspline spline.
-class ChApi ChLineBspline : public ChLine {
+class ChApi ChLineBSpline : public ChLine {
   public:
     std::vector<ChVector3d> points;
     ChVectorDynamic<> knots;
@@ -36,21 +36,21 @@ class ChApi ChLineBspline : public ChLine {
 
   public:
     /// Constructor. By default, a segment (order = 1, two points on X axis, at -1, +1)
-    ChLineBspline();
+    ChLineBSpline();
 
     /// Constructor from a given array of control points. Input data is copied.
     /// If the knots are not provided, a uniformly spaced knot vector is made.
-    ChLineBspline(
+    ChLineBSpline(
         int morder,                              ///< order p: 1= linear, 2=quadratic, etc.
         const std::vector<ChVector3d>& mpoints,  ///< control points, size n. Required: at least n >= p+1
         ChVectorDynamic<>* mknots = 0  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
     );
 
-    ChLineBspline(const ChLineBspline& source);
-    ~ChLineBspline() {}
+    ChLineBSpline(const ChLineBSpline& source);
+    ~ChLineBSpline() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLineBspline* Clone() const override { return new ChLineBspline(*this); }
+    virtual ChLineBSpline* Clone() const override { return new ChLineBSpline(*this); }
 
     virtual int GetComplexity() const override { return (int)points.size(); }
 
@@ -108,7 +108,7 @@ class ChApi ChLineBspline : public ChLine {
 
 /// @} chrono_geometry
 
-CH_CLASS_VERSION(ChLineBspline, 0)
+CH_CLASS_VERSION(ChLineBSpline, 0)
 
 }  // end namespace chrono
 

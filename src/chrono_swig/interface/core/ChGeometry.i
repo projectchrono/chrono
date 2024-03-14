@@ -25,7 +25,7 @@
 #include "chrono/geometry/ChLinePath.h"
 #include "chrono/geometry/ChLinePoly.h"
 #include "chrono/geometry/ChLineBezier.h"
-#include "chrono/geometry/ChLineBspline.h"
+#include "chrono/geometry/ChLineBSpline.h"
 #include "chrono/geometry/ChLineCam.h"
 #include "chrono/geometry/ChSurface.h"
 #include "chrono/geometry/ChSurfaceNurbs.h"
@@ -58,7 +58,7 @@ using namespace chrono;
 %shared_ptr(chrono::ChLinePath)
 %shared_ptr(chrono::ChLinePoly)
 %shared_ptr(chrono::ChLineBezier)
-%shared_ptr(chrono::ChLineBspline)
+%shared_ptr(chrono::ChLineBSpline)
 %shared_ptr(chrono::ChLineCam)
 %shared_ptr(chrono::ChTriangle)
 %shared_ptr(chrono::ChTriangleMesh)
@@ -92,7 +92,7 @@ using namespace chrono;
 %include "../../../chrono/geometry/ChLinePath.h"
 %include "../../../chrono/geometry/ChLinePoly.h"
 %include "../../../chrono/geometry/ChLineBezier.h"
-%include "../../../chrono/geometry/ChLineBspline.h"
+%include "../../../chrono/geometry/ChLineBSpline.h"
 %include "../../../chrono/geometry/ChLineCam.h"
 %include "../../../chrono/geometry/ChTriangle.h"
 %include "../../../chrono/geometry/ChTriangleMesh.h"

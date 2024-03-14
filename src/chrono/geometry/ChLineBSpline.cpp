@@ -12,21 +12,21 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include "chrono/geometry/ChLineBspline.h"
+#include "chrono/geometry/ChLineBSpline.h"
 
 namespace chrono {
 
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChLineBspline)
+CH_FACTORY_REGISTER(ChLineBSpline)
 
-ChLineBspline::ChLineBspline() {
+ChLineBSpline::ChLineBSpline() {
     const std::vector<ChVector3d > mpoints = {ChVector3d(-1, 0, 0), ChVector3d(1, 0, 0)};
 	this->closed = false;
     this->Setup(1, mpoints);
 }
 
-ChLineBspline::ChLineBspline(
+ChLineBSpline::ChLineBSpline(
     int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
     const std::vector<ChVector3d >& mpoints,  ///< control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
@@ -35,14 +35,14 @@ ChLineBspline::ChLineBspline(
     this->Setup(morder, mpoints, mknots);
 }
 
-ChLineBspline::ChLineBspline(const ChLineBspline& source) : ChLine(source) {
+ChLineBSpline::ChLineBSpline(const ChLineBSpline& source) : ChLine(source) {
     this->points = source.points;
     this->p = source.p;
     this->knots = source.knots;
 	this->closed = source.closed;
 }
 
-ChVector3d ChLineBspline::Evaluate(double parU) const {
+ChVector3d ChLineBSpline::Evaluate(double parU) const {
 	double mU;
 	if (this->closed)
 		mU = fmod(parU, 1.0);
@@ -65,7 +65,7 @@ ChVector3d ChLineBspline::Evaluate(double parU) const {
     return pos;
 }
 
-ChVector3d ChLineBspline::GetTangent(double parU) const {
+ChVector3d ChLineBSpline::GetTangent(double parU) const {
     double mU;
 	if (this->closed)
 		mU = fmod(parU, 1.0);
@@ -88,19 +88,19 @@ ChVector3d ChLineBspline::GetTangent(double parU) const {
     return dir;
 }
 
-void ChLineBspline::Setup(
+void ChLineBSpline::Setup(
     int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
     const std::vector<ChVector3d >& mpoints,  ///< control points, size n. Required: at least n >= p+1
     ChVectorDynamic<>* mknots           ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
 ) {
     if (morder < 1)
-        throw std::invalid_argument("ChLineBspline::Setup requires order >= 1.");
+        throw std::invalid_argument("ChLineBSpline::Setup requires order >= 1.");
 
     if (mpoints.size() < morder + 1)
-        throw std::invalid_argument("ChLineBspline::Setup requires at least order+1 control points.");
+        throw std::invalid_argument("ChLineBSpline::Setup requires at least order+1 control points.");
 
     if (mknots && (size_t)mknots->size() != (mpoints.size() + morder + 1))
-        throw std::invalid_argument("ChLineBspline::Setup: knots must have size=n_points+order+1");
+        throw std::invalid_argument("ChLineBSpline::Setup: knots must have size=n_points+order+1");
 
     this->p = morder;
     this->points = mpoints;
@@ -114,7 +114,7 @@ void ChLineBspline::Setup(
     }
 }
 
-void ChLineBspline::SetClosed(bool mc) {
+void ChLineBSpline::SetClosed(bool mc) {
 	if (this->closed == mc)
 		return;
 
@@ -149,9 +149,9 @@ void ChLineBspline::SetClosed(bool mc) {
 	this->closed = mc;
 }
 
-void ChLineBspline::ArchiveOut(ChArchiveOut& archive_out) {
+void ChLineBSpline::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    archive_out.VersionWrite<ChLineBspline>();
+    archive_out.VersionWrite<ChLineBSpline>();
     // serialize parent class
     ChLine::ArchiveOut(archive_out);
     // serialize all member data:
@@ -161,9 +161,9 @@ void ChLineBspline::ArchiveOut(ChArchiveOut& archive_out) {
 	archive_out << CHNVP(closed);
 }
 
-void ChLineBspline::ArchiveIn(ChArchiveIn& archive_in) {
+void ChLineBSpline::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLineBspline>();
+    /*int version =*/ archive_in.VersionRead<ChLineBSpline>();
     // deserialize parent class
     ChLine::ArchiveIn(archive_in);
     // stream in all member data:

@@ -281,7 +281,7 @@ void MakeAndRunDemo2(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     std::vector<ChVector3d> my_points = {{0, 0, 0.2}, {0, 0, 0.3}, {0, -0.01, 0.4}, {0, -0.04, 0.5}, {0, -0.1, 0.6}};
 
-    ChLineBspline my_spline(3,           // order (3 = cubic, etc)
+    ChLineBSpline my_spline(3,           // order (3 = cubic, etc)
                             my_points);  // control points, will become the IGA nodes
 
     builderR.BuildBeam(my_mesh,    // the mesh to put the elements in
