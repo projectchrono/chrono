@@ -230,34 +230,14 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     }
 
     if (add_force) {
-        // Method A (simple)
-        // The simplest way to add a force is to use mynode->SetForce(), or to add some ChBodyLoad.
-        // Note: this works only for boundary nodes!
+        // Add a force to boundary nodes in the same way as in a full-state assembly
         my_node_B_boundary->SetForce(ChVector<>(0, -3, 0));  // to trigger some vibration at the free end
 
-        // Method B (advanced)
-        // Add a force also to internal nodes that will be removed after modal reduction.
-        // This can be done using a callback that will be called all times the time integrator needs it.
-        // You will provide a custom force writing into computed_custom_F_full vector (note: it is up to you to use the
-        // proper indexes)
-        class MyCallback : public ChModalAssembly::CustomForceFullCallback {
-          public:
-            MyCallback(){};
-            virtual void evaluate(
-                ChVectorDynamic<>&
-                    computed_custom_F_full,  //< compute F here, size= n_boundary_coords_w + n_internal_coords_w
-                const ChModalAssembly& link  ///< associated modal assembly
-            ) {
-                // remember! assume F vector is already properly sized, but not zeroed!
-                computed_custom_F_full.setZero();
-
-                // just for test, assign a force to a random coordinate of F, here an internal node
-                computed_custom_F_full[computed_custom_F_full.size() - 16] = -60;
-            }
-        };
-        auto my_callback = chrono_types::make_shared<MyCallback>();
-
-        assembly->RegisterCallback_CustomForceFull(my_callback);
+        // Add a force to internal nodes in the same way as in a full-state assembly
+        auto node_int =
+            std::dynamic_pointer_cast<ChNodeFEAxyzrot>(assembly->Get_internal_meshlist().front()->GetNodes().back());
+        node_int->SetForce(ChVector<>(0, 1, 0));
+        node_int->SetTorque(ChVector<>(0, 2, 0));
     }
 
     // Just for later reference, dump  M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()

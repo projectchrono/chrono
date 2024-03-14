@@ -35,10 +35,10 @@ ChModalAssembly::ChModalAssembly(const ChModalAssembly& other) : ChAssembly(othe
     modal_q = other.modal_q;
     modal_q_dt = other.modal_q_dt;
     modal_q_dtdt = other.modal_q_dtdt;
-    custom_F_modal = other.custom_F_modal;
+    // custom_F_modal = other.custom_F_modal;
     internal_nodes_update = other.internal_nodes_update;
-    m_custom_F_modal_callback = other.m_custom_F_modal_callback;
-    m_custom_F_full_callback = other.m_custom_F_full_callback;
+    // m_custom_F_modal_callback = other.m_custom_F_modal_callback;
+    // m_custom_F_full_callback = other.m_custom_F_full_callback;
 
     //// TODO:  deep copy of the object lists (internal_bodylist, internal_linklist, internal_meshlist,
     /// internal_otherphysicslist)
@@ -1176,8 +1176,9 @@ void ChModalAssembly::SetupModalData(int nmodes_reduction) {
         this->modal_q.setZero(this->n_modes_coords_w);
         this->modal_q_dt.setZero(this->n_modes_coords_w);
         this->modal_q_dtdt.setZero(this->n_modes_coords_w);
-        this->custom_F_modal.setZero(this->n_modes_coords_w);
-        this->custom_F_full.setZero(this->n_boundary_coords_w + this->n_internal_coords_w);
+        // this->custom_F_modal.setZero(this->n_modes_coords_w);
+        // this->custom_F_full.setZero(this->n_boundary_coords_w + this->n_internal_coords_w);
+        this->full_forces_internal.setZero(this->n_internal_coords_w);
     }
 }
 
@@ -1887,7 +1888,8 @@ void ChModalAssembly::Setup() {
     n_internal_sysvars_w = n_internal_coords_w + n_internal_doc_w;  // total number of variables (with 6 dof per body)
     n_internal_dof = n_internal_coords_w - n_internal_doc_w;
 
-    this->custom_F_full.setZero(this->n_boundary_coords_w + this->n_internal_coords_w);
+    // this->custom_F_full.setZero(this->n_boundary_coords_w + this->n_internal_coords_w);
+    this->full_forces_internal.setZero(this->n_internal_coords_w);
 
     // For the modal part:
     //
@@ -1922,7 +1924,7 @@ void ChModalAssembly::Setup() {
         nsysvars_w = n_boundary_sysvars_w + n_modes_coords_w;
         ndof = n_boundary_dof + n_modes_coords_w;
 
-        this->custom_F_modal.setZero(this->n_modes_coords_w);
+        // this->custom_F_modal.setZero(this->n_modes_coords_w);
     }
 }
 
@@ -1947,19 +1949,42 @@ void ChModalAssembly::Update(bool update_assets) {
             internal_linklist[ip]->Update(ChTime, update_assets);
         }
 
-        if (m_custom_F_full_callback)
-            m_custom_F_full_callback->evaluate(this->custom_F_full, *this);
+        // if (m_custom_F_full_callback)
+        // m_custom_F_full_callback->evaluate(this->custom_F_full, *this);
     } else {
         // If in modal reduction mode, the internal parts would not be updated (actually, these could even be
         // removed) However one still might want to see the internal nodes "moving" during animations,
         if (this->internal_nodes_update)
             this->SetInternalStateWithModes(update_assets);
 
-        if (m_custom_F_modal_callback)
-            m_custom_F_modal_callback->evaluate(this->custom_F_modal, *this);
+        // if (m_custom_F_modal_callback)
+        //     m_custom_F_modal_callback->evaluate(this->custom_F_modal, *this);
 
-        if (m_custom_F_full_callback)
-            m_custom_F_full_callback->evaluate(this->custom_F_full, *this);
+        // if (m_custom_F_full_callback)
+        //     m_custom_F_full_callback->evaluate(this->custom_F_full, *this);
+
+        // Update the external forces imposed on the internal nodes.
+        // Note: the below code requires that the internal bodies and internal nodes are inserted in sequence.
+        int offset_loc = 0;
+        for (int ip = 0; ip < (int)internal_bodylist.size(); ++ip) {
+            this->full_forces_internal.segment(offset_loc, 3) = internal_bodylist[ip]->Get_accumulated_force().eigen();
+            this->full_forces_internal.segment(offset_loc + 3, 3) =
+                internal_bodylist[ip]->Get_accumulated_torque().eigen();
+            offset_loc += internal_bodylist[ip]->GetDOF_w();
+        }
+        for (int ip = 0; ip < (int)internal_meshlist.size(); ++ip) {
+            for (auto& node : internal_meshlist[ip]->GetNodes()) {
+                if (auto xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node)) {
+                    this->full_forces_internal.segment(offset_loc, xyz->GetNdofW()) = xyz->GetForce().eigen();
+                    offset_loc += xyz->GetNdofW();
+                }
+                if (auto xyzrot = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(node)) {
+                    this->full_forces_internal.segment(offset_loc, 3) = xyzrot->GetForce().eigen();
+                    this->full_forces_internal.segment(offset_loc + 3, 3) = xyzrot->GetTorque().eigen();
+                    offset_loc += xyzrot->GetNdofW();
+                }
+            }
+        }
 
         // always update the floating frame F if possible
         this->UpdateFloatingFrameOfReference();
@@ -2175,8 +2200,8 @@ void ChModalAssembly::IntStateScatter(const unsigned int off_x,
                 link->Update(T, full_update);
         }
 
-        if (m_custom_F_full_callback)
-            m_custom_F_full_callback->evaluate(this->custom_F_full, *this);
+        // if (m_custom_F_full_callback)
+        // m_custom_F_full_callback->evaluate(this->custom_F_full, *this);
     } else {
         this->modal_q = x.segment(off_x + this->n_boundary_coords, this->n_modes_coords_w);
         this->modal_q_dt = v.segment(off_v + this->n_boundary_coords_w, this->n_modes_coords_w);
@@ -2395,9 +2420,9 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
         }
 
         // Add custom forces (applied to the original non reduced system)
-        if (!this->custom_F_full.isZero()) {
-            R.segment(off, this->n_boundary_coords_w + this->n_internal_coords_w) += c * this->custom_F_full;
-        }
+        // if (!this->custom_F_full.isZero()) {
+        // R.segment(off, this->n_boundary_coords_w + this->n_internal_coords_w) += c * this->custom_F_full;
+        //}
     } else {
         int bou_mod_coords = this->n_boundary_coords + this->n_modes_coords_w;
         int bou_mod_coords_w = this->n_boundary_coords_w + this->n_modes_coords_w;
@@ -2457,21 +2482,32 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
 
         // 2-
         // Add custom forces (in modal coordinates)
-        if (!this->custom_F_modal.isZero())
-            R.segment(off + this->n_boundary_coords_w, this->n_modes_coords_w) += c * this->custom_F_modal;
+        // if (!this->custom_F_modal.isZero())
+        // R.segment(off + this->n_boundary_coords_w, this->n_modes_coords_w) += c * this->custom_F_modal;
 
         // 3-
         // Add custom forces (applied to the original non reduced system, and transformed into reduced)
-        if (!this->custom_F_full.isZero()) {
-            ChVectorDynamic<> F_red;
-            F_red.setZero(this->n_boundary_coords_w + this->n_modes_coords_w);
-            F_red.head(n_boundary_coords_w) =
-                this->custom_F_full.head(this->n_boundary_coords_w) +
-                L_B * Psi_S.transpose() * L_I.transpose() * this->custom_F_full.tail(this->n_internal_coords_w);
-            F_red.tail(n_modes_coords_w) =
-                Psi_D.transpose() * L_I.transpose() * this->custom_F_full.tail(this->n_internal_coords_w);
-            R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) += c * F_red;
+        // if (!this->custom_F_full.isZero()) {
+        //    ChVectorDynamic<> F_red;
+        //    F_red.setZero(this->n_boundary_coords_w + this->n_modes_coords_w);
+        //    F_red.head(n_boundary_coords_w) =
+        //        this->custom_F_full.head(this->n_boundary_coords_w) +
+        //        L_B * Psi_S.transpose() * L_I.transpose() * this->custom_F_full.tail(this->n_internal_coords_w);
+        //    F_red.tail(n_modes_coords_w) =
+        //        Psi_D.transpose() * L_I.transpose() * this->custom_F_full.tail(this->n_internal_coords_w);
+        //    R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) += c * F_red;
+        //}
+        if (!this->full_forces_internal.isZero()) {
+            ChVectorDynamic<> F_reduced;
+            F_reduced.setZero(this->n_boundary_coords_w + this->n_modes_coords_w);
+            F_reduced.head(n_boundary_coords_w) =
+                L_B * Psi_S.transpose() * L_I.transpose() * this->full_forces_internal;
+            F_reduced.tail(n_modes_coords_w) = Psi_D.transpose() * L_I.transpose() * this->full_forces_internal;
+            R.segment(off, this->n_boundary_coords_w + this->n_modes_coords_w) += c * F_reduced;
         }
+
+        // todo: add gravity forces for internal bodies and internal meshes
+        // todo: add gyroscopic torques for internal bodies and internal meshes
     }
 }
 
@@ -2826,8 +2862,9 @@ void ChModalAssembly::ArchiveOut(ChArchiveOut& marchive) {
     marchive << CHNVP(modal_q, "modal_q");
     marchive << CHNVP(modal_q_dt, "modal_q_dt");
     marchive << CHNVP(modal_q_dtdt, "modal_q_dtdt");
-    marchive << CHNVP(custom_F_modal, "custom_F_modal");
-    marchive << CHNVP(custom_F_full, "custom_F_full");
+    // marchive << CHNVP(custom_F_modal, "custom_F_modal");
+    // marchive << CHNVP(custom_F_full, "custom_F_full");
+    marchive << CHNVP(full_forces_internal, "full_forces_internal");
     marchive << CHNVP(internal_nodes_update, "internal_nodes_update");
 }
 
@@ -2866,8 +2903,9 @@ void ChModalAssembly::ArchiveIn(ChArchiveIn& marchive) {
     marchive >> CHNVP(modal_q, "modal_q");
     marchive >> CHNVP(modal_q_dt, "modal_q_dt");
     marchive >> CHNVP(modal_q_dtdt, "modal_q_dtdt");
-    marchive >> CHNVP(custom_F_modal, "custom_F_modal");
-    marchive >> CHNVP(custom_F_full, "custom_F_full");
+    // marchive >> CHNVP(custom_F_modal, "custom_F_modal");
+    // marchive >> CHNVP(custom_F_full, "custom_F_full");
+    marchive >> CHNVP(full_forces_internal, "full_forces_internal");
     marchive >> CHNVP(internal_nodes_update, "internal_nodes_update");
 
     // Recompute statistics, offsets, etc.

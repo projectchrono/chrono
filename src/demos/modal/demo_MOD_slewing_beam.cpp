@@ -271,12 +271,14 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
 
             // Add a force to generate vibration
             if (APPLY_FORCE) {
+                auto node_int = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(
+                    modal_assembly_list.back()->Get_internal_meshlist().front()->GetNodes().back());
                 if (sys.GetChTime() < 5.5) {
-                    tip_node->SetForce(ChVector<>(0, 0, 0.02));
-                    tip_node->SetTorque(ChVector<>(0, 0, 1.0));
+                    node_int->SetForce(ChVector<>(0, 0, 0.02));
+                    node_int->SetTorque(ChVector<>(0, 0, 1.0));
                 } else {
-                    tip_node->SetForce(ChVector<>(0, 0, 0));
-                    tip_node->SetTorque(ChVector<>(0, 0, 0));
+                    node_int->SetForce(ChVector<>(0, 0, 0));
+                    node_int->SetTorque(ChVector<>(0, 0, 0));
                 }
             }
 
@@ -353,26 +355,10 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
         }
 
         if (APPLY_FORCE) {
-            class MyCallback : public ChModalAssembly::CustomForceFullCallback {
-              public:
-                MyCallback(){};
-                virtual void evaluate(
-                    ChVectorDynamic<>& computed_custom_F_full,  //< compute F here, size= n_boundary_coords_w +
-                    // n_internal_coords_w
-                    const ChModalAssembly& link  ///< associated modal assembly
-                ) {
-                    // remember! assume F vector is already properly sized, but not zeroed!
-                    computed_custom_F_full.setZero();
-                    // This is an exact linear force acting on the flexible modalassembly.
-                    // If a list of forces are applied, the response might be different due to the discrepacy on
-                    // the nonlinearity under moderate deflections. There is no similar difference for applied
-                    // torque. todo: to remedy this difference for applied forces on internal nodes.
-                    // computed_custom_F_full[1 + 6] = 4.0;//boundary node B: Fy=4
-                    computed_custom_F_full[5 + 6] = 20.71;  // boundary node B: Mz=30.7
-                }
-            };
-            auto my_callback = chrono_types::make_shared<MyCallback>();
-            modal_assembly_list.back()->RegisterCallback_CustomForceFull(my_callback);
+            auto node_int = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(
+                modal_assembly_list.back()->Get_internal_meshlist().front()->GetNodes().back());
+            node_int->SetForce(ChVector<>(0, 0, 0.02));
+            node_int->SetTorque(ChVector<>(0, 0, 1.0));
         }
 
         // Perform static analysis
