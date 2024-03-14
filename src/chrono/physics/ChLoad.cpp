@@ -153,7 +153,7 @@ void ChLoadCustom::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDy
         return;
     // fetch w as a contiguous vector
     ChVectorDynamic<> grouped_w(this->LoadGet_ndof_w());
-    ChVectorDynamic<> grouped_cMv(this->LoadGet_ndof_w());
+    grouped_w.setZero();
     unsigned int rowQ = 0;
     for (unsigned int i = 0; i < loadable->GetSubBlocks(); ++i) {
         if (loadable->IsSubBlockActive(i)) {
@@ -165,6 +165,7 @@ void ChLoadCustom::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDy
         }
     }
     // do computation R=c*M*v
+    ChVectorDynamic<> grouped_cMv(this->LoadGet_ndof_w());
     grouped_cMv = c * this->jacobians->M * grouped_w;
     rowQ = 0;
     for (unsigned int i = 0; i < loadable->GetSubBlocks(); ++i) {
@@ -341,7 +342,7 @@ void ChLoadCustomMultiple::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const Ch
         return;
     // fetch w as a contiguous vector
     ChVectorDynamic<> grouped_w(this->LoadGet_ndof_w());
-    ChVectorDynamic<> grouped_cMv(this->LoadGet_ndof_w());
+    grouped_w.setZero();
     unsigned int rowQ = 0;
     for (unsigned int k = 0; k < (unsigned int)loadables.size(); ++k) {
         for (unsigned int i = 0; i < loadables[k]->GetSubBlocks(); ++i) {
@@ -354,7 +355,9 @@ void ChLoadCustomMultiple::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const Ch
             }
         }
     }
+
     // do computation R=c*M*v
+    ChVectorDynamic<> grouped_cMv(this->LoadGet_ndof_w());
     grouped_cMv = c * this->jacobians->M * grouped_w;
     rowQ = 0;
     for (unsigned int k = 0; k < (unsigned int)loadables.size(); ++k) {
