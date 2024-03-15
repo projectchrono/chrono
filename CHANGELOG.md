@@ -263,10 +263,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | getPoint                      | rename: GetPoint                                 |
 |                                   | getPoints                     | rename: GetPoints                                |
 |                                   | read                          | rename: Read                                     |
-|                                   | write                         | rename: Write                                    |
-| ChBezierCurve                     |                               |                                                  |
-|                                   | calcClosestPoint              | rename: CalcClosestPoint                         |
 |                                   | reset                         | rename: Reset                                    |
+|                                   | write                         | rename: Write                                    |
 | ChBinaryArchive                   |                               | remove                                           |
 | ChBody                            |                               |                                                  |
 |                                   | Accumulate_force              | rename: AccumulateForce                          |

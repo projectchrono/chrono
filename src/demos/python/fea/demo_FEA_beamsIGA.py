@@ -84,7 +84,7 @@ node_mid = builder.GetLastBeamNodes()[m.floor(builder.GetLastBeamNodes().size()/
 # Create the flywheel and attach it to the center of the beam
 	
 mbodyflywheel = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, 0.24, 0.1, 7800) # R, h, density
-mbodyflywheel.SetCsys(
+mbodyflywheel.SetCoordsys(
 		chrono.ChCoordsysd(node_mid.GetPos() + chrono.ChVector3d(0,0.05,0), # flywheel initial center (plus Y offset)
 		chrono.QuatFromAngleAxis(CH_C_PI/2.0, chrono.VECT_Z)) # flywheel initial alignment (rotate 90° so cylinder axis is on X)
 )

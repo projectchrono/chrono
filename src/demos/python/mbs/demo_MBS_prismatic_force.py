@@ -94,7 +94,7 @@ mod = chrono.ChFunctionSine(ampl, freq)
 
 # Actuate first slider using a link force
 prismatic1.ForceZ().SetActive(True)
-prismatic1.ForceZ().SetActuatorForce(1)
+prismatic1.ForceZ().SetActuatorForceTorque(1)
 prismatic1.ForceZ().SetActuatorModulation(mod)
 
 # Actuate second slider using a body force
