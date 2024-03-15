@@ -140,24 +140,6 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
 
     /// Get reaction force and torque on 2nd node, expressed on link frame 2.
     virtual ChWrenchd GetReaction2() const override { return {GetReactionOnNode2(), VNULL}; }
-
-
-
-
-
-
-
-    /// Get reaction force on 1st node, expressed on link frame 1.
-    virtual ChVector3d GetReactForce1() const override { return GetReactionOnNode1(); }
-
-    /// Get reaction torque on 1st node, expressed on link frame 1.
-    virtual ChVector3d GetReactTorque1() const override { return VNULL; }
-
-    /// Get reaction force on 2nd node, expressed on link frame 2.
-    virtual ChVector3d GetReactForce2() const override { return GetReactionOnNode2(); }
-
-    /// Get reaction torque on 2nd node, expressed on link frame 2.
-    virtual ChVector3d GetReactTorque2() const override { return VNULL; }
 };
 
 /// @} fea_constraints

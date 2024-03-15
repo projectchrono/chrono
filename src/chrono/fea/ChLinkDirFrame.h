@@ -153,23 +153,6 @@ class ChApi ChLinkDirFrame : public ChLinkBase {
 
     /// Get reaction force and torque on frame, expressed on link frame 2.
     virtual ChWrenchd GetReaction2() const override { return {VNULL, GetReactionOnBody()}; }
-
-
-
-
-
-
-    /// Get reaction force on node, expressed on link frame 1.
-    virtual ChVector3d GetReactForce1() const override { return VNULL; }
-
-    /// Get reaction torque on node, expressed on link frame 1.
-    virtual ChVector3d GetReactTorque1() const override { return GetReactionOnNode(); }
-
-    /// Get reaction force on frame, expressed on link frame 2.
-    virtual ChVector3d GetReactForce2() const override { return VNULL; }
-
-    /// Get reaction torque on frame, expressed on link frame 2.
-    virtual ChVector3d GetReactTorque2() const override { return GetReactionOnBody(); }
 };
 
 /// @} fea_constraints

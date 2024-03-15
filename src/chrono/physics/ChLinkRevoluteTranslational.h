@@ -39,29 +39,6 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     /// Get the number of (bilateral) constraints introduced by this joint.
     virtual unsigned int GetNumConstraintsBilateral() override { return 4; }
 
-    /// Get the point on body 1 (revolute side), expressed in body 1 coordinate system.
-    const ChVector3d& GetPoint1Rel() const { return m_p1; }
-
-    /// Get the direction of the revolute joint, expressed in body 1 coordinate system.
-    const ChVector3d& GetDirZ1Rel() const { return m_z1; }
-    
-    /// Get the point on m_body2 (spherical side), expressed in body 2 coordinate system.
-    const ChVector3d& GetPoint2Rel() const { return m_p2; }
-    
-    /// Get the first direction of the translational joint, expressed in body 2 coordinate system.
-    /// The translational axis is orthogonal to the direction.
-    const ChVector3d& GetDirX2Rel() const { return m_x2; }
-    
-    /// Get the second direction of the translational joint, expressed in body 2 coordinate system.
-    /// The translational axis is orthogonal to the direction.
-    const ChVector3d& GetDirY2Rel() const { return m_y2; }
-
-    /// Get the link frame 1, relative to body 1.
-    virtual ChFrame<> GetFrame1Rel() const override;
-
-    /// Get the link frame 2, relative to body 2.
-    virtual ChFrame<> GetFrame2Rel() const override;
-
     /// Get the imposed distance (length of massless connector).
     double GetImposedDistance() const { return m_dist; }
 
@@ -84,6 +61,22 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     /// Get the second direction of the translational joint, expressed in absolute coordinate system.
     /// The translational axis is orthogonal to the direction.
     ChVector3d GetDirY2Abs() const { return m_body2->TransformDirectionLocalToParent(m_y2); }
+
+    /// Get the link frame 1, relative to body 1.
+    /// This frame, defined on body 1 (the revolute side), is centered at the revolute joint location, has its X axis
+    /// along the joint connector, and its Z axis aligned with the revolute axis.
+    virtual ChFrame<> GetFrame1Rel() const override;
+
+    /// Get the link frame 2, relative to body 2.
+    virtual ChFrame<> GetFrame2Rel() const override;
+
+    /// Get the reaction force and torque on the 1st body, expressed in the link frame 1.
+    /// NOT YET IMPLEMENTED!
+    virtual ChWrenchd GetReaction1() const override;
+
+    /// Get the reaction force and torque on the 2nd body, expressed in the link frame 2.
+    /// NOT YET IMPLEMENTED!
+    virtual ChWrenchd GetReaction2() const override;
 
     /// Get the joint violation (residuals of the constraint equations)
     virtual ChVectorDynamic<> GetConstraintViolation() const override { return m_C; }
@@ -120,62 +113,9 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
                     double distance = 0             ///< imposed distance (used only if auto_distance = false)
     );
 
-    //
-    // UPDATING FUNCTIONS
-    //
-
     /// Perform the update of this joint at the specified time: compute jacobians,
     /// constraint violations, etc. and cache in internal structures
     virtual void Update(double time, bool update_assets = true) override;
-
-    //
-    // STATE FUNCTIONS
-    //
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
-    virtual void IntLoadResidual_CqL(const unsigned int off_L,
-                                     ChVectorDynamic<>& R,
-                                     const ChVectorDynamic<>& L,
-                                     const double c) override;
-    virtual void IntLoadConstraint_C(const unsigned int off,
-                                     ChVectorDynamic<>& Qc,
-                                     const double c,
-                                     bool do_clamp,
-                                     double recovery_clamp) override;
-    virtual void IntToDescriptor(const unsigned int off_v,
-                                 const ChStateDelta& v,
-                                 const ChVectorDynamic<>& R,
-                                 const unsigned int off_L,
-                                 const ChVectorDynamic<>& L,
-                                 const ChVectorDynamic<>& Qc) override;
-    virtual void IntFromDescriptor(const unsigned int off_v,
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,
-                                   ChVectorDynamic<>& L) override;
-
-    //
-    // SOLVER INTERFACE
-    //
-
-    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
-    virtual void ConstraintsBiReset() override;
-    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
-    virtual void ConstraintsLoadJacobians() override;
-    virtual void ConstraintsFetch_react(double factor = 1) override;
-
-    //
-    // EXTRA REACTION FORCE & TORQUE FUNCTIONS
-    //
-
-    ChVector3d Get_react_force_body1();
-    ChVector3d Get_react_torque_body1();
-    ChVector3d Get_react_force_body2();
-    ChVector3d Get_react_torque_body2();
-
-    //
-    // SERIALIZATION
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
@@ -206,6 +146,38 @@ class ChApi ChLinkRevoluteTranslational : public ChLink {
     // Note that the order of the Lagrange multipliers corresponds to the following
     // order of the constraints: par1, par2, dot, dist.
     double m_multipliers[4];  ///< Lagrange multipliers
+
+    // Solver and integrator interface functions
+
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
+    virtual void IntLoadResidual_CqL(const unsigned int off_L,
+                                     ChVectorDynamic<>& R,
+                                     const ChVectorDynamic<>& L,
+                                     const double c) override;
+    virtual void IntLoadConstraint_C(const unsigned int off,
+                                     ChVectorDynamic<>& Qc,
+                                     const double c,
+                                     bool do_clamp,
+                                     double recovery_clamp) override;
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
+
+    // SOLVER INTERFACE
+
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsLoadJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1) override;
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

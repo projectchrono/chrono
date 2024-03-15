@@ -521,7 +521,7 @@ int drawAllLinkframes(ChVisualSystemIrrlicht* vis, double scale) {
 
     for (auto& link : vis->GetSystem(0).GetLinks()) {
         ChFrame<> frame1 = link->GetFrame1Abs();
-        ChFrame<> fram2 = link->GetFrame2Abs();
+        ChFrame<> frame2 = link->GetFrame2Abs();
 
         irr::video::SColor col;
 
@@ -537,10 +537,10 @@ int drawAllLinkframes(ChVisualSystemIrrlicht* vis, double scale) {
         col = irr::video::SColor(70, 0, 0, 125);  // Z blue
         vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(pz), col);
 
-        p0 = fram2.GetPos();
-        px = p0 + fram2.GetRotMat().GetAxisX() * scale;
-        py = p0 + fram2.GetRotMat().GetAxisY() * scale;
-        pz = p0 + fram2.GetRotMat().GetAxisZ() * scale;
+        p0 = frame2.GetPos();
+        px = p0 + frame2.GetRotMat().GetAxisX() * scale;
+        py = p0 + frame2.GetRotMat().GetAxisY() * scale;
+        pz = p0 + frame2.GetRotMat().GetAxisZ() * scale;
 
         col = irr::video::SColor(70, 255, 0, 0);  // X red
         vis->GetVideoDriver()->draw3DLine(irr::core::vector3dfCH(p0), irr::core::vector3dfCH(px), col);

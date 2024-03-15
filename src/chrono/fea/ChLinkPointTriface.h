@@ -190,27 +190,6 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
         return {GetFrame2Abs().TransformDirectionParentToLocal(GetReactionOnTriangle()), VNULL};
         //// TODO: check torque
     }
-
-
-
-
-
-
-    /// Get reaction force on node, expressed on link frame 1.
-    virtual ChVector3d GetReactForce1() const override {
-        return GetFrame1Abs().TransformDirectionParentToLocal(GetReactionOnNode());
-    }
-
-    /// Get reaction torque on node, expressed on link frame 1.
-    virtual ChVector3d GetReactTorque1() const override { return VNULL; }
-
-    /// Get reaction force on triangle, expressed on link frame 2.
-    virtual ChVector3d GetReactForce2() const override {
-        return GetFrame2Abs().TransformDirectionParentToLocal(GetReactionOnTriangle());
-    }
-
-    /// Get reaction torque on triangle, expressed on link frame 2.
-    virtual ChVector3d GetReactTorque2() const override { return VNULL; }  //// TODO
 };
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -377,27 +356,6 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
         return {GetFrame2Abs().TransformDirectionParentToLocal(GetReactionOnTriangle()), VNULL};
         //// TODO: check torque
     }
-
-
-
-
-
-
-    /// Get reaction force on node, expressed on link frame 1.
-    virtual ChVector3d GetReactForce1() const override {
-        return GetFrame1Abs().TransformDirectionParentToLocal(GetReactionOnNode());
-    }
-
-    /// Get reaction torque on node, expressed on link frame 1.
-    virtual ChVector3d GetReactTorque1() const override { return VNULL; }
-
-    /// Get reaction force on triangle, expressed on link frame 2.
-    virtual ChVector3d GetReactForce2() const override {
-        return GetFrame2Abs().TransformDirectionParentToLocal(GetReactionOnTriangle());
-    }
-
-    /// Get reaction torque on triangle, expressed on link frame 2.
-    virtual ChVector3d GetReactTorque2() const override { return VNULL; }  //// TODO
 };
 
 /// @} fea_constraints

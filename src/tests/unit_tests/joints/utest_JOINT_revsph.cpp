@@ -195,8 +195,6 @@ bool TestRevSpherical(
     utils::ChWriterCSV out_avel = OutStream();
     utils::ChWriterCSV out_aacc = OutStream();
 
-    utils::ChWriterCSV out_rfrc = OutStream();
-    utils::ChWriterCSV out_rtrq = OutStream();
     utils::ChWriterCSV out_rfrc1 = OutStream();
     utils::ChWriterCSV out_rtrq1 = OutStream();
     utils::ChWriterCSV out_rfrc2 = OutStream();
@@ -233,15 +231,6 @@ bool TestRevSpherical(
              << "X_AngAcc"
              << "Y_AngAcc"
              << "Z_AngAcc" << std::endl;
-
-    out_rfrc << "Time"
-             << "X_Force"
-             << "Y_Force"
-             << "Z_Force" << std::endl;
-    out_rtrq << "Time"
-             << "X_Torque"
-             << "Y_Torque"
-             << "Z_Torque" << std::endl;
 
     out_rfrc1 << "Time"
               << "X_Force"
@@ -297,53 +286,23 @@ bool TestRevSpherical(
             out_vel << simTime << velocity << std::endl;
             out_acc << simTime << pendulum->GetPosDer2() << std::endl;
 
-            // Orientation, angular velocity, and angular acceleration (expressed in
-            // global frame).
+            // Orientation, angular velocity, and angular acceleration (expressed in global frame).
             out_quat << simTime << pendulum->GetRot() << std::endl;
             out_avel << simTime << pendulum->GetAngVelParent() << std::endl;
             out_aacc << simTime << pendulum->GetAngAccParent() << std::endl;
 
-            // Chrono returns the reaction force and torque on body 2 (as specified in
-            // the joint Initialize() function), as applied at the joint location and
-            // expressed in the joint frame. Here, the 2nd body is the pendulum.
+            //    reaction force and torque on body1, at frame 1, expressed in global frame
+            const auto& linkFrame1 = revSphericalConstraint->GetFrame1Abs();
+            const auto& reaction1_loc = revSphericalConstraint->GetReaction1();
+            ChVector3d reactForceB1 = linkFrame1.TransformDirectionLocalToParent(reaction1_loc.force);
+            ChVector3d reactTorqueB1 = linkFrame1.TransformDirectionLocalToParent(reaction1_loc.torque);
 
-            //    joint frame on 2nd body (pendulum), expressed in the body frame
-            ChFrame<> linkCoordsys = revSphericalConstraint->GetFrame2Rel();
+            //    reaction force and torque on body2, at frame 2, expressed in global frame
+            const auto& linkFrame2 = revSphericalConstraint->GetFrame2Abs();
+            const auto& reaction2_loc = revSphericalConstraint->GetReaction2();
+            ChVector3d reactForceB2 = linkFrame2.TransformDirectionLocalToParent(reaction2_loc.force);
+            ChVector3d reactTorqueB2 = linkFrame2.TransformDirectionLocalToParent(reaction2_loc.torque);
 
-            //    reaction force and torque on pendulum, expressed in joint frame
-            //       at the joint frame origin (center of the revolute)
-            const auto& reaction = revSphericalConstraint->GetReaction2();
-            ChVector3d reactForce = reaction.force;
-            ChVector3d reactTorque = reaction.torque;
-
-            //    reaction force and torque on the ground, expressed in joint frame
-            //       at the revolute joint center (joint frame origin)
-            ChVector3d reactForceB1 = revSphericalConstraint->Get_react_force_body1();
-            ChVector3d reactTorqueB1 = revSphericalConstraint->Get_react_torque_body1();
-
-            //    reaction force and torque on the ground, expressed in joint frame
-            //       at the spherical joint center
-            ChVector3d reactForceB2 = revSphericalConstraint->Get_react_force_body2();
-            ChVector3d reactTorqueB2 = revSphericalConstraint->Get_react_torque_body2();
-
-            //    Transform from the joint frame into the pendulum frame
-            reactForce = linkCoordsys.TransformDirectionLocalToParent(reactForce);
-            reactTorque = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
-            reactForceB1 = linkCoordsys.TransformDirectionLocalToParent(reactForceB1);
-            reactTorqueB1 = linkCoordsys.TransformDirectionLocalToParent(reactTorqueB1);
-            reactForceB2 = linkCoordsys.TransformDirectionLocalToParent(reactForceB2);
-            reactTorqueB2 = linkCoordsys.TransformDirectionLocalToParent(reactTorqueB2);
-
-            //    Transform from the joint frame into the global frame
-            reactForce = pendulum->TransformDirectionLocalToParent(reactForce);
-            reactTorque = pendulum->TransformDirectionLocalToParent(reactTorque);
-            reactForceB1 = pendulum->TransformDirectionLocalToParent(reactForceB1);
-            reactTorqueB1 = pendulum->TransformDirectionLocalToParent(reactTorqueB1);
-            reactForceB2 = pendulum->TransformDirectionLocalToParent(reactForceB2);
-            reactTorqueB2 = pendulum->TransformDirectionLocalToParent(reactTorqueB2);
-
-            out_rfrc << simTime << reactForce << std::endl;
-            out_rtrq << simTime << reactTorque << std::endl;
             out_rfrc1 << simTime << reactForceB1 << std::endl;
             out_rtrq1 << simTime << reactTorqueB1 << std::endl;
             out_rfrc2 << simTime << reactForceB2 << std::endl;
@@ -384,8 +343,6 @@ bool TestRevSpherical(
     out_avel.WriteToFile(out_dir + testName + "_CHRONO_Avel.txt", testName + "\n");
     out_aacc.WriteToFile(out_dir + testName + "_CHRONO_Aacc.txt", testName + "\n");
 
-    out_rfrc.WriteToFile(out_dir + testName + "_CHRONO_Rforce.txt", testName + "\n");
-    out_rtrq.WriteToFile(out_dir + testName + "_CHRONO_Rtorque.txt", testName + "\n");
     out_rfrc1.WriteToFile(out_dir + testName + "_CHRONO_Rforce_Body1.txt", testName + "\n");
     out_rtrq1.WriteToFile(out_dir + testName + "_CHRONO_Rtorque_Body1.txt", testName + "\n");
     out_rfrc2.WriteToFile(out_dir + testName + "_CHRONO_Rforce_Body2.txt", testName + "\n");

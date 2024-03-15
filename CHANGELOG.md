@@ -675,8 +675,10 @@ Note that this represents a major public API change and we expect most user code
 |                                   |                               | add: ChFrameAbs1                                 |
 |                                   |                               | add: ChFrameAbs2                                 |
 |                                   | GetNumCoords                  | rename: GetNumAffectedCoords                     |
-|                                   | Get_react_force               | rename: GetReactForce (see Notes)                |
-|                                   | Get_react_torque              | rename: GetReactTorque (see Notes)               |
+|                                   | Get_react_force               | remove                                           |
+|                                   | Get_react_torque              | remove                                           |
+|                                   |                               | add: GetReaction1 (see Notes)                    |
+|                                   |                               | add: GetReaction2 (see Notes)                    |
 | ChLinkBrake                       |                               | rename: ChLinkLockBrake                          |
 | ChLinkClearance                   |                               | rename: ChLinkLockClearance                      |
 | ChLinkForce                       |                               |                                                  |
@@ -1229,8 +1231,7 @@ Note that this represents a major public API change and we expect most user code
 + Link objects used to consider just one frame as 'principal' (usually 'frame 2'), thus returning reaction forces, frame position, as well as any other information with respect to this frame only.
   - For consistency and to remove ambiguity, all links (connections between two physical items) now report two frames, one on each connected object. These frames, expressed in the absolute coordinate frame can be obtained through the functions `GetFrame1Abs` and `GetFrame2Abs`.
     Certain derived classes (notably those connecting two `ChBody` objects, in particular all classes representing kinematic joints) also provide functions to return the link frames expressed in the frame of the corresponding connected body (`GetFrame1Rel` and `GetFrame2Rel`).
-  - Similarly, all link objects now provide functions to return the reaction force and torque at the location of the link frame on the connected object. These reactions are expressed in the corresponding link frame and can be obtained through calls to `GetReact[Force|Torque][1|2]`.
-    Certain derived classes (notably those connecting two `ChBody` objects) also provide functions to return the corresponding reaction forces and torques as expressed in the corresponding body frames (see `GetReact[Force|Torque]Body[1|2]`).
+  - Similarly, all link objects now provide functions to return the reaction force and torque at the location of the link frame on the connected object. These reactions are expressed in the corresponding link frame and can be obtained, as a wrench, through calls to `GetReaction[1|2]`.
 
 + The signature of all ChLink `Initialize()` functions were changed to consistently use `ChFrame` objects to specify link position and alignment (where previously some of them used `ChCoordsys`).
   A corresponding change was done for the constructor of `vehicle::ChVehicleJoint`.

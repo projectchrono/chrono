@@ -64,25 +64,34 @@ ChLinkRevoluteTranslational::ChLinkRevoluteTranslational(const ChLinkRevoluteTra
     }
 }
 
+// -----------------------------------------------------------------------------
+
 ChFrame<> ChLinkRevoluteTranslational::GetFrame1Rel() const {
-    // Origin at P1 (center of revolute side) and orientation such that Z is along m_z1 and X pointing towards m_p2 
-    ChVector3d pos2_F1 = m_body1->TransformPointParentToLocal(m_body2->TransformPointLocalToParent(m_p2));
+    auto x2 = m_body1->TransformDirectionParentToLocal(m_body2->TransformDirectionLocalToParent(m_x2));
+    auto y2 = m_body1->TransformDirectionParentToLocal(m_body2->TransformDirectionLocalToParent(m_y2));
 
-    ChVector3d u = (pos2_F1-m_p1).GetNormalized();
-    ChVector3d w = m_z1;
-    ChVector3d v = Vcross(w, u);
-    ChMatrix33<> A(u, v, w);
-
-    return ChFrame<>(m_p1, A.GetQuaternion());
+    return ChFramed(m_p1, ChMatrix33<>(x2, y2, m_z1));
 }
 
 ChFrame<> ChLinkRevoluteTranslational::GetFrame2Rel() const {
-    // Origin at P1 (center of revolute side) and orientation formed using
-    // the mutually orthogonal direction x2 and y2.
-    ChVector3d p1_F2 = m_body2->TransformPointParentToLocal(m_body1->TransformPointLocalToParent(m_p1));
-    ChMatrix33<> R_B2_F2(m_x2, m_y2, Vcross(m_x2, m_y2)); // rot to B2 from F2
+    auto z1 = m_body2->TransformDirectionParentToLocal(m_body1->TransformDirectionLocalToParent(m_z1));
 
-    return ChFrame<>(p1_F2, R_B2_F2.GetQuaternion());
+    return ChFramed(m_p2, ChMatrix33<>(m_x2, m_y2, z1));
+}
+
+// -----------------------------------------------------------------------------
+// Override the ChLink default GetReaction1 and GetReaction2
+// This is necessary because here we interpret react_force and react_torque as
+// as the reactions on body 1 (revolute side) expressed in link frame 1.
+// -----------------------------------------------------------------------------
+
+ChWrenchd ChLinkRevoluteTranslational::GetReaction1() const {
+    return {react_force, react_torque};
+}
+
+ChWrenchd ChLinkRevoluteTranslational::GetReaction2() const {
+    auto w2_abs = GetFrame1Abs().TransformWrenchLocalToParent({-react_force, -react_torque});
+    return GetFrame2Abs().TransformWrenchParentToLocal(w2_abs);
 }
 
 // -----------------------------------------------------------------------------
@@ -175,7 +184,6 @@ void ChLinkRevoluteTranslational::Initialize(std::shared_ptr<ChBody> body1,
 
     m_dist = auto_distance ? m_cur_dist : distance;
 }
-
 
 // -----------------------------------------------------------------------------
 // Link update function
@@ -351,11 +359,10 @@ void ChLinkRevoluteTranslational::IntStateScatterReactions(const unsigned int of
     //// TODO
     ////
 
-    // Calculate the reaction torques and forces on Body 2 in the joint frame
-    // (Note: origin of the joint frame is at the center of the revolute joint
-    //  which is defined on body 1, the x-axis is along the vector from the
-    //  point on body 1 to the point on body 2.  The z axis is along the revolute
-    //  axis defined for the joint)
+    // For this joint, we define react_force and react_torque as the reaction force and torque on body 1 (revolute side)
+    // in the link frame 1. This frame is centered at the revolute joint location, has its x axis along the joint
+    // connector and z axis aligned with the revolute axis of rotation.
+
     react_force.x() = 0;
     react_force.y() = 0;
     react_force.z() = 0;
@@ -495,11 +502,10 @@ void ChLinkRevoluteTranslational::ConstraintsFetch_react(double factor) {
     ////  TODO
     ////
 
-    // Calculate the reaction torques and forces on Body 2 in the joint frame
-    // (Note: origin of the joint frame is at the center of the revolute joint
-    //  which is defined on body 1, the x-axis is along the vector from the
-    //  point on body 1 to the point on body 2.  The z axis is along the revolute
-    //  axis defined for the joint)
+    // For this joint, we define react_force and react_torque as the reaction force and torque on body 1 (revolute side)
+    // in the link frame 1. This frame is centered at the revolute joint location, has its x axis along the joint
+    // connector and z axis aligned with the revolute axis of rotation.
+
     react_force.x() = 0;
     react_force.y() = 0;
     react_force.z() = 0;
@@ -510,65 +516,6 @@ void ChLinkRevoluteTranslational::ConstraintsFetch_react(double factor) {
 }
 
 // -----------------------------------------------------------------------------
-// Additional reaction force and torque calculations due to the odd definition
-//  of the standard output for this joint style
-// -----------------------------------------------------------------------------
-
-ChVector3d ChLinkRevoluteTranslational::Get_react_force_body1() {
-    ////
-    ////  TODO
-    ////
-
-    // Calculate the reaction forces on Body 1 in the joint frame
-    // (Note: origin of the joint frame is at the center of the revolute joint
-    //  which is defined on body 1, the x-axis is along the vector from the
-    //  point on body 1 to the point on body 2.  The z axis is along the revolute
-    //  axis defined for the joint)
-    //  react_force = (-lam_dist,0,-lam_dot)
-
-    return -react_force;
-}
-
-ChVector3d ChLinkRevoluteTranslational::Get_react_torque_body1() {
-    ////
-    ////  TODO
-    ////
-
-    // Calculate the reaction forces on Body 1 in the joint frame
-    // (Note: origin of the joint frame is at the center of the revolute joint
-    //  which is defined on body 1, the x-axis is along the vector from the
-    //  point on body 1 to the point on body 2.  The z axis is along the revolute
-    //  axis defined for the joint)
-    //  react_torque = (0,m_cur_dist*lam_dot,0)
-
-    return -react_torque;
-}
-
-ChVector3d ChLinkRevoluteTranslational::Get_react_force_body2() {
-    ////
-    ////  TODO
-    ////
-
-    // Calculate the reaction torques on Body 2 in the joint frame at the spherical joint
-    // (Note: the joint frame x-axis is along the vector from the
-    //  point on body 1 to the point on body 2.  The z axis is along the revolute
-    //  axis defined for the joint)
-    //  react_force = (lam_dist,0,lam_dot)
-    return react_force;
-}
-
-ChVector3d ChLinkRevoluteTranslational::Get_react_torque_body2() {
-    ////
-    ////  TODO
-    ////
-
-    // Calculate the reaction torques on Body 2 in the joint frame at the spherical joint
-    // (Note: the joint frame x-axis is along the vector from the
-    //  point on body 1 to the point on body 2.  The z axis is along the revolute
-    //  axis defined for the joint)
-    //  react_torque = (0,0,0)
-    return VNULL;
-}
 
 void ChLinkRevoluteTranslational::ArchiveOut(ChArchiveOut& archive_out) {
     // version number

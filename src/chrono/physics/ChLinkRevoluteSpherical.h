@@ -21,16 +21,11 @@
 
 namespace chrono {
 
-/// Class for modeling a composite revolute-spherical joint between two
-/// two ChBodyFrame objects.  This joint is defined through a point and
-/// direction on the first body (the revolute side), a point on the second
-/// body (the spherical side), and a distance.  Kinematically, the two points
-/// are maintained at the prescribed distance while the vector between the
-/// two points is always perpendicular to the provided direction of the
-/// revolute joint.
-
+/// Composite revolute-spherical joint between two two bodies.
+/// This joint is defined through a point and direction on the first body (the revolute side), a point on the second
+/// body (the spherical side), and a distance.  Kinematically, the two points are maintained at the prescribed distance
+/// while the vector between the two points is always perpendicular to the provided direction of the revolute joint.
 class ChApi ChLinkRevoluteSpherical : public ChLink {
-
   public:
     ChLinkRevoluteSpherical();
     ChLinkRevoluteSpherical(const ChLinkRevoluteSpherical& other);
@@ -44,28 +39,43 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
 
     /// Get the point on m_body1 (revolute side), expressed in body 1 coordinate system.
     const ChVector3d& GetPoint1Rel() const { return m_pos1; }
+
     /// Get the direction of the revolute joint, expressed in body 1 coordinate system.
     const ChVector3d& GetDir1Rel() const { return m_dir1; }
+
     /// Get the point on m_body2 (spherical side), expressed in body 2 coordinate system.
     const ChVector3d& GetPoint2Rel() const { return m_pos2; }
 
     /// Get the imposed distance (length of massless connector).
     double GetImposedDistance() const { return m_dist; }
+
     /// Get the current distance between the two points.
     double GetCurrentDistance() const { return m_cur_dist; }
 
     /// Get the point on m_body1 (revolute side), expressed in absolute coordinate system.
     ChVector3d GetPoint1Abs() const { return m_body1->TransformPointLocalToParent(m_pos1); }
+
     /// Get the direction of the revolute joint, expressed in absolute coordinate system.
     ChVector3d GetDir1Abs() const { return m_body1->TransformDirectionLocalToParent(m_dir1); }
+
     /// Get the point on m_body2 (spherical side), expressed in absolute coordinate system.
     ChVector3d GetPoint2Abs() const { return m_body2->TransformPointLocalToParent(m_pos2); }
 
     /// Get the link frame 1, relative to body 1.
+    /// This frame, defined on body 1 (the revolute side), is centered at the revolute joint location, has its X axis
+    /// along the joint connector, and its Z axis aligned with the revolute axis.
     virtual ChFrame<> GetFrame1Rel() const override;
 
     /// Get the link frame 2, relative to body 2.
+    /// This frame, defined on body 2 (the spherical side), is centered at the spherical joint location, has its X axis
+    /// along the joint connector, and its Z axis aligned with the revolute axis.
     virtual ChFrame<> GetFrame2Rel() const override;
+
+    /// Get the reaction force and torque on the 1st body, expressed in the link frame 1.
+    virtual ChWrenchd GetReaction1() const override;
+
+    /// Get the reaction force and torque on the 2nd body, expressed in the link frame 2.
+    virtual ChWrenchd GetReaction2() const override;
 
     /// Get the joint violation (residuals of the constraint equations)
     virtual ChVectorDynamic<> GetConstraintViolation() const override { return m_C; }
@@ -102,14 +112,6 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     /// Perform the update of this joint at the specified time: compute jacobians,
     /// constraint violations, etc. and cache in internal structures
     virtual void Update(double time, bool update_assets = true) override;
-
-    // EXTRA REACTION FORCE & TORQUE FUNCTIONS
-
-    /// Get the reaction force on 
-    ChVector3d Get_react_force_body1();
-    ChVector3d Get_react_torque_body1();
-    ChVector3d Get_react_force_body2();
-    ChVector3d Get_react_torque_body2();
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

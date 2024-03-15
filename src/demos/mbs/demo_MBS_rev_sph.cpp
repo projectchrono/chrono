@@ -95,6 +95,8 @@ int main(int argc, char* argv[]) {
     vis->AddCamera(ChVector3d(0, 3, 6));
     vis->AddTypicalLights();
 
+    vis->EnableLinkFrameDrawing(true);
+
     // Cache for point trajectory plot
     std::vector<ChVector3d > trajectory;
 
@@ -108,9 +110,6 @@ int main(int argc, char* argv[]) {
 
         // Render the point trajectory
         tools::drawPolyline(vis.get(), trajectory, ChColor(0, 0.6f, 0), false);
-
-        tools::drawCoordsys(vis.get(), rev_sph->GetFrame1Abs().GetCoordsys());
-        tools::drawCoordsys(vis.get(), rev_sph->GetFrame2Abs().GetCoordsys());
 
         vis->EndScene();
 

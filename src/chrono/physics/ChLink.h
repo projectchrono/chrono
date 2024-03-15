@@ -67,50 +67,6 @@ class ChApi ChLink : public ChLinkBase {
     /// Get the reaction force and torque on the 2nd body object, expressed in the link frame 2.
     virtual ChWrenchd GetReaction2() const override;
 
-
-
-
-
-
-
-
-
-    /// Get reaction force, expressed on link frame 1.
-    virtual ChVector3d GetReactForce1() const override;
-
-    /// Get reaction torque, expressed on link frame 1.
-    virtual ChVector3d GetReactTorque1() const override;
-
-    /// Get reaction force, expressed on link frame 2.
-    virtual ChVector3d GetReactForce2() const override;
-
-    /// Get reaction torque, expressed on link frame 2.
-    virtual ChVector3d GetReactTorque2() const override;
-
-    /// Get reaction force, expressed on body 1.
-    ChVector3d GetReactForceBody1() const;
-
-    /// Get reaction torque, expressed on body 1 frame.
-    ChVector3d GetReactTorqueBody1() const;
-
-    /// Get reaction force, expressed on body 2.
-    ChVector3d GetReactForceBody2() const;
-
-    /// Get reaction torque, expressed on body 2 frame.
-    ChVector3d GetReactTorqueBody2() const;
-
-
-
-
-
-
-
-
-
-
-
-
-
     // UPDATING FUNCTIONS
 
     /// Given new time, current body state, update time-dependent quantities in link state,
