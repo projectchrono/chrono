@@ -112,7 +112,7 @@ class CompsiteMaterial : public ChContactMaterialCompositionStrategy {
 class ContactForce : public ChSystemSMC::ChContactForceTorqueSMC {
   public:
     // Demonstration only.
-    virtual std::pair<ChVector3d, ChVector3d> CalculateForceTorque(
+    virtual ChWrenchd CalculateForceTorque(
         const ChSystemSMC& sys,             ///< containing sys
         const ChVector3d& normal_dir,       ///< normal contact direction (expressed in global frame)
         const ChVector3d& p1,               ///< most penetrated point on obj1 (expressed in global frame)
@@ -161,7 +161,7 @@ class ContactForce : public ChSystemSMC::ChContactForceTorqueSMC {
         // for torque do nothing (this could be used to simulate rolling or spinning friction, if needed)
         ChVector3d torque = VNULL;
 
-        return std::make_pair(force, torque);
+        return {force, torque};
     }
 };
 

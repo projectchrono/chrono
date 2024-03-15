@@ -311,28 +311,21 @@ void ChLinkMarkers::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>&
         return;
 
     if (Vnotnull(C_force)) {
+        // application point is always marker1
         ChVector3d m_abs_force = m_body2->GetRotMat() * (marker2->GetRotMat() * C_force);
-        ChVector3d body_force;
-        ChVector3d body_torque;
 
         if (m_body2->Variables().IsActive()) {
-            m_body2->AppliedForceParentToWrenchParent(m_abs_force,
-                                                    marker1->GetAbsCoordsys().pos,  // application point is always marker1
-                                                    body_force,                 // wrench force, in abs. coords.
-                                                    body_torque);               // wrench torque, in abs. coords.
-            R.segment(m_body2->Variables().GetOffset() + 0, 3) -= c * body_force.eigen();
+            auto w2_abs = m_body2->AppliedForceParentToWrenchParent(m_abs_force, marker1->GetAbsCoordsys().pos);
+            R.segment(m_body2->Variables().GetOffset() + 0, 3) -= c * w2_abs.force.eigen();
             R.segment(m_body2->Variables().GetOffset() + 3, 3) -=
-                c * m_body2->TransformDirectionParentToLocal(body_torque).eigen();
+                c * m_body2->TransformDirectionParentToLocal(w2_abs.torque).eigen();
         }
 
         if (m_body1->Variables().IsActive()) {
-            m_body1->AppliedForceParentToWrenchParent(m_abs_force,
-                                                    marker1->GetAbsCoordsys().pos,  // application point is always marker1
-                                                    body_force,                 // wrench force, in abs. coords.
-                                                    body_torque);               // wrench torque, in abs. coords.
-            R.segment(m_body1->Variables().GetOffset() + 0, 3) += c * body_force.eigen();
+            auto w1_abs = m_body1->AppliedForceParentToWrenchParent(m_abs_force, marker1->GetAbsCoordsys().pos);
+            R.segment(m_body1->Variables().GetOffset() + 0, 3) += c * w1_abs.force.eigen();
             R.segment(m_body1->Variables().GetOffset() + 3, 3) +=
-                c * m_body1->TransformDirectionParentToLocal(body_torque).eigen();
+                c * m_body1->TransformDirectionParentToLocal(w1_abs.torque).eigen();
         }
     }
 
@@ -357,25 +350,18 @@ void ChLinkMarkers::ConstraintsFbLoadForces(double factor) {
         return;
 
     if (Vnotnull(C_force)) {
+        // application point is always marker1
         ChVector3d m_abs_force = m_body2->GetRotMat() * (marker2->GetRotMat() * C_force);
-        ChVector3d body_force;
-        ChVector3d body_torque;
 
-        m_body2->AppliedForceParentToWrenchParent(m_abs_force,
-                                                marker1->GetAbsCoordsys().pos,  // application point is always marker1
-                                                body_force,                 // wrench force, in abs. coords.
-                                                body_torque);               // wrench torque, in abs. coords.
-        m_body2->Variables().Get_fb().segment(0, 3) -= factor * body_force.eigen();
+        auto w2_abs = m_body2->AppliedForceParentToWrenchParent(m_abs_force, marker1->GetAbsCoordsys().pos);
+        m_body2->Variables().Get_fb().segment(0, 3) -= factor * w2_abs.force.eigen();
         m_body2->Variables().Get_fb().segment(3, 3) -=
-            factor * m_body2->TransformDirectionParentToLocal(body_torque).eigen();
+            factor * m_body2->TransformDirectionParentToLocal(w2_abs.torque).eigen();
 
-        m_body1->AppliedForceParentToWrenchParent(m_abs_force,
-                                                marker1->GetAbsCoordsys().pos,  // application point is always marker1
-                                                body_force,                 // wrench force, in abs. coords.
-                                                body_torque);               // wrench torque, in abs. coords.
-        m_body1->Variables().Get_fb().segment(0, 3) += factor * body_force.eigen();
+        auto w1_abs = m_body1->AppliedForceParentToWrenchParent(m_abs_force, marker1->GetAbsCoordsys().pos);
+        m_body1->Variables().Get_fb().segment(0, 3) += factor * w1_abs.force.eigen();
         m_body1->Variables().Get_fb().segment(3, 3) +=
-            factor * m_body1->TransformDirectionParentToLocal(body_torque).eigen();
+            factor * m_body1->TransformDirectionParentToLocal(w1_abs.torque).eigen();
     }
 
     if (Vnotnull(C_torque)) {

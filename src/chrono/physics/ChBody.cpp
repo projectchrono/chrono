@@ -381,15 +381,10 @@ void ChBody::EmptyAccumulators() {
 }
 
 void ChBody::AccumulateForce(const ChVector3d& force, const ChVector3d& appl_point, bool local) {
-    ChVector3d absforce;
-    ChVector3d abstorque;
-    if (local)
-        AppliedForceLocalToWrenchParent(force, appl_point, absforce, abstorque);
-    else
-        AppliedForceParentToWrenchParent(force, appl_point, absforce, abstorque);
-
-    Force_acc += absforce;
-    Torque_acc += TransformDirectionParentToLocal(abstorque);
+    ChWrenchd w_abs = local ? AppliedForceLocalToWrenchParent(force, appl_point)
+                            : AppliedForceParentToWrenchParent(force, appl_point);
+    Force_acc += w_abs.force;
+    Torque_acc += TransformDirectionParentToLocal(w_abs.torque);
 }
 
 void ChBody::AccumulateTorque(const ChVector3d& torque, bool local) {

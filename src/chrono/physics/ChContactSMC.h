@@ -44,7 +44,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
     /// Default SMC force calculation algorithm.
     /// This implementation depends on various settings specified at the ChSystemSMC level (such as normal force model,
     /// tangential force model, use of material physical properties, etc).
-    virtual std::pair<ChVector3d, ChVector3d> CalculateForceTorque(
+    virtual ChWrenchd CalculateForceTorque(
         const ChSystemSMC& sys,                    ///< containing system
         const ChVector3d& normal_dir,              ///< normal contact direction (expressed in global frame)
         const ChVector3d& p1,                      ///< most penetrated point on obj1 (expressed in global frame)
@@ -61,7 +61,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
     ) const override {
         // Set contact force to zero if no penetration.
         if (delta <= 0) {
-            return std::make_pair(ChVector3d(0, 0, 0), ChVector3d(0, 0, 0));
+            return {VNULL, VNULL};
         }
 
         // Extract parameters from containing system
@@ -172,7 +172,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
                     if (relvel_t_mag >= sys.GetSlipVelocityThreshold())
                         force -= (forceT / relvel_t_mag) * relvel_t;
 
-                    return std::make_pair(force, ChVector3d(0, 0, 0));  // zero torque anyway
+                    return {force, VNULL};  // zero torque anyway
                 }
         }
 
@@ -221,7 +221,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
         if (relvel_t_mag >= sys.GetSlipVelocityThreshold())
             force -= (forceT / relvel_t_mag) * relvel_t;
 
-        return std::make_pair(force, ChVector3d(0, 0, 0));  // zero torque anyway
+        return {force, VNULL};  // zero torque anyway
     }
 };
 
@@ -296,15 +296,15 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         assert(cinfo.distance < 0);
 
         // Calculate contact force.
-        auto m_forcetorque =
+        auto wrench =
             CalculateForceTorque(-this->norm_dist,                            // overlap (here, always positive)
                                  this->normal,                                // normal contact direction
                                  this->objA->GetContactPointSpeed(this->p1),  // velocity of contact point on objA
                                  this->objB->GetContactPointSpeed(this->p2),  // velocity of contact point on objB
                                  mat                                          // composite material for contact pair
             );
-        m_force = m_forcetorque.first;
-        m_torque = m_forcetorque.second;
+        m_force = wrench.force;
+        m_torque = wrench.torque;
 
         // Set up and compute Jacobian matrices.
         if (static_cast<ChSystemSMC*>(this->container->GetSystem())->GetStiffContact()) {
@@ -314,7 +314,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
     }
 
     /// Calculate contact force, and maybe torque too, expressed in absolute coordinates.
-    std::pair<ChVector3d, ChVector3d> CalculateForceTorque(
+    ChWrenchd CalculateForceTorque(
         double delta,                             ///< overlap in normal direction
         const ChVector3d& normal_dir,             ///< normal contact direction (expressed in global frame)
         const ChVector3d& vel1,                   ///< velocity of contact point on objA (expressed in global frame)
@@ -323,7 +323,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
     ) {
         // Set contact force to zero if no penetration.
         if (delta <= 0) {
-            return std::make_pair(ChVector3d(0, 0, 0), ChVector3d(0, 0, 0));
+            return {VNULL, VNULL};
         }
 
         // Use current SMC algorithm to calculate the force
@@ -375,13 +375,13 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
         ChVector3d vel2 = this->objB->GetContactPointSpeed(p2_loc, stateB_x, stateB_w);
 
         // Compute the contact force and torque
-        auto m_forcetorque = CalculateForceTorque(delta, normal_dir, vel1, vel2, mat);
-        auto m_force = m_forcetorque.first;
-        auto m_torque = m_forcetorque.second;
+        auto wrench = CalculateForceTorque(delta, normal_dir, vel1, vel2, mat);
+        auto force = wrench.force;
+        auto torque = wrench.torque;
 
         // Compute and load the generalized contact forces.
-        this->objA->ContactComputeQ(-m_force, -m_torque, p1_abs, stateA_x, Q, 0);
-        this->objB->ContactComputeQ(m_force, m_torque, p2_abs, stateB_x, Q, this->objA->GetContactableNumCoordsVelLevel());
+        this->objA->ContactComputeQ(-force, -torque, p1_abs, stateA_x, Q, 0);
+        this->objB->ContactComputeQ(force, torque, p2_abs, stateB_x, Q, this->objA->GetContactableNumCoordsVelLevel());
     }
 
     /// Create the Jacobian matrices.

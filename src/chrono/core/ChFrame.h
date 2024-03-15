@@ -245,6 +245,27 @@ class ChFrame {
         return m_rmat.transpose() * (v - m_csys.pos);
     }
 
+    /// Transform a direction from the parent frame coordinate system to 'this' local coordinate system.
+    ChVector3<Real> TransformDirectionLocalToParent(const ChVector3<Real>& d) const { return m_rmat * d; }
+
+    /// Transforms a direction from 'this' local coordinate system to parent frame coordinate system.
+    ChVector3<Real> TransformDirectionParentToLocal(const ChVector3<Real>& d) const { return m_rmat.transpose() * d; }
+
+    /// Transform a wrench from the local coordinate system to the parent coordinate system.
+    ChWrench<Real> TransformWrenchLocalToParent(const ChWrench<Real>& w) const {
+        auto force_parent = TransformDirectionLocalToParent(w.force);
+        return {force_parent,                                                                   //
+                Vcross(m_csys.pos, force_parent) + TransformDirectionLocalToParent(w.torque)};  //
+    }
+
+    /// Transform a wrench from the parent coordinate system to the local coordinate system.
+    ChWrench<Real> TransformWrenchParentToLocal(const ChWrench<Real>& w) const {
+        auto force_local = TransformDirectionParentToLocal(w.force);
+        auto pos_local = TransformDirectionParentToLocal(-m_csys.pos);
+        return {force_local,                                                                  //
+                Vcross(pos_local, force_local) + TransformDirectionParentToLocal(w.torque)};  //
+    }
+
     /// Transform a frame from 'this' local coordinate system to parent frame coordinate system.
     ChFrame<Real> TransformLocalToParent(const ChFrame<Real>& F) const {
         return ChFrame<Real>(TransformPointLocalToParent(F.m_csys.pos), m_csys.rot * F.m_csys.rot);
@@ -254,12 +275,6 @@ class ChFrame {
     ChFrame<Real> TransformParentToLocal(const ChFrame<Real>& F) const {
         return ChFrame<>(TransformPointParentToLocal(F.m_csys.pos), m_csys.rot.GetConjugate() * F.m_csys.rot);
     }
-
-    /// Transform a direction from the parent frame coordinate system to 'this' local coordinate system.
-    ChVector3<Real> TransformDirectionLocalToParent(const ChVector3<Real>& d) const { return m_rmat * d; }
-
-    /// Transforms a direction from 'this' local coordinate system to parent frame coordinate system.
-    ChVector3<Real> TransformDirectionParentToLocal(const ChVector3<Real>& d) const { return m_rmat.transpose() * d; }
 
     // OTHER FUNCTIONS
 

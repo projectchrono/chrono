@@ -34,19 +34,15 @@ class ChApi ChBodyFrame : public ChFrameMoving<double> {
     /// Transform a force applied to a point on the body to a force and moment at the frame origin.
     /// The applied force and its application point are assumed to be expressed in the body frame.
     /// The resulting force and torque are expressed in the parent frame.
-    void AppliedForceLocalToWrenchParent(const ChVector3d& force,       ///< applied force, in local coords.
-                                         const ChVector3d& appl_point,  ///< application point, in local coords
-                                         ChVector3d& force_abs,         ///< wrench force, in abs. coords.
-                                         ChVector3d& torque_abs         ///< wrench torque, in abs. coords.
+    ChWrenchd AppliedForceLocalToWrenchParent(const ChVector3d& force,      ///< applied force, in local coords.
+                                              const ChVector3d& appl_point  ///< application point, in local coords
     );
 
     /// Transform a force applied to a point on the body to a force and moment at the frame origin.
     /// The applied force and its application point are assumed to be expressed in the parent frame.
     /// The resulting force and torque are expressed in the parent frame.
-    void AppliedForceParentToWrenchParent(const ChVector3d& force,       ///< applied force, in abs. coords.
-                                          const ChVector3d& appl_point,  ///< application point, in abs. coords
-                                          ChVector3d& force_abs,         ///< wrench force, in abs. coords.
-                                          ChVector3d& torque_abs         ///< wrench torque, in abs. coords.
+    ChWrenchd AppliedForceParentToWrenchParent(const ChVector3d& force,      ///< applied force, in abs. coords.
+                                               const ChVector3d& appl_point  ///< application point, in abs. coords
     );
 
     /// Method to allow serialization of transient data to archives.

@@ -164,28 +164,26 @@ TerrainForce ChDeformableTire::ReportTireForce(ChTerrain* terrain) const {
     // Calculate and return the resultant of all reaction forces and torques in the
     // tire-wheel connections, as applied at the wheel body center of mass.
     // These encapsulate the tire-terrain interaction forces and the inertia of the tire itself.
-    ChVector3d force;
-    ChVector3d moment;
     for (size_t ic = 0; ic < m_connections.size(); ic++) {
-        ChCoordsys<> csys = m_connections[ic]->GetFrameNodeAbs().GetCoordsys();
+        ChCoordsysd csys = m_connections[ic]->GetFrameNodeAbs().GetCoordsys();
         ChVector3d react = csys.TransformDirectionLocalToParent(m_connections[ic]->GetReactionOnBody());
-        m_wheel->GetSpindle()->AppliedForceParentToWrenchParent(react, csys.pos, force, moment);
-        tire_force.force += force;
-        tire_force.moment += moment;
+        ChWrenchd w = m_wheel->GetSpindle()->AppliedForceParentToWrenchParent(react, csys.pos);
+        tire_force.force += w.force;
+        tire_force.moment += w.torque;
     }
 
     for (size_t ic = 0; ic < m_connectionsD.size(); ic++) {
-        ChCoordsys<> csys = m_connectionsD[ic]->GetFrameNodeAbs().GetCoordsys();
-        moment = csys.TransformDirectionLocalToParent(m_connectionsD[ic]->GetReactionOnBody());
-        tire_force.moment += moment;
+        ChCoordsysd csys = m_connectionsD[ic]->GetFrameNodeAbs().GetCoordsys();
+        ChVector3d torque = csys.TransformDirectionLocalToParent(m_connectionsD[ic]->GetReactionOnBody());
+        tire_force.moment += torque;
     }
 
     for (size_t ic = 0; ic < m_connectionsF.size(); ic++) {
-        ChCoordsys<> csys = m_connectionsF[ic]->GetFrame2Abs().GetCoordsys();
+        ChCoordsysd csys = m_connectionsF[ic]->GetFrame2Abs().GetCoordsys();
         ChVector3d react = csys.TransformDirectionLocalToParent(m_connectionsF[ic]->GetReactForce2());
-        m_wheel->GetSpindle()->AppliedForceParentToWrenchParent(react, csys.pos, force, moment);
-        tire_force.force += force;
-        tire_force.moment += moment;
+        ChWrenchd w = m_wheel->GetSpindle()->AppliedForceParentToWrenchParent(react, csys.pos);
+        tire_force.force += w.force;
+        tire_force.moment += w.torque;
         ChVector3d reactMoment = csys.TransformDirectionLocalToParent(m_connectionsF[ic]->GetReactTorque2());
         tire_force.moment += reactMoment;
     }

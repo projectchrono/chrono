@@ -16,20 +16,13 @@
 
 namespace chrono {
 
-void ChBodyFrame::AppliedForceLocalToWrenchParent(const ChVector3d& force,
-                                                  const ChVector3d& appl_point,
-                                                  ChVector3d& force_abs,
-                                                  ChVector3d& torque_abs) {
-    force_abs = TransformDirectionLocalToParent(force);
-    torque_abs = Vcross(TransformDirectionLocalToParent(appl_point), force_abs);
+ChWrenchd ChBodyFrame::AppliedForceLocalToWrenchParent(const ChVector3d& force, const ChVector3d& appl_point) {
+    auto force_abs = TransformDirectionLocalToParent(force);
+    return {force_abs, Vcross(TransformDirectionLocalToParent(appl_point), force_abs)};
 }
 
-void ChBodyFrame::AppliedForceParentToWrenchParent(const ChVector3d& force,
-                                                   const ChVector3d& appl_point,
-                                                   ChVector3d& force_abs,
-                                                   ChVector3d& torque_abs) {
-    force_abs = force;
-    torque_abs = Vcross(appl_point - GetPos(), force);
+ChWrenchd ChBodyFrame::AppliedForceParentToWrenchParent(const ChVector3d& force, const ChVector3d& appl_point) {
+    return {force, Vcross(appl_point - GetPos(), force)};
 }
 
 void ChBodyFrame::ArchiveOut(ChArchiveOut& archive_out) {

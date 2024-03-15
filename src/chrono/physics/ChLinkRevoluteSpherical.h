@@ -99,17 +99,41 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
                     double distance = 0             ///< imposed distance (used only if auto_distance = false)
     );
 
-    //
-    // UPDATING FUNCTIONS
-    //
-
     /// Perform the update of this joint at the specified time: compute jacobians,
     /// constraint violations, etc. and cache in internal structures
     virtual void Update(double time, bool update_assets = true) override;
 
-    //
-    // STATE FUNCTIONS
-    //
+    // EXTRA REACTION FORCE & TORQUE FUNCTIONS
+
+    /// Get the reaction force on 
+    ChVector3d Get_react_force_body1();
+    ChVector3d Get_react_torque_body1();
+    ChVector3d Get_react_force_body2();
+    ChVector3d Get_react_torque_body2();
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    ChVector3d m_pos1;  ///< point on first frame (in local frame)
+    ChVector3d m_pos2;  ///< point on second frame (in local frame)
+    ChVector3d m_dir1;  ///< direction of revolute on first frame (in local frame)
+    double m_dist;      ///< imposed distance between pos1 and pos2
+
+    double m_cur_dist;  ///< actual distance between pos1 and pos2
+    double m_cur_dot;   ///< actual value of dot constraint
+
+    ChConstraintTwoBodies m_cnstr_dist;  ///< constraint: ||pos2_abs - pos1_abs|| - dist = 0
+    ChConstraintTwoBodies m_cnstr_dot;   ///< constraint: dot(dir1_abs, pos2_abs - pos1_abs) = 0
+
+    ChVectorN<double, 2> m_C;  ////< current constraint violations
+
+    double m_multipliers[2];  ///< Lagrange multipliers
+
+    // Solver and integrator interface functions
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
@@ -133,50 +157,11 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    //
-    // SOLVER INTERFACE
-    //
-
     virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
     virtual void ConstraintsBiReset() override;
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
     virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
-
-    //
-    // EXTRA REACTION FORCE & TORQUE FUNCTIONS
-    //
-
-    ChVector3d Get_react_force_body1();
-    ChVector3d Get_react_torque_body1();
-    ChVector3d Get_react_force_body2();
-    ChVector3d Get_react_torque_body2();
-
-    //
-    // SERIALIZATION
-    //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
-
-  private:
-    ChVector3d m_pos1;  ///< point on first frame (in local frame)
-    ChVector3d m_pos2;  ///< point on second frame (in local frame)
-    ChVector3d m_dir1;  ///< direction of revolute on first frame (in local frame)
-    double m_dist;      ///< imposed distance between pos1 and pos2
-
-    double m_cur_dist;  ///< actual distance between pos1 and pos2
-    double m_cur_dot;   ///< actual value of dot constraint
-
-    ChConstraintTwoBodies m_cnstr_dist;  ///< constraint: ||pos2_abs - pos1_abs|| - dist = 0
-    ChConstraintTwoBodies m_cnstr_dot;   ///< constraint: dot(dir1_abs, pos2_abs - pos1_abs) = 0
-
-    ChVectorN<double, 2> m_C;  ////< current constraint violations
-
-    double m_multipliers[2];  ///< Lagrange multipliers
 };
 
 CH_CLASS_VERSION(ChLinkRevoluteSpherical,0)

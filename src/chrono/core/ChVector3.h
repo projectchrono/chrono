@@ -310,6 +310,22 @@ typedef ChVector3<int> ChVector3i;
 typedef ChVector3<bool> ChVector3b;
 
 // -----------------------------------------------------------------------------
+
+/// Definition of a wrench (force + torque).
+/// The wrench is assumed to be represented in some frame with the force application point at the frame origin.
+template <class Real = double>
+struct ChWrench {
+    ChVector3<Real> force;
+    ChVector3<Real> torque;
+};
+
+/// Alias for double-precision wrenches.
+typedef ChWrench<double> ChWrenchd;
+
+/// Alias for single-precision wrenches.
+typedef ChWrench<float> ChWrenchf;
+
+// -----------------------------------------------------------------------------
 // CONSTANTS
 
 ChApi extern const ChVector3d VNULL;

@@ -207,6 +207,21 @@ class ChCoordsys {
         return rot.RotateBack(d);
     }
 
+    /// Transform a wrench from the local coordinate system to the parent coordinate system.
+    ChWrench<Real> TransformWrenchLocalToParent(const ChWrench<Real>& w) const {
+        auto force_parent = TransformDirectionLocalToParent(w.force);
+        return {force_parent,                                                            //
+                Vcross(pos, force_parent) + TransformDirectionLocalToParent(w.torque)};  //
+    }
+
+    /// Transform a wrench from the parent coordinate system to the local coordinate system.
+    ChWrench<Real> TransformWrenchParentToLocal(const ChWrench<Real>& w) const {
+        auto force_local = TransformDirectionParentToLocal(w.force);
+        auto pos_local = TransformDirectionParentToLocal(-pos);
+        return {force_local,                                                                  //
+                Vcross(pos_local, force_local) + TransformDirectionParentToLocal(w.torque)};  //
+    }
+
     /// Transform a coordinate system from 'this' local coordinate system to parent coordinate system.
     ChCoordsys<Real> TransformLocalToParent(const ChCoordsys<Real>& F) const {
         return ChCoordsys<Real>(TransformPointLocalToParent(F.pos), rot * F.rot);
