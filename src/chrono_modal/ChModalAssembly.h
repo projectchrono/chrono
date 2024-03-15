@@ -60,8 +60,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// 2. Craig-Bampton: clamped-clamped modes are used as the modal basis.
     enum Reduction_Type { Herting, Craig_Bampton };
 
-    /// Herting modal reduction method is used by default.
-    Reduction_Type modal_reduction_type = Herting;
+    /// Craig_Bampton modal reduction method is used by default thanks to its better robustness.
+    Reduction_Type modal_reduction_type = Craig_Bampton;
 
     /// Do not print the debug information by default.
     bool verbose = false;
