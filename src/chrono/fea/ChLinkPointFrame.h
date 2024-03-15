@@ -164,6 +164,21 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
     /// Get the link frame 2, on the body, expressed in the absolute frame.
     virtual ChFramed GetFrame2Abs() const override { return ChFramed(); }  //// TODO
 
+    /// Get reaction force and torque on node, expressed on link frame 1.
+    virtual ChWrenchd GetReaction1() const override { return {GetReactionOnNode(), VNULL}; }
+
+    /// Get reaction force and torque on frame, expressed on link frame 2.
+    virtual ChWrenchd GetReaction2() const override { return {GetReactionOnBody(), VNULL}; }
+
+
+
+
+
+
+
+
+
+
     /// Get reaction force on node, expressed on link frame 1.
     virtual ChVector3d GetReactForce1() const override { return GetReactionOnNode(); }
 
@@ -336,6 +351,17 @@ class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
 
     /// Get the link frame 2, on the body, expressed in the absolute frame.
     virtual ChFramed GetFrame2Abs() const override { return ChFramed(); }  //// TODO
+
+    /// Get reaction force and torque on node, expressed on link frame 1.
+    virtual ChWrenchd GetReaction1() const override { return {GetReactionOnNode(), VNULL}; }
+
+    /// Get reaction force and torque on frame, expressed on link frame 2.
+    virtual ChWrenchd GetReaction2() const override { return {GetReactionOnBody(), VNULL}; }
+
+
+
+
+
 
     /// Get reaction force on node, expressed on link frame 1.
     virtual ChVector3d GetReactForce1() const override { return GetReactionOnNode(); }

@@ -219,10 +219,12 @@ void ChLinActuatorTest::VerifySolution(double time) {
     // These are expressed in the link coordinate system. We convert them to
     // the coordinate system of Body2 (in our case this is the ground).
     ChFrame<> linkCoordsysP = prismatic->GetFrame2Rel();
-    ChVector3d rforceP = prismatic->GetReactForce2();
+    const auto& reactionP = prismatic->GetReaction2();
+
+    ChVector3d rforceP = reactionP.force;
     ChVector3d rforceP_ground = linkCoordsysP.TransformDirectionLocalToParent(rforceP);
 
-    ChVector3d rtorqueP = prismatic->GetReactTorque2();
+    ChVector3d rtorqueP = reactionP.torque;
     ChVector3d rtorqueP_ground = linkCoordsysP.TransformDirectionLocalToParent(rtorqueP);
 
     // The reaction force in the prismatic joint is perpendicular to the
@@ -243,8 +245,9 @@ void ChLinActuatorTest::VerifySolution(double time) {
     // These are expressed in the link coordinate system. The reaction force
     // represents the force that needs to be applied to the plate in order to
     // maintain the prescribed constant velocity.
-    ChVector3d rforceA = actuator->GetReactForce2();
-    ChVector3d rtorqueA = actuator->GetReactTorque2();
+    const auto& reactionA = actuator->GetReaction2();
+    ChVector3d rforceA = reactionA.force;
+    ChVector3d rtorqueA = reactionA.torque;
 
     // Analytically, the driving force can be obtained from a force diagram along
     // the translation axis.

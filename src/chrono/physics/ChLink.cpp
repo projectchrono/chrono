@@ -41,6 +41,21 @@ ChFramed ChLink::GetFrame2Abs() const {
 
 // -----------------------------------------------------------------------------
 
+// The default ChLink implementation assumes that react_force and react_torque represent the reaction wrench on the 2nd
+// body, expressed in the link frame 2. A derived class may interpret react_force and react_torque differently, in which
+// case it must override GetReaction1() and GetReaction2().
+
+ChWrenchd ChLink::GetReaction1() const {
+    auto w1_abs = GetFrame2Abs().TransformWrenchLocalToParent({-react_force, -react_torque});
+    return GetFrame1Abs().TransformWrenchParentToLocal(w1_abs);
+}
+
+ChWrenchd ChLink::GetReaction2() const {
+    return {react_force, react_torque};
+}
+
+// -----------------------------------------------------------------------------
+
 ChVector3d ChLink::GetReactForce1() const {
     return GetFrame1Rel().TransformDirectionParentToLocal(
         GetBody2()->TransformDirectionLocalToParent(GetReactForceBody2()));
@@ -118,8 +133,6 @@ void ChLink::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize all member data:
     archive_out << CHNVP(m_body1);
     archive_out << CHNVP(m_body2);
-    // archive_out << CHNVP(react_force);
-    // archive_out << CHNVP(react_torque);
 }
 
 void ChLink::ArchiveIn(ChArchiveIn& archive_in) {
@@ -132,8 +145,6 @@ void ChLink::ArchiveIn(ChArchiveIn& archive_in) {
     // deserialize all member data:
     archive_in >> CHNVP(m_body1);
     archive_in >> CHNVP(m_body2);
-    // archive_in >> CHNVP(react_force);
-    // archive_in >> CHNVP(react_torque);
 }
 
 }  // end namespace chrono

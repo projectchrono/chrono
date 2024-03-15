@@ -180,11 +180,12 @@ TerrainForce ChDeformableTire::ReportTireForce(ChTerrain* terrain) const {
 
     for (size_t ic = 0; ic < m_connectionsF.size(); ic++) {
         ChCoordsysd csys = m_connectionsF[ic]->GetFrame2Abs().GetCoordsys();
-        ChVector3d react = csys.TransformDirectionLocalToParent(m_connectionsF[ic]->GetReactForce2());
+        ChWrenchd reaction = m_connectionsF[ic]->GetReaction2();
+        ChVector3d react = csys.TransformDirectionLocalToParent(reaction.force);
         ChWrenchd w = m_wheel->GetSpindle()->AppliedForceParentToWrenchParent(react, csys.pos);
         tire_force.force += w.force;
         tire_force.moment += w.torque;
-        ChVector3d reactMoment = csys.TransformDirectionLocalToParent(m_connectionsF[ic]->GetReactTorque2());
+        ChVector3d reactMoment = csys.TransformDirectionLocalToParent(reaction.torque);
         tire_force.moment += reactMoment;
     }
 

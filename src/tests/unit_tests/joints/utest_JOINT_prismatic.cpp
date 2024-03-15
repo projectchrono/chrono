@@ -359,11 +359,13 @@ bool TestPrismatic(const ChVector3d& jointLoc,      // absolute location of join
             // These are expressed in the link coordinate system. We convert them to
             // the coordinate system of Body2 (in our case this is the ground).
             ChFrame<> linkCoordsys = prismaticJoint->GetFrame2Rel();
-            ChVector3d reactForce = prismaticJoint->GetReactForce2();
+            const auto& reaction = prismaticJoint->GetReaction2();
+
+            ChVector3d reactForce = reaction.force;
             ChVector3d reactForceGlobal = linkCoordsys.TransformDirectionLocalToParent(reactForce);
             out_rfrc << simTime << reactForceGlobal << std::endl;
 
-            ChVector3d reactTorque = prismaticJoint->GetReactTorque2();
+            ChVector3d reactTorque = reaction.torque;
             ChVector3d reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
             out_rtrq << simTime << reactTorqueGlobal << std::endl;
 

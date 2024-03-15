@@ -34,8 +34,8 @@ class ChApi ChLinkMarkers : public ChLink {
     ChMarker* marker1;  ///< secondary coordsys
     ChMarker* marker2;  ///< main coordsys
 
-    ChCoordsysd relM;    ///< relative marker position 2-1
-    ChCoordsysd relM_dt;  ///< relative marker speed
+    ChCoordsysd relM;       ///< relative marker position 2-1
+    ChCoordsysd relM_dt;    ///< relative marker speed
     ChCoordsysd relM_dtdt;  ///< relative marker acceleration
 
     double relAngle;        ///< relative angle of rotation
@@ -73,11 +73,11 @@ class ChApi ChLinkMarkers : public ChLink {
 
     /// Get the link frame 1, relative to body 1.
     /// For this class link frame 1 is actually marker 1.
-    virtual ChFrame<> GetFrame1Rel() const {return *marker1; }
+    virtual ChFrame<> GetFrame1Rel() const override {return *marker1; }
 
     /// Get the link frame 2, relative to body 2.
     /// For this class link frame 2 is actually marker 2.
-    virtual ChFrame<> GetFrame2Rel() const { return *marker2; }
+    virtual ChFrame<> GetFrame2Rel() const override { return *marker2; }
 
     // LINK COORDINATES and other functions
 
@@ -90,7 +90,7 @@ class ChApi ChLinkMarkers : public ChLink {
     /// Relative acceleration of marker 1 respect to marker 2.
     const ChCoordsysd& GetRelCoordsysDer2() const { return relM_dtdt; }
 
-    /// Relative rotation angle of marker 1 respect to marker 2 (best with revolute joints..).
+    /// Relative rotation angle of marker 1 respect to marker 2.
     double GetRelAngle() const { return relAngle; }
     
     /// Relative finite rotation axis of marker 1 respect to marker 2.

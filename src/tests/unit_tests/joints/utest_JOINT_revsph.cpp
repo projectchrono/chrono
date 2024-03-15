@@ -312,8 +312,9 @@ bool TestRevSpherical(
 
             //    reaction force and torque on pendulum, expressed in joint frame
             //       at the joint frame origin (center of the revolute)
-            ChVector3d reactForce = revSphericalConstraint->GetReactForce2();
-            ChVector3d reactTorque = revSphericalConstraint->GetReactTorque2();
+            const auto& reaction = revSphericalConstraint->GetReaction2();
+            ChVector3d reactForce = reaction.force;
+            ChVector3d reactTorque = reaction.torque;
 
             //    reaction force and torque on the ground, expressed in joint frame
             //       at the revolute joint center (joint frame origin)

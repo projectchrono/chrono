@@ -54,14 +54,32 @@ class ChApi ChLink : public ChLinkBase {
     /// Get the link frame 1, on body 1, expressed in the absolute frame.
     virtual ChFramed GetFrame1Abs() const override;
 
+    /// Get the link frame 2, on body 2, expressed in the absolute frame.
+    virtual ChFramed GetFrame2Abs() const override;
+
+    // The default ChLink implementation assumes that react_force and react_torque represent the reaction wrench on the
+    // 2nd body, expressed in the link frame 2. A derived class may interpret react_force and react_torque differently,
+    // in which case it must override GetReaction1() and GetReaction2().
+
+    /// Get the reaction force and torque on the 1st body, expressed in the link frame 1.
+    virtual ChWrenchd GetReaction1() const override;
+
+    /// Get the reaction force and torque on the 2nd body object, expressed in the link frame 2.
+    virtual ChWrenchd GetReaction2() const override;
+
+
+
+
+
+
+
+
+
     /// Get reaction force, expressed on link frame 1.
     virtual ChVector3d GetReactForce1() const override;
 
     /// Get reaction torque, expressed on link frame 1.
     virtual ChVector3d GetReactTorque1() const override;
-
-    /// Get the link frame 2, on body 2, expressed in the absolute frame.
-    virtual ChFramed GetFrame2Abs() const override;
 
     /// Get reaction force, expressed on link frame 2.
     virtual ChVector3d GetReactForce2() const override;
@@ -80,6 +98,18 @@ class ChApi ChLink : public ChLinkBase {
 
     /// Get reaction torque, expressed on body 2 frame.
     ChVector3d GetReactTorqueBody2() const;
+
+
+
+
+
+
+
+
+
+
+
+
 
     // UPDATING FUNCTIONS
 
@@ -108,8 +138,8 @@ class ChApi ChLink : public ChLinkBase {
   protected:
     ChBodyFrame* m_body1;     ///< first connected body
     ChBodyFrame* m_body2;     ///< second connected body
-    ChVector3d react_force;   ///< store the xyz reactions, expressed in local coordinate system of link;
-    ChVector3d react_torque;  ///< store the torque reactions, expressed in local coordinate system of link;
+    ChVector3d react_force;   ///< xyz reactions, expressed in local coordinate system of link;
+    ChVector3d react_torque;  ///< torque reactions, expressed in local coordinate system of link;
 };
 
 CH_CLASS_VERSION(ChLink, 0)

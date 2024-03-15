@@ -278,7 +278,7 @@ bool TestTranSpring(
             out_rfrc << simTime << springForceGlobal << std::endl;
 
             ChFrame<> linkCoordsys = spring->GetFrame2Rel();
-            ChVector3d reactTorque = spring->GetReactTorque2();
+            ChVector3d reactTorque = spring->GetReaction2().torque;
             ChVector3d reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
             out_rtrq << simTime << reactTorqueGlobal << std::endl;
 

@@ -171,7 +171,7 @@ void ChVehicleCosimRigNode::OnOutputData(int frame) {
         const ChVector3d& spindle_vel = m_spindle->GetPosDer();
         const ChVector3d& spindle_angvel = m_spindle->GetAngVelLocal();
 
-        const ChVector3d& rfrc_motor = m_rev_motor->GetReactForce2();
+        const ChVector3d& rfrc_motor = m_rev_motor->GetReaction2().force;
         const ChVector3d& rtrq_motor = m_rev_motor->GetMotorTorque();
 
         m_outf << m_system->GetChTime() << del;

@@ -174,6 +174,15 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
     /// Get the link frame 2, on the connected body, expressed in the absolute frame.
     virtual ChFramed GetFrame2Abs() const override { return GetFrameBodyAbs(); }
 
+    /// Get reaction force and torque on beam, expressed in link frame 1.
+    virtual ChWrenchd GetReaction1() const override { return {GetReactionOnSpline(), VNULL}; }
+
+    /// Get reaction force and torque on body, expressed in link frame 2.
+    virtual ChWrenchd GetReaction2() const override { return {GetReactionOnBody(), VNULL}; }
+
+
+
+
     /// Get reaction force on beam, expressed on link frame 1.
     virtual ChVector3d GetReactForce1() const override { return GetReactionOnSpline(); }
 

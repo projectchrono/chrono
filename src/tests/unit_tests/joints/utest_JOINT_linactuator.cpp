@@ -288,11 +288,13 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
             // These are expressed in the link coordinate system. We convert them to
             // the coordinate system of Body2 (in our case this is the ground).
             ChFrame<> linkCoordsysP = prismatic->GetFrame2Rel();
-            ChVector3d reactForceP = prismatic->GetReactForce2();
+            const auto& reactionP = prismatic->GetReaction2();
+
+            ChVector3d reactForceP = reactionP.force;
             ChVector3d reactForceGlobalP = linkCoordsysP.TransformDirectionLocalToParent(reactForceP);
             out_rfrcP << simTime << reactForceGlobalP << std::endl;
 
-            ChVector3d reactTorqueP = prismatic->GetReactTorque2();
+            ChVector3d reactTorqueP = reactionP.torque;
             ChVector3d reactTorqueGlobalP = linkCoordsysP.TransformDirectionLocalToParent(reactTorqueP);
             out_rtrqP << simTime << reactTorqueGlobalP << std::endl;
 
@@ -303,12 +305,14 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
             // plate in order to maintain the prescribed constant velocity.  These are
             // then converted to the global frame for comparison to ADAMS
             ChFrame<> linkCoordsysA = actuator->GetFrame2Rel();
-            ChVector3d reactForceA = actuator->GetReactForce2();
+            const auto& reactionA = actuator->GetReaction2();
+
+            ChVector3d reactForceA = reactionA.force;
             reactForceA = linkCoordsysA.TransformDirectionLocalToParent(reactForceA);
             ChVector3d reactForceGlobalA = plate->TransformDirectionLocalToParent(reactForceA);
             out_rfrcA << simTime << reactForceGlobalA << std::endl;
 
-            ChVector3d reactTorqueA = actuator->GetReactTorque2();
+            ChVector3d reactTorqueA = reactionA.torque;
             reactTorqueA = linkCoordsysA.TransformDirectionLocalToParent(reactTorqueA);
             ChVector3d reactTorqueGlobalA = plate->TransformDirectionLocalToParent(reactTorqueA);
             out_rtrqA << simTime << reactTorqueGlobalA << std::endl;

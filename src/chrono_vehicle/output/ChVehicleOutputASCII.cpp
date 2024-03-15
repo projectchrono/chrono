@@ -100,8 +100,9 @@ void ChVehicleOutputASCII::WriteJoints(const std::vector<std::shared_ptr<ChLink>
         for (int i = 0; i < C.size(); i++)
             violations.push_back(C(i));
 
+        auto reaction = joint->GetReaction2();
         m_stream << "    joint: " << joint->GetIdentifier() << " \"" << joint->GetNameString() << "\" ";
-        m_stream << joint->GetReactForce2() << " " << joint->GetReactTorque2() << " ";
+        m_stream << reaction.force << " " << reaction.torque << " ";
         for (const auto& val : violations) {
             m_stream << val << " ";
         }

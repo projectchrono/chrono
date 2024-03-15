@@ -43,6 +43,7 @@ if(ENABLE_MODULE_IRRLICHT)
       demo_MBS_rev_sph
       demo_MBS_rev_trans
       demo_MBS_rev_limits
+      demo_MBS_rev_reactions
       demo_MBS_rot_spring
       demo_MBS_ujoint
       demo_MBS_planar

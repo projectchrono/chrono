@@ -339,11 +339,6 @@ int main(int argc, char* argv[]) {
     sysFSI.Initialize();
 
     auto wheel = sysMBS.GetBodies()[1];
-    ChVector3d force = actuator->GetReactForce2();
-    ChVector3d torque = motor->GetReactTorque2();
-    ChVector3d w_pos = wheel->GetPos();
-    ChVector3d w_vel = wheel->GetPosDer();
-    ChVector3d angvel = wheel->GetAngVelLocal();
 
     // Save wheel mesh
     ChTriangleMeshConnected wheel_mesh;
@@ -381,11 +376,12 @@ int main(int argc, char* argv[]) {
     timer.start();
     while (time < total_time) {
         // Get the infomation of the wheel
-        force = actuator->GetReactForce2();
-        torque = motor->GetReactTorque2();
-        w_pos = wheel->GetPos();
-        w_vel = wheel->GetPosDer();
-        angvel = wheel->GetAngVelLocal();
+        const auto& reaction = actuator->GetReaction2();
+        const auto& force = reaction.force;
+        const auto& torque = reaction.torque;
+        const auto& w_pos = wheel->GetPos();
+        const auto& w_vel = wheel->GetPosDer();
+        const auto& angvel = wheel->GetAngVelLocal();
 
         if (verbose) {
             std::cout << "time: " << time << std::endl;

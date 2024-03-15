@@ -64,20 +64,31 @@ class ChApi ChLinkBase : public ChPhysicsItem {
     /// Get the link frame 1, on the 1st connected object, expressed in the absolute frame.
     virtual ChFramed GetFrame1Abs() const = 0;
 
+    /// Get the link frame 2, on the 2nd connected object, expressed in the absolute frame.
+    virtual ChFramed GetFrame2Abs() const = 0;
+
+    /// Get the reaction force and torque on the 1st connected object, expressed in the link frame 1.
+    virtual ChWrenchd GetReaction1() const = 0;
+
+    /// Get the reaction force and torque on the 2nd connected object, expressed in the link frame 2.
+    virtual ChWrenchd GetReaction2() const = 0;
+
+
+
     /// Get the reaction force on the 1st connected object, expressed in the link frame 1.
     virtual ChVector3d GetReactForce1() const = 0;
 
     /// Get the reaction torque on the 1st connected object, expressed in the link frame 1.
     virtual ChVector3d GetReactTorque1() const = 0;
 
-    /// Get the link frame 2, on the 2nd connected object, expressed in the absolute frame.
-    virtual ChFramed GetFrame2Abs() const = 0;
-
     /// Get the reaction force on the 2nd connected object, expressed in the link frame 2.
     virtual ChVector3d GetReactForce2() const = 0;
 
     /// Get the reaction torque on the 2nd connected object, expressed in the link frame 2.
     virtual ChVector3d GetReactTorque2() const = 0;
+
+
+
 
     /// Get the reference frame (expressed in and relative to the absolute frame) of the visual model.
     /// For a ChLink, the default implementation returns the link coordinate frame 1.

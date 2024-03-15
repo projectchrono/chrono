@@ -21,17 +21,12 @@
 
 namespace chrono {
 
-/// Base class for all 'simple' constraints between
-/// two frames attached to two bodies. These constraints
-/// can correspond to the typical 'mating' conditions that
-/// are created in assemblies of 3D CAD tools (parallel
-/// axis, or face-to-face, etc.).
-/// Note that most of the ChLinkMate constraints can be
-/// done also with the constraints inherited from ChLinkLock...
-/// but in case of links of the ChLinkLock class they
-/// reference two ChMarker objects, that can also move, but
-/// this could be an unnecessary complication in most cases.
-
+/// Base class for all 'simple' constraints between two frames attached to two bodies.
+/// These constraints can correspond to the typical 'mating' conditions that are created in assemblies of 3D CAD tools
+/// (parallel axis, or face-to-face, etc.).
+/// Note that most of the ChLinkMate constraints can be done also with the constraints inherited from ChLinkLock but in
+/// case of links of the ChLinkLock class they reference two ChMarker objects, that can also move, but this could be an
+/// unnecessary complication in most cases.
 class ChApi ChLinkMate : public ChLink {
   public:
     ChLinkMate() {}
@@ -223,11 +218,11 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
 
     ChConstraintVectorX C;  ///< residuals
 
-    // The projection matrix from Lagrange multiplier to reaction torque
-    ChMatrix33<> P;
 
-    ChVector3d gamma_f;  ///< store the translational Lagrange multipliers
-    ChVector3d gamma_m;  ///< store the rotational Lagrange multipliers
+    ChMatrix33<> P;  ///< projection matrix from Lagrange multiplier to reaction torque
+
+    ChVector3d gamma_f;  ///< translational Lagrange multipliers
+    ChVector3d gamma_m;  ///< rotational Lagrange multipliers
 
     std::unique_ptr<ChKblockGeneric> Kmatr = nullptr;  ///< the tangent stiffness matrix of constraint
 };

@@ -325,14 +325,15 @@ int drawAllLinks(ChVisualSystemIrrlicht* vis, double mlen, LinkDrawMode drawtype
 
     for (auto& link : vis->GetSystem(0).GetLinks()) {
         ChFrame<> frame = link->GetFrame2Abs();
+        ChWrenchd react = link->GetReaction2();
         ChVector3d v1abs = frame.GetCoordsys().pos;
         ChVector3d v2;
         switch (drawtype) {
             case LinkDrawMode::LINK_REACT_FORCE:
-                v2 = link->GetReactForce2();
+                v2 = react.force;
                 break;
             case LinkDrawMode::LINK_REACT_TORQUE:
-                v2 = link->GetReactTorque2();
+                v2 = react.torque;
                 break;
             default:
                 break;
@@ -360,8 +361,9 @@ int drawAllLinkLabels(ChVisualSystemIrrlicht* vis, LinkLabelMode labeltype, ChCo
 
     for (auto& link : vis->GetSystem(0).GetLinks()) {
         const auto& frame = link->GetFrame2Abs();
-        const auto& force = link->GetReactForce2();
-        const auto& torque = link->GetReactTorque2();
+        const auto& react = link->GetReaction2();
+        const auto& force = react.force;
+        const auto& torque = react.torque;
 
         position2d<s32> spos =
             device->getSceneManager()->getSceneCollisionManager()->getScreenCoordinatesFrom3DPosition(

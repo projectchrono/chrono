@@ -272,16 +272,18 @@ void test_pendulum() {
         vis->EndScene();
     }
 
+    const auto& pos = my_mass->GetPos();
+    const auto& reaction = my_joint->GetReaction2();
+    const auto& rforce = reaction.force;
+    const auto& rtorque = reaction.torque;
+
     std::cout << "\nAfter doing the nonlinear static analysis:" << std::endl;
     std::cout << "\tThe final position of the end mass is:\n"
-              << "\t\tx:  " << my_mass->GetPos().x() << "\ty:  " << my_mass->GetPos().y()
-              << "\tz:  " << my_mass->GetPos().z() << std::endl;
+              << "\t\tx:  " << pos.x() << "\ty:  " << pos.y() << "\tz:  " << pos.z() << std::endl;
     std::cout << "\tThe reaction forces at the root are:\n"
-              << "\t\tfx:  " << my_joint->GetReactForce2().x() << "\tfy:  " << my_joint->GetReactForce2().y()
-              << "\tfz:  " << my_joint->GetReactForce2().z() << std::endl;
+              << "\t\tfx:  " << rforce.x() << "\tfy:  " << rforce.y() << "\tfz:  " << rforce << std::endl;
     std::cout << "\tThe reaction torques at the root are:\n"
-              << "\t\tmx:  " << my_joint->GetReactTorque2().x() << "\tmy:  " << my_joint->GetReactTorque2().y()
-              << "\tmz:  " << my_joint->GetReactTorque2().z() << std::endl;
+              << "\t\tmx:  " << rtorque.x() << "\tmy:  " << rtorque.y() << "\tmz:  " << rtorque.z() << std::endl;
 
     // ====================================
     // Eigenvalue analysis
@@ -504,8 +506,9 @@ void test_anchorchain() {
         for (int i_link = 0; i_link < sys.GetLinks().size(); i_link++) {
             reactions(i_link, 0) = sys.GetLinks().at(i_link)->GetFrame2Abs().GetCoordsys().pos.x();
 
-            ChVector3d f_loc = sys.GetLinks().at(i_link)->GetReactForce2();
-            ChVector3d m_loc = sys.GetLinks().at(i_link)->GetReactTorque2();
+            const auto& reaction = sys.GetLinks().at(i_link)->GetReaction2();
+            const auto& f_loc = reaction.force;
+            const auto& m_loc = reaction.torque;
             ChQuaternion<> q_link = sys.GetLinks().at(i_link)->GetFrame2Abs().GetCoordsys().rot;
             // Transform the reaction forces and torques of the joints from local frame to the absolute frame.
             // The horizontal reaction forces (along X direction) should be equal among all joints for the catenary

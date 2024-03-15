@@ -808,7 +808,7 @@ void example5(const std::string& out_dir) {
                   << my_body_B->GetPosDer().x() << ", " << my_body_B->GetPosDer().y() << std::endl;
         log_file5r << mystepper1.GetTime() << ", " << mystepper1.get_L()(0) << ", " << mystepper2.get_L()(0) << ", "
                    << mystepper3.get_L()(0) << ", " << mystepper4.get_L()(0) << ", " << mystepper5.get_L()(0) << ", "
-                   << mystepper6.get_L()(0) << ", " << my_link_AB->GetReactForce2().y() << std::endl;
+                   << mystepper6.get_L()(0) << ", " << my_link_AB->GetReaction2().force.y() << std::endl;
     }
     // Execute the time integration with the explicit integrator,
     // hence using smaller time step

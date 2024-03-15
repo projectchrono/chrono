@@ -291,8 +291,9 @@ bool TestUniversal(const ChVector3d& jointLoc,      // absolute location of join
             ChFrame<> linkCoordsys = universalJoint->GetFrame2Rel();
 
             //    reaction force and torque on pendulum, expressed in joint frame
-            ChVector3d reactForce = universalJoint->GetReactForce2();
-            ChVector3d reactTorque = universalJoint->GetReactTorque2();
+            const auto& reaction = universalJoint->GetReaction2();
+            ChVector3d reactForce = reaction.force;
+            ChVector3d reactTorque = reaction.torque;
             //    reaction force and torque on pendulum, expressed in pendulum frame
             reactForce = linkCoordsys.TransformDirectionLocalToParent(reactForce);
             reactTorque = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
