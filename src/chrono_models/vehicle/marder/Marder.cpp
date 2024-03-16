@@ -137,6 +137,8 @@ void Marder::Initialize() {
             case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
                 transmission = chrono_types::make_shared<Marder_AutomaticTransmissionSimpleMap>("Transmission");
                 break;
+            default:
+                break;
         }
     }
 

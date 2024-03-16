@@ -114,6 +114,8 @@ void UAZBUS::Initialize() {
         case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
             transmission = chrono_types::make_shared<UAZBUS_AutomaticTransmissionSimpleMap>("Transmission");
             break;
+        default:
+            break;
     }
 
     if (engine && transmission) {

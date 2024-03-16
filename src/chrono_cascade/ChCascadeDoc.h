@@ -68,7 +68,7 @@ class ChApiCASCADE ChCascadeDoc {
     /// it will give its position relative to the assembly where it is a sub-shape.
     /// If the 'get_multiple' = true, if there are multiple parts satisfying the search string,
     /// they are all returned in a single shape of compound type (with null location).
-    bool GetNamedShape(TopoDS_Shape& mshape, char* name, bool set_location_to_root = true, bool get_multiple = false);
+    bool GetNamedShape(TopoDS_Shape& mshape, const char* name, bool set_location_to_root = true, bool get_multiple = false);
 
     /// Get the volume properties (center of mass, inertia moments, volume)
     /// of a given shape.

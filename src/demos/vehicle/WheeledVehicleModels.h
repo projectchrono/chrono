@@ -85,7 +85,7 @@ class ARTcar_Model : public WheeledVehicleModel {
         car->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { car->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 0.2); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 0.2); }
     virtual double CameraDistance() const override { return 2.0; }
     virtual double CameraHeight() const override { return 0.3; }
 
@@ -104,7 +104,7 @@ class Citybus_Model : public WheeledVehicleModel {
         bus->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { bus->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 1.75); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 16.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
@@ -123,7 +123,7 @@ class Duro_Model : public WheeledVehicleModel {
         duro->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { duro->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 0.75); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 0.75); }
     virtual double CameraDistance() const override { return 10.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
@@ -142,7 +142,7 @@ class FEDA_Model : public WheeledVehicleModel {
         feda->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { feda->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 0.75); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 0.75); }
     virtual double CameraDistance() const override { return 10.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
@@ -161,7 +161,7 @@ class G500_Model : public WheeledVehicleModel {
         gclass->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { gclass->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 1.75); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 8.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
@@ -180,7 +180,7 @@ class Gator_Model : public WheeledVehicleModel {
         gator->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { gator->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 1.75); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 7.0; }
     virtual double CameraHeight() const override { return 0.1; }
 
@@ -199,7 +199,7 @@ class HMMWV_Model : public WheeledVehicleModel {
         hmmwv->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { hmmwv->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 1.75); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 8.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
@@ -218,7 +218,7 @@ class HMMWV9_Model : public WheeledVehicleModel {
         hmmwv->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { hmmwv->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 1.75); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 8.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
@@ -237,7 +237,7 @@ class KRAZ_Model : public WheeledVehicleModel {
         kraz->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { kraz->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 1.75); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 25.0; }
     virtual double CameraHeight() const override { return 1.5; }
 
@@ -256,7 +256,7 @@ class LMTV_Model : public WheeledVehicleModel {
         lmtv->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { lmtv->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 1.75); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 12.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
@@ -275,7 +275,7 @@ class MTV_Model : public WheeledVehicleModel {
         mtv->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { mtv->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 1.75); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 12.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
@@ -294,7 +294,7 @@ class MAN5_Model : public WheeledVehicleModel {
         man->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { man->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 1.75); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 14.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
@@ -313,7 +313,7 @@ class MAN7_Model : public WheeledVehicleModel {
         man->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { man->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 1.75); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 14.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
@@ -332,7 +332,7 @@ class MAN10_Model : public WheeledVehicleModel {
         man->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { man->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 1.75); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 14.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
@@ -351,7 +351,7 @@ class MROLE_Model : public WheeledVehicleModel {
         mrole->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { mrole->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 1.75); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 14.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
@@ -370,7 +370,7 @@ class Sedan_Model : public WheeledVehicleModel {
         sedan->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { sedan->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 1.75); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 8.0; }
     virtual double CameraHeight() const override { return 0.2; }
 
@@ -389,7 +389,7 @@ class BMW_E90_Model : public WheeledVehicleModel {
         bmw->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { bmw->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 1.75); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 8.0; }
     virtual double CameraHeight() const override { return 0.2; }
 
@@ -408,7 +408,7 @@ class UAZBUS_Model : public WheeledVehicleModel {
         uaz->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { uaz->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 1.75); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 8.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
@@ -427,7 +427,7 @@ class UAZBUSSAE_Model : public WheeledVehicleModel {
         uaz->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { uaz->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 1.75); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 8.0; }
     virtual double CameraHeight() const override { return 0.5; }
 
@@ -446,7 +446,7 @@ class U401_Model : public WheeledVehicleModel {
         u401->Synchronize(time, driver_inputs, terrain);
     }
     virtual void Advance(double step) override { u401->Advance(step); }
-    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 1.75); }
+    virtual ChVector3d TrackPoint() const override { return ChVector3d(0, 0, 1.75); }
     virtual double CameraDistance() const override { return 8.0; }
     virtual double CameraHeight() const override { return 0.5; }
 

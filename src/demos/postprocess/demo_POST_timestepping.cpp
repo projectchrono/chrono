@@ -42,22 +42,22 @@ void example1(const std::string& out_dir) {
       public:
         MyIntegrable() {}
 
-        /// the number of coordinates in the state:
+        // the number of coordinates in the state:
         virtual unsigned int GetNumCoordsPosLevel() override { return 0; }
         virtual unsigned int GetNumCoordsVelLevel() override { return 1; }
         virtual unsigned int GetNumCoordsAccLevel() override { return 0; }
 
 
-        /// compute  dy/dt=f(y,t)
-        virtual bool StateSolve(ChStateDelta& dydt,        ///< result: computed dy/dt
-                                ChVectorDynamic<>& L,      ///< result: computed lagrangian multipliers, if any
-                                const ChState& y,          ///< current state y
-                                const double T,            ///< current time T
-                                const double dt,           ///< timestep (if needed)
-                                bool force_state_scatter,  ///< if false, y and T are not scattered to the system
-                                bool full_update,          ///< if true, perform a full update during scatter
-                                ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid
-                                                                   ///< inverting a mass matrix. Not significant here.
+        // compute  dy/dt=f(y,t)
+        virtual bool StateSolve(ChStateDelta& dydt,        // result: computed dy/dt
+                                ChVectorDynamic<>& L,      // result: computed lagrangian multipliers, if any
+                                const ChState& y,          // current state y
+                                const double T,            // current time T
+                                const double dt,           // timestep (if needed)
+                                bool force_state_scatter,  // if false, y and T are not scattered to the system
+                                bool full_update,          // if true, perform a full update during scatter
+                                ChLumpingParms* lumping = nullptr  // if not null, uses lumped masses to avoid
+                                                                   // inverting a mass matrix. Not significant here.
                                 ) override {
             if (force_state_scatter)
                 StateScatter(y, T, full_update);  // state -> system   (not needed here, btw.)
@@ -128,35 +128,35 @@ void example2(const std::string& out_dir) {
             v = 0;
         }
 
-        /// the number of coordinates in the state:
+        // the number of coordinates in the state:
         virtual unsigned int GetNumCoordsPosLevel() override { return 1; }
         virtual unsigned int GetNumCoordsVelLevel() override { return 1; }
         virtual unsigned int GetNumCoordsAccLevel() override { return 1; }
 
-        /// system -> state
+        // system -> state
         virtual void StateGather(ChState& y, double& mT) override {
             y(0) = x;
             y(1) = v;
             mT = T;
         };
 
-        /// state -> system
+        // state -> system
         virtual void StateScatter(const ChState& y, const double mT, bool full_update) override {
             x = y(0);
             v = y(1);
             T = mT;
         };
 
-        /// compute  dy/dt=f(y,t)
-        virtual bool StateSolve(ChStateDelta& dydt,        ///< result: computed dy/dt
-                                ChVectorDynamic<>& L,      ///< result: computed lagrangian multipliers, if any
-                                const ChState& y,          ///< current state y
-                                const double T,            ///< current time T
-                                const double dt,           ///< timestep (if needed)
-                                bool force_state_scatter,  ///< if false, y and T are not scattered to the system
-                                bool full_update,          ///< if true, perform a full update during scatter
-                                ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid
-                                                                   ///< inverting a mass matrix. Not significant here.
+        // compute  dy/dt=f(y,t)
+        virtual bool StateSolve(ChStateDelta& dydt,        // result: computed dy/dt
+                                ChVectorDynamic<>& L,      // result: computed lagrangian multipliers, if any
+                                const ChState& y,          // current state y
+                                const double T,            // current time T
+                                const double dt,           // timestep (if needed)
+                                bool force_state_scatter,  // if false, y and T are not scattered to the system
+                                bool full_update,          // if true, perform a full update during scatter
+                                ChLumpingParms* lumping = nullptr  // if not null, uses lumped masses to avoid
+                                                                   // inverting a mass matrix. Not significant here.
                                 ) override {
             if (force_state_scatter)
                 StateScatter(y, T, full_update);
@@ -245,36 +245,36 @@ void example3(const std::string& out_dir) {
             mv = 0;
         }
 
-        /// the number of coordinates in the state, x position part:
+        // the number of coordinates in the state, x position part:
         virtual unsigned int GetNumCoordsPosLevel() override { return 1; }
         virtual unsigned int GetNumCoordsVelLevel() override { return 1; }
         virtual unsigned int GetNumCoordsAccLevel() override { return 1; }
 
-        /// system -> state
+        // system -> state
         virtual void StateGather(ChState& x, ChStateDelta& v, double& mT) override {
             x(0) = mx;
             v(0) = mv;
             mT = T;
         };
 
-        /// state -> system
+        // state -> system
         virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double mT, bool full_update) override {
             mx = x(0);
             mv = v(0);
             T = mT;
         };
 
-        /// compute  dy/dt=f(y,t)
-        virtual bool StateSolveA(ChStateDelta& dvdt,        ///< result: computed accel. a = dv/dt
-                                 ChVectorDynamic<>& L,      ///< result: computed lagrangian multipliers, if any
-                                 const ChState& x,          ///< current state, x
-                                 const ChStateDelta& v,     ///< current state, v
-                                 const double T,            ///< current time T
-                                 const double dt,           ///< timestep (if needed)
-                                 bool force_state_scatter,  ///< if false, y and T are not scattered to the system
-                                 bool full_update,          ///< if true, perform a full update during scatter
-                                 ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid
-                                                                    ///< inverting a mass matrix. Not significant here.
+        // compute  dy/dt=f(y,t)
+        virtual bool StateSolveA(ChStateDelta& dvdt,        // result: computed accel. a = dv/dt
+                                 ChVectorDynamic<>& L,      // result: computed lagrangian multipliers, if any
+                                 const ChState& x,          // current state, x
+                                 const ChStateDelta& v,     // current state, v
+                                 const double T,            // current time T
+                                 const double dt,           // timestep (if needed)
+                                 bool force_state_scatter,  // if false, y and T are not scattered to the system
+                                 bool full_update,          // if true, perform a full update during scatter
+                                 ChLumpingParms* lumping = nullptr  // if not null, uses lumped masses to avoid
+                                                                    // inverting a mass matrix. Not significant here.
                                  ) override {
             if (force_state_scatter)
                 StateScatter(x, v, T, full_update);
@@ -359,19 +359,19 @@ void example4(const std::string& out_dir) {
             ma = 0;
         }
 
-        /// the number of coordinates in the state, x position part:
+        // the number of coordinates in the state, x position part:
         virtual unsigned int GetNumCoordsPosLevel() override { return 1; }
         virtual unsigned int GetNumCoordsVelLevel() override { return 1; }
         virtual unsigned int GetNumCoordsAccLevel() override { return 1; }
 
-        /// system -> state
+        // system -> state
         virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override {
             x(0) = mx;
             v(0) = mv;
             T = mT;
         };
 
-        /// state -> system
+        // state -> system
         virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, bool full_update) override {
             mx = x(0);
             mv = v(0);
@@ -383,20 +383,20 @@ void example4(const std::string& out_dir) {
         virtual void StateGatherAcceleration(ChStateDelta& a) override { a(0) = ma; }
         virtual void StateScatterAcceleration(const ChStateDelta& a) override { ma = a(0); }
 
-        /// compute  dy/dt=f(y,t)
-        /// (this function is optional: if not implemented the integrator can solve
-        /// for acceleration also using StateSolveCorrection, although a bit less efficient)
+        // compute  dy/dt=f(y,t)
+        // (this function is optional: if not implemented the integrator can solve
+        // for acceleration also using StateSolveCorrection, although a bit less efficient)
         virtual bool StateSolveA(
-            ChStateDelta& dvdt,                ///< result: computed accel. a=dv/dt
-            ChVectorDynamic<>& L,              ///< result: computed lagrangian multipliers, if any
-            const ChState& x,                  ///< current state, x
-            const ChStateDelta& v,             ///< current state, v
-            const double T,                    ///< current time T
-            const double dt,                   ///< timestep (if needed)
-            bool force_state_scatter,          ///< if false, y and T are not scattered to the system
-            bool full_update,                  ///< if true, perform a full update during scatter
-            ChLumpingParms* lumping = nullptr  ///< if not null, uses lumped masses to avoid inverting a mass matrix,
-                                               ///< and uses penalty for constraints. Not significant here.
+            ChStateDelta& dvdt,                // result: computed accel. a=dv/dt
+            ChVectorDynamic<>& L,              // result: computed lagrangian multipliers, if any
+            const ChState& x,                  // current state, x
+            const ChStateDelta& v,             // current state, v
+            const double T,                    // current time T
+            const double dt,                   // timestep (if needed)
+            bool force_state_scatter,          // if false, y and T are not scattered to the system
+            bool full_update,                  // if true, perform a full update during scatter
+            ChLumpingParms* lumping = nullptr  // if not null, uses lumped masses to avoid inverting a mass matrix,
+                                               // and uses penalty for constraints. Not significant here.
             ) override {
             if (force_state_scatter)
                 StateScatter(x, v, T, full_update);
@@ -406,22 +406,22 @@ void example4(const std::string& out_dir) {
             return true;
         }
 
-        /// Compute the correction with linear system
-        ///  Dv = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]^-1 * R
+        // Compute the correction with linear system
+        //  Dv = [ c_a*M + c_v*dF/dv + c_x*dF/dx ]^-1 * R
         virtual bool StateSolveCorrection(
-            ChStateDelta& Dv,             ///< result: computed Dv
-            ChVectorDynamic<>& L,         ///< result: computed lagrangian multipliers, if any
-            const ChVectorDynamic<>& R,   ///< the R residual
-            const ChVectorDynamic<>& Qc,  ///< the Qc residual
-            const double c_a,             ///< the factor in c_a*M
-            const double c_v,             ///< the factor in c_v*dF/dv
-            const double c_x,             ///< the factor in c_x*dF/dv
-            const ChState& x,             ///< current state, x part
-            const ChStateDelta& v,        ///< current state, v part
-            const double T,               ///< current time T
-            bool force_state_scatter,     ///< if false, x,v and T are not scattered to the system
-            bool full_update,             ///< if true, perform a full update during scatter
-            bool force_setup              ///< if true, call the solver's Setup() function
+            ChStateDelta& Dv,             // result: computed Dv
+            ChVectorDynamic<>& L,         // result: computed lagrangian multipliers, if any
+            const ChVectorDynamic<>& R,   // the R residual
+            const ChVectorDynamic<>& Qc,  // the Qc residual
+            const double c_a,             // the factor in c_a*M
+            const double c_v,             // the factor in c_v*dF/dv
+            const double c_x,             // the factor in c_x*dF/dv
+            const ChState& x,             // current state, x part
+            const ChStateDelta& v,        // current state, v part
+            const double T,               // current time T
+            bool force_state_scatter,     // if false, x,v and T are not scattered to the system
+            bool full_update,             // if true, perform a full update during scatter
+            bool force_setup              // if true, call the solver's Setup() function
             ) override {
             if (force_state_scatter)
                 this->StateScatter(x, v, T, full_update);
@@ -431,37 +431,37 @@ void example4(const std::string& out_dir) {
             return true;
         }
 
-        ///    R += c*F
-        void LoadResidual_F(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
-                            const double c         ///< a scaling factor
+        //    R += c*F
+        void LoadResidual_F(ChVectorDynamic<>& R,  // result: the R residual, R += c*F
+                            const double c         // a scaling factor
                             ) override {
             R(0) += c * (sin(mT * 20) * 0.02 - this->K * mx - this->R * mv);
         };
 
-        ///    R += c*M*w
-        void LoadResidual_Mv(ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
-                             const ChVectorDynamic<>& w,  ///< the w vector
-                             const double c               ///< a scaling factor
+        //    R += c*M*w
+        void LoadResidual_Mv(ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
+                             const ChVectorDynamic<>& w,  // the w vector
+                             const double c               // a scaling factor
                              ) override {
             R(0) += c * this->M * w(0);
         };
 
-        /// nothing to do here- no constraints
-        virtual void LoadResidual_CqL(ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                      const ChVectorDynamic<>& L,  ///< the L vector
-                                      const double c               ///< a scaling factor
+        // nothing to do here- no constraints
+        virtual void LoadResidual_CqL(ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
+                                      const ChVectorDynamic<>& L,  // the L vector
+                                      const double c               // a scaling factor
                                       ) override {}
 
-        /// nothing to do here- no constraints
-        virtual void LoadConstraint_C(ChVectorDynamic<>& Qc,        ///< result: the Qc residual, Qc += c*C
-                                      const double c,               ///< a scaling factor
-                                      const bool do_clamp = false,  ///< enable optional clamping of Qc
-                                      const double mclam = 1e30     ///< clamping value
+        // nothing to do here- no constraints
+        virtual void LoadConstraint_C(ChVectorDynamic<>& Qc,        // result: the Qc residual, Qc += c*C
+                                      const double c,               // a scaling factor
+                                      const bool do_clamp = false,  // enable optional clamping of Qc
+                                      const double mclam = 1e30     // clamping value
                                       ) override {}
 
-        /// nothing to do here- no constraints
-        virtual void LoadConstraint_Ct(ChVectorDynamic<>& Qc,  ///< result: the Qc residual, Qc += c*Ct
-                                       const double c          ///< a scaling factor
+        // nothing to do here- no constraints
+        virtual void LoadConstraint_Ct(ChVectorDynamic<>& Qc,  // result: the Qc residual, Qc += c*Ct
+                                       const double c          // a scaling factor
                                        ) override {}
     };
 
@@ -575,15 +575,15 @@ void example5(const std::string& out_dir) {
             mreaction = 0;
         }
 
-        /// the number of coordinates in the state, x position part:
+        // the number of coordinates in the state, x position part:
         virtual unsigned int GetNumCoordsPosLevel() override { return 2; }
         virtual unsigned int GetNumCoordsVelLevel() override { return 2; }
         virtual unsigned int GetNumCoordsAccLevel() override { return 2; }
 
-        /// Tells the number of lagrangian multipliers (constraints)
+        // Tells the number of lagrangian multipliers (constraints)
         virtual unsigned int GetNumConstraints() override { return 1; }
 
-        /// system -> state
+        // system -> state
         virtual void StateGather(ChState& x, ChStateDelta& v, double& T) override {
             x(0) = mpx;
             x(1) = mpy;
@@ -592,7 +592,7 @@ void example5(const std::string& out_dir) {
             T = mT;
         };
 
-        /// state -> system
+        // state -> system
         virtual void StateScatter(const ChState& x, const ChStateDelta& v, const double T, bool full_update) override {
             mpx = x(0);
             mpy = x(1);
@@ -610,27 +610,27 @@ void example5(const std::string& out_dir) {
             may = a(1);
         }
 
-        /// Some timesteppers exploit persistence of reaction information
+        // Some timesteppers exploit persistence of reaction information
         virtual void StateGatherReactions(ChVectorDynamic<>& L) override { L(0) = mreaction; };
         virtual void StateScatterReactions(const ChVectorDynamic<>& L) override { mreaction = L(0); };
 
-        /// Compute the correction with linear system
-        ///  | Dv| = [ c_a*M + c_v*dF/dv + c_x*dF/dx    Cq']^-1 * | R |
-        ///  |-Dl|   [   Cq                              0 ]      |-Qc|
+        // Compute the correction with linear system
+        //  | Dv| = [ c_a*M + c_v*dF/dv + c_x*dF/dx    Cq']^-1 * | R |
+        //  |-Dl|   [   Cq                              0 ]      |-Qc|
         virtual bool StateSolveCorrection(
-            ChStateDelta& Dv,             ///< result: computed Dv
-            ChVectorDynamic<>& Dl,        ///< result: computed Dl lagrangian multipliers, if any, note the sign
-            const ChVectorDynamic<>& R,   ///< the R residual
-            const ChVectorDynamic<>& Qc,  ///< the Qc residual, note the sign
-            const double c_a,             ///< the factor in c_a*M
-            const double c_v,             ///< the factor in c_v*dF/dv
-            const double c_x,             ///< the factor in c_x*dF/dv
-            const ChState& x,             ///< current state, x part
-            const ChStateDelta& v,        ///< current state, v part
-            const double T,               ///< current time T
-            bool force_state_scatter,     ///< if false, x,v and T are not scattered to the system
-            bool full_update,             ///< if true, perform a full update during scatter
-            bool force_setup              ///< if true, call the solver's Setup() function
+            ChStateDelta& Dv,             // result: computed Dv
+            ChVectorDynamic<>& Dl,        // result: computed Dl lagrangian multipliers, if any, note the sign
+            const ChVectorDynamic<>& R,   // the R residual
+            const ChVectorDynamic<>& Qc,  // the Qc residual, note the sign
+            const double c_a,             // the factor in c_a*M
+            const double c_v,             // the factor in c_v*dF/dv
+            const double c_x,             // the factor in c_x*dF/dv
+            const ChState& x,             // current state, x part
+            const ChStateDelta& v,        // current state, v part
+            const double T,               // current time T
+            bool force_state_scatter,     // if false, x,v and T are not scattered to the system
+            bool full_update,             // if true, perform a full update during scatter
+            bool force_setup              // if true, call the solver's Setup() function
             ) override {
             if (force_state_scatter)
                 this->StateScatter(x, v, T, full_update);
@@ -657,38 +657,38 @@ void example5(const std::string& out_dir) {
             return true;
         }
 
-        /// Adds the lumped mass to a Md vector. This method is OPTIONAL, and needed only
-        /// if you want to use an explicit integrator with SetDiagonalLumpingON.
+        // Adds the lumped mass to a Md vector. This method is OPTIONAL, and needed only
+        // if you want to use an explicit integrator with SetDiagonalLumpingON.
         virtual void LoadLumpedMass_Md(
-            ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
-            double& err,            ///< result: not touched if lumping does not introduce errors
-            const double c          ///< a scaling factor
-        ) {
+            ChVectorDynamic<>& Md,  // result: Md vector, diagonal of the lumped mass matrix
+            double& err,            // result: not touched if lumping does not introduce errors
+            const double c          // a scaling factor
+            ) override {
             Md(0) = this->M;
             Md(1) = this->M;
         }
 
-        ///    R += c*F
-        void LoadResidual_F(ChVectorDynamic<>& R,  ///< result: the R residual, R += c*F
-                            const double c         ///< a scaling factor
+        //    R += c*F
+        void LoadResidual_F(ChVectorDynamic<>& R,  // result: the R residual, R += c*F
+                            const double c         // a scaling factor
                             ) override {
             R(0) += c * (-this->K * mpx - this->R * mvx);
             R(1) += c * -9.8 * this->M;  // vertical force
         };
 
-        ///    R += c*M*w
-        void LoadResidual_Mv(ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
-                             const ChVectorDynamic<>& w,  ///< the w vector
-                             const double c               ///< a scaling factor
+        //    R += c*M*w
+        void LoadResidual_Mv(ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
+                             const ChVectorDynamic<>& w,  // the w vector
+                             const double c               // a scaling factor
                              ) override {
             R(0) += c * this->M * w(0);
             R(1) += c * this->M * w(1);
         };
 
-        ///   R += Cq'*l
-        virtual void LoadResidual_CqL(ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                      const ChVectorDynamic<>& L,  ///< the L vector
-                                      const double c               ///< a scaling factor
+        //   R += Cq'*l
+        virtual void LoadResidual_CqL(ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
+                                      const ChVectorDynamic<>& L,  // the L vector
+                                      const double c               // a scaling factor
                                       ) override {
             ChVector3d dirpend(-mpx, -mpy, 0);
             dirpend.Normalize();
@@ -696,19 +696,19 @@ void example5(const std::string& out_dir) {
             R(1) += c * dirpend.y() * L(0);
         };
 
-        ///  Qc += c * C
-        virtual void LoadConstraint_C(ChVectorDynamic<>& Qc,        ///< result: the Qc residual, Qc += c*C
-                                      const double c,               ///< a scaling factor
-                                      const bool do_clamp = false,  ///< enable optional clamping of Qc
-                                      const double mclam = 1e30     ///< clamping value
+        //  Qc += c * C
+        virtual void LoadConstraint_C(ChVectorDynamic<>& Qc,        // result: the Qc residual, Qc += c*C
+                                      const double c,               // a scaling factor
+                                      const bool do_clamp = false,  // enable optional clamping of Qc
+                                      const double mclam = 1e30     // clamping value
                                       ) override {
             ChVector3d distpend(-mpx, -mpy, 0);
             Qc(0) += c * (-distpend.Length() + mlength);
         };
 
-        /// nothing to do here- no rheonomic part
-        virtual void LoadConstraint_Ct(ChVectorDynamic<>& Qc,  ///< result: the Qc residual, Qc += c*Ct
-                                       const double c          ///< a scaling factor
+        // nothing to do here- no rheonomic part
+        virtual void LoadConstraint_Ct(ChVectorDynamic<>& Qc,  // result: the Qc residual, Qc += c*Ct
+                                       const double c          // a scaling factor
                                        ) override {}
     };
 

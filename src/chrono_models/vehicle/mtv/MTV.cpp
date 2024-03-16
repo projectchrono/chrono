@@ -115,6 +115,8 @@ void MTV::Initialize() {
             case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
                 transmission = chrono_types::make_shared<FMTV_AutomaticTransmissionSimpleMap>("Transmission");
                 break;
+            default:
+                break;
         }
     }
 

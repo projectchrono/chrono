@@ -154,6 +154,8 @@ void Generic_Vehicle::ConstructVehicle(bool fixed, bool use_tirerod_bodies, bool
         case SteeringTypeWV::RACK_PINION:
             m_steerings[0] = chrono_types::make_shared<Generic_RackPinion>("Steering");
             break;
+        default:
+            break;
     }
 
     // Create the driveline
@@ -167,6 +169,8 @@ void Generic_Vehicle::ConstructVehicle(bool fixed, bool use_tirerod_bodies, bool
             break;
         case DrivelineTypeWV::SIMPLE:
             m_driveline = chrono_types::make_shared<Generic_SimpleDriveline>("Driveline");
+            break;
+        default:
             break;
     }
 }

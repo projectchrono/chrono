@@ -342,7 +342,7 @@ void ChVehicleGuiComponentVSG::render() {
             } else if (transmission->IsManual()) {
                 snprintf(label, nstr, "[M] Gear:");
             }
-            ImGui::Text(label);
+            ImGui::Text("%s",  label);
 
             ImGui::TableNextColumn();
             if (transmission->IsManual() ||

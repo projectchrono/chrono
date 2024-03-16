@@ -129,9 +129,9 @@ class ChApi ChArchiveInBinary : public ChArchiveIn {
     virtual void in_array_end(const std::string& name) override {}
 
     // for custom c++ objects
-    virtual bool in(ChNameValue<ChFunctorArchiveIn> bVal);
+    virtual bool in(ChNameValue<ChFunctorArchiveIn> bVal) override;
 
-    virtual bool in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, std::string& true_classname);
+    virtual bool in_ref(ChNameValue<ChFunctorArchiveIn> bVal, void** ptr, std::string& true_classname) override;
 
   protected:
     std::istream& m_istream;

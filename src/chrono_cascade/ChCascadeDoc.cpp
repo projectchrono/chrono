@@ -299,7 +299,7 @@ class callback_CascadeDoc_getnamed : public ChCascadeDoc::callback_CascadeDoc {
     }
 
     virtual bool ForShape(TopoDS_Shape& mshape, TopLoc_Location& mloc, char* mname, int mlevel, TDF_Label& mlabel) {
-        if (this->level_names.size() > mlevel) {
+        if ((int)level_names.size() > mlevel) {
             if (wildcard_compare(level_names[mlevel].c_str(), mname)) {
                 if (level_copy[mlevel] != -2) {
                     level_copy[mlevel] = level_copy[mlevel] - 1;
@@ -308,7 +308,7 @@ class callback_CascadeDoc_getnamed : public ChCascadeDoc::callback_CascadeDoc {
                 }
 
                 if ((level_copy[mlevel] == 0) || (level_copy[mlevel] == -2)) {
-                    if (mlevel == this->level_names.size() - 1) {
+                    if (mlevel == (int)level_names.size() - 1) {
                         // Found!!!
 
                         if (this->set_location_to_root)
@@ -336,7 +336,7 @@ class callback_CascadeDoc_getnamed : public ChCascadeDoc::callback_CascadeDoc {
     }
 };
 
-bool ChCascadeDoc::GetNamedShape(TopoDS_Shape& mshape, char* name, bool set_location_to_root, bool get_multiple) {
+bool ChCascadeDoc::GetNamedShape(TopoDS_Shape& mshape, const char* name, bool set_location_to_root, bool get_multiple) {
     callback_CascadeDoc_getnamed aselector(name);
 
     this->ScanCascadeShapes(aselector);

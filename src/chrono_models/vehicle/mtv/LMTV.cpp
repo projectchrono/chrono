@@ -107,6 +107,7 @@ void LMTV::Initialize() {
             transmission = chrono_types::make_shared<FMTV_AutomaticTransmissionSimple>("Transmission");
             break;
     }
+
     if (!transmission) {
         switch (m_transmissionType) {
             case TransmissionModelType::AUTOMATIC_SHAFTS:
@@ -114,6 +115,8 @@ void LMTV::Initialize() {
                 break;
             case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
                 transmission = chrono_types::make_shared<FMTV_AutomaticTransmissionSimpleMap>("Transmission");
+                break;
+            default:
                 break;
         }
     }
