@@ -95,7 +95,7 @@ int main(int argc, char* argv[]) {
     int which = 0;
     std::cout << "Options:\n";
     for (int i = 0; i < num_models; i++)
-        std::cout << std::setw(2)  << i + 1 << "  " << models[i].second << std::endl;
+        std::cout << std::setw(2) << i + 1 << "  " << models[i].second << std::endl;
     std::cout << "\nSelect vehicle: ";
     std::cin >> which;
     std::cout << std::endl;

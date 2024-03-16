@@ -19,6 +19,7 @@
 #pragma once
 
 #include "chrono_models/vehicle/artcar/ARTcar.h"
+#include "chrono_models/vehicle/bmw/BMW_E90.h"
 #include "chrono_models/vehicle/citybus/CityBus.h"
 #include "chrono_models/vehicle/duro/Duro.h"
 #include "chrono_models/vehicle/feda/FEDA.h"
@@ -41,6 +42,7 @@ using namespace chrono;
 using namespace chrono::vehicle;
 
 using namespace chrono::vehicle::artcar;
+using namespace chrono::vehicle::bmw;
 using namespace chrono::vehicle::citybus;
 using namespace chrono::vehicle::duro;
 using namespace chrono::vehicle::feda;
@@ -375,6 +377,25 @@ class Sedan_Model : public WheeledVehicleModel {
   private:
     void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
     Sedan* sedan;
+};
+
+class BMW_E90_Model : public WheeledVehicleModel {
+  public:
+    virtual std::string ModelName() const override { return "BMW_E90"; }
+    virtual void Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) override;
+    virtual void Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) override;
+    virtual ChWheeledVehicle& GetVehicle() override { return bmw->GetVehicle(); }
+    virtual void Synchronize(double time, const DriverInputs& driver_inputs, const ChTerrain& terrain) override {
+        bmw->Synchronize(time, driver_inputs, terrain);
+    }
+    virtual void Advance(double step) override { bmw->Advance(step); }
+    virtual ChVector3d TrackPoint() const { return ChVector3d(0, 0, 1.75); }
+    virtual double CameraDistance() const override { return 8.0; }
+    virtual double CameraHeight() const override { return 0.2; }
+
+  private:
+    void Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis);
+    BMW_E90* bmw;
 };
 
 class UAZBUS_Model : public WheeledVehicleModel {
@@ -876,6 +897,34 @@ void MROLE_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chas
 
 // -----------------------------------------------------------------------------
 
+void BMW_E90_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
+    bmw = new BMW_E90(system);
+    Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
+}
+
+void BMW_E90_Model::Create(ChContactMethod contact_method, const ChCoordsys<>& init_pos, bool chassis_vis) {
+    bmw = new BMW_E90();
+    bmw->SetContactMethod(contact_method);
+    Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
+}
+
+void BMW_E90_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chassis_vis) {
+    bmw->SetChassisCollisionType(CollisionType::NONE);
+    bmw->SetChassisFixed(false);
+    bmw->SetInitPosition(init_pos);
+    bmw->SetTireType(TireModelType::TMSIMPLE);
+    bmw->SetBrakeType(BrakeType::SHAFTS);
+    bmw->Initialize();
+
+    bmw->SetChassisVisualizationType(chassis_vis);
+    bmw->SetSuspensionVisualizationType(VisualizationType::PRIMITIVES);
+    bmw->SetSteeringVisualizationType(VisualizationType::PRIMITIVES);
+    bmw->SetWheelVisualizationType(VisualizationType::MESH);
+    bmw->SetTireVisualizationType(VisualizationType::MESH);
+}
+
+// -----------------------------------------------------------------------------
+
 void Sedan_Model::Create(ChSystem* system, const ChCoordsys<>& init_pos, bool chassis_vis) {
     sedan = new Sedan(system);
     Construct(init_pos, chassis_vis ? VisualizationType::MESH : VisualizationType::NONE);
@@ -988,6 +1037,7 @@ void U401_Model::Construct(const ChCoordsys<>& init_pos, VisualizationType chass
 std::vector<std::pair<std::shared_ptr<WheeledVehicleModel>, std::string>> WheeledVehicleModel::List() {
     std::vector<std::pair<std::shared_ptr<WheeledVehicleModel>, std::string>> models = {
         {chrono_types::make_shared<ARTcar_Model>(), "ARTCAR"},         //
+        {chrono_types::make_shared<BMW_E90_Model>(), "BMW_E90"},       //
         {chrono_types::make_shared<Citybus_Model>(), "CITYBUS"},       //
         {chrono_types::make_shared<Duro_Model>(), "DURO"},             //
         {chrono_types::make_shared<FEDA_Model>(), "FEDA"},             //
