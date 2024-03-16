@@ -82,7 +82,7 @@ class ChApi ChIterativeSolverLS : public ChIterativeSolver, public ChSolverLS {
 
     virtual bool IsIterative() const override { return true; }
     virtual bool IsDirect() const override { return false; }
-    virtual ChIterativeSolver* AsIterative() { return this; }
+    virtual ChIterativeSolver* AsIterative() override { return this; }
 
     /// Indicate whether or not the #Solve() phase requires an up-to-date problem matrix.
     virtual bool SolveRequiresMatrix() const override final { return true; }

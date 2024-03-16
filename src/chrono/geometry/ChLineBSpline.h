@@ -32,7 +32,6 @@ class ChApi ChLineBSpline : public ChLine {
     std::vector<ChVector3d> points;
     ChVectorDynamic<> knots;
     int p;
-    bool closed;
 
   public:
     /// Constructor. By default, a segment (order = 1, two points on X axis, at -1, +1)
@@ -94,10 +93,7 @@ class ChApi ChLineBSpline : public ChLine {
     /// greater than 1 or smaller than 0 will wrap to 0..1 range).
     /// The closure will change the knot vector (multiple start end knots will be lost) and
     /// will create auxiliary p control points at the end that will be wrapped to the beginning control point.
-    void SetClosed(bool mc);
-
-    /// Tell if the spline is closed.
-    bool GetClosed() { return closed; }
+    virtual void SetClosed(bool mc) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

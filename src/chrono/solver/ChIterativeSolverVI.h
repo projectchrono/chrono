@@ -99,7 +99,7 @@ class ChApi ChIterativeSolverVI : public ChIterativeSolver, public ChSolverVI {
   protected:
     virtual bool IsIterative() const override { return true; }
     virtual bool IsDirect() const override { return false; }
-    virtual ChIterativeSolver* AsIterative() { return this; }
+    virtual ChIterativeSolver* AsIterative() override { return this; }
 
     /// This method MUST be called by all iterative methods INSIDE their iteration loops
     /// (at the end). If history recording is enabled, this function will store the

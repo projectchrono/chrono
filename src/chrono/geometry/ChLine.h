@@ -28,10 +28,6 @@ namespace chrono {
 /// This is the base for all U-parametric object, implementing Evaluate()
 /// that returns a point as a function of the U parameter.
 class ChApi ChLine : public ChGeometry {
-  protected:
-    bool closed;
-    int complexityU;
-
   public:
     ChLine() : closed(false), complexityU(2) {}
     ChLine(const ChLine& source);
@@ -100,6 +96,10 @@ class ChApi ChLine : public ChGeometry {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  protected:
+    bool closed;
+    int complexityU;
 };
 
 /// @} chrono_geometry
