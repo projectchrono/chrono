@@ -40,6 +40,9 @@
 #include "chrono_models/vehicle/artcar/ARTcar_DoubleWishbone.h"
 
 #include "chrono_models/vehicle/feda/FEDA_DoubleWishbone.h"
+
+#include "chrono_models/vehicle/bmw/BMW_E90_MacPhersonStrut.h"
+#include "chrono_models/vehicle/bmw/BMW_E90_DoubleWishbone.h"
 %}
 
 %shared_ptr(chrono::vehicle::hmmwv::HMMWV_DoubleWishbone)
@@ -76,6 +79,9 @@
 %shared_ptr(chrono::vehicle::feda::FEDA_DoubleWishboneRear)
 %shared_ptr(chrono::vehicle::feda::FEDA_DoubleWishboneFront)
 
+%shared_ptr(chrono::vehicle::bmw::BMW_E90_MacPhersonStrut)
+%shared_ptr(chrono::vehicle::bmw::BMW_E90_DoubleWishbone)
+
 /* Parse the header file to generate wrappers */
 %import "chrono_swig/interface/vehicle/ChSuspension.i"
 
@@ -104,3 +110,6 @@
 %include "../../../chrono_models/vehicle/artcar/ARTcar_DoubleWishbone.h"
 
 %include "../../../chrono_models/vehicle/feda/FEDA_DoubleWishbone.h"
+
+%include "../../../chrono_models/vehicle/bmw/BMW_E90_MacPhersonStrut.h"
+%include "../../../chrono_models/vehicle/bmw/BMW_E90_DoubleWishbone.h"

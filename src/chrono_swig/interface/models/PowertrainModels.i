@@ -46,6 +46,9 @@
 #include "chrono_models/vehicle/feda/FEDA_EngineSimpleMap.h"
 #include "chrono_models/vehicle/feda/FEDA_AutomaticTransmissionSimpleMap.h"
 
+#include "chrono_models/vehicle/bmw/BMW_E90_EngineSimpleMap.h"
+#include "chrono_models/vehicle/bmw/BMW_E90_AutomaticTransmissionSimpleMap.h"
+
 #include "chrono_models/vehicle/m113/powertrain/M113_AutomaticTransmissionShafts.h"
 #include "chrono_models/vehicle/m113/powertrain/M113_AutomaticTransmissionSimple.h"
 #include "chrono_models/vehicle/m113/powertrain/M113_AutomaticTransmissionSimpleMap.h"
@@ -88,6 +91,9 @@
 
 %shared_ptr(chrono::vehicle::feda::FEDA_EngineSimpleMap)
 %shared_ptr(chrono::vehicle::feda::FEDA_AutomaticTransmissionSimpleMap)
+
+%shared_ptr(chrono::vehicle::bmw::BMW_E90_EngineSimpleMap)
+%shared_ptr(chrono::vehicle::bmw::BMW_E90_AutomaticTransmissionSimpleMap)
 
 %shared_ptr(chrono::vehicle::m113::M113_AutomaticTransmissionShafts)
 %shared_ptr(chrono::vehicle::m113::M113_AutomaticTransmissionSimple)
@@ -134,6 +140,9 @@
 
 %include "../../../chrono_models/vehicle/feda/FEDA_EngineSimpleMap.h"
 %include "../../../chrono_models/vehicle/feda/FEDA_AutomaticTransmissionSimpleMap.h"
+
+%include "../../../chrono_models/vehicle/bmw/BMW_E90_EngineSimpleMap.h"
+%include "../../../chrono_models/vehicle/bmw/BMW_E90_AutomaticTransmissionSimpleMap.h"
 
 %include "../../../chrono_models/vehicle/m113/powertrain/M113_AutomaticTransmissionShafts.h"
 %include "../../../chrono_models/vehicle/m113/powertrain/M113_AutomaticTransmissionSimple.h"

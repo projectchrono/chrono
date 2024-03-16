@@ -136,6 +136,8 @@ using namespace chrono::vehicle::citybus;
 using namespace chrono::vehicle::man;
 using namespace chrono::vehicle::uaz;
 using namespace chrono::vehicle::gator;
+using namespace chrono::vehicle::feda;
+using namespace chrono::vehicle::bmw;
 using namespace chrono::vehicle::man;
 using namespace chrono::vehicle::fmtv;
 using namespace chrono::vehicle::kraz;

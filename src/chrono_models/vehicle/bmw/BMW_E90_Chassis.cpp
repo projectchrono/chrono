@@ -23,7 +23,7 @@
 
 #include "chrono_vehicle/ChVehicleModelData.h"
 
-#include "chrono_models/vehicle/bmw/BMW_E90_chassis.h"
+#include "chrono_models/vehicle/bmw/BMW_E90_Chassis.h"
 
 namespace chrono {
 namespace vehicle {
