@@ -264,8 +264,10 @@ solver.SetVerbose(True)
 # Perform a static analysis:
 sys.DoStaticLinear()
 
-print(" constraintA reaction force  F= " + str(constraintA.GetReactForce2()) )
-print( " constraintA reaction torque T= " + str(constraintA.GetReactTorque2()))
+reaction = constraintA.GetReaction2()
+
+print(" constraintA reaction force  F= " + str(reaction.force))
+print( " constraintA reaction torque T= " + str(reaction.torque))
 
 print("nodeD position = ")
 print(nodeD.GetPos() )

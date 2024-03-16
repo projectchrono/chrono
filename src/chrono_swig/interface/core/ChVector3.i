@@ -30,6 +30,10 @@
 %template(ChVector3f) chrono::ChVector3<float>; 
 %template(ChVector3i) chrono::ChVector3<int>;
 
+%template(ChWrenchd) chrono::ChWrench<double>; 
+%template(ChWrenchf) chrono::ChWrench<float>; 
+
+
 // This is needed because a std::vector<ChVector3<> might be used somewhere,
 // and we want to use it via python or C#
 %template(vector_ChVector3d) std::vector< chrono::ChVector3<double> >;

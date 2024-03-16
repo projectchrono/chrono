@@ -438,8 +438,9 @@ void ChVehicleOutputHDF5::WriteJoints(const std::vector<std::shared_ptr<ChLink>>
     H5::DataSpace dataspace(1, dim);
     std::vector<joint_info> info(njoints);
     for (auto i = 0; i < njoints; i++) {
-        const ChVector3d& f = joints[i]->GetReactForce2();
-        const ChVector3d& t = joints[i]->GetReactTorque2();
+        auto reaction = joints[i]->GetReaction2();
+        const ChVector3d& f = reaction.force;
+        const ChVector3d& t = reaction.torque;
         info[i] = { joints[i]->GetIdentifier(), f.x(), f.y(), f.z(), t.x(), t.y(), t.z() };
     }
 
