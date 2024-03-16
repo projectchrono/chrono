@@ -29,40 +29,33 @@ class FSIStatsVSG : public vsg3d::ChGuiComponentVSG {
     FSIStatsVSG(ChFsiVisualizationVSG* vsysFSI) : m_vsysFSI(vsysFSI) {}
 
     virtual void render() override {
-        char label[64];
-        int nstr = sizeof(label) - 1;
-
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
         ImGui::Begin("SPH");
 
         if (ImGui::BeginTable("SPH", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextColumn();
-            ImGui::Text("SPH particles:");
+            ImGui::TextUnformatted("SPH particles:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%lu", static_cast<unsigned long>(m_vsysFSI->m_systemFSI->GetNumFluidMarkers()));
-            ImGui::Text(label);
+            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_systemFSI->GetNumFluidMarkers()));
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::Text("Boundary BCE:");
+            ImGui::TextUnformatted("Boundary BCE:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%lu", static_cast<unsigned long>(m_vsysFSI->m_systemFSI->GetNumBoundaryMarkers()));
-            ImGui::Text(label);
+            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_systemFSI->GetNumBoundaryMarkers()));
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::Text("Rigid body BCE:");
+            ImGui::TextUnformatted("Rigid body BCE:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%lu", static_cast<unsigned long>(m_vsysFSI->m_systemFSI->GetNumRigidBodyMarkers()));
-            ImGui::Text(label);
+            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_systemFSI->GetNumRigidBodyMarkers()));
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::Text("Flex body BCE:");
+            ImGui::TextUnformatted("Flex body BCE:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%lu", static_cast<unsigned long>(m_vsysFSI->m_systemFSI->GetNumFlexBodyMarkers()));
-            ImGui::Text(label);
+            ImGui::Text("%lu", static_cast<unsigned long>(m_vsysFSI->m_systemFSI->GetNumFlexBodyMarkers()));
 
             ImGui::EndTable();
         }

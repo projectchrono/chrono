@@ -57,41 +57,35 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
 
     // Example here taken from the Dear imgui comments (mostly)
     virtual void render() override {
-        char label[64];
-        int nstr = sizeof(label) - 1;
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
         ////ImGui::SetNextWindowPos(ImVec2(5.0f, 5.0f));
         ImGui::Begin("Simulation");
 
         if (ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
-            snprintf(label, nstr, "%8.3f s", m_app->GetSimulationTime());
             ImGui::TableNextColumn();
-            ImGui::Text("Model Time:");
+            ImGui::TextUnformatted("Model Time:");
             ImGui::TableNextColumn();
-            ImGui::Text(label);
+            ImGui::Text("%8.3f s", m_app->GetSimulationTime());
 
             ImGui::TableNextRow();
             double current_time = double(clock()) / double(CLOCKS_PER_SEC);
-            snprintf(label, nstr, "%8.3f s", current_time - m_app->m_start_time);
             ImGui::TableNextColumn();
-            ImGui::Text("Wall Clock Time:");
+            ImGui::TextUnformatted("Wall Clock Time:");
             ImGui::TableNextColumn();
-            ImGui::Text(label);
+            ImGui::Text("%8.3f s", current_time - m_app->m_start_time);
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::Text("Real Time Factor:");
+            ImGui::TextUnformatted("Real Time Factor:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%8.3f", m_app->GetSimulationRTF());
-            ImGui::Text(label);
+            ImGui::Text("%8.3f", m_app->GetSimulationRTF());
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::Text("Rendering FPS:");
+            ImGui::TextUnformatted("Rendering FPS:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%8.3f", m_app->GetRenderingFPS());
-            ImGui::Text(label);
+            ImGui::Text("%8.3f", m_app->GetRenderingFPS());
 
             ImGui::EndTable();
         }
@@ -100,7 +94,7 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
 
         if (ImGui::BeginTable("Frames", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
-            ImGui::Text("COG:");
+            ImGui::TextUnformatted("COG:");
             ImGui::TableNextColumn();
             static bool bCOG_frame_active = false;
             if (ImGui::Checkbox("COG", &bCOG_frame_active))
@@ -113,7 +107,7 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             m_app->m_cog_frame_scale = cog_frame_scale;
 
             ImGui::TableNextRow();
-            ImGui::Text("Joint:");
+            ImGui::TextUnformatted("Joint:");
             ImGui::TableNextColumn();
             static bool bJoint_frame_active = false;
             if (ImGui::Checkbox("Joint", &bJoint_frame_active))
@@ -144,9 +138,6 @@ class ChCameraGuiComponentVSG : public ChGuiComponentVSG {
     ChCameraGuiComponentVSG(ChVisualSystemVSG* app) : m_app(app) { m_visible = false; }
 
     virtual void render() override {
-        char label[64];
-        int nstr = sizeof(label) - 1;
-
         auto p = m_app->GetCameraPosition();
         auto t = m_app->GetCameraTarget();
 
@@ -157,23 +148,19 @@ class ChCameraGuiComponentVSG : public ChGuiComponentVSG {
         if (ImGui::BeginTable("Location", 4, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "Location");
-            ImGui::Text(label);
+            ImGui::TextUnformatted("Location");
             for (int i = 0; i < 3; i++) {
                 ImGui::TableNextColumn();
-                snprintf(label, nstr, " %5.1f", p[i]);
-                ImGui::Text(label);
+                ImGui::Text(" %5.1f", p[i]);
             }
 
             ImGui::TableNextRow();
 
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "Look-at");
-            ImGui::Text(label);
+            ImGui::TextUnformatted("Look-at");
             for (int i = 0; i < 3; i++) {
                 ImGui::TableNextColumn();
-                snprintf(label, nstr, " %5.1f", t[i]);
-                ImGui::Text(label);
+                ImGui::Text(" %5.1f", t[i]);
             }
 
             ImGui::EndTable();
