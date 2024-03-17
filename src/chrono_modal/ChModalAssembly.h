@@ -303,11 +303,11 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     unsigned int GetNumOtherPhysicsItemsInternal() const { return m_num_otherphysicsitems_internal; }
 
     /// Get the number of internal coordinates at the position level.
-    /// Might differ from ::GetNumCoordinatesPosInternal in case of quaternions.
+    /// Might differ from GetNumCoordinatesPosInternal in case of quaternions.
     unsigned int GetNumCoordinatesPosInternal() const { return m_num_coords_pos_internal; }
 
     /// Get the number of internal coordinates at the velocity level.
-    /// Might differ from ::GetNumCoordinatesPosInternal in case of quaternions.
+    /// Might differ from GetNumCoordinatesPosInternal in case of quaternions.
     unsigned int GetNumCoordinatesVelInternal() const { return m_num_coords_vel_internal; }
 
     /// Get the number of internal scalar constraints.
@@ -334,11 +334,11 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
 
     /// Get the number of boundary coordinates at the position level.
-    /// Might differ from ::GetNumCoordinatesPosInternal in case of quaternions.
+    /// Might differ from GetNumCoordinatesPosInternal in case of quaternions.
     unsigned int GetNumCoordinatesPosBoundary() const { return m_num_coords_pos_boundary; }
 
     /// Get the number of boundary coordinates at the velocity level.
-    /// Might differ from ::GetNumCoordinatesPosInternal in case of quaternions.
+    /// Might differ from GetNumCoordinatesPosInternal in case of quaternions.
     unsigned int GetNumCoordinatesVelBoundary() const { return m_num_coords_vel_boundary; }
 
     /// Get the number of boundary scalar constraints.

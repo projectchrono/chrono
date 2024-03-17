@@ -207,14 +207,14 @@ exported_items = chrono.ImportSolidWorksSystem('./collisions')
 
 + Create a *contact surface material* (surface data that will be used by collision detection to know the friction coefficient and other properties in contact points). In this example, there is a single contact surface material to share between all objects.
 ~~~{.py}
-brick_material = chrono.ChMaterialSurfaceNSC()
+brick_material = chrono.ChContactMaterialNSC()
 brick_material.SetFriction(0.6)
 ~~~
 
 <div class = "ce-info">
 Optionally, one can define surface materials with *compliance*. In such a case, one should write, for example, a material that has some friction, damping coefficient (Raleygh type), orthogonal compliance, and tangential compliance:
 ~~~{.py}
-brick_material = chrono.ChMaterialSurfaceNSC()
+brick_material = chrono.ChContactMaterialNSC()
 brick_material.SetFriction(0.6)
 brick_material.SetDampingF(0.05)
 brick_material.SetCompliance (0.000000003)

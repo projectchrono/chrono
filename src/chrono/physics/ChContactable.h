@@ -79,15 +79,16 @@ class ChApi ChContactable {
     /// ChCollisionModel might call this to get the position of the contact model (when rigid) and sync it.
     virtual ChFrame<> GetCollisionModelFrame() = 0;
 
-    /// Apply the given force & torque at the given location and load into the global generalized force array.
-    /// The force  F and its application point are specified in the absolute reference frame. 
+    /// Apply the given force & torque at the given location and load into the global generalized force vector.
+    /// The force  F and its application point are specified in the absolute reference frame.
     /// The torque T is specified in the global frame too.
-    /// Each object must update the entries in R corresponding to its variables. 
+    /// Each object must update the entries in R corresponding to its variables.
     /// Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector3d& F, ///< force
-                                            const ChVector3d& T, ///< torque
-                                            const ChVector3d& abs_point,
-                                            ChVectorDynamic<>& R) = 0;
+    virtual void ContactForceLoadResidual_F(const ChVector3d& F,          ///< force
+                                            const ChVector3d& T,          ///< torque
+                                            const ChVector3d& abs_point,  ///< application point
+                                            ChVectorDynamic<>& R          ///< global generalized force vector
+                                            ) = 0;
 
     /// Compute a contiguous vector of generalized forces Q from a given force & torque at the given point.
     /// Used for computing stiffness matrix (square force jacobian) by backward differentiation.
@@ -95,12 +96,13 @@ class ChApi ChContactable {
     /// The torque T is specified in the global frame too.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactComputeQ(const ChVector3d& F, ///< force
-                                   const ChVector3d& T, ///< torque
-                                   const ChVector3d& point,
-                                   const ChState& state_x,
-                                   ChVectorDynamic<>& Q,
-                                   int offset) = 0;
+    virtual void ContactComputeQ(const ChVector3d& F,      ///< force
+                                 const ChVector3d& T,      ///< torque
+                                 const ChVector3d& point,  ///< application point
+                                 const ChState& state_x,   ///< global state vector
+                                 ChVectorDynamic<>& Q,     ///< generalized force vector
+                                 int offset                ///< index offset
+                                 ) = 0;
 
     /// This can be useful in some SMC code:
     virtual double GetContactableMass() = 0;

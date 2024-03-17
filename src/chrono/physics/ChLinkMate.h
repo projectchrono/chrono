@@ -261,7 +261,7 @@ class ChApi ChLinkMatePlanar : public ChLinkMateGeneric {
     double GetDistance() const { return m_distance; }
 
     /// Initialize the link by providing a point and a normal direction on each plane, each expressed in body or abs
-    /// reference. Normals can be either aligned or opposed depending on the ::SetFlipped() method.
+    /// reference. Normals can be either aligned or opposed depending on the SetFlipped() method.
     virtual void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> body2,  ///< second body to link
                             bool pos_are_relative,               ///< true: following pos. are relative to bodies

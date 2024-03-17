@@ -18,10 +18,6 @@ modify the objects, add lights, cameras, effects, perform high quality rendering
 as regularly done via the Blender GUI.
 
 
-* @subpage chrono_blender_installation
-* [Tutorials](@ref tutorial_table_of_content_chrono_blender).
-
-
 ## Overview
 
 This is a short overview of the main features of the add-on. 
@@ -35,7 +31,7 @@ If you want to test the following features on your PC, first you must do these s
 
 - run **demo_POST_blender1.exe** 
 
-After the executable has run, you will find new files in the subdirectory  \DEMO_OUTPUT\BLENDER_1\  , residing in your executable directory.
+After the executable has run, you will find new files in the subdirectory  /DEMO_OUTPUT/BLENDER_1  , residing in your executable directory.
 Those files are:
 
 - **exported.assets.py**, this file contains all the global settings such as render size etc., plus the definition of all assets that are persistent

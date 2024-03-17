@@ -30,7 +30,7 @@ namespace chrono {
 /// - one ChShaft object to Body 1, representing a translational inertia (Shaft1Lin).
 /// Each _translational_ shaft is connected to the Z degree of freedom of its body (through a ChShaftBodyTranslation).
 /// The _rotational_ shaft is connected to Body 2 (through a ChShaftBodyRotation) along a direction (default: Z axis) that can
-/// be later set through ::SetInnerShaft2RotDirection(). Any action applied to the shafts is then reflected back to the
+/// be later set through SetInnerShaft2RotDirection(). Any action applied to the shafts is then reflected back to the
 /// respective bodies along their given directions.
 ///
 ///                  [************ ChLinkMotorLinearDriveline ********]

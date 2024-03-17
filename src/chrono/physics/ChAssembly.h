@@ -183,7 +183,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
 
 
     /// Get the number of scalar coordinates at the position level.
-    /// This count includes the 4th dimension of quaternions (if any), thus potentially differing from ::GetNumCoordsVelLevel().
+    /// This count includes the 4th dimension of quaternions (if any), thus potentially differing from GetNumCoordsVelLevel().
     virtual unsigned int GetNumCoordsPosLevel() override { return m_num_coords_pos; }
 
     /// Get the number of scalar coordinates at the velocity level.

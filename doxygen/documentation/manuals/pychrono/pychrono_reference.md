@@ -170,7 +170,7 @@ Upcasting of derived classes to the base class works **automatically**
 in Python and does not require intervention. We managed to do this also
 for shared pointers. For example *ChSystem.Add()* requires a
 (shared)pointer to a *ChPhysicsItem* object, that is a base class, but
-you can pass it a *ChBody*, a *ChLinkGears*, etc. that are derived
+you can pass it a *ChBody*, a *ChLinkLockGear*, etc. that are derived
 classes. The same in Python.
 
 #### Downcasting

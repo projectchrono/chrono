@@ -83,9 +83,9 @@ void ChMesh::ForceToRest() {
     }
 }
 
-void ChMesh::AddNode(std::shared_ptr<ChNodeFEAbase> m_node) {
-    m_node->SetIndex(static_cast<unsigned int>(vnodes.size()) + 1);
-    vnodes.push_back(m_node);
+void ChMesh::AddNode(std::shared_ptr<ChNodeFEAbase> node) {
+    node->SetIndex(static_cast<unsigned int>(vnodes.size()) + 1);
+    vnodes.push_back(node);
 
     // If the mesh is already added to a system, mark the system uninitialized and out-of-date
     if (system) {
@@ -94,8 +94,8 @@ void ChMesh::AddNode(std::shared_ptr<ChNodeFEAbase> m_node) {
     }
 }
 
-void ChMesh::AddElement(std::shared_ptr<ChElementBase> m_elem) {
-    velements.push_back(m_elem);
+void ChMesh::AddElement(std::shared_ptr<ChElementBase> elem) {
+    velements.push_back(elem);
 
     // If the mesh is already added to a system, mark the system uninitialized and out-of-date
     if (system) {

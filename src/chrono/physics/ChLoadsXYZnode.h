@@ -384,7 +384,8 @@ class ChApi ChLoadXYZnodeBodySpring : public ChLoadXYZnodeBody {
 class ChApi ChLoadXYZnodeBodyBushing : public ChLoadXYZnodeBody {
   public:
     ChLoadXYZnodeBodyBushing(std::shared_ptr<ChNodeXYZ> nodeA,  ///< node to apply load
-                             std::shared_ptr<ChBody> bodyB);    ///< body to apply load
+                             std::shared_ptr<ChBody> bodyB      ///< body to apply load
+    );
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLoadXYZnodeBodyBushing* Clone() const override { return new ChLoadXYZnodeBodyBushing(*this); }

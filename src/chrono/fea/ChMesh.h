@@ -51,8 +51,12 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChMesh* Clone() const override { return new ChMesh(*this); }
 
-    void AddNode(std::shared_ptr<ChNodeFEAbase> m_node);
-    void AddElement(std::shared_ptr<ChElementBase> m_elem);
+    /// Add provided node to the mesh.
+    void AddNode(std::shared_ptr<ChNodeFEAbase> node);
+    
+    /// Add provided element to the mesh.
+    void AddElement(std::shared_ptr<ChElementBase> elem);
+
     void ClearNodes();
     void ClearElements();
 

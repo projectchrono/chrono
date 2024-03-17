@@ -7,8 +7,7 @@ The following are some examples to get started with Chrono.
 These demos require the IRRLICHT run-time visualization module, with some of them optionally using the VSG run-time visualization module.
 
 - @subpage  tutorial_demo_crank
-
-  The simpliest MBS example: the skeleton of a slider-crank mechanism.
+  The simplest MBS example: the skeleton of a slider-crank mechanism.
   
 - @subpage  tutorial_demo_fourbar
   Create a four bar linkage and display it with simple lines 
@@ -33,9 +32,7 @@ These demos require the IRRLICHT run-time visualization module, with some of the
   Create a robot with omnidirectional wheels; learn coordinate transformations
   
 - @subpage  tutorial_demo_friction
-
-  Learn how to enable rolling and spinning friction
-  
+  Learn how to enable rolling and spinning friction 
   (Irrlicht or VSG run-time visualization)
 
 - @subpage  tutorial_demo_suspension

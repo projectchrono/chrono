@@ -26,7 +26,7 @@ namespace chrono {
 /// `    y(x) = offset + \int{f(s) ds}_{x_start}^{x}    `.
 /// The integral is computed using trapezoidal integration over a given number of samples.
 /// The function returns a value equal to the offset for any value x<= x_start, while returns y(x_end) for any value x>= x_end.
-/// x_start and x_end are set through the ::SetStartArg() and ::SetEndArg() methods.
+/// x_start and x_end are set through the SetStartArg() and SetEndArg() methods.
 class ChApi ChFunctionIntegral : public ChFunction {
   private:
     std::shared_ptr<ChFunction> m_integrand_fun;

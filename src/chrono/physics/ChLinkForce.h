@@ -26,8 +26,8 @@ namespace chrono {
 /// Class for forces in link joints of type ChLinkLock.
 /// Force is applied to specific degrees of freedom of the ChLinkLock through ChLinkLock::Force functions.
 /// The resulting force (or torque) is computed as the sum of actuator, spring force and a damping force.
-/// Each term consists of a constant part (set through ::SetActuatorForce, ::SetSpringCoefficient, ::SetDampingCoefficient)
-/// and an optional modulation part (set through ::SetActuatorModulation, ::SetSpringModulation, ::SetDamperModulation).
+/// Each term consists of a constant part (set through SetActuatorForce, SetSpringCoefficient, SetDampingCoefficient)
+/// and an optional modulation part (set through SetActuatorModulation, SetSpringModulation, SetDamperModulation).
 /// The resulting actuation force, the spring and damping coefficient are given as the constant part multiplied by the
 /// value of the modulation function at the current time.
 /// The final force is obtained as the sum of all the contributions:

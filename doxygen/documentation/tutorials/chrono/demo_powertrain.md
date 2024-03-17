@@ -45,7 +45,7 @@ of a reducer with transmission ratio `t` between two ChShaft objects.
 
  <div class="ce-info">
 Note that a full blown 3D powertrain could be created using a collection of rigid bodies
-of ChBody type that would be connected via ChLinkLockRevolute and ChLinkGear 3D constraints. However,
+of ChBody type that would be connected via ChLinkLockRevolute and ChLinkLockGear 3D constraints. However,
  this would introduce additional complexity to the model which is not always warranted. The 1D items 
  of ChShaft type keep the model much simpler.
  </div> 

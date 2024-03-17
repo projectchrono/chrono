@@ -27,7 +27,7 @@ namespace chrono {
 /// Interface base class for scalar functions.
 ///
 /// Base class for all Chrono scalar functions.
-/// The ::GetVal() and ::Clone() methods must be implemented by derived classes.
+/// The GetVal() and Clone() methods must be implemented by derived classes.
 class ChApi ChFunction {
   public:
     /// Enumeration of function types.
