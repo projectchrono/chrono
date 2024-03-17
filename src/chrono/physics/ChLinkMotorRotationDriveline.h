@@ -18,7 +18,7 @@
 
 #include "chrono/physics/ChLinkMotorRotation.h"
 #include "chrono/physics/ChShaft.h"
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 
 namespace chrono {
 
@@ -26,13 +26,13 @@ namespace chrono {
 /// Couples the relative rotation of two bodies (along Z direction of the link frames) with the rotation of a 1D shaft.
 ///
 /// This link adds two additional ChShaft rotational objects, one on each body, oriented along the Z axis of the bodies.
-/// The _rotational_ shaft is connected to Body 2 (through a ChShaftsBody) along a direction (default: Z axis) that can
+/// The _rotational_ shaft is connected to Body 2 (through a ChShaftBodyRotation) along a direction (default: Z axis) that can
 /// be later set through ::SetInnerShaft2RotDirection(). Any action applied to the shafts is then reflected back to the
 /// respective bodies along their given directions.
 ///
 ///                  [**** ChLinkMotorRotationDriveline ****]
-///     [ Body2 ]----[----(ChShaftsBody)----[Shaft2Rot]----]---->
-///     [ Body1 ]----[----(ChShaftsBody)----[Shaft1Rot]----]---->
+///     [ Body2 ]----[----(ChShaftBodyRotation)----[Shaft2Rot]----]---->
+///     [ Body1 ]----[----(ChShaftBodyRotation)----[Shaft1Rot]----]---->
 ///     
 ///  Note that it is up to the user to create a driveline where all torques are
 /// balanced action/reactions: in this case, 
@@ -44,8 +44,8 @@ class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
 
     std::shared_ptr<ChShaft> innershaft1;            
     std::shared_ptr<ChShaft> innershaft2;            
-    std::shared_ptr<ChShaftsBody> innerconstraint1;  
-    std::shared_ptr<ChShaftsBody> innerconstraint2;  
+    std::shared_ptr<ChShaftBodyRotation> innerconstraint1;  
+    std::shared_ptr<ChShaftBodyRotation> innerconstraint2;  
 
   public:
     ChLinkMotorRotationDriveline();

@@ -23,7 +23,7 @@
 #include "chrono/physics/ChShaftsGear.h"
 #include "chrono/physics/ChShaftsClutch.h"
 #include "chrono/physics/ChShaftsPlanetary.h"
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/physics/ChShaftsTorsionSpring.h"
 #include "chrono/physics/ChShaftsTorqueConverter.h"
 #include "chrono/physics/ChShaftsMotor.h"
@@ -296,7 +296,7 @@ int main(int argc, char* argv[]) {
         // built with multiple ChBody objects; moreover you want to create a
         // powertrain, for instance a motor, a clutch, etc, for the rotation of
         // the crank. How to connect the '1D items' of ChShaft class to the 3D
-        // items of ChBody class? The solution is to use the ChShaftsBody constraint,
+        // items of ChBody class? The solution is to use the ChShaftBodyRotation constraint,
         // shown as [ bs ] in the following scheme, where the 3D body is shown as <>.
         // In this example we also add a 'torsional spring damper' C, shown as [ t ]
         // that connects shafts A and C (C is shown as * because fixed).
@@ -333,7 +333,7 @@ int main(int argc, char* argv[]) {
         // Make the shaft 'A' connected to the rotation of the 3D body 'B'.
         // We must specify the direction (in body coordinates) along which the
         // shaft will affect the body.
-        auto my_shaftbody_connection = chrono_types::make_shared<ChShaftsBody>();
+        auto my_shaftbody_connection = chrono_types::make_shared<ChShaftBodyRotation>();
         ChVector3d mshaftdir(VECT_Z);
         my_shaftbody_connection->Initialize(my_shaftA, my_bodyB, mshaftdir);
         sys.Add(my_shaftbody_connection);

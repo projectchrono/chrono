@@ -82,7 +82,7 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d
     m_axle->SetInertia(GetAxleInertia());
     chassis->GetSystem()->AddShaft(m_axle);
 
-    m_axle_to_spindle = chrono_types::make_shared<ChShaftsBody>();
+    m_axle_to_spindle = chrono_types::make_shared<ChShaftBodyRotation>();
     m_axle_to_spindle->SetNameString(m_name + "_axle_to_spindle");
     m_axle_to_spindle->Initialize(m_axle, m_gear, ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle);

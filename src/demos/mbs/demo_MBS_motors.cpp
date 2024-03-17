@@ -618,9 +618,9 @@ int main(int argc, char* argv[]) {
 
 
     //               [************ motor5 ********]
-    //  [ guide5  ]----[----(ChShaftsBody)---------------[Shaft2Rot]----]--->
-    //  [ guide5  ]----[----(ChShaftsBodyTranslation)----[Shaft2Lin]----]--->
-    //  [ slider5 ]----[----(ChShaftsBodyTranslation)----[Shaft1Lin]----]--->
+    //  [ guide5  ]----[----(ChShaftBodyRotation)---------------[Shaft2Rot]----]--->
+    //  [ guide5  ]----[----(ChShaftBodyTranslation)----[Shaft2Lin]----]--->
+    //  [ slider5 ]----[----(ChShaftBodyTranslation)----[Shaft1Lin]----]--->
     //
     //                                     [***** my_rackpinion *****]
     //  >-[my_driveli]----[my_shaftB] -----[----[shaft2]             ]

@@ -20,7 +20,7 @@
 #define CH_SUSPENSION_H
 
 #include "chrono/physics/ChShaft.h"
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -166,7 +166,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     ChVector3d m_rel_loc;                                ///< location relative to chassis
     std::shared_ptr<ChBody> m_spindle[2];                ///< handles to spindle bodies
     std::shared_ptr<ChShaft> m_axle[2];                  ///< handles to axle shafts
-    std::shared_ptr<ChShaftsBody> m_axle_to_spindle[2];  ///< handles to spindle-shaft connectors
+    std::shared_ptr<ChShaftBodyRotation> m_axle_to_spindle[2];  ///< handles to spindle-shaft connectors
     std::shared_ptr<ChLinkLockRevolute> m_revolute[2];   ///< handles to spindle revolute joints
 
   private:

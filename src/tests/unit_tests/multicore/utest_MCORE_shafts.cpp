@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/physics/ChShaftsClutch.h"
 #include "chrono/physics/ChShaftsGear.h"
 #include "chrono/physics/ChShaftsPlanetary.h"
@@ -215,7 +215,7 @@ TEST_P(ChShaftTest, shaft_body) {
     // Make the shaft 'A' connected to the rotation of the 3D body 'B'.
     // We must specify the direction (in body coordinates) along which the
     // shaft will affect the body.
-    auto shaftbody_connection = chrono_types::make_shared<ChShaftsBody>();
+    auto shaftbody_connection = chrono_types::make_shared<ChShaftBodyRotation>();
     ChVector3d shaftdir(VECT_Z);
     shaftbody_connection->Initialize(shaftA, bodyB, shaftdir);
     system->Add(shaftbody_connection);

@@ -31,7 +31,7 @@
 #define CH_SPROCKET_H
 
 #include "chrono/physics/ChShaft.h"
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/geometry/ChLinePath.h"
 #include "chrono/geometry/ChLineSegment.h"
 #include "chrono/geometry/ChLineArc.h"
@@ -165,7 +165,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     ChVector3d m_rel_loc;                             ///< sprocket subsystem location relative to chassis
     std::shared_ptr<ChBody> m_gear;                   ///< sprocket gear body
     std::shared_ptr<ChShaft> m_axle;                  ///< gear shafts
-    std::shared_ptr<ChShaftsBody> m_axle_to_spindle;  ///< gear-shaft connector
+    std::shared_ptr<ChShaftBodyRotation> m_axle_to_spindle;  ///< gear-shaft connector
     std::shared_ptr<ChLinkLockRevolute> m_revolute;   ///< sprocket revolute joint
     std::shared_ptr<ChContactMaterial> m_material;    ///< contact material;
 

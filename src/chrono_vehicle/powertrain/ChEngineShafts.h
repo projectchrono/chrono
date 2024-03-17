@@ -23,7 +23,7 @@
 #include "chrono_vehicle/ChEngine.h"
 
 #include "chrono/physics/ChShaft.h"
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/physics/ChShaftsThermalEngine.h"
 
 namespace chrono {
@@ -82,7 +82,7 @@ class CH_VEHICLE_API ChEngineShafts : public ChEngine {
     virtual void Advance(double step) override {}
 
     std::shared_ptr<ChShaft> m_motorblock;
-    std::shared_ptr<ChShaftsBody> m_motorblock_to_body;
+    std::shared_ptr<ChShaftBodyRotation> m_motorblock_to_body;
     std::shared_ptr<ChShaftsThermalEngine> m_engine;
     std::shared_ptr<ChShaftsThermalEngine> m_engine_losses;
     std::shared_ptr<ChShaft> m_motorshaft;  ///< shaft connection to the transmission

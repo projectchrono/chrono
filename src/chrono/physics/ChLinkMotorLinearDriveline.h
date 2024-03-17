@@ -18,7 +18,7 @@
 
 #include "chrono/physics/ChLinkMotorLinear.h"
 #include "chrono/physics/ChShaft.h"
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 
 namespace chrono {
 
@@ -28,23 +28,23 @@ namespace chrono {
 /// This link adds three additional ChShaft objects:
 /// - two of them on Body 2, representing a rotational (Shaft2Rot) and a translational (Shfat2Lin) inertia.
 /// - one ChShaft object to Body 1, representing a translational inertia (Shaft1Lin).
-/// Each _translational_ shaft is connected to the Z degree of freedom of its body (through a ChShaftsBodyTranslation).
-/// The _rotational_ shaft is connected to Body 2 (through a ChShaftsBody) along a direction (default: Z axis) that can
+/// Each _translational_ shaft is connected to the Z degree of freedom of its body (through a ChShaftBodyTranslation).
+/// The _rotational_ shaft is connected to Body 2 (through a ChShaftBodyRotation) along a direction (default: Z axis) that can
 /// be later set through ::SetInnerShaft2RotDirection(). Any action applied to the shafts is then reflected back to the
 /// respective bodies along their given directions.
 ///
 ///                  [************ ChLinkMotorLinearDriveline ********]
-///     [ Body2 ]----[----(ChShaftsBody)---------------[Shaft2Rot]----]---->
-///     [ Body2 ]----[----(ChShaftsBodyTranslation)----[Shaft2Lin]----]---->
-///     [ Body1 ]----[----(ChShaftsBodyTranslation)----[Shaft1Lin]----]---->
+///     [ Body2 ]----[----(ChShaftBodyRotation)-------[Shaft2Rot]----]---->
+///     [ Body2 ]----[----(ChShaftBodyTranslation)----[Shaft2Lin]----]---->
+///     [ Body1 ]----[----(ChShaftBodyTranslation)----[Shaft1Lin]----]---->
 
 /// Typical usage is to model a linear actuator between two 3D bodies by taking into account also the actuator driveline
 /// (e.g. inertia, friction, ...).
 ///
 ///                  [************ ChLinkMotorLinearDriveline ********]
-///     [ Body2 ]----[----(ChShaftsBody)---------------[Shaft2Rot]----]--->
-///     [ Body2 ]----[----(ChShaftsBodyTranslation)----[Shaft2Lin]----]--->
-///     [ Body1 ]----[----(ChShaftsBodyTranslation)----[Shaft1Lin]----]--->
+///     [ Body2 ]----[----(ChShaftBodyRotation)-------[Shaft2Rot]----]--->
+///     [ Body2 ]----[----(ChShaftBodyTranslation)----[Shaft2Lin]----]--->
+///     [ Body1 ]----[----(ChShaftBodyTranslation)----[Shaft1Lin]----]--->
 ///
 ///                                        [***** ChShaftsPlanetary *****]
 ///     >-[ChShaftsMotor]----[ChShaft] -----[----[shaft2]                 ]
@@ -57,9 +57,9 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
     std::shared_ptr<ChShaft> innershaft1lin;            
     std::shared_ptr<ChShaft> innershaft2lin;  
     std::shared_ptr<ChShaft> innershaft2rot;  
-    std::shared_ptr<ChShaftsBodyTranslation> innerconstraint1lin;  
-    std::shared_ptr<ChShaftsBodyTranslation> innerconstraint2lin; 
-    std::shared_ptr<ChShaftsBody> innerconstraint2rot; 
+    std::shared_ptr<ChShaftBodyTranslation> innerconstraint1lin;  
+    std::shared_ptr<ChShaftBodyTranslation> innerconstraint2lin; 
+    std::shared_ptr<ChShaftBodyRotation> innerconstraint2rot; 
     ChVector3d shaft2_rotation_dir; 
 
   public:

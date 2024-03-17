@@ -66,7 +66,7 @@ void ChAutomaticTransmissionShafts::Initialize(std::shared_ptr<ChChassis> chassi
     sys->AddShaft(m_transmissionblock);
 
     // Create  a connection between the transmission block and the 3D rigid body that represents the chassis.
-    m_transmissionblock_to_body = chrono_types::make_shared<ChShaftsBody>();
+    m_transmissionblock_to_body = chrono_types::make_shared<ChShaftBodyRotation>();
     m_transmissionblock_to_body->Initialize(m_transmissionblock, chassis->GetBody(), dir_transmissionblock);
     sys->Add(m_transmissionblock_to_body);
 

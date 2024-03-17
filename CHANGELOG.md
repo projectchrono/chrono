@@ -163,6 +163,7 @@ Note that this represents a major public API change and we expect most user code
 | ChLinkPulley.h                      | rename: ChLinkLockPulley.h                |
 | ChLinkScrew.h                       | rename: ChLinkLockScrew.h                 |
 | ChLinkTrajectory.h                  | rename: ChLinkLockTrajectory.h            |
+| ChShaftsBody.h                      | rename: ChShaftBodyConstraint.h           |
 | ChVector.h                          | rename: ChVector3.h                       |
 
 
@@ -1038,6 +1039,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 |                                   | GetUseSleeping                | rename: IsSleepingAllowed                        |
 |                                   | SetUseSleeping                | rename: SetSleepingAllowed                       |
+| ChShaftsBody                      |                               | rename: ChShaftBodyRotation                      |
+| ChShaftsBodyTranslation           |                               | rename: ChShaftBodyTranslation                   |
 | ChShaftsClutch                    |                               |                                                  |
 |                                   | GetSlippage_dt                | rename: GetSlippageDer                           |
 |                                   | GetSlippage_dtdt              | rename: GetSlippageDer2                          |

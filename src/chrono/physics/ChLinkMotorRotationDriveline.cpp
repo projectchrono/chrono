@@ -26,8 +26,8 @@ ChLinkMotorRotationDriveline::ChLinkMotorRotationDriveline() {
 
     innershaft1 = chrono_types::make_shared<ChShaft>();
     innershaft2 = chrono_types::make_shared<ChShaft>();
-    innerconstraint1 = chrono_types::make_shared<ChShaftsBody>();
-    innerconstraint2 = chrono_types::make_shared<ChShaftsBody>();
+    innerconstraint1 = chrono_types::make_shared<ChShaftBodyRotation>();
+    innerconstraint2 = chrono_types::make_shared<ChShaftBodyRotation>();
 }
 
 ChLinkMotorRotationDriveline::ChLinkMotorRotationDriveline(const ChLinkMotorRotationDriveline& other)

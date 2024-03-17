@@ -30,7 +30,7 @@ class ChBodyFrame;
 /// It defines a transmission ratio between two 1D entities of ChShaft type, and transmits the reaction of the gearbox
 /// to a 3D body that acts as the support truss. Note that the more basic ChShaftsGear can do the same, except that it
 /// does not provide a way to transmit reaction to a truss body. Also note that this can also be seen as a
-/// ChShaftPlanetary where one has joined the carrier shaft to a fixed body via a ChShaftsBody constraint.
+/// ChShaftPlanetary where one has joined the carrier shaft to a fixed body via a ChShaftBodyRotation constraint.
 class ChApi ChShaftsGearbox : public ChPhysicsItem {
   public:
     ChShaftsGearbox();

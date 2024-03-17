@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CH_SHAFTS_BODY_H
-#define CH_SHAFTS_BODY_H
+#ifndef CH_SHAFT_BODY_CONSTRAINT_H
+#define CH_SHAFT_BODY_CONSTRAINT_H
 
 #include "chrono/physics/ChBodyFrame.h"
 #include "chrono/physics/ChShaft.h"
@@ -25,19 +25,18 @@ namespace chrono {
 class ChShaft;
 class ChBodyFrame;
 
-/// Constraint between a 3D ChBody object and a 1D ChShaft object.
+/// Constraint between a 3D ChBody object and a ChShaft object that represents a 1D rotational DOF.
 /// A rotation axis must be specified (to tell along which direction the shaft inertia and rotation affects the body).
-/// This constraint is useful, for example, when you have modeled a 3D car using ChBody items and a 1D powertrain
-/// (gears, differential, etc.) using ChShaft objects: you can connect the former (at least, the wheels) to the latter
-/// using this constraint.
-class ChApi ChShaftsBody : public ChPhysicsItem {
+/// This constraint is useful, for example, when modeling a vehicle using ChBody items and a 1D powertrain (gears,
+/// differential, etc.) using ChShaft objects: wheel bodies can be connected to the driveline using this constraint.
+class ChApi ChShaftBodyRotation : public ChPhysicsItem {
   public:
-    ChShaftsBody();
-    ChShaftsBody(const ChShaftsBody& other);
-    ~ChShaftsBody() {}
+    ChShaftBodyRotation();
+    ChShaftBodyRotation(const ChShaftBodyRotation& other);
+    ~ChShaftBodyRotation() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChShaftsBody* Clone() const override { return new ChShaftsBody(*this); }
+    virtual ChShaftBodyRotation* Clone() const override { return new ChShaftBodyRotation(*this); }
 
     /// Initialize the constraint, given the 1D shaft and 3D body to join.
     /// Direction is expressed in the local coordinates of the body.
@@ -123,19 +122,19 @@ class ChApi ChShaftsBody : public ChPhysicsItem {
     friend class ChLinkMotorLinearDriveline;
 };
 
-CH_CLASS_VERSION(ChShaftsBody, 0)
+CH_CLASS_VERSION(ChShaftBodyRotation, 0)
 
-/// Constraint between a 3D ChBody object and a 1D ChShaft object that represents a 1D translational DOF.
-/// Note that this is ifferent from the ChShaftsBody constraint  which connects to a rotational DOF.
+/// Constraint between a 3D ChBody object and a ChShaft object that represents a 1D translational DOF.
+/// Note that this is different from the ChShaftBodyRotation constraint  which connects to a rotational DOF.
 /// A translation axis must be specified (to tell along which direction the 1D shaft inertia rotation affects the body).
-class ChApi ChShaftsBodyTranslation : public ChPhysicsItem {
+class ChApi ChShaftBodyTranslation : public ChPhysicsItem {
   public:
-    ChShaftsBodyTranslation();
-    ChShaftsBodyTranslation(const ChShaftsBodyTranslation& other);
-    ~ChShaftsBodyTranslation() {}
+    ChShaftBodyTranslation();
+    ChShaftBodyTranslation(const ChShaftBodyTranslation& other);
+    ~ChShaftBodyTranslation() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChShaftsBodyTranslation* Clone() const override { return new ChShaftsBodyTranslation(*this); }
+    virtual ChShaftBodyTranslation* Clone() const override { return new ChShaftBodyTranslation(*this); }
 
     /// Initialize the constraint, given the 1D shaft and 3D body to join.
     ///  Direction is expressed in the local coordinates of the body.
@@ -229,7 +228,7 @@ class ChApi ChShaftsBodyTranslation : public ChPhysicsItem {
     friend class ChLinkMotorLinearDriveline;
 };
 
-CH_CLASS_VERSION(ChShaftsBodyTranslation, 0)
+CH_CLASS_VERSION(ChShaftBodyTranslation, 0)
 
 }  // end namespace chrono
 

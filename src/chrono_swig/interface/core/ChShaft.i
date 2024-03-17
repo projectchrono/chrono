@@ -27,7 +27,7 @@
 //#include "chrono/solver/ChVariables.h"
 //#include "chrono/solver/ChVariablesShaft.h"
 #include "chrono/physics/ChShaft.h"
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/physics/ChShaftsCouple.h"
 #include "chrono/physics/ChShaftsTorque.h"
 #include "chrono/physics/ChShaftsPlanetary.h"
@@ -50,9 +50,10 @@
 //%shared_ptr(chrono::ChVariables)
 //%shared_ptr(chrono::ChVariablesShaft)
 %shared_ptr(chrono::ChShaft)
+%shared_ptr(chrono::ChShaftBodyRotation)
+%shared_ptr(chrono::ChShaftBodyTranslation)
 %shared_ptr(chrono::ChShaftsCouple)
-%shared_ptr(chrono::ChShaftsBody)
-%shared_ptr(chrono::ChShaftsBodyTranslation)
+%shared_ptr(chrono::ChShaftBodyTranslation)
 %shared_ptr(chrono::ChShaftsClutch)
 %shared_ptr(chrono::ChShaftsGear)
 %shared_ptr(chrono::ChShaftsMotor)
@@ -70,7 +71,7 @@
 //%include "../../../chrono/solver/ChVariables.h"
 //%include "../../../chrono/solver/ChVariablesShaft.h"
 %include "../../../chrono/physics/ChShaft.h"
-%include "../../../chrono/physics/ChShaftsBody.h"
+%include "../../../chrono/physics/ChShaftBodyConstraint.h"
 %include "../../../chrono/physics/ChShaftsCouple.h"
 %include "../../../chrono/physics/ChShaftsTorque.h"
 %include "../../../chrono/physics/ChShaftsPlanetary.h"

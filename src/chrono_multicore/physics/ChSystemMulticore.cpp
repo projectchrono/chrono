@@ -18,7 +18,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/physics/ChShaftsCouple.h"
 #include "chrono/physics/ChShaftsGearbox.h"
 #include "chrono/physics/ChShaftsGearboxAngled.h"
@@ -487,7 +487,7 @@ BilateralType GetBilateralType(ChPhysicsItem* item) {
     if (dynamic_cast<ChShaftsGearbox*>(item) || dynamic_cast<ChShaftsGearboxAngled*>(item))
         return BilateralType::SHAFT_SHAFT_BODY;
 
-    if (dynamic_cast<ChShaftsBody*>(item))
+    if (dynamic_cast<ChShaftBodyRotation*>(item))
         return BilateralType::SHAFT_BODY;
 
     // Debug check - do we ignore any constraints?

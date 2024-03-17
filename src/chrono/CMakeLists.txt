@@ -319,6 +319,7 @@ source_group(physics\\hydraulics FILES
 
 set(ChronoEngine_physics_shafts_SOURCES
     physics/ChShaft.cpp
+    physics/ChShaftBodyConstraint.cpp
     physics/ChShaftsGear.cpp
     physics/ChShaftsGearbox.cpp
     physics/ChShaftsGearboxAngled.cpp
@@ -328,7 +329,6 @@ set(ChronoEngine_physics_shafts_SOURCES
     physics/ChShaftsMotorAngle.cpp
     physics/ChShaftsMotorSpeed.cpp
     physics/ChShaftsMotorTorque.cpp
-    physics/ChShaftsBody.cpp
     physics/ChShaftsTorque.cpp
     physics/ChShaftsAppliedTorque.cpp
     physics/ChShaftsTorsionSpring.cpp
@@ -340,7 +340,7 @@ set(ChronoEngine_physics_shafts_SOURCES
 
 set(ChronoEngine_physics_shafts_HEADERS
     physics/ChShaft.h
-    physics/ChShaftsBody.h
+    physics/ChShaftBodyConstraint.h
     physics/ChShaftsClutch.h
     physics/ChShaftsCouple.h
     physics/ChShaftsGear.h

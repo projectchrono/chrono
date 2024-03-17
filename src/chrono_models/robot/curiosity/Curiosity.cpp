@@ -30,7 +30,7 @@
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/physics/ChInertiaUtils.h"
 
 #include "chrono_models/robot/curiosity/Curiosity.h"
@@ -530,7 +530,7 @@ void Curiosity::Initialize(const ChFrame<>& pos) {
 
         // Connect shaft aligned with the wheel's axis of rotation (local wheel Y).
         // Set connection such that a positive torque applied to the shaft results in forward rover motion.
-        auto shaftbody_connection = chrono_types::make_shared<ChShaftsBody>();
+        auto shaftbody_connection = chrono_types::make_shared<ChShaftBodyRotation>();
         shaftbody_connection->Initialize(m_drive_shafts[i], m_wheels[i]->GetBody(), ChVector3d(0, -1, 0));
         m_system->Add(shaftbody_connection);
     }

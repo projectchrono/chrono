@@ -46,7 +46,7 @@ void ChBrakeShafts::Initialize(std::shared_ptr<ChChassis> chassis,
     auto body = suspension->GetBrakeBody(side);
     if (!body)
         body = chassis->GetBody();
-    auto connection = chrono_types::make_shared<ChShaftsBody>();
+    auto connection = chrono_types::make_shared<ChShaftBodyRotation>();
     connection->Initialize(m_shaft, body, ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(connection);
 

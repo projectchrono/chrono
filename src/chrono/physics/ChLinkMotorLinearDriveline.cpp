@@ -22,16 +22,16 @@ CH_FACTORY_REGISTER(ChLinkMotorLinearDriveline)
 
 ChLinkMotorLinearDriveline::ChLinkMotorLinearDriveline() {
     
-    // the constraint along Z axis is guaranteed by the auxiliary ChShaftsBody constraints
+    // the constraint along Z axis is guaranteed by the auxiliary ChShaftBodyRotation constraints
     this->c_z = false;
     SetupLinkMask();
 
     innershaft1lin = chrono_types::make_shared<ChShaft>();
     innershaft2lin = chrono_types::make_shared<ChShaft>();
     innershaft2rot = chrono_types::make_shared<ChShaft>();
-    innerconstraint1lin = chrono_types::make_shared<ChShaftsBodyTranslation>();
-    innerconstraint2lin = chrono_types::make_shared<ChShaftsBodyTranslation>(); 
-    innerconstraint2rot = chrono_types::make_shared<ChShaftsBody>(); 
+    innerconstraint1lin = chrono_types::make_shared<ChShaftBodyTranslation>();
+    innerconstraint2lin = chrono_types::make_shared<ChShaftBodyTranslation>(); 
+    innerconstraint2rot = chrono_types::make_shared<ChShaftBodyRotation>(); 
     shaft2_rotation_dir = VECT_Z;
 }
 

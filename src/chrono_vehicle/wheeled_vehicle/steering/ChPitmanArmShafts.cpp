@@ -205,13 +205,13 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
     sys->AddShaft(m_shaft_A);
 
     // Rigidly attach shaftA to the arm body
-    m_shaft_arm = chrono_types::make_shared<ChShaftsBody>();
+    m_shaft_arm = chrono_types::make_shared<ChShaftBodyRotation>();
     m_shaft_arm->SetNameString(m_name + "_shaftA_to_arm");
     m_shaft_arm->Initialize(m_shaft_A, m_arm, dirs[REV_AXIS]);
     sys->Add(m_shaft_arm);
 
     // Rigidly attach shaftC to the chassis body
-    ////m_shaft_chassis = chrono_types::make_shared<ChShaftsBody>();
+    ////m_shaft_chassis = chrono_types::make_shared<ChShaftBodyRotation>();
     ////m_shaft_chassis->SetNameString(m_name + "_shaftC_to_chassis");
     ////m_shaft_chassis->Initialize(m_shaft_C, chassisBody, dirs[REV_AXIS]);
     ////sys->Add(m_shaft_chassis);
