@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHSHAFTSBODY_H
-#define CHSHAFTSBODY_H
+#ifndef CH_SHAFTS_BODY_H
+#define CH_SHAFTS_BODY_H
 
 #include "chrono/physics/ChBodyFrame.h"
 #include "chrono/physics/ChShaft.h"
@@ -25,22 +25,12 @@ namespace chrono {
 class ChShaft;
 class ChBodyFrame;
 
-/// Class for creating a constraint between a 3D ChBody object and a 1D ChShaft object.
-/// A rotation axis must be specified (to tell along which direction the shaft inertia
-/// and rotation affects the body).
-/// This constraint is useful, for example, when you have modeled a 3D car using ChBody
-/// items and a 1D powertrain (gears, differential, etc.) using ChShaft objects: you
-/// can connect the former (at least, the wheels) to the latter using this constraint.
-
+/// Constraint between a 3D ChBody object and a 1D ChShaft object.
+/// A rotation axis must be specified (to tell along which direction the shaft inertia and rotation affects the body).
+/// This constraint is useful, for example, when you have modeled a 3D car using ChBody items and a 1D powertrain
+/// (gears, differential, etc.) using ChShaft objects: you can connect the former (at least, the wheels) to the latter
+/// using this constraint.
 class ChApi ChShaftsBody : public ChPhysicsItem {
-
-  private:
-    double torque_react;                ///< reaction torque
-    ChConstraintTwoGeneric constraint;  ///< used as an interface to the solver
-    ChShaft* shaft;                     ///< connected shaft
-    ChBodyFrame* body;                  ///< connected body
-    ChVector3d shaft_dir;               ///< shaft direction
-
   public:
     ChShaftsBody();
     ChShaftsBody(const ChShaftsBody& other);
@@ -49,13 +39,55 @@ class ChApi ChShaftsBody : public ChPhysicsItem {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChShaftsBody* Clone() const override { return new ChShaftsBody(*this); }
 
-    /// Get the number of scalar variables affected by constraints in this link
+    /// Initialize the constraint, given the 1D shaft and 3D body to join.
+    /// Direction is expressed in the local coordinates of the body.
+    /// Both items must belong to the same ChSystem.
+    bool Initialize(std::shared_ptr<ChShaft> mshaft,     ///< shaft to join
+                    std::shared_ptr<ChBodyFrame> mbody,  ///< body to join
+                    const ChVector3d& mdir               ///< direction of the shaft on 3D body
+    );
+
+    /// Get the shaft.
+    ChShaft* GetShaft() { return shaft; }
+
+    /// Get the body.
+    ChBodyFrame* GetBody() { return body; }
+
+    /// Set the direction of the shaft respect to 3D body, as a normalized vector expressed in the coordinates of the
+    /// body. The shaft applies only torque, about this axis.
+    void SetShaftDirection(ChVector3d md) { shaft_dir = Vnorm(md); }
+
+    /// Get the direction of the shaft respect to 3D body, as a normalized vector expressed in the coordinates of the
+    /// body.
+    const ChVector3d& GetShaftDirection() const { return shaft_dir; }
+
+    /// Get the reaction torque considered as applied to ChShaft.
+    double GetTorqueReactionOnShaft() const { return -(torque_react); }
+
+    /// Get the reaction torque considered as applied to ChBody, expressed in the coordinates of the body.
+    ChVector3d GetTorqueReactionOnBody() const { return (shaft_dir * torque_react); }
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    double torque_react;                ///< reaction torque
+    ChConstraintTwoGeneric constraint;  ///< used as an interface to the solver
+    ChShaft* shaft;                     ///< connected shaft
+    ChBodyFrame* body;                  ///< connected body
+    ChVector3d shaft_dir;               ///< shaft direction
+
+    /// Get the number of scalar variables affected by constraints in this link.
     virtual unsigned int GetNumAffectedCoords() const { return 6 + 1; }
 
-    /// Number of scalar constraints
+    /// Number of scalar constraints.
     virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
 
-    // Override/implement interfaces for global state vectors, see ChPhysicsItem for comments.
+    /// Update all auxiliary data of the gear transmission at given time.
+    virtual void Update(double mytime, bool update_assets = true) override;
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
@@ -80,9 +112,6 @@ class ChApi ChShaftsBody : public ChPhysicsItem {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    // Override/implement system functions of ChPhysicsItem
-    // (to assemble/manage data for system solver)
-
     virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
     virtual void ConstraintsBiReset() override;
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
@@ -90,63 +119,64 @@ class ChApi ChShaftsBody : public ChPhysicsItem {
     virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
-    /// Use this function after object creation, to initialize it, given
-    /// the 1D shaft and 3D body to join.
-    /// Each item must belong to the same ChSystem.
-    /// Direction is expressed in the local coordinates of the body.
-    bool Initialize(std::shared_ptr<ChShaft> mshaft,  ///< shaft to join
-                    std::shared_ptr<ChBodyFrame>
-                        mbody,              ///< body to join
-                    const ChVector3d& mdir  ///< the direction of the shaft on 3D body (applied on COG: pure torque)
-                    );
+    friend class ChLinkMotorRotationDriveline;
+    friend class ChLinkMotorLinearDriveline;
+};
 
-    /// Get the shaft
+CH_CLASS_VERSION(ChShaftsBody, 0)
+
+/// Constraint between a 3D ChBody object and a 1D ChShaft object that represents a 1D translational DOF.
+/// Note that this is ifferent from the ChShaftsBody constraint  which connects to a rotational DOF.
+/// A translation axis must be specified (to tell along which direction the 1D shaft inertia rotation affects the body).
+class ChApi ChShaftsBodyTranslation : public ChPhysicsItem {
+  public:
+    ChShaftsBodyTranslation();
+    ChShaftsBodyTranslation(const ChShaftsBodyTranslation& other);
+    ~ChShaftsBodyTranslation() {}
+
+    /// "Virtual" copy constructor (covariant return type).
+    virtual ChShaftsBodyTranslation* Clone() const override { return new ChShaftsBodyTranslation(*this); }
+
+    /// Initialize the constraint, given the 1D shaft and 3D body to join.
+    ///  Direction is expressed in the local coordinates of the body.
+    ///  Both items must belong to the same ChSystem.
+    bool Initialize(std::shared_ptr<ChShaft> mshaft,     ///< shaft to join, representing translational dof
+                    std::shared_ptr<ChBodyFrame> mbody,  ///< body to join
+                    const ChVector3d& mdir,              ///< the direction of the shaft on 3D body, in body coords
+                    const ChVector3d& mpos  ///< the anchro position of the shaft on 3D body, in body coords
+    );
+
+    /// Get the shaft.
     ChShaft* GetShaft() { return shaft; }
-    /// Get the body
+
+    /// Get the body.
     ChBodyFrame* GetBody() { return body; }
 
-    /// Set the direction of the shaft respect to 3D body, as a
-    /// normalized vector expressed in the coordinates of the body.
-    /// The shaft applies only torque, about this axis.
+    /// Set the direction of the shaft respect to 3D body, as a normalized vector expressed in the coordinates of the
+    /// body.
     void SetShaftDirection(ChVector3d md) { shaft_dir = Vnorm(md); }
 
-    /// Get the direction of the shaft respect to 3D body, as a
-    /// normalized vector expressed in the coordinates of the body.
+    /// Get the direction of the shaft respect to 3D body, as a normalized vector expressed in the coordinates of the
+    /// body.
     const ChVector3d& GetShaftDirection() const { return shaft_dir; }
 
-    /// Get the reaction torque considered as applied to ChShaft.
-    double GetTorqueReactionOnShaft() const { return -(torque_react); }
+    /// Set the anchor point of the shaft respect to 3D body, as a vector expressed in the coordinates of the body.
+    void SetShaftPos(ChVector3d md) { shaft_pos = md; }
 
-    /// Get the reaction torque considered as applied to ChBody,
-    /// expressed in the coordinates of the body.
-    ChVector3d GetTorqueReactionOnBody() const { return (shaft_dir * torque_react); }
+    /// Get the anchor point of the shaft respect to 3D body, as a vector expressed in the coordinates of the body.
+    const ChVector3d& GetShaftPos() const { return shaft_pos; }
 
-    /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true) override;
+    /// Get the reaction force considered as applied to ChShaft.
+    double GetForceReactionOnShaft() const { return -(force_react); }
 
-    //
-    // SERIALIZATION
-    //
+    /// Get the reaction torque considered as applied to ChBody, expressed in the coordinates of the body.
+    ChVector3d GetForceReactionOnBody() const { return (shaft_dir * force_react); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
-};
-
-CH_CLASS_VERSION(ChShaftsBody,0)
-
-
-
-
-/// Class for creating a constraint between a 3D ChBody object and a 1D ChShaft object
-/// that represents a 1D translational DOF (differently from the ChShaftsBody constraint 
-/// that connects to a rotational DOF)
-/// A translation axis must be specified (to tell along which direction the 1D shaft inertia
-/// rotation affects the body).
-
-class ChApi ChShaftsBodyTranslation : public ChPhysicsItem {
 
   private:
     double force_react;                 ///< reaction force
@@ -156,21 +186,14 @@ class ChApi ChShaftsBodyTranslation : public ChPhysicsItem {
     ChVector3d shaft_dir;               ///< shaft direction
     ChVector3d shaft_pos;               ///< shaft anchor to body
 
-  public:
-    ChShaftsBodyTranslation();
-    ChShaftsBodyTranslation(const ChShaftsBodyTranslation& other);
-    ~ChShaftsBodyTranslation() {}
-
-    /// "Virtual" copy constructor (covariant return type).
-    virtual ChShaftsBodyTranslation* Clone() const override { return new ChShaftsBodyTranslation(*this); }
-
-    /// Get the number of scalar variables affected by constraints in this link
+    /// Get the number of scalar variables affected by constraints in this link.
     virtual unsigned int GetNumAffectedCoords() const { return 6 + 1; }
 
-    /// Number of scalar constraints
+    /// Number of scalar constraints.
     virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
 
-    // Override/implement interfaces for global state vectors, see ChPhysicsItem for comments.
+    /// Update all auxiliary data of the gear transmission at given time.
+    virtual void Update(double mytime, bool update_assets = true) override;
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
@@ -195,9 +218,6 @@ class ChApi ChShaftsBodyTranslation : public ChPhysicsItem {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    // Override/implement system functions of ChPhysicsItem
-    // (to assemble/manage data for system solver)
-
     virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
     virtual void ConstraintsBiReset() override;
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
@@ -205,64 +225,11 @@ class ChApi ChShaftsBodyTranslation : public ChPhysicsItem {
     virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
-    /// Use this function after object creation, to initialize it, given
-    /// the 1D shaft and 3D body to join.
-    /// Each item must belong to the same ChSystem.
-    /// Direction is expressed in the local coordinates of the body.
-    bool Initialize(std::shared_ptr<ChShaft> mshaft,  ///< shaft to join, representing translational dof
-                    std::shared_ptr<ChBodyFrame> mbody, ///< body to join
-                    const ChVector3d& mdir,  ///< the direction of the shaft on 3D body, in body coords
-                    const ChVector3d& mpos  ///< the anchro position of the shaft on 3D body, in body coords
-                    );
-
-    /// Get the shaft
-    ChShaft* GetShaft() { return shaft; }
-    /// Get the body
-    ChBodyFrame* GetBody() { return body; }
-
-    /// Set the direction of the shaft respect to 3D body, as a
-    /// normalized vector expressed in the coordinates of the body.
-    void SetShaftDirection(ChVector3d md) { shaft_dir = Vnorm(md); }
-
-    /// Get the direction of the shaft respect to 3D body, as a
-    /// normalized vector expressed in the coordinates of the body.
-    const ChVector3d& GetShaftDirection() const { return shaft_dir; }
-
-    /// Set the anchor point of the shaft respect to 3D body, as a
-    /// vector expressed in the coordinates of the body.
-    void SetShaftPos(ChVector3d md) { shaft_pos = md; }
-
-    /// Get the anchor point of the shaft respect to 3D body, as a
-    /// vector expressed in the coordinates of the body.
-    const ChVector3d& GetShaftPos() const { return shaft_pos; }
-
-
-    /// Get the reaction force considered as applied to ChShaft.
-    double GetForceReactionOnShaft() const { return -(force_react); }
-
-    /// Get the reaction torque considered as applied to ChBody,
-    /// expressed in the coordinates of the body.
-    ChVector3d GetForceReactionOnBody() const { return (shaft_dir * force_react); }
-
-    /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true) override;
-
-    //
-    // SERIALIZATION
-    //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+    friend class ChLinkMotorRotationDriveline;
+    friend class ChLinkMotorLinearDriveline;
 };
 
-CH_CLASS_VERSION(ChShaftsBodyTranslation,0)
-
-
-
-
+CH_CLASS_VERSION(ChShaftsBodyTranslation, 0)
 
 }  // end namespace chrono
 

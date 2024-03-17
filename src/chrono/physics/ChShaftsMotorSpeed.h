@@ -22,37 +22,13 @@
 
 namespace chrono {
 
-
-/// A motor that enforces the angular speed w(t) between
-/// two ChShaft shafts, using a rheonomic constraint.
-/// Note: no compliance is allowed, so if the actuator hits an undeformable 
-/// obstacle it hits a pathological situation and the solver result
-/// can be unstable/unpredictable.
-/// Think at it as a servo drive with "infinitely stiff" control.
-/// This type of motor is very easy to use, stable and efficient,
-/// and should be used if the 'infinitely stiff' control assumption 
-/// is a good approximation of what you simulate (ex very good and
-/// reactive controllers).
-/// By default it is initialized with constant angular speed: df/dt= 1 rad/s, use
-/// SetSpeedFunction() to change to other speed functions.
-
-class ChApi ChShaftsMotorSpeed : public ChShaftsMotorBase {
-
-  private:
-
-    std::shared_ptr<ChFunction> f_speed;
-    double rot_offset;
-
-    ChVariablesGeneric variable;
-
-    double aux_dt; // used for integrating speed, = angle
-    double aux_dtdt;
-
-    bool avoid_angle_drift;
-
-    double motor_torque;
-    ChConstraintTwoGeneric constraint;  ///< used as an interface to the solver
-
+/// Motor to enforce the angular speed w(t) between two shafts, using a rheonomic constraint.
+/// Note: no compliance is allowed, so if the actuator hits an undeformable  obstacle it hits a pathological situation
+/// and the solver result can be unstable/unpredictable. Think at it as a servo drive with "infinitely stiff" control.
+/// This type of motor is very easy to use, stable and efficient, and should be used if the 'infinitely stiff' control
+/// assumption  is a good approximation of what you simulate (e.g., very good and reactive controllers). By default it
+/// is initialized with constant angular speed: df/dt = 1. Use SetSpeedFunction() to change to other speed functions.
+class ChApi ChShaftsMotorSpeed : public ChShaftsMotor {
   public:
     ChShaftsMotorSpeed();
     ChShaftsMotorSpeed(const ChShaftsMotorSpeed& other);
@@ -61,57 +37,63 @@ class ChApi ChShaftsMotorSpeed : public ChShaftsMotorBase {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChShaftsMotorSpeed* Clone() const override { return new ChShaftsMotorSpeed(*this); }
 
- 
-    /// Sets the angular speed function w(t), in [rad/s]. It is a function of time. 
-    /// Best if C0 continuous, otherwise it gives peaks in accelerations.
-    void SetSpeedFunction(const std::shared_ptr<ChFunction> mf) {f_speed = mf;}
+    /// Sets the angular speed function w(t), in rad/s.
+    /// Best if C0 continuous, otherwise it gives spikes in accelerations.
+    void SetSpeedFunction(const std::shared_ptr<ChFunction> function) { f_speed = function; }
 
-    /// Gets the speed function w(t). In [rad/s].
-    std::shared_ptr<ChFunction> GetSpeedFunction() {return f_speed;}
-    
+    /// Gets the speed function w(t), in rad/s.
+    std::shared_ptr<ChFunction> GetSpeedFunction() { return f_speed; }
 
-    /// Get initial offset, in [rad]. By default = 0.
-    void SetAngleOffset(double mo) { rot_offset = mo; }
+    /// Set initial offset, in rad (default: 0).
+    void SetAngleOffset(double offset) { rot_offset = offset; }
 
-    /// Get initial offset, in [rad].
+    /// Get initial offset, in rad.
     double GetAngleOffset() { return rot_offset; }
 
-    /// Set if the constraint must avoid angular drift. If true, it 
-    /// means that the constraint is satisfied also at the rotation level,
-    /// by integrating the velocity in a separate auxiliary state. Default, true.
-    void SetAvoidAngleDrift(bool mb) {this->avoid_angle_drift = mb;}
+    /// Set if the constraint must avoid angular drift (default: true).
+    /// If true, the constraint is satisfied also at the rotation level, by integrating the velocity in a separate
+    /// auxiliary state.
+    void SetAvoidAngleDrift(bool val) { avoid_angle_drift = val; }
 
     /// Set if the constraint is in "avoid angle drift" mode.
-    bool GetAvoidAngleDrift() { return this->avoid_angle_drift;}
+    bool GetAvoidAngleDrift() { return avoid_angle_drift; }
 
-
-    /// Use this function after gear creation, to initialize it, given
-    /// two shafts to join. The first shaft is the 'output' shaft of the motor,
-    /// the second is the 'truss', often fixed and not rotating.
-    /// The torque is applied to the output shaft, while the truss shafts
-    /// gets the same torque but with opposite sign.
-    /// Each shaft must belong to the same ChSystem.
-    bool Initialize(std::shared_ptr<ChShaft> mshaft1,  ///< first  shaft to join (motor output shaft)
-                    std::shared_ptr<ChShaft> mshaft2   ///< second shaft to join (motor truss)
+    /// Initialize this motor, given two shafts to join.
+    /// The first shaft is the 'output' shaft of the motor, the second is the 'truss', often fixed and not rotating.
+    /// The torque is applied to the output shaft, while the truss shafts gets the same torque but with opposite sign.
+    /// Both shafts must belong to the same ChSystem.
+    bool Initialize(std::shared_ptr<ChShaft> shaft_1,  ///< first  shaft to join (motor output shaft)
+                    std::shared_ptr<ChShaft> shaft_2   ///< second shaft to join (motor truss)
                     ) override;
-
 
     /// Get the current motor torque between shaft2 and shaft1, expressed as applied to shaft1
     virtual double GetMotorTorque() const override { return motor_torque; }
 
-    /// Update all auxiliary data 
-    virtual void Update(double mytime, bool update_assets = true) override;
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-    //
-    // STATE FUNCTIONS
-    //
+  private:
+    std::shared_ptr<ChFunction> f_speed;
+    double rot_offset;
 
-    /// Number of scalar constraints
-    virtual unsigned int GetNumCoordsPosLevel() override { return 1; } 
+    ChVariablesGeneric variable;
+
+    double aux_dt;
+    double aux_dtdt;
+
+    bool avoid_angle_drift;
+
+    double motor_torque;
+    ChConstraintTwoGeneric constraint;  ///< used as an interface to the solver
+
+    virtual unsigned int GetNumCoordsPosLevel() override { return 1; }
     virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
 
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+    virtual void Update(double mytime, bool update_assets = true) override;
+
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
                                 const unsigned int off_v,
@@ -157,8 +139,6 @@ class ChApi ChShaftsMotorSpeed : public ChShaftsMotorBase {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    // Old...
-
     virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
     virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
     virtual void ConstraintsBiReset() override;
@@ -171,24 +151,9 @@ class ChApi ChShaftsMotorSpeed : public ChShaftsMotorBase {
     virtual void VariablesQbLoadSpeed() override;
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbSetSpeed(double step = 0) override;
-    
-
-    //
-    // SERIALIZATION
-    //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
-CH_CLASS_VERSION(ChShaftsMotorSpeed,0)
-
-
-
-
+CH_CLASS_VERSION(ChShaftsMotorSpeed, 0)
 
 }  // end namespace chrono
 

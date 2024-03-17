@@ -496,12 +496,10 @@ BilateralType GetBilateralType(ChPhysicsItem* item) {
     return BilateralType::UNKNOWN;
 }
 
-//
-// Update other physics items in the system and set the type of the associated
-// constraints.
+// Update other physics items in the system and set the type of the associated constraints.
 // Notes:
 // - ChShaft elements have already been excluded (as these are treated separately)
-// - allow all items to include body forces (required e.g. ChShaftsTorqueBase)
+// - allow all items to include body forces
 // - no support for any items that introduce additional state variables
 // - only include constraints from items of supported type (see GetBilateralType above)
 // - visualization assets are not updated

@@ -20,25 +20,14 @@
 
 namespace chrono {
 
-/// A motor that applies a torque between two ChShaft shafts, a bit
-/// like the simplier ChShaftsTorque, with some differences, ex. here
-/// torque can be a ChFunction.
-/// Differently from the ChLinkMotorRotationAngle and
-/// ChLinkMotorRotationSpeed, this does not enforce precise
-/// motion via constraint.
-/// Example of application:
-/// - mimic a PID controlled system with
-///   some feedback (that is up to you too implement)
+/// Motor to apply a torque between two shafts.
+/// Similar to the simplier ChShaftsAppliedTorque, this class specifies the torque through a function of time.
+/// Differently from the ChShaftsMotorAngle and ChShaftsMotorSpeed, this does not enforce precise motion via constraint.
+/// Application examples:
+/// - mimic a PID controlled system with some feedback
 /// - force that is updated by a cosimulation
-/// - force from a man-in-the-loop setpoint
-/// Use SetTorqueFunction() to change to other force function (by
-/// default is no force), possibly introduce some custom ChFunction
-/// of yours that is updated at each time step.
-
-class ChApi ChShaftsMotorTorque : public ChShaftsMotorBase {
-  private:
-    std::shared_ptr<ChFunction> f_torque;
-
+/// - force from a human-in-the-loop setpoint
+class ChApi ChShaftsMotorTorque : public ChShaftsMotor {
   public:
     ChShaftsMotorTorque();
     ChShaftsMotorTorque(const ChShaftsMotorTorque& other);
@@ -47,29 +36,27 @@ class ChApi ChShaftsMotorTorque : public ChShaftsMotorBase {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChShaftsMotorTorque* Clone() const override { return new ChShaftsMotorTorque(*this); }
 
-    /// Sets the torque function T(t). In [Nm]. It is a function of time.
+    /// Set the torque function T(t), in Nm.
     void SetTorqueFunction(const std::shared_ptr<ChFunction> mf) { f_torque = mf; }
 
-    /// Gets the torque function F(t).
+    /// Get the torque function F(t).
     std::shared_ptr<ChFunction> GetTorqueFunction() { return f_torque; }
 
-    /// Get the current actuator reaction torque [Nm]
+    /// Get the current actuator reaction torque in Nm.
     virtual double GetMotorTorque() const override { return this->f_torque->GetVal(this->GetChTime()); }
-
-    /// Update all auxiliary data
-    virtual void Update(double mytime, bool update_assets = true) override;
-
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
-
-    // Old...
-    virtual void VariablesFbLoadForces(double factor) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    std::shared_ptr<ChFunction> f_torque;
+
+    virtual void Update(double mytime, bool update_assets = true) override;
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
+    virtual void VariablesFbLoadForces(double factor) override;
 };
 
 CH_CLASS_VERSION(ChShaftsMotorTorque, 0)

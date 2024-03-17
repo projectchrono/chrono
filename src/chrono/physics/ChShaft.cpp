@@ -69,14 +69,12 @@ void ChShaft::SetInertia(double newJ) {
     variables.SetInertia(newJ);
 }
 
-//// STATE BOOKKEEPING FUNCTIONS
-
 void ChShaft::IntStateGather(const unsigned int off_x,  // offset in x state vector
                              ChState& x,                // state vector, position part
                              const unsigned int off_v,  // offset in v state vector
                              ChStateDelta& v,           // state vector, speed part
                              double& T                  // time
-                             ) {
+) {
     x(off_x) = pos;
     v(off_v) = pos_dt;
     T = GetChTime();
@@ -105,7 +103,7 @@ void ChShaft::IntStateScatterAcceleration(const unsigned int off_a, const ChStat
 void ChShaft::IntLoadResidual_F(const unsigned int off,  // offset in R residual
                                 ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                 const double c           // a scaling factor
-                                ) {
+) {
     // add applied forces to 'fb' vector
     R(off) += torque * c;
 }
@@ -114,15 +112,11 @@ void ChShaft::IntLoadResidual_Mv(const unsigned int off,      // offset in R res
                                  ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
                                  const ChVectorDynamic<>& w,  // the w vector
                                  const double c               // a scaling factor
-                                 ) {
+) {
     R(off) += c * inertia * w(off);
 }
 
-void ChShaft::IntLoadLumpedMass_Md(const unsigned int off,
-                                   ChVectorDynamic<>& Md,
-                                   double& err,
-                                   const double c  
-) {
+void ChShaft::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) {
     Md(off) += c * inertia;
 }
 
@@ -143,7 +137,6 @@ void ChShaft::IntFromDescriptor(const unsigned int off_v,  // offset in v
     v(off_v) = variables.Get_qb()(0, 0);
 }
 
-////
 void ChShaft::InjectVariables(ChSystemDescriptor& mdescriptor) {
     variables.SetDisabled(!IsActive());
 
@@ -201,7 +194,6 @@ void ChShaft::ForceToRest() {
     pos_dtdt = 0;
 }
 
-////
 void ChShaft::ClampSpeed() {
     if (GetLimitSpeed()) {
         if (pos_dt > max_speed)
@@ -238,8 +230,6 @@ void ChShaft::Update(double mytime, bool update_assets) {
     ClampSpeed();  // Apply limits (if in speed clamping mode) to speeds.
 }
 
-//////// FILE I/O
-
 void ChShaft::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChShaft>();
@@ -264,10 +254,9 @@ void ChShaft::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(use_sleeping);
 }
 
-/// Method to allow de serialization of transient data from archives.
 void ChShaft::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChShaft>();
+    /*int version =*/archive_in.VersionRead<ChShaft>();
 
     // deserialize parent class:
     ChPhysicsItem::ArchiveIn(archive_in);

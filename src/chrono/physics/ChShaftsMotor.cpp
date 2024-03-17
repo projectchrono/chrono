@@ -12,268 +12,28 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsMotor.h"
-#include "chrono/physics/ChSystem.h"
 
 namespace chrono {
-
-
-void ChShaftsMotorBase::ArchiveOut(ChArchiveOut& archive_out) {
-    // version number
-    archive_out.VersionWrite<ChShaftsMotorBase>();
-
-    // serialize parent class
-    ChShaftsCouple::ArchiveOut(archive_out);
-
-    // serialize all member data:
-
-}
-
-/// Method to allow de serialization of transient data from archives.
-void ChShaftsMotorBase::ArchiveIn(ChArchiveIn& archive_in) {
-    // version number
-    /*int version =*/ archive_in.VersionRead<ChShaftsMotorBase>();
-
-    // deserialize parent class:
-    ChShaftsCouple::ArchiveIn(archive_in);
-
-    // deserialize all member data:
-
-}
-
-
-
-
-
-// Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChShaftsMotor)
-
-ChShaftsMotor::ChShaftsMotor() : motor_torque(0), motor_set_rot(0), motor_set_rot_dt(0), motor_mode(Mode::TORQUE) {}
-
-ChShaftsMotor::ChShaftsMotor(const ChShaftsMotor& other) : ChShaftsMotorBase(other) {
-    motor_torque = other.motor_torque;
-    motor_mode = other.motor_mode;
-    motor_set_rot = other.motor_set_rot;
-    motor_set_rot_dt = other.motor_set_rot_dt;
-}
-
-bool ChShaftsMotor::Initialize(std::shared_ptr<ChShaft> mshaft1, std::shared_ptr<ChShaft> mshaft2) {
-    // Parent class initialize
-    if (!ChShaftsMotorBase::Initialize(mshaft1, mshaft2))
-        return false;
-
-    ChShaft* mm1 = mshaft1.get();
-    ChShaft* mm2 = mshaft2.get();
-
-    constraint.SetVariables(&mm1->Variables(), &mm2->Variables());
-
-    SetSystem(shaft1->GetSystem());
-
-    return true;
-}
-
-void ChShaftsMotor::Update(double mytime, bool update_assets) {
-    // Inherit time changes of parent class
-    ChShaftsMotorBase::Update(mytime, update_assets);
-
-    // update class data
-    // ...
-}
-
-//// STATE BOOKKEEPING FUNCTIONS
-
-void ChShaftsMotor::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    if (motor_mode != Mode::TORQUE)
-        L(off_L) =  motor_torque;
-}
-
-void ChShaftsMotor::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    if (motor_mode != Mode::TORQUE)
-        motor_torque =  L(off_L);
-}
-
-void ChShaftsMotor::IntLoadResidual_F(const unsigned int off,  // offset in R residual
-                                      ChVectorDynamic<>& R,    // result: the R residual, R += c*F
-                                      const double c           // a scaling factor
-                                      ) {
-    if (motor_mode == Mode::TORQUE) {
-        if (shaft1->IsActive())
-            R(shaft1->GetOffset_w()) += motor_torque * c;
-        if (shaft2->IsActive())
-            R(shaft2->GetOffset_w()) += -motor_torque * c;
-    }
-}
-
-void ChShaftsMotor::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
-                                        ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
-                                        const ChVectorDynamic<>& L,  // the L vector
-                                        const double c               // a scaling factor
-                                        ) {
-    if (motor_mode != Mode::TORQUE)
-        constraint.MultiplyTandAdd(R, L(off_L) * c);
-}
-
-void ChShaftsMotor::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
-                                        ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
-                                        const double c,            // a scaling factor
-                                        bool do_clamp,             // apply clamping to c*C?
-                                        double recovery_clamp      // value for min/max clamping of c*C
-                                        ) {
-    if (motor_mode != Mode::TORQUE) {
-        double res = 0;
-
-        if (motor_mode == Mode::SPEED)
-            res = 0;  // no need to stabilize positions
-
-        if (motor_mode == Mode::ANGLE)
-            res = c * (GetMotorAngle() - motor_set_rot);
-
-        if (do_clamp) {
-            res = std::min(std::max(res, -recovery_clamp), recovery_clamp);
-        }
-
-        Qc(off_L) += res;
-    }
-}
-
-void ChShaftsMotor::IntLoadConstraint_Ct(const unsigned int off_L,  // offset in Qc residual
-                                         ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*Ct
-                                         const double c             // a scaling factor
-                                         ) {
-    if (motor_mode == Mode::SPEED) {
-        double ct = - motor_set_rot_dt;
-        Qc(off_L) += c * ct;
-    }
-}
-
-void ChShaftsMotor::IntToDescriptor(const unsigned int off_v,  // offset in v, R
-                                    const ChStateDelta& v,
-                                    const ChVectorDynamic<>& R,
-                                    const unsigned int off_L,  // offset in L, Qc
-                                    const ChVectorDynamic<>& L,
-                                    const ChVectorDynamic<>& Qc) {
-    if (motor_mode != Mode::TORQUE) {
-        constraint.Set_l_i(L(off_L));
-
-        constraint.Set_b_i(Qc(off_L));
-    }
-}
-
-void ChShaftsMotor::IntFromDescriptor(const unsigned int off_v,  // offset in v
-                                      ChStateDelta& v,
-                                      const unsigned int off_L,  // offset in L
-                                      ChVectorDynamic<>& L) {
-    if (motor_mode != Mode::TORQUE) {
-        L(off_L) = constraint.Get_l_i();
-    }
-}
-
-// SOLVER INTERFACES
-
-void ChShaftsMotor::InjectConstraints(ChSystemDescriptor& mdescriptor) {
-    // if (!IsActive())
-    //	return;
-    if (motor_mode != Mode::TORQUE)
-        mdescriptor.InsertConstraint(&constraint);
-}
-
-void ChShaftsMotor::ConstraintsBiReset() {
-    if (motor_mode != Mode::TORQUE)
-        constraint.Set_b_i(0.);
-}
-
-void ChShaftsMotor::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
-    // if (!IsActive())
-    //	return;
-    if (motor_mode != Mode::TORQUE) {
-        double res = 0;
-
-        if (motor_mode == Mode::SPEED)
-            res = 0;  // no need to stabilize positions
-
-        if (motor_mode == Mode::ANGLE)
-            res = GetMotorAngle() - motor_set_rot;
-
-        constraint.Set_b_i(constraint.Get_b_i() + factor * res);
-    }
-}
-
-void ChShaftsMotor::ConstraintsBiLoad_Ct(double factor) {
-    // if (!IsActive())
-    //	return;
-
-    if (motor_mode == Mode::SPEED) {
-        double ct = - motor_set_rot_dt;
-        constraint.Set_b_i(constraint.Get_b_i() + factor * ct);
-    }
-}
-
-void ChShaftsMotor::ConstraintsFbLoadForces(double factor) {
-    if (motor_mode == Mode::TORQUE) {
-        shaft1->Variables().Get_fb()(0) += motor_torque * factor;
-        shaft2->Variables().Get_fb()(0) += -motor_torque * factor;
-    }
-}
-
-void ChShaftsMotor::ConstraintsLoadJacobians() {
-    if (motor_mode != Mode::TORQUE) {
-        constraint.Get_Cq_a()(0) = 1;
-        constraint.Get_Cq_b()(0) = -1;
-    }
-}
-
-void ChShaftsMotor::ConstraintsFetch_react(double factor) {
-    // From constraints to react vector:
-    if (motor_mode != Mode::TORQUE)
-        motor_torque = - constraint.Get_l_i() * factor;
-}
-
-//////// FILE I/O
-
-// Trick to avoid putting the following mapper macro inside the class definition in .h file:
-// enclose macros in local 'ChShaftsMotor_Mode_enum_mapper', just to avoid avoiding cluttering of the parent class.
-class ChShaftsMotor_Mode_enum_mapper : public ChShaftsMotor {
-  public:
-    CH_ENUM_MAPPER_BEGIN(Mode);
-    CH_ENUM_VAL(Mode::ANGLE);
-    CH_ENUM_VAL(Mode::SPEED);
-    CH_ENUM_VAL(Mode::TORQUE);
-    CH_ENUM_MAPPER_END(Mode);
-};
 
 void ChShaftsMotor::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChShaftsMotor>();
 
     // serialize parent class
-    ChShaftsMotorBase::ArchiveOut(archive_out);
+    ChShaftsCouple::ArchiveOut(archive_out);
 
     // serialize all member data:
-    ChShaftsMotor_Mode_enum_mapper::Mode_mapper mmapper;
-    archive_out << CHNVP(mmapper(motor_mode), "motor_mode");
-    archive_out << CHNVP(motor_torque);
-    archive_out << CHNVP(motor_set_rot);
-    archive_out << CHNVP(motor_set_rot_dt);
 }
 
-/// Method to allow de serialization of transient data from archives.
 void ChShaftsMotor::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChShaftsMotor>();
+    /*int version =*/archive_in.VersionRead<ChShaftsMotor>();
 
     // deserialize parent class:
-    ChShaftsMotorBase::ArchiveIn(archive_in);
+    ChShaftsCouple::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    ChShaftsMotor_Mode_enum_mapper::Mode_mapper mmapper;
-    archive_in >> CHNVP(mmapper(motor_mode), "motor_mode");
-    archive_in >> CHNVP(motor_torque);
-    archive_in >> CHNVP(motor_set_rot);
-    archive_in >> CHNVP(motor_set_rot_dt);
 }
-
-
-
 
 }  // end namespace chrono

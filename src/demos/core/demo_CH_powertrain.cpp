@@ -27,7 +27,7 @@
 #include "chrono/physics/ChShaftsTorsionSpring.h"
 #include "chrono/physics/ChShaftsTorqueConverter.h"
 #include "chrono/physics/ChShaftsMotor.h"
-#include "chrono/physics/ChShaftsTorque.h"
+#include "chrono/physics/ChShaftsAppliedTorque.h"
 #include "chrono/physics/ChShaftsThermalEngine.h"
 #include "chrono/physics/ChShaftsFreewheel.h"
 #include "chrono/physics/ChShaftsMotorAngle.h"
@@ -434,34 +434,24 @@ int main(int argc, char* argv[]) {
         mT->AddPoint(1.00, 1.00);
         my_torqueconverter->SetCurveTorqueRatio(mT);
 
-        // Make the thermal engine, acting on shaft A, the input to
+        // Create the thermal engine, acting on shaft A, the input to
         // the torque converter. Note that the thermal engine also
         // requires another shaft D, that is used to transmit the
         // reaction torque back to a truss (the motor block).
 
-        // Option A: use a ChShaftsMotor, in the TORQUE mode.
-        //  It works, but most often this is more useful when in SPEED.
-        /*
-        auto my_motor = chrono_types::make_shared<ChShaftsMotor>();
-        my_motor->Initialize(my_shaftA, my_shaftD);
-        my_motor->SetMotorMode(ChShaftsMotor::TORQUE);
-        my_motor->SetMotorTorque(30);
-        sys.Add(my_motor);
-        */
-
-        // Option B: use a ChShaftsTorque, it just applies a torque
+        // Option 1: use a ChShaftsAppliedTorque, it just applies a torque
         // to my_shaftA (say, the crankshaft) and the negative torque
         // to my_shaftD (say, the motor block).
         // It is a quick approach. But you should take care of changing
         // the torque at each timestep if you want to simulate a torque curve...
         /*
-        auto my_motor = chrono_types::make_shared<ChShaftsTorque>();
+        auto my_motor = chrono_types::make_shared<ChShaftsAppliedTorque>();
         my_motor->Initialize(my_shaftA, my_shaftD);
         my_motor->SetTorque(30);
         sys.Add(my_motor);
         */
 
-        // Option C: a more powerful approach where you can
+        // Option 2: a more powerful approach where you can
         // define a torque curve and a throttle value, using the
         // ChShaftsThermalEngine.
 

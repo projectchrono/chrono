@@ -329,8 +329,8 @@ set(ChronoEngine_physics_shafts_SOURCES
     physics/ChShaftsMotorSpeed.cpp
     physics/ChShaftsMotorTorque.cpp
     physics/ChShaftsBody.cpp
-    physics/ChShaftsTorqueBase.cpp
     physics/ChShaftsTorque.cpp
+    physics/ChShaftsAppliedTorque.cpp
     physics/ChShaftsTorsionSpring.cpp
     physics/ChShaftsTorqueConverter.cpp
     physics/ChShaftsThermalEngine.cpp
@@ -351,8 +351,8 @@ set(ChronoEngine_physics_shafts_HEADERS
     physics/ChShaftsMotorSpeed.h
     physics/ChShaftsMotorTorque.h
     physics/ChShaftsPlanetary.h
-    physics/ChShaftsTorqueBase.h
     physics/ChShaftsTorque.h
+    physics/ChShaftsAppliedTorque.h
     physics/ChShaftsTorsionSpring.h
     physics/ChShaftsTorqueConverter.h
     physics/ChShaftsThermalEngine.h

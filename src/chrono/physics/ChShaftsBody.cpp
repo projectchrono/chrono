@@ -30,8 +30,7 @@ ChShaftsBody::ChShaftsBody(const ChShaftsBody& other) : ChPhysicsItem(other) {
 }
 
 bool ChShaftsBody::Initialize(std::shared_ptr<ChShaft> mshaft,
-                              std::shared_ptr<ChBodyFrame>
-                                  mbody,
+                              std::shared_ptr<ChBodyFrame> mbody,
                               const ChVector3d& mdir) {
     ChShaft* mm1 = mshaft.get();
     ChBodyFrame* mm2 = mbody.get();
@@ -55,21 +54,19 @@ void ChShaftsBody::Update(double mytime, bool update_assets) {
     // ...
 }
 
-//// STATE BOOKKEEPING FUNCTIONS
-
 void ChShaftsBody::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    L(off_L) = - torque_react;
+    L(off_L) = -torque_react;
 }
 
 void ChShaftsBody::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    torque_react = - L(off_L);
+    torque_react = -L(off_L);
 }
 
 void ChShaftsBody::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
                                        ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
                                        const ChVectorDynamic<>& L,  ///< the L vector
                                        const double c               ///< a scaling factor
-                                       ) {
+) {
     constraint.MultiplyTandAdd(R, L(off_L) * c);
 }
 
@@ -78,7 +75,7 @@ void ChShaftsBody::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in
                                        const double c,            ///< a scaling factor
                                        bool do_clamp,             ///< apply clamping to c*C?
                                        double recovery_clamp      ///< value for min/max clamping of c*C
-                                       ) {
+) {
     double res = 0;  // no residual anyway! allow drifting...
 
     double cnstr_violation = c * res;
@@ -107,8 +104,6 @@ void ChShaftsBody::IntFromDescriptor(const unsigned int off_v,
                                      ChVectorDynamic<>& L) {
     L(off_L) = constraint.Get_l_i();
 }
-
-// SOLVER INTERFACES
 
 void ChShaftsBody::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // if (!IsActive())
@@ -154,10 +149,8 @@ void ChShaftsBody::ConstraintsLoadJacobians() {
 
 void ChShaftsBody::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    torque_react = - constraint.Get_l_i() * factor;
+    torque_react = -constraint.Get_l_i() * factor;
 }
-
-//////// FILE I/O
 
 void ChShaftsBody::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
@@ -169,13 +162,12 @@ void ChShaftsBody::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize all member data:
     archive_out << CHNVP(shaft_dir);
     archive_out << CHNVP(shaft);  //// TODO  serialize, with shared ptr
-    archive_out << CHNVP(body); //// TODO  serialize, with shared ptr
+    archive_out << CHNVP(body);   //// TODO  serialize, with shared ptr
 }
 
-/// Method to allow de serialization of transient data from archives.
 void ChShaftsBody::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChShaftsBody>();
+    /*int version =*/archive_in.VersionRead<ChShaftsBody>();
 
     // deserialize parent class:
     ChPhysicsItem::ArchiveIn(archive_in);
@@ -183,19 +175,17 @@ void ChShaftsBody::ArchiveIn(ChArchiveIn& archive_in) {
     // deserialize all member data:
     archive_in >> CHNVP(shaft_dir);
     archive_in >> CHNVP(shaft);  //// TODO  serialize, with shared ptr
-    archive_in >> CHNVP(body); //// TODO  serialize, with shared ptr
+    archive_in >> CHNVP(body);   //// TODO  serialize, with shared ptr
     constraint.SetVariables(&shaft->Variables(), &body->Variables());
 }
 
-
-
 //--------------------------------------------------------------------------------
-
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChShaftsBodyTranslation)
 
-ChShaftsBodyTranslation::ChShaftsBodyTranslation() : force_react(0), shaft(NULL), body(NULL), shaft_dir(VECT_Z), shaft_pos(VNULL) {}
+ChShaftsBodyTranslation::ChShaftsBodyTranslation()
+    : force_react(0), shaft(NULL), body(NULL), shaft_dir(VECT_Z), shaft_pos(VNULL) {}
 
 ChShaftsBodyTranslation::ChShaftsBodyTranslation(const ChShaftsBodyTranslation& other) : ChPhysicsItem(other) {
     force_react = other.force_react;
@@ -206,9 +196,9 @@ ChShaftsBodyTranslation::ChShaftsBodyTranslation(const ChShaftsBodyTranslation& 
 }
 
 bool ChShaftsBodyTranslation::Initialize(std::shared_ptr<ChShaft> mshaft,
-                              std::shared_ptr<ChBodyFrame> mbody,
-                              const ChVector3d& mdir,
-                              const ChVector3d& mpos) {
+                                         std::shared_ptr<ChBodyFrame> mbody,
+                                         const ChVector3d& mdir,
+                                         const ChVector3d& mpos) {
     ChShaft* mm1 = mshaft.get();
     ChBodyFrame* mm2 = mbody.get();
     assert(mm1 && mm2);
@@ -232,30 +222,28 @@ void ChShaftsBodyTranslation::Update(double mytime, bool update_assets) {
     // ...
 }
 
-//// STATE BOOKKEEPING FUNCTIONS
-
 void ChShaftsBodyTranslation::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
-    L(off_L) = - force_react;
+    L(off_L) = -force_react;
 }
 
 void ChShaftsBodyTranslation::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
-    force_react = - L(off_L);
+    force_react = -L(off_L);
 }
 
 void ChShaftsBodyTranslation::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
-                                       ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                       const ChVectorDynamic<>& L,  ///< the L vector
-                                       const double c               ///< a scaling factor
-                                       ) {
+                                                  ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
+                                                  const ChVectorDynamic<>& L,  ///< the L vector
+                                                  const double c               ///< a scaling factor
+) {
     constraint.MultiplyTandAdd(R, L(off_L) * c);
 }
 
 void ChShaftsBodyTranslation::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
-                                       ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
-                                       const double c,            ///< a scaling factor
-                                       bool do_clamp,             ///< apply clamping to c*C?
-                                       double recovery_clamp      ///< value for min/max clamping of c*C
-                                       ) {
+                                                  ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
+                                                  const double c,            ///< a scaling factor
+                                                  bool do_clamp,             ///< apply clamping to c*C?
+                                                  double recovery_clamp      ///< value for min/max clamping of c*C
+) {
     double res = 0;  // no residual anyway! allow drifting...
 
     double cnstr_violation = c * res;
@@ -268,24 +256,22 @@ void ChShaftsBodyTranslation::IntLoadConstraint_C(const unsigned int off_L,  ///
 }
 
 void ChShaftsBodyTranslation::IntToDescriptor(const unsigned int off_v,
-                                   const ChStateDelta& v,
-                                   const ChVectorDynamic<>& R,
-                                   const unsigned int off_L,
-                                   const ChVectorDynamic<>& L,
-                                   const ChVectorDynamic<>& Qc) {
+                                              const ChStateDelta& v,
+                                              const ChVectorDynamic<>& R,
+                                              const unsigned int off_L,
+                                              const ChVectorDynamic<>& L,
+                                              const ChVectorDynamic<>& Qc) {
     constraint.Set_l_i(L(off_L));
 
     constraint.Set_b_i(Qc(off_L));
 }
 
 void ChShaftsBodyTranslation::IntFromDescriptor(const unsigned int off_v,
-                                     ChStateDelta& v,
-                                     const unsigned int off_L,
-                                     ChVectorDynamic<>& L) {
+                                                ChStateDelta& v,
+                                                const unsigned int off_L,
+                                                ChVectorDynamic<>& L) {
     L(off_L) = constraint.Get_l_i();
 }
-
-// SOLVER INTERFACES
 
 void ChShaftsBodyTranslation::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // if (!IsActive())
@@ -331,10 +317,8 @@ void ChShaftsBodyTranslation::ConstraintsLoadJacobians() {
 
 void ChShaftsBodyTranslation::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    force_react = - constraint.Get_l_i() * factor;
+    force_react = -constraint.Get_l_i() * factor;
 }
-
-//////// FILE I/O
 
 void ChShaftsBodyTranslation::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
@@ -347,14 +331,12 @@ void ChShaftsBodyTranslation::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(shaft_dir);
     archive_out << CHNVP(shaft_pos);
     archive_out << CHNVP(shaft);  //// TODO  serialize, with shared ptr
-    archive_out << CHNVP(body); //// TODO  serialize, with shared ptr
-
+    archive_out << CHNVP(body);   //// TODO  serialize, with shared ptr
 }
 
-/// Method to allow de serialization of transient data from archives.
 void ChShaftsBodyTranslation::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChShaftsBody>();
+    /*int version =*/archive_in.VersionRead<ChShaftsBody>();
 
     // deserialize parent class:
     ChPhysicsItem::ArchiveIn(archive_in);
@@ -363,12 +345,8 @@ void ChShaftsBodyTranslation::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(shaft_dir);
     archive_in >> CHNVP(shaft_pos);
     archive_in >> CHNVP(shaft);  //// TODO  serialize, with shared ptr
-    archive_in >> CHNVP(body); //// TODO  serialize, with shared ptr
+    archive_in >> CHNVP(body);   //// TODO  serialize, with shared ptr
     constraint.SetVariables(&shaft->Variables(), &body->Variables());
-
 }
-
-
-
 
 }  // end namespace chrono

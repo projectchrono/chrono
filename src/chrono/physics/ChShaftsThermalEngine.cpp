@@ -26,7 +26,7 @@ ChShaftsThermalEngine::ChShaftsThermalEngine() : throttle(1), error_backward(fal
     Tw = chrono_types::make_shared<ChFunctionConst>(0);
 }
 
-ChShaftsThermalEngine::ChShaftsThermalEngine(const ChShaftsThermalEngine& other) : ChShaftsTorqueBase(other) {
+ChShaftsThermalEngine::ChShaftsThermalEngine(const ChShaftsThermalEngine& other) : ChShaftsTorque(other) {
     throttle = other.throttle;
     error_backward = other.error_backward;
     Tw = std::shared_ptr<ChFunction>(other.Tw->Clone());  // deep copy
@@ -55,7 +55,7 @@ void ChShaftsThermalEngine::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out.VersionWrite<ChShaftsThermalEngine>();
 
     // serialize parent class
-    ChShaftsTorqueBase::ArchiveOut(archive_out);
+    ChShaftsTorque::ArchiveOut(archive_out);
 
     // serialize all member data:
     archive_out << CHNVP(Tw);
@@ -65,10 +65,10 @@ void ChShaftsThermalEngine::ArchiveOut(ChArchiveOut& archive_out) {
 /// Method to allow de serialization of transient data from archives.
 void ChShaftsThermalEngine::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChShaftsThermalEngine>();
+    /*int version =*/archive_in.VersionRead<ChShaftsThermalEngine>();
 
     // deserialize parent class:
-    ChShaftsTorqueBase::ArchiveIn(archive_in);
+    ChShaftsTorque::ArchiveIn(archive_in);
 
     // deserialize all member data:
     archive_in >> CHNVP(Tw);

@@ -24,11 +24,9 @@ namespace chrono {
 // Forward references (for parent hierarchy pointer)
 class ChSystem;
 
-///  Class for one-degree-of-freedom mechanical parts with associated
-///  inertia (mass, or J moment of inertial for rotating parts).
-///  In most cases these represent shafts that can be used to build 1D models
-///  of power trains. This is more efficient than simulating power trains
-///  modeled with full 3D ChBody objects.
+/// Class for one-degree-of-freedom mechanical parts with associated  inertia (mass, or moment of rotatoinal inertia).
+/// In most cases these represent shafts that can be used to build 1D models of power trains. This is more efficient
+/// than simulating power trains  modeled with full 3D ChBody objects.
 class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
   public:
     ChShaft();
@@ -38,33 +36,37 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChShaft* Clone() const override { return new ChShaft(*this); }
 
-    
     /// Set no speed and no accelerations (but does not change the position)
     void ForceToRest() override;
 
     /// Set the torque applied to the shaft
     void SetAppliedTorque(double mtorque) { torque = mtorque; }
+
     /// Get the torque applied to the shaft
     double GetAppliedTorque() const { return torque; }
 
     /// Set the angular position
     void SetPos(double mp) { pos = mp; }
+
     /// Get the angular position
     double GetPos() const { return pos; }
 
     /// Set the angular velocity
     void SetPosDer(double mp) { pos_dt = mp; }
+
     /// Get the angular velocity
     double GetPosDer() const { return pos_dt; }
 
     /// Set the angular acceleration
     void SetPosDer2(double mp) { pos_dtdt = mp; }
+
     /// Get the angular acceleration
     double GetPosDer2() const { return pos_dtdt; }
 
     /// Inertia of the shaft. Must be positive.
     /// Try not to mix bodies with too high/too low values of mass, for numerical stability.
     void SetInertia(double newJ);
+
     double GetInertia() const { return inertia; }
 
     /// Trick. Set the maximum velocity (beyond this limit it will
@@ -72,6 +74,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     /// simulations, to increase robustness at the cost of realism.
     /// This limit is active only if you set  SetLimitSpeed(true);
     void SetMaxSpeed(float m_max_speed) { max_speed = m_max_speed; }
+
     float GetMaxSpeed() const { return max_speed; }
 
     /// When this function is called, the speed of the shaft is clamped
@@ -82,17 +85,18 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     /// Set the amount of time which must pass before going automatically in
     /// sleep mode when the shaft has very small movements.
     void SetSleepTime(float m_t) { sleep_time = m_t; }
+
     float GetSleepTime() const { return sleep_time; }
 
     /// Set the max linear speed to be kept for 'sleep_time' before freezing.
     void SetSleepMinSpeed(float m_t) { sleep_minspeed = m_t; }
+
     float GetSleepMinSpeed() const { return sleep_minspeed; }
 
     /// Set the max linear speed to be kept for 'sleep_time' before freezing.
     void SetSleepMinWvel(float m_t) { sleep_minwvel = m_t; }
-    float GetSleepMinWvel() const { return sleep_minwvel; }
 
-    // FLAGS
+    float GetSleepMinWvel() const { return sleep_minwvel; }
 
     /// Sets the 'fixed' state of the shaft. If true, it does not rotate
     /// despite constraints, forces, etc.
@@ -100,16 +104,14 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
         fixed = mev;
         variables.SetDisabled(mev);
     }
+
     bool GetShaftFixed() const { return fixed; }
-    /// Trick. Set the maximum shaft velocity (beyond this limit it will
-    /// be clamped). This is useful in virtual reality and real-time
-    /// simulations.
-    /// The realism is limited, but the simulation is more stable.
+
+    /// Set the maximum shaft velocity (beyond this limit it will be clamped).
     void SetLimitSpeed(bool mlimit) { limitspeed = mlimit; }
     bool GetLimitSpeed() const { return limitspeed; }
 
-    /// Trick. If use sleeping= true, shafts which do not rotate
-    /// for too long time will be deactivated, for optimization.
+    /// If use sleeping= true, shafts which do not rotate for too long time will be deactivated, for optimization.
     /// The realism is limited, but the simulation is faster.
     void SetSleepingAllowed(bool ms) { use_sleeping = ms; }
     bool IsSleepingAllowed() const { return use_sleeping; }
@@ -117,6 +119,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     /// Force the shaft in sleeping mode or not (usually this state change is not
     /// handled by users, anyway, because it is mostly automatic).
     void SetSleeping(bool ms) { sleeping = ms; }
+
     /// Tell if the shaft is actually in sleeping state.
     bool IsSleeping() const { return sleeping; }
 
@@ -135,8 +138,6 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
 
     /// Returns reference to the encapsulated ChVariables,
     ChVariablesShaft& Variables() { return variables; }
-
-    // STATE FUNCTIONS
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGather(const unsigned int off_x,
@@ -171,11 +172,6 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
                                    ChStateDelta& v,
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
-
-    // SOLVER FUNCTIONS
-
-    // Override/implement system functions of ChPhysicsItem
-    // (to assemble/manage data for system solver)
 
     /// Sets the 'fb' part of the encapsulated ChVariables to zero.
     virtual void VariablesFbReset() override;
@@ -212,7 +208,9 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
 
     virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 1; }
     virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 1; }
-    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override { mD(block_offset) = this->GetPos(); }
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override {
+        mD(block_offset) = this->GetPos();
+    }
     virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override {
         mD(block_offset) = this->GetPosDer();
     }

@@ -595,8 +595,9 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftsClutch)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftsMotor)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftsTorsionSpring)
+%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftsAppliedTorque)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftsPlanetary)
-%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftsTorqueBase)
+%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftsTorque)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftsThermalEngine)
 
 %DefSharedPtrDynamicDowncast(chrono, ChLoadBase, ChLoadCustom)

@@ -44,6 +44,7 @@
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsLoads.h"
 #include "chrono/physics/ChShaftsFreewheel.h"
+#include "chrono/physics/ChShaftsAppliedTorque.h"
 #include "chrono/physics/ChMarker.h"
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChShaftsCouple.h"

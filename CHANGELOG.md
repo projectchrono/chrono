@@ -1045,9 +1045,10 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetRelativeRotation           | rename: GetRelativeAngle                         |
 |                                   | GetRelativeRotation_dt        | rename: GetRelativeAngleDer                      |
 |                                   | GetRelativeRotation_dtdt      | rename: GetRelativeAngleDer2                     |
-| ChShaftsMotor                     |                               |                                                  |
-|                                   | SetMotorRot                   | rename: SetMotorAngle                            |
-|                                   | SetMotorRot_dt                | rename: SetMotorAngleDer                         |
+| ChShaftsMotor                     |                               | remove                                           |
+| ChShaftsMotorBase                 |                               | rename: ChShaftsMotor                            |
+| ChShaftsTorque                    |                               | rename: ChShaftsAppliedTorque                    |
+| ChShaftsTorqueBase                |                               | rename: ChShaftsTorque                           |
 | ChSolverBB                        |                               |                                                  |
 |                                   | GetMaxArmijoBacktrace         | rename: GetMaxStepsArmijoBacktrace               |
 |                                   | GetNarmijo                    | rename: GetMaxStepsArmijoLineSearch              |

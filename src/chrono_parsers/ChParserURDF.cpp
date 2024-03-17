@@ -382,7 +382,6 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
                     break;
                 }
             }
-            collision->origin;
         }
     }
 }

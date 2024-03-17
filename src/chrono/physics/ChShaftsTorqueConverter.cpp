@@ -48,20 +48,17 @@ ChShaftsTorqueConverter::ChShaftsTorqueConverter(const ChShaftsTorqueConverter& 
     T = std::shared_ptr<ChFunction>(other.T->Clone());  // deep copy
 }
 
-bool ChShaftsTorqueConverter::Initialize(std::shared_ptr<ChShaft> mshaft1,       // input shaft
-                                         std::shared_ptr<ChShaft> mshaft2,       // output shaft
-                                         std::shared_ptr<ChShaft> mshaft_stator  // stator shaft (often fixed)
+bool ChShaftsTorqueConverter::Initialize(std::shared_ptr<ChShaft> shaft_1,  // input shaft
+                                         std::shared_ptr<ChShaft> shaft_2,  // output shaft
+                                         std::shared_ptr<ChShaft> shaft_st  // stator shaft (often fixed)
 ) {
-    ChShaft* mm1 = mshaft1.get();
-    ChShaft* mm2 = mshaft2.get();
-    ChShaft* mm_stator = mshaft_stator.get();
-    assert(mm1 && mm2 && mm_stator);
-    assert((mm1 != mm2) && (mm1 != mm_stator));
-    assert((mm1->GetSystem() == mm2->GetSystem()) && (mm1->GetSystem() == mm_stator->GetSystem()));
+    shaft1 = shaft_1.get();
+    shaft2 = shaft_2.get();
+    shaft_stator = shaft_st.get();
 
-    shaft1 = mm1;
-    shaft2 = mm2;
-    shaft_stator = mm_stator;
+    assert(shaft1 && shaft2 && shaft_stator);
+    assert((shaft1 != shaft2) && (shaft1 != shaft_stator));
+    assert((shaft1->GetSystem() == shaft2->GetSystem()) && (shaft1->GetSystem() == shaft_stator->GetSystem()));
 
     SetSystem(shaft1->GetSystem());
 
@@ -153,16 +150,12 @@ void ChShaftsTorqueConverter::IntLoadResidual_F(const unsigned int off,  // offs
         R(shaft_stator->GetOffset_w()) += GetTorqueReactionOnStator() * c;
 }
 
-// SOLVER INTERFACES
-
 void ChShaftsTorqueConverter::VariablesFbLoadForces(double factor) {
     // Apply torques to the three connected 1D variables:
     shaft1->Variables().Get_fb()(0) += torque_in * factor;
     shaft2->Variables().Get_fb()(0) += torque_out * factor;
     shaft_stator->Variables().Get_fb()(0) += GetTorqueReactionOnStator() * factor;
 }
-
-// FILE I/O
 
 void ChShaftsTorqueConverter::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
@@ -174,15 +167,15 @@ void ChShaftsTorqueConverter::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize all member data:
     archive_out << CHNVP(K);
     archive_out << CHNVP(T);
-    archive_out << CHNVP(shaft1); //// TODO  serialize with shared ptr
-    archive_out << CHNVP(shaft2); //// TODO  serialize with shared ptr
-    archive_out << CHNVP(shaft_stator); //// TODO  serialize with shared ptr
+    archive_out << CHNVP(shaft1);        //// TODO  serialize with shared ptr
+    archive_out << CHNVP(shaft2);        //// TODO  serialize with shared ptr
+    archive_out << CHNVP(shaft_stator);  //// TODO  serialize with shared ptr
 }
 
 /// Method to allow de serialization of transient data from archives.
 void ChShaftsTorqueConverter::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChShaftsTorqueConverter>();
+    /*int version =*/archive_in.VersionRead<ChShaftsTorqueConverter>();
 
     // deserialize parent class:
     ChPhysicsItem::ArchiveIn(archive_in);
@@ -190,10 +183,9 @@ void ChShaftsTorqueConverter::ArchiveIn(ChArchiveIn& archive_in) {
     // deserialize all member data:
     archive_in >> CHNVP(K);
     archive_in >> CHNVP(T);
-    archive_in >> CHNVP(shaft1); //// TODO  serialize with shared ptr
-    archive_in >> CHNVP(shaft2); //// TODO  serialize with shared ptr
-    archive_in >> CHNVP(shaft_stator); //// TODO  serialize with shared ptr
-
+    archive_in >> CHNVP(shaft1);        //// TODO  serialize with shared ptr
+    archive_in >> CHNVP(shaft2);        //// TODO  serialize with shared ptr
+    archive_in >> CHNVP(shaft_stator);  //// TODO  serialize with shared ptr
 }
 
 }  // end namespace chrono
