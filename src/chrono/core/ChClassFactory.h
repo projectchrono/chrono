@@ -12,22 +12,19 @@
 #ifndef CHCLASSFACTORY_H
 #define CHCLASSFACTORY_H
 
+// HOW TO REGISTER A CLASS IN THE CLASS FACTORY
 //
-//
-//  HOW TO REGISTER A CLASS IN THE CLASS FACTORY
-//
-//   Assuming you have such a class, say it is named 'myEmployee',
-//  you just have to put the following line in your .cpp code
-//  (for example in myEmployee.cpp, but not in myEmployee.h!):
+// Assuming you have such a class, say it is named 'myEmployee',
+// you just have to put the following line in your .cpp code
+// (for example in myEmployee.cpp, but not in myEmployee.h!):
 //
 //     CH_FACTORY_REGISTER(my_class)
 //
-//  This allows creating an object from a string with its class name.
-//  Also, this sets a compiler-independent type name, which you can retrieve
-//  by ChClassFactory::GetClassTagName(); in fact different compilers might
-//  have different name decorations in type_index.name, which cannot be
-//  used for serialization, for example.
-//
+// This allows creating an object from a string with its class name.
+// Also, this sets a compiler-independent type name, which you can retrieve
+// by ChClassFactory::GetClassTagName(); in fact different compilers might
+// have different name decorations in type_index.name, which cannot be
+// used for serialization, for example.
 
 #include <cstdio>
 #include <string>
@@ -62,9 +59,7 @@ void* getVoidPointer(T* ptr) {
 class ChArchiveIn;
 class ChArchiveOut;
 
-/// Base class for all registration data of classes
-/// whose objects can be created via a class factory.
-
+/// Base class for all registration data of classes whose objects can be created via a class factory.
 class ChApi ChClassRegistrationBase {
   public:
     /// The signature of create method for derived classes. Calls new().
@@ -116,10 +111,9 @@ class ChApi ChClassRegistrationBase {
 /// typecast between class types that are known *only at runtime*. The requirement is that the typecasting function has
 /// to be prepared in advance (i.e. *at compile time*), when the types are still known. For each potential conversion an
 /// instance of ChCastingMap has to be declared, together with its typecasting function. This procedure is simplified by
-/// the macros #CH_UPCASTING(FROM, TO) and #CH_UPCASTING_SANITIZED(FROM, TO, UNIQUETAG) When the conversion should take
+/// the macros CH_UPCASTING(FROM, TO) and CH_UPCASTING_SANITIZED(FROM, TO, UNIQUETAG) When the conversion should take
 /// place the following can be called: `ConversionMap::Convert(std::string("source_classname"),
 /// std::string("destination_classname"), <void* to object>)`
-
 class ChApi ChCastingMap {
   private:
     struct PairHash {
@@ -190,22 +184,16 @@ class ChApi ChCastingMap {
 
 /// A class factory.
 /// It can create C++ objects from their string name.
-/// Just use the  ChClassFactory::create()  function, given a string.
-/// NOTE: desired classes must be previously registered
-///  via the CH_FACTORY_REGISTER macro, or using ClassRegister, otherwise
-///  the ChClassFactory::create()  throws an exception.
-/// NOTE: You do not need to explicitly create it: a static ChClassFactory
-///  class factory is automatically instanced once, at the first time
-///  that someone registers a class. It is consistent also across different DLLs.
-
+/// Just use the  ChClassFactory::create() function, given a string.
+/// Notes:
+/// - desired classes must be previously registered via the CH_FACTORY_REGISTER macro, or using ClassRegister, otherwise
+/// the ChClassFactory::create()  throws an exception.
+/// - there is no need to explicitly create it: a static ChClassFactory class factory is automatically instanced once,
+/// at the first time that someone registers a class. It is consistent also across different DLLs.
 class ChApi ChClassFactory {
   public:
     ChClassFactory() {}
     ~ChClassFactory() {}
-
-    //
-    // METHODS
-    //
 
     /// Register a class into the global class factory.
     /// Provide an unique name and a ChClassRegistration object.
@@ -337,7 +325,7 @@ class ChApi ChClassFactory {
             return it->second->get_tag_name();
         }
         throw(std::runtime_error("ChClassFactory::GetClassTagName() cannot find the class with type_index::name: " +
-                          std::string(mtypeid.name()) + ". Please register it.\n"));
+                                 std::string(mtypeid.name()) + ". Please register it.\n"));
     }
 
     size_t _GetNumberOfRegisteredClasses() { return class_map.size(); }
@@ -348,7 +336,7 @@ class ChApi ChClassFactory {
             return it->second->create();
         }
         throw(std::runtime_error("ChClassFactory::create() cannot find the class with name " + keyName +
-                          ". Please register it.\n"));
+                                 ". Please register it.\n"));
     }
 
     void* _archive_in_create(const std::string& keyName, ChArchiveIn& archive_in) {
@@ -357,7 +345,7 @@ class ChApi ChClassFactory {
             return it->second->archive_in_create(archive_in);
         }
         throw(std::runtime_error("ChClassFactory::create() cannot find the class with name " + keyName +
-                          ". Please register it.\n"));
+                                 ". Please register it.\n"));
     }
 
     void _archive_in(const std::string& keyName, ChArchiveIn& archive_in, void* ptr) {
@@ -366,7 +354,7 @@ class ChApi ChClassFactory {
             it->second->archive_in(archive_in, ptr);
         } else
             throw(std::runtime_error("ChClassFactory::archive_in() cannot find the class with name " + keyName +
-                              ". Please register it.\n"));
+                                     ". Please register it.\n"));
     }
 
     void _archive_out(const std::string& keyName, ChArchiveOut& archive_out, void* ptr) {
@@ -375,7 +363,7 @@ class ChApi ChClassFactory {
             it->second->archive_out(archive_out, ptr);
         } else
             throw(std::runtime_error("ChClassFactory::archive_out() cannot find the class with name " + keyName +
-                              ". Please register it.\n"));
+                                     ". Please register it.\n"));
     }
 
     void _archive_out_constructor(const std::string& keyName, ChArchiveOut& archive_out, void* ptr) {
@@ -384,7 +372,7 @@ class ChApi ChClassFactory {
             it->second->archive_out_constructor(archive_out, ptr);
         } else
             throw(std::runtime_error("ChClassFactory::archive_out() cannot find the class with name " + keyName +
-                              ". Please register it.\n"));
+                                     ". Please register it.\n"));
     }
 
   private:
@@ -417,18 +405,10 @@ CH_CREATE_MEMBER_DETECTOR(ArchiveContainerName)
 template <class t>
 class ChClassRegistration : public ChClassRegistrationBase {
   protected:
-    //
-    // DATA
-    //
-
     /// Name of the class for dynamic creation
     std::string m_sTagName;
 
   public:
-    //
-    // CONSTRUCTORS
-    //
-
     /// Creator (adds this to the global list of
     /// ChClassRegistration<t> objects).
     ChClassRegistration(const char* mtag_name) {
@@ -445,10 +425,6 @@ class ChClassRegistration : public ChClassRegistrationBase {
         // register in global class factory
         ChClassFactory::ClassUnregister(this->m_sTagName);
     }
-
-    //
-    // METHODS
-    //
 
     virtual void* create() override { return _create(); }
 
@@ -565,11 +541,10 @@ class ChClassRegistration : public ChClassRegistrationBase {
     std::string& _get_tag_name() { return m_sTagName; }
 };
 
-/// MACRO TO REGISTER A CLASS INTO THE GLOBAL CLASS FACTORY
+/// Macro to register a class into the global class factory.
 /// - Put this macro into a .cpp, where you prefer, but not into a .h header!
 /// - Use it as
 ///      CH_FACTORY_REGISTER(my_class)
-
 #define CH_FACTORY_REGISTER(classname)                                                  \
     namespace class_factory {                                                           \
     static ChClassRegistration<classname> classname##_factory_registration(#classname); \
@@ -656,8 +631,8 @@ class ChClassVersion {
   public:
     static const int version = 0;
 };
-}  // namespace class_factory
 
+}  // namespace class_factory
 }  // end namespace chrono
 
 /// Call this macro to register a custom version for a class "classname".
@@ -665,7 +640,6 @@ class ChClassVersion {
 /// - you can put this in .h files
 /// If you do not do this, the default version for all classes is 0.
 /// The m_version parameter should be an integer greater than 0.
-
 #define CH_CLASS_VERSION(classname, m_version) \
     namespace class_factory {                  \
     template <>                                \

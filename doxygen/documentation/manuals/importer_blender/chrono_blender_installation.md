@@ -26,6 +26,3 @@ If things go as expected, now you will find an additional menu
 
 
 Read introductory documentation at [Chrono::Blender](@ref introduction_chrono_blender) page.
-
-
-You can find examples of use in [these tutorials](@ref tutorial_table_of_content_chrono_blender).

@@ -41,8 +41,9 @@ ChModalAssembly::ChModalAssembly(const ChModalAssembly& other) : ChAssembly(othe
     m_custom_F_modal_callback = other.m_custom_F_modal_callback;
     m_custom_F_full_callback = other.m_custom_F_full_callback;
 
-    //// TODO:  deep copy of the object lists (internal_bodylist, internal_linklist, internal_meshlist,
-    /// internal_otherphysicslist)
+    //// TODO:
+    //// deep copy of the object lists
+    //// (internal_bodylist, internal_linklist, internal_meshlist, internal_otherphysicslist)
 }
 
 ChModalAssembly::~ChModalAssembly() {

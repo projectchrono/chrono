@@ -806,7 +806,7 @@ void drawGrid(ChVisualSystemIrrlicht* vis,
     }
 }
 
-/// Easy-to-use function to draw color map 2D legend
+// Easy-to-use function to draw color map 2D legend
 void drawColorbar(ChVisualSystemIrrlicht* vis,
                   double vmin,
                   double vmax,
@@ -985,7 +985,7 @@ void drawCoordsys(ChVisualSystemIrrlicht* vis, const ChCoordsys<>& coord, double
 }
 
 // -----------------------------------------------------------------------------
-/// Draw a line arrow in 3D space with given color.
+// Draw a line arrow in 3D space with given color.
 // -----------------------------------------------------------------------------
 void drawArrow(ChVisualSystemIrrlicht* vis,
                ChVector3d start,

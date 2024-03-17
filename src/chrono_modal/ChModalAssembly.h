@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#ifndef CHMODALASSEMBLY_H
-#define CHMODALASSEMBLY_H
+#ifndef CH_MODAL_ASSEMBLY_H
+#define CH_MODAL_ASSEMBLY_H
 
 #include "chrono_modal/ChApiModal.h"
 #include "chrono_modal/ChModalDamping.h"
@@ -30,7 +30,6 @@ namespace modal {
 /// where many "internal" DOFs of finite elements will be reduced to few modal modes that are superimposed
 /// to the motion of a floating frame (for small deflections). Some nodes can be selected as "boundary nodes"
 /// to allow connecting this modal assembly to external joints and forces.
-
 class ChApiModal ChModalAssembly : public ChAssembly {
   public:
     ChModalAssembly();
@@ -47,9 +46,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// and just use the "boundary" bodies, meshes, etc. (those normally added via Add() ).
     /// Set false to consider all internal bodies, meshes etc. as normal items in a normal assembly.
     void SetModalMode(bool mmodal) {
-        this->is_modal = mmodal;
-
-        this->Setup();
+        is_modal = mmodal;
+        Setup();
     }
 
     bool IsModalMode() { return this->is_modal; }
@@ -57,31 +55,25 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Compute the undamped modes for the current assembly.
     /// Later you can fetch results via Get_modes_V(), Get_modes_frequencies() etc.
     /// Usually done for the assembly in full mode, but can be done also SwitchModalReductionON()
-    bool ComputeModes(const ChModalSolveUndamped&
-                          n_modes_settings);  ///< int as n. of lower modes to keep, or a full ChModalSolveUndamped
+    bool ComputeModes(const ChModalSolveUndamped& n_modes_settings);
 
     /// Compute the undamped modes from M and K matrices. Later you can fetch results via Get_modes_V() etc.
-    bool ComputeModesExternalData(
-        ChSparseMatrix& mM,
-        ChSparseMatrix& mK,
-        ChSparseMatrix& full_Cq,
-        const ChModalSolveUndamped&
-            n_modes_settings);  ///< int as the n. of lower modes to keep, or a full ChModalSolveUndamped
+    bool ComputeModesExternalData(ChSparseMatrix& mM,
+                                  ChSparseMatrix& mK,
+                                  ChSparseMatrix& full_Cq,
+                                  const ChModalSolveUndamped& n_modes_settings);
 
     /// Compute the damped modes for the entire assembly.
     /// Expect complex eigenvalues/eigenvectors if damping is used.
     /// Later you can fetch results via Get_modes_V(), Get_modes_frequencies(), Get_modes_damping_ratios() etc.
     /// Usually done for the assembly in full mode, but can be done also after SwitchModalReductionON()
-    bool ComputeModesDamped(const ChModalSolveDamped& n_modes_settings);  ///< int as the n. of lower modes to keep, or
-                                                                          ///< a full ChModalSolveDamped
+    bool ComputeModesDamped(const ChModalSolveDamped& n_modes_settings);
 
     /// Perform modal reduction on this assembly, from the current "full" ("boundary"+"internal") assembly.
     /// - An undamped modal analysis will be done on the full assembly with  nodes.
     /// - The "internal" nodes will be replaced by n_modes modal coordinates.
-    void SwitchModalReductionON(
-        const ChModalSolveUndamped&
-            n_modes_settings,  ///< int as the n. of lower modes to keep, or a full ChModalSolveUndamped
-        const ChModalDamping& damping_model = ChModalDampingNone());  ///< a damping model to use for the reduced model
+    void SwitchModalReductionON(const ChModalSolveUndamped& n_modes_settings,
+                                const ChModalDamping& damping_model = ChModalDampingNone());
 
     /// Perform modal reduction on this assembly that contains only the "boundary" nodes, whereas
     /// the "internal" nodes have been modeled only in an external FEA software with the
@@ -93,13 +85,11 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// - in Chrono, only boundary nodes are added to a ChModalAssembly
     /// - in Chrono, run this function passing such M and K matrices: a modal analysis will be done on K and M
     /// Note that the size of M (and K) must be at least > m_num_coords_vel_boundary.
-    void SwitchModalReductionON(
-        ChSparseMatrix& full_M,
-        ChSparseMatrix& full_K,
-        ChSparseMatrix& full_Cq,
-        const ChModalSolveUndamped&
-            n_modes_settings,  ///< int as the n. of lower modes to keep, or a full ChModalSolveUndamped
-        const ChModalDamping& damping_model = ChModalDampingNone());  ///< a damping model to use for the reduced model
+    void SwitchModalReductionON(ChSparseMatrix& full_M,
+                                ChSparseMatrix& full_K,
+                                ChSparseMatrix& full_Cq,
+                                const ChModalSolveUndamped& n_modes_settings,
+                                const ChModalDamping& damping_model = ChModalDampingNone());
 
     /// For displaying modes, you can use the following function. It sets the state of this subassembly
     /// (both boundary and inner items) using the n-th eigenvector multiplied by a "amplitude" factor * sin(phase).
@@ -177,11 +167,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
         virtual ~CustomForceFullCallback() {}
 
         /// Compute the custom force vector applied on the full coordinates, at the specified configuration.
-        virtual void evaluate(
-            ChVectorDynamic<>&
-                computed_custom_F_full,  //< compute F here, size= m_num_coords_vel_boundary + m_num_coords_vel_internal
-            const ChModalAssembly& link  ///< associated modal assembly
-            ) = 0;
+        /// Size of F: m_num_coords_vel_boundary + m_num_coords_vel_internal
+        virtual void evaluate(ChVectorDynamic<>& computed_custom_F_full, const ChModalAssembly& link) = 0;
     };
 
     /// Specify the optional callback object for computing a custom force acting on the full (not reduced) coordinates.
@@ -231,9 +218,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Read only. Use one of the ComputeModes() functions to set it.
     const ChVectorDynamic<>& Get_modes_assembly_x0() const { return modes_assembly_x0; }
 
-    //
     // CONTAINER FUNCTIONS
-    //
 
     /// Removes all inserted items: bodies, links, etc., both boundary and internal.
     void Clear();
@@ -286,9 +271,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
         return internal_otherphysicslist;
     }
 
-    //
     // STATISTICS
-    //
 
     /// Get the number of internal bodies
     unsigned int GetNumBodiesInternal() const { return m_num_bodies_internal; }
@@ -319,7 +302,6 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Get the number of internal unilateral scalar constraints.
     unsigned int GetNumConstraintsUnilateralInternal() const { return m_num_constr_uni_internal; }
 
-
     /// Get the number of boundary bodies
     unsigned int GetNumBodiesBoundary() const { return m_num_bodies_boundary; }
 
@@ -331,7 +313,6 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Get the number of other boundary physics items (other than bodies, links, or meshes).
     unsigned int GetNumOtherPhysicsItemsBoundary() const { return m_num_otherphysicsitems_boundary; }
-
 
     /// Get the number of boundary coordinates at the position level.
     /// Might differ from GetNumCoordinatesPosInternal in case of quaternions.
@@ -390,9 +371,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// first the boundary and then the inner.
     void GetSubassemblyConstraintJacobianMatrix(ChSparseMatrix* Cq);  ///< fill this system damping matrix
 
-    //
     // PHYSICS ITEM INTERFACE
-    //
 
     /// Set the pointer to the parent ChSystem() and
     /// also add to new collision system / remove from old coll.system
@@ -513,9 +492,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Get cumulative time for modal solver.
     double GetTimeModalSolver() const { return m_timer_modal_solver_call(); }
 
-    //
     // SERIALIZATION
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
