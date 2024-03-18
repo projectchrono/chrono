@@ -419,7 +419,7 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
             ChVector<> pos_F = this->floating_frame_F.GetPos() + delta_F.head(3);
 
             ChQuaternion<> incr_rotF(QNULL);
-            incr_rotF.Q_from_Rotv(ChVector<>(delta_F.tail(3)));  // rot.in local basis - as in system wide vectors
+            incr_rotF.Q_from_Rotv(ChVector<>(delta_F.tail(3)));  // rot.in local basis - as in system wise vectors
             ChQuaternion<> rot_F = this->floating_frame_F.GetRot() * incr_rotF;
 
             this->floating_frame_F.SetPos(pos_F);
@@ -445,7 +445,7 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
         this->ComputeProjectionMatrix();
     }
 
-    if (verbose) {
+    if (this->verbose) {
         ChVector<> pos_F = this->floating_frame_F.GetPos();
         ChVector<> theta_F = this->floating_frame_F.GetRot().Q_to_Rotv() * CH_C_RAD_TO_DEG;
         GetLog() << "this->floating_frame_F: pos: " << pos_F.x() << "  " << pos_F.y() << "  " << pos_F.z()
