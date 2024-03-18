@@ -20,19 +20,19 @@
 
 namespace chrono {
 
-const ChQuaterniond QNULL(0., 0., 0., 0.);
-const ChQuaterniond QUNIT(1., 0., 0., 0.);
+constexpr ChQuaterniond QNULL(0., 0., 0., 0.);
+constexpr ChQuaterniond QUNIT(1., 0., 0., 0.);
 
-const ChQuaterniond Q_ROTATE_Y_TO_X(CH_1_SQRT_2, 0, 0, -CH_1_SQRT_2);
-const ChQuaterniond Q_ROTATE_Y_TO_Z(CH_1_SQRT_2, CH_1_SQRT_2, 0, 0);
-const ChQuaterniond Q_ROTATE_X_TO_Y(CH_1_SQRT_2, 0, 0, CH_1_SQRT_2);
-const ChQuaterniond Q_ROTATE_X_TO_Z(CH_1_SQRT_2, 0, -CH_1_SQRT_2, 0);
-const ChQuaterniond Q_ROTATE_Z_TO_Y(CH_1_SQRT_2, -CH_1_SQRT_2, 0, 0);
-const ChQuaterniond Q_ROTATE_Z_TO_X(CH_1_SQRT_2, 0, CH_1_SQRT_2, 0);
+constexpr ChQuaterniond Q_ROTATE_Y_TO_X(1/CH_SQRT_2, 0, 0, -1/CH_SQRT_2);
+constexpr ChQuaterniond Q_ROTATE_Y_TO_Z(1/CH_SQRT_2, 1/CH_SQRT_2, 0, 0);
+constexpr ChQuaterniond Q_ROTATE_X_TO_Y(1/CH_SQRT_2, 0, 0, 1/CH_SQRT_2);
+constexpr ChQuaterniond Q_ROTATE_X_TO_Z(1/CH_SQRT_2, 0, -1/CH_SQRT_2, 0);
+constexpr ChQuaterniond Q_ROTATE_Z_TO_Y(1/CH_SQRT_2, -1/CH_SQRT_2, 0, 0);
+constexpr ChQuaterniond Q_ROTATE_Z_TO_X(1/CH_SQRT_2, 0, 1/CH_SQRT_2, 0);
 
-const ChQuaterniond Q_FLIP_AROUND_X(0., 1., 0., 0.);
-const ChQuaterniond Q_FLIP_AROUND_Y(0., 0., 1., 0.);
-const ChQuaterniond Q_FLIP_AROUND_Z(0., 0., 0., 1.);
+constexpr ChQuaterniond Q_FLIP_AROUND_X(0., 1., 0., 0.);
+constexpr ChQuaterniond Q_FLIP_AROUND_Y(0., 0., 1., 0.);
+constexpr ChQuaterniond Q_FLIP_AROUND_Z(0., 0., 0., 1.);
 
 static const double FD_STEP = 1e-4;
 

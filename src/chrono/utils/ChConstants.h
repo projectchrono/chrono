@@ -25,9 +25,6 @@ static constexpr double CH_RPM_TO_RAD_S = CH_2PI / 60.0;
 static constexpr double CH_RAD_S_TO_RPM = 60.0 / CH_2PI;
 
 static constexpr double CH_SQRT_2 = 1.41421356237309504880;
-static constexpr double CH_1_SQRT_2 = 0.70710678118654752440;
-
-static constexpr double CH_E = 2.71828182845904523536;
 
 }  // end namespace chrono
 
