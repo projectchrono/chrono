@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
     object->SetInertiaXX(40.0 * ChVector3d(1, 1, 0.2));
     object->SetPos(pos);
     object->SetRot(z2y);
-    object->SetPosDer(init_vel);
+    object->SetPosDt(init_vel);
     object->SetAngVelParent(init_omg);
     object->EnableCollision(true);
     object->SetFixed(false);

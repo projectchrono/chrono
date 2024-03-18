@@ -194,7 +194,7 @@ ball.SetMass(10)
 comp = 4 * ball_radius * ball_radius
 ball.SetInertiaXX(chrono.ChVector3d(comp, comp, comp))
 ball.SetPos(chrono.ChVector3d(-3, 1.2 * ball_radius, -3))
-ball.SetPosDer(chrono.ChVector3d(5, 0, 5))
+ball.SetPosDt(chrono.ChVector3d(5, 0, 5))
 ball.EnableCollision(True)
 
 ball_ct_shape = chrono.ChCollisionShapeSphere(ball_mat, ball_radius)

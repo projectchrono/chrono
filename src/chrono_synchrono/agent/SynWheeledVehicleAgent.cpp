@@ -92,10 +92,10 @@ void SynWheeledVehicleAgent::Update() {
 
     auto chassis_abs = m_vehicle->GetChassisBody()->GetFrameRefToAbs();
     SynPose chassis(chassis_abs.GetPos(), chassis_abs.GetRot());
-    chassis.GetFrame().SetPosDer(chassis_abs.GetPosDer());
-    chassis.GetFrame().SetPosDer2(chassis_abs.GetPosDer2());
-    chassis.GetFrame().SetRotDer(chassis_abs.GetRotDer());
-    chassis.GetFrame().SetRotDer2(chassis_abs.GetRotDer2());
+    chassis.GetFrame().SetPosDt(chassis_abs.GetPosDt());
+    chassis.GetFrame().SetPosDt2(chassis_abs.GetPosDt2());
+    chassis.GetFrame().SetRotDt(chassis_abs.GetRotDt());
+    chassis.GetFrame().SetRotDt2(chassis_abs.GetRotDt2());
 
     std::vector<SynPose> wheels;
     for (auto axle : m_vehicle->GetAxles()) {
@@ -103,10 +103,10 @@ void SynWheeledVehicleAgent::Update() {
             auto state = wheel->GetState();
             auto wheel_abs = wheel->GetSpindle()->GetFrameRefToAbs();
             SynPose frame(state.pos, state.rot);
-            frame.GetFrame().SetPosDer(wheel_abs.GetPosDer());
-            frame.GetFrame().SetPosDer2(wheel_abs.GetPosDer2());
-            frame.GetFrame().SetRotDer(wheel_abs.GetRotDer());
-            frame.GetFrame().SetRotDer2(wheel_abs.GetRotDer2());
+            frame.GetFrame().SetPosDt(wheel_abs.GetPosDt());
+            frame.GetFrame().SetPosDt2(wheel_abs.GetPosDt2());
+            frame.GetFrame().SetRotDt(wheel_abs.GetRotDt());
+            frame.GetFrame().SetRotDt2(wheel_abs.GetRotDt2());
             wheels.emplace_back(frame);
         }
     }

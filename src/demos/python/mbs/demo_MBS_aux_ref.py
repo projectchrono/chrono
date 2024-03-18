@@ -165,19 +165,19 @@ while vis.Run():
         pos_2 = frame_2.GetPos()
 
 
-        #OK, what about velocities? Here again, GetPosDer() returns the linear
+        #OK, what about velocities? Here again, GetPosDt() returns the linear
         # velocity of the body COG (expressed in the global frame) for both
         # pendulums
-        lin_vel_1 = pend_1.GetPosDer()
-        lin_vel_2 = pend_2.GetPosDer()
+        lin_vel_1 = pend_1.GetPosDt()
+        lin_vel_2 = pend_2.GetPosDt()
 
         print("     ", lin_vel_1.x, "  ", lin_vel_1.y)
         print("     ", lin_vel_2.y, "  ", lin_vel_2.y)
 
         # To obtain the absolute linear velocity of the body reference frame, 
-        # we use again GetPosDer(), but this time for the reference frame,
+        # we use again GetPosDt(), but this time for the reference frame,
         # using GetFrameRefToAbs() similarly for what we did for positions:
-        lin_vel_2 = pend_2.GetFrameRefToAbs().GetPosDer()
+        lin_vel_2 = pend_2.GetFrameRefToAbs().GetPosDt()
         print("    ", lin_vel_2.x, "  ", lin_vel_2.y)
 
         log_info = False

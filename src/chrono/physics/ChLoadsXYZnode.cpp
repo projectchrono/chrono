@@ -41,7 +41,7 @@ void ChLoadXYZnodeForce::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
         // the numerical jacobian algo might change state_w
         nodeApos_dt = ChVector3d(state_w->segment(0, 3));
     } else {
-        nodeApos_dt = node->GetPosDer();
+        nodeApos_dt = node->GetPosDt();
     }
 
     ComputeForce(nodeApos, nodeApos_dt, computed_abs_force);
@@ -117,8 +117,8 @@ void ChLoadXYZnodeXYZnode::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
         nodeApos_dt = state_w->segment(0, 3);
         nodeBpos_dt = state_w->segment(3, 3);
     } else {
-        nodeApos_dt = mnodeA->GetPosDer();
-        nodeBpos_dt = mnodeB->GetPosDer();
+        nodeApos_dt = mnodeA->GetPosDt();
+        nodeBpos_dt = mnodeB->GetPosDt();
     }
 
     ComputeForce((nodeApos - nodeBpos), (nodeApos_dt - nodeBpos_dt), computed_abs_force);
@@ -203,12 +203,12 @@ void ChLoadXYZnodeBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 
     if (state_w) {
         // the numerical jacobian algo might change state_w
-        bodycoordA.SetPosDer(state_w->segment(0, 3));
-        bodycoordB.SetPosDer(state_w->segment(3, 3));
+        bodycoordA.SetPosDt(state_w->segment(0, 3));
+        bodycoordB.SetPosDt(state_w->segment(3, 3));
         bodycoordB.SetAngVelLocal(state_w->segment(6, 3));
     } else {
-        bodycoordA.SetPosDer(nodeA->GetPosDer());
-        bodycoordB.SetCoordsysDer(bodyB->GetCoordsysDer());
+        bodycoordA.SetPosDt(nodeA->GetPosDt());
+        bodycoordB.SetCoordsysDt(bodyB->GetCoordsysDt());
     }
 
     frame_Aw = bodycoordA;
@@ -255,7 +255,7 @@ ChLoadXYZnodeBodySpring::ChLoadXYZnodeBodySpring(std::shared_ptr<ChNodeXYZ> node
 void ChLoadXYZnodeBodySpring::ComputeForce(const ChFrameMoving<>& rel_AB, ChVector3d& loc_force) {
     ChVector3d BA = rel_AB.GetPos().GetNormalized();
     double d = rel_AB.GetPos().Length() - d0;
-    double d_dt = Vdot(rel_AB.GetPosDer(), BA);
+    double d_dt = Vdot(rel_AB.GetPosDt(), BA);
     loc_force = (-K * d - R * d_dt) * BA;
 }
 
@@ -275,9 +275,9 @@ ChLoadXYZnodeBodyBushing::ChLoadXYZnodeBodyBushing(std::shared_ptr<ChNodeXYZ> no
 /// Compute the force on the node, in absolute coordsystem,
 /// given position of node as abs_pos.
 void ChLoadXYZnodeBodyBushing::ComputeForce(const ChFrameMoving<>& rel_AB, ChVector3d& loc_force) {
-    loc_force = ChVector3d(force_dX->GetVal(rel_AB.GetPos().x()) - R.x() * rel_AB.GetPosDer().x(),
-                           force_dY->GetVal(rel_AB.GetPos().y()) - R.y() * rel_AB.GetPosDer().y(),
-                           force_dZ->GetVal(rel_AB.GetPos().z()) - R.z() * rel_AB.GetPosDer().z());
+    loc_force = ChVector3d(force_dX->GetVal(rel_AB.GetPos().x()) - R.x() * rel_AB.GetPosDt().x(),
+                           force_dY->GetVal(rel_AB.GetPos().y()) - R.y() * rel_AB.GetPosDt().y(),
+                           force_dZ->GetVal(rel_AB.GetPos().z()) - R.z() * rel_AB.GetPosDt().z());
 }
 
 }  // end namespace chrono

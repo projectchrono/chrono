@@ -52,10 +52,10 @@ ChNodeFEAxyzrot& ChNodeFEAxyzrot::operator=(const ChNodeFEAxyzrot& other) {
 }
 
 void ChNodeFEAxyzrot::ForceToRest() {
-    this->GetPosDer() = VNULL;
-    this->GetRotDer2() = QNULL;
-    this->GetPosDer2() = VNULL;
-    this->GetRotDer2() = QNULL;
+    this->GetPosDt() = VNULL;
+    this->GetRotDt2() = QNULL;
+    this->GetPosDt2() = VNULL;
+    this->GetRotDt2() = QNULL;
 }
 
 void ChNodeFEAxyzrot::SetFixed(bool fixed) {
@@ -76,7 +76,7 @@ void ChNodeFEAxyzrot::NodeIntStateGather(const unsigned int off_x,
     x.segment(off_x + 0, 3) = this->GetPos().eigen();
     x.segment(off_x + 3, 4) = this->GetRot().eigen();
 
-    v.segment(off_v + 0, 3) = this->GetPosDer().eigen();
+    v.segment(off_v + 0, 3) = this->GetPosDt().eigen();
     v.segment(off_v + 3, 3) = this->GetAngVelLocal().eigen();
 }
 
@@ -86,17 +86,17 @@ void ChNodeFEAxyzrot::NodeIntStateScatter(const unsigned int off_x,
                                           const ChStateDelta& v,
                                           const double T) {
     this->SetCoordsys(x.segment(off_x, 7));
-    this->SetPosDer(v.segment(off_v, 3));
+    this->SetPosDt(v.segment(off_v, 3));
     this->SetAngVelLocal(v.segment(off_v + 3, 3));
 }
 
 void ChNodeFEAxyzrot::NodeIntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
-    a.segment(off_a + 0, 3) = this->GetPosDer2().eigen();
+    a.segment(off_a + 0, 3) = this->GetPosDt2().eigen();
     a.segment(off_a + 3, 3) = this->GetAngAccLocal().eigen();
 }
 
 void ChNodeFEAxyzrot::NodeIntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    this->SetPosDer2(a.segment(off_a, 3));
+    this->SetPosDt2(a.segment(off_a, 3));
     this->SetAngAccLocal(a.segment(off_a + 3, 3));
 }
 
@@ -196,15 +196,15 @@ void ChNodeFEAxyzrot::VariablesFbLoadForces(double factor) {
 
 void ChNodeFEAxyzrot::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    variables.Get_qb().segment(0, 3) = this->GetCoordsysDer().pos.eigen();
+    variables.Get_qb().segment(0, 3) = this->GetCoordsysDt().pos.eigen();
     variables.Get_qb().segment(3, 3) = this->GetAngVelLocal().eigen();
 }
 
 void ChNodeFEAxyzrot::VariablesQbSetSpeed(double step) {
-    ChCoordsys<> old_coord_dt = this->GetCoordsysDer();
+    ChCoordsys<> old_coord_dt = this->GetCoordsysDt();
 
     // from 'qb' vector, sets body speed, and updates auxiliary data
-    this->SetPosDer(this->variables.Get_qb().segment(0, 3));
+    this->SetPosDt(this->variables.Get_qb().segment(0, 3));
     this->SetAngVelLocal(this->variables.Get_qb().segment(3, 3));
 
     // apply limits (if in speed clamping mode) to speeds.
@@ -212,8 +212,8 @@ void ChNodeFEAxyzrot::VariablesQbSetSpeed(double step) {
 
     // Compute accel. by BDF (approximate by differentiation);
     if (step) {
-        this->SetPosDer2((this->GetCoordsysDer().pos - old_coord_dt.pos) / step);
-        this->SetRotDer2((this->GetCoordsysDer().rot - old_coord_dt.rot) / step);
+        this->SetPosDt2((this->GetCoordsysDt().pos - old_coord_dt.pos) / step);
+        this->SetRotDt2((this->GetCoordsysDt().rot - old_coord_dt.rot) / step);
     }
 }
 
@@ -265,7 +265,7 @@ void ChNodeFEAxyzrot::LoadableGetStateBlockPosLevel(int block_offset, ChState& m
 }
 
 void ChNodeFEAxyzrot::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = this->GetPosDer().eigen();
+    mD.segment(block_offset + 0, 3) = this->GetPosDt().eigen();
     mD.segment(block_offset + 3, 3) = this->GetAngVelLocal().eigen();
 }
 

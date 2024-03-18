@@ -497,7 +497,7 @@ void ChGenerator::CreateObjects(const PointVector& points, const ChVector3d& vel
         // Set position and orientation
         body->SetPos(points[i]);
         body->SetRot(ChQuaternion<>(1, 0, 0, 0));
-        body->SetPosDer(vel);
+        body->SetPosDt(vel);
         body->SetFixed(false);
         body->EnableCollision(true);
 

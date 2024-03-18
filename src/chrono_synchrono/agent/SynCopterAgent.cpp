@@ -67,18 +67,18 @@ void SynCopterAgent::Update() {
 
     auto chassis_body = m_copter->GetChassis();
     SynPose chassis_pose(chassis_body->GetPos(), chassis_body->GetRot());
-    chassis_pose.GetFrame().SetPosDer(chassis_body->GetPosDer());
-    chassis_pose.GetFrame().SetPosDer2(chassis_body->GetPosDer2());
-    chassis_pose.GetFrame().SetRotDer(chassis_body->GetRotDer());
-    chassis_pose.GetFrame().SetRotDer2(chassis_body->GetRotDer2());
+    chassis_pose.GetFrame().SetPosDt(chassis_body->GetPosDt());
+    chassis_pose.GetFrame().SetPosDt2(chassis_body->GetPosDt2());
+    chassis_pose.GetFrame().SetRotDt(chassis_body->GetRotDt());
+    chassis_pose.GetFrame().SetRotDt2(chassis_body->GetRotDt2());
 
     std::vector<SynPose> props_poses;
     for (auto prop : m_copter->GetProps() ) {
         SynPose frame(prop->GetPos(), prop->GetRot());
-        frame.GetFrame().SetPosDer(prop->GetPosDer());
-        frame.GetFrame().SetPosDer2(prop->GetPosDer2());
-        frame.GetFrame().SetRotDer(prop->GetRotDer());
-        frame.GetFrame().SetRotDer2(prop->GetRotDer2());
+        frame.GetFrame().SetPosDt(prop->GetPosDt());
+        frame.GetFrame().SetPosDt2(prop->GetPosDt2());
+        frame.GetFrame().SetRotDt(prop->GetRotDt());
+        frame.GetFrame().SetRotDt2(prop->GetRotDt2());
         props_poses.emplace_back(frame);
     }
 

@@ -240,7 +240,7 @@ class Model(object):
 
           ab_rot =  	self.body_abdomen.GetRot().GetCardanAnglesXYZ()
           ab_q = np.asarray([self.body_abdomen.GetPos().z, ab_rot.x, ab_rot.y, ab_rot.z])
-          ab_speed = self.body_abdomen.GetRot().RotateBack(self.body_abdomen.GetPosDer())
+          ab_speed = self.body_abdomen.GetRot().RotateBack(self.body_abdomen.GetPosDt())
           ab_qdot = np.asarray([ ab_speed.x, ab_speed.y, ab_speed.z, self.body_abdomen.GetAngVelLocal().x, self.body_abdomen.GetAngVelLocal().y, self.body_abdomen.GetAngVelLocal().z ])
           self.q_mot   = np.zeros([8,])
           self.q_dot_mot   = np.zeros([8,])

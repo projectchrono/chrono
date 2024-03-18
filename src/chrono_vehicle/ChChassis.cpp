@@ -76,14 +76,14 @@ ChVector3d ChChassis::GetDriverPos() const {
 // Return the speed measured at the origin of the chassis reference frame.
 double ChChassis::GetSpeed() const {
     const auto& x_dir = m_body->GetRotMat().GetAxisX();
-    const auto& vel = m_body->GetFrameRefToAbs().GetPosDer();
+    const auto& vel = m_body->GetFrameRefToAbs().GetPosDt();
     return Vdot(vel, x_dir);
 }
 
 // Return the speed measured at the chassis center of mass.
 double ChChassis::GetCOMSpeed() const {
     const auto& x_dir = m_body->GetRotMat().GetAxisX();
-    const auto& vel = m_body->GetPosDer();
+    const auto& vel = m_body->GetPosDt();
     return Vdot(vel, x_dir);
 }
 
@@ -123,7 +123,7 @@ void ChChassis::Initialize(ChSystem* system,
     m_body->SetFixed(m_fixed);
 
     m_body->SetFrameRefToAbs(chassis_pos);
-    m_body->SetPosDer(chassisFwdVel * chassis_pos.TransformDirectionLocalToParent(ChVector3d(1, 0, 0)));
+    m_body->SetPosDt(chassisFwdVel * chassis_pos.TransformDirectionLocalToParent(ChVector3d(1, 0, 0)));
 
     system->Add(m_body);
 
@@ -220,7 +220,7 @@ class ChassisDragForce : public ChChassis::ExternalForceTorque {
                         ChVector3d& point,
                         ChVector3d& torque) override {
         auto body = chassis.GetBody();
-        auto V = body->TransformDirectionParentToLocal(body->GetPosDer());
+        auto V = body->TransformDirectionParentToLocal(body->GetPosDt());
         double Vx = V.x();
         double Fx = 0.5 * m_Cd * m_area * m_air_density * Vx * Vx;
         point = ChVector3d(0, 0, 0);

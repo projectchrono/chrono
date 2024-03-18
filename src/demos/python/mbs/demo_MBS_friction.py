@@ -61,7 +61,7 @@ for bi in range(10):
     initial_angspeed = 10
     initial_linspeed = initial_angspeed * mradius
     msphereBody.SetAngVelParent(chrono.ChVector3d(0, 0, -initial_angspeed))
-    msphereBody.SetPosDer(chrono.ChVector3d(initial_linspeed, 0, 0))
+    msphereBody.SetPosDt(chrono.ChVector3d(initial_linspeed, 0, 0))
 
     # Add to the sys
     sys.Add(msphereBody)

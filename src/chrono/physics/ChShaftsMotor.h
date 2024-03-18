@@ -31,10 +31,10 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
     virtual double GetMotorAngle() const { return (shaft1->GetPos() - shaft2->GetPos()); }
 
     /// Get the actual speed [rad/s] of the motor, in terms of speed of shaft 1 respect to 2.
-    virtual double GetMotorAngleDer() const { return (shaft1->GetPosDer() - shaft2->GetPosDer()); }
+    virtual double GetMotorAngleDt() const { return (shaft1->GetPosDt() - shaft2->GetPosDt()); }
 
     /// Get the actual acceleration [rad/s^2] of the motor, in terms of accel. of shaft 1 respect to 2.
-    virtual double GetMotorAngleDer2() const { return (shaft1->GetPosDer2() - shaft2->GetPosDer2()); }
+    virtual double GetMotorAngleDt2() const { return (shaft1->GetPosDt2() - shaft2->GetPosDt2()); }
 
     /// In case of multi-turns, gets the current actuator number of (integer) rotations:
     virtual int GetMotorNumTurns() const { return int(GetMotorAngle() / CH_2PI); }

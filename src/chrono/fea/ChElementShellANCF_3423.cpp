@@ -587,7 +587,7 @@ void ShellANCF_Force::Evaluate(ChVectorN<double, 54>& result, const double x, co
 void ChElementShellANCF_3423::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     // Current nodal coordinates and velocities
     CalcCoordMatrix(m_d);
-    CalcCoordDerivMatrix(m_d_dt);
+    CalcCoordDtMatrix(m_d_dt);
     m_ddT = m_d * m_d.transpose();
     // Assumed Natural Strain (ANS):  Calculate m_strainANS and m_strainANS_D
     CalcStrainANSbilinearShell();
@@ -1163,15 +1163,15 @@ void ChElementShellANCF_3423::CalcCoordMatrix(ChMatrixNM<double, 8, 3>& d) {
     d(7, 2) = dD.z();
 }
 
-void ChElementShellANCF_3423::CalcCoordDerivMatrix(ChVectorN<double, 24>& dt) {
-    const ChVector3d& pA_dt = m_nodes[0]->GetPosDer();
-    const ChVector3d& dA_dt = m_nodes[0]->GetSlope1Der();
-    const ChVector3d& pB_dt = m_nodes[1]->GetPosDer();
-    const ChVector3d& dB_dt = m_nodes[1]->GetSlope1Der();
-    const ChVector3d& pC_dt = m_nodes[2]->GetPosDer();
-    const ChVector3d& dC_dt = m_nodes[2]->GetSlope1Der();
-    const ChVector3d& pD_dt = m_nodes[3]->GetPosDer();
-    const ChVector3d& dD_dt = m_nodes[3]->GetSlope1Der();
+void ChElementShellANCF_3423::CalcCoordDtMatrix(ChVectorN<double, 24>& dt) {
+    const ChVector3d& pA_dt = m_nodes[0]->GetPosDt();
+    const ChVector3d& dA_dt = m_nodes[0]->GetSlope1Dt();
+    const ChVector3d& pB_dt = m_nodes[1]->GetPosDt();
+    const ChVector3d& dB_dt = m_nodes[1]->GetSlope1Dt();
+    const ChVector3d& pC_dt = m_nodes[2]->GetPosDt();
+    const ChVector3d& dC_dt = m_nodes[2]->GetSlope1Dt();
+    const ChVector3d& pD_dt = m_nodes[3]->GetPosDt();
+    const ChVector3d& dD_dt = m_nodes[3]->GetSlope1Dt();
 
     dt(0) = pA_dt.x();
     dt(1) = pA_dt.y();
@@ -1513,14 +1513,14 @@ void ChElementShellANCF_3423::LoadableGetStateBlockPosLevel(int block_offset, Ch
 
 // Gets all the DOFs packed in a single vector (velocity part).
 void ChElementShellANCF_3423::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
-    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetSlope1Der().eigen();
-    mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPosDer().eigen();
-    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetSlope1Der().eigen();
-    mD.segment(block_offset + 12, 3) = m_nodes[2]->GetPosDer().eigen();
-    mD.segment(block_offset + 15, 3) = m_nodes[2]->GetSlope1Der().eigen();
-    mD.segment(block_offset + 18, 3) = m_nodes[3]->GetPosDer().eigen();
-    mD.segment(block_offset + 21, 3) = m_nodes[3]->GetSlope1Der().eigen();
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDt().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetSlope1Dt().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPosDt().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetSlope1Dt().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[2]->GetPosDt().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[2]->GetSlope1Dt().eigen();
+    mD.segment(block_offset + 18, 3) = m_nodes[3]->GetPosDt().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[3]->GetSlope1Dt().eigen();
 }
 
 void ChElementShellANCF_3423::LoadableStateIncrement(const unsigned int off_x,
@@ -1537,8 +1537,8 @@ void ChElementShellANCF_3423::EvaluateSectionVelNorm(double U, double V, ChVecto
     ShapeVector N;
     ShapeFunctions(N, U, V, 0);
     for (unsigned int ii = 0; ii < 4; ii++) {
-        Result += N(ii * 2) * m_nodes[ii]->GetPosDer();
-        Result += N(ii * 2 + 1) * m_nodes[ii]->GetPosDer();
+        Result += N(ii * 2) * m_nodes[ii]->GetPosDt();
+        Result += N(ii * 2 + 1) * m_nodes[ii]->GetPosDt();
     }
 }
 

@@ -179,7 +179,7 @@ void ChLinkLockClearance::UpdateTime(double mytime) {
 
     // add also the centripetal acceleration if distance vector's rotating,
     // as centripetal acc. of point sliding on a sphere surface.
-    ChVector3d tang_speed = GetRelCoordsysDer().pos;
+    ChVector3d tang_speed = GetRelCoordsysDt().pos;
     tang_speed.x() = 0;  // only z-y coords in relative tang speed vector
     double Rcurvature = Vlength(absdist);
     deltaC_dtdt.pos.x() = -pow(Vlength(tang_speed), 2) / Rcurvature;  // An =  -(Vt^2 / r)

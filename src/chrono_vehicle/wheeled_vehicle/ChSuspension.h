@@ -87,7 +87,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     /// Get the linear velocity of the spindle body on the specified side.
     /// Return the linear velocity of the spindle center, expressed in the global
     /// reference frame.
-    const ChVector3d& GetSpindleLinVel(VehicleSide side) const { return m_spindle[side]->GetPosDer(); }
+    const ChVector3d& GetSpindleLinVel(VehicleSide side) const { return m_spindle[side]->GetPosDt(); }
 
     /// Get the angular velocity of the spindle body on the specified side.
     /// Return the angular velocity of the spindle frame, expressed in the global
@@ -95,7 +95,7 @@ class CH_VEHICLE_API ChSuspension : public ChPart {
     ChVector3d GetSpindleAngVel(VehicleSide side) const { return m_spindle[side]->GetAngVelParent(); }
 
     /// Get the angular speed of the axle on the specified side.
-    double GetAxleSpeed(VehicleSide side) const { return m_axle[side]->GetPosDer(); }
+    double GetAxleSpeed(VehicleSide side) const { return m_axle[side]->GetPosDt(); }
 
     /// Synchronize this suspension subsystem.
     virtual void Synchronize();

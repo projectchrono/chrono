@@ -68,10 +68,10 @@ class ChApi ChShaftsClutch : public ChShaftsCouple {
     double GetSlippage() const { return GetRelativeAngle(); }
 
     /// Get the actual slippage speed of the clutch, in terms of speed of shaft 1 with respect to 2.
-    double GetSlippageDer() const { return GetRelativeAngleDer(); }
+    double GetSlippageDt() const { return GetRelativeAngleDt(); }
 
     /// Get the actual slippage acceleration of the clutch, in terms of accel. of shaft 1 with respect to 2.
-    double GetSlippageDer2() const { return GetRelativeAngleDer2(); }
+    double GetSlippageDt2() const { return GetRelativeAngleDt2(); }
 
     /// Get the reaction torque exchanged between the two shafts, considered as applied to the 1st axis.
     virtual double GetTorqueReactionOn1() const override { return torque_react; }

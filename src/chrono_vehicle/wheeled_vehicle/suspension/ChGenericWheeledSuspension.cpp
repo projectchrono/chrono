@@ -456,7 +456,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         m_axle[side] = chrono_types::make_shared<ChShaft>();
         m_axle[side]->SetNameString(Name({"axle", side}));
         m_axle[side]->SetInertia(getAxleInertia());
-        m_axle[side]->SetPosDer(-ang_vel);
+        m_axle[side]->SetPosDt(-ang_vel);
         chassis->GetSystem()->AddShaft(m_axle[side]);
 
         // Axle connection to spindle

@@ -341,7 +341,7 @@ class ChApi ChElementHexaANCF_3813_9 : public ChElementANCF,
     void CalcCoordMatrix(ChMatrixNM<double, 11, 3>& d);
 
     // Calculate the current 33x1 matrix of nodal coordinate derivatives.
-    void CalcCoordDerivMatrix(ChVectorN<double, 33>& dt);
+    void CalcCoordDtMatrix(ChVectorN<double, 33>& dt);
 
     void ComputeStrainD_Brick9(ChMatrixNM<double, 6, 33>& strainD,
                                ChMatrixNM<double, 1, 11> Nx,

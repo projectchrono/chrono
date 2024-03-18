@@ -181,7 +181,7 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
     virtual void ContactableGetStateBlockPosLevel(ChState& x) override { x.segment(0, 3) = m_node->GetPos().eigen(); }
 
     /// Get all the DOFs packed in a single vector (speed part).
-    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override { w.segment(0, 3) = m_node->GetPosDer().eigen(); }
+    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override { w.segment(0, 3) = m_node->GetPosDt().eigen(); }
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
@@ -204,7 +204,7 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
     }
 
     /// Get the absolute speed of point abs_point if attached to the surface.
-    virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override { return m_node->GetPosDer(); }
+    virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) override { return m_node->GetPosDt(); }
 
     /// Return the frame of the associated collision model relative to the contactable object.
     virtual ChFrame<> GetCollisionModelFrame() override { return ChFrame<>(m_node->GetCoordsys()); }

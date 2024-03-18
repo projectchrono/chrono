@@ -173,7 +173,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     ChVector3d cyl_vel = ChVector3d(0.0, 0.0, 0.0);
     ChVector3d gyration = ChCylinder::GetGyration(cyl_radius, cyl_length / 2).diagonal();
     cylinder->SetPos(cyl_pos);
-    cylinder->SetPosDer(cyl_vel);
+    cylinder->SetPosDt(cyl_vel);
     cylinder->SetMass(mass);
     cylinder->SetInertiaXX(mass * gyration);
 

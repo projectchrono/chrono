@@ -32,7 +32,7 @@ Change Log
   - [\[Added\] Blender plug-in for post-process visualization](#added-blender-plug-in-for-post-process-visualization)
   - [\[Added\] VSG-based run-time visualization module](#added-vsg-based-run-time-visualization-module)
   - [\[Changed\] Support for linear and nonlinear vehicle force elements](#changed-support-for-linear-and-nonlinear-vehicle-force-elements)
-- [Release 8.0.0 (2022-12-21)](#release-8.0.0-2022-12-21)
+- [Release 8.0.0 (2022-12-21)](#release-800-2022-12-21)
   - [\[Added\] Chrono::Sensor features and updates](#added-chronosensor-features-and-updates)
   - [\[Fixed\] Closed-loop vehicle paths](#fixed-closed-loop-vehicle-paths)
   - [\[Added\] Miscellaneous Chrono::Vehicle extensions](#added-miscellaneous-chronovehicle-extensions)
@@ -46,13 +46,13 @@ Change Log
   - [\[Added\] Callback mechanism for collision debug visualization](#added-callback-mechanism-for-collision-debug-visualization)
   - [\[Changed\] Translational and rotational spring-damper-actuators](#changed-translational-and-rotational-spring-damper-actuators)
   - [\[Changed\] Refactor Chrono::Vehicle suspension test rigs](#changed-refactor-chronovehicle-suspension-test-rigs)
-- [Release 7.0.3 (2022-04-17)](#release-7.0.3-2022-04-17)
+- [Release 7.0.3 (2022-04-17)](#release-703-2022-04-17)
   - [\[Fixed\]](#fixed)
-- [Release 7.0.2 (2022-04-03)](#release-7.0.2-2022-04-03)
+- [Release 7.0.2 (2022-04-03)](#release-702-2022-04-03)
   - [\[Fixed\]](#fixed-1)
-- [Release 7.0.1 (2022-01-07)](#release-7.0.1-2022-01-07)
+- [Release 7.0.1 (2022-01-07)](#release-701-2022-01-07)
   - [\[Fixed\]](#fixed-2)
-- [Release 7.0.0 (2021-11-15)](#release-7.0.0-2021-11-15)
+- [Release 7.0.0 (2021-11-15)](#release-700-2021-11-15)
   - [\[Added\] DDS communicator in Chrono::Synchrono module](#added-dds-communicator-in-chronosynchrono-module)
   - [\[Added\] New terramechanics co-simulation module](#added-new-terramechanics-co-simulation-module)
   - [\[Changed\] Chrono::Fsi API redesign](#changed-chronofsi-api-redesign)
@@ -72,7 +72,7 @@ Change Log
   - [\[Changed\] Support for Z up camera in Chrono::Irrlicht](#changed-support-for-z-up-camera-in-chronoirrlicht)
   - [\[Changed\] Reading and writing collision meshes in Chrono::Gpu](#changed-reading-and-writing-collision-meshes-in-chronogpu)
   - [\[Added\] Support for the Emscripten compiler targeting WebAssembly](#added-support-for-the-emscripten-compiler-targeting-webassembly)
-- [Release 6.0.0 (2021-02-10)](#release-6.0.0-2021-02-10)
+- [Release 6.0.0 (2021-02-10)](#release-600-2021-02-10)
   - [\[Added\] New Chrono::Csharp module](#added-new-chronocsharp-module)
   - [\[Added\] RoboSimian, Viper, and LittleHexy models](#added-robosimian-viper-and-littlehexy-models)
   - [\[Added\] Contact force reporting through user-provided callback](#added-contact-force-reporting-through-user-provided-callback)
@@ -94,12 +94,12 @@ Change Log
   - [\[Added\] Chrono::Vehicle simulation world frame](#added-chronovehicle-simulation-world-frame)
   - [\[Changed\] CASCADE module](#changed-cascade-module)
   - [\[Changed\] Collision shapes and contact materials](#changed-collision-shapes-and-contact-materials)
-- [Release 5.0.1 (2020-02-29)](#release-5.0.1-2020-02-29)
+- [Release 5.0.1 (2020-02-29)](#release-501-2020-02-29)
   - [\[Fixed\]](#fixed-3)
-- [Release 5.0.0 (2020-02-24)](#release-5.0.0-2020-02-24)
+- [Release 5.0.0 (2020-02-24)](#release-500-2020-02-24)
   - [\[Changed\] Refactoring of dense linear algebra](#changed-refactoring-of-dense-linear-algebra)
   - [\[Changed\] Eigen sparse matrices and updates to direct sparse linear solvers](#changed-eigen-sparse-matrices-and-updates-to-direct-sparse-linear-solvers)
-- [Release 4.0.0 (2019-02-22)](#release-4.0.0-2019-02-22)
+- [Release 4.0.0 (2019-02-22)](#release-400-2019-02-22)
 
 # Unreleased (development branch)
 
@@ -431,8 +431,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNodeNdofs_active           | rename: GetNodeNumCoordsPosLevelActive           |
 |                                   | GetNnodes                     | rename: GetNumNodes                              |
 | ChElementBeamEuler                |                               |                                                  |
-|                                   | GetField_dt                   | rename: GetFieldDer                              |
-|                                   | GetField_dtdt                 | rename: GetFieldDer2                             |
+|                                   | GetField_dt                   | rename: GetFieldDt                               |
+|                                   | GetField_dtdt                 | rename: GetFieldDt2                              |
 | ChElementShellANCF                |                               |                                                  |
 |                                   | Get_rho                       | rename: GetDensity                               |
 | ChElementShellBST                 |                               |                                                  |
@@ -452,31 +452,31 @@ Note that this represents a major public API change and we expect most user code
 |                                   | operator%=                    | remove                                           |
 |                                   | SetCoord                      | rename: SetCoordsys                              |
 | ChFrameMoving                     |                               |                                                  | 
-|                                   | Compute_Adt                   | rename: ComputeRotMatDer                         |
-|                                   | Compute_Adtdt                 | rename: ComputeRotMatDer2                        |
-|                                   | GetA_dt                       | rename: GetRotMatDer                             |
-|                                   | GetA_dtdt                     | rename: GetRotMatDer2                            |
-|                                   | GetCoord_dt                   | rename: GetCoordsysDer                           |
-|                                   | GetCoord_dtdt                 | rename: GetCoordsysDer2                          |
-|                                   | GetPos_dt                     | rename: GetPosDer                                |
+|                                   | Compute_Adt                   | rename: ComputeRotMatDt                          |
+|                                   | Compute_Adtdt                 | rename: ComputeRotMatDt2                         |
+|                                   | GetA_dt                       | rename: GetRotMatDt                              |
+|                                   | GetA_dtdt                     | rename: GetRotMatDt2                             |
+|                                   | GetCoord_dt                   | rename: GetCoordsysDt                            |
+|                                   | GetCoord_dtdt                 | rename: GetCoordsysDt2                           |
+|                                   | GetPos_dt                     | rename: GetPosDt                                 |
 |                                   |                               | added: GetLinVel                                 |
-|                                   | GetPos_dtdt                   | rename: GetPosDer2                               |
+|                                   | GetPos_dtdt                   | rename: GetPosDt2                                |
 |                                   |                               | added: GetLinAcc                                 |
-|                                   | GetRot_dt                     | rename: GetRotDer                                |
-|                                   | GetRot_dtdt                   | rename: GetRotDer2                               |
+|                                   | GetRot_dt                     | rename: GetRotDt                                 |
+|                                   | GetRot_dtdt                   | rename: GetRotDt2                                |
 |                                   | GetWacc_loc                   | rename: GetAngAccLocal                           |
 |                                   | GetWacc_par                   | rename: GetAngAccParent                          |
 |                                   | GetWvel_loc                   | rename: GetAngVelLocal                           |
 |                                   | GetWvel_par                   | rename: GetAngVelParent                          |
 |                                   | operator%=                    | remove                                           |
-|                                   | SetCoord_dt                   | rename: SetCoordsysDer                           |
-|                                   | SetCoord_dtdt                 | rename: SetCoordsysDer2                          |
-|                                   | SetPos_dt                     | rename: SetPosDer                                |
+|                                   | SetCoord_dt                   | rename: SetCoordsysDt                            |
+|                                   | SetCoord_dtdt                 | rename: SetCoordsysDt2                           |
+|                                   | SetPos_dt                     | rename: SetPosDt                                 |
 |                                   |                               | added: SetLinVel                                 |
-|                                   | SetPos_dtdt                   | rename: SetPosDer2                               |
+|                                   | SetPos_dtdt                   | rename: SetPosDt2                                |
 |                                   |                               | added: SetLinAcc                                 |
-|                                   | SetRot_dt                     | rename: SetRotDer                                |
-|                                   | SetRot_dtdt                   | rename: SetRotDer2                               |
+|                                   | SetRot_dt                     | rename: SetRotDt                                 |
+|                                   | SetRot_dtdt                   | rename: SetRotDt2                                |
 |                                   | SetWacc_loc                   | rename: SetAngAccLocal                           |
 |                                   | SetWacc_par                   | rename: SetAngAccParent                          |
 |                                   | SetWvel_loc                   | rename: SetAngVelLocal                           |
@@ -741,8 +741,8 @@ Note that this represents a major public API change and we expect most user code
 | ChLinkLinActuator                 |                               | rename: ChLinkLockLinActuator                    |
 | ChLinkLock                        |                               |                                                  |
 |                                   | ChangeLinkType                | rename: ChangeType                               |
-|                                   | GetConstraintViolation_dt     | rename: GetConstraintViolationDer                |
-|                                   | GetConstraintViolation_dtdt   | rename: GetConstraintViolationDer2               |
+|                                   | GetConstraintViolation_dt     | rename: GetConstraintViolationDt                 |
+|                                   | GetConstraintViolation_dtdt   | rename: GetConstraintViolationDt2                |
 |                                   | GetForce_D                    | rename: ForceD                                   |
 |                                   | GetForce_R                    | rename: ForceRp                                  |
 |                                   | GetForce_Rx                   | rename: ForceRx                                  |
@@ -760,8 +760,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetLimit_Y                    | rename: LimitY                                   |
 |                                   | GetLimit_Z                    | rename: LimitZ                                   |
 |                                   | GetRelM                       | rename: GetRelCoordsys                           |
-|                                   | GetRelM_dt                    | rename: GetRelCoordsysDer                        |
-|                                   | GetRelM_dtdt                  | rename: GetRelCoordsysDer2                       |
+|                                   | GetRelM_dt                    | rename: GetRelCoordsysDt                         |
+|                                   | GetRelM_dtdt                  | rename: GetRelCoordsysDt2                        |
 |                                   | SetUpMarkers                  | rename: SetupMarkers                             |
 | ChLinkLockBrake                   |                               |                                                  |
 |                                   | Get_brake_mode                | rename: GetBrakeMode                             |
@@ -805,8 +805,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetMotion_Y                   | rename: GetMotionY                               |
 |                                   | GetMotion_Z                   | rename: GetMotionZ                               |
 |                                   | GetRelC                       | rename: GetRelCoordsysViolation                  |
-|                                   | GetRelC_dt                    | rename: GetRelCoordsysViolationDer               |
-|                                   | GetRelC_dtdt                  | rename: GetRelCoordsysViolationDer2              |
+|                                   | GetRelC_dt                    | rename: GetRelCoordsysViolationDt                |
+|                                   | GetRelC_dtdt                  | rename: GetRelCoordsysViolationDt2               |
 |                                   | SetMotion_ang                 | rename: SetMotionAng1                            |
 |                                   | SetMotion_ang2                | rename: SetMotionAng2                            |
 |                                   | SetMotion_ang3                | rename: SetMotionAng3                            |
@@ -868,7 +868,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetActiveRedundantByArray     | remove                                           |
 | ChLinkMarkers                     |                               |                                                  |
 |                                   | GetDist                       | rename: GetDistance                              |
-|                                   | GetDist_dt                    | rename: GetDistanceDer                           |
+|                                   | GetDist_dt                    | rename: GetDistanceDt                            |
 |                                   | GetRelWvel                    | rename: GetRelativeAngVel                        |
 |                                   | GetRelWacc                    | rename: GetRelativeAngAcc                        |
 | ChLinkMate                        |                               |                                                  |
@@ -880,23 +880,23 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetLagrangeMultiplier_f       | remove                                           |
 |                                   | GetLagrangeMultiplier_m       | remove                                           |
 | ChLinkMatePrismatic               |                               |                                                  |
-|                                   | GetRelativePos_dt             | rename: GetRelativePosDer                        |
-|                                   | GetRelativePos_dtdt           | rename: GetRelativePosDer2                       |
+|                                   | GetRelativePos_dt             | rename: GetRelativePosDt                         |
+|                                   | GetRelativePos_dtdt           | rename: GetRelativePosDt2                        |
 | ChLinkMateRevolute                |                               |                                                  |
-|                                   | GetRelativeAngle_dt           | rename: GetRelativeAngleDer                      |
-|                                   | GetRelativeAngle_dtdt         | rename: GetRelativeAngleDer2                     |
+|                                   | GetRelativeAngle_dt           | rename: GetRelativeAngleDt                       |
+|                                   | GetRelativeAngle_dtdt         | rename: GetRelativeAngleDt2                      |
 | ChLinkMateXdistance               |                               | rename: ChLinkMateDistanceZ                      |
 | ChLinkMotorLinearDriveline        |                               |                                                  |
 |                                   | GetInnerShaft1lin             | rename: GetInnerShaft1Lin                        |
 |                                   | GetInnerShaft2lin             | rename: GetInnerShaft2Lin                        |
 |                                   | GetInnerShaft2rot             | rename: GetInnerShaft2Rot                        |
 | ChLinkMotorPosition               |                               |                                                  |
-|                                   | GetMotorPos_dt                | rename: GetMotorPosDer                           |
-|                                   | GetMotorPos_dtdt              | rename: GetMotorPosDer2                          |
+|                                   | GetMotorPos_dt                | rename: GetMotorPosDt                            |
+|                                   | GetMotorPos_dtdt              | rename: GetMotorPosDt2                           |
 | ChLinkMotorRotation               |                               |                                                  |
 |                                   | GetMotorRot                   | rename: GetMotorAngle                            |
-|                                   | GetMotorRot_dt                | rename: GetMotorAngleDer                         |
-|                                   | GetMotorRot_dtdt              | rename: GetMotorAngleDer2                        |
+|                                   | GetMotorRot_dt                | rename: GetMotorAngleDt                          |
+|                                   | GetMotorRot_dtdt              | rename: GetMotorAngleDt2                         |
 |                                   | GetMotorRotPeriodic           | rename: GetMotorAngleWrapped                     |
 |                                   | GetMotorRotTurns              | rename: GetMotorNumTurns                         |
 | ChLinkMotorRotationSpeed          |                               |                                                  |
@@ -950,8 +950,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetAbsWvel                    | rename: GetAngVelAbs                             |
 |                                   | GetAbsWacc                    | rename: GetAngAccAbs                             |
 |                                   | GetAbsCoord                   | rename: GetAbsCoordsys                           |
-|                                   | GetAbsCoord_dt                | rename: GetAbsCoordsysDer                        |
-|                                   | GetAbsCoord_dtdt              | rename: GetAbsCoordsysDer2                       |
+|                                   | GetAbsCoord_dt                | rename: GetAbsCoordsysDt                         |
+|                                   | GetAbsCoord_dtdt              | rename: GetAbsCoordsysDt2                        |
 |                                   | GetMotionAng1                 | rename: GetMotionAngle                           |
 |                                   | GetMotion_axis                | rename: GetMotionAxis                            |
 |                                   | GetMotionX                    | rename: GetMotionX                               |
@@ -963,8 +963,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Point_Ref2World               | remove                                           |
 |                                   | Point_World2Ref               | remove                                           |
 |                                   | SetAbsCoord                   | rename: SetAbsCoordsys                           |
-|                                   | SetAbsCoord_dt                | rename: SetAbsCoordsysDer                        |
-|                                   | SetAbsCoord_dtdt              | rename: SetAbsCoordsysDer2                       |
+|                                   | SetAbsCoord_dt                | rename: SetAbsCoordsysDt                         |
+|                                   | SetAbsCoord_dtdt              | rename: SetAbsCoordsysDt2                        |
 |                                   | SetMotion_ang                 | rename: SetMotionAngle                           |
 |                                   | SetMotion_axis                | rename: SetMotionAxis                            |
 |                                   | SetMotion_X                   | rename: SetMotionX                               |
@@ -1009,44 +1009,44 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 | ChNodeFEAxyzD                     |                               |                                                  |
 |                                   | GetD                          | rename: GetSlope1                                |
-|                                   | GetD_dt                       | rename: GetSlope1Der                             |
-|                                   | GetD_dtdt                     | rename: GetSlope1Der2                            |
+|                                   | GetD_dt                       | rename: GetSlope1Dt                              |
+|                                   | GetD_dtdt                     | rename: GetSlope1Dt2                             |
 |                                   | IsFixedD                      | rename: IsSlope1Fixed                            |
 |                                   | SetD                          | rename: SetSlope1                                |
-|                                   | SetD_dt                       | rename: SetSlope1Der                             |
-|                                   | SetD_dtdt                     | rename: SetSlope1Der2                            |
+|                                   | SetD_dt                       | rename: SetSlope1Dt                              |
+|                                   | SetD_dtdt                     | rename: SetSlope1Dt2                             |
 |                                   | SetFixedD                     | rename: SetSlope1Fixed                           |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 |                                   | Variable_D                    | rename: VariablesSlope1                          |
 | ChNodeFEAxyzDD                    |                               |                                                  |
 |                                   | GetDD                         | rename: GetSlope2                                |
-|                                   | GetDD_dt                      | rename: GetSlope2Der                             |
-|                                   | GetDD_dtdt                    | rename: GetSlope2Der2                            |
+|                                   | GetDD_dt                      | rename: GetSlope2Dt                              |
+|                                   | GetDD_dtdt                    | rename: GetSlope2Dt2                             |
 |                                   | IsFixedDD                     | rename: IsSlope2Fixed                            |
 |                                   | SetDD                         | rename: SetSlope2                                |
-|                                   | SetDD_dt                      | rename: SetSlope2Der                             |
-|                                   | SetDD_dtdt                    | rename: SetSlope2Der2                            |
+|                                   | SetDD_dt                      | rename: SetSlope2Dt                              |
+|                                   | SetDD_dtdt                    | rename: SetSlope2Dt2                             |
 |                                   | SetFixedDD                    | rename: SetSlope2Fixed                           |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 |                                   | Variable_DD                   | rename: VariablesSlope2                          |
 | ChNodeFEAxyzDDD                   |                               |                                                  |
 |                                   | GetDDD                        | rename: GetSlope3                                |
-|                                   | GetDDD_dt                     | rename: GetSlope3Der                             |
-|                                   | GetDDD_dtdt                   | rename: GetSlope3Der2                            |
+|                                   | GetDDD_dt                     | rename: GetSlope3Dt                              |
+|                                   | GetDDD_dtdt                   | rename: GetSlope3Dt2                             |
 |                                   | IsFixedDDD                    | rename: IsSlope3Fixed                            |
 |                                   | SetDDD                        | rename: SetSlope3                                |
-|                                   | SetDDD_dt                     | rename: SetSlope3Der                             |
-|                                   | SetDDD_dtdt                   | rename: SetSlope3Der2                            |
+|                                   | SetDDD_dt                     | rename: SetSlope3Dt                              |
+|                                   | SetDDD_dtdt                   | rename: SetSlope3Dt2                             |
 |                                   | SetFixedDDD                   | rename: SetSlope3Fixed                           |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 |                                   | Variable_DDD                  | rename: VariablesSlope3                          |
 | ChNodeFEAxyzP                     |                               |                                                  |
 |                                   | GetF                          | rename: GetLoad                                  |
 |                                   | GetP                          | rename: GetFieldVal                              |
-|                                   | GetP_dt                       | rename: GetFieldValDer                           |
+|                                   | GetP_dt                       | rename: GetFieldValDt                            |
 |                                   | SetF                          | rename: SetLoad                                  |
 |                                   | SetP                          | rename: SetFieldVal                              |
-|                                   | SetP_dt                       | rename: SetFieldValDer                           |
+|                                   | SetP_dt                       | rename: SetFieldValDt                            |
 | ChNodeFEAxyzrot                   |                               |                                                  |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 | ChParticleCloud                   |                               |                                                  |
@@ -1078,14 +1078,14 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Q_to_Euler123                 | rename: GetCardanAnglesXYZ                       |
 |                                   | Q_to_NasaAngles               | rename: GetCardanAnglesZYX                       |
 |                                   | Q_to_rotvec                   | rename: GetRotVec                                |
-|                                   | Qdt_from_AngAxis              | rename: SetDerFromAngleAxis                      |
-|                                   | Qdt_from_Wabs                 | rename: SetDerFromAngVelAbs                      |
+|                                   | Qdt_from_AngAxis              | rename: SetDtFromAngleAxis                       |
+|                                   | Qdt_from_Wabs                 | rename: SetDtFromAngVelAbs                       |
 |                                   | Qdt_to_Wabs                   | rename: GetAngVelAbs                             |
 |                                   | Qdt_to_Wrel                   | rename: GetAngVelRel                             |
-|                                   | Qdt_from_Wrel                 | rename: SetDerFromAngVelRel                      |
-|                                   | Qdtdt_from_Aabs               | rename: SetDer2FromAngAccAbs                     |
-|                                   | Qdtdt_from_Arel               | rename: SetDer2FromAngAccRel                     |
-|                                   | Qdtdt_from_AngAxis            | rename: SetDer2FromAngleAxis                     |
+|                                   | Qdt_from_Wrel                 | rename: SetDtFromAngVelRel                       |
+|                                   | Qdtdt_from_Aabs               | rename: SetDt2FromAngAccAbs                      |
+|                                   | Qdtdt_from_Arel               | rename: SetDt2FromAngAccRel                      |
+|                                   | Qdtdt_from_AngAxis            | rename: SetDt2FromAngleAxis                      |
 | ChShaft                           |                               |                                                  |
 |                                   | GetId                         | rename: GetIndex (internal use only)             |
 |                                   | GetGid                        | remove                                           |
@@ -1096,12 +1096,12 @@ Note that this represents a major public API change and we expect most user code
 | ChShaftsBody                      |                               | rename: ChShaftBodyRotation                      |
 | ChShaftsBodyTranslation           |                               | rename: ChShaftBodyTranslation                   |
 | ChShaftsClutch                    |                               |                                                  |
-|                                   | GetSlippage_dt                | rename: GetSlippageDer                           |
-|                                   | GetSlippage_dtdt              | rename: GetSlippageDer2                          |
+|                                   | GetSlippage_dt                | rename: GetSlippageDt                            |
+|                                   | GetSlippage_dtdt              | rename: GetSlippageDt2                           |
 | ChShaftsCouple                    |                               |                                                  |
 |                                   | GetRelativeRotation           | rename: GetRelativeAngle                         |
-|                                   | GetRelativeRotation_dt        | rename: GetRelativeAngleDer                      |
-|                                   | GetRelativeRotation_dtdt      | rename: GetRelativeAngleDer2                     |
+|                                   | GetRelativeRotation_dt        | rename: GetRelativeAngleDt                       |
+|                                   | GetRelativeRotation_dtdt      | rename: GetRelativeAngleDt2                      |
 | ChShaftsElasticGear               |                               |                                                  |
 |                                   | GetGearRadiusA                | rename: GetGearRadius1                           |
 |                                   | GetGearRadiusB                | rename: GetGearRadius2                           |
@@ -1244,6 +1244,27 @@ Note that this represents a major public API change and we expect most user code
 |                                   | set_delim                     | rename: SetDelimiter                             |
 |                                   | stream                        | rename: Stream                                   |
 |                                   | write_to_file                 | rename: WriteToFile                              |
+| Generator                         |                               | rename: ChGenerator                              |
+|                                   | getBodyIdentifier             | rename: GetBodyIdentifier                        |
+|                                   | getTotalMass                  | rename: GetTotalMass                             |
+|                                   | getTotalNumBodies             | rename: GetTotalNumBodies                        |
+|                                   | getTotalVolume                | rename: GetTotalVolume                           |
+|                                   | setBodyIdentifier             | rename: SetBodyIdentifier                        |
+| GridSampler                       |                               | rename: ChGridSampler                            |
+| HCPSampler                        |                               | rename: ChHCPSampler                             |
+| MixtureIngredient                 |                               | rename: ChMixtureIngredient                      |
+|                                   | setDefaultDensity             | rename: SetDefaultDensity                        |
+|                                   | setDefaultMaterial            | rename: SetDefaultMaterial                       |
+|                                   | setDefaultSize                | rename: SetDefaultSize                           |
+|                                   | setDistributionCohesion       | rename: SetDistributionCohesion                  |
+|                                   | setDistributionDensity        | rename: SetDistributionDensity                   |
+|                                   | setDistributionFriction       | rename: SetDistributionFriction                  |
+|                                   | setDistributionPoisson        | rename: SetDistributionPoisson                   |
+|                                   | setDistributionRestitution    | rename: SetDistributionRestitution               |
+|                                   | setDistributionSize           | rename: SetDistributionSize                      |
+|                                   | setDistributionYoung          | rename: SetDistributionYoung                     |
+| PDSampler                         |                               | rename: ChPDSampler                              |
+| Sampler                           |                               | rename: ChSampler                                |
 
 
 **Types**
@@ -1295,13 +1316,13 @@ Note that this represents a major public API change and we expect most user code
   | -                        | RotVecFromQuat                |
   | Angle_to_Quat            | QuatFromRodriguez             |
   | Angle_to_Quat            | QuatFromAngleSet              |
-  | AngleDT_to_QuatDT        | QuatDerFromAngleSet           |
-  | AngleDT_to_QuatDT        | QuatDerFromRodriguez          |
-  | AngleDTDT_to_QuatDTDT    | QuatDer2FromAngleSet          |
-  | AngleDTDT_to_QuatDTDT    | QuatDer2FromRodriguez         |
+  | AngleDT_to_QuatDT        | QuatDtFromAngleSet            |
+  | AngleDT_to_QuatDT        | QuatDtFromRodriguez           |
+  | AngleDTDT_to_QuatDTDT    | QuatDt2FromAngleSet           |
+  | AngleDTDT_to_QuatDTDT    | QuatDt2FromRodriguez          |
   | ImmQ_complete            | QuatFromImaginary             |
-  | ImmQ_dt_complete         | QuatDerFromImaginary          |
-  | ImmQ_dtdt_complete       | QuatDer2FromImaginary         |
+  | ImmQ_dt_complete         | QuatDtFromImaginary           |
+  | ImmQ_dtdt_complete       | QuatDt2FromImaginary          |
   | Q_from_AngAxis           | QuatFromAngleAxis             |
   | Q_from_AngX              | QuatFromAngleX                |
   | Q_from_AngY              | QuatFromAngleY                |
@@ -1312,8 +1333,8 @@ Note that this represents a major public API change and we expect most user code
   | Q_to_AngAxis             | AngleAxisFromQuat             |
   | Q_to_Euler123            | AngleSetFromQuat              |
   | Q_to_NasaAngles          | AngleSetFromQuat              |
-  | Qdt_from_AngAxis         | QuatDerFromAngleAxis          |
-  | Qdtdt_from_AngAxis       | QuatDer2FromAngleAxis         |
+  | Qdt_from_AngAxis         | QuatDtFromAngleAxis           |
+  | Qdtdt_from_AngAxis       | QuatDt2FromAngleAxis          |
   | Quat_to_Angle            | RodriguezFromQuat             |
   | Quat_to_Angle            | AngleSetFromQuat              |
 

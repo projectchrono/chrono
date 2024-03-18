@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
                 node_vel = state_w->segment(0, 3);
             } else {
                 node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPos();
-                node_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPosDer();
+                node_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPosDt();
             }
             // Just implement a simple force+spring+damper in xy plane,
             // for spring&damper connected to absolute reference:
@@ -256,7 +256,7 @@ int main(int argc, char* argv[]) {
                 node_vel = state_w->segment(0, 3);
             } else {
                 node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPos();
-                node_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPosDer();
+                node_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPosDt();
             }
             // Just implement a simple force+spring+damper in xy plane,
             // for spring&damper connected to absolute reference:
@@ -342,9 +342,9 @@ int main(int argc, char* argv[]) {
                 // explicit integrators might call ComputeQ(0,0), null pointers mean
                 // that we assume current state, without passing state_x for efficiency
                 Enode_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[0])->GetPos();
-                Enode_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[0])->GetPosDer();
+                Enode_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[0])->GetPosDt();
                 Fnode_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[1])->GetPos();
-                Fnode_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[1])->GetPosDer();
+                Fnode_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[1])->GetPosDt();
             }
             // Just implement two simple force+spring+dampers in xy plane:
             // ... from node E to ground,

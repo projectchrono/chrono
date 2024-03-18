@@ -44,7 +44,7 @@ int main(int argc, char* argv[]) {
 
     auto body = chrono_types::make_shared<ChBody>();
     body->SetPos(ChVector3d(-1, -2, -3));
-    body->SetPosDer(ChVector3d(0.2, 0.3, 0.4));
+    body->SetPosDt(ChVector3d(0.2, 0.3, 0.4));
     body->SetRot(QuatFromAngleY(CH_PI / 4));
     body->SetAngVelLocal(ChVector3d(0.1, -0.1, 0.2));
 

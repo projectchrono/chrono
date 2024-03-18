@@ -1245,7 +1245,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
 // Compute internal forces and load them in the Fi vector.
 void ChElementHexaANCF_3813_9::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     CalcCoordMatrix(m_d);
-    CalcCoordDerivMatrix(m_d_dt);
+    CalcCoordDtMatrix(m_d_dt);
     m_ddT = m_d * m_d.transpose();
 
     Fi.setZero();
@@ -2617,7 +2617,7 @@ void ChElementHexaANCF_3813_9::LoadableGetStateBlockPosLevel(int block_offset, C
 // Get all the DOFs packed in a single vector (speed part).
 void ChElementHexaANCF_3813_9::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     for (int i = 0; i < 8; i++) {
-        mD.segment(block_offset + 3 * i, 3) = m_nodes[i]->GetPosDer().eigen();
+        mD.segment(block_offset + 3 * i, 3) = m_nodes[i]->GetPosDt().eigen();
     }
     mD.segment(block_offset + 24, 3) = m_central_node->GetCurvatureXX_dt().eigen();
     mD.segment(block_offset + 27, 3) = m_central_node->GetCurvatureYY_dt().eigen();
@@ -2847,9 +2847,9 @@ void ChElementHexaANCF_3813_9::CalcCoordMatrix(ChMatrixNM<double, 11, 3>& d) {
     d(10, 2) = rzz.z();
 }
 
-void ChElementHexaANCF_3813_9::CalcCoordDerivMatrix(ChVectorN<double, 33>& dt) {
+void ChElementHexaANCF_3813_9::CalcCoordDtMatrix(ChVectorN<double, 33>& dt) {
     for (int i = 0; i < 8; i++) {
-        const ChVector3d& vel = m_nodes[i]->GetPosDer();
+        const ChVector3d& vel = m_nodes[i]->GetPosDt();
         dt(3 * i + 0) = vel.x();
         dt(3 * i + 1) = vel.y();
         dt(3 * i + 2) = vel.z();

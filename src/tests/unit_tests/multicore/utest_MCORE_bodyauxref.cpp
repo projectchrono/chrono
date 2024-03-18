@@ -182,10 +182,10 @@ TEST(ChronoMulticore, bodyauxref) {
 
             Assert_near(pend_1->GetRot(), pend_2->GetRot(), quat_tol);
 
-            Assert_near(pend_1->GetPosDer(), pend_2->GetPosDer(), vel_tol);
+            Assert_near(pend_1->GetPosDt(), pend_2->GetPosDt(), vel_tol);
             Assert_near(pend_1->GetAngVelParent(), pend_2->GetAngVelParent(), avel_tol);
 
-            Assert_near(pend_1->GetPosDer2(), pend_2->GetPosDer2(), acc_tol);
+            Assert_near(pend_1->GetPosDt2(), pend_2->GetPosDt2(), acc_tol);
             Assert_near(pend_1->GetAngAccParent(), pend_2->GetAngAccParent(), aacc_tol);
         }
     }

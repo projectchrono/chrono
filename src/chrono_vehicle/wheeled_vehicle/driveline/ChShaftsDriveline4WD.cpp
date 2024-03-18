@@ -180,23 +180,23 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Front differential 
     double omega_front_differentialbox = 0.5 * (omega_axle_FL + omega_axle_FR);
-    m_front_differentialbox->SetPosDer(omega_front_differentialbox);
+    m_front_differentialbox->SetPosDt(omega_front_differentialbox);
 
     // Rear differential
     double omega_rear_differentialbox = 0.5 * (omega_axle_RL + omega_axle_RR);
-    m_rear_differentialbox->SetPosDer(omega_rear_differentialbox);
+    m_rear_differentialbox->SetPosDt(omega_rear_differentialbox);
 
     // Front conical gear
     double omega_front_shaft = omega_front_differentialbox / GetFrontConicalGearRatio();
-    m_front_shaft->SetPosDer(omega_front_shaft);
+    m_front_shaft->SetPosDt(omega_front_shaft);
 
     // Rear conical gear
     double omega_rear_shaft = omega_rear_differentialbox / GetRearConicalGearRatio();
-    m_rear_shaft->SetPosDer(omega_rear_shaft);
+    m_rear_shaft->SetPosDt(omega_rear_shaft);
 
     // Central differential
     double omega_driveshaft = 0.5 * (omega_front_shaft + omega_rear_shaft);
-    m_driveshaft->SetPosDer(omega_driveshaft);
+    m_driveshaft->SetPosDt(omega_driveshaft);
 }
 
 // -----------------------------------------------------------------------------

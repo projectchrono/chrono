@@ -9,9 +9,9 @@
 
 %csmethodmodifiers chrono::ChBody::SetPos "public"
 %csmethodmodifiers chrono::ChBody::SetRot "public"
-%csmethodmodifiers chrono::ChBody::SetPosDer "public"
+%csmethodmodifiers chrono::ChBody::SetPosDt "public"
 %csmethodmodifiers chrono::ChBody::SetLinVel "public"
-%csmethodmodifiers chrono::ChBody::SetRotDer "public"
+%csmethodmodifiers chrono::ChBody::SetRotDt "public"
 %csmethodmodifiers chrono::ChBody::SetAngVelLocal "public"
 %csmethodmodifiers chrono::ChBody::SetAngVelParent "public"
 
@@ -19,14 +19,14 @@
 %csmethodmodifiers chrono::ChBody::GetPos "public"
 %csmethodmodifiers chrono::ChBody::GetRot "public"
 %csmethodmodifiers chrono::ChBody::GetRotMat "public"
-%csmethodmodifiers chrono::ChBody::GetPosDer "public"
+%csmethodmodifiers chrono::ChBody::GetPosDt "public"
 %csmethodmodifiers chrono::ChBody::GetLinVel "public"
-%csmethodmodifiers chrono::ChBody::GetRotDer "public"
+%csmethodmodifiers chrono::ChBody::GetRotDt "public"
 %csmethodmodifiers chrono::ChBody::GetAngVelLocal "public"
 %csmethodmodifiers chrono::ChBody::GetAngVelParent "public"
-%csmethodmodifiers chrono::ChBody::GetPosDer2 "public"
+%csmethodmodifiers chrono::ChBody::GetPosDt2 "public"
 %csmethodmodifiers chrono::ChBody::GetLinAcc "public"
-%csmethodmodifiers chrono::ChBody::GetRotDer2 "public"
+%csmethodmodifiers chrono::ChBody::GetRotDt2 "public"
 %csmethodmodifiers chrono::ChBody::GetAngAccLocal "public"
 %csmethodmodifiers chrono::ChBody::GetAngAccParent "public"
 
@@ -47,19 +47,19 @@ const ChQuaternion<double>& GetRot() const  {return $self->GetRot();}
 const ChMatrix33<double>& GetRotMat() const {return $self->GetRotMat();}
 
 // Methods inherited from ChFrameMoving
-void SetPosDer(const ChVector3<double>& pd)        {$self->SetPosDer(pd);}
+void SetPosDt(const ChVector3<double>& pd)         {$self->SetPosDt(pd);}
 void SetLinVel(const ChVector3<double>& pd)        {$self->SetLinVel(pd);}
-void SetRotDer(const ChQuaternion<double>& qd)     {$self->SetRotDer(qd);}
+void SetRotDt(const ChQuaternion<double>& qd)      {$self->SetRotDt(qd);}
 void SetAngVelLocal(const ChVector3<double>& wl)   {$self->SetAngVelLocal(wl);}
 void SetAngVelParent(const ChVector3<double>& wp)  {$self->SetAngVelParent(wp);}
-const ChVector3<double>& GetPosDer() const         {return $self->GetPosDer();}
+const ChVector3<double>& GetPosDt() const          {return $self->GetPosDt();}
 const ChVector3<double>& GetLinVel() const         {return $self->GetLinVel();}
-const ChQuaternion<double>& GetRotDer() const      {return $self->GetRotDer();}
+const ChQuaternion<double>& GetRotDt() const       {return $self->GetRotDt();}
 ChVector3<double> GetAngVelLocal() const           {return $self->GetAngVelLocal();}
 ChVector3<double> GetAngVelParent() const          {return $self->GetAngVelParent();}
-const ChVector3<double>& GetPosDer2() const        {return $self->GetPosDer2();}
+const ChVector3<double>& GetPosDt2() const         {return $self->GetPosDt2();}
 const ChVector3<double>& GetLinAcc() const         {return $self->GetLinAcc();}
-const ChQuaternion<double>& GetRotDer2() const     {return $self->GetRotDer2();}
+const ChQuaternion<double>& GetRotDt2() const      {return $self->GetRotDt2();}
 ChVector3<double> GetAngAccLocal() const           {return $self->GetAngAccLocal();}
 ChVector3<double> GetAngAccParent() const          {return $self->GetAngAccParent();}
 

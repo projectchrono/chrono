@@ -495,8 +495,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
             assert(body->GetIdentifier() == identifier);
             body->SetPos(ChVector3d(pos.x(), pos.y(), pos.z()));
             body->SetRot(ChQuaternion<>(rot.e0(), rot.e1(), rot.e2(), rot.e3()));
-            body->SetPosDer(ChVector3d(pos_dt.x(), pos_dt.y(), pos_dt.z()));
-            body->SetRotDer(ChQuaternion<>(rot_dt.e0(), rot_dt.e1(), rot_dt.e2(), rot_dt.e3()));
+            body->SetPosDt(ChVector3d(pos_dt.x(), pos_dt.y(), pos_dt.z()));
+            body->SetRotDt(ChQuaternion<>(rot_dt.e0(), rot_dt.e1(), rot_dt.e2(), rot_dt.e3()));
         }
 
         if (m_verbose)
@@ -713,7 +713,7 @@ double ChVehicleCosimTerrainNodeGranularOMP::CalcTotalKineticEnergy() {
         if (body->GetIdentifier() > 0) {
             auto omg = body->GetAngVelParent();
             auto J = body->GetInertiaXX();
-            KE += body->GetMass() * body->GetPosDer().Length2() + omg.Dot(J * omg);
+            KE += body->GetMass() * body->GetPosDt().Length2() + omg.Dot(J * omg);
         }
     }
     return 0.5 * KE;
@@ -910,7 +910,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
         const ChVector3d& vC = mesh_state.vvel[idx_verts[it].z()];
 
         ChVector3d vel = (vA + vB + vC) / 3;
-        proxy->bodies[it]->SetPosDer(vel);
+        proxy->bodies[it]->SetPosDt(vel);
 
         //// RADU TODO: angular velocity
         proxy->bodies[it]->SetAngVelLocal(ChVector3d(0, 0, 0));
@@ -931,7 +931,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
 void ChVehicleCosimTerrainNodeGranularOMP::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
     proxy->bodies[0]->SetPos(rigid_state.pos);
-    proxy->bodies[0]->SetPosDer(rigid_state.lin_vel);
+    proxy->bodies[0]->SetPosDt(rigid_state.lin_vel);
     proxy->bodies[0]->SetRot(rigid_state.rot);
     proxy->bodies[0]->SetAngVelParent(rigid_state.ang_vel);
 }
@@ -1081,8 +1081,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteParticleInformation(utils::ChWri
     for (auto body : m_system->GetBodies()) {
         if (body->GetIdentifier() < body_id_particles)
             continue;
-        ////csv << body->GetIdentifier() << body->GetPos() << body->GetPosDer() << endl;
-        csv << body->GetPos() << body->GetPosDer() << endl;
+        ////csv << body->GetIdentifier() << body->GetPos() << body->GetPosDt() << endl;
+        csv << body->GetPos() << body->GetPosDt() << endl;
     }
 }
 
@@ -1098,7 +1098,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& fi
     for (auto& body : m_system->GetBodies()) {
         if (body->GetIdentifier() < body_id_particles)
             continue;
-        csv << body->GetIdentifier() << body->GetPos() << body->GetRot() << body->GetPosDer() << body->GetRotDer()
+        csv << body->GetIdentifier() << body->GetPos() << body->GetRot() << body->GetPosDt() << body->GetRotDt()
             << endl;
     }
 
@@ -1125,7 +1125,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::PrintMeshProxiesUpdateData(unsigned i
             proxy->bodies.begin(), proxy->bodies.end(),
             [](std::shared_ptr<ChBody> a, std::shared_ptr<ChBody> b) { return a->GetPos().z() < b->GetPos().z(); });
         double height = (*lowest)->GetPos().z();
-        const ChVector3d& vel = (*lowest)->GetPosDer();
+        const ChVector3d& vel = (*lowest)->GetPosDt();
         cout << "[Terrain node] object: " << i << "  lowest proxy:  height = " << height << "  velocity = " << vel
              << endl;
     }

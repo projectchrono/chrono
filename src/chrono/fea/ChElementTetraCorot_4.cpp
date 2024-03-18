@@ -307,10 +307,10 @@ void ChElementTetraCorot_4::LoadableGetStateBlockPosLevel(int block_offset, ChSt
 }
 
 void ChElementTetraCorot_4::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = nodes[0]->GetPosDer().eigen();
-    mD.segment(block_offset + 3, 3) = nodes[1]->GetPosDer().eigen();
-    mD.segment(block_offset + 6, 3) = nodes[2]->GetPosDer().eigen();
-    mD.segment(block_offset + 9, 3) = nodes[3]->GetPosDer().eigen();
+    mD.segment(block_offset + 0, 3) = nodes[0]->GetPosDt().eigen();
+    mD.segment(block_offset + 3, 3) = nodes[1]->GetPosDt().eigen();
+    mD.segment(block_offset + 6, 3) = nodes[2]->GetPosDt().eigen();
+    mD.segment(block_offset + 9, 3) = nodes[3]->GetPosDt().eigen();
 }
 
 void ChElementTetraCorot_4::LoadableStateIncrement(const unsigned int off_x,
@@ -531,10 +531,10 @@ void ChElementTetraCorot_4_P::LoadableGetStateBlockPosLevel(int block_offset, Ch
 }
 
 void ChElementTetraCorot_4_P::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
-    mD(block_offset + 0) = this->nodes[0]->GetFieldValDer();
-    mD(block_offset + 1) = this->nodes[1]->GetFieldValDer();
-    mD(block_offset + 2) = this->nodes[2]->GetFieldValDer();
-    mD(block_offset + 3) = this->nodes[3]->GetFieldValDer();
+    mD(block_offset + 0) = this->nodes[0]->GetFieldValDt();
+    mD(block_offset + 1) = this->nodes[1]->GetFieldValDt();
+    mD(block_offset + 2) = this->nodes[2]->GetFieldValDt();
+    mD(block_offset + 3) = this->nodes[3]->GetFieldValDt();
 }
 
 void ChElementTetraCorot_4_P::LoadableStateIncrement(const unsigned int off_x,

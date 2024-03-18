@@ -1066,7 +1066,7 @@ void TurtleBot::SetMotorSpeed(double rad_speed, WheelID id) {
 }
 
 ChVector3d TurtleBot::GetActiveWheelSpeed(WheelID id) {
-    return m_drive_wheels[id]->GetBody()->GetPosDer();
+    return m_drive_wheels[id]->GetBody()->GetPosDt();
 }
 
 ChVector3d TurtleBot::GetActiveWheelAngVel(WheelID id) {

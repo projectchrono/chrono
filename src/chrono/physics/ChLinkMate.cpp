@@ -847,7 +847,7 @@ double ChLinkMateRevolute::GetRelativeAngle() {
     return angle;
 }
 
-double ChLinkMateRevolute::GetRelativeAngleDer() {
+double ChLinkMateRevolute::GetRelativeAngleDt() {
     ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *m_body1;
     ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *m_body2;
     ChFrameMoving<> F1_F2 = F2_W.TransformParentToLocal(F1_W);
@@ -855,7 +855,7 @@ double ChLinkMateRevolute::GetRelativeAngleDer() {
     return vel12_W;
 }
 
-double ChLinkMateRevolute::GetRelativeAngleDer2() {
+double ChLinkMateRevolute::GetRelativeAngleDt2() {
     ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *m_body1;
     ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *m_body2;
     ChFrameMoving<> F1_F2 = F2_W.TransformParentToLocal(F1_W);
@@ -924,17 +924,17 @@ double ChLinkMatePrismatic::GetRelativePos() {
     return pos12_W.z(); // NB: assumes translation along Z
 }
 
-double ChLinkMatePrismatic::GetRelativePosDer() {
+double ChLinkMatePrismatic::GetRelativePosDt() {
     ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *m_body1;
     ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *m_body2;
-    ChVector3d vel12_W = F1_W.GetPosDer() - F2_W.GetPosDer();
+    ChVector3d vel12_W = F1_W.GetPosDt() - F2_W.GetPosDt();
     return vel12_W.z(); // NB: assumes translation along Z
 }
 
-double ChLinkMatePrismatic::GetRelativePosDer2() {
+double ChLinkMatePrismatic::GetRelativePosDt2() {
     ChFrameMoving<> F1_W = ChFrameMoving<>(frame1) >> *m_body1;
     ChFrameMoving<> F2_W = ChFrameMoving<>(frame2) >> *m_body2;
-    ChVector3d acc12_W = F1_W.GetPosDer2() - F2_W.GetPosDer2();
+    ChVector3d acc12_W = F1_W.GetPosDt2() - F2_W.GetPosDt2();
     return acc12_W.z(); // NB: assumes translation along Z
 }
 

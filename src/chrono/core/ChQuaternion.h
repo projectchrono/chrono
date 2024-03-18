@@ -344,11 +344,11 @@ class ChQuaternion {
 
     /// Set the quaternion dq/dt. Inputs: the vector of angular speed w specified in absolute coords,
     /// and the rotation expressed as a quaternion q.
-    void SetDerFromAngVelAbs(const ChVector3<Real>& w, const ChQuaternion<Real>& q);
+    void SetDtFromAngVelAbs(const ChVector3<Real>& w, const ChQuaternion<Real>& q);
 
     /// Set the quaternion dq/dt. Inputs: the vector of angular speed w specified in relative coords,
     /// and the rotation expressed as a quaternion q.
-    void SetDerFromAngVelRel(const ChVector3<Real>& w, const ChQuaternion<Real>& q);
+    void SetDtFromAngVelRel(const ChVector3<Real>& w, const ChQuaternion<Real>& q);
 
     /// Compute the vector of angular speed 'w' specified in absolute coords,
     /// from this quaternion dq/dt and the rotation expressed as a quaternion q.
@@ -361,22 +361,22 @@ class ChQuaternion {
     /// Set the quaternion ddq/dtdt. Inputs: the vector of angular acceleration 'a' specified
     /// in absolute coords, the rotation expressed as a quaternion q, the rotation speed
     /// as a quaternion 'q_dt'.
-    void SetDer2FromAngAccAbs(const ChVector3<Real>& a, const ChQuaternion<Real>& q, const ChQuaternion<Real>& q_dt);
+    void SetDt2FromAngAccAbs(const ChVector3<Real>& a, const ChQuaternion<Real>& q, const ChQuaternion<Real>& q_dt);
 
     /// Set the quaternion ddq/dtdt. Inputs: the vector of angular acceleration 'a' specified
     /// in relative coords, the rotation expressed as a quaternion q, the rotation speed
     /// as a quaternion 'q_dt'.
-    void SetDer2FromAngAccRel(const ChVector3<Real>& a, const ChQuaternion<Real>& q, const ChQuaternion<Real>& q_dt);
+    void SetDt2FromAngAccRel(const ChVector3<Real>& a, const ChQuaternion<Real>& q, const ChQuaternion<Real>& q_dt);
 
     /// Set the quaternion dq/dt. Inputs:  the axis of rotation 'axis' (assuming it is already normalized
     /// and expressed in absolute coords), the angular speed 'angle_dt' (scalar value), and the
     /// rotation expressed as a quaternion 'q'.
-    void SetDerFromAngleAxis(const ChQuaternion<Real>& q, Real angle_dt, const ChVector3<Real>& axis);
+    void SetDtFromAngleAxis(const ChQuaternion<Real>& q, Real angle_dt, const ChVector3<Real>& axis);
 
     /// Set the quaternion ddq/dtdt. Inputs: the axis of ang. acceleration 'axis' (assuming it is already
     /// normalized and expressed in absolute coords), the angular acceleration 'angle_dtdt' (scalar value),
     /// the rotation expressed as a quaternion 'quat' and th rotation speed 'q_dt'.
-    void SetDer2FromAngleAxis(const ChQuaternion<Real>& q,
+    void SetDt2FromAngleAxis(const ChQuaternion<Real>& q,
                               const ChQuaternion<Real>& q_dt,
                               Real angle_dtdt,
                               const ChVector3<Real>& axis);
@@ -475,16 +475,16 @@ ChApi ChQuaterniond Qconjugate(const ChQuaterniond& q);
 ChApi ChQuaterniond Qcross(const ChQuaterniond& qa, const ChQuaterniond& qb);
 
 /// Get the quaternion time derivative from the vector of angular speed, with w specified in _local_ coords.
-ChApi ChQuaterniond QuatDerFromAngVelRel(const ChVector3d& w, const ChQuaterniond& q);
+ChApi ChQuaterniond QuatDtFromAngVelRel(const ChVector3d& w, const ChQuaterniond& q);
 
 /// Get the quaternion time derivative from the vector of angular speed, with w specified in _absolute_ coords.
-ChApi ChQuaterniond QuatDerFromAngVelAbs(const ChVector3d& w, const ChQuaterniond& q);
+ChApi ChQuaterniond QuatDtFromAngVelAbs(const ChVector3d& w, const ChQuaterniond& q);
 
 /// Get the quaternion first derivative from the vector of angular acceleration with a specified in _absolute_ coords.
-ChApi ChQuaterniond QuatDer2FromAngAccAbs(const ChVector3d& a, const ChQuaterniond& q, const ChQuaterniond& q_dt);
+ChApi ChQuaterniond QuatDt2FromAngAccAbs(const ChVector3d& a, const ChQuaterniond& q, const ChQuaterniond& q_dt);
 
 ///	Get the quaternion second derivative from the vector of angular acceleration with a specified in _relative_ coords.
-ChApi ChQuaterniond QuatDer2FromAngAccRel(const ChVector3d& a, const ChQuaterniond& q, const ChQuaterniond& q_dt);
+ChApi ChQuaterniond QuatDt2FromAngAccRel(const ChVector3d& a, const ChQuaterniond& q, const ChQuaterniond& q_dt);
 
 /// Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion,
 /// find the entire quaternion q = {e0, e1, e2, e3}.
@@ -494,12 +494,12 @@ ChApi ChQuaterniond QuatFromImaginary(const ChVector3d& imm);
 /// Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion time derivative,
 /// find the entire quaternion q = {e0, e1, e2, e3}.
 /// Note: singularities are possible.
-ChApi ChQuaterniond QuatDerFromImaginary(const ChVector3d& im_dt, const ChQuaterniond& q);
+ChApi ChQuaterniond QuatDtFromImaginary(const ChVector3d& im_dt, const ChQuaterniond& q);
 
 /// Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion second time derivative,
 /// find the entire quaternion q = {e0, e1, e2, e3}.
 /// Note: singularities are possible.
-ChApi ChQuaterniond QuatDer2FromImaginary(const ChVector3d& im_dtdt, const ChQuaterniond& q, const ChQuaterniond& q_dt);
+ChApi ChQuaterniond QuatDt2FromImaginary(const ChVector3d& im_dtdt, const ChQuaterniond& q, const ChQuaterniond& q_dt);
 
 ChApi ChVector3d VaxisXfromQuat(const ChQuaterniond& quat);
 
@@ -1154,14 +1154,14 @@ inline ChVector3<Real> ChQuaternion<Real>::GetCardanAnglesXYZ() const {
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::SetDerFromAngVelAbs(const ChVector3<Real>& w, const ChQuaternion<Real>& q) {
+inline void ChQuaternion<Real>::SetDtFromAngVelAbs(const ChVector3<Real>& w, const ChQuaternion<Real>& q) {
     ChQuaternion<Real> qwo(0, w);
     this->Cross(qwo, q);
     this->Scale((Real)0.5);  // {q_dt} = 1/2 {0,w}*{q}
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::SetDerFromAngVelRel(const ChVector3<Real>& w, const ChQuaternion<Real>& q) {
+inline void ChQuaternion<Real>::SetDtFromAngVelRel(const ChVector3<Real>& w, const ChQuaternion<Real>& q) {
     ChQuaternion<Real> qwl(0, w);
     this->Cross(q, qwl);
     this->Scale((Real)0.5);  // {q_dt} = 1/2 {q}*{0,w_rel}
@@ -1184,7 +1184,7 @@ inline void ChQuaternion<Real>::GetAngVelRel(ChVector3<Real>& w, const ChQuatern
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::SetDer2FromAngAccAbs(const ChVector3<Real>& a,
+inline void ChQuaternion<Real>::SetDt2FromAngAccAbs(const ChVector3<Real>& a,
                                                      const ChQuaternion<Real>& q,
                                                      const ChQuaternion<Real>& q_dt) {
     ChQuaternion<Real> qao(0, a);
@@ -1199,7 +1199,7 @@ inline void ChQuaternion<Real>::SetDer2FromAngAccAbs(const ChVector3<Real>& a,
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::SetDer2FromAngAccRel(const ChVector3<Real>& a,
+inline void ChQuaternion<Real>::SetDt2FromAngAccRel(const ChVector3<Real>& a,
                                                      const ChQuaternion<Real>& q,
                                                      const ChQuaternion<Real>& q_dt) {
     ChQuaternion<Real> qal(0, a);
@@ -1214,18 +1214,18 @@ inline void ChQuaternion<Real>::SetDer2FromAngAccRel(const ChVector3<Real>& a,
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::SetDerFromAngleAxis(const ChQuaternion<Real>& q,
+inline void ChQuaternion<Real>::SetDtFromAngleAxis(const ChQuaternion<Real>& q,
                                                     Real angle_dt,
                                                     const ChVector3<Real>& axis) {
-    this->SetDerFromAngVelAbs(angle_dt * axis, q);
+    this->SetDtFromAngVelAbs(angle_dt * axis, q);
 }
 
 template <class Real>
-inline void ChQuaternion<Real>::SetDer2FromAngleAxis(const ChQuaternion<Real>& q,
+inline void ChQuaternion<Real>::SetDt2FromAngleAxis(const ChQuaternion<Real>& q,
                                                      const ChQuaternion<Real>& q_dt,
                                                      Real angle_dtdt,
                                                      const ChVector3<Real>& axis) {
-    this->SetDer2FromAngAccAbs(angle_dtdt * axis, q, q_dt);
+    this->SetDt2FromAngAccAbs(angle_dtdt * axis, q, q_dt);
 }
 
 // -----------------------------------------------------------------------------

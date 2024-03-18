@@ -141,7 +141,7 @@ class ChParticleEmitter {
                 mv_abs = pre_transform.TransformDirectionLocalToParent(mv_loc);
                 mw_abs = pre_transform.TransformDirectionLocalToParent(mw_loc);
             }
-            mbody->SetPosDer(mv_abs);
+            mbody->SetPosDt(mv_abs);
             mbody->SetAngVelParent(mw_abs);
 
             if (this->jitter_declustering) {

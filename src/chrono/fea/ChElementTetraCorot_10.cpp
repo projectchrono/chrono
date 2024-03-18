@@ -630,16 +630,16 @@ void ChElementTetraCorot_10::LoadableGetStateBlockPosLevel(int block_offset, ChS
 }
 
 void ChElementTetraCorot_10::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = this->nodes[0]->GetPosDer().eigen();
-    mD.segment(block_offset + 3, 3) = this->nodes[1]->GetPosDer().eigen();
-    mD.segment(block_offset + 6, 3) = this->nodes[2]->GetPosDer().eigen();
-    mD.segment(block_offset + 9, 3) = this->nodes[3]->GetPosDer().eigen();
-    mD.segment(block_offset + 12, 3) = this->nodes[4]->GetPosDer().eigen();
-    mD.segment(block_offset + 15, 3) = this->nodes[5]->GetPosDer().eigen();
-    mD.segment(block_offset + 18, 3) = this->nodes[6]->GetPosDer().eigen();
-    mD.segment(block_offset + 21, 3) = this->nodes[7]->GetPosDer().eigen();
-    mD.segment(block_offset + 24, 3) = this->nodes[8]->GetPosDer().eigen();
-    mD.segment(block_offset + 27, 3) = this->nodes[9]->GetPosDer().eigen();
+    mD.segment(block_offset + 0, 3) = this->nodes[0]->GetPosDt().eigen();
+    mD.segment(block_offset + 3, 3) = this->nodes[1]->GetPosDt().eigen();
+    mD.segment(block_offset + 6, 3) = this->nodes[2]->GetPosDt().eigen();
+    mD.segment(block_offset + 9, 3) = this->nodes[3]->GetPosDt().eigen();
+    mD.segment(block_offset + 12, 3) = this->nodes[4]->GetPosDt().eigen();
+    mD.segment(block_offset + 15, 3) = this->nodes[5]->GetPosDt().eigen();
+    mD.segment(block_offset + 18, 3) = this->nodes[6]->GetPosDt().eigen();
+    mD.segment(block_offset + 21, 3) = this->nodes[7]->GetPosDt().eigen();
+    mD.segment(block_offset + 24, 3) = this->nodes[8]->GetPosDt().eigen();
+    mD.segment(block_offset + 27, 3) = this->nodes[9]->GetPosDt().eigen();
 }
 
 void ChElementTetraCorot_10::LoadableStateIncrement(const unsigned int off_x,

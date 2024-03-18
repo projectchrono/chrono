@@ -239,7 +239,7 @@ class MyTorqueCurve(chrono.ChFunction) :
 
   def GetVal(self, x) :
         # The three-phase torque(speed) model
-        w = self.mymotor.GetMotorAngleDer()
+        w = self.mymotor.GetMotorAngleDt()
         s = (self.ns - w) / self.ns  # slip
         T = (3.0 / 2 * chrono.CH_PI * self.ns) * (s * self.E2 * self.E2 * self.R2) / (self.R2 * self.R2 + pow(s * self.X2, 2))  # electric torque curve
         T -= w * 5  # simulate also a viscous brake
@@ -454,7 +454,7 @@ positionB3 = chrono.ChVector3d(0, 0, -1)
 guide3, slider3 = CreateSliderGuide(material, sys, positionB3)
 
 # just for fun: modify the initial speed of slider to match other examples
-slider3.SetPosDer(chrono.ChVector3d(1.6 * 0.5 * chrono.CH_2PI))
+slider3.SetPosDt(chrono.ChVector3d(1.6 * 0.5 * chrono.CH_2PI))
 
 # Create the linear motor
 motor3 = chrono.ChLinkMotorLinearForce()

@@ -109,7 +109,7 @@ ChQuaterniond Qcross(const ChQuaterniond& qa, const ChQuaterniond& qb) {
 // -----------------------------------------------------------------------------
 
 // Get the quaternion time derivative from the vector of angular speed, with w specified in _absolute_ coords.
-ChQuaterniond QuatDerFromAngVelAbs(const ChVector3d& w, const ChQuaterniond& q) {
+ChQuaterniond QuatDtFromAngVelAbs(const ChVector3d& w, const ChQuaterniond& q) {
     ChQuaterniond qw;
     double half = 0.5;
 
@@ -122,7 +122,7 @@ ChQuaterniond QuatDerFromAngVelAbs(const ChVector3d& w, const ChQuaterniond& q) 
 }
 
 // Get the quaternion time derivative from the vector of angular speed, with w specified in _local_ coords.
-ChQuaterniond QuatDerFromAngVelRel(const ChVector3d& w, const ChQuaterniond& q) {
+ChQuaterniond QuatDtFromAngVelRel(const ChVector3d& w, const ChQuaterniond& q) {
     ChQuaterniond qw;
     double half = 0.5;
 
@@ -135,16 +135,16 @@ ChQuaterniond QuatDerFromAngVelRel(const ChVector3d& w, const ChQuaterniond& q) 
 }
 
 // Get the quaternion first derivative from the vector of angular acceleration with a specified in _absolute_ coords.
-ChQuaterniond QuatDer2FromAngAccAbs(const ChVector3d& a, const ChQuaterniond& q, const ChQuaterniond& q_dt) {
+ChQuaterniond QuatDt2FromAngAccAbs(const ChVector3d& a, const ChQuaterniond& q, const ChQuaterniond& q_dt) {
     ChQuaterniond ret;
-    ret.SetDer2FromAngAccAbs(a, q, q_dt);
+    ret.SetDt2FromAngAccAbs(a, q, q_dt);
     return ret;
 }
 
 //	Get the quaternion second derivative from the vector of angular acceleration with a specified in _relative_ coords.
-ChQuaterniond QuatDer2FromAngAccRel(const ChVector3d& a, const ChQuaterniond& q, const ChQuaterniond& q_dt) {
+ChQuaterniond QuatDt2FromAngAccRel(const ChVector3d& a, const ChQuaterniond& q, const ChQuaterniond& q_dt) {
     ChQuaterniond ret;
-    ret.SetDer2FromAngAccRel(a, q, q_dt);
+    ret.SetDt2FromAngAccRel(a, q, q_dt);
     return ret;
 }
 
@@ -165,7 +165,7 @@ ChQuaterniond QuatFromImaginary(const ChVector3d& im) {
 // Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion time derivative,
 // find the entire quaternion q = {e0, e1, e2, e3}.
 // Note: singularities are possible.
-ChQuaterniond QuatDerFromImaginary(const ChVector3d& im_dt, const ChQuaterniond& q) {
+ChQuaterniond QuatDtFromImaginary(const ChVector3d& im_dt, const ChQuaterniond& q) {
     ChQuaterniond q_dt;
     q_dt.e1() = im_dt.x();
     q_dt.e2() = im_dt.y();
@@ -177,7 +177,7 @@ ChQuaterniond QuatDerFromImaginary(const ChVector3d& im_dt, const ChQuaterniond&
 // Given the imaginary (vectorial) {e1 e2 e3} part of a quaternion second time derivative,
 // find the entire quaternion q = {e0, e1, e2, e3}.
 // Note: singularities are possible.
-ChQuaterniond QuatDer2FromImaginary(const ChVector3d& im_dtdt, const ChQuaterniond& q, const ChQuaterniond& q_dt) {
+ChQuaterniond QuatDt2FromImaginary(const ChVector3d& im_dtdt, const ChQuaterniond& q, const ChQuaterniond& q_dt) {
     ChQuaterniond q_dtdt;
     q_dtdt.e1() = im_dtdt.x();
     q_dtdt.e2() = im_dtdt.y();

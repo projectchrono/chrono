@@ -589,11 +589,11 @@ void WriteVehicleVTK(int frame, ChTrackedVehicle& vehicle) {
         auto num_shoes_R = vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetNumTrackShoes();
         for (size_t i = 0; i < num_shoes_L; i++) {
             const auto& shoe = vehicle.GetTrackAssembly(VehicleSide::LEFT)->GetTrackShoe(i)->GetShoeBody();
-            csv << shoe->GetPos() << shoe->GetRot() << shoe->GetPosDer() << shoe->GetAngVelLocal() << endl;
+            csv << shoe->GetPos() << shoe->GetRot() << shoe->GetPosDt() << shoe->GetAngVelLocal() << endl;
         }
         for (size_t i = 0; i < num_shoes_R; i++) {
             const auto& shoe = vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetTrackShoe(i)->GetShoeBody();
-            csv << shoe->GetPos() << shoe->GetRot() << shoe->GetPosDer() << shoe->GetAngVelLocal() << endl;
+            csv << shoe->GetPos() << shoe->GetRot() << shoe->GetPosDt() << shoe->GetAngVelLocal() << endl;
         }
         csv.WriteToFile(vtk_dir + "/shoes." + std::to_string(frame) + ".vtk", "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
     }
@@ -604,11 +604,11 @@ void WriteVehicleVTK(int frame, ChTrackedVehicle& vehicle) {
         auto num_wheels_R = vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetNumTrackSuspensions();
         for (size_t i = 0; i < num_wheels_L; i++) {
             const auto& wheel = vehicle.GetTrackAssembly(VehicleSide::LEFT)->GetTrackSuspension(i)->GetWheelBody();
-            csv << wheel->GetPos() << wheel->GetRot() << wheel->GetPosDer() << wheel->GetAngVelLocal() << endl;
+            csv << wheel->GetPos() << wheel->GetRot() << wheel->GetPosDt() << wheel->GetAngVelLocal() << endl;
         }
         for (size_t i = 0; i < num_wheels_R; i++) {
             const auto& wheel = vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetTrackSuspension(i)->GetWheelBody();
-            csv << wheel->GetPos() << wheel->GetRot() << wheel->GetPosDer() << wheel->GetAngVelLocal() << endl;
+            csv << wheel->GetPos() << wheel->GetRot() << wheel->GetPosDt() << wheel->GetAngVelLocal() << endl;
         }
         csv.WriteToFile(vtk_dir + "/wheels." + std::to_string(frame) + ".vtk", "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
     }
@@ -617,8 +617,8 @@ void WriteVehicleVTK(int frame, ChTrackedVehicle& vehicle) {
         chrono::utils::ChWriterCSV csv(",");
         const auto& idlerL = vehicle.GetTrackAssembly(VehicleSide::LEFT)->GetIdler()->GetIdlerWheel()->GetBody();
         const auto& idlerR = vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetIdler()->GetIdlerWheel()->GetBody();
-        csv << idlerL->GetPos() << idlerL->GetRot() << idlerL->GetPosDer() << idlerL->GetAngVelLocal() << endl;
-        csv << idlerR->GetPos() << idlerR->GetRot() << idlerR->GetPosDer() << idlerR->GetAngVelLocal() << endl;
+        csv << idlerL->GetPos() << idlerL->GetRot() << idlerL->GetPosDt() << idlerL->GetAngVelLocal() << endl;
+        csv << idlerR->GetPos() << idlerR->GetRot() << idlerR->GetPosDt() << idlerR->GetAngVelLocal() << endl;
         csv.WriteToFile(vtk_dir + "/idlers." + std::to_string(frame) + ".vtk", "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
     }
 
@@ -626,8 +626,8 @@ void WriteVehicleVTK(int frame, ChTrackedVehicle& vehicle) {
         chrono::utils::ChWriterCSV csv(",");
         const auto& gearL = vehicle.GetTrackAssembly(VehicleSide::LEFT)->GetSprocket()->GetGearBody();
         const auto& gearR = vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetSprocket()->GetGearBody();
-        csv << gearL->GetPos() << gearL->GetRot() << gearL->GetPosDer() << gearL->GetAngVelLocal() << endl;
-        csv << gearR->GetPos() << gearR->GetRot() << gearR->GetPosDer() << gearR->GetAngVelLocal() << endl;
+        csv << gearL->GetPos() << gearL->GetRot() << gearL->GetPosDt() << gearL->GetAngVelLocal() << endl;
+        csv << gearR->GetPos() << gearR->GetRot() << gearR->GetPosDt() << gearR->GetAngVelLocal() << endl;
         csv.WriteToFile(vtk_dir + "/sprockets." + std::to_string(frame) + ".vtk",
                           "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
     }
@@ -635,7 +635,7 @@ void WriteVehicleVTK(int frame, ChTrackedVehicle& vehicle) {
     {
         chrono::utils::ChWriterCSV csv(",");
         auto chassis = vehicle.GetChassisBody();
-        csv << chassis->GetPos() << chassis->GetRot() << chassis->GetPosDer() << chassis->GetAngVelLocal() << endl;
+        csv << chassis->GetPos() << chassis->GetRot() << chassis->GetPosDt() << chassis->GetAngVelLocal() << endl;
         csv.WriteToFile(vtk_dir + "/chassis." + std::to_string(frame) + ".vtk",
                           "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
     }

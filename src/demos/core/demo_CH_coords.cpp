@@ -254,9 +254,9 @@ int main(int argc, char* argv[]) {
     ChGwMatrix34<> Gw(qrotA);
 
     ChFrameMoving<> testa(vtraslA, qrotA);
-    testa.SetPosDer(ChVector3d(0.5, 0.6, 0.7));
+    testa.SetPosDt(ChVector3d(0.5, 0.6, 0.7));
     testa.SetAngVelLocal(ChVector3d(1.1, 2.1, 5.1));
-    testa.SetPosDer2(ChVector3d(7, 8, 9));
+    testa.SetPosDt2(ChVector3d(7, 8, 9));
     testa.SetAngAccLocal(ChVector3d(4.3, 5.3, 2.3));
     std::cout << testa << "a moving frame " << std::endl;
 
@@ -265,10 +265,10 @@ int main(int argc, char* argv[]) {
     ChVector3d locacc(5.3, 3.3, 2.3);
 
     ChFrameMoving<> testPl(locpos, QUNIT);
-    testPl.SetPosDer(locspeed);
-    testPl.SetRotDer(qrotA);
+    testPl.SetPosDt(locspeed);
+    testPl.SetRotDt(qrotA);
     testPl.SetAngVelLocal(ChVector3d(0.4, 0.5, 0.6));
-    testPl.SetPosDer2(locacc);
+    testPl.SetPosDt2(locacc);
     testPl.SetAngAccLocal(ChVector3d(0.43, 0.53, 0.63));
     ChFrameMoving<> testPw = testa.TransformLocalToParent(testPl);
 

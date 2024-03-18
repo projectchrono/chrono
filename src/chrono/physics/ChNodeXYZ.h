@@ -42,16 +42,16 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
     void SetPos(const ChVector3d& mpos) { pos = mpos; }
 
     // Velocity of the node - in absolute csys.
-    const ChVector3d& GetPosDer() const { return pos_dt; }
+    const ChVector3d& GetPosDt() const { return pos_dt; }
 
     // Velocity of the node - in absolute csys.
-    void SetPosDer(const ChVector3d& mposdt) { pos_dt = mposdt; }
+    void SetPosDt(const ChVector3d& mposdt) { pos_dt = mposdt; }
 
     // Acceleration of the node - in absolute csys.
-    const ChVector3d& GetPosDer2() const { return pos_dtdt; }
+    const ChVector3d& GetPosDt2() const { return pos_dtdt; }
 
     // Acceleration of the node - in absolute csys.
-    void SetPosDer2(const ChVector3d& mposdtdt) { pos_dtdt = mposdtdt; }
+    void SetPosDt2(const ChVector3d& mposdtdt) { pos_dtdt = mposdtdt; }
 
     // Get mass of the node. To be implemented in children classes
     virtual double GetMass() const = 0;

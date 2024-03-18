@@ -45,8 +45,8 @@ void ChShaftsLoad::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
         rot1_dt = (*state_w)(0);
         rot2_dt = (*state_w)(1);
     } else {
-        rot1_dt = shaft1->GetPosDer();
-        rot2_dt = shaft2->GetPosDer();
+        rot1_dt = shaft1->GetPosDt();
+        rot2_dt = shaft2->GetPosDt();
     }
 
     double rel_rot = rot1 - rot2;
@@ -136,8 +136,8 @@ void ChShaftsElasticGear::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
         rot1_dt = (*state_w)(0);
         rot2_dt = (*state_w)(1);
     } else {
-        rot1_dt = shaft1->GetPosDer();
-        rot2_dt = shaft2->GetPosDer();
+        rot1_dt = shaft1->GetPosDt();
+        rot2_dt = shaft2->GetPosDt();
     }
     double invratio = 1.0 / m_ratio;
 

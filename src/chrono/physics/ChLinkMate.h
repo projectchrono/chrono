@@ -367,10 +367,10 @@ class ChApi ChLinkMateRevolute : public ChLinkMateGeneric {
     double GetRelativeAngle();
 
     /// Get relative angular velocity of slave frame with respect to master frame.
-    double GetRelativeAngleDer();
+    double GetRelativeAngleDt();
 
     /// Get relative angular acceleration of slave frame with respect to master frame.
-    double GetRelativeAngleDer2();
+    double GetRelativeAngleDt2();
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
@@ -420,10 +420,10 @@ class ChApi ChLinkMatePrismatic : public ChLinkMateGeneric {
     double GetRelativePos();
 
     /// Get relative velocity of slave frame with respect to master frame.
-    double GetRelativePosDer();
+    double GetRelativePosDt();
 
     /// Get relative acceleration of slave frame with respect to master frame.
-    double GetRelativePosDer2();
+    double GetRelativePosDt2();
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

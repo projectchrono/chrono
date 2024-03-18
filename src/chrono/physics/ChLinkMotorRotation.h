@@ -59,10 +59,10 @@ class ChApi ChLinkMotorRotation : public ChLinkMotor {
     virtual double GetMotorAngleWrapped() const { return fmod(mrot, CH_2PI); }
 
     /// Get the current actuator speed [rad/s].
-    virtual double GetMotorAngleDer() const { return mrot_dt; }
+    virtual double GetMotorAngleDt() const { return mrot_dt; }
 
     /// Get the current actuator acceleration [rad/s^2].
-    virtual double GetMotorAngleDer2() const { return mrot_dtdt; }
+    virtual double GetMotorAngleDt2() const { return mrot_dtdt; }
 
     /// Get the current actuator reaction torque [Nm]
     virtual double GetMotorTorque() const = 0;

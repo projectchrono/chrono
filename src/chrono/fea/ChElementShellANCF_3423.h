@@ -286,7 +286,7 @@ class ChApi ChElementShellANCF_3423 : public ChElementANCF,
     void CalcCoordMatrix(ChMatrixNM<double, 8, 3>& d);
 
     // Calculate the current 24x1 matrix of nodal coordinate derivatives.
-    void CalcCoordDerivMatrix(ChVectorN<double, 24>& dt);
+    void CalcCoordDtMatrix(ChVectorN<double, 24>& dt);
 
     // Functions for ChLoadable interface
     // ----------------------------------

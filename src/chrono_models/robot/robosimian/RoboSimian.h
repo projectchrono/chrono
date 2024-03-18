@@ -350,7 +350,7 @@ class CH_MODELS_API RS_Limb {
     double GetWheelAngle() const { return m_wheel_motor->GetMotorAngle(); }
 
     /// Get wheel angular speed.
-    double GetWheelOmega() const { return m_wheel_motor->GetMotorAngleDer(); }
+    double GetWheelOmega() const { return m_wheel_motor->GetMotorAngleDt(); }
 
     /// Get angle for specified motor.
     /// Motors are named "joint1", "joint2", ... , "joint8", starting at the chassis.

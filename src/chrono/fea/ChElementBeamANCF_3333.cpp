@@ -214,7 +214,7 @@ ChMatrix33<> ChElementBeamANCF_3333::GetPK2Stress(const double xi,
 
     if (m_damping_enabled) {
         Matrix3xN ebardot;  // Element coordinate time derivatives in matrix form
-        CalcCoordDerivMatrix(ebardot);
+        CalcCoordDtMatrix(ebardot);
 
         // Calculate the time derivative of the Deformation Gradient at the current point
         ChMatrixNM_col<double, 3, 3> Fdot = ebardot * Sxi_D;
@@ -278,7 +278,7 @@ double ChElementBeamANCF_3333::GetVonMissesStress(const double xi, const double 
 
     if (m_damping_enabled) {
         Matrix3xN ebardot;  // Element coordinate time derivatives in matrix form
-        CalcCoordDerivMatrix(ebardot);
+        CalcCoordDtMatrix(ebardot);
 
         // Calculate the time derivative of the Deformation Gradient at the current point
         ChMatrixNM_col<double, 3, 3> Fdot = ebardot * Sxi_D;
@@ -502,7 +502,7 @@ void ChElementBeamANCF_3333::EvaluateSectionVel(const double xi, ChVector3d& Res
     Calc_Sxi_compact(Sxi_compact, xi, 0, 0);
 
     Matrix3xN e_bardot;
-    CalcCoordDerivMatrix(e_bardot);
+    CalcCoordDtMatrix(e_bardot);
 
     // rdot = S*edot written in compact form
     Result = e_bardot * Sxi_compact;
@@ -531,17 +531,17 @@ void ChElementBeamANCF_3333::LoadableGetStateBlockPosLevel(int block_offset, ChS
 // Gets all the DOFs packed in a single vector (velocity part).
 
 void ChElementBeamANCF_3333::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
-    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetSlope1Der().eigen();
-    mD.segment(block_offset + 6, 3) = m_nodes[0]->GetSlope2Der().eigen();
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDt().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetSlope1Dt().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[0]->GetSlope2Dt().eigen();
 
-    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetPosDer().eigen();
-    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetSlope1Der().eigen();
-    mD.segment(block_offset + 15, 3) = m_nodes[1]->GetSlope2Der().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetPosDt().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[1]->GetSlope1Dt().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[1]->GetSlope2Dt().eigen();
 
-    mD.segment(block_offset + 18, 3) = m_nodes[2]->GetPosDer().eigen();
-    mD.segment(block_offset + 21, 3) = m_nodes[2]->GetSlope1Der().eigen();
-    mD.segment(block_offset + 24, 3) = m_nodes[2]->GetSlope2Der().eigen();
+    mD.segment(block_offset + 18, 3) = m_nodes[2]->GetPosDt().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[2]->GetSlope1Dt().eigen();
+    mD.segment(block_offset + 24, 3) = m_nodes[2]->GetSlope2Dt().eigen();
 }
 
 /// Increment all DOFs using a delta.
@@ -1700,7 +1700,7 @@ void ChElementBeamANCF_3333::ComputeInternalForcesContIntPreInt(ChVectorDynamic<
     Matrix3xN ebardot;
 
     CalcCoordMatrix(ebar);
-    CalcCoordDerivMatrix(ebardot);
+    CalcCoordDtMatrix(ebardot);
 
     // Calculate PI1 which is a combined form of the nodal coordinates.  It is calculated in matrix form and then later
     // reshaped into vector format (through a simple reinterpretation of the data)
@@ -2895,7 +2895,7 @@ void ChElementBeamANCF_3333::ComputeInternalJacobianPreInt(ChMatrixRef& H,
     Matrix3xN e_bar_dot;
 
     CalcCoordMatrix(e_bar);
-    CalcCoordDerivMatrix(e_bar_dot);
+    CalcCoordDtMatrix(e_bar_dot);
 
     // Build the [9 x NSF^2] matrix containing the combined scaled nodal coordinates and their time derivatives.
     Matrix3xN temp = (Kfactor + m_Alpha * Rfactor) * e_bar + (m_Alpha * Kfactor) * e_bar_dot;
@@ -3058,55 +3058,55 @@ void ChElementBeamANCF_3333::CalcCoordMatrix(Matrix3xN& ebar) {
     ebar.col(8) = m_nodes[2]->GetSlope2().eigen();
 }
 
-void ChElementBeamANCF_3333::CalcCoordDerivVector(Vector3N& edot) {
-    edot.segment(0, 3) = m_nodes[0]->GetPosDer().eigen();
-    edot.segment(3, 3) = m_nodes[0]->GetSlope1Der().eigen();
-    edot.segment(6, 3) = m_nodes[0]->GetSlope2Der().eigen();
+void ChElementBeamANCF_3333::CalcCoordDtVector(Vector3N& edot) {
+    edot.segment(0, 3) = m_nodes[0]->GetPosDt().eigen();
+    edot.segment(3, 3) = m_nodes[0]->GetSlope1Dt().eigen();
+    edot.segment(6, 3) = m_nodes[0]->GetSlope2Dt().eigen();
 
-    edot.segment(9, 3) = m_nodes[1]->GetPosDer().eigen();
-    edot.segment(12, 3) = m_nodes[1]->GetSlope1Der().eigen();
-    edot.segment(15, 3) = m_nodes[1]->GetSlope2Der().eigen();
+    edot.segment(9, 3) = m_nodes[1]->GetPosDt().eigen();
+    edot.segment(12, 3) = m_nodes[1]->GetSlope1Dt().eigen();
+    edot.segment(15, 3) = m_nodes[1]->GetSlope2Dt().eigen();
 
-    edot.segment(18, 3) = m_nodes[2]->GetPosDer().eigen();
-    edot.segment(21, 3) = m_nodes[2]->GetSlope1Der().eigen();
-    edot.segment(24, 3) = m_nodes[2]->GetSlope2Der().eigen();
+    edot.segment(18, 3) = m_nodes[2]->GetPosDt().eigen();
+    edot.segment(21, 3) = m_nodes[2]->GetSlope1Dt().eigen();
+    edot.segment(24, 3) = m_nodes[2]->GetSlope2Dt().eigen();
 }
 
-void ChElementBeamANCF_3333::CalcCoordDerivMatrix(Matrix3xN& ebardot) {
-    ebardot.col(0) = m_nodes[0]->GetPosDer().eigen();
-    ebardot.col(1) = m_nodes[0]->GetSlope1Der().eigen();
-    ebardot.col(2) = m_nodes[0]->GetSlope2Der().eigen();
+void ChElementBeamANCF_3333::CalcCoordDtMatrix(Matrix3xN& ebardot) {
+    ebardot.col(0) = m_nodes[0]->GetPosDt().eigen();
+    ebardot.col(1) = m_nodes[0]->GetSlope1Dt().eigen();
+    ebardot.col(2) = m_nodes[0]->GetSlope2Dt().eigen();
 
-    ebardot.col(3) = m_nodes[1]->GetPosDer().eigen();
-    ebardot.col(4) = m_nodes[1]->GetSlope1Der().eigen();
-    ebardot.col(5) = m_nodes[1]->GetSlope2Der().eigen();
+    ebardot.col(3) = m_nodes[1]->GetPosDt().eigen();
+    ebardot.col(4) = m_nodes[1]->GetSlope1Dt().eigen();
+    ebardot.col(5) = m_nodes[1]->GetSlope2Dt().eigen();
 
-    ebardot.col(6) = m_nodes[2]->GetPosDer().eigen();
-    ebardot.col(7) = m_nodes[2]->GetSlope1Der().eigen();
-    ebardot.col(8) = m_nodes[2]->GetSlope2Der().eigen();
+    ebardot.col(6) = m_nodes[2]->GetPosDt().eigen();
+    ebardot.col(7) = m_nodes[2]->GetSlope1Dt().eigen();
+    ebardot.col(8) = m_nodes[2]->GetSlope2Dt().eigen();
 }
 
 void ChElementBeamANCF_3333::CalcCombinedCoordMatrix(MatrixNx6& ebar_ebardot) {
     ebar_ebardot.template block<1, 3>(0, 0) = m_nodes[0]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(0, 3) = m_nodes[0]->GetPosDer().eigen();
+    ebar_ebardot.template block<1, 3>(0, 3) = m_nodes[0]->GetPosDt().eigen();
     ebar_ebardot.template block<1, 3>(1, 0) = m_nodes[0]->GetSlope1().eigen();
-    ebar_ebardot.template block<1, 3>(1, 3) = m_nodes[0]->GetSlope1Der().eigen();
+    ebar_ebardot.template block<1, 3>(1, 3) = m_nodes[0]->GetSlope1Dt().eigen();
     ebar_ebardot.template block<1, 3>(2, 0) = m_nodes[0]->GetSlope2().eigen();
-    ebar_ebardot.template block<1, 3>(2, 3) = m_nodes[0]->GetSlope2Der().eigen();
+    ebar_ebardot.template block<1, 3>(2, 3) = m_nodes[0]->GetSlope2Dt().eigen();
 
     ebar_ebardot.template block<1, 3>(3, 0) = m_nodes[1]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(3, 3) = m_nodes[1]->GetPosDer().eigen();
+    ebar_ebardot.template block<1, 3>(3, 3) = m_nodes[1]->GetPosDt().eigen();
     ebar_ebardot.template block<1, 3>(4, 0) = m_nodes[1]->GetSlope1().eigen();
-    ebar_ebardot.template block<1, 3>(4, 3) = m_nodes[1]->GetSlope1Der().eigen();
+    ebar_ebardot.template block<1, 3>(4, 3) = m_nodes[1]->GetSlope1Dt().eigen();
     ebar_ebardot.template block<1, 3>(5, 0) = m_nodes[1]->GetSlope2().eigen();
-    ebar_ebardot.template block<1, 3>(5, 3) = m_nodes[1]->GetSlope2Der().eigen();
+    ebar_ebardot.template block<1, 3>(5, 3) = m_nodes[1]->GetSlope2Dt().eigen();
 
     ebar_ebardot.template block<1, 3>(6, 0) = m_nodes[2]->GetPos().eigen();
-    ebar_ebardot.template block<1, 3>(6, 3) = m_nodes[2]->GetPosDer().eigen();
+    ebar_ebardot.template block<1, 3>(6, 3) = m_nodes[2]->GetPosDt().eigen();
     ebar_ebardot.template block<1, 3>(7, 0) = m_nodes[2]->GetSlope1().eigen();
-    ebar_ebardot.template block<1, 3>(7, 3) = m_nodes[2]->GetSlope1Der().eigen();
+    ebar_ebardot.template block<1, 3>(7, 3) = m_nodes[2]->GetSlope1Dt().eigen();
     ebar_ebardot.template block<1, 3>(8, 0) = m_nodes[2]->GetSlope2().eigen();
-    ebar_ebardot.template block<1, 3>(8, 3) = m_nodes[2]->GetSlope2Der().eigen();
+    ebar_ebardot.template block<1, 3>(8, 3) = m_nodes[2]->GetSlope2Dt().eigen();
 }
 
 // Calculate the 3x3 Element Jacobian at the given point (xi,eta,zeta) in the element

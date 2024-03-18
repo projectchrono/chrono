@@ -233,7 +233,7 @@ void ExampleA4(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
 
         virtual double GetVal(double x) const override {
             // The three-phase torque(speed) model
-            double w = mymotor->GetMotorAngleDer();
+            double w = mymotor->GetMotorAngleDt();
             double s = (ns - w) / ns;  // slip
             double T =
                 (3.0 / 2 * CH_PI * ns) * (s * E2 * E2 * R2) / (R2 * R2 + pow(s * X2, 2));  // electric torque curve
@@ -370,7 +370,7 @@ void ExampleB3(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     CreateSliderGuide(guide3, slider3, material, sys, positionB3);
 
     // just for fun: modify the initial speed of slider to match other examples
-    slider3->SetPosDer(ChVector3d(1.6 * 0.5 * CH_2PI));
+    slider3->SetPosDt(ChVector3d(1.6 * 0.5 * CH_2PI));
 
     // Create the linear motor
     auto motor3 = chrono_types::make_shared<ChLinkMotorLinearForce>();

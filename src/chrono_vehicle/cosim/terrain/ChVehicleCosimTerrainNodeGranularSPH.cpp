@@ -348,7 +348,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
 void ChVehicleCosimTerrainNodeGranularSPH::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
     proxy->bodies[0]->SetPos(rigid_state.pos);
-    proxy->bodies[0]->SetPosDer(rigid_state.lin_vel);
+    proxy->bodies[0]->SetPosDt(rigid_state.lin_vel);
     proxy->bodies[0]->SetRot(rigid_state.rot);
     proxy->bodies[0]->SetAngVelParent(rigid_state.ang_vel);
     proxy->bodies[0]->SetAngAccParent(VNULL);

@@ -103,8 +103,8 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         // be race conditions when adjacent elements attempt to perturb a common node).
         ChVector3d pos[2] = {m_nodes[0]->GetPos(), m_nodes[1]->GetPos()};
         ChVector3d D[2] = {m_nodes[0]->GetSlope1(), m_nodes[1]->GetSlope1()};
-        ChVector3d pos_dt[2] = {m_nodes[0]->GetPosDer(), m_nodes[1]->GetPosDer()};
-        ChVector3d D_dt[2] = {m_nodes[0]->GetSlope1Der(), m_nodes[1]->GetSlope1Der()};
+        ChVector3d pos_dt[2] = {m_nodes[0]->GetPosDt(), m_nodes[1]->GetPosDt()};
+        ChVector3d D_dt[2] = {m_nodes[0]->GetSlope1Dt(), m_nodes[1]->GetSlope1Dt()};
 
         // Add part of the Jacobian stemming from elastic forces
         for (int inode = 0; inode < 2; ++inode) {
@@ -427,8 +427,8 @@ void ChElementCableANCF::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
 // (e.g. the actual position of nodes is not in relaxed reference position).
 void ChElementCableANCF::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     ComputeInternalForces_Impl(m_nodes[0]->GetPos(), m_nodes[0]->GetSlope1(), m_nodes[1]->GetPos(), m_nodes[1]->GetSlope1(),
-                               m_nodes[0]->GetPosDer(), m_nodes[0]->GetSlope1Der(), m_nodes[1]->GetPosDer(),
-                               m_nodes[1]->GetSlope1Der(), Fi);
+                               m_nodes[0]->GetPosDt(), m_nodes[0]->GetSlope1Dt(), m_nodes[1]->GetPosDt(),
+                               m_nodes[1]->GetSlope1Dt(), Fi);
 }
 
 // Worker function for computing the internal forces.
@@ -757,10 +757,10 @@ void ChElementCableANCF::LoadableGetStateBlockPosLevel(int block_offset, ChState
 
 // Gets all the DOFs packed in a single vector (speed part)
 void ChElementCableANCF::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
-    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetSlope1Der().eigen();
-    mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPosDer().eigen();
-    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetSlope1Der().eigen();
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDt().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetSlope1Dt().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPosDt().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetSlope1Dt().eigen();
 }
 
 // Increment all DOFs using a delta.

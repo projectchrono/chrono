@@ -174,7 +174,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Set inertia
     wheel->SetMass(total_mass * 1.0 / 2.0);
     wheel->SetInertiaXX(mdensity * principal_I);
-    wheel->SetPosDer(wheel_IniVel);
+    wheel->SetPosDt(wheel_IniVel);
     wheel->SetAngVelLocal(ChVector3d(0.0, 0.0, 0.0));  // set an initial anular velocity (rad/s)
 
     // Set the absolute position of the body:
@@ -380,7 +380,7 @@ int main(int argc, char* argv[]) {
         const auto& force = reaction.force;
         const auto& torque = reaction.torque;
         const auto& w_pos = wheel->GetPos();
-        const auto& w_vel = wheel->GetPosDer();
+        const auto& w_vel = wheel->GetPosDt();
         const auto& angvel = wheel->GetAngVelLocal();
 
         if (verbose) {

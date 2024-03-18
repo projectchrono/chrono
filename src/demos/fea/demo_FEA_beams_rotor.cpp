@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
         chrono::ChVector3d par_pos = par_frame.TransformDirectionLocalToParent(local_pos);
         chrono::ChVector3d alpha = par_frame.GetAngAccParent();
         chrono::ChVector3d omega = par_frame.GetAngVelParent();
-        par_acc = par_frame.GetPosDer2() + chrono::Vcross(par_frame.GetAngAccParent(), par_pos) +
+        par_acc = par_frame.GetPosDt2() + chrono::Vcross(par_frame.GetAngAccParent(), par_pos) +
                   chrono::Vcross(omega, chrono::Vcross(omega, par_pos));
     };
 
@@ -281,9 +281,9 @@ int main(int argc, char* argv[]) {
         PointAccelerationLocalToParent(m_rot_frame, m_dpos_rel, acc_par_ref);
 
         std::cout << "rot_frame.GetCoordsys():\t" << m_rot_frame.GetCoordsys() << std::endl;
-        std::cout << "rot_frame.GetCoordsysDer():\t" << m_rot_frame.GetPosDer() << "\t" << m_rot_frame.GetAngVelLocal()
+        std::cout << "rot_frame.GetCoordsysDt():\t" << m_rot_frame.GetPosDt() << "\t" << m_rot_frame.GetAngVelLocal()
                   << std::endl;
-        std::cout << "rot_frame.GetCoordsysDer2():\t" << m_rot_frame.GetPosDer2() << "\t" << m_rot_frame.GetAngAccLocal()
+        std::cout << "rot_frame.GetCoordsysDt2():\t" << m_rot_frame.GetPosDt2() << "\t" << m_rot_frame.GetAngAccLocal()
                   << std::endl;
         std::cout << "vel_par:\t" << vel_par << std::endl;
         std::cout << "acc_par from chrono method:\t" << acc_par << std::endl;
@@ -339,10 +339,10 @@ int main(int argc, char* argv[]) {
                               ChStaticNonLinearRheonomicAnalysis* analysis) override {
             for (auto in : blade_nodes) {
                 // Set node speed and angular velocity, as moved by hub motor:
-                in->SetPosDer(ChVector3d(-in->GetPos().y() * blade_rad_s, 0, 0));
+                in->SetPosDt(ChVector3d(-in->GetPos().y() * blade_rad_s, 0, 0));
                 in->SetAngVelParent(ChVector3d(0, 0, blade_rad_s));
                 // Set also centripetal acceleration:
-                in->SetPosDer2(ChVector3d(0, -in->GetPos().y() * blade_rad_s * blade_rad_s, 0));
+                in->SetPosDt2(ChVector3d(0, -in->GetPos().y() * blade_rad_s * blade_rad_s, 0));
             }
         }
         // some data used by the callback to make things simple
@@ -383,7 +383,7 @@ int main(int argc, char* argv[]) {
 
         ChVectorDynamic<> ploty_analytic(nodes.size());
         for (int i = 0; i < nodes.size(); ++i) {
-            ploty(i) = nodes[i]->GetPosDer().x();
+            ploty(i) = nodes[i]->GetPosDt().x();
             ploty_analytic(i) = -nodes[i]->GetPos().y() * rad_s;
         }
         ChGnuPlot mplot_edge_speed((out_dir + "/flapwise_speed.dat").c_str());
@@ -393,7 +393,7 @@ int main(int argc, char* argv[]) {
                               " with lines lt -1 lc rgb'#AA00EE'");
 
         for (int i = 0; i < nodes.size(); ++i) {
-            ploty(i) = nodes[i]->GetPosDer2().y();
+            ploty(i) = nodes[i]->GetPosDt2().y();
             ploty_analytic(i) = -nodes[i]->GetPos().y() * rad_s * rad_s;
         }
         ChGnuPlot mplot_centeripetal_accel((out_dir + "/centripetal_acc.dat").c_str());
@@ -406,7 +406,7 @@ int main(int argc, char* argv[]) {
     /*
     // TRICK: force nodes to needed speed
     for (auto in : nodes) {
-        in->SetPosDer(ChVector3d(-in->GetPos().y() * rad_s, 0, 0));
+        in->SetPosDt(ChVector3d(-in->GetPos().y() * rad_s, 0, 0));
         in->SetAngVelParent(ChVector3d(0, 0,  rad_s));
     }
     */

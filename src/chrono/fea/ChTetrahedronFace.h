@@ -80,9 +80,9 @@ class ChApi ChTetrahedronFace : public ChLoadableUV {
 
     /// Get all the DOFs packed in a single vector (speed part).
     virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override {
-        mD.segment(block_offset + 0, 3) = GetNode(0)->GetPosDer().eigen();
-        mD.segment(block_offset + 3, 3) = GetNode(1)->GetPosDer().eigen();
-        mD.segment(block_offset + 6, 3) = GetNode(2)->GetPosDer().eigen();
+        mD.segment(block_offset + 0, 3) = GetNode(0)->GetPosDt().eigen();
+        mD.segment(block_offset + 3, 3) = GetNode(1)->GetPosDt().eigen();
+        mD.segment(block_offset + 6, 3) = GetNode(2)->GetPosDt().eigen();
     }
 
     /// Increment all DOFs using a delta.

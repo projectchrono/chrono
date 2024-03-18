@@ -180,7 +180,7 @@ class Model(object):
    def get_ob(self):
            
 
-          self.state = [self.link_slider.GetDistance(), self.link_slider.GetDistanceDer(), self.pin_joint.GetRelAngle(), self.omega]
+          self.state = [self.link_slider.GetDistance(), self.link_slider.GetDistanceDt(), self.pin_joint.GetRelAngle(), self.omega]
           return np.asarray(self.state)
 
                  

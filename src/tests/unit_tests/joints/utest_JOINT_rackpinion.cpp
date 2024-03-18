@@ -274,7 +274,7 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
     ChVector3d angVelLocPinion = pinion->GetAngVelLocal();
     ChMatrix33<> inertiaRack = rack->GetInertia();
     ChVector3d angVelLocRack = rack->GetAngVelLocal();
-    double transKE = 0.5 * massPinion * pinion->GetPosDer().Length2() + 0.5 * massRack * rack->GetPosDer().Length2();
+    double transKE = 0.5 * massPinion * pinion->GetPosDt().Length2() + 0.5 * massRack * rack->GetPosDt().Length2();
     double rotKE = 0.5 * Vdot(angVelLocPinion, inertiaPinion * angVelLocPinion) +
                    0.5 * Vdot(angVelLocRack, inertiaRack * angVelLocRack);
     double deltaPE =
@@ -290,16 +290,16 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
         if (simTime >= outTime - simTimeStep / 2) {
             // CM position, velocity, and acceleration (expressed in global frame).
             const ChVector3d& positionPinion = pinion->GetPos();
-            const ChVector3d& velocityPinion = pinion->GetPosDer();
+            const ChVector3d& velocityPinion = pinion->GetPosDt();
             const ChVector3d& positionRack = rack->GetPos();
-            const ChVector3d& velocityRack = rack->GetPosDer();
+            const ChVector3d& velocityRack = rack->GetPosDt();
             out_posPinion << simTime << positionPinion << std::endl;
             out_velPinion << simTime << velocityPinion << std::endl;
-            out_accPinion << simTime << pinion->GetPosDer2() << std::endl;
+            out_accPinion << simTime << pinion->GetPosDt2() << std::endl;
 
             out_posRack << simTime << positionRack << std::endl;
             out_velRack << simTime << velocityRack << std::endl;
-            out_accRack << simTime << rack->GetPosDer2() << std::endl;
+            out_accRack << simTime << rack->GetPosDt2() << std::endl;
 
             // Orientation, angular velocity, and angular acceleration (expressed in
             // global frame).
@@ -317,7 +317,7 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
             // Delta Potential Energy (m*g*dz)
             angVelLocPinion = pinion->GetAngVelLocal();
             angVelLocRack = rack->GetAngVelLocal();
-            transKE = 0.5 * massPinion * pinion->GetPosDer().Length2() + 0.5 * massRack * rack->GetPosDer().Length2();
+            transKE = 0.5 * massPinion * pinion->GetPosDt().Length2() + 0.5 * massRack * rack->GetPosDt().Length2();
             rotKE = 0.5 * Vdot(angVelLocPinion, inertiaPinion * angVelLocPinion) +
                     0.5 * Vdot(angVelLocRack, inertiaRack * angVelLocRack);
             deltaPE = massPinion * g * (pinion->GetPos().z() - jointLoc.z()) +

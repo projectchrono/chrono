@@ -288,9 +288,9 @@ int main(int argc, char* argv[]) {
         rover->Update();
 
         std::cout << "  pos: " << body->GetPos() << std::endl;
-        std::cout << "  vel: " << body->GetPosDer() << std::endl;
+        std::cout << "  vel: " << body->GetPosDt() << std::endl;
         if (output) {
-            ofile << time << "  " << body->GetPos() << "    " << body->GetPosDer() << std::endl;
+            ofile << time << "  " << body->GetPos() << "    " << body->GetPosDt() << std::endl;
             if (current_step % output_steps == 0) {
                 sysFSI.PrintParticleToFile(out_dir + "/particles");
                 sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
@@ -753,7 +753,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         ChFrame<> ref_frame = body->GetFrameRefToAbs();
         ChVector3d pos = ref_frame.GetPos();
         ChQuaternion<> rot = ref_frame.GetRot();
-        ChVector3d vel = body->GetPosDer();
+        ChVector3d vel = body->GetPosDt();
 
         std::string delim = ",";
         filename = rover_dir + "/body_pos_rot_vel" + std::to_string(i) + ".csv";

@@ -625,7 +625,7 @@ void ChElementShellBST::LoadableGetStateBlockPosLevel(int block_offset, ChState&
 // Gets all the DOFs packed in a single vector (velocity part).
 void ChElementShellBST::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     for (int i = 0; i < n_usednodes; ++i) {
-        mD.segment(block_offset + 3 * i, 3) = m_nodes[nodes_used_to_six[i]]->GetPosDer().eigen();
+        mD.segment(block_offset + 3 * i, 3) = m_nodes[nodes_used_to_six[i]]->GetPosDt().eigen();
     }
 }
 
@@ -643,7 +643,7 @@ void ChElementShellBST::EvaluateSectionVelNorm(double U, double V, ChVector3d& R
     ShapeVector N;
     ShapeFunctions(N, U, V);
     for (unsigned int ii = 0; ii < 3; ii++) {
-        Result += N(ii) * m_nodes[ii]->GetPosDer();
+        Result += N(ii) * m_nodes[ii]->GetPosDt();
     }
 }
 

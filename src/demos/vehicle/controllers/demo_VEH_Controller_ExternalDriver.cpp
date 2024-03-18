@@ -134,9 +134,9 @@ class ChVehicle_DataGeneratorFunctor : public ChExternalDriver::DataGeneratorFun
 
         writer.Key("pos") << body->GetPos();
         writer.Key("rot") << body->GetRot();
-        writer.Key("lin_vel") << body->GetPosDer();
+        writer.Key("lin_vel") << body->GetPosDt();
         writer.Key("ang_vel") << body->GetAngVelLocal();
-        writer.Key("lin_acc") << body->GetPosDer2();
+        writer.Key("lin_acc") << body->GetPosDt2();
         writer.Key("ang_acc") << body->GetAngAccLocal();
     }
 
@@ -481,7 +481,7 @@ int main(int argc, char* argv[]) {
 #endif
         // Extract system state
         time = hmmwv.GetSystem()->GetChTime();
-        ChVector3d acc_CG = hmmwv.GetVehicle().GetChassisBody()->GetPosDer2();
+        ChVector3d acc_CG = hmmwv.GetVehicle().GetChassisBody()->GetPosDt2();
         ChVector3d acc_driver = hmmwv.GetVehicle().GetPointAcceleration(driver_pos);
         double fwd_acc_CG = fwd_acc_GC_filter.Add(acc_CG.x());
         double lat_acc_CG = lat_acc_GC_filter.Add(acc_CG.y());

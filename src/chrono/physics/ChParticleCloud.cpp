@@ -58,7 +58,7 @@ ChParticle& ChParticle::operator=(const ChParticle& other) {
 }
 
 void ChParticle::ContactableGetStateBlockVelLevel(ChStateDelta& w) {
-    w.segment(0, 3) = GetPosDer().eigen();
+    w.segment(0, 3) = GetPosDt().eigen();
     w.segment(3, 3) = GetAngVelLocal().eigen();
 }
 
@@ -339,7 +339,7 @@ void ChParticleCloud::IntStateGather(const unsigned int off_x,  // offset in x s
         x.segment(off_x + 7 * j + 0, 3) = particles[j]->GetPos().eigen();
         x.segment(off_x + 7 * j + 3, 4) = particles[j]->GetRot().eigen();
 
-        v.segment(off_v + 6 * j + 0, 3) = particles[j]->GetPosDer().eigen();
+        v.segment(off_v + 6 * j + 0, 3) = particles[j]->GetPosDt().eigen();
         v.segment(off_v + 6 * j + 3, 3) = particles[j]->GetAngVelLocal().eigen();
 
         T = GetChTime();
@@ -355,7 +355,7 @@ void ChParticleCloud::IntStateScatter(const unsigned int off_x,  // offset in x 
 ) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         particles[j]->SetCoordsys(x.segment(off_x + 7 * j, 7));
-        particles[j]->SetPosDer(v.segment(off_v + 6 * j, 3));
+        particles[j]->SetPosDt(v.segment(off_v + 6 * j, 3));
         particles[j]->SetAngVelLocal(v.segment(off_v + 6 * j + 3, 3));
     }
     SetChTime(T);
@@ -364,14 +364,14 @@ void ChParticleCloud::IntStateScatter(const unsigned int off_x,  // offset in x 
 
 void ChParticleCloud::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        a.segment(off_a + 6 * j + 0, 3) = particles[j]->GetPosDer2().eigen();
+        a.segment(off_a + 6 * j + 0, 3) = particles[j]->GetPosDt2().eigen();
         a.segment(off_a + 6 * j + 3, 3) = particles[j]->GetAngAccLocal().eigen();
     }
 }
 
 void ChParticleCloud::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        particles[j]->SetPosDer2(a.segment(off_a + 6 * j, 3));
+        particles[j]->SetPosDt2(a.segment(off_a + 6 * j, 3));
         particles[j]->SetAngAccLocal(a.segment(off_a + 6 * j + 3, 3));
     }
 }
@@ -522,7 +522,7 @@ void ChParticleCloud::VariablesFbLoadForces(double factor) {
 void ChParticleCloud::VariablesQbLoadSpeed() {
     for (unsigned int j = 0; j < particles.size(); j++) {
         // set current speed in 'qb', it can be used by the solver when working in incremental mode
-        particles[j]->variables.Get_qb().segment(0, 3) = particles[j]->GetCoordsysDer().pos.eigen();
+        particles[j]->variables.Get_qb().segment(0, 3) = particles[j]->GetCoordsysDt().pos.eigen();
         particles[j]->variables.Get_qb().segment(3, 3) = particles[j]->GetAngVelLocal().eigen();
     }
 }
@@ -535,10 +535,10 @@ void ChParticleCloud::VariablesFbIncrementMq() {
 
 void ChParticleCloud::VariablesQbSetSpeed(double step) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        ChCoordsys<> old_coord_dt = particles[j]->GetCoordsysDer();
+        ChCoordsys<> old_coord_dt = particles[j]->GetCoordsysDt();
 
         // from 'qb' vector, sets body speed, and updates auxiliary data
-        particles[j]->SetPosDer(particles[j]->variables.Get_qb().segment(0, 3));
+        particles[j]->SetPosDt(particles[j]->variables.Get_qb().segment(0, 3));
         particles[j]->SetAngVelLocal(particles[j]->variables.Get_qb().segment(3, 3));
 
         // apply limits (if in speed clamping mode) to speeds.
@@ -546,8 +546,8 @@ void ChParticleCloud::VariablesQbSetSpeed(double step) {
 
         // Compute accel. by BDF (approximate by differentiation);
         if (step) {
-            particles[j]->SetPosDer2((particles[j]->GetCoordsysDer().pos - old_coord_dt.pos) / step);
-            particles[j]->SetRotDer2((particles[j]->GetCoordsysDer().rot - old_coord_dt.rot) / step);
+            particles[j]->SetPosDt2((particles[j]->GetCoordsysDt().pos - old_coord_dt.pos) / step);
+            particles[j]->SetRotDt2((particles[j]->GetCoordsysDt().rot - old_coord_dt.rot) / step);
         }
     }
 }
@@ -580,23 +580,23 @@ void ChParticleCloud::VariablesQbIncrementPosition(double dt_step) {
 
 void ChParticleCloud::ForceToRest() {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        particles[j]->SetPosDer(VNULL);
+        particles[j]->SetPosDt(VNULL);
         particles[j]->SetAngVelLocal(VNULL);
-        particles[j]->SetPosDer2(VNULL);
-        particles[j]->SetRotDer2(QNULL);
+        particles[j]->SetPosDt2(VNULL);
+        particles[j]->SetRotDt2(QNULL);
     }
 }
 
 void ChParticleCloud::ClampSpeed() {
     if (limit_speed) {
         for (unsigned int j = 0; j < particles.size(); j++) {
-            double w = 2.0 * particles[j]->GetRotDer().Length();
+            double w = 2.0 * particles[j]->GetRotDt().Length();
             if (w > max_wvel)
-                particles[j]->SetRotDer(particles[j]->GetRotDer() * max_wvel / w);
+                particles[j]->SetRotDt(particles[j]->GetRotDt() * max_wvel / w);
 
-            double v = particles[j]->GetPosDer().Length();
+            double v = particles[j]->GetPosDt().Length();
             if (v > max_speed)
-                particles[j]->SetPosDer(particles[j]->GetPosDer() * max_speed / v);
+                particles[j]->SetPosDt(particles[j]->GetPosDt() * max_speed / v);
         }
     }
 }

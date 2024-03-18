@@ -122,7 +122,7 @@ void ChNodeFEAxyzDDD::NodeIntStateScatter(const unsigned int off_x,
     ChNodeFEAxyzDD::NodeIntStateScatter(off_x, x, off_v, v, T);
     if (!IsSlope3Fixed()) {
         SetSlope3(x.segment(off_x + 9, 3));
-        SetSlope3Der(v.segment(off_v + 9, 3));
+        SetSlope3Dt(v.segment(off_v + 9, 3));
     }
 }
 
@@ -135,7 +135,7 @@ void ChNodeFEAxyzDDD::NodeIntStateGatherAcceleration(const unsigned int off_a, C
 
 void ChNodeFEAxyzDDD::NodeIntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
     ChNodeFEAxyzDD::NodeIntStateScatterAcceleration(off_a, a);
-    SetSlope3Der2(a.segment(off_a + 9, 3));
+    SetSlope3Dt2(a.segment(off_a + 9, 3));
 }
 
 void ChNodeFEAxyzDDD::NodeIntStateIncrement(const unsigned int off_x,
@@ -244,9 +244,9 @@ void ChNodeFEAxyzDDD::VariablesQbSetSpeed(double step) {
     ChNodeFEAxyzDD::VariablesQbSetSpeed(step);
     if (!IsSlope3Fixed()) {
         ChVector3d oldDDD_dt = DDD_dt;
-        SetSlope3Der(variables_DDD->Get_qb().segment(0, 3));
+        SetSlope3Dt(variables_DDD->Get_qb().segment(0, 3));
         if (step) {
-            SetSlope3Der2((DDD_dt - oldDDD_dt) / step);
+            SetSlope3Dt2((DDD_dt - oldDDD_dt) / step);
         }
     }
 }

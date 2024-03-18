@@ -135,7 +135,7 @@ while vis.Run():
     array_time.append(sys.GetChTime())
     array_angle.append(my_motor.GetMotorAngle())
     array_pos.append(mpiston.GetPos().x)
-    array_speed.append(mpiston.GetPosDer().x)
+    array_speed.append(mpiston.GetPosDt().x)
     
     # here happens the visualization and step time integration
     vis.BeginScene() 

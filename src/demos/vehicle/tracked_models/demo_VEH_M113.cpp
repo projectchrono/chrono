@@ -711,7 +711,7 @@ void AddFallingObjects(ChSystem* system) {
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector3d(1, 1, 1));
     ball->SetPos(initLoc + ChVector3d(-3, 0, 2));
     ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    ball->SetPosDer(ChVector3d(3, 0, 0));
+    ball->SetPosDt(ChVector3d(3, 0, 0));
     ball->SetFixed(false);
 
     ChContactMaterialData minfo;

@@ -266,7 +266,7 @@ bool TestRevSpherical(
     // Total energy at initial time.
     ChMatrix33<> inertia = pendulum->GetInertia();
     ChVector3d angVelLoc = pendulum->GetAngVelLocal();
-    double transKE = 0.5 * mass * pendulum->GetPosDer().Length2();
+    double transKE = 0.5 * mass * pendulum->GetPosDt().Length2();
     double rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
     double deltaPE = mass * g * (pendulum->GetPos().z() - PendCSYS.pos.z());
     double totalE0 = transKE + rotKE + deltaPE;
@@ -281,10 +281,10 @@ bool TestRevSpherical(
         if (simTime >= outTime - simTimeStep / 2) {
             // CM position, velocity, and acceleration (expressed in global frame).
             const ChVector3d& position = pendulum->GetPos();
-            const ChVector3d& velocity = pendulum->GetPosDer();
+            const ChVector3d& velocity = pendulum->GetPosDt();
             out_pos << simTime << position << std::endl;
             out_vel << simTime << velocity << std::endl;
-            out_acc << simTime << pendulum->GetPosDer2() << std::endl;
+            out_acc << simTime << pendulum->GetPosDt2() << std::endl;
 
             // Orientation, angular velocity, and angular acceleration (expressed in global frame).
             out_quat << simTime << pendulum->GetRot() << std::endl;

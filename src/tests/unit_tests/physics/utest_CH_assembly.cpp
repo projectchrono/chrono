@@ -94,9 +94,9 @@ TEST(FullAssembly, Assemble) {
     // Extract position, velocity, and acceleration of pendulum body.
     ChVector3d pos = pendulum->GetPos();
     ChQuaternion<> rot = pendulum->GetRot();
-    ChVector3d lin_vel = pendulum->GetPosDer();
+    ChVector3d lin_vel = pendulum->GetPosDt();
     ChVector3d ang_vel = pendulum->GetAngVelParent();
-    ChVector3d lin_acc = pendulum->GetPosDer2();
+    ChVector3d lin_acc = pendulum->GetPosDt2();
     ChVector3d ang_acc = pendulum->GetAngAccParent();
 
     // Joint frame on 2nd body (ground), expressed in the body frame

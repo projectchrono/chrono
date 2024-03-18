@@ -377,10 +377,10 @@ class ChApi ChElementBeamANCF_3243 : public ChElementANCF,
     void CalcCoordMatrix(Matrix3xN& ebar);
 
     /// Calculate the current 3Nx1 vector of nodal coordinate time derivatives.
-    void CalcCoordDerivVector(Vector3N& edot);
+    void CalcCoordDtVector(Vector3N& edot);
 
     /// Calculate the current 3xN matrix of nodal coordinate time derivatives.
-    void CalcCoordDerivMatrix(Matrix3xN& ebardot);
+    void CalcCoordDtMatrix(Matrix3xN& ebardot);
 
     /// Calculate the current Nx6 matrix of the transpose of the nodal coordinates and nodal coordinate time
     /// derivatives.

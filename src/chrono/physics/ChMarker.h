@@ -89,11 +89,11 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
     const ChCoordsysd& GetAbsCoordsys() const { return m_abs_frame.GetCoordsys(); }
 
     /// Get the speed of translation and rotation (as a derived ChCoordsysd) with respect to the absolute coordinates.
-    const ChCoordsysd& GetAbsCoordsysDer() const { return m_abs_frame.GetCoordsysDer(); }
+    const ChCoordsysd& GetAbsCoordsysDt() const { return m_abs_frame.GetCoordsysDt(); }
 
     /// Get the acceleration of translation and rotation (as a derived ChCoordsysd) with respect to the absolute
     /// coordinates.
-    const ChCoordsysd& GetAbsCoordsysDer2() const { return m_abs_frame.GetCoordsysDer2(); }
+    const ChCoordsysd& GetAbsCoordsysDt2() const { return m_abs_frame.GetCoordsysDt2(); }
 
     /// Set the translation and rotation (as a ChCoordsysd) with respect to the absolute coordinates.
     /// NOTE! internal use only, for the moment. Use  ImposeAbsoluteTransform() if needed.
@@ -101,11 +101,11 @@ class ChApi ChMarker : public ChObj, public ChFrameMoving<double> {
 
     /// Set the speed of translation and rotation (as a ChCoordsysd) with respect to the absolute coordinates.
     /// NOTE! internal use only, for the moment.
-    void SetAbsCoordsysDer(const ChCoordsysd& csys_dt) { m_abs_frame.SetCoordsysDer(csys_dt); }
+    void SetAbsCoordsysDt(const ChCoordsysd& csys_dt) { m_abs_frame.SetCoordsysDt(csys_dt); }
 
     /// Set the speed of translation and rotation (as a ChCoordsysd) with respect to the absolute coordinates.
     /// NOTE! internal use only, for the moment.
-    void SetAbsCoordsysDer2(const ChCoordsysd& csys_dtdt) { m_abs_frame.SetCoordsysDer2(csys_dtdt); }
+    void SetAbsCoordsysDt2(const ChCoordsysd& csys_dtdt) { m_abs_frame.SetCoordsysDt2(csys_dtdt); }
 
     /// Get the angular velocity with respect to global frame, expressed in absolute coordinates.
     ChVector3d GetAbsAngVel() const { return m_abs_frame.GetAngVelParent(); }

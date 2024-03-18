@@ -1039,9 +1039,9 @@ void ChOptixPipeline::UpdateDeformableMeshes() {
 
 void ChOptixPipeline::UpdateObjectVelocity() {
     for (int i = 0; i < m_bodies.size(); i++) {
-        m_material_records[i].data.translational_velocity = {(float)m_bodies[i]->GetPosDer().x(),
-                                                             (float)m_bodies[i]->GetPosDer().y(),
-                                                             (float)m_bodies[i]->GetPosDer().z()};
+        m_material_records[i].data.translational_velocity = {(float)m_bodies[i]->GetPosDt().x(),
+                                                             (float)m_bodies[i]->GetPosDt().y(),
+                                                             (float)m_bodies[i]->GetPosDt().z()};
         m_material_records[i].data.angular_velocity = {(float)m_bodies[i]->GetAngVelParent().x(),
                                                        (float)m_bodies[i]->GetAngVelParent().y(),
                                                        (float)m_bodies[i]->GetAngVelParent().z()};

@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
     object->SetInertiaXX(40.0 * ChVector3d(1, 1, 0.2));
     object->SetPos(ChVector3d(init_x, init_height, init_z));
     object->SetRot(z2y * QuatFromAngleX(init_roll));
-    object->SetPosDer(init_vel);
+    object->SetPosDt(init_vel);
     object->SetAngVelLocal(init_omg);
     object->EnableCollision(true);
     object->SetFixed(false);

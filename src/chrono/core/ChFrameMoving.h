@@ -146,34 +146,34 @@ class ChFrameMoving : public ChFrame<Real> {
     // GET-FUNCTIONS
 
     /// Return both rotation and translation velocities as a ChCoordsys object.
-    ChCoordsys<Real>& GetCoordsysDer() { return m_csys_dt; }
-    const ChCoordsys<Real>& GetCoordsysDer() const { return m_csys_dt; }
+    ChCoordsys<Real>& GetCoordsysDt() { return m_csys_dt; }
+    const ChCoordsys<Real>& GetCoordsysDt() const { return m_csys_dt; }
 
     /// Return both rotation and translation accelerations as a ChCoordsys object.
-    ChCoordsys<Real>& GetCoordsysDer2() { return m_csys_dtdt; }
-    const ChCoordsys<Real>& GetCoordsysDer2() const { return m_csys_dtdt; }
+    ChCoordsys<Real>& GetCoordsysDt2() { return m_csys_dtdt; }
+    const ChCoordsys<Real>& GetCoordsysDt2() const { return m_csys_dtdt; }
 
     /// Return the linear velocity.
-    ChVector3<Real>& GetPosDer() { return m_csys_dt.pos; }
-    const ChVector3<Real>& GetPosDer() const { return m_csys_dt.pos; }
+    ChVector3<Real>& GetPosDt() { return m_csys_dt.pos; }
+    const ChVector3<Real>& GetPosDt() const { return m_csys_dt.pos; }
 
     /// Return the linear velocity.
     const ChVector3<Real>& GetLinVel() const { return m_csys_dt.pos; }
 
     /// Return the linear acceleration.
-    ChVector3<Real>& GetPosDer2() { return m_csys_dtdt.pos; }
-    const ChVector3<Real>& GetPosDer2() const { return m_csys_dtdt.pos; }
+    ChVector3<Real>& GetPosDt2() { return m_csys_dtdt.pos; }
+    const ChVector3<Real>& GetPosDt2() const { return m_csys_dtdt.pos; }
 
     /// Return the linear acceleration.
     const ChVector3<Real>& GetLinAcc() const { return m_csys_dtdt.pos; }
 
     /// Return the rotation velocity as a quaternion.
-    ChQuaternion<Real>& GetRotDer() { return m_csys_dt.rot; }
-    const ChQuaternion<Real>& GetRotDer() const { return m_csys_dt.rot; }
+    ChQuaternion<Real>& GetRotDt() { return m_csys_dt.rot; }
+    const ChQuaternion<Real>& GetRotDt() const { return m_csys_dt.rot; }
 
     /// Return the rotation acceleration as a quaternion.
-    ChQuaternion<Real>& GetRotDer2() { return m_csys_dtdt.rot; }
-    const ChQuaternion<Real>& GetRotDer2() const { return m_csys_dtdt.rot; }
+    ChQuaternion<Real>& GetRotDt2() { return m_csys_dtdt.rot; }
+    const ChQuaternion<Real>& GetRotDt2() const { return m_csys_dtdt.rot; }
 
     /// Compute the angular velocity (expressed in local coords).
     ChVector3<Real> GetAngVelLocal() const {
@@ -202,17 +202,17 @@ class ChFrameMoving : public ChFrame<Real> {
     // SET-FUNCTIONS
 
     /// Set both linear and rotation velocities as a single ChCoordsys derivative.
-    virtual void SetCoordsysDer(const ChCoordsys<Real>& csys_dt) { m_csys_dt = csys_dt; }
+    virtual void SetCoordsysDt(const ChCoordsys<Real>& csys_dt) { m_csys_dt = csys_dt; }
 
     /// Set the linear velocity.
-    virtual void SetPosDer(const ChVector3<Real>& vel) { m_csys_dt.pos = vel; }
+    virtual void SetPosDt(const ChVector3<Real>& vel) { m_csys_dt.pos = vel; }
 
     /// Set the linear velocity.
     virtual void SetLinVel(const ChVector3<Real>& vel) { m_csys_dt.pos = vel; }
 
     /// Set the rotation velocity as a quaternion derivative.
     /// Note: the quaternion must satisfy: dot(q,q_dt)=0.
-    virtual void SetRotDer(const ChQuaternion<Real>& q_dt) { m_csys_dt.rot = q_dt; }
+    virtual void SetRotDt(const ChQuaternion<Real>& q_dt) { m_csys_dt.rot = q_dt; }
 
     /// Set the rotation velocity from the given angular velocity (expressed in local coordinates).
     virtual void SetAngVelLocal(const ChVector3<Real>& w) {
@@ -227,17 +227,17 @@ class ChFrameMoving : public ChFrame<Real> {
     }
 
     /// Set the linear and rotation accelerations as a single ChCoordsys derivative.
-    virtual void SetCoordsysDer2(const ChCoordsys<Real>& csys_dtdt) { m_csys_dtdt = csys_dtdt; }
+    virtual void SetCoordsysDt2(const ChCoordsys<Real>& csys_dtdt) { m_csys_dtdt = csys_dtdt; }
 
     /// Set the linear acceleration.
-    virtual void SetPosDer2(const ChVector3<Real>& acc) { m_csys_dtdt.pos = acc; }
+    virtual void SetPosDt2(const ChVector3<Real>& acc) { m_csys_dtdt.pos = acc; }
 
     /// Set the linear acceleration.
     virtual void SetLinAcc(const ChVector3<Real>& acc) { m_csys_dtdt.pos = acc; }
 
     /// Set the rotation acceleration as a quaternion derivative.
     /// Note: the quaternion must satisfy: dot(q,q_dtdt)+dot(q_dt,q_dt)=0.
-    virtual void SetRotDer2(const ChQuaternion<Real>& q_dtdt) { m_csys_dtdt.rot = q_dtdt; }
+    virtual void SetRotDt2(const ChQuaternion<Real>& q_dtdt) { m_csys_dtdt.rot = q_dtdt; }
 
     /// Set the rotation acceleration from given angular acceleration (expressed in local coordinates).
     /// Note: even when the local angular acceleration is zero, this function should still be called because q_dtdt
@@ -256,7 +256,7 @@ class ChFrameMoving : public ChFrame<Real> {
     }
 
     /// Compute the time derivative of the rotation matrix.
-    void ComputeRotMatDer(ChMatrix33<Real>& R_dt) const {
+    void ComputeRotMatDt(ChMatrix33<Real>& R_dt) const {
         //  [A_dt]=2[dFp/dt][Fm]'=2[Fp(q_dt)][Fm(q)]'
         ChFpMatrix34<Real> Fpdt(m_csys_dt.rot);
         ChFmMatrix34<Real> Fm(this->m_csys.rot);
@@ -264,7 +264,7 @@ class ChFrameMoving : public ChFrame<Real> {
     }
 
     /// Compute the second time derivative of the rotation matrix.
-    void ComputeRotMatDer2(ChMatrix33<Real>& R_dtdt) {
+    void ComputeRotMatDt2(ChMatrix33<Real>& R_dtdt) {
         //  [A_dtdt]=2[Fp(q_dtdt)][Fm(q)]'+2[Fp(q_dt)][Fm(q_dt)]'
         ChFpMatrix34<> Fpdtdt(m_csys_dtdt.rot);
         ChFmMatrix34<> Fm(this->m_csys.rot);
@@ -274,16 +274,16 @@ class ChFrameMoving : public ChFrame<Real> {
     }
 
     /// Return the time derivative of the rotation matrix.
-    ChMatrix33<Real> GetRotMatDer() {
+    ChMatrix33<Real> GetRotMatDt() {
         ChMatrix33<Real> res;
-        ComputeRotMatDer(res);
+        ComputeRotMatDt(res);
         return res;
     }
 
     /// Return the second time derivative of the rotation matrix.
-    ChMatrix33<Real> GetRotMatDer2() {
+    ChMatrix33<Real> GetRotMatDt2() {
         ChMatrix33<Real> res;
-        ComputeRotMatDer2(res);
+        ComputeRotMatDt2(res);
         return res;
     }
 

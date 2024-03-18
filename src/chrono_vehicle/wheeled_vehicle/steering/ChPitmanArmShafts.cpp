@@ -351,10 +351,10 @@ void ChPitmanArmShafts::GetShaftInformation(double time,
     shaft_angles.push_back(m_shaft_A1->GetPos());
     shaft_angles.push_back(m_shaft_A->GetPos());
 
-    shaft_velocities.push_back(m_shaft_C->GetPosDer());
-    shaft_velocities.push_back(m_shaft_C1->GetPosDer());
-    shaft_velocities.push_back(m_shaft_A1->GetPosDer());
-    shaft_velocities.push_back(m_shaft_A->GetPosDer());
+    shaft_velocities.push_back(m_shaft_C->GetPosDt());
+    shaft_velocities.push_back(m_shaft_C1->GetPosDt());
+    shaft_velocities.push_back(m_shaft_A1->GetPosDt());
+    shaft_velocities.push_back(m_shaft_A->GetPosDt());
 
     constraint_violations.push_back(m_shaft_motor->GetConstraintViolation());
     constraint_violations.push_back(m_shaft_gear->GetConstraintViolation());

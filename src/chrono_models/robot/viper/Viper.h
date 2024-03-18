@@ -95,7 +95,7 @@ class CH_MODELS_API ViperPart {
 
     /// Return the linear velocity of the Viper part.
     /// This is the absolute linear velocity of the part reference frame.
-    const ChVector3d& GetLinVel() const { return m_body->GetFrameRefToAbs().GetPosDer(); }
+    const ChVector3d& GetLinVel() const { return m_body->GetFrameRefToAbs().GetPosDt(); }
 
     /// Return the angular velocity of the Viper part.
     /// This is the absolute angular velocity of the part reference frame.
@@ -103,7 +103,7 @@ class CH_MODELS_API ViperPart {
 
     /// Return the linear acceleration of the Viper part.
     /// This is the absolute linear acceleration of the part reference frame.
-    const ChVector3d& GetLinAcc() const { return m_body->GetFrameRefToAbs().GetPosDer2(); }
+    const ChVector3d& GetLinAcc() const { return m_body->GetFrameRefToAbs().GetPosDt2(); }
 
     /// Return the angular acceleratino of the Viper part.
     /// This is the absolute angular acceleratin of the part reference frame.

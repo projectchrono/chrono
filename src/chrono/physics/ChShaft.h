@@ -52,16 +52,16 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     double GetPos() const { return pos; }
 
     /// Set the angular velocity
-    void SetPosDer(double mp) { pos_dt = mp; }
+    void SetPosDt(double mp) { pos_dt = mp; }
 
     /// Get the angular velocity
-    double GetPosDer() const { return pos_dt; }
+    double GetPosDt() const { return pos_dt; }
 
     /// Set the angular acceleration
-    void SetPosDer2(double mp) { pos_dtdt = mp; }
+    void SetPosDt2(double mp) { pos_dtdt = mp; }
 
     /// Get the angular acceleration
-    double GetPosDer2() const { return pos_dtdt; }
+    double GetPosDt2() const { return pos_dtdt; }
 
     /// Inertia of the shaft. Must be positive.
     /// Try not to mix bodies with too high/too low values of mass, for numerical stability.
@@ -212,7 +212,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
         mD(block_offset) = this->GetPos();
     }
     virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override {
-        mD(block_offset) = this->GetPosDer();
+        mD(block_offset) = this->GetPosDt();
     }
     virtual void LoadableStateIncrement(const unsigned int off_x,
                                         ChState& x_new,

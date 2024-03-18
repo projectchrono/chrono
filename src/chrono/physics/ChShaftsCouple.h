@@ -65,10 +65,10 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     double GetRelativeAngle() const { return (shaft1->GetPos() - shaft2->GetPos()); }
 
     /// Get the actual relative speed in terms of speed of shaft 1 respect to 2.
-    double GetRelativeAngleDer() const { return (shaft1->GetPosDer() - shaft2->GetPosDer()); }
+    double GetRelativeAngleDt() const { return (shaft1->GetPosDt() - shaft2->GetPosDt()); }
 
     /// Get the actual relative acceleration in terms of speed of shaft 1 respect to 2.
-    double GetRelativeAngleDer2() const { return (shaft1->GetPosDer2() - shaft2->GetPosDer2()); }
+    double GetRelativeAngleDt2() const { return (shaft1->GetPosDt2() - shaft2->GetPosDt2()); }
 
     virtual void ArchiveOut(ChArchiveOut& archive_out) override {
         // version number

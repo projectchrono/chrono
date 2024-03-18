@@ -32,7 +32,7 @@ TEST(ChronoMulticore, gravity) {
   ChVector3d vel = ChVector3d(2, 2, 0);
   ball->SetMass(1);
   ball->SetPos(pos);
-  ball->SetPosDer(vel);
+  ball->SetPosDt(vel);
   msystem.AddBody(ball);
 
   for (int i = 0; i < 1000; i++) {

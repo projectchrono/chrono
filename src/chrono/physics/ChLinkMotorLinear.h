@@ -53,10 +53,10 @@ class ChApi ChLinkMotorLinear : public ChLinkMotor {
     virtual double GetMotorPos() const { return mpos; }
 
     /// Get the current actuator velocity.
-    virtual double GetMotorPosDer() const { return mpos_dt; }
+    virtual double GetMotorPosDt() const { return mpos_dt; }
 
     /// Get the current actuator acceleration.
-    virtual double GetMotorPosDer2() const { return mpos_dtdt; }
+    virtual double GetMotorPosDt2() const { return mpos_dtdt; }
 
     /// Get the current actuator reaction force.
     virtual double GetMotorForce() const = 0;

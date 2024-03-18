@@ -62,10 +62,10 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
     double GetFieldVal() const { return P; }
 
     /// Set the scalar field time derivative at node.
-    void SetFieldValDer(double mp) { P_dt = mp; }
+    void SetFieldValDt(double mp) { P_dt = mp; }
 
     /// Get the scalar field time derivative at node.
-    double GetFieldValDer() const { return P_dt; }
+    double GetFieldValDt() const { return P_dt; }
 
     /// Set the applied term (the load/source in a Poisson equation).
     void SetLoad(double load) { F = load; }

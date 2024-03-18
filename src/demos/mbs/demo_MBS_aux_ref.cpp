@@ -236,18 +236,18 @@ int main(int argc, char* argv[]) {
             pos_2 = frame_2.GetPos();
             std::cout << "      " << pos_2.x() << "  " << pos_2.y() << "\n";
 
-            // OK, what about velocities? Here again, GetPosDer() returns the linear
+            // OK, what about velocities? Here again, GetPosDt() returns the linear
             // velocity of the body COG (expressed in the global frame) for both
             // pendulums:
-            ChVector3d lin_vel_1 = pend_1->GetPosDer();
-            ChVector3d lin_vel_2 = pend_2->GetPosDer();
+            ChVector3d lin_vel_1 = pend_1->GetPosDt();
+            ChVector3d lin_vel_2 = pend_2->GetPosDt();
             std::cout << "      " << lin_vel_1.x() << "  " << lin_vel_1.y() << "\n";
             std::cout << "      " << lin_vel_2.x() << "  " << lin_vel_2.y() << "\n";
 
             // To obtain the absolute linear velocity of the body reference frame,
-            // we use again GetPosDer(), but this time for the reference frame,
+            // we use again GetPosDt(), but this time for the reference frame,
             // using GetFrameRefToAbs() similarly for what we did for positions:
-            lin_vel_2 = pend_2->GetFrameRefToAbs().GetPosDer();
+            lin_vel_2 = pend_2->GetFrameRefToAbs().GetPosDt();
             std::cout << "      " << lin_vel_2.x() << "  " << lin_vel_2.y() << "\n";
 
             log_info = false;

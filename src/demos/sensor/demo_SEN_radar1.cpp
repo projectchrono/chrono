@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
     floor->SetPos({0, 0, -1});
     floor->SetFixed(true);
     //    floor->SetAngVelParent(ChVector3d(-0.2,-0.4,-0.3));
-    //    floor->SetPosDer(ChVector3d(0.1, 0, 0));
+    //    floor->SetPosDt(ChVector3d(0.1, 0, 0));
     sys.Add(floor);
     floor->GetVisualModel()->GetShapes()[0].first->AddMaterial(green);
 

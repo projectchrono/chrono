@@ -281,9 +281,9 @@ void ChConveyor::Update(double mytime, bool update_assets) {
 
     // keep the plate always at the same position of the main reference
     conveyor_plate->SetCoordsys(conveyor_truss->GetCoordsys());
-    conveyor_plate->SetCoordsysDer(conveyor_truss->GetCoordsysDer());
+    conveyor_plate->SetCoordsysDt(conveyor_truss->GetCoordsysDt());
     // keep the plate always at the same speed of the main reference, plus the conveyor speed on X local axis
-    conveyor_plate->SetPosDer(conveyor_truss->GetPosDer() + (ChVector3d(conveyor_speed, 0, 0) >> (*conveyor_truss)));
+    conveyor_plate->SetPosDt(conveyor_truss->GetPosDt() + (ChVector3d(conveyor_speed, 0, 0) >> (*conveyor_truss)));
 
     conveyor_plate->Update(mytime, update_assets);
 

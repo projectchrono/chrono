@@ -260,7 +260,7 @@ int main(int argc, char* argv[]) {
 
         virtual double GetVal(double x) const override {
             // The three-phase torque(speed) model
-            double w = mymotor->GetMotorAngleDer();
+            double w = mymotor->GetMotorAngleDt();
             double s = (ns - w) / ns;  // slip
             double T =
                 (3.0 / 2 * CH_PI * ns) * (s * E2 * E2 * R2) / (R2 * R2 + pow(s * X2, 2));  // electric torque curve
@@ -374,10 +374,10 @@ int main(int argc, char* argv[]) {
     // torques for whatever part of the driveline by putting lines like the following
     // in the  while() {...} simulation loop:
     //
-    // std::cout << " 1D shaft 'A' angular speed: "      << my_shaftA->GetPosDer() << " [rad/s]" << std::endl;
-    // std::cout << " 1D Drive angular speed: rot-stat " << my_drive->GetMotorAngleDer() << " [rad/s]" << std::endl;
+    // std::cout << " 1D shaft 'A' angular speed: "      << my_shaftA->GetPosDt() << " [rad/s]" << std::endl;
+    // std::cout << " 1D Drive angular speed: rot-stat " << my_drive->GetMotorAngleDt() << " [rad/s]" << std::endl;
     // std::cout << " 1D Drive torque: "                 << my_drive->GetMotorTorque() << " [Ns]" << std::endl;
-    // std::cout << " 3D motor angular speed: rot-stat " << rotmotor5->GetMotorAngleDer() << " [rad/s]" << std::endl;
+    // std::cout << " 3D motor angular speed: rot-stat " << rotmotor5->GetMotorAngleDt() << " [rad/s]" << std::endl;
     // std::cout << " 3D motor torque: "                 << rotmotor5->GetMotorTorque() << " [Ns]" << std::endl;
     // etc.
 
@@ -490,7 +490,7 @@ int main(int argc, char* argv[]) {
     CreateSliderGuide(guide3, slider3, material, sys, positionB3);
 
     // just for fun: modify the initial speed of slider to match other examples
-    slider3->SetPosDer(ChVector3d(1.6 * 0.5 * CH_2PI));
+    slider3->SetPosDt(ChVector3d(1.6 * 0.5 * CH_2PI));
 
     // Create the linear motor
     auto motor3 = chrono_types::make_shared<ChLinkMotorLinearForce>();
@@ -694,8 +694,8 @@ int main(int argc, char* argv[]) {
     // torques for whatever part of the driveline by putting lines like the   following
     // in the  while() {...} simulation loop:
     //
-    // std::cout << " 1D shaft 'B' angular speed: "      << my_shaftB->GetPosDer() << " [rad/s]" << std::endl;
-    // std::cout << " 1D Drive angular speed: rot-stat " << my_driveli->GetMotorAngleDer() << " [rad/s]" << std::endl;
+    // std::cout << " 1D shaft 'B' angular speed: "      << my_shaftB->GetPosDt() << " [rad/s]" << std::endl;
+    // std::cout << " 1D Drive angular speed: rot-stat " << my_driveli->GetMotorAngleDt() << " [rad/s]" << std::endl;
     // std::cout << " 1D Drive torque: "                 << my_driveli->GetMotorTorque() << " [Ns]" << std::endl;
     // std::cout << " 3D actuator speed: rot-stat " << motor5->GetMotorPos() << " [rad/s]" << std::endl;
     // std::cout << " 3D actuator force: "                 << motor5->GetMotorForce() << " [Ns]" << std::endl;

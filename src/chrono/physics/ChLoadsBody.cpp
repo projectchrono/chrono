@@ -247,7 +247,7 @@ void ChLoadBodyInertia::ComputeJacobian(ChState* state_x,       ///< state posit
     // would fail the default numerical differentiation in ComputeJacobian() for the M=dQ/da matrix, so 
     // we override ComputeJacobian and provide the analytical jacobians)
     auto mbody = std::dynamic_pointer_cast<ChBody>(this->loadable);
-    ChVector3d a_x = mbody->GetRotMat().transpose() * mbody->GetPosDer2(); // local 
+    ChVector3d a_x = mbody->GetRotMat().transpose() * mbody->GetPosDt2(); // local 
     ChVector3d a_w = mbody->GetAngAccLocal(); // local 
     
     ChStarMatrix33<> wtilde(v_w);  // [w~]
@@ -330,13 +330,13 @@ void ChLoadBodyBody::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
 
     if (state_w) {
         // the numerical jacobian algo might change state_w
-        bodycoordA.SetPosDer(state_w->segment(0, 3));
+        bodycoordA.SetPosDt(state_w->segment(0, 3));
         bodycoordA.SetAngVelLocal(state_w->segment(3, 3));
-        bodycoordB.SetPosDer(state_w->segment(6, 3));
+        bodycoordB.SetPosDt(state_w->segment(6, 3));
         bodycoordB.SetAngVelLocal(state_w->segment(9, 3));
     } else {
-        bodycoordA.SetCoordsysDer(mbodyA->GetCoordsysDer());
-        bodycoordB.SetCoordsysDer(mbodyB->GetCoordsysDer());
+        bodycoordA.SetCoordsysDt(mbodyA->GetCoordsysDt());
+        bodycoordB.SetCoordsysDt(mbodyB->GetCoordsysDt());
     }
 
     frame_Aw = ChFrameMoving<>(loc_application_A) >> bodycoordA;
@@ -419,7 +419,7 @@ void ChLoadBodyBodyBushingSpherical::ComputeBodyBodyForceTorque(const ChFrameMov
                                                                 ChVector3d& loc_force,
                                                                 ChVector3d& loc_torque) {
     loc_force = rel_AB.GetPos() * stiffness      // element-wise product!
-                + rel_AB.GetPosDer() * damping;  // element-wise product!
+                + rel_AB.GetPosDt() * damping;  // element-wise product!
     loc_torque = VNULL;
 }
 
@@ -441,7 +441,7 @@ void ChLoadBodyBodyBushingPlastic::ComputeBodyBodyForceTorque(const ChFrameMovin
                                                               ChVector3d& loc_force,
                                                               ChVector3d& loc_torque) {
     loc_force = (rel_AB.GetPos() - plastic_def) * stiffness  // element-wise product!
-                + rel_AB.GetPosDer() * damping;              // element-wise product!
+                + rel_AB.GetPosDt() * damping;              // element-wise product!
 
     // A basic plasticity, assumed with box capping, without hardening:
 
@@ -543,7 +543,7 @@ void ChLoadBodyBodyBushingGeneric::ComputeBodyBodyForceTorque(const ChFrameMovin
 
     mS.segment(0, 3) = rel_pos.eigen();
     mS.segment(3, 3) = vect_rot.eigen();
-    mSdt.segment(0, 3) = rel_AB.GetPosDer().eigen();
+    mSdt.segment(0, 3) = rel_AB.GetPosDt().eigen();
     mSdt.segment(3, 3) = rel_AB.GetAngVelParent().eigen();
 
     mF = stiffness * mS + damping * mSdt;

@@ -223,7 +223,7 @@ void ChSolidThreeLinkAxle::InitializeSide(VehicleSide side,
     m_axle[side] = chrono_types::make_shared<ChShaft>();
     m_axle[side]->SetNameString(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
-    m_axle[side]->SetPosDer(-ang_vel);
+    m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);
 
     m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftBodyRotation>();

@@ -116,7 +116,7 @@ void ChNodeFEAxyzDD::NodeIntStateScatter(const unsigned int off_x,
     ChNodeFEAxyzD::NodeIntStateScatter(off_x, x, off_v, v, T);
     if (!IsSlope2Fixed()) {
         SetSlope2(x.segment(off_x + 6, 3));
-        SetSlope2Der(v.segment(off_v + 6, 3));
+        SetSlope2Dt(v.segment(off_v + 6, 3));
     }
 }
 
@@ -130,7 +130,7 @@ void ChNodeFEAxyzDD::NodeIntStateGatherAcceleration(const unsigned int off_a, Ch
 void ChNodeFEAxyzDD::NodeIntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
     ChNodeFEAxyzD::NodeIntStateScatterAcceleration(off_a, a);
     if (!IsSlope2Fixed()) {
-        SetSlope2Der2(a.segment(off_a + 6, 3));
+        SetSlope2Dt2(a.segment(off_a + 6, 3));
     }
 }
 
@@ -240,9 +240,9 @@ void ChNodeFEAxyzDD::VariablesQbSetSpeed(double step) {
     ChNodeFEAxyzD::VariablesQbSetSpeed(step);
     if (!IsSlope2Fixed()) {
         ChVector3d oldDD_dt = DD_dt;
-        SetSlope2Der(variables_DD->Get_qb().segment(0, 3));
+        SetSlope2Dt(variables_DD->Get_qb().segment(0, 3));
         if (step) {
-            SetSlope2Der2((DD_dt - oldDD_dt) / step);
+            SetSlope2Dt2((DD_dt - oldDD_dt) / step);
         }
     }
 }

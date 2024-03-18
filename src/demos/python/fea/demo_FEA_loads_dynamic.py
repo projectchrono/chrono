@@ -109,7 +109,7 @@ class MyLoadCustom(chrono.ChLoadCustom):
         else:
             node = fea.CastToChNodeFEAxyz( fea.CastToChNodeFEAbase( chrono.CastToChNodeBase(self.loadable) ))
             node_pos = node.GetPos()
-            node_vel = node.GetPosDer()
+            node_vel = node.GetPosDt()
 
         # Just implement a simple force+spring+damper in xy plane,
         # for spring & damper connected to absolute reference

@@ -105,10 +105,10 @@ class ChApi ChLinkLock : public ChLinkMarkers {
     virtual ChVectorDynamic<> GetConstraintViolation() const override { return C; }
 
     /// Time derivatives of link violation.
-    const ChConstraintVectorX& GetConstraintViolationDer() const { return C_dt; }
+    const ChConstraintVectorX& GetConstraintViolationDt() const { return C_dt; }
 
     /// Second time derivatives of link violation.
-    const ChConstraintVectorX& GetConstraintViolationDer2() const { return C_dtdt; }
+    const ChConstraintVectorX& GetConstraintViolationDt2() const { return C_dtdt; }
 
     // LINK STATE MATRICES
 
@@ -332,10 +332,10 @@ class ChApi ChLinkLockLock : public ChLinkLock {
     const ChCoordsysd& GetRelCoordsysViolation() const { return relC; }
 
     /// Get first time derivative of constraint violations in pos/rot coordinates.
-    const ChCoordsysd& GetRelCoordsysViolationDer() const { return relC_dt; }
+    const ChCoordsysd& GetRelCoordsysViolationDt() const { return relC_dt; }
 
     /// Get second time derivative of constraint violations in pos/rot coordinates.
-    const ChCoordsysd& GetRelCoordsysViolationDer2() const { return relC_dtdt; }
+    const ChCoordsysd& GetRelCoordsysViolationDt2() const { return relC_dtdt; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

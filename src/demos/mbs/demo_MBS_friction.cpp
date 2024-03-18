@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
         double initial_angspeed = 10;
         double initial_linspeed = initial_angspeed * mradius;
         sphereBody->SetAngVelParent(ChVector3d(0, 0, -initial_angspeed));
-        sphereBody->SetPosDer(ChVector3d(initial_linspeed, 0, 0));
+        sphereBody->SetPosDt(ChVector3d(initial_linspeed, 0, 0));
 
         // Add to the system
         sys.Add(sphereBody);

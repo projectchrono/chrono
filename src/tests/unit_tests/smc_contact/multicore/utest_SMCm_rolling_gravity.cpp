@@ -102,7 +102,7 @@ class RollingGravityTest : public ::testing::TestWithParam<ChSystemSMC::ContactF
 TEST_P(RollingGravityTest, rolling) {
     // Give the sphere a push in the horizontal direction
     ChVector3d init_v(1, 0, 0);
-    body->SetPosDer(init_v);
+    body->SetPosDt(init_v);
 
     double t_start = sys->GetChTime();
     double t_end = t_start + 1;

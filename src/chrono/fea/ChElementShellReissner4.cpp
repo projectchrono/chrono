@@ -1143,13 +1143,13 @@ void ChElementShellReissner4::LoadableGetStateBlockPosLevel(int block_offset, Ch
 
 // Gets all the DOFs packed in a single vector (velocity part).
 void ChElementShellReissner4::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDt().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetAngVelLocal().eigen();
-    mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPosDer().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPosDt().eigen();
     mD.segment(block_offset + 9, 3) = m_nodes[1]->GetAngVelLocal().eigen();
-    mD.segment(block_offset + 12, 3) = m_nodes[2]->GetPosDer().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[2]->GetPosDt().eigen();
     mD.segment(block_offset + 15, 3) = m_nodes[2]->GetAngVelLocal().eigen();
-    mD.segment(block_offset + 18, 3) = m_nodes[3]->GetPosDer().eigen();
+    mD.segment(block_offset + 18, 3) = m_nodes[3]->GetPosDt().eigen();
     mD.segment(block_offset + 21, 3) = m_nodes[3]->GetAngVelLocal().eigen();
 }
 
@@ -1167,7 +1167,7 @@ void ChElementShellReissner4::EvaluateSectionVelNorm(double U, double V, ChVecto
     ShapeVector N;
     ShapeFunctions(N, U, V);
     for (unsigned int ii = 0; ii < 4; ii++) {
-        Result += N(ii) * m_nodes[ii]->GetPosDer();
+        Result += N(ii) * m_nodes[ii]->GetPosDt();
     }
 }
 

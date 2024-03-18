@@ -64,7 +64,7 @@ void apply_fan_force(ChSystemNSC* msystem,    // contains all bodies
 
         // force proportional to relative speed body-wind
         // and fluid density (NOTE! pretty simplified physics..)
-        ChVector3d abs_force = (abs_wind - body->GetPosDer()) * adensity;
+        ChVector3d abs_force = (abs_wind - body->GetPosDt()) * adensity;
         // apply this force at the body COG
         body->AccumulateForce(abs_force, body->GetPos(), false);
     }

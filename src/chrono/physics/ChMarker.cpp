@@ -58,8 +58,8 @@ ChMarker::ChMarker(const std::string& name,
     m_motion_type = MotionType::FUNCTIONS;
 
     SetCoordsys(rel_csys);
-    SetCoordsysDer(rel_csys_dt);
-    SetCoordsysDer2(rel_csys_dtdt);
+    SetCoordsysDt(rel_csys_dt);
+    SetCoordsysDt2(rel_csys_dtdt);
 
     m_last_rel_csys = CSYSNORM;
     m_last_rel_csys_dt = CSYSNULL;
@@ -182,9 +182,9 @@ void ChMarker::UpdateTime(double mytime) {
         qtemp = QuatFromAngleAxis(ang, m_motion_axis_versor);
         csys.rot = Qcross(qtemp, m_rest_csys.rot);
         // update q_dt
-        csys_dt.rot = QuatDerFromAngleAxis(csys.rot, ang_dt, m_motion_axis_versor);
+        csys_dt.rot = QuatDtFromAngleAxis(csys.rot, ang_dt, m_motion_axis_versor);
         // update q_dtdt
-        csys_dtdt.rot = QuatDer2FromAngleAxis(ang_dtdt, m_motion_axis_versor, csys.rot, csys_dt.rot);
+        csys_dtdt.rot = QuatDt2FromAngleAxis(ang_dtdt, m_motion_axis_versor, csys.rot, csys_dt.rot);
     } else {
         csys.rot = GetRot();
         csys_dt.rot = QNULL;
@@ -196,10 +196,10 @@ void ChMarker::UpdateTime(double mytime) {
         SetCoordsys(csys);
 
     if (!(csys_dt == this->m_csys_dt) || !(csys_dt.rot == QNULL))
-        SetCoordsysDer(csys_dt);
+        SetCoordsysDt(csys_dt);
 
     if (!(csys_dtdt == this->m_csys_dtdt) || !(csys_dtdt.rot == QNULL))
-        SetCoordsysDer2(csys_dtdt);
+        SetCoordsysDt2(csys_dtdt);
 }
 
 void ChMarker::UpdateState() {
@@ -245,8 +245,8 @@ void ChMarker::UpdatedExternalTime(double prevtime, double mtime) {
             rel_pos_dtdt.rot = Qscale(Qsub(rel_pos_dt.rot, m_last_rel_csys_dt.rot), 1 / step);
 
             // set the position, speed, and acceleration
-            SetCoordsysDer(rel_pos_dt);
-            SetCoordsysDer2(rel_pos_dtdt);
+            SetCoordsysDt(rel_pos_dt);
+            SetCoordsysDt2(rel_pos_dtdt);
 
             // update the remaining state variables
             this->UpdateState();

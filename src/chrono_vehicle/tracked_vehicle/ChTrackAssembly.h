@@ -98,7 +98,7 @@ class CH_VEHICLE_API ChTrackAssembly : public ChPart {
     /// Get the linear velocity of the specified track shoe.
     /// Return the linear velocity of the shoe body center, expressed in the global
     /// reference frame.
-    const ChVector3d& GetTrackShoeLinVel(size_t id) const { return GetTrackShoe(id)->m_shoe->GetPosDer(); }
+    const ChVector3d& GetTrackShoeLinVel(size_t id) const { return GetTrackShoe(id)->m_shoe->GetPosDt(); }
 
     /// Get the angular velocity of the specified track shoe.
     /// Return the angular velocity of the shoe body frame, expressed in the global

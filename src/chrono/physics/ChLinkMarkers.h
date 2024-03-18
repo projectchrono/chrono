@@ -85,10 +85,10 @@ class ChApi ChLinkMarkers : public ChLink {
     const ChCoordsysd& GetRelCoordsys() const { return relM; }
 
     /// Relative speed of marker 1 respect to marker 2.
-    const ChCoordsysd& GetRelCoordsysDer() const { return relM_dt; }
+    const ChCoordsysd& GetRelCoordsysDt() const { return relM_dt; }
 
     /// Relative acceleration of marker 1 respect to marker 2.
-    const ChCoordsysd& GetRelCoordsysDer2() const { return relM_dtdt; }
+    const ChCoordsysd& GetRelCoordsysDt2() const { return relM_dtdt; }
 
     /// Relative rotation angle of marker 1 respect to marker 2.
     double GetRelAngle() const { return relAngle; }
@@ -108,7 +108,7 @@ class ChApi ChLinkMarkers : public ChLink {
     double GetDistance() const { return dist; }
     
     /// Relative speed of marker 1 respect to marker 2, along the polar distance vector.
-    double GetDistanceDer() const { return dist_dt; }
+    double GetDistanceDt() const { return dist_dt; }
 
     /// Get the total applied force accumulators (force, momentum) in link coords.
     /// These forces might be affected by additional springs, dampers, etc. but they do not

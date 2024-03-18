@@ -166,15 +166,15 @@ ChQuaterniond QuatFromAngleAxis(const AngleAxis& angle_axis) {
     return QuatFromAngleAxis(angle_axis.angle, angle_axis.axis);
 }
 
-ChQuaterniond QuatDerFromAngleAxis(const ChQuaterniond& quat, double angle_dt, const ChVector3d& axis) {
+ChQuaterniond QuatDtFromAngleAxis(const ChQuaterniond& quat, double angle_dt, const ChVector3d& axis) {
     ChVector3d W;
 
     W = Vmul(axis, angle_dt);
 
-    return QuatDerFromAngVelAbs(W, quat);
+    return QuatDtFromAngVelAbs(W, quat);
 }
 
-ChQuaterniond QuatDer2FromAngleAxis(double angle_dtdt,
+ChQuaterniond QuatDt2FromAngleAxis(double angle_dtdt,
                                     const ChVector3d& axis,
                                     const ChQuaterniond& q,
                                     const ChQuaterniond& q_dt) {
@@ -182,7 +182,7 @@ ChQuaterniond QuatDer2FromAngleAxis(double angle_dtdt,
 
     Acc = Vmul(axis, angle_dtdt);
 
-    return QuatDer2FromAngAccAbs(Acc, q, q_dt);
+    return QuatDt2FromAngAccAbs(Acc, q, q_dt);
 }
 
 ChQuaterniond QuatFromAngleX(double angle) {
@@ -222,7 +222,7 @@ ChQuaterniond QuatFromRodrigues(const ChVector3d& params) {
     return R.GetQuaternion();
 }
 
-ChQuaterniond QuatDerFromRodrigues(const ChVector3d& params, const ChQuaterniond& q) {
+ChQuaterniond QuatDtFromRodrigues(const ChVector3d& params, const ChQuaterniond& q) {
     auto params1 = RodriguesFromQuat(q);
     auto params2 = Vadd(params1, Vmul(params, FD_STEP));
     auto q2 = QuatFromRodrigues(params2);
@@ -230,7 +230,7 @@ ChQuaterniond QuatDerFromRodrigues(const ChVector3d& params, const ChQuaterniond
     return Qscale(Qsub(q2, q), 1 / FD_STEP);
 }
 
-ChQuaterniond QuatDer2FromRodrigues(const ChVector3d& params, const ChQuaterniond& q) {
+ChQuaterniond QuatDt2FromRodrigues(const ChVector3d& params, const ChQuaterniond& q) {
     auto params0 = RodriguesFromQuat(q);
     auto paramsA = Vsub(params0, Vmul(params, FD_STEP));
     auto paramsB = Vadd(params0, Vmul(params, FD_STEP));
@@ -293,7 +293,7 @@ ChQuaterniond QuatFromAngleSet(const AngleSet& set) {
     return R.GetQuaternion();
 }
 
-ChQuaterniond QuatDerFromAngleSet(const AngleSet& set, const ChQuaterniond& q) {
+ChQuaterniond QuatDtFromAngleSet(const AngleSet& set, const ChQuaterniond& q) {
     auto set1 = AngleSetFromQuat(set.seq, q);
     auto ang2 = Vadd(set1.angles, Vmul(set.angles, FD_STEP));
     auto q2 = QuatFromAngleSet({set.seq, ang2});
@@ -301,7 +301,7 @@ ChQuaterniond QuatDerFromAngleSet(const AngleSet& set, const ChQuaterniond& q) {
     return Qscale(Qsub(q2, q), 1 / FD_STEP);
 }
 
-ChQuaterniond QuatDer2FromAngleSet(const AngleSet& set, const ChQuaterniond& q) {
+ChQuaterniond QuatDt2FromAngleSet(const AngleSet& set, const ChQuaterniond& q) {
     auto set0 = AngleSetFromQuat(set.seq, q);
     auto angA = Vsub(set0.angles, Vmul(set.angles, FD_STEP));
     auto angB = Vadd(set0.angles, Vmul(set.angles, FD_STEP));

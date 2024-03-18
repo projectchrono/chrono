@@ -33,8 +33,8 @@ void ChBodyAuxRef::SetFrameCOMToRef(const ChFrame<>& frame) {
     ChFrameMoving<> new_cog_to_abs = ref_to_abs.TransformLocalToParent(ChFrameMoving<>(frame));
 
     SetCoordsys(new_cog_to_abs.GetCoordsys());
-    SetCoordsysDer(new_cog_to_abs.GetCoordsysDer());
-    SetCoordsysDer2(new_cog_to_abs.GetCoordsysDer2());
+    SetCoordsysDt(new_cog_to_abs.GetCoordsysDt());
+    SetCoordsysDt2(new_cog_to_abs.GetCoordsysDt2());
 
     ref_to_com = frame.GetInverse();
     ref_to_abs = TransformLocalToParent(ref_to_com);

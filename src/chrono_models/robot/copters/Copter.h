@@ -320,13 +320,13 @@ template <int nop>
 void Copter<nop>::Update(double timestep) {
     // update propeller forces/torques
     for (int i = 0; i < nop; i++) {
-        double rps = motors[i]->GetMotorAngleDer() / CH_2PI;
+        double rps = motors[i]->GetMotorAngleDt() / CH_2PI;
         thrusts[i]->SetMforce(Ct * rho * pow(rps, 2) * pow(Dp, 4));
         backtorques[i]->SetMforce((1 / CH_2PI) * Cp * rho * pow(rps, 2) * pow(Dp, 5));
     }
     // update linear drag / drag torque
-    lin_drag->SetMforce(0.5 * Cd * Surf * rho * chassis->GetPosDer().Length2());
-    lin_drag->SetDir(-chassis->GetPosDer());
+    lin_drag->SetMforce(0.5 * Cd * Surf * rho * chassis->GetPosDt().Length2());
+    lin_drag->SetDir(-chassis->GetPosDt());
     // update pressure, temperature, altitude:
     UpdateAirData();
 }

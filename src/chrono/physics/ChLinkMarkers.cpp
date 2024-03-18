@@ -112,98 +112,98 @@ void ChLinkMarkers::Initialize(std::shared_ptr<ChBody> mbody1,
 // for possible reuse in UpdateState by some derived classes.
 void ChLinkMarkers::UpdateRelMarkerCoords() {
     PQw = marker1->GetAbsCoordsys().pos - marker2->GetAbsCoordsys().pos;
-    PQw_dt = marker1->GetAbsCoordsysDer().pos - marker2->GetAbsCoordsysDer().pos;
-    PQw_dtdt = marker1->GetAbsCoordsysDer2().pos - marker2->GetAbsCoordsysDer2().pos;
+    PQw_dt = marker1->GetAbsCoordsysDt().pos - marker2->GetAbsCoordsysDt().pos;
+    PQw_dtdt = marker1->GetAbsCoordsysDt2().pos - marker2->GetAbsCoordsysDt2().pos;
 
     dist = Vlength(PQw);                 // distance between origins, modulus
     dist_dt = Vdot(Vnorm(PQw), PQw_dt);  // speed between origins, modulus.
 
     ChQuaterniond qtemp1;
 
-    ChQuaterniond temp1 = marker1->GetCoordsysDer().rot;
-    ChQuaterniond temp2 = marker2->GetCoordsysDer().rot;
+    ChQuaterniond temp1 = marker1->GetCoordsysDt().rot;
+    ChQuaterniond temp2 = marker2->GetCoordsysDt().rot;
 
     if (Qnotnull(temp1) || Qnotnull(temp2)) {
         q_AD =  //  q'qqq + qqqq'
-            Qadd(Qcross(Qconjugate(marker2->GetCoordsysDer().rot),
+            Qadd(Qcross(Qconjugate(marker2->GetCoordsysDt().rot),
                         Qcross(Qconjugate(marker2->GetBody()->GetCoordsys().rot),
                                Qcross((marker1->GetBody()->GetCoordsys().rot), (marker1->GetCoordsys().rot)))),
                  Qcross(Qconjugate(marker2->GetCoordsys().rot),
                         Qcross(Qconjugate(marker2->GetBody()->GetCoordsys().rot),
-                               Qcross((marker1->GetBody()->GetCoordsys().rot), (marker1->GetCoordsysDer().rot)))));
+                               Qcross((marker1->GetBody()->GetCoordsys().rot), (marker1->GetCoordsysDt().rot)))));
     } else
         q_AD = QNULL;
 
     q_BC =  // qq'qq + qqq'q
         Qadd(Qcross(Qconjugate(marker2->GetCoordsys().rot),
-                    Qcross(Qconjugate(marker2->GetBody()->GetCoordsysDer().rot),
+                    Qcross(Qconjugate(marker2->GetBody()->GetCoordsysDt().rot),
                            Qcross((marker1->GetBody()->GetCoordsys().rot), (marker1->GetCoordsys().rot)))),
              Qcross(Qconjugate(marker2->GetCoordsys().rot),
                     Qcross(Qconjugate(marker2->GetBody()->GetCoordsys().rot),
-                           Qcross((marker1->GetBody()->GetCoordsysDer().rot), (marker1->GetCoordsys().rot)))));
+                           Qcross((marker1->GetBody()->GetCoordsysDt().rot), (marker1->GetCoordsys().rot)))));
 
     // q_8 = q''qqq + 2q'q'qq + 2q'qq'q + 2q'qqq'
     //     + 2qq'q'q + 2qq'qq' + 2qqq'q' + qqqq''
-    temp2 = marker2->GetCoordsysDer2().rot;
+    temp2 = marker2->GetCoordsysDt2().rot;
     if (Qnotnull(temp2))
-        q_8 = Qcross(Qconjugate(marker2->GetCoordsysDer2().rot),
+        q_8 = Qcross(Qconjugate(marker2->GetCoordsysDt2().rot),
                      Qcross(Qconjugate(m_body2->GetCoordsys().rot),
                             Qcross(m_body1->GetCoordsys().rot,
                                    marker1->GetCoordsys().rot)));  // q_dtdt'm2 * q'o2 * q,o1 * q,m1
     else
         q_8 = QNULL;
-    temp1 = marker1->GetCoordsysDer2().rot;
+    temp1 = marker1->GetCoordsysDt2().rot;
     if (Qnotnull(temp1)) {
         qtemp1 = Qcross(Qconjugate(marker2->GetCoordsys().rot),
                         Qcross(Qconjugate(m_body2->GetCoordsys().rot),
                                Qcross(m_body1->GetCoordsys().rot,
-                                      marker1->GetCoordsysDer2().rot)));  // q'm2 * q'o2 * q,o1 * q_dtdt,m1
+                                      marker1->GetCoordsysDt2().rot)));  // q'm2 * q'o2 * q,o1 * q_dtdt,m1
         q_8 = Qadd(q_8, qtemp1);
     }
-    temp2 = marker2->GetCoordsysDer().rot;
+    temp2 = marker2->GetCoordsysDt().rot;
     if (Qnotnull(temp2)) {
-        qtemp1 = Qcross(Qconjugate(marker2->GetCoordsysDer().rot),
-                        Qcross(Qconjugate(m_body2->GetCoordsysDer().rot),
+        qtemp1 = Qcross(Qconjugate(marker2->GetCoordsysDt().rot),
+                        Qcross(Qconjugate(m_body2->GetCoordsysDt().rot),
                                Qcross(m_body1->GetCoordsys().rot, marker1->GetCoordsys().rot)));
         qtemp1 = Qscale(qtemp1, 2);  // 2( q_dt'm2 * q_dt'o2 * q,o1 * q,m1)
         q_8 = Qadd(q_8, qtemp1);
     }
-    temp2 = marker2->GetCoordsysDer().rot;
+    temp2 = marker2->GetCoordsysDt().rot;
     if (Qnotnull(temp2)) {
-        qtemp1 = Qcross(Qconjugate(marker2->GetCoordsysDer().rot),
+        qtemp1 = Qcross(Qconjugate(marker2->GetCoordsysDt().rot),
                         Qcross(Qconjugate(m_body2->GetCoordsys().rot),
-                               Qcross(m_body1->GetCoordsysDer().rot, marker1->GetCoordsys().rot)));
+                               Qcross(m_body1->GetCoordsysDt().rot, marker1->GetCoordsys().rot)));
         qtemp1 = Qscale(qtemp1, 2);  // 2( q_dt'm2 * q'o2 * q_dt,o1 * q,m1)
         q_8 = Qadd(q_8, qtemp1);
     }
-    temp1 = marker1->GetCoordsysDer().rot;
-    temp2 = marker2->GetCoordsysDer().rot;
+    temp1 = marker1->GetCoordsysDt().rot;
+    temp2 = marker2->GetCoordsysDt().rot;
     if (Qnotnull(temp2) && Qnotnull(temp1)) {
-        qtemp1 = Qcross(Qconjugate(marker2->GetCoordsysDer().rot),
+        qtemp1 = Qcross(Qconjugate(marker2->GetCoordsysDt().rot),
                         Qcross(Qconjugate(m_body2->GetCoordsys().rot),
-                               Qcross(m_body1->GetCoordsys().rot, marker1->GetCoordsysDer().rot)));
+                               Qcross(m_body1->GetCoordsys().rot, marker1->GetCoordsysDt().rot)));
         qtemp1 = Qscale(qtemp1, 2);  // 2( q_dt'm2 * q'o2 * q,o1 * q_dt,m1)
         q_8 = Qadd(q_8, qtemp1);
     }
 
     qtemp1 = Qcross(Qconjugate(marker2->GetCoordsys().rot),
-                    Qcross(Qconjugate(m_body2->GetCoordsysDer().rot),
-                           Qcross(m_body1->GetCoordsysDer().rot, marker1->GetCoordsys().rot)));
+                    Qcross(Qconjugate(m_body2->GetCoordsysDt().rot),
+                           Qcross(m_body1->GetCoordsysDt().rot, marker1->GetCoordsys().rot)));
     qtemp1 = Qscale(qtemp1, 2);  // 2( q'm2 * q_dt'o2 * q_dt,o1 * q,m1)
     q_8 = Qadd(q_8, qtemp1);
-    temp1 = marker1->GetCoordsysDer().rot;
+    temp1 = marker1->GetCoordsysDt().rot;
     if (Qnotnull(temp1)) {
         qtemp1 = Qcross(Qconjugate(marker2->GetCoordsys().rot),
-                        Qcross(Qconjugate(m_body2->GetCoordsysDer().rot),
-                               Qcross(m_body1->GetCoordsys().rot, marker1->GetCoordsysDer().rot)));
+                        Qcross(Qconjugate(m_body2->GetCoordsysDt().rot),
+                               Qcross(m_body1->GetCoordsys().rot, marker1->GetCoordsysDt().rot)));
         qtemp1 = Qscale(qtemp1, 2);  // 2( q'm2 * q_dt'o2 * q,o1 * q_dt,m1)
         q_8 = Qadd(q_8, qtemp1);
     }
-    temp1 = marker1->GetCoordsysDer().rot;
+    temp1 = marker1->GetCoordsysDt().rot;
     if (Qnotnull(temp1)) {
         qtemp1 = Qcross(Qconjugate(marker2->GetCoordsys().rot),
                         Qcross(Qconjugate(m_body2->GetCoordsys().rot),
-                               Qcross(m_body1->GetCoordsysDer().rot, marker1->GetCoordsysDer().rot)));
+                               Qcross(m_body1->GetCoordsysDt().rot, marker1->GetCoordsysDt().rot)));
         qtemp1 = Qscale(qtemp1, 2);  // 2( q'm2 * q'o2 * q_dt,o1 * q_dt,m1)
         q_8 = Qadd(q_8, qtemp1);
     }
@@ -211,14 +211,14 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
     // q_4 = [Adtdt]'[A]'q + 2[Adt]'[Adt]'q
     //       + 2[Adt]'[A]'qdt + 2[A]'[Adt]'qdt
     ChMatrix33<> m2_Rel_A_dt;
-    marker2->ComputeRotMatDer(m2_Rel_A_dt);
+    marker2->ComputeRotMatDt(m2_Rel_A_dt);
     ChMatrix33<> m2_Rel_A_dtdt;
-    marker2->ComputeRotMatDer2(m2_Rel_A_dtdt);
+    marker2->ComputeRotMatDt2(m2_Rel_A_dtdt);
 
     ChVector3d vtemp1;
     ChVector3d vtemp2;
 
-    vtemp1 = m_body2->GetRotMatDer().transpose() * PQw;
+    vtemp1 = m_body2->GetRotMatDt().transpose() * PQw;
     vtemp2 = m2_Rel_A_dt.transpose() * vtemp1;
     q_4 = Vmul(vtemp2, 2);  // 2[Aq_dt]'[Ao2_dt]'*Qpq,w
 
@@ -227,7 +227,7 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
     vtemp2 = Vmul(vtemp2, 2);  // 2[Aq_dt]'[Ao2]'*Qpq,w_dt
     q_4 = Vadd(q_4, vtemp2);
 
-    vtemp1 = m_body2->GetRotMatDer().transpose() * PQw_dt;
+    vtemp1 = m_body2->GetRotMatDt().transpose() * PQw_dt;
     vtemp2 = marker2->GetRotMat().transpose() * vtemp1;
     vtemp2 = Vmul(vtemp2, 2);  // 2[Aq]'[Ao2_dt]'*Qpq,w_dt
     q_4 = Vadd(q_4, vtemp2);
@@ -248,25 +248,25 @@ void ChLinkMarkers::UpdateRelMarkerCoords() {
 
     // relM_dt.pos
     relM_dt.pos = m2_Rel_A_dt.transpose() * (m_body2->GetRotMat().transpose() * PQw) +
-                  marker2->GetRotMat().transpose() * (m_body2->GetRotMatDer().transpose() * PQw) +
+                  marker2->GetRotMat().transpose() * (m_body2->GetRotMatDt().transpose() * PQw) +
                   marker2->GetRotMat().transpose() * (m_body2->GetRotMat().transpose() * PQw_dt);
 
     // relM_dt.rot
     relM_dt.rot = Qadd(q_AD, q_BC);
 
     // relM_dtdt.pos
-    relM_dtdt.pos = marker2->GetRotMat().transpose() * (m_body2->GetRotMatDer2().transpose() * PQw) +
+    relM_dtdt.pos = marker2->GetRotMat().transpose() * (m_body2->GetRotMatDt2().transpose() * PQw) +
                     marker2->GetRotMat().transpose() * (m_body2->GetRotMat().transpose() * PQw_dtdt) + q_4;
 
     // relM_dtdt.rot
     qtemp1 = Qcross(Qconjugate(marker2->GetCoordsys().rot),
-                    Qcross(Qconjugate(m_body2->GetCoordsysDer2().rot),
+                    Qcross(Qconjugate(m_body2->GetCoordsysDt2().rot),
                            Qcross(m_body1->GetCoordsys().rot,
                                   marker1->GetCoordsys().rot)));  // ( q'm2 * q_dtdt'o2 * q,o1 * q,m1)
     relM_dtdt.rot = Qadd(q_8, qtemp1);
     qtemp1 = Qcross(Qconjugate(marker2->GetCoordsys().rot),
                     Qcross(Qconjugate(m_body2->GetCoordsys().rot),
-                           Qcross(m_body1->GetCoordsysDer2().rot,
+                           Qcross(m_body1->GetCoordsysDt2().rot,
                                   marker1->GetCoordsys().rot)));  // ( q'm2 * q'o2 * q_dtdt,o1 * q,m1)
     relM_dtdt.rot = Qadd(relM_dtdt.rot, qtemp1);                  // = q_8 + qq''qq + qqq''q
 

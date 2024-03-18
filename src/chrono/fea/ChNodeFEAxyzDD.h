@@ -42,16 +42,16 @@ class ChApi ChNodeFEAxyzDD : public ChNodeFEAxyzD {
     const ChVector3d& GetSlope2() const { return DD; }
 
     /// Set the speed of the 2nd derivative vector.
-    void SetSlope2Der(const ChVector3d& dt) { DD_dt = dt; }
+    void SetSlope2Dt(const ChVector3d& dt) { DD_dt = dt; }
 
     /// Get the speed of the 2nd derivative vector.
-    const ChVector3d& GetSlope2Der() const { return DD_dt; }
+    const ChVector3d& GetSlope2Dt() const { return DD_dt; }
 
     /// Set the acceleration of the 2nd derivative vector.
-    void SetSlope2Der2(const ChVector3d& dtt) { DD_dtdt = dtt; }
+    void SetSlope2Dt2(const ChVector3d& dtt) { DD_dtdt = dtt; }
 
     /// Get the  acceleration of the 2nd derivative vector.
-    const ChVector3d& GetSlope2Der2() const { return DD_dtdt; }
+    const ChVector3d& GetSlope2Dt2() const { return DD_dtdt; }
 
     ChVariables& VariablesSlope2() { return *variables_DD; }
 

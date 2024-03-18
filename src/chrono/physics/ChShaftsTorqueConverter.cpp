@@ -66,8 +66,8 @@ bool ChShaftsTorqueConverter::Initialize(std::shared_ptr<ChShaft> shaft_1,  // i
 }
 
 double ChShaftsTorqueConverter::GetSpeedRatio() const {
-    double wrel1 = shaft1->GetPosDer() - shaft_stator->GetPosDer();
-    double wrel2 = shaft2->GetPosDer() - shaft_stator->GetPosDer();
+    double wrel1 = shaft1->GetPosDt() - shaft_stator->GetPosDt();
+    double wrel2 = shaft2->GetPosDt() - shaft_stator->GetPosDt();
 
     if ((fabs(wrel1) < 10e-9) || (fabs(wrel2) < 10e-9))
         return 0;
@@ -105,7 +105,7 @@ void ChShaftsTorqueConverter::Update(double mytime, bool update_assets) {
 
     // - if input impeller shaft is spinning in negative direction,
     //   this is assumed as an error: set all torques to zero and bail out:
-    if (shaft1->GetPosDer() - shaft_stator->GetPosDer() < 0) {
+    if (shaft1->GetPosDt() - shaft_stator->GetPosDt() < 0) {
         state_warning_wrongimpellerdirection = true;
         torque_in = 0;
         torque_out = 0;
@@ -119,7 +119,7 @@ void ChShaftsTorqueConverter::Update(double mytime, bool update_assets) {
     double mT = T->GetVal(mR);
 
     // compute input torque (with minus sign because applied TO input thaft)
-    torque_in = -pow((shaft1->GetPosDer() / mK), 2);
+    torque_in = -pow((shaft1->GetPosDt() / mK), 2);
 
     if (state_warning_reverseflow)
         torque_in = -torque_in;
