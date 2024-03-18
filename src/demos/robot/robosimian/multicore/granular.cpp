@@ -153,7 +153,7 @@ void GroundGranularB::Initialize(double x_min, double z_max, double step_size) {
                            ChVector3i(2, 2, -1));
 
     // Create particles (all spheres)
-    utils::PDSampler<double> sampler(2 * m_radius1);
+    utils::ChPDSampler<double> sampler(2 * m_radius1);
     utils::ChGenerator gen(m_sys);
     std::shared_ptr<utils::ChMixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
     m1->SetDefaultMaterial(m_material_g);

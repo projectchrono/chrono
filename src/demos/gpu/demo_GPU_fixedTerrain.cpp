@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
                                params.box_Y / 2.f - boundary_padding - 2.f * params.sphere_radius,
                                (fill_top - fill_bottom) / 2.f);
     std::vector<ChVector3f> material_points =
-        utils::PDLayerSampler_BOX<float>(fill_center, fill_hdims, 2.f * params.sphere_radius);
+        utils::ChPDLayerSamplerBox<float>(fill_center, fill_hdims, 2.f * params.sphere_radius);
 
     // Vectors of all particle positions and fixities
     std::vector<ChVector3f> body_points;

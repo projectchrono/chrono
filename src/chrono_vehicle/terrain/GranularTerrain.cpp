@@ -401,7 +401,7 @@ void GranularTerrain::Initialize(const ChVector3d& center,
 
     // Create particles, in layers, until exceeding the specified number.
     double r = safety_factor * radius;
-    utils::PDSampler<double> sampler(2 * r);
+    utils::ChPDSampler<double> sampler(2 * r);
     unsigned int layer = 0;
     ChVector3d layer_hdims(length / 2 - r, width / 2 - r, 0);
     ChVector3d layer_center = center;
@@ -457,7 +457,7 @@ void GranularTerrain::Synchronize(double time) {
     // relocation volume.
     std::vector<ChVector3d> new_points;
     double r = safety_factor * m_radius;
-    utils::PDSampler<> sampler(2 * r);
+    utils::ChPDSampler<> sampler(2 * r);
     ChVector3d layer_hdims(m_shift_distance / 2 - r, m_width / 2 - r, 0);
     ChVector3d layer_center(m_front + m_shift_distance / 2, (m_left + m_right) / 2, m_bottom + offset_factor * r);
     while (new_points.size() < num_moved_particles) {

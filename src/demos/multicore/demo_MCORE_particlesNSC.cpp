@@ -85,7 +85,7 @@ void AddParticles(ChSystemMulticoreNSC* sys) {
     std::vector<real3> pos_particles;
     std::vector<real3> vel_particles;
 
-    utils::GridSampler<> sampler(diameter);
+    utils::ChGridSampler<> sampler(diameter);
     utils::ChGenerator::PointVector points = sampler.SampleSphere(ChVector3d(0, 0, 0), radius);
 
     pos_particles.resize(points.size());

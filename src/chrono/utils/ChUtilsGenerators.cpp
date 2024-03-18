@@ -90,18 +90,18 @@ void ChMixtureIngredient::SetDefaultSize(const ChVector3d& size) {
 // If no distribution is specified for a particular property, the default
 // constant value is used.
 void ChMixtureIngredient::SetDistributionFriction(float friction_mean,
-                                                float friction_stddev,
-                                                float friction_min,
-                                                float friction_max) {
+                                                  float friction_stddev,
+                                                  float friction_min,
+                                                  float friction_max) {
     m_frictionDist = new std::normal_distribution<float>(friction_mean, friction_stddev);
     m_minFriction = friction_min;
     m_maxFriction = friction_max;
 }
 
 void ChMixtureIngredient::SetDistributionCohesion(float cohesion_mean,
-                                                float cohesion_stddev,
-                                                float cohesion_min,
-                                                float cohesion_max) {
+                                                  float cohesion_stddev,
+                                                  float cohesion_min,
+                                                  float cohesion_max) {
     m_cohesionDist = new std::normal_distribution<float>(cohesion_mean, cohesion_stddev);
     m_minCohesion = cohesion_min;
     m_maxCohesion = cohesion_max;
@@ -114,36 +114,36 @@ void ChMixtureIngredient::SetDistributionYoung(float young_mean, float young_std
 }
 
 void ChMixtureIngredient::SetDistributionPoisson(float poisson_mean,
-                                               float poisson_stddev,
-                                               float poisson_min,
-                                               float poisson_max) {
+                                                 float poisson_stddev,
+                                                 float poisson_min,
+                                                 float poisson_max) {
     m_poissonDist = new std::normal_distribution<float>(poisson_mean, poisson_stddev);
     m_minPoisson = poisson_min;
     m_maxPoisson = poisson_max;
 }
 
 void ChMixtureIngredient::SetDistributionRestitution(float restitution_mean,
-                                                   float restitution_stddev,
-                                                   float restitution_min,
-                                                   float restitution_max) {
+                                                     float restitution_stddev,
+                                                     float restitution_min,
+                                                     float restitution_max) {
     m_restitutionDist = new std::normal_distribution<float>(restitution_mean, restitution_stddev);
     m_minRestitution = restitution_min;
     m_maxRestitution = restitution_max;
 }
 
 void ChMixtureIngredient::SetDistributionDensity(double density_mean,
-                                               double density_stddev,
-                                               double density_min,
-                                               double density_max) {
+                                                 double density_stddev,
+                                                 double density_min,
+                                                 double density_max) {
     m_densityDist = new std::normal_distribution<double>(density_mean, density_stddev);
     m_minDensity = density_min;
     m_maxDensity = density_max;
 }
 
 void ChMixtureIngredient::SetDistributionSize(double size_mean,
-                                            double size_stddev,
-                                            const ChVector3d& size_min,
-                                            const ChVector3d& size_max) {
+                                              double size_stddev,
+                                              const ChVector3d& size_min,
+                                              const ChVector3d& size_max) {
     m_sizeDist = new std::normal_distribution<double>(size_mean, size_stddev);
     m_minSize = size_min;
     m_maxSize = size_max;
@@ -263,8 +263,7 @@ double ChMixtureIngredient::CalcMinSeparation() {
 
 // Constructor: create a generator for the specified system.
 ChGenerator::ChGenerator(ChSystem* system)
-    : m_system(system), m_mixDist(0, 1), m_crtBodyId(0), m_totalNumBodies(0), m_totalMass(0), m_totalVolume(0) {
-}
+    : m_system(system), m_mixDist(0, 1), m_crtBodyId(0), m_totalNumBodies(0), m_totalMass(0), m_totalVolume(0) {}
 
 // Destructor
 ChGenerator::~ChGenerator() {}
@@ -277,13 +276,13 @@ std::shared_ptr<ChMixtureIngredient> ChGenerator::AddMixtureIngredient(MixtureTy
     return m_mixture.back();
 }
 
-// Create objects in a box domain using the given point sampler and separation distance and the current mixture settings.
-// The types of objects created are selected randomly with probability
-// proportional to the ratio of that ingredient in the mixture.
-void ChGenerator::CreateObjectsBox(Sampler<double>& sampler,
-                                 const ChVector3d& pos,
-                                 const ChVector3d& hdims,
-                                 const ChVector3d& vel) {
+// Create objects in a box domain using the given point sampler and separation distance and the current mixture
+// settings. The types of objects created are selected randomly with probability proportional to the ratio of that
+// ingredient in the mixture.
+void ChGenerator::CreateObjectsBox(ChSampler<double>& sampler,
+                                   const ChVector3d& pos,
+                                   const ChVector3d& hdims,
+                                   const ChVector3d& vel) {
     // Normalize the mixture ratios
     NormalizeMixture();
 
@@ -302,9 +301,9 @@ void ChGenerator::CreateObjectsBox(Sampler<double>& sampler,
 // The types of objects created are selected randomly with probability
 // proportional to the ratio of that ingredient in the mixture.
 void ChGenerator::CreateObjectsBox(const ChVector3d& dist,
-                                 const ChVector3d& pos,
-                                 const ChVector3d& hdims,
-                                 const ChVector3d& vel) {
+                                   const ChVector3d& pos,
+                                   const ChVector3d& hdims,
+                                   const ChVector3d& vel) {
     // Normalize the mixture ratios
     NormalizeMixture();
 
@@ -316,7 +315,7 @@ void ChGenerator::CreateObjectsBox(const ChVector3d& dist,
         distv = dist;
 
     // Generate the object locations
-    GridSampler<> sampler(distv);
+    ChGridSampler<> sampler(distv);
     PointVector points;
     points = sampler.SampleBox(pos, hdims);
 
@@ -327,11 +326,11 @@ void ChGenerator::CreateObjectsBox(const ChVector3d& dist,
 // sampler and separation distance and the current mixture settings.
 // The types of objects created are selected randomly with probability
 // proportional to the ratio of that ingredient in the mixture.
-void ChGenerator::CreateObjectsCylinderX(Sampler<double>& sampler,
-                                       const ChVector3d& pos,
-                                       float radius,
-                                       float halfHeight,
-                                       const ChVector3d& vel) {
+void ChGenerator::CreateObjectsCylinderX(ChSampler<double>& sampler,
+                                         const ChVector3d& pos,
+                                         float radius,
+                                         float halfHeight,
+                                         const ChVector3d& vel) {
     // Normalize the mixture ratios
     NormalizeMixture();
 
@@ -345,11 +344,11 @@ void ChGenerator::CreateObjectsCylinderX(Sampler<double>& sampler,
     CreateObjects(points, vel);
 }
 
-void ChGenerator::CreateObjectsCylinderY(Sampler<double>& sampler,
-                                       const ChVector3d& pos,
-                                       float radius,
-                                       float halfHeight,
-                                       const ChVector3d& vel) {
+void ChGenerator::CreateObjectsCylinderY(ChSampler<double>& sampler,
+                                         const ChVector3d& pos,
+                                         float radius,
+                                         float halfHeight,
+                                         const ChVector3d& vel) {
     // Normalize the mixture ratios
     NormalizeMixture();
 
@@ -363,11 +362,11 @@ void ChGenerator::CreateObjectsCylinderY(Sampler<double>& sampler,
     CreateObjects(points, vel);
 }
 
-void ChGenerator::CreateObjectsCylinderZ(Sampler<double>& sampler,
-                                       const ChVector3d& pos,
-                                       float radius,
-                                       float halfHeight,
-                                       const ChVector3d& vel) {
+void ChGenerator::CreateObjectsCylinderZ(ChSampler<double>& sampler,
+                                         const ChVector3d& pos,
+                                         float radius,
+                                         float halfHeight,
+                                         const ChVector3d& vel) {
     // Normalize the mixture ratios
     NormalizeMixture();
 
@@ -381,10 +380,10 @@ void ChGenerator::CreateObjectsCylinderZ(Sampler<double>& sampler,
     CreateObjects(points, vel);
 }
 
-void ChGenerator::CreateObjectsSphere(Sampler<double>& sampler,
-                                    const ChVector3d& pos,
-                                    float radius,
-                                    const ChVector3d& vel) {
+void ChGenerator::CreateObjectsSphere(ChSampler<double>& sampler,
+                                      const ChVector3d& pos,
+                                      float radius,
+                                      const ChVector3d& vel) {
     // Normalize the mixture ratios
     NormalizeMixture();
 

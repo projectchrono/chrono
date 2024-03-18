@@ -130,7 +130,7 @@ void AddMPMContainer(ChSystemMulticoreNSC* sys) {
     real vol = dist * dist * dist * .8;
     mpm_container->mass = rho * vol;
 
-    utils::HCPSampler<> sampler(dist);
+    utils::ChHCPSampler<> sampler(dist);
     utils::ChGenerator::PointVector points =
         sampler.SampleSphere(ChVector3d(0, 0, radius + radius * .5), radius);  // ChVector3d(radius, radius, radius));
 

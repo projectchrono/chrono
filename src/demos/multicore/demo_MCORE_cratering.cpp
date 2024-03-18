@@ -267,7 +267,7 @@ int CreateObjects(ChSystemMulticore* system) {
 
     // Create a mixture entirely made out of spheres
     double r = 1.01 * r_g;
-    utils::PDSampler<double> sampler(2 * r);
+    utils::ChPDSampler<double> sampler(2 * r);
     utils::ChGenerator gen(system);
 
     std::shared_ptr<utils::ChMixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);

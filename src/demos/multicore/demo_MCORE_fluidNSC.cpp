@@ -93,7 +93,7 @@ void AddFluid(ChSystemMulticoreNSC* sys) {
     std::vector<real3> vel_fluid;
 
     double dist = kernel_radius * .9;
-    utils::HCPSampler<> sampler(dist);
+    utils::ChHCPSampler<> sampler(dist);
     vol = dist * dist * dist * .8;
     utils::ChGenerator::PointVector points = sampler.SampleSphere(ChVector3d(0, 0, 0), radius);
 

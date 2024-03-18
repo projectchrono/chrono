@@ -34,7 +34,7 @@ using namespace chrono;
 // Create a mixture of geometries
 // -----------------------------------------------------------------------------
 void AddMixture(ChSystem* sys) {
-    utils::GridSampler<double> sampler(2);
+    utils::ChGridSampler<double> sampler(2);
     utils::ChGenerator gen(sys);
     std::shared_ptr<utils::ChMixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::BOX, 0.3);
     std::shared_ptr<utils::ChMixtureIngredient> m2 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 0.4);

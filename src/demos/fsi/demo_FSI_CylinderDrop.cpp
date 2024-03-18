@@ -243,7 +243,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Create an initial box for the terrain patch
-    chrono::utils::GridSampler<> sampler(initSpace0);
+    chrono::utils::ChGridSampler<> sampler(initSpace0);
 
     // Use a chrono sampler to create a bucket of granular material
     ChVector3d boxCenter(0, 0, bzDim / 2);

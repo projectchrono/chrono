@@ -418,17 +418,17 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     gen.SetBodyIdentifier(body_id_particles);
 
     // Create particles using the specified volume sampling type
-    utils::Sampler<double>* sampler;
+    utils::ChSampler<double>* sampler;
     switch (m_sampling_type) {
         default:
         case utils::SamplingType::POISSON_DISK:
-            sampler = new utils::PDSampler<double>(delta);
+            sampler = new utils::ChPDSampler<double>(delta);
             break;
         case utils::SamplingType::HCP_PACK:
-            sampler = new utils::HCPSampler<double>(delta);
+            sampler = new utils::ChHCPSampler<double>(delta);
             break;
         case utils::SamplingType::REGULAR_GRID:
-            sampler = new utils::GridSampler<double>(delta);
+            sampler = new utils::ChGridSampler<double>(delta);
             break;
     }
 

@@ -198,8 +198,8 @@ int main(int argc, char* argv[]) {
     double fill_bottom = -params.box_Z / 2.0;
     double fill_top = params.box_Z / 4.0;
 
-    chrono::utils::PDSampler<float> sampler(2.4f * params.sphere_radius);
-    // chrono::utils::HCPSampler<float> sampler(2.05 * params.sphere_radius);
+    chrono::utils::ChPDSampler<float> sampler(2.4f * params.sphere_radius);
+    // chrono::utils::ChHCPSampler<float> sampler(2.05 * params.sphere_radius);
 
     // leave a 4cm margin at edges of sampling
     ChVector3d hdims(params.box_X / 2 - 4.0, params.box_Y / 2 - 4.0, 0);

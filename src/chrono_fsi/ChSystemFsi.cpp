@@ -1021,7 +1021,7 @@ void ChSystemFsi::AddSPHParticle(const ChVector3d& point,
 
 void ChSystemFsi::AddBoxSPH(const ChVector3d& boxCenter, const ChVector3d& boxHalfDim) {
     // Use a chrono sampler to create a bucket of points
-    chrono::utils::GridSampler<> sampler(m_paramsH->INITSPACE);
+    chrono::utils::ChGridSampler<> sampler(m_paramsH->INITSPACE);
     std::vector<ChVector3d> points = sampler.SampleBox(boxCenter, boxHalfDim);
 
     // Add fluid particles from the sampler points to the FSI system

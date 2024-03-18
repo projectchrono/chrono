@@ -292,17 +292,17 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
             cout << "[Terrain node] read " << checkpoint_filename << "   num. particles = " << m_num_particles << endl;
     } else {
         // Generate particles using the specified volume sampling type
-        utils::Sampler<float>* sampler;
+        utils::ChSampler<float>* sampler;
         switch (m_sampling_type) {
             default:
             case utils::SamplingType::POISSON_DISK:
-                sampler = new utils::PDSampler<float>(delta);
+                sampler = new utils::ChPDSampler<float>(delta);
                 break;
             case utils::SamplingType::HCP_PACK:
-                sampler = new utils::HCPSampler<float>(delta);
+                sampler = new utils::ChHCPSampler<float>(delta);
                 break;
             case utils::SamplingType::REGULAR_GRID:
-                sampler = new utils::GridSampler<float>(delta);
+                sampler = new utils::ChGridSampler<float>(delta);
                 break;
         }
 

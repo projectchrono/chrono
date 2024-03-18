@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
     const float cyl_rad = Bx / 2.f;
     gpu_sys.CreateBCCylinderZ(cyl_center, cyl_rad, false, false);
 
-    utils::HCPSampler<float> sampler(2.1f * params.sphere_radius);
+    utils::ChHCPSampler<float> sampler(2.1f * params.sphere_radius);
     std::vector<ChVector3f> body_points;
 
     const float fill_radius = Bx / 2.f - 2.f * params.sphere_radius;

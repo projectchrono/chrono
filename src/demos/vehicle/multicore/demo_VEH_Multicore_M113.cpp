@@ -148,7 +148,7 @@ double CreateParticles(ChSystem* sys) {
 
     // Create a particle generator and a mixture entirely made out of spheres
     double r = 1.01 * r_g;
-    utils::PDSampler<double> sampler(2 * r);
+    utils::ChPDSampler<double> sampler(2 * r);
     utils::ChGenerator gen(sys);
     std::shared_ptr<utils::ChMixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
     m1->SetDefaultMaterial(mat_g);

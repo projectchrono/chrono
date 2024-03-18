@@ -166,7 +166,7 @@ void CreateShapes(ChSystemSMC& sys) {
     auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
 
     double scale = 2.0;
-    utils::PDSampler<> sampler(2 * scale);
+    utils::ChPDSampler<> sampler(2 * scale);
     auto points = sampler.SampleBox(ChVector3d(0, 0, 0), ChVector3d(10, 10, 10));
 
     for (int i = 0; i < points.size() / 3; i++) {

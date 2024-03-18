@@ -104,8 +104,8 @@ int main(int argc, char* argv[]) {
     float fill_epsilon = 2.02f;
     // padding at top of fill
     float spacing = fill_epsilon * params.sphere_radius;
-    chrono::utils::PDSampler<float> sampler(spacing);
-    chrono::utils::HCPSampler<float> HCPsampler(spacing);
+    chrono::utils::ChPDSampler<float> sampler(spacing);
+    chrono::utils::ChHCPSampler<float> HCPsampler(spacing);
 
     // Create column of material
     std::vector<ChVector3f> material_points;

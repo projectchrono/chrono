@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     ChVector3d boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
 
     // Use a chrono sampler to create a bucket of points
-    chrono::utils::GridSampler<> sampler(initSpace0);
+    chrono::utils::ChGridSampler<> sampler(initSpace0);
     chrono::utils::ChGenerator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
 
     // Add fluid particles from the sampler points to the FSI system
