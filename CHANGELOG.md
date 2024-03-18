@@ -112,6 +112,7 @@ Note that this represents a major public API change and we expect most user code
 
 | File                                | Action                                    |
 | :---------------------------------- | :---------------------------------------- |
+| ChBitmaskEnums.h                    | remove                                    |
 | ChDistribution.h                    | rename: ChRandom.h                        |
 | ChException.h                       | remove                                    |
 | ChFx.h                              | remove                                    |
@@ -169,6 +170,7 @@ Note that this represents a major public API change and we expect most user code
 | ChLinkScrew.h                       | rename: ChLinkLockScrew.h                 |
 | ChLinkTrajectory.h                  | rename: ChLinkLockTrajectory.h            |
 | ChShaftsBody.h                      | rename: ChShaftBodyConstraint.h           |
+| ChUpdateFlags.h                     | remove                                    |
 | ChVector.h                          | rename: ChVector3.h                       |
 
 
