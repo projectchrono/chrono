@@ -841,6 +841,10 @@ Note that this represents a major public API change and we expect most user code
 | ChLinkLockScrew                   |                               |                                                  |
 |                                   | Get_thread                    | rename: GetThread                                |
 |                                   | Set_thread                    | rename: SetThread                                |
+| ChLinkLockTrajectory              |                               |                                                  |
+|                                   | Get_space_fx                  | rename: GetTimeLaw                               |
+|                                   | Set_space_fx                  | rename: SetTimeLaw                               |
+|                                   | Set_modulo_one_fx             | rename: WrapTimeLaw                              |
 | ChLinkMask                        |                               |                                                  |
 |                                   | Constr_N                      | rename: GetConstraint                            |
 |                                   | GetActiveConstrByNum          | rename: GetActiveConstraint                      |

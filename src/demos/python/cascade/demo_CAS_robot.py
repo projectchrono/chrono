@@ -199,7 +199,7 @@ sys.Add(trajectory)
 # abscyssa s of the line, as a function of time s(t). 
 # By default it was simply  s=t.
 spacefx = chrono.ChFunctionRamp(0, 0.5)
-trajectory.Set_space_fx(spacefx)
+trajectory.SetTimeLaw(spacefx)
 
 # Just to constraint the hand rotation:
 parallelism = chrono.ChLinkLockParallel()

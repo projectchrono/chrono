@@ -75,7 +75,7 @@ mtrajectory.Initialize(mpendulum,                    # body1 that follows the tr
 # abscyssa s of the line, as a function of time s(t). 
 # By default it was simply  s=t.
 mspacefx = chrono.ChFunctionRamp(0, 0.5)
-mtrajectory.Set_space_fx(mspacefx)
+mtrajectory.SetTimeLaw(mspacefx)
 
 sys.Add(mtrajectory)
 

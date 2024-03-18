@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     // Optionally, set a function that gets the curvilinear
     // abscyssa s of the line, as a function of time s(t). By default it was simply  s=t.
     auto mspacefx = chrono_types::make_shared<ChFunctionRamp>(0, 0.5);
-    trajectory->Set_space_fx(mspacefx);
+    trajectory->SetTimeLaw(mspacefx);
 
     sys.Add(trajectory);
 

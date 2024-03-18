@@ -42,14 +42,14 @@ class ChApi ChLinkLockTrajectory : public ChLinkLockLock {
 
     /// Gets the address of the function s=s(t) telling
     /// how the curvilinear parameter of the trajectory changes in time.
-    std::shared_ptr<ChFunction> Get_space_fx() const { return space_fx; }
+    std::shared_ptr<ChFunction> GetTimeLaw() const { return space_fx; }
 
     /// Sets the function s=s(t) telling how the curvilinear parameter
     /// of the trajectory changes in time.
-    void Set_space_fx(std::shared_ptr<ChFunction> m_funct);
+    void SetTimeLaw(std::shared_ptr<ChFunction> m_funct);
 
-    /// Tells that the s in  s=s(t)  function will be wrapped in 0..1 if it is outside 0..1
-    void Set_modulo_one_fx(bool mmod) { modulo_s = mmod; }
+    /// Wrap the value of s in s=s(t) within the range 0..1.
+    void WrapTimeLaw(bool mmod) { modulo_s = mmod; }
 
     /// Get the address of the trajectory line
     std::shared_ptr<ChLine> GetTrajectory() const { return trajectory_line; }
