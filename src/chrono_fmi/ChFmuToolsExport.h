@@ -173,9 +173,9 @@ const std::unordered_map<chrono::ChCausalityType, FmuVariable::CausalityType> Ca
 // TODO expand serialization to have description
 
 /// Class for serializing to FmuComponentBase.
-class ChArchiveFmu : public ChArchiveOut {
+class ChOutputFMU : public ChArchiveOut {
   public:
-    ChArchiveFmu(FmuComponentBase& fmucomp) {
+    ChOutputFMU(FmuComponentBase& fmucomp) {
         _fmucomp = &fmucomp;
 
         tablevel = 0;
@@ -183,7 +183,7 @@ class ChArchiveFmu : public ChArchiveOut {
         is_array.push_back(false);
     };
 
-    virtual ~ChArchiveFmu() {
+    virtual ~ChOutputFMU() {
         nitems.pop();
         is_array.pop_back();
     };

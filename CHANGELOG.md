@@ -199,6 +199,7 @@ Note that this represents a major public API change and we expect most user code
 | -                                 | StreamOutSparseMatlabFormat   | rename: ChStreamOut (0- or 1- indexed option)    |
 | -                                 | XdirToDxDyDz                  | remove                                           |
 | ChAparticle                       |                               | rename: ChParticle                               |
+| ChArchiveFmu                      |                               | rename: ChOutputFMU                              |
 | ChArchiveAsciiDump                |                               | rename: ChOutputASCII                            |
 | ChArchiveExplorer                 |                               | rename: ChObjectExplorer                         |
 | ChAssembly                        |                               |                                                  |

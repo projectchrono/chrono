@@ -94,7 +94,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 
 void FmuComponent::_preModelDescriptionExport() {
     _exitInitializationMode();
-    ChArchiveFmu archive_fmu(*this);
+    ChOutputFMU archive_fmu(*this);
     archive_fmu << CHNVP(sys);
 }
 
