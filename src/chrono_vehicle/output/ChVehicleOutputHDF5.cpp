@@ -403,8 +403,8 @@ void ChVehicleOutputHDF5::WriteMarkers(const std::vector<std::shared_ptr<ChMarke
     std::vector<marker_info> info(nmarkers);
     for (auto i = 0; i < nmarkers; i++) {
         const ChVector3d& p = markers[i]->GetAbsCoordsys().pos;
-        const ChVector3d& pd = markers[i]->GetAbsCoordsysDer().pos;
-        const ChVector3d& pdd = markers[i]->GetAbsCoordsysDer2().pos;
+        const ChVector3d& pd = markers[i]->GetAbsCoordsysDt().pos;
+        const ChVector3d& pdd = markers[i]->GetAbsCoordsysDt2().pos;
         info[i] = {markers[i]->GetIdentifier(), p.x(), p.y(), p.z(), pd.x(), pd.y(), pd.z(), pdd.x(), pdd.y(), pdd.z()};
     }
 
@@ -421,7 +421,7 @@ void ChVehicleOutputHDF5::WriteShafts(const std::vector<std::shared_ptr<ChShaft>
     H5::DataSpace dataspace(1, dim);
     std::vector<shaft_info> info(nshafts);
     for (auto i = 0; i < nshafts; i++) {
-        info[i] = {shafts[i]->GetIdentifier(), shafts[i]->GetPos(), shafts[i]->GetPosDer(), shafts[i]->GetPosDer2(),
+        info[i] = {shafts[i]->GetIdentifier(), shafts[i]->GetPos(), shafts[i]->GetPosDt(), shafts[i]->GetPosDt2(),
                    shafts[i]->GetAppliedTorque()};
     }
 
@@ -457,9 +457,11 @@ void ChVehicleOutputHDF5::WriteCouples(const std::vector<std::shared_ptr<ChShaft
     H5::DataSpace dataspace(1, dim);
     std::vector<couple_info> info(ncouples);
     for (auto i = 0; i < ncouples; i++) {
-        info[i] = {couples[i]->GetIdentifier(),          couples[i]->GetRelativeAngle(),
-                   couples[i]->GetRelativeAngleDer(), couples[i]->GetRelativeAngleDer2(),
-                   couples[i]->GetTorqueReactionOn1(),   couples[i]->GetTorqueReactionOn2()};
+        info[i] = {
+            couples[i]->GetIdentifier(),        couples[i]->GetRelativeAngle(),     //
+            couples[i]->GetRelativeAngleDt(),   couples[i]->GetRelativeAngleDt2(),  //
+            couples[i]->GetTorqueReactionOn1(), couples[i]->GetTorqueReactionOn2()  //
+        };
     }
 
     H5::DataSet set = m_section_group->createDataSet("Couples", getCoupleType(), dataspace);
