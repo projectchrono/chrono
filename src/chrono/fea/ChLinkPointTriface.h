@@ -33,7 +33,7 @@ namespace fea {
 /// @{
 
 /// Utility class for using the ChLinkPointTriface constraint
-class ChApi ChTriangleOfXYZnodes : public ChVariableTupleCarrier_3vars<3, 3, 3> {
+class ChApi ChTriangleNodesXYZ : public ChVariableTupleCarrier_3vars<3, 3, 3> {
   public:
     std::shared_ptr<fea::ChNodeFEAxyz> node1;
     std::shared_ptr<fea::ChNodeFEAxyz> node2;
@@ -164,12 +164,12 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
     ChVector3d react;
 
     // used as an interface to the solver.
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZnodes> constraint1;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZnodes> constraint2;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZnodes> constraint3;
+    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleNodesXYZ> constraint1;
+    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleNodesXYZ> constraint2;
+    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleNodesXYZ> constraint3;
 
     std::shared_ptr<ChNodeFEAxyz> m_node;
-    ChTriangleOfXYZnodes m_triangle;
+    ChTriangleNodesXYZ m_triangle;
 
     double s2, s3;
     double d;
