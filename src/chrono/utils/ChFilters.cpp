@@ -769,15 +769,15 @@ void ChISO2631_5_Wz::Filter(std::vector<double>& u, std::vector<double>& y) {
 // Absorbed Power Vertical Filter Class
 // -----------------------------------------------------------------------------
 
-ChAbsorbed_Power_Vertical::ChAbsorbed_Power_Vertical() {
+ChAbsorbedPowerVertical::ChAbsorbedPowerVertical() {
     Reset();
 }
 
-ChAbsorbed_Power_Vertical::ChAbsorbed_Power_Vertical(double step) {
+ChAbsorbedPowerVertical::ChAbsorbedPowerVertical(double step) {
     Config(step);
 }
 
-double ChAbsorbed_Power_Vertical::Filter(double u) {
+double ChAbsorbedPowerVertical::Filter(double u) {
     double y = m_b0 * u + m_b1 * m_u_hist1 + m_b2 * m_u_hist2 + m_b3 * m_u_hist3 - m_a1 * m_y_hist1 - m_a2 * m_y_hist2 -
                m_a3 * m_y_hist3;
 
@@ -792,13 +792,13 @@ double ChAbsorbed_Power_Vertical::Filter(double u) {
     return y;
 }
 
-void ChAbsorbed_Power_Vertical::Reset() {
+void ChAbsorbedPowerVertical::Reset() {
     // keep filter coefficients, clear history buffer
     m_u_hist1 = m_u_hist2 = m_u_hist3 = 0;
     m_y_hist1 = m_y_hist2 = m_y_hist3 = 0;
 }
 
-void ChAbsorbed_Power_Vertical::Config(double step) {
+void ChAbsorbedPowerVertical::Config(double step) {
     m_Ts = step;
 
     m_b0 = (29.0 * m_Ts * (22.0 * m_Ts + 1.0));

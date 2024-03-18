@@ -198,6 +198,7 @@ Note that this represents a major public API change and we expect most user code
 | -                                 | StreamOutDenseMatlabFormat    | rename: ChStreamOut                              |
 | -                                 | StreamOutSparseMatlabFormat   | rename: ChStreamOut (0- or 1- indexed option)    |
 | -                                 | XdirToDxDyDz                  | remove                                           |
+| ChAbsorbed_Power_Vertical         |                               | rename: ChAbsorbedPowerVertical                  |
 | ChAparticle                       |                               | rename: ChParticle                               |
 | ChArchiveFmu                      |                               | rename: ChOutputFMU                              |
 | ChArchiveAsciiDump                |                               | rename: ChOutputASCII                            |

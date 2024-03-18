@@ -254,10 +254,10 @@ class ChApi ChButterworthHighpass {
 };
 
 /// Filter for vertical absorbed power.
-class ChApi ChAbsorbed_Power_Vertical {
+class ChApi ChAbsorbedPowerVertical {
   public:
-    ChAbsorbed_Power_Vertical();
-    ChAbsorbed_Power_Vertical(double step);
+    ChAbsorbedPowerVertical();
+    ChAbsorbedPowerVertical(double step);
     void Reset();
     void Config(double step);
     double Filter(double u);
@@ -506,7 +506,7 @@ class ChApi ChISO2631_Vibration_SeatCushionLogger {
     ChISO2631_1_Wd m_filter_wd_y;
     ChISO2631_1_Wk m_filter_wk_z;
 
-    ChAbsorbed_Power_Vertical m_filter_abspow;
+    ChAbsorbedPowerVertical m_filter_abspow;
     ChFilterI m_filter_int_abspow;
 
     // filter classes for time integral aw
