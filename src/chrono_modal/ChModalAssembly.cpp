@@ -378,6 +378,8 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
         // store the initial floating frame of reference F0 in the initial configuration
         this->floating_frame_F0 = this->floating_frame_F;
 
+        res_CF.setZero(6);
+
         this->is_initialized_F = true;
 
     } else {
@@ -443,6 +445,8 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
         // update again for safe
         this->UpdateTransformationMatrix();
         this->ComputeProjectionMatrix();
+
+        ComputeResidual_ConstrF(res_CF);
     }
 
     if (this->verbose) {

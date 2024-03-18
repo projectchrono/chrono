@@ -66,6 +66,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Do not print the debug information by default.
     bool verbose = false;
 
+    ChVectorDynamic<> res_CF;
+
     /// Compute the undamped modes for the current assembly.
     /// Later you can fetch results via Get_modes_V(), Get_modes_frequencies() etc.
     /// Usually done for the assembly in full mode, but can be done also SwitchModalReductionON()
