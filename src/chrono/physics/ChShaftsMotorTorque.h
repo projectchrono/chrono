@@ -40,7 +40,7 @@ class ChApi ChShaftsMotorTorque : public ChShaftsMotor {
     void SetTorqueFunction(const std::shared_ptr<ChFunction> mf) { f_torque = mf; }
 
     /// Get the torque function F(t).
-    std::shared_ptr<ChFunction> GetTorqueFunction() { return f_torque; }
+    std::shared_ptr<ChFunction> GetTorqueFunction() const { return f_torque; }
 
     /// Get the current actuator reaction torque in Nm.
     virtual double GetMotorTorque() const override { return this->f_torque->GetVal(this->GetChTime()); }

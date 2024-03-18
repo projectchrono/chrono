@@ -43,20 +43,20 @@ class ChApi ChShaftsMotorAngle : public ChShaftsMotor {
     void SetAngleFunction(const std::shared_ptr<ChFunction> function) { f_rot = function; }
 
     /// Gets the rotation angle function f(t).
-    std::shared_ptr<ChFunction> GetAngleFunction() { return f_rot; }
+    std::shared_ptr<ChFunction> GetAngleFunction() const { return f_rot; }
 
     /// Get the initial angle offset for f(t)=0, in rad (default: 0).
     /// Rotation of the two axes will be r(t) = f(t) + offset.
     void SetAngleOffset(double mo) { rot_offset = mo; }
 
     /// Get initial offset for f(t)=0, in rad.
-    double GetAngleOffset() { return rot_offset; }
+    double GetAngleOffset() const { return rot_offset; }
 
     /// Initialize the motor, given two shafts to join.
     /// The first shaft is the 'output' shaft of the motor, the second is the 'truss', often fixed and not rotating.
     /// The torque is applied to the output shaft, while the truss shafts gets the same torque but with opposite sign.
     /// Both shafts must belong to the same ChSystem.
-    bool Initialize(std::shared_ptr<ChShaft> shaft_1,  ///< first  shaft to join (motor output shaft)
+    bool Initialize(std::shared_ptr<ChShaft> shaft_1,  ///< first shaft to join (motor output shaft)
                     std::shared_ptr<ChShaft> shaft_2   ///< second shaft to join (motor truss)
                     ) override;
 

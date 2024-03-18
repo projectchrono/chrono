@@ -31,17 +31,14 @@ class ChApi ChShaftsTorque : public ChShaftsCouple {
     /// Number of scalar constraints
     virtual unsigned int GetNumConstraintsBilateral() override { return 0; }
 
-    /// Get the reaction torque exchanged between the two shafts,
-    /// considered as applied to the 1st axis.
+    /// Get the reaction torque exchanged between the two shafts, considered as applied to the 1st axis.
     virtual double GetTorqueReactionOn1() const override { return torque; }
 
-    /// Get the reaction torque exchanged between the two shafts,
-    /// considered as applied to the 2nd axis.
+    /// Get the reaction torque exchanged between the two shafts, considered as applied to the 2nd axis.
     virtual double GetTorqueReactionOn2() const override { return -torque; }
 
-    /// NOTE: children classes MUST implement this.
-    /// In most cases, this is the ONLY function you need to implement
-    /// in children classes. It will be called at each Update().
+    /// Calculate applied torque.
+    /// In most cases, this is the only function a derived class must implement. It will be called at each Update().
     virtual double ComputeTorque() = 0;
 
     /// Method to allow serialization of transient data to archives.

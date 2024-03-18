@@ -36,22 +36,22 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChShaftsTorqueConverter* Clone() const override { return new ChShaftsTorqueConverter(*this); }
 
-    /// Use this function after torque converter creation, to initialize it, given
-    /// input and output shafts to join (plus the stator shaft, that should be fixed).
-    /// Each shaft must belong to the same ChSystem.
+    /// Initialize the torque converter, given input and output shafts to join.
+    /// The third input shaft is the stator shaft, which should be fixed.
+    /// All shafts must belong to the same ChSystem.
     bool Initialize(std::shared_ptr<ChShaft> shaft_1,  ///< input shaft
                     std::shared_ptr<ChShaft> shaft_2,  ///< output shaft
                     std::shared_ptr<ChShaft> shaft_st  ///< stator shaft (often fixed)
     );
 
-    /// Get the input shaft
-    ChShaft* GetShaftInput() { return shaft1; }
+    /// Get the input shaft.
+    ChShaft* GetShaftInput() const { return shaft1; }
 
-    /// Get the output shaft
-    ChShaft* GetShaftOutput() { return shaft2; }
+    /// Get the output shaft.
+    ChShaft* GetShaftOutput() const { return shaft2; }
 
-    /// Get the stator shaft (the truss)
-    ChShaft* GetShaftStator() { return shaft_stator; }
+    /// Get the stator shaft (the truss).
+    ChShaft* GetShaftStator() const { return shaft_stator; }
 
     /// Set the capacity factor curve, function of speed ratio R.
     /// It is K(R)= input speed / square root of the input torque.
@@ -66,7 +66,7 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     void SetCurveTorqueRatio(std::shared_ptr<ChFunction> mf) { T = mf; }
 
     /// Get the torque ratio curve.
-    std::shared_ptr<ChFunction> GetCurveTorqueRatio() { return T; }
+    std::shared_ptr<ChFunction> GetCurveTorqueRatio() const { return T; }
 
     /// Get the torque applied to the input shaft
     double GetTorqueReactionOnInput() const { return torque_in; }

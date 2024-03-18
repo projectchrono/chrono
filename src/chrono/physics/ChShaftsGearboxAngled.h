@@ -27,7 +27,7 @@ namespace chrono {
 class ChShaft;
 class ChBodyFrame;
 
-///  Class for defining a gearbox with 1D input and 1D output, but with  different directions in 3D space.
+/// Class for defining a gearbox with 1D input and 1D output, but with  different directions in 3D space.
 /// Basically it defines a transmission ratio between two 1D entities of ChShaft type, and transmits the reaction of the
 /// gearbox to a 3D body that acts as the support truss. A typical example is the case of a gearbox with bevel gears,
 /// where input shaft and output shaft are at 90 degrees. Note that the more basic ChShaftsGear can do the same, except
@@ -41,25 +41,14 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChShaftsGearboxAngled* Clone() const override { return new ChShaftsGearboxAngled(*this); }
 
-    /// Initialize this gear coupling, given two shafts to join, and the 3D body that acts as a truss.
-    /// Each shaft and body must belong to the same ChSystem.
-    /// Shafts directions are considered in local body coordinates.
-    virtual bool Initialize(
-        std::shared_ptr<ChShaft> shaft_1,    ///< first (input) shaft to join
-        std::shared_ptr<ChShaft> shaft_2,    ///< second  (output) shaft to join
-        std::shared_ptr<ChBodyFrame> truss,  ///< truss body (also carrier, if rotating as in planetary gearboxes)
-        ChVector3d& dir_1,                   ///< direction of the first shaft on the gearbox truss
-        ChVector3d& dir_2                    ///< direction of the second shaft on the gearbox truss
-    );
-
     /// Get the first shaft (carrier wheel).
-    ChShaft* GetShaft1() { return shaft1; }
+    ChShaft* GetShaft1() const { return shaft1; }
 
     /// Get the second shaft.
-    ChShaft* GetShaft2() { return shaft2; }
+    ChShaft* GetShaft2() const { return shaft2; }
 
     /// Get the third shaft.
-    ChBodyFrame* GetBodyTruss() { return body; }
+    ChBodyFrame* GetBodyTruss() const { return body; }
 
     /// Set the transmission ratio t, as in w2=t*w1, or t=w2/w1 , or  t*w1 - w2 = 0.
     /// For example, t=1 for equal bevel gears, etc.
@@ -96,6 +85,17 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     /// (the truss of the gearbox), expressed in local body coordinates.
     ChVector3d GetTorqueReactionOnBody() const { return (shaft_dir1 * t0 - shaft_dir2) * torque_react; }
 
+    /// Initialize this gear coupling, given two shafts to join, and the 3D body that acts as a truss.
+    /// Shafts directions are considered in local body coordinates.
+    /// Both shafts and the body must belong to the same ChSystem.
+    virtual bool Initialize(
+        std::shared_ptr<ChShaft> shaft_1,    ///< first (input) shaft to join
+        std::shared_ptr<ChShaft> shaft_2,    ///< second  (output) shaft to join
+        std::shared_ptr<ChBodyFrame> truss,  ///< truss body (also carrier, if rotating as in planetary gearboxes)
+        ChVector3d& dir_1,                   ///< direction of the first shaft on the gearbox truss
+        ChVector3d& dir_2                    ///< direction of the second shaft on the gearbox truss
+    );
+
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
@@ -122,7 +122,6 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     /// Number of scalar constraints
     virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
 
-    /// Update all auxiliary data of the gear transmission at given time.
     virtual void Update(double mytime, bool update_assets = true) override;
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)

@@ -115,7 +115,7 @@ void ExampleA1(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     // accumulation (angle drift). Optionally, such positional constraint
     // level can be disabled as follows:
     //
-    // rotmotor1->SetAvoidAngleDrift(false);
+    // rotmotor1->AvoidAngleDrift(false);
 }
 
 void ExampleA2(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {

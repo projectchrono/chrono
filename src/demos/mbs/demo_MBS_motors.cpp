@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
     // accumulation (angle drift). Optionally, such positional constraint
     // level can be disabled as follows:
     //
-    // rotmotor1->SetAvoidAngleDrift(false);
+    // rotmotor1->AvoidAngleDrift(false);
 
     // EXAMPLE A.2
     //

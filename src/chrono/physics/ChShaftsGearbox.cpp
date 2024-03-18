@@ -39,6 +39,12 @@ ChShaftsGearbox::ChShaftsGearbox(const ChShaftsGearbox& other) : ChPhysicsItem(o
     shaft_dir = other.shaft_dir;
 }
 
+void ChShaftsGearbox::SetTransmissionRatio(double t0) {
+    r3 = (1. - t0);
+    r1 = t0;
+    r2 = -1.0;
+}
+
 bool ChShaftsGearbox::Initialize(std::shared_ptr<ChShaft> shaft_1,    // first (input) shaft to join
                                  std::shared_ptr<ChShaft> shaft_2,    // second  (output) shaft to join
                                  std::shared_ptr<ChBodyFrame> truss,  // 3D body to use as truss

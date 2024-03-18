@@ -33,22 +33,13 @@ class ChApi ChShaftsClutch : public ChShaftsCouple {
     /// Number of scalar constraints, for statistical reasons
     virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
 
-    /// Use this function after gear creation, to initialize it, given
-    /// two shafts to join.
-    /// Each shaft must belong to the same ChSystem.
-    bool Initialize(std::shared_ptr<ChShaft> shaft_1,  ///< first  shaft to join
-                    std::shared_ptr<ChShaft> shaft_2   ///< second shaft to join
-                    ) override;
-
     /// Disable this element (disable constraints).
     void SetDisabled(bool val) { active = !val; }
 
-    /// Set the transmissible torque limit (the maximum torque that
-    /// the clutch can transmit between the two shafts).
-    /// You can specify two values for backward/forward directions: usually
-    /// these are equal (ex. -100,100) in most commercial clutches, but
-    /// if you define (0,100), for instance, you can create a so called
-    /// freewheel or overrunning clutch that works only in one direction.
+    /// Set the transmissible torque limit (the maximum torque that the clutch can transmit between the two shafts).
+    /// You can specify two values for backward/forward directions: usually these are equal (ex. -100,100) in most
+    /// commercial clutches, but if you define (0,100), for instance, you can create a so called freewheel or
+    /// overrunning clutch that works only in one direction.
     void SetTorqueLimit(double ml, double mu);
 
     /// Set the transmissible torque limit (the maximum torque that
@@ -56,43 +47,43 @@ class ChApi ChShaftsClutch : public ChShaftsCouple {
     /// forward and backward direction.
     void SetTorqueLimit(double ml) { SetTorqueLimit(-fabs(ml), fabs(ml)); }
 
-    /// Get the torque limit for forward rotation
+    /// Get the torque limit for forward rotation.
     double GetTorqueLimitF() const { return maxT; }
 
-    /// Get the torque limit for backward rotation
+    /// Get the torque limit for backward rotation.
     double GetTorqueLimitB() const { return minT; }
 
-    /// Get the torque limit (when this is a clutch with symmetric forw/backw limits)
+    /// Get the torque limit (when this is a clutch with symmetric forw/backw limits).
     double GetTorqueLimit() const { return maxT; }
 
-    /// Set the user modulation of the torque (or brake, if you use it between
-    /// a fixed shaft and a free shaft). The modulation must range from
-    /// 0 (switched off) to 1 (max torque). Default is 1, when clutch is created.
+    /// Set the user modulation of the torque (or brake, if you use it between a fixed shaft and a free shaft).
+    /// The modulation must range from 0 (switched off) to 1 (max torque). Default is 1, when clutch is created.
     /// You can update this during integration loop to simulate the pedal pushing by the driver.
     void SetModulation(double mm) { modulation = std::max(std::min(mm, 1.0), 0.0); }
 
     /// Get the the user modulation.
     double GetModulation() const { return modulation; }
 
-    /// Get the actual angle slippage of the clutch, in terms of phase of shaft 1 respect to 2.
+    /// Get the actual angle slippage of the clutch, in terms of phase of shaft 1 with respect to 2.
     double GetSlippage() const { return GetRelativeAngle(); }
 
-    /// Get the actual slippage speed of the clutch, in terms of speed of shaft 1 respect to 2.
+    /// Get the actual slippage speed of the clutch, in terms of speed of shaft 1 with respect to 2.
     double GetSlippageDer() const { return GetRelativeAngleDer(); }
 
-    /// Get the actual slippage acceleration of the clutch, in terms of accel. of shaft 1 respect to 2.
+    /// Get the actual slippage acceleration of the clutch, in terms of accel. of shaft 1 with respect to 2.
     double GetSlippageDer2() const { return GetRelativeAngleDer2(); }
 
-    /// Get the reaction torque exchanged between the two shafts,
-    /// considered as applied to the 1st axis.
+    /// Get the reaction torque exchanged between the two shafts, considered as applied to the 1st axis.
     virtual double GetTorqueReactionOn1() const override { return torque_react; }
 
-    /// Get the reaction torque exchanged between the two shafts,
-    /// considered as applied to the 2nd axis.
+    /// Get the reaction torque exchanged between the two shafts, considered as applied to the 2nd axis.
     virtual double GetTorqueReactionOn2() const override { return -torque_react; }
 
-    /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true) override;
+    /// Initialize this shafts clutch, given two shafts to join.
+    /// Both shafts must belong to the same ChSystem.
+    bool Initialize(std::shared_ptr<ChShaft> shaft_1,  ///< first  shaft to join
+                    std::shared_ptr<ChShaft> shaft_2   ///< second shaft to join
+                    ) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
@@ -108,6 +99,8 @@ class ChApi ChShaftsClutch : public ChShaftsCouple {
     double modulation;                       ///< 0...1  (default 1).
     double torque_react;                     ///< reaction torque
     ChConstraintTwoGenericBoxed constraint;  ///< used as an interface to the solver
+
+    virtual void Update(double mytime, bool update_assets = true) override;
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;

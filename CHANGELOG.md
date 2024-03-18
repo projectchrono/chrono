@@ -855,6 +855,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetMotorRot_dtdt              | rename: GetMotorAngleDer2                        |
 |                                   | GetMotorRotPeriodic           | rename: GetMotorAngleWrapped                     |
 |                                   | GetMotorRotTurns              | rename: GetMotorNumTurns                         |
+| ChLinkMotorRotationSpeed          |                               |                                                  |
+|                                   | GetAvoidAngleDrift            | remove                                           |
+|                                   | SetAvoidAngleDrift            | rename: AvoidAngleDrift                          |
 | ChLinkPointPoint                  |                               |                                                  |
 |                                   | GetConstrainedNodeA           | rename: GetNode1                                 |
 |                                   | GetConstrainedNodeB           | rename: GetNode2                                 |
@@ -1055,8 +1058,23 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetRelativeRotation           | rename: GetRelativeAngle                         |
 |                                   | GetRelativeRotation_dt        | rename: GetRelativeAngleDer                      |
 |                                   | GetRelativeRotation_dtdt      | rename: GetRelativeAngleDer2                     |
+| ChShaftsElasticGear               |                               |                                                  |
+|                                   | GetGearRadiusA                | rename: GetGearRadius1                           |
+|                                   | GetGearRadiusB                | rename: GetGearRadius2                           |
+| ChShaftsGear                      |                               |                                                  |
+|                                   | GetAvoidPhaseDrift            | remove                                           |
+|                                   | SetAvoidPhaseDrift            | rename: AvoidPhaseDrift                          |
+| ChShaftsLoad                      |                               |                                                  |
+|                                   | GetShaftA                     | rename: GetShaft1                                |
+|                                   | GetShaftB                     | rename: GetShaft2                                |
 | ChShaftsMotor                     |                               | remove                                           |
 | ChShaftsMotorBase                 |                               | rename: ChShaftsMotor                            |
+| ChShaftsMotorSpeed                |                               |                                                  |
+|                                   | GetAvoidAngleDrift            | remove                                           |
+|                                   | SetAvoidAngleDrift            | rename: AvoidAngleDrift                          |
+| ChShaftsPlanetary                 |                               |                                                  |
+|                                   | GetAvoidPhaseDrift            | remove                                           |
+|                                   | SetAvoidPhaseDrift            | rename: AvoidPhaseDrift                          |
 | ChShaftsTorque                    |                               | rename: ChShaftsAppliedTorque                    |
 | ChShaftsTorqueBase                |                               | rename: ChShaftsTorque                           |
 | ChSolverBB                        |                               |                                                  |

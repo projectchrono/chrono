@@ -38,19 +38,22 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     virtual bool Initialize(std::shared_ptr<ChShaft> shaft_1,  ///< first  shaft to join
                             std::shared_ptr<ChShaft> shaft_2   ///< second shaft to join
     ) {
-        assert(shaft_1 && shaft_2);
-        assert(shaft_1 != shaft_2);
-        assert(shaft_1->GetSystem() == shaft_2->GetSystem());
         shaft1 = shaft_1.get();
         shaft2 = shaft_2.get();
+
+        assert(shaft1 && shaft2);
+        assert(shaft1 != shaft2);
+        assert(shaft1->GetSystem() == shaft2->GetSystem());
+
         SetSystem(shaft1->GetSystem());
         return true;
     }
 
     /// Get the first (input) shaft.
-    ChShaft* GetShaft1() { return shaft1; }
-    /// Get the second (output) shaft
-    ChShaft* GetShaft2() { return shaft2; }
+    ChShaft* GetShaft1() const { return shaft1; }
+
+    /// Get the second (output) shaft.
+    ChShaft* GetShaft2() const { return shaft2; }
 
     /// Get the reaction torque exchanged between the two shafts, considered as applied to the 1st axis.
     virtual double GetTorqueReactionOn1() const { return 0; }

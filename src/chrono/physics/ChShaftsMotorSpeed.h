@@ -42,27 +42,24 @@ class ChApi ChShaftsMotorSpeed : public ChShaftsMotor {
     void SetSpeedFunction(const std::shared_ptr<ChFunction> function) { f_speed = function; }
 
     /// Gets the speed function w(t), in rad/s.
-    std::shared_ptr<ChFunction> GetSpeedFunction() { return f_speed; }
+    std::shared_ptr<ChFunction> GetSpeedFunction() const { return f_speed; }
 
     /// Set initial offset, in rad (default: 0).
     void SetAngleOffset(double offset) { rot_offset = offset; }
 
     /// Get initial offset, in rad.
-    double GetAngleOffset() { return rot_offset; }
+    double GetAngleOffset() const { return rot_offset; }
 
-    /// Set if the constraint must avoid angular drift (default: true).
+    /// Enable angular drift avoidance (default: true).
     /// If true, the constraint is satisfied also at the rotation level, by integrating the velocity in a separate
     /// auxiliary state.
-    void SetAvoidAngleDrift(bool val) { avoid_angle_drift = val; }
-
-    /// Set if the constraint is in "avoid angle drift" mode.
-    bool GetAvoidAngleDrift() { return avoid_angle_drift; }
+    void AvoidAngleDrift(bool avoid) { avoid_angle_drift = avoid; }
 
     /// Initialize this motor, given two shafts to join.
     /// The first shaft is the 'output' shaft of the motor, the second is the 'truss', often fixed and not rotating.
     /// The torque is applied to the output shaft, while the truss shafts gets the same torque but with opposite sign.
     /// Both shafts must belong to the same ChSystem.
-    bool Initialize(std::shared_ptr<ChShaft> shaft_1,  ///< first  shaft to join (motor output shaft)
+    bool Initialize(std::shared_ptr<ChShaft> shaft_1,  ///< first shaft to join (motor output shaft)
                     std::shared_ptr<ChShaft> shaft_2   ///< second shaft to join (motor truss)
                     ) override;
 

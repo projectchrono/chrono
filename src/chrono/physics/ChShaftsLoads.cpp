@@ -20,53 +20,51 @@ namespace chrono {
 // ChShaftsLoad
 // -----------------------------------------------------------------------------
 
-ChShaftsLoad::ChShaftsLoad(std::shared_ptr<ChShaft> shaftA, std::shared_ptr<ChShaft> shaftB)
-    : ChLoadCustomMultiple(shaftA, shaftB) {
+ChShaftsLoad::ChShaftsLoad(std::shared_ptr<ChShaft> shaft1, std::shared_ptr<ChShaft> shaft2)
+    : ChLoadCustomMultiple(shaft1, shaft2) {
     this->torque = 0;
 }
 
 void ChShaftsLoad::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
-    auto mshaftA = std::dynamic_pointer_cast<ChShaft>(this->loadables[0]);
-    auto mshaftB = std::dynamic_pointer_cast<ChShaft>(this->loadables[1]);
+    auto shaft1 = std::dynamic_pointer_cast<ChShaft>(this->loadables[0]);
+    auto shaft2 = std::dynamic_pointer_cast<ChShaft>(this->loadables[1]);
 
-    double mrotA, mrotB;
+    double rot1, rot2;
     if (state_x) {
         // the numerical jacobian algo might change state_x
-        mrotA = (*state_x)(0);
-        mrotB = (*state_x)(1);
+        rot1 = (*state_x)(0);
+        rot2 = (*state_x)(1);
     } else {
-        mrotA = mshaftA->GetPos();
-        mrotB = mshaftB->GetPos();
+        rot1 = shaft1->GetPos();
+        rot2 = shaft2->GetPos();
     }
 
-    double mrotA_dt, mrotB_dt;
+    double rot1_dt, rot2_dt;
     if (state_w) {
         // the numerical jacobian algo might change state_w
-        mrotA_dt = (*state_w)(0);
-        mrotB_dt = (*state_w)(1);
+        rot1_dt = (*state_w)(0);
+        rot2_dt = (*state_w)(1);
     } else {
-        mrotA_dt = mshaftA->GetPosDer();
-        mrotB_dt = mshaftB->GetPosDer();
+        rot1_dt = shaft1->GetPosDer();
+        rot2_dt = shaft2->GetPosDer();
     }
 
-    double rel_rot = mrotA - mrotB;
-    double rel_rot_dt = mrotA_dt - mrotB_dt;
+    double rel_rot = rot1 - rot2;
+    double rel_rot_dt = rot1_dt - rot2_dt;
 
-    // COMPUTE THE TORQUE
-
+    // Compute torque
     ComputeShaftShaftTorque(rel_rot, rel_rot_dt, this->torque);
 
     // Compute Q
-
     this->load_Q(0) = this->torque;
     this->load_Q(1) = -this->torque;
 }
 
-std::shared_ptr<ChShaft> ChShaftsLoad::GetShaftA() const {
+std::shared_ptr<ChShaft> ChShaftsLoad::GetShaft1() const {
     return std::dynamic_pointer_cast<ChShaft>(this->loadables[0]);
 }
 
-std::shared_ptr<ChShaft> ChShaftsLoad::GetShaftB() const {
+std::shared_ptr<ChShaft> ChShaftsLoad::GetShaft2() const {
     return std::dynamic_pointer_cast<ChShaft>(this->loadables[1]);
 }
 
@@ -74,11 +72,11 @@ std::shared_ptr<ChShaft> ChShaftsLoad::GetShaftB() const {
 // ChShaftsTorsionSpringDamper
 // -----------------------------------------------------------------------------
 
-chrono::ChShaftsTorsionSpringDamper::ChShaftsTorsionSpringDamper(std::shared_ptr<ChShaft> shaftA,
-                                                                 std::shared_ptr<ChShaft> shaftB,
+chrono::ChShaftsTorsionSpringDamper::ChShaftsTorsionSpringDamper(std::shared_ptr<ChShaft> shaft1,
+                                                                 std::shared_ptr<ChShaft> shaft2,
                                                                  const double stiffness,
                                                                  const double damping)
-    : ChShaftsLoad(shaftA, shaftB), m_stiffness(stiffness), m_damping(damping), m_rest_phase(0.0) {}
+    : ChShaftsLoad(shaft1, shaft2), m_stiffness(stiffness), m_damping(damping), m_rest_phase(0.0) {}
 
 void ChShaftsTorsionSpringDamper::ComputeShaftShaftTorque(const double rel_rot,
                                                           const double rel_rot_dt,
@@ -91,13 +89,13 @@ void ChShaftsTorsionSpringDamper::ComputeShaftShaftTorque(const double rel_rot,
 // -----------------------------------------------------------------------------
 
 chrono::ChShaftsElasticGear::ChShaftsElasticGear(
-    std::shared_ptr<ChShaft> shaftA,  // shaft A
-    std::shared_ptr<ChShaft> shaftB,  // shaft B
+    std::shared_ptr<ChShaft> shaft1,  // first shaft
+    std::shared_ptr<ChShaft> shaft2,  // second shaft
     const double stiffness,           // normal stiffness at teeth contact, tangent direction to primitive
     const double damping,             // normal damping at teeth contact, tangent direction to primitive
     const double Ra,                  // primitive radius of the gear on shaft A (the radius of B is not needed)
     const double ratio)
-    : ChLoadCustomMultiple(shaftA, shaftB),
+    : ChLoadCustomMultiple(shaft1, shaft2),
       m_stiffness(stiffness),
       m_damping(damping),
       m_rest_phase(0.0),
@@ -106,33 +104,45 @@ chrono::ChShaftsElasticGear::ChShaftsElasticGear(
     m_contact_force = 0.0;
 }
 
-void ChShaftsElasticGear::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
-    auto shaftA = std::dynamic_pointer_cast<ChShaft>(this->loadables[0]);
-    auto shaftB = std::dynamic_pointer_cast<ChShaft>(this->loadables[1]);
+void ChShaftsElasticGear::SetTransmissionRatioAndRadiusA(double ratio, double Ra) {
+    m_ratio = ratio;
+    m_Ra = Ra;
+}
 
-    double rotA, rotB;
+void ChShaftsElasticGear::SetTransmissionRatioFromRadii(double Ra, double Rb, bool internal) {
+    m_Ra = Ra;
+    m_ratio = fabs(Ra / Rb);
+    if (internal)
+        m_ratio = -m_ratio;
+}
+
+void ChShaftsElasticGear::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
+    auto shaft1 = std::dynamic_pointer_cast<ChShaft>(this->loadables[0]);
+    auto shaft2 = std::dynamic_pointer_cast<ChShaft>(this->loadables[1]);
+
+    double rot1, rot2;
     if (state_x) {
         // the numerical jacobian algo might change state_x
-        rotA = (*state_x)(0);
-        rotB = (*state_x)(1);
+        rot1 = (*state_x)(0);
+        rot2 = (*state_x)(1);
     } else {
-        rotA = shaftA->GetPos();
-        rotB = shaftB->GetPos();
+        rot1 = shaft1->GetPos();
+        rot2 = shaft2->GetPos();
     }
 
-    double rotA_dt, rotB_dt;
+    double rot1_dt, rot2_dt;
     if (state_w) {
         // the numerical jacobian algo might change state_w
-        rotA_dt = (*state_w)(0);
-        rotB_dt = (*state_w)(1);
+        rot1_dt = (*state_w)(0);
+        rot2_dt = (*state_w)(1);
     } else {
-        rotA_dt = shaftA->GetPosDer();
-        rotB_dt = shaftB->GetPosDer();
+        rot1_dt = shaft1->GetPosDer();
+        rot2_dt = shaft2->GetPosDer();
     }
     double invratio = 1.0 / m_ratio;
 
-    double rel_compression = m_Ra * (rotA - m_rest_phase) - invratio * m_Ra * rotB;
-    double rel_compression_dt = m_Ra * rotA_dt - invratio * m_Ra * rotB_dt;
+    double rel_compression = m_Ra * (rot1 - m_rest_phase) - invratio * m_Ra * rot2;
+    double rel_compression_dt = m_Ra * rot1_dt - invratio * m_Ra * rot2_dt;
 
     // Compute contact force
     m_contact_force = -rel_compression * m_stiffness - rel_compression_dt * m_damping;

@@ -36,74 +36,53 @@ class ChApi ChShaftsFreewheel : public ChShaftsCouple {
     /// Number of scalar constraints
     virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
 
-    /// Use this function after gear creation, to initialize it, given
-    /// two shafts to join.
-    /// Each shaft must belong to the same ChSystem.
-    /// By default this is a ratcheting clutch with 24 teeth: use SetRatchetingModeTeeth()
-    /// or SetRatchetingModeStep() or SetJammingMode() to change this.
-    bool Initialize(std::shared_ptr<ChShaft> shaft_1,  ///< first  shaft to join
-                    std::shared_ptr<ChShaft> shaft_2   ///< second shaft to join
-                    ) override;
-
     /// Set if you want the clutch to work in "ratcheting mode", here defined via an
     /// angular step in [rad].
     /// When in ratcheting mode, there is a periodic "backward backlash", like in bicycle
     /// freewheels.
-    void SetRatchetingModeStep(double mt) {
-        this->step = mt;
-        this->jamming_mode = false;
-    }
+    void SetRatchetingModeStep(double mt);
 
     /// Set if you want the clutch to work in "ratcheting mode", here defined via a
     /// number of teeth.
     /// When in ratcheting mode, there is a periodic "backward backlash", like in bicycle
     /// freewheels.
-    void SetRatchetingModeTeeth(int n_teeth) {
-        this->step = (CH_C_2PI) / n_teeth;
-        this->jamming_mode = false;
-    }
+    void SetRatchetingModeTeeth(int n_teeth);
 
     /// Set if you want the clutch to work in "jamming mode" like a sprag clutch,
     /// based on friction with pawls and jamming. This is like a ratcheting clutch with infinite teeth,
     /// hence a perfect unidirectional clutch without backward backlash, but
     /// instead of using SetRatchetingModeStep(0), that can't work well because of bad
     /// conditioning, just use this.
-    void SetJammingMode() {
-        this->jamming_mode = true;
-        this->step = 0;
-    }
+    void SetJammingMode();
 
     /// Get the angular step [rad], if a "ratcheting mode" freewheel (it is zero if in "jamming mode").
-    double GetRatchetingStep() const { return this->step; }
+    double GetRatchetingStep() const { return step; }
 
-    /// True if the clutch is working in "jamming mode" like a sprag clutch,
-    /// hence a perfect unidirectional clutch without backward backlash.
-    bool IsModeJamming() { return this->jamming_mode; }
-    /// True if the clutch is working in "ratcheting mode",
-    /// hence with some periodic backward backlash.
-    bool IsModeRatcheting() { return !this->jamming_mode; }
+    /// True if the clutch is working in "jamming mode" like a sprag clutch.
+    /// This represents a perfect unidirectional clutch without backward backlash.
+    bool IsModeJamming() const { return jamming_mode; }
+
+    /// True if the clutch is working in "ratcheting mode".
+    /// This implies some periodic backward backlash.
+    bool IsModeRatcheting() { return !jamming_mode; }
 
     /// Shaft 1 free to rotate forward respect to shaft 2.
     /// Viceversa, backward rotation of 1 respect to 2 is prevented and will generate a torque.
-    void SetFreeForward() {
-        this->free_forward = true;
-        constraint.SetBoxedMinMax(0, 1e20);
-    }
+    void SetFreeForward();
+
     /// Shaft 1 free to rotate backward respect to shaft 2.
     /// Viceversa, forward rotation of 1 respect to 2 is prevented and will generate a torque.
-    void SetFreeBackward() {
-        this->free_forward = false;
-        constraint.SetBoxedMinMax(-1e20, 0);
-    }
+    void SetFreeBackward();
 
     /// If true, shaft 1 is free to rotate forward respect to shaft 2 (default). Viceversa, if false.
     /// Use SetFreeForward() or SetFreeBackward() to change this mode.
-    bool IsFreeForward() { return this->free_forward; }
+    bool IsFreeForward() const { return free_forward; }
 
     /// If in "ratcheting mode", this is the phase of the first tooth respect to zero rotation of shaft 1. Default 0.
-    void SetPhase(double mp) { this->phase = mp; }
+    void SetPhase(double p) { phase = p; }
+
     /// If in "ratcheting mode", this is the phase of the first tooth respect to zero rotation of shaft 1.
-    double GetPhase() { return this->phase; }
+    double GetPhase() const { return this->phase; }
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 1st axis.
@@ -120,14 +99,16 @@ class ChApi ChShaftsFreewheel : public ChShaftsCouple {
     double GetMaxReachedRelativeRotation() const { return alpha_max; }
 
     /// Return the current teeth vane in ratcheting freewheel (returns zero if in jamming mode).
-    double GetCurrentTeethVane() const {
-        return this->jamming_mode ? 0
-                                  : (this->free_forward ? floor((alpha_max - this->phase) / this->step)
-                                                        : -floor((-alpha_max + this->phase) / this->step));
-    }
+    double GetCurrentTeethVane() const;
 
-    /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true) override;
+    /// Use this function after gear creation, to initialize it, given
+    /// two shafts to join.
+    /// Each shaft must belong to the same ChSystem.
+    /// By default this is a ratcheting clutch with 24 teeth: use SetRatchetingModeTeeth()
+    /// or SetRatchetingModeStep() or SetJammingMode() to change this.
+    bool Initialize(std::shared_ptr<ChShaft> shaft_1,  ///< first  shaft to join
+                    std::shared_ptr<ChShaft> shaft_2   ///< second shaft to join
+                    ) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
@@ -146,6 +127,8 @@ class ChApi ChShaftsFreewheel : public ChShaftsCouple {
 
     /// default true: shaft 1 free to rotate forward respect to shaft 2. False: 1 free backward respect to 2
     bool free_forward;
+
+    virtual void Update(double mytime, bool update_assets = true) override;
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;

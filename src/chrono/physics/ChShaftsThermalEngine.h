@@ -35,8 +35,9 @@ class ChApi ChShaftsThermalEngine : public ChShaftsTorque {
     /// Set the torque curve T(w), as function of angular speed between shaft1 and shaft2.
     /// Output units: [Nm], input units: [rad/s]
     void SetTorqueCurve(std::shared_ptr<ChFunction> mf) { Tw = mf; }
+
     /// Get the torque curve T(w).
-    std::shared_ptr<ChFunction> GetTorqueCurve() { return Tw; }
+    std::shared_ptr<ChFunction> GetTorqueCurve() const { return Tw; }
 
     /// Set the current throttle value 's' in [0,1] range.
     /// If s=1, the torque is exactly T=T(w), otherwise it is linearly scaled as T=T(w)*s.
@@ -48,7 +49,7 @@ class ChApi ChShaftsThermalEngine : public ChShaftsTorque {
 
     /// Indicate if the engine is rotating backward.
     /// (This is an erroneous situation).
-    bool IsRotatingBackward() { return error_backward; }
+    bool IsRotatingBackward() const { return error_backward; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

@@ -39,13 +39,12 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChShaftsPlanetary* Clone() const override { return new ChShaftsPlanetary(*this); }
 
-    /// Use this function after planetary gear creation, to initialize it, given
-    /// three shafts to join.
+    /// Initialize this planetary gear, given three shafts to join.
     /// Although there's no special requirement, you may think of the three
     /// typical moving parts of an epicycloidal reducer: the carrier, the
     /// input gear, and the gear with inner teeth that usually is kept fixed (but the
     /// ChShaftsPlanetary does not require that one shaft is fixed - it's up to you)
-    /// Each shaft must belong to the same ChSystem.
+    /// Both shafts must belong to the same ChSystem.
     bool Initialize(std::shared_ptr<ChShaft> shaft_1,  ///< first shaft to join (carrier wheel)
                     std::shared_ptr<ChShaft> shaft_2,  ///< second shaft to join (wheel)
                     std::shared_ptr<ChShaft> shaft_3   ///< third shaft to join (wheel)
@@ -54,14 +53,14 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     /// Disable this element (disable constraints).
     void SetDisabled(bool val) { active = !val; }
 
-    /// Get the first shaft (carrier wheel)
-    ChShaft* GetShaft1() { return shaft1; }
+    /// Get the first shaft (carrier wheel).
+    ChShaft* GetShaft1() const { return shaft1; }
 
     /// Get the second shaft.
-    ChShaft* GetShaft2() { return shaft2; }
+    ChShaft* GetShaft2() const { return shaft2; }
 
     /// Get the third shaft.
-    ChShaft* GetShaft3() { return shaft3; }
+    ChShaft* GetShaft3() const { return shaft3; }
 
     /// Return the speed of the first shaft (carrier wheel).
     double GetSpeedShaft1() const { return shaft1->GetPosDer(); }
@@ -72,16 +71,15 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     /// Return the speed of the third shaft.
     double GetSpeedShaft3() const { return shaft3->GetPosDer(); }
 
-    /// Set the transmission ratios r1 r2 r3 as in
-    ///     r1*w1 + r2*w2 + r3*w3 = 0
+    /// Set the transmission ratios r1 r2 r3 as in r1*w1 + r2*w2 + r3*w3 = 0.
     /// For example, for the car differential, if you assume that shaft 1 is
     /// the carrier and shafts 2 and 3 go to the wheel hubs, you must use
     /// r1=-2, r2=1, r3=1 to satisfy the kinematics -2*w1+w2+w3=0 of the differential;
     /// equivalently, you may use r1=1, r2=-0.5, r3=-0.5 (the equation would hold the same).
-    void SetTransmissionRatios(double mr1, double mr2, double mr3) {
-        r1 = mr1;
-        r2 = mr2;
-        r3 = mr3;
+    void SetTransmissionRatios(double r_1, double r_2, double r_3) {
+        r1 = r_1;
+        r2 = r_2;
+        r3 = r_3;
     }
 
     /// Setting the transmission ratios r1 r2 r3 for  r1*w1 + r2*w2 + r3*w3 = 0
@@ -105,9 +103,8 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
         r3 = -1.0;
     }
 
-    /// Get the t0 transmission ratio of the equivalent ordinary
-    /// gearbox, ie. the inverted planetary, that is the ratio  t0=w3'/w2' assuming
-    /// that the carrier (shaft 1) is hold fixed.
+    /// Get the t0 transmission ratio of the equivalent ordinary gearbox (i.e., the inverted planetary).
+    /// This is the ratio  t0=w3'/w2' assuming that the carrier (shaft 1) is held fixed.
     double GetTransmissionRatioOrdinary() const { return -r2 / r3; }
 
     /// Get the transmission ratio r1, as in  r1*w1+r2*w2+r3*w3 = 0.
@@ -119,14 +116,10 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     /// Get the transmission ratio r1, as in  r1*w1+r2*w2+r3*w3 = 0.
     double GetTransmissionR3() const { return r3; }
 
-    /// Set if the constraint must avoid phase drift. If true, phasing is always
-    /// tracked and the constraint is satisfied also at the position level.
+    /// Enable phase drift avoidance (default: true).
+    /// If true, phasing is always tracked and the constraint is satisfied also at the position level.
     /// If false, microslipping can accumulate (as in friction wheels).
-    /// Default is enabled.
-    void SetAvoidPhaseDrift(bool mb) { this->avoid_phase_drift = mb; }
-
-    /// Set if the constraint is in "avoid phase drift" mode.
-    bool GetAvoidPhaseDrift() { return this->avoid_phase_drift; }
+    void AvoidPhaseDrift(bool avoid) { avoid_phase_drift = avoid; }
 
     /// Get the reaction torque considered as applied to the 1st axis.
     double GetTorqueReactionOn1() const { return (r1 * torque_react); }

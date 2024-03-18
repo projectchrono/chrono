@@ -39,6 +39,31 @@ ChShaftsFreewheel::ChShaftsFreewheel(const ChShaftsFreewheel& other) : ChShaftsC
     free_forward = other.free_forward;
 }
 
+void ChShaftsFreewheel::SetRatchetingModeStep(double mt) {
+    step = mt;
+    jamming_mode = false;
+}
+
+void ChShaftsFreewheel::SetRatchetingModeTeeth(int n_teeth) {
+    step = (CH_C_2PI) / n_teeth;
+    jamming_mode = false;
+}
+
+void ChShaftsFreewheel::SetJammingMode() {
+    jamming_mode = true;
+    step = 0;
+}
+
+void ChShaftsFreewheel::SetFreeForward() {
+    free_forward = true;
+    constraint.SetBoxedMinMax(0, 1e20);
+}
+
+void ChShaftsFreewheel::SetFreeBackward() {
+    free_forward = false;
+    constraint.SetBoxedMinMax(-1e20, 0);
+}
+
 bool ChShaftsFreewheel::Initialize(std::shared_ptr<ChShaft> shaft_1, std::shared_ptr<ChShaft> shaft_2) {
     // Parent initialization
     if (!ChShaftsCouple::Initialize(shaft_1, shaft_2))
@@ -51,6 +76,10 @@ bool ChShaftsFreewheel::Initialize(std::shared_ptr<ChShaft> shaft_1, std::shared
 
     SetSystem(shaft1->GetSystem());
     return true;
+}
+
+double ChShaftsFreewheel::GetCurrentTeethVane() const {
+    return jamming_mode ? 0 : (free_forward ? floor((alpha_max - phase) / step) : -floor((-alpha_max + phase) / step));
 }
 
 void ChShaftsFreewheel::Update(double mytime, bool update_assets) {

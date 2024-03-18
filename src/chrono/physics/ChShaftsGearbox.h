@@ -40,26 +40,14 @@ class ChApi ChShaftsGearbox : public ChPhysicsItem {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChShaftsGearbox* Clone() const override { return new ChShaftsGearbox(*this); }
 
-    /// Use this function after gear creation, to initialize it, given
-    /// two shafts to join, and the 3D body that acts as a truss and
-    /// receives the reaction torque of the gearbox.
-    /// Each shaft and body must belong to the same ChSystem.
-    /// Direction is expressed in the local coordinates of the body.
-    bool Initialize(
-        std::shared_ptr<ChShaft> shaft_1,    ///< first (input) shaft to join
-        std::shared_ptr<ChShaft> shaft_2,    ///< second  (output) shaft to join
-        std::shared_ptr<ChBodyFrame> truss,  ///< truss body (also carrier, if rotating as in planetary gearboxes)
-        ChVector3d& dir                      ///< the direction of the shaft on 3D body (applied on COM: pure torque)
-    );
-
     /// Get the first shaft (carrier wheel).
-    ChShaft* GetShaft1() { return shaft1; }
+    ChShaft* GetShaft1() const { return shaft1; }
 
     /// Get the second shaft.
-    ChShaft* GetShaft2() { return shaft2; }
+    ChShaft* GetShaft2() const { return shaft2; }
 
     /// Get the third shaft.
-    ChBodyFrame* GetBodyTruss() { return body; }
+    ChBodyFrame* GetBodyTruss() const { return body; }
 
     /// Set the transmission ratio t, as in w2=t*w1, or t=w2/w1 , or  t*w1 - w2 = 0.
     /// For example, t=1 for a rigid joint; t=-0.5 for representing
@@ -67,23 +55,19 @@ class ChApi ChShaftsGearbox : public ChPhysicsItem {
     /// a gear with inner teeth (or epicycloidal reducer), etc.
     /// Also the t0 ordinary equivalent ratio of the inverted planetary,
     /// if the 3D body is rotating as in planetary gears.
-    void SetTransmissionRatio(double t0) {
-        r3 = (1. - t0);
-        r1 = t0;
-        r2 = -1.0;
-    }
+    void SetTransmissionRatio(double t0);
 
     /// Get the transmission ratio t, as in w2=t*w1, or t=w2/w1.
     /// Also the t0 ordinary equivalent ratio of the inverted planetary,
     /// if the 3D body is rotating as in planetary gears.
-    double GetTransmissionRatio() { return -r1 / r2; }
+    double GetTransmissionRatio() const { return -r1 / r2; }
 
-    /// Set the direction of the shaft respect to 3D body, as a
+    /// Set the direction of the shaft with respect to 3D body, as a
     /// normalized vector expressed in the coordinates of the body.
     /// The shaft applies only torque, about this axis.
     void SetShaftDirection(ChVector3d md) { shaft_dir = Vnorm(md); }
 
-    /// Get the direction of the shaft respect to 3D body, as a
+    /// Get the direction of the shaft with respect to 3D body, as a
     /// normalized vector expressed in the coordinates of the body.
     const ChVector3d& GetShaftDirection() const { return shaft_dir; }
 
@@ -95,7 +79,18 @@ class ChApi ChShaftsGearbox : public ChPhysicsItem {
 
     /// Get the reaction torque considered as applied to the body
     /// (the truss of the gearbox), expressed in the coordinates of the body.
-    ChVector3d GetTorqueReactionOnBody() { return (shaft_dir * (r3 * torque_react)); }
+    ChVector3d GetTorqueReactionOnBody() const { return (shaft_dir * (r3 * torque_react)); }
+
+    /// Initialize this gearbox, given two shafts to join, and the 3D truss body.
+    /// The truss receives the reaction torque of the gearbox.
+    /// Direction is expressed in the local coordinates of the body.
+    /// The shaft and body must belong to the same ChSystem.
+    bool Initialize(
+        std::shared_ptr<ChShaft> shaft_1,    ///< first (input) shaft to join
+        std::shared_ptr<ChShaft> shaft_2,    ///< second  (output) shaft to join
+        std::shared_ptr<ChBodyFrame> truss,  ///< truss body (also carrier, if rotating as in planetary gearboxes)
+        ChVector3d& dir                      ///< the direction of the shaft on 3D body (applied on COM: pure torque)
+    );
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
@@ -124,7 +119,6 @@ class ChApi ChShaftsGearbox : public ChPhysicsItem {
     /// Number of scalar constraints
     virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
 
-    /// Update all auxiliary data of the gear transmission at given time
     virtual void Update(double mytime, bool update_assets = true) override;
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
