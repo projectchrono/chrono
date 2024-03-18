@@ -119,7 +119,6 @@ set(ChronoEngine_physics_SOURCES
     physics/ChSystem.cpp
     physics/ChSystemNSC.cpp
     physics/ChSystemSMC.cpp
-    physics/ChController.cpp
     physics/ChPhysicsItem.cpp
     physics/ChParticleCloud.cpp
     physics/ChIndexedParticles.cpp
@@ -138,7 +137,6 @@ set(ChronoEngine_physics_HEADERS
     physics/ChBody.h
     physics/ChBodyAuxRef.h
     physics/ChBodyEasy.h
-    physics/ChController.h
     physics/ChConveyor.h
     physics/ChFeeder.h
     physics/ChForce.h
@@ -1247,6 +1245,7 @@ set(ChronoEngine_utils_SOURCES
     utils/ChUtilsChaseCamera.cpp
     utils/ChUtilsValidation.cpp
     utils/ChProfiler.cpp
+    utils/ChControllers.cpp
     utils/ChFilters.cpp
     utils/ChCompositeInertia.cpp
     utils/ChConvexHull.cpp
@@ -1265,6 +1264,7 @@ set(ChronoEngine_utils_HEADERS
     utils/ChUtilsChaseCamera.h
     utils/ChUtilsValidation.h
     utils/ChProfiler.h
+    utils/ChControllers.h
     utils/ChFilters.h
     utils/ChCompositeInertia.h
     utils/ChConvexHull.h

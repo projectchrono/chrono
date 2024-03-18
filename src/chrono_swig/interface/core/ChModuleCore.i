@@ -362,7 +362,7 @@ using namespace chrono::fea;
 %include "ChVisualSystem.i"
 
 // physics/  classes
-%include "ChController.i"
+%include "ChControllers.i"
 %include "ChLoadable.i"
 %include "ChObject.i"
 %include "ChPhysicsItem.i"

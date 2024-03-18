@@ -85,7 +85,6 @@ class ChApi ChMovingAverage {
     std::valarray<double> m_out;
 };
 
-
 // Analogue filters ------------------------------------------------------------
 
 /// Base class for simulated analogue filters in the time domain.
@@ -180,7 +179,6 @@ class ChApi ChFilterPDT1 : public ChAnalogueFilter {
     ChFilterPT1 pt1;
 };
 
-
 // IIR filters -----------------------------------------------------------------
 
 // Collection of useful recursive filters (IIR) for signal processing.
@@ -273,7 +271,6 @@ class ChApi ChAbsorbedPowerVertical {
     double m_u_hist1, m_u_hist2, m_u_hist3;
     double m_y_hist1, m_y_hist2, m_y_hist3;
 };
-
 
 // ISO filters -----------------------------------------------------------------
 
@@ -394,7 +391,7 @@ class ChApi ChISO2631_1_Wf {
     ChISO2631_1_UpwardStep ups;
 };
 
-/// ISO2631-5 weighting filter for shock like signal in horizontal direction. 
+/// ISO2631-5 weighting filter for shock like signal in horizontal direction.
 /// Works with sample rate = 160 Hz only.
 class ChApi ChISO2631_5_Wxy {
   public:
@@ -594,17 +591,16 @@ class ChApi ChISO2631_Shock_SeatCushionLogger {
     double CalcPeaks(std::vector<double>& v, bool vertical);
 };
 
-
 // Motion law filters ----------------------------------------------------------
 
 /// Base class for smoothing basic motion laws with discrete time-domain nonlinear filters.
-/// Useful to track on the fly externally-provided signals (e.g. by joystick, teach pendant) 
+/// Useful to track on the fly externally-provided signals (e.g. by joystick, teach pendant)
 /// with a continuous motion profile.
 class ChApi ChMotionlawFilter {
-public:
-    ChMotionlawFilter() {};
+  public:
+    ChMotionlawFilter(){};
 
-    virtual ~ChMotionlawFilter() {};
+    virtual ~ChMotionlawFilter(){};
 
     /// Reset state variables
     virtual void Reset() = 0;
@@ -618,17 +614,17 @@ public:
     /// Get last filtered acceleration computed
     virtual double GetFilteredAcc() const { return m_filtacc; }
 
-protected:
-    double m_filtpos = 0; ///< filtered position setpoint
-    double m_filtvel = 0; ///< filtered velocity setpoint
-    double m_filtacc = 0; ///< filtered acceleration
+  protected:
+    double m_filtpos = 0;  ///< filtered position setpoint
+    double m_filtvel = 0;  ///< filtered velocity setpoint
+    double m_filtacc = 0;  ///< filtered acceleration
 };
 
 /// Second-order nonlinear filter for smoothing basic motion laws (e.g. step, linear ramp)
 /// given maximum (symmetrical) velocity and acceleration constraints.
 /// Output is analogous to a Constant Acceleration motion profile.
 class ChApi ChMotionlawFilter_SecondOrder : public ChMotionlawFilter {
-public:
+  public:
     ChMotionlawFilter_SecondOrder();
 
     ChMotionlawFilter_SecondOrder(double vmax, double amax, double timestep);
@@ -641,15 +637,15 @@ public:
     /// Reset state variables
     virtual void Reset() override;
 
-    /// Given instantaneous raw position and velocity setpoints, 
+    /// Given instantaneous raw position and velocity setpoints,
     /// compute filtered pos/vel/acc and return filtered position
     double Filter(double raw_setpos, double raw_setvel);
 
-private:
-    double m_vmax = 0;          ///< max allowed velocity 
-    double m_amax = 0;          ///< max allowed acceleration
-    double m_timestep = 0;      ///< sampling time
-    double m_filtvel_old = 0;   ///< old filtered velocity setpoint
+  private:
+    double m_vmax = 0;         ///< max allowed velocity
+    double m_amax = 0;         ///< max allowed acceleration
+    double m_timestep = 0;     ///< sampling time
+    double m_filtvel_old = 0;  ///< old filtered velocity setpoint
 };
 
 /// Third-order nonlinear filter for smoothing basic motion laws (e.g. step, linear ramp)
@@ -658,7 +654,7 @@ private:
 /// NB: this filter is affected by some chattering on jerk control variable, thus it works best
 /// if small time step is provided.
 class ChApi ChMotionlawFilter_ThirdOrder : public ChMotionlawFilter {
-public:
+  public:
     ChMotionlawFilter_ThirdOrder();
 
     ChMotionlawFilter_ThirdOrder(double vmax, double amax, double jmax, double timestep);
@@ -678,7 +674,7 @@ public:
     /// Get last filtered jerk computed
     double GetFilteredJerk() const { return m_filtjerk; }
 
-private:
+  private:
     double GetCoeff_ua(double a);
 
     double GetCoeff_deltav(double v);
@@ -687,13 +683,13 @@ private:
 
     double GetCoeff_uv(double v);
 
-    double m_vmax = 0;          ///< max allowed velocity 
-    double m_amax = 0;          ///< max allowed acceleration
-    double m_jmax = 0;          ///< max allowed jerk
-    double m_timestep = 0;      ///< sampling time
-    double m_filtvel_old = 0;   ///< old filtered velocity setpoint
-    double m_filtacc_old = 0;   ///< old filtered acceleration
-    double m_filtjerk = 0;      ///< filtered jerk setpoint
+    double m_vmax = 0;         ///< max allowed velocity
+    double m_amax = 0;         ///< max allowed acceleration
+    double m_jmax = 0;         ///< max allowed jerk
+    double m_timestep = 0;     ///< sampling time
+    double m_filtvel_old = 0;  ///< old filtered velocity setpoint
+    double m_filtacc_old = 0;  ///< old filtered acceleration
+    double m_filtjerk = 0;     ///< filtered jerk setpoint
 
     /// Reference errors
     double m_err_vel = 0;
@@ -703,7 +699,6 @@ private:
     double m_errmin_vel = 0;
     double m_errmin_acc = 0;
 };
-
 
 /// @} chrono_utils
 

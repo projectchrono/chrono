@@ -113,21 +113,9 @@ Note that this represents a major public API change and we expect most user code
 | File                                | Action                                    |
 | :---------------------------------- | :---------------------------------------- |
 | ChBitmaskEnums.h                    | remove                                    |
+| ChController.h                      | rename: ChControllers.h                   |
 | ChDistribution.h                    | rename: ChRandom.h                        |
 | ChException.h                       | remove                                    |
-| ChFx.h                              | remove                                    |
-| ChLinkRackpinion.h                  | remove: merged into ChLinkMate.h          |
-| ChLists.h                           | remove                                    |
-| ChLog.h                             | remove                                    |
-| ChMaterialSurface.h                 | rename: ChContactMaterial.h               |
-| ChMaterialSurfaceNSC.h              | rename: ChContactMaterialNSC.h            |
-| ChMaterialSurfaceSMC.h              | rename: ChContactMaterialSMC.h            |
-| ChMath.h                            | remove                                    |
-| ChMathematics.h                     | remove and replace with:                  |
-|                                     |         ChConstants.h                     |
-|                                     |         ChUtils.h                         |
-| ChSolvmin.h                         | remove                                    |
-| ChStream.h                          | remove                                    |
 | ChFunction_Const.h                  | rename: ChFunctionConst.h                 |
 | ChFunction_BSpline.h                | rename: ChFunctionBSpline.h               |
 | ChFunction_ConstAcc.h               | rename: ChFunctionConstAcc.h              |
@@ -159,6 +147,7 @@ Note that this represents a major public API change and we expect most user code
 | ChFunctionRotation_setpoint.h       | rename: ChFunctionRotationSetpoint.h      |
 | ChFunctionRotation_spline.h         | rename: ChFunctionRotationBSpline.h       |
 | ChFunctionRotation_SQUAD.h          | rename: ChFunctionRotationSQUAD.h         |
+| ChFx.h                              | remove                                    |
 | ChLimit.h                           | rename: ChLinkLimit.h                     |
 | ChLineBspline.h                     | rename: ChLineBSpline.h                   |
 | ChLinkBrake.h                       | rename: ChLinkLockBrake.h                 |
@@ -167,9 +156,21 @@ Note that this represents a major public API change and we expect most user code
 | ChLinkLinActuator.h                 | rename: ChLinkLockLinActuator.h           |
 | ChLinkPointSpline.h                 | rename: ChLinkLockPointSpline.h           |
 | ChLinkPulley.h                      | rename: ChLinkLockPulley.h                |
+| ChLinkRackpinion.h                  | remove: merged into ChLinkMate.h          |
 | ChLinkScrew.h                       | rename: ChLinkLockScrew.h                 |
 | ChLinkTrajectory.h                  | rename: ChLinkLockTrajectory.h            |
+| ChLists.h                           | remove                                    |
+| ChLog.h                             | remove                                    |
+| ChMaterialSurface.h                 | rename: ChContactMaterial.h               |
+| ChMaterialSurfaceNSC.h              | rename: ChContactMaterialNSC.h            |
+| ChMaterialSurfaceSMC.h              | rename: ChContactMaterialSMC.h            |
+| ChMath.h                            | remove                                    |
+| ChMathematics.h                     | remove and replace with:                  |
+|                                     |         ChConstants.h                     |
+|                                     |         ChUtils.h                         |
 | ChShaftsBody.h                      | rename: ChShaftBodyConstraint.h           |
+| ChSolvmin.h                         | remove                                    |
+| ChStream.h                          | remove                                    |
 | ChUpdateFlags.h                     | remove                                    |
 | ChVector.h                          | rename: ChVector3.h                       |
 
