@@ -45,7 +45,7 @@ void ChShaftsFreewheel::SetRatchetingModeStep(double mt) {
 }
 
 void ChShaftsFreewheel::SetRatchetingModeTeeth(int n_teeth) {
-    step = (CH_C_2PI) / n_teeth;
+    step = (CH_2PI) / n_teeth;
     jamming_mode = false;
 }
 
