@@ -233,6 +233,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNsysvars_w                 | remove                                           |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 | ChBasisToolsBspline               |                               | rename: ChBasisToolsBSpline                      |
+| ChBasisToolsBsplineSurfaces       |                               | rename: ChBasisToolsBSplineSurfaces              |
 | ChBeamSectionCable                |                               |                                                  |
 |                                   | GetBeamRayleighDamping        | rename: GetRayleighDamping                       |
 |                                   | GetI                          | rename: GetInertia                               |

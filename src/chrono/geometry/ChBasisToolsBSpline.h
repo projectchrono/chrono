@@ -222,7 +222,7 @@ class ChApi ChBasisToolsBSpline {
 /// parametrized with parameters u,v (as lines)
 /// These bases are often called "R" in literature.
 
-class ChApi ChBasisToolsBsplineSurfaces {
+class ChApi ChBasisToolsBSplineSurfaces {
   public:
     /// Compute vector of bases R.
     /// Evaluate ALL the (pu+1) * (pv+1) nonzero basis functions R of a 2D(surface) B-plines, at the needed u-v knot
