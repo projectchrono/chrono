@@ -22,22 +22,16 @@
 
 namespace chrono {
 
-/// Class for a basic PID controller
+/// Simple PID controller
 ///
-///  A basic PID controller, used as a 'black box'. Depending on
-/// input, it produces a controlled output proportional to input,
-/// input derivative by time, input integration
-
+/// out = P*in + D*d(in)/dt + I*int(in*dt)
 class ChApi ChControllerPID : public ChObj {
   private:
-    double In;      ///< internal, last input set into controller, at time 'last_t'
-    double In_int;  ///< internal, last integral, for integrative part of controller
-    double In_dt;   ///< internal, last derivative, for derivative part of controller
-    double last_t;  ///< internal, last time
-    double Pcomp;   ///< internal,
-    double Icomp;   ///< internal,
-    double Dcomp;   ///< internal,
-    double Out;     ///< internal, last output value
+    double m_input;      ///< internal, last input set into controller, at time 'last_t'
+    double m_input_integral;  ///< internal, last integral, for integrative part of controller
+    double m_input_dt;   ///< internal, last derivative, for derivative part of controller
+    double m_last_t;  ///< internal, last time
+    double m_output;     ///< internal, last output value
 
   public:
     ChControllerPID();
@@ -51,25 +45,13 @@ class ChApi ChControllerPID : public ChObj {
     double I;  ///< integrative coefficient
     double D;  ///< derivative coefficient
 
-    /// COMPUTE CONTROL value!
-    /// Given an input i, returns the output o=P*i+D*di/dt+I*Int(i dt)
-    /// that is o = Pcomp+Icomp+Dcomp
-    /// Calls to Get_Output must be done in (possibly uniform) time steps,
+    /// Returns the output of the controller.
+    /// Calls to GetOutput must be done in (possibly uniform) time steps,
     /// otherwise remember to call Reset() before other sequences of calls.
-    double Get_Out(double mInput, double mTime);
+    double GetOutput(double input, double time);
 
     /// Same, but just returns last computed output
-    double Get_Out() const { return Out; }
-
-    // Read-only values, telling which was the components
-    // of the last outputted control, divided by proportional or
-    // integrative or derivative part.
-    double Get_Pcomp() const { return Pcomp; }
-    double Get_Icomp() const { return Icomp; }
-    double Get_Dcomp() const { return Dcomp; }
-    double Get_In_int() const { return In_int; }
-    double Get_In_dt() const { return In_dt; }
-    double Get_In() const { return In; }
+    double GetOutput() const { return m_output; }
 
     /// Use Reset to set accumulator to zero, at beginning. For integrative part.
     void Reset();

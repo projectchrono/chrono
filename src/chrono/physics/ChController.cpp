@@ -34,53 +34,50 @@ ChControllerPID::ChControllerPID(const ChControllerPID& other) : ChObj(other) {
 // Use Reset to set accumulator to zero, at beginning. For integrative part.
 
 void ChControllerPID::Reset() {
-    In_int = 0.0;
-    In_dt = 0.0;
-    In = 0;
-    Out = 0;
-    Pcomp = 0;
-    Icomp = 0;
-    Dcomp = 0;
-    last_t = 0;
+    m_input_integral = 0.0;
+    m_input_dt = 0.0;
+    m_input = 0;
+    m_output = 0;
+    m_last_t = 0;
 }
 
 // Compute controller output value
-double ChControllerPID::Get_Out(double new_in, double new_t) {
-    double mdt = (new_t - last_t);
+double ChControllerPID::GetOutput(double input, double time) {
+    double delta_t = (time - m_last_t);
 
     // please, no backward calling sequence!
-    if (mdt < 0) {
+    if (delta_t < 0) {
         Reset();
         return 0.0;
     }
 
     // please, multiple calls at same time do not perform updates!
-    if (mdt == 0) {
-        return Out;
+    if (delta_t == 0) {
+        return m_output;
     }
 
     // OK......
 
     // compute derivative of in (simple Bdf differentiation)
-    In_dt = (new_in - In) / mdt;
+    m_input_dt = (input - m_input) / delta_t;
 
     // compute integration of in  (trapezoidal rule )
-    In_int += (new_in + In) * 0.5 * mdt;
+    m_input_integral += (input + m_input) * 0.5 * delta_t;
 
     // Go forward... synchronize time and last input recorder
-    In = new_in;
-    last_t = new_t;
-    SetChTime(new_t);
+    m_input = input;
+    m_last_t = time;
+    SetChTime(time);
 
     // ===  Compute PID components ================
 
-    Pcomp = P * In;
-    Icomp = I * In_int;
-    Dcomp = D * In_dt;
+    double Pcomp = P * m_input;
+    double Icomp = I * m_input_integral;
+    double Dcomp = D * m_input_dt;
 
-    Out = Pcomp + Icomp + Dcomp;
+    m_output = Pcomp + Icomp + Dcomp;
 
-    return Out;
+    return m_output;
 }
 
 }  // end namespace chrono

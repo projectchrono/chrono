@@ -385,6 +385,14 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_ThermalKmatrix            | rename: GetConductivityMatrix                    |
 |                                   | SetThermalConductivityK       | rename: SetThermalConductivity                   |
 |                                   | SetMassSpecificHeatCapacity   | rename: SetSpecificHeatCapacity                  |
+| ChControllerPID                   |                               |                                                  |
+|                                   | Get_Out                       | rename: GetOutput                                |
+|                                   | Get_Pcomp                     | remove                                           |
+|                                   | Get_Icomp                     | remove                                           |
+|                                   | Get_Dcomp                     | remove                                           |
+|                                   | Get_In_int                    | remove                                           |
+|                                   | Get_In_dt                     | remove                                           |
+|                                   | Get_In                        | remove                                           |
 | ChElasticityCosseratAdvancedGenericFPM |                          |                                                  |
 |                                   | GetEMatrix                    | rename: GetStiffnessMatrix                       |
 |                                   | SetEMatrix                    | rename: SetStiffnessMatrix                       |
