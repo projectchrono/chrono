@@ -21,7 +21,7 @@
 
 namespace chrono {
 
-using namespace chrono::ch_utils;
+using namespace chrono::mc_utils;
 
 ChRayTest::ChRayTest(std::shared_ptr<ChCollisionData> data) : cd_data(data), num_bin_tests(0), num_shape_tests(0) {}
 
