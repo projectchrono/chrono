@@ -993,6 +993,13 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetFixedDDD                   | rename: SetSlope3Fixed                           |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 |                                   | Variable_DDD                  | rename: VariablesSlope3                          |
+| ChNodeFEAxyzP                     |                               |                                                  |
+|                                   | GetF                          | rename: GetLoad                                  |
+|                                   | GetP                          | rename: GetFieldVal                              |
+|                                   | GetP_dt                       | rename: GetFieldValDer                           |
+|                                   | SetF                          | rename: SetLoad                                  |
+|                                   | SetP                          | rename: SetFieldVal                              |
+|                                   | SetP_dt                       | rename: SetFieldValDer                           |
 | ChNodeFEAxyzrot                   |                               |                                                  |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 | ChParticleCloud                   |                               |                                                  |

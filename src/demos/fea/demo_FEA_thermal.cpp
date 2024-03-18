@@ -84,22 +84,22 @@ int main(int argc, char* argv[]) {
 
     // Impose load on the 180th node
     auto mnode3 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(180));
-    mnode3->SetF(20);  // thermal load: heat flux [W] into node
+    mnode3->SetLoad(20);  // thermal load: heat flux [W] into node
 
     // Impose field on two top nodes (remember the SetFixed(true); )
     auto mnode1 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(my_mesh->GetNumNodes() - 1));
     mnode1->SetFixed(true);
-    mnode1->SetP(0.5);  // field: temperature [K]
+    mnode1->SetFieldVal(0.5);  // field: temperature [K]
     auto mnode2 = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(my_mesh->GetNumNodes() - 2));
     mnode2->SetFixed(true);
-    mnode2->SetP(0.5);  // field: temperature [K]
+    mnode2->SetFieldVal(0.5);  // field: temperature [K]
 
     // Impose field on the base points:
     for (unsigned int inode = 0; inode < my_mesh->GetNumNodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
             if (mnode->GetPos().y() < 0.01) {
                 mnode->SetFixed(true);
-                mnode->SetP(10);  // field: temperature [K]
+                mnode->SetFieldVal(10);  // field: temperature [K]
             }
         }
     }
@@ -115,10 +115,9 @@ int main(int argc, char* argv[]) {
     // postprocessor that can handle a colored ChVisualShapeTriangleMesh).
     // Do not forget AddVisualShapeFEA() at the end!
 
-    // This will paint the colored mesh with temperature scale (NODE_P is the scalar field of the Poisson
-    // problem)
+    // Paint the colored mesh with temperature scale (NODE_FIELD_VALUE is the scalar field of the Poisson problem)
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_P);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_FIELD_VALUE);
     mvisualizemesh->SetColorscaleMinMax(-1, 12);
     mvisualizemesh->SetShrinkElements(false, 0.85);
     mvisualizemesh->SetSmoothFaces(true);
@@ -187,7 +186,7 @@ int main(int argc, char* argv[]) {
     for (unsigned int inode = 0; inode < my_mesh->GetNumNodes(); ++inode) {
         if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzP>(my_mesh->GetNode(inode))) {
             if (mnode->GetPos().x() < 0.01) {
-                std::cout << "Node at y=" << mnode->GetPos().y() << " has T=" << mnode->GetP() << "\n";
+                std::cout << "Node at y=" << mnode->GetPos().y() << " has T=" << mnode->GetFieldVal() << "\n";
             }
         }
     }

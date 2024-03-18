@@ -395,12 +395,12 @@ void ChElementTetraCorot_4_P::ShapeFunctions(ShapeVector& N, double z0, double z
     N(3) = 1.0 - z0 - z1 - z2;
 }
 
-void ChElementTetraCorot_4_P::GetStateBlock(ChVectorDynamic<>& mD) {
-    mD.setZero(this->GetNumCoordsPosLevel());
-    mD(0) = nodes[0]->GetP();
-    mD(1) = nodes[1]->GetP();
-    mD(2) = nodes[2]->GetP();
-    mD(3) = nodes[3]->GetP();
+void ChElementTetraCorot_4_P::GetStateBlock(ChVectorDynamic<>& D) {
+    D.setZero(this->GetNumCoordsPosLevel());
+    D(0) = nodes[0]->GetFieldVal();
+    D(1) = nodes[1]->GetFieldVal();
+    D(2) = nodes[2]->GetFieldVal();
+    D(3) = nodes[3]->GetFieldVal();
 }
 
 double ChElementTetraCorot_4_P::ComputeVolume() {
@@ -524,17 +524,17 @@ ChVectorN<double, 3> ChElementTetraCorot_4_P::GetPgradient() {
 }
 
 void ChElementTetraCorot_4_P::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
-    mD(block_offset) = this->nodes[0]->GetP();
-    mD(block_offset + 1) = this->nodes[1]->GetP();
-    mD(block_offset + 2) = this->nodes[2]->GetP();
-    mD(block_offset + 3) = this->nodes[3]->GetP();
+    mD(block_offset + 0) = this->nodes[0]->GetFieldVal();
+    mD(block_offset + 1) = this->nodes[1]->GetFieldVal();
+    mD(block_offset + 2) = this->nodes[2]->GetFieldVal();
+    mD(block_offset + 3) = this->nodes[3]->GetFieldVal();
 }
 
 void ChElementTetraCorot_4_P::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
-    mD(block_offset) = this->nodes[0]->GetP_dt();
-    mD(block_offset + 1) = this->nodes[1]->GetP_dt();
-    mD(block_offset + 2) = this->nodes[2]->GetP_dt();
-    mD(block_offset + 3) = this->nodes[3]->GetP_dt();
+    mD(block_offset + 0) = this->nodes[0]->GetFieldValDer();
+    mD(block_offset + 1) = this->nodes[1]->GetFieldValDer();
+    mD(block_offset + 2) = this->nodes[2]->GetFieldValDer();
+    mD(block_offset + 3) = this->nodes[3]->GetFieldValDer();
 }
 
 void ChElementTetraCorot_4_P::LoadableStateIncrement(const unsigned int off_x,

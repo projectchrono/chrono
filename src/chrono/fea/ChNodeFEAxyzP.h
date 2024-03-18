@@ -25,9 +25,8 @@ namespace fea {
 /// @{
 
 /// Class for a generic finite element node in 3D space, with scalar field P.
-/// This can be used for typical Poisson-type problems (ex. thermal, if the
-/// scalar field is temperature T, or electrostatics if the scalar field is
-/// electric potential V)
+/// This can be used for typical Poisson-type problems (e.g., thermal, if the scalar field is temperature T, or
+/// electrostatics if the scalar field is electric potential V)
 class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
   public:
     ChNodeFEAxyzP(ChVector3d initial_pos = VNULL);
@@ -50,37 +49,43 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
     /// Return true if the node is fixed (i.e., its state variables are not changed by the solver).
     virtual bool IsFixed() const override;
 
-    /// Position of the node - in absolute csys.
+    /// Position of the node in absolute coordinates.
     const ChVector3d& GetPos() const { return pos; }
-    /// Position of the node - in absolute csys.
+
+    /// Position of the node in absolute coordinates.
     void SetPos(const ChVector3d& mpos) { pos = mpos; }
 
     /// Set the scalar field at node.
-    void SetP(double mp) { P = mp; }
+    void SetFieldVal(double mp) { P = mp; }
+
     /// Get the scalar field at node.
-    double GetP() const { return P; }
+    double GetFieldVal() const { return P; }
 
     /// Set the scalar field time derivative at node.
-    void SetP_dt(double mp) { P_dt = mp; }
+    void SetFieldValDer(double mp) { P_dt = mp; }
+
     /// Get the scalar field time derivative at node.
-    double GetP_dt() const { return P_dt; }
+    double GetFieldValDer() const { return P_dt; }
 
-    /// Set the applied term (right hand term in Poisson formulations).
-    void SetF(double mf) { F = mf; }
-    /// Get the applied term (right hand term in Poisson formulations).
-    double GetF() const { return F; }
+    /// Set the applied term (the load/source in a Poisson equation).
+    void SetLoad(double load) { F = load; }
 
-    /// Get mass of the node. Not meaningful except for transients.
+    /// Get the applied term (the load/source in a Poisson equation).
+    double GetLoad() const { return F; }
+
+    /// Set mass of the node.
     /// Meaning of 'mass' changes depending on the problem type.
-    double GetMass() { return variables.GetMass()(0); }
-    /// Set mass of the node.  Not meaningful except for transients.
-    /// Meaning of 'mass' changes depending on the problem type.
+    /// Not meaningful except for transients.
     void SetMass(double mm) { variables.GetMass()(0) = mm; }
 
-    /// Get the number of degrees of freedom
+    /// Get mass of the node.
+    /// Meaning of 'mass' changes depending on the problem type.
+    /// Not meaningful except for transients.
+    double GetMass() { return variables.GetMass()(0); }
+
+    /// Get the number of degrees of freedom.
     virtual unsigned int GetNumCoordsPosLevel() const override { return 1; }
 
-    // SERIALIZATION
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 

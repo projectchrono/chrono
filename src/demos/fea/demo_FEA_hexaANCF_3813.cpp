@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
 
     // Options for visualization in irrlicht
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_P);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_FIELD_VALUE);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(false);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);

@@ -253,7 +253,7 @@ class ChApi ChElementTetraCorot_4_P : public ChElementGeneric, public ChElementC
     /// Fills the D vector with the current field values at the nodes of the element, with proper ordering. If the D
     /// vector has not the size of this->GetNumCoordsPosLevel(), it will be resized. For corotational elements, field is assumed in
     /// local reference!
-    virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
+    virtual void GetStateBlock(ChVectorDynamic<>& D) override;
 
     double ComputeVolume();
 

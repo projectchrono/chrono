@@ -141,8 +141,8 @@ double ChVisualShapeFEA::ComputeScalarOutput(std::shared_ptr<ChNodeFEAxyzP> mnod
     switch (fem_data_type) {
         case DataType::SURFACE:
             return 1e30;  // to force 'white' in false color scale. Hack, to be improved.
-        case DataType::NODE_P:
-            return (mnode->GetP());
+        case DataType::NODE_FIELD_VALUE:
+            return (mnode->GetFieldVal());
         default:
             return 1e30;
     }
