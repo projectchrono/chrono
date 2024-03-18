@@ -176,12 +176,6 @@ sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, -9.81))
 sys.Add(mesh)
 
 # Options for visualization in irrlicht
-mvisualizemesh = chrono.ChVisualShapeFEA(mesh)
-mvisualizemesh.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_P)
-mvisualizemesh.SetShrinkElements(True, 0.85)
-mvisualizemesh.SetSmoothFaces(False)
-mesh.AddVisualShapeFEA(mvisualizemesh)
-
 mvisualizemeshref = chrono.ChVisualShapeFEA(mesh)
 mvisualizemeshref.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_SURFACE)
 mvisualizemeshref.SetWireframe(True)
