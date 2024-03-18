@@ -1230,6 +1230,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | addTriangle                   | rename: AddTriangle                              |
 |                                   | getNumTriangles               | rename: GetNumTriangles                          |
 |                                   | getTriangle                   | rename: GetTriangle                              |
+| ChTriangleOfXYZnodes              |                               | rename: ChTriangleNodesXYZ                       |
+| ChTriangleOfXYZROTnodes           |                               | rename: ChTriangleNodesXYZrot                    |
 | ChVector                          |                               |                                                  |
 |                                   | DirToDxDyDz                   | rename: GetDirectionAxesAsX                      |
 | ChVolume                          |                               |                                                  |

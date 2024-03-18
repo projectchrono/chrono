@@ -198,7 +198,7 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
 // Planned for future
 
 /// Utility class for using the ChLinkPointTriface constraint
-class ChApi ChTriangleOfXYZROTnodes : public ChVariableTupleCarrier_3vars<6, 6, 6> {
+class ChApi ChTriangleNodesXYZrot : public ChVariableTupleCarrier_3vars<6, 6, 6> {
   public:
     std::shared_ptr<fea::ChNodeFEAxyzrot> node1;
     std::shared_ptr<fea::ChNodeFEAxyzrot> node2;
@@ -330,12 +330,12 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
     ChVector3d react;
 
     // used as an interface to the solver.
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZROTnodes> constraint1;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZROTnodes> constraint2;
-    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleOfXYZROTnodes> constraint3;
+    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleNodesXYZrot> constraint1;
+    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleNodesXYZrot> constraint2;
+    ChConstraintTwoTuples<ChNodeFEAxyz, ChTriangleNodesXYZrot> constraint3;
 
     std::shared_ptr<ChNodeFEAxyz> m_node;
-    ChTriangleOfXYZROTnodes m_triangle;
+    ChTriangleNodesXYZrot m_triangle;
 
     double s2, s3;
     double d;
