@@ -13,6 +13,7 @@ if(ENABLE_MODULE_IRRLICHT)
 	   demo_MOD_slider_crank
        demo_MOD_buckling
        demo_MOD_curved_beam
+	   demo_MOD_talisman
    )
 endif()
 
