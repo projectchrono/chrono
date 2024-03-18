@@ -43,13 +43,14 @@ using namespace filesystem;
 const std::string out_dir = GetChronoOutputPath() + "SLEWING_BEAM";
 
 constexpr double time_step = 0.002;
+constexpr double time_step_prt = 0.01;
 constexpr double time_length = 50;
 
 constexpr bool RUN_ORIGIN = false;
 constexpr bool RUN_MODAL = true;
 constexpr bool ROTATING_BEAM = true;
 constexpr bool APPLY_FORCE = !ROTATING_BEAM;
-constexpr bool USE_HERTING = true;
+constexpr bool USE_HERTING = false;
 constexpr bool DO_DYNAMICS = true;
 
 constexpr bool USE_LINEAR_INERTIAL_TERM = true;
@@ -64,7 +65,7 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
     // Parameters
     double beam_L = 8.0;
     int n_parts = 2;
-    int n_totalelements = n_parts * 10;
+    int n_totalelements = n_parts * 12;
 
     double EA = 5.03e6;
     double GJxx = 6.047e5;
@@ -106,7 +107,7 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
     section->SetShearCenterY(0);
     section->SetShearCenterZ(0);
     section->SetArtificialJyyJzzFactor(1.0 / 500.0);
-    section->SetBeamRaleyghDampingBeta(0.002);
+    section->SetBeamRaleyghDampingBeta(0.005);
     section->SetBeamRaleyghDampingAlpha(0.000);
 
     // A function to make a single modal assembly
@@ -185,10 +186,10 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
 
     // Retrieve the middle node
     std::shared_ptr<ChNodeFEAxyzrot> mid_node;
-    if (n_parts % 2) {  // odd
+    if (n_parts % 2) {  // n_parts is odd: 1, 3, 5, 7, ...
         auto beam_nodes = modal_assembly_list.at(n_parts / 2)->Get_internal_meshlist().front()->GetNodes();
         mid_node = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(beam_nodes.at(beam_nodes.size() / 2));
-    } else {  // even
+    } else {  // n_parts is even: 2, 4, 6, 8, ...
         auto beam_nodes = modal_assembly_list.at(n_parts / 2)->Get_meshlist().front()->GetNodes();
         mid_node = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(beam_nodes.front());
     }
@@ -216,6 +217,8 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
 
     sys.Setup();
     sys.Update();
+
+    sys.DumpSystemMatrices(true, true, true, true, (out_dir + "/sys"));
 
     // Do modal reduction for all modal assemblies
     if (do_modal_reduction) {
@@ -252,9 +255,10 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
         double T = 15.0;
 
         int Nframes = (int)(time_length / time_step);
+        int itv_frame = (int)(time_step_prt / time_step);
         int frame = 0;
 
-        mdeflection.resize(Nframes, 20);
+        mdeflection.resize(Nframes, 26);
         mdeflection.setZero();
         while (frame < Nframes) {
             double tao = sys.GetChTime() / T;
@@ -291,7 +295,9 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
             root_node->TransformParentToLocal(mid_node->Frame(), relative_frame_mid);
 
             mdeflection(frame, 0) = sys.GetChTime();
-            mdeflection(frame, 1) = root_node->GetRot().Q_to_Rotv().z() * CH_C_RAD_TO_DEG;
+            // mdeflection(frame, 1) = root_node->GetRot().Q_to_Rotv().z() * CH_C_RAD_TO_DEG;  // rotational angles, deg
+            mdeflection(frame, 1) = root_node->GetWvel_loc().z();  // rotational angular speed, rad/s
+
             // displacement
             mdeflection(frame, 2) = relative_frame_tip.GetPos().x();
             mdeflection(frame, 3) = relative_frame_tip.GetPos().y();
@@ -306,15 +312,19 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
             mdeflection(frame, 12) = relative_frame_mid.GetRot().Q_to_Rotv().y();
             mdeflection(frame, 13) = relative_frame_mid.GetRot().Q_to_Rotv().z();
             if (do_modal_reduction) {
+                ChFrameMoving<> floating_frame_F = modal_assembly_list.back()->GetFloatingFrameOfReference();
+
                 ChFrameMoving<> relative_frame_F;
-                root_node->TransformParentToLocal(modal_assembly_list.back()->GetFloatingFrameOfReference(),
-                                                  relative_frame_F);
+                root_node->TransformParentToLocal(floating_frame_F, relative_frame_F);
                 mdeflection(frame, 14) = relative_frame_F.GetPos().x();
                 mdeflection(frame, 15) = relative_frame_F.GetPos().y();
                 mdeflection(frame, 16) = relative_frame_F.GetPos().z();
                 mdeflection(frame, 17) = relative_frame_F.GetRot().Q_to_Rotv().x();
                 mdeflection(frame, 18) = relative_frame_F.GetRot().Q_to_Rotv().y();
                 mdeflection(frame, 19) = relative_frame_F.GetRot().Q_to_Rotv().z();
+
+                // residual of constraint equations on configuration of F
+                mdeflection.block(frame, 20, 1, 6) = modal_assembly_list.back()->res_CF.transpose().segment(0, 6);
             }
 
             // output the beam configuration to check the deformed shape
@@ -339,9 +349,9 @@ void MakeAndRunDemo_SlewingBeam(bool do_modal_reduction, ChMatrixDynamic<>& mdef
                 StreamOutDenseMatlabFormat(beam_shape, file_beam_shape);
             }
 
-            if (frame % 100 == 0) {
+            if (frame % itv_frame == 0) {
                 GetLog() << "t: " << sys.GetChTime() << "\t";
-                GetLog() << "Rot Angle (deg): " << mdeflection(frame, 1) << "\t";
+                GetLog() << "Rot. Speed (rad/s): " << mdeflection(frame, 1) << "\t";
                 GetLog() << "Rel. Def.:\t" << relative_frame_tip.GetPos().x() << "\t" << relative_frame_tip.GetPos().y()
                          << "\t" << relative_frame_tip.GetPos().z() << "\n";
             }
