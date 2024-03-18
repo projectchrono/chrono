@@ -51,7 +51,7 @@ double ChFunctionSineStep::GetVal(double x) const {
         return m_p2.y();
 
     double xx = (x - m_p1.x()) / m_dp.x();
-    double y = m_p1.y() + m_dp.y() * (xx - std::sin(CH_C_2PI * xx) / CH_C_2PI);
+    double y = m_p1.y() + m_dp.y() * (xx - std::sin(CH_2PI * xx) / CH_2PI);
 
     return y;
 }
@@ -64,7 +64,7 @@ double ChFunctionSineStep::GetDer(double x) const {
         return 0;
 
     double xx = (x - m_p1.x()) / m_dp.x();
-    double yd = (m_dp.y() / m_dp.x()) * (1 - std::cos(CH_C_2PI * xx));
+    double yd = (m_dp.y() / m_dp.x()) * (1 - std::cos(CH_2PI * xx));
 
     return yd;
 }
@@ -77,7 +77,7 @@ double ChFunctionSineStep::GetDer2(double x) const {
         return 0;
 
     double xx = (x - m_p1.x()) / m_dp.x();
-    double ydd = CH_C_2PI * m_dp.y() / (m_dp.x() * m_dp.x()) * std::sin(CH_C_2PI * xx);
+    double ydd = CH_2PI * m_dp.y() / (m_dp.x() * m_dp.x()) * std::sin(CH_2PI * xx);
 
     return ydd;
 }
@@ -106,7 +106,7 @@ double ChFunctionSineStep::Eval(double x, double x1, double y1, double x2, doubl
         return y2;
 
     double xx = (x - x1) / (x2 - x1);
-    double y = y1 + (y2 - y1) * (xx - std::sin(CH_C_2PI * xx) / CH_C_2PI);
+    double y = y1 + (y2 - y1) * (xx - std::sin(CH_2PI * xx) / CH_2PI);
 
     return y;
 }

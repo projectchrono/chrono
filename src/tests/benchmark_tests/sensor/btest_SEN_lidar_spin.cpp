@@ -69,13 +69,13 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < walls; i++) {
         auto wall_body = std::make_shared<ChBodyEasyCylinder>(ChAxis::Y, wall_size, 1, 1000, true, true);
         wall_body->SetPos({4 * i * wall_size, 4, wall_size / 2});
-        wall_body->SetRot(QuatFromAngleX(CH_C_PI / 2));
+        wall_body->SetRot(QuatFromAngleX(CH_PI / 2));
         wall_body->SetFixed(true);
         sys.Add(wall_body);
 
         auto wall_body1 = std::make_shared<ChBodyEasyCylinder>(ChAxis::Y, wall_size, 1, 1000, true, true);
         wall_body1->SetPos({4 * i * wall_size, -4, wall_size / 2});
-        wall_body1->SetRot(QuatFromAngleX(CH_C_PI / 2));
+        wall_body1->SetRot(QuatFromAngleX(CH_PI / 2));
         wall_body1->SetFixed(true);
         sys.Add(wall_body1);
     }
@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({0, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1000,                                                              // number of horizontal samples
         10,                                                                // number of vertical channels
-        2 * (float)CH_C_PI,                                                // horizontal field of view
+        2 * (float)CH_PI,                                                // horizontal field of view
         0.1f, -0.1f, 100.0f, LidarBeamShape::RECTANGULAR                   // vertical field of view
     );
     lidar1->SetName("Lidar Sensor");
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({0, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1280,                                                              // number of horizontal samples
         720,                                                               // number of vertical channels
-        (float)CH_C_PI / 4                                                 // horizontal field of view
+        (float)CH_PI / 4                                                 // horizontal field of view
     );
     camera->SetName("Camera Sensor");
     camera->SetLag(0);

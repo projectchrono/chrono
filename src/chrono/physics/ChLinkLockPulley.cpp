@@ -119,19 +119,19 @@ void ChLinkLockPulley::UpdateTime(double mytime) {
     double periodic_a2 = std::atan2(md2.y(), md2.x());
     double old_a1 = a1;
     double old_a2 = a2;
-    double turns_a1 = floor(old_a1 / CH_C_2PI);
-    double turns_a2 = floor(old_a2 / CH_C_2PI);
-    double a1U = turns_a1 * CH_C_2PI + periodic_a1 + CH_C_2PI;
-    double a1M = turns_a1 * CH_C_2PI + periodic_a1;
-    double a1L = turns_a1 * CH_C_2PI + periodic_a1 - CH_C_2PI;
+    double turns_a1 = floor(old_a1 / CH_2PI);
+    double turns_a2 = floor(old_a2 / CH_2PI);
+    double a1U = turns_a1 * CH_2PI + periodic_a1 + CH_2PI;
+    double a1M = turns_a1 * CH_2PI + periodic_a1;
+    double a1L = turns_a1 * CH_2PI + periodic_a1 - CH_2PI;
     a1 = a1M;
     if (fabs(a1U - old_a1) < fabs(a1M - old_a1))
         a1 = a1U;
     if (fabs(a1L - a1) < fabs(a1M - a1))
         a1 = a1L;
-    double a2U = turns_a2 * CH_C_2PI + periodic_a2 + CH_C_2PI;
-    double a2M = turns_a2 * CH_C_2PI + periodic_a2;
-    double a2L = turns_a2 * CH_C_2PI + periodic_a2 - CH_C_2PI;
+    double a2U = turns_a2 * CH_2PI + periodic_a2 + CH_2PI;
+    double a2M = turns_a2 * CH_2PI + periodic_a2;
+    double a2L = turns_a2 * CH_2PI + periodic_a2 - CH_2PI;
     a2 = a2M;
     if (fabs(a2U - old_a2) < fabs(a2M - old_a2))
         a2 = a2U;
@@ -145,12 +145,12 @@ void ChLinkLockPulley::UpdateTime(double mytime) {
 
         m_delta = a1 - phase - (a2 / realtau);
 
-        if (m_delta > CH_C_PI)
-            m_delta -= (CH_C_2PI);  // range -180..+180 is better than 0...360
-        if (m_delta > (CH_C_PI / 4.0))
-            m_delta = (CH_C_PI / 4.0);  // phase correction only in +/- 45�
-        if (m_delta < -(CH_C_PI / 4.0))
-            m_delta = -(CH_C_PI / 4.0);
+        if (m_delta > CH_PI)
+            m_delta -= (CH_2PI);  // range -180..+180 is better than 0...360
+        if (m_delta > (CH_PI / 4.0))
+            m_delta = (CH_PI / 4.0);  // phase correction only in +/- 45�
+        if (m_delta < -(CH_PI / 4.0))
+            m_delta = -(CH_PI / 4.0);
         //// TODO 
     }
 

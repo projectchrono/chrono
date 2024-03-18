@@ -165,7 +165,7 @@ void ChDeDionAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // link the Watt center link to the axle tube
     m_wattCenterRev = chrono_types::make_shared<ChLinkLockRevolute>();
     m_wattCenterRev->SetNameString(m_name + "_wattCenterPivot");
-    m_wattCenterRev->Initialize(m_wattCenterLinkBody, m_axleTube, ChFrame<>(cntrPos, QuatFromAngleY(CH_C_PI_2)));
+    m_wattCenterRev->Initialize(m_wattCenterLinkBody, m_axleTube, ChFrame<>(cntrPos, QuatFromAngleY(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_wattCenterRev);
 
     // link the Watt left link to the center link
@@ -252,7 +252,7 @@ void ChDeDionAxle::InitializeSide(VehicleSide side,
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_axleTube,
-                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2)));
+                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the shock damper

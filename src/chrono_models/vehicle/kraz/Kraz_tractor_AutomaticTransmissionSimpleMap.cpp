@@ -26,7 +26,7 @@ namespace chrono {
 namespace vehicle {
 namespace kraz {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 Kraz_tractor_AutomaticTransmissionSimpleMap::Kraz_tractor_AutomaticTransmissionSimpleMap(const std::string& name)
     : ChAutomaticTransmissionSimpleMap(name) {}

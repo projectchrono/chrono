@@ -255,7 +255,7 @@ int main(int argc, char* argv[]) {
     robot.SetMotorActuationMode(robosimian::ActuationMode::ANGLE);
 
     ////robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
-    robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI)));
+    robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI)));
 
     robot.SetVisualizationTypeChassis(robosimian::VisualizationType::MESH);
     robot.SetVisualizationTypeSled(robosimian::VisualizationType::MESH);
@@ -416,9 +416,9 @@ int main(int argc, char* argv[]) {
             pov_frame++;
         }
 
-        ////double A = CH_C_PI / 6;
+        ////double A = CH_PI / 6;
         ////double freq = 2;
-        ////double val = 0.5 * A * (1 - std::cos(CH_C_2PI * freq * time));
+        ////double val = 0.5 * A * (1 - std::cos(CH_2PI * freq * time));
         ////robot.Activate(robosimian::FR, "joint2", time, val);
         ////robot.Activate(robosimian::RL, "joint5", time, val);
         ////robot.Activate(robosimian::FL, "joint8", time, -0.4 * time);

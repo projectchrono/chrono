@@ -67,9 +67,9 @@ unsigned int horizontal_samples = 4500;
 unsigned int vertical_samples = 32;
 
 // Horizontal and vertical field of view (radians)
-float horizontal_fov = (float)(2 * CH_C_PI);  // 360 degree scan
-float max_vert_angle = (float)CH_C_PI / 12;   // 15 degrees up
-float min_vert_angle = (float)-CH_C_PI / 6;   // 30 degrees down
+float horizontal_fov = (float)(2 * CH_PI);  // 360 degree scan
+float max_vert_angle = (float)CH_PI / 12;   // 15 degrees up
+float min_vert_angle = (float)-CH_PI / 6;   // 30 degrees down
 
 // Lag time
 float lag = 0.f;

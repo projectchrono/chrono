@@ -62,7 +62,7 @@ void GroundGranular::Initialize(double x_min, double z_max, double step_size) {
     m_center = ChVector3d(x_min + m_length / 2, 0, bottom);
 
     // Create contact materials
-    double coh_force = (CH_C_PI * m_radius * m_radius) * m_cohesion;
+    double coh_force = (CH_PI * m_radius * m_radius) * m_cohesion;
 
     switch (m_sys->GetContactMethod()) {
         case ChContactMethod::SMC: {

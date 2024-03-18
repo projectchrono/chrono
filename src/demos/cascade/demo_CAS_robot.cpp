@@ -89,9 +89,9 @@ int main(int argc, char* argv[]) {
     // Note, In most CADs the Y axis is horizontal, but we want it vertical.
     // So define a root transformation for rotating all the imported objects.
     ChQuaternion<> rotation1;
-    rotation1.SetFromAngleX(-CH_C_PI_2);  // 1: rotate 90 deg on X axis
+    rotation1.SetFromAngleX(-CH_PI_2);  // 1: rotate 90 deg on X axis
     ChQuaternion<> rotation2;
-    rotation2.SetFromAngleY(CH_C_PI);                     // 2: rotate 180 deg on vertical Y axis
+    rotation2.SetFromAngleY(CH_PI);                     // 2: rotate 180 deg on vertical Y axis
     ChQuaternion<> tot_rotation = rotation2 * rotation1;  // rotate on 1 then on 2, using quaternion product
     ChFrameMoving<> root_frame(ChVector3d(0, 0, 0), tot_rotation);
 
@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
     body_base->AddMarker(my_marker_move);
 
     ChQuaternion<> rot_on_x;
-    rot_on_x.SetFromAngleX(CH_C_PI_2);
+    rot_on_x.SetFromAngleX(CH_PI_2);
     ChFrame<> frame_marker_move = ChFrame<>(VNULL, rot_on_x) >> frame_marker_wrist_hand;
 
     my_marker_hand->ImposeAbsoluteTransform(frame_marker_wrist_hand);

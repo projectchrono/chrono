@@ -155,7 +155,7 @@ public:
     /// finds first 5 lowest modes using the ChGeneralizedEigenvalueSolverKrylovSchur() solver.
     ChModalSolveUndamped(
         int n_lower_modes,         ///< n of lower modes
-        double base_freq = 1e-5,   ///< frequency to whom the nodes are clustered. Use 1e-5 to get n lower modes. As sigma in shift&invert, as: sigma = -pow(base_freq * CH_C_2PI, 2). Too small gives ill conditioning (no convergence). Too large misses rigid body modes.
+        double base_freq = 1e-5,   ///< frequency to whom the nodes are clustered. Use 1e-5 to get n lower modes. As sigma in shift&invert, as: sigma = -pow(base_freq * CH_2PI, 2). Too small gives ill conditioning (no convergence). Too large misses rigid body modes.
         int max_iters = 500,       ///< upper limit for the number of iterations. If too low might not converge.
         double mtolerance = 1e-10, ///< tolerance for the iterative solver. 
         bool mverbose = false,     ///< turn to true to see some diagnostic.
@@ -349,7 +349,7 @@ public:
     /// finds first 5 lowest damped modes using the ChQuadraticEigenvalueSolverKrylovSchur() solver.
     ChModalSolveDamped(
         int n_lower_modes,         ///< n of lower modes
-        double base_freq = 1e-5,   ///< frequency to whom the nodes are clustered. Use 1e-5 to get n lower modes. As sigma in shift&invert, as: sigma = -pow(base_freq * CH_C_2PI, 2). Too small gives ill conditioning (no convergence). Too large misses rigid body modes.
+        double base_freq = 1e-5,   ///< frequency to whom the nodes are clustered. Use 1e-5 to get n lower modes. As sigma in shift&invert, as: sigma = -pow(base_freq * CH_2PI, 2). Too small gives ill conditioning (no convergence). Too large misses rigid body modes.
         int max_iters = 500,       ///< upper limit for the number of iterations. If too low might not converge.
         double mtolerance = 1e-10, ///< tolerance for the iterative solver. 
         bool mverbose = false,     ///< turn to true to see some diagnostic.

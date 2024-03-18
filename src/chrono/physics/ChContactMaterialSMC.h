@@ -48,7 +48,7 @@ class ChApi ChContactMaterialSMC : public ChContactMaterial {
     /// In this model,
     ///    adhesion = adhesionMultDMT * sqrt(R_eff)
     /// given the surface energy, w,
-    ///    adhesionMultDMT = 2 * CH_C_PI * w * sqrt(R_eff)
+    ///    adhesionMultDMT = 2 * CH_PI * w * sqrt(R_eff)
     /// given the equilibrium penetration distance, y_eq,
     ///    adhesionMultDMT = 4.0 / 3.0 * E_eff * powf(y_eq, 1.5)
     /// </pre>

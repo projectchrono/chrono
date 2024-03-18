@@ -317,7 +317,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
             element->SetDimensions(dy, dz);
 
             // Add a single layers with a fiber angle of 0 degrees.
-            element->AddLayer(dx, 0 * CH_C_DEG_TO_RAD, mat);
+            element->AddLayer(dx, 0 * CH_DEG_TO_RAD, mat);
 
             // Set structural damping for this element
             element->SetAlphaDamp(0.05);

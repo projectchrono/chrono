@@ -50,7 +50,7 @@ msection.SetShearModulus(0.01e9 * 0.3)
 msection.SetRayleighDamping(0.000)
 #msection.SetCentroid(0,0.02)
 #msection.SetShearCenter(0,0.1)
-#msection.SetSectionRotation(45*chrono.CH_C_RAD_TO_DEG)
+#msection.SetSectionRotation(45*chrono.CH_RAD_TO_DEG)
 
 # Add some EULER-BERNOULLI BEAMS:
 

@@ -328,11 +328,11 @@ void ChBlender::ExportScript(const std::string& filename) {
                 assets_file << "new_object.data.type='ORTHO'" << std::endl;
                 assets_file << "new_object.data.ortho_scale="
                             << double((camera_location - camera_aim).Length() *
-                                      tan(0.5 * camera_angle * chrono::CH_C_DEG_TO_RAD))
+                                      tan(0.5 * camera_angle * chrono::CH_DEG_TO_RAD))
                             << "" << std::endl;
             } else {
                 assets_file << "new_object.data.type='PERSP'" << std::endl;
-                assets_file << "new_object.data.angle=" << camera_angle * chrono::CH_C_DEG_TO_RAD << "" << std::endl;
+                assets_file << "new_object.data.angle=" << camera_angle * chrono::CH_DEG_TO_RAD << "" << std::endl;
             }
             assets_file << "chrono_cameras.objects.link(new_object)\n"
                         << "bpy.context.scene.collection.objects.unlink(new_object)\n" << std::endl;
@@ -904,11 +904,11 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
             *mfile << "new_object.data.type='ORTHO'" << std::endl;
             *mfile << "new_object.data.ortho_scale="
                    << double((camera_instance->GetPosition() - camera_instance->GetAimPoint()).Length() *
-                             tan(0.5 * camera_instance->GetAngle() * chrono::CH_C_DEG_TO_RAD))
+                             tan(0.5 * camera_instance->GetAngle() * chrono::CH_DEG_TO_RAD))
                    << "" << std::endl;
         } else {
             *mfile << "new_object.data.type='PERSP'" << std::endl;
-            *mfile << "new_object.data.angle=" << camera_instance->GetAngle() * chrono::CH_C_DEG_TO_RAD << "" << std::endl;
+            *mfile << "new_object.data.angle=" << camera_instance->GetAngle() * chrono::CH_DEG_TO_RAD << "" << std::endl;
         }
         *mfile << "chrono_cameras.objects.link(new_object)\n"
                << "bpy.context.scene.collection.objects.unlink(new_object)\n" << std::endl;

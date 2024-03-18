@@ -273,7 +273,7 @@ ANCFShellTest::ANCFShellTest(int num_elements, SolverType solver_type, int NumTh
                               std::dynamic_pointer_cast<ChNodeFEAxyzDD>(mesh->GetNode(nodeG_idx)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzDD>(mesh->GetNode(nodeH_idx)));
             element->SetDimensions(dx, dy);
-            element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material);
+            element->AddLayer(thickness, 0 * CH_DEG_TO_RAD, material);
             element->SetAlphaDamp(0.01);
 
             // By default the "continuous" integration style of calculation method is used since it is typically faster.

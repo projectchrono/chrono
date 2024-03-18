@@ -31,7 +31,7 @@ ChEllipsoid::ChEllipsoid(const ChEllipsoid& source) {
 // -----------------------------------------------------------------------------
 
 double ChEllipsoid::GetVolume(const ChVector3d& axes) {
-    return (1 / 6.0) * CH_C_PI * axes.x() * axes.y() * axes.z();
+    return (1 / 6.0) * CH_PI * axes.x() * axes.y() * axes.z();
 }
 
 double ChEllipsoid::GetVolume() const {

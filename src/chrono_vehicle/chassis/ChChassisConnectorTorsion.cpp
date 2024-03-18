@@ -41,7 +41,7 @@ void ChChassisConnectorTorsion::Initialize(std::shared_ptr<ChChassis> front, std
     to_abs.ConcatenatePreTransformation(rear->GetBody()->GetFrameRefToAbs());
 
     ChQuaternion<> chassisRot = rear->GetBody()->GetFrameRefToAbs().GetRot();
-    ChFrame<> rev_frame(to_abs.GetPos(), chassisRot * QuatFromAngleY(CH_C_PI / 2.0));
+    ChFrame<> rev_frame(to_abs.GetPos(), chassisRot * QuatFromAngleY(CH_PI / 2.0));
 
     // Create the revolute joint connection
     m_joint = chrono_types::make_shared<ChLinkLockRevolute>();

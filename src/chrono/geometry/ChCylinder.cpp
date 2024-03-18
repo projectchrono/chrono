@@ -31,7 +31,7 @@ ChCylinder::ChCylinder(const ChCylinder& source) {
 // -----------------------------------------------------------------------------
 
 double ChCylinder::GetVolume(double radius, double height) {
-    return CH_C_PI * radius * radius * height;
+    return CH_PI * radius * radius * height;
 }
 
 double ChCylinder::GetVolume() const {

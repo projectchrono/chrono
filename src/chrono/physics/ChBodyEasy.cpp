@@ -50,7 +50,7 @@ void ChBodyEasySphere::SetupBody(double radius,
                                  bool visualize,
                                  bool collide,
                                  std::shared_ptr<ChContactMaterial> material) {
-    double mmass = density * ((4.0 / 3.0) * CH_C_PI * pow(radius, 3));
+    double mmass = density * ((4.0 / 3.0) * CH_PI * pow(radius, 3));
     double inertia = (2.0 / 5.0) * mmass * pow(radius, 2);
 
     SetMass(mmass);
@@ -103,7 +103,7 @@ void ChBodyEasyEllipsoid::SetupBody(ChVector3d axes,
                                     bool visualize,
                                     bool collide,
                                     std::shared_ptr<ChContactMaterial> material) {
-    double mmass = density * ((1 / 6.0) * CH_C_PI * axes.x() * axes.y() * axes.z());
+    double mmass = density * ((1 / 6.0) * CH_PI * axes.x() * axes.y() * axes.z());
     double inertiax = (1 / 20.0) * mmass * (pow(axes.y(), 2) + pow(axes.z(), 2));
     double inertiay = (1 / 20.0) * mmass * (pow(axes.x(), 2) + pow(axes.z(), 2));
     double inertiaz = (1 / 20.0) * mmass * (pow(axes.x(), 2) + pow(axes.y(), 2));
@@ -166,7 +166,7 @@ void ChBodyEasyCylinder::SetupBody(ChAxis direction,
                                    bool visualize,
                                    bool collide,
                                    std::shared_ptr<ChContactMaterial> material) {
-    double mass = density * (CH_C_PI * pow(radius, 2) * height);
+    double mass = density * (CH_PI * pow(radius, 2) * height);
     double I_axis = 0.5 * mass * pow(radius, 2);
     double I_orth = (1 / 12.0) * mass * (3 * pow(radius, 2) + pow(height, 2));
     ChQuaternion<> rot;
@@ -175,11 +175,11 @@ void ChBodyEasyCylinder::SetupBody(ChAxis direction,
 
     switch (direction) {
         case ChAxis::X:
-            rot = QuatFromAngleY(CH_C_PI_2);
+            rot = QuatFromAngleY(CH_PI_2);
             SetInertiaXX(ChVector3d(I_axis, I_orth, I_orth));
             break;
         case ChAxis::Y:
-            rot = QuatFromAngleX(CH_C_PI_2);
+            rot = QuatFromAngleX(CH_PI_2);
             SetInertiaXX(ChVector3d(I_orth, I_axis, I_orth));
             break;
         case ChAxis::Z:
@@ -589,12 +589,12 @@ void ChBodyEasyClusterOfSpheres::SetupBody(std::vector<ChVector3d>& positions,
     ChVector3d baricenter = VNULL;
     totinertia.setZero();
     for (unsigned int i = 0; i < positions.size(); ++i) {
-        double sphmass = density * ((4.0 / 3.0) * CH_C_PI * pow(radii[i], 3));
+        double sphmass = density * ((4.0 / 3.0) * CH_PI * pow(radii[i], 3));
         baricenter = (baricenter * totmass + positions[i] * sphmass) / (totmass + sphmass);
         totmass += sphmass;
     }
     for (unsigned int i = 0; i < positions.size(); ++i) {
-        double sphmass = density * ((4.0 / 3.0) * CH_C_PI * pow(radii[i], 3));
+        double sphmass = density * ((4.0 / 3.0) * CH_PI * pow(radii[i], 3));
         double sphinertia = (2.0 / 5.0) * sphmass * pow(radii[i], 2);
 
         // Huygens-Steiner parallel axis theorem:

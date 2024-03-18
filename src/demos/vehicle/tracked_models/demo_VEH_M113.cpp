@@ -374,7 +374,7 @@ int main(int argc, char* argv[]) {
                               (objA->GetContactableMass() + objB->GetContactableMass());
             double Sn = 2 * mat.E_eff * std::sqrt(eff_radius * delta);
             double loge = std::log(mat.cr_eff);
-            double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
+            double beta = loge / std::sqrt(loge * loge + CH_PI * CH_PI);
             double kn = (2.0 / 3) * Sn;
             double gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * eff_mass);
 
@@ -686,7 +686,7 @@ void AddFixedObstacles(ChSystem* system) {
     // Visualization
     auto shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
     shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
-    obstacle->AddVisualShape(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+    obstacle->AddVisualShape(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     // Contact
     ChContactMaterialData minfo;
@@ -696,7 +696,7 @@ void AddFixedObstacles(ChSystem* system) {
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(obst_mat, radius, length);
-    obstacle->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+    obstacle->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     system->AddBody(obstacle);
 }

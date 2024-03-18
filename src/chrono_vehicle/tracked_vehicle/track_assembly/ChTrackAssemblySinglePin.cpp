@@ -98,7 +98,7 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     double angle = delta_angle;
 
     // Create track shoes around the sprocket.
-    while (std::abs(angle) < CH_C_PI && index < num_shoes) {
+    while (std::abs(angle) < CH_PI && index < num_shoes) {
         p2 = p1 - sign * shoe_pitch * ChVector3d(std::cos(angle), 0, -std::sin(angle));
         m_shoes[index]->SetIndex(index);
         m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), QuatFromAngleY(angle));
@@ -115,7 +115,7 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // Calculate the constant pitch angle.
     double dz = (sprocket_pos.z() + sprocket_radius) - (idler_pos.z() + idler_radius);
     double dx = sprocket_pos.x() - idler_pos.x();
-    angle = ccw ? -CH_C_PI - std::atan2(dz, dx) : CH_C_PI + std::atan2(dz, -dx);
+    angle = ccw ? -CH_PI - std::atan2(dz, dx) : CH_PI + std::atan2(dz, -dx);
 
     // Create track shoes with constant orientation
     while (sign * (idler_pos.x() - p2.x()) > shoe_pitch && index < num_shoes) {
@@ -132,7 +132,7 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     tmp = shoe_pitch / (2 * idler_radius);
     delta_angle = sign * std::asin(tmp);
 
-    while (std::abs(angle) < CH_C_2PI && index < num_shoes) {
+    while (std::abs(angle) < CH_2PI && index < num_shoes) {
         p2 = p1 - sign * shoe_pitch * ChVector3d(std::cos(angle), 0, -std::sin(angle));
         m_shoes[index]->SetIndex(index);
         m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), QuatFromAngleY(angle));
@@ -147,7 +147,7 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 
     dz = (idler_pos.z() - idler_radius) - (wheel_idler_pos.z() - wheel_radius);
     dx = idler_pos.x() - wheel_idler_pos.x();
-    angle = ccw ? -CH_C_2PI + std::atan2(dz, -dx) : -CH_C_2PI - std::atan2(dz, dx);
+    angle = ccw ? -CH_2PI + std::atan2(dz, -dx) : -CH_2PI - std::atan2(dz, dx);
 
     // Create track shoes with constant orientation
     while (sign * (p2.x() - wheel_idler_pos.x()) > 0 && index < num_shoes) {
@@ -161,7 +161,7 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // 5. Create shoes below the road wheels. These shoes are horizontal. Stop when
     //    passing the position of the wheel closest to the sprocket.
 
-    angle = ccw ? 0 : CH_C_2PI;
+    angle = ccw ? 0 : CH_2PI;
 
     while (sign * (p2.x() - wheel_sprocket_pos.x()) > 0 && index < num_shoes) {
         p2 = p1 - sign * shoe_pitch * ChVector3d(std::cos(angle), 0, -std::sin(angle));

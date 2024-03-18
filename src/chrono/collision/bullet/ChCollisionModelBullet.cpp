@@ -299,7 +299,7 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
 
             double angle1 = arc->angle1;
             double angle2 = arc->angle2;
-            if (angle1 - angle2 == CH_C_2PI)
+            if (angle1 - angle2 == CH_2PI)
                 angle1 -= 1e-7;
             auto shape_arc = chrono_types::make_shared<ChCollisionShapeArc2D>(material, *arc, thickness);
             auto bt_shape = chrono_types::make_shared<cbt2DarcShape>(
@@ -333,8 +333,8 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
 
             // insert a 0-radius fillet arc at sharp corners, to allow for sharp-corner vs arc/segment
             if (Vcross(dir_prev, dir_next).z() < -1e-9) {
-                double angle1 = atan2(dir_prev.y(), dir_prev.x()) + CH_C_PI_2;
-                double angle2 = atan2(dir_next.y(), dir_next.x()) + CH_C_PI_2;
+                double angle1 = atan2(dir_prev.y(), dir_prev.x()) + CH_PI_2;
+                double angle2 = atan2(dir_next.y(), dir_next.x()) + CH_PI_2;
                 ChLineArc arc(ChCoordsys<>(pos_prev, QUNIT), 0, angle1, angle2, false);
                 auto shape_arc = chrono_types::make_shared<ChCollisionShapeArc2D>(material, arc, thickness);
                 auto bt_shape = chrono_types::make_shared<cbt2DarcShape>(

@@ -36,7 +36,7 @@ namespace chrono {
 
             const double BMW_E90_Steering::m_pinionRadius = 0.1;
 
-            const double BMW_E90_Steering::m_maxAngle = 28 * (CH_C_PI / 180); // ~ 11.0 m turn radius RWD
+            const double BMW_E90_Steering::m_maxAngle = 28 * (CH_PI / 180); // ~ 11.0 m turn radius RWD
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

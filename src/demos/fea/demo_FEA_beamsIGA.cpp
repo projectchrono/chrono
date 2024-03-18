@@ -474,17 +474,17 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
     minertia->SetDensity(7800);
-    minertia->SetArea(CH_C_PI * (pow(beam_ro, 2) - pow(beam_ri, 2)));
-    minertia->SetIyy((CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
-    minertia->SetIzz((CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
+    minertia->SetArea(CH_PI * (pow(beam_ro, 2) - pow(beam_ri, 2)));
+    minertia->SetIyy((CH_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
+    minertia->SetIzz((CH_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
 
     auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
     melasticity->SetYoungModulus(210e9);
     melasticity->SetShearModulusFromPoisson(0.3);
-    melasticity->SetArea(CH_C_PI * (pow(beam_ro, 2) - pow(beam_ri, 2)));
-    melasticity->SetIyy((CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
-    melasticity->SetIzz((CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
-    melasticity->SetJ((CH_C_PI / 2.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
+    melasticity->SetArea(CH_PI * (pow(beam_ro, 2) - pow(beam_ri, 2)));
+    melasticity->SetIyy((CH_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
+    melasticity->SetIzz((CH_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
+    melasticity->SetJ((CH_PI / 2.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
     // set the Timoshenko shear factors, if needed: melasticity->SetKsy(..) melasticity->SetKsy(..)
 
     auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(minertia, melasticity);
@@ -512,7 +512,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
                                                                        0.24, 0.05, 7800);  // R, h, density
     mbodyflywheel->SetCoordsys(
         ChCoordsys<>(node_mid->GetPos() + ChVector3d(0, 0.05, 0),  // flywheel initial center (plus Y offset)
-                     QuatFromAngleZ(CH_C_PI_2))  // flywheel initial alignment (rotate 90 deg so cylinder axis is on X)
+                     QuatFromAngleZ(CH_PI_2))  // flywheel initial alignment (rotate 90 deg so cylinder axis is on X)
     );
     sys.Add(mbodyflywheel);
 
@@ -538,7 +538,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     rotmotor1->Initialize(builder.GetLastBeamNodes().front(),  // body A (slave)
                           truss,                               // body B (master)
                           ChFrame<>(builder.GetLastBeamNodes().front()->GetPos(),
-                                    QuatFromAngleY(CH_C_PI_2))  // motor frame, in abs. coords
+                                    QuatFromAngleY(CH_PI_2))  // motor frame, in abs. coords
     );
     sys.Add(rotmotor1);
 
@@ -555,11 +555,11 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
             double T3 = 1.25;
             double w = 60;
             if (x < T1)
-                return A1 * w * (1. - cos(CH_C_PI * x / T1)) / 2.0;
+                return A1 * w * (1. - cos(CH_PI * x / T1)) / 2.0;
             else if (x > T1 && x <= T2)
                 return A1 * w;
             else if (x > T2 && x <= T3)
-                return A1 * w + (A2 - A1) * w * (1.0 - cos(CH_C_PI * (x - T2) / (T3 - T2))) / 2.0;
+                return A1 * w + (A2 - A1) * w * (1.0 - cos(CH_PI * (x - T2) / (T3 - T2))) / 2.0;
             else  // if (x > T3)
                 return A2 * w;
         }

@@ -114,7 +114,7 @@ void ChLeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleTubeGuide->SetNameString(m_name + "_revolutePrismaticAxleTube");
     const ChQuaternion<>& guideRot = chassis->GetBody()->GetFrameRefToAbs().GetRot();
     m_axleTubeGuide->Initialize(chassis->GetBody(), m_axleTube,
-                                ChFrame<>(axleCOM, guideRot * QuatFromAngleY(CH_C_PI_2)));
+                                ChFrame<>(axleCOM, guideRot * QuatFromAngleY(CH_PI_2)));
     chassis->GetBody()->GetSystem()->AddLink(m_axleTubeGuide);
 
     // Transform all hardpoints to absolute frame.
@@ -169,7 +169,7 @@ void ChLeafspringAxle::InitializeSide(VehicleSide side,
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_axleTube,
-                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2)));
+                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the shock damper

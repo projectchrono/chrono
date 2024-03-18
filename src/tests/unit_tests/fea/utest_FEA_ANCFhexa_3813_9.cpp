@@ -658,7 +658,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     double RelVal, RelVal1, RelVal2, RelVal3, force;
 
     while (sys.GetChTime() < 0.005) {
-        force = 75 * std::sin(sys.GetChTime() * CH_C_PI);
+        force = 75 * std::sin(sys.GetChTime() * CH_PI);
         nodetip1->SetForce(ChVector3d(force, 0.0, 0.0));
         nodetip2->SetForce(ChVector3d(force, 0.0, 0.0));
         nodetip3->SetForce(ChVector3d(force, 0.0, 0.0));
@@ -864,7 +864,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     double RelVal, RelVal1, RelVal2, RelVal3, force;
 
     while (sys.GetChTime() < 0.005) {
-        force = 75 * std::sin(sys.GetChTime() * CH_C_PI);
+        force = 75 * std::sin(sys.GetChTime() * CH_PI);
         nodetip1->SetForce(ChVector3d(force, 0.0, 0.0));
         nodetip2->SetForce(ChVector3d(force, 0.0, 0.0));
         nodetip3->SetForce(ChVector3d(force, 0.0, 0.0));

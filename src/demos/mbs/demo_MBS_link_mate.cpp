@@ -152,7 +152,7 @@ void test_pendulum() {
     // The mass of the end point, kg
     double tip_mass = 15.0;
     // The offset angle of the pendulum at the initial configuration, rad
-    double offset_angle = 30.0 * CH_C_DEG_TO_RAD;
+    double offset_angle = 30.0 * CH_DEG_TO_RAD;
 
     // Gravity acceleration, m/s^2
     double gacc = 9.81;
@@ -182,7 +182,7 @@ void test_pendulum() {
     sys.AddBody(my_root);
 
     auto cyl_rev = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, 0.4);
-    my_root->AddVisualShape(cyl_rev, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
+    my_root->AddVisualShape(cyl_rev, ChFrame<>(VNULL, QuatFromAngleY(CH_PI_2)));
 
     auto my_mass = chrono_types::make_shared<ChBody>();
     ChVector3d mass_pos = ChVector3d(length * std::sin(offset_angle), 0, -length * std::cos(offset_angle));
@@ -350,7 +350,7 @@ void test_anchorchain() {
     auto anchorA = chrono_types::make_shared<ChBody>();
     anchorA->SetNameString("anchorA");
     anchorA->SetPos({xA, 0, 0});
-    anchorA->SetRot(QuatFromAngleY(CH_C_PI_4));
+    anchorA->SetRot(QuatFromAngleY(CH_PI_4));
     anchorA->SetMass(mass);
     anchorA->SetInertiaXX({Jxx, Jyy, Jzz});
     anchorA->AddVisualShape(box);
@@ -371,7 +371,7 @@ void test_anchorchain() {
     auto anchorB = chrono_types::make_shared<ChBody>();
     anchorB->SetNameString("anchorB");
     anchorB->SetPos({xB, 0, 0});
-    anchorB->SetRot(QuatFromAngleY(-CH_C_PI_4));
+    anchorB->SetRot(QuatFromAngleY(-CH_PI_4));
     anchorB->SetMass(mass);
     anchorB->SetInertiaXX({Jxx, Jyy, Jzz});
     anchorB->AddVisualShape(box);
@@ -415,7 +415,7 @@ void test_anchorchain() {
 
             auto cyl_rev = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, len * 0.8);
             cyl_rev->SetColor(ChColor(0, 0, 1));
-            knot->AddVisualShape(cyl_rev, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
+            knot->AddVisualShape(cyl_rev, ChFrame<>(VNULL, QuatFromAngleY(CH_PI_2)));
 
             knot_list.push_back(knot);
             sys.AddBody(knot);
@@ -577,7 +577,7 @@ void test_anchorchain() {
             eig_vect_and_val eig_i = eig_solver.GetMode(imode);
             modal_freq(imode - 1, 0) = eig_i.eigen_val.real();
             modal_freq(imode - 1, 1) = eig_i.eigen_val.imag();
-            modal_freq(imode - 1, 2) = eig_i.eigen_val.imag() / CH_C_2PI;
+            modal_freq(imode - 1, 2) = eig_i.eigen_val.imag() / CH_2PI;
 
             ChMatrixDynamic<> modal_shape_i(sys.GetNumBodiesActive(), 10);
             int r = 0;

@@ -89,12 +89,12 @@ void GenericWheeledSuspension::Create(const rapidjson::Document& d) {
 
     // Read camber and toe data
     if (d.HasMember("Camber Angle (deg)")) {
-        m_camberAngle = d["Camber Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
+        m_camberAngle = d["Camber Angle (deg)"].GetDouble() * CH_DEG_TO_RAD;
     } else {
         m_camberAngle = 0;
     }
     if (d.HasMember("Toe Angle (deg)")) {
-        m_toeAngle = d["Toe Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
+        m_toeAngle = d["Toe Angle (deg)"].GetDouble() * CH_DEG_TO_RAD;
     } else {
         m_toeAngle = 0;
     }

@@ -282,8 +282,8 @@ void ChElementBeamTaperedTimoshenko::GetStateBlock(ChVectorDynamic<>& mD) {
     // note, for small incremental rotations this is opposite of ChNodeFEAxyzrot::VariablesQbIncrementPosition
     q_delta0.GetAngleAxis(delta_rot_angle, delta_rot_dir);
 
-    if (delta_rot_angle > CH_C_PI)
-        delta_rot_angle -= CH_C_2PI;  // no 0..360 range, use -180..+180
+    if (delta_rot_angle > CH_PI)
+        delta_rot_angle -= CH_2PI;  // no 0..360 range, use -180..+180
 
     mD.segment(3, 3) = delta_rot_angle * delta_rot_dir.eigen();
 
@@ -298,8 +298,8 @@ void ChElementBeamTaperedTimoshenko::GetStateBlock(ChVectorDynamic<>& mD) {
     // note, for small incremental rotations this is opposite of ChNodeFEAxyzrot::VariablesQbIncrementPosition
     q_delta1.GetAngleAxis(delta_rot_angle, delta_rot_dir);
 
-    if (delta_rot_angle > CH_C_PI)
-        delta_rot_angle -= CH_C_2PI;  // no 0..360 range, use -180..+180
+    if (delta_rot_angle > CH_PI)
+        delta_rot_angle -= CH_2PI;  // no 0..360 range, use -180..+180
 
     mD.segment(9, 3) = delta_rot_angle * delta_rot_dir.eigen();
 }

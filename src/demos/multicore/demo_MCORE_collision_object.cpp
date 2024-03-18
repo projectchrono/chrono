@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
     double init_height = 0.65;
     double init_x = 0.0;
     double init_z = 0.0;
-    double init_roll = 30 * CH_C_DEG_TO_RAD;
+    double init_roll = 30 * CH_DEG_TO_RAD;
 
     ChVector3d init_vel(0, 0, 0);
     ChVector3d init_omg(0, 0, 0);
@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
     sys->GetSettings()->collision.bins_per_axis = vec3(1, 1, 1);
 
     // Rotation Z->Y (because meshes used here assume Z up)
-    ChQuaternion<> z2y = QuatFromAngleX(-CH_C_PI_2);
+    ChQuaternion<> z2y = QuatFromAngleX(-CH_PI_2);
 
     // Create the falling object
     auto object = chrono_types::make_shared<ChBody>();
@@ -213,31 +213,31 @@ int main(int argc, char* argv[]) {
         }
         case CollisionShape::CYLINDER: {
             auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(object_mat, radius, 2 * hlen);
-            object->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+            object->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
             auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 2 * hlen);
             cyl->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
-            object->AddVisualShape(cyl, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+            object->AddVisualShape(cyl, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
             break;
         }
         case CollisionShape::CAPSULE: {
             auto ct_shape = chrono_types::make_shared<ChCollisionShapeCapsule>(object_mat, radius, 2 * hlen);
-            object->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+            object->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
             auto cap = chrono_types::make_shared<ChVisualShapeCapsule>(radius, 2 * hlen);
             cap->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
-            object->AddVisualShape(cap, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+            object->AddVisualShape(cap, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
             break;
         }
         case CollisionShape::CYLSHELL: {
             auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylindricalShell>(object_mat, radius, 2 * hlen);
-            object->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+            object->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
             auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 2 * hlen);
             cyl->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
-            object->AddVisualShape(cyl, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+            object->AddVisualShape(cyl, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
             break;
         }

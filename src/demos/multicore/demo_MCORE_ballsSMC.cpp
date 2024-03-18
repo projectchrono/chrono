@@ -41,7 +41,7 @@
 using namespace chrono;
 
 // Tilt angle (about global Y axis) of the container.
-double tilt_angle = 1 * CH_C_PI / 20;
+double tilt_angle = 1 * CH_PI / 20;
 
 // Number of balls: (2 * count_X + 1) * (2 * count_Y + 1)
 int count_X = 2;

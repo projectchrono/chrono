@@ -52,11 +52,11 @@ class ChApi ChLinkMotorRotation : public ChLinkMotor {
     virtual double GetMotorAngle() const { return mrot; }
 
     /// Get the number of complete turns of the motor.
-    virtual int GetMotorNumTurns() const { return std::floor(mrot / CH_C_2PI); }
+    virtual int GetMotorNumTurns() const { return std::floor(mrot / CH_2PI); }
 
     /// Get the motor rotation angle [rad] in the range [-PI..+PI].
     /// To retrieve the complete angle value, use GetMotorAngle().
-    virtual double GetMotorAngleWrapped() const { return fmod(mrot, CH_C_2PI); }
+    virtual double GetMotorAngleWrapped() const { return fmod(mrot, CH_2PI); }
 
     /// Get the current actuator speed [rad/s].
     virtual double GetMotorAngleDer() const { return mrot_dt; }

@@ -302,7 +302,7 @@ template <int nop>
 void Copter<nop>::ControlIncremental(double inputs[nop]) {
     for (int i = 0; i < nop; i++) {
         u_p[i] = ChClamp(u_p[i] + inputs[i], -1.0, 1.0);
-        speeds[i]->SetConstant(u_p[i] * rps_max * CH_C_2PI);
+        speeds[i]->SetConstant(u_p[i] * rps_max * CH_2PI);
     }
 }
 
@@ -311,7 +311,7 @@ template <int nop>
 void Copter<nop>::ControlAbsolute(double inputs[nop]) {
     for (int i = 0; i < nop; i++) {
         u_p[i] = ChClamp<double>(inputs[i], -1, 1);
-        speeds[i]->SetConstant(u_p[i] * rps_max * CH_C_2PI);
+        speeds[i]->SetConstant(u_p[i] * rps_max * CH_2PI);
     }
 }
 
@@ -320,9 +320,9 @@ template <int nop>
 void Copter<nop>::Update(double timestep) {
     // update propeller forces/torques
     for (int i = 0; i < nop; i++) {
-        double rps = motors[i]->GetMotorAngleDer() / CH_C_2PI;
+        double rps = motors[i]->GetMotorAngleDer() / CH_2PI;
         thrusts[i]->SetMforce(Ct * rho * pow(rps, 2) * pow(Dp, 4));
-        backtorques[i]->SetMforce((1 / CH_C_2PI) * Cp * rho * pow(rps, 2) * pow(Dp, 5));
+        backtorques[i]->SetMforce((1 / CH_2PI) * Cp * rho * pow(rps, 2) * pow(Dp, 5));
     }
     // update linear drag / drag torque
     lin_drag->SetMforce(0.5 * Cd * Surf * rho * chassis->GetPosDer().Length2());

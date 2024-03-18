@@ -220,10 +220,10 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         auto rotmotor1 = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         rotmotor1->Initialize(my_body_blade,                                             // slave
                               my_body_D,                                                 // master
-                              ChFrame<>(my_body_D->GetPos(), QuatFromAngleY(CH_C_PI_2))  // motor frame, in abs. coords
+                              ChFrame<>(my_body_D->GetPos(), QuatFromAngleY(CH_PI_2))  // motor frame, in abs. coords
         );
         auto mwspeed =
-            chrono_types::make_shared<ChFunctionConst>(CH_C_2PI);  // constant angular speed, in [rad/s], 2PI/s =360�/s
+            chrono_types::make_shared<ChFunctionConst>(CH_2PI);  // constant angular speed, in [rad/s], 2PI/s =360�/s
         rotmotor1->SetSpeedFunction(mwspeed);
         assembly0->Add(rotmotor1);
     }
@@ -371,7 +371,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     while (ID_current_example == current_example && !SWITCH_EXAMPLE && vis.Run()) {
         vis.BeginScene();
         vis.Render();
-        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_C_PI_2, VECT_Z),
+        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_PI_2, VECT_Z),
                         ChColor(0.5f, 0.5f, 0.5f), true);
         vis.EndScene();
 

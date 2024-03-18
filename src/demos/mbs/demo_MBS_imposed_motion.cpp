@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
 
     // Create a rotation function q(t) from a angle(time) rotation with fixed axis:
     auto f_rot_axis = chrono_types::make_shared<ChFunctionRotationAxis>();
-    f_rot_axis->SetFunctionAngle(chrono_types::make_shared<ChFunctionSine>(chrono::CH_C_PI, 0.15));  // phase freq ampl
+    f_rot_axis->SetFunctionAngle(chrono_types::make_shared<ChFunctionSine>(chrono::CH_PI, 0.15));  // phase freq ampl
     f_rot_axis->SetAxis(ChVector3d(1, 1, 1).GetNormalized());
 
     // Create the constraint to impose motion and rotation.

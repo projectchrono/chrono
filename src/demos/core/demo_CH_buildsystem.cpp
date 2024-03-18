@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
         auto my_motor_AB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         my_motor_AB->SetName("MOTOR truss-crank");
         my_motor_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector3d(0, 0, 0)));
-        my_motor_AB->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_C_PI));
+        my_motor_AB->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_PI));
         sys.AddLink(my_motor_AB);
 
         std::cout << std::endl << std::endl << "Here's the system hierarchy for slider-crank:\n" << std::endl;

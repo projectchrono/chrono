@@ -353,9 +353,9 @@ IMesh* createCapsuleMesh(f32 radius, f32 hlen, u32 numSegV, u32 numSegR) {
     video::S3DVertex v;
     v.Color = color;
 
-    const auto f_PI = f32(CH_C_PI);
-    const auto f_PI2 = f32(CH_C_PI_2);
-    const auto f_2PI = f32(CH_C_2PI);
+    const auto f_PI = f32(CH_PI);
+    const auto f_PI2 = f32(CH_PI_2);
+    const auto f_2PI = f32(CH_2PI);
 
     // Calculate a ratio for mapping the texture v-coordinate.
     auto vRatio = (f_PI2 * radius) / (f_PI * radius + 2 * hlen);

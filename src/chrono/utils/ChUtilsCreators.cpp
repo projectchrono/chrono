@@ -541,11 +541,11 @@ void AddTorusGeometry(ChBody* body,
                       bool visualization,
                       ChVisualMaterialSharedPtr vis_material) {
     for (int i = 0; i < angle; i += angle / segments) {
-        double alpha = i * CH_C_PI / 180.0;
+        double alpha = i * CH_PI / 180.0;
         double x = cos(alpha) * radius;
         double z = sin(alpha) * radius;
-        ChQuaterniond q = chrono::QuatFromAngleY(-alpha) * chrono::QuatFromAngleX(CH_C_PI_2);
-        double outer_circ = 2 * CH_C_PI * (radius + thickness);
+        ChQuaterniond q = chrono::QuatFromAngleY(-alpha) * chrono::QuatFromAngleX(CH_PI_2);
+        double outer_circ = 2 * CH_PI * (radius + thickness);
 
         AddCapsuleGeometry(body, material, thickness, outer_circ / segments * .5, ChVector3d(x, 0, z) + pos, q,
                            visualization, vis_material);
@@ -709,9 +709,9 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
     double hthick = thickness / 2;
 
     // Add circumference pieces
-    double box_side = radius * 2.0 * tan(CH_C_PI / numBoxes);                                   // side length of cyl
+    double box_side = radius * 2.0 * tan(CH_PI / numBoxes);                                   // side length of cyl
     ChVector3d plate_size = ChVector3d((box_side + thickness / 2), thickness, height + o_lap);  // size of plates
-    double delta_angle = CH_C_2PI / numBoxes;
+    double delta_angle = CH_2PI / numBoxes;
 
     for (int i = 0; i < numBoxes; i++) {
         double angle = i * delta_angle;
@@ -719,7 +719,7 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
             pos + ChVector3d(sin(angle) * (hthick + radius), cos(angle) * (hthick + height / 2), height / 2);
         auto plate_rot = QuatFromAngleZ(angle);
 
-        bool visualize = !partialVisualization || angle > CH_C_PI_2;
+        bool visualize = !partialVisualization || angle > CH_PI_2;
         utils::AddBoxGeometry(body.get(), mat, plate_size, plate_pos, plate_rot, visualize);
     }
 
@@ -729,7 +729,7 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
                               ChVector3d(0, 0, -hthick), QUNIT, true);
     else
         utils::AddCylinderGeometry(body.get(), mat, radius + thickness, thickness, ChVector3d(0, 0, -hthick),
-                                   QuatFromAngleX(CH_C_PI_2));
+                                   QuatFromAngleX(CH_PI_2));
 
     // Add top piece
     if (closed) {
@@ -738,7 +738,7 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
                                   ChVector3d(0, 0, height + hthick), QUNIT, true);
         else
             utils::AddCylinderGeometry(body.get(), mat, radius + thickness, thickness,
-                                       ChVector3d(0, 0, height + hthick), QuatFromAngleX(CH_C_PI_2));
+                                       ChVector3d(0, 0, height + hthick), QuatFromAngleX(CH_PI_2));
     }
 
     body->GetCollisionModel()->SetEnvelope(0.2 * thickness);

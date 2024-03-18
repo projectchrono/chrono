@@ -40,10 +40,10 @@ ChVector3d ChLineArc::Evaluate(double parU) const {
     double ang2 = this->angle2;
     if (this->counterclockwise) {
         if (ang2 < ang1)
-            ang2 += CH_C_2PI;
+            ang2 += CH_2PI;
     } else {
         if (ang2 > ang1)
-            ang2 -= CH_C_2PI;
+            ang2 -= CH_2PI;
     }
     double mangle = ang1 * (1 - parU) + ang2 * (parU);
     ChVector3d localP(radius * cos(mangle), radius * sin(mangle), 0);

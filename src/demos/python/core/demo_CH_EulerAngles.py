@@ -39,34 +39,34 @@ gamma2 = -0.7
 print("  Rotations about frame axes:")
 
 print("    Rotation about X of ", alpha1, " deg")
-q.SetFromAngleX(chrono.CH_C_DEG_TO_RAD * alpha1)
-eu = q.GetCardanAnglesXYZ() * chrono.CH_C_RAD_TO_DEG
+q.SetFromAngleX(chrono.CH_DEG_TO_RAD * alpha1)
+eu = q.GetCardanAnglesXYZ() * chrono.CH_RAD_TO_DEG
 print("    eu = {", eu.x, ";", eu.y, ";", eu.z, "}")
 
 print("    Rotation about Y of ", beta1, " deg")
-q.SetFromAngleY(chrono.CH_C_DEG_TO_RAD * beta1)
-eu = q.GetCardanAnglesXYZ() * chrono.CH_C_RAD_TO_DEG
+q.SetFromAngleY(chrono.CH_DEG_TO_RAD * beta1)
+eu = q.GetCardanAnglesXYZ() * chrono.CH_RAD_TO_DEG
 print("    eu = {", eu.x, ";", eu.y, ";", eu.z, "}")
 
 print("    Rotation about Z of ", gamma1, " deg")
-q.SetFromAngleZ(chrono.CH_C_DEG_TO_RAD * gamma1)
-eu = q.GetCardanAnglesXYZ() * chrono.CH_C_RAD_TO_DEG
+q.SetFromAngleZ(chrono.CH_DEG_TO_RAD * gamma1)
+eu = q.GetCardanAnglesXYZ() * chrono.CH_RAD_TO_DEG
 print("    eu = {", eu.x, ";", eu.y, ";", eu.z, "}")
 
 
 print("    Rotation about X of ", alpha2, " deg")
-q.SetFromAngleX(chrono.CH_C_DEG_TO_RAD * alpha2)
-eu = q.GetCardanAnglesXYZ() * chrono.CH_C_RAD_TO_DEG
+q.SetFromAngleX(chrono.CH_DEG_TO_RAD * alpha2)
+eu = q.GetCardanAnglesXYZ() * chrono.CH_RAD_TO_DEG
 print("    eu = {", eu.x, ";", eu.y, ";", eu.z, "}")
 
 print("    Rotation about Y of ", beta2, " deg")
-q.SetFromAngleY(chrono.CH_C_DEG_TO_RAD * beta2)
-eu = q.GetCardanAnglesXYZ() * chrono.CH_C_RAD_TO_DEG
+q.SetFromAngleY(chrono.CH_DEG_TO_RAD * beta2)
+eu = q.GetCardanAnglesXYZ() * chrono.CH_RAD_TO_DEG
 print("    eu = {", eu.x, ";", eu.y, ";", eu.z, "}")
 
 print("    Rotation about Z of ", gamma2, " deg")
-q.SetFromAngleZ(chrono.CH_C_DEG_TO_RAD * gamma2)
-eu = q.GetCardanAnglesXYZ() * chrono.CH_C_RAD_TO_DEG
+q.SetFromAngleZ(chrono.CH_DEG_TO_RAD * gamma2)
+eu = q.GetCardanAnglesXYZ() * chrono.CH_RAD_TO_DEG
 print("    eu = {", eu.x, ";", eu.y, ";", eu.z, "}")
 
 # --------
@@ -76,16 +76,16 @@ eu.x = alpha1
 eu.y = beta1
 eu.z = gamma1
 print("    Input = {", eu.x, ";", eu.y, ";", eu.z, "}")
-q.SetFromCardanAnglesXYZ(eu * chrono.CH_C_DEG_TO_RAD)
-eu = q.GetCardanAnglesXYZ() * chrono.CH_C_RAD_TO_DEG
+q.SetFromCardanAnglesXYZ(eu * chrono.CH_DEG_TO_RAD)
+eu = q.GetCardanAnglesXYZ() * chrono.CH_RAD_TO_DEG
 print("    Output = {", eu.x, ";", eu.y, ";", eu.z, "}")
 
 eu.x = alpha2
 eu.y = beta2
 eu.z = gamma2
 print("    Input = {", eu.x, ";", eu.y, ";", eu.z, "}")
-q.SetFromCardanAnglesXYZ(eu * chrono.CH_C_DEG_TO_RAD)
-eu = q.GetCardanAnglesXYZ() * chrono.CH_C_RAD_TO_DEG
+q.SetFromCardanAnglesXYZ(eu * chrono.CH_DEG_TO_RAD)
+eu = q.GetCardanAnglesXYZ() * chrono.CH_RAD_TO_DEG
 print("    Output = {", eu.x, ";", eu.y, ";", eu.z, "}")
 
 # --------

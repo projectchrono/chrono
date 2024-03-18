@@ -995,13 +995,13 @@ void TurtleBot::Initialize() {
     double rod_u_5_z = 0.20615;
 
     // add motors and revolute joints on the active and passive wheels
-    auto const_speed_function_l = chrono_types::make_shared<ChFunctionConst>(-CH_C_PI);
-    auto const_speed_function_r = chrono_types::make_shared<ChFunctionConst>(-CH_C_PI);
+    auto const_speed_function_l = chrono_types::make_shared<ChFunctionConst>(-CH_PI);
+    auto const_speed_function_r = chrono_types::make_shared<ChFunctionConst>(-CH_PI);
     m_motors_func.push_back(const_speed_function_l);
     m_motors_func.push_back(const_speed_function_r);
 
-    ChQuaternion<> z2y = QuatFromAngleX(CH_C_PI_2);
-    ChQuaternion<> z2x = QuatFromAngleY(-CH_C_PI_2);
+    ChQuaternion<> z2y = QuatFromAngleX(CH_PI_2);
+    ChQuaternion<> z2x = QuatFromAngleY(-CH_PI_2);
 
     m_motors.push_back(AddMotor(m_drive_wheels[0]->GetBody(), m_chassis->GetBody(), m_chassis->GetBody(), m_system,
                                 ChVector3d(dwx, dwy, dwz), z2y, const_speed_function_l));

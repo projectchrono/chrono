@@ -362,7 +362,7 @@ void DPCapPress() {
         int offset_mid = (numDiv_y / 2 - 1) * N_x;
         int inc = 0;
         // node force
-        force = -1700 * std::sin(sys.GetChTime() * CH_C_PI);
+        force = -1700 * std::sin(sys.GetChTime() * CH_PI);
         for (inc = 0; inc < numDiv_x / 4; inc++) {
             for (int ii = 0; ii < numDiv_x / 2 + 1; ii++) {
                 auto nodeforce = std::dynamic_pointer_cast<ChNodeFEAxyz>(
@@ -607,7 +607,7 @@ void ShellBrickContact() {
                                std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_shell_mesh->GetNode(node3)));
 
         elementshell->SetDimensions(Sdx, Sdy);
-        elementshell->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
+        elementshell->AddLayer(dz, 0 * CH_DEG_TO_RAD, mat);
         elementshell->SetAlphaDamp(0.0);  // Structural damping for this element
         my_shell_mesh->AddElement(elementshell);
     }
@@ -1265,11 +1265,11 @@ void SoilBin() {
     ////// Constrain only the lateral displacement of the Rim
     constraintLateral = chrono_types::make_shared<ChLinkLockPointPlane>();
     sys.AddLink(constraintLateral);
-    constraintLateral->Initialize(Plate, Ground, ChFrame<>(Plate->GetPos(), QuatFromAngleX(CH_C_PI_2)));
+    constraintLateral->Initialize(Plate, Ground, ChFrame<>(Plate->GetPos(), QuatFromAngleX(CH_PI_2)));
 
     constraintLongitudinal = chrono_types::make_shared<ChLinkLockPointPlane>();
     sys.AddLink(constraintLongitudinal);
-    constraintLongitudinal->Initialize(Plate, Ground, ChFrame<>(Plate->GetPos(), QuatFromAngleY(CH_C_PI_2)));
+    constraintLongitudinal->Initialize(Plate, Ground, ChFrame<>(Plate->GetPos(), QuatFromAngleY(CH_PI_2)));
 
     // Create a load container and a body force load on the plate
     auto load_container = chrono_types::make_shared<ChLoadContainer>();
@@ -1361,7 +1361,7 @@ void SoilBin() {
         double time = sys.GetChTime();
         if (time > 1)
             break;
-        plate_load->SetForce(ChVector3d(0, 0, -1500 * sin(time * CH_C_PI)), false);
+        plate_load->SetForce(ChVector3d(0, 0, -1500 * sin(time * CH_PI)), false);
         Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
 
         vis->BeginScene();
@@ -1623,7 +1623,7 @@ void AxialDynamics() {
         // application.Render();
         // application.DoStep();
 
-        force = 300 * std::sin(sys.GetChTime() * CH_C_PI) / 4;
+        force = 300 * std::sin(sys.GetChTime() * CH_PI) / 4;
         nodetip1->SetForce(ChVector3d(force, 0.0, 0.0));
         nodetip2->SetForce(ChVector3d(force, 0.0, 0.0));
         nodetip3->SetForce(ChVector3d(force, 0.0, 0.0));

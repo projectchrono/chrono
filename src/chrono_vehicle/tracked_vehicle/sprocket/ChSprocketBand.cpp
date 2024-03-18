@@ -75,7 +75,7 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
         auto shoe = std::dynamic_pointer_cast<ChTrackShoeBand>(track->GetTrackShoe(0));
 
         // The angle between the centers of two sequential teeth on the sprocket
-        m_beta = CH_C_2PI / m_sprocket->GetNumTeeth();
+        m_beta = CH_2PI / m_sprocket->GetNumTeeth();
 
         double OutRad = m_sprocket->GetOuterRadius();
 
@@ -119,11 +119,11 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
         m_gear_center_p_start_angle = std::atan2(ToothBaseWidthUpperPnt.y() - m_gear_center_p.y(),
                                                  ToothBaseWidthUpperPnt.x() - m_gear_center_p.x());
         m_gear_center_p_start_angle =
-            m_gear_center_p_start_angle < 0 ? m_gear_center_p_start_angle + CH_C_2PI : m_gear_center_p_start_angle;
+            m_gear_center_p_start_angle < 0 ? m_gear_center_p_start_angle + CH_2PI : m_gear_center_p_start_angle;
         m_gear_center_p_end_angle = std::atan2(ToothTipWidthUpperPnt.y() - m_gear_center_p.y(),
                                                ToothTipWidthUpperPnt.x() - m_gear_center_p.x());
         m_gear_center_p_end_angle =
-            m_gear_center_p_end_angle < 0 ? m_gear_center_p_end_angle + CH_C_2PI : m_gear_center_p_end_angle;
+            m_gear_center_p_end_angle < 0 ? m_gear_center_p_end_angle + CH_2PI : m_gear_center_p_end_angle;
         if (m_gear_center_p_start_angle > m_gear_center_p_end_angle) {
             double temp = m_gear_center_p_start_angle;
             m_gear_center_p_start_angle = m_gear_center_p_end_angle;
@@ -135,11 +135,11 @@ class SprocketBandContactCB : public ChSystem::CustomCollisionCallback {
         m_gear_center_m_start_angle = std::atan2(ToothBaseWidthLowerPnt.y() - m_gear_center_m.y(),
                                                  ToothBaseWidthLowerPnt.x() - m_gear_center_m.x());
         m_gear_center_m_start_angle =
-            m_gear_center_m_start_angle < 0 ? m_gear_center_m_start_angle + CH_C_2PI : m_gear_center_m_start_angle;
+            m_gear_center_m_start_angle < 0 ? m_gear_center_m_start_angle + CH_2PI : m_gear_center_m_start_angle;
         m_gear_center_m_end_angle = std::atan2(ToothTipWidthLowerPnt.y() - m_gear_center_m.y(),
                                                ToothTipWidthLowerPnt.x() - m_gear_center_m.x());
         m_gear_center_m_end_angle =
-            m_gear_center_m_end_angle < 0 ? m_gear_center_m_end_angle + CH_C_2PI : m_gear_center_m_end_angle;
+            m_gear_center_m_end_angle < 0 ? m_gear_center_m_end_angle + CH_2PI : m_gear_center_m_end_angle;
         if (m_gear_center_m_start_angle > m_gear_center_m_end_angle) {
             double temp = m_gear_center_m_start_angle;
             m_gear_center_m_start_angle = m_gear_center_m_end_angle;
@@ -310,7 +310,7 @@ void SprocketBandContactCB::CheckTreadSegmentSprocket(std::shared_ptr<ChTrackSho
 
     // Angle formed by 'loc' relative the sprocket center in the sprocket frame
     double angle = std::atan2(loc.z(), loc.x());
-    angle = angle < 0 ? angle + CH_C_2PI : angle;
+    angle = angle < 0 ? angle + CH_2PI : angle;
     // Find angle of closest tooth space
     double alpha = m_beta * std::round(angle / m_beta);
 
@@ -332,9 +332,9 @@ void SprocketBandContactCB::CheckTreadSegmentSprocket(std::shared_ptr<ChTrackSho
     double gear_center_p_end_angle = m_gear_center_p_end_angle + alpha;
 
     // Ensure that the starting angle is between 0 & 2PI, adjusting ending angle to match
-    while (gear_center_p_start_angle > CH_C_2PI) {
-        gear_center_p_start_angle -= CH_C_2PI;
-        gear_center_p_end_angle -= CH_C_2PI;
+    while (gear_center_p_start_angle > CH_2PI) {
+        gear_center_p_start_angle -= CH_2PI;
+        gear_center_p_end_angle -= CH_2PI;
     }
 
     // Calculate the positive tooth arc center point in the sprocket frame
@@ -353,13 +353,13 @@ void SprocketBandContactCB::CheckTreadSegmentSprocket(std::shared_ptr<ChTrackSho
 
     double tooth_center_p_start_angle = std::atan2(tooth_arc_start_point_p.y(), tooth_arc_start_point_p.x());
     tooth_center_p_start_angle =
-        tooth_center_p_start_angle < 0 ? tooth_center_p_start_angle + CH_C_2PI : tooth_center_p_start_angle;
+        tooth_center_p_start_angle < 0 ? tooth_center_p_start_angle + CH_2PI : tooth_center_p_start_angle;
     double tooth_center_p_end_angle = std::atan2(tooth_arc_end_point_p.y(), tooth_arc_end_point_p.x());
     tooth_center_p_end_angle =
-        tooth_center_p_end_angle < 0 ? tooth_center_p_end_angle + CH_C_2PI : tooth_center_p_end_angle;
+        tooth_center_p_end_angle < 0 ? tooth_center_p_end_angle + CH_2PI : tooth_center_p_end_angle;
 
     if (tooth_center_p_end_angle < tooth_center_p_start_angle) {
-        tooth_center_p_end_angle += CH_C_2PI;
+        tooth_center_p_end_angle += CH_2PI;
     }
 
     CheckTreadArcSprocketArc(shoe, sprocket_center_p, gear_center_p_start_angle, gear_center_p_end_angle,
@@ -377,9 +377,9 @@ void SprocketBandContactCB::CheckTreadSegmentSprocket(std::shared_ptr<ChTrackSho
     double gear_center_m_end_angle = m_gear_center_m_end_angle + alpha;
 
     // Ensure that the starting angle is between 0 & 2PI, adjusting ending angle to match
-    while (gear_center_m_start_angle > CH_C_2PI) {
-        gear_center_m_start_angle -= CH_C_2PI;
-        gear_center_m_end_angle -= CH_C_2PI;
+    while (gear_center_m_start_angle > CH_2PI) {
+        gear_center_m_start_angle -= CH_2PI;
+        gear_center_m_end_angle -= CH_2PI;
     }
 
     // Calculate the positive tooth arc center point in the sprocket frame
@@ -398,13 +398,13 @@ void SprocketBandContactCB::CheckTreadSegmentSprocket(std::shared_ptr<ChTrackSho
 
     double tooth_center_m_start_angle = std::atan2(tooth_arc_start_point_m.y(), tooth_arc_start_point_m.x());
     tooth_center_m_start_angle =
-        tooth_center_m_start_angle < 0 ? tooth_center_m_start_angle + CH_C_2PI : tooth_center_m_start_angle;
+        tooth_center_m_start_angle < 0 ? tooth_center_m_start_angle + CH_2PI : tooth_center_m_start_angle;
     double tooth_center_m_end_angle = std::atan2(tooth_arc_end_point_m.y(), tooth_arc_end_point_m.x());
     tooth_center_m_end_angle =
-        tooth_center_m_end_angle < 0 ? tooth_center_m_end_angle + CH_C_2PI : tooth_center_m_end_angle;
+        tooth_center_m_end_angle < 0 ? tooth_center_m_end_angle + CH_2PI : tooth_center_m_end_angle;
 
     if (tooth_center_m_end_angle < tooth_center_m_start_angle) {
-        tooth_center_m_end_angle += CH_C_2PI;
+        tooth_center_m_end_angle += CH_2PI;
     }
 
     CheckTreadArcSprocketArc(shoe, sprocket_center_m, gear_center_m_start_angle, gear_center_m_end_angle,
@@ -429,9 +429,9 @@ void SprocketBandContactCB::CheckTreadTipSprocketTip(std::shared_ptr<ChTrackShoe
     tooth_tip_m.y() = 0;
 
     double tooth_tip_p_angle = std::atan2(tooth_tip_p.z(), tooth_tip_p.x());
-    tooth_tip_p_angle = tooth_tip_p_angle < 0 ? tooth_tip_p_angle + CH_C_2PI : tooth_tip_p_angle;
+    tooth_tip_p_angle = tooth_tip_p_angle < 0 ? tooth_tip_p_angle + CH_2PI : tooth_tip_p_angle;
     double tooth_tip_m_angle = std::atan2(tooth_tip_m.z(), tooth_tip_m.x());
-    tooth_tip_m_angle = tooth_tip_m_angle < 0 ? tooth_tip_m_angle + CH_C_2PI : tooth_tip_m_angle;
+    tooth_tip_m_angle = tooth_tip_m_angle < 0 ? tooth_tip_m_angle + CH_2PI : tooth_tip_m_angle;
 
     double tooth_tip_p_angle_adjust = m_beta * std::floor(tooth_tip_p_angle / m_beta);
     tooth_tip_p_angle -= tooth_tip_p_angle_adjust;  // Adjust the angle so that it lies within 1 tooth spacing so it is
@@ -511,7 +511,7 @@ void SprocketBandContactCB::CheckTreadArcSprocketArc(std::shared_ptr<ChTrackShoe
     double sprocket_contact_angle =
         std::atan2(tooth_arc_center.y() - sprocket_arc_center.y(), tooth_arc_center.x() - sprocket_arc_center.x());
     while (sprocket_contact_angle < sprocket_arc_angle_start) {
-        sprocket_contact_angle += CH_C_2PI;
+        sprocket_contact_angle += CH_2PI;
     }
 
     ChVector2d sprocket_collision_point =
@@ -540,9 +540,9 @@ void SprocketBandContactCB::CheckTreadArcSprocketArc(std::shared_ptr<ChTrackShoe
     double tooth_contact_angle = std::atan2(sprocket_collision_point.y() - tooth_arc_center.y(),
                                             sprocket_collision_point.x() - tooth_arc_center.x());
     tooth_contact_angle -=
-        CH_C_2PI;  // Ensure that tooth_contact_angle is negative and this less than tooth_arc_angle_start
+        CH_2PI;  // Ensure that tooth_contact_angle is negative and this less than tooth_arc_angle_start
     while (tooth_contact_angle < tooth_arc_angle_start) {
-        tooth_contact_angle += CH_C_2PI;
+        tooth_contact_angle += CH_2PI;
     }
 
     if (tooth_contact_angle > tooth_arc_angle_end) {
@@ -706,7 +706,7 @@ std::shared_ptr<ChLinePath> ChSprocketBand::GetProfile() const {
     ChVector3d SprocketCtr(0.0, 0.0, 0.0);
 
     // The angle between the centers of two sequential teeth on the sprocket
-    double EntireToothArcAng = CH_C_2PI / num_teeth;
+    double EntireToothArcAng = CH_2PI / num_teeth;
 
     // The angle measured from the center of the sprocket between the center of the tooth
     // and the outer line segment edge of the tooth's base width
@@ -764,10 +764,10 @@ std::shared_ptr<ChLinePath> ChSprocketBand::GetProfile() const {
                                             ToothTipWidthUpperPnt.x() - ToothUpperArcCtrPnt.x());
 
         // Ensure that Angle1 is positive
-        UpperArc_Angle1 = UpperArc_Angle1 < 0 ? UpperArc_Angle1 + CH_C_2PI : UpperArc_Angle1;
+        UpperArc_Angle1 = UpperArc_Angle1 < 0 ? UpperArc_Angle1 + CH_2PI : UpperArc_Angle1;
         // Ensure that Angle2 is greater than Angle1
         while (UpperArc_Angle2 < UpperArc_Angle1) {
-            UpperArc_Angle2 += CH_C_2PI;
+            UpperArc_Angle2 += CH_2PI;
         }
 
         double LowerArc_Angle1 = std::atan2(ToothTipWidthLowerPnt.y() - ToothLowerArcCtrPnt.y(),
@@ -776,10 +776,10 @@ std::shared_ptr<ChLinePath> ChSprocketBand::GetProfile() const {
                                             ToothBaseWidthLowerPnt.x() - ToothLowerArcCtrPnt.x());
 
         // Ensure that Angle1 is positive
-        LowerArc_Angle1 = LowerArc_Angle1 < 0 ? LowerArc_Angle1 + CH_C_2PI : LowerArc_Angle1;
+        LowerArc_Angle1 = LowerArc_Angle1 < 0 ? LowerArc_Angle1 + CH_2PI : LowerArc_Angle1;
         // Ensure that Angle2 is greater than Angle1
         while (LowerArc_Angle2 < LowerArc_Angle1) {
-            LowerArc_Angle2 += CH_C_2PI;
+            LowerArc_Angle2 += CH_2PI;
         }
 
         // Calculate the starting and ending arc angles for profile along the sprocket's outer radius

@@ -125,9 +125,9 @@ int main(int argc, char* argv[]) {
 
     if (true) {
         for (int i = 0; i < 3; ++i) {
-            ChCoordsys<> cdown1(VNULL, QuatFromAngleX(CH_C_PI_2));
+            ChCoordsys<> cdown1(VNULL, QuatFromAngleX(CH_PI_2));
             ChCoordsys<> cdown2(ChVector3d(0, -0.4, 0));
-            ChCoordsys<> crot(VNULL, QuatFromAngleY(5 * CH_C_2PI * ChRandom::Get()));
+            ChCoordsys<> crot(VNULL, QuatFromAngleY(5 * CH_2PI * ChRandom::Get()));
             for (int j = -1; j < 2; ++j) {
                 try {
                     ChCoordsys<> cydisp(ChVector3d(0.3 * j, 0.1 + i * 0.1, 0));
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
 
     if (false) {
         std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>> node_sets;
-        ChCoordsys<> cpos(ChVector3d(0, 0.8, 0), QuatFromAngleY(CH_C_PI_2));
+        ChCoordsys<> cpos(ChVector3d(0, 0.8, 0), QuatFromAngleY(CH_PI_2));
         ChMeshFileLoader::FromAbaqusFile(my_mesh,
                                          GetChronoDataFile("models/tractor_wheel/tractor_wheel_fine.INP").c_str(),
                                          mmaterial, node_sets, cpos.pos, cpos.rot);
@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
 
         ChBuilderCableANCF builder;
 
-        ChCoordsys<> cablepos(ChVector3d(0, icable * 0.11, 0), QuatFromAngleY(ChRandom::Get() * CH_C_2PI));
+        ChCoordsys<> cablepos(ChVector3d(0, icable * 0.11, 0), QuatFromAngleY(ChRandom::Get() * CH_2PI));
 
         builder.BuildBeam(my_mesh_beams,    // the mesh where to put the created nodes and elements
                           msection_cable2,  // the ChBeamSectionCable to use for the ChElementCableANCF elements

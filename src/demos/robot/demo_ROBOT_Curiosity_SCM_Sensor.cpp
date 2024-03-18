@@ -144,13 +144,13 @@ int main(int argc, char* argv[]) {
 
     // Curiosity rover initial position and orientation
     ChVector3d body_pos(-5, -0.2, 0);
-    ChQuaternion<> body_rot = QuatFromAngleX(-CH_C_PI / 2);
+    ChQuaternion<> body_rot = QuatFromAngleX(-CH_PI / 2);
 
     // Create a Curiosity rover
     Curiosity rover(&sys, chassis_type, wheel_type);
 
     // Create a CuriosityDriver to command the rover
-    auto driver = chrono_types::make_shared<CuriositySpeedDriver>(1.0, CH_C_PI);
+    auto driver = chrono_types::make_shared<CuriositySpeedDriver>(1.0, CH_PI);
     rover.SetDriver(driver);
     rover.Initialize(ChFrame<>(body_pos, body_rot));
 
@@ -340,7 +340,7 @@ int main(int argc, char* argv[]) {
     // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
     // Note: Irrlicht uses a Y-up frame
-    terrain.SetPlane(ChCoordsys<>(ChVector3d(0, -0.5, 0), QuatFromAngleX(-CH_C_PI_2)));
+    terrain.SetPlane(ChCoordsys<>(ChVector3d(0, -0.5, 0), QuatFromAngleX(-CH_PI_2)));
 
     // Use a regular grid:
     double length = 14;
@@ -473,8 +473,8 @@ int main(int argc, char* argv[]) {
                                                           offset_pose,                    // offset pose
                                                           480,                   // number of horizontal samples
                                                           300,                   // number of vertical channels
-                                                          (float)(2 * CH_C_PI),  // horizontal field of view
-                                                          (float)CH_C_PI / 12, (float)-CH_C_PI / 6,
+                                                          (float)(2 * CH_PI),  // horizontal field of view
+                                                          (float)CH_PI / 12, (float)-CH_PI / 6,
                                                           120.0f  // vertical field of view
     );
     lidar->SetName("Lidar Sensor 1");
@@ -503,7 +503,7 @@ int main(int argc, char* argv[]) {
 
     // Create a radar and attach to rover chassis
     auto radar = chrono_types::make_shared<ChRadarSensor>(rover.GetChassis()->GetBody(), 25, offset_pose_1, 300, 200,
-                                                          (float)(CH_C_PI / 1.5), float(CH_C_PI / 5), 100.f);
+                                                          (float)(CH_PI / 1.5), float(CH_PI / 5), 100.f);
     radar->SetName("Radar Sensor");
     radar->SetLag(0.f);
     radar->SetCollectionWindow(0.04f);

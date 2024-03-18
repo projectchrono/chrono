@@ -50,7 +50,7 @@ namespace ChronoDemo
             BrakeType brake_type = BrakeType.SHAFTS;
 
             // Terrain slope (radians)
-            double slope = 20 * chrono.CH_C_DEG_TO_RAD;
+            double slope = 20 * chrono.CH_DEG_TO_RAD;
 
             // Set speed (m/s)
             double target_speed = 4;

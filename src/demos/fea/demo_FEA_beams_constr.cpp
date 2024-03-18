@@ -110,9 +110,9 @@ int main(int argc, char* argv[]) {
 
         virtual double GetVal(double x) const override {
             if (x > 0.4)
-                return CH_C_PI;
+                return CH_PI;
             else
-                return -CH_C_PI * (1.0 - cos(CH_C_PI * x / 0.4)) / 2.0;
+                return -CH_PI * (1.0 - cos(CH_PI * x / 0.4)) / 2.0;
         }
     };
 
@@ -288,7 +288,7 @@ int main(int argc, char* argv[]) {
         vis->BeginScene();
         vis->Render();
 
-        tools::drawGrid(vis.get(), 0.05, 0.05, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_Z),
+        tools::drawGrid(vis.get(), 0.05, 0.05, 20, 20, ChCoordsys<>(VNULL, CH_PI_2, VECT_Z),
                         ChColor(0.4f, 0.4f, 0.4f), true);
 
         sys.DoStepDynamics(0.001);

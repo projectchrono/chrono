@@ -94,7 +94,7 @@ sph = chrono.ChVisualShapeSphere(0.3)
 body.AddVisualShape(sph)
 cyl = chrono.ChVisualShapeCylinder(0.1, 1.5)
 cyl.SetColor(chrono.ChColor(0.7, 0.8, 0.8))
-body.AddVisualShape(cyl, chrono.ChFramed(chrono.ChVector3d(-0.75,0,0), chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
+body.AddVisualShape(cyl, chrono.ChFramed(chrono.ChVector3d(-0.75,0,0), chrono.QuatFromAngleY(chrono.CH_PI_2)))
 
 # Create revolute joint between body and ground
 rev = chrono.ChLinkLockRevolute()

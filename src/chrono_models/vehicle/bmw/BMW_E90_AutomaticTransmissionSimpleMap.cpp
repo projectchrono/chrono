@@ -20,7 +20,7 @@ namespace chrono {
 namespace vehicle {
 namespace bmw {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 BMW_E90_AutomaticTransmissionSimpleMap::BMW_E90_AutomaticTransmissionSimpleMap(const std::string& name)
     : ChAutomaticTransmissionSimpleMap(name) {}

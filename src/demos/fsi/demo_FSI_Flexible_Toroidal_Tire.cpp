@@ -309,7 +309,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Connect the chassis to the ground through a translational joint and create a linear actuator.
     auto prismatic1 = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic1->Initialize(ground, chassis, ChFrame<>(chassis->GetPos(), QuatFromAngleY(CH_C_PI_2)));
+    prismatic1->Initialize(ground, chassis, ChFrame<>(chassis->GetPos(), QuatFromAngleY(CH_PI_2)));
     prismatic1->SetName("prismatic_chassis_ground");
     sysMBS.AddLink(prismatic1);
 
@@ -331,7 +331,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Connect the wheel to the axle through a engine joint.
     motor->SetName("engine_wheel_axle");
-    motor->Initialize(wheel, axle, ChFrame<>(wheel->GetPos(), chrono::QuatFromAngleX(-CH_C_PI_2)));
+    motor->Initialize(wheel, axle, ChFrame<>(wheel->GetPos(), chrono::QuatFromAngleX(-CH_PI_2)));
     motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, wheel_AngVel));
     sysMBS.AddLink(motor);
 
@@ -348,9 +348,9 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
         // The nodes are first created in the wheel local frame, assuming Y as the tire axis,
         // and are then transformed to the global frame.
         for (unsigned int i = 0; i < m_div_circumference; i++) {
-            double phi = (CH_C_2PI * i) / m_div_circumference;
+            double phi = (CH_2PI * i) / m_div_circumference;
             for (unsigned int j = 0; j <= m_div_width; j++) {
-                double theta = -CH_C_PI_2 + (CH_C_PI * j) / m_div_width;
+                double theta = -CH_PI_2 + (CH_PI * j) / m_div_width;
 
                 double x = (m_rim_radius + m_height * cos(theta)) * cos(phi) + wheel_IniPos.x();
                 double y = m_height * sin(theta) + wheel_IniPos.y();
@@ -428,7 +428,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
                 element->SetDimensions(dx, dy);
 
                 // Add a single layers with a fiber angle of 0 degrees.
-                element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
+                element->AddLayer(dz, 0 * CH_DEG_TO_RAD, mat);
 
                 // Set other element properties
                 element->SetAlphaDamp(m_alpha);

@@ -69,7 +69,7 @@ ObsModTerrain::ObsModTerrain(ChSystem* system,
         // m_Q is already set up
     } else if (aa <= 175.0) {
         // mound obstacle
-        ramp_angle = CH_C_DEG_TO_RAD * abs(m_aa - 180.0);
+        ramp_angle = CH_DEG_TO_RAD * abs(m_aa - 180.0);
         ramp_length = m_obsheight / tan(ramp_angle);
         m_x[0] = m_xmin;
         m_x[1] = m_x[0] + ramp_length;
@@ -89,7 +89,7 @@ ObsModTerrain::ObsModTerrain(ChSystem* system,
         m_Q(1, 2) = m_obsheight;
     } else {
         // trench obstacle
-        ramp_angle = CH_C_DEG_TO_RAD * abs(m_aa - 180.0);
+        ramp_angle = CH_DEG_TO_RAD * abs(m_aa - 180.0);
         ramp_length = m_obsheight / tan(ramp_angle);
         if (m_obslength <= 0.0) {
             m_obslength = 0.1;

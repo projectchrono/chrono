@@ -38,7 +38,7 @@ TEST(gpuStack, check) {
     float precision_KE = 1e-5f;
     float precision_pos = 1e-2f;
 
-    float mass = 4.f / 3.f * (float)CH_C_PI * pow(radius, 3.f) * density;
+    float mass = 4.f / 3.f * (float)CH_PI * pow(radius, 3.f) * density;
     float penetration = pow(mass * abs(-g) / 1e7f, 2.f / 3.f);
 
     float inertia = 2.f / 5.f * mass * pow(radius, 2.f);

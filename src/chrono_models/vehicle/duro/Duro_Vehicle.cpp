@@ -144,7 +144,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     rockerPivL->SetNameString("rockerPivotL");
     rockerPivL->Initialize(
         rockerArmL, m_chassis->GetBody(),
-        ChFrame<>(p3L, m_chassis->GetBody()->GetFrameRefToAbs().GetRot() * QuatFromAngleX(CH_C_PI_2)));
+        ChFrame<>(p3L, m_chassis->GetBody()->GetFrameRefToAbs().GetRot() * QuatFromAngleX(CH_PI_2)));
     m_chassis->GetSystem()->AddLink(rockerPivL);
 
     AddVisualizationLink(rockerArmL, p2L, p4L, 0.03, ChColor(0.8f, 0.2f, 0.2f));
@@ -163,7 +163,7 @@ void Duro_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFwdV
     rockerPivR->SetNameString("rockerPivotR");
     rockerPivR->Initialize(
         rockerArmR, m_chassis->GetBody(),
-        ChFrame<>(p3R, m_chassis->GetBody()->GetFrameRefToAbs().GetRot() * QuatFromAngleX(CH_C_PI_2)));
+        ChFrame<>(p3R, m_chassis->GetBody()->GetFrameRefToAbs().GetRot() * QuatFromAngleX(CH_PI_2)));
     m_chassis->GetSystem()->AddLink(rockerPivR);
 
     AddVisualizationLink(rockerArmR, p2R, p4R, 0.03, ChColor(0.8f, 0.2f, 0.2f));

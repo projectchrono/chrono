@@ -78,10 +78,10 @@ void ChLinkLockScrew::UpdateState() {
         msign = +1;
         zangle = asin(Crz);
         if (relM.rot.e0() < 0) {
-            zangle = CH_C_PI - zangle;
+            zangle = CH_PI - zangle;
             msign = -1;
         }
-        double mrelz = relM.pos.z();  // fmod (relM.pos.z() , (tau * 2 * CH_C_PI));
+        double mrelz = relM.pos.z();  // fmod (relM.pos.z() , (tau * 2 * CH_PI));
 
         scr_C = mrelz - tau * 2.0 * zangle;
         // modulus correction..

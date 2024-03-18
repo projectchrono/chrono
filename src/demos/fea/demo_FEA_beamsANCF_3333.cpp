@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
             double tc = 2;
             double Fz = Fmax;
             if (t < tc) {
-                Fz = 0.5 * Fmax * (1 - cos(CH_C_PI * t / tc));
+                Fz = 0.5 * Fmax * (1 - cos(CH_PI * t / tc));
             }
 
             F.setZero();

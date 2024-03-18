@@ -58,7 +58,7 @@ void AddBody(ChSystemMulticoreNSC* sys) {
     bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector3d(0, 0, 0));
-    bin->SetRot(QuatFromAngleY(-45 * CH_C_DEG_TO_RAD));
+    bin->SetRot(QuatFromAngleY(-45 * CH_DEG_TO_RAD));
     bin->EnableCollision(true);
     bin->SetFixed(true);
 

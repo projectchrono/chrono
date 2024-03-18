@@ -226,12 +226,12 @@ int main(int argc, char* argv[]) {
 
     // Attach visualization assets.
     auto cyl_p = chrono_types::make_shared<ChVisualShapeCylinder>(r_pend, 2 * hlen_pend);
-    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     // Translational joint ground-cart
     // -------------------------------
     auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic->Initialize(ground, cart, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_C_PI_2)));
+    prismatic->Initialize(ground, cart, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_PI_2)));
     sys.AddLink(prismatic);
 
     // Revolute joint cart-pendulum

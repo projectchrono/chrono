@@ -126,7 +126,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetFromSpecfile(const std::string& sp
 
     auto material = chrono_types::make_shared<ChContactMaterialSMC>();
     double coh_pressure = d["Material properties"]["Cohesion pressure"].GetDouble();
-    double coh_force = CH_C_PI * m_radius_g * m_radius_g * coh_pressure;
+    double coh_force = CH_PI * m_radius_g * m_radius_g * coh_pressure;
 
     material->SetFriction(d["Material properties"]["Coefficient of friction"].GetDouble());
     material->SetRestitution(d["Material properties"]["Coefficient of restitution"].GetDouble());
@@ -558,7 +558,7 @@ double ChVehicleCosimTerrainNodeGranularGPU::CalculatePackingDensity(double& dep
     double Vt = m_dimX * m_dimY * (z_max - z_min);
 
     // Find volume of granular particles
-    double Vs = m_num_particles * (4.0 / 3) * CH_C_PI * std::pow(m_radius_g, 3);
+    double Vs = m_num_particles * (4.0 / 3) * CH_PI * std::pow(m_radius_g, 3);
 
     // Packing density = Vs/Vt
     return Vs / Vt;

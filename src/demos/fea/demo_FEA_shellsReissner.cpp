@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
                                        nodearray[(il) * (nels_W + 1) + (iw - 1)], nodearray[(il) * (nels_W + 1) + (iw)],
                                        nodearray[(il - 1) * (nels_W + 1) + (iw)]);
 
-                    melement->AddLayer(rect_thickness, 0 * CH_C_DEG_TO_RAD, mat);
+                    melement->AddLayer(rect_thickness, 0 * CH_DEG_TO_RAD, mat);
 
                     elarray[(il - 1) * (nels_W) + (iw - 1)] = melement;
                 }
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
         // applied load
         // load_force = ChVector3d(200000,0, 20000);
         load_force = ChVector3d(0, 4, 0);
-        // load_torque = ChVector3d(0, 0, 50*CH_C_PI/3.0);
+        // load_torque = ChVector3d(0, 0, 50*CH_PI/3.0);
 
         // reference solution for (0, 4, 0) shear to plot
         ref_Y.AddPoint(0.10, 1.309);
@@ -208,7 +208,7 @@ int main(int argc, char* argv[]) {
 
         int nels_U = 60;
         int nels_W = 10;
-        double arc = CH_C_2PI * 1;
+        double arc = CH_2PI * 1;
         std::vector<std::shared_ptr<ChElementShellReissner4>> elarray(nels_U * nels_W);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>> nodearray((nels_U + 1) * (nels_W + 1));
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>> nodes_start(nels_W + 1);
@@ -246,7 +246,7 @@ int main(int argc, char* argv[]) {
                                        nodearray[(iu - 1) * (nels_W + 1) + (iw - 1)],
                                        nodearray[(iu) * (nels_W + 1) + (iw - 1)]);
 
-                    melement->AddLayer(plate_thickness, 0 * CH_C_DEG_TO_RAD, mat);
+                    melement->AddLayer(plate_thickness, 0 * CH_DEG_TO_RAD, mat);
 
                     elarray[(iu - 1) * (nels_W) + (iw - 1)] = melement;
                 }
@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
 
         int nels_U = 32;
         int nels_W = 32;
-        double arc = CH_C_PI;
+        double arc = CH_PI;
         std::vector<std::shared_ptr<ChElementShellReissner4>> elarray(nels_U * nels_W);
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>> nodearray((nels_U + 1) * (nels_W + 1));
         std::vector<std::shared_ptr<ChNodeFEAxyzrot>> nodes_start(nels_W + 1);
@@ -358,11 +358,11 @@ int main(int argc, char* argv[]) {
                                        nodearray[(iu - 1) * (nels_W + 1) + (iw - 1)],
                                        nodearray[(iu) * (nels_W + 1) + (iw - 1)]);
 
-                    melement->AddLayer(plate_thickness, 0 * CH_C_DEG_TO_RAD, mat);
+                    melement->AddLayer(plate_thickness, 0 * CH_DEG_TO_RAD, mat);
                     // In case you want to test laminated shells, do instead:
-                    //  melement->AddLayer(plate_thickness/3, 0 * CH_C_DEG_TO_RAD, mat_ortho);
-                    //  melement->AddLayer(plate_thickness/3, 90 * CH_C_DEG_TO_RAD, mat_ortho);
-                    //  melement->AddLayer(plate_thickness/3, 0 * CH_C_DEG_TO_RAD, mat_ortho);
+                    //  melement->AddLayer(plate_thickness/3, 0 * CH_DEG_TO_RAD, mat_ortho);
+                    //  melement->AddLayer(plate_thickness/3, 90 * CH_DEG_TO_RAD, mat_ortho);
+                    //  melement->AddLayer(plate_thickness/3, 0 * CH_DEG_TO_RAD, mat_ortho);
 
                     elarray[(iu - 1) * (nels_W) + (iw - 1)] = melement;
                 }

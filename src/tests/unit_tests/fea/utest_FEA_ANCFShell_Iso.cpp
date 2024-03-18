@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
         element->SetDimensions(dx, dy);
 
         // Add a single layers with a fiber angle of 0 degrees.
-        element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
+        element->AddLayer(dz, 0 * CH_DEG_TO_RAD, mat);
 
         // Set other element properties
         element->SetAlphaDamp(0.08);  // Structural damping for this element

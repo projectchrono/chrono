@@ -117,8 +117,8 @@ mmaterial.SetDensity(1000)
 for i in range(4) :
     try :
         cdown = chrono.ChCoordsysd(chrono.ChVector3d(0, -0.4, 0))
-        crot = chrono.ChCoordsysd(chrono.VNULL, chrono.QuatFromAngleAxis(chrono.CH_C_2PI * chrono.ChRandom.Get(), chrono.VECT_Y) * 
-                                                chrono.QuatFromAngleAxis(chrono.CH_C_PI_2, chrono.VECT_X))
+        crot = chrono.ChCoordsysd(chrono.VNULL, chrono.QuatFromAngleAxis(chrono.CH_2PI * chrono.ChRandom.Get(), chrono.VECT_Y) * 
+                                                chrono.QuatFromAngleAxis(chrono.CH_PI_2, chrono.VECT_X))
         cydisp = chrono.ChCoordsysd(chrono.ChVector3d(-0.3, 0.1 + i * 0.1, -0.3))
         ctot = cydisp.TransformLocalToParent(crot.TransformLocalToParent(cdown))
         mrot = chrono.ChMatrix33d(ctot.rot)

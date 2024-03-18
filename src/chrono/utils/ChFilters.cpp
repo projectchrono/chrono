@@ -223,7 +223,7 @@ void ChButterworth_Lowpass::Config(unsigned int nPoles, double step, double fc) 
     const unsigned int nPolesMax = 6;
 
     m_Ts = step;
-    double wc = fc * CH_C_2PI;
+    double wc = fc * CH_2PI;
 
     if (nPoles < nPolesMin) {
         nPoles = 1;
@@ -242,11 +242,11 @@ void ChButterworth_Lowpass::Config(unsigned int nPoles, double step, double fc) 
     m_Q.resize(m_n_biquad);
     if (m_n_single == 1) {
         for (unsigned int k = 1; k <= (nPoles - 1) / 2; k++) {
-            m_Q[k - 1] = -2.0 * cos(CH_C_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
+            m_Q[k - 1] = -2.0 * cos(CH_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
         }
     } else {
         for (unsigned int k = 1; k <= nPoles / 2; k++) {
-            m_Q[k - 1] = -2.0 * cos(CH_C_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
+            m_Q[k - 1] = -2.0 * cos(CH_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
         }
     }
 
@@ -338,7 +338,7 @@ void ChButterworth_Highpass::Config(unsigned int nPoles, double step, double fc)
     const unsigned int nPolesMax = 6;
 
     m_Ts = step;
-    double wc = fc * CH_C_2PI;
+    double wc = fc * CH_2PI;
 
     if (nPoles < nPolesMin) {
         nPoles = 1;
@@ -357,11 +357,11 @@ void ChButterworth_Highpass::Config(unsigned int nPoles, double step, double fc)
     m_Q.resize(m_n_biquad);
     if (m_n_single == 1) {
         for (unsigned int k = 1; k <= (nPoles - 1) / 2; k++) {
-            m_Q[k - 1] = -2.0 * cos(CH_C_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
+            m_Q[k - 1] = -2.0 * cos(CH_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
         }
     } else {
         for (unsigned int k = 1; k <= nPoles / 2; k++) {
-            m_Q[k - 1] = -2.0 * cos(CH_C_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
+            m_Q[k - 1] = -2.0 * cos(CH_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
         }
     }
 
@@ -445,7 +445,7 @@ void ChISO2631_1_AVTransition::Config(double step, double f4, double Q4) {
     // Standard Bilinear Transform
     m_Ts = step;
     m_wc3 = 0.0;
-    m_wc4 = CH_C_2PI * f4;
+    m_wc4 = CH_2PI * f4;
     m_Q4 = Q4;
 
     m_b0 = m_Q4 * m_Ts * m_Ts * m_wc4 * m_wc4;
@@ -469,8 +469,8 @@ void ChISO2631_1_AVTransition::Config(double step, double f4, double Q4) {
 
 void ChISO2631_1_AVTransition::Config(double step, double f3, double f4, double Q4) {
     m_Ts = step;
-    m_wc3 = CH_C_2PI * f3;
-    m_wc4 = CH_C_2PI * f4;
+    m_wc3 = CH_2PI * f3;
+    m_wc4 = CH_2PI * f4;
     m_Q4 = Q4;
 
     m_b0 = m_Q4 * m_Ts * m_wc4 * m_wc4 * (m_Ts * m_wc3 + 2.0);
@@ -520,8 +520,8 @@ ChISO2631_1_UpwardStep::ChISO2631_1_UpwardStep(double step, double f5, double f6
 void ChISO2631_1_UpwardStep::Config(double step, double f5, double f6, double Q5, double Q6) {
     m_Ts = step;
 
-    m_wc5 = CH_C_2PI * f5;
-    m_wc6 = CH_C_2PI * f6;
+    m_wc5 = CH_2PI * f5;
+    m_wc6 = CH_2PI * f6;
     m_Q5 = Q5;
     m_Q6 = Q6;
 

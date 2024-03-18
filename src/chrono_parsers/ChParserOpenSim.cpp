@@ -745,7 +745,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             new_cyl.rad = .02;
             new_cyl.hlen = (p1 - p2).Length() / 2;
             new_cyl.pos = (p2 - p1) / 2;
-            new_cyl.rot = rot.GetQuaternion() * QuatFromAngleY(-CH_C_PI / 2);
+            new_cyl.rot = rot.GetQuaternion() * QuatFromAngleY(-CH_PI / 2);
             body_collision_info[parent->GetName()].cylinders.push_back(new_cyl);
         }
 
@@ -763,7 +763,7 @@ void ChParserOpenSim::initShapes(rapidxml::xml_node<>* node, ChSystem& system) {
             new_cyl.rad = .02;
             new_cyl.hlen = (p2 - p1).Length() / 2;
             new_cyl.pos = (p1 - p2) / 2;
-            new_cyl.rot = rot.GetQuaternion() * QuatFromAngleY(-CH_C_PI / 2);
+            new_cyl.rot = rot.GetQuaternion() * QuatFromAngleY(-CH_PI / 2);
             body_collision_info[child->GetName()].cylinders.push_back(new_cyl);
         }
 

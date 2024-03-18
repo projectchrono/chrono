@@ -110,7 +110,7 @@ void ChTMsimpleTire::Synchronize(double time, const ChTerrain& terrain) {
     // Calculate tire kinematics
     CalculateKinematics(wheel_state, m_data.frame);
 
-    m_states.gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_C_DEG_TO_RAD, m_gamma_limit * CH_C_DEG_TO_RAD);
+    m_states.gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_DEG_TO_RAD, m_gamma_limit * CH_DEG_TO_RAD);
 
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
@@ -278,7 +278,7 @@ void ChTMsimpleTire::TMcombinedForces(double& fx, double& fy, double sx, double 
     double Qcrit = Fs / F_max;
     ChClampValue(Qcrit, -1.0, 1.0);
     double K = F_max;
-    double B = CH_C_PI - asin(Qcrit);
+    double B = CH_PI - asin(Qcrit);
     double A = K * B / dF0;
     double Fa = K * sin(B * (1.0 - exp(-s / A)));
 

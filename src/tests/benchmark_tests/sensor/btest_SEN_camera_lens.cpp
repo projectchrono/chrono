@@ -168,12 +168,12 @@ int main(int argc, char* argv[]) {
     double z_min = -0.4;
     double z_max = 0.4;
 
-    double ax_min = -CH_C_PI / 6;
-    double ax_max = CH_C_PI / 6;
-    double ay_min = -CH_C_PI / 6;
-    double ay_max = CH_C_PI / 6;
-    double az_min = -CH_C_PI / 6;
-    double az_max = CH_C_PI / 6;
+    double ax_min = -CH_PI / 6;
+    double ax_max = CH_PI / 6;
+    double ay_min = -CH_PI / 6;
+    double ay_max = CH_PI / 6;
+    double az_min = -CH_PI / 6;
+    double az_max = CH_PI / 6;
 
     while (ch_time < end_time) {
         // Update sensor manager

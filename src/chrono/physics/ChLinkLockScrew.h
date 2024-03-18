@@ -42,8 +42,8 @@ class ChApi ChLinkLockScrew : public ChLinkLock {
 
     double GetTransmissionRatio() const { return tau; };
     void SetTransmissionRatio(double mset) { tau = mset; }
-    double GetThread() const { return tau * (2 * CH_C_PI); };
-    void SetThread(double mset) { tau = mset / (2 * CH_C_PI); }
+    double GetThread() const { return tau * (2 * CH_PI); };
+    void SetThread(double mset) { tau = mset / (2 * CH_PI); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

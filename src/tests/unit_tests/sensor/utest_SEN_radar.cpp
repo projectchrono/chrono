@@ -79,9 +79,9 @@ TEST(ChRadarSensor, check_velocity) {
 //    // Create a radar and add it to the sensor manager
 //    // -----------------------------------------------
 //    auto offset_pose = chrono::ChFrame<double>({0, 0, 1}, QuatFromAngleZ(0));
-//    float horizontal_fov = CH_C_PI / 10;
-//    float max_vert_angle = CH_C_PI / 10;
-//    float min_vert_angle = -CH_C_PI / 10;
+//    float horizontal_fov = CH_PI / 10;
+//    float max_vert_angle = CH_PI / 10;
+//    float min_vert_angle = -CH_PI / 10;
 //
 //    auto radar = chrono_types::make_shared<ChRadarSensor>(floor, 10.0f, offset_pose, 20, 20, horizontal_fov,
 //                                                          max_vert_angle, min_vert_angle, 100.0f);

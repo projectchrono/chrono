@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     ref_test_name = "Cylindrical_Case02";
 
     chrono_test_name = "Lock" + ref_test_name;
-    TestCylindrical(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_C_PI_2), eChLinkFormulation::Lock, sim_step, out_step, chrono_test_name);
+    TestCylindrical(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_PI_2), eChLinkFormulation::Lock, sim_step, out_step, chrono_test_name);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Pos", 1e-2);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Acc", 2e-2);
@@ -129,7 +129,7 @@ int main(int argc, char* argv[]) {
     test_passed &= ValidateConstraints(chrono_test_name, 1e-5);
 
     chrono_test_name = "Mate" + ref_test_name;
-    TestCylindrical(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_C_PI_2), eChLinkFormulation::Mate, sim_step, out_step, chrono_test_name);
+    TestCylindrical(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_PI_2), eChLinkFormulation::Mate, sim_step, out_step, chrono_test_name);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Pos", 1e-2);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Acc", 2e-2);
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
     ref_test_name = "Cylindrical_Case03";
     
     chrono_test_name = "Lock" + ref_test_name;
-    TestCylindrical(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_C_PI_4), eChLinkFormulation::Lock, sim_step, out_step, chrono_test_name);
+    TestCylindrical(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_PI_4), eChLinkFormulation::Lock, sim_step, out_step, chrono_test_name);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Pos", 1e-2);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Acc", 2e-2);
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
     test_passed &= ValidateConstraints(chrono_test_name, 1e-5);
 
     chrono_test_name = "Mate" + ref_test_name;
-    TestCylindrical(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_C_PI_4), eChLinkFormulation::Mate, sim_step, out_step, chrono_test_name);
+    TestCylindrical(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_PI_4), eChLinkFormulation::Mate, sim_step, out_step, chrono_test_name);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Pos", 1e-2);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Acc", 2e-2);

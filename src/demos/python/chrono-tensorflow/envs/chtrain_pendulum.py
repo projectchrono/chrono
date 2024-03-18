@@ -42,7 +42,7 @@ class Model(object):
       self.radius_rod = 0.05
       self.density_rod = 50;    # kg/m^3
 
-      self.mass_rod = self.density_rod * self.size_rod_y *chrono.CH_C_PI* (self.radius_rod**2);  
+      self.mass_rod = self.density_rod * self.size_rod_y *chrono.CH_PI* (self.radius_rod**2);  
       self.inertia_rod_y = (self.radius_rod**2) * self.mass_rod/2;
       self.inertia_rod_x = (self.mass_rod/12)*((self.size_rod_y**2)+3*(self.radius_rod**2))
       
@@ -121,7 +121,7 @@ class Model(object):
 
       self.link_slider = chrono.ChLinkLockPrismatic()
       z2x = chrono.ChQuaterniond()
-      z2x.SetFromAngleAxis(-chrono.CH_C_PI / 2 , chrono.ChVector3d(0, 1, 0))
+      z2x.SetFromAngleAxis(-chrono.CH_PI / 2 , chrono.ChVector3d(0, 1, 0))
 
       self.link_slider.Initialize(self.body_table, self.body_floor, chrono.ChFramed(chrono.ChVector3d(0, 0, 0), z2x))
       self.rev_pend_sys.Add(self.link_slider)

@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
     vis.SetCameraVertical(CameraVerticalDir::Z);
     vis.SetCameraAngleDeg(40.0);
     vis.SetLightIntensity(1.0f);
-    vis.SetLightDirection(CH_C_PI_2, CH_C_PI_4);
+    vis.SetLightDirection(CH_PI_2, CH_PI_4);
 
     // Attach the custom event receiver (use key 'U' to trigger a vehicle update)
     auto kbhandler = chrono_types::make_shared<KeyboardHandlerVSG>(vehicle, is_wheeled);

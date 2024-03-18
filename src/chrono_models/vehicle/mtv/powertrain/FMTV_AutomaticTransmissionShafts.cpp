@@ -48,7 +48,7 @@ void FMTV_AutomaticTransmissionShafts::SetGearRatios(std::vector<double>& fwd, d
 }
 
 void FMTV_AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunctionInterp>& map) {
-    double rpm_to_radsec = CH_C_2PI / 60.;
+    double rpm_to_radsec = CH_2PI / 60.;
 
     map->AddPoint(-100.0 * rpm_to_radsec, 200.00);
     map->AddPoint(0 * rpm_to_radsec, 200.00);

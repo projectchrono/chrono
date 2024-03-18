@@ -59,8 +59,8 @@ class ChApi ChBeamSectionCable : public ChBeamSection {
     /// given the diameter of the beam assumed
     /// with circular shape.
     void SetDiameter(double diameter) {
-        this->Area = CH_C_PI * pow((0.5 * diameter), 2);
-        this->I = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
+        this->Area = CH_PI * pow((0.5 * diameter), 2);
+        this->I = (CH_PI / 4.0) * pow((0.5 * diameter), 4);
 
         this->SetDrawCircularRadius(diameter / 2);
     }

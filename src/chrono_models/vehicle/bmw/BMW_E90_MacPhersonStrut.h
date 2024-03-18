@@ -54,7 +54,7 @@ class CH_MODELS_API BMW_E90_MacPhersonStrut : public ChMacPhersonStrut {
     // Implementation of virtual methods imposed by the base class ChMacPhersonStrut
     virtual const ChVector3d getLocation(PointId which) override;
 
-    virtual double getCamberAngle() const override { return -2 * CH_C_DEG_TO_RAD; }
+    virtual double getCamberAngle() const override { return -2 * CH_DEG_TO_RAD; }
     virtual double getToeAngle() const override { return 0; }
 
     virtual double getSpindleMass() const override { return m_spindleMass; }

@@ -703,7 +703,7 @@ void ChLinkMatePlanar::SetFlipped(bool doflip) {
     if (doflip != this->m_flipped) {
         // swaps direction of Z axis by flipping 180 deg the frame 1 (slave)
 
-        ChFrame<> frameRotator(VNULL, QuatFromAngleY(CH_C_PI));
+        ChFrame<> frameRotator(VNULL, QuatFromAngleY(CH_PI));
         this->frame1.ConcatenatePostTransformation(frameRotator);
 
         this->m_flipped = doflip;
@@ -768,7 +768,7 @@ void ChLinkMateCylindrical::SetFlipped(bool doflip) {
     if (doflip != m_flipped) {
         // swaps direction of Z axis by flipping 180 deg the frame A (slave)
 
-        ChFrame<> frameRotator(VNULL, QuatFromAngleY(CH_C_PI));
+        ChFrame<> frameRotator(VNULL, QuatFromAngleY(CH_PI));
         this->frame1.ConcatenatePostTransformation(frameRotator);
 
         m_flipped = doflip;
@@ -821,7 +821,7 @@ void ChLinkMateRevolute::SetFlipped(bool doflip) {
     if (doflip != m_flipped) {
         // swaps direction of Z axis by flipping 180 deg the frame A (slave)
 
-        ChFrame<> frameRotator(VNULL, QuatFromAngleY(CH_C_PI));
+        ChFrame<> frameRotator(VNULL, QuatFromAngleY(CH_PI));
         this->frame1.ConcatenatePostTransformation(frameRotator);
 
         m_flipped = doflip;
@@ -843,7 +843,7 @@ double ChLinkMateRevolute::GetRelativeAngle() {
     ChFrame<> F1_W = frame1 >> *m_body1;
     ChFrame<> F2_W = frame2 >> *m_body2;
     ChFrame<> F1_F2 = F2_W.TransformParentToLocal(F1_W);
-    double angle = std::remainder(F1_F2.GetRot().GetRotVec().z(), CH_C_2PI); // NB: assumes rotation along z
+    double angle = std::remainder(F1_F2.GetRot().GetRotVec().z(), CH_2PI); // NB: assumes rotation along z
     return angle;
 }
 
@@ -899,7 +899,7 @@ void ChLinkMatePrismatic::SetFlipped(bool doflip) {
     if (doflip != m_flipped) {
         // swaps direction of Z axis by flipping 180 deg the frame A (slave)
 
-        ChFrame<> frameRotator(VNULL, QuatFromAngleY(CH_C_PI));
+        ChFrame<> frameRotator(VNULL, QuatFromAngleY(CH_PI));
         this->frame1.ConcatenatePostTransformation(frameRotator);
 
         m_flipped = doflip;
@@ -1038,7 +1038,7 @@ void ChLinkMateParallel::SetFlipped(bool doflip) {
     if (doflip != m_flipped) {
         // swaps direction of Z axis by flipping 180 deg the frame 1
 
-        ChFrame<> frameRotator(VNULL, QuatFromAngleY(CH_C_PI));
+        ChFrame<> frameRotator(VNULL, QuatFromAngleY(CH_PI));
         this->frame1.ConcatenatePostTransformation(frameRotator);
 
         m_flipped = doflip;

@@ -194,8 +194,8 @@ while vis.Run() :
 
     # Test for validity of kingpin angles (max.allowed by UAZ: 27deg)
     suspF = veh.CastToChToeBarLeafspringAxle(uaz.GetVehicle().GetSuspension(0))
-    leftAngle = suspF.GetKingpinAngleLeft() * 180.0 / chrono.CH_C_PI
-    rightAngle = suspF.GetKingpinAngleRight() * 180.0 / chrono.CH_C_PI
+    leftAngle = suspF.GetKingpinAngleLeft() * 180.0 / chrono.CH_PI
+    rightAngle = suspF.GetKingpinAngleRight() * 180.0 / chrono.CH_PI
     if abs(leftAngle) > maxKingpinAngle :
         maxKingpinAngle = abs(leftAngle)
     if abs(rightAngle) > maxKingpinAngle :

@@ -86,8 +86,8 @@ TEST(ChronoMulticore, bodyauxref) {
     // Define a couple of rotations for later use
     ChQuaternion<> y2x;
     ChQuaternion<> z2y;
-    y2x.SetFromAngleZ(-CH_C_PI / 2);
-    z2y.SetFromAngleX(-CH_C_PI / 2);
+    y2x.SetFromAngleZ(-CH_PI / 2);
+    z2y.SetFromAngleX(-CH_PI / 2);
 
     // Create the ground body
     auto ground = chrono_types::make_shared<ChBody>();

@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     double sx = 0.1;
     double sz = 0.1;
     for (int e = 0; e < 6; ++e) {
-        double angle = e * (2 * CH_C_PI / 8.0);
+        double angle = e * (2 * CH_PI / 8.0);
         hexpos.z() = 0.3 * cos(angle);
         hexpos.x() = 0.3 * sin(angle);
         ChMatrix33<> hexrot(QuatFromAngleY(angle));

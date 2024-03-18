@@ -65,7 +65,7 @@ class SprocketDoublePinContactCB : public ChSystem::CustomCollisionCallback {
         m_R_sum = (m_shoe_len + 2 * m_shoe_R) + m_gear_RT;
         m_gear_RC = std::sqrt(m_gear_C * m_gear_C + m_gear_W * m_gear_W);
         m_gear_D = m_gear_W - m_gear_R;
-        m_beta = CH_C_2PI / m_gear_nteeth;
+        m_beta = CH_2PI / m_gear_nteeth;
         m_sbeta = std::sin(m_beta / 2);
         m_cbeta = std::cos(m_beta / 2);
 
@@ -484,7 +484,7 @@ std::shared_ptr<ChLinePath> ChSprocketDoublePin::GetProfile() const {
     double R = GetArcRadius();
     double D = W - R;
 
-    double beta = CH_C_2PI / num_teeth;
+    double beta = CH_2PI / num_teeth;
     double sbeta = std::sin(beta / 2);
     double cbeta = std::cos(beta / 2);
 
@@ -519,13 +519,13 @@ std::shared_ptr<ChLinePath> ChSprocketDoublePin::GetProfile() const {
         p3R = rot * p3R;
         p4R = rot * p4R;
 
-        ChLineArc arc1(ChCoordsys<>(p0L), D, alpha + CH_C_PI_2 + beta / 2, alpha + beta / 2);
+        ChLineArc arc1(ChCoordsys<>(p0L), D, alpha + CH_PI_2 + beta / 2, alpha + beta / 2);
         ChLineSegment seg2(p1L, p2L);
-        ChLineArc arc3(ChCoordsys<>(p3L), R, alpha + CH_C_PI + beta / 2, alpha + 1.5 * CH_C_PI, true);
+        ChLineArc arc3(ChCoordsys<>(p3L), R, alpha + CH_PI + beta / 2, alpha + 1.5 * CH_PI, true);
         ChLineSegment seg4(p4L, p4R);
-        ChLineArc arc5(ChCoordsys<>(p3R), R, alpha + 1.5 * CH_C_PI, alpha + CH_C_2PI - beta / 2, true);
+        ChLineArc arc5(ChCoordsys<>(p3R), R, alpha + 1.5 * CH_PI, alpha + CH_2PI - beta / 2, true);
         ChLineSegment seg6(p2R, p1R);
-        ChLineArc arc7(ChCoordsys<>(p0R), D, alpha + CH_C_PI - beta / 2, alpha + CH_C_PI_2 - beta / 2);
+        ChLineArc arc7(ChCoordsys<>(p0R), D, alpha + CH_PI - beta / 2, alpha + CH_PI_2 - beta / 2);
 
         profile->AddSubLine(arc1);
         profile->AddSubLine(seg2);

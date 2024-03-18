@@ -337,10 +337,10 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     if (mode == Mode::TEST && m_ls_actuated) {
         m_lin_motor = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
         m_system->AddLink(m_lin_motor);
-        m_lin_motor->Initialize(m_carrier_body, m_ground_body, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_C_PI_2)));
+        m_lin_motor->Initialize(m_carrier_body, m_ground_body, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_PI_2)));
     } else {
         ChQuaternion<> z2x;
-        z2x.SetFromAngleY(CH_C_PI_2);
+        z2x.SetFromAngleY(CH_PI_2);
         auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
         m_system->AddLink(prismatic);
         prismatic->Initialize(m_carrier_body, m_ground_body, ChFrame<>(VNULL, z2x));
@@ -356,7 +356,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_slip_lock->SetMotionAxis(ChVector3d(0, 0, 1));
 
     ChQuaternion<> z2y;
-    z2y.SetFromAngleX(-CH_C_PI_2 - m_camber_angle);
+    z2y.SetFromAngleX(-CH_PI_2 - m_camber_angle);
     if (mode == Mode::TEST && m_rs_actuated) {
         m_rot_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         m_system->AddLink(m_rot_motor);
@@ -460,7 +460,7 @@ void ChTireTestRig::CreateTerrainGranular() {
 
     auto terrain = chrono_types::make_shared<vehicle::GranularTerrain>(m_system);
 
-    double coh_force = (CH_C_PI * m_params_granular.radius * m_params_granular.radius) * m_params_granular.cohesion;
+    double coh_force = (CH_PI * m_params_granular.radius * m_params_granular.radius) * m_params_granular.cohesion;
     switch (m_system->GetContactMethod()) {
         case ChContactMethod::SMC: {
             auto mat_g = chrono_types::make_shared<ChContactMaterialSMC>();

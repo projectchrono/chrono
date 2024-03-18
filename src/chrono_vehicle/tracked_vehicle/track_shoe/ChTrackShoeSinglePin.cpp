@@ -100,7 +100,7 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
 
     if (track->GetBushingData() || (m_index != 0 && m_index != 1)) {
         // Create and initialize the revolute joint (rotation axis along Z)
-        auto rot = m_shoe->GetRot() * QuatFromAngleX(CH_C_PI_2);
+        auto rot = m_shoe->GetRot() * QuatFromAngleX(CH_PI_2);
         m_joint = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::REVOLUTE, m_name + "_pin",
                                                             next->GetShoeBody(), m_shoe, ChFrame<>(loc, rot),
                                                             track->GetBushingData());
@@ -110,7 +110,7 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
                                                             next->GetShoeBody(), m_shoe, ChFrame<>(loc, QUNIT));
         chassis->AddJoint(m_joint);
     } else if (m_index == 1) {
-        auto rot = m_shoe->GetRot() * QuatFromAngleY(-CH_C_PI_2);
+        auto rot = m_shoe->GetRot() * QuatFromAngleY(-CH_PI_2);
         m_joint = chrono_types::make_shared<ChVehicleJoint>(ChVehicleJoint::Type::UNIVERSAL, m_name + "_univ",
                                                             next->GetShoeBody(), m_shoe, ChFrame<>(loc, rot));
         chassis->AddJoint(m_joint);
@@ -119,7 +119,7 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
     // Optionally, include rotational spring-damper to model track bending stiffness
     // The RSDA frames are aligned with the corresponding body frames and the spring has a default zero rest angle.
     if (track->GetTorqueFunctor()) {
-        ChQuaternion<> z2y = QuatFromAngleX(-CH_C_PI_2);
+        ChQuaternion<> z2y = QuatFromAngleX(-CH_PI_2);
 
         m_rsda = chrono_types::make_shared<ChLinkRSDA>();
         m_rsda->SetNameString(m_name + "_rsda");

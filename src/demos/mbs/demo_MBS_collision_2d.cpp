@@ -54,7 +54,7 @@ int main(int argc, char* argv[]) {
     // Note that the end of one segment must match the beginning of the other.
     // For arcs, the beginning corresponds to angle1, the second to angle2.
     auto mpathcoin = chrono_types::make_shared<ChLinePath>();
-    ChLineArc marcol1(ChCoordsys<>(ChVector3d(0, 0, 0)), 0.5, 0, CH_C_PI);
+    ChLineArc marcol1(ChCoordsys<>(ChVector3d(0, 0, 0)), 0.5, 0, CH_PI);
     ChLineSegment msegcol1(ChVector3d(-0.5, 0, 0), ChVector3d(0.5, 0, 0));
     mpathcoin->AddSubLine(marcol1);
     mpathcoin->AddSubLine(msegcol1);
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     // means 'concave' because for 2d shapes, the 'solid' part of the shape is always ON THE RIGHT
     // side of the curvilinear abscyssa.
     auto mpathhole = chrono_types::make_shared<ChLinePath>();
-    ChLineArc marcol2(ChCoordsys<>(ChVector3d(0, 0, 0)), 1, -CH_C_PI, 0, true);  // true = ccw arc = concave
+    ChLineArc marcol2(ChCoordsys<>(ChVector3d(0, 0, 0)), 1, -CH_PI, 0, true);  // true = ccw arc = concave
     ChLineSegment msegcol2(ChVector3d(1, 0, 0), ChVector3d(2, 0.04, 0));
     mpathhole->AddSubLine(marcol2);
     mpathhole->AddSubLine(msegcol2);
@@ -110,8 +110,8 @@ int main(int argc, char* argv[]) {
     double Li = 0.8;
     ChVector3d geneva_center(-0, 0, 0);
     // compute aux data:
-    double beta = (CH_C_2PI / (double)nstations);  // angle width of station
-    double gamma = 2 * (CH_C_PI_2 - beta / 2);
+    double beta = (CH_2PI / (double)nstations);  // angle width of station
+    double gamma = 2 * (CH_PI_2 - beta / 2);
     double B = R * tan(beta / 2);
     ChVector3d crank_center = ChVector3d(B, R, 0) + geneva_center;
 
@@ -153,8 +153,8 @@ int main(int argc, char* argv[]) {
         mpathwheel->AddSubLine(mseg3);
         mpathwheel->AddSubLine(mseg4);
         mpathwheel->AddSubLine(mseg5);
-        double a1 = alpha + CH_C_PI;
-        double a2 = alpha + CH_C_PI + gamma;
+        double a1 = alpha + CH_PI;
+        double a2 = alpha + CH_PI + gamma;
         ChLineArc marc0(ChCoordsys<>(p7), Ri, a1, a2, true);  // ccw arc bacause concave
         mpathwheel->AddSubLine(marc0);
     }
@@ -183,11 +183,11 @@ int main(int argc, char* argv[]) {
 
     // Create a ChLinePath geometry, and insert sub-paths in clockwise order:
     auto mpathcrankpin = chrono_types::make_shared<ChLinePath>();
-    ChLineArc mpin(ChCoordsys<>(ChVector3d(-B, 0, 0)), wi / 2 - 0.005, CH_C_2PI, 0);
+    ChLineArc mpin(ChCoordsys<>(ChVector3d(-B, 0, 0)), wi / 2 - 0.005, CH_2PI, 0);
     mpathcrankpin->AddSubLine(mpin);
 
     auto mpathcrankstopper = chrono_types::make_shared<ChLinePath>();
-    ChLineArc mstopperarc(ChCoordsys<>(ChVector3d(0, 0, 0)), Ri - 0.005, CH_C_PI - gamma / 2, -CH_C_PI + gamma / 2);
+    ChLineArc mstopperarc(ChCoordsys<>(ChVector3d(0, 0, 0)), Ri - 0.005, CH_PI - gamma / 2, -CH_PI + gamma / 2);
     ChLineSegment mstopperve1(mstopperarc.GetEndB(), ChVector3d(0, 0, 0));
     ChLineSegment mstopperve2(ChVector3d(0, 0, 0), mstopperarc.GetEndA());
     mpathcrankstopper->AddSubLine(mstopperarc);
@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
     // .. a motor between crank and truss
     auto my_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_motor->Initialize(mcrank, mfloor, ChFrame<>(crank_center));
-    my_motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_C_PI / 8.0));
+    my_motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_PI / 8.0));
     sys.AddLink(my_motor);
 
     // Create the Irrlicht visualization system

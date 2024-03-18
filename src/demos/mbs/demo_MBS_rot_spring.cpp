@@ -57,8 +57,8 @@ int main(int argc, char* argv[]) {
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // ChQuaternion<> rev_rot = QUNIT;
-    ChQuaternion<> rev_rot = QuatFromAngleX(CH_C_PI / 6.0);
-    // ChQuaternion<> rev_rot = QuatFromAngleX(CH_C_PI / 2.0);
+    ChQuaternion<> rev_rot = QuatFromAngleX(CH_PI / 6.0);
+    // ChQuaternion<> rev_rot = QuatFromAngleX(CH_PI / 2.0);
 
     ChVector3d rev_dir = rev_rot.GetAxisZ();
 
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
 
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, 1.5);
     cyl->SetColor(ChColor(0.7f, 0.8f, 0.8f));
-    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(-0.75, 0, 0), QuatFromAngleY(CH_C_PI_2)));
+    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(-0.75, 0, 0), QuatFromAngleY(CH_PI_2)));
 
     // Create revolute joint between body and ground
     auto rev = chrono_types::make_shared<ChLinkLockRevolute>();
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
     // Create the rotational spring between body and ground
     double spring_coef = 40;
     double damping_coef = 2;
-    double rest_angle = CH_C_PI / 6;
+    double rest_angle = CH_PI / 6;
 
     auto torque_functor = chrono_types::make_shared<MySpringTorque>(spring_coef, damping_coef);
     auto spring = chrono_types::make_shared<ChLinkRSDA>();

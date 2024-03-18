@@ -61,7 +61,7 @@ void ChTrackedVehicleVisualSystemIrrlicht::renderOtherStats(int left, int top) {
     char msg[100];
 
     auto driveline = m_tvehicle->GetDriveline();
-    double toRPM = 30 / CH_C_PI;
+    double toRPM = 30 / CH_PI;
 
     double shaft_speed = driveline->GetOutputDriveshaftSpeed() * toRPM;
     snprintf(msg, sizeof(msg), "Driveshaft (RPM): %+.2f", shaft_speed);

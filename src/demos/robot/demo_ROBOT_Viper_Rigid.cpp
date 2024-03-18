@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachSystem(&sys);
             vis_vsg->AddCamera(ChVector3d(3, 3, 1));
             vis_vsg->SetWindowTitle("Viper Rover on Rigid Terrain");
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
 
         // Set current steering angle
         double time = viper.GetSystem()->GetChTime();
-        double max_steering = CH_C_PI / 6;
+        double max_steering = CH_PI / 6;
         double steering = 0;
         if (time > 2 && time < 7)
             steering = max_steering * (time - 2) / 5;
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
             steering = max_steering * (12 - time) / 5;
         driver->SetSteering(steering);
 
-        ////double max_lifting = CH_C_PI / 8;
+        ////double max_lifting = CH_PI / 8;
         ////double lifting = 0;
         ////if (time > 1 && time < 2)
         ////    lifting = max_lifting * (time - 1);

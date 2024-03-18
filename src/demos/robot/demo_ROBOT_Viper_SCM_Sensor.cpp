@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
 
         // set the abs orientation, position and velocity
         auto rock_Body = chrono_types::make_shared<ChBodyAuxRef>();
-        ChQuaternion<> rock_rot = QuatFromAngleX(CH_C_PI / 2);
+        ChQuaternion<> rock_rot = QuatFromAngleX(CH_PI / 2);
         ChVector3d rock_pos;
 
         // predefined customized location
@@ -412,8 +412,8 @@ int main(int argc, char* argv[]) {
                                                           offset_pose,                    // offset pose
                                                           480,                   // number of horizontal samples
                                                           300,                   // number of vertical channels
-                                                          (float)(2 * CH_C_PI),  // horizontal field of view
-                                                          (float)CH_C_PI / 12, (float)-CH_C_PI / 3,
+                                                          (float)(2 * CH_PI),  // horizontal field of view
+                                                          (float)CH_PI / 12, (float)-CH_PI / 3,
                                                           140.0f  // vertical field of view
     );
     lidar->SetName("Lidar Sensor 1");
@@ -437,7 +437,7 @@ int main(int argc, char* argv[]) {
 
     // Create a radar and attach to rover chassis
     auto radar = chrono_types::make_shared<ChRadarSensor>(viper.GetChassis()->GetBody(), 50, offset_pose, 240, 120,
-                                                          (float)(CH_C_PI / 1.5), float(CH_C_PI / 5), 100.f);
+                                                          (float)(CH_PI / 1.5), float(CH_PI / 5), 100.f);
     radar->SetName("Radar Sensor");
     radar->SetLag(0.f);
     radar->SetCollectionWindow(0.02f);

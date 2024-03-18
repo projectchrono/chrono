@@ -46,7 +46,7 @@ ChQuaternion<> initRot(1, 0, 0, 0);
 BrakeType brake_type = BrakeType::SHAFTS;
 
 // Terrain slope (radians)
-double slope = 20 * CH_C_DEG_TO_RAD;
+double slope = 20 * CH_DEG_TO_RAD;
 
 // Set speed (m/s)
 double target_speed = 4;

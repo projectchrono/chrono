@@ -62,7 +62,7 @@ unsigned int image_width = 1280;
 unsigned int image_height = 720;
 
 // Camera's horizontal field of view
-float fov = (float)CH_C_PI / 2.;
+float fov = (float)CH_PI / 2.;
 
 // Lag (in seconds) between sensing and when data becomes accessible
 float lag = .05f;
@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
     //double box1_height = 2.5;
     //auto box1 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, box1_height, 1000, true, false);
     //box1->SetPos({.75, .75, box1_height / 2});
-    //box1->SetRot(QuatFromAngleZ(CH_C_PI / 3));
+    //box1->SetRot(QuatFromAngleZ(CH_PI / 3));
     //box1->SetFixed(true);
     //sys.Add(box1);
     // box1->GetVisualModel()->GetShapes()[0].first->AddMaterial(grey);
@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
     //double box2_height = 1.5;
     //auto box2 = chrono_types::make_shared<ChBodyEasyBox>(1, 1, box2_height, 1000, true, false);
     //box2->SetPos({-.75, -.75, box2_height / 2});
-    //box2->SetRot(QuatFromAngleZ(-CH_C_PI / 3));
+    //box2->SetRot(QuatFromAngleZ(-CH_PI / 3));
     //box2->SetFixed(true);
     //sys.Add(box2);
     // box2->GetVisualModel()->GetShapes()[0].first->AddMaterial(grey);

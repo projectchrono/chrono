@@ -549,7 +549,7 @@ int main(int argc, char* argv[]) {
         auto my_motor = chrono_types::make_shared<ChShaftsMotorAngle>();
         my_motor->Initialize(my_shaftA, my_shaftB);
         sys.Add(my_motor);
-        auto my_sinefunction = chrono_types::make_shared<ChFunctionSine>(0.001 + 0.5 * CH_C_2PI / 20, 1.2);
+        auto my_sinefunction = chrono_types::make_shared<ChFunctionSine>(0.001 + 0.5 * CH_2PI / 20, 1.2);
         my_motor->SetAngleFunction(my_sinefunction);
 
         // Make the freewheel:

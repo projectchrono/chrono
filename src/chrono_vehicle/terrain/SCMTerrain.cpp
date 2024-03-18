@@ -156,7 +156,7 @@ void SCMTerrain::SetSoilParameters(
     m_loader->m_Bekker_Kc = Bekker_Kc;
     m_loader->m_Bekker_n = Bekker_n;
     m_loader->m_Mohr_cohesion = Mohr_cohesion;
-    m_loader->m_Mohr_mu = std::tan(Mohr_friction * CH_C_DEG_TO_RAD);
+    m_loader->m_Mohr_mu = std::tan(Mohr_friction * CH_DEG_TO_RAD);
     m_loader->m_Janosi_shear = Janosi_shear;
     m_loader->m_elastic_K = std::max(elastic_K, Bekker_Kphi);
     m_loader->m_damping_R = damping_R;
@@ -175,7 +175,7 @@ void SCMTerrain::SetBulldozingParameters(
     int erosion_propagations  // number of concentric vertex selections subject to erosion
 ) {
     m_loader->m_flow_factor = flow_factor;
-    m_loader->m_erosion_slope = std::tan(erosion_angle * CH_C_DEG_TO_RAD);
+    m_loader->m_erosion_slope = std::tan(erosion_angle * CH_DEG_TO_RAD);
     m_loader->m_erosion_iterations = erosion_iterations;
     m_loader->m_erosion_propagations = erosion_propagations;
 }
@@ -352,7 +352,7 @@ SCMContactableData::SCMContactableData(double area_ratio,
                                        double Janosi_shear)
     : area_ratio(area_ratio),
       Mohr_cohesion(Mohr_cohesion),
-      Mohr_mu(std::tan(Mohr_friction * CH_C_DEG_TO_RAD)),
+      Mohr_mu(std::tan(Mohr_friction * CH_DEG_TO_RAD)),
       Janosi_shear(Janosi_shear) {}
 
 // -----------------------------------------------------------------------------
@@ -377,7 +377,7 @@ SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nul
     // Bulldozing effects
     m_bulldozing = false;
     m_flow_factor = 1.2;
-    m_erosion_slope = std::tan(40.0 * CH_C_DEG_TO_RAD);
+    m_erosion_slope = std::tan(40.0 * CH_DEG_TO_RAD);
     m_erosion_iterations = 3;
     m_erosion_propagations = 10;
 
@@ -386,7 +386,7 @@ SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nul
     m_Bekker_Kc = 0;
     m_Bekker_n = 1.1;
     m_Mohr_cohesion = 50;
-    m_Mohr_mu = std::tan(20.0 * CH_C_DEG_TO_RAD);
+    m_Mohr_mu = std::tan(20.0 * CH_DEG_TO_RAD);
     m_Janosi_shear = 0.01;
     m_elastic_K = 50000000;
     m_damping_R = 0;
@@ -1349,7 +1349,7 @@ void SCMLoader::ComputeInternalForces() {
             double Mohr_friction;
             m_soil_fun->Set(hit_point_loc, Bekker_Kphi, Bekker_Kc, Bekker_n, Mohr_cohesion, Mohr_friction, Janosi_shear,
                             elastic_K, damping_R);
-            Mohr_mu = std::tan(Mohr_friction * CH_C_DEG_TO_RAD);
+            Mohr_mu = std::tan(Mohr_friction * CH_DEG_TO_RAD);
         }
 
         nr.hit_level = hit_point_loc.z();                              // along SCM z axis

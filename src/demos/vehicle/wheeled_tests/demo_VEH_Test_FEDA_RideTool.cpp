@@ -266,7 +266,7 @@ void RunTest(double speed,
             vis_vsg->AttachVehicle(&my_feda.GetVehicle());
             vis_vsg->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 12.0, 0.5);
             vis_vsg->SetWindowSize(1200, 800);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
 
             vis = vis_vsg;

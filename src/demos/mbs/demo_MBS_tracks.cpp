@@ -142,12 +142,12 @@ class MySimpleTank {
 
         sys.Add(wheelRF);
         wheelRF->SetPos(ChVector3d(mx + passo, my + radiustrack, 0));
-        wheelRF->SetRot(QuatFromAngleX(CH_C_PI / 2));
+        wheelRF->SetRot(QuatFromAngleX(CH_PI / 2));
         wheelRF->SetMass(9.0);
         wheelRF->SetInertiaXX(ChVector3d(1.2, 1.2, 1.2));
 
-        wheelRF->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displA, QuatFromAngleX(CH_C_PI_2)));
-        wheelRF->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displB, QuatFromAngleX(CH_C_PI_2)));
+        wheelRF->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displA, QuatFromAngleX(CH_PI_2)));
+        wheelRF->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displB, QuatFromAngleX(CH_PI_2)));
         wheelRF->EnableCollision(true);
 
         wheelRF->GetVisualShape(0)->SetMaterial(0, wheel_mat_vis);
@@ -172,12 +172,12 @@ class MySimpleTank {
 
         sys.Add(wheelLF);
         wheelLF->SetPos(ChVector3d(mx + passo, my + radiustrack, rlwidth));
-        wheelLF->SetRot(QuatFromAngleX(CH_C_PI / 2));
+        wheelLF->SetRot(QuatFromAngleX(CH_PI / 2));
         wheelLF->SetMass(9.0);
         wheelLF->SetInertiaXX(ChVector3d(1.2, 1.2, 1.2));
 
-        wheelLF->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displA, QuatFromAngleX(CH_C_PI_2)));
-        wheelLF->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displB, QuatFromAngleX(CH_C_PI_2)));
+        wheelLF->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displA, QuatFromAngleX(CH_PI_2)));
+        wheelLF->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displB, QuatFromAngleX(CH_PI_2)));
         wheelLF->EnableCollision(true);
 
         wheelLF->GetVisualShape(0)->SetMaterial(0, wheel_mat_vis);
@@ -203,12 +203,12 @@ class MySimpleTank {
 
         sys.Add(wheelRB);
         wheelRB->SetPos(ChVector3d(mx, my + radiustrack, 0));
-        wheelRB->SetRot(QuatFromAngleX(CH_C_PI / 2));
+        wheelRB->SetRot(QuatFromAngleX(CH_PI / 2));
         wheelRB->SetMass(9.0);
         wheelRB->SetInertiaXX(ChVector3d(1.2, 1.2, 1.2));
 
-        wheelRB->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displA, QuatFromAngleX(CH_C_PI_2)));
-        wheelRB->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displB, QuatFromAngleX(CH_C_PI_2)));
+        wheelRB->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displA, QuatFromAngleX(CH_PI_2)));
+        wheelRB->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displB, QuatFromAngleX(CH_PI_2)));
         wheelRB->EnableCollision(true);
 
         wheelRB->GetVisualShape(0)->SetMaterial(0, wheel_mat_vis);
@@ -235,12 +235,12 @@ class MySimpleTank {
 
         sys.Add(wheelLB);
         wheelLB->SetPos(ChVector3d(mx, my + radiustrack, rlwidth));
-        wheelLB->SetRot(QuatFromAngleX(CH_C_PI / 2));
+        wheelLB->SetRot(QuatFromAngleX(CH_PI / 2));
         wheelLB->SetMass(9.0);
         wheelLB->SetInertiaXX(ChVector3d(1.2, 1.2, 1.2));
 
-        wheelLB->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displA, QuatFromAngleX(CH_C_PI_2)));
-        wheelLB->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displB, QuatFromAngleX(CH_C_PI_2)));
+        wheelLB->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displA, QuatFromAngleX(CH_PI_2)));
+        wheelLB->AddCollisionShape(wheel_shape, ChFrame<>(cyl_displB, QuatFromAngleX(CH_PI_2)));
         wheelLB->EnableCollision(true);
 
         wheelLB->GetVisualShape(0)->SetMaterial(0, wheel_mat_vis);
@@ -338,7 +338,7 @@ class MySimpleTank {
                 previous_rigidBodyShoe = rigidBodyShoe;
             }
             for (int nshoe = 0; nshoe < nwrap; nshoe++) {
-                double alpha = (CH_C_PI / ((double)(nwrap - 1.0))) * ((double)nshoe);
+                double alpha = (CH_PI / ((double)(nwrap - 1.0))) * ((double)nshoe);
 
                 double lx = mx + shoelength + radiustrack * sin(alpha);
                 double ly = my + radiustrack - radiustrack * cos(alpha);
@@ -370,7 +370,7 @@ class MySimpleTank {
                 mx -= shoelength;
             }
             for (int nshoe = 0; nshoe < nwrap; nshoe++) {
-                double alpha = CH_C_PI + (CH_C_PI / ((double)(nwrap - 1.0))) * ((double)nshoe);
+                double alpha = CH_PI + (CH_PI / ((double)(nwrap - 1.0))) * ((double)nshoe);
 
                 double lx = mx + 0 + radiustrack * sin(alpha);
                 double ly = my + radiustrack - radiustrack * cos(alpha);
@@ -548,7 +548,7 @@ int main(int argc, char* argv[]) {
             0.6 * (1 - 0.4 * ChRandom::Get()), 0.08, 0.3 * (1 - 0.4 * ChRandom::Get()), 1000, true, true, obst_mat);
         my_obstacle->SetMass(3);
         my_obstacle->SetPos(ChVector3d(-6 + 6 * ChRandom::Get(), 2 + 1 * ChRandom::Get(), 6 * ChRandom::Get()));
-        my_obstacle->SetRot(QuatFromAngleY(ChRandom::Get() * CH_C_PI));
+        my_obstacle->SetRot(QuatFromAngleY(ChRandom::Get() * CH_PI));
         sys.AddBody(my_obstacle);
     }
 
@@ -582,7 +582,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        tools::drawGrid(vis.get(), 2, 2, 30, 30, ChCoordsys<>(ChVector3d(0, 0.01, 0), QuatFromAngleX(CH_C_PI_2)),
+        tools::drawGrid(vis.get(), 2, 2, 30, 30, ChCoordsys<>(ChVector3d(0, 0.01, 0), QuatFromAngleX(CH_PI_2)),
                         ChColor(0.3f, 0.3f, 0.3f), true);
 
         vis->EndScene();

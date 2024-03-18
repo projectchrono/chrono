@@ -1238,6 +1238,25 @@ Note that this represents a major public API change and we expect most user code
 | ChVector                          | Vector              | rename: ChVector3d                               |
 |                                   | VectorF             | rename: ChVector3f                               |
 
+**Constants**
+| Name                              | Action                                           |
+| :-------------------------------- | :----------------------------------------------- |
+| CH_C_1_PI                         | remove                                           |
+| CH_C_2PI                          | rename: CH_2PI                                   |
+| CH_C_DEG_TO_RAD                   | rename: CH_DEG_TO_RAD                            |
+| CH_C_E                            | rename: CH_E                                     |
+| CH_C_LN10                         | remove                                           |
+| CH_C_LN2                          | remove                                           |
+| CH_C_LOG10E                       | remove                                           |
+| CH_C_LOG2E                        | remove                                           |
+| CH_C_PI                           | rename: CH_PI                                    |
+| CH_C_PI_2                         | rename: CH_PI_2                                  |
+| CH_C_PI_4                         | rename: CH_PI_4                                  |
+| CH_C_RAD_TO_DEG                   | rename: CH_RAD_TO_DEG                            |
+| CH_C_RPM_TO_RPS                   | rename: CH_RPM_TO_RAD_S                          |
+| CH_C_SQRT_1_2                     | rename: CH_1_SQRT_2                              |
+| CH_C_SQRT_2                       | rename: CH_SQRT_2                                |
+
 
 **Notes**
 

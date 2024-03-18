@@ -347,7 +347,7 @@ int main(int argc, char* argv[]) {
         trimesh_shape->SetName("Trees");
         trimesh_shape->SetMutable(false);
         patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape,
-                                                           ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI_2)));
+                                                           ChFrame<>(VNULL, QuatFromAngleZ(CH_PI_2)));
     }
 
     // ------------------------
@@ -394,7 +394,7 @@ int main(int argc, char* argv[]) {
                                                          offset_pose,             // offset pose
                                                          280,                     // image width
                                                          120,                     // image height
-                                                         CH_C_PI / 4);            // camera's horizontal field of view
+                                                         CH_PI / 4);            // camera's horizontal field of view
     cam->SetName("Camera Sensor");
     if (CAMERA_VIS)
         cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720, "Third Person View"));

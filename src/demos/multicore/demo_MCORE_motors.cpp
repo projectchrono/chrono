@@ -61,7 +61,7 @@ void CreateStatorRotor(std::shared_ptr<ChBody>& mstator,
                        const ChVector3d mpos) {
     mstator = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.5, 0.1, 1000, material);
     mstator->SetPos(mpos);
-    mstator->SetRot(QuatFromAngleX(CH_C_PI_2));
+    mstator->SetRot(QuatFromAngleX(CH_PI_2));
     mstator->SetFixed(true);
     msystem.Add(mstator);
 
@@ -105,7 +105,7 @@ void ExampleA1(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
 
     // Create a ChFunction to be used for the ChLinkMotorRotationSpeed
     auto mwspeed =
-        chrono_types::make_shared<ChFunctionConst>(CH_C_PI_2);  // constant angular speed, in [rad/s], 1PI/s =180�/s
+        chrono_types::make_shared<ChFunctionConst>(CH_PI_2);  // constant angular speed, in [rad/s], 1PI/s =180�/s
     // Let the motor use this motion function:
     rotmotor1->SetSpeedFunction(mwspeed);
 
@@ -152,7 +152,7 @@ void ExampleA2(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     sys.Add(rotmotor2);
 
     // Create a ChFunction to be used for the ChLinkMotorRotationAngle
-    auto msineangle = chrono_types::make_shared<ChFunctionSine>(CH_C_PI,  // phase [rad]
+    auto msineangle = chrono_types::make_shared<ChFunctionSine>(CH_PI,  // phase [rad]
                                                                 0.05);
     // Let the motor use this motion function as a motion profile:
     rotmotor2->SetAngleFunction(msineangle);
@@ -236,7 +236,7 @@ void ExampleA4(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
             double w = mymotor->GetMotorAngleDer();
             double s = (ns - w) / ns;  // slip
             double T =
-                (3.0 / 2 * CH_C_PI * ns) * (s * E2 * E2 * R2) / (R2 * R2 + pow(s * X2, 2));  // electric torque curve
+                (3.0 / 2 * CH_PI * ns) * (s * E2 * E2 * R2) / (R2 * R2 + pow(s * X2, 2));  // electric torque curve
             T -= w * 5;  // simulate also a viscous brake
             return T;
         }
@@ -328,7 +328,7 @@ void ExampleB2(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     sys.Add(motor2);
 
     // Create a ChFunction to be used for the ChLinkMotorLinearSpeed
-    auto msp = chrono_types::make_shared<ChFunctionSine>(1.6 * 0.5 * CH_C_2PI, 0.5, CH_C_PI_2);
+    auto msp = chrono_types::make_shared<ChFunctionSine>(1.6 * 0.5 * CH_2PI, 0.5, CH_PI_2);
     // Let the motor use this motion function:
     motor2->SetSpeedFunction(msp);
 
@@ -370,7 +370,7 @@ void ExampleB3(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     CreateSliderGuide(guide3, slider3, material, sys, positionB3);
 
     // just for fun: modify the initial speed of slider to match other examples
-    slider3->SetPosDer(ChVector3d(1.6 * 0.5 * CH_C_2PI));
+    slider3->SetPosDer(ChVector3d(1.6 * 0.5 * CH_2PI));
 
     // Create the linear motor
     auto motor3 = chrono_types::make_shared<ChLinkMotorLinearForce>();
@@ -390,7 +390,7 @@ void ExampleB3(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     // Alternative: just for fun, use a sine harmonic whose max force is F=M*A, where
     // M is the mass of the slider, A is the max acceleration of the previous examples,
     // so finally the motion should be quite the same - but without feedback, if hits a disturb, it goes crazy:
-    auto mF2 = chrono_types::make_shared<ChFunctionSine>(slider3->GetMass() * 1.6 * pow(0.5 * CH_C_2PI, 2),  // phase
+    auto mF2 = chrono_types::make_shared<ChFunctionSine>(slider3->GetMass() * 1.6 * pow(0.5 * CH_2PI, 2),  // phase
                                                          0.5);
     // motor3->SetForceFunction(mF2); // uncomment to test this
 }
@@ -448,7 +448,7 @@ void ExampleB4(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
             if (time > last_time) {
                 double dt = time - last_time;
                 // for example, the position to chase is this sine formula:
-                double setpoint = setpoint_position_sine_amplitude * sin(setpoint_position_sine_freq * CH_C_2PI * x);
+                double setpoint = setpoint_position_sine_amplitude * sin(setpoint_position_sine_freq * CH_2PI * x);
                 double error = setpoint - linearmotor->GetMotorPos();
                 double error_dt = (error - last_error) / dt;
                 // for example, finally compute the force using the PID idea:

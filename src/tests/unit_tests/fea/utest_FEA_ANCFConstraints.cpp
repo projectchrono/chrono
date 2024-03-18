@@ -169,7 +169,7 @@ void AddMesh(ChSystemNSC& sys) {
         element->SetDimensions(dx, dy);
 
         // Add a single layers with a fiber angle of 0 degrees.
-        element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
+        element->AddLayer(dz, 0 * CH_DEG_TO_RAD, mat);
 
         // Set other element properties
         element->SetAlphaDamp(0.08);  // structural damping for this element
@@ -192,7 +192,7 @@ void AddConstraints(ChSystemNSC& sys) {
 
     // Revolute joint between Body_1 and Body_2
     joint_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    joint_revolute->Initialize(Body_1, Body_2, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI / 2.0)));
+    joint_revolute->Initialize(Body_1, Body_2, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI / 2.0)));
     sys.AddLink(joint_revolute);
 
     // Constraining a node to Body_2

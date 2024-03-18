@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     ground->EnableCollision(false);
 
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.04, 0.4);
-    ground->AddVisualShape(cyl, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+    ground->AddVisualShape(cyl, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     // Create a pendulum body, initially horizontal along positive X
     auto pend = chrono_types::make_shared<ChBody>();
@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
     pend->SetInertiaXX(ChVector3d(1, 1, 1));
     //pend->SetPos(ChVector3d(0, 0, -1));
     pend->SetPos(ChVector3d(1, 0, 0));
-    pend->SetRot(QuatFromAngleY(-CH_C_PI_2));
+    pend->SetRot(QuatFromAngleY(-CH_PI_2));
 
     auto cyl_p = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 2);
     cyl_p->SetColor(ChColor(0.6f, 0, 0));
@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
     // Create revolute joint with rotation axis about global Y
     auto rev = chrono_types::make_shared<ChLinkLockRevolute>();
     sys.AddLink(rev);
-    rev->Initialize(ground, pend, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+    rev->Initialize(ground, pend, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     // Create the Irrlicht application
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();

@@ -329,7 +329,7 @@ int main(int argc, char* argv[]) {
     } else {
         // Start odd vehicles staggered going up the west edge, driving east
         init_loc = ChVector3d(2.0 * (node_id - 1), -5.0 - 2.0 * (node_id - 1), 0.5);
-        init_rot = Q_from_AngZ(CH_C_PI / 2);
+        init_rot = Q_from_AngZ(CH_PI / 2);
         path = StraightLinePath(init_loc, init_loc + ChVector3d(0, pathLength, 0));
     }
     ChPathFollowerDriver driver(vehicle, path, "Box path", target_speed);

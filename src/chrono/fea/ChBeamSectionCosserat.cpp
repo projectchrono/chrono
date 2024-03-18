@@ -80,8 +80,8 @@ void ChElasticityCosseratSimple::SetAsRectangularSection(double width_y, double 
 }
 
 void ChElasticityCosseratSimple::SetAsCircularSection(double diameter) {
-    this->A = CH_C_PI * pow((0.5 * diameter), 2);
-    this->Izz = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
+    this->A = CH_PI * pow((0.5 * diameter), 2);
+    this->Izz = (CH_PI / 4.0) * pow((0.5 * diameter), 4);
     this->Iyy = Izz;
 
     // exact expression for circular beam J = Ixx ,
@@ -394,7 +394,7 @@ void ChElasticityCosseratMesh::SetAsCircularSection(double diameter) {
     this->vertexes.push_back(ChVector2d(rad, 0));
     int ntri = 12;
     for (int i = 0; i < ntri; ++i) {
-        double alpha = (i + 1) * (CH_C_2PI / (double)ntri);
+        double alpha = (i + 1) * (CH_2PI / (double)ntri);
         this->vertexes.push_back(ChVector2d(rad * cos(alpha), rad * sin(alpha)));
         this->triangles.push_back(ChVector3i(0, i + 1, i + 2));
     }
@@ -1083,8 +1083,8 @@ void ChInertiaCosseratSimple::SetAsRectangularSection(double width_y, double wid
 }
 
 void ChInertiaCosseratSimple::SetAsCircularSection(double diameter, double density) {
-    this->A = CH_C_PI * pow((0.5 * diameter), 2);
-    this->Izz = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
+    this->A = CH_PI * pow((0.5 * diameter), 2);
+    this->Izz = (CH_PI / 4.0) * pow((0.5 * diameter), 4);
     this->Iyy = Izz;
     this->rho = density;
 }

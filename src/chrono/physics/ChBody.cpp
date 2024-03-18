@@ -48,7 +48,7 @@ ChBody::ChBody()
     forcelist.clear();
 
     max_speed = 0.5f;
-    max_wvel = 2.0f * float(CH_C_PI);
+    max_wvel = 2.0f * float(CH_PI);
 
     sleep_time = 0.6f;
     sleep_starttime = 0;

@@ -40,11 +40,11 @@ sys.Add(mfloor)
 mpath = chrono.ChLinePath()
 mseg1 = chrono.ChLineSegment(chrono.ChVector3d(1, 2, 0), chrono.ChVector3d(2, 2, 0))
 mpath.AddSubLine(mseg1)
-marc1 = chrono.ChLineArc(chrono.ChCoordsysd(chrono.ChVector3d(2, 2.5, 0)), 0.5, -chrono.CH_C_PI_2, chrono.CH_C_PI_2, True)
+marc1 = chrono.ChLineArc(chrono.ChCoordsysd(chrono.ChVector3d(2, 2.5, 0)), 0.5, -chrono.CH_PI_2, chrono.CH_PI_2, True)
 mpath.AddSubLine(marc1)
 mseg2 = chrono.ChLineSegment(chrono.ChVector3d(2, 3, 0), chrono.ChVector3d(1, 3, 0))
 mpath.AddSubLine(mseg2)
-marc2 = chrono.ChLineArc(chrono.ChCoordsysd(chrono.ChVector3d(1, 2.5, 0)), 0.5, chrono.CH_C_PI_2, -chrono.CH_C_PI_2, True);
+marc2 = chrono.ChLineArc(chrono.ChCoordsysd(chrono.ChVector3d(1, 2.5, 0)), 0.5, chrono.CH_PI_2, -chrono.CH_PI_2, True);
 mpath.AddSubLine(marc2)
 mpath.SetClosed(True)
 
@@ -92,7 +92,7 @@ sys.Add(mwheel)
 # Create a motor that spins the wheel
 my_motor = chrono.ChLinkMotorRotationSpeed()
 my_motor.Initialize(mwheel, mfloor, chrono.ChFramed(chrono.ChVector3d(-3, 2, 0)))
-my_angularspeed = chrono.ChFunctionConst(chrono.CH_C_PI / 4.0)
+my_angularspeed = chrono.ChFunctionConst(chrono.CH_PI / 4.0)
 my_motor.SetMotorFunction(my_angularspeed)
 sys.Add(my_motor)
 
@@ -100,11 +100,11 @@ sys.Add(my_motor)
 mglyph = chrono.ChLinePath()
 ms1 = chrono.ChLineSegment(chrono.ChVector3d(-0.5, -0.5, 0), chrono.ChVector3d(0.5, -0.5, 0))
 mglyph.AddSubLine(ms1)
-ma1 = chrono.ChLineArc(chrono.ChCoordsysd(chrono.ChVector3d(0.5, 0, 0)), 0.5, -chrono.CH_C_PI_2, chrono.CH_C_PI_2, True)
+ma1 = chrono.ChLineArc(chrono.ChCoordsysd(chrono.ChVector3d(0.5, 0, 0)), 0.5, -chrono.CH_PI_2, chrono.CH_PI_2, True)
 mglyph.AddSubLine(ma1)
 ms2 = chrono.ChLineSegment(chrono.ChVector3d(0.5, 0.5, 0), chrono.ChVector3d(-0.5, 0.5, 0))
 mglyph.AddSubLine(ms2)
-ma2 = chrono.ChLineArc(chrono.ChCoordsysd(chrono.ChVector3d(-0.5, 0, 0)), 0.5, chrono.CH_C_PI_2, -chrono.CH_C_PI_2, True);
+ma2 = chrono.ChLineArc(chrono.ChCoordsysd(chrono.ChVector3d(-0.5, 0, 0)), 0.5, chrono.CH_PI_2, -chrono.CH_PI_2, True);
 mglyph.AddSubLine(ma2)
 mglyph.SetPathDuration(1)
 mglyph.SetClosed(True)

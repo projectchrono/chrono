@@ -333,4 +333,4 @@ INSTANTIATE_TEST_SUITE_P(ChronoMulticore,
                          ChLinActuatorTest,
                          ::testing::Combine(::testing::Values(ChContactMethod::NSC, ChContactMethod::SMC),
                                             ::testing::Values(1.0, 0.5),
-                                            ::testing::Values(QUNIT, QuatFromAngleY(CH_C_PI / 4))));
+                                            ::testing::Values(QUNIT, QuatFromAngleY(CH_PI / 4))));

@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
     // frame for a ChBody).
     auto cyl_1 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 2);
     cyl_1->SetColor(ChColor(0.6f, 0, 0));
-    pend_1->AddVisualShape(cyl_1, ChFrame<>(ChVector3d(), QuatFromAngleY(CH_C_PI_2)));
+    pend_1->AddVisualShape(cyl_1, ChFrame<>(ChVector3d(), QuatFromAngleY(CH_PI_2)));
 
     // Specify the initial position of the pendulum (horizontal, pointing towards
     // positive X). In this case, we set the absolute position of its center of
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
     // respect to the body reference frame.
     auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 2);
     cyl_2->SetColor(ChColor(0, 0, 0.6f));
-    pend_2->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(1, 0, 0), QuatFromAngleY(CH_C_PI_2)));
+    pend_2->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(1, 0, 0), QuatFromAngleY(CH_PI_2)));
 
     // In this case, we must specify the centroidal frame, relative to the body
     // reference frame.
@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AddCamera(ChVector3d(0, 3, 6));
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 

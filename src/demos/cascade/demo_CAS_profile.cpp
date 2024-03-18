@@ -71,8 +71,8 @@ int main(int argc, char* argv[]) {
     double Li = 0.55;
     ChVector3d geneva_center(-0, 0, 0);
     // compute aux data:
-    double beta = (CH_C_2PI / (double)nstations);  // angle width of station
-    double gamma = 2 * (CH_C_PI_2 - beta / 2);
+    double beta = (CH_2PI / (double)nstations);  // angle width of station
+    double gamma = 2 * (CH_PI_2 - beta / 2);
     double B = R * tan(beta / 2);
     ChVector3d crank_center = ChVector3d(B, R, 0) + geneva_center;
 
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
         p7 = mm * p7;
         ChLineSegment mseg1(p1, p2);
         ChLineSegment mseg2(p2, p3);
-        ChLineArc mseg3(ChCoordsys<>((p3 + p4) * 0.5), wi / 2, alpha + CH_C_PI, alpha + CH_C_2PI, true);
+        ChLineArc mseg3(ChCoordsys<>((p3 + p4) * 0.5), wi / 2, alpha + CH_PI, alpha + CH_2PI, true);
         ChLineSegment mseg4(p4, p5);
         ChLineSegment mseg5(p5, p6);
         mpathwheel->AddSubLine(mseg1);
@@ -108,8 +108,8 @@ int main(int argc, char* argv[]) {
         mpathwheel->AddSubLine(mseg3);
         mpathwheel->AddSubLine(mseg4);
         mpathwheel->AddSubLine(mseg5);
-        double a1 = alpha + CH_C_PI;
-        double a2 = alpha + CH_C_PI + gamma;
+        double a1 = alpha + CH_PI;
+        double a2 = alpha + CH_PI + gamma;
         ChLineArc marc0(ChCoordsys<>(p7), Ri, a1, a2, true);  // ccw arc because concave
         mpathwheel->AddSubLine(marc0);
     }
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
     // Might throw exception if path not on XY plane, or not closed.
     auto mpathcam = chrono_types::make_shared<ChLinePath>();
     auto mcamline1 = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector3d(0, 0, -0.10)), R * 0.3, 1.5,
-                                                          CH_C_PI);  // CH_C_2PI, 2.5);
+                                                          CH_PI);  // CH_2PI, 2.5);
     auto mcamline2 = chrono_types::make_shared<ChLineSegment>(mcamline1->GetEndB(), mcamline1->GetEndA());
     mpathcam->AddSubLine(mcamline1);
     mpathcam->AddSubLine(mcamline2);
@@ -163,11 +163,11 @@ int main(int argc, char* argv[]) {
 
     // Create a ChLinePath geometry, and insert sub-paths in clockwise order:
     auto mpathcrankpin = chrono_types::make_shared<ChLinePath>();
-    ChLineArc mpin(ChCoordsys<>(ChVector3d(-B, 0, 0)), wi / 2 - 0.005, CH_C_2PI, 0);
+    ChLineArc mpin(ChCoordsys<>(ChVector3d(-B, 0, 0)), wi / 2 - 0.005, CH_2PI, 0);
     mpathcrankpin->AddSubLine(mpin);
 
     auto mpathcrankstopper = chrono_types::make_shared<ChLinePath>();
-    ChLineArc mstopperarc(ChCoordsys<>(ChVector3d(0, 0, 0)), Ri - 0.003, CH_C_PI - gamma / 2, -CH_C_PI + gamma / 2);
+    ChLineArc mstopperarc(ChCoordsys<>(ChVector3d(0, 0, 0)), Ri - 0.003, CH_PI - gamma / 2, -CH_PI + gamma / 2);
     ChLineSegment mstopperve1(mstopperarc.GetEndB(), ChVector3d(0, 0, 0));
     ChLineSegment mstopperve2(ChVector3d(0, 0, 0), mstopperarc.GetEndA());
     mpathcrankstopper->AddSubLine(mstopperarc);
@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
     // If so, use the AddProfile() function. It also updates the mass, COG position, collision shapes, etc.
     // Might throw exception if path not on XY plane, or not closed.
     auto mpathbackplate = chrono_types::make_shared<ChLinePath>();
-    auto mbackplate = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector3d(0, 0, 0.06)), Ri * 1.3, CH_C_2PI, 0);
+    auto mbackplate = chrono_types::make_shared<ChLineArc>(ChCoordsys<>(ChVector3d(0, 0, 0.06)), Ri * 1.3, CH_2PI, 0);
     mpathbackplate->AddSubLine(mbackplate);
     mcrank->AddProfile({mpathbackplate},  // wire(s) containing the face
                        {},                // wire(s) telling holes (empty here)
@@ -211,7 +211,7 @@ int main(int argc, char* argv[]) {
     // Add a motor between crank and truss
     auto my_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_motor->Initialize(mcrank, mfloor, ChFrame<>(crank_center));
-    my_motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_C_PI / 8.0));
+    my_motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_PI / 8.0));
     sys.AddLink(my_motor);
 
     //

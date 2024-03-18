@@ -128,7 +128,7 @@ namespace ChronoDemo
             vis.AddCamera(new ChVector3d(0, 3, -6));
             vis.AttachSystem(sys);
             vis.AddGrid(0.2, 0.2, 20, 20,
-                        new ChCoordsysd(new ChVector3d(0, 0.11, 0), chrono.QuatFromAngleX(chrono.CH_C_PI_2)),
+                        new ChCoordsysd(new ChVector3d(0, 0.11, 0), chrono.QuatFromAngleX(chrono.CH_PI_2)),
                         new ChColor(0.1f, 0.1f, 0.1f));
 
             // The soft-real-time cycle

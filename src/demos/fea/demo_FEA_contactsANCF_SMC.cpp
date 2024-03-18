@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
         element = std::dynamic_pointer_cast<ChElementShellANCF_3423>(my_mesh->GetElement(ele));
         // Add a single layers with a fiber angle of 0 degrees.
-        element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, material);
+        element->AddLayer(dz, 0 * CH_DEG_TO_RAD, material);
         // Set other element properties
         element->SetAlphaDamp(0.08);  // Structural damping for this element
     }

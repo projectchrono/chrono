@@ -713,20 +713,20 @@ void cbtArcSegmentCollisionAlgorithm::processCollision(const cbtCollisionObjectW
     // Discard points out of min-max angles
 
     // to always positive angles:
-    arc1_angle1 = fmod(arc1_angle1 + 1e-30, CH_C_2PI);
+    arc1_angle1 = fmod(arc1_angle1 + 1e-30, CH_2PI);
     if (arc1_angle1 < 0)
-        arc1_angle1 += CH_C_2PI;
-    arc1_angle2 = fmod(arc1_angle2 + 1e-30, CH_C_2PI);
+        arc1_angle1 += CH_2PI;
+    arc1_angle2 = fmod(arc1_angle2 + 1e-30, CH_2PI);
     if (arc1_angle2 < 0)
-        arc1_angle2 += CH_C_2PI;
-    alpha = fmod(alpha, CH_C_2PI);
+        arc1_angle2 += CH_2PI;
+    alpha = fmod(alpha, CH_2PI);
     if (alpha < 0)
-        alpha += CH_C_2PI;
+        alpha += CH_2PI;
 
-    arc1_angle1 = fmod(arc1_angle1, CH_C_2PI);
-    arc1_angle2 = fmod(arc1_angle2, CH_C_2PI);
+    arc1_angle1 = fmod(arc1_angle1, CH_2PI);
+    arc1_angle2 = fmod(arc1_angle2, CH_2PI);
 
-    alpha = fmod(alpha, CH_C_2PI);
+    alpha = fmod(alpha, CH_2PI);
 
     bool inangle1 = false;
 
@@ -877,7 +877,7 @@ void cbtArcArcCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapp
         local_P2 = local_arc2_center + local_D12 * arc2->get_radius();
         local_N2 = local_D12;
         dist = local_C1C2.length() - arc1->get_radius() - arc2->get_radius();
-        alpha1 = alpha + CH_C_PI;
+        alpha1 = alpha + CH_PI;
         alpha2 = alpha;
         paired = true;
     }
@@ -899,8 +899,8 @@ void cbtArcArcCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapp
             local_P2 = local_arc2_center - local_D12 * arc2->get_radius();
             local_N2 = -local_D12;
             dist = -local_C1C2.length() + arc1->get_radius() - arc2->get_radius();
-            alpha1 = alpha + CH_C_PI;
-            alpha2 = alpha + CH_C_PI;
+            alpha1 = alpha + CH_PI;
+            alpha2 = alpha + CH_PI;
             paired = true;
         }
 
@@ -910,31 +910,31 @@ void cbtArcArcCollisionAlgorithm::processCollision(const cbtCollisionObjectWrapp
     // Discard points out of min-max angles
 
     // to always positive angles:
-    arc1_angle1 = fmod(arc1_angle1, CH_C_2PI);
+    arc1_angle1 = fmod(arc1_angle1, CH_2PI);
     if (arc1_angle1 < 0)
-        arc1_angle1 += CH_C_2PI;
-    arc1_angle2 = fmod(arc1_angle2, CH_C_2PI);
+        arc1_angle1 += CH_2PI;
+    arc1_angle2 = fmod(arc1_angle2, CH_2PI);
     if (arc1_angle2 < 0)
-        arc1_angle2 += CH_C_2PI;
-    arc2_angle1 = fmod(arc2_angle1, CH_C_2PI);
+        arc1_angle2 += CH_2PI;
+    arc2_angle1 = fmod(arc2_angle1, CH_2PI);
     if (arc2_angle1 < 0)
-        arc2_angle1 += CH_C_2PI;
-    arc2_angle2 = fmod(arc2_angle2, CH_C_2PI);
+        arc2_angle1 += CH_2PI;
+    arc2_angle2 = fmod(arc2_angle2, CH_2PI);
     if (arc2_angle2 < 0)
-        arc2_angle2 += CH_C_2PI;
-    alpha1 = fmod(alpha1, CH_C_2PI);
+        arc2_angle2 += CH_2PI;
+    alpha1 = fmod(alpha1, CH_2PI);
     if (alpha1 < 0)
-        alpha1 += CH_C_2PI;
-    alpha2 = fmod(alpha2, CH_C_2PI);
+        alpha1 += CH_2PI;
+    alpha2 = fmod(alpha2, CH_2PI);
     if (alpha2 < 0)
-        alpha2 += CH_C_2PI;
+        alpha2 += CH_2PI;
 
-    arc1_angle1 = fmod(arc1_angle1, CH_C_2PI);
-    arc1_angle2 = fmod(arc1_angle2, CH_C_2PI);
-    arc2_angle1 = fmod(arc2_angle1, CH_C_2PI);
-    arc2_angle2 = fmod(arc2_angle2, CH_C_2PI);
-    alpha1 = fmod(alpha1, CH_C_2PI);
-    alpha2 = fmod(alpha2, CH_C_2PI);
+    arc1_angle1 = fmod(arc1_angle1, CH_2PI);
+    arc1_angle2 = fmod(arc1_angle2, CH_2PI);
+    arc2_angle1 = fmod(arc2_angle1, CH_2PI);
+    arc2_angle2 = fmod(arc2_angle2, CH_2PI);
+    alpha1 = fmod(alpha1, CH_2PI);
+    alpha2 = fmod(alpha2, CH_2PI);
 
     bool inangle1 = false;
     bool inangle2 = false;
@@ -1229,7 +1229,7 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
             lA1 = -tA1;
         beta_A1 = atan2(Vdot(lA1, tA1), Vdot(lA1, nA));
         if (beta_A1 < 0)
-            beta_A1 += CH_C_2PI;
+            beta_A1 += CH_2PI;
     }
     if (triA->owns_e2()) {
         tA2 = Vcross(eA2, nA).GetNormalized();
@@ -1239,7 +1239,7 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
             lA2 = -tA2;
         beta_A2 = atan2(Vdot(lA2, tA2), Vdot(lA2, nA));
         if (beta_A2 < 0)
-            beta_A2 += CH_C_2PI;
+            beta_A2 += CH_2PI;
     }
     if (triA->owns_e3()) {
         tA3 = Vcross(eA3, nA).GetNormalized();
@@ -1249,7 +1249,7 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
             lA3 = -tA3;
         beta_A3 = atan2(Vdot(lA3, tA3), Vdot(lA3, nA));
         if (beta_A3 < 0)
-            beta_A3 += CH_C_2PI;
+            beta_A3 += CH_2PI;
     }
     if (triB->owns_e1()) {
         tB1 = Vcross(eB1, nB).GetNormalized();
@@ -1259,7 +1259,7 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
             lB1 = -tB1;
         beta_B1 = atan2(Vdot(lB1, tB1), Vdot(lB1, nB));
         if (beta_B1 < 0)
-            beta_B1 += CH_C_2PI;
+            beta_B1 += CH_2PI;
     }
     if (triB->owns_e2()) {
         tB2 = Vcross(eB2, nB).GetNormalized();
@@ -1269,7 +1269,7 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
             lB2 = -tB2;
         beta_B2 = atan2(Vdot(lB2, tB2), Vdot(lB2, nB));
         if (beta_B2 < 0)
-            beta_B2 += CH_C_2PI;
+            beta_B2 += CH_2PI;
     }
     if (triB->owns_e3()) {
         tB3 = Vcross(eB3, nB).GetNormalized();
@@ -1279,19 +1279,19 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
             lB3 = -tB3;
         beta_B3 = atan2(Vdot(lB3, tB3), Vdot(lB3, nB));
         if (beta_B3 < 0)
-            beta_B3 += CH_C_2PI;
+            beta_B3 += CH_2PI;
     }
 
     ChVector3d cA, cB, D;
 
     double edge_tol = 1e-3;
     //  + edge_tol to discard flat edges with some tolerance:
-    double beta_convex_limit = CH_C_PI_2 + edge_tol;
+    double beta_convex_limit = CH_PI_2 + edge_tol;
     //  +/- edge_tol to inflate arc of acceptance of edge vs edge, to cope with singular cases (ex. flat cube vs
     //  flat cube):
     double alpha_lo_limit = -edge_tol;
-    double CH_C_PI_mtol = CH_C_PI - edge_tol;
-    double CH_C_PI_2_ptol = CH_C_PI_2 + edge_tol;
+    double CH_C_PI_mtol = CH_PI - edge_tol;
+    double CH_C_PI_2_ptol = CH_PI_2 + edge_tol;
 
     // edge A1 vs edge B1
     if (triA->owns_e1() && triB->owns_e1())
@@ -1303,14 +1303,14 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                     double alpha_A = atan2(Vdot(D, tA1), Vdot(D, nA));
                     double alpha_B = atan2(Vdot(-D, tB1), Vdot(-D, nB));
                     if (alpha_A < alpha_lo_limit)
-                        alpha_A += CH_C_2PI;
+                        alpha_A += CH_2PI;
                     if (alpha_B < alpha_lo_limit)
-                        alpha_B += CH_C_2PI;
+                        alpha_B += CH_2PI;
                     if ((alpha_A < beta_A1 - CH_C_PI_2_ptol) && (alpha_B < beta_B1 - CH_C_PI_2_ptol)) {
                         if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
                             _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
                     }
-                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A1 + CH_C_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B1 + CH_C_PI_2_ptol)) {
+                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A1 + CH_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B1 + CH_C_PI_2_ptol)) {
                         if (-dist < max_allowed_dist && -dist > min_allowed_dist) // distance interval check - inside
                             _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
                     }
@@ -1328,14 +1328,14 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                     double alpha_A = atan2(Vdot(D, tA1), Vdot(D, nA));
                     double alpha_B = atan2(Vdot(-D, tB2), Vdot(-D, nB));
                     if (alpha_A < alpha_lo_limit)
-                        alpha_A += CH_C_2PI;
+                        alpha_A += CH_2PI;
                     if (alpha_B < alpha_lo_limit)
-                        alpha_B += CH_C_2PI;
+                        alpha_B += CH_2PI;
                     if ((alpha_A < beta_A1 - CH_C_PI_2_ptol) && (alpha_B < beta_B2 - CH_C_PI_2_ptol)) {
                         if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
                             _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
                     }
-                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A1 + CH_C_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B2 + CH_C_PI_2_ptol)) {
+                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A1 + CH_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B2 + CH_C_PI_2_ptol)) {
                         if (-dist < max_allowed_dist && -dist > min_allowed_dist) // distance interval check - inside
                             _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
                     }
@@ -1353,14 +1353,14 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                     double alpha_A = atan2(Vdot(D, tA1), Vdot(D, nA));
                     double alpha_B = atan2(Vdot(-D, tB3), Vdot(-D, nB));
                     if (alpha_A < alpha_lo_limit)
-                        alpha_A += CH_C_2PI;
+                        alpha_A += CH_2PI;
                     if (alpha_B < alpha_lo_limit)
-                        alpha_B += CH_C_2PI;
+                        alpha_B += CH_2PI;
                     if ((alpha_A < beta_A1 - CH_C_PI_2_ptol) && (alpha_B < beta_B3 - CH_C_PI_2_ptol)) {
                         if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
                             _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
                     }
-                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A1 + CH_C_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B3 + CH_C_PI_2_ptol)) {
+                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A1 + CH_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B3 + CH_C_PI_2_ptol)) {
                         if (-dist < max_allowed_dist && -dist > min_allowed_dist) // distance interval check - inside
                             _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
                     }
@@ -1378,14 +1378,14 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                     double alpha_A = atan2(Vdot(D, tA2), Vdot(D, nA));
                     double alpha_B = atan2(Vdot(-D, tB1), Vdot(-D, nB));
                     if (alpha_A < alpha_lo_limit)
-                        alpha_A += CH_C_2PI;
+                        alpha_A += CH_2PI;
                     if (alpha_B < alpha_lo_limit)
-                        alpha_B += CH_C_2PI;
+                        alpha_B += CH_2PI;
                     if ((alpha_A < beta_A2 - CH_C_PI_2_ptol) && (alpha_B < beta_B1 - CH_C_PI_2_ptol)) {
                         if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
                             _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
                     }
-                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A2 + CH_C_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B1 + CH_C_PI_2_ptol))  {
+                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A2 + CH_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B1 + CH_C_PI_2_ptol))  {
                         if (-dist < max_allowed_dist && -dist > min_allowed_dist) // distance interval check - inside
                             _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
                     }
@@ -1403,14 +1403,14 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                     double alpha_A = atan2(Vdot(D, tA2), Vdot(D, nA));
                     double alpha_B = atan2(Vdot(-D, tB2), Vdot(-D, nB));
                     if (alpha_A < alpha_lo_limit)
-                        alpha_A += CH_C_2PI;
+                        alpha_A += CH_2PI;
                     if (alpha_B < alpha_lo_limit)
-                        alpha_B += CH_C_2PI;
+                        alpha_B += CH_2PI;
                     if ((alpha_A < beta_A2 - CH_C_PI_2_ptol) && (alpha_B < beta_B2 - CH_C_PI_2_ptol)) {
                         if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
                             _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
                     }
-                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A2 + CH_C_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B2 + CH_C_PI_2_ptol)) {
+                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A2 + CH_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B2 + CH_C_PI_2_ptol)) {
                         if (-dist < max_allowed_dist && -dist > min_allowed_dist) // distance interval check - inside
                             _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
                     }
@@ -1428,14 +1428,14 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                     double alpha_A = atan2(Vdot(D, tA2), Vdot(D, nA));
                     double alpha_B = atan2(Vdot(-D, tB3), Vdot(-D, nB));
                     if (alpha_A < alpha_lo_limit)
-                        alpha_A += CH_C_2PI;
+                        alpha_A += CH_2PI;
                     if (alpha_B < alpha_lo_limit)
-                        alpha_B += CH_C_2PI;
+                        alpha_B += CH_2PI;
                     if ((alpha_A < beta_A2 - CH_C_PI_2_ptol) && (alpha_B < beta_B3 - CH_C_PI_2_ptol)) {
                         if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
                             _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
                     }
-                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A2 + CH_C_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B3 + CH_C_PI_2_ptol)) {
+                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A2 + CH_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B3 + CH_C_PI_2_ptol)) {
                         if (-dist < max_allowed_dist && -dist > min_allowed_dist) // distance interval check - inside
                             _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
                     }
@@ -1453,14 +1453,14 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                     double alpha_A = atan2(Vdot(D, tA3), Vdot(D, nA));
                     double alpha_B = atan2(Vdot(-D, tB1), Vdot(-D, nB));
                     if (alpha_A < alpha_lo_limit)
-                        alpha_A += CH_C_2PI;
+                        alpha_A += CH_2PI;
                     if (alpha_B < alpha_lo_limit)
-                        alpha_B += CH_C_2PI;
+                        alpha_B += CH_2PI;
                     if ((alpha_A < beta_A3 - CH_C_PI_2_ptol) && (alpha_B < beta_B1 - CH_C_PI_2_ptol))  {
                         if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
                             _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
                     }
-                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A3 + CH_C_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B1 + CH_C_PI_2_ptol)) {
+                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A3 + CH_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B1 + CH_C_PI_2_ptol)) {
                         if (-dist < max_allowed_dist && -dist > min_allowed_dist) // distance interval check - inside
                             _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
                     }
@@ -1478,14 +1478,14 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                     double alpha_A = atan2(Vdot(D, tA3), Vdot(D, nA));
                     double alpha_B = atan2(Vdot(-D, tB2), Vdot(-D, nB));
                     if (alpha_A < alpha_lo_limit)
-                        alpha_A += CH_C_2PI;
+                        alpha_A += CH_2PI;
                     if (alpha_B < alpha_lo_limit)
-                        alpha_B += CH_C_2PI;
+                        alpha_B += CH_2PI;
                     if ((alpha_A < beta_A3 - CH_C_PI_2_ptol) && (alpha_B < beta_B2 - CH_C_PI_2_ptol)) {
                         if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
                             _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
                     }
-                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A3 + CH_C_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B2 + CH_C_PI_2_ptol)) {
+                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A3 + CH_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B2 + CH_C_PI_2_ptol)) {
                         if (-dist < max_allowed_dist && -dist > min_allowed_dist) // distance interval check - inside
                             _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
                     }
@@ -1503,14 +1503,14 @@ void cbtCEtriangleShapeCollisionAlgorithm::processCollision(const cbtCollisionOb
                     double alpha_A = atan2(Vdot(D, tA3), Vdot(D, nA));
                     double alpha_B = atan2(Vdot(-D, tB3), Vdot(-D, nB));
                     if (alpha_A < alpha_lo_limit)
-                        alpha_A += CH_C_2PI;
+                        alpha_A += CH_2PI;
                     if (alpha_B < alpha_lo_limit)
-                        alpha_B += CH_C_2PI;
+                        alpha_B += CH_2PI;
                     if ((alpha_A < beta_A3 - CH_C_PI_2_ptol) && (alpha_B < beta_B3 - CH_C_PI_2_ptol)) {
                         if (dist < max_allowed_dist && dist > min_allowed_dist)  // distance interval check - outside
                             _add_contact(cA, cB, dist, resultOut, offset_A, offset_B);
                     }
-                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A3 + CH_C_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B3 + CH_C_PI_2_ptol)) {
+                    else if (alpha_A > CH_C_PI_mtol && (alpha_A < beta_A3 + CH_PI_2) && alpha_B > CH_C_PI_mtol && (alpha_B < beta_B3 + CH_C_PI_2_ptol)) {
                         if (-dist < max_allowed_dist && -dist > min_allowed_dist) // distance interval check - inside
                             _add_contact(cA, cB, -dist, resultOut, offset_A, offset_B);
                     }

@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     double sx = 0.1;
     double sz = 0.1;
     for (int e = 0; e < 6; ++e) {
-        double angle = e * (2 * CH_C_PI / 8.0);
+        double angle = e * (2 * CH_PI / 8.0);
         hexpos.z() = 0.3 * cos(angle);
         hexpos.x() = 0.3 * sin(angle);
         ChMatrix33<> hexrot(QuatFromAngleY(angle));
@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
     vis.SetWindowTitle("VSG FEA visualization");
     vis.SetUseSkyBox(true);
     vis.SetLightIntensity(1.0f);
-    vis.SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+    vis.SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
     vis.AddCamera(ChVector3d(0.0, 0.6, -2.0), ChVector3d(0, 0.4, 0));
     vis.Initialize();
 

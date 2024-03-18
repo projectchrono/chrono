@@ -53,7 +53,7 @@ class Model(object):
       self.ankle_radius = 0.04
       self.gain = 30
 
-      self.abdomen_mass = self.abdomen_density * ((4/3)*chrono.CH_C_PI*self.abdomen_x*self.abdomen_y*self.abdomen_z)
+      self.abdomen_mass = self.abdomen_density * ((4/3)*chrono.CH_PI*self.abdomen_x*self.abdomen_y*self.abdomen_z)
       self.abdomen_inertia = chrono.ChVector3d((1/5)*self.abdomen_mass*(pow(self.abdomen_y,2)+pow(self.abdomen_z,2)),(1/5)*self.abdomen_mass*(pow(self.abdomen_x,2)+pow(self.abdomen_z,2)),(1/5)*self.abdomen_mass*(pow(self.abdomen_y,2)+pow(self.abdomen_x,2)))
       self.leg_mass = self.leg_density * self.leg_length * math.pi* pow (self.leg_radius,2)
       self.leg_inertia = chrono.ChVector3d(0.5*self.leg_mass*pow(self.leg_radius,2), (self.leg_mass/12)*(3*pow(self.leg_radius,2)+pow(self.leg_length,2)),(self.leg_mass/12)*(3*pow(self.leg_radius,2)+pow(self.leg_length,2)))
@@ -138,7 +138,7 @@ class Model(object):
              x_rel.append( Leg_quat[i].Rotate(chrono.ChVector3d(1, 0, 0)))
              z_rel.append( Leg_quat[i].Rotate(chrono.ChVector3d(0, 0, 1)))
              Leg_qa[i].SetFromAngleAxis(-leg_ang[i] , chrono.ChVector3d(0, 1, 0))
-             z2x_leg[i].SetFromAngleAxis(chrono.CH_C_PI / 2 , x_rel[i])
+             z2x_leg[i].SetFromAngleAxis(chrono.CH_PI / 2 , x_rel[i])
              Leg_q[i] = z2x_leg[i] * Leg_qa[i] 
              Leg_rev_pos.append(chrono.ChVector3d(self.leg_pos[i]-chrono.ChVector3d(math.cos(leg_ang[i])*self.leg_length/2,0,math.sin(leg_ang[i])*self.leg_length/2)))
              Leg_chordsys.append(chrono.ChCoordsysd(Leg_rev_pos[i], Leg_q[i]))

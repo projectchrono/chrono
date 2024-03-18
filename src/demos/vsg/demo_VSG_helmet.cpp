@@ -39,12 +39,12 @@ int main(int argc, char* argv[]) {
     vis->AddCamera(ChVector3d(0.4, -1, 0.5), ChVector3d(0, 0, 0.4));
     vis->SetCameraAngleDeg(40);
     vis->SetLightIntensity(1.0f);
-    vis->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
 
     {
         auto shape = chrono_types::make_shared<ChVisualShapeModelFile>();
         shape->SetFilename(GetChronoDataFile("models/FlightHelmet/FlightHelmet.gltf"));
-        vis->AddVisualModel(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+        vis->AddVisualModel(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
     }
 
     vis->Initialize();

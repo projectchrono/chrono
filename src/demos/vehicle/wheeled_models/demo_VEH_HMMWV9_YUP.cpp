@@ -110,7 +110,7 @@ int main(int argc, char* argv[]) {
     double terrainLength = 300.0;  // size in "forward" direction
     double terrainWidth = 300.0;   // size in "lateral" direction
     auto patch =
-        terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, terrainHeight, 0), QuatFromAngleX(-CH_C_PI_2)),
+        terrain.AddPatch(patch_mat, ChCoordsys<>(ChVector3d(0, terrainHeight, 0), QuatFromAngleX(-CH_PI_2)),
                                   terrainLength, terrainWidth);
     patch->SetColor(ChColor(0.8f, 0.8f, 0.5f));
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 200, 200);

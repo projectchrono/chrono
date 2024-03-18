@@ -29,9 +29,9 @@ class ChFunctionMyFun (chrono.ChFunction):
          chrono.ChFunction.__init__(self)
     def GetVal(self,x):
         if (x > 0.4):
-            return chrono.CH_C_PI
+            return chrono.CH_PI
         else:
-            return -chrono.CH_C_PI * (1.0 - m.cos(chrono.CH_C_PI * x / 0.4)) / 2.0
+            return -chrono.CH_PI * (1.0 - m.cos(chrono.CH_PI * x / 0.4)) / 2.0
 
 # Output directory
 out_dir = chrono.GetChronoOutputPath() + "BEAM_BUCKLING"
@@ -241,7 +241,7 @@ while vis.Run():
     vis.Render()
     chronoirr.drawGrid(vis,
         0.05, 0.05, 20, 20, 
-        chrono.ChCoordsysd(chrono.ChVector3d(0, 0, 0), chrono.QuatFromAngleZ(chrono.CH_C_PI_2)))
+        chrono.ChCoordsysd(chrono.ChVector3d(0, 0, 0), chrono.QuatFromAngleZ(chrono.CH_PI_2)))
     vis.EndScene()
 
     sys.DoStepDynamics(0.001)

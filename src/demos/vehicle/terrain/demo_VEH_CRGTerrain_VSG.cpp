@@ -353,7 +353,7 @@ int main(int argc, char* argv[]) {
     vis->SetWindowTitle("OpenCRG Steering");
     vis->SetWindowSize(1200, 800);
     vis->SetChaseCamera(vehicle_model->TrackPoint(), vehicle_model->CameraDistance(), vehicle_model->CameraHeight());
-    vis->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
     vis->SetShadows(true);
     vis->AttachVehicle(&vehicle);
 

@@ -113,7 +113,7 @@ M113_TrackAssemblyBandANCF::M113_TrackAssemblyBandANCF(VehicleSide side,
     double G_steel = 0.5 * E_steel / (1 + 0.3);
     SetSteelLayerMaterial(7900, ChVector3d(E_steel), ChVector3d(nu_steel), ChVector3d(G_steel));
 
-    SetLayerFiberAngles(0 * CH_C_DEG_TO_RAD, 0 * CH_C_DEG_TO_RAD, 0 * CH_C_DEG_TO_RAD);
+    SetLayerFiberAngles(0 * CH_DEG_TO_RAD, 0 * CH_DEG_TO_RAD, 0 * CH_DEG_TO_RAD);
 
     SetElementStructuralDamping(0.05);
 

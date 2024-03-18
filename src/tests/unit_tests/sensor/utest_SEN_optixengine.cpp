@@ -51,7 +51,7 @@ TEST(ChOptixEngine, assign_sensor_safety) {
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         64,                                                                 // image width
         48,                                                                 // image height
-        (float)CH_C_PI / 3                                                  // FOV
+        (float)CH_PI / 3                                                  // FOV
     );
     cam->SetName("Camera Sensor");
     manager->AddSensor(cam);
@@ -73,7 +73,7 @@ TEST(ChOptixEngine, assign_sensor_safety) {
         chrono::ChFrame<double>({-4, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         64,                                                                 // image width
         48,                                                                 // image height
-        (float)CH_C_PI / 3                                                  // FOV
+        (float)CH_PI / 3                                                  // FOV
     );
     cam2->SetName("Camera Sensor");
     manager->AddSensor(cam2);
@@ -105,7 +105,7 @@ TEST(ChOptixEngine, construct_scene_safety) {
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         64,                                                                 // image width
         48,                                                                 // image height
-        (float)CH_C_PI / 3                                                  // FOV
+        (float)CH_PI / 3                                                  // FOV
     );
     cam->SetName("Camera Sensor");
     manager->AddSensor(cam);
@@ -153,7 +153,7 @@ TEST(ChOptixEngine, construct_scene_safety_2) {
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         64,                                                                 // image width
         48,                                                                 // image height
-        (float)CH_C_PI / 3                                                  // FOV
+        (float)CH_PI / 3                                                  // FOV
     );
     cam->SetName("Camera Sensor");
     // cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640,480,"RGB Camera"));
@@ -202,7 +202,7 @@ TEST(ChOptixEngine, lights) {
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1,                                                                  // image width
         1,                                                                  // image height
-        (float)CH_C_PI / 3                                                  // FOV
+        (float)CH_PI / 3                                                  // FOV
     );
     cam->SetName("Camera Sensor");
     manager->AddSensor(cam);

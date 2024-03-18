@@ -67,9 +67,9 @@ void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector2d tooth_tip_p(GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2);
     m_center_p = CalcCircleCenter(tooth_base_p, tooth_tip_p, GetToothArcRadius(), -1);
     m_center_p_arc_start = std::atan2(tooth_base_p.y() - m_center_p.y(), tooth_base_p.x() - m_center_p.x());
-    m_center_p_arc_start = m_center_p_arc_start < 0 ? m_center_p_arc_start + CH_C_2PI : m_center_p_arc_start;
+    m_center_p_arc_start = m_center_p_arc_start < 0 ? m_center_p_arc_start + CH_2PI : m_center_p_arc_start;
     m_center_p_arc_end = std::atan2(tooth_tip_p.y() - m_center_p.y(), tooth_tip_p.x() - m_center_p.x());
-    m_center_p_arc_end = m_center_p_arc_end < 0 ? m_center_p_arc_end + CH_C_2PI : m_center_p_arc_end;
+    m_center_p_arc_end = m_center_p_arc_end < 0 ? m_center_p_arc_end + CH_2PI : m_center_p_arc_end;
     if (m_center_p_arc_start > m_center_p_arc_end) {
         double temp = m_center_p_arc_start;
         m_center_p_arc_start = m_center_p_arc_end;
@@ -81,9 +81,9 @@ void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector2d tooth_tip_m(-GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2);
     m_center_m = CalcCircleCenter(tooth_base_m, tooth_tip_m, GetToothArcRadius(), +1);
     m_center_m_arc_start = std::atan2(tooth_base_m.y() - m_center_m.y(), tooth_base_m.x() - m_center_m.x());
-    m_center_m_arc_start = m_center_m_arc_start < 0 ? m_center_m_arc_start + CH_C_2PI : m_center_m_arc_start;
+    m_center_m_arc_start = m_center_m_arc_start < 0 ? m_center_m_arc_start + CH_2PI : m_center_m_arc_start;
     m_center_m_arc_end = std::atan2(tooth_tip_m.y() - m_center_m.y(), tooth_tip_m.x() - m_center_m.x());
-    m_center_m_arc_end = m_center_m_arc_end < 0 ? m_center_m_arc_end + CH_C_2PI : m_center_m_arc_end;
+    m_center_m_arc_end = m_center_m_arc_end < 0 ? m_center_m_arc_end + CH_2PI : m_center_m_arc_end;
     if (m_center_m_arc_start > m_center_m_arc_end) {
         double temp = m_center_m_arc_start;
         m_center_m_arc_start = m_center_m_arc_end;

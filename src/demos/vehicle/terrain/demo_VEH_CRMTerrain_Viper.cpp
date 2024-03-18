@@ -99,8 +99,8 @@ int main(int argc, char* argv[]) {
     mat_props.mu_fric_s = friction;
     mat_props.mu_fric_2 = friction;
     mat_props.average_diam = 0.005;
-    mat_props.friction_angle = CH_C_PI / 10;  // default
-    mat_props.dilation_angle = CH_C_PI / 10;  // default
+    mat_props.friction_angle = CH_PI / 10;  // default
+    mat_props.dilation_angle = CH_PI / 10;  // default
     mat_props.cohesion_coeff = 0;             // default
     mat_props.kernel_threshold = 0.8;
 
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
     // Add BCE particles and mesh of wheels to the system
     for (int i = 0; i < 4; i++) {
         auto wheel_body = rover->GetWheels()[i]->GetBody();
-        auto yaw = (i % 2 == 0) ? QuatFromAngleZ(CH_C_PI) : QUNIT;
+        auto yaw = (i % 2 == 0) ? QuatFromAngleZ(CH_PI) : QUNIT;
         sysFSI.AddFsiBody(wheel_body);
         sysFSI.AddPointsBCE(wheel_body, BCE_wheel, ChFrame<>(VNULL, yaw), true);
     }

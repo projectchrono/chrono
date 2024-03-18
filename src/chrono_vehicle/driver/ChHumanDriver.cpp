@@ -256,7 +256,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
         m_sentinel = chassis_frame.TransformPointLocalToParent(factor * ChWorldFrame::Forward());
     } else {
         // m_Kug is in [°/g]
-        R = (m_L + CH_C_DEG_TO_RAD * m_Kug * ut * ut / g) / m_delta;
+        R = (m_L + CH_DEG_TO_RAD * m_Kug * ut * ut / g) / m_delta;
         double theta = ut * m_Tp / R;
         ChMatrix33<> RM(theta, ChWorldFrame::Vertical());
         m_sentinel = chassis_frame.TransformPointLocalToParent(factor * ChWorldFrame::Forward()) + R * (n_g - RM * n_g);
@@ -304,7 +304,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
     m_steering = m_delta / m_delta_max;
 
     // define field of view angle of the driver +-10 deg
-    const double ny = 10.0 * CH_C_DEG_TO_RAD;
+    const double ny = 10.0 * CH_DEG_TO_RAD;
     // which speed to choose?
     // search intervalls for longitudinal controller
     double d_long = 0;

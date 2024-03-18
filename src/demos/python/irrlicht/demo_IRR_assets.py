@@ -64,7 +64,7 @@ floor.AddVisualShape(boxfloor, chrono.ChFramed(chrono.ChVector3d(0, -1, 0), chro
 pathfloor = chrono.ChVisualShapePath()
 mseg1 = chrono.ChLineSegment(chrono.ChVector3d(1,2,0), chrono.ChVector3d(1,3,0))
 mseg2 = chrono.ChLineSegment(chrono.ChVector3d(1, 3, 0), chrono.ChVector3d(2, 3, 0))
-marc1 = chrono.ChLineArc(chrono.ChCoordsysd(chrono.ChVector3d(2, 3.5, 0)), 0.5, -chrono.CH_C_PI_2, chrono.CH_C_PI_2)
+marc1 = chrono.ChLineArc(chrono.ChCoordsysd(chrono.ChVector3d(2, 3.5, 0)), 0.5, -chrono.CH_PI_2, chrono.CH_PI_2)
 pathfloor.GetPathGeometry().AddSubLine(mseg1)
 pathfloor.GetPathGeometry().AddSubLine(mseg2)
 pathfloor.GetPathGeometry().AddSubLine(marc1)
@@ -142,7 +142,7 @@ body.AddVisualShape(box, chrono.ChFramed(chrono.ChVector3d(1,1,0), chrono.QUNIT)
 cyl = chrono.ChVisualShapeCylinder(0.3, 0.7)
 body.AddVisualShape(cyl, 
                     chrono.ChFramed(chrono.ChVector3d(2, 0.15, 0),
-                                    chrono.QuatFromAngleX(chrono.CH_C_PI_2)))
+                                    chrono.QuatFromAngleX(chrono.CH_PI_2)))
 
 # ==Asset== Attach three instances of the same 'triangle mesh' shape
 # TODO: not sure how to add vertices
@@ -165,7 +165,7 @@ body.AddVisualShape(objmesh, chrono.ChFramed(chrono.ChVector3d(0,0,2), chrono.QU
 for j in range(20):
     smallbox = chrono.ChVisualShapeBox(0.2, 0.2, 0.02)
     smallbox.SetColor(chrono.ChColor(j * 0.05, 1 - j * 0.05, 0.0))
-    rot = chrono.ChMatrix33d(chrono.QuatFromAngleY(j * 21 * chrono.CH_C_DEG_TO_RAD))
+    rot = chrono.ChMatrix33d(chrono.QuatFromAngleY(j * 21 * chrono.CH_DEG_TO_RAD))
     pos = rot * chrono.ChVector3d(0.4, 0, 0) + chrono.ChVector3d(0, j * 0.02, 0)
     body.AddVisualShape(smallbox, chrono.ChFramed(pos, rot))
 

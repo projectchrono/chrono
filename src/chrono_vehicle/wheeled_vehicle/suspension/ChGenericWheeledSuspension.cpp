@@ -449,7 +449,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
         m_revolute[side]->SetNameString(Name({"spindle_rev", side}));
         m_revolute[side]->Initialize(m_spindle[side], abody,
-                                     ChFrame<>(spindlePos, spindleRot * QuatFromAngleX(CH_C_PI_2)));
+                                     ChFrame<>(spindlePos, spindleRot * QuatFromAngleX(CH_PI_2)));
         chassis->GetSystem()->AddLink(m_revolute[side]);
 
         // Axle shaft
@@ -528,7 +528,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         ChVector3d axis = TransformDirection(item.second.axis, item.first.side);
         ChMatrix33<> rot;
         rot.SetFromAxisX(axis);
-        ChQuaternion<> quat = rot.GetQuaternion() * QuatFromAngleY(CH_C_PI_2);
+        ChQuaternion<> quat = rot.GetQuaternion() * QuatFromAngleY(CH_PI_2);
         item.second.rsda = chrono_types::make_shared<ChLinkRSDA>();
         item.second.rsda->SetNameString(Name(item.first));
         item.second.rsda->Initialize(body1, body2, ChFrame<>(pos, quat));

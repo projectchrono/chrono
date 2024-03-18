@@ -242,7 +242,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
                        std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh_1->GetNode(3)));
 
     Element1->SetDimensions(L_x, L_z);
-    Element1->AddLayer(L_y, 0 * CH_C_DEG_TO_RAD, material);
+    Element1->AddLayer(L_y, 0 * CH_DEG_TO_RAD, material);
     Element1->SetAlphaDamp(0.02);  // Structural damping for this element
     my_mesh_1->AddElement(Element1);
 
@@ -253,7 +253,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
                        std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh_2->GetNode(2)),
                        std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh_2->GetNode(3)));
     Element2->SetDimensions(L_x, L_z);
-    Element2->AddLayer(L_y, 0 * CH_C_DEG_TO_RAD, material);
+    Element2->AddLayer(L_y, 0 * CH_DEG_TO_RAD, material);
     Element2->SetAlphaDamp(0.02);  // Structural damping for this element
     my_mesh_2->AddElement(Element2);
     std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh_1->GetNode(0))->SetFixed(true);

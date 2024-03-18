@@ -1078,7 +1078,7 @@ inline void ChQuaternion<Real>::GetAngleAxis(Real& angle, ChVector3<Real>& axis)
         axis.z() = 0;  // m_data[3] * 2.0;
     }
     // Ensure that angle is always in  [-PI...PI] range
-    auto PI = static_cast<Real>(CH_C_PI);
+    auto PI = static_cast<Real>(CH_PI);
     if (angle > PI) {
         angle -= 2 * PI;
     } else if (angle < -PI) {

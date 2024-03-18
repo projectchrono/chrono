@@ -254,12 +254,12 @@ int main(int argc, char* argv[]) {
     // Convert input parameters
     // ------------------------
 
-    double slope_g = slope * CH_C_DEG_TO_RAD;
+    double slope_g = slope * CH_DEG_TO_RAD;
     double r_g = radius / 1000;
     double rho_g = density;
     double mu_g = mu;
 
-    double area = CH_C_PI * r_g * r_g;
+    double area = CH_PI * r_g * r_g;
     double coh_force = area * (coh * 1e3);
     double coh_g = coh_force * time_step;
 

@@ -91,7 +91,7 @@ void ChRigidPinnedAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axlePin = chrono_types::make_shared<ChLinkLockRevolute>();
     m_axlePin->SetNameString(m_name + "_axlePin");
     m_axlePin->Initialize(m_axleTube, chassis->GetBody(),
-                          ChFrame<>(m_axlePinLoc, chassisRot * QuatFromAngleY(CH_C_PI_2)));
+                          ChFrame<>(m_axlePinLoc, chassisRot * QuatFromAngleY(CH_PI_2)));
     chassis->GetBody()->GetSystem()->AddLink(m_axlePin);
 
     // Initialize left and right sides.
@@ -123,7 +123,7 @@ void ChRigidPinnedAxle::InitializeSide(VehicleSide side,
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_axleTube, m_spindle[side],
-                                 ChFrame<>(points[SPINDLE], chassisRot * QuatFromAngleX(CH_C_PI_2)));
+                                 ChFrame<>(points[SPINDLE], chassisRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the axle shaft and its connection to the spindle.

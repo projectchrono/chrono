@@ -35,7 +35,7 @@ class ChApi ChFunctionSine : public ChFunction {
   public:
     ChFunctionSine() : m_ampl(1.0), m_phase(0.0), m_angular_rate(0.0) {}
     ChFunctionSine(double ampl, double freq, double phase = 0)
-        : m_ampl(ampl), m_phase(phase), m_angular_rate(2.0 * CH_C_PI * freq) {}
+        : m_ampl(ampl), m_phase(phase), m_angular_rate(2.0 * CH_PI * freq) {}
     ChFunctionSine(const ChFunctionSine& other);
     ~ChFunctionSine() {}
 
@@ -50,7 +50,7 @@ class ChApi ChFunctionSine : public ChFunction {
 
     void SetPhase(double phase) { m_phase = phase; };
 
-    void SetFrequency(double freq) { m_angular_rate = 2.0 * CH_C_PI * freq; }
+    void SetFrequency(double freq) { m_angular_rate = 2.0 * CH_PI * freq; }
 
     void SetAngularRate(double ang_rate) { m_angular_rate = ang_rate; }
 
@@ -58,7 +58,7 @@ class ChApi ChFunctionSine : public ChFunction {
 
     double GetPhase() const { return m_phase; }
 
-    double GetFrequency() const { return m_angular_rate / 2.0 / CH_C_PI; }
+    double GetFrequency() const { return m_angular_rate / 2.0 / CH_PI; }
 
     double GetAngularRate() const { return m_angular_rate; }
 

@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     for (int nload = 0; nload < 3; ++nload) {
         int i = 0;
         for (double rot = 0; rot <= rotmax; rot += rotstep) {
-            double rot_rad = rot * CH_C_DEG_TO_RAD;
+            double rot_rad = rot * CH_DEG_TO_RAD;
 
             //
             // Add some EULER-BERNOULLI BEAMS:
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
         double node_y = endnodes[0][i]->GetPos().y() - 0 * y_spacing;
         double node_z = endnodes[0][i]->GetPos().z() - i * z_spacing;
         double node_a =
-            atan2(endnodes[0][i]->GetRotMat().GetAxisY().y(), endnodes[0][i]->GetRotMat().GetAxisY().z()) - CH_C_PI_2;
+            atan2(endnodes[0][i]->GetRotMat().GetAxisY().y(), endnodes[0][i]->GetRotMat().GetAxisY().z()) - CH_PI_2;
         std::cout << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]" << std::endl;
         file_out1 << node_y << " " << node_z << " " << node_a << std::endl;
     }
@@ -188,7 +188,7 @@ int main(int argc, char* argv[]) {
         double node_y = endnodes[1][i]->GetPos().y() - 1 * y_spacing;
         double node_z = endnodes[1][i]->GetPos().z() - i * z_spacing;
         double node_a =
-            atan2(endnodes[1][i]->GetRotMat().GetAxisY().y(), endnodes[1][i]->GetRotMat().GetAxisY().z()) - CH_C_PI_2;
+            atan2(endnodes[1][i]->GetRotMat().GetAxisY().y(), endnodes[1][i]->GetRotMat().GetAxisY().z()) - CH_PI_2;
         std::cout << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]" << std::endl;
         file_out2 << node_y << " " << node_z << " " << node_a << std::endl;
     }
@@ -198,7 +198,7 @@ int main(int argc, char* argv[]) {
         double node_y = endnodes[2][i]->GetPos().y() - 2 * y_spacing;
         double node_z = endnodes[2][i]->GetPos().z() - i * z_spacing;
         double node_a =
-            atan2(endnodes[2][i]->GetRotMat().GetAxisY().y(), endnodes[2][i]->GetRotMat().GetAxisY().z()) - CH_C_PI_2;
+            atan2(endnodes[2][i]->GetRotMat().GetAxisY().y(), endnodes[2][i]->GetRotMat().GetAxisY().z()) - CH_PI_2;
         std::cout << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]" << std::endl;
         file_out3 << node_y << " " << node_z << " " << node_a << std::endl;
     }
@@ -212,10 +212,10 @@ int main(int argc, char* argv[]) {
         tools::drawGrid(vis.get(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector3d(0.25, -0.20, 0), 0, VECT_Y),
                         ChColor(0.3f, 0.3f, 0.3f), true);
 
-        tools::drawGrid(vis.get(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector3d(0.25, -0.45, -0.25), CH_C_PI_2, VECT_X),
+        tools::drawGrid(vis.get(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector3d(0.25, -0.45, -0.25), CH_PI_2, VECT_X),
                         ChColor(0.3f, 0.3f, 0.3f), true);
 
-        tools::drawGrid(vis.get(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector3d(0.001, -0.20, -0.25), CH_C_PI_2, VECT_Y),
+        tools::drawGrid(vis.get(), 0.05, 0.05, 10, 10, ChCoordsys<>(ChVector3d(0.001, -0.20, -0.25), CH_PI_2, VECT_Y),
                         ChColor(0.3f, 0.3f, 0.3f), true);
 
         sys.DoStepDynamics(0.001);

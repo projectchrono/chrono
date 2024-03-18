@@ -130,7 +130,7 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
     double roller_elliptical_rad_Vert = wheel_radius * 1.0 / (cos(roller_angle));
 
     for (int iroller = 0; iroller < n_rollers; iroller++) {
-        double pitch = CH_C_2PI * ((double)iroller / (double)n_rollers);
+        double pitch = CH_2PI * ((double)iroller / (double)n_rollers);
 
         double Roffset = -(wheel_radius - roller_midradius);
 
@@ -170,7 +170,7 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
 
         // Make the revolute joint between the roller and the central wheel
         // (preconcatenate rotation 90 degrees on X, to set axis of revolute joint)
-        ChFrameMoving<> fr(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI_2));
+        ChFrameMoving<> fr(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI_2));
         ChFrameMoving<> frabs = fr >> f3;
         auto link_roller = chrono_types::make_shared<ChLinkLockRevolute>();
         link_roller->Initialize(roller, centralWheel, frabs);
@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
 
     double platform_radius = 8;
     double wheel_radius = 3;
-    double roller_angle = CH_C_PI / 4;
+    double roller_angle = CH_PI / 4;
 
     // Create the robot truss, as a circular platform
     auto platform = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,       //
@@ -204,11 +204,11 @@ int main(int argc, char* argv[]) {
 
     // create the wheels and link them to the platform
 
-    ChFrame<> f0(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI_2));
+    ChFrame<> f0(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI_2));
     ChFrame<> f1(ChVector3d(0, 0, platform_radius), QUNIT);
-    ChFrame<> f2_wA(VNULL, QuatFromAngleY(0 * (CH_C_2PI / 3.0)));
-    ChFrame<> f2_wB(VNULL, QuatFromAngleY(1 * (CH_C_2PI / 3.0)));
-    ChFrame<> f2_wC(VNULL, QuatFromAngleY(2 * (CH_C_2PI / 3.0)));
+    ChFrame<> f2_wA(VNULL, QuatFromAngleY(0 * (CH_2PI / 3.0)));
+    ChFrame<> f2_wB(VNULL, QuatFromAngleY(1 * (CH_2PI / 3.0)));
+    ChFrame<> f2_wC(VNULL, QuatFromAngleY(2 * (CH_2PI / 3.0)));
     ChFrame<> ftot_wA = f0 >> f1 >> f2_wA;
     ChFrame<> ftot_wB = f0 >> f1 >> f2_wB;
     ChFrame<> ftot_wC = f0 >> f1 >> f2_wC;

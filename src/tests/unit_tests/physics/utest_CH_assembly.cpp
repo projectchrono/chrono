@@ -48,7 +48,7 @@ TEST(FullAssembly, Assemble) {
     double g = 9.80665;                    // gravitational acceleration
 
     ChVector3d jointLoc(1, 2, 3);                                    // absolute location of revolute joint
-    double jointAngle = -CH_C_PI_4;                                  // joint rotation angle (about global X axis)
+    double jointAngle = -CH_PI_4;                                  // joint rotation angle (about global X axis)
     ChQuaternion<> jointRot = QuatFromAngleX(jointAngle);  // orientation of revolute joint
 
     // Create the mechanical system

@@ -101,11 +101,11 @@ double ChLinkRSDA::GetRestAngle() const {
 }
 
 double ChLinkRSDA::GetAngle() const {
-    return CH_C_2PI * m_turns + m_angle;
+    return CH_2PI * m_turns + m_angle;
 }
 
 double ChLinkRSDA::GetDeformation() const {
-    return CH_C_2PI * m_turns + m_angle - m_rest_angle;
+    return CH_2PI * m_turns + m_angle - m_rest_angle;
 }
 
 double ChLinkRSDA::GetVelocity() const {
@@ -141,7 +141,7 @@ void ChLinkRSDA::CalcAngle() {
     if (c >= 0) {
         m_angle = a;
     } else {
-        m_angle = (s >= 0) ? CH_C_PI - a : -CH_C_PI - a;
+        m_angle = (s >= 0) ? CH_PI - a : -CH_PI - a;
     }
 
     // Get angle rate of change
@@ -151,26 +151,26 @@ void ChLinkRSDA::CalcAngle() {
 
 void ChLinkRSDA::AdjustAngle() {
     // Check cross at +- pi
-    if (m_last_angle > CH_C_PI_2 && m_angle < 0)
-        m_angle += CH_C_2PI;
-    if (m_last_angle < -CH_C_PI_2 && m_angle > 0)
-        m_angle -= CH_C_PI_2;
+    if (m_last_angle > CH_PI_2 && m_angle < 0)
+        m_angle += CH_2PI;
+    if (m_last_angle < -CH_PI_2 && m_angle > 0)
+        m_angle -= CH_PI_2;
 
     // Accumulate full turns
-    if (m_last_angle - m_angle > CH_C_PI)
+    if (m_last_angle - m_angle > CH_PI)
         m_turns++;
-    if (m_last_angle - m_angle < -CH_C_PI)
+    if (m_last_angle - m_angle < -CH_PI)
         m_turns--;
 
     if (m_angle < 0) {
         while (m_turns > 0) {
-            m_angle += CH_C_2PI;
+            m_angle += CH_2PI;
             m_turns--;
         }
     }
     if (m_angle > 0) {
         while (m_turns < 0) {
-            m_angle -= CH_C_2PI;
+            m_angle -= CH_2PI;
             m_turns++;
         }
     }
@@ -189,7 +189,7 @@ void ChLinkRSDA::Update(double time, bool update_assets) {
     AdjustAngle();
 
     // Calculate torque along RSDA axis
-    double angle = CH_C_2PI * m_turns + m_angle;
+    double angle = CH_2PI * m_turns + m_angle;
     if (m_torque_fun) {
         m_torque = m_torque_fun->evaluate(time, m_rest_angle, m_angle, m_angle_dt, *this);
     } else {

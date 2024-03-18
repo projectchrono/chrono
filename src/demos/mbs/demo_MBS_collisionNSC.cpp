@@ -132,8 +132,8 @@ std::shared_ptr<ChBody> AddContainer(ChSystemNSC& sys) {
     // .. a motor between mixer and truss
 
     auto my_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    my_motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI_2)));
-    auto mfun = chrono_types::make_shared<ChFunctionConst>(CH_C_PI / 4.0);  // speed 45 deg/s
+    my_motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI_2)));
+    auto mfun = chrono_types::make_shared<ChFunctionConst>(CH_PI / 4.0);  // speed 45 deg/s
     my_motor->SetSpeedFunction(mfun);
     sys.AddLink(my_motor);
 
@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->SetWireFrameMode(false);
             vis_vsg->Initialize();

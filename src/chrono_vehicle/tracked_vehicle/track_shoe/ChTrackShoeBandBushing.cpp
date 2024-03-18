@@ -156,7 +156,7 @@ void ChTrackShoeBandBushing::Connect(std::shared_ptr<ChTrackShoe> next,
                                      bool ccw) {
     int index = 0;
 
-    auto z2y = QuatFromAngleX(CH_C_PI_2);
+    auto z2y = QuatFromAngleX(CH_PI_2);
 
     // Connect tread body to the first web segment.
     {

@@ -110,7 +110,7 @@ if (bench1):  # set as 'True' to execute this
 								   nodearray[(il) * (nels_W + 1) + (iw - 1)], nodearray[(il) * (nels_W + 1) + (iw)],
 								   nodearray[(il - 1) * (nels_W + 1) + (iw)])
 
-                melement.AddLayer(rect_thickness, 0 * chrono.CH_C_DEG_TO_RAD, mat)
+                melement.AddLayer(rect_thickness, 0 * chrono.CH_DEG_TO_RAD, mat)
                 elarray[(il - 1) * (nels_W) + (iw - 1)] = melement
                 
     nodesLoad = nodes_end
@@ -122,7 +122,7 @@ if (bench1):  # set as 'True' to execute this
     # applied load
     # load_force = chrono.ChVector3d(200000,0, 20000)
     load_force = chrono.ChVector3d(0, 4, 0)
-    # load_torque = chrono.ChVector3d(0, 0, 50*CH_C_PI/3.0)
+    # load_torque = chrono.ChVector3d(0, 0, 50*CH_PI/3.0)
 
     # reference solution for (0, 4, 0) shear to plot
     ref_Y.AddPoint(0.10, 1.309)
@@ -164,7 +164,7 @@ if (bench2):  # set as 'True' to execute this
 	# Create the nodes
     nels_U = 60
     nels_W = 10
-    arc = chrono.CH_C_2PI * 1 
+    arc = chrono.CH_2PI * 1 
     elarray = [fea.ChElementShellReissner4]*(nels_U * nels_W)
     nodearray = [fea.ChNodeFEAxyzrot]*((nels_U + 1) * (nels_W + 1))
     nodes_start = [fea.ChNodeFEAxyzrot]*(nels_W + 1)
@@ -197,7 +197,7 @@ if (bench2):  # set as 'True' to execute this
 								   nodearray[(iu - 1) * (nels_W + 1) + (iw - 1)],
 								   nodearray[(iu) * (nels_W + 1) + (iw - 1)])
 
-                melement.AddLayer(plate_thickness, 0 * chrono.CH_C_DEG_TO_RAD, mat)
+                melement.AddLayer(plate_thickness, 0 * chrono.CH_DEG_TO_RAD, mat)
                 elarray[(iu - 1) * (nels_W) + (iw - 1)] = melement
 
     nodesLoad = nodes_end
@@ -255,7 +255,7 @@ if (bench3):
 	# Create the nodes
     nels_U = 32
     nels_W = 32
-    arc = chrono.CH_C_PI
+    arc = chrono.CH_PI
     elarray = [fea.ChElementShellReissner4]*(nels_U * nels_W)
     nodearray = [fea.ChNodeFEAxyzrot]*(nels_U + 1) * (nels_W + 1)
     nodes_start = [fea.ChNodeFEAxyzrot]*(nels_W + 1)
@@ -294,11 +294,11 @@ if (bench3):
 								   nodearray[(iu - 1) * (nels_W + 1) + (iw - 1)],
 								   nodearray[(iu) * (nels_W + 1) + (iw - 1)])
 
-                melement.AddLayer(plate_thickness, 0 * chrono.CH_C_DEG_TO_RAD, mat)
+                melement.AddLayer(plate_thickness, 0 * chrono.CH_DEG_TO_RAD, mat)
 				# In case you want to test laminated shells, do instead:
-				#  melement.AddLayer(plate_thickness/3, 0 * CH_C_DEG_TO_RAD, mat_ortho)
-				#  melement.AddLayer(plate_thickness/3, 90 * CH_C_DEG_TO_RAD, mat_ortho)
-				#  melement.AddLayer(plate_thickness/3, 0 * CH_C_DEG_TO_RAD, mat_ortho)
+				#  melement.AddLayer(plate_thickness/3, 0 * CH_DEG_TO_RAD, mat_ortho)
+				#  melement.AddLayer(plate_thickness/3, 90 * CH_DEG_TO_RAD, mat_ortho)
+				#  melement.AddLayer(plate_thickness/3, 0 * CH_DEG_TO_RAD, mat_ortho)
 
                 elarray[(iu - 1) * (nels_W) + (iw - 1)] = melement
 

@@ -126,7 +126,7 @@ void ChRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleTubeGuide->SetNameString(m_name + "_planePlaneAxleTube");
     const ChQuaternion<>& guideRot = chassis->GetBody()->GetFrameRefToAbs().GetRot();
     m_axleTubeGuide->Initialize(chassis->GetBody(), m_axleTubeBody,
-                                ChFrame<>(axleCOM, guideRot * QuatFromAngleY(CH_C_PI_2)));
+                                ChFrame<>(axleCOM, guideRot * QuatFromAngleY(CH_PI_2)));
     chassis->GetBody()->GetSystem()->AddLink(m_axleTubeGuide);
 
     // Create and initialize the Panhard body.
@@ -205,7 +205,7 @@ void ChRigidPanhardAxle::InitializeSide(VehicleSide side,
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_axleTubeBody,
-                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2)));
+                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the shock damper
@@ -248,13 +248,13 @@ void ChRigidPanhardAxle::InitializeSide(VehicleSide side,
     if (side == LEFT) {
         m_revARBChassis = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::REVOLUTE, m_name + "_revARBchassis", chassisBody, m_arb[side],
-            ChFrame<>(m_ptARBCenter, chassisRot * QuatFromAngleX(CH_C_PI_2)));
+            ChFrame<>(m_ptARBCenter, chassisRot * QuatFromAngleX(CH_PI_2)));
         chassis->AddJoint(m_revARBChassis);
     } else {
         m_revARBLeftRight = chrono_types::make_shared<ChLinkLockRevolute>();
         m_revARBLeftRight->SetNameString(m_name + "_revARBleftRight");
         m_revARBLeftRight->Initialize(m_arb[LEFT], m_arb[RIGHT],
-                                      ChFrame<>(m_ptARBCenter, chassisRot * QuatFromAngleX(CH_C_PI_2)));
+                                      ChFrame<>(m_ptARBCenter, chassisRot * QuatFromAngleX(CH_PI_2)));
         chassis->GetSystem()->AddLink(m_revARBLeftRight);
 
         m_revARBLeftRight->ForceRz().SetActive(1);

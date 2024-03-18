@@ -36,7 +36,7 @@ TEST(MathTest, quadrature) {
 
     MySine1d mfx;
     double qresult = 0;
-    ChQuadrature::Integrate1D<double>(qresult, mfx, 0, CH_C_PI, 6); // 6th order Gauss-Legendre quadrature on [0,pi]
+    ChQuadrature::Integrate1D<double>(qresult, mfx, 0, CH_PI, 6); // 6th order Gauss-Legendre quadrature on [0,pi]
     cout << "Quadrature 1d result: " << qresult << " (analytic solution: 2.0) \n";
     ASSERT_NEAR(qresult, 2.0, ABS_ERR);
 
@@ -47,7 +47,7 @@ TEST(MathTest, quadrature) {
 
     MySine2d mfx2d;
     qresult = 0;
-    ChQuadrature::Integrate2D<double>(qresult, mfx2d, 0, CH_C_PI, -1, 1, 6);
+    ChQuadrature::Integrate2D<double>(qresult, mfx2d, 0, CH_PI, -1, 1, 6);
     cout << "Quadrature 2d result: " << qresult << " (analytic solution: 4.0) \n";
     ASSERT_NEAR(qresult, 4.0, ABS_ERR);
 

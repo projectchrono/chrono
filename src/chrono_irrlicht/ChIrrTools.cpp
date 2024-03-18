@@ -698,7 +698,7 @@ void drawCircle(ChVisualSystemIrrlicht* vis,
     double phaseB = 0;
 
     for (int iu = 1; iu <= resolution; iu++) {
-        phaseB = CH_C_2PI * (double)iu / (double)resolution;
+        phaseB = CH_2PI * (double)iu / (double)resolution;
         ChVector3d V1(radius * cos(phaseA), radius * sin(phaseA), 0);
         ChVector3d V2(radius * cos(phaseB), radius * sin(phaseB), 0);
         drawSegment(vis, pos.TransformPointLocalToParent(V1), pos.TransformPointLocalToParent(V2), col, use_Zbuffer);
@@ -737,7 +737,7 @@ void drawSpring(ChVisualSystemIrrlicht* vis,
     double heightB = 0;
 
     for (int iu = 1; iu <= resolution; iu++) {
-        phaseB = turns * CH_C_2PI * (double)iu / (double)resolution;
+        phaseB = turns * CH_2PI * (double)iu / (double)resolution;
         heightB = length * ((double)iu / (double)resolution);
         ChVector3d V1(heightA, radius * cos(phaseA), radius * sin(phaseA));
         ChVector3d V2(heightB, radius * cos(phaseB), radius * sin(phaseB));
@@ -769,7 +769,7 @@ void drawRotSpring(ChVisualSystemIrrlicht* vis,
 
     for (int iu = 1; iu <= resolution; iu++) {
         double crt_angle = start_angle + iu * del_angle;
-        double crt_radius = radius - (iu * del_angle / CH_C_2PI) * (radius / 10);
+        double crt_radius = radius - (iu * del_angle / CH_2PI) * (radius / 10);
         ChVector3d V2(crt_radius * std::cos(crt_angle), crt_radius * std::sin(crt_angle), 0);
         drawSegment(vis, pos.TransformPointLocalToParent(V1), pos.TransformPointLocalToParent(V2), col, use_Zbuffer);
         V1 = V2;

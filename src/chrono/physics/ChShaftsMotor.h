@@ -37,10 +37,10 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
     virtual double GetMotorAngleDer2() const { return (shaft1->GetPosDer2() - shaft2->GetPosDer2()); }
 
     /// In case of multi-turns, gets the current actuator number of (integer) rotations:
-    virtual int GetMotorNumTurns() const { return int(GetMotorAngle() / CH_C_2PI); }
+    virtual int GetMotorNumTurns() const { return int(GetMotorAngle() / CH_2PI); }
 
     /// In case of multi-turns, gets the current actuator rotation angle [rad], in periodic -PI..+PI.
-    virtual double GetMotorAngleWrapped() const { return fmod(GetMotorAngle(), CH_C_2PI); }
+    virtual double GetMotorAngleWrapped() const { return fmod(GetMotorAngle(), CH_2PI); }
 
     /// Get the current motor torque between shaft2 and shaft1, expressed as applied to shaft1
     virtual double GetMotorTorque() const = 0;

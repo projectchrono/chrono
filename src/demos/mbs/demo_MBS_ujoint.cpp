@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
 
     // Set the bend angle between the two shafts (positive rotation about the
     // global X axis)
-    double angle = CH_C_PI / 6;
+    double angle = CH_PI / 6;
     double cosa = std::cos(angle);
     double sina = std::sin(angle);
     ChQuaternion<> rot = QuatFromAngleX(angle);
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
 
         auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.05, 0.4);
         cyl_2->SetColor(ChColor(0.6f, 0, 0));
-        shaft_1->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(0, 0, hl), QuatFromAngleY(CH_C_PI_2)));
+        shaft_1->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(0, 0, hl), QuatFromAngleY(CH_PI_2)));
     }
 
     // Create the second shaft body
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
 
         auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.05, 0.4);
         cyl_2->SetColor(ChColor(0, 0, 0.6f));
-        shaft_2->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(0, 0, -hl), QuatFromAngleX(CH_C_PI_2)));
+        shaft_2->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(0, 0, -hl), QuatFromAngleX(CH_PI_2)));
     }
 
     // Connect the first shaft to ground

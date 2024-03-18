@@ -132,7 +132,7 @@ double turn_radius_ref = 30.0;
 double turn_radius = turn_radius_ref + 2.5;
 double run_in_length = 10.0;  // straight line before entering circle
 double manoever_length = 3000.0;
-int circle_repeats = manoever_length / (CH_C_2PI * turn_radius) + 1;
+int circle_repeats = manoever_length / (CH_2PI * turn_radius) + 1;
 
 double initial_speed = 2.0;  // start with low speed
 double t_hold = 60.0;
@@ -361,7 +361,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
             vis = vis_vsg;

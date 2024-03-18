@@ -141,7 +141,7 @@ int main(int argc, char* argv[]) {
     auto mixer_mesh_id = gpu_sys.AddMesh(mixer_mesh, mixer_mass);
 
     float rev_per_sec = 1.f;
-    float ang_vel_Z = rev_per_sec * 2 * (float)CH_C_PI;
+    float ang_vel_Z = rev_per_sec * 2 * (float)CH_PI;
     ChVector3d mesh_lin_vel(0);
     ChVector3d mesh_ang_vel(0, 0, ang_vel_Z);
 

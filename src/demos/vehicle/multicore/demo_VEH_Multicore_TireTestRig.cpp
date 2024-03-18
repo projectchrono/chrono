@@ -74,7 +74,7 @@ int main() {
     ////rig.SetGravitationalAcceleration(0);
     rig.SetNormalLoad(2000);
 
-    ////rig.SetCamberAngle(+15 * CH_C_DEG_TO_RAD);
+    ////rig.SetCamberAngle(+15 * CH_DEG_TO_RAD);
 
     rig.SetTireStepsize(tire_step_size);
     rig.SetTireCollisionType(ChTire::CollisionType::FOUR_POINTS);

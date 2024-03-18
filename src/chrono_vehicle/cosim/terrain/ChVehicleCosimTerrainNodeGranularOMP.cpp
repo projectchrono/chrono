@@ -195,7 +195,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::SetFromSpecfile(const std::string& sp
     m_system->GetSettings()->collision.collision_envelope = 0.1 * m_radius_g;
 
     double coh_pressure = d["Material properties"]["Cohesion pressure"].GetDouble();
-    double coh_force = CH_C_PI * m_radius_g * m_radius_g * coh_pressure;
+    double coh_force = CH_PI * m_radius_g * m_radius_g * coh_pressure;
 
     switch (GetSystem()->GetContactMethod()) {
         case ChContactMethod::SMC: {
@@ -741,7 +741,7 @@ double ChVehicleCosimTerrainNodeGranularOMP::CalculatePackingDensity(double& dep
     double Vt = m_dimX * m_dimY * (z_max - z_min);
 
     // Find volume of granular particles
-    double Vs = m_num_particles * (4.0 / 3) * CH_C_PI * std::pow(m_radius_g, 3);
+    double Vs = m_num_particles * (4.0 / 3) * CH_PI * std::pow(m_radius_g, 3);
 
     // Packing density = Vs/Vt
     return Vs / Vt;

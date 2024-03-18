@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
     } else {
         // Start odd vehicles staggered going up the west edge, driving east
         initLoc = offset + ChVector3d(2.0 * (node_id - 1), -5.0 - 2.0 * (node_id - 1), 0.5);
-        initRot = QuatFromAngleZ(CH_C_PI / 2);
+        initRot = QuatFromAngleZ(CH_PI / 2);
         curve_pts = {initLoc, initLoc + ChVector3d(0, 100, 0)};
     }
 
@@ -256,13 +256,13 @@ int main(int argc, char* argv[]) {
         ChQuaternion<> rotation = QUNIT;
         const bool USE_ISO_VIEW = true;
         if (USE_ISO_VIEW) {
-            ChQuaternion<> qA = QuatFromAngleAxis(35 * CH_C_DEG_TO_RAD, VECT_Y);
-            ChQuaternion<> qB = QuatFromAngleAxis(135 * CH_C_DEG_TO_RAD, VECT_Z);
+            ChQuaternion<> qA = QuatFromAngleAxis(35 * CH_DEG_TO_RAD, VECT_Y);
+            ChQuaternion<> qB = QuatFromAngleAxis(135 * CH_DEG_TO_RAD, VECT_Z);
             rotation = rotation >> qA >> qB;
         } else {
             // Top down view
-            ChQuaternion<> qA = QuatFromAngleAxis(90 * CH_C_DEG_TO_RAD, VECT_Y);
-            ChQuaternion<> qB = QuatFromAngleAxis(180 * CH_C_DEG_TO_RAD, VECT_Z);
+            ChQuaternion<> qA = QuatFromAngleAxis(90 * CH_DEG_TO_RAD, VECT_Y);
+            ChQuaternion<> qB = QuatFromAngleAxis(180 * CH_DEG_TO_RAD, VECT_Z);
             rotation = rotation >> qA >> qB;
         }
 
@@ -272,7 +272,7 @@ int main(int argc, char* argv[]) {
             chrono::ChFrame<double>(camera_loc, rotation),  // offset pose
             cam_res_width,                                  // image width
             cam_res_height,                                 // image height
-            (float)CH_C_PI / 3                              // FOV
+            (float)CH_PI / 3                              // FOV
         );
 
         overhead_camera->SetName("Overhead Cam");

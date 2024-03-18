@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-12, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1920,                                                                // image width
         1080,                                                                // image height
-        (float)CH_C_PI / 3                                                   // FOV
+        (float)CH_PI / 3                                                   // FOV
     );
     cam->SetName("Camera Sensor");
     cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720, "For user display"));
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-12, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1920,                                                                // image width
         1080,                                                                // image height
-        (float)CH_C_PI / 3, 1, CameraLensModelType::PINHOLE, true            // FOV
+        (float)CH_PI / 3, 1, CameraLensModelType::PINHOLE, true            // FOV
     );
     cam_g->SetName("Camera Sensor");
     cam_g->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720, "For user display, GI"));

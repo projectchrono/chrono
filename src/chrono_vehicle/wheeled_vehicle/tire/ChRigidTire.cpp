@@ -71,7 +71,7 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
         // Cylinder contact
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(m_material, GetRadius(), GetWidth());
         wheel_body->AddCollisionShape(ct_shape,
-                                      ChFrame<>(ChVector3d(0, 0, GetOffset()), QuatFromAngleX(CH_C_PI_2)));
+                                      ChFrame<>(ChVector3d(0, 0, GetOffset()), QuatFromAngleX(CH_PI_2)));
     }
 
     wheel_body->GetCollisionModel()->SetFamily(WheeledCollisionFamily::TIRE);

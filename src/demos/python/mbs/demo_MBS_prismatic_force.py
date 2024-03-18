@@ -62,7 +62,7 @@ slider1.SetPos(chrono.ChVector3d(-4, 0, -1))
 
 cyl1 = chrono.ChVisualShapeCylinder(0.2, 0.4)
 cyl1.SetColor(chrono.ChColor(0.6, 0, 0))
-slider1.AddVisualShape(cyl1, chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
+slider1.AddVisualShape(cyl1, chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleY(chrono.CH_PI_2)))
 
 slider2 = chrono.ChBody()
 sys.AddBody(slider2)
@@ -75,21 +75,21 @@ slider2.SetPos(chrono.ChVector3d(-4, 0, 1))
 
 cyl2 = chrono.ChVisualShapeCylinder(0.2, 0.4)
 cyl2.SetColor(chrono.ChColor(0, 0, 0.6))
-slider2.AddVisualShape(cyl2, chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
+slider2.AddVisualShape(cyl2, chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleY(chrono.CH_PI_2)))
 
 # Create prismatic joints between ground a sliders
 prismatic1 = chrono.ChLinkLockPrismatic()
-prismatic1.Initialize(slider1, ground, chrono.ChFramed(chrono.ChVector3d(0, 0, -1), chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
+prismatic1.Initialize(slider1, ground, chrono.ChFramed(chrono.ChVector3d(0, 0, -1), chrono.QuatFromAngleY(chrono.CH_PI_2)))
 sys.AddLink(prismatic1)
 
 prismatic2 = chrono.ChLinkLockPrismatic()
-prismatic2.Initialize(slider2, ground, chrono.ChFramed(chrono.ChVector3d(0, 0, 1), chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
+prismatic2.Initialize(slider2, ground, chrono.ChFramed(chrono.ChVector3d(0, 0, 1), chrono.QuatFromAngleY(chrono.CH_PI_2)))
 sys.AddLink(prismatic2)
 
 # Sine function parameters
 freq = 1
 ampl = 4
-omg = 2 * chrono.CH_C_PI * freq
+omg = 2 * chrono.CH_PI * freq
 mod = chrono.ChFunctionSine(ampl, freq)
 
 # Actuate first slider using a link force

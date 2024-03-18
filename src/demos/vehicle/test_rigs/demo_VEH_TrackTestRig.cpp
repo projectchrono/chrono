@@ -225,7 +225,7 @@ int main(int argc, char* argv[]) {
 
     vis->SetChaseCameraPosition(target_point + ChVector3d(0, -5, 0));
     vis->SetChaseCameraState(utils::ChChaseCamera::Free);
-    vis->SetChaseCameraAngle(CH_C_PI_2);
+    vis->SetChaseCameraAngle(CH_PI_2);
 
     // -----------------
     // Set up rig output

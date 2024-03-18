@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
         vis->BeginScene();
         vis->Render();
         tools::drawGrid(vis.get(), 2, 2, 20, 20,
-                        ChCoordsys<>(ChVector3d(0, -20, 0), QuatFromAngleX(CH_C_PI_2)),
+                        ChCoordsys<>(ChVector3d(0, -20, 0), QuatFromAngleX(CH_PI_2)),
                         ChColor(0.3f, 0.5f, 0.5f), true);
 
         // Update the position of the spinning fan (an Irrlicht

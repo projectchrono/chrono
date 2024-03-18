@@ -37,10 +37,10 @@ chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.005)
 
 # Create a fixed rigid body
 
-phi   = 40 * chrono.CH_C_DEG_TO_RAD;
+phi   = 40 * chrono.CH_DEG_TO_RAD;
 rad_sph = 0.1
-alpha = 45 * chrono.CH_C_DEG_TO_RAD
-beta  = alpha - 0 * chrono.CH_C_DEG_TO_RAD
+alpha = 45 * chrono.CH_DEG_TO_RAD
+beta  = alpha - 0 * chrono.CH_DEG_TO_RAD
 thick = 0.2
 fixed_L = True
 

@@ -310,7 +310,7 @@ void ChVehicleGuiComponentVSG::render() {
             ImGui::TableNextColumn();
             ImGui::TextUnformatted("Engine Speed:");
             ImGui::TableNextColumn();
-            ImGui::Text("%8.1lf RPM", engine->GetMotorSpeed() * 30 / CH_C_PI);
+            ImGui::Text("%8.1lf RPM", engine->GetMotorSpeed() * 30 / CH_PI);
             ImGui::TableNextRow();
 
             ImGui::TableNextColumn();
@@ -378,7 +378,7 @@ void ChVehicleGuiComponentVSG::render() {
                 ImGui::TableNextColumn();
                 ImGui::TextUnformatted("T.conv.speed.out:");
                 ImGui::TableNextColumn();
-                ImGui::Text("%8.1f RPM", transmission_auto->GetTorqueConverterOutputSpeed() * 30 / CH_C_PI);
+                ImGui::Text("%8.1f RPM", transmission_auto->GetTorqueConverterOutputSpeed() * 30 / CH_PI);
                 ImGui::TableNextRow();
                 ImGui::EndTable();
             }

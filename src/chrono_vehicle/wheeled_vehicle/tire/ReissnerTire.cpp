@@ -265,7 +265,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
     // The nodes are first created in the wheel local frame, assuming Y as the tire axis,
     // and are then transformed to the global frame.
     for (int i = 0; i < m_div_circumference; i++) {
-        double phi = (CH_C_2PI * i) / m_div_circumference;
+        double phi = (CH_2PI * i) / m_div_circumference;
         ChVector3d nrm(-std::sin(phi), 0, std::cos(phi));
 
         for (int j = 0; j <= m_div_width; j++) {
@@ -329,19 +329,19 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
             if (j < b1 || j >= b2) {
                 // Bead section
                 for (unsigned int im = 0; im < m_num_layers_bead; im++) {
-                    element->AddLayer(m_layer_thickness_bead[im], CH_C_DEG_TO_RAD * m_ply_angle_bead[im],
+                    element->AddLayer(m_layer_thickness_bead[im], CH_DEG_TO_RAD * m_ply_angle_bead[im],
                                       m_materials[m_material_id_bead[im]]);
                 }
             } else if (j < s1 || j >= s2) {
                 // Sidewall section
                 for (unsigned int im = 0; im < m_num_layers_sidewall; im++) {
-                    element->AddLayer(m_layer_thickness_sidewall[im], CH_C_DEG_TO_RAD * m_ply_angle_sidewall[im],
+                    element->AddLayer(m_layer_thickness_sidewall[im], CH_DEG_TO_RAD * m_ply_angle_sidewall[im],
                                       m_materials[m_material_id_sidewall[im]]);
                 }
             } else {
                 // Tread section
                 for (unsigned int im = 0; im < m_num_layers_tread; im++) {
-                    element->AddLayer(m_layer_thickness_tread[im], CH_C_DEG_TO_RAD * m_ply_angle_tread[im],
+                    element->AddLayer(m_layer_thickness_tread[im], CH_DEG_TO_RAD * m_ply_angle_tread[im],
                                       m_materials[m_material_id_tread[im]]);
                 }
             }
@@ -365,7 +365,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
 
         // repeat slices:
         for (unsigned int p = 0; p < m_num_lugs_copies; ++p) {
-            double phi = (CH_C_2PI * p) / m_num_lugs_copies;
+            double phi = (CH_2PI * p) / m_num_lugs_copies;
             // maybe each slice has more than one lug geometry;
             // double pre_ua, pre_ub, pre_
             for (unsigned int il = 0; il < m_num_lugs; ++il) {
@@ -385,7 +385,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                     t_prf = m_lugs_ua[il][is];
                     splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
                     splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
-                    alpha = phi + m_lugs_va[il][is] * (CH_C_2PI / m_num_lugs_copies);
+                    alpha = phi + m_lugs_va[il][is] * (CH_2PI / m_num_lugs_copies);
                     // Node position with respect to rim center
                     x = (m_rim_radius + x_prf) * std::cos(alpha);
                     y = y_prf;
@@ -402,7 +402,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                     t_prf = m_lugs_ub[il][is];
                     splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
                     splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
-                    alpha = phi + m_lugs_vb[il][is] * (CH_C_2PI / m_num_lugs_copies);
+                    alpha = phi + m_lugs_vb[il][is] * (CH_2PI / m_num_lugs_copies);
                     // Node position with respect to rim center
                     x = (m_rim_radius + x_prf) * std::cos(alpha);
                     y = y_prf;
@@ -419,7 +419,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                     t_prf = m_lugs_ub[il][is];
                     splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
                     splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
-                    alpha = phi + m_lugs_vb[il][is] * (CH_C_2PI / m_num_lugs_copies);
+                    alpha = phi + m_lugs_vb[il][is] * (CH_2PI / m_num_lugs_copies);
                     // Node position with respect to rim center
                     x = (m_rim_radius + x_prf + m_lugs_hb[il][is]) * std::cos(alpha);
                     y = y_prf;
@@ -434,7 +434,7 @@ void ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide si
                     t_prf = m_lugs_ua[il][is];
                     splineX.Evaluate(t_prf, x_prf, xp_prf, xpp_prf);
                     splineY.Evaluate(t_prf, y_prf, yp_prf, ypp_prf);
-                    alpha = phi + m_lugs_va[il][is] * (CH_C_2PI / m_num_lugs_copies);
+                    alpha = phi + m_lugs_va[il][is] * (CH_2PI / m_num_lugs_copies);
                     // Node position with respect to rim center
                     x = (m_rim_radius + x_prf + m_lugs_ha[il][is]) * std::cos(alpha);
                     y = y_prf;

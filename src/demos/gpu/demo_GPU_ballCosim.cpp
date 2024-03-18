@@ -51,7 +51,7 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
     // Add a ball mesh to the GPU system
     float ball_radius = 20.f;
     float ball_density = params.sphere_density;
-    float ball_mass = 4.0f * (float)CH_C_PI * ball_radius * ball_radius * ball_radius * ball_density / 3.f;
+    float ball_mass = 4.0f * (float)CH_PI * ball_radius * ball_radius * ball_radius * ball_density / 3.f;
     gpu_sys.AddMesh(GetChronoDataFile("models/sphere.obj"), ChVector3f(0), ChMatrix33<float>(ball_radius),
                     ball_mass);
 
@@ -266,7 +266,7 @@ int main(int argc, char* argv[]) {
         double3 pos = {0, 0, 0};
 
         double t0 = 0.5;
-        double freq = CH_C_PI / 4;
+        double freq = CH_PI / 4;
 
         if (t > t0) {
             pos.x = 0.1 * params.box_X * std::sin((t - t0) * freq);

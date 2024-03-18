@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-4, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         800,                                                                // image width
         800,                                                                // image height
-        (float)CH_C_PI / 4                                                  // FOV
+        (float)CH_PI / 4                                                  // FOV
     );
     cam->SetName("Camera Sensor");
     cam->PushFilter(std::make_shared<ChFilterVisualize>(800, 800));

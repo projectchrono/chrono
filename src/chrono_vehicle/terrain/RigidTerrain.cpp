@@ -507,7 +507,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
     int current_iteration = 0;
     max_refinements = std::max(0, max_refinements);
     bool execute_refine;
-    double angle_threshold = 4 * CH_C_DEG_TO_RAD;
+    double angle_threshold = 4 * CH_DEG_TO_RAD;
     double horizontal_threshold = std::cos(angle_threshold);
     double vertical_threshold = std::sin(angle_threshold);
     ChVector3d vertical_vector(0, 0, 1);
@@ -679,7 +679,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
 
             // Calculate the angle between normals
             double dot_product = Vdot(normal1, normal2);
-            double angle = std::acos(dot_product) * CH_C_RAD_TO_DEG;  // convert the angle
+            double angle = std::acos(dot_product) * CH_RAD_TO_DEG;  // convert the angle
             if (angle > refine_angle_limit) {                         // Mark both triangles for refinement
                 marked_tris.emplace_back(tri1_index);
                 marked_tris.emplace_back(tri2_index);

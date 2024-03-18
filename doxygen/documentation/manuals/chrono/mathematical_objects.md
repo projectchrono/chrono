@@ -254,7 +254,7 @@ For N less than 10, the quadrature uses precomputed coefficients for maximum per
 
     // Invoke 6th order Gauss-Legendre quadrature on 0..PI interval:
 	double qresult;	
-	ChQuadrature::Integrate1D<double>(qresult, mfx,  0, CH_C_PI,  6);
+	ChQuadrature::Integrate1D<double>(qresult, mfx,  0, CH_PI,  6);
 	
 	std::cout << "Quadrature 1d result:" << qresult << " (analytic solution: 2.0)" << std::endl;
 
@@ -268,7 +268,7 @@ For N less than 10, the quadrature uses precomputed coefficients for maximum per
 	};
 
 	MySine2d mfx2d;
-	ChQuadrature::Integrate2D<double>(qresult, mfx2d, 0, CH_C_PI, -1,1, 6);
+	ChQuadrature::Integrate2D<double>(qresult, mfx2d, 0, CH_PI, -1,1, 6);
 	std::cout << "Quadrature 2d result:" << qresult << " (analytic solution: 4.0)" << std::endl;
 ~~~
 

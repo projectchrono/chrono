@@ -157,7 +157,7 @@ void HMMWV_ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleS
     // The nodes are first created in the wheel local frame, assuming Y as the tire axis,
     // and are then transformed to the global frame.
     for (int i = 0; i < m_div_circumference; i++) {
-        double phi = (CH_C_2PI * i) / m_div_circumference;
+        double phi = (CH_2PI * i) / m_div_circumference;
         ChVector3d nrm(-std::sin(phi), 0, std::cos(phi));
 
         for (int j = 0; j <= m_div_width; j++) {
@@ -220,19 +220,19 @@ void HMMWV_ReissnerTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleS
             if (j < b1 || j >= b2) {
                 // Bead section
                 for (unsigned int im = 0; im < m_num_layers_bead; im++) {
-                    element->AddLayer(m_layer_thickness_bead[im], CH_C_DEG_TO_RAD * m_ply_angle_bead[im],
+                    element->AddLayer(m_layer_thickness_bead[im], CH_DEG_TO_RAD * m_ply_angle_bead[im],
                                       m_materials[m_material_id_bead[im]]);
                 }
             } else if (j < s1 || j >= s2) {
                 // Sidewall section
                 for (unsigned int im = 0; im < m_num_layers_sidewall; im++) {
-                    element->AddLayer(m_layer_thickness_sidewall[im], CH_C_DEG_TO_RAD * m_ply_angle_sidewall[im],
+                    element->AddLayer(m_layer_thickness_sidewall[im], CH_DEG_TO_RAD * m_ply_angle_sidewall[im],
                                       m_materials[m_material_id_sidewall[im]]);
                 }
             } else {
                 // Tread section
                 for (unsigned int im = 0; im < m_num_layers_tread; im++) {
-                    element->AddLayer(m_layer_thickness_tread[im], CH_C_DEG_TO_RAD * m_ply_angle_tread[im],
+                    element->AddLayer(m_layer_thickness_tread[im], CH_DEG_TO_RAD * m_ply_angle_tread[im],
                                       m_materials[m_material_id_tread[im]]);
                 }
             }

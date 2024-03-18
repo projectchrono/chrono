@@ -652,7 +652,7 @@ vsg::ref_ptr<vsg::Group> ShapeBuilder::CreateSpringShape(std::shared_ptr<ChLinkB
     double phase = 0.0;
     double height = 0.0;
     for (int iu = 0; iu < numPoints; iu++) {
-        phase = turns * CH_C_2PI * (double)iu / (double)numPoints;
+        phase = turns * CH_2PI * (double)iu / (double)numPoints;
         height = length * ((double)iu / (double)numPoints);
         vsg::vec3 pos;
         pos = p + vsg::vec3(cos(phase), height, sin(phase));
@@ -851,8 +851,8 @@ ShapeBuilder::SphereShapeData::SphereShapeData(int num_divs) {
     int nPhi = num_divs;
 
     double r = 1.0;
-    double dTheta = CH_C_PI / nTheta;
-    double dPhi = CH_C_2PI / nPhi;
+    double dTheta = CH_PI / nTheta;
+    double dPhi = CH_2PI / nPhi;
 
     size_t nv = (nPhi + 1) * (nTheta + 1);
     vertices = vsg::vec3Array::create(nv);
@@ -876,8 +876,8 @@ ShapeBuilder::SphereShapeData::SphereShapeData(int num_divs) {
             vertices->set(v, vsg::vec3CH(vertex));
             normals->set(v, vsg::vec3CH(vertex.GetNormalized()));
 
-            double utex = 1 - phi / CH_C_2PI;
-            double vtex = theta / CH_C_PI;
+            double utex = 1 - phi / CH_2PI;
+            double vtex = theta / CH_PI;
             ChVector2d t(utex, vtex);
             texcoords->set(v, vsg::vec2CH(t));
 
@@ -928,7 +928,7 @@ ShapeBuilder::CylinderShapeData::CylinderShapeData(int num_divs) {
 
     double r = 1.0;
     double h = 0.5;
-    double dPhi = CH_C_2PI / nPhi;
+    double dPhi = CH_2PI / nPhi;
 
     size_t nv = 4 * (nPhi + 1);
     vertices = vsg::vec3Array::create(nv);
@@ -947,7 +947,7 @@ ShapeBuilder::CylinderShapeData::CylinderShapeData(int num_divs) {
         auto phi = iPhi * dPhi;
         double x = r * cos(phi);
         double y = -r * sin(phi);
-        double utex = 1 - phi / CH_C_2PI;
+        double utex = 1 - phi / CH_2PI;
 
         // bottom vertices
         vertices->set(v, vsg::vec3(x, y, -h));
@@ -1054,7 +1054,7 @@ ShapeBuilder::ConeShapeData::ConeShapeData(int num_divs) {
 
     double r = 1.0;
     double h = 1.0;
-    double dPhi = CH_C_2PI / nPhi;
+    double dPhi = CH_2PI / nPhi;
 
     size_t nv = 3 * (nPhi + 1);
     vertices = vsg::vec3Array::create(nv);
@@ -1073,7 +1073,7 @@ ShapeBuilder::ConeShapeData::ConeShapeData(int num_divs) {
         auto phi = iPhi * dPhi;
         double x = r * cos(phi);
         double y = -r * sin(phi);
-        double utex = 1 - phi / CH_C_2PI;
+        double utex = 1 - phi / CH_2PI;
 
         auto normal = ChVector3d(x, y, r * r / h).GetNormalized();
 
@@ -1160,8 +1160,8 @@ ShapeBuilder::CapsuleShapeData::CapsuleShapeData(int num_divs) {
     double r = 1.0;
     double h = 1;
 
-    double dTheta = CH_C_PI_2 / nTheta;
-    double dPhi = CH_C_2PI / nPhi;
+    double dTheta = CH_PI_2 / nTheta;
+    double dPhi = CH_2PI / nPhi;
 
     size_t nv = 2 * (nPhi + 1) + (nPhi + 1) * (nTheta + 1) + (nPhi + 1) * (nTheta + 1);
     vertices = vsg::vec3Array::create(nv);
@@ -1179,7 +1179,7 @@ ShapeBuilder::CapsuleShapeData::CapsuleShapeData(int num_divs) {
         auto phi = iPhi * dPhi;
         double x = r * cos(phi);
         double y = -r * sin(phi);
-        double utex = 1 - phi / CH_C_2PI;
+        double utex = 1 - phi / CH_2PI;
 
         // bottom vertices
         vertices->set(v, vsg::vec3(x, y, -h));
@@ -1227,8 +1227,8 @@ ShapeBuilder::CapsuleShapeData::CapsuleShapeData(int num_divs) {
             vertices->set(v, vsg::vec3CH(vertex + ChVector3d(0, 0, h)));
             normals->set(v, vsg::vec3CH(vertex.GetNormalized()));
 
-            double utex = 1 - phi / CH_C_2PI;
-            double vtex = theta / CH_C_PI;
+            double utex = 1 - phi / CH_2PI;
+            double vtex = theta / CH_PI;
             ChVector2d t(utex, vtex);
             texcoords->set(v, vsg::vec2CH(t));
 
@@ -1274,8 +1274,8 @@ ShapeBuilder::CapsuleShapeData::CapsuleShapeData(int num_divs) {
             vertices->set(v, vsg::vec3CH(vertex + ChVector3d(0, 0, -h)));
             normals->set(v, vsg::vec3CH(vertex.GetNormalized()));
 
-            double utex = 1 - phi / CH_C_2PI;
-            double vtex = theta / CH_C_PI;
+            double utex = 1 - phi / CH_2PI;
+            double vtex = theta / CH_PI;
             ChVector2d t(utex, vtex);
             texcoords->set(v, vsg::vec2CH(t));
 

@@ -123,9 +123,9 @@ horizontal_samples = 100
 vertical_samples = 100
 
 # Horizontal and vertical field of view (radians)
-horizontal_fov =  chrono.CH_C_PI /9 # 20 degrees
-max_vert_angle = chrono.CH_C_PI / 15
-min_vert_angle = -chrono.CH_C_PI / 15
+horizontal_fov =  chrono.CH_PI /9 # 20 degrees
+max_vert_angle = chrono.CH_PI / 15
+min_vert_angle = -chrono.CH_PI / 15
 
 # camera to have same view as radar
 aspect_ratio = horizontal_fov / (max_vert_angle - min_vert_angle)

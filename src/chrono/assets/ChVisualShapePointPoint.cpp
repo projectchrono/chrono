@@ -72,7 +72,7 @@ void ChVisualShapeSpring::UpdateLineGeometry(const ChVector3d& endpoint1, const 
     double heightB = 0;
 
     for (int iu = 1; iu <= resolution; iu++) {
-        phaseB = turns * CH_C_2PI * (double)iu / (double)resolution;
+        phaseB = turns * CH_2PI * (double)iu / (double)resolution;
         heightB = length * ((double)iu / (double)resolution);
         ChVector3d V1(heightA, radius * cos(phaseA), radius * sin(phaseA));
         ChVector3d V2(heightB, radius * cos(phaseB), radius * sin(phaseB));
@@ -98,7 +98,7 @@ void ChVisualShapeRotSpring::Update(ChPhysicsItem* updater, const ChFrame<>& fra
     ChVector3d V1(m_radius, 0, 0);
     for (int iu = 1; iu <= m_resolution; iu++) {
         double crt_angle = iu * del_angle;
-        double crt_radius = m_radius - (iu * del_angle / CH_C_2PI) * (m_radius / 10);
+        double crt_radius = m_radius - (iu * del_angle / CH_2PI) * (m_radius / 10);
         ChVector3d V2(crt_radius * std::cos(crt_angle), crt_radius * std::sin(crt_angle), 0);
         auto segment = ChLineSegment(V1, V2);
         linepath->AddSubLine(segment);

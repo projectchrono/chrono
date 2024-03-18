@@ -24,7 +24,7 @@ namespace chrono {
 namespace vehicle {
 namespace unimog {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 U401_AutomaticTransmissionSimpleMap::U401_AutomaticTransmissionSimpleMap(const std::string& name)
     : ChAutomaticTransmissionSimpleMap(name) {}

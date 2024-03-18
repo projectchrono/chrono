@@ -75,7 +75,7 @@ int main(int argc, char* argv[]) {
     pathfloor->GetPathGeometry()->AddSubLine(mseg1);
     ChLineSegment mseg2(ChVector3d(1, 3, 0), ChVector3d(2, 3, 0));
     pathfloor->GetPathGeometry()->AddSubLine(mseg2);
-    ChLineArc marc1(ChCoordsys<>(ChVector3d(2, 3.5, 0)), 0.5, -CH_C_PI_2, CH_C_PI_2);
+    ChLineArc marc1(ChCoordsys<>(ChVector3d(2, 3.5, 0)), 0.5, -CH_PI_2, CH_PI_2);
     pathfloor->GetPathGeometry()->AddSubLine(marc1);
     pathfloor->SetColor(ChColor(0.0f, 0.5f, 0.8f));
     floor->AddVisualShape(pathfloor);
@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
     // Attach a cylinder shape
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.3, 0.7);
     cyl->AddMaterial(orange_mat);
-    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(2, 0.15, 0), QuatFromAngleX(CH_C_PI_2)));
+    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(2, 0.15, 0), QuatFromAngleX(CH_PI_2)));
     body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
                          ChFrame<>(ChVector3d(2, -0.2, 0), QUNIT));
     body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
@@ -182,7 +182,7 @@ int main(int argc, char* argv[]) {
     for (int j = 0; j < 20; j++) {
         auto smallbox = chrono_types::make_shared<ChVisualShapeBox>(0.2, 0.2, 0.02);
         smallbox->SetColor(ChColor(j * 0.05f, 1 - j * 0.05f, 0.0f));
-        ChMatrix33<> rot(QuatFromAngleY(j * 21 * CH_C_DEG_TO_RAD));
+        ChMatrix33<> rot(QuatFromAngleY(j * 21 * CH_DEG_TO_RAD));
         ChVector3d pos = rot * ChVector3d(0.4, 0, 0) + ChVector3d(0, j * 0.02, 0);
         body->AddVisualShape(smallbox, ChFrame<>(pos, rot));
     }

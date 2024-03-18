@@ -62,7 +62,7 @@ double ChLinkLockClearance::GetAxisAngularLocation() const {
     GetMarker2()->GetCoordsys().rot.GetAngleAxis(angle, axis);
     if (axis.z() < 0.0) {
         axis = Vmul(axis, -1.0);
-        angle = CH_C_2PI - angle;
+        angle = CH_2PI - angle;
     }
     return angle;
 }

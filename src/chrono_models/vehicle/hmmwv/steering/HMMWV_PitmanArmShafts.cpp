@@ -33,10 +33,10 @@ const double HMMWV_PitmanArmShafts::m_steeringLinkRadius = 0.03;
 const double HMMWV_PitmanArmShafts::m_pitmanArmRadius = 0.02;
 
 //// NOTE: maxAngle (at steering wheel) and gear ratio set such that max angle at revolute = 30
-const double HMMWV_PitmanArmShafts::m_maxAngle = 780.0 * (CH_C_PI / 180);
+const double HMMWV_PitmanArmShafts::m_maxAngle = 780.0 * (CH_PI / 180);
 const double HMMWV_PitmanArmShafts::m_gearRatio = 780.0 / 30.0;
 //// NOTE: steering compliance 2000 N.mm/deg (too low?)
-const double HMMWV_PitmanArmShafts::m_steeringCompliance = 2 * CH_C_RAD_TO_DEG;
+const double HMMWV_PitmanArmShafts::m_steeringCompliance = 2 * CH_RAD_TO_DEG;
 //// NOTE: shaft inertia approximated (likely too high)
 const double HMMWV_PitmanArmShafts::m_columnInertia = 5e-2;
 

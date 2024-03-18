@@ -43,33 +43,33 @@ void test_Euler123() {
     std::cout << std::fixed << std::setprecision(4);
 
     std::cout << "Rotation about X of " << alpha1 << " deg.";
-    q.SetFromAngleX(CH_C_DEG_TO_RAD * alpha1);
-    eu = CH_C_RAD_TO_DEG * q.GetCardanAnglesXYZ();
+    q.SetFromAngleX(CH_DEG_TO_RAD * alpha1);
+    eu = CH_RAD_TO_DEG * q.GetCardanAnglesXYZ();
     std::cout << "\teu = {" << eu << "}" << std::endl;
 
     std::cout << "Rotation about Y of " << beta1 << " deg.";
-    q.SetFromAngleY(CH_C_DEG_TO_RAD * beta1);
-    eu = CH_C_RAD_TO_DEG * q.GetCardanAnglesXYZ();
+    q.SetFromAngleY(CH_DEG_TO_RAD * beta1);
+    eu = CH_RAD_TO_DEG * q.GetCardanAnglesXYZ();
     std::cout << "\teu = {" << eu << "}" << std::endl;
 
     std::cout << "Rotation about Z of " << gamma1 << " deg.";
-    q.SetFromAngleZ(CH_C_DEG_TO_RAD * gamma1);
-    eu = CH_C_RAD_TO_DEG * q.GetCardanAnglesXYZ();
+    q.SetFromAngleZ(CH_DEG_TO_RAD * gamma1);
+    eu = CH_RAD_TO_DEG * q.GetCardanAnglesXYZ();
     std::cout << "\teu = {" << eu << "}" << std::endl;
 
     std::cout << "Rotation about X of " << alpha2 << " deg.";
-    q.SetFromAngleX(CH_C_DEG_TO_RAD * alpha2);
-    eu = CH_C_RAD_TO_DEG * q.GetCardanAnglesXYZ();
+    q.SetFromAngleX(CH_DEG_TO_RAD * alpha2);
+    eu = CH_RAD_TO_DEG * q.GetCardanAnglesXYZ();
     std::cout << "\teu = {" << eu << "}" << std::endl;
 
     std::cout << "Rotation about Y of " << beta2 << " deg.";
-    q.SetFromAngleY(CH_C_DEG_TO_RAD * beta2);
-    eu = CH_C_RAD_TO_DEG * q.GetCardanAnglesXYZ();
+    q.SetFromAngleY(CH_DEG_TO_RAD * beta2);
+    eu = CH_RAD_TO_DEG * q.GetCardanAnglesXYZ();
     std::cout << "\teu = {" << eu << "}" << std::endl;
 
     std::cout << "Rotation about Z of " << gamma2 << " deg.";
-    q.SetFromAngleZ(CH_C_DEG_TO_RAD * gamma2);
-    eu = CH_C_RAD_TO_DEG * q.GetCardanAnglesXYZ();
+    q.SetFromAngleZ(CH_DEG_TO_RAD * gamma2);
+    eu = CH_RAD_TO_DEG * q.GetCardanAnglesXYZ();
     std::cout << "\teu = {" << eu << "}" << std::endl;
 
     std::cout << "\n-----------------\n" << std::endl;
@@ -78,16 +78,16 @@ void test_Euler123() {
 
     eu = {alpha1, beta1, gamma1};
     std::cout << " Input = {" << eu << "}  ";
-    q.SetFromCardanAnglesXYZ(CH_C_DEG_TO_RAD * eu);
+    q.SetFromCardanAnglesXYZ(CH_DEG_TO_RAD * eu);
     std::cout << "q = {" << q << "}  ";
-    eu = CH_C_RAD_TO_DEG * q.GetCardanAnglesXYZ();
+    eu = CH_RAD_TO_DEG * q.GetCardanAnglesXYZ();
     std::cout << "Output = {" << eu << "}" << std::endl;
 
     eu = {alpha2, beta2, gamma2};
     std::cout << " Input = {" << eu << "}  ";
-    q.SetFromCardanAnglesXYZ(CH_C_DEG_TO_RAD * eu);
+    q.SetFromCardanAnglesXYZ(CH_DEG_TO_RAD * eu);
     std::cout << "q = {" << q << "}  ";
-    eu = CH_C_RAD_TO_DEG * q.GetCardanAnglesXYZ();
+    eu = CH_RAD_TO_DEG * q.GetCardanAnglesXYZ();
     std::cout << "Output = {" << eu << "}" << std::endl;
 
     std::cout << "\n-----------------\n" << std::endl;
@@ -97,24 +97,24 @@ void test_Euler123() {
 
     eu = {alpha1, beta1, gamma1};
     std::cout << " Input = {" << eu << "}  ";
-    q = QuatFromAngleSet({RotRepresentation::CARDAN_ANGLES_XYZ, CH_C_DEG_TO_RAD * eu});
+    q = QuatFromAngleSet({RotRepresentation::CARDAN_ANGLES_XYZ, CH_DEG_TO_RAD * eu});
     std::cout << "q = {" << q << "}  ";
     set = AngleSetFromQuat(RotRepresentation::CARDAN_ANGLES_XYZ, q);
-    std::cout << CH_C_RAD_TO_DEG * set.angles << std::endl;
+    std::cout << CH_RAD_TO_DEG * set.angles << std::endl;
 
     eu = {alpha2, beta2, gamma2};
     std::cout << " Input = {" << eu << "}";
-    q = QuatFromAngleSet({RotRepresentation::CARDAN_ANGLES_XYZ, CH_C_DEG_TO_RAD * eu});
+    q = QuatFromAngleSet({RotRepresentation::CARDAN_ANGLES_XYZ, CH_DEG_TO_RAD * eu});
     std::cout << "q = {" << q << "}  ";
     set = AngleSetFromQuat(RotRepresentation::CARDAN_ANGLES_XYZ, q);
-    std::cout << CH_C_RAD_TO_DEG * set.angles << std::endl;
+    std::cout << CH_RAD_TO_DEG * set.angles << std::endl;
 
     std::cout << "\n-----------------\n" << std::endl;
 
     std::cout << "Rotation matrix for sequence (90, 90, 90)" << std::endl;
 
-    eu = {CH_C_PI_2, CH_C_PI_2, CH_C_PI_2};
-    q = QuatFromAngleSet({RotRepresentation::CARDAN_ANGLES_XYZ, CH_C_DEG_TO_RAD * eu});
+    eu = {CH_PI_2, CH_PI_2, CH_PI_2};
+    q = QuatFromAngleSet({RotRepresentation::CARDAN_ANGLES_XYZ, CH_DEG_TO_RAD * eu});
     ChMatrix33<> R(q);
     std::cout << R << std::endl;
 }

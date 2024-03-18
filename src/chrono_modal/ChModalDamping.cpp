@@ -39,7 +39,7 @@ void ChModalDampingFactorRmm::ComputeR(ChModalAssembly& assembly,
     unsigned int n_mod_coords = assembly.Get_n_modes_coords_w();
     unsigned int n_bou_coords = assembly.GetNumCoordinatesVelBoundary();
 
-    ChVectorDynamic<> omegas = CH_C_2PI * assembly.Get_modes_frequencies();
+    ChVectorDynamic<> omegas = CH_2PI * assembly.Get_modes_frequencies();
     ChVectorDynamic<> zetas;
     zetas.setZero(n_mod_coords);
 
@@ -123,7 +123,7 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     unsymmetry causes modes_V_reduced to have some imaginary part. eigsolver.Solve(M_reduced, R_null, K_reduced,
     Cq_reduced, modes_V_reduced, eig_reduced, freq_reduced, damp_factors, n_bou_mod_coords-Cq_reduced.rows());
     */
-    ChVectorDynamic<> omegas = CH_C_2PI * freq_reduced;
+    ChVectorDynamic<> omegas = CH_2PI * freq_reduced;
     ChVectorDynamic<> zetas;
     zetas.setZero(n_bou_mod_coords);
 

@@ -173,9 +173,9 @@ horizontal_samples = 4500
 vertical_samples = 32
 
 # Horizontal and vertical field of view (radians)
-horizontal_fov = 2 * chrono.CH_C_PI  # 360 degrees
-max_vert_angle = chrono.CH_C_PI / 12
-min_vert_angle = -chrono.CH_C_PI / 6
+horizontal_fov = 2 * chrono.CH_PI  # 360 degrees
+max_vert_angle = chrono.CH_PI / 12
+min_vert_angle = -chrono.CH_PI / 6
 
 # Lag time
 lag = 0

@@ -43,23 +43,23 @@ sys.SetGravitationalAcceleration(chrono.ChVector3d(0,-9.81, 0));
 beam_L = 6
 beam_ro = 0.050
 beam_ri = 0.045
-CH_C_PI = 3.1456
+CH_PI = 3.1456
 
 # Create a section, i.e. thickness and material properties
 # for beams. This will be shared among some beams.
 
 minertia = fea.ChInertiaCosseratSimple()
 minertia.SetDensity(7800);
-minertia.SetArea(CH_C_PI * (pow(beam_ro, 2)- pow(beam_ri, 2)));
-minertia.SetIyy( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
-minertia.SetIzz( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
+minertia.SetArea(CH_PI * (pow(beam_ro, 2)- pow(beam_ri, 2)));
+minertia.SetIyy( (CH_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
+minertia.SetIzz( (CH_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) );
     
 melasticity = fea.ChElasticityCosseratSimple()
 melasticity.SetYoungModulus(210e9)
 melasticity.SetShearModulusFromPoisson(0.3)
-melasticity.SetIyy( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) )
-melasticity.SetIzz( (CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) )
-melasticity.SetJ  ( (CH_C_PI / 2.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) )
+melasticity.SetIyy( (CH_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) )
+melasticity.SetIzz( (CH_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) )
+melasticity.SetJ  ( (CH_PI / 2.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)) )
 
 msection = fea.ChBeamSectionCosserat(minertia, melasticity)
 
@@ -86,7 +86,7 @@ node_mid = builder.GetLastBeamNodes()[m.floor(builder.GetLastBeamNodes().size()/
 mbodyflywheel = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, 0.24, 0.1, 7800) # R, h, density
 mbodyflywheel.SetCoordsys(
 		chrono.ChCoordsysd(node_mid.GetPos() + chrono.ChVector3d(0,0.05,0), # flywheel initial center (plus Y offset)
-		chrono.QuatFromAngleAxis(CH_C_PI/2.0, chrono.VECT_Z)) # flywheel initial alignment (rotate 90° so cylinder axis is on X)
+		chrono.QuatFromAngleAxis(CH_PI/2.0, chrono.VECT_Z)) # flywheel initial alignment (rotate 90° so cylinder axis is on X)
 )
 sys.Add(mbodyflywheel)
 
@@ -114,7 +114,7 @@ rotmotor1 = chrono.ChLinkMotorRotationSpeed()
 rotmotor1.Initialize(builder.GetLastBeamNodes().front(),                # body A (slave)
 	truss,               # body B (master)
 	chrono.ChFramed(builder.GetLastBeamNodes().front().GetPos(), 
-                    chrono.QuatFromAngleAxis(CH_C_PI/2.0, chrono.VECT_Y)) # motor frame, in abs. coords
+                    chrono.QuatFromAngleAxis(CH_PI/2.0, chrono.VECT_Y)) # motor frame, in abs. coords
 )
 sys.Add(rotmotor1)
 	
@@ -130,11 +130,11 @@ class ChFunctionMyFun (chrono.ChFunction):
         T3 = 1.25
         w = 60
         if x < T1:
-            return A1 * w * (1. - m.cos(CH_C_PI*x / T1)) / 2.0
+            return A1 * w * (1. - m.cos(CH_PI*x / T1)) / 2.0
         elif (x > T1 and x <= T2):
             return A1 * w
         elif (x > T2 and x <= T3):
-            return A1 * w + (A2 - A1) * w * (1.0 - m.cos(CH_C_PI*(x - T2) / (T3 - T2))) / 2.0
+            return A1 * w + (A2 - A1) * w * (1.0 - m.cos(CH_PI*(x - T2) / (T3 - T2))) / 2.0
         else:
             return A2 * w
 

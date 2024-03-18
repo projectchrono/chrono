@@ -116,9 +116,9 @@ unsigned int vertical_samples = 32;
 float cam_fov = 1.408f;
 
 // Lidar's horizontal and vertical fov
-float lidar_hfov = (float)(2 * CH_C_PI);  // 360 degrees
-float lidar_vmax = (float)CH_C_PI / 12;   // 15 degrees up
-float lidar_vmin = (float)-CH_C_PI / 6;   // 30 degrees down
+float lidar_hfov = (float)(2 * CH_PI);  // 360 degrees
+float lidar_vmax = (float)CH_PI / 12;   // 15 degrees up
+float lidar_vmin = (float)-CH_PI / 6;   // 30 degrees down
 float lidar_max_distance = 100.0f;
 
 // -----------------------------------------------------------------------------

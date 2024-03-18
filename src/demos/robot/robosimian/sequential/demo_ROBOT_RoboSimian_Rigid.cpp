@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
     // Initialize Robosimian robot
 
     ////robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
-    robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI)));
+    robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI)));
 
     // -----------------------------------
     // Create a driver and attach to robot
@@ -283,9 +283,9 @@ int main(int argc, char* argv[]) {
     // Cast rays into collision models
     // -------------------------------
 
-    ////RayCaster caster(my_sys, ChFrame<>(ChVector3d(2, 0, -1), QuatFromAngleY(-CH_C_PI_2)),
+    ////RayCaster caster(my_sys, ChFrame<>(ChVector3d(2, 0, -1), QuatFromAngleY(-CH_PI_2)),
     ////                 ChVector2d(2.5, 2.5), 0.02);
-    RayCaster caster(my_sys, ChFrame<>(ChVector3d(0, -2, -1), QuatFromAngleX(-CH_C_PI_2)),
+    RayCaster caster(my_sys, ChFrame<>(ChVector3d(0, -2, -1), QuatFromAngleX(-CH_PI_2)),
                      ChVector2d(2.5, 2.5), 0.02);
 
     // -------------------------------
@@ -386,9 +386,9 @@ int main(int argc, char* argv[]) {
         }
 
         ////double time = my_sys->GetChTime();
-        ////double A = CH_C_PI / 6;
+        ////double A = CH_PI / 6;
         ////double freq = 2;
-        ////double val = 0.5 * A * (1 - std::cos(CH_C_2PI * freq * time));
+        ////double val = 0.5 * A * (1 - std::cos(CH_2PI * freq * time));
         ////robot.Activate(robosimian::FR, "joint2", time, val);
         ////robot.Activate(robosimian::RL, "joint5", time, val);
 

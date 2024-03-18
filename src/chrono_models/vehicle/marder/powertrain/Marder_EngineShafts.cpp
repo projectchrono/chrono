@@ -30,7 +30,7 @@ const double Marder_EngineShafts::m_motorshaft_inertia = 2.1;
 Marder_EngineShafts::Marder_EngineShafts(const std::string& name) : ChEngineShafts(name, ChVector3d(1, 0, 0)) {}
 
 void Marder_EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunctionInterp>& map) {
-    double rpm_to_radsec = CH_C_2PI / 60.;
+    double rpm_to_radsec = CH_2PI / 60.;
 
     map->AddPoint(-100 * rpm_to_radsec, 600);
     map->AddPoint(702.26 * rpm_to_radsec, 700);
@@ -54,7 +54,7 @@ void Marder_EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunctionInterp>& 
 }
 
 void Marder_EngineShafts::SetEngineLossesMap(std::shared_ptr<ChFunctionInterp>& map) {
-    double rpm_to_radsec = CH_C_2PI / 60.;
+    double rpm_to_radsec = CH_2PI / 60.;
 
     map->AddPoint(-50 * rpm_to_radsec, 30);  // it should never work in negative direction, anyway..
     map->AddPoint(0 * rpm_to_radsec, 0);

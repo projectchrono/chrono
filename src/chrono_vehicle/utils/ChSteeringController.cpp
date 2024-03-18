@@ -192,7 +192,7 @@ void ChPathSteeringController::Reset(const ChFrameMoving<>& ref_frame) {
 ChPathSteeringControllerXT::ChPathSteeringControllerXT(std::shared_ptr<ChBezierCurve> path, double max_wheel_turn_angle)
     : ChSteeringController(path),
       m_R_threshold(100000.0),
-      m_max_wheel_turn_angle(25.0 * CH_C_DEG_TO_RAD),
+      m_max_wheel_turn_angle(25.0 * CH_DEG_TO_RAD),
       m_filters_initialized(false),
       m_T1_delay(30.0 / 1000.0),
       m_Kp(0.4),
@@ -212,7 +212,7 @@ ChPathSteeringControllerXT::ChPathSteeringControllerXT(const std::string& filena
                                                        double max_wheel_turn_angle)
     : ChSteeringController(path),
       m_R_threshold(100000.0),
-      m_max_wheel_turn_angle(25.0 * CH_C_DEG_TO_RAD),
+      m_max_wheel_turn_angle(25.0 * CH_DEG_TO_RAD),
       m_filters_initialized(false),
       m_T1_delay(30.0 / 1000.0),
       m_Kp(0.4),
@@ -552,7 +552,7 @@ double ChPathSteeringControllerSR::Advance(const ChFrameMoving<>& ref_frame, dou
         m_sentinel = ref_frame.TransformPointLocalToParent(factor * ChWorldFrame::Forward());
     } else {
         // m_Kug is in [°/g]
-        R = (m_L + CH_C_DEG_TO_RAD * m_Kug * u * u / g) / m_delta;
+        R = (m_L + CH_DEG_TO_RAD * m_Kug * u * u / g) / m_delta;
         double theta = u * m_Tp / R;
         ChMatrix33<> RM(theta, ChWorldFrame::Vertical());
         m_sentinel = ref_frame.TransformPointLocalToParent(factor * ChWorldFrame::Forward()) + R * (n_g - RM * n_g);

@@ -69,7 +69,7 @@ class CH_MODELS_API Generic_Vehicle : public ChWheeledVehicle {
 
     virtual double GetWheelbase() const override { return 3.378; }
     virtual double GetMinTurningRadius() const override { return 8.0; }
-    virtual double GetMaxSteeringAngle() const override { return 25 * CH_C_DEG_TO_RAD; }
+    virtual double GetMaxSteeringAngle() const override { return 25 * CH_DEG_TO_RAD; }
 
     /// Initialize the vehicle at the specified location and with specified orientation.
     virtual void Initialize(const ChCoordsys<>& chassisPos, double chassisFwdVel = 0) override;

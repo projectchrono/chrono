@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     // Attach visualization assets.
     auto cyl_p = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 2.92);
     cyl_p->SetColor(ChColor(0.6f, 0, 0));
-    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
+    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, QuatFromAngleY(CH_PI_2)));
 
     // Create a revolute joint to connect pendulum to ground
     // -----------------------------------------------------
@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
 
     // Add limits to the Z rotation of the revolute joint
     double min_angle = 0;
-    double max_angle = 0.75 * CH_C_PI;
+    double max_angle = 0.75 * CH_PI;
     rev->LimitRz().SetActive(true);
     rev->LimitRz().SetMin(min_angle);
     rev->LimitRz().SetMax(max_angle);

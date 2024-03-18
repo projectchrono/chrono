@@ -81,11 +81,11 @@ ChApi bool DegenerateTriangle(const ChVector3d& v1, const ChVector3d& v2, const 
 inline double CalcBiSphereVolume(double radius, double c_dist) {
     double delta = 2 * radius - c_dist;
     double cos_theta = (radius - 0.5 * delta) / radius;
-    return (4.0 / 3.0) * CH_C_PI * radius * radius * radius * (1 + cos_theta);
+    return (4.0 / 3.0) * CH_PI * radius * radius * radius * (1 + cos_theta);
 }
 
 inline double CalcTorusVolume(double radius, double thickness) {
-    return 2 * CH_C_PI * CH_C_PI * thickness * thickness * radius;
+    return 2 * CH_PI * CH_PI * thickness * thickness * radius;
 }
 
 // Gyration calculations

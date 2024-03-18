@@ -502,10 +502,10 @@ void ChLoadBodyBodyBushingMate::ComputeBodyBodyForceTorque(const ChFrameMoving<>
     ChVector3d dir_rot;
     double angle_rot;
     rel_rot.GetAngleAxis(angle_rot, dir_rot);
-    if (angle_rot > CH_C_PI)
-        angle_rot -= CH_C_2PI;
-    if (angle_rot < -CH_C_PI)
-        angle_rot += CH_C_2PI;
+    if (angle_rot > CH_PI)
+        angle_rot -= CH_2PI;
+    if (angle_rot < -CH_PI)
+        angle_rot += CH_2PI;
     ChVector3d vect_rot = dir_rot * angle_rot;
 
     loc_torque = vect_rot * rot_stiffness           // element-wise product!
@@ -535,10 +535,10 @@ void ChLoadBodyBodyBushingGeneric::ComputeBodyBodyForceTorque(const ChFrameMovin
     ChVector3d dir_rot;
     double angle_rot;
     rel_rot.GetAngleAxis(angle_rot, dir_rot);
-    if (angle_rot > CH_C_PI)
-        angle_rot -= CH_C_2PI;
-    if (angle_rot < -CH_C_PI)
-        angle_rot += CH_C_2PI;
+    if (angle_rot > CH_PI)
+        angle_rot -= CH_2PI;
+    if (angle_rot < -CH_PI)
+        angle_rot += CH_2PI;
     ChVector3d vect_rot = dir_rot * angle_rot;
 
     mS.segment(0, 3) = rel_pos.eigen();

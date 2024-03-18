@@ -67,7 +67,7 @@ void CreateCraneFMU(FmuChronoUnit& crane_fmu,
     fmi2Real crane_length = 1.0;
     fmi2Real pend_mass = 100;
     fmi2Real pend_length = 0.3;
-    fmi2Real crane_angle = CH_C_PI / 6;
+    fmi2Real crane_angle = CH_PI / 6;
 
     crane_fmu.SetVariable("crane_mass", crane_mass, FmuVariable::Type::Real);
     crane_fmu.SetVariable("crane_length", crane_length, FmuVariable::Type::Real);

@@ -40,14 +40,14 @@ load_ok = mydoc.Load_STEP(chrono.GetChronoDataFile('cascade/IRB7600_23_500_m2000
 if not load_ok:
     raise ValueError("Warning. Desired STEP file could not be opened/parsed \n")
       
-CH_C_PI = 3.1456
+CH_PI = 3.1456
 
 # In most CADs the Y axis is horizontal, but we want it vertical.
 # So define a root transformation for rotating all the imported objects.
 rotation1 = chrono.ChQuaterniond()
-rotation1.SetFromAngleAxis(-CH_C_PI / 2, chrono.ChVector3d(1, 0, 0))  # 1: rotate 90° on X axis
+rotation1.SetFromAngleAxis(-CH_PI / 2, chrono.ChVector3d(1, 0, 0))  # 1: rotate 90° on X axis
 rotation2 = chrono.ChQuaterniond()
-rotation2.SetFromAngleAxis(CH_C_PI, chrono.ChVector3d(0, 1, 0))  # 2: rotate 180° on vertical Y axis
+rotation2.SetFromAngleAxis(CH_PI, chrono.ChVector3d(0, 1, 0))  # 2: rotate 180° on vertical Y axis
 tot_rotation = chrono.ChQuaterniond()
 tot_rotation = rotation2 * rotation1     # rotate on 1 then on 2, using quaternion product
 root_frame = chrono.ChFrameMovingD(chrono.ChVector3d(0, 0, 0), tot_rotation)
@@ -173,8 +173,8 @@ a1 = chrono.ChLineArc(
             chrono.ChCoordsysd(rigidBody_hand.GetPos(), # arc center position
                                chrono.Q_ROTATE_X_TO_Z),   # arc plane alignment (default: xy plane) 
             0.3, # radius 
-            -chrono.CH_C_PI_2, # start arc ngle (counterclockwise, from local x)
-            -chrono.CH_C_PI_2+chrono.CH_C_2PI, # end arc angle 
+            -chrono.CH_PI_2, # start arc ngle (counterclockwise, from local x)
+            -chrono.CH_PI_2+chrono.CH_2PI, # end arc angle 
             True)
 path.AddSubLine(a1)
 path.SetPathDuration(2)

@@ -28,7 +28,7 @@ ChLineCam::ChLineCam() {
     Rr = 0.0;
     p = 1.8;
     d = 2;
-    b0 = CH_C_PI / 6.0;
+    b0 = CH_PI / 6.0;
     center = VNULL;
     e = 0;
     s = Rb;
@@ -75,7 +75,7 @@ void ChLineCam::SetFlatOscillate(double me, double md, double mb0) {
 }
 
 ChVector3d ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
-    double a = par * 2 * CH_C_PI;  // range : par 0..1 -> angle 0...2PI
+    double a = par * 2 * CH_PI;  // range : par 0..1 -> angle 0...2PI
     double r, f, b, B, fshift, y, ydx, ydxdx, sa, fxalpha, u, uh = 0;
     double sign, signdx, signdxdx;
 
@@ -94,7 +94,7 @@ ChVector3d ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
         sign = signdx = signdxdx = -1;  // reverse sign
 
         if ((type == CamType::ROTATEFOLLOWER) || (type == CamType::FLATOSCILLATE)) {
-            fxalpha = 2 * CH_C_PI - a;  // also reverse direction
+            fxalpha = 2 * CH_PI - a;  // also reverse direction
             signdx = signdxdx = +1;
         }
     }
@@ -109,14 +109,14 @@ ChVector3d ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
             r = sqrt(radius * radius + pow(Rb + y, 2) - 2 * radius * (Rb + y) * cos(g));
             fshift = asin(radius * sin(g) / r);
             if (radius > Rb)
-                fshift = CH_C_PI - fshift;
+                fshift = CH_PI - fshift;
             f = a + fshift;
             q = pow(ydx * ydx + pow(Rb + y, 2), 1.5) / (pow(Rb + y, 2) - ydxdx * (Rb + y) + 2 * (ydx * ydx)) - radius;
             break;
         case CamType::ROTATEFOLLOWER:
             b = b0 + y;
             u = atan2((p * sin(b) * (1 - ydx)), (d - p * cos(b) * (1 - ydx)));
-            g = CH_C_PI / 2.0 - b - u;
+            g = CH_PI / 2.0 - b - u;
             r = sqrt(pow(p * sin(b) - radius * sin(u), 2) + pow(d - p * cos(b) - radius * cos(u), 2));
             fshift = atan2((p * sin(b) - radius * sin(u)), (d - p * cos(b) - radius * cos(u)));
             f = (a + fshift);
@@ -131,7 +131,7 @@ ChVector3d ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
             r = sqrt(pow((sa - radius * cos(g)), 2) + pow((ecc + radius * sin(g)), 2));
             fshift = atan((ecc + radius * sin(g)) / (sa - radius * cos(g)));
             if (radius > Rb)
-                fshift = CH_C_PI + fshift;
+                fshift = CH_PI + fshift;
             f = a + fshift;
             q = pow((pow(s_dist + y, 2) + pow(ecc - ydx, 2)), 1.5) /
                     (pow(s_dist + y, 2) + (ecc - ydx) * (ecc - 2 * ydx) - (s_dist + y) * ydxdx) -
@@ -161,7 +161,7 @@ ChVector3d ChLineCam::EvaluateCamPoint(double par, double& g, double& q) const {
     if (negative) {
         if ((type == CamType::FLAT) || (type == CamType::SLIDEFOLLOWER) ||
             (type == CamType::ECCENTRICFOLLOWER))
-            f += CH_C_PI;  // polar 180
+            f += CH_PI;  // polar 180
 
         if ((type == CamType::ROTATEFOLLOWER) || (type == CamType::FLATOSCILLATE)) {
             f = -f;  // y mirror

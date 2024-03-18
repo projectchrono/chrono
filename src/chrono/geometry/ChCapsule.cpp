@@ -30,7 +30,7 @@ ChCapsule::ChCapsule(const ChCapsule& source) {
 // -----------------------------------------------------------------------------
 double ChCapsule::GetVolume(double radius, double height) {
     double tmp = radius * radius * height + (4 / 3.0) * radius * radius * radius;
-    return CH_C_PI * tmp;
+    return CH_PI * tmp;
 }
 
 double ChCapsule::GetVolume() const {

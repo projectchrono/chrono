@@ -260,8 +260,8 @@ class ChApi ChBeamSectionEulerSimple : public ChBeamSectionEuler {
     /// at once, given the diameter of the beam assumed
     /// with circular shape.
     void SetAsCircularSection(double diameter) {
-        this->Area = CH_C_PI * pow((0.5 * diameter), 2);
-        this->Izz = (CH_C_PI / 4.0) * pow((0.5 * diameter), 4);
+        this->Area = CH_PI * pow((0.5 * diameter), 2);
+        this->Izz = (CH_PI / 4.0) * pow((0.5 * diameter), 4);
         this->Iyy = Izz;
 
         // exact expression for circular beam J = Ixx ,

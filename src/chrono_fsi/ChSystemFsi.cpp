@@ -625,8 +625,8 @@ ChSystemFsi::ElasticMaterialProperties::ElasticMaterialProperties()
       mu_fric_s(0.7),
       mu_fric_2(0.7),
       average_diam(0.005),
-      friction_angle(CH_C_PI / 10),
-      dilation_angle(CH_C_PI / 10),
+      friction_angle(CH_PI / 10),
+      dilation_angle(CH_PI / 10),
       cohesion_coeff(0),
       kernel_threshold(0.8) {}
 
@@ -1064,22 +1064,22 @@ void ChSystemFsi::AddBoxContainerBCE(std::shared_ptr<ChBody> body,
         AddWallBCE(body, frame * ChFrame<>(zn, QUNIT), {size.x(), size.y()});
     // Z+ wall
     if (faces.z() == +1 || faces.z() == 2)
-        AddWallBCE(body, frame * ChFrame<>(zp, QuatFromAngleX(CH_C_PI)), {size.x(), size.y()});
+        AddWallBCE(body, frame * ChFrame<>(zp, QuatFromAngleX(CH_PI)), {size.x(), size.y()});
 
     // X- wall
     if (faces.x() == -1 || faces.x() == 2)
-        AddWallBCE(body, frame * ChFrame<>(xn, QuatFromAngleY(+CH_C_PI_2)), {size.z() + buffer, size.y()});
+        AddWallBCE(body, frame * ChFrame<>(xn, QuatFromAngleY(+CH_PI_2)), {size.z() + buffer, size.y()});
     // X+ wall
     if (faces.x() == +1 || faces.x() == 2)
-        AddWallBCE(body, frame * ChFrame<>(xp, QuatFromAngleY(-CH_C_PI_2)), {size.z() + buffer, size.y()});
+        AddWallBCE(body, frame * ChFrame<>(xp, QuatFromAngleY(-CH_PI_2)), {size.z() + buffer, size.y()});
 
     // Y- wall
     if (faces.y() == -1 || faces.y() == 2)
-        AddWallBCE(body, frame * ChFrame<>(yn, QuatFromAngleX(-CH_C_PI_2)),
+        AddWallBCE(body, frame * ChFrame<>(yn, QuatFromAngleX(-CH_PI_2)),
                    {size.x() + buffer, size.z() + buffer});
     // Y+ wall
     if (faces.y() == +1 || faces.y() == 2)
-        AddWallBCE(body, frame * ChFrame<>(yp, QuatFromAngleX(+CH_C_PI_2)),
+        AddWallBCE(body, frame * ChFrame<>(yp, QuatFromAngleX(+CH_PI_2)),
                    {size.x() + buffer, size.z() + buffer});
 }
 
@@ -1267,7 +1267,7 @@ void ChSystemFsi::AddFEAmeshBCE(std::shared_ptr<fea::ChMesh> my_mesh,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-const Real pi = Real(CH_C_PI);
+const Real pi = Real(CH_PI);
 
 void ChSystemFsi::CreateBCE_wall(const Real2& size, thrust::host_vector<Real4>& bce) {
     Real kernel_h = m_paramsH->HSML;

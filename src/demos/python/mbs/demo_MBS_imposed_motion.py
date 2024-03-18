@@ -61,7 +61,7 @@ f_xyz.SetFunctionZ(chrono.ChFunctionSine(0.5, 0.5))
 
 # Create a rotation function q(t) from a angle(time) rotation with fixed axis:
 f_rot_axis = chrono.ChFunctionRotationAxis()
-f_rot_axis.SetFunctionAngle(chrono.ChFunctionSine(chrono.CH_C_PI, 0.15))
+f_rot_axis.SetFunctionAngle(chrono.ChFunctionSine(chrono.CH_PI, 0.15))
 f_rot_axis.SetAxis(chrono.ChVector3d(1, 1, 1).GetNormalized())
 
 # Create the constraint to impose motion and rotation.

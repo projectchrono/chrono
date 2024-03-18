@@ -101,7 +101,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
                     double v2 = sys.GetCharacteristicImpactVelocity() * sys.GetCharacteristicImpactVelocity();
                     double loge = (mat.cr_eff < eps) ? std::log(eps) : std::log(mat.cr_eff);
                     loge = (mat.cr_eff > 1 - eps) ? std::log(1 - eps) : loge;
-                    double tmp_g = 1 + std::pow(CH_C_PI / loge, 2);
+                    double tmp_g = 1 + std::pow(CH_PI / loge, 2);
                     kn = tmp_k * std::pow(eff_mass * v2 / tmp_k, 1.0 / 5);
                     kt = kn;
                     gn = std::sqrt(4 * eff_mass * kn / tmp_g);
@@ -121,7 +121,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
                     double Sn = 2 * mat.E_eff * sqrt_Rd;
                     double St = 8 * mat.G_eff * sqrt_Rd;
                     double loge = (mat.cr_eff < eps) ? std::log(eps) : std::log(mat.cr_eff);
-                    double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
+                    double beta = loge / std::sqrt(loge * loge + CH_PI * CH_PI);
                     kn = (2.0 / 3) * Sn;
                     kt = St;
                     gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * eff_mass);
@@ -141,7 +141,7 @@ class ChDefaultContactForceTorqueSMC : public ChSystemSMC::ChContactForceTorqueS
                     double sqrt_Rd = std::sqrt(delta);
                     double Sn = 2 * mat.E_eff * sqrt_Rd;
                     double loge = (mat.cr_eff < eps) ? std::log(eps) : std::log(mat.cr_eff);
-                    double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
+                    double beta = loge / std::sqrt(loge * loge + CH_PI * CH_PI);
                     kn = (2.0 / 3) * Sn;
                     gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * eff_mass);
                 } else {

@@ -18,7 +18,7 @@ namespace chrono {
 namespace vehicle {
 namespace gator {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 const double fwd_gear_ratio = 0.07;
 const double rev_gear_ratio = -0.04;

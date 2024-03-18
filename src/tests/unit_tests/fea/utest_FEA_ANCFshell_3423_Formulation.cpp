@@ -157,7 +157,7 @@ bool AxialDisplacementCheck(int msglvl) {
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
         element->SetNodes(nodeA, nodeB, nodeC, nodeD);
         element->SetDimensions(dx, width);
-        element->AddLayer(height, 0 * CH_C_DEG_TO_RAD, material);
+        element->AddLayer(height, 0 * CH_DEG_TO_RAD, material);
         element->SetAlphaDamp(0.0);
         mesh->AddElement(element);
 
@@ -227,17 +227,17 @@ bool AxialDisplacementCheck(int msglvl) {
     double Percent_Error = (Displacement_Model - Displacement_Theory) / Displacement_Theory * 100;
 
     bool passed_displacement = abs(Percent_Error) < 2.0;
-    bool passed_angles = (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.001) &&
-                         (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 0.001) &&
-                         (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.001);
+    bool passed_angles = (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.001) &&
+                         (abs(Tip_Angles.y() * CH_RAD_TO_DEG) < 0.001) &&
+                         (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.001);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
         std::cout << "Axial Pull Test - ANCF Tip Position: " << point << "m" << std::endl;
         std::cout << "Axial Pull Test - ANCF Tip Displacement: " << Displacement_Model << "m" << std::endl;
         std::cout << "Axial Pull Test - Analytical Tip Displacement: " << Displacement_Theory << "m" << std::endl;
-        std::cout << "Axial Pull Test - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Axial Pull Test - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {
@@ -324,7 +324,7 @@ bool CantileverTipLoadCheck(int msglvl) {
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
         element->SetNodes(nodeA, nodeB, nodeC, nodeD);
         element->SetDimensions(dx, width);
-        element->AddLayer(height, 0 * CH_C_DEG_TO_RAD, material);
+        element->AddLayer(height, 0 * CH_DEG_TO_RAD, material);
         element->SetAlphaDamp(0.0);
         mesh->AddElement(element);
 
@@ -399,7 +399,7 @@ bool CantileverTipLoadCheck(int msglvl) {
     bool passed_displacement = abs(Percent_Error) < 15;
     // check the off-axis angles which should be zeros
     bool passed_angles =
-        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.001);
+        (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.001);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -407,8 +407,8 @@ bool CantileverTipLoadCheck(int msglvl) {
         std::cout << "Cantilever Beam (Tip Load) - ANCF Tip Displacement: " << Displacement_Model << "m" << std::endl;
         std::cout << "Cantilever Beam (Tip Load) - Analytical Tip Displacement: " << Displacement_Theory << "m"
                   << std::endl;
-        std::cout << "Cantilever Beam (Tip Load) - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Cantilever Beam (Tip Load) - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {
@@ -497,7 +497,7 @@ bool CantileverGravityCheck(int msglvl) {
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
         element->SetNodes(nodeA, nodeB, nodeC, nodeD);
         element->SetDimensions(dx, width);
-        element->AddLayer(height, 0 * CH_C_DEG_TO_RAD, material);
+        element->AddLayer(height, 0 * CH_DEG_TO_RAD, material);
         element->SetAlphaDamp(0.0);
         mesh->AddElement(element);
 
@@ -529,7 +529,7 @@ bool CantileverGravityCheck(int msglvl) {
     bool passed_displacement = abs(Percent_Error) < 15;
     // check the off-axis angles which should be zeros
     bool passed_angles =
-        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.001);
+        (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.001);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -538,8 +538,8 @@ bool CantileverGravityCheck(int msglvl) {
                   << std::endl;
         std::cout << "Cantilever Beam (Gravity Load) - Analytical Tip Displacement: " << Displacement_Theory << "m"
                   << std::endl;
-        std::cout << "Cantilever Beam (Gravity Load) - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Cantilever Beam (Gravity Load) - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {
@@ -629,7 +629,7 @@ bool AxialTwistCheck(int msglvl) {
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
         element->SetNodes(nodeA, nodeB, nodeC, nodeD);
         element->SetDimensions(dx, width);
-        element->AddLayer(height, 0 * CH_C_DEG_TO_RAD, material);
+        element->AddLayer(height, 0 * CH_DEG_TO_RAD, material);
         element->SetAlphaDamp(0.0);
         mesh->AddElement(element);
 
@@ -701,16 +701,16 @@ bool AxialTwistCheck(int msglvl) {
     bool passed_twist = abs(Percent_Error) < 15;
     // check the off-axis angles which should be zeros
     bool passed_angles =
-        (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.001);
+        (abs(Tip_Angles.y() * CH_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.001);
     bool passed_tests = passed_twist && passed_angles;
 
     if (msglvl >= 2) {
         std::cout << "Axial Twist - ANCF Tip Position: " << point << "m" << std::endl;
-        std::cout << "Axial Twist - ANCF Twist Angles (Euler 123): " << Tip_Angles * CH_C_RAD_TO_DEG << "deg"
+        std::cout << "Axial Twist - ANCF Twist Angles (Euler 123): " << Tip_Angles * CH_RAD_TO_DEG << "deg"
                   << std::endl;
-        std::cout << "Axial Twist - Analytical Twist Angle: " << Angle_Theory * CH_C_RAD_TO_DEG << "deg" << std::endl;
-        std::cout << "Axial Twist - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Axial Twist - Analytical Twist Angle: " << Angle_Theory * CH_RAD_TO_DEG << "deg" << std::endl;
+        std::cout << "Axial Twist - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {
@@ -814,10 +814,10 @@ bool MLCantileverCheck1A(int msglvl) {
                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(nodeC_idx)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(nodeD_idx)));
             element->SetDimensions(dx, dy);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
             element->SetAlphaDamp(0.0);
             mesh->AddElement(element);
 
@@ -842,7 +842,7 @@ bool MLCantileverCheck1A(int msglvl) {
 
     bool passed_displacement = abs(Percent_Error) < 5.0;
     bool passed_angles =
-        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.01);
+        (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.01);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -850,8 +850,8 @@ bool MLCantileverCheck1A(int msglvl) {
         std::cout << "Multilayer Plate Layup 1A - ANCF Tip Displacement: " << Displacement_Model << "mm" << std::endl;
         std::cout << "Multilayer Plate Layup 1A - Expected Tip Displacement: " << Displacement_Expected << "mm"
                   << std::endl;
-        std::cout << "Multilayer Plate Layup 1A - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Multilayer Plate Layup 1A - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {
@@ -959,10 +959,10 @@ bool MLCantileverCheck1B(int msglvl) {
                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(nodeC_idx)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(nodeD_idx)));
             element->SetDimensions(dx, dy);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
             element->SetAlphaDamp(0.0);
             mesh->AddElement(element);
 
@@ -987,7 +987,7 @@ bool MLCantileverCheck1B(int msglvl) {
 
     bool passed_displacement = abs(Percent_Error) < 5.0;
     bool passed_angles =
-        (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.01);
+        (abs(Tip_Angles.y() * CH_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.01);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -995,8 +995,8 @@ bool MLCantileverCheck1B(int msglvl) {
         std::cout << "Multilayer Plate Layup 1B - ANCF Tip Displacement: " << Displacement_Model << "mm" << std::endl;
         std::cout << "Multilayer Plate Layup 1B - Expected Tip Displacement: " << Displacement_Expected << "mm"
                   << std::endl;
-        std::cout << "Multilayer Plate Layup 1B - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Multilayer Plate Layup 1B - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {
@@ -1104,10 +1104,10 @@ bool MLCantileverCheck2A(int msglvl) {
                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(nodeC_idx)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(nodeD_idx)));
             element->SetDimensions(dx, dy);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 90 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 90 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 90 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 90 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
             element->SetAlphaDamp(0.0);
             mesh->AddElement(element);
 
@@ -1132,7 +1132,7 @@ bool MLCantileverCheck2A(int msglvl) {
 
     bool passed_displacement = abs(Percent_Error) < 5.0;
     bool passed_angles =
-        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.01);
+        (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.01);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -1140,8 +1140,8 @@ bool MLCantileverCheck2A(int msglvl) {
         std::cout << "Multilayer Plate Layup 2A - ANCF Tip Displacement: " << Displacement_Model << "mm" << std::endl;
         std::cout << "Multilayer Plate Layup 2A - Expected Tip Displacement: " << Displacement_Expected << "mm"
                   << std::endl;
-        std::cout << "Multilayer Plate Layup 2A - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Multilayer Plate Layup 2A - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {
@@ -1246,10 +1246,10 @@ bool MLCantileverCheck2B(int msglvl) {
                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(nodeC_idx)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzD>(mesh->GetNode(nodeD_idx)));
             element->SetDimensions(dx, dy);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 90 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 90 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 90 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 90 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
             element->SetAlphaDamp(0.0);
             mesh->AddElement(element);
 
@@ -1274,7 +1274,7 @@ bool MLCantileverCheck2B(int msglvl) {
 
     bool passed_displacement = abs(Percent_Error) < 5.0;
     bool passed_angles =
-        (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.01);
+        (abs(Tip_Angles.y() * CH_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.01);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -1282,8 +1282,8 @@ bool MLCantileverCheck2B(int msglvl) {
         std::cout << "Multilayer Plate Layup 2B - ANCF Tip Displacement: " << Displacement_Model << "mm" << std::endl;
         std::cout << "Multilayer Plate Layup 2B - Expected Tip Displacement: " << Displacement_Expected << "mm"
                   << std::endl;
-        std::cout << "Multilayer Plate Layup 2B - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Multilayer Plate Layup 2B - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {

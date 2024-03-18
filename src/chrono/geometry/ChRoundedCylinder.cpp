@@ -35,8 +35,8 @@ ChRoundedCylinder::ChRoundedCylinder(const ChRoundedCylinder& source) {
 
 double ChRoundedCylinder::GetVolume(double radius, double height, double srad) {
     double tmp = (radius + srad) * (radius + srad) * height / 2 + srad * (radius * radius + (2.0 / 3.0) * srad * srad) +
-                 (CH_C_PI_2 - 1.0) * radius * srad * srad;
-    return 2.0 * CH_C_PI * tmp;
+                 (CH_PI_2 - 1.0) * radius * srad * srad;
+    return 2.0 * CH_PI * tmp;
 }
 
 double ChRoundedCylinder::GetVolume() const {

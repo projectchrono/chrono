@@ -71,8 +71,8 @@ void ChAutomaticTransmissionShafts::Initialize(std::shared_ptr<ChChassis> chassi
     sys->Add(m_transmissionblock_to_body);
 
     // Cache the upshift and downshift speeds (in rad/s)
-    m_upshift_speed = GetUpshiftRPM() * CH_C_2PI / 60.0;
-    m_downshift_speed = GetDownshiftRPM() * CH_C_2PI / 60.0;
+    m_upshift_speed = GetUpshiftRPM() * CH_2PI / 60.0;
+    m_downshift_speed = GetDownshiftRPM() * CH_2PI / 60.0;
 
     // CREATE  a 1 d.o.f. object: a 'shaft' with rotational inertia.
     // This represents the shaft that collects all inertias from torque converter to the gear.

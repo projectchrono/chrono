@@ -53,7 +53,7 @@ namespace viper {
 
 // =============================================================================
 
-const double Viper::m_max_steer_angle = CH_C_PI / 6;
+const double Viper::m_max_steer_angle = CH_PI / 6;
 
 // =============================================================================
 
@@ -399,8 +399,8 @@ void Viper::Create(ViperWheelType wheel_type) {
     m_wheels[V_RB] = chrono_types::make_shared<ViperWheel>("wheel_RB", ChFrame<>(ChVector3d(-wx, -wy, wz), QUNIT),
                                                            m_wheel_material, wheel_type);
 
-    m_wheels[V_LF]->m_mesh_xform = ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI));
-    m_wheels[V_LB]->m_mesh_xform = ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI));
+    m_wheels[V_LF]->m_mesh_xform = ChFrame<>(VNULL, QuatFromAngleZ(CH_PI));
+    m_wheels[V_LB]->m_mesh_xform = ChFrame<>(VNULL, QuatFromAngleZ(CH_PI));
 
     // create rover upper and lower suspension arms
     double cr_lx = 0.5618 + 0.08;
@@ -519,20 +519,20 @@ void Viper::Initialize(const ChFrame<>& pos) {
     ChQuaternion<> sm_rot[] = {
         QUNIT,                    // LF
         QUNIT,                    // RF
-        QuatFromAngleX(CH_C_PI),  // LB
-        QuatFromAngleX(CH_C_PI)   // RB
+        QuatFromAngleX(CH_PI),  // LB
+        QuatFromAngleX(CH_PI)   // RB
     };
 
     // Orientation of lift motors.
     // A positive lifting input results in rasing the chassis relative to the wheels.
     ChQuaternion<> lm_rot[] = {
         QUNIT,                    // LF
-        QuatFromAngleX(CH_C_PI),  // RF
+        QuatFromAngleX(CH_PI),  // RF
         QUNIT,                    // LB
-        QuatFromAngleX(CH_C_PI)   // RB
+        QuatFromAngleX(CH_PI)   // RB
     };
 
-    ChQuaternion<> z2x = QuatFromAngleY(CH_C_PI_2);
+    ChQuaternion<> z2x = QuatFromAngleY(CH_PI_2);
 
     for (int i = 0; i < 4; i++) {
         AddUniversalJoint(m_lower_arms[i]->GetBody(), m_uprights[i]->GetBody(), m_chassis, sr_rel_pos_lower[i], QUNIT);
@@ -551,7 +551,7 @@ void Viper::Initialize(const ChFrame<>& pos) {
         m_system->Add(steer_rod);
 
         ChQuaternion<> z2y;
-        z2y.SetFromAngleX(CH_C_PI_2);
+        z2y.SetFromAngleX(CH_PI_2);
 
         switch (m_driver->GetDriveMotorType()) {
             case ViperDriver::DriveMotorType::SPEED:
@@ -697,7 +697,7 @@ void ViperDriver::SetLifting(double angle) {
 }
 
 ViperDCMotorControl::ViperDCMotorControl()
-    : m_stall_torque({300, 300, 300, 300}), m_no_load_speed({CH_C_PI, CH_C_PI, CH_C_PI, CH_C_PI}) {}
+    : m_stall_torque({300, 300, 300, 300}), m_no_load_speed({CH_PI, CH_PI, CH_PI, CH_PI}) {}
 
 void ViperDCMotorControl::Update(double time) {
     double speed_reading;

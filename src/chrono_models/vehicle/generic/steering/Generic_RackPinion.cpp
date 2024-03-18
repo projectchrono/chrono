@@ -30,7 +30,7 @@ const double Generic_RackPinion::m_steeringLinkRadius = 0.03;
 
 const double Generic_RackPinion::m_pinionRadius = 0.1;
 
-const double Generic_RackPinion::m_maxAngle = 30.0 * (CH_C_PI / 180);
+const double Generic_RackPinion::m_maxAngle = 30.0 * (CH_PI / 180);
 
 Generic_RackPinion::Generic_RackPinion(const std::string& name) : ChRackPinion(name) {}
 

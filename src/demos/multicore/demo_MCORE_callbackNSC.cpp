@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
     obj1->SetPosDer(ChVector3d(5, 0, 0));
 
     obj1->EnableCollision(true);
-    utils::AddCapsuleGeometry(obj1.get(), material, 0.2, 0.4, ChVector3d(0), QuatFromAngleZ(CH_C_PI_2));
+    utils::AddCapsuleGeometry(obj1.get(), material, 0.2, 0.4, ChVector3d(0), QuatFromAngleZ(CH_PI_2));
 
     sys.AddBody(obj1);
 
@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
     obj2->SetPosDer(ChVector3d(5, 0, 0));
 
     obj2->EnableCollision(true);
-    utils::AddCapsuleGeometry(obj2.get(), material, 0.2, 0.4, ChVector3d(0), QuatFromAngleZ(CH_C_PI_2));
+    utils::AddCapsuleGeometry(obj2.get(), material, 0.2, 0.4, ChVector3d(0), QuatFromAngleZ(CH_PI_2));
 
     sys.AddBody(obj2);
 

@@ -60,7 +60,7 @@ std::shared_ptr<ChBezierCurve> CirclePath(const ChVector3d& start,
     auto& W = ChWorldFrame::Rotation().transpose();
 
     double left = left_turn ? +1.0 : -1.0;
-    double factor = radius * (4.0 / 3.0) * std::tan(CH_C_PI / 8);
+    double factor = radius * (4.0 / 3.0) * std::tan(CH_PI / 8);
 
     ChVector3d P0 = start;
     ChVector3d P0_in = P0;

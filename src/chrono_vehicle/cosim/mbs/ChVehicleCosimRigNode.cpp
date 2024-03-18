@@ -98,7 +98,7 @@ void ChVehicleCosimRigNode::InitializeMBS(const ChVector2d& terrain_size, double
     m_rev_motor->SetName("motor");
     m_rev_motor->Initialize(
         m_chassis, m_spindle,
-        ChFrame<>(origin, QuatFromAngleZ(m_toe_angle) * QuatFromAngleX(CH_C_PI_2)));
+        ChFrame<>(origin, QuatFromAngleZ(m_toe_angle) * QuatFromAngleX(CH_PI_2)));
     m_system->AddLink(m_rev_motor);
 
     // Create ChLoad objects to apply terrain forces on spindle

@@ -344,13 +344,13 @@ void RandomSurfaceTerrain::CalculateSpectralCoefficients(double Phi_h0, double w
         double Lbd = 1.0 / f;
         if (Lbd > m_lambda_max)
             continue;
-        double w = CH_C_2PI * f;
+        double w = CH_2PI * f;
         double ck = std::sqrt(Phi_h0 * std::pow(w / w0, -waviness) * m_f_fft_min);
         m_ck.push_back(ck);
         m_wfft.push_back(w);
     }
     std::default_random_engine generator;
-    std::uniform_real_distribution<double> distribution(0.0, CH_C_2PI);
+    std::uniform_real_distribution<double> distribution(0.0, CH_2PI);
 
     m_phase_left.resize(m_ck.size());
     for (int i = 0; i < m_ck.size(); i++) {
@@ -376,13 +376,13 @@ void RandomSurfaceTerrain::CalculateSpectralCoefficientsCorr(double Phi_h0,
         double Lbd = 1.0 / f;
         if (Lbd > 20.0)
             continue;
-        double w = CH_C_2PI * f;
+        double w = CH_2PI * f;
         double ck = std::sqrt(Phi_h0 * std::pow(w / w0, -waviness) * m_f_fft_min);
         m_ck.push_back(ck);
         m_wfft.push_back(w);
     }
     std::default_random_engine generator;
-    std::uniform_real_distribution<double> distribution(0.0, CH_C_2PI);
+    std::uniform_real_distribution<double> distribution(0.0, CH_2PI);
 
     m_phase_left.resize(m_ck.size());
     for (int i = 0; i < m_ck.size(); i++) {

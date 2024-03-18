@@ -32,8 +32,8 @@ void ChTrackedVehicleVisualSystemVSG::AttachVehicle(ChVehicle* vehicle) {
 void ChTrackedVehicleVisualSystemVSG::AppendGUIStats() {
     auto sprk_torque_L = m_tvehicle->GetDriveline()->GetSprocketTorque(LEFT);
     auto sprk_torque_R = m_tvehicle->GetDriveline()->GetSprocketTorque(RIGHT);
-    auto sprk_speed_L = m_tvehicle->GetDriveline()->GetSprocketSpeed(LEFT) * 30.0 / CH_C_PI;
-    auto sprk_speed_R = m_tvehicle->GetDriveline()->GetSprocketSpeed(RIGHT) * 30.0 / CH_C_PI;
+    auto sprk_speed_L = m_tvehicle->GetDriveline()->GetSprocketSpeed(LEFT) * 30.0 / CH_PI;
+    auto sprk_speed_R = m_tvehicle->GetDriveline()->GetSprocketSpeed(RIGHT) * 30.0 / CH_PI;
 
     ImGui::Spacing();
 

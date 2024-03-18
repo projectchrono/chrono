@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     double tire_rad = 0.8;
     double tire_vel_z0 = -3;
     ChVector3d tire_center(0, 0, 0);
-    ChMatrix33<> tire_alignment(Q_from_AngAxis(CH_C_PI, VECT_Y));  // create rotated 180 deg on y
+    ChMatrix33<> tire_alignment(Q_from_AngAxis(CH_PI, VECT_Y));  // create rotated 180 deg on y
 
     double tire_w0 = tire_vel_z0 / tire_rad;
 

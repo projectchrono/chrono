@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AttachSystem(hmmwv.GetSystem());
             vis_vsg->SetWindowTitle("RigidTerrain Moving Patch Demo");
             vis_vsg->SetWindowSize(ChVector2i(1200, 800));
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->AddCamera(cam_pos, hmmwv.GetVehicle().GetPos());
             vis_vsg->Initialize();

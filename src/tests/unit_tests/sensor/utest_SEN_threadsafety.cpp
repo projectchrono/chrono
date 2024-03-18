@@ -56,7 +56,7 @@ TEST(ChFilterAccess, data_access_safety) {
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1,                                                                  // image width
         1,                                                                  // image height
-        (float)CH_C_PI / 3                                                  // FOV
+        (float)CH_PI / 3                                                  // FOV
     );
     cam->SetName("Camera Sensor");
     cam->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());

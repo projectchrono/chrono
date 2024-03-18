@@ -22,7 +22,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChShaftsFreewheel)
 
 ChShaftsFreewheel::ChShaftsFreewheel()
-    : step(CH_C_2PI / 24.0),
+    : step(CH_2PI / 24.0),
       torque_react(0),
       jamming_mode(false),
       phase(0),

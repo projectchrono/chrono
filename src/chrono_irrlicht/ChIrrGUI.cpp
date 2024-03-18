@@ -639,7 +639,7 @@ void ChIrrGUI::SetBlenderSave(bool val) {
         // Static default camera in Blender matches the one in Irrlicht at the moment of starting saving
         // blender_exporter->SetCamera(ChVectorIrr(GetActiveCamera()->getAbsolutePosition()),
         // ChVectorIrr(GetActiveCamera()->getTarget()),
-        //    GetActiveCamera()->getFOV() * GetActiveCamera()->getAspectRatio() * chrono::CH_C_RAD_TO_DEG);
+        //    GetActiveCamera()->getFOV() * GetActiveCamera()->getAspectRatio() * chrono::CH_RAD_TO_DEG);
 
         blender_exporter->ExportScript();
 

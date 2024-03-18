@@ -154,7 +154,7 @@ void CreateCylinders(ChSystemSMC& sys) {
 
     auto c2 = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 2.0, 4.0, 1, mat);
     c2->SetPos(ChVector3d(0, 0, 3));
-    c2->SetRot(QuatFromAngleZ(CH_C_PI / 4));
+    c2->SetRot(QuatFromAngleZ(CH_PI / 4));
     c2->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.6f, 0.7f));
     c2->GetCollisionModel()->SetFamily(1);
     c2->GetCollisionModel()->DisallowCollisionsWith(1);

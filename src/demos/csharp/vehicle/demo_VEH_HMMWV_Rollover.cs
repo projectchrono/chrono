@@ -106,10 +106,10 @@ namespace ChronoDemo
 
 
             // NB: in Y-Up the +vs Zaxis is to the right of the vehicle, and a +ve slope angle causes an upwards gradient ramp
-            ChQuaterniond slope = (isYUp) ? chrono.QuatFromAngleZ(15 * chrono.CH_C_DEG_TO_RAD) : chrono.QuatFromAngleY(-15 * chrono.CH_C_DEG_TO_RAD);
+            ChQuaterniond slope = (isYUp) ? chrono.QuatFromAngleZ(15 * chrono.CH_DEG_TO_RAD) : chrono.QuatFromAngleY(-15 * chrono.CH_DEG_TO_RAD);
 
             // Rotate for Y-Up world
-            ChQuaterniond rotateYUp = new ChQuaterniond(chrono.Q_ROTATE_Z_TO_Y); // // alternatively, could use the call chrono.QuatFromAngleX(-chrono.CH_C_PI_2));
+            ChQuaterniond rotateYUp = new ChQuaterniond(chrono.Q_ROTATE_Z_TO_Y); // // alternatively, could use the call chrono.QuatFromAngleX(-chrono.CH_PI_2));
             // Adjust the slope rotation for the Y-Up world
             ChQuaterniond resultantSlopeRot = new ChQuaterniond();
             resultantSlopeRot.Cross(slope, rotateYUp);
@@ -180,7 +180,7 @@ namespace ChronoDemo
                         camera_pos.z = 12;
                         camera.SetCameraPos(camera_pos);
                         vis.SetChaseCameraState(ChChaseCamera.State.Free);
-                        vis.SetChaseCameraAngle(chrono.CH_C_PI_2 / 2); // point camera towards the vehicle and ramp after freeing it
+                        vis.SetChaseCameraAngle(chrono.CH_PI_2 / 2); // point camera towards the vehicle and ramp after freeing it
                     }
                 }
                 else if (!isYUp)
@@ -194,7 +194,7 @@ namespace ChronoDemo
                         camera_pos.z = 2;
                         camera.SetCameraPos(camera_pos);
                         vis.SetChaseCameraState(ChChaseCamera.State.Free);
-                        vis.SetChaseCameraAngle(chrono.CH_C_PI_2 / 2); // point camera towards the vehicle and ramp after freeing it
+                        vis.SetChaseCameraAngle(chrono.CH_PI_2 / 2); // point camera towards the vehicle and ramp after freeing it
                     }
                 }
 

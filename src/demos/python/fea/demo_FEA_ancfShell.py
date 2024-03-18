@@ -123,7 +123,7 @@ for i in range(TotalNumElements):
     element.SetDimensions(dx, dy)
 
     # Add a single layers with a fiber angle of 0 degrees.
-    element.AddLayer(dz, 0 * chrono.CH_C_DEG_TO_RAD, mat)
+    element.AddLayer(dz, 0 * chrono.CH_DEG_TO_RAD, mat)
 
     # Set other element properties
     element.SetAlphaDamp(0.0)    # Structural damping for this element

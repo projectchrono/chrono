@@ -202,7 +202,7 @@ void parseADMMarker(std::string ID, std::vector<std::pair<int, std::string>>& to
 
                     if (iter->second.back() == 'D') {
                         // This is a decimal and we need to convert to radians
-                        val *= CH_C_DEG_TO_RAD;
+                        val *= CH_DEG_TO_RAD;
                     }
                     // std::cout << "val is " << val <<std::endl;
                     marker.rot[i] = val;

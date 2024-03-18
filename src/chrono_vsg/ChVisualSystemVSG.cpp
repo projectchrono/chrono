@@ -443,7 +443,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     SetUseSkyBox(true);
     SetCameraAngleDeg(40);
     SetLightIntensity(1.0);
-    SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+    SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
 #ifdef __APPLE__
     SetGuiFontSize(20.0);
 #else
@@ -665,8 +665,8 @@ void ChVisualSystemVSG::SetLightDirection(double azimuth, double elevation) {
         std::cerr << "Function ChVisualSystemVSG::SetLightDirection must be used before initialization!" << std::endl;
         return;
     }
-    m_azimuth = ChClamp(azimuth, -CH_C_PI, CH_C_PI);
-    m_elevation = ChClamp(elevation, 0.0, CH_C_PI_2);
+    m_azimuth = ChClamp(azimuth, -CH_PI, CH_PI);
+    m_elevation = ChClamp(elevation, 0.0, CH_PI_2);
 }
 
 void ChVisualSystemVSG::Initialize() {
@@ -1175,7 +1175,7 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             auto grp = vsg::Group::create();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix =
-                vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * QuatFromAngleX(-CH_C_PI_2)), scale);
+                vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * QuatFromAngleX(-CH_PI_2)), scale);
             grp->addChild(transform);
             // needed, when BindAll() is called after Initialization
             // vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);

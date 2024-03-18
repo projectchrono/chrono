@@ -227,7 +227,7 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
         element->SetNodes(nodeA, nodeB, nodeD, nodeC);
         element->SetDimensions(dx, width);
-        element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, mat);
+        element->AddLayer(thickness, 0 * CH_DEG_TO_RAD, mat);
         element->SetAlphaDamp(0.0);
         mesh->AddElement(element);
 

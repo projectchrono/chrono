@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
     // Global parameter for tire:
     double tire_rad = 0.8;
     ChVector3d tire_center(0, 0.02 + tire_rad, 0.5);
-    ChMatrix33<> tire_alignment(QuatFromAngleY(CH_C_PI));  // create rotated 180 deg on y
+    ChMatrix33<> tire_alignment(QuatFromAngleY(CH_PI));  // create rotated 180 deg on y
 
     // Create a Chrono physical system and the associated collision system
     ChSystemSMC sys;
@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
 
     auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
         GetChronoDataFile("models/tractor_wheel/tractor_wheel_fine.obj"));
-    mesh->Transform(VNULL, QuatFromAngleY(CH_C_PI));
+    mesh->Transform(VNULL, QuatFromAngleY(CH_PI));
     auto mesh_asset = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     mesh_asset->SetMesh(mesh);
     mrigidbody->AddVisualShape(mesh_asset);
@@ -276,7 +276,7 @@ int main(int argc, char* argv[]) {
         // End of cosimulation block
         // -------------------------------------------------------------------------
 
-        tools::drawGrid(vis.get(), 0.1, 0.1, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_X),
+        tools::drawGrid(vis.get(), 0.1, 0.1, 20, 20, ChCoordsys<>(VNULL, CH_PI_2, VECT_X),
                         ChColor(0.40f, 0.40f, 0.40f), true);
 
         vis->EndScene();

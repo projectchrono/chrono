@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
                                                           true,             // collide enable?
                                                           true, phys_mat);  // visualization?
     floor->SetPos({0, 0, -1.0});
-    floor->SetRot(QuatFromAngleZ(CH_C_PI / 2.0));
+    floor->SetRot(QuatFromAngleZ(CH_PI / 2.0));
     floor->SetFixed(true);
     sys.Add(floor);
 
@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-10, 0, 1}, QuatFromAngleZ(0)),  // offset pose
         1920,                                                     // image width
         1080,                                                     // image height
-        (float)CH_C_PI / 4,                                       // field of view
+        (float)CH_PI / 4,                                       // field of view
         2, CameraLensModelType::FOV_LENS, false);
 
     std::string color_data_path = "SENSOR_OUTPUT/cam_color/";
@@ -366,8 +366,8 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleX(0)),  // offset pose from body
         923,                                                     // horizontal samples
         23,                                                      // vertical samples/channels
-        2.f * (float)CH_C_PI / 3.0f,                             // horizontal field of view
-        (float)CH_C_PI / 8.0f, -(float)CH_C_PI / 8.0f, 100.0f    // vertical field of view
+        2.f * (float)CH_PI / 3.0f,                             // horizontal field of view
+        (float)CH_PI / 8.0f, -(float)CH_PI / 8.0f, 100.0f    // vertical field of view
     );
     lidar->SetName("Lidar Sensor");
     lidar->SetLag(.1f);
@@ -394,9 +394,9 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleX(0)),  // offset pose from body
         923,                                                     // horizontal samples
         23,                                                      // vertical samples/channels
-        2.f * (float)CH_C_PI / 3.0f,                             // horizontal field of view
-        (float)CH_C_PI / 8.0f,                                   // max vert angle
-        -(float)CH_C_PI / 8.0f,                                  // min vert angle
+        2.f * (float)CH_PI / 3.0f,                             // horizontal field of view
+        (float)CH_PI / 8.0f,                                   // max vert angle
+        -(float)CH_PI / 8.0f,                                  // min vert angle
         100.0f,                                                  // max range
         LidarBeamShape::RECTANGULAR,                             // beam shape
         3,                                                       // beam sample radius
@@ -469,7 +469,7 @@ int main(int argc, char* argv[]) {
             chrono::ChFrame<double>({-3, 0, 2}, QuatFromAngleX(0)),  // offset pose
             1280,                                                    // image width
             720,                                                     // image height
-            (float)CH_C_PI / 3);
+            (float)CH_PI / 3);
         cams.push_back(cam1);
 
         std::stringstream nm;

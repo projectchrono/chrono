@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
         element->SetAlphaDamp(0.001);
 
         // Add a single layers with a fiber angle of 0 degrees.
-        element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material);
+        element->AddLayer(thickness, 0 * CH_DEG_TO_RAD, material);
 
         mesh->AddElement(element);
 
@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
         element->SetAlphaDamp(0.001);
 
         // Add a single layers with a fiber angle of 0 degrees.
-        element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material);
+        element->AddLayer(thickness, 0 * CH_DEG_TO_RAD, material);
 
         mesh->AddElement(element);
 

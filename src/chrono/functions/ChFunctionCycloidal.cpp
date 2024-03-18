@@ -34,7 +34,7 @@ double ChFunctionCycloidal::GetVal(double x) const {
         return 0;
     else if (x >= m_width)
         return m_height;
-    double ret = m_height * (x / m_width - sin(CH_C_2PI * x / m_width) / CH_C_2PI);
+    double ret = m_height * (x / m_width - sin(CH_2PI * x / m_width) / CH_2PI);
     return ret;
 }
 
@@ -43,7 +43,7 @@ double ChFunctionCycloidal::GetDer(double x) const {
         return 0;
     else if (x >= m_width)
         return 0;
-    double ret = m_height / m_width * (1 - cos(CH_C_2PI * x / m_width));
+    double ret = m_height / m_width * (1 - cos(CH_2PI * x / m_width));
     return ret;
 }
 
@@ -52,7 +52,7 @@ double ChFunctionCycloidal::GetDer2(double x) const {
         return 0;
     else if (x >= m_width)
         return 0;
-    double ret = CH_C_2PI * m_height / m_width / m_width * sin(CH_C_2PI * x / m_width);
+    double ret = CH_2PI * m_height / m_width / m_width * sin(CH_2PI * x / m_width);
     return ret;
 }
 
@@ -61,7 +61,7 @@ double ChFunctionCycloidal::GetDer3(double x) const {
         return 0;
     else if (x >= m_width)
         return 0;
-    double ret = pow(CH_C_2PI, 2) * m_height / pow(m_width, 3) * cos(CH_C_2PI * x / m_width);
+    double ret = pow(CH_2PI, 2) * m_height / pow(m_width, 3) * cos(CH_2PI * x / m_width);
     return ret;
 }
 

@@ -665,8 +665,8 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
 
                         J2Rt = NormSn / sqrt(2.0);
 
-                        double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
-                        double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
+                        double phi = m_element->m_FrictionAngle * CH_DEG_TO_RAD;    // Friction angle
+                        double phi2 = m_element->m_DilatancyAngle * CH_DEG_TO_RAD;  // Dilatancy angle
 
                         double eta = 0;  // Coefficient multiplying hydros. pressure in yield function - function of
                                          // internal friction
@@ -835,8 +835,8 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
 
                         J2Rt = NormSn / sqrt(2.0);
 
-                        double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
-                        double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
+                        double phi = m_element->m_FrictionAngle * CH_DEG_TO_RAD;    // Friction angle
+                        double phi2 = m_element->m_DilatancyAngle * CH_DEG_TO_RAD;  // Dilatancy angle
 
                         double eta = 0;  // Coefficient multiplying hydros. pressure in yield function - function of
                                          // internal friction
@@ -1735,8 +1735,8 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
 
                         J2Rt = NormSn / sqrt(2.0);
 
-                        double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
-                        double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
+                        double phi = m_element->m_FrictionAngle * CH_DEG_TO_RAD;    // Friction angle
+                        double phi2 = m_element->m_DilatancyAngle * CH_DEG_TO_RAD;  // Dilatancy angle
                         double eta = 0;  // Coefficient multiplying hydros. pressure in yield function - function of
                                          // internal friction
                         double gsi = 0;  // Coefficient multiplying 'current' cohesion value in yield function
@@ -1911,8 +1911,8 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
 
                         J2Rt = NormSn / sqrt(2.0);
 
-                        double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
-                        double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
+                        double phi = m_element->m_FrictionAngle * CH_DEG_TO_RAD;    // Friction angle
+                        double phi2 = m_element->m_DilatancyAngle * CH_DEG_TO_RAD;  // Dilatancy angle
 
                         double eta = 0;  // Coefficient multiplying hydros. pressure in yield function - function of
                                          // internal friction

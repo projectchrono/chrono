@@ -110,7 +110,7 @@ if (False):  # set as 'true' to execute this
     
     melement.SetNodes(mnode0, mnode1, mnode2,None,None,None)
     
-    melement.AddLayer(thickness, 0 * chrono.CH_C_DEG_TO_RAD, material)
+    melement.AddLayer(thickness, 0 * chrono.CH_DEG_TO_RAD, material)
     
     # TEST
     sys.Setup()
@@ -213,7 +213,7 @@ if (True):  # set as 'true' to execute this
 				mynodes[(iz + 1) * (nsections_x + 1) + ix    ], 
 				boundary_1, boundary_2, boundary_3)
 
-            melementA.AddLayer(thickness, 0 * chrono.CH_C_DEG_TO_RAD, material)
+            melementA.AddLayer(thickness, 0 * chrono.CH_DEG_TO_RAD, material)
 
 			
             melementB = fea.ChElementShellBST()
@@ -235,7 +235,7 @@ if (True):  # set as 'true' to execute this
 				mynodes[(iz    ) * (nsections_x + 1) + ix + 1],
 				boundary_1, boundary_2, boundary_3)
 
-            melementB.AddLayer(thickness, 0 * chrono.CH_C_DEG_TO_RAD, material)
+            melementB.AddLayer(thickness, 0 * chrono.CH_DEG_TO_RAD, material)
 	
     for j in range(30) :
         for k in range(30) :

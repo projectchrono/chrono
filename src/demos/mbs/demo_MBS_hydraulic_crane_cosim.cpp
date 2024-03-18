@@ -67,7 +67,7 @@ class Crane {
 
         double crane_mass = 500;
         double crane_length = 1.0;
-        double crane_angle = CH_C_PI / 6;
+        double crane_angle = CH_PI / 6;
         ChVector3d crane_pos(0.5 * crane_length * std::cos(crane_angle), 0, 0.5 * crane_length * std::sin(crane_angle));
 
         double pend_length = 0.3;
@@ -97,7 +97,7 @@ class Crane {
         m_crane->AddVisualShape(connection_sph, ChFrame<>(m_point_crane, QUNIT));
         m_crane->AddVisualShape(connection_sph, ChFrame<>(ChVector3d(crane_length / 2, 0, 0), QUNIT));
         auto crane_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.015, crane_length);
-        m_crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
+        m_crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, QuatFromAngleY(CH_PI_2)));
         sys.AddBody(m_crane);
 
         auto ball = chrono_types::make_shared<ChBody>();
@@ -111,7 +111,7 @@ class Crane {
 
         // Create joints
         auto rev_joint = chrono_types::make_shared<ChLinkRevolute>();
-        rev_joint->Initialize(ground, m_crane, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+        rev_joint->Initialize(ground, m_crane, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
         sys.AddLink(rev_joint);
 
         auto sph_joint = chrono_types::make_shared<ChLinkLockSpherical>();
@@ -330,7 +330,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->SetWireFrameMode(false);
             vis_vsg->Initialize();

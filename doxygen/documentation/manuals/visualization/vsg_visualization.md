@@ -17,7 +17,7 @@ A typical usage of \ref chrono::vsg3d::ChVisualSystemVSG "vsg3d::ChVisualSystemV
     vis->AddCamera(ChVector3d(-8, 8, -16));
     vis->SetCameraAngleDeg(40);
     vis->SetLightIntensity(1.0f);
-    vis->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
     vis_vsg->SetShadows(true);
 ~~~
 

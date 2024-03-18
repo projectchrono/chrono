@@ -21,7 +21,7 @@ namespace chrono {
 namespace vehicle {
 namespace artcar {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 ARTcar_EngineSimpleMap::ARTcar_EngineSimpleMap(const std::string& name)
     : ChEngineSimpleMap(name),

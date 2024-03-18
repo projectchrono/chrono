@@ -139,7 +139,7 @@ void ChToeBarRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleTubeGuide->SetNameString(m_name + "_planePlaneAxleTube");
     const ChQuaternion<>& guideRot = chassis->GetBody()->GetFrameRefToAbs().GetRot();
     m_axleTubeGuide->Initialize(chassis->GetBody(), m_axleTubeBody,
-                                ChFrame<>(axleCOM, guideRot * QuatFromAngleY(CH_C_PI_2)));
+                                ChFrame<>(axleCOM, guideRot * QuatFromAngleY(CH_PI_2)));
     chassis->GetBody()->GetSystem()->AddLink(m_axleTubeGuide);
 
     // Create and initialize the Panhard body.
@@ -313,7 +313,7 @@ void ChToeBarRigidPanhardAxle::InitializeSide(VehicleSide side,
         m_universalTierod = chrono_types::make_shared<ChLinkUniversal>();
         m_universalTierod->SetNameString(m_name + "_universalTierod" + suffix);
         m_universalTierod->Initialize(m_tierodBody, m_knuckleBody[side],
-                                      ChFrame<>(points[TIEROD_K], chassisRot * QuatFromAngleX(CH_C_PI_2)));
+                                      ChFrame<>(points[TIEROD_K], chassisRot * QuatFromAngleX(CH_PI_2)));
         chassis->GetSystem()->AddLink(m_universalTierod);
     }
 
@@ -337,7 +337,7 @@ void ChToeBarRigidPanhardAxle::InitializeSide(VehicleSide side,
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_knuckleBody[side],
-                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2)));
+                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the spring/damper
@@ -379,13 +379,13 @@ void ChToeBarRigidPanhardAxle::InitializeSide(VehicleSide side,
     if (side == LEFT) {
         m_revARBChassis = chrono_types::make_shared<ChVehicleJoint>(
             ChVehicleJoint::Type::REVOLUTE, m_name + "_revARBchassis", chassisBody, m_arbBody[side],
-            ChFrame<>(m_ptARBCenter, chassisRot * QuatFromAngleX(CH_C_PI_2)));
+            ChFrame<>(m_ptARBCenter, chassisRot * QuatFromAngleX(CH_PI_2)));
         chassis->AddJoint(m_revARBChassis);
     } else {
         m_revARBLeftRight = chrono_types::make_shared<ChLinkLockRevolute>();
         m_revARBLeftRight->SetNameString(m_name + "_revARBleftRight");
         m_revARBLeftRight->Initialize(m_arbBody[LEFT], m_arbBody[RIGHT],
-                                      ChFrame<>(m_ptARBCenter, chassisRot * QuatFromAngleX(CH_C_PI_2)));
+                                      ChFrame<>(m_ptARBCenter, chassisRot * QuatFromAngleX(CH_PI_2)));
         chassis->GetSystem()->AddLink(m_revARBLeftRight);
 
         m_revARBLeftRight->ForceRz().SetActive(1);

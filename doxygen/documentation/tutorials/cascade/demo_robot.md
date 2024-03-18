@@ -217,9 +217,9 @@ Print the contained shapes, showing the assembly hierarchy:
 	// In most CADs the Y axis is horizontal, but we want it vertical.
 	// So define a root transformation for rotating all the imported objects.
 	ChQuaternion<> rotation1;
-	rotation1.Q_from_AngAxis(-CH_C_PI/2, VECT_X); // 1: rotate 90° on X axis 
+	rotation1.Q_from_AngAxis(-CH_PI/2, VECT_X); // 1: rotate 90° on X axis 
 	ChQuaternion<> rotation2;
-	rotation2.Q_from_AngAxis(CH_C_PI, VECT_Y);	 // 2: rotate 180° on vertical Y axis
+	rotation2.Q_from_AngAxis(CH_PI, VECT_Y);	 // 2: rotate 180° on vertical Y axis
 	ChQuaternion<> tot_rotation = rotation2 % rotation1;  // rotate on 1 then on 2, using quaternion product
 	ChFrameMoving<> root_frame( ChVector3<>(0,0,0), tot_rotation); 
 ~~~
@@ -520,7 +520,7 @@ This is a very simple way of performing the IK (Inverse Kinematics) of a robot, 
 	mrigidBody_hand->GetBody()->AddMarker(my_marker_hand);
 	mrigidBody_base->GetBody()->AddMarker(my_marker_move);
 
-	ChQuaternion<> rot_on_x; rot_on_x.Q_from_AngAxis(CH_C_PI/2, VECT_X);
+	ChQuaternion<> rot_on_x; rot_on_x.Q_from_AngAxis(CH_PI/2, VECT_X);
 	ChFrame<> frame_marker_move = ChFrame<>(VNULL, rot_on_x) >> frame_marker_wrist_hand ;
 
 	my_marker_hand->Impose_Abs_Coord( frame_marker_wrist_hand.GetCoord() );

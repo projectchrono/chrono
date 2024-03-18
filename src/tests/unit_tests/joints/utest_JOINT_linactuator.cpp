@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
     // Case 2 - Translation axis along X = Z, imposed speed 0.5 m/s
 
     test_name = "LinActuator_Case02";
-    TestLinActuator(QuatFromAngleY(CH_C_PI / 4), 0.5, sim_step, out_step, test_name);
+    TestLinActuator(QuatFromAngleY(CH_PI / 4), 0.5, sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 2e-3);
     test_passed &= ValidateReference(test_name, "Vel", 1e-3);
     test_passed &= ValidateReference(test_name, "Acc", 2e-2);

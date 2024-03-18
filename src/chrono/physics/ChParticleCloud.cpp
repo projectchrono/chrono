@@ -219,7 +219,7 @@ ChParticleCloud::ChParticleCloud()
       limit_speed(false),
       fixed(false),
       max_speed(0.5f),
-      max_wvel((float)CH_C_2PI),
+      max_wvel((float)CH_2PI),
       sleep_time(0.6f),
       sleep_starttime(0),
       sleep_minspeed(0.1f),

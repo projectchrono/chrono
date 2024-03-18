@@ -60,7 +60,7 @@ void ChBeamSectionShapeCircular::UpdateProfile() {
     points.resize(resolution + 1);
     normals.resize(resolution + 1);
     for (size_t is = 0; is < points.size(); ++is) {
-        double sangle = CH_C_2PI * ((double)is / (double)resolution);
+        double sangle = CH_2PI * ((double)is / (double)resolution);
         points[is] = ChVector3d(0, cos(sangle) * radius, sin(sangle) * radius);
         normals[is] = ChVector3d(0, cos(sangle), sin(sangle));
     }

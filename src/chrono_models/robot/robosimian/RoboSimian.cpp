@@ -55,7 +55,7 @@ const Link PitchLink("robosim_pitch_link",
                      ChVector3d(-0.050402, 0.012816, 0.000000),
                      ChVector3d(0.000670, 0.000955, 0.000726),
                      ChVector3d(0.000062, 0.000000, 0.000000),
-                     {CylinderShape(ChVector3d(-0.07, 0, 0), QuatFromAngleY(CH_C_PI_2), 0.055, 0.07)});
+                     {CylinderShape(ChVector3d(-0.07, 0, 0), QuatFromAngleY(CH_PI_2), 0.055, 0.07)});
 
 const Link RollLink("robosim_roll_link",
                     ChVector3d(0, 0, 0),
@@ -64,7 +64,7 @@ const Link RollLink("robosim_roll_link",
                     ChVector3d(0.066970, -0.090099, -0.000084),
                     ChVector3d(0.010580, 0.025014, 0.031182),
                     ChVector3d(-0.008765, -0.000002, 0.000007),
-                    {CylinderShape(ChVector3d(0.065, -0.12, 0), QuatFromAngleY(CH_C_PI_2), 0.055, 0.24),
+                    {CylinderShape(ChVector3d(0.065, -0.12, 0), QuatFromAngleY(CH_PI_2), 0.055, 0.24),
                      CylinderShape(ChVector3d(0.0, -0.035, 0), QUNIT, 0.055, 0.075)});
 
 const Link RollLinkLast("robosim_roll_link",
@@ -74,7 +74,7 @@ const Link RollLinkLast("robosim_roll_link",
                         ChVector3d(0.066970, -0.090099, -0.000084),
                         ChVector3d(0.010580, 0.025014, 0.031182),
                         ChVector3d(-0.008765, -0.000002, 0.000007),
-                        {CylinderShape(ChVector3d(0.105, -0.12, 0), QuatFromAngleY(CH_C_PI_2), 0.055, 0.32),
+                        {CylinderShape(ChVector3d(0.105, -0.12, 0), QuatFromAngleY(CH_PI_2), 0.055, 0.32),
                          CylinderShape(ChVector3d(0.0, -0.035, 0), QUNIT, 0.055, 0.075)});
 
 const Link RollLinkLastWheel("robosim_roll_link_w_wheel",
@@ -84,9 +84,9 @@ const Link RollLinkLastWheel("robosim_roll_link_w_wheel",
                              ChVector3d(0.066970, -0.090099, -0.000084),
                              ChVector3d(0.010580, 0.025014, 0.031182),
                              ChVector3d(-0.008765, -0.000002, 0.000007),
-                             {CylinderShape(ChVector3d(0.105, -0.12, 0), QuatFromAngleY(CH_C_PI_2), 0.055, 0.32),
-                              CylinderShape(ChVector3d(0.0, -0.035, 0), QuatFromAngleX(CH_C_PI_2), 0.055, 0.075),
-                              CylinderShape(ChVector3d(0.0, -0.19, 0), QuatFromAngleX(CH_C_PI_2), 0.080, 0.0375)});
+                             {CylinderShape(ChVector3d(0.105, -0.12, 0), QuatFromAngleY(CH_PI_2), 0.055, 0.32),
+                              CylinderShape(ChVector3d(0.0, -0.035, 0), QuatFromAngleX(CH_PI_2), 0.055, 0.075),
+                              CylinderShape(ChVector3d(0.0, -0.19, 0), QuatFromAngleX(CH_PI_2), 0.080, 0.0375)});
 
 const Link FtAdapterLink("robosim_ft_adapter",
                          ChVector3d(0, 0, 0),
@@ -113,7 +113,7 @@ const Link WheelMountLink("robosim_wheel_mount",
                           ChVector3d(-0.005260, 0.042308, 0.000088),
                           ChVector3d(0.010977, 0.005330, 0.011405),
                           ChVector3d(0.000702, 0.000026, -0.000028),
-                          {CylinderShape(ChVector3d(0.12024, 0.02, 0), QuatFromAngleX(CH_C_PI_2), 0.0545, 0.175)});
+                          {CylinderShape(ChVector3d(0.12024, 0.02, 0), QuatFromAngleX(CH_PI_2), 0.0545, 0.175)});
 
 const Link WheelLink("robosim_wheel",
                      ChVector3d(0, 0, 0),
@@ -988,17 +988,17 @@ RS_Chassis::RS_Chassis(const std::string& name, bool fixed, std::shared_ptr<ChCo
         BoxShape(ChVector3d(-0.25393, -0.075769, 0), QuatFromAngleZ(-0.38153), ChVector3d(0.36257, 0.23, 0.238)));
 
     m_cylinders.push_back(CylinderShape(ChVector3d(0.417050, 0, -0.158640),
-                                        QuatFromAngleZ(CH_C_PI_2) * QuatFromAngleX(CH_C_PI_2 - 0.383972), 0.05, 0.144));
+                                        QuatFromAngleZ(CH_PI_2) * QuatFromAngleX(CH_PI_2 - 0.383972), 0.05, 0.144));
 
     // Geometry for link0 (all limbs); these links are fixed to the chassis
     m_cylinders.push_back(
-        CylinderShape(ChVector3d(+0.29326, +0.20940, 0.03650 - 0.025), QuatFromAngleX(CH_C_PI_2), 0.05, 0.145));
+        CylinderShape(ChVector3d(+0.29326, +0.20940, 0.03650 - 0.025), QuatFromAngleX(CH_PI_2), 0.05, 0.145));
     m_cylinders.push_back(
-        CylinderShape(ChVector3d(-0.29326, +0.20940, 0.03650 - 0.025), QuatFromAngleX(CH_C_PI_2), 0.05, 0.145));
+        CylinderShape(ChVector3d(-0.29326, +0.20940, 0.03650 - 0.025), QuatFromAngleX(CH_PI_2), 0.05, 0.145));
     m_cylinders.push_back(
-        CylinderShape(ChVector3d(-0.29326, -0.20940, 0.03650 - 0.025), QuatFromAngleX(CH_C_PI_2), 0.05, 0.145));
+        CylinderShape(ChVector3d(-0.29326, -0.20940, 0.03650 - 0.025), QuatFromAngleX(CH_PI_2), 0.05, 0.145));
     m_cylinders.push_back(
-        CylinderShape(ChVector3d(+0.29326, -0.20940, 0.03650 - 0.025), QuatFromAngleX(CH_C_PI_2), 0.05, 0.145));
+        CylinderShape(ChVector3d(+0.29326, -0.20940, 0.03650 - 0.025), QuatFromAngleX(CH_PI_2), 0.05, 0.145));
 
     // Set the name of the visualization mesh
     m_mesh_name = "robosim_chassis";
@@ -1102,7 +1102,7 @@ RS_WheelDD::RS_WheelDD(const std::string& name, int id, std::shared_ptr<ChContac
     m_body->SetInertiaXY(inertia_xy);
     system->Add(m_body);
 
-    m_cylinders.push_back(CylinderShape(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI_2), 0.074, 0.038));
+    m_cylinders.push_back(CylinderShape(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI_2), 0.074, 0.038));
 
     m_mesh_name = "robosim_dd_wheel";
     m_offset = ChVector3d(0, 0, 0);

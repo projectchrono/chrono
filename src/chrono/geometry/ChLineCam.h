@@ -116,7 +116,7 @@ class ChApi ChLineCam : public ChLine {
     /// Given that the shape is defined by a Ch_function, the
     /// returned weight is the weight of the function (Ch_function_sequence can
     /// have different 'weight' values depending on the function segment)
-    double GetWeight(double par) const { return law->GetWeight(par * 2 * CH_C_PI); }
+    double GetWeight(double par) const { return law->GetWeight(par * 2 * CH_PI); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

@@ -93,7 +93,7 @@ class Driver : public ChDriver {
         if (time < m_delay)
             m_steering = 0;
         else
-            m_steering = steering_max * std::sin(CH_C_2PI * m_frequency * (time - m_delay));
+            m_steering = steering_max * std::sin(CH_2PI * m_frequency * (time - m_delay));
 
         m_steering *= std::exp(-time / 10);
 
@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 

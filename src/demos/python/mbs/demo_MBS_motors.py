@@ -58,7 +58,7 @@ def CreateStatorRotor(material,
                       pos) :
     stator = chrono.ChBodyEasyCylinder(chrono.ChAxis_Y, 0.5, 0.1, 1000, True, True, material)
     stator.SetPos(pos)
-    stator.SetRot(chrono.QuatFromAngleAxis(chrono.CH_C_PI_2, chrono.VECT_X))
+    stator.SetRot(chrono.QuatFromAngleAxis(chrono.CH_PI_2, chrono.VECT_X))
     stator.SetFixed(True)
     stator.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.4, 0.4))
     system.Add(stator)
@@ -120,7 +120,7 @@ rotmotor1.Initialize(rotor1,                # body A (slave)
 sys.Add(rotmotor1)
 
 # Create a ChFunction to be used for the ChLinkMotorRotationSpeed
-mwspeed = chrono.ChFunctionConst(chrono.CH_C_PI_2)  # constant angular speed, in [rad/s], 1PI/s =180°/s
+mwspeed = chrono.ChFunctionConst(chrono.CH_PI_2)  # constant angular speed, in [rad/s], 1PI/s =180°/s
 # Let the motor use this motion function:
 rotmotor1.SetSpeedFunction(mwspeed)
 
@@ -163,7 +163,7 @@ rotmotor2.Initialize(rotor2,                # body A (slave)
 sys.Add(rotmotor2)
 
 # Create a ChFunction to be used for the ChLinkMotorRotationAngle
-msineangle = chrono.ChFunctionSine(chrono.CH_C_PI,
+msineangle = chrono.ChFunctionSine(chrono.CH_PI,
                                     0.05)  # amplitude
 
 # Let the motor use this motion function as a motion profile:
@@ -241,7 +241,7 @@ class MyTorqueCurve(chrono.ChFunction) :
         # The three-phase torque(speed) model
         w = self.mymotor.GetMotorAngleDer()
         s = (self.ns - w) / self.ns  # slip
-        T = (3.0 / 2 * chrono.CH_C_PI * self.ns) * (s * self.E2 * self.E2 * self.R2) / (self.R2 * self.R2 + pow(s * self.X2, 2))  # electric torque curve
+        T = (3.0 / 2 * chrono.CH_PI * self.ns) * (s * self.E2 * self.E2 * self.R2) / (self.R2 * self.R2 + pow(s * self.X2, 2))  # electric torque curve
         T -= w * 5  # simulate also a viscous brake
         return T
     
@@ -326,7 +326,7 @@ my_drive.Initialize(my_shaftA,                   # A , the rotor of the drive
 
 sys.Add(my_drive)
 # Create a speed(time) function, and use it in my_drive:
-my_driveangle = chrono.ChFunctionConst(25 * chrono.CH_C_2PI)  # 25 [rps] = 1500 [rpm]
+my_driveangle = chrono.ChFunctionConst(25 * chrono.CH_2PI)  # 25 [rps] = 1500 [rpm]
 my_drive.SetSpeedFunction(my_driveangle)
 
 # Create the REDUCER. We should not use the simple ChShaftsGear because
@@ -413,9 +413,9 @@ motor2.Initialize(slider2,               # body A (slave)
 sys.Add(motor2)
 
 # Create a ChFunction to be used for the ChLinkMotorLinearSpeed
-msp = chrono.ChFunctionSine(1.6 * 0.5 * chrono.CH_C_2PI, # amplitude
+msp = chrono.ChFunctionSine(1.6 * 0.5 * chrono.CH_2PI, # amplitude
                              0.5,                  # frequency
-                             chrono.CH_C_PI_2) # phase
+                             chrono.CH_PI_2) # phase
 
 # Let the motor use this motion function:
 motor2.SetSpeedFunction(msp)
@@ -454,7 +454,7 @@ positionB3 = chrono.ChVector3d(0, 0, -1)
 guide3, slider3 = CreateSliderGuide(material, sys, positionB3)
 
 # just for fun: modify the initial speed of slider to match other examples
-slider3.SetPosDer(chrono.ChVector3d(1.6 * 0.5 * chrono.CH_C_2PI))
+slider3.SetPosDer(chrono.ChVector3d(1.6 * 0.5 * chrono.CH_2PI))
 
 # Create the linear motor
 motor3 = chrono.ChLinkMotorLinearForce()
@@ -474,7 +474,7 @@ motor3.SetForceFunction(mF)
 # Alternative: just for fun, use a sine harmonic whose max force is F=M*A, where
 # M is the mass of the slider, A is the max acceleration of the previous examples,
 # so finally the motion should be quite the same - but without feedback, if hits a disturb, it goes crazy:
-mF2 =chrono.ChFunctionSine(slider3.GetMass() * 1.6 * pow(0.5 * chrono.CH_C_2PI, 2) ,
+mF2 =chrono.ChFunctionSine(slider3.GetMass() * 1.6 * pow(0.5 * chrono.CH_2PI, 2) ,
                             0.5)
 
 # motor3.SetForceFunction(mF2) # uncomment to test this
@@ -533,7 +533,7 @@ class MyForceClass (chrono.ChFunctionSetpointCallback) :
             if (time > self.last_time) :
                 dt = time - self.last_time
                 # for example, the position to chase is this sine formula:
-                setpo= self.setpoint_position_sine_amplitude * m.sin(self.setpoint_position_sine_freq * chrono.CH_C_2PI * x)
+                setpo= self.setpoint_position_sine_amplitude * m.sin(self.setpoint_position_sine_freq * chrono.CH_2PI * x)
                 error = setpo- self.linearmotor.GetMotorPos()
                 error_dt = (error - self.last_error) / dt
                 # for example, finally compute the force using the PID idea:

@@ -53,14 +53,14 @@ void create_column(ChSystemNSC& sys,
 
     std::vector<ChVector3d> mpoints;
     for (int i = 0; i < col_nedges; ++i) {
-        double alpha = CH_C_2PI * ((double)i / (double)col_nedges);  // polar coord
+        double alpha = CH_2PI * ((double)i / (double)col_nedges);  // polar coord
         double x = col_radius_hi * cos(alpha);
         double z = col_radius_hi * sin(alpha);
         double y = col_base + col_height;
         mpoints.push_back(ChVector3d(x, y, z));
     }
     for (int i = 0; i < col_nedges; ++i) {
-        double alpha = CH_C_2PI * ((double)i / (double)col_nedges);  // polar coord
+        double alpha = CH_2PI * ((double)i / (double)col_nedges);  // polar coord
         double x = col_radius_lo * cos(alpha);
         double z = col_radius_lo * sin(alpha);
         double y = col_base;
@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AddCamera(ChVector3d(1, 8, -15));
             vis_vsg->SetCameraAngleDeg(50);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 

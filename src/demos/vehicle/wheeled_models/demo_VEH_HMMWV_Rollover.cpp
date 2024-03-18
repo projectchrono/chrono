@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
     auto patch = terrain.AddPatch(terrain_mat, CSYSNORM, 100.0, 100.0);
     patch->SetTexture(vehicle::GetDataFile("terrain/textures/dirt.jpg"), 20, 20);
 
-    auto slope = QuatFromAngleY(-15 * CH_C_DEG_TO_RAD);
+    auto slope = QuatFromAngleY(-15 * CH_DEG_TO_RAD);
     auto ramp = terrain.AddPatch(terrain_mat, ChCoordsys<>(ChVector3d(20, 3, 0), slope), 20, 6);
     ramp->SetTexture(vehicle::GetDataFile("terrain/textures/concrete.jpg"), 2, 2);
 
@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
             vis = vis_vsg;
