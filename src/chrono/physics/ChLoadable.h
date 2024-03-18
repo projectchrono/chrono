@@ -54,7 +54,7 @@ class ChApi ChLoadable {
 
 
     /// Number of coordinates in the interpolated field (e.g., 3 for a tetrahedron, 1 for a thermal problem, etc.).
-    virtual unsigned int GetFieldNumCoords() = 0;
+    virtual unsigned int GetNumFieldCoords() = 0;
 
     /// Get the number of DOFs sub-blocks (e.g., 1 for a body, 4 for a tetrahedron, etc.).
     virtual unsigned int GetNumSubBlocks() = 0;

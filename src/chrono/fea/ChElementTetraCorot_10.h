@@ -170,7 +170,7 @@ class ChApi ChElementTetraCorot_10 : public ChElementTetrahedron,
                                         const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
-    virtual unsigned int GetFieldNumCoords() override { return 3; }
+    virtual unsigned int GetNumFieldCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
     virtual unsigned int GetNumSubBlocks() override { return 10; }

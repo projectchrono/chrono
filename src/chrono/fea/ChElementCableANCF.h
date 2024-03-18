@@ -187,7 +187,7 @@ class ChApi ChElementCableANCF : public ChElementANCF, public ChElementBeam, pub
                                         const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field.
-    virtual unsigned int GetFieldNumCoords() override { return 6; }
+    virtual unsigned int GetNumFieldCoords() override { return 6; }
 
     /// Get the number of DOFs sub-blocks.
     virtual unsigned int GetNumSubBlocks() override { return 2; }

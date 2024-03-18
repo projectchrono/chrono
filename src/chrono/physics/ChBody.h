@@ -610,7 +610,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 6; }
 
     /// Number of coordinates in the interpolated field. Here, 6: = xyz displ + xyz rots.
-    virtual unsigned int GetFieldNumCoords() override { return 6; }
+    virtual unsigned int GetNumFieldCoords() override { return 6; }
 
     /// Tell the number of DOFs blocks.
     virtual unsigned int GetNumSubBlocks() override { return 1; }

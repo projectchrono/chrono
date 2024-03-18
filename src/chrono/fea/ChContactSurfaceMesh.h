@@ -167,7 +167,7 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual unsigned int GetFieldNumCoords() override { return 3; }
+    virtual unsigned int GetNumFieldCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
     virtual unsigned int GetNumSubBlocks() override { return 3; }
@@ -358,7 +358,7 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual unsigned int GetFieldNumCoords() override { return 6; }
+    virtual unsigned int GetNumFieldCoords() override { return 6; }
 
     /// Get the number of DOFs sub-blocks.
     virtual unsigned int GetNumSubBlocks() override { return 3; }

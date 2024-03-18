@@ -163,7 +163,7 @@ class ChApi ChNodeFEAxyzDD : public ChNodeFEAxyzD {
                                         const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field.
-    virtual unsigned int GetFieldNumCoords() override { return m_dof_actual; }
+    virtual unsigned int GetNumFieldCoords() override { return m_dof_actual; }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return m_dof_actual; }

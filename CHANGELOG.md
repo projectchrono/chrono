@@ -928,14 +928,14 @@ Note that this represents a major public API change and we expect most user code
 |                                   | LoadGet_ndof_x                | rename: LoadGetNumCoordsPosLevel                 |
 |                                   | LoadGet_ndof_w                | rename: LoadGetNumCoordsVelLevel                 |
 | ChLoadable                        |                               |                                                  |
-|                                   | Get_field_ncoords             | rename: GetFieldNumCoords                        |
+|                                   | Get_field_ncoords             | rename: GetNumFieldCoords                        |
 |                                   | GetSubBlocks                  | rename: GetNumSubBlocks                          |
 |                                   | LoadableGet_ndof_x            | rename: GetLoadableNumCoordsPosLevel             |
 |                                   | LoadableGet_ndof_w            | rename: GetLoadableNumCoordsVelLevel             |
 |                                   | LoadableGetStateBlock_x       | rename: LoadableGetStateBlockPosLevel            |
 |                                   | LoadableGetStateBlock_w       | rename: LoadableGetStateBlockVelLevel            |
 | ChLoadBase                        |                               |                                                  |
-|                                   | LoadGet_field_ncoords         | rename: LoadGetFieldNumCoords                    |
+|                                   | LoadGet_field_ncoords         | rename: LoadGetNumFieldCoords                    |
 | ChLoaderUW                        |                               |                                                  |
 |                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |

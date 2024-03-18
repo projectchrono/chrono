@@ -81,7 +81,7 @@ class ChApi ChLoadBase : public ChObj {
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual int LoadGetFieldNumCoords() = 0;
+    virtual int LoadGetNumFieldCoords() = 0;
 
     /// Compute Q, the generalized load(s).
     /// Where Q is stored depends on children classes.
@@ -180,7 +180,7 @@ class ChLoad : public ChLoadBase {
     virtual void LoadGetStateBlock_x(ChState& mD) override;
     virtual void LoadGetStateBlock_w(ChStateDelta& mD) override;
     virtual void LoadStateIncrement(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
-    virtual int LoadGetFieldNumCoords() override;
+    virtual int LoadGetNumFieldCoords() override;
 
     /// Compute Q, the generalized load.
     /// Q is stored in the wrapped ChLoader.
@@ -249,7 +249,7 @@ class ChApi ChLoadCustom : public ChLoadBase {
     virtual void LoadGetStateBlock_x(ChState& mD) override;
     virtual void LoadGetStateBlock_w(ChStateDelta& mD) override;
     virtual void LoadStateIncrement(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
-    virtual int LoadGetFieldNumCoords() override;
+    virtual int LoadGetNumFieldCoords() override;
 
     /// Compute jacobians (default fallback).
     /// Uses a numerical differentiation for computing K, R, M jacobians, if stiff load.
@@ -318,7 +318,7 @@ class ChApi ChLoadCustomMultiple : public ChLoadBase {
     virtual void LoadGetStateBlock_x(ChState& mD) override;
     virtual void LoadGetStateBlock_w(ChStateDelta& mD) override;
     virtual void LoadStateIncrement(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
-    virtual int LoadGetFieldNumCoords() override;
+    virtual int LoadGetNumFieldCoords() override;
 
     /// Compute jacobians (default fallback).
     /// Compute the K=-dQ/dx, R=-dQ/dv , M=-dQ/da jacobians.
@@ -391,8 +391,8 @@ inline void ChLoad<Tloader>::LoadStateIncrement(const ChState& x, const ChStateD
 }
 
 template <class Tloader>
-inline int ChLoad<Tloader>::LoadGetFieldNumCoords() {
-    return this->loader.GetLoadable()->GetFieldNumCoords();
+inline int ChLoad<Tloader>::LoadGetNumFieldCoords() {
+    return this->loader.GetLoadable()->GetNumFieldCoords();
 }
 
 template <class Tloader>

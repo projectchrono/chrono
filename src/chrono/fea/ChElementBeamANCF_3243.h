@@ -257,7 +257,7 @@ class ChApi ChElementBeamANCF_3243 : public ChElementANCF,
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual unsigned int GetFieldNumCoords() override { return 12; }
+    virtual unsigned int GetNumFieldCoords() override { return 12; }
 
     /// Tell the number of DOFs blocks (ex. =1 for a body, =4 for a tetrahedron, etc.)
     virtual unsigned int GetNumSubBlocks() override { return 2; }

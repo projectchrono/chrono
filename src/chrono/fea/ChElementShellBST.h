@@ -324,7 +324,7 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual unsigned int GetFieldNumCoords() override { return 3; }
+    virtual unsigned int GetNumFieldCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
     virtual unsigned int GetNumSubBlocks() override { return n_usednodes; }

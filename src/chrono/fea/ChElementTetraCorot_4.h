@@ -155,7 +155,7 @@ class ChApi ChElementTetraCorot_4 : public ChElementTetrahedron,
                                         const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field: here the {x,y,z} displacement
-    virtual unsigned int GetFieldNumCoords() override { return 3; }
+    virtual unsigned int GetNumFieldCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
     virtual unsigned int GetNumSubBlocks() override { return 4; }
@@ -320,7 +320,7 @@ class ChApi ChElementTetraCorot_4_P : public ChElementGeneric, public ChElementC
                                         const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field: here the {t} temperature
-    virtual unsigned int GetFieldNumCoords() override { return 1; }
+    virtual unsigned int GetNumFieldCoords() override { return 1; }
 
     /// Get the number of DOFs sub-blocks.
     virtual unsigned int GetNumSubBlocks() override { return 4; }

@@ -15,7 +15,7 @@
 %csmethodmodifiers chrono::ChNodeXYZ::LoadableGetStateBlockVelLevel "public"
 %csmethodmodifiers chrono::ChNodeXYZ::ComputeNF "public"
 %csmethodmodifiers chrono::ChNodeXYZ::GetDensity "public"
-%csmethodmodifiers chrono::ChNodeXYZ::GetFieldNumCoords "public"
+%csmethodmodifiers chrono::ChNodeXYZ::GetNumFieldCoords "public"
 %csmethodmodifiers chrono::ChNodeXYZ::GetSubBlockOffset "public"
 %csmethodmodifiers chrono::ChNodeXYZ::GetSubBlockSize "public"
 %csmethodmodifiers chrono::ChNodeXYZ::GetNumSubBlocks "public"

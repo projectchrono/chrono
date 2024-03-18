@@ -76,7 +76,7 @@ class ChApi ChLoadBodyMesh : public ChLoadBase {
     virtual void LoadStateIncrement(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
 
     // simple.. field is x y z, hardcoded return val:
-    virtual int LoadGetFieldNumCoords() override { return 3; }
+    virtual int LoadGetNumFieldCoords() override { return 3; }
 
     /// Compute Q, the generalized load.
     virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q

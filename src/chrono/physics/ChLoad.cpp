@@ -84,8 +84,8 @@ void ChLoadCustom::LoadGetStateBlock_w(ChStateDelta& mD) {
 void ChLoadCustom::LoadStateIncrement(const ChState& x, const ChStateDelta& dw, ChState& x_new) {
     loadable->LoadableStateIncrement(0, x_new, x, 0, dw);
 }
-int ChLoadCustom::LoadGetFieldNumCoords() {
-    return loadable->GetFieldNumCoords();
+int ChLoadCustom::LoadGetNumFieldCoords() {
+    return loadable->GetNumFieldCoords();
 }
 
 void ChLoadCustom::ComputeJacobian(ChState* state_x,       // state position to evaluate jacobians
@@ -270,8 +270,8 @@ void ChLoadCustomMultiple::LoadStateIncrement(const ChState& x, const ChStateDel
     }
 }
 
-int ChLoadCustomMultiple::LoadGetFieldNumCoords() {
-    return loadables[0]->GetFieldNumCoords();
+int ChLoadCustomMultiple::LoadGetNumFieldCoords() {
+    return loadables[0]->GetNumFieldCoords();
 }
 
 void ChLoadCustomMultiple::ComputeJacobian(ChState* state_x,       // state position to evaluate jacobians

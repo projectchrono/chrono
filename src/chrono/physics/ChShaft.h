@@ -221,7 +221,7 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
                                         const ChStateDelta& Dv) override {
         x_new(off_x) = x(off_x) + Dv(off_v);
     }
-    virtual unsigned int GetFieldNumCoords() override { return 1; }
+    virtual unsigned int GetNumFieldCoords() override { return 1; }
     virtual unsigned int GetNumSubBlocks() override { return 1; }
     virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return this->GetOffset_w(); }
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 1; }

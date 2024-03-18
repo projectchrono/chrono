@@ -85,7 +85,7 @@ class ChApi ChNodeXYZ : public virtual ChNodeBase, public ChLoadableUVW {
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, etc. Here is 6: xyz displ + xyz rots
-    virtual unsigned int GetFieldNumCoords() override { return 3; }
+    virtual unsigned int GetNumFieldCoords() override { return 3; }
 
     /// Get the number of DOFs sub-blocks.
     virtual unsigned int GetNumSubBlocks() override { return 1; }

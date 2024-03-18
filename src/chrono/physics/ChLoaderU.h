@@ -58,7 +58,7 @@ class ChLoaderUdistributed : public ChLoaderU {
         assert(GetIntegrationPointsU() <= ChQuadrature::GetStaticTables()->Lroots.size());
 
         Q.setZero(loadable->GetLoadableNumCoordsVelLevel());
-        ChVectorDynamic<> mF(loadable->GetFieldNumCoords());
+        ChVectorDynamic<> mF(loadable->GetNumFieldCoords());
         mF.setZero();
 
         const std::vector<double>& Ulroots = ChQuadrature::GetStaticTables()->Lroots[GetIntegrationPointsU() - 1];
@@ -94,7 +94,7 @@ class ChLoaderUatomic : public ChLoaderU {
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                           ) override {
         Q.setZero(loadable->GetLoadableNumCoordsVelLevel());
-        ChVectorDynamic<> mF(loadable->GetFieldNumCoords());
+        ChVectorDynamic<> mF(loadable->GetNumFieldCoords());
         mF.setZero();
 
         // Compute F=F(u)
