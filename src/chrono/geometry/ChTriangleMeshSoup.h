@@ -59,7 +59,7 @@ class ChApi ChTriangleMeshSoup : public ChTriangleMesh {
     virtual ChTriangle GetTriangle(unsigned int index) const override { return m_triangles[index]; }
 
     /// Get the list of triangles.
-    std::vector<ChTriangle>& getTriangles() { return m_triangles; }
+    std::vector<ChTriangle>& GetTriangles() { return m_triangles; }
 
     /// Clear all data
     virtual void Clear() override { this->m_triangles.clear(); }

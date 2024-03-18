@@ -408,7 +408,7 @@ std::shared_ptr<RigidTerrain::Patch> RigidTerrain::AddPatch(std::shared_ptr<ChCo
         patch->m_body->AddCollisionShape(ct_shape);
     } else {
         patch->m_trimesh_s = chrono_types::make_shared<ChTriangleMeshSoup>();
-        std::vector<ChTriangle>& triangles = patch->m_trimesh_s->getTriangles();
+        std::vector<ChTriangle>& triangles = patch->m_trimesh_s->GetTriangles();
         triangles.resize(n_faces);
         for (it = 0; it < n_faces; it++) {
             const ChVector3i& idx = idx_vertices[it];
