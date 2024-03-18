@@ -201,13 +201,13 @@ double ChFilterPDT1::Filter(double u) {
 }
 
 //--------------------------------------- IIR filters ----------------------------------
-ChButterworth_Lowpass::ChButterworth_Lowpass() {}
+ChButterworthLowpass::ChButterworthLowpass() {}
 
-ChButterworth_Lowpass::ChButterworth_Lowpass(unsigned int nPoles, double step, double fc) {
+ChButterworthLowpass::ChButterworthLowpass(unsigned int nPoles, double step, double fc) {
     Config(nPoles, step, fc);
 }
 
-void ChButterworth_Lowpass::Reset() {
+void ChButterworthLowpass::Reset() {
     if (m_n_single == 1) {
         m_u_hist1 = 0.0;
         m_y_hist1 = 0.0;
@@ -218,7 +218,7 @@ void ChButterworth_Lowpass::Reset() {
     }
 }
 
-void ChButterworth_Lowpass::Config(unsigned int nPoles, double step, double fc) {
+void ChButterworthLowpass::Config(unsigned int nPoles, double step, double fc) {
     const unsigned int nPolesMin = 1;
     const unsigned int nPolesMax = 6;
 
@@ -296,7 +296,7 @@ void ChButterworth_Lowpass::Config(unsigned int nPoles, double step, double fc) 
     Reset();
 }
 
-double ChButterworth_Lowpass::Filter(double u) {
+double ChButterworthLowpass::Filter(double u) {
     double y = 0.0;
     if (m_n_single == 1) {
         y = m_b0 * u + m_b1 * m_u_hist1 - m_a1 * m_y_hist1;
@@ -316,13 +316,13 @@ double ChButterworth_Lowpass::Filter(double u) {
     return y;
 }
 
-ChButterworth_Highpass::ChButterworth_Highpass() {}
+ChButterworthHighpass::ChButterworthHighpass() {}
 
-ChButterworth_Highpass::ChButterworth_Highpass(unsigned int nPoles, double step, double fc) {
+ChButterworthHighpass::ChButterworthHighpass(unsigned int nPoles, double step, double fc) {
     Config(nPoles, step, fc);
 }
 
-void ChButterworth_Highpass::Reset() {
+void ChButterworthHighpass::Reset() {
     if (m_n_single == 1) {
         m_u_hist1 = 0.0;
         m_y_hist1 = 0.0;
@@ -333,7 +333,7 @@ void ChButterworth_Highpass::Reset() {
     }
 }
 
-void ChButterworth_Highpass::Config(unsigned int nPoles, double step, double fc) {
+void ChButterworthHighpass::Config(unsigned int nPoles, double step, double fc) {
     const unsigned int nPolesMin = 1;
     const unsigned int nPolesMax = 6;
 
@@ -409,7 +409,7 @@ void ChButterworth_Highpass::Config(unsigned int nPoles, double step, double fc)
     Reset();
 }
 
-double ChButterworth_Highpass::Filter(double u) {
+double ChButterworthHighpass::Filter(double u) {
     double y = 0.0;
     if (m_n_single == 1) {
         y = m_b0 * u + m_b1 * m_u_hist1 - m_a1 * m_y_hist1;

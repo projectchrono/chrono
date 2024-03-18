@@ -229,8 +229,8 @@ public:
     double Test();
 
 private:
-    chrono::utils::ChButterworth_Highpass hp;
-    chrono::utils::ChButterworth_Lowpass lp;
+    chrono::utils::ChButterworthHighpass hp;
+    chrono::utils::ChButterworthLowpass lp;
 };
 
 SawtoothTestBandfilter::SawtoothTestBandfilter(size_t nSawTeeth)

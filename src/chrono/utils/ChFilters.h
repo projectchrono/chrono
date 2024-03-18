@@ -188,10 +188,10 @@ class ChApi ChFilterPDT1 : public ChAnalogueFilter {
 // on the bilinear transform (Tustin method)
 
 /// Butterworth low-pass filter.
-class ChApi ChButterworth_Lowpass {
+class ChApi ChButterworthLowpass {
   public:
-    ChButterworth_Lowpass();
-    ChButterworth_Lowpass(unsigned int nPoles, double step, double fc);
+    ChButterworthLowpass();
+    ChButterworthLowpass(unsigned int nPoles, double step, double fc);
     void Reset();
     void Config(unsigned int nPoles, double step, double fc);
     double Filter(double u);
@@ -221,10 +221,10 @@ class ChApi ChButterworth_Lowpass {
 };
 
 /// Butterworth high-pass filter.
-class ChApi ChButterworth_Highpass {
+class ChApi ChButterworthHighpass {
   public:
-    ChButterworth_Highpass();
-    ChButterworth_Highpass(unsigned int nPoles, double step, double fc);
+    ChButterworthHighpass();
+    ChButterworthHighpass(unsigned int nPoles, double step, double fc);
     void Reset();
     void Config(unsigned int nPoles, double step, double fc);
     double Filter(double u);
@@ -342,8 +342,8 @@ class ChApi ChISO2631_1_Wk {
     static const double Q5;
     static const double Q6;
 
-    ChButterworth_Highpass hp;
-    ChButterworth_Lowpass lp;
+    ChButterworthHighpass hp;
+    ChButterworthLowpass lp;
     ChISO2631_1_AVTransition avt;
     ChISO2631_1_UpwardStep ups;
 };
@@ -364,8 +364,8 @@ class ChApi ChISO2631_1_Wd {
     static const double f4;
     static const double Q4;
 
-    ChButterworth_Highpass hp;
-    ChButterworth_Lowpass lp;
+    ChButterworthHighpass hp;
+    ChButterworthLowpass lp;
     ChISO2631_1_AVTransition avt;
 };
 
@@ -388,8 +388,8 @@ class ChApi ChISO2631_1_Wf {
     static const double Q5;
     static const double Q6;
 
-    ChButterworth_Highpass hp;
-    ChButterworth_Lowpass lp;
+    ChButterworthHighpass hp;
+    ChButterworthLowpass lp;
     ChISO2631_1_AVTransition avt;
     ChISO2631_1_UpwardStep ups;
 };
@@ -564,12 +564,12 @@ class ChApi ChISO2631_Shock_SeatCushionLogger {
     const double m_mz = 0.032;
 
     // antialiasing filters
-    ChButterworth_Lowpass m_lpx;
-    ChButterworth_Lowpass m_lpy;
-    ChButterworth_Lowpass m_lpz;
+    ChButterworthLowpass m_lpx;
+    ChButterworthLowpass m_lpy;
+    ChButterworthLowpass m_lpz;
 
     // legacy lowpass
-    ChButterworth_Lowpass m_legacy_lpz;
+    ChButterworthLowpass m_legacy_lpz;
 
     // buffers for raw but antialiased input data
     ChFunctionInterp m_raw_inp_x;

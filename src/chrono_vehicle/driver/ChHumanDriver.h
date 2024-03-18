@@ -141,7 +141,7 @@ class CH_VEHICLE_API ChHumanDriver : public ChDriver {
     double m_distance;
     double m_travel_time;
     utils::ChFilterI m_UIntegrator;
-    utils::ChButterworth_Lowpass m_acc_filter;
+    utils::ChButterworthLowpass m_acc_filter;
     double m_speed_max;
     double m_speed_min;
     double m_left_acc;

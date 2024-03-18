@@ -300,8 +300,8 @@ int main(int argc, char* argv[]) {
     }
 #endif
 
-    chrono::utils::ChButterworth_Lowpass transTq(6, step_size, 10);
-    chrono::utils::ChButterworth_Lowpass tireTq(6, step_size, 10);
+    chrono::utils::ChButterworthLowpass transTq(6, step_size, 10);
+    chrono::utils::ChButterworthLowpass tireTq(6, step_size, 10);
 
     // ---------------
     // Simulation loop

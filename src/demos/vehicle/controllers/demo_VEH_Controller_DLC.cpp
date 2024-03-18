@@ -320,10 +320,10 @@ int main(int argc, char* argv[]) {
     utils::ChRunningAverage speed_filter(500);
 
     // Running average of vehicle lateral acceleration
-    utils::ChButterworth_Lowpass accel_filter(4, step_size, 2.0);
+    utils::ChButterworthLowpass accel_filter(4, step_size, 2.0);
 
     // Running average of vehicle steering wheel angle
-    utils::ChButterworth_Lowpass steer_filter(4, step_size, 2.0);
+    utils::ChButterworthLowpass steer_filter(4, step_size, 2.0);
 
     // Differentiate steering signal
     utils::ChFilterD ang_diff(step_size);

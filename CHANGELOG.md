@@ -319,6 +319,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | To_abs_forcetorque            | remove                                           |
 |                                   |                               | added: AppliedForceLocalToWrenchParent           |
 |                                   |                               | added: AppliedForceParentToWrenchParent          |
+| ChButterworth_Highpass            |                               | rename: ChButterworthHighpass                    |
+| ChButterworth_Lowpass             |                               | rename: ChButterworthLowpass                     |
 | ChCollisionModel                  |                               |                                                  |
 |                                   | GetFamilyMaskDoesCollisionWithFamily | rename: CollidesWith                      |
 |                                   | SetFamilyMaskDoCollisionWithFamily   | rename: AllowCollisionsWith               | 
