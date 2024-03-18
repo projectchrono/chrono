@@ -113,11 +113,11 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     // Create a particle generator and a mixture entirely made out of spheres
     double r = 1.01 * radius;
     utils::PDSampler<double> sampler(2 * r);
-    utils::Generator gen(m_system);
-    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
-    m1->setDefaultMaterial(mat);
-    m1->setDefaultDensity(rho);
-    m1->setDefaultSize(radius);
+    utils::ChGenerator gen(m_system);
+    std::shared_ptr<utils::ChMixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
+    m1->SetDefaultMaterial(mat);
+    m1->SetDefaultDensity(rho);
+    m1->SetDefaultSize(radius);
 
     // Create particles in layers until reaching the desired number of particles
     ChVector3d range(hdim.x() - r, hdim.y() - r, 0);
@@ -127,7 +127,7 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
         center.z() += 2 * r;
     }
 
-    m_num_particles = gen.getTotalNumBodies();
+    m_num_particles = gen.GetTotalNumBodies();
 }
 
 // Run settling simulation with visualization

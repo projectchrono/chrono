@@ -35,13 +35,13 @@ using namespace chrono;
 // -----------------------------------------------------------------------------
 void AddMixture(ChSystem* sys) {
     utils::GridSampler<double> sampler(2);
-    utils::Generator gen(sys);
-    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::BOX, 0.3);
-    std::shared_ptr<utils::MixtureIngredient> m2 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 0.4);
-    std::shared_ptr<utils::MixtureIngredient> m3 = gen.AddMixtureIngredient(utils::MixtureType::CYLINDER, 0.3);
-    m1->setDefaultSize(ChVector3d(1, .5, 0.7));
-    m2->setDefaultSize(ChVector3d(.5, .5, .5));
-    m3->setDefaultSize(ChVector3d(1, .5, 1));
+    utils::ChGenerator gen(sys);
+    std::shared_ptr<utils::ChMixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::BOX, 0.3);
+    std::shared_ptr<utils::ChMixtureIngredient> m2 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 0.4);
+    std::shared_ptr<utils::ChMixtureIngredient> m3 = gen.AddMixtureIngredient(utils::MixtureType::CYLINDER, 0.3);
+    m1->SetDefaultSize(ChVector3d(1, .5, 0.7));
+    m2->SetDefaultSize(ChVector3d(.5, .5, .5));
+    m3->SetDefaultSize(ChVector3d(1, .5, 1));
     gen.CreateObjectsCylinderX(sampler, ChVector3d(0, 0, 0), 20, 20, ChVector3d(0, 0, 0));
 }
 

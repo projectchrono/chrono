@@ -408,14 +408,14 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     uint particles_start_index = m_system->data_manager->num_rigid_bodies;
 
     // Create a particle generator and a mixture entirely made out of spheres
-    utils::Generator gen(m_system);
-    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
-    m1->setDefaultMaterial(m_material_terrain);
-    m1->setDefaultDensity(m_rho_g);
-    m1->setDefaultSize(m_radius_g);
+    utils::ChGenerator gen(m_system);
+    std::shared_ptr<utils::ChMixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
+    m1->SetDefaultMaterial(m_material_terrain);
+    m1->SetDefaultDensity(m_rho_g);
+    m1->SetDefaultSize(m_radius_g);
 
     // Set starting value for body identifiers
-    gen.setBodyIdentifier(body_id_particles);
+    gen.SetBodyIdentifier(body_id_particles);
 
     // Create particles using the specified volume sampling type
     utils::Sampler<double>* sampler;
@@ -438,7 +438,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         while (z < m_init_depth) {
             gen.CreateObjectsBox(*sampler, ChVector3d(0, 0, z), hdims);
             if (m_verbose)
-                cout << "   z =  " << z << "\tnum particles = " << gen.getTotalNumBodies() << endl;
+                cout << "   z =  " << z << "\tnum particles = " << gen.GetTotalNumBodies() << endl;
             z += delta;
         }
     } else {
@@ -446,7 +446,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         gen.CreateObjectsBox(*sampler, ChVector3d(0, 0, m_init_depth / 2), hdims);
     }
 
-    m_num_particles = gen.getTotalNumBodies();
+    m_num_particles = gen.GetTotalNumBodies();
     if (m_verbose)
         cout << "[Terrain node] Generated num particles = " << m_num_particles << endl;
 

@@ -106,7 +106,7 @@ int main(int argc, char* argv[]) {
 
     // Use a chrono sampler to create a bucket of points
     chrono::utils::GridSampler<> sampler(initSpace0);
-    chrono::utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
+    chrono::utils::ChGenerator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
 
     // Add fluid particles from the sampler points to the FSI system
     size_t numPart = points.size();

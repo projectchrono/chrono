@@ -154,14 +154,14 @@ void GroundGranularB::Initialize(double x_min, double z_max, double step_size) {
 
     // Create particles (all spheres)
     utils::PDSampler<double> sampler(2 * m_radius1);
-    utils::Generator gen(m_sys);
-    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
-    m1->setDefaultMaterial(m_material_g);
-    m1->setDefaultDensity(m_density);
-    m1->setDefaultSize(m_radius);
+    utils::ChGenerator gen(m_sys);
+    std::shared_ptr<utils::ChMixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
+    m1->SetDefaultMaterial(m_material_g);
+    m1->SetDefaultDensity(m_density);
+    m1->SetDefaultSize(m_radius);
 
     // Set starting value for body identifiers
-    gen.setBodyIdentifier(m_start_id + 1);
+    gen.SetBodyIdentifier(m_start_id + 1);
 
     // Create particles in layers separated by an inflated particle diameter, starting at the bottom boundary
     ChVector3d hdims(m_length / 2 - m_radius1, m_width / 2 - m_radius1, 0);
@@ -174,7 +174,7 @@ void GroundGranularB::Initialize(double x_min, double z_max, double step_size) {
         center.z() += 2 * m_radius1;
     }
 
-    m_num_particles = gen.getTotalNumBodies();
+    m_num_particles = gen.GetTotalNumBodies();
 }
 
 std::pair<double, double> GroundGranular::GetTopHeight(int num_samples) const {

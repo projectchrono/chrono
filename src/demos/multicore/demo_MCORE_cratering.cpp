@@ -268,23 +268,23 @@ int CreateObjects(ChSystemMulticore* system) {
     // Create a mixture entirely made out of spheres
     double r = 1.01 * r_g;
     utils::PDSampler<double> sampler(2 * r);
-    utils::Generator gen(system);
+    utils::ChGenerator gen(system);
 
-    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
-    m1->setDefaultMaterial(mat_g);
-    m1->setDefaultDensity(rho_g);
-    m1->setDefaultSize(r_g);
+    std::shared_ptr<utils::ChMixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
+    m1->SetDefaultMaterial(mat_g);
+    m1->SetDefaultDensity(rho_g);
+    m1->SetDefaultSize(r_g);
 
-    gen.setBodyIdentifier(Id_g);
+    gen.SetBodyIdentifier(Id_g);
 
     for (int i = 0; i < numLayers; i++) {
         double center = r + layerHeight / 2 + i * (2 * r + layerHeight);
         gen.CreateObjectsBox(sampler, ChVector3d(0, 0, center),
                              ChVector3d(sizeX / 2 - r, sizeY / 2 - r, layerHeight / 2));
-        cout << "Layer " << i << "  total bodies: " << gen.getTotalNumBodies() << endl;
+        cout << "Layer " << i << "  total bodies: " << gen.GetTotalNumBodies() << endl;
     }
 
-    return gen.getTotalNumBodies();
+    return gen.GetTotalNumBodies();
 }
 
 // -----------------------------------------------------------------------------

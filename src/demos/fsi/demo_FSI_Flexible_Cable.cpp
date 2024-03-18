@@ -143,7 +143,7 @@ int main(int argc, char* argv[]) {
     chrono::utils::GridSampler<> sampler(initSpace0);
     ChVector3d boxCenter(-bxDim / 2 + fxDim / 2, 0, fzDim / 2 + 1 * initSpace0);
     ChVector3d boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
-    chrono::utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
+    chrono::utils::ChGenerator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
         sysFSI.AddSPHParticle(points[i]);

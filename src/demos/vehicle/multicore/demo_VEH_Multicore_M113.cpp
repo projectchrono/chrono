@@ -149,25 +149,25 @@ double CreateParticles(ChSystem* sys) {
     // Create a particle generator and a mixture entirely made out of spheres
     double r = 1.01 * r_g;
     utils::PDSampler<double> sampler(2 * r);
-    utils::Generator gen(sys);
-    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
-    m1->setDefaultMaterial(mat_g);
-    m1->setDefaultDensity(rho_g);
-    m1->setDefaultSize(r_g);
+    utils::ChGenerator gen(sys);
+    std::shared_ptr<utils::ChMixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
+    m1->SetDefaultMaterial(mat_g);
+    m1->SetDefaultDensity(rho_g);
+    m1->SetDefaultSize(r_g);
 
     // Set starting value for body identifiers
-    gen.setBodyIdentifier(Id_g);
+    gen.SetBodyIdentifier(Id_g);
 
     // Create particles in layers until reaching the desired number of particles
     ChVector3d hdims(hdimX - r, hdimY - r, 0);
     ChVector3d center(0, 0, 2 * r);
 
-    while (gen.getTotalNumBodies() < num_particles) {
+    while (gen.GetTotalNumBodies() < num_particles) {
         gen.CreateObjectsBox(sampler, center, hdims);
         center.z() += 2 * r;
     }
 
-    std::cout << "Created " << gen.getTotalNumBodies() << " particles." << std::endl;
+    std::cout << "Created " << gen.GetTotalNumBodies() << " particles." << std::endl;
 
     return center.z();
 }

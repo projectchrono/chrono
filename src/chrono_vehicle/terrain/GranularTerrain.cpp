@@ -392,12 +392,12 @@ void GranularTerrain::Initialize(const ChVector3d& center,
 
     // Create a particle generator and a mixture entirely made out of spheres.
     // Set the starting value for particle body identifiers.
-    utils::Generator generator(m_ground->GetSystem());
-    generator.setBodyIdentifier(m_start_id + 1);
-    std::shared_ptr<utils::MixtureIngredient> m1 = generator.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
-    m1->setDefaultMaterial(m_material);
-    m1->setDefaultDensity(density);
-    m1->setDefaultSize(radius);
+    utils::ChGenerator generator(m_ground->GetSystem());
+    generator.SetBodyIdentifier(m_start_id + 1);
+    std::shared_ptr<utils::ChMixtureIngredient> m1 = generator.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
+    m1->SetDefaultMaterial(m_material);
+    m1->SetDefaultDensity(density);
+    m1->SetDefaultSize(radius);
 
     // Create particles, in layers, until exceeding the specified number.
     double r = safety_factor * radius;
@@ -412,7 +412,7 @@ void GranularTerrain::Initialize(const ChVector3d& center,
             std::cout << "Create layer at height: " << layer_center.z() << "\n";
         generator.CreateObjectsBox(sampler, layer_center, layer_hdims, init_vel);
         layer_center.z() += 2 * r;
-        m_num_particles = generator.getTotalNumBodies();
+        m_num_particles = generator.GetTotalNumBodies();
         layer++;
     }
 
