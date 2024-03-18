@@ -32,7 +32,7 @@ ChLinkLockClearance::ChLinkLockClearance() {
 
     limit_X->SetActive(true);
     limit_X->SetMax(clearance);
-    limit_X->SetKmax(c_restitution);
+    limit_X->SetSpringCoefficientMax(c_restitution);
     limit_X->SetMin(-1000.0);
 
     // Mask: initialize our LinkMaskLF (lock formulation mask)
@@ -142,7 +142,7 @@ void ChLinkLockClearance::SetClearance(double mset) {
 
 void ChLinkLockClearance::SetRestitution(double mset) {
     c_restitution = mset;
-    limit_X->SetKmax(c_restitution);
+    limit_X->SetSpringCoefficientMax(c_restitution);
 }
 
 void ChLinkLockClearance::UpdateTime(double mytime) {

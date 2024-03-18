@@ -158,6 +158,7 @@ Note that this represents a major public API change and we expect most user code
 | ChFunctionRotation_setpoint.h       | rename: ChFunctionRotationSetpoint.h      |
 | ChFunctionRotation_spline.h         | rename: ChFunctionRotationBSpline.h       |
 | ChFunctionRotation_SQUAD.h          | rename: ChFunctionRotationSQUAD.h         |
+| ChLimit.h                           | rename: ChLinkLimit.h                     |
 | ChLineBspline.h                     | rename: ChLineBSpline.h                   |
 | ChLinkBrake.h                       | rename: ChLinkLockBrake.h                 |
 | ChLinkClearance.h                   | rename: ChLinkLockClearance.h             |
@@ -702,6 +703,26 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetModulationK                | rename: SetSpringModulation                      |
 |                                   | SetModulationR                | rename: SetDamperModulation                      |
 | ChLinkGear                        |                               | rename: ChLinkLockGear                           |
+| ChLinkLimit                       |                               |                                                  |
+|                                   | GetKmax                       | rename: GetSpringCoefficientMax                  |
+|                                   | GetKmin                       | rename: GetSpringCoefficientMin                  |
+|                                   | GetMaxPolarAngle              | rename: GetPolarAngleMax                         |
+|                                   | GetModulationKmax             | rename: GetSpringModulationMax                   |
+|                                   | GetModulationKmin             | rename: GetSpringModulationMin                   |
+|                                   | GetModulationRmax             | rename: GetDamperModulationMax                   |
+|                                   | GetModulationRmin             | rename: GetDamperModulationMin                   |
+|                                   | GetPolarMax                   | rename: GetPolarAngleModulationMax               |
+|                                   | GetRmax                       | rename: GetDampingCoefficientMax                 |
+|                                   | GetRmin                       | rename: GetDampingCoefficientMin                 |
+|                                   | SetKmax                       | rename: SetSpringCoefficientMax                  |
+|                                   | SetKmin                       | rename: SetSpringCoefficientMin                  |
+|                                   | SetModulationKmax             | rename: SetSpringModulationMax                   |
+|                                   | SetModulationKmin             | rename: SetSpringModulationMin                   |
+|                                   | SetModulationRmax             | rename: SetDamperModulationMax                   |
+|                                   | SetModulationRmin             | rename: SetDamperModulationMin                   |
+|                                   | SetPolarMax                   | rename: SetPolarAngleModulationMax               |
+|                                   | SetRmax                       | rename: SetDampingCoefficientMax                 |
+|                                   | SetRmin                       | rename: SetDampingCoefficientMin                 |
 | ChLinkLinActuator                 |                               | rename: ChLinkLockLinActuator                    |
 | ChLinkLock                        |                               |                                                  |
 |                                   | ChangeLinkType                | rename: ChangeType                               |

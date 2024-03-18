@@ -48,32 +48,32 @@ class ChApi ChLinkLimit {
     double GetMin() const { return m_min; }
     double GetMaxCushion() const { return m_maxCushion; }
     double GetMinCushion() const { return m_minCushion; }
-    double GetKmax() const { return m_Kmax; }
-    double GetKmin() const { return m_Kmin; }
-    double GetRmax() const { return m_Rmax; }
-    double GetRmin() const { return m_Rmin; }
-    double GetMaxPolarAngle(double pol_ang) const;
+    double GetSpringCoefficientMax() const { return m_Kmax; }
+    double GetSpringCoefficientMin() const { return m_Kmin; }
+    double GetDampingCoefficientMax() const { return m_Rmax; }
+    double GetDampingCoefficientMin() const { return m_Rmin; }
+    double GetPolarAngleMax(double pol_ang) const;
 
     void SetMax(double val);
     void SetMin(double val);
     void SetMaxCushion(double val);
     void SetMinCushion(double val);
-    void SetKmax(double val) { m_Kmax = val; }
-    void SetKmin(double val) { m_Kmin = val; }
-    void SetRmax(double val) { m_Rmax = val; }
-    void SetRmin(double val) { m_Rmin = val; }
+    void SetSpringCoefficientMax(double val) { m_Kmax = val; }
+    void SetSpringCoefficientMin(double val) { m_Kmin = val; }
+    void SetDampingCoefficientMax(double val) { m_Rmax = val; }
+    void SetDampingCoefficientMin(double val) { m_Rmin = val; }
 
-    void SetModulationKmax(std::shared_ptr<ChFunction> funct) { m_Kmax_modul = funct; }
-    void SetModulationKmin(std::shared_ptr<ChFunction> funct) { m_Kmin_modul = funct; }
-    void SetModulationRmax(std::shared_ptr<ChFunction> funct) { m_Rmax_modul = funct; }
-    void SetModulationRmin(std::shared_ptr<ChFunction> funct) { m_Rmin_modul = funct; }
-    void SetPolarMax(std::shared_ptr<ChFunction> funct) { m_polarMax_funct = funct; }
+    void SetSpringModulationMax(std::shared_ptr<ChFunction> funct) { m_Kmax_modul = funct; }
+    void SetSpringModulationMin(std::shared_ptr<ChFunction> funct) { m_Kmin_modul = funct; }
+    void SetDamperModulationMax(std::shared_ptr<ChFunction> funct) { m_Rmax_modul = funct; }
+    void SetDamperModulationMin(std::shared_ptr<ChFunction> funct) { m_Rmin_modul = funct; }
+    void SetPolarAngleModulationMax(std::shared_ptr<ChFunction> funct) { m_polarMax_funct = funct; }
 
-    std::shared_ptr<ChFunction> GetModulationKmax() const { return m_Kmax_modul; }
-    std::shared_ptr<ChFunction> GetModulationKmin() const { return m_Kmin_modul; }
-    std::shared_ptr<ChFunction> GetModulationRmax() const { return m_Rmax_modul; }
-    std::shared_ptr<ChFunction> GetModulationRmin() const { return m_Rmin_modul; }
-    std::shared_ptr<ChFunction> GetPolarMax() const { return m_polarMax_funct; }
+    std::shared_ptr<ChFunction> GetSpringModulationMax() const { return m_Kmax_modul; }
+    std::shared_ptr<ChFunction> GetSpringModulationMin() const { return m_Kmin_modul; }
+    std::shared_ptr<ChFunction> GetDamperModulationMax() const { return m_Rmax_modul; }
+    std::shared_ptr<ChFunction> GetDamperModulationMin() const { return m_Rmin_modul; }
+    std::shared_ptr<ChFunction> GetPolarAngleModulationMax() const { return m_polarMax_funct; }
 
     /// Return negative violation when x<min, or positive if x>max
     double GetViolation(double x) const;

@@ -15,7 +15,7 @@
 #ifndef CHLINKLOCK_H
 #define CHLINKLOCK_H
 
-#include "chrono/physics/ChLimit.h"
+#include "chrono/physics/ChLinkLimit.h"
 #include "chrono/physics/ChLinkForce.h"
 #include "chrono/physics/ChLinkMarkers.h"
 #include "chrono/physics/ChLinkMask.h"

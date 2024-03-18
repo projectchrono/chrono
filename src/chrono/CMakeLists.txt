@@ -195,7 +195,7 @@ source_group(physics\\contact FILES
     ${ChronoEngine_physics_contact_HEADERS})
 
 set(ChronoEngine_physics_links_SOURCES
-    physics/ChLimit.cpp
+    physics/ChLinkLimit.cpp
     physics/ChLinkForce.cpp
     physics/ChLinkMask.cpp
     physics/ChLinkBase.cpp
@@ -234,7 +234,7 @@ set(ChronoEngine_physics_links_SOURCES
 )
 
 set(ChronoEngine_physics_links_HEADERS
-    physics/ChLimit.h
+    physics/ChLinkLimit.h
     physics/ChLinkBase.h
     physics/ChLink.h
     physics/ChLinksAll.h

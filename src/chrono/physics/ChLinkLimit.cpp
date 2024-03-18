@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/physics/ChLimit.h"
+#include "chrono/physics/ChLinkLimit.h"
 
 namespace chrono {
 
@@ -220,7 +220,7 @@ double ChLinkLimit::GetForceTorque(double x, double x_dt) const {
     return 0;
 }
 
-double ChLinkLimit::GetMaxPolarAngle(double pol_ang) const {
+double ChLinkLimit::GetPolarAngleMax(double pol_ang) const {
     if (!m_polarMax_funct)
         return 0.001;
     return m_polarMax_funct->GetVal(pol_ang);

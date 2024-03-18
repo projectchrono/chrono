@@ -62,10 +62,10 @@ class Model(object):
       
       self.leg_limit = chrono.ChLinkLimit()
       self.ankle_limit = chrono.ChLinkLimit()
-      self.leg_limit.SetRmax(math.pi/9)
-      self.leg_limit.SetRmin(-math.pi/9)
-      self.ankle_limit.SetRmax(math.pi/9)
-      self.ankle_limit.SetRmin(-math.pi/9)
+      self.leg_limit.SetDampingCoefficientMax(math.pi/9)
+      self.leg_limit.SetDampingCoefficientMin(-math.pi/9)
+      self.ankle_limit.SetDampingCoefficientMax(math.pi/9)
+      self.ankle_limit.SetDampingCoefficientMin(-math.pi/9)
       
       if (self.animate) :
           self.vis = chronoirr.ChVisualSystemIrrlicht()
