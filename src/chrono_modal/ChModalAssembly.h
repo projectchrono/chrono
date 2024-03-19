@@ -28,7 +28,7 @@ namespace modal {
 /// Class for assemblies of items, for example ChBody, ChLink, ChMesh, etc.
 /// This supports component mode synthesis (CMS) to do substructuring, hence an assembly becomes a "modal body"
 /// where many "internal" DOFs of finite elements will be reduced to a few modal basis that are superimposed
-/// to the rigid-body motion represented by a floating frame (for small deflections). Some nodes can be selected 
+/// to the rigid-body motion represented by a floating frame (for small deflections). Some nodes can be selected
 /// as "boundary nodes" to allow connecting this modal assembly to external joints and forces.
 
 class ChApiModal ChModalAssembly : public ChAssembly {
@@ -55,8 +55,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     bool IsModalMode() { return this->is_modal; }
 
     /// Two modal reduction algorithms are available now:
-    /// 1. Herting: free-free modes are used as the modal basis, more suitable for subsystems in free boundary conditions, such
-    /// as helicopter blades.
+    /// 1. Herting: free-free modes are used as the modal basis, more suitable for subsystems in free boundary
+    /// conditions, such as helicopter blades.
     /// 2. Craig-Bampton: clamped-clamped modes are used as the modal basis.
     enum Reduction_Type { Herting, Craig_Bampton };
 
@@ -121,9 +121,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     void UpdateTransformationMatrix();
     ChFrameMoving<> GetFloatingFrameOfReference() { return this->floating_frame_F; }
 
-    void ComputeLocalFullKMCqMatrix(ChSparseMatrix& full_M,
-                                   ChSparseMatrix& full_K,
-                                   ChSparseMatrix& full_Cq);
+    void ComputeLocalFullKMCqMatrix(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq);
     void DoModalReduction_Herting(const ChModalDamping& damping_model = ChModalDampingNone());
     void DoModalReduction_CraigBamption(const ChModalDamping& damping_model = ChModalDampingNone());
 
@@ -133,8 +131,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     void ComputeModalKRMmatrix();
 
     /// A rigorous mathematical manuplation can be employed to derive the inertial forces and the consequent inertial
-    /// damping matrix, or a linear assumption is applied to obtain quite concise expressions. 
-    /// True: default option, the linear assumption is used. 
+    /// damping matrix, or a linear assumption is applied to obtain quite concise expressions.
+    /// True: default option, the linear assumption is used.
     /// False: rigorous deviation is used, only for internal test.
     bool use_linear_inertial_term = true;
 
@@ -195,9 +193,9 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Class to be used as a callback interface for computing a custom
     /// force F applied to the modal coordinates. Assuming F has size= n_modes_coords_w,
     /// A derived class must implement evaluate().
-    //class ChApiModal CustomForceModalCallback {
-    //  public:
-    //    virtual ~CustomForceModalCallback() {}
+    // class ChApiModal CustomForceModalCallback {
+    //   public:
+    //     virtual ~CustomForceModalCallback() {}
 
     //    /// Compute the custom force vector applied on the modal coordinates, at the specified configuration.
     //    virtual void evaluate(ChVectorDynamic<>& computed_custom_F_modal,  //< compute F here, size= n_modes_coords_w
@@ -206,37 +204,38 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     //};
 
     /// Specify the optional callback object for computing a custom modal force.
-    //void RegisterCallback_CustomForceModal(std::shared_ptr<CustomForceModalCallback> mcallback) {
-    //    m_custom_F_modal_callback = mcallback;
-    //}
+    // void RegisterCallback_CustomForceModal(std::shared_ptr<CustomForceModalCallback> mcallback) {
+    //     m_custom_F_modal_callback = mcallback;
+    // }
 
     /// Class to be used as a callback interface for computing a custom
     /// force F applied to the full (not reduced) coordinates; when in reduced mode, this force
     /// will be applied with an automatic transformation to the reduced coordinates.
     /// Assuming F has size= n_boundary_coords_w + n_internal_coords_w.
     /// A derived class must implement evaluate().
-    //class ChApiModal CustomForceFullCallback {
-    //  public:
-    //    virtual ~CustomForceFullCallback() {}
+    // class ChApiModal CustomForceFullCallback {
+    //   public:
+    //     virtual ~CustomForceFullCallback() {}
 
     //    /// Compute the custom force vector applied on the full coordinates, at the specified configuration.
-    //    virtual void evaluate(ChVectorDynamic<>& computed_custom_F_full,  //< compute F here, size= n_boundary_coords_w
+    //    virtual void evaluate(ChVectorDynamic<>& computed_custom_F_full,  //< compute F here, size=
+    //    n_boundary_coords_w
     //                                                                      //+ n_internal_coords_w
     //                          const ChModalAssembly& link                 ///< associated modal assembly
     //                          ) = 0;
     //};
 
     /// Specify the optional callback object for computing a custom force acting on the full (not reduced) coordinates.
-    //void RegisterCallback_CustomForceFull(std::shared_ptr<CustomForceFullCallback> mcallback) {
-    //    m_custom_F_full_callback = mcallback;
-    //}
+    // void RegisterCallback_CustomForceFull(std::shared_ptr<CustomForceFullCallback> mcallback) {
+    //     m_custom_F_full_callback = mcallback;
+    // }
 
     /// Access the current value of vector of custom applied forces to modal coordinates.
     /// Use a CustomForceModalCallback to change it.
-    //ChVectorDynamic<>& Get_custom_F_modal() { return custom_F_modal; }
+    // ChVectorDynamic<>& Get_custom_F_modal() { return custom_F_modal; }
     /// Access the current value of vector of custom applied forces to original coordinates.
     /// Use a CustomForceFullCallback to change it.
-    //ChVectorDynamic<>& Get_custom_F_full() { return custom_F_full; }
+    // ChVectorDynamic<>& Get_custom_F_full() { return custom_F_full; }
 
     /// Access the modal mass matrix - read only
     const ChMatrixDynamic<>& Get_modal_M() const { return modal_M; }
@@ -589,31 +588,30 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChVectorDynamic<> modal_q_dt;
     ChVectorDynamic<> modal_q_dtdt;
 
-    //ChVectorDynamic<> custom_F_modal;
-    //ChVectorDynamic<> custom_F_full;
-    //std::shared_ptr<CustomForceModalCallback> m_custom_F_modal_callback;
-    //std::shared_ptr<CustomForceFullCallback> m_custom_F_full_callback;
+    // ChVectorDynamic<> custom_F_modal;
+    // ChVectorDynamic<> custom_F_full;
+    // std::shared_ptr<CustomForceModalCallback> m_custom_F_modal_callback;
+    // std::shared_ptr<CustomForceFullCallback> m_custom_F_full_callback;
 
-    // A vector to collect all external forces imposed on the internal nodes. 
+    // A vector to collect all external forces imposed on the internal nodes.
     // This force will be eventually transformed to the modal forces and applied on the reduced modal assembly.
     ChVectorDynamic<> full_forces_internal;
 
     ChKblockGeneric modal_Hblock;
-    ChMatrixDynamic<> modal_M;          // corresponding to boundary and modal accelerations
-    ChMatrixDynamic<> modal_K;          // corresponding to boundary and modal coordinates
-    ChMatrixDynamic<> modal_R;          // corresponding to boundary and modal velocites
-    ChMatrixDynamic<> modal_Cq;         // corresponding to boundary and modal lagrange multipliers
-    ChMatrixDynamic<> Psi;              //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
+    ChMatrixDynamic<> modal_M;   // corresponding to boundary and modal accelerations
+    ChMatrixDynamic<> modal_K;   // corresponding to boundary and modal coordinates
+    ChMatrixDynamic<> modal_R;   // corresponding to boundary and modal velocites
+    ChMatrixDynamic<> modal_Cq;  // corresponding to boundary and modal lagrange multipliers
+    ChMatrixDynamic<> Psi;       //***TODO*** maybe prefer sparse Psi matrix, especially for upper blocks...
 
     // a series of new variables for the new formulas to support rotating subassembly
     ChFrameMoving<> floating_frame_F0;  // floating frame of reference F at the time of SwitchModalReductionON()
     ChFrameMoving<> floating_frame_F;
-    //ChFrameMoving<> floating_frame_F_old;
+    // ChFrameMoving<> floating_frame_F_old;
     ChFrameMoving<> cog_frame;
     bool is_initialized_F = false;
 
     ChState full_assembly_x;  // state snapshot of full not reduced assembly at the previous time step
-
 
     // Projection matrices
     ChMatrixDynamic<> U_locred;      // rigid body modes of the reduced modal assembly in the deformed configuration

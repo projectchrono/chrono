@@ -79,7 +79,7 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
                                             const ChMatrixDynamic<>& modal_K,
                                             const ChMatrixDynamic<>& Psi,
                                             ChMatrixDynamic<>& modal_R) const {
-    //assert(false);  // this damping model is not ready and must be validated
+    // assert(false);  // this damping model is not ready and must be validated
 
     int n_mod_coords = assembly.Get_n_modes_coords_w();
     int n_bou_coords = assembly.GetN_boundary_coords_w();
@@ -97,20 +97,17 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     ChSparseMatrix Cq_reduced;
     assembly.GetSubassemblyConstraintJacobianMatrix(&Cq_reduced);
 
-
-    if (true) {    
-    ChStreamOutAsciiFile fileM("dump_modalreduced_M.dat");
-    fileM.SetNumFormat("%.12g");
-    StreamOutSparseMatlabFormat(M_reduced, fileM);
-    ChStreamOutAsciiFile fileK("dump_modalreduced_K.dat");
-    fileK.SetNumFormat("%.12g");
-    StreamOutSparseMatlabFormat(K_reduced, fileK);
-    ChStreamOutAsciiFile fileCq("dump_modalreduced_Cq.dat");
-    fileCq.SetNumFormat("%.12g");
-    StreamOutSparseMatlabFormat(Cq_reduced, fileCq);
+    if (true) {
+        ChStreamOutAsciiFile fileM("dump_modalreduced_M.dat");
+        fileM.SetNumFormat("%.12g");
+        StreamOutSparseMatlabFormat(M_reduced, fileM);
+        ChStreamOutAsciiFile fileK("dump_modalreduced_K.dat");
+        fileK.SetNumFormat("%.12g");
+        StreamOutSparseMatlabFormat(K_reduced, fileK);
+        ChStreamOutAsciiFile fileCq("dump_modalreduced_Cq.dat");
+        fileCq.SetNumFormat("%.12g");
+        StreamOutSparseMatlabFormat(Cq_reduced, fileCq);
     }
-
-
 
     /* old
     ChGeneralizedEigenvalueSolverLanczos     eigsolver;
@@ -120,15 +117,14 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     be all modes n_bou_mod_coords-Cq_reduced.rows(), not only first ones, but Krylov and Lanczos do not allow it..;
     */
 
-    //ChModalSolveUndamped eigsolver(
-    //    6,      // n of lower modes (***TODO*** make parametric)
-    //    0.01,   // lower freq, for shift&invert. (***TODO*** lower value of sigma working in Debug but not in Release!?)
-    //    500,    // upper limit for the number of iterations, if iterative solver
-    //    1e-10,  // tolerance for the iterative solver.
-    //    false,  // turn to true to see some diagnostic.
-    //    ChGeneralizedEigenvalueSolverLanczos()  // solver to use (default Lanczos)
+    // ChModalSolveUndamped eigsolver(
+    //     6,      // n of lower modes (***TODO*** make parametric)
+    //     0.01,   // lower freq, for shift&invert. (***TODO*** lower value of sigma working in Debug but not in
+    //     Release!?) 500,    // upper limit for the number of iterations, if iterative solver 1e-10,  // tolerance for
+    //     the iterative solver. false,  // turn to true to see some diagnostic. ChGeneralizedEigenvalueSolverLanczos()
+    //     // solver to use (default Lanczos)
     //);
-   
+
     /*
     // The iterative solver above does not work well. Since the size of the M_reduced K_reduced is already small (as
     // this is a modal assembly that already went through modal reduction) we can just use a direct solver for finding
@@ -149,7 +145,6 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     eigsolver.Solve(M_reduced, R_null, K_reduced, Cq_reduced, modes_V_reduced, eig_reduced, freq_reduced, damp_factors,
                     n_eff_modes);
 
-
     ChVectorDynamic<> omegas = CH_C_2PI * freq_reduced;
     ChVectorDynamic<> zetas;
     zetas.setZero(n_eff_modes);
@@ -168,7 +163,7 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     modal_R.setZero(modal_M.rows(), modal_M.cols());
 
     //// NOTE: when using ChQuadraticEigenvalueSolverNullspaceDirect the V eigenvectors are normalized in the complex
-    ///sense,
+    /// sense,
     // but real part of eigenvectors may be not (If using ChGeneralizedEigenvalueSolverLanczos no issue). So do this
     // hack:
     ChMatrixDynamic<> V = modes_V_reduced.real();
