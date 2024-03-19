@@ -596,22 +596,22 @@ class ChApi ChISO2631_Shock_SeatCushionLogger {
 /// Base class for smoothing basic motion laws with discrete time-domain nonlinear filters.
 /// Useful to track on the fly externally-provided signals (e.g. by joystick, teach pendant)
 /// with a continuous motion profile.
-class ChApi ChMotionlawFilter {
+class ChApi ChMotionFilter {
   public:
-    ChMotionlawFilter(){};
+    ChMotionFilter() {}
 
-    virtual ~ChMotionlawFilter(){};
+    virtual ~ChMotionFilter() {}
 
-    /// Reset state variables
+    /// Reset state variables.
     virtual void Reset() = 0;
 
-    /// Get last filtered position computed
+    /// Get last filtered position computed.
     virtual double GetFilteredPos() const { return m_filtpos; }
 
-    /// Get last filtered velocity computed
+    /// Get last filtered velocity computed.
     virtual double GetFilteredVel() const { return m_filtvel; }
 
-    /// Get last filtered acceleration computed
+    /// Get last filtered acceleration computed.
     virtual double GetFilteredAcc() const { return m_filtacc; }
 
   protected:
@@ -623,13 +623,13 @@ class ChApi ChMotionlawFilter {
 /// Second-order nonlinear filter for smoothing basic motion laws (e.g. step, linear ramp)
 /// given maximum (symmetrical) velocity and acceleration constraints.
 /// Output is analogous to a Constant Acceleration motion profile.
-class ChApi ChMotionlawFilter_SecondOrder : public ChMotionlawFilter {
+class ChApi ChMotionFilterSecondOrder : public ChMotionFilter {
   public:
-    ChMotionlawFilter_SecondOrder();
+    ChMotionFilterSecondOrder();
 
-    ChMotionlawFilter_SecondOrder(double vmax, double amax, double timestep);
+    ChMotionFilterSecondOrder(double vmax, double amax, double timestep);
 
-    virtual ~ChMotionlawFilter_SecondOrder() {}
+    virtual ~ChMotionFilterSecondOrder() {}
 
     /// Configure filter parameters
     void Config(double vmax, double amax, double timestep);
@@ -653,13 +653,13 @@ class ChApi ChMotionlawFilter_SecondOrder : public ChMotionlawFilter {
 /// Output is analogous to a Double-S (aka. Constant Jerk) motion profile.
 /// NB: this filter is affected by some chattering on jerk control variable, thus it works best
 /// if small time step is provided.
-class ChApi ChMotionlawFilter_ThirdOrder : public ChMotionlawFilter {
+class ChApi ChMotionFilterThirdOrder : public ChMotionFilter {
   public:
-    ChMotionlawFilter_ThirdOrder();
+    ChMotionFilterThirdOrder();
 
-    ChMotionlawFilter_ThirdOrder(double vmax, double amax, double jmax, double timestep);
+    ChMotionFilterThirdOrder(double vmax, double amax, double jmax, double timestep);
 
-    virtual ~ChMotionlawFilter_ThirdOrder() {}
+    virtual ~ChMotionFilterThirdOrder() {}
 
     /// Configure filter parameters
     void Config(double vmax, double amax, double jmax, double timestep);

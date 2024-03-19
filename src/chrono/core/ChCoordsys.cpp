@@ -17,13 +17,4 @@ namespace chrono {
 const ChCoordsysd CSYSNULL(ChVector3d(0, 0, 0), ChQuaterniond(0, 0, 0, 0));
 const ChCoordsysd CSYSNORM(ChVector3d(0, 0, 0), ChQuaterniond(1, 0, 0, 0));
 
-ChCoordsysd Force2Dcsys(const ChCoordsysd& cs) {
-    ChCoordsysd res;
-    res = cs;
-    res.pos.z() = 0;
-    res.rot.e1() = 0;
-    res.rot.e2() = 0;
-    return (res);
-}
-
 }  // end namespace chrono

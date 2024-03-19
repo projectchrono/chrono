@@ -992,6 +992,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | refer to ChAssembly           | like ChAssembly with boundary/internal suffixes  |
 |                                   | DumpSubassemblyMatrices       | rename: WriteSubassemblyMatrices                 |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+| ChMotionlawFilter                 |                               | rename: ChMotionFilter                           |
+| ChMotionlawFilter_SecondOrder     |                               | rename: ChMotionFilterSecondOrder                |
+| ChMotionlawFilter_ThirdOrder      |                               | rename: ChMotionFilterThirdOrder                 |
 | ChNodeBase                        |                               |                                                  |
 |                                   | GetNdofX                      | rename: GetNumCoordsPosLevel                     |
 |                                   | GetNdofX_active               | rename: GetNumCoordsPosLevelActive               |
