@@ -31,7 +31,7 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
   public:
     ChNodeFEAxyzP(ChVector3d initial_pos = VNULL);
     ChNodeFEAxyzP(const ChNodeFEAxyzP& other);
-    ~ChNodeFEAxyzP() {}
+    virtual ~ChNodeFEAxyzP() {}
 
     ChNodeFEAxyzP& operator=(const ChNodeFEAxyzP& other);
 
@@ -86,10 +86,13 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
     /// Get the number of degrees of freedom.
     virtual unsigned int GetNumCoordsPosLevel() const override { return 1; }
 
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-  private:
+  public:
     // Functions for interfacing to the state bookkeeping
 
     virtual void NodeIntStateGather(const unsigned int off_x,
@@ -130,13 +133,12 @@ class ChApi ChNodeFEAxyzP : public ChNodeFEAbase {
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbIncrementPosition(double step) override;
 
+  protected:
     ChVariablesGeneric variables;  /// solver proxy: variable with scalar field P
     double P;                      ///< field
     double P_dt;                   ///< field derivative, if needed
     double F;                      ///< applied term
     ChVector3d pos;
-
-    friend class ChElementTetraCorot_4_P;
 };
 
 /// @} fea_nodes

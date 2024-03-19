@@ -29,11 +29,14 @@ namespace fea {
 
 /// Class for a generic ED finite element node, with x,y,z displacement and a 3D rotation.
 /// This is the typical node that can be used for beams, etc.
-class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public ChVariableTupleCarrier_1vars<6>, public ChLoadableUVW {
+class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase,
+                              public ChBodyFrame,
+                              public ChVariableTupleCarrier_1vars<6>,
+                              public ChLoadableUVW {
   public:
     ChNodeFEAxyzrot(ChFrame<> initialf = ChFrame<>());
     ChNodeFEAxyzrot(const ChNodeFEAxyzrot& other);
-    ~ChNodeFEAxyzrot() {}
+    virtual ~ChNodeFEAxyzrot() {}
 
     ChNodeFEAxyzrot& operator=(const ChNodeFEAxyzrot& other);
 
@@ -95,11 +98,13 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     /// Get the number of degrees of freedom, derivative (6 because angular velocity for rotation derivative).
     virtual unsigned int GetNumCoordsVelLevel() const override { return 6; }
 
-    // SERIALIZATION
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-  private:
+  public:
     // INTERFACE to ChVariableTupleCarrier_1vars
 
     virtual ChVariables* GetVariables1() override { return &Variables(); }
@@ -207,18 +212,12 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
 
     /// This is not needed because not used in quadrature.
     virtual double GetDensity() override { return 1; }
- 
+
+  protected:
     ChVariablesBodyOwnMass variables;  ///< 3D node variables, with x,y,z displ. and 3D rot.
     ChFrame<> X0;                      ///< reference frame
     ChVector3d Force;                  ///< applied force
     ChVector3d Torque;                 ///< applied torque
-
-    friend class ChContactNodeXYZROT;
-    friend class ChContactTriangleXYZROT;
-    friend class ChElementBeamIGA;
-    friend class ChElementBeamEuler;
-    friend class ChElementBeamTaperedTimoshenko;
-    friend class ChElementShellReissner4;
 };
 
 /// @} fea_nodes

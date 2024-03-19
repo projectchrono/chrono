@@ -35,7 +35,7 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
                   const ChVector3d& rzz = VNULL   ///< initial value of zz 2nd derivative of position vector
                   );
     ChNodeFEAcurv(const ChNodeFEAcurv& other);
-    ~ChNodeFEAcurv();
+    virtual ~ChNodeFEAcurv();
 
     ChNodeFEAcurv& operator=(const ChNodeFEAcurv& other);
 
@@ -98,15 +98,13 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     /// Get the number of degrees of freedom, derivative.
     virtual unsigned int GetNumCoordsVelLevel() const override { return 9; }
 
-    // SERIALIZATION
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-  private:
+  public:
     // Functions for interfacing to the state bookkeeping
 
     virtual void NodeIntStateGather(const unsigned int off_x,
@@ -155,6 +153,7 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbIncrementPosition(double step) override;
 
+    protected:
     ChVariablesGenericDiagonalMass* m_variables;
 
     ChVector3d m_rxx;
@@ -169,8 +168,6 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     ChVector3d m_rxx_dtdt;
     ChVector3d m_ryy_dtdt;
     ChVector3d m_rzz_dtdt;
-
-    friend class ChElementHexaANCF_3813_9;
 };
 
 /// @} fea_nodes
