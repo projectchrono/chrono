@@ -224,7 +224,7 @@ ChQuadratureTablesTetrahedron::ChQuadratureTablesTetrahedron() {
     }
 }
 
-////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 #define CH_QUADRATURE_STATIC_TABLES 10
 
@@ -234,7 +234,7 @@ ChQuadratureTablesTriangle static_tables_triangle;  // only 5 tables
 
 ChQuadratureTablesTetrahedron static_tables_tetrahedron;  // only 5 tables
 
-////////////////////////////////////////////////////////////////
+// -----------------------------------------------------------------------------
 
 ChQuadratureTables* ChQuadrature::GetStaticTables() {
     return &static_tables;

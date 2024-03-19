@@ -651,6 +651,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNcoords_x                  | rename: GetNumCoordsPosLevel                     |
 |                                   | GetNcoords_v                  | rename: GetNumCoordsVelLevel                     |
 |                                   | GetNcoords_y                  | remove: split in GetNumCoordsPosLevel/Vel        |
+| ChIntegrable1D                    |                               | rename: ChIntegrand1D                            |
+| ChIntegrable2D                    |                               | rename: ChIntegrand2D                            |
+| ChIntegrable3D                    |                               | rename: ChIntegrand3D                            |
 | ChIterativeSolver                 |                               |                                                  |
 |                                   | SaveMatrix                    | rename: WriteMatrices                            |
 | ChKblock                          |                               |                                                  |

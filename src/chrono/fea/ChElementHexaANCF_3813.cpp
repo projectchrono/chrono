@@ -129,7 +129,7 @@ void ChElementHexaANCF_3813::SetStockAlpha(double a1,
 // -----------------------------------------------------------------------------
 
 // Internal force, EAS stiffness, and analytical jacobian are calculated
-class Brick_ForceAnalytical : public ChIntegrable3D<ChVectorN<double, 906>> {
+class Brick_ForceAnalytical : public ChIntegrand3D<ChVectorN<double, 906>> {
   public:
     Brick_ForceAnalytical(ChMatrixNM<double, 8, 3>* d_,
                           ChMatrixNM<double, 8, 3>* d0_,
@@ -672,7 +672,7 @@ void Brick_ForceAnalytical::Evaluate(ChVectorN<double, 906>& result, const doubl
 
 // -----------------------------------------------------------------------------
 
-class Brick_ForceNumerical : public ChIntegrable3D<ChVectorN<double, 330>> {
+class Brick_ForceNumerical : public ChIntegrand3D<ChVectorN<double, 330>> {
   public:
     Brick_ForceNumerical(ChMatrixNM<double, 8, 3>* d_,
                          ChMatrixNM<double, 8, 3>* d0_,
@@ -1488,7 +1488,7 @@ void ChElementHexaANCF_3813::ComputeStiffnessMatrix() {
 
 // -----------------------------------------------------------------------------
 
-class Brick_Mass : public ChIntegrable3D<ChMatrixNM<double, 24, 24>> {
+class Brick_Mass : public ChIntegrand3D<ChMatrixNM<double, 24, 24>> {
   public:
     Brick_Mass(ChMatrixNM<double, 8, 3>* d0_, ChElementHexaANCF_3813* element_);
     ~Brick_Mass() {}
@@ -1555,7 +1555,7 @@ void ChElementHexaANCF_3813::ComputeMassMatrix() {
 // -----------------------------------------------------------------------------
 
 // Class to calculate the gravity forces of a brick element
-class BrickGravity : public ChIntegrable3D<ChVectorN<double, 8>> {
+class BrickGravity : public ChIntegrand3D<ChVectorN<double, 8>> {
   public:
     BrickGravity(ChMatrixNM<double, 8, 3>* d0_, ChElementHexaANCF_3813* element_);
     ~BrickGravity() {}

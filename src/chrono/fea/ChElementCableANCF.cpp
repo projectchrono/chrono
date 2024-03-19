@@ -204,7 +204,7 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         // 1)
         // Integrate   ((strainD'*strainD)+(strain*Sd'*Sd))
 
-        class CableANCF_StiffnessAxial : public ChIntegrable1D<ChMatrixNM<double, 12, 12>> {
+        class CableANCF_StiffnessAxial : public ChIntegrand1D<ChMatrixNM<double, 12, 12>> {
           public:
             ChElementCableANCF* element;
             ChMatrixNM<double, 4, 3>* d;
@@ -252,7 +252,7 @@ void ChElementCableANCF::ComputeInternalJacobians(double Kfactor, double Rfactor
         // 2)
         // Integrate   (k_e'*k_e)
 
-        class CableANCF_StiffnessCurv : public ChIntegrable1D<ChMatrixNM<double, 12, 12>> {
+        class CableANCF_StiffnessCurv : public ChIntegrand1D<ChMatrixNM<double, 12, 12>> {
           public:
             ChElementCableANCF* element;
             ChMatrixNM<double, 4, 3>* d;
@@ -483,7 +483,7 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector3d& pA,
     // 1)
     // Integrate   (strainD'*strain)
 
-    class CableANCF_ForceAxial : public ChIntegrable1D<ChVectorN<double, 12>> {
+    class CableANCF_ForceAxial : public ChIntegrand1D<ChVectorN<double, 12>> {
       public:
         ChElementCableANCF* element;
         ChMatrixNM<double, 4, 3>* d;  // this is an external matrix, use pointer
@@ -539,7 +539,7 @@ void ChElementCableANCF::ComputeInternalForces_Impl(const ChVector3d& pA,
     // 2)
     // Integrate   (k_e'*k_e)
 
-    class CableANCF_ForceCurv : public ChIntegrable1D<ChVectorN<double, 12>> {
+    class CableANCF_ForceCurv : public ChIntegrand1D<ChVectorN<double, 12>> {
       public:
         ChElementCableANCF* element;
         ChMatrixNM<double, 4, 3>* d;  // this is an external matrix, use pointer
