@@ -23,8 +23,8 @@ CH_UPCASTING(ChSolverPSOR, ChIterativeSolverVI)
 ChSolverPSOR::ChSolverPSOR() : maxviolation(0) {}
 
 double ChSolverPSOR::Solve(ChSystemDescriptor& sysd) {
-    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
+    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
+    std::vector<ChVariables*>& mvariables = sysd.GetVariables();
 
     m_iterations = 0;
     maxviolation = 0;

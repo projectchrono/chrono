@@ -47,7 +47,7 @@ enum class ArchiveType { BINARY, JSON, XML };
 using namespace chrono;
 
 void assemble_fourbar(ChSystemNSC& system) {
-    system.Set_G_acc(ChVector3d(0, -9.81, 0));
+    system.SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));
 
     // Joint coords
     ChFrame<> frameO(ChVector3d(0, 0, 0), QUNIT);
@@ -57,7 +57,7 @@ void assemble_fourbar(ChSystemNSC& system) {
 
     // Bodies
     auto floor = chrono_types::make_shared<ChBody>();
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     system.Add(floor);
 
     auto crank = chrono_types::make_shared<ChBody>();
@@ -96,10 +96,10 @@ void assemble_fourbar(ChSystemNSC& system) {
 }
 
 void assemble_pendulum(ChSystemNSC& system) {
-    system.Set_G_acc(ChVector3d(0.0, -9.81, 0.0));
+    system.SetGravitationalAcceleration(ChVector3d(0.0, -9.81, 0.0));
 
     auto floor = chrono_types::make_shared<ChBody>();
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     floor->SetName("floor");
     floor->SetIdentifier(100);
     system.Add(floor);
@@ -118,7 +118,7 @@ void assemble_pendulum(ChSystemNSC& system) {
 }
 
 void assemble_gear_and_pulleys(ChSystemNSC& sys) {
-    sys.Set_G_acc(ChVector3d(0, -10, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, -10, 0));
     // Create a Chrono physical system
 
     // Contact material shared among all bodies
@@ -136,7 +136,7 @@ void assemble_gear_and_pulleys(ChSystemNSC& sys) {
     // ...the truss
     auto mbody_truss = chrono_types::make_shared<ChBodyEasyBox>(20, 10, 2, 1000, true, false, mat);
     sys.Add(mbody_truss);
-    mbody_truss->SetBodyFixed(true);
+    mbody_truss->SetFixed(true);
     mbody_truss->SetPos(ChVector3d(0, 0, 3));
 
     // ...the first gear
@@ -145,7 +145,7 @@ void assemble_gear_and_pulleys(ChSystemNSC& sys) {
     // auto mbody_gearA = chrono_types::make_shared<ChBodyEasyBox>(20, 10, 2, 1000, true, false, mat);
     sys.Add(mbody_gearA);
     mbody_gearA->SetPos(ChVector3d(0, 0, -1));
-    mbody_gearA->SetRot(QuatFromAngleAxis(CH_C_PI / 2, VECT_X));
+    mbody_gearA->SetRot(QuatFromAngleAxis(CH_PI / 2, VECT_X));
     mbody_gearA->GetVisualShape(0)->SetMaterial(0, vis_mat);
 
     // ...impose rotation speed between the first gear and the fixed truss
@@ -160,7 +160,7 @@ void assemble_gear_and_pulleys(ChSystemNSC& sys) {
         chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, radB, 0.4, 1000, true, false, mat);
     sys.Add(mbody_gearB);
     mbody_gearB->SetPos(ChVector3d(interaxis12, 0, -1));
-    mbody_gearB->SetRot(QuatFromAngleAxis(CH_C_PI / 2, VECT_X));
+    mbody_gearB->SetRot(QuatFromAngleAxis(CH_PI / 2, VECT_X));
     mbody_gearB->GetVisualShape(0)->SetMaterial(0, vis_mat);
 
     // ... the second gear is fixed to the rotating bar
@@ -171,18 +171,18 @@ void assemble_gear_and_pulleys(ChSystemNSC& sys) {
 
     auto link_gearAB = chrono_types::make_shared<ChLinkLockGear>();
     link_gearAB->Initialize(mbody_gearA, mbody_gearB, ChFrame<>());
-    link_gearAB->Set_local_shaft1(ChFrame<>(VNULL, chrono::QuatFromAngleX(-CH_C_PI_2)));
-    link_gearAB->Set_local_shaft2(ChFrame<>(VNULL, chrono::QuatFromAngleX(-CH_C_PI_2)));
-    link_gearAB->Set_tau(radA / radB);
-    link_gearAB->Set_checkphase(true);
+    link_gearAB->SetFrameShaft1(ChFrame<>(VNULL, chrono::QuatFromAngleX(-CH_PI_2)));
+    link_gearAB->SetFrameShaft2(ChFrame<>(VNULL, chrono::QuatFromAngleX(-CH_PI_2)));
+    link_gearAB->SetTransmissionRatio(radA / radB);
+    link_gearAB->SetEnforcePhase(true);
     sys.AddLink(link_gearAB);
 }
 
 void assemble_pendulum_visual(ChSystemNSC& system) {
-    system.Set_G_acc(ChVector3d(0.0, -9.81, 0.0));
+    system.SetGravitationalAcceleration(ChVector3d(0.0, -9.81, 0.0));
 
     auto floor = chrono_types::make_shared<ChBody>();
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     floor->SetName("floor");
     floor->SetIdentifier(100);
     system.Add(floor);
@@ -266,8 +266,8 @@ void create_test(std::function<void(ChSystemNSC&)> assembler_fun,
             system.DoStepDynamics(timestep);
         }
 
-        state_before_archive = chrono_types::make_shared<ChState>(system.GetNumCoordinatesPos(), &system);
-        auto state_delta_dummy = chrono_types::make_shared<ChStateDelta>(system.GetNumCoordinatesVel(), &system);
+        state_before_archive = chrono_types::make_shared<ChState>(system.GetNumCoordsPosLevel(), &system);
+        auto state_delta_dummy = chrono_types::make_shared<ChStateDelta>(system.GetNumCoordsVelLevel(), &system);
         double time_dummy;
         system.StateGather(*state_before_archive, *state_delta_dummy, time_dummy);
     }
@@ -294,8 +294,8 @@ void create_test(std::function<void(ChSystemNSC&)> assembler_fun,
         system.DoStepDynamics(timestep);
     }
 
-    state_after_archive = chrono_types::make_shared<ChState>(system.GetNumCoordinatesPos(), &system);
-    auto state_delta_dummy = chrono_types::make_shared<ChStateDelta>(system.GetNumCoordinatesVel(), &system);
+    state_after_archive = chrono_types::make_shared<ChState>(system.GetNumCoordsPosLevel(), &system);
+    auto state_delta_dummy = chrono_types::make_shared<ChStateDelta>(system.GetNumCoordsVelLevel(), &system);
     double time_dummy;
     system.StateGather(*state_after_archive, *state_delta_dummy, time_dummy);
 
@@ -316,10 +316,10 @@ TEST(ChArchiveJSON, Pendulum) {
 
     {
         ChSystemNSC system;
-        system.Set_G_acc(ChVector3d(0.0, -9.81, 0.0));
+        system.SetGravitationalAcceleration(ChVector3d(0.0, -9.81, 0.0));
 
         auto floor = chrono_types::make_shared<ChBody>();
-        floor->SetBodyFixed(true);
+        floor->SetFixed(true);
         floor->SetName("floor");
         floor->SetIdentifier(100);
         system.Add(floor);
@@ -339,8 +339,8 @@ TEST(ChArchiveJSON, Pendulum) {
             system.DoStepDynamics(timestep);
         }
 
-        state_before_archive = chrono_types::make_shared<ChState>(system.GetNumCoordinatesPos(), &system);
-        auto state_delta_dummy = chrono_types::make_shared<ChStateDelta>(system.GetNumCoordinatesVel(), &system);
+        state_before_archive = chrono_types::make_shared<ChState>(system.GetNumCoordsPosLevel(), &system);
+        auto state_delta_dummy = chrono_types::make_shared<ChStateDelta>(system.GetNumCoordsVelLevel(), &system);
         double time_dummy;
         system.StateGather(*state_before_archive, *state_delta_dummy, time_dummy);
     }
@@ -357,8 +357,8 @@ TEST(ChArchiveJSON, Pendulum) {
         system.DoStepDynamics(timestep);
     }
 
-    state_after_archive = chrono_types::make_shared<ChState>(system.GetNumCoordinatesPos(), &system);
-    auto state_delta_dummy = chrono_types::make_shared<ChStateDelta>(system.GetNumCoordinatesVel(), &system);
+    state_after_archive = chrono_types::make_shared<ChState>(system.GetNumCoordsPosLevel(), &system);
+    auto state_delta_dummy = chrono_types::make_shared<ChStateDelta>(system.GetNumCoordsVelLevel(), &system);
     double time_dummy;
     system.StateGather(*state_after_archive, *state_delta_dummy, time_dummy);
 
@@ -527,7 +527,7 @@ TEST(ChArchiveJSON, nullpointers) {
 //         }
 //
 //         shaft0_pos_before_archive = system.GetShafts()[0]->GetPos();
-//         shaft1_posdt_before_archive = system.GetShafts()[1]->GetPosDer();
+//         shaft1_posdt_before_archive = system.GetShafts()[1]->GetPosDt();
 //
 //     }
 //
@@ -543,7 +543,7 @@ TEST(ChArchiveJSON, nullpointers) {
 //     }
 //
 //     double shaft0_pos_after_archive = system.GetShafts()[0]->GetPos();
-//     double shaft1_posdt_after_archive = system.GetShafts()[1]->GetPosDer();
+//     double shaft1_posdt_after_archive = system.GetShafts()[1]->GetPosDt();
 //
 //     //ASSERT_NEAR(shaft0_pos_before_archive, shaft0_pos_after_archive, ABS_ERR);
 //     //ASSERT_NEAR(shaft1_posdt_before_archive, shaft1_posdt_after_archive, ABS_ERR);

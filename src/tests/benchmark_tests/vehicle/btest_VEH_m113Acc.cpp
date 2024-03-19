@@ -17,6 +17,7 @@
 // =============================================================================
 
 #include "chrono/ChConfig.h"
+#include "chrono/physics/ChSystemNSC.h"
 #include "chrono/solver/ChSolverPSOR.h"
 #include "chrono/utils/ChBenchmark.h"
 
@@ -117,8 +118,10 @@ M113AccTest<EnumClass, SHOE_TYPE>::M113AccTest() : m_step(1e-3) {
     solver->SetSharpnessLambda(1.0);
     m_m113->GetSystem()->SetSolver(solver);
 
-    m_m113->GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
-    m_m113->GetSystem()->SetMinBounceSpeed(2.0);
+    if (contact_method == ChContactMethod::NSC) {
+        static_cast<ChSystemNSC*>(m_m113->GetSystem())->SetMaxPenetrationRecoverySpeed(1.5);
+        static_cast<ChSystemNSC*>(m_m113->GetSystem())->SetMinBounceSpeed(2.0);
+    }
 
     m_shoeL.resize(m_m113->GetVehicle().GetNumTrackShoes(LEFT));
     m_shoeR.resize(m_m113->GetVehicle().GetNumTrackShoes(RIGHT));

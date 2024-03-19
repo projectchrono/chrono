@@ -32,7 +32,7 @@
 // - Tip angle of twist with a small torque about the beam axis
 //
 // The multilayer formulation is checked against the solution given in Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics
-// of a large scale rigid–flexible multibody system composed of composite laminated plates." Multibody System Dynamics
+// of a large scale rigidï¿½flexible multibody system composed of composite laminated plates." Multibody System Dynamics
 // 26, no. 3 (2011): 283-305.
 // =============================================================================
 
@@ -137,7 +137,7 @@ ANCFShellTest::ANCFShellTest(bool useContInt) {
     m_useContInt = useContInt;
 
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector3d(0, 0, -9.80665));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.80665));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -149,7 +149,7 @@ ANCFShellTest::ANCFShellTest(bool useContInt) {
     m_system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(false);
@@ -193,7 +193,7 @@ ANCFShellTest::ANCFShellTest(bool useContInt) {
     auto element = chrono_types::make_shared<ChElementShellANCF_3833>();
     element->SetNodes(nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH);
     element->SetDimensions(length, width);
-    element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material);
+    element->AddLayer(thickness, 0 * CH_DEG_TO_RAD, material);
     element->SetAlphaDamp(0.0);
 
     // By default the "continuous" integration style of calculation method is used since it is typically faster.  Switch
@@ -318,7 +318,7 @@ bool ANCFShellTest::GeneralizedGravityForceCheck(int msglvl) {
     // ComputeGravityForces method for the element
     ChVectorDynamic<double> GeneralizedForceDueToGravity;
     GeneralizedForceDueToGravity.resize(3 * NSF);
-    m_element->ComputeGravityForces(GeneralizedForceDueToGravity, m_system->Get_G_acc());
+    m_element->ComputeGravityForces(GeneralizedForceDueToGravity, m_system->GetGravitationalAcceleration());
 
     // "Exact" numeric integration is used in the element formulation so no significant error is expected in this
     // solution
@@ -428,8 +428,8 @@ bool ANCFShellTest::GeneralizedInternalForceNoDispSmallVelCheck(int msglvl) {
         return false;
 
     // Setup the test conditions
-    ChVector3d OriginalVel = m_nodeB->GetPosDer();
-    m_nodeB->SetPosDer(ChVector3d(0.0, 0.0, 0.001));
+    ChVector3d OriginalVel = m_nodeB->GetPosDt();
+    m_nodeB->SetPosDt(ChVector3d(0.0, 0.0, 0.001));
     m_element->SetAlphaDamp(0.01);
 
     ChVectorDynamic<double> InternalForceNoDispSmallVel;
@@ -437,7 +437,7 @@ bool ANCFShellTest::GeneralizedInternalForceNoDispSmallVelCheck(int msglvl) {
     m_element->ComputeInternalForces(InternalForceNoDispSmallVel);
 
     // Reset the element conditions back to its original values
-    m_nodeB->SetPosDer(OriginalVel);
+    m_nodeB->SetPosDt(OriginalVel);
     m_element->SetAlphaDamp(0.0);
 
     double MaxAbsError = (InternalForceNoDispSmallVel - Expected_InternalForceNoDispSmallVel).cwiseAbs().maxCoeff();
@@ -1071,8 +1071,8 @@ bool ANCFShellTest::JacobianNoDispSmallVelWithDampingCheck(int msglvl) {
         Expected_Jacobians.block(Expected_Jacobians.cols(), 0, Expected_Jacobians.cols(), Expected_Jacobians.cols());
 
     // Setup the test conditions
-    ChVector3d OriginalVel = m_nodeB->GetPosDer();
-    m_nodeB->SetPosDer(ChVector3d(0.0, 0.0, 0.001));
+    ChVector3d OriginalVel = m_nodeB->GetPosDt();
+    m_nodeB->SetPosDt(ChVector3d(0.0, 0.0, 0.001));
     m_element->SetAlphaDamp(0.01);
 
     // Ensure that the internal force is recalculated in case the results are expected
@@ -1090,7 +1090,7 @@ bool ANCFShellTest::JacobianNoDispSmallVelWithDampingCheck(int msglvl) {
     m_element->ComputeKRMmatricesGlobal(JacobianR_NoDispSmallVelWithDamping, 0, 1, 0);
 
     // Reset the element conditions back to its original values
-    m_nodeB->SetPosDer(OriginalVel);
+    m_nodeB->SetPosDt(OriginalVel);
     m_element->SetAlphaDamp(0.0);
 
     double small_terms_JacK = 1e-4 * Expected_JacobianK_NoDispSmallVelWithDamping.cwiseAbs().maxCoeff();
@@ -1239,7 +1239,7 @@ bool ANCFShellTest::AxialDisplacementCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
-    system->Set_G_acc(ChVector3d(0, 0, 0));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1251,7 +1251,7 @@ bool ANCFShellTest::AxialDisplacementCheck(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -1310,7 +1310,7 @@ bool ANCFShellTest::AxialDisplacementCheck(int msglvl) {
         auto element = chrono_types::make_shared<ChElementShellANCF_3833>();
         element->SetNodes(nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH);
         element->SetDimensions(dx, width);
-        element->AddLayer(height, 0 * CH_C_DEG_TO_RAD, material);
+        element->AddLayer(height, 0 * CH_DEG_TO_RAD, material);
         element->SetAlphaDamp(0.0);
 
         // By default the "continuous" integration style of calculation method is used since it is typically faster.
@@ -1388,17 +1388,17 @@ bool ANCFShellTest::AxialDisplacementCheck(int msglvl) {
     double Percent_Error = (Displacement_Model - Displacement_Theory) / Displacement_Theory * 100;
 
     bool passed_displacement = abs(Percent_Error) < 2.0;
-    bool passed_angles = (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.001) &&
-                         (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 0.001) &&
-                         (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.001);
+    bool passed_angles = (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.001) &&
+                         (abs(Tip_Angles.y() * CH_RAD_TO_DEG) < 0.001) &&
+                         (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.001);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
         std::cout << "Axial Pull Test - ANCF Tip Position: " << point << "m" << std::endl;
         std::cout << "Axial Pull Test - ANCF Tip Displacement: " << Displacement_Model << "m" << std::endl;
         std::cout << "Axial Pull Test - Analytical Tip Displacement: " << Displacement_Theory << "m" << std::endl;
-        std::cout << "Axial Pull Test - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Axial Pull Test - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {
@@ -1426,7 +1426,7 @@ bool ANCFShellTest::CantileverTipLoadCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
-    system->Set_G_acc(ChVector3d(0, 0, 0));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1438,7 +1438,7 @@ bool ANCFShellTest::CantileverTipLoadCheck(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -1497,7 +1497,7 @@ bool ANCFShellTest::CantileverTipLoadCheck(int msglvl) {
         auto element = chrono_types::make_shared<ChElementShellANCF_3833>();
         element->SetNodes(nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH);
         element->SetDimensions(dx, width);
-        element->AddLayer(height, 0 * CH_C_DEG_TO_RAD, material);
+        element->AddLayer(height, 0 * CH_DEG_TO_RAD, material);
         element->SetAlphaDamp(0.0);
 
         // By default the "continuous" integration style of calculation method is used since it is typically faster.
@@ -1578,7 +1578,7 @@ bool ANCFShellTest::CantileverTipLoadCheck(int msglvl) {
     bool passed_displacement = abs(Percent_Error) < 2;
     // check the off-axis angles which should be zeros
     bool passed_angles =
-        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.001);
+        (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.001);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -1586,8 +1586,8 @@ bool ANCFShellTest::CantileverTipLoadCheck(int msglvl) {
         std::cout << "Cantilever Beam (Tip Load) - ANCF Tip Displacement: " << Displacement_Model << "m" << std::endl;
         std::cout << "Cantilever Beam (Tip Load) - Analytical Tip Displacement: " << Displacement_Theory << "m"
                   << std::endl;
-        std::cout << "Cantilever Beam (Tip Load) - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Cantilever Beam (Tip Load) - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {
@@ -1617,7 +1617,7 @@ bool ANCFShellTest::CantileverGravityCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     double g = -9.80665;
-    system->Set_G_acc(ChVector3d(0, 0, g));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, g));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1629,7 +1629,7 @@ bool ANCFShellTest::CantileverGravityCheck(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -1688,7 +1688,7 @@ bool ANCFShellTest::CantileverGravityCheck(int msglvl) {
         auto element = chrono_types::make_shared<ChElementShellANCF_3833>();
         element->SetNodes(nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH);
         element->SetDimensions(dx, width);
-        element->AddLayer(height, 0 * CH_C_DEG_TO_RAD, material);
+        element->AddLayer(height, 0 * CH_DEG_TO_RAD, material);
         element->SetAlphaDamp(0.0);
 
         // By default the "continuous" integration style of calculation method is used since it is typically faster.
@@ -1726,7 +1726,7 @@ bool ANCFShellTest::CantileverGravityCheck(int msglvl) {
     bool passed_displacement = abs(Percent_Error) < 2;
     // check the off-axis angles which should be zeros
     bool passed_angles =
-        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.001);
+        (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.001);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -1735,8 +1735,8 @@ bool ANCFShellTest::CantileverGravityCheck(int msglvl) {
                   << std::endl;
         std::cout << "Cantilever Beam (Gravity Load) - Analytical Tip Displacement: " << Displacement_Theory << "m"
                   << std::endl;
-        std::cout << "Cantilever Beam (Gravity Load) - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Cantilever Beam (Gravity Load) - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {
@@ -1766,7 +1766,7 @@ bool ANCFShellTest::AxialTwistCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
-    system->Set_G_acc(ChVector3d(0, 0, 0));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1778,7 +1778,7 @@ bool ANCFShellTest::AxialTwistCheck(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -1838,7 +1838,7 @@ bool ANCFShellTest::AxialTwistCheck(int msglvl) {
         auto element = chrono_types::make_shared<ChElementShellANCF_3833>();
         element->SetNodes(nodeA, nodeB, nodeC, nodeD, nodeE, nodeF, nodeG, nodeH);
         element->SetDimensions(dx, width);
-        element->AddLayer(height, 0 * CH_C_DEG_TO_RAD, material);
+        element->AddLayer(height, 0 * CH_DEG_TO_RAD, material);
         element->SetAlphaDamp(0.0);
 
         // By default the "continuous" integration style of calculation method is used since it is typically faster.
@@ -1918,16 +1918,16 @@ bool ANCFShellTest::AxialTwistCheck(int msglvl) {
     bool passed_twist = abs(Percent_Error) < 15;
     // check the off-axis angles which should be zeros
     bool passed_angles =
-        (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.001);
+        (abs(Tip_Angles.y() * CH_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.001);
     bool passed_tests = passed_twist && passed_angles;
 
     if (msglvl >= 2) {
         std::cout << "Axial Twist - ANCF Tip Position: " << point << "m" << std::endl;
-        std::cout << "Axial Twist - ANCF Twist Angles (Euler 123): " << Tip_Angles * CH_C_RAD_TO_DEG << "deg"
+        std::cout << "Axial Twist - ANCF Twist Angles (Euler 123): " << Tip_Angles * CH_RAD_TO_DEG << "deg"
                   << std::endl;
-        std::cout << "Axial Twist - Analytical Twist Angle: " << Angle_Theory * CH_C_RAD_TO_DEG << "deg" << std::endl;
-        std::cout << "Axial Twist - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Axial Twist - Analytical Twist Angle: " << Angle_Theory * CH_RAD_TO_DEG << "deg" << std::endl;
+        std::cout << "Axial Twist - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {
@@ -1950,14 +1950,14 @@ bool ANCFShellTest::AxialTwistCheck(int msglvl) {
 bool ANCFShellTest::MLCantileverCheck1A(int msglvl) {
     // =============================================================================
     //  Check the Displacement of a Composite Layup
-    //  Test Problem From Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid–flexible multibody
+    //  Test Problem From Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigidï¿½flexible multibody
     //  system composed of composite laminated plates." Multibody System Dynamics 26, no. 3 (2011): 283-305.
     //  Layup 1 - All 4 Orthotropic Layers Aligned - 1st Load Case
     // =============================================================================
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 to match the reference solution
-    system->Set_G_acc(ChVector3d(0, 0, -9810));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, -9810));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1969,7 +1969,7 @@ bool ANCFShellTest::MLCantileverCheck1A(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -2044,10 +2044,10 @@ bool ANCFShellTest::MLCantileverCheck1A(int msglvl) {
                               std::dynamic_pointer_cast<ChNodeFEAxyzDD>(mesh->GetNode(nodeG_idx)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzDD>(mesh->GetNode(nodeH_idx)));
             element->SetDimensions(dx, dy);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
             element->SetAlphaDamp(0.0);
 
             // By default the "continuous" integration style of calculation method is used since it is typically faster.
@@ -2079,7 +2079,7 @@ bool ANCFShellTest::MLCantileverCheck1A(int msglvl) {
 
     bool passed_displacement = abs(Percent_Error) < 5.0;
     bool passed_angles =
-        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.1) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.1);
+        (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.1) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.1);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -2087,8 +2087,8 @@ bool ANCFShellTest::MLCantileverCheck1A(int msglvl) {
         std::cout << "Multilayer Plate Layup 1A - ANCF Tip Displacement: " << Displacement_Model << "mm" << std::endl;
         std::cout << "Multilayer Plate Layup 1A - Expected Tip Displacement: " << Displacement_Expected << "mm"
                   << std::endl;
-        std::cout << "Multilayer Plate Layup 1A - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Multilayer Plate Layup 1A - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {
@@ -2112,14 +2112,14 @@ bool ANCFShellTest::MLCantileverCheck1A(int msglvl) {
 bool ANCFShellTest::MLCantileverCheck1B(int msglvl) {
     // =============================================================================
     //  Check the Displacement of a Composite Layup
-    //  Test Problem From Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid–flexible multibody
+    //  Test Problem From Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigidï¿½flexible multibody
     //  system composed of composite laminated plates." Multibody System Dynamics 26, no. 3 (2011): 283-305.
     //  Layup 1 - All 4 Orthotropic Layers Aligned - 2nd Load Case
     // =============================================================================
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 to match the reference solution
-    system->Set_G_acc(ChVector3d(0, 0, -9810));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, -9810));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -2131,7 +2131,7 @@ bool ANCFShellTest::MLCantileverCheck1B(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -2206,10 +2206,10 @@ bool ANCFShellTest::MLCantileverCheck1B(int msglvl) {
                               std::dynamic_pointer_cast<ChNodeFEAxyzDD>(mesh->GetNode(nodeG_idx)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzDD>(mesh->GetNode(nodeH_idx)));
             element->SetDimensions(dx, dy);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
             element->SetAlphaDamp(0.0);
 
             // By default the "continuous" integration style of calculation method is used since it is typically faster.
@@ -2240,7 +2240,7 @@ bool ANCFShellTest::MLCantileverCheck1B(int msglvl) {
     double Percent_Error = (Displacement_Model - Displacement_Expected) / Displacement_Expected * 100.0;
 
     bool passed_displacement = abs(Percent_Error) < 5.0;
-    bool passed_angles = (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 0.1) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.1);
+    bool passed_angles = (abs(Tip_Angles.y() * CH_RAD_TO_DEG) < 0.1) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.1);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -2248,8 +2248,8 @@ bool ANCFShellTest::MLCantileverCheck1B(int msglvl) {
         std::cout << "Multilayer Plate Layup 1B - ANCF Tip Displacement: " << Displacement_Model << "mm" << std::endl;
         std::cout << "Multilayer Plate Layup 1B - Expected Tip Displacement: " << Displacement_Expected << "mm"
                   << std::endl;
-        std::cout << "Multilayer Plate Layup 1B - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Multilayer Plate Layup 1B - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {
@@ -2273,14 +2273,14 @@ bool ANCFShellTest::MLCantileverCheck1B(int msglvl) {
 bool ANCFShellTest::MLCantileverCheck2A(int msglvl) {
     // =============================================================================
     //  Check the Displacement of a Composite Layup
-    //  Test Problem From Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid–flexible multibody
+    //  Test Problem From Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigidï¿½flexible multibody
     //  system composed of composite laminated plates." Multibody System Dynamics 26, no. 3 (2011): 283-305.
     //  Layup 2 - Top and Bottom Orthotropic Layers Aligned, Middle Aligned at 90deg - 1st Load Case
     // =============================================================================
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 to match the reference solution
-    system->Set_G_acc(ChVector3d(0, 0, -9810));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, -9810));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -2292,7 +2292,7 @@ bool ANCFShellTest::MLCantileverCheck2A(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -2367,10 +2367,10 @@ bool ANCFShellTest::MLCantileverCheck2A(int msglvl) {
                               std::dynamic_pointer_cast<ChNodeFEAxyzDD>(mesh->GetNode(nodeG_idx)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzDD>(mesh->GetNode(nodeH_idx)));
             element->SetDimensions(dx, dy);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 90 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 90 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 90 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 90 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
             element->SetAlphaDamp(0.0);
 
             // By default the "continuous" integration style of calculation method is used since it is typically faster.
@@ -2402,7 +2402,7 @@ bool ANCFShellTest::MLCantileverCheck2A(int msglvl) {
 
     bool passed_displacement = abs(Percent_Error) < 5.0;
     bool passed_angles =
-        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.1) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.1);
+        (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.1) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.1);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -2410,8 +2410,8 @@ bool ANCFShellTest::MLCantileverCheck2A(int msglvl) {
         std::cout << "Multilayer Plate Layup 2A - ANCF Tip Displacement: " << Displacement_Model << "mm" << std::endl;
         std::cout << "Multilayer Plate Layup 2A - Expected Tip Displacement: " << Displacement_Expected << "mm"
                   << std::endl;
-        std::cout << "Multilayer Plate Layup 2A - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Multilayer Plate Layup 2A - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {
@@ -2435,14 +2435,14 @@ bool ANCFShellTest::MLCantileverCheck2A(int msglvl) {
 bool ANCFShellTest::MLCantileverCheck2B(int msglvl) {
     // =============================================================================
     //  Check the Displacement of a Composite Layup
-    //  Test Problem From Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigid–flexible multibody
+    //  Test Problem From Liu, Cheng, Qiang Tian, and Haiyan Hu. "Dynamics of a large scale rigidï¿½flexible multibody
     //  system composed of composite laminated plates." Multibody System Dynamics 26, no. 3 (2011): 283-305.
     //  Layup 2 - Top and Bottom Orthotropic Layers Aligned, Middle Aligned at 90deg - 2nd Load Case
     // =============================================================================
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 to match the reference solution
-    system->Set_G_acc(ChVector3d(0, 0, -9810));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, -9810));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -2454,7 +2454,7 @@ bool ANCFShellTest::MLCantileverCheck2B(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -2529,10 +2529,10 @@ bool ANCFShellTest::MLCantileverCheck2B(int msglvl) {
                               std::dynamic_pointer_cast<ChNodeFEAxyzDD>(mesh->GetNode(nodeG_idx)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzDD>(mesh->GetNode(nodeH_idx)));
             element->SetDimensions(dx, dy);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 90 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 90 * CH_C_DEG_TO_RAD, material);
-            element->AddLayer(layer_thickness, 0 * CH_C_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 90 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 90 * CH_DEG_TO_RAD, material);
+            element->AddLayer(layer_thickness, 0 * CH_DEG_TO_RAD, material);
             element->SetAlphaDamp(0.0);
 
             // By default the "continuous" integration style of calculation method is used since it is typically faster.
@@ -2563,7 +2563,7 @@ bool ANCFShellTest::MLCantileverCheck2B(int msglvl) {
     double Percent_Error = (Displacement_Model - Displacement_Expected) / Displacement_Expected * 100.0;
 
     bool passed_displacement = abs(Percent_Error) < 5.0;
-    bool passed_angles = (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 1.0) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 1.0);
+    bool passed_angles = (abs(Tip_Angles.y() * CH_RAD_TO_DEG) < 1.0) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 1.0);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -2571,8 +2571,8 @@ bool ANCFShellTest::MLCantileverCheck2B(int msglvl) {
         std::cout << "Multilayer Plate Layup 2B - ANCF Tip Displacement: " << Displacement_Model << "mm" << std::endl;
         std::cout << "Multilayer Plate Layup 2B - Expected Tip Displacement: " << Displacement_Expected << "mm"
                   << std::endl;
-        std::cout << "Multilayer Plate Layup 2B - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Multilayer Plate Layup 2B - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {

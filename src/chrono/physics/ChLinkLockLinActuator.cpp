@@ -41,9 +41,9 @@ void ChLinkLockLinActuator::UpdateTime(double mytime) {
     // ! Require that the BDF routine of marker won't handle speed and acc.calculus of the moved marker 2!
     marker2->SetMotionType(ChMarker::MotionType::EXTERNAL);
 
-    ChMatrix33<> ma(marker2->GetAbsCsys().rot);
+    ChMatrix33<> ma(marker2->GetAbsCoordsys().rot);
 
-    ChVector3d absdist = marker1->GetAbsCsys().pos - marker2->GetAbsCsys().pos;
+    ChVector3d absdist = marker1->GetAbsCoordsys().pos - marker2->GetAbsCoordsys().pos;
 
     ChVector3d mx = Vnorm(absdist);
 
@@ -62,7 +62,7 @@ void ChLinkLockLinActuator::UpdateTime(double mytime) {
     // backup to avoid numerical err.accumulation
     ChVector3d oldpos = marker2->GetPos();
     // rotate "main" marker2 into tangent position
-    marker2->ImposeAbsoluteTransform(ChFrame<>(marker2->GetAbsCsys().pos, ma.GetQuaternion()));
+    marker2->ImposeAbsoluteTransform(ChFrame<>(marker2->GetAbsCoordsys().pos, ma.GetQuaternion()));
     // backup to avoid numerical err.accumulation
     marker2->SetPos(oldpos);                     
 
@@ -78,7 +78,7 @@ void ChLinkLockLinActuator::UpdateTime(double mytime) {
 
     // add also the centripetal acceleration if distance vector's rotating,
     // as centripetal acc. of point sliding on a sphere surface.
-    ChVector3d tang_speed = GetRelM_dt().pos;
+    ChVector3d tang_speed = GetRelCoordsysDt().pos;
     tang_speed.x() = 0;                     // only z-y coords in relative tang speed vector
     double len_absdist = Vlength(absdist);  // don't divide by zero
     if (len_absdist > 1E-6)

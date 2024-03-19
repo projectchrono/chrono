@@ -63,7 +63,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 
     // Set gravitational acceleration
     ChVector3d Gacc(0, 0, -9.8);
-    sys.Set_G_acc(Gacc);
+    sys.SetGravitationalAcceleration(Gacc);
 
     // Create the actuation object
     m_actuation = chrono_types::make_shared<ChFunctionSetpoint>();
@@ -102,7 +102,7 @@ void FmuComponent::CalculateValvePosition() {
 
 void FmuComponent::_preModelDescriptionExport() {
     _exitInitializationMode();
-    ////ChArchiveFmu archive_fmu(*this);
+    ////ChOutputFMU archive_fmu(*this);
     ////archive_fmu << CHNVP(sys);
 }
 
@@ -121,7 +121,7 @@ void FmuComponent::_exitInitializationMode() {
     CalculatePistonPressures();
     CalculateValvePosition();
 
-    sys.DoFullAssembly();
+    sys.DoAssembly(AssemblyLevel::FULL);
 }
 
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,

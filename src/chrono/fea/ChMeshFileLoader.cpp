@@ -42,9 +42,9 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
                                       std::shared_ptr<ChContinuumMaterial> my_material,
                                       ChVector3d pos_transform,
                                       ChMatrix33<> rot_transform) {
-    int totnodes = 0;
-    int nodes_offset = mesh->GetNnodes();
-    int added_nodes = 0;
+    unsigned int totnodes = 0;
+    unsigned int nodes_offset = mesh->GetNumNodes();
+    unsigned int added_nodes = 0;
 
     // Load .node TetGen file
     {
@@ -55,7 +55,7 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
         if (!fin.good())
             throw std::invalid_argument("ERROR opening TetGen .node file: " + std::string(filename_node) + "\n");
 
-        int nnodes = 0;
+        unsigned int nnodes = 0;
         int ndims = 0;
         int nattrs = 0;
         int nboundarymark = 0;
@@ -88,7 +88,7 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
                 continue;
             }
 
-            int idnode = 0;
+            unsigned int idnode = 0;
             double x = -10e30;
             double y = -10e30;
             double z = -10e30;
@@ -132,7 +132,7 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
         if (!fin.good())
             throw std::invalid_argument("ERROR opening TetGen .node file: " + std::string(filename_node) + "\n");
 
-        int ntets = 0, nnodespertet, nattrs = 0;
+        unsigned int ntets = 0, nnodespertet, nattrs = 0;
 
         std::string line;
         while (std::getline(fin, line)) {
@@ -158,8 +158,8 @@ void ChMeshFileLoader::FromTetGenFile(std::shared_ptr<ChMesh> mesh,
                 continue;
             }
 
-            int idtet = 0;
-            int n1, n2, n3, n4;
+            unsigned int idtet = 0;
+            unsigned int n1, n2, n3, n4;
 
             if (parse_tet) {
                 std::stringstream(line) >> idtet >> n1 >> n2 >> n3 >> n4;
@@ -487,7 +487,7 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
     int added_nodes = 0;
     int added_elements = 0;
     double dx, dy;
-    int nodes_offset = mesh->GetNnodes();
+    int nodes_offset = mesh->GetNumNodes();
     printf("Current number of nodes in mesh is %d \n", nodes_offset);
     ChMatrixDynamic<double> nodesXYZ(1, 4);
     ChMatrixDynamic<int> NumBEdges(1, 3);  // To store boundary nodes

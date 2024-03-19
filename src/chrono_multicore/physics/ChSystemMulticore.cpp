@@ -18,7 +18,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/physics/ChShaftsCouple.h"
 #include "chrono/physics/ChShaftsGearbox.h"
 #include "chrono/physics/ChShaftsGearboxAngled.h"
@@ -113,7 +113,7 @@ bool ChSystemMulticore::Integrate_Y() {
 
     // Iterate over the active bilateral constraints and store their Lagrange
     // multiplier.
-    std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraints();
     for (int index = 0; index < (signed)data_manager->num_bilaterals; index++) {
         int cntr = data_manager->host_data.bilateral_mapping[index];
         mconstraints[cntr]->Set_l_i(data_manager->host_data.gamma[data_manager->num_unilaterals + index]);
@@ -206,20 +206,19 @@ bool ChSystemMulticore::Integrate_Y() {
 }
 
 // Add the specified body to the system.
-// A unique identifier is assigned to each body for indexing purposes.
-// Space is allocated in system-wide vectors for data corresponding to the
-// body.
-void ChSystemMulticore::AddBody(std::shared_ptr<ChBody> newbody) {
+// A unique identifier is assigned to each body for indexing purposes. 
+// Space is allocated in system-wide vectors for data corresponding to the body.
+void ChSystemMulticore::AddBody(std::shared_ptr<ChBody> body) {
     // This is only need because bilaterals need to know what bodies to
     // refer to. Not used by contacts
-    newbody->SetId(data_manager->num_rigid_bodies);
+    body->index = data_manager->num_rigid_bodies;
 
-    assembly.bodylist.push_back(newbody);
+    assembly.bodylist.push_back(body);
     data_manager->num_rigid_bodies++;
 
     // Set the system for the body.  Note that this will also add the body's
     // collision shapes to the collision system if not already done.
-    newbody->SetSystem(this);
+    body->SetSystem(this);
 
     // Reserve space for this body in the system-wide vectors. Note that the
     // actual data is set in UpdateBodies().
@@ -229,14 +228,14 @@ void ChSystemMulticore::AddBody(std::shared_ptr<ChBody> newbody) {
     data_manager->host_data.collide_rigid.push_back(true);
 
     // Let derived classes reserve space for specific material surface data
-    AddMaterialSurfaceData(newbody);
+    AddMaterialSurfaceData(body);
 }
 
 // Add the specified shaft to the system.
 // A unique identifier is assigned to each shaft for indexing purposes.
 // Space is allocated in system-wide vectors for data corresponding to the shaft.
 void ChSystemMulticore::AddShaft(std::shared_ptr<ChShaft> shaft) {
-    shaft->SetId(data_manager->num_shafts);
+    shaft->index = data_manager->num_shafts;
     shaft->SetSystem(this);
 
     assembly.shaftlist.push_back(shaft);
@@ -250,7 +249,7 @@ void ChSystemMulticore::AddShaft(std::shared_ptr<ChShaft> shaft) {
 }
 
 void ChSystemMulticore::AddLink(std::shared_ptr<ChLinkBase> link) {
-    if (link->GetNumCoordinatesPos() == 1) {
+    if (link->GetNumCoordsPosLevel() == 1) {
         if (auto mot = std::dynamic_pointer_cast<ChLinkMotorLinearSpeed>(link)) {
             linmotorlist.push_back(mot.get());
             data_manager->num_linmotors++;
@@ -272,7 +271,7 @@ void ChSystemMulticore::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newit
     newitem->SetSystem(this);
     assembly.otherphysicslist.push_back(newitem);
 
-    ////if (newitem->GetCollide()) {
+    ////if (newitem->IsCollisionEnabled()) {
     ////    newitem->AddCollisionModelsToSystem();
     ////}
 }
@@ -376,7 +375,7 @@ void ChSystemMulticore::UpdateRigidBodies() {
         rotation[i] = quaternion(body_rot.e0(), body_rot.e1(), body_rot.e2(), body_rot.e3());
 
         active[i] = body->IsActive();
-        collide[i] = body->GetCollide();
+        collide[i] = body->IsCollisionEnabled();
 
         // Let derived classes set the specific material surface data.
         UpdateMaterialSurfaceData(i, body.get());
@@ -453,7 +452,7 @@ void ChSystemMulticore::UpdateLinks() {
     real clamp_speed = data_manager->settings.solver.bilateral_clamp_speed;
     bool clamp = data_manager->settings.solver.clamp_bilaterals;
 
-    for (int i = 0; i < assembly.linklist.size(); i++) {
+    for (auto i = 0; i < assembly.linklist.size(); i++) {
         auto& link = assembly.linklist[i];
 
         link->Update(ch_time, false);
@@ -465,7 +464,7 @@ void ChSystemMulticore::UpdateLinks() {
 
         link->InjectConstraints(*descriptor);
 
-        for (int j = 0; j < link->GetNumConstraintsBilateral(); j++)
+        for (unsigned int j = 0; j < link->GetNumConstraintsBilateral(); j++)
             data_manager->host_data.bilateral_type.push_back(BilateralType::BODY_BODY);
     }
 }
@@ -488,7 +487,7 @@ BilateralType GetBilateralType(ChPhysicsItem* item) {
     if (dynamic_cast<ChShaftsGearbox*>(item) || dynamic_cast<ChShaftsGearboxAngled*>(item))
         return BilateralType::SHAFT_SHAFT_BODY;
 
-    if (dynamic_cast<ChShaftsBody*>(item))
+    if (dynamic_cast<ChShaftBodyRotation*>(item))
         return BilateralType::SHAFT_BODY;
 
     // Debug check - do we ignore any constraints?
@@ -497,12 +496,10 @@ BilateralType GetBilateralType(ChPhysicsItem* item) {
     return BilateralType::UNKNOWN;
 }
 
-//
-// Update other physics items in the system and set the type of the associated
-// constraints.
+// Update other physics items in the system and set the type of the associated constraints.
 // Notes:
 // - ChShaft elements have already been excluded (as these are treated separately)
-// - allow all items to include body forces (required e.g. ChShaftsTorqueBase)
+// - allow all items to include body forces
 // - no support for any items that introduce additional state variables
 // - only include constraints from items of supported type (see GetBilateralType above)
 // - visualization assets are not updated
@@ -531,7 +528,7 @@ void ChSystemMulticore::UpdateOtherPhysics() {
 
         item->InjectConstraints(*descriptor);
 
-        for (int j = 0; j < item->GetNumConstraintsBilateral(); j++)
+        for (unsigned int j = 0; j < item->GetNumConstraintsBilateral(); j++)
             data_manager->host_data.bilateral_type.push_back(type);
     }
 }
@@ -542,7 +539,7 @@ void ChSystemMulticore::UpdateOtherPhysics() {
 //
 void ChSystemMulticore::UpdateBilaterals() {
     data_manager->nnz_bilaterals = 0;
-    std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraints();
 
     for (uint ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive()) {
@@ -586,9 +583,9 @@ void ChSystemMulticore::Setup() {
                             data_manager->num_fluid_bodies * 3;
 
     // Set variables that are stored in the ChSystem class
-    assembly.m_num_bodies = data_manager->num_rigid_bodies;
-    assembly.m_num_links = 0;
-    assembly.m_num_otherphysicsitems = 0;
+    assembly.m_num_bodies_active = data_manager->num_rigid_bodies; 
+    assembly.m_num_links_active = 0;
+    assembly.m_num_otherphysicsitems_active = 0;
     m_num_coords_pos = 0;
     m_num_coords_vel = 0;
     m_num_constr = 0;
@@ -652,7 +649,7 @@ void ChSystemMulticore::SetCollisionSystemType(ChCollisionSystem::Type type) {
 // Calculate the (linearized) bilateral constraint violations and store them in
 // the provided vector. Return the maximum constraint violation.
 double ChSystemMulticore::CalculateConstraintViolation(std::vector<double>& cvec) {
-    std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraintsList();
+    std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraints();
     cvec.resize(data_manager->num_bilaterals);
     double max_c = 0;
 
@@ -671,13 +668,6 @@ void ChSystemMulticore::PrintStepStats() {
     data_manager->system_timer.PrintReport();
 }
 
-unsigned int ChSystemMulticore::GetNumBodies() {
-    return data_manager->num_rigid_bodies + data_manager->num_fluid_bodies;
-}
-
-unsigned int ChSystemMulticore::GetNumShafts() {
-    return data_manager->num_shafts;
-}
 
 unsigned int ChSystemMulticore::GetNumContacts() {
     if (!data_manager->cd_data)
@@ -685,10 +675,6 @@ unsigned int ChSystemMulticore::GetNumContacts() {
 
     return data_manager->cd_data->num_rigid_contacts + data_manager->cd_data->num_rigid_fluid_contacts +
            data_manager->cd_data->num_fluid_contacts;
-}
-
-unsigned int ChSystemMulticore::GetNumBilaterals() {
-    return data_manager->num_bilaterals;
 }
 
 // -------------------------------------------------------------
@@ -765,17 +751,17 @@ void ChSystemMulticore::SetMaterialCompositionStrategy(
 
 ChVector3d ChSystemMulticore::GetBodyAppliedForce(ChBody* body) {
     auto h = data_manager->settings.step_size;
-    auto fx = data_manager->host_data.hf[body->GetId() * 6 + 0] / h;
-    auto fy = data_manager->host_data.hf[body->GetId() * 6 + 1] / h;
-    auto fz = data_manager->host_data.hf[body->GetId() * 6 + 2] / h;
+    auto fx = data_manager->host_data.hf[body->GetIndex() * 6 + 0] / h;
+    auto fy = data_manager->host_data.hf[body->GetIndex() * 6 + 1] / h;
+    auto fz = data_manager->host_data.hf[body->GetIndex() * 6 + 2] / h;
     return ChVector3d((double)fx, (double)fy, (double)fz);
 }
 
 ChVector3d ChSystemMulticore::GetBodyAppliedTorque(ChBody* body) {
     auto h = data_manager->settings.step_size;
-    auto tx = data_manager->host_data.hf[body->GetId() * 6 + 3] / h;
-    auto ty = data_manager->host_data.hf[body->GetId() * 6 + 4] / h;
-    auto tz = data_manager->host_data.hf[body->GetId() * 6 + 5] / h;
+    auto tx = data_manager->host_data.hf[body->GetIndex() * 6 + 3] / h;
+    auto ty = data_manager->host_data.hf[body->GetIndex() * 6 + 4] / h;
+    auto tz = data_manager->host_data.hf[body->GetIndex() * 6 + 5] / h;
     return ChVector3d((double)tx, (double)ty, (double)tz);
 }
 

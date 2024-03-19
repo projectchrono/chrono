@@ -75,8 +75,8 @@ bool ChIrrEventReceiver::OnEvent(const irr::SEvent& event) {
                 return true;
             }
             case irr::KEY_F6:
-                std::cout << "Saving system vector and matrices to dump_xxyy.dat files.\n";
-                m_gui->DumpSystemMatrices();
+                std::cout << "Saving system vector and matrices to sys_xxyy.dat files.\n";
+                m_gui->WriteSystemMatrices();
                 return true;
             case irr::KEY_F7:
                 if (!m_gui->m_system->IsSolverMatrixWriteEnabled()) {
@@ -398,14 +398,14 @@ void ChIrrGUI::SetModalModesMax(int maxModes) {
 
 // -----------------------------------------------------------------------------
 
-void ChIrrGUI::DumpSystemMatrices() {
+void ChIrrGUI::WriteSystemMatrices() {
     // For safety
     m_system->Setup();
     m_system->Update();
 
     try {
         // Save M mass matrix, K stiffness matrix, R damping matrix, Cq jacobians:
-        m_system->DumpSystemMatrices(true, true, true, true, "dump_");
+        m_system->WriteSystemMatrices(true, true, true, true, "sys_");
 
     } catch (const std::exception& myexc) {
         std::cerr << myexc.what() << std::endl;
@@ -504,13 +504,13 @@ void ChIrrGUI::Render() {
     str += "\n\nReal Time Factor: ";
     str += m_system->GetRTF();
     str += "\n\nNum. active bodies:  ";
-    str += m_system->GetNumBodies();
+    str += m_system->GetNumBodiesActive();
     str += "\nNum. sleeping bodies:  ";
     str += m_system->GetNumBodiesSleeping();
     str += "\nNum. contacts:  ";
     str += m_system->GetNumContacts();
     str += "\nNum. coords:  ";
-    str += m_system->GetNumCoordinatesVel();
+    str += m_system->GetNumCoordsVelLevel();
     str += "\nNum. constr:  ";
     str += m_system->GetNumConstraints();
     g_textFPS->setText(str.c_str());
@@ -639,7 +639,7 @@ void ChIrrGUI::SetBlenderSave(bool val) {
         // Static default camera in Blender matches the one in Irrlicht at the moment of starting saving
         // blender_exporter->SetCamera(ChVectorIrr(GetActiveCamera()->getAbsolutePosition()),
         // ChVectorIrr(GetActiveCamera()->getTarget()),
-        //    GetActiveCamera()->getFOV() * GetActiveCamera()->getAspectRatio() * chrono::CH_C_RAD_TO_DEG);
+        //    GetActiveCamera()->getFOV() * GetActiveCamera()->getAspectRatio() * chrono::CH_RAD_TO_DEG);
 
         blender_exporter->ExportScript();
 

@@ -88,7 +88,7 @@ class ChApi ChVisualShape {
     std::shared_ptr<ChVisualMaterial> GetMaterial(int i) { return material_list[i]; }
 
     /// Get the number of visualization materials.
-    int GetNumMaterials() const { return (int)material_list.size(); }
+    unsigned int GetNumMaterials() const { return (unsigned int)material_list.size(); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out);

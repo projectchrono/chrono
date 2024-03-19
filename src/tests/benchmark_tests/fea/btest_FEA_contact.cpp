@@ -113,8 +113,7 @@ FEAcontactTest::FEAcontactTest(SolverType solver_type) {
             solver->SetTolerance(1e-10);
             solver->EnableDiagonalPreconditioner(true);
             solver->SetVerbose(false);
-
-            m_system->SetSolverForceTolerance(1e-10);
+            solver->SetTolerance(1e-12);
             
             m_system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
         }
@@ -156,7 +155,7 @@ FEAcontactTest::FEAcontactTest(SolverType solver_type) {
 
 void FEAcontactTest::CreateFloor(std::shared_ptr<ChContactMaterialSMC> cmat) {
     auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.1, 2, 2700, true, true, cmat);
-    mfloor->SetBodyFixed(true);
+    mfloor->SetFixed(true);
     mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
     m_system->Add(mfloor);
 }
@@ -166,16 +165,16 @@ void FEAcontactTest::CreateBeams(std::shared_ptr<ChContactMaterialSMC> cmat) {
     m_system->Add(mesh);
 
     auto emat = chrono_types::make_shared<ChContinuumElastic>();
-    emat->Set_E(0.01e9);
-    emat->Set_v(0.3);
-    emat->Set_RayleighDampingK(0.003);
-    emat->Set_density(1000);
+    emat->SetYoungModulus(0.01e9);
+    emat->SetPoissonRatio(0.3);
+    emat->SetRayleighDampingBeta(0.003);
+    emat->SetDensity(1000);
 
     double angles[4] = {0.15, 0.3, 0.0, 0.7};
 
     for (int i = 0; i < 4; ++i) {
         ChCoordsys<> cdown(ChVector3d(0, -0.4, 0));
-        ChCoordsys<> crot(VNULL, QuatFromAngleY(CH_C_2PI * angles[i]) * QuatFromAngleX(CH_C_PI_2));
+        ChCoordsys<> crot(VNULL, QuatFromAngleY(CH_2PI * angles[i]) * QuatFromAngleX(CH_PI_2));
         ChCoordsys<> cydisp(ChVector3d(0.0, 0.1 + i * 0.1, -0.3));
         ChCoordsys<> ctot = cdown >> crot >> cydisp;
         ChMeshFileLoader::FromTetGenFile(mesh, GetChronoDataFile("fea/beam.node").c_str(),
@@ -201,7 +200,7 @@ void FEAcontactTest::CreateCables(std::shared_ptr<ChContactMaterialSMC> cmat) {
     auto section = chrono_types::make_shared<ChBeamSectionCable>();
     section->SetDiameter(0.05);
     section->SetYoungModulus(0.01e9);
-    section->SetBeamRayleighDamping(0.05);
+    section->SetRayleighDamping(0.05);
 
     ChBuilderCableANCF builder;
 

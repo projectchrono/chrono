@@ -38,17 +38,17 @@ void ChSolverAPGD::SchurBvectorCompute(ChSystemDescriptor& sysd) {
     // Do this in three steps:
 
     // Put (M^-1)*k    in  q  sparse vector of each variable..
-    for (unsigned int iv = 0; iv < sysd.GetVariablesList().size(); iv++)
-        if (sysd.GetVariablesList()[iv]->IsActive())
-            sysd.GetVariablesList()[iv]->Compute_invMb_v(sysd.GetVariablesList()[iv]->Get_qb(),
-                                                         sysd.GetVariablesList()[iv]->Get_fb());  // q = [M]'*fb
+    for (unsigned int iv = 0; iv < sysd.GetVariables().size(); iv++)
+        if (sysd.GetVariables()[iv]->IsActive())
+            sysd.GetVariables()[iv]->Compute_invMb_v(sysd.GetVariables()[iv]->Get_qb(),
+                                                         sysd.GetVariables()[iv]->Get_fb());  // q = [M]'*fb
 
     // ...and now do  b_schur = - D'*q = - D'*(M^-1)*k ..
     r.setZero();
     int s_i = 0;
-    for (unsigned int ic = 0; ic < sysd.GetConstraintsList().size(); ic++)
-        if (sysd.GetConstraintsList()[ic]->IsActive()) {
-            r(s_i, 0) = sysd.GetConstraintsList()[ic]->Compute_Cq_q();
+    for (unsigned int ic = 0; ic < sysd.GetConstraints().size(); ic++)
+        if (sysd.GetConstraints()[ic]->IsActive()) {
+            r(s_i, 0) = sysd.GetConstraints()[ic]->Compute_Cq_q();
             ++s_i;
         }
 
@@ -71,8 +71,8 @@ double ChSolverAPGD::Res4(ChSystemDescriptor& sysd) {
 
 double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     bool verbose = false;
-    const std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    const std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
+    const std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
+    const std::vector<ChVariables*>& mvariables = sysd.GetVariables();
     if (verbose)
         std::cout << "Number of constraints: " << mconstraints.size()
                   << "\nNumber of variables  : " << mvariables.size() << std::endl;

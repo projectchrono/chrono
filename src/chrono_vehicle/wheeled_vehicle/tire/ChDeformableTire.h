@@ -26,8 +26,8 @@
 
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAbase.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
@@ -161,8 +161,8 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
 
     std::shared_ptr<fea::ChMesh> m_mesh;                                ///< tire mesh
     std::shared_ptr<ChLoadContainer> m_load_container;                  ///< load container (for pressure load)
-    std::vector<std::shared_ptr<fea::ChLinkPointFrame>> m_connections;  ///< tire-wheel point connections
-    std::vector<std::shared_ptr<fea::ChLinkDirFrame>> m_connectionsD;   ///< tire-wheel direction connections
+    std::vector<std::shared_ptr<fea::ChLinkNodeFrame>> m_connections;  ///< tire-wheel point connections
+    std::vector<std::shared_ptr<fea::ChLinkNodeSlopeFrame>> m_connectionsD;   ///< tire-wheel direction connections
     std::vector<std::shared_ptr<ChLinkMateFix>> m_connectionsF;         ///< tire-wheel fix connection (point+rotation)
 
     bool m_connection_enabled;  ///< enable tire connections to rim

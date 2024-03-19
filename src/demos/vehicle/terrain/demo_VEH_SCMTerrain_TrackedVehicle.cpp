@@ -135,7 +135,7 @@ int main(int argc, char* argv[]) {
     // Control internal collisions and contact monitoring.
 
     // Disable contact for all tracked vehicle parts
-    ////m113.GetVehicle().SetCollide(TrackedCollisionFlag::NONE);
+    ////m113.GetVehicle().EnableCollision(TrackedCollisionFlag::NONE);
 
     // Monitor internal contacts for the left sprocket, left idler, and first shoe on the left track.
     ////m113.GetVehicle().MonitorContacts(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT |
@@ -292,7 +292,7 @@ int main(int argc, char* argv[]) {
         system->SetTimestepperType(ChTimestepper::Type::HHT);
         auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
         integrator->SetAlpha(-0.2);
-        integrator->SetMaxiters(50);
+        integrator->SetMaxIters(50);
         integrator->SetAbsTolerances(1e-1, 10);
         integrator->SetModifiedNewton(false);
         integrator->SetVerbose(true);
@@ -305,7 +305,6 @@ int main(int argc, char* argv[]) {
         m113.GetSystem()->SetSolver(solver);
 
         m113.GetSystem()->SetMaxPenetrationRecoverySpeed(1.5);
-        m113.GetSystem()->SetMinBounceSpeed(2.0);
     }
 
     // ---------------
@@ -374,13 +373,13 @@ void AddFixedObstacles(ChSystem* system) {
 
     auto obstacle = chrono_types::make_shared<ChBody>();
     obstacle->SetPos(ChVector3d(0, 0, -1.8));
-    obstacle->SetBodyFixed(true);
-    obstacle->SetCollide(true);
+    obstacle->SetFixed(true);
+    obstacle->EnableCollision(true);
 
     // Visualization
     auto cyl_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
     cyl_shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"));
-    obstacle->AddVisualShape(cyl_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+    obstacle->AddVisualShape(cyl_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     auto box_shape = chrono_types::make_shared<ChVisualShapeBox>(terrain_length, 2 * length, 0.1);
     box_shape->SetColor(ChColor(0.2f, 0.2f, 0.2f));
@@ -394,7 +393,7 @@ void AddFixedObstacles(ChSystem* system) {
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(obst_mat, radius, length);
-    obstacle->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+    obstacle->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     system->AddBody(obstacle);
 }
@@ -418,10 +417,10 @@ void AddMovingObstacles(ChSystem* system) {
     ball->SetMass(mass);
     ball->SetPos(pos);
     ball->SetRot(rot);
-    ball->SetPosDer(init_vel);
+    ball->SetPosDt(init_vel);
     ball->SetAngVelLocal(init_ang_vel);
-    ball->SetBodyFixed(false);
-    ball->SetCollide(true);
+    ball->SetFixed(false);
+    ball->EnableCollision(true);
 
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
     ball->AddCollisionShape(ct_shape);

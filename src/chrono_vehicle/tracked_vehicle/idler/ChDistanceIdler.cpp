@@ -73,7 +73,7 @@ void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
                                  ChTrackAssembly* track) {
     // Express the idler reference frame in the absolute coordinate system
     ChFrame<> idler_to_abs(location);
-    idler_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    idler_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Transform all points and directions to absolute frame
     m_points.resize(NUM_POINTS);
@@ -96,7 +96,7 @@ void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_carrier_pin");
     m_revolute->Initialize(chassis->GetBody(), m_carrier,
-        ChFrame<>(m_points[CARRIER_CHASSIS], idler_to_abs.GetRot() * QuatFromAngleX(CH_C_PI_2)));
+        ChFrame<>(m_points[CARRIER_CHASSIS], idler_to_abs.GetRot() * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute);
 
     // Linear actuator function

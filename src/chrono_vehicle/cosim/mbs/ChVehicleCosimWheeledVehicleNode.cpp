@@ -58,8 +58,8 @@ class WheeledVehicleDBPDriver : public ChDriver {
         double ang_speed = m_func->GetVal(time);
 
         for (auto& axle : m_wheeled_vehicle->GetAxles()) {
-            axle->m_suspension->GetAxle(VehicleSide::LEFT)->SetPosDer(ang_speed);
-            axle->m_suspension->GetAxle(VehicleSide::RIGHT)->SetPosDer(ang_speed);
+            axle->m_suspension->GetAxle(VehicleSide::LEFT)->SetPosDt(ang_speed);
+            axle->m_suspension->GetAxle(VehicleSide::RIGHT)->SetPosDt(ang_speed);
         }
     }
 
@@ -139,7 +139,7 @@ void ChVehicleCosimWheeledVehicleNode::InitializeMBS(const ChVector2d& terrain_s
         vsys_vsg->SetClearColor(ChColor(0.455f, 0.525f, 0.640f));
         vsys_vsg->SetCameraAngleDeg(40);
         vsys_vsg->SetLightIntensity(1.0f);
-        vsys_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+        vsys_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
         vsys_vsg->AddGrid(1.0, 1.0, (int)(terrain_size.x() / 1.0), (int)(terrain_size.y() / 1.0), CSYSNORM,
                           ChColor(0.4f, 0.4f, 0.4f));
         vsys_vsg->SetImageOutputDirectory(m_node_out_dir + "/images");
@@ -180,7 +180,7 @@ void ChVehicleCosimWheeledVehicleNode::ApplyTireInfo(const std::vector<ChVector3
 }
 
 // -----------------------------------------------------------------------------
-int ChVehicleCosimWheeledVehicleNode::GetNumSpindles() const {
+unsigned int ChVehicleCosimWheeledVehicleNode::GetNumSpindles() const {
     return m_num_spindles;
 }
 
@@ -200,7 +200,7 @@ BodyState ChVehicleCosimWheeledVehicleNode::GetSpindleState(unsigned int i) cons
 
     state.pos = spindle_body->GetPos();
     state.rot = spindle_body->GetRot();
-    state.lin_vel = spindle_body->GetPosDer();
+    state.lin_vel = spindle_body->GetPosDt();
     state.ang_vel = spindle_body->GetAngVelParent();
 
     return state;
@@ -284,30 +284,30 @@ void ChVehicleCosimWheeledVehicleNode::OnOutputData(int frame) {
     }
 
     // Create and write frame output file.
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
     csv << m_system->GetChTime() << endl;  // current time
     WriteBodyInformation(csv);             // vehicle body states
 
     std::string filename = OutputFilename(m_node_out_dir + "/simulation", "data", "dat", frame + 1, 5);
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 
     if (m_verbose)
         cout << "[Vehicle node] write output file ==> " << filename << endl;
 }
 
-void ChVehicleCosimWheeledVehicleNode::WriteBodyInformation(utils::CSV_writer& csv) {
+void ChVehicleCosimWheeledVehicleNode::WriteBodyInformation(utils::ChWriterCSV& csv) {
     // Write number of bodies
     csv << 1 + m_num_spindles << endl;
 
     // Write body state information
     auto chassis = m_vehicle->GetChassisBody();
-    csv << chassis->GetPos() << chassis->GetRot() << chassis->GetPosDer() << chassis->GetRotDer() << endl;
+    csv << chassis->GetPos() << chassis->GetRot() << chassis->GetPosDt() << chassis->GetRotDt() << endl;
 
     for (auto& axle : m_vehicle->GetAxles()) {
         for (auto& wheel : axle->GetWheels()) {
             auto spindle_body = wheel->GetSpindle();
-            csv << spindle_body->GetPos() << spindle_body->GetRot() << spindle_body->GetPosDer()
-                << spindle_body->GetRotDer() << endl;
+            csv << spindle_body->GetPos() << spindle_body->GetRot() << spindle_body->GetPosDt()
+                << spindle_body->GetRotDt() << endl;
         }
     }
 }

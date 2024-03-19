@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
     auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(5, 2, 5, 1000, true, true, floor_mat);
     floor->SetPos(ChVector3d(0, -1, 0));
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     floor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
     sys.Add(floor);
 
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
     //	  0.005			                                        // radius of 'inflating' of mesh (for more robust
     //collision detection)
     //	  );
-    // falling->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(-0.9 + ChRandom::Get() * 1.4, 0.4 + j * 0.12, -0.9 + ChRandom::Get()
+    // falling->SetFrameRefToAbs(ChFrame<>(ChVector3d(-0.9 + ChRandom::Get() * 1.4, 0.4 + j * 0.12, -0.9 + ChRandom::Get()
     // * 1.4))); sys.Add(falling);
     //
     // but here we want to show a more low-level control of this process, for
@@ -107,20 +107,20 @@ int main(int argc, char* argv[]) {
 
         // Set the COG coordinates to barycenter, without displacing the REF reference.
         // Make the COG frame a principal frame.
-        falling->SetFrame_COG_to_REF(ChFrame<>(cog, principal_inertia_rot));
+        falling->SetFrameCOMToRef(ChFrame<>(cog, principal_inertia_rot));
 
         // Set inertia
         falling->SetMass(mass * density);
         falling->SetInertiaXX(density * principal_I);
 
         // Set the absolute position of the body:
-        falling->SetFrame_REF_to_abs(
+        falling->SetFrameRefToAbs(
             ChFrame<>(ChVector3d(-0.9 + ChRandom::Get() * 1.4, 0.4 + j * 0.12, -0.9 + ChRandom::Get() * 1.4)));
         sys.Add(falling);
 
         falling->AddVisualModel(vis_model);
         falling->AddCollisionShape(coll_shape);
-        falling->SetCollide(true);
+        falling->EnableCollision(true);
     }
 
     // Shared contact material for falling objects

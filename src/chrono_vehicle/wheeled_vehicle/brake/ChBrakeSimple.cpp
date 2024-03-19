@@ -60,7 +60,7 @@ void ChBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis,
 
 void ChBrakeSimple::Synchronize(double modulation) {
     m_modulation = modulation;
-    m_brake->Set_brake_torque(modulation * GetMaxBrakingTorque());
+    m_brake->SetBrakeTorque(modulation * GetMaxBrakingTorque());
     
     // If braking input is large enough, lock the brake
     if (!m_can_lock)

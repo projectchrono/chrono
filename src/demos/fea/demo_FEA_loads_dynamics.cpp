@@ -93,8 +93,8 @@ int main(int argc, char* argv[]) {
     double beam_wz = 0.2;
     beam_section->SetAsRectangularSection(beam_wy, beam_wz);
     beam_section->SetYoungModulus(0.01e9);
-    beam_section->SetGshearModulus(0.01e9 * 0.3);
-    beam_section->SetBeamRayleighDamping(0.200);
+    beam_section->SetShearModulus(0.01e9 * 0.3);
+    beam_section->SetRayleighDamping(0.200);
     beam_section->SetDensity(1500);
 
     // Create an Euler-Bernoulli beam with a single element
@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
 
     // Create the ground body
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     sys.Add(ground);
 
     // Create a constraint at the end of the beam
@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
                         node_vel = state_w->segment(0, 3);
                     } else {
                         node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPos();
-                        node_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPosDer();
+                        node_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPosDt();
                     }
                     // Just implement a simple force+spring+damper in xy plane,
                     // for spring&damper connected to absolute reference:
@@ -296,7 +296,7 @@ int main(int argc, char* argv[]) {
                         node_vel = state_w->segment(0, 3);
                     } else {
                         node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPos();
-                        node_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPosDer();
+                        node_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPosDt();
                     }
                     // Just implement a simple force+spring+damper in xy plane,
                     // for spring & damper connected to absolute reference
@@ -385,9 +385,9 @@ int main(int argc, char* argv[]) {
                         // explicit integrators might call ComputeQ(0,0), null pointers mean
                         // that we assume current state, without passing state_x for efficiency
                         Enode_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[0])->GetPos();
-                        Enode_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[0])->GetPosDer();
+                        Enode_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[0])->GetPosDt();
                         Fnode_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[1])->GetPos();
-                        Fnode_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[1])->GetPosDer();
+                        Fnode_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[1])->GetPosDt();
                     }
                     // Just implement two simple force+spring+dampers in xy plane:
                     // ... from node E to ground,
@@ -474,8 +474,6 @@ int main(int argc, char* argv[]) {
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
 
-    sys.SetSolverForceTolerance(1e-13);
-
     // Set integrator type
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
 
@@ -483,7 +481,7 @@ int main(int argc, char* argv[]) {
     ////sys.SetTimestepperType(ChTimestepper::Type::HHT);
     ////if (auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper())) {
     ////    mystepper->SetAlpha(-0.2);
-    ////    mystepper->SetMaxiters(6);
+    ////    mystepper->SetMaxIters(6);
     ////    mystepper->SetAbsTolerances(1e-12);
     ////    mystepper->SetVerbose(false);
     ////    mystepper->SetStepControl(false);

@@ -52,7 +52,7 @@ void AddFallingItems(ChSystemSMC& sys) {
 
                 auto shape = chrono_types::make_shared<ChCollisionShapeSphere>(mat, radius);
                 body->AddCollisionShape(shape);
-                body->SetCollide(true);
+                body->EnableCollision(true);
 
                 auto sphere = chrono_types::make_shared<ChVisualShapeSphere>(radius);
                 sphere->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
@@ -72,7 +72,7 @@ void AddFallingItems(ChSystemSMC& sys) {
 
                 auto shape = chrono_types::make_shared<ChCollisionShapeBox>(mat, size.x(), size.y(), size.z());
                 body->AddCollisionShape(shape);
-                body->SetCollide(true);
+                body->EnableCollision(true);
 
                 auto box = chrono_types::make_shared<ChVisualShapeBox>(size);
                 box->SetTexture(GetChronoDataFile("textures/cubetexture_pinkwhite.png"));
@@ -105,9 +105,9 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
     auto fixedBody = chrono_types::make_shared<ChBody>();
 
     fixedBody->SetMass(1.0);
-    fixedBody->SetBodyFixed(true);
+    fixedBody->SetFixed(true);
     fixedBody->SetPos(ChVector3d());
-    fixedBody->SetCollide(true);
+    fixedBody->EnableCollision(true);
 
     // Contact material for container
     auto fixed_mat = chrono_types::make_shared<ChContactMaterialSMC>();
@@ -128,7 +128,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
     rotatingBody->SetMass(10.0);
     rotatingBody->SetInertiaXX(ChVector3d(50, 50, 50));
     rotatingBody->SetPos(ChVector3d(0, -1.6, 0));
-    rotatingBody->SetCollide(true);
+    rotatingBody->EnableCollision(true);
 
     // Contact material for mixer body
     auto rot_mat = chrono_types::make_shared<ChContactMaterialSMC>();
@@ -147,8 +147,8 @@ std::shared_ptr<ChBody> AddContainer(ChSystemSMC& sys) {
     // A motor between the two
     auto my_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
 
-    my_motor->Initialize(rotatingBody, fixedBody, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI_2)));
-    auto mfun = chrono_types::make_shared<ChFunctionConst>(CH_C_PI / 2.0);  // speed w=90 deg/s
+    my_motor->Initialize(rotatingBody, fixedBody, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI_2)));
+    auto mfun = chrono_types::make_shared<ChFunctionConst>(CH_PI / 2.0);  // speed w=90 deg/s
     my_motor->SetSpeedFunction(mfun);
 
     sys.AddLink(my_motor);
@@ -213,7 +213,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->SetWireFrameMode(false);
             vis_vsg->Initialize();

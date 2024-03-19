@@ -263,7 +263,7 @@ int main(int argc, char* argv[]) {
     m113.SetTrackShoeVisualizationType(track_vis);
 
     // Disable gravity in this simulation
-    ////m113.GetSystem()->Set_G_acc(ChVector3d(0, 0, 0));
+    ////m113.GetSystem()->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Change (SMC) contact force model
     ////if (contact_method == ChContactMethod::SMC) {
@@ -276,10 +276,10 @@ int main(int argc, char* argv[]) {
     // --------------------------------------------------
 
     // Enable contact on all tracked vehicle parts, except the left sprocket
-    ////vehicle.SetCollide(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
+    ////vehicle.EnableCollision(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
 
     // Disable contact for all tracked vehicle parts
-    ////vehicle.SetCollide(TrackedCollisionFlag::NONE);
+    ////vehicle.EnableCollision(TrackedCollisionFlag::NONE);
 
     // Disable all contacts for vehicle chassis (if chassis collision was defined)
     ////vehicle.SetChassisCollide(false);
@@ -374,7 +374,7 @@ int main(int argc, char* argv[]) {
                               (objA->GetContactableMass() + objB->GetContactableMass());
             double Sn = 2 * mat.E_eff * std::sqrt(eff_radius * delta);
             double loge = std::log(mat.cr_eff);
-            double beta = loge / std::sqrt(loge * loge + CH_C_PI * CH_C_PI);
+            double beta = loge / std::sqrt(loge * loge + CH_PI * CH_PI);
             double kn = (2.0 / 3) * Sn;
             double gn = -2 * std::sqrt(5.0 / 6) * beta * std::sqrt(Sn * eff_mass);
 
@@ -581,7 +581,7 @@ int main(int argc, char* argv[]) {
             auto track_R = vehicle.GetTrackAssembly(RIGHT);
             cout << "Time: " << m113.GetSystem()->GetChTime() << endl;
             cout << "      Num. contacts: " << m113.GetSystem()->GetNumContacts() << endl;
-            const ChFrameMoving<>& c_ref = m113.GetChassisBody()->GetFrame_REF_to_abs();
+            const ChFrameMoving<>& c_ref = m113.GetChassisBody()->GetFrameRefToAbs();
             const ChVector3d& c_pos = vehicle.GetPos();
             cout << "      chassis:    " << c_pos.x() << "  " << c_pos.y() << "  " << c_pos.z() << endl;
             {
@@ -680,13 +680,13 @@ void AddFixedObstacles(ChSystem* system) {
 
     auto obstacle = chrono_types::make_shared<ChBody>();
     obstacle->SetPos(ChVector3d(10, 0, -1.8));
-    obstacle->SetBodyFixed(true);
-    obstacle->SetCollide(true);
+    obstacle->SetFixed(true);
+    obstacle->EnableCollision(true);
 
     // Visualization
     auto shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
     shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
-    obstacle->AddVisualShape(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+    obstacle->AddVisualShape(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     // Contact
     ChContactMaterialData minfo;
@@ -696,7 +696,7 @@ void AddFixedObstacles(ChSystem* system) {
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(obst_mat, radius, length);
-    obstacle->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+    obstacle->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     system->AddBody(obstacle);
 }
@@ -711,13 +711,13 @@ void AddFallingObjects(ChSystem* system) {
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector3d(1, 1, 1));
     ball->SetPos(initLoc + ChVector3d(-3, 0, 2));
     ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    ball->SetPosDer(ChVector3d(3, 0, 0));
-    ball->SetBodyFixed(false);
+    ball->SetPosDt(ChVector3d(3, 0, 0));
+    ball->SetFixed(false);
 
     ChContactMaterialData minfo;
     auto obst_mat = minfo.CreateMaterial(system->GetContactMethod());
 
-    ball->SetCollide(true);
+    ball->EnableCollision(true);
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(obst_mat, radius);
     ball->AddCollisionShape(ct_shape);
 

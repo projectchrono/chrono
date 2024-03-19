@@ -194,7 +194,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChBodyEasyClusterOfSpheres)
 %shared_ptr(chrono::ChConveyor)
 %shared_ptr(chrono::ChFeeder)
-%shared_ptr(chrono::ChAparticle)
+%shared_ptr(chrono::ChParticle)
 %shared_ptr(chrono::ChParticleBase)
 %shared_ptr(chrono::ChIndexedParticles)
 %shared_ptr(chrono::ChParticleCloud)
@@ -273,7 +273,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChLinePoly)
 %shared_ptr(chrono::ChLineBezier)
 %shared_ptr(chrono::ChLineCam)
-%shared_ptr(chrono::ChLineBspline)
+%shared_ptr(chrono::ChLineBSpline)
 %shared_ptr(chrono::ChTriangle)
 %shared_ptr(chrono::ChSurfaceNurbs)
 %shared_ptr(chrono::ChTriangleMesh)
@@ -362,7 +362,7 @@ using namespace chrono::fea;
 %include "ChVisualSystem.i"
 
 // physics/  classes
-%include "ChController.i"
+%include "ChControllers.i"
 %include "ChLoadable.i"
 %include "ChObject.i"
 %include "ChPhysicsItem.i"
@@ -590,13 +590,15 @@ using namespace chrono::fea;
 
 
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaft)
-%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftsBody)
+%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftBodyRotation)
+%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftBodyTranslation)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftsCouple)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftsClutch)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftsMotor)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftsTorsionSpring)
+%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftsAppliedTorque)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftsPlanetary)
-%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftsTorqueBase)
+%DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftsTorque)
 %DefSharedPtrDynamicDowncast(chrono, ChPhysicsItem, ChShaftsThermalEngine)
 
 %DefSharedPtrDynamicDowncast(chrono, ChLoadBase, ChLoadCustom)
@@ -627,7 +629,7 @@ using namespace chrono::fea;
 public:
   double ClosestPointCurvature(const chrono::ChVector3d& loc, chrono::ChFrame<>& tnb) {
     double curvature;
-    int foo = $self->calcClosestPoint(loc, tnb, curvature);
+    int foo = $self->CalcClosestPoint(loc, tnb, curvature);
     return curvature;
   }
 };

@@ -104,7 +104,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
     AverageXPos /= CirclePosAll.size();
 
     bool SprocketInFront = (CirclePosAll[0].x() >= AverageXPos) ? true : false;
-    double StartingAngle = (CirclePosAll[0].x() >= AverageXPos) ? 0 : CH_C_PI;
+    double StartingAngle = (CirclePosAll[0].x() >= AverageXPos) ? 0 : CH_PI;
 
     // Start building the path around the sprocket, idler, and wheels
 
@@ -180,10 +180,10 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
             // Ensure that all of the angles are greater than the starting angle by at least a little bit to prevent
             // numerical noise
             while (Angle1 < StartingAngle + .00001) {
-                Angle1 += CH_C_2PI;
+                Angle1 += CH_2PI;
             }
             while (Angle2 < StartingAngle + .00001) {
-                Angle2 += CH_C_2PI;
+                Angle2 += CH_2PI;
             }
 
             // If this is the first point that is examined, then save that point as the inital comparison value.
@@ -220,7 +220,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
         StartingAngle = std::atan2(TangentPoints[iter].second.y() - CirclePosAll[Current_Circle].y(),
                                    TangentPoints[iter].second.x() - CirclePosAll[Current_Circle].x());
         if (StartingAngle < 0) {
-            StartingAngle += CH_C_2PI;
+            StartingAngle += CH_2PI;
         }
 
         // Check to see if the wrap has made it back onto the starting circle (sprocket) and therefore would complete
@@ -279,10 +279,10 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
         std::atan2(TangentPoints[0].first.y() - CirclePos[0].y(), TangentPoints[0].first.x() - CirclePos[0].x());
 
     if (StartingAngle < 0) {
-        StartingAngle += CH_C_2PI;
+        StartingAngle += CH_2PI;
     }
     while (EndingAngle < StartingAngle) {
-        EndingAngle += CH_C_2PI;
+        EndingAngle += CH_2PI;
     }
 
     Arcs(0, 0) = EndingAngle - StartingAngle;
@@ -295,10 +295,10 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
         EndingAngle = std::atan2(TangentPoints[i].first.y() - CirclePos[i].y(), TangentPoints[i].first.x() - CirclePos[i].x());
 
         if (StartingAngle < 0) {
-            StartingAngle += CH_C_2PI;
+            StartingAngle += CH_2PI;
         }
         while (EndingAngle < StartingAngle) {
-            EndingAngle += CH_C_2PI;
+            EndingAngle += CH_2PI;
         }
 
         Arcs(i, 0) = EndingAngle - StartingAngle;
@@ -320,7 +320,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
     // of the needed scale to place all of the belt wrapping positions.
 
     // Divide by 2*PI since the belt wrap forms a closed loop/circle
-    double DeltaRadius = (CombineShoeLength - (LengthOfArcs + LengthOfTangents)) / (CH_C_2PI);
+    double DeltaRadius = (CombineShoeLength - (LengthOfArcs + LengthOfTangents)) / (CH_2PI);
     ScaleMin = DeltaRadius;
 
     // Properly size the container of output points
@@ -361,11 +361,11 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
         StartingAngle = 2 * std::asin(FirstShoeFractionalOffset * connection_lengths[0] / (2 * ScaledCircleRadius[0]));
 
         if (!SprocketInFront) {
-            StartingAngle += CH_C_PI;  // Start on the back side of the sprocket instead of the front
+            StartingAngle += CH_PI;  // Start on the back side of the sprocket instead of the front
         }
 
         while (StartingAngle < Arcs(0, 1)) {
-            StartingAngle += CH_C_2PI;
+            StartingAngle += CH_2PI;
         }
 
         shoe_points[0] = ChVector2d(std::cos(StartingAngle) * ScaledCircleRadius[0] + CirclePos[0].x(),
@@ -445,7 +445,7 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
             if ((!InitalSprocketWrap) && (CurrentFeature == 0)) {
                 CurrentAngle = std::atan2(Point.y() - CirclePos[0].y(), Point.x() - CirclePos[0].x());
                 while (CurrentAngle < Features(0, 3)) {
-                    CurrentAngle += CH_C_2PI;
+                    CurrentAngle += CH_2PI;
                 }
                 if (CurrentAngle > StartingAngle) {
                     ExtraLength = (CurrentAngle - StartingAngle) * Features(0, 5);
@@ -494,11 +494,11 @@ bool ChTrackAssemblyBand::FindAssemblyPoints(std::shared_ptr<ChBodyAuxRef> chass
         }
     }
 
-    ////utils::CSV_writer csv;
+    ////utils::ChWriterCSV csv;
     ////for (int i = 0; i < shoe_points.size(); i++) {
     ////    csv << shoe_points[i].x() << shoe_points[i].y() << std::endl;
     ////}
-    ////csv.write_to_file("points.txt");
+    ////csv.WriteToFile("points.txt");
 
     //// TODO:  right now only counter-clock-wise
     return true;
@@ -525,15 +525,15 @@ void ChTrackAssemblyBand::FindCircleTangentPoints(ChVector2d Circle1Pos,
     double gamma = std::atan2((y2 - y1), (x2 - x1));
 
     Tan1Pnt1 =
-        ChVector2d(x1 + r1 * std::cos(gamma + (CH_C_PI_2 + beta)), y1 + r1 * std::sin(gamma + (CH_C_PI_2 + beta)));
+        ChVector2d(x1 + r1 * std::cos(gamma + (CH_PI_2 + beta)), y1 + r1 * std::sin(gamma + (CH_PI_2 + beta)));
     Tan1Pnt2 =
-        ChVector2d(x2 + r2 * std::cos(gamma + (CH_C_PI_2 + beta)), y2 + r2 * std::sin(gamma + (CH_C_PI_2 + beta)));
+        ChVector2d(x2 + r2 * std::cos(gamma + (CH_PI_2 + beta)), y2 + r2 * std::sin(gamma + (CH_PI_2 + beta)));
 
     // Pick the external tangent on the other side of the circle
     Tan2Pnt1 =
-        ChVector2d(x1 + r1 * std::cos(gamma - (CH_C_PI_2 + beta)), y1 + r1 * std::sin(gamma - (CH_C_PI_2 + beta)));
+        ChVector2d(x1 + r1 * std::cos(gamma - (CH_PI_2 + beta)), y1 + r1 * std::sin(gamma - (CH_PI_2 + beta)));
     Tan2Pnt2 =
-        ChVector2d(x2 + r2 * std::cos(gamma - (CH_C_PI_2 + beta)), y2 + r2 * std::sin(gamma - (CH_C_PI_2 + beta)));
+        ChVector2d(x2 + r2 * std::cos(gamma - (CH_PI_2 + beta)), y2 + r2 * std::sin(gamma - (CH_PI_2 + beta)));
 }
 
 void ChTrackAssemblyBand::CheckCircleCircle(bool& found,
@@ -570,27 +570,27 @@ void ChTrackAssemblyBand::CheckCircleCircle(bool& found,
 
     ChVector2d Ctr = StartingPoint - ArcCenter;
     double Angle1 = std::atan2(Ctr.y(), Ctr.x()) - theta;
-    double Angle2 = std::atan2(Ctr.y(), Ctr.x()) + theta - CH_C_2PI;
+    double Angle2 = std::atan2(Ctr.y(), Ctr.x()) + theta - CH_2PI;
 
     while (Angle1 < StartingArcAngle) {
-        Angle1 += CH_C_2PI;
+        Angle1 += CH_2PI;
     }
     while (Angle2 < StartingArcAngle) {
-        Angle2 += CH_C_2PI;
+        Angle2 += CH_2PI;
     }
 
     double Angle0 = std::atan2(Ctr.y(), Ctr.x());
-    double Angle1_check = Angle1 - 6 * CH_C_PI;
-    double Angle2_check = Angle2 - 6 * CH_C_PI;
+    double Angle1_check = Angle1 - 6 * CH_PI;
+    double Angle2_check = Angle2 - 6 * CH_PI;
 
     while (Angle0 < 0) {
-        Angle0 += CH_C_2PI;
+        Angle0 += CH_2PI;
     }
     while (Angle1_check < Angle0) {
-        Angle1_check += CH_C_2PI;
+        Angle1_check += CH_2PI;
     }
     while (Angle2_check < Angle0) {
-        Angle2_check += CH_C_2PI;
+        Angle2_check += CH_2PI;
     }
 
     if (Angle1_check < Angle2_check) {

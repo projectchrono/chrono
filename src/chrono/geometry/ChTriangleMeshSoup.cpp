@@ -60,14 +60,14 @@ bool ChTriangleMeshSoup::LoadWavefrontMesh(std::string filename) {
             auto v0 = ChVector3d(att.vertices[3 * i0 + 0], att.vertices[3 * i0 + 1], att.vertices[3 * i0 + 2]);
             auto v1 = ChVector3d(att.vertices[3 * i1 + 0], att.vertices[3 * i1 + 1], att.vertices[3 * i1 + 2]);
             auto v2 = ChVector3d(att.vertices[3 * i2 + 0], att.vertices[3 * i2 + 1], att.vertices[3 * i2 + 2]);
-            addTriangle(v0, v1, v2);
+            AddTriangle(v0, v1, v2);
         }
     }
 
     return true;
 }
 
-void ChTriangleMeshSoup::addTriangle(const ChVector3d& vertex0, const ChVector3d& vertex1, const ChVector3d& vertex2) {
+void ChTriangleMeshSoup::AddTriangle(const ChVector3d& vertex0, const ChVector3d& vertex1, const ChVector3d& vertex2) {
     ChTriangle tri(vertex0, vertex1, vertex2);
     m_triangles.push_back(tri);
 }

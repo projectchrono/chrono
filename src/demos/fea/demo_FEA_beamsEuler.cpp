@@ -26,8 +26,8 @@
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
-#include "chrono/fea/ChLinkPointFrame.h"
-#include "chrono/fea/ChLinkDirFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -54,11 +54,11 @@ int main(int argc, char* argv[]) {
     double beam_wz = 0.025;
     msection->SetAsRectangularSection(beam_wy, beam_wz);
     msection->SetYoungModulus(0.01e9);
-    msection->SetGshearModulus(0.01e9 * 0.3);
-    msection->SetBeamRayleighDamping(0.000);
+    msection->SetShearModulus(0.01e9 * 0.3);
+    msection->SetRayleighDamping(0.000);
     // msection->SetCentroid(0,0.02);
     // msection->SetShearCenter(0,0.1);
-    // msection->SetSectionRotation(45*CH_C_RAD_TO_DEG);
+    // msection->SetSectionRotation(45*CH_RAD_TO_DEG);
 
     // These are for the external loads (define here to help using ChStaticNonLinearIncremental later)
     ChVector3d F_node_1(9, 2, 0);
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     // Fix a node to ground:
     // hnode1->SetFixed(true);
     auto mtruss = chrono_types::make_shared<ChBody>();
-    mtruss->SetBodyFixed(true);
+    mtruss->SetFixed(true);
     sys.Add(mtruss);
 
     auto constr_bc = chrono_types::make_shared<ChLinkMateFix>();
@@ -199,15 +199,14 @@ int main(int argc, char* argv[]) {
     solver->EnableDiagonalPreconditioner(true);
     solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
     solver->SetVerbose(false);
-
-    sys.SetSolverForceTolerance(1e-13);
+    solver->SetTolerance(1e-14);
 
     // Change type of integrator
     /*
     auto stepper = chrono_types::make_shared<ChTimestepperHHT>();
     sys.SetTimestepper(stepper);
     stepper->SetAlpha(-0.2);
-    stepper->SetMaxiters(6);
+    stepper->SetMaxIters(6);
     stepper->SetAbsTolerances(1e-12);
     stepper->SetVerbose(true);
     stepper->SetStepControl(false);
@@ -241,7 +240,7 @@ int main(int argc, char* argv[]) {
             ) {
                 // Scale the external loads. In our example, just two forces. 
                 // Note: if gravity is used, consider scaling also gravity effect, e.g: 
-                //    sys.Set_G_acc(load_scaling * ChVector3d(0,-9.8,0))
+                //    sys.SetGravitationalAcceleration(load_scaling * ChVector3d(0,-9.8,0))
                 cb_loaded_node_1->SetForce(load_scaling * cb_F_node_1);
                 cb_loaded_node_2->SetForce(load_scaling * cb_F_node_2);
             }

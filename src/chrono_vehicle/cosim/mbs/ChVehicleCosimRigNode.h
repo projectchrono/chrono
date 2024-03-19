@@ -68,7 +68,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimWheeledMBSNode
     virtual void ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) override;
 
     /// Return the number of spindles in the vehicle system.
-    virtual int GetNumSpindles() const override { return 1; }
+    virtual unsigned int GetNumSpindles() const override { return 1; }
 
     /// Return the i-th spindle body in the vehicle system.
     virtual std::shared_ptr<ChBody> GetSpindleBody(unsigned int i) const override { return m_spindle; }

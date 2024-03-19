@@ -60,11 +60,11 @@ std::shared_ptr<ChBody> AddSphere(int id,
     body->SetMass(mass);
     body->SetPos(pos);
     body->SetRot(rot);
-    body->SetPosDer(init_v);
+    body->SetPosDt(init_v);
     body->SetAngVelParent(init_w);
     body->SetInertiaXX(inertia);
-    body->SetBodyFixed(false);
-    body->SetCollide(true);
+    body->SetFixed(false);
+    body->EnableCollision(true);
 
     utils::AddSphereGeometry(body.get(), mat, radius);
 
@@ -93,10 +93,10 @@ std::shared_ptr<ChBody> AddWall(int id,
     body->SetMass(mass);
     body->SetPos(pos);
     body->SetRot(rot);
-    body->SetPosDer(init_v);
+    body->SetPosDt(init_v);
     body->SetInertiaXX(inertia);
-    body->SetBodyFixed(wall);
-    body->SetCollide(true);
+    body->SetFixed(wall);
+    body->EnableCollision(true);
 
     utils::AddBoxGeometry(body.get(), mat, size);
 
@@ -113,10 +113,10 @@ void SetSimParameters(
     ChSystemSMC::TangentialDisplacementModel tmodel = ChSystemSMC::TangentialDisplacementModel::MultiStep) {
     // Set solver settings and collision detection parameters
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys->Set_G_acc(gravity);
+    sys->SetGravitationalAcceleration(gravity);
 
-    sys->SetMaxiter(100);
-    sys->SetSolverTolerance(1e-3);
+    if (sys->GetSolver()->IsIterative())
+        sys->GetSolver()->AsIterative()->SetTolerance(1e-3);
 
     sys->SetContactForceModel(fmodel);
     sys->SetTangentialDisplacementModel(tmodel);
@@ -132,7 +132,7 @@ void SetSimParameters(
     ChSystemSMC::TangentialDisplacementModel tmodel = ChSystemSMC::TangentialDisplacementModel::MultiStep) {
     // Set solver settings and collision detection parameters
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
-    sys->Set_G_acc(gravity);
+    sys->SetGravitationalAcceleration(gravity);
 
     sys->GetSettings()->solver.max_iteration_bilateral = 100;
     sys->GetSettings()->solver.tolerance = 1e-3;
@@ -149,7 +149,7 @@ void SetSimParameters(
 bool CalcKE(ChSystem* sys, const double& threshold) {
     const std::shared_ptr<ChBody> body = sys->GetBodies().at(1);
 
-    ChVector3d eng_trn = 0.5 * body->GetMass() * body->GetPosDer() * body->GetPosDer();
+    ChVector3d eng_trn = 0.5 * body->GetMass() * body->GetPosDt() * body->GetPosDt();
     ChVector3d eng_rot = 0.5 * body->GetInertiaXX() * body->GetAngVelParent() * body->GetAngVelParent();
 
     double KE_trn = eng_trn.x() + eng_trn.y() + eng_trn.z();
@@ -167,7 +167,7 @@ bool CalcAverageKE(ChSystem* sys, const double& threshold) {
     double KE_rot = 0;
 
     for (auto body : sys->GetBodies()) {
-        ChVector3d eng_trn = 0.5 * body->GetMass() * body->GetPosDer() * body->GetPosDer();
+        ChVector3d eng_trn = 0.5 * body->GetMass() * body->GetPosDt() * body->GetPosDt();
         ChVector3d eng_rot = 0.5 * body->GetInertiaXX() * body->GetAngVelParent() * body->GetAngVelParent();
 
         KE_trn += eng_trn.x() + eng_trn.y() + eng_trn.z();

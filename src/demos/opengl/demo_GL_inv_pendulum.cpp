@@ -107,7 +107,7 @@ MyController::MyController(std::shared_ptr<ChBody> cart, std::shared_ptr<ChBody>
 
     // Initialize errors
     m_e_cart = 0;
-    m_ed_cart = m_cart->GetPosDer().x();
+    m_ed_cart = m_cart->GetPosDt().x();
     m_ei_cart = 0;
 
     m_e_pend = 0;
@@ -150,7 +150,7 @@ void MyController::Advance(double step) {
     double e_pend = GetCurrentPendAngle() - m_a_pend;
 
     // Calculate current error derivatives
-    m_ed_cart = m_cart->GetPosDer().x();
+    m_ed_cart = m_cart->GetPosDt().x();
     m_ed_pend = m_pend->GetAngVelLocal().z();
 
     // Calculate current error integrals (trapezoidal rule)
@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     // Attach visualization assets
     auto sphere1_g = chrono_types::make_shared<ChVisualShapeSphere>(0.02);
@@ -226,12 +226,12 @@ int main(int argc, char* argv[]) {
 
     // Attach visualization assets.
     auto cyl_p = chrono_types::make_shared<ChVisualShapeCylinder>(r_pend, 2 * hlen_pend);
-    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     // Translational joint ground-cart
     // -------------------------------
     auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic->Initialize(ground, cart, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_C_PI_2)));
+    prismatic->Initialize(ground, cart, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_PI_2)));
     sys.AddLink(prismatic);
 
     // Revolute joint cart-pendulum

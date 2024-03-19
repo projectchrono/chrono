@@ -161,7 +161,7 @@ void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 /
 
     // Create the 'complete' knot vector, with multiple at the ends
     ChVectorDynamic<> myknots(N + p + p + 1);
-    ChBasisToolsBspline::ComputeKnotUniformMultipleEnds(myknots, p, 0.0, 1.0);
+    ChBasisToolsBSpline::ComputeKnotUniformMultipleEnds(myknots, p, 0.0, 1.0);
 
     // Create the 'complete' stl vector of control points, with uniform distribution
     std::vector<std::shared_ptr<ChNodeFEAxyzrot>> mynodes;
@@ -199,7 +199,7 @@ void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 /
 
 void ChBuilderBeamIGA::BuildBeam(std::shared_ptr<ChMesh> mesh,                 // mesh to store the resulting elements
                                  std::shared_ptr<ChBeamSectionCosserat> sect,  // section material for beam elements
-                                 ChLineBspline& spline,  // the B-spline to be used as the centerline
+                                 ChLineBSpline& spline,  // the B-spline to be used as the centerline
                                  const ChVector3d Ydir   // the 'up' Y direction of the beam
 ) {
     beam_elems.clear();
@@ -658,11 +658,11 @@ ChExtruderBeamEuler::ChExtruderBeamEuler(
     speed = mspeed;
 
     ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     mysystem->Add(ground);
 
     auto nodeA = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(outlet));
-    nodeA->SetPosDer(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
+    nodeA->SetPosDt(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
     nodeA->SetX0(ChFrame<>());
     mesh->AddNode(nodeA);
     beam_nodes.push_back(nodeA);
@@ -712,7 +712,7 @@ void ChExtruderBeamEuler::Update() {
         C0_ref.pos = node1->GetX0().GetPos() - VECT_X * this->h;
 
         auto node0 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(C0));
-        node0->SetPosDer(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
+        node0->SetPosDt(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
         node0->SetX0(ChFrame<>(C0_ref));
         mesh->AddNode(node0);
         beam_nodes.push_back(node0);
@@ -765,11 +765,11 @@ ChExtruderBeamIGA::ChExtruderBeamIGA(ChSystem* msystem,              // system t
     speed = mspeed;
 
     ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     mysystem->Add(ground);
 
     auto nodeA = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(outlet));
-    nodeA->SetPosDer(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
+    nodeA->SetPosDt(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
     nodeA->SetX0(ChFrame<>());
     mesh->AddNode(nodeA);
     beam_nodes.push_back(nodeA);
@@ -827,7 +827,7 @@ bool ChExtruderBeamIGA::Update() {
     C0_ref.pos = node1->GetX0().GetPos() - VECT_X * this->h;
 
     auto node0 = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(C0));
-    node0->SetPosDer(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
+    node0->SetPosDt(outlet.TransformDirectionLocalToParent(VECT_X * this->speed));
     node0->SetX0(ChFrame<>(C0_ref));
     mesh->AddNode(node0);
     beam_nodes.push_back(node0);

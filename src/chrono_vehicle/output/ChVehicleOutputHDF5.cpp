@@ -402,9 +402,9 @@ void ChVehicleOutputHDF5::WriteMarkers(const std::vector<std::shared_ptr<ChMarke
     H5::DataSpace dataspace(1, dim);
     std::vector<marker_info> info(nmarkers);
     for (auto i = 0; i < nmarkers; i++) {
-        const ChVector3d& p = markers[i]->GetAbsCsys().pos;
-        const ChVector3d& pd = markers[i]->GetAbsCsysDer().pos;
-        const ChVector3d& pdd = markers[i]->GetAbsCsysDer2().pos;
+        const ChVector3d& p = markers[i]->GetAbsCoordsys().pos;
+        const ChVector3d& pd = markers[i]->GetAbsCoordsysDt().pos;
+        const ChVector3d& pdd = markers[i]->GetAbsCoordsysDt2().pos;
         info[i] = {markers[i]->GetIdentifier(), p.x(), p.y(), p.z(), pd.x(), pd.y(), pd.z(), pdd.x(), pdd.y(), pdd.z()};
     }
 
@@ -421,7 +421,7 @@ void ChVehicleOutputHDF5::WriteShafts(const std::vector<std::shared_ptr<ChShaft>
     H5::DataSpace dataspace(1, dim);
     std::vector<shaft_info> info(nshafts);
     for (auto i = 0; i < nshafts; i++) {
-        info[i] = {shafts[i]->GetIdentifier(), shafts[i]->GetPos(), shafts[i]->GetPosDer(), shafts[i]->GetPosDer2(),
+        info[i] = {shafts[i]->GetIdentifier(), shafts[i]->GetPos(), shafts[i]->GetPosDt(), shafts[i]->GetPosDt2(),
                    shafts[i]->GetAppliedTorque()};
     }
 
@@ -438,8 +438,9 @@ void ChVehicleOutputHDF5::WriteJoints(const std::vector<std::shared_ptr<ChLink>>
     H5::DataSpace dataspace(1, dim);
     std::vector<joint_info> info(njoints);
     for (auto i = 0; i < njoints; i++) {
-        const ChVector3d& f = joints[i]->Get_react_force();
-        const ChVector3d& t = joints[i]->Get_react_torque();
+        auto reaction = joints[i]->GetReaction2();
+        const ChVector3d& f = reaction.force;
+        const ChVector3d& t = reaction.torque;
         info[i] = { joints[i]->GetIdentifier(), f.x(), f.y(), f.z(), t.x(), t.y(), t.z() };
     }
 
@@ -456,9 +457,11 @@ void ChVehicleOutputHDF5::WriteCouples(const std::vector<std::shared_ptr<ChShaft
     H5::DataSpace dataspace(1, dim);
     std::vector<couple_info> info(ncouples);
     for (auto i = 0; i < ncouples; i++) {
-        info[i] = {couples[i]->GetIdentifier(),          couples[i]->GetRelativeRotation(),
-                   couples[i]->GetRelativeRotation_dt(), couples[i]->GetRelativeRotation_dtdt(),
-                   couples[i]->GetTorqueReactionOn1(),   couples[i]->GetTorqueReactionOn2()};
+        info[i] = {
+            couples[i]->GetIdentifier(),    couples[i]->GetRelativePos(),     //
+            couples[i]->GetRelativePosDt(), couples[i]->GetRelativePosDt2(),  //
+            couples[i]->GetReaction1(),     couples[i]->GetReaction2()        //
+        };
     }
 
     H5::DataSet set = m_section_group->createDataSet("Couples", getCoupleType(), dataspace);

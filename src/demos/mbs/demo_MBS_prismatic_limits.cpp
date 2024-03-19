@@ -41,8 +41,8 @@ int main(int argc, char* argv[]) {
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
-    ground->SetCollide(false);
+    ground->SetFixed(true);
+    ground->EnableCollision(false);
 
     auto rail1 = chrono_types::make_shared<ChVisualShapeBox>(8, 0.1, 0.1);
     ground->AddVisualShape(rail1, ChFrame<>(ChVector3d(0, 0, -1), QUNIT));
@@ -56,28 +56,28 @@ int main(int argc, char* argv[]) {
     auto slider1 = chrono_types::make_shared<ChBody>();
     sys.AddBody(slider1);
     slider1->SetIdentifier(1);
-    slider1->SetBodyFixed(false);
-    slider1->SetCollide(false);
+    slider1->SetFixed(false);
+    slider1->EnableCollision(false);
     slider1->SetMass(1);
     slider1->SetInertiaXX(ChVector3d(0.1, 0.1, 0.1));
     slider1->SetPos(ChVector3d(-4, 0, -1));
 
     auto cyl1 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 0.4);
     cyl1->SetColor(ChColor(0.6f, 0, 0));
-    slider1->AddVisualShape(cyl1, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
+    slider1->AddVisualShape(cyl1, ChFrame<>(VNULL, QuatFromAngleY(CH_PI_2)));
 
     auto slider2 = chrono_types::make_shared<ChBody>();
     sys.AddBody(slider2);
     slider2->SetIdentifier(1);
-    slider2->SetBodyFixed(false);
-    slider2->SetCollide(false);
+    slider2->SetFixed(false);
+    slider2->EnableCollision(false);
     slider2->SetMass(1);
     slider2->SetInertiaXX(ChVector3d(0.1, 0.1, 01));
     slider2->SetPos(ChVector3d(-4, 0, +1));
 
     auto cyl2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 0.4);
     cyl2->SetColor(ChColor(0, 0, 0.6f));
-    slider2->AddVisualShape(cyl2, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
+    slider2->AddVisualShape(cyl2, ChFrame<>(VNULL, QuatFromAngleY(CH_PI_2)));
 
     // Create prismatic joints between ground and sliders
     // --------------------------------------------------
@@ -85,13 +85,13 @@ int main(int argc, char* argv[]) {
     // Add limit (Z min) on this prismatic joint.
     // The limit value relates to the Z component of the relative marker position 2->1
     auto prismatic1 = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic1->Initialize(ground, slider1, ChFrame<>(ChVector3d(0, 0, -1), QuatFromAngleY(CH_C_PI_2)));
-    prismatic1->GetLimit_Z().SetActive(true);
-    prismatic1->GetLimit_Z().SetMin(-6);
+    prismatic1->Initialize(ground, slider1, ChFrame<>(ChVector3d(0, 0, -1), QuatFromAngleY(CH_PI_2)));
+    prismatic1->LimitZ().SetActive(true);
+    prismatic1->LimitZ().SetMin(-6);
     sys.AddLink(prismatic1);
 
     auto prismatic2 = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic2->Initialize(ground, slider2, ChFrame<>(ChVector3d(0, 0, +1), QuatFromAngleY(CH_C_PI_2)));
+    prismatic2->Initialize(ground, slider2, ChFrame<>(ChVector3d(0, 0, +1), QuatFromAngleY(CH_PI_2)));
     sys.AddLink(prismatic2);
 
     // Add linear springs to the sliders
@@ -138,7 +138,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         // Enable also the Z max limit on the 1st prismatic joint
         if (!max_lim_enabled && slider1->GetPos().x() > 0) {
-            prismatic1->GetLimit_Z().SetMax(-3);
+            prismatic1->LimitZ().SetMax(-3);
             max_lim_enabled = true;
         }
 

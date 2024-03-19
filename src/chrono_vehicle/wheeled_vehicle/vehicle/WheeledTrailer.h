@@ -36,7 +36,7 @@ class CH_VEHICLE_API WheeledTrailer : public ChWheeledTrailer {
 
     ~WheeledTrailer() {}
 
-    virtual int GetNumberAxles() const override { return m_num_axles; }
+    virtual unsigned int GetNumberAxles() const override { return m_num_axles; }
 
     virtual void Initialize(std::shared_ptr<ChChassis> frontChassis) override;
 

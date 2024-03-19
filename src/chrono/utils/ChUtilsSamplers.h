@@ -14,19 +14,19 @@
 //
 // Utility classes for various space sampling methods.
 //
-// Sampler
+// ChSampler
 //  - base class
 //  - implements the top-level methods for sampling a given volume
 //  - supported domains: box, rectangle, cylinder, disk, sphere
 //
-// PDSampler
+// ChPDSampler
 //  - implements Poisson Disk sampler - uniform random distribution with
 //    guaranteed minimum distance between any two sample points.
 //
-// GridSampler
+// ChGridSampler
 //  - uniform grid
 //
-// HCPSampler
+// ChHCPSampler
 // - A class to generate points in a hexagonally close packed structure.
 // =============================================================================
 
@@ -99,14 +99,14 @@ enum class SamplingType {
 
 /// Base class for different types of point samplers.
 template <typename T>
-class Sampler {
+class ChSampler {
   public:
     static_assert(std::is_floating_point<T>::value,
-                  "class chrono::utils::Sampler can only be instantiated with floating point types");
+                  "class chrono::utils::ChSampler can only be instantiated with floating point types");
 
     typedef typename Types<T>::PointVector PointVector;
 
-    virtual ~Sampler() {}
+    virtual ~ChSampler() {}
 
     /// Return points sampled from the specified box volume.
     PointVector SampleBox(const ChVector3<T>& center, const ChVector3<T>& halfDim) {
@@ -152,7 +152,7 @@ class Sampler {
   protected:
     enum VolumeType { BOX, SPHERE, CYLINDER_X, CYLINDER_Y, CYLINDER_Z };
 
-    Sampler(T separation) : m_separation(separation) {}
+    ChSampler(T separation) : m_separation(separation) {}
 
     /// Worker function for sampling the given domain.
     /// Implemented by concrete samplers.
@@ -183,18 +183,18 @@ class Sampler {
         }
     }
 
-    T m_separation;        ///< inter-particle separation
+    T m_separation;         ///< inter-particle separation
     ChVector3<T> m_center;  ///< center of the sampling volume
     ChVector3<T> m_size;    ///< half dimensions of the bounding box of the sampling volume
 };
 
 /// Simple 3D grid utility class for use by the Poisson Disk sampler.
 template <typename Point = ChVector3d>
-class PDGrid {
+class ChPDGrid {
   public:
     typedef std::pair<Point, bool> Content;
 
-    PDGrid() {}
+    ChPDGrid() {}
 
     int GetDimX() const { return m_dimX; }
     int GetDimY() const { return m_dimY; }
@@ -245,15 +245,15 @@ constexpr T Pi = T(3.1415926535897932385L);
 /// Based on "Fast Poisson Disk Sampling in Arbitrary Dimensions" by Robert Bridson \n
 /// http://people.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf
 template <typename T = double>
-class PDSampler : public Sampler<T> {
+class ChPDSampler : public ChSampler<T> {
   public:
     typedef typename Types<T>::PointVector PointVector;
     typedef typename Types<T>::PointList PointList;
-    typedef typename Sampler<T>::VolumeType VolumeType;
+    typedef typename ChSampler<T>::VolumeType VolumeType;
 
     /// Construct a Poisson Disk sampler with specified minimum distance.
-    PDSampler(T separation, int pointsPerIteration = m_ppi_default)
-        : Sampler<T>(separation), m_ppi(pointsPerIteration), m_realDist(0.0, 1.0) {
+    ChPDSampler(T separation, int pointsPerIteration = m_ppi_default)
+        : ChSampler<T>(separation), m_ppi(pointsPerIteration), m_realDist(0.0, 1.0) {
         m_gridLoc.resize(3);
         m_realDist.reset();
         rengine().seed(0);
@@ -420,13 +420,13 @@ class PDSampler : public Sampler<T> {
         m_gridLoc[2] = (int)((point.z() - m_bl.z()) / m_cellSize);
     }
 
-    PDGrid<ChVector3<T>> m_grid;
+    ChPDGrid<ChVector3<T>> m_grid;
     PointList m_active;
 
-    Direction2D m_2D;  ///< 2D or 3D sampling
+    Direction2D m_2D;   ///< 2D or 3D sampling
     ChVector3<T> m_bl;  ///< bottom-left corner of sampling domain
     ChVector3<T> m_tr;  ///< top-right corner of sampling domain      REMOVE?
-    T m_cellSize;      ///< grid cell size
+    T m_cellSize;       ///< grid cell size
 
     std::vector<int> m_gridLoc;
     int m_ppi;  ///< maximum points per iteration
@@ -443,11 +443,12 @@ class PDSampler : public Sampler<T> {
 /// distance (padding_factor * diam). This significantly improves computational efficiency of the sampling but at the
 /// cost of discarding the PD uniform distribution properties in the direction orthogonal to the layers.
 template <typename T>
-std::vector<ChVector3<T>> PDLayerSampler_BOX(ChVector3<T> center,       ///< Center of axis-aligned box to fill
-                                            ChVector3<T> hdims,        ///< Half-dimensions along the x, y, and z axes
-                                            T diam,                   ///< Particle diameter
-                                            T padding_factor = 1.02,  ///< Multiplier on particle diameter for spacing
-                                            bool verbose = false      ///< Output progress during generation
+std::vector<ChVector3<T>> ChPDLayerSamplerBox(
+    ChVector3<T> center,      ///< Center of axis-aligned box to fill
+    ChVector3<T> hdims,       ///< Half-dimensions along the x, y, and z axes
+    T diam,                   ///< Particle diameter
+    T padding_factor = 1.02,  ///< Multiplier on particle diameter for spacing
+    bool verbose = false      ///< Output progress during generation
 ) {
     T fill_bottom = center.z() - hdims.z();
     T fill_top = center.z() + hdims.z();
@@ -457,7 +458,7 @@ std::vector<ChVector3<T>> PDLayerSampler_BOX(ChVector3<T> center,       ///< Cen
     // 2D layer
     hdims.z() = 0;
 
-    chrono::utils::PDSampler<T> sampler(diam * padding_factor);
+    chrono::utils::ChPDSampler<T> sampler(diam * padding_factor);
     std::vector<ChVector3<T>> points_full;
     while (center.z() < fill_top) {
         if (verbose) {
@@ -473,13 +474,13 @@ std::vector<ChVector3<T>> PDLayerSampler_BOX(ChVector3<T> center,       ///< Cen
 /// Sampler for 3D volumes using a regular (equidistant) grid.
 /// The grid spacing can be different in the 3 global X, Y, and Z directions.
 template <typename T = double>
-class GridSampler : public Sampler<T> {
+class ChGridSampler : public ChSampler<T> {
   public:
     typedef typename Types<T>::PointVector PointVector;
-    typedef typename Sampler<T>::VolumeType VolumeType;
+    typedef typename ChSampler<T>::VolumeType VolumeType;
 
-    GridSampler(T separation) : Sampler<T>(separation), m_sep3D(separation, separation, separation) {}
-    GridSampler(const ChVector3<T>& separation) : Sampler<T>(separation.x()), m_sep3D(separation) {}
+    ChGridSampler(T separation) : ChSampler<T>(separation), m_sep3D(separation, separation, separation) {}
+    ChGridSampler(const ChVector3<T>& separation) : ChSampler<T>(separation.x()), m_sep3D(separation) {}
 
     /// Change the minimum separation for subsequent calls to Sample.
     virtual void SetSeparation(T separation) override { m_sep3D = ChVector3<T>(separation, separation, separation); }
@@ -513,12 +514,12 @@ class GridSampler : public Sampler<T> {
 
 /// Sampler for 3D volumes using a Hexagonally Close Packed structure.
 template <typename T = double>
-class HCPSampler : public Sampler<T> {
+class ChHCPSampler : public ChSampler<T> {
   public:
     typedef typename Types<T>::PointVector PointVector;
-    typedef typename Sampler<T>::VolumeType VolumeType;
+    typedef typename ChSampler<T>::VolumeType VolumeType;
 
-    HCPSampler(T separation) : Sampler<T>(separation) {}
+    ChHCPSampler(T separation) : ChSampler<T>(separation) {}
 
   private:
     /// Worker function for sampling the given domain.

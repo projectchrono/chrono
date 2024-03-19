@@ -80,12 +80,6 @@ class ChApi ChTimestepper {
     /// Turn on/off logging of messages.
     void SetVerbose(bool verb) { verbose = verb; }
 
-    /// Turn on/off clamping on the Qcterm.
-    void SetQcDoClamp(bool dc) { Qc_do_clamp = dc; }
-
-    /// Turn on/off clamping on the Qcterm.
-    void SetQcClamping(double cl) { Qc_clamping = cl; }
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive);
 
@@ -102,6 +96,8 @@ class ChApi ChTimestepper {
 
     bool Qc_do_clamp;
     double Qc_clamping;
+
+    friend class ChSystem;
 };
 
 /// Base class for 1st order timesteppers, that is a time integrator for a ChIntegrable.
@@ -237,14 +233,14 @@ class ChApi ChImplicitTimestepper {};
 /// a linear system must be solved.
 class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
   protected:
-    int maxiters;    ///< maximum number of iterations
+    unsigned int maxiters;    ///< maximum number of iterations
     double reltol;   ///< relative tolerance
     double abstolS;  ///< absolute tolerance (states)
     double abstolL;  ///< absolute tolerance (Lagrange multipliers)
 
-    int numiters;   ///< number of iterations
-    int numsetups;  ///< number of calls to the solver's Setup function
-    int numsolves;  ///< number of calls to the solver's Solve function
+    unsigned int numiters;   ///< number of iterations
+    unsigned int numsetups;  ///< number of calls to the solver's Setup function
+    unsigned int numsolves;  ///< number of calls to the solver's Solve function
 
   public:
     ChImplicitIterativeTimestepper()
@@ -252,9 +248,9 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
     virtual ~ChImplicitIterativeTimestepper() {}
 
     /// Set the max number of iterations using the Newton Raphson procedure
-    void SetMaxiters(int iters) { maxiters = iters; }
+    void SetMaxIters(int iters) { maxiters = iters; }
     /// Get the max number of iterations using the Newton Raphson procedure
-    double GetMaxiters() { return maxiters; }
+    double GetMaxIters() { return maxiters; }
 
     /// Set the relative tolerance.
     /// This tolerance is optionally used by derived classes in the Newton-Raphson
@@ -280,13 +276,13 @@ class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
     }
 
     /// Return the number of iterations.
-    int GetNumIterations() const { return numiters; }
+    unsigned int GetNumIterations() const { return numiters; }
 
     /// Return the number of calls to the solver's Setup function.
-    int GetNumSetupCalls() const { return numsetups; }
+    unsigned int GetNumSetupCalls() const { return numsetups; }
 
     /// Return the number of calls to the solver's Solve function.
-    int GetNumSolveCalls() const { return numsolves; }
+    unsigned int GetNumSolveCalls() const { return numsolves; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive) {

@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
                                                      false       // no collision geometry
                                                      );
     floorBody->SetPos(ChVector3d(0, -2, 0));
-    floorBody->SetBodyFixed(true);
+    floorBody->SetFixed(true);
 
     sys.Add(floorBody);
 

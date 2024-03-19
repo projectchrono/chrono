@@ -40,7 +40,7 @@ def CastNode(nb):
 time_step = 1e-3
 
 sys = chrono.ChSystemSMC()
-sys.Set_G_acc(chrono.ChVector3d(0, 0, -9.8))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, -9.8))
 
 print( "-----------------------------------------------------------\n")
 print("------------------------------------------------------------\n")
@@ -123,7 +123,7 @@ for i in range(TotalNumElements):
     element.SetDimensions(dx, dy)
 
     # Add a single layers with a fiber angle of 0 degrees.
-    element.AddLayer(dz, 0 * chrono.CH_C_DEG_TO_RAD, mat)
+    element.AddLayer(dz, 0 * chrono.CH_DEG_TO_RAD, mat)
 
     # Set other element properties
     element.SetAlphaDamp(0.0)    # Structural damping for this element
@@ -189,8 +189,8 @@ sys.SetSolver(solver)
 solver.EnableDiagonalPreconditioner(True)
 #solver.SetVerbose(True)
 
-sys.SetSolverMaxIterations(100)
-sys.SetSolverForceTolerance(1e-10)
+sys.GetSolver().AsIterative().SetMaxIterations(100)
+sys.GetSolver().AsIterative().SetTolerance(1e-10)
 
 # Set up integrator
 
@@ -198,7 +198,7 @@ stepper = chrono.ChTimestepperHHT(sys)
 sys.SetTimestepper(stepper)
 
 stepper.SetAlpha(-0.2)
-stepper.SetMaxiters(5)
+stepper.SetMaxIters(5)
 stepper.SetAbsTolerances(1e-2)
 stepper.SetStepControl(True)
 stepper.SetMinStepSize(1e-4)

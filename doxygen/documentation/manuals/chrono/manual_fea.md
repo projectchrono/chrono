@@ -127,8 +127,8 @@ The following example illustrates it.
     auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
 
     // …and set its parameters
-    mmaterial->Set_E(0.01e9);  // rubber 0.01e9, steel 200e9
-    mmaterial->Set_v(0.3);
+    mmaterial->SetYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
+    mmaterial->SetPoissonRatio(0.3);
 ~~~
 
 ## 4) Create FEA elements

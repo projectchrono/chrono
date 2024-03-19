@@ -80,7 +80,7 @@ class DBPcontroller : public robosimian::RS_Driver::PhaseChangeCallback {
     void SetCycleFreq(int freq) { m_cycle_freq = freq; }
     void SetIncrement(double incr) { m_dbp_incr = incr; }
     bool Stop() const { return m_avg_speed < 0; }
-    void WriteOutput(const std::string& filename) { m_csv->write_to_file(filename); }
+    void WriteOutput(const std::string& filename) { m_csv->WriteToFile(filename); }
 
     double GetDistance() const { return m_robot->GetChassisPos().x() - m_start_x; }
     double GetDuration() const { return m_robot->GetSystem()->GetChTime() - m_start_time; }
@@ -101,7 +101,7 @@ class DBPcontroller : public robosimian::RS_Driver::PhaseChangeCallback {
     double m_start_time;  // cached time at last location
     double m_avg_speed;   // average speed over last segment
 
-    chrono::utils::CSV_writer* m_csv;
+    chrono::utils::ChWriterCSV* m_csv;
     ChTimer m_timer;
 };
 
@@ -116,7 +116,7 @@ DBPcontroller::DBPcontroller(robosimian::RoboSimian* robot)
       m_avg_speed(0) {
     // Cache robot weight
     double mass = robot->GetMass();
-    double g = std::abs(robot->GetSystem()->Get_G_acc().z());
+    double g = std::abs(robot->GetSystem()->GetGravitationalAcceleration().z());
     m_weight = mass * g;
 
     // Create a body force load on the robot chassis.
@@ -130,7 +130,7 @@ DBPcontroller::DBPcontroller(robosimian::RoboSimian* robot)
     m_timer.start();
 
     // Prepare CSV output
-    m_csv = new chrono::utils::CSV_writer(",");
+    m_csv = new chrono::utils::ChWriterCSV(",");
     *m_csv << "DBP_factor"
            << "DBP_force"
            << "Avg_speed" << endl;
@@ -262,10 +262,10 @@ int main(int argc, char* argv[]) {
 
     ChSystemSMC my_sys;
     my_sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    my_sys.SetSolverMaxIterations(200);
     my_sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    my_sys.Set_G_acc(ChVector3d(0, 0, -9.8));
-    ////my_sys.Set_G_acc(ChVector3d(0, 0, 0));
+    my_sys.GetSolver()->AsIterative()->SetMaxIterations(200);
+    my_sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
+    ////my_sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // -----------------------
     // Create RoboSimian robot
@@ -299,10 +299,10 @@ int main(int argc, char* argv[]) {
 
     // Control collisions (default: true for sled and wheels only)
 
-    ////robot.SetCollide(robosimian::CollisionFlags::NONE);
-    ////robot.SetCollide(robosimian::CollisionFlags::ALL);
-    ////robot.SetCollide(robosimian::CollisionFlags::LIMBS);
-    ////robot.SetCollide(robosimian::CollisionFlags::CHASSIS | robosimian::CollisionFlags::WHEELS);
+    ////robot.EnableCollision(robosimian::CollisionFlags::NONE);
+    ////robot.EnableCollision(robosimian::CollisionFlags::ALL);
+    ////robot.EnableCollision(robosimian::CollisionFlags::LIMBS);
+    ////robot.EnableCollision(robosimian::CollisionFlags::CHASSIS | robosimian::CollisionFlags::WHEELS);
 
     // Set visualization modes (default: all COLLISION)
 
@@ -319,7 +319,7 @@ int main(int argc, char* argv[]) {
     // Initialize Robosimian robot
 
     ////robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
-    robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI)));
+    robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI)));
 
     // -----------------------------------
     // Create a driver and attach to robot
@@ -460,7 +460,7 @@ int main(int argc, char* argv[]) {
             SetContactProperties(&robot);
 
             // Release robot
-            robot.GetChassisBody()->SetBodyFixed(false);
+            robot.GetChassisBody()->SetFixed(false);
 
             terrain_created = true;
         }

@@ -40,8 +40,8 @@ beam_wy = 0.1
 beam_wz = 0.2
 beam_section.SetAsRectangularSection(beam_wy, beam_wz)
 beam_section.SetYoungModulus(0.01e9)
-beam_section.SetGshearModulus(0.01e9 * 0.3)
-beam_section.SetBeamRaleyghDamping(0.200)
+beam_section.SetShearModulus(0.01e9 * 0.3)
+beam_section.SetRayleighDamping(0.200)
 beam_section.SetDensity(1500)
 
 # Create a beam of Eulero-Bernoulli type:
@@ -52,7 +52,7 @@ mesh.AddElement(elementA)
 
 # Create also a truss
 truss = chrono.ChBody()
-truss.SetBodyFixed(True)
+truss.SetFixed(True)
 sys.Add(truss)
 
 # Create a constraat the end of the beam
@@ -132,7 +132,7 @@ class MyLoadCustom(chrono.ChLoadCustom):
         else:
             mynode = fea.CastToChNodeFEAxyz( fea.CastToChNodeFEAbase( chrono.CastToChNodeBase(self.loadable) ))
             node_pos = mynode.GetPos()
-            node_vel = mynode.GetPosDer()
+            node_vel = mynode.GetPosDt()
 
         # Just implement a simple force+spring+damper in xy plane,
         # for spring&damper connected to absolute reference:
@@ -209,9 +209,9 @@ class MyLoadCustomMultiple(chrono.ChLoadCustomMultiple):
             Enode = fea.CastToChNodeFEAxyz( fea.CastToChNodeFEAbase( chrono.CastToChNodeBase(self.loadables[0])))
             Fnode = fea.CastToChNodeFEAxyz( fea.CastToChNodeFEAbase( chrono.CastToChNodeBase(self.loadables[1])))
             Enode_pos = Enode.GetPos()
-            Enode_vel = Enode.GetPosDer()
+            Enode_vel = Enode.GetPosDt()
             Fnode_pos = Fnode.GetPos()
-            Fnode_vel = Fnode.GetPosDer()
+            Fnode_vel = Fnode.GetPosDt()
   		
         # Just implement two simple force+spring+dampers in xy plane:
   		# ... from node E to ground,
@@ -264,8 +264,10 @@ solver.SetVerbose(True)
 # Perform a static analysis:
 sys.DoStaticLinear()
 
-print(" constraintA reaction force  F= " + str(constraintA.Get_react_force()) )
-print( " constraintA reaction torque T= " + str(constraintA.Get_react_torque()))
+reaction = constraintA.GetReaction2()
+
+print(" constraintA reaction force  F= " + str(reaction.force))
+print( " constraintA reaction torque T= " + str(reaction.torque))
 
 print("nodeD position = ")
 print(nodeD.GetPos() )

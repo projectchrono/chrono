@@ -56,7 +56,7 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     virtual ~ChSystemMulticore();
 
     virtual bool Integrate_Y() override;
-    virtual void AddBody(std::shared_ptr<ChBody> newbody) override;
+    virtual void AddBody(std::shared_ptr<ChBody> body) override;
     virtual void AddShaft(std::shared_ptr<ChShaft> shaft) override;
     virtual void AddLink(std::shared_ptr<ChLinkBase> link) override;
     virtual void AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newitem) override;
@@ -83,10 +83,24 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
         std::unique_ptr<ChContactMaterialCompositionStrategy>&& strategy) override;
 
     virtual void PrintStepStats();
-    unsigned int GetNumBodies();
-    unsigned int GetNumShafts();
-    unsigned int GetNumContacts();
-    unsigned int GetNumBilaterals();
+
+    /// Get the total number of bodies added to the system, including fixed and sleeping bodies.
+    virtual unsigned int GetNumBodies() const override { return data_manager->num_rigid_bodies + data_manager->num_fluid_bodies; }
+
+    /// Get the number of shafts.
+    virtual unsigned int GetNumShafts() const override { return data_manager->num_shafts; }
+
+    /// Gets the number of contacts.
+    virtual unsigned int GetNumContacts() override;
+
+    /// Get the number of scalar constraints in the system.
+    virtual unsigned int GetNumConstraints() override { return GetNumConstraintsBilateral() + GetNumConstraintsUnilateral(); }
+
+    /// Get the number of bilateral scalar constraints.
+    virtual unsigned int GetNumConstraintsBilateral() override { return data_manager->num_bilaterals;; }
+
+    /// Get the number of unilateral scalar constraints.
+    virtual unsigned int GetNumConstraintsUnilateral() override { return data_manager->num_unilaterals;; }
 
     /// Return the time (in seconds) spent for computing the time step.
     virtual double GetTimerStep() const override;
@@ -143,12 +157,12 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     /// Get the contact force on the specified body.
     /// Note that ComputeContactForces must be called prior to calling this function
     /// at any time where reporting of contact forces is desired.
-    real3 GetBodyContactForce(std::shared_ptr<ChBody> body) const { return GetBodyContactForce(body->GetId()); }
+    real3 GetBodyContactForce(std::shared_ptr<ChBody> body) const { return GetBodyContactForce(body->GetIndex()); }
 
     /// Get the contact torque on the specified body.
     /// Note that ComputeContactForces must be called prior to calling this function
     /// at any time where reporting of contact torques is desired.
-    real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) const { return GetBodyContactTorque(body->GetId()); }
+    real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) const { return GetBodyContactTorque(body->GetIndex()); }
 
     settings_container* GetSettings();
 

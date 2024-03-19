@@ -30,8 +30,8 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono/fea/ChElementShellANCF_3423.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshExporter.h"
 #include "chrono/fea/ChBuilderBeam.h"
@@ -73,8 +73,8 @@ double total_mass = 105.22;
 double m_rim_radius = 0.35;
 double m_height = 0.195;
 double m_thickness = 0.014;
-int m_div_circumference = 30;
-int m_div_width = 6;
+unsigned int m_div_circumference = 30;
+unsigned int m_div_width = 6;
 double m_alpha = 0.15;
 
 // Initial Position of wheel
@@ -159,10 +159,10 @@ int main(int argc, char* argv[]) {
     sysFSI.SetCohesionForce(2000.0);
 
     // Create SPH particles of fluid region
-    chrono::utils::GridSampler<> sampler(initSpace0);
+    chrono::utils::ChGridSampler<> sampler(initSpace0);
     ChVector3d boxCenter(-bxDim / 2 + fxDim / 2, 0, fzDim / 2 + 1 * initSpace0);
     ChVector3d boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
-    chrono::utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
+    chrono::utils::ChGenerator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
         sysFSI.AddSPHParticle(points[i]);
@@ -194,10 +194,9 @@ int main(int argc, char* argv[]) {
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
     sysMBS.SetSolver(solver);
     solver->SetMaxIterations(2000);
-    solver->SetTolerance(1e-10);
+    solver->SetTolerance(1e-12);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
-    sysMBS.SetSolverForceTolerance(1e-10);
 #endif
 
     // Simulation loop
@@ -246,12 +245,12 @@ int main(int argc, char* argv[]) {
 // Create the objects of the MBD system. Rigid/flexible bodies, and if
 // fsi, their bce representation are created and added to the systems
 void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
-    sysMBS.Set_G_acc(ChVector3d(0, 0, -9.81));
-    sysFSI.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
+    sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     sysMBS.AddBody(ground);
 
     // Bottom collision plate
@@ -265,7 +264,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
                                    ChVector3d(bxDim, byDim, bzDim), 0.1,           //
                                    ChVector3i(0, 0, -1),                           //
                                    false);
-    ground->SetCollide(true);
+    ground->EnableCollision(true);
 
     // Fluid representation of walls
     sysFSI.AddBoxContainerBCE(ground,                                         //
@@ -283,34 +282,34 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Set inertia
     wheel->SetMass(total_mass * 1.0 / 2.0);
     wheel->SetInertiaXX(ChVector3d(60, 60, 60));
-    wheel->SetPosDer(Body_vel);
+    wheel->SetPosDt(Body_vel);
     wheel->SetAngVelLocal(ChVector3d(0.0, 0.0, 0.0));  // set an initial anular velocity (rad/s)
 
     // Set the absolute position of the body:
-    wheel->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(Body_pos), ChQuaternion<>(Body_rot)));
-    wheel->SetBodyFixed(false);
-    wheel->SetCollide(false);
+    wheel->SetFrameRefToAbs(ChFrame<>(ChVector3d(Body_pos), ChQuaternion<>(Body_rot)));
+    wheel->SetFixed(false);
+    wheel->EnableCollision(false);
     sysMBS.AddBody(wheel);
 
     // Create the chassis
     auto chassis = chrono_types::make_shared<ChBody>();
     chassis->SetMass(total_mass * 1.0 / 2.0);
     chassis->SetPos(wheel->GetPos());
-    chassis->SetCollide(false);
-    chassis->SetBodyFixed(false);
+    chassis->EnableCollision(false);
+    chassis->SetFixed(false);
     sysMBS.AddBody(chassis);
 
     // Create the axle
     auto axle = chrono_types::make_shared<ChBody>();
     axle->SetMass(total_mass * 1.0 / 2.0);
     axle->SetPos(wheel->GetPos());
-    axle->SetCollide(false);
-    axle->SetBodyFixed(false);
+    axle->EnableCollision(false);
+    axle->SetFixed(false);
     sysMBS.AddBody(axle);
 
     // Connect the chassis to the ground through a translational joint and create a linear actuator.
     auto prismatic1 = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prismatic1->Initialize(ground, chassis, ChFrame<>(chassis->GetPos(), QuatFromAngleY(CH_C_PI_2)));
+    prismatic1->Initialize(ground, chassis, ChFrame<>(chassis->GetPos(), QuatFromAngleY(CH_PI_2)));
     prismatic1->SetName("prismatic_chassis_ground");
     sysMBS.AddLink(prismatic1);
 
@@ -332,7 +331,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Connect the wheel to the axle through a engine joint.
     motor->SetName("engine_wheel_axle");
-    motor->Initialize(wheel, axle, ChFrame<>(wheel->GetPos(), chrono::QuatFromAngleX(-CH_C_PI_2)));
+    motor->Initialize(wheel, axle, ChFrame<>(wheel->GetPos(), chrono::QuatFromAngleX(-CH_PI_2)));
     motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, wheel_AngVel));
     sysMBS.AddLink(motor);
 
@@ -348,10 +347,10 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
         // Create the mesh nodes.
         // The nodes are first created in the wheel local frame, assuming Y as the tire axis,
         // and are then transformed to the global frame.
-        for (int i = 0; i < m_div_circumference; i++) {
-            double phi = (CH_C_2PI * i) / m_div_circumference;
-            for (int j = 0; j <= m_div_width; j++) {
-                double theta = -CH_C_PI_2 + (CH_C_PI * j) / m_div_width;
+        for (unsigned int i = 0; i < m_div_circumference; i++) {
+            double phi = (CH_2PI * i) / m_div_circumference;
+            for (unsigned int j = 0; j <= m_div_width; j++) {
+                double theta = -CH_PI_2 + (CH_PI * j) / m_div_width;
 
                 double x = (m_rim_radius + m_height * cos(theta)) * cos(phi) + wheel_IniPos.x();
                 double y = m_height * sin(theta) + wheel_IniPos.y();
@@ -369,15 +368,15 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
                 // Fix the edge node on the wheel
                 if (j == 0 || j == m_div_width) {
-                    auto mlink = chrono_types::make_shared<ChLinkPointFrame>();
+                    auto mlink = chrono_types::make_shared<ChLinkNodeFrame>();
                     mlink->Initialize(std::dynamic_pointer_cast<ChNodeFEAxyzD>(node), wheel);
                     sysMBS.Add(mlink);
                 }
             }
         }
 
-        int TotalNumElements = m_div_circumference * m_div_width;  // my_mesh->GetNelements();
-        int TotalNumNodes = my_mesh->GetNnodes();
+        unsigned int TotalNumElements = m_div_circumference * m_div_width;  // my_mesh->GetNumElements();
+        unsigned int TotalNumNodes = my_mesh->GetNumNodes();
 
         _2D_elementsNodes_mesh.resize(TotalNumElements);
         NodeNeighborElement_mesh.resize(TotalNumNodes);
@@ -386,11 +385,11 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
         double dz = m_thickness;
 
         // Create the ANCF shell elements
-        int num_elem = 0;
-        for (int i = 0; i < m_div_circumference; i++) {
-            for (int j = 0; j < m_div_width; j++) {
+        unsigned int num_elem = 0;
+        for (unsigned int i = 0; i < m_div_circumference; i++) {
+            for (unsigned int j = 0; j < m_div_width; j++) {
                 // Adjacent nodes
-                int inode0, inode1, inode2, inode3;
+                unsigned int inode0, inode1, inode2, inode3;
                 inode1 = j + i * (m_div_width + 1);
                 inode2 = j + 1 + i * (m_div_width + 1);
                 if (i == m_div_circumference - 1) {
@@ -429,7 +428,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
                 element->SetDimensions(dx, dy);
 
                 // Add a single layers with a fiber angle of 0 degrees.
-                element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
+                element->AddLayer(dz, 0 * CH_DEG_TO_RAD, mat);
 
                 // Set other element properties
                 element->SetAlphaDamp(m_alpha);

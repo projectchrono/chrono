@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
 
     auto floor_body = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
     floor_body->SetPos(ChVector3d(0, -5, 0));
-    floor_body->SetBodyFixed(true);
+    floor_body->SetFixed(true);
     floor_body->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom::Get()));
 
     auto floor_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
         double xpos = (ie - 0.5 * num_emitters) * 2.2;
         auto emitter_positions = chrono_types::make_shared<ChRandomParticlePositionRectangleOutlet>();
         emitter_positions->Outlet() = ChCoordsys<>(
-            ChVector3d(xpos, -4, 0), QuatFromAngleX(CH_C_PI_2));  // center and alignment of the outlet
+            ChVector3d(xpos, -4, 0), QuatFromAngleX(CH_PI_2));  // center and alignment of the outlet
         emitter_positions->OutletWidth() = 1.2;
         emitter_positions->OutletHeight() = 1.2;
         emitters[ie].SetParticlePositioner(emitter_positions);
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
         // just for visualizing outlet
         auto boxbody = chrono_types::make_shared<ChBodyEasyBox>(1.2, 0.4, 1.2, 3000, true, false);
         boxbody->SetPos(ChVector3d(xpos, -4.1, 0));
-        boxbody->SetBodyFixed(true);
+        boxbody->SetFixed(true);
         boxbody->GetVisualShape(0)->SetColor(ChColor(1.0f, 0.5f, 0.1f));
         sys.Add(boxbody);
 
@@ -240,7 +240,7 @@ int main(int argc, char* argv[]) {
                 pov->Add(body);
 
                 // Disable gyroscopic forces for increased integrator stabilty
-                body->SetNoGyroTorque(true);
+                body->SetUseGyroTorque(false);
             }
             ChVisualSystem* vis;
             ChPovRay* pov;

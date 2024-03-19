@@ -31,20 +31,29 @@ CH_UPCASTING_SANITIZED(ChBody, ChContactable_1vars<6>, ChBody_ChContactable_1var
 CH_UPCASTING(ChBody, ChLoadableUVW)
 
 ChBody::ChBody()
-    : body_id(0), fixed(false), collide(false), Xforce(VNULL), Xtorque(VNULL), Force_acc(VNULL), Torque_acc(VNULL) {
+    : index(0),
+      fixed(false),
+      collide(false),
+      limit_speed(false),
+      disable_gyrotorque(false),
+      is_sleeping(false),
+      allow_sleeping(true),
+      candidate_sleeping(false),
+      Xforce(VNULL),
+      Xtorque(VNULL),
+      Force_acc(VNULL),
+      Torque_acc(VNULL) {
+
     marklist.clear();
     forcelist.clear();
 
-    BFlagsSetAllOFF();  // no flags
-
     max_speed = 0.5f;
-    max_wvel = 2.0f * float(CH_C_PI);
+    max_wvel = 2.0f * float(CH_PI);
 
     sleep_time = 0.6f;
     sleep_starttime = 0;
     sleep_minspeed = 0.1f;
     sleep_minwvel = 0.04f;
-    SetUseSleeping(true);
 
     variables.SetUserData((void*)this);
 }
@@ -52,7 +61,12 @@ ChBody::ChBody()
 ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
     fixed = other.fixed;
     collide = other.collide;
-    bflags = other.bflags;
+    limit_speed = other.limit_speed;
+    disable_gyrotorque = other.disable_gyrotorque;
+    is_sleeping = other.is_sleeping;
+    allow_sleeping = other.allow_sleeping;
+    candidate_sleeping = other.candidate_sleeping;
+
 
     variables = other.variables;
     variables.SetUserData((void*)this);
@@ -94,7 +108,7 @@ void ChBody::IntStateGather(const unsigned int off_x,  // offset in x state vect
 ) {
     x.segment(off_x + 0, 3) = GetPos().eigen();
     x.segment(off_x + 3, 4) = GetRot().eigen();
-    v.segment(off_v + 0, 3) = GetPosDer().eigen();
+    v.segment(off_v + 0, 3) = GetPosDt().eigen();
     v.segment(off_v + 3, 3) = GetAngVelLocal().eigen();
     T = GetChTime();
 }
@@ -106,20 +120,20 @@ void ChBody::IntStateScatter(const unsigned int off_x,  // offset in x state vec
                              const double T,            // time
                              bool full_update           // perform complete update
 ) {
-    SetCsys(x.segment(off_x, 7));
-    SetPosDer(v.segment(off_v + 0, 3));
+    SetCoordsys(x.segment(off_x, 7));
+    SetPosDt(v.segment(off_v + 0, 3));
     SetAngVelLocal(v.segment(off_v + 3, 3));
     SetChTime(T);
     Update(T, full_update);
 }
 
 void ChBody::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
-    a.segment(off_a + 0, 3) = GetPosDer2().eigen();
+    a.segment(off_a + 0, 3) = GetPosDt2().eigen();
     a.segment(off_a + 3, 3) = GetAngAccLocal().eigen();
 }
 
 void ChBody::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    SetPosDer2(a.segment(off_a + 0, 3));
+    SetPosDt2(a.segment(off_a + 0, 3));
     SetAngAccLocal(a.segment(off_a + 3, 3));
 }
 
@@ -170,7 +184,7 @@ void ChBody::IntLoadResidual_F(const unsigned int off,  // offset in R residual
     R.segment(off, 3) += c * Xforce.eigen();
 
     // add applied torques to 'fb' vector, including gyroscopic torque
-    if (GetNoGyroTorque())
+    if (!IsUsingGyroTorque())
         R.segment(off + 3, 3) += c * Xtorque.eigen();
     else
         R.segment(off + 3, 3) += c * (Xtorque - gyro).eigen();
@@ -234,7 +248,7 @@ void ChBody::VariablesFbLoadForces(double factor) {
     variables.Get_fb().segment(0, 3) += factor * Xforce.eigen();
 
     // add applied torques to 'fb' vector, including gyroscopic torque
-    if (GetNoGyroTorque())
+    if (!IsUsingGyroTorque())
         variables.Get_fb().segment(3, 3) += factor * Xtorque.eigen();
     else
         variables.Get_fb().segment(3, 3) += factor * (Xtorque - gyro).eigen();
@@ -246,15 +260,15 @@ void ChBody::VariablesFbIncrementMq() {
 
 void ChBody::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    variables.Get_qb().segment(0, 3) = GetCsysDer().pos.eigen();
+    variables.Get_qb().segment(0, 3) = GetCoordsysDt().pos.eigen();
     variables.Get_qb().segment(3, 3) = GetAngVelLocal().eigen();
 }
 
 void ChBody::VariablesQbSetSpeed(double step) {
-    ChCoordsys<> old_coord_dt = GetCsysDer();
+    ChCoordsys<> old_coord_dt = GetCoordsysDt();
 
     // from 'qb' vector, sets body speed, and updates auxiliary data
-    SetPosDer(variables.Get_qb().segment(0, 3));
+    SetPosDt(variables.Get_qb().segment(0, 3));
     SetAngVelLocal(variables.Get_qb().segment(3, 3));
 
     // apply limits (if in speed clamping mode) to speeds.
@@ -265,8 +279,8 @@ void ChBody::VariablesQbSetSpeed(double step) {
 
     // Compute accel. by BDF (approximate by differentiation);
     if (step) {
-        SetPosDer2((GetCsysDer().pos - old_coord_dt.pos) / step);
-        SetRotDer2((GetCsysDer().rot - old_coord_dt.rot) / step);
+        SetPosDt2((GetCoordsysDt().pos - old_coord_dt.pos) / step);
+        SetRotDt2((GetCoordsysDt().rot - old_coord_dt.rot) / step);
     }
 }
 
@@ -294,50 +308,24 @@ void ChBody::VariablesQbIncrementPosition(double dt_step) {
     SetRot(mnewrot);
 }
 
-void ChBody::SetNoSpeedNoAcceleration() {
-    SetPosDer(VNULL);
+void ChBody::ForceToRest() {
+    SetPosDt(VNULL);
     SetAngVelLocal(VNULL);
-    SetPosDer2(VNULL);
-    SetRotDer2(QNULL);
+    SetPosDt2(VNULL);
+    SetRotDt2(QNULL);
 }
 
 ////
 void ChBody::ClampSpeed() {
     if (GetLimitSpeed()) {
-        double w = 2.0 * GetRotDer().Length();
+        double w = 2.0 * GetRotDt().Length();
         if (w > max_wvel)
-            GetRotDer() *= max_wvel / w;
+            GetRotDt() *= max_wvel / w;
 
-        double v = GetPosDer().Length();
+        double v = GetPosDt().Length();
         if (v > max_speed)
-            GetPosDer() *= max_speed / v;
+            GetPosDt() *= max_speed / v;
     }
-}
-
-//// Utilities for coordinate transformations
-
-ChVector3d ChBody::Point_World2Body(const ChVector3d& mpoint) {
-    return ChFrame<double>::TransformPointParentToLocal(mpoint);
-}
-
-ChVector3d ChBody::Point_Body2World(const ChVector3d& mpoint) {
-    return ChFrame<double>::TransformPointLocalToParent(mpoint);
-}
-
-ChVector3d ChBody::Dir_World2Body(const ChVector3d& dir) {
-    return Rmat.transpose() * dir;
-}
-
-ChVector3d ChBody::Dir_Body2World(const ChVector3d& dir) {
-    return Rmat * dir;
-}
-
-ChVector3d ChBody::RelPoint_AbsSpeed(const ChVector3d& mrelpoint) {
-    return PointSpeedLocalToParent(mrelpoint);
-}
-
-ChVector3d ChBody::RelPoint_AbsAcc(const ChVector3d& mrelpoint) {
-    return PointAccelerationLocalToParent(mrelpoint);
 }
 
 // The inertia tensor functions
@@ -387,25 +375,23 @@ void ChBody::ComputeQInertia(ChMatrix44<>& mQInertia) {
 
 //////
 
-void ChBody::Empty_forces_accumulators() {
+void ChBody::EmptyAccumulators() {
     Force_acc = VNULL;
     Torque_acc = VNULL;
 }
 
-void ChBody::Accumulate_force(const ChVector3d& force, const ChVector3d& appl_point, bool local) {
-    ChVector3d absforce;
-    ChVector3d abstorque;
-    To_abs_forcetorque(force, appl_point, local, absforce, abstorque);
-
-    Force_acc += absforce;
-    Torque_acc += Dir_World2Body(abstorque);
+void ChBody::AccumulateForce(const ChVector3d& force, const ChVector3d& appl_point, bool local) {
+    ChWrenchd w_abs = local ? AppliedForceLocalToWrenchParent(force, appl_point)
+                            : AppliedForceParentToWrenchParent(force, appl_point);
+    Force_acc += w_abs.force;
+    Torque_acc += TransformDirectionParentToLocal(w_abs.torque);
 }
 
-void ChBody::Accumulate_torque(const ChVector3d& torque, bool local) {
+void ChBody::AccumulateTorque(const ChVector3d& torque, bool local) {
     if (local) {
         Torque_acc += torque;
     } else {
-        Torque_acc += Dir_World2Body(torque);
+        Torque_acc += TransformDirectionParentToLocal(torque);
     }
 }
 
@@ -417,16 +403,16 @@ void ChBody::ComputeGyro() {
 }
 
 bool ChBody::TrySleeping() {
-    BFlagSet(BodyFlag::COULDSLEEP, false);
+    candidate_sleeping = false;
 
-    if (GetUseSleeping()) {
+    if (IsSleepingAllowed()) {
         if (!IsActive())
             return false;
 
         // if not yet sleeping:
-        if ((GetPosDer().LengthInf() < sleep_minspeed) && (2.0 * GetRotDer().LengthInf() < sleep_minwvel)) {
+        if ((GetPosDt().LengthInf() < sleep_minspeed) && (2.0 * GetRotDt().LengthInf() < sleep_minwvel)) {
             if ((GetChTime() - sleep_starttime) > sleep_time) {
-                BFlagSet(BodyFlag::COULDSLEEP, true);  // mark as sleep candidate
+                candidate_sleeping = true;
                 return true;                           // could go to sleep!
             }
         } else {
@@ -562,7 +548,7 @@ void ChBody::UpdateForces(double mytime) {
 
     // Add gravitational forces
     if (system) {
-        Xforce += system->Get_G_acc() * GetMass();
+        Xforce += system->GetGravitationalAcceleration() * GetMass();
     }
 }
 
@@ -599,79 +585,56 @@ void ChBody::Update(double mytime, bool update_assets) {
 }
 
 // ---------------------------------------------------------------------------
-// Body flags management
-void ChBody::BFlagsSetAllOFF() {
-    bflags = 0;
-}
-void ChBody::BFlagsSetAllON() {
-    bflags = 0;
-    bflags = ~bflags;
-}
-void ChBody::BFlagSetON(BodyFlag mask) {
-    bflags |= mask;
-}
-void ChBody::BFlagSetOFF(BodyFlag mask) {
-    bflags &= ~mask;
-}
-bool ChBody::BFlagGet(BodyFlag mask) const {
-    return (bflags & mask) != 0;
-};
-void ChBody::BFlagSet(BodyFlag mask, bool state) {
-    if (state)
-        bflags |= mask;
-    else
-        bflags &= ~mask;
-}
 
-void ChBody::SetBodyFixed(bool state) {
+void ChBody::SetFixed(bool state) {
     variables.SetDisabled(state);
     fixed = state;
 }
 
-bool ChBody::GetBodyFixed() const {
+bool ChBody::IsFixed() const {
     return fixed;
 }
 
 void ChBody::SetLimitSpeed(bool state) {
-    BFlagSet(BodyFlag::LIMITSPEED, state);
+    limit_speed = state;
 }
 
 bool ChBody::GetLimitSpeed() const {
-    return BFlagGet(BodyFlag::LIMITSPEED);
+    return limit_speed;
 }
 
-void ChBody::SetNoGyroTorque(bool state) {
-    BFlagSet(BodyFlag::NOGYROTORQUE, state);
+void ChBody::SetUseGyroTorque(bool state) {
+    disable_gyrotorque = !state;
 }
 
-bool ChBody::GetNoGyroTorque() const {
-    return BFlagGet(BodyFlag::NOGYROTORQUE);
+bool ChBody::IsUsingGyroTorque() const {
+    return !disable_gyrotorque;
 }
 
-void ChBody::SetUseSleeping(bool state) {
-    BFlagSet(BodyFlag::USESLEEPING, state);
+void ChBody::SetSleepingAllowed(bool state) {
+    allow_sleeping = state;
 }
 
-bool ChBody::GetUseSleeping() const {
-    return BFlagGet(BodyFlag::USESLEEPING);
+bool ChBody::IsSleepingAllowed() const {
+    return allow_sleeping;
 }
 
 void ChBody::SetSleeping(bool state) {
-    BFlagSet(BodyFlag::SLEEPING, state);
+    is_sleeping = state;
 }
 
-bool ChBody::GetSleeping() const {
-    return BFlagGet(BodyFlag::SLEEPING);
+bool ChBody::IsSleeping() const {
+    return is_sleeping;
 }
 
 bool ChBody::IsActive() const {
-    return !BFlagGet(BodyFlag::SLEEPING) && !fixed;
+    return !is_sleeping && !fixed;
 }
 
 // ---------------------------------------------------------------------------
 // Collision-related functions
 
-void ChBody::SetCollide(bool state) {
+void ChBody::EnableCollision(bool state) {
     // Nothing to do if no change in state
     if (state == collide)
         return;
@@ -705,7 +668,7 @@ void ChBody::SetCollide(bool state) {
     }
 }
 
-bool ChBody::GetCollide() const {
+bool ChBody::IsCollisionEnabled() const {
     return collide;
 }
 
@@ -726,7 +689,7 @@ void ChBody::SyncCollisionModels() {
     // ChCollisionModel::SyncPosition will further check that the collision model was actually processed (through
     // BindAll or BindItem) by the current collision system.
 
-    if (GetCollisionModel() && GetCollide())
+    if (GetCollisionModel() && IsCollisionEnabled())
         GetCollisionModel()->SyncPosition();
 }
 
@@ -739,13 +702,13 @@ ChAABB ChBody::GetTotalAABB() {
     return ChAABB();  // default: inverted bounding box
 }
 
-void ChBody::ContactableGetStateBlock_x(ChState& x) {
-    x.segment(0, 3) = GetCsys().pos.eigen();
-    x.segment(3, 4) = GetCsys().rot.eigen();
+void ChBody::ContactableGetStateBlockPosLevel(ChState& x) {
+    x.segment(0, 3) = GetCoordsys().pos.eigen();
+    x.segment(3, 4) = GetCoordsys().rot.eigen();
 }
 
-void ChBody::ContactableGetStateBlock_w(ChStateDelta& w) {
-    w.segment(0, 3) = GetPosDer().eigen();
+void ChBody::ContactableGetStateBlockVelLevel(ChStateDelta& w) {
+    w.segment(0, 3) = GetPosDt().eigen();
     w.segment(3, 3) = GetAngVelLocal().eigen();
 }
 
@@ -770,23 +733,23 @@ ChVector3d ChBody::GetContactPointSpeed(const ChVector3d& loc_point,
 }
 
 ChVector3d ChBody::GetContactPointSpeed(const ChVector3d& abs_point) {
-    ChVector3d m_p1_loc = Point_World2Body(abs_point);
-    return PointSpeedLocalToParent(m_p1_loc);
+    ChVector3d point_loc = TransformPointParentToLocal(abs_point);
+    return PointSpeedLocalToParent(point_loc);
 }
 
-ChCoordsys<> ChBody::GetCsysForCollisionModel() {
-    return ChCoordsys<>(GetFrame_REF_to_abs().GetCsys());
+ChFrame<> ChBody::GetCollisionModelFrame() {
+    return GetFrameRefToAbs();
 }
 
 void ChBody::ContactForceLoadResidual_F(const ChVector3d& F,
                                         const ChVector3d& T,
                                         const ChVector3d& abs_point,
                                         ChVectorDynamic<>& R) {
-    ChVector3d m_p1_loc = this->Point_World2Body(abs_point);
-    ChVector3d force1_loc = this->Dir_World2Body(F);
-    ChVector3d torque1_loc = Vcross(m_p1_loc, force1_loc);
+    ChVector3d point_loc = TransformPointParentToLocal(abs_point);
+    ChVector3d force1_loc = this->TransformDirectionParentToLocal(F);
+    ChVector3d torque1_loc = Vcross(point_loc, force1_loc);
     if (!T.IsNull())
-        torque1_loc += this->Dir_World2Body(T);
+        torque1_loc += this->TransformDirectionParentToLocal(T);
     R.segment(this->GetOffset_w() + 0, 3) += F.eigen();
     R.segment(this->GetOffset_w() + 3, 3) += torque1_loc.eigen();
 }
@@ -814,7 +777,7 @@ void ChBody::ComputeJacobianForContactPart(const ChVector3d& abs_point,
                                            ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
                                            bool second) {
     /*
-    ChVector3d p1 = Point_World2Body(abs_point);
+    ChVector3d p1 = TransformPointParentToLocal(abs_point);
     ChStarMatrix33<> Ps1(p1);
 
     ChMatrix33<> Jx1 = contact_plane.transpose();
@@ -835,25 +798,25 @@ void ChBody::ComputeJacobianForContactPart(const ChVector3d& abs_point,
     */
 
     // UNROLLED VERSION - FASTER
-    ChVector3d p1 = Point_World2Body(abs_point);
+    ChVector3d p1 = TransformPointParentToLocal(abs_point);
     double temp00 =
-        Rmat(0, 2) * contact_plane(0, 0) + Rmat(1, 2) * contact_plane(1, 0) + Rmat(2, 2) * contact_plane(2, 0);
+        m_rmat(0, 2) * contact_plane(0, 0) + m_rmat(1, 2) * contact_plane(1, 0) + m_rmat(2, 2) * contact_plane(2, 0);
     double temp01 =
-        Rmat(0, 2) * contact_plane(0, 1) + Rmat(1, 2) * contact_plane(1, 1) + Rmat(2, 2) * contact_plane(2, 1);
+        m_rmat(0, 2) * contact_plane(0, 1) + m_rmat(1, 2) * contact_plane(1, 1) + m_rmat(2, 2) * contact_plane(2, 1);
     double temp02 =
-        Rmat(0, 2) * contact_plane(0, 2) + Rmat(1, 2) * contact_plane(1, 2) + Rmat(2, 2) * contact_plane(2, 2);
+        m_rmat(0, 2) * contact_plane(0, 2) + m_rmat(1, 2) * contact_plane(1, 2) + m_rmat(2, 2) * contact_plane(2, 2);
     double temp10 =
-        Rmat(0, 1) * contact_plane(0, 0) + Rmat(1, 1) * contact_plane(1, 0) + Rmat(2, 1) * contact_plane(2, 0);
+        m_rmat(0, 1) * contact_plane(0, 0) + m_rmat(1, 1) * contact_plane(1, 0) + m_rmat(2, 1) * contact_plane(2, 0);
     double temp11 =
-        Rmat(0, 1) * contact_plane(0, 1) + Rmat(1, 1) * contact_plane(1, 1) + Rmat(2, 1) * contact_plane(2, 1);
+        m_rmat(0, 1) * contact_plane(0, 1) + m_rmat(1, 1) * contact_plane(1, 1) + m_rmat(2, 1) * contact_plane(2, 1);
     double temp12 =
-        Rmat(0, 1) * contact_plane(0, 2) + Rmat(1, 1) * contact_plane(1, 2) + Rmat(2, 1) * contact_plane(2, 2);
+        m_rmat(0, 1) * contact_plane(0, 2) + m_rmat(1, 1) * contact_plane(1, 2) + m_rmat(2, 1) * contact_plane(2, 2);
     double temp20 =
-        Rmat(0, 0) * contact_plane(0, 0) + Rmat(1, 0) * contact_plane(1, 0) + Rmat(2, 0) * contact_plane(2, 0);
+        m_rmat(0, 0) * contact_plane(0, 0) + m_rmat(1, 0) * contact_plane(1, 0) + m_rmat(2, 0) * contact_plane(2, 0);
     double temp21 =
-        Rmat(0, 0) * contact_plane(0, 1) + Rmat(1, 0) * contact_plane(1, 1) + Rmat(2, 0) * contact_plane(2, 1);
+        m_rmat(0, 0) * contact_plane(0, 1) + m_rmat(1, 0) * contact_plane(1, 1) + m_rmat(2, 0) * contact_plane(2, 1);
     double temp22 =
-        Rmat(0, 0) * contact_plane(0, 2) + Rmat(1, 0) * contact_plane(1, 2) + Rmat(2, 0) * contact_plane(2, 2);
+        m_rmat(0, 0) * contact_plane(0, 2) + m_rmat(1, 0) * contact_plane(1, 2) + m_rmat(2, 0) * contact_plane(2, 2);
 
     // Jx1 =
     // [ c00, c10, c20]
@@ -956,13 +919,13 @@ void ChBody::LoadableStateIncrement(const unsigned int off_x,
     IntStateIncrement(off_x, x_new, x, off_v, Dv);
 }
 
-void ChBody::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
-    mD.segment(block_offset + 0, 3) = GetCsys().pos.eigen();
-    mD.segment(block_offset + 3, 4) = GetCsys().rot.eigen();
+void ChBody::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
+    mD.segment(block_offset + 0, 3) = GetCoordsys().pos.eigen();
+    mD.segment(block_offset + 3, 4) = GetCoordsys().rot.eigen();
 }
 
-void ChBody::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = GetPosDer().eigen();
+void ChBody::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
+    mD.segment(block_offset + 0, 3) = GetPosDt().eigen();
     mD.segment(block_offset + 3, 3) = GetAngVelLocal().eigen();
 }
 
@@ -985,7 +948,7 @@ void ChBody::ComputeNF(
     if (state_x)
         bodycoord = state_x->segment(0, 7);  // the numerical jacobian algo might change state_x
     else
-        bodycoord = Csys;
+        bodycoord = m_csys;
 
     // compute Q components F,T, given current state of body 'bodycoord'. Note T in Q is in local csys, F is an abs csys
     body_absF = absF;
@@ -1012,21 +975,15 @@ void ChBody::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(fixed);
     archive_out << CHNVP(collide);
 
-    archive_out << CHNVP(bflags);
-    bool mflag;  // more readable flag output in case of ASCII in/out
-    mflag = BFlagGet(BodyFlag::LIMITSPEED);
-    archive_out << CHNVP(mflag, "limit_speed");
-    mflag = BFlagGet(BodyFlag::NOGYROTORQUE);
-    archive_out << CHNVP(mflag, "no_gyro_torque");
-    mflag = BFlagGet(BodyFlag::USESLEEPING);
-    archive_out << CHNVP(mflag, "use_sleeping");
-    mflag = BFlagGet(BodyFlag::SLEEPING);
-    archive_out << CHNVP(mflag, "is_sleeping");
+    archive_out << CHNVP(limit_speed);
+    archive_out << CHNVP(disable_gyrotorque);
+    archive_out << CHNVP(is_sleeping);
+    archive_out << CHNVP(allow_sleeping);
+    archive_out << CHNVP(candidate_sleeping);
 
     archive_out << CHNVP(marklist, "markers");
     archive_out << CHNVP(forcelist, "forces");
 
-    archive_out << CHNVP(body_id);
     archive_out << CHNVP(collision_model);
     archive_out << CHNVP(gyro);
     archive_out << CHNVP(Xforce);
@@ -1057,16 +1014,11 @@ void ChBody::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(fixed);
     archive_in >> CHNVP(collide);
 
-    archive_in >> CHNVP(bflags);
-    bool mflag;  // more readable flag output in case of ASCII in/out
-    if (archive_in.in(CHNVP(mflag, "limit_speed")))
-        BFlagSet(BodyFlag::LIMITSPEED, mflag);
-    if (archive_in.in(CHNVP(mflag, "no_gyro_torque")))
-        BFlagSet(BodyFlag::NOGYROTORQUE, mflag);
-    if (archive_in.in(CHNVP(mflag, "use_sleeping")))
-        BFlagSet(BodyFlag::USESLEEPING, mflag);
-    if (archive_in.in(CHNVP(mflag, "is_sleeping")))
-        BFlagSet(BodyFlag::SLEEPING, mflag);
+    archive_in >> CHNVP(limit_speed);
+    archive_in >> CHNVP(disable_gyrotorque);
+    archive_in >> CHNVP(is_sleeping);
+    archive_in >> CHNVP(allow_sleeping);
+    archive_in >> CHNVP(candidate_sleeping);
 
     std::vector<std::shared_ptr<ChMarker>> tempmarkers;
     std::vector<std::shared_ptr<ChForce>> tempforces;
@@ -1081,8 +1033,6 @@ void ChBody::ArchiveIn(ChArchiveIn& archive_in) {
     for (auto& i : tempforces) {
         AddForce(i);
     }
-
-    archive_in >> CHNVP(body_id);
 
     std::shared_ptr<ChCollisionModel> collision_model_temp;  ///< pointer to the collision model
     archive_in >> CHNVP(collision_model_temp, "collision_model");

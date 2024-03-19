@@ -23,7 +23,7 @@ namespace vehicle {
 namespace fmtv {
 
 // Static variables
-const double MTV_Balancer::m_beam_max_pitch = 8.0 * CH_C_DEG_TO_RAD;
+const double MTV_Balancer::m_beam_max_pitch = 8.0 * CH_DEG_TO_RAD;
 const double MTV_Balancer::m_beam_mass = 50.0;
 const ChVector3d MTV_Balancer::m_beam_inertia(0.052, 8.177, 8.208);
 const ChVector3d MTV_Balancer::m_beam_dimensions(1.4, 0.1, 0.05);

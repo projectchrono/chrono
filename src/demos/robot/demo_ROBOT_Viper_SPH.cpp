@@ -146,8 +146,8 @@ int main(int argc, char* argv[]) {
     ChSystemFsi sysFSI(&sysMBS);
 
     ChVector3d gravity = ChVector3d(0, 0, -9.81);
-    sysMBS.Set_G_acc(gravity);
-    sysFSI.Set_G_acc(gravity);
+    sysMBS.SetGravitationalAcceleration(gravity);
+    sysFSI.SetGravitationalAcceleration(gravity);
 
     // Read JSON file with simulation parameters
     std::string inputJson = GetChronoDataFile("fsi/input_json/demo_FSI_Viper_granular_NSC.json");
@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetOutputLength(0);
 
     // Create an initial box for the terrain patch
-    chrono::utils::GridSampler<> sampler(initSpace0);
+    chrono::utils::ChGridSampler<> sampler(initSpace0);
     ChVector3d boxCenter(0, 0, bzDim / 2);
     ChVector3d boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
     std::vector<ChVector3d> points = sampler.SampleBox(boxCenter, boxHalfDim);
@@ -288,9 +288,9 @@ int main(int argc, char* argv[]) {
         rover->Update();
 
         std::cout << "  pos: " << body->GetPos() << std::endl;
-        std::cout << "  vel: " << body->GetPosDer() << std::endl;
+        std::cout << "  vel: " << body->GetPosDt() << std::endl;
         if (output) {
-            ofile << time << "  " << body->GetPos() << "    " << body->GetPosDer() << std::endl;
+            ofile << time << "  " << body->GetPos() << "    " << body->GetPosDt() << std::endl;
             if (current_step % output_steps == 0) {
                 sysFSI.PrintParticleToFile(out_dir + "/particles");
                 sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
@@ -326,7 +326,7 @@ void CreateSolidPhase(ChSystemNSC& sysMBS, ChSystemFsi& sysFSI) {
     // Create a body for the rigid soil container
     auto box = chrono_types::make_shared<ChBodyEasyBox>(10, 10, 0.02, 1000, false, false);
     box->SetPos(ChVector3d(0, 0, 0));
-    box->SetBodyFixed(true);
+    box->SetFixed(true);
     sysMBS.Add(box);
 
     // Get the initial SPH particle spacing
@@ -372,7 +372,7 @@ void CreateSolidPhase(ChSystemNSC& sysMBS, ChSystemFsi& sysFSI) {
 
         sysFSI.AddFsiBody(wheel_body);
         if (i == 0 || i == 2) {
-            sysFSI.AddPointsBCE(wheel_body, BCE_wheel, ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI)), true);
+            sysFSI.AddPointsBCE(wheel_body, BCE_wheel, ChFrame<>(VNULL, QuatFromAngleZ(CH_PI)), true);
         } else {
             sysFSI.AddPointsBCE(wheel_body, BCE_wheel, ChFrame<>(VNULL, QUNIT), true);
         }
@@ -391,7 +391,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
     // save the VIPER body to obj/vtk files
     for (int i = 0; i < 1; i++) {
         auto body = rover->GetChassis()->GetBody();
-        ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
+        ChFrame<> body_ref_frame = body->GetFrameRefToAbs();
         ChVector3d body_pos = body_ref_frame.GetPos();      // body->GetPos();
         ChQuaternion<> body_rot = body_ref_frame.GetRot();  // body->GetRot();
 
@@ -420,13 +420,13 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
             file << "VTK from simulation" << std::endl;
             file << "ASCII" << std::endl;
             file << "DATASET UNSTRUCTURED_GRID" << std::endl;
-            auto nv = mmesh->getCoordsVertices().size();
+            auto nv = mmesh->GetCoordsVertices().size();
             file << "POINTS " << nv << " float" << std::endl;
-            for (auto& v : mmesh->getCoordsVertices())
+            for (auto& v : mmesh->GetCoordsVertices())
                 file << v.x() << " " << v.y() << " " << v.z() << std::endl;
-            auto nf = mmesh->getIndicesVertexes().size();
+            auto nf = mmesh->GetIndicesVertexes().size();
             file << "CELLS " << nf << " " << 4 * nf << std::endl;
-            for (auto& f : mmesh->getIndicesVertexes())
+            for (auto& f : mmesh->GetIndicesVertexes())
                 file << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
             file << "CELL_TYPES " << nf << std::endl;
             for (size_t ii = 0; ii < nf; ii++)
@@ -451,11 +451,11 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
             body = rover->GetWheel(ViperWheelID::V_RB)->GetBody();
         }
 
-        ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
+        ChFrame<> body_ref_frame = body->GetFrameRefToAbs();
         ChVector3d body_pos = body_ref_frame.GetPos();      // body->GetPos();
         ChQuaternion<> body_rot = body_ref_frame.GetRot();  // body->GetRot();
         if (i == 0 || i == 2) {
-            body_rot.Cross(body_rot, QuatFromAngleZ(CH_C_PI));
+            body_rot.Cross(body_rot, QuatFromAngleZ(CH_PI));
         }
 
         auto mmesh = chrono_types::make_shared<ChTriangleMeshConnected>();
@@ -483,13 +483,13 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
             file << "VTK from simulation" << std::endl;
             file << "ASCII" << std::endl;
             file << "DATASET UNSTRUCTURED_GRID" << std::endl;
-            auto nv = mmesh->getCoordsVertices().size();
+            auto nv = mmesh->GetCoordsVertices().size();
             file << "POINTS " << nv << " float" << std::endl;
-            for (auto& v : mmesh->getCoordsVertices())
+            for (auto& v : mmesh->GetCoordsVertices())
                 file << v.x() << " " << v.y() << " " << v.z() << std::endl;
-            auto nf = mmesh->getIndicesVertexes().size();
+            auto nf = mmesh->GetIndicesVertexes().size();
             file << "CELLS " << nf << " " << 4 * nf << std::endl;
-            for (auto& f : mmesh->getIndicesVertexes())
+            for (auto& f : mmesh->GetIndicesVertexes())
                 file << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
             file << "CELL_TYPES " << nf << std::endl;
             for (size_t ii = 0; ii < nf; ii++)
@@ -513,7 +513,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         if (i == 3) {
             body = rover->GetUpright(ViperWheelID::V_RB)->GetBody();
         }
-        ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
+        ChFrame<> body_ref_frame = body->GetFrameRefToAbs();
         ChVector3d body_pos = body_ref_frame.GetPos();      // body->GetPos();
         ChQuaternion<> body_rot = body_ref_frame.GetRot();  // body->GetRot();
 
@@ -548,13 +548,13 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
             file << "VTK from simulation" << std::endl;
             file << "ASCII" << std::endl;
             file << "DATASET UNSTRUCTURED_GRID" << std::endl;
-            auto nv = mmesh->getCoordsVertices().size();
+            auto nv = mmesh->GetCoordsVertices().size();
             file << "POINTS " << nv << " float" << std::endl;
-            for (auto& v : mmesh->getCoordsVertices())
+            for (auto& v : mmesh->GetCoordsVertices())
                 file << v.x() << " " << v.y() << " " << v.z() << std::endl;
-            auto nf = mmesh->getIndicesVertexes().size();
+            auto nf = mmesh->GetIndicesVertexes().size();
             file << "CELLS " << nf << " " << 4 * nf << std::endl;
-            for (auto& f : mmesh->getIndicesVertexes())
+            for (auto& f : mmesh->GetIndicesVertexes())
                 file << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
             file << "CELL_TYPES " << nf << std::endl;
             for (size_t ii = 0; ii < nf; ii++)
@@ -578,7 +578,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         if (i == 3) {
             body = rover->GetLowerArm(ViperWheelID::V_RB)->GetBody();
         }
-        ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
+        ChFrame<> body_ref_frame = body->GetFrameRefToAbs();
         ChVector3d body_pos = body_ref_frame.GetPos();      // body->GetPos();
         ChQuaternion<> body_rot = body_ref_frame.GetRot();  // body->GetRot();
 
@@ -613,13 +613,13 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
             file << "VTK from simulation" << std::endl;
             file << "ASCII" << std::endl;
             file << "DATASET UNSTRUCTURED_GRID" << std::endl;
-            auto nv = mmesh->getCoordsVertices().size();
+            auto nv = mmesh->GetCoordsVertices().size();
             file << "POINTS " << nv << " float" << std::endl;
-            for (auto& v : mmesh->getCoordsVertices())
+            for (auto& v : mmesh->GetCoordsVertices())
                 file << v.x() << " " << v.y() << " " << v.z() << std::endl;
-            auto nf = mmesh->getIndicesVertexes().size();
+            auto nf = mmesh->GetIndicesVertexes().size();
             file << "CELLS " << nf << " " << 4 * nf << std::endl;
-            for (auto& f : mmesh->getIndicesVertexes())
+            for (auto& f : mmesh->GetIndicesVertexes())
                 file << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
             file << "CELL_TYPES " << nf << std::endl;
             for (size_t ii = 0; ii < nf; ii++)
@@ -643,7 +643,7 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
         if (i == 3) {
             body = rover->GetUpperArm(ViperWheelID::V_RB)->GetBody();
         }
-        ChFrame<> body_ref_frame = body->GetFrame_REF_to_abs();
+        ChFrame<> body_ref_frame = body->GetFrameRefToAbs();
         ChVector3d body_pos = body_ref_frame.GetPos();      // body->GetPos();
         ChQuaternion<> body_rot = body_ref_frame.GetRot();  // body->GetRot();
 
@@ -679,13 +679,13 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
             file << "VTK from simulation" << std::endl;
             file << "ASCII" << std::endl;
             file << "DATASET UNSTRUCTURED_GRID" << std::endl;
-            auto nv = mmesh->getCoordsVertices().size();
+            auto nv = mmesh->GetCoordsVertices().size();
             file << "POINTS " << nv << " float" << std::endl;
-            for (auto& v : mmesh->getCoordsVertices())
+            for (auto& v : mmesh->GetCoordsVertices())
                 file << v.x() << " " << v.y() << " " << v.z() << std::endl;
-            auto nf = mmesh->getIndicesVertexes().size();
+            auto nf = mmesh->GetIndicesVertexes().size();
             file << "CELLS " << nf << " " << 4 * nf << std::endl;
-            for (auto& f : mmesh->getIndicesVertexes())
+            for (auto& f : mmesh->GetIndicesVertexes())
                 file << "3 " << f.x() << " " << f.y() << " " << f.z() << std::endl;
             file << "CELL_TYPES " << nf << std::endl;
             for (size_t ii = 0; ii < nf; ii++)
@@ -750,10 +750,10 @@ void SaveParaViewFiles(ChSystemFsi& sysFSI, ChSystemNSC& sysMBS, double mTime) {
     // save rigid body position and rotation
     for (int i = 1; i < sysMBS.GetBodies().size(); i++) {
         auto body = sysMBS.GetBodies()[i];
-        ChFrame<> ref_frame = body->GetFrame_REF_to_abs();
+        ChFrame<> ref_frame = body->GetFrameRefToAbs();
         ChVector3d pos = ref_frame.GetPos();
         ChQuaternion<> rot = ref_frame.GetRot();
-        ChVector3d vel = body->GetPosDer();
+        ChVector3d vel = body->GetPosDt();
 
         std::string delim = ",";
         filename = rover_dir + "/body_pos_rot_vel" + std::to_string(i) + ".csv";

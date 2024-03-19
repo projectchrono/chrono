@@ -38,8 +38,8 @@ void ChFEATire::CreatePressureLoad() {
 
     // Create a pressure load for each element in the mesh surface.  Note that we set a
     // positive pressure (i.e. internal pressure, acting opposite to the surface normal)
-    for (unsigned int ie = 0; ie < surface->GetFacesList().size(); ie++) {
-        auto load = chrono_types::make_shared<ChLoad<ChLoaderPressure>>(surface->GetFacesList()[ie]);
+    for (unsigned int ie = 0; ie < surface->GetFaces().size(); ie++) {
+        auto load = chrono_types::make_shared<ChLoad<ChLoaderPressure>>(surface->GetFaces()[ie]);
         load->loader.SetPressure(m_pressure);
         load->loader.SetStiff(false);
         m_load_container->Add(load);
@@ -73,7 +73,7 @@ void ChFEATire::CreateRimConnections(std::shared_ptr<ChBody> wheel) {
     m_connections.resize(nodes.size());
 
     for (size_t in = 0; in < nodes.size(); ++in) {
-        m_connections[in] = chrono_types::make_shared<ChLinkPointFrame>();
+        m_connections[in] = chrono_types::make_shared<ChLinkNodeFrame>();
         m_connections[in]->Initialize(std::dynamic_pointer_cast<ChNodeFEAxyz>(nodes[in]), wheel);
         wheel->GetSystem()->Add(m_connections[in]);
     }

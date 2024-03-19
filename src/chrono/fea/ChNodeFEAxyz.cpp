@@ -53,10 +53,10 @@ bool ChNodeFEAxyz::IsFixed() const {
 
 void ChNodeFEAxyz::Relax() {
     X0 = pos;
-    SetNoSpeedNoAcceleration();
+    ForceToRest();
 }
 
-void ChNodeFEAxyz::SetNoSpeedNoAcceleration() {
+void ChNodeFEAxyz::ForceToRest() {
     pos_dt = VNULL;
     pos_dtdt = VNULL;
 }
@@ -78,7 +78,7 @@ void ChNodeFEAxyz::NodeIntStateScatter(const unsigned int off_x,
                                        const ChStateDelta& v,
                                        const double T) {
     SetPos(x.segment(off_x, 3));
-    SetPosDer(v.segment(off_v, 3));
+    SetPosDt(v.segment(off_v, 3));
 }
 
 void ChNodeFEAxyz::NodeIntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
@@ -86,7 +86,7 @@ void ChNodeFEAxyz::NodeIntStateGatherAcceleration(const unsigned int off_a, ChSt
 }
 
 void ChNodeFEAxyz::NodeIntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    SetPosDer2(a.segment(off_a, 3));
+    SetPosDt2(a.segment(off_a, 3));
 }
 
 void ChNodeFEAxyz::NodeIntStateIncrement(const unsigned int off_x,
@@ -160,9 +160,9 @@ void ChNodeFEAxyz::VariablesQbLoadSpeed() {
 
 void ChNodeFEAxyz::VariablesQbSetSpeed(double step) {
     ChVector3d old_dt = pos_dt;
-    SetPosDer(variables.Get_qb().segment(0, 3));
+    SetPosDt(variables.Get_qb().segment(0, 3));
     if (step) {
-        SetPosDer2((pos_dt - old_dt) / step);
+        SetPosDt2((pos_dt - old_dt) / step);
     }
 }
 

@@ -68,7 +68,7 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(doubl
     m_system = new ChSystemSMC;
 
     // Solver settings independent of method type
-    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
     // Set number of threads
     m_system->SetNumThreads(1);
@@ -87,7 +87,7 @@ ChVehicleCosimTerrainNodeGranularSPH::ChVehicleCosimTerrainNodeGranularSPH(const
     m_system = new ChSystemSMC;
 
     // Solver settings independent of method type
-    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
     // Set number of threads
     m_system->SetNumThreads(1);
@@ -173,7 +173,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
     sysFSI.SetDiscreType(false, false);
     sysFSI.SetOutputLength(0);
 
-    sysFSI.Set_G_acc(ChVector3d(0, 0, m_gacc));
+    sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
     sysFSI.SetDensity(m_density);
     sysFSI.SetCohesionForce(m_cohesion);
 
@@ -215,8 +215,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         body->SetRot(b.m_init_rot);
         body->SetMass(mass * b.m_density);
         body->SetInertia(inertia * b.m_density);
-        body->SetBodyFixed(false);
-        body->SetCollide(true);
+        body->SetFixed(false);
+        body->EnableCollision(true);
 
         auto trimesh_shape = chrono_types::make_shared<ChCollsionShapeTriangleMesh>(mat, trimesh,
                                                                                     false, false, m_radius_g);
@@ -264,8 +264,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
     auto body = chrono_types::make_shared<ChBody>();
     body->SetIdentifier(0);
     body->SetMass(m_load_mass[i]);
-    body->SetBodyFixed(true);  // proxy body always fixed
-    body->SetCollide(false);
+    body->SetFixed(true);  // proxy body always fixed
+    body->EnableCollision(false);
 
     // Create visualization asset (use collision shapes)
     m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::NONE, true);
@@ -277,7 +277,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::CreateRigidProxy(unsigned int i) {
             mesh.m_radius = m_radius;
         m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
         body->GetCollisionModel()->SetFamily(1);
-        body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+        body->GetCollisionModel()->DisallowCollisionsWith(1);
     }
 
     // Add this body to the Chrono and FSI systems
@@ -348,7 +348,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::OnInitialize(unsigned int num_objects
 void ChVehicleCosimTerrainNodeGranularSPH::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
     proxy->bodies[0]->SetPos(rigid_state.pos);
-    proxy->bodies[0]->SetPosDer(rigid_state.lin_vel);
+    proxy->bodies[0]->SetPosDt(rigid_state.lin_vel);
     proxy->bodies[0]->SetRot(rigid_state.rot);
     proxy->bodies[0]->SetAngVelParent(rigid_state.ang_vel);
     proxy->bodies[0]->SetAngAccParent(VNULL);
@@ -358,8 +358,8 @@ void ChVehicleCosimTerrainNodeGranularSPH::UpdateRigidProxy(unsigned int i, Body
 void ChVehicleCosimTerrainNodeGranularSPH::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
     rigid_contact.point = ChVector3d(0, 0, 0);
-    rigid_contact.force = proxy->bodies[0]->Get_accumulated_force();
-    rigid_contact.moment = proxy->bodies[0]->Get_accumulated_torque();
+    rigid_contact.force = proxy->bodies[0]->GetAccumulatedForce();
+    rigid_contact.moment = proxy->bodies[0]->GetAccumulatedTorque();
 }
 
 // -----------------------------------------------------------------------------

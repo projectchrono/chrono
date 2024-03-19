@@ -27,12 +27,12 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLineBezier)
 
 ChLineBezier::ChLineBezier(std::shared_ptr<ChBezierCurve> path) : m_path(path) {
-    complexityU = static_cast<int>(m_path->getNumPoints());
+    complexityU = static_cast<int>(m_path->GetNumPoints());
 }
 
 ChLineBezier::ChLineBezier(const std::string& filename) {
-    m_path = ChBezierCurve::read(filename);
-    complexityU = static_cast<int>(m_path->getNumPoints());
+    m_path = ChBezierCurve::Read(filename);
+    complexityU = static_cast<int>(m_path->GetNumPoints());
 }
 
 ChLineBezier::ChLineBezier(const ChLineBezier& source) : ChLine(source) {
@@ -42,7 +42,7 @@ ChLineBezier::ChLineBezier(const ChLineBezier& source) : ChLine(source) {
 
 ChAABB ChLineBezier::GetBoundingBox() const {
     ChAABB aabb;
-    for (const auto& p : m_path->getPoints()) {
+    for (const auto& p : m_path->GetPoints()) {
         aabb.min = Vmin(aabb.min, p);
         aabb.max = Vmax(aabb.max, p);
     }
@@ -52,13 +52,13 @@ ChAABB ChLineBezier::GetBoundingBox() const {
 
 ChVector3d ChLineBezier::Evaluate(double parU) const {
     double par = ChClamp(parU, 0.0, 1.0);
-    size_t numIntervals = m_path->getNumPoints() - 1;
+    size_t numIntervals = m_path->GetNumPoints() - 1;
     double epar = par * numIntervals;
     size_t i = static_cast<size_t>(std::floor(par * numIntervals));
     ChClampValue(i, size_t(0), numIntervals - 1);
     double t = epar - (double)i;
 
-    return m_path->eval(i, t);
+    return m_path->Eval(i, t);
 }
 
 void ChLineBezier::ArchiveOut(ChArchiveOut& archive_out) {

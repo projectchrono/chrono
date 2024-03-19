@@ -37,7 +37,7 @@ G500::G500()
       m_engineType(EngineModelType::SIMPLE_MAP),
       m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
       m_brake_locking(false),
-      m_brake_type(BrakeType::SIMPLE),
+      m_brake_type(BrakeType::SHAFTS),
       m_tireType(TireModelType::RIGID),
       m_tire_step_size(-1),
       m_steeringType(SteeringTypeWV::PITMAN_ARM),
@@ -113,6 +113,8 @@ void G500::Initialize() {
             break;
         case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
             transmission = chrono_types::make_shared<G500_AutomaticTransmissionSimpleMap>("Transmission");
+            break;
+        default:
             break;
     }
 

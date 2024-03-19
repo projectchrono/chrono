@@ -1123,8 +1123,8 @@ void ChElementHexaANCF_3813::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     d(7, 1) = pH.y();
     d(7, 2) = pH.z();
 
-    double v = m_Material->Get_v();
-    double E = m_Material->Get_E();
+    double v = m_Material->GetPoissonRatio();
+    double E = m_Material->GetYoungModulus();
 
     Fi.setZero();
 
@@ -1535,7 +1535,7 @@ void Brick_Mass::Evaluate(ChMatrixNM<double, 24, 24>& result, const double x, co
 }
 
 void ChElementHexaANCF_3813::ComputeMassMatrix() {
-    double rho = m_Material->Get_density();
+    double rho = m_Material->GetDensity();
     Brick_Mass myformula(&m_d0, this);
     m_MassMatrix.setZero();
     ChQuadrature::Integrate3D<ChMatrixNM<double, 24, 24>>(m_MassMatrix,  // result of integration will go there
@@ -1606,7 +1606,7 @@ void ChElementHexaANCF_3813::ComputeGravityForceScale() {
                                                     2                  // order of integration
     );
 
-    m_GravForceScale *= m_Material->Get_density();
+    m_GravForceScale *= m_Material->GetDensity();
 }
 
 // Compute the generalized force vector due to gravity
@@ -1648,7 +1648,7 @@ void ChElementHexaANCF_3813::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfac
 
     // For K stiffness matrix and R matrix: scale by factors
     // because [R] = r*[K] , so kf*[K]+rf*[R] = (kf+rf*r)*[K]
-    double kr_factor = Kfactor + Rfactor * m_Material->Get_RayleighDampingK();
+    double kr_factor = Kfactor + Rfactor * m_Material->GetRayleighDampingBeta();
 
     // Paste scaled K stiffness matrix and R matrix in resulting H and add scaled mass matrix.
     H.block(0, 0, 24, 24) = kr_factor * m_StiffnessMatrix + Mfactor * m_MassMatrix;
@@ -1780,7 +1780,7 @@ void ChElementHexaANCF_3813::Basis_M(ChMatrixNM<double, 6, 9>& M, double x, doub
 
 // -----------------------------------------------------------------------------
 
-void ChElementHexaANCF_3813::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementHexaANCF_3813::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPos().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPos().eigen();
@@ -1791,15 +1791,15 @@ void ChElementHexaANCF_3813::LoadableGetStateBlock_x(int block_offset, ChState& 
     mD.segment(block_offset + 21, 3) = m_nodes[7]->GetPos().eigen();
 }
 
-void ChElementHexaANCF_3813::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
-    mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPosDer().eigen();
-    mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPosDer().eigen();
-    mD.segment(block_offset + 9, 3) = m_nodes[3]->GetPosDer().eigen();
-    mD.segment(block_offset + 12, 3) = m_nodes[4]->GetPosDer().eigen();
-    mD.segment(block_offset + 15, 3) = m_nodes[5]->GetPosDer().eigen();
-    mD.segment(block_offset + 18, 3) = m_nodes[6]->GetPosDer().eigen();
-    mD.segment(block_offset + 21, 3) = m_nodes[7]->GetPosDer().eigen();
+void ChElementHexaANCF_3813::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDt().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[1]->GetPosDt().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[2]->GetPosDt().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[3]->GetPosDt().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[4]->GetPosDt().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[5]->GetPosDt().eigen();
+    mD.segment(block_offset + 18, 3) = m_nodes[6]->GetPosDt().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[7]->GetPosDt().eigen();
 }
 
 void ChElementHexaANCF_3813::LoadableStateIncrement(const unsigned int off_x,

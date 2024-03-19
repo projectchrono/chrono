@@ -151,8 +151,8 @@ def main():
             print( "Time = ", time, "\n")
             #hmmwv.DebugLog(OUT_SPRINGS | OUT_SHOCKS | OUT_CONSTRAINTS)
 
-            marker_driver = hmmwv.GetChassis().GetMarkers()[0].GetAbsCsys().pos
-            marker_com = hmmwv.GetChassis().GetMarkers()[1].GetAbsCsys().pos
+            marker_driver = hmmwv.GetChassis().GetMarkers()[0].GetAbsCoordsys().pos
+            marker_com = hmmwv.GetChassis().GetMarkers()[1].GetAbsCoordsys().pos
             print( "\nMarkers\n")
             print( "  Driver loc:      " , marker_driver.x , " " , marker_driver.y , " " , marker_driver.z)
             print( "  Chassis COM loc: " , marker_com.x, " ", marker_com.y, " ",marker_com.z)

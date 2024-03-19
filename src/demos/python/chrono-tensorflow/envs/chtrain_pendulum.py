@@ -42,7 +42,7 @@ class Model(object):
       self.radius_rod = 0.05
       self.density_rod = 50;    # kg/m^3
 
-      self.mass_rod = self.density_rod * self.size_rod_y *chrono.CH_C_PI* (self.radius_rod**2);  
+      self.mass_rod = self.density_rod * self.size_rod_y *chrono.CH_PI* (self.radius_rod**2);  
       self.inertia_rod_y = (self.radius_rod**2) * self.mass_rod/2;
       self.inertia_rod_x = (self.mass_rod/12)*((self.size_rod_y**2)+3*(self.radius_rod**2))
       
@@ -91,7 +91,7 @@ class Model(object):
 
 
       self.body_floor = chrono.ChBody()
-      self.body_floor.SetBodyFixed(True)
+      self.body_floor.SetFixed(True)
       self.body_floor.SetPos(chrono.ChVector3d(0, -5, 0 ))
 
 
@@ -121,7 +121,7 @@ class Model(object):
 
       self.link_slider = chrono.ChLinkLockPrismatic()
       z2x = chrono.ChQuaterniond()
-      z2x.SetFromAngleAxis(-chrono.CH_C_PI / 2 , chrono.ChVector3d(0, 1, 0))
+      z2x.SetFromAngleAxis(-chrono.CH_PI / 2 , chrono.ChVector3d(0, 1, 0))
 
       self.link_slider.Initialize(self.body_table, self.body_floor, chrono.ChFramed(chrono.ChVector3d(0, 0, 0), z2x))
       self.rev_pend_sys.Add(self.link_slider)
@@ -159,7 +159,7 @@ class Model(object):
        self.steps += 1
        self.ac = chrono.ChFunctionConst(action)
        self.actuator.SetForceFunction(self.ac)
-       self.omega = self.pin_joint.GetRelWvel().Length()  
+       self.omega = self.pin_joint.GetRelativeAngVel().Length()  
        
        if self.render:
               self.vis.Run()
@@ -180,12 +180,12 @@ class Model(object):
    def get_ob(self):
            
 
-          self.state = [self.link_slider.GetDist(), self.link_slider.GetDist_dt(), self.pin_joint.GetRelAngle(), self.omega]
+          self.state = [self.link_slider.GetDistance(), self.link_slider.GetDistanceDt(), self.pin_joint.GetRelAngle(), self.omega]
           return np.asarray(self.state)
 
                  
    def is_done(self):
-          if abs(self.link_slider.GetDist()) > 2 or self.steps> 100000 or abs(self.pin_joint.GetRelAngle()) >  0.2  :
+          if abs(self.link_slider.GetDistance()) > 2 or self.steps> 100000 or abs(self.pin_joint.GetRelAngle()) >  0.2  :
                  self.isdone = True
                         
        

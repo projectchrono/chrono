@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
     auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
     floorBody->SetPos(ChVector3d(0, -5, 0));
-    floorBody->SetBodyFixed(true);
+    floorBody->SetFixed(true);
     floorBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
     sys.Add(floorBody);
 
@@ -88,7 +88,7 @@ int main(int argc, char* argv[]) {
     // ---Initialize the randomizer for positions
     auto emitter_positions = chrono_types::make_shared<ChRandomParticlePositionRectangleOutlet>();
     emitter_positions->Outlet() =
-        ChCoordsys<>(ChVector3d(0, 3, 0), QuatFromAngleX(CH_C_PI_2));  // center and alignment of the outlet
+        ChCoordsys<>(ChVector3d(0, 3, 0), QuatFromAngleX(CH_PI_2));  // center and alignment of the outlet
     emitter_positions->OutletWidth() = 3.0;
     emitter_positions->OutletHeight() = 4.5;
 
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
                 coll->Add(mbody->GetCollisionModel());
 
             // Other stuff, ex. disable gyroscopic forces for increased integrator stabilty
-            mbody->SetNoGyroTorque(true);
+            mbody->SetUseGyroTorque(false);
         }
         ChVisualSystem* vis;
         ChCollisionSystem* coll;
@@ -168,7 +168,7 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(40);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(40);
 
     // Simulation loop
     double timestep = 0.01;

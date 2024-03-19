@@ -41,8 +41,9 @@ ChModalAssembly::ChModalAssembly(const ChModalAssembly& other) : ChAssembly(othe
     m_custom_F_modal_callback = other.m_custom_F_modal_callback;
     m_custom_F_full_callback = other.m_custom_F_full_callback;
 
-    //// TODO:  deep copy of the object lists (internal_bodylist, internal_linklist, internal_meshlist,
-    /// internal_otherphysicslist)
+    //// TODO:
+    //// deep copy of the object lists
+    //// (internal_bodylist, internal_linklist, internal_meshlist, internal_otherphysicslist)
 }
 
 ChModalAssembly::~ChModalAssembly() {
@@ -263,19 +264,19 @@ void ChModalAssembly::SwitchModalReductionON(ChSparseMatrix& full_M,
     this->modes_V.resize(0, 0);
 
     // Debug dump data. ***TODO*** remove
-    if (true) {
+    if (false) {
         std::ofstream fileP("dump_modal_Psi.dat");
         fileP << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(Psi, fileP);
+        StreamOut(Psi, fileP);
         std::ofstream fileM("dump_modal_M.dat");
         fileM << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(this->modal_M, fileM);
+        StreamOut(this->modal_M, fileM);
         std::ofstream fileK("dump_modal_K.dat");
         fileK << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(this->modal_K, fileK);
+        StreamOut(this->modal_K, fileK);
         std::ofstream fileR("dump_modal_R.dat");
         fileR << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(this->modal_R, fileR);
+        StreamOut(this->modal_R, fileR);
     }
 }
 
@@ -320,7 +321,7 @@ void ChModalAssembly::SetupModalData(int nmodes_reduction) {
             mesh->InjectVariables(temporary_descriptor);
         for (auto& item : otherphysicslist)
             item->InjectVariables(temporary_descriptor);
-        mvars = temporary_descriptor.GetVariablesList();
+        mvars = temporary_descriptor.GetVariables();
         // - for the MODAL variables:
         mvars.push_back(this->modal_variables);
 
@@ -829,38 +830,39 @@ void ChModalAssembly::GetSubassemblyConstraintJacobianMatrix(ChSparseMatrix* Cq)
     // Cq->makeCompressed();
 }
 
-void ChModalAssembly::DumpSubassemblyMatrices(bool save_M,
-                                              bool save_K,
-                                              bool save_R,
-                                              bool save_Cq,
-                                              const std::string& path) {
+void ChModalAssembly::WriteSubassemblyMatrices(bool save_M,
+                                               bool save_K,
+                                               bool save_R,
+                                               bool save_Cq,
+                                               const std::string& path,
+                                               bool one_indexed) {
     if (save_M) {
         ChSparseMatrix mM;
         this->GetSubassemblyMassMatrix(&mM);
         std::ofstream file_M(path + "_M.dat");
         file_M << std::setprecision(12) << std::scientific;
-        StreamOutSparseMatlabFormat(mM, file_M);
+        StreamOut(mM, file_M, one_indexed);
     }
     if (save_K) {
         ChSparseMatrix mK;
         this->GetSubassemblyStiffnessMatrix(&mK);
         std::ofstream file_K(path + "_K.dat");
         file_K << std::setprecision(12) << std::scientific;
-        StreamOutSparseMatlabFormat(mK, file_K);
+        StreamOut(mK, file_K, one_indexed);
     }
     if (save_R) {
         ChSparseMatrix mR;
         this->GetSubassemblyDampingMatrix(&mR);
         std::ofstream file_R(path + "_R.dat");
         file_R << std::setprecision(12) << std::scientific;
-        StreamOutSparseMatlabFormat(mR, file_R);
+        StreamOut(mR, file_R, one_indexed);
     }
     if (save_Cq) {
         ChSparseMatrix mCq;
         this->GetSubassemblyConstraintJacobianMatrix(&mCq);
         std::ofstream file_Cq(path + "_Cq.dat");
         file_Cq << std::setprecision(12) << std::scientific;
-        StreamOutSparseMatlabFormat(mCq, file_Cq);
+        StreamOut(mCq, file_Cq, one_indexed);
     }
 }
 
@@ -925,10 +927,10 @@ void ChModalAssembly::SetupInitial() {
 void ChModalAssembly::Setup() {
     ChAssembly::Setup();  // parent
 
-    m_num_bodies_boundary = m_num_bodies;
-    m_num_links_boundary = m_num_links;
+    m_num_bodies_boundary = m_num_bodies_active;
+    m_num_links_boundary = m_num_links_active;
     m_num_meshes_boundary = m_num_meshes;
-    m_num_otherphysicsitems_boundary = m_num_otherphysicsitems;
+    m_num_otherphysicsitems_boundary = m_num_otherphysicsitems_active;
     m_num_coords_pos_boundary = m_num_coords_pos;
     m_num_coords_vel_boundary = m_num_coords_vel;
     m_num_constr_boundary = m_num_constr;
@@ -949,9 +951,9 @@ void ChModalAssembly::Setup() {
     //
 
     for (auto& body : internal_bodylist) {
-        if (body->GetBodyFixed()) {
+        if (body->IsFixed()) {
             // throw std::runtime_error("Cannot use a fixed body as internal");
-        } else if (body->GetSleeping()) {
+        } else if (body->IsSleeping()) {
             // throw std::runtime_error("Cannot use a sleeping body as internal");
         } else {
             m_num_bodies_internal++;
@@ -962,8 +964,8 @@ void ChModalAssembly::Setup() {
 
             body->Setup();  // currently, no-op
 
-            m_num_coords_pos_internal += body->GetNumCoordinatesPos();
-            m_num_coords_vel_internal += body->GetNumCoordinatesVel();
+            m_num_coords_pos_internal += body->GetNumCoordsPosLevel();
+            m_num_coords_vel_internal += body->GetNumCoordsVelLevel();
             m_num_constr_internal +=
                 body->GetNumConstraints();  // not really needed since ChBody introduces no constraints
         }
@@ -979,8 +981,8 @@ void ChModalAssembly::Setup() {
 
             link->Setup();  // compute DOFs etc. and sets the offsets also in child items, if any
 
-            m_num_coords_pos_internal += link->GetNumCoordinatesPos();
-            m_num_coords_vel_internal += link->GetNumCoordinatesVel();
+            m_num_coords_pos_internal += link->GetNumCoordsPosLevel();
+            m_num_coords_vel_internal += link->GetNumCoordsVelLevel();
             m_num_constr_internal += link->GetNumConstraints();
             m_num_constr_bil_internal += link->GetNumConstraintsBilateral();
             m_num_constr_uni_internal += link->GetNumConstraintsUnilateral();
@@ -996,8 +998,8 @@ void ChModalAssembly::Setup() {
 
         mesh->Setup();  // compute DOFs and iteratively call Setup for child items
 
-        m_num_coords_pos_internal += mesh->GetNumCoordinatesPos();
-        m_num_coords_vel_internal += mesh->GetNumCoordinatesVel();
+        m_num_coords_pos_internal += mesh->GetNumCoordsPosLevel();
+        m_num_coords_vel_internal += mesh->GetNumCoordsVelLevel();
         m_num_constr_internal += mesh->GetNumConstraints();
         m_num_constr_bil_internal += mesh->GetNumConstraintsBilateral();
         m_num_constr_uni_internal += mesh->GetNumConstraintsUnilateral();
@@ -1012,8 +1014,8 @@ void ChModalAssembly::Setup() {
 
         item->Setup();
 
-        m_num_coords_pos_internal += item->GetNumCoordinatesPos();
-        m_num_coords_vel_internal += item->GetNumCoordinatesVel();
+        m_num_coords_pos_internal += item->GetNumCoordsPosLevel();
+        m_num_coords_vel_internal += item->GetNumCoordsVelLevel();
         m_num_constr_internal += item->GetNumConstraints();
         m_num_constr_bil_internal += item->GetNumConstraintsBilateral();
         m_num_constr_uni_internal += item->GetNumConstraintsUnilateral();
@@ -1035,10 +1037,10 @@ void ChModalAssembly::Setup() {
         m_num_constr = m_num_constr_boundary + m_num_constr_internal;
         m_num_constr_bil = m_num_constr_bil_boundary + m_num_constr_bil_internal;
         m_num_constr_uni = m_num_constr_uni_boundary + m_num_constr_uni_internal;
-        m_num_bodies += m_num_bodies_internal;
-        m_num_links += m_num_links_internal;
+        m_num_bodies_active += m_num_bodies_internal;
+        m_num_links_active += m_num_links_internal;
         m_num_meshes += m_num_meshes_internal;
-        m_num_otherphysicsitems += m_num_otherphysicsitems_internal;
+        m_num_otherphysicsitems_active += m_num_otherphysicsitems_internal;
     } else {
         m_num_coords_pos = m_num_coords_pos_boundary +
                            m_num_modes_coords_vel;  // no need for a n_modes_coords, same as m_num_modes_coords_vel
@@ -1086,21 +1088,21 @@ void ChModalAssembly::Update(bool update_assets) {
     }
 }
 
-void ChModalAssembly::SetNoSpeedNoAcceleration() {
-    ChAssembly::SetNoSpeedNoAcceleration();  // parent
+void ChModalAssembly::ForceToRest() {
+    ChAssembly::ForceToRest();  // parent
 
     if (is_modal == false) {
         for (auto& body : internal_bodylist) {
-            body->SetNoSpeedNoAcceleration();
+            body->ForceToRest();
         }
         for (auto& link : internal_linklist) {
-            link->SetNoSpeedNoAcceleration();
+            link->ForceToRest();
         }
         for (auto& mesh : internal_meshlist) {
-            mesh->SetNoSpeedNoAcceleration();
+            mesh->ForceToRest();
         }
         for (auto& item : internal_otherphysicslist) {
-            item->SetNoSpeedNoAcceleration();
+            item->ForceToRest();
         }
     } else {
         this->modal_q_dt.setZero(this->m_num_modes_coords_vel);

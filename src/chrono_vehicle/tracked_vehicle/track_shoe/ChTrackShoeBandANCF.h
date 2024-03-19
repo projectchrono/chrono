@@ -25,8 +25,8 @@
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChMaterialShellANCF.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChNodeFEAbase.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
@@ -80,10 +80,10 @@ class CH_VEHICLE_API ChTrackShoeBandANCF : public ChTrackShoeBand {
     virtual void UpdateInertiaProperties() override;
 
     /// Get the number of shell elements across the web length (from tread body to tread body).
-    virtual int GetNumElementsLength() const = 0;
+    virtual unsigned int GetNumElementsLength() const = 0;
 
     /// Get the number of shell elements across the web width (side to side).
-    virtual int GetNumElementsWidth() const = 0;
+    virtual unsigned int GetNumElementsWidth() const = 0;
 
     /// Get thickness of the inner steel layer.
     /// The rubber layer thicknesses are obtained from the total web thickness.

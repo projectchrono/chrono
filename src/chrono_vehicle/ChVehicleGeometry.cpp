@@ -61,7 +61,7 @@ ChVehicleGeometry::CylinderShape::CylinderShape(const ChVector3d& pos,
     : m_pos(pos), m_radius(radius), m_length(length), m_matID(matID) {
     ChMatrix33<> rot;
     rot.SetFromAxisX(axis);
-    m_rot = rot.GetQuaternion() * QuatFromAngleY(-CH_C_PI_2);
+    m_rot = rot.GetQuaternion() * QuatFromAngleY(-CH_PI_2);
 }
 
 ChVehicleGeometry::LineShape::LineShape(const ChVector3d& pos,
@@ -208,7 +208,7 @@ void ChVehicleGeometry::CreateCollisionShapes(std::shared_ptr<ChBody> body,
         materials.push_back(minfo.CreateMaterial(contact_method));
     }
 
-    body->SetCollide(true);
+    body->EnableCollision(true);
 
     for (auto& sphere : m_coll_spheres) {
         assert(materials[sphere.m_matID]);

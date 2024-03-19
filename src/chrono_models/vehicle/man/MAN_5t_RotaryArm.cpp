@@ -30,7 +30,7 @@ const double MAN_5t_RotaryArm::m_pitmanArmMass = 1.605;
 
 const double MAN_5t_RotaryArm::m_pitmanArmRadius = 0.02;
 
-const double MAN_5t_RotaryArm::m_maxAngle = 39.0 * (CH_C_PI / 180);
+const double MAN_5t_RotaryArm::m_maxAngle = 39.0 * (CH_PI / 180);
 
 const ChVector3d MAN_5t_RotaryArm::m_pitmanArmInertiaMoments(0.00638, 0.00756, 0.00150);
 const ChVector3d MAN_5t_RotaryArm::m_pitmanArmInertiaProducts(0.0, 0.0, 0.0);

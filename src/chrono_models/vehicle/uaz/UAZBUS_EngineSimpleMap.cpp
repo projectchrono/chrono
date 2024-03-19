@@ -25,7 +25,7 @@ namespace chrono {
 namespace vehicle {
 namespace uaz {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 UAZBUS_EngineSimpleMap::UAZBUS_EngineSimpleMap(const std::string& name) : ChEngineSimpleMap(name) {}
 

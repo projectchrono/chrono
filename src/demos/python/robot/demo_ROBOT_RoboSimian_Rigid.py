@@ -70,8 +70,8 @@ class RayCaster:
         self.m_points = []
         
         self.m_body = chrono.ChBody()
-        self.m_body.SetBodyFixed(True)
-        self.m_body.SetCollide(False)
+        self.m_body.SetFixed(True)
+        self.m_body.EnableCollision(False)
         self.m_sys.AddBody(self.m_body)
         
 
@@ -116,8 +116,8 @@ def CreateTerrain(sys, length, width, height, offset) :
         matSMC.SetYoungModulus(1e7)
 
     ground = chrono.ChBody()
-    ground.SetBodyFixed(True)
-    ground.SetCollide(True)
+    ground.SetFixed(True)
+    ground.EnableCollision(True)
 
     ground_ct_shape = chrono.ChCollisionShapeBox(ground_mat, length, width, 0.2)
     ground.AddCollisionShape(ground_ct_shape, chrono.ChFramed(chrono.ChVector3d(offset, 0, height - 0.1), chrono.QUNIT))
@@ -174,10 +174,10 @@ if  contact_method == chrono.ChContactMethod_SMC :
 
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
-sys.SetSolverMaxIterations(200)
+sys.GetSolver().AsIterative().SetMaxIterations(200)
 sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN)
 
-sys.Set_G_acc(chrono.ChVector3d(0, 0, -9.8))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, -9.8))
 
 # -----------------------
 # Create RoboSimian robot
@@ -195,10 +195,10 @@ robot.SetOutputDirectory(out_dir)
 
 # Control collisions (default: True for sled and wheels only)
 
-##robot.SetCollide(robosimian::CollisionFlags::NONE)
-##robot.SetCollide(robosimian::CollisionFlags::ALL)
-##robot.SetCollide(robosimian::CollisionFlags::LIMBS)
-##robot.SetCollide(robosimian::CollisionFlags::CHASSIS | robosimian::CollisionFlags::WHEELS)
+##robot.EnableCollision(robosimian::CollisionFlags::NONE)
+##robot.EnableCollision(robosimian::CollisionFlags::ALL)
+##robot.EnableCollision(robosimian::CollisionFlags::LIMBS)
+##robot.EnableCollision(robosimian::CollisionFlags::CHASSIS | robosimian::CollisionFlags::WHEELS)
 
 # Set visualization modes (default: all COLLISION)
 
@@ -215,7 +215,7 @@ robot.SetOutputDirectory(out_dir)
 # Initialize Robosimian robot
 
 ##robot.Initialize(ChCoordsys<>(chrono.ChVector3d(0, 0, 0), QUNIT))
-robot.Initialize(chrono.ChCoordsysd(chrono.ChVector3d(0, 0, 0), chrono.QuatFromAngleX(chrono.CH_C_PI)))
+robot.Initialize(chrono.ChCoordsysd(chrono.ChVector3d(0, 0, 0), chrono.QuatFromAngleX(chrono.CH_PI)))
 
 # -----------------------------------
 # Create a driver and attach to robot
@@ -260,7 +260,7 @@ robot.SetDriver(driver)
 # Cast rays into collision models
 # -------------------------------
 
-caster = RayCaster(sys, chrono.ChFramed(chrono.ChVector3d(0, -2, -1), chrono.QuatFromAngleX(-chrono.CH_C_PI_2)), [2.5, 2.5], 0.02)
+caster = RayCaster(sys, chrono.ChFramed(chrono.ChVector3d(0, -2, -1), chrono.QuatFromAngleX(-chrono.CH_PI_2)), [2.5, 2.5], 0.02)
 
 # -------------------------------
 # Create the visualization window
@@ -323,7 +323,7 @@ while (vis.Run()) :
 
         vis.BindItem(ground)
 
-        robot.GetChassisBody().SetBodyFixed(False)
+        robot.GetChassisBody().SetFixed(False)
         terrain_created = True
 
 

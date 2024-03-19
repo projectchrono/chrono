@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
             auto solver = chrono_types::make_shared<ChSolverMINRES>();
             sys.SetSolver(solver);
             solver->SetMaxIterations(200);
-            solver->SetTolerance(1e-10);
+            solver->SetTolerance(1e-14);
             solver->EnableDiagonalPreconditioner(true);
             solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
             solver->SetVerbose(false);
@@ -119,7 +119,6 @@ int main(int argc, char* argv[]) {
 
     // Set integrator
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
-    sys.SetSolverForceTolerance(1e-13);
 
     while (vis->Run()) {
         vis->BeginScene();

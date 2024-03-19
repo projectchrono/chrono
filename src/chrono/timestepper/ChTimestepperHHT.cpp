@@ -58,13 +58,13 @@ void ChTimestepperHHT::Advance(const double dt) {
     mintegrable->StateSetup(X, V, A);
 
     // Setup auxiliary vectors
-    Da.setZero(mintegrable->GetNumCoordinatesVel(), mintegrable);
+    Da.setZero(mintegrable->GetNumCoordsVelLevel(), mintegrable);
     Dl.setZero(mintegrable->GetNumConstraints());
-    Xnew.setZero(mintegrable->GetNumCoordinatesPos(), mintegrable);
-    Vnew.setZero(mintegrable->GetNumCoordinatesVel(), mintegrable);
-    Anew.setZero(mintegrable->GetNumCoordinatesVel(), mintegrable);
-    R.setZero(mintegrable->GetNumCoordinatesVel());
-    Rold.setZero(mintegrable->GetNumCoordinatesVel());
+    Xnew.setZero(mintegrable->GetNumCoordsPosLevel(), mintegrable);
+    Vnew.setZero(mintegrable->GetNumCoordsVelLevel(), mintegrable);
+    Anew.setZero(mintegrable->GetNumCoordsVelLevel(), mintegrable);
+    R.setZero(mintegrable->GetNumCoordsVelLevel());
+    Rold.setZero(mintegrable->GetNumCoordsVelLevel());
     Qc.setZero(mintegrable->GetNumConstraints());
     L.setZero(mintegrable->GetNumConstraints());
     Lnew.setZero(mintegrable->GetNumConstraints());
@@ -115,7 +115,7 @@ void ChTimestepperHHT::Advance(const double dt) {
         Da_nrm_hist.fill(0.0);
         Dl_nrm_hist.fill(0.0);
         bool converged = false;
-        int it;
+        unsigned int it;
 
         for (it = 0; it < maxiters; it++) {
             if (verbose && modified_Newton && call_setup)
@@ -231,7 +231,7 @@ void ChTimestepperHHT::Advance(const double dt) {
         // Scatter state -> system
         mintegrable->StateScatter(X, V, T, false);
         Rold.setZero();
-        Anew.setZero(mintegrable->GetNumCoordinatesVel(), mintegrable);
+        Anew.setZero(mintegrable->GetNumCoordsVelLevel(), mintegrable);
     }
 
     // Scatter state -> system doing a full update

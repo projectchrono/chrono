@@ -215,7 +215,7 @@ void ChTireTestRig::Initialize(Mode mode) {
     if (m_rs_actuated)
         m_rot_motor->SetSpeedFunction(chrono_types::make_shared<DelayedFun>(m_rs_fun, m_time_delay));
 
-    m_slip_lock->SetMotion_ang(chrono_types::make_shared<DelayedFun>(m_sa_fun, m_time_delay));
+    m_slip_lock->SetMotionAng1(chrono_types::make_shared<DelayedFun>(m_sa_fun, m_time_delay));
 }
 
 // -----------------------------------------------------------------------------
@@ -226,7 +226,7 @@ void ChTireTestRig::Advance(double step) {
     // Synchronize subsystems
     m_terrain->Synchronize(time);
     m_tire->Synchronize(time, *m_terrain.get());
-    m_spindle_body->Empty_forces_accumulators();
+    m_spindle_body->EmptyAccumulators();
     m_wheel->Synchronize();
 
     // Advance state
@@ -238,7 +238,7 @@ void ChTireTestRig::Advance(double step) {
 // -----------------------------------------------------------------------------
 
 void ChTireTestRig::CreateMechanism(Mode mode) {
-    m_system->Set_G_acc(ChVector3d(0, 0, -m_grav));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -m_grav));
 
     // Create bodies.
     // Rig bodies are constructed with mass and inertia commensurate with those of the wheel-tire system.
@@ -251,7 +251,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_system->AddBody(m_ground_body);
     m_ground_body->SetName("rig_ground");
     m_ground_body->SetIdentifier(0);
-    m_ground_body->SetBodyFixed(true);
+    m_ground_body->SetFixed(true);
     {
         auto box = chrono_types::make_shared<ChVisualShapeBox>(100, dim / 3, dim / 3);
         m_ground_body->AddVisualShape(box);
@@ -318,7 +318,7 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     }
 
     m_spindle_body = chrono_types::make_shared<ChBody>();
-    m_spindle_body->SetBodyFixed(mode == Mode::SUSPEND);
+    m_spindle_body->SetFixed(mode == Mode::SUSPEND);
     ChQuaternion<> qc;
     qc.SetFromAngleX(-m_camber_angle);
     m_system->AddBody(m_spindle_body);
@@ -337,10 +337,10 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     if (mode == Mode::TEST && m_ls_actuated) {
         m_lin_motor = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
         m_system->AddLink(m_lin_motor);
-        m_lin_motor->Initialize(m_carrier_body, m_ground_body, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_C_PI_2)));
+        m_lin_motor->Initialize(m_carrier_body, m_ground_body, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_PI_2)));
     } else {
         ChQuaternion<> z2x;
-        z2x.SetFromAngleY(CH_C_PI_2);
+        z2x.SetFromAngleY(CH_PI_2);
         auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
         m_system->AddLink(prismatic);
         prismatic->Initialize(m_carrier_body, m_ground_body, ChFrame<>(VNULL, z2x));
@@ -353,10 +353,10 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_slip_lock = chrono_types::make_shared<ChLinkLockLock>();
     m_system->AddLink(m_slip_lock);
     m_slip_lock->Initialize(m_chassis_body, m_slip_body, ChFrame<>(VNULL, QUNIT));
-    m_slip_lock->SetMotion_axis(ChVector3d(0, 0, 1));
+    m_slip_lock->SetMotionAxis(ChVector3d(0, 0, 1));
 
     ChQuaternion<> z2y;
-    z2y.SetFromAngleX(-CH_C_PI_2 - m_camber_angle);
+    z2y.SetFromAngleX(-CH_PI_2 - m_camber_angle);
     if (mode == Mode::TEST && m_rs_actuated) {
         m_rot_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         m_system->AddLink(m_rot_motor);
@@ -460,7 +460,7 @@ void ChTireTestRig::CreateTerrainGranular() {
 
     auto terrain = chrono_types::make_shared<vehicle::GranularTerrain>(m_system);
 
-    double coh_force = (CH_C_PI * m_params_granular.radius * m_params_granular.radius) * m_params_granular.cohesion;
+    double coh_force = (CH_PI * m_params_granular.radius * m_params_granular.radius) * m_params_granular.cohesion;
     switch (m_system->GetContactMethod()) {
         case ChContactMethod::SMC: {
             auto mat_g = chrono_types::make_shared<ChContactMaterialSMC>();

@@ -50,7 +50,7 @@ class MySpringTorque(chrono.TorqueFunctor):
 print("Copyright (c) 2017 projectchrono.org")
 
 sys = chrono.ChSystemNSC()
-sys.Set_G_acc(chrono.ChVector3d(0, 0, 0))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, 0))
 
 # Revolute joint frame 
 rev_rot = chrono.QuatFromAngleX(m.pi / 6.0)
@@ -61,8 +61,8 @@ rev_pos = chrono.ChVector3d(+1, 0, 0)
 ground = chrono.ChBody()
 sys.AddBody(ground)
 ground.SetIdentifier(-1)
-ground.SetBodyFixed(True)
-ground.SetCollide(False)
+ground.SetFixed(True)
+ground.EnableCollision(False)
 
 # Visualization for revolute joint
 seg = chrono.ChLineSegment(rev_pos + rev_dir * 0.2, rev_pos - rev_dir * 0.2)
@@ -81,11 +81,11 @@ lin_vel = ang_vel % offset
 body = chrono.ChBody()
 sys.AddBody(body)
 body.SetPos(rev_pos + offset)
-body.SetPosDer(lin_vel)
+body.SetPosDt(lin_vel)
 body.SetAngVelParent(ang_vel)
 body.SetIdentifier(1)
-body.SetBodyFixed(False)
-body.SetCollide(False)
+body.SetFixed(False)
+body.EnableCollision(False)
 body.SetMass(1)
 body.SetInertiaXX(chrono.ChVector3d(1, 1, 1))
 
@@ -94,7 +94,7 @@ sph = chrono.ChVisualShapeSphere(0.3)
 body.AddVisualShape(sph)
 cyl = chrono.ChVisualShapeCylinder(0.1, 1.5)
 cyl.SetColor(chrono.ChColor(0.7, 0.8, 0.8))
-body.AddVisualShape(cyl, chrono.ChFramed(chrono.ChVector3d(-0.75,0,0), chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
+body.AddVisualShape(cyl, chrono.ChFramed(chrono.ChVector3d(-0.75,0,0), chrono.QuatFromAngleY(chrono.CH_PI_2)))
 
 # Create revolute joint between body and ground
 rev = chrono.ChLinkLockRevolute()
@@ -135,7 +135,7 @@ while vis.Run():
     if (frame % 50 == 0) :
         print('{:.6}'.format(str(sys.GetChTime())))
         print('Body position      ', body.GetPos())
-        print('Body lin. vel      ', body.GetPosDer())
+        print('Body lin. vel      ', body.GetPosDt())
         print('Body abs. ang. vel ', body.GetAngVelParent())
         print('Body loc. ang. vel ', body.GetAngVelLocal())
         print('Rot. spring-damper ', spring.GetAngle(), '  ', spring.GetTorque())

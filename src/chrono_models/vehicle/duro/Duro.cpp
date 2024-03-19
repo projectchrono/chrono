@@ -114,6 +114,8 @@ void Duro::Initialize() {
         case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
             // transmission = chrono_types::make_shared<Duro_AutomaticTransmissionSimpleMap>("Transmission");
             break;
+        default:
+            break;
     }
 
     if (engine && transmission) {

@@ -109,7 +109,7 @@ TEST_P(SlidingGravityTest, sliding) {
 
     // Give the block a push in the horizontal direction
     ChVector3d init_bv(5, 0, 0);
-    body->SetPosDer(init_bv);
+    body->SetPosDt(init_bv);
 
     double t_start = sys->GetChTime();
     double t_end = t_start + 2;

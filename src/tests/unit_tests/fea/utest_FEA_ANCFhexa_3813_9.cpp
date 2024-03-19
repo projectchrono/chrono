@@ -120,7 +120,7 @@ int main(int argc, char* argv[]) {
 bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile = nullptr;
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     double time_step = 1e-3;
     bool genRefFile = false;
     double precision = 1e-3;  // Precision for unit test
@@ -187,12 +187,11 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     ChVector3d nu(0.3, 0.3, 0.3);
     ChVector3d G(8.0769231e7, 8.0769231e7, 8.0769231e7);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -238,7 +237,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     // Add the mesh to the system
     sys.Add(my_mesh);
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, 0.0));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, 0.0));
 
     // Set up solver
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -252,7 +251,7 @@ bool BendingQuasiStatic(ChMatrixDynamic<> FileInputMat) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(false);
     sys.Setup();
@@ -308,7 +307,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     double precision = 1e-3;  // Precision for test
     bool genRefFile = false;
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     std::cout << "--------------------------------------------------------------------\n";
     std::cout << "--------------------------------------------------------------------\n";
@@ -376,12 +375,11 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     ChVector3d nu(0.3, 0.3, 0.3);
     ChVector3d G(8.0769231e6, 8.0769231e6, 8.0769231e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -431,7 +429,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -9.81));
 
     // ----------------------------------
     // Perform a dynamic time integration
@@ -449,7 +447,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(false);
 
@@ -495,7 +493,7 @@ bool SwingingShell(ChMatrixDynamic<> FileInputMat) {
 bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile = nullptr;
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     double time_step = 1e-4;
     bool genRefFile = false;
     double precision = 1e-4;  // Precision for unit test
@@ -568,12 +566,11 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     ChVector3d nu(0.3, 0.3, 0.3);
     ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
     ChMatrixNM<double, 9, 8> CCPInitial;
     CCPInitial.setZero();
     for (int k = 0; k < 8; k++) {
@@ -629,7 +626,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     // Add the mesh to the system
     sys.Add(my_mesh);
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, 0.0));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, 0.0));
 
     // Set up solver
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -643,7 +640,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-8, 1e-1);
     mystepper->SetVerbose(false);
     sys.Setup();
@@ -661,7 +658,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
     double RelVal, RelVal1, RelVal2, RelVal3, force;
 
     while (sys.GetChTime() < 0.005) {
-        force = 75 * std::sin(sys.GetChTime() * CH_C_PI);
+        force = 75 * std::sin(sys.GetChTime() * CH_PI);
         nodetip1->SetForce(ChVector3d(force, 0.0, 0.0));
         nodetip2->SetForce(ChVector3d(force, 0.0, 0.0));
         nodetip3->SetForce(ChVector3d(force, 0.0, 0.0));
@@ -697,7 +694,7 @@ bool J2Plastic(ChMatrixDynamic<> FileInputMat) {
 bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     FILE* outputfile = nullptr;
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     double time_step = 1e-4;
     bool genRefFile = false;
     double precision = 1e-4;  // Precision for unit test
@@ -770,12 +767,11 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     ChVector3d nu(0.3, 0.3, 0.3);
     ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
     ChMatrixNM<double, 9, 8> CCPInitial;
     CCPInitial.setZero();
     for (int k = 0; k < 8; k++) {
@@ -836,7 +832,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     // Add the mesh to the system
     sys.Add(my_mesh);
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, 0.0));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, 0.0));
 
     // Set up solver
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
@@ -850,7 +846,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-8, 1e-1);
     mystepper->SetVerbose(false);
     sys.Setup();
@@ -868,7 +864,7 @@ bool DruckerPragerPlastic(ChMatrixDynamic<> FileInputMat) {
     double RelVal, RelVal1, RelVal2, RelVal3, force;
 
     while (sys.GetChTime() < 0.005) {
-        force = 75 * std::sin(sys.GetChTime() * CH_C_PI);
+        force = 75 * std::sin(sys.GetChTime() * CH_PI);
         nodetip1->SetForce(ChVector3d(force, 0.0, 0.0));
         nodetip2->SetForce(ChVector3d(force, 0.0, 0.0));
         nodetip3->SetForce(ChVector3d(force, 0.0, 0.0));

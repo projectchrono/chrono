@@ -52,7 +52,7 @@ sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 mat = chrono.ChContactMaterialNSC()
 
 ground = chrono.ChBodyEasyBox(10, 3, 10, 100, True, True, mat)
-ground.SetBodyFixed(True);
+ground.SetFixed(True);
 ground.SetPos(chrono.ChVector3d(0, 0, 0))
 sys.AddBody(ground)
 

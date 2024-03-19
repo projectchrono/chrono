@@ -32,7 +32,7 @@ class ChApi ChElementHexahedron {
     virtual ~ChElementHexahedron() {}
 
     /// Return the specified hexahedron node (0 <= n <= 7).
-    virtual std::shared_ptr<ChNodeFEAxyz> GetHexahedronNode(int n) = 0;
+    virtual std::shared_ptr<ChNodeFEAxyz> GetHexahedronNode(unsigned int n) = 0;
 };
 
 /// @} fea_elements

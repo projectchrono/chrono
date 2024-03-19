@@ -63,15 +63,15 @@ void SynWheeledVehicleAgent::InitializeZombie(ChSystem* system) {
         auto wheel_trimesh = CreateMeshZombieComponent(m_description->wheel_vis_file);
 
         //// RADU - pass this transform to AddVisualShape
-        ChQuaternion<> rot = (i % 2 == 0) ? QuatFromAngleZ(0) : QuatFromAngleZ(CH_C_PI);
+        ChQuaternion<> rot = (i % 2 == 0) ? QuatFromAngleZ(0) : QuatFromAngleZ(CH_PI);
         wheel_trimesh->GetMesh()->Transform(ChVector3d(), ChMatrix33<>(rot));
         tire_trimesh->GetMesh()->Transform(ChVector3d(), ChMatrix33<>(rot));
 
         auto wheel = chrono_types::make_shared<ChBodyAuxRef>();
         wheel->AddVisualShape(wheel_trimesh);
         wheel->AddVisualShape(tire_trimesh);
-        wheel->SetCollide(false);
-        wheel->SetBodyFixed(true);
+        wheel->EnableCollision(false);
+        wheel->SetFixed(true);
         system->Add(wheel);
 
         m_wheel_list.push_back(wheel);
@@ -80,9 +80,9 @@ void SynWheeledVehicleAgent::InitializeZombie(ChSystem* system) {
 
 void SynWheeledVehicleAgent::SynchronizeZombie(std::shared_ptr<SynMessage> message) {
     if (auto state = std::dynamic_pointer_cast<SynWheeledVehicleStateMessage>(message)) {
-        m_zombie_body->SetFrame_REF_to_abs(state->chassis.GetFrame());
+        m_zombie_body->SetFrameRefToAbs(state->chassis.GetFrame());
         for (int i = 0; i < state->wheels.size(); i++)
-            m_wheel_list[i]->SetFrame_REF_to_abs(state->wheels[i].GetFrame());
+            m_wheel_list[i]->SetFrameRefToAbs(state->wheels[i].GetFrame());
     }
 }
 
@@ -90,23 +90,23 @@ void SynWheeledVehicleAgent::Update() {
     if (!m_vehicle)
         return;
 
-    auto chassis_abs = m_vehicle->GetChassisBody()->GetFrame_REF_to_abs();
+    auto chassis_abs = m_vehicle->GetChassisBody()->GetFrameRefToAbs();
     SynPose chassis(chassis_abs.GetPos(), chassis_abs.GetRot());
-    chassis.GetFrame().SetPosDer(chassis_abs.GetPosDer());
-    chassis.GetFrame().SetPosDer2(chassis_abs.GetPosDer2());
-    chassis.GetFrame().SetRotDer(chassis_abs.GetRotDer());
-    chassis.GetFrame().SetRotDer2(chassis_abs.GetRotDer2());
+    chassis.GetFrame().SetPosDt(chassis_abs.GetPosDt());
+    chassis.GetFrame().SetPosDt2(chassis_abs.GetPosDt2());
+    chassis.GetFrame().SetRotDt(chassis_abs.GetRotDt());
+    chassis.GetFrame().SetRotDt2(chassis_abs.GetRotDt2());
 
     std::vector<SynPose> wheels;
     for (auto axle : m_vehicle->GetAxles()) {
         for (auto wheel : axle->GetWheels()) {
             auto state = wheel->GetState();
-            auto wheel_abs = wheel->GetSpindle()->GetFrame_REF_to_abs();
+            auto wheel_abs = wheel->GetSpindle()->GetFrameRefToAbs();
             SynPose frame(state.pos, state.rot);
-            frame.GetFrame().SetPosDer(wheel_abs.GetPosDer());
-            frame.GetFrame().SetPosDer2(wheel_abs.GetPosDer2());
-            frame.GetFrame().SetRotDer(wheel_abs.GetRotDer());
-            frame.GetFrame().SetRotDer2(wheel_abs.GetRotDer2());
+            frame.GetFrame().SetPosDt(wheel_abs.GetPosDt());
+            frame.GetFrame().SetPosDt2(wheel_abs.GetPosDt2());
+            frame.GetFrame().SetRotDt(wheel_abs.GetRotDt());
+            frame.GetFrame().SetRotDt2(wheel_abs.GetRotDt2());
             wheels.emplace_back(frame);
         }
     }
@@ -147,9 +147,9 @@ std::shared_ptr<ChBodyAuxRef> SynWheeledVehicleAgent::CreateChassisZombieBody(co
 
     auto zombie_body = chrono_types::make_shared<ChBodyAuxRef>();
     zombie_body->AddVisualShape(trimesh);
-    zombie_body->SetCollide(false);
-    zombie_body->SetBodyFixed(true);
-    zombie_body->SetFrame_COG_to_REF(ChFrame<>({0, 0, -0.2}, {1, 0, 0, 0}));
+    zombie_body->EnableCollision(false);
+    zombie_body->SetFixed(true);
+    zombie_body->SetFrameCOMToRef(ChFrame<>({0, 0, -0.2}, {1, 0, 0, 0}));
     system->Add(zombie_body);
 
     return zombie_body;

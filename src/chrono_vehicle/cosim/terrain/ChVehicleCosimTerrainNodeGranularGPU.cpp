@@ -81,7 +81,7 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(doubl
 
     // Create systems
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
     // Defer construction of the granular system to Construct
     m_systemGPU = nullptr;
@@ -100,7 +100,7 @@ ChVehicleCosimTerrainNodeGranularGPU::ChVehicleCosimTerrainNodeGranularGPU(const
 
     // Create systems
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
     // Defer construction of the granular system to Construct
     m_systemGPU = nullptr;
@@ -126,7 +126,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::SetFromSpecfile(const std::string& sp
 
     auto material = chrono_types::make_shared<ChContactMaterialSMC>();
     double coh_pressure = d["Material properties"]["Cohesion pressure"].GetDouble();
-    double coh_force = CH_C_PI * m_radius_g * m_radius_g * coh_pressure;
+    double coh_force = CH_PI * m_radius_g * m_radius_g * coh_pressure;
 
     material->SetFriction(d["Material properties"]["Coefficient of friction"].GetDouble());
     material->SetRestitution(d["Material properties"]["Coefficient of restitution"].GetDouble());
@@ -292,17 +292,17 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
             cout << "[Terrain node] read " << checkpoint_filename << "   num. particles = " << m_num_particles << endl;
     } else {
         // Generate particles using the specified volume sampling type
-        utils::Sampler<float>* sampler;
+        utils::ChSampler<float>* sampler;
         switch (m_sampling_type) {
             default:
             case utils::SamplingType::POISSON_DISK:
-                sampler = new utils::PDSampler<float>(delta);
+                sampler = new utils::ChPDSampler<float>(delta);
                 break;
             case utils::SamplingType::HCP_PACK:
-                sampler = new utils::HCPSampler<float>(delta);
+                sampler = new utils::ChHCPSampler<float>(delta);
                 break;
             case utils::SamplingType::REGULAR_GRID:
-                sampler = new utils::GridSampler<float>(delta);
+                sampler = new utils::ChGridSampler<float>(delta);
                 break;
         }
 
@@ -353,7 +353,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         for (const auto& p : pos) {
             auto body = chrono_types::make_shared<ChBody>();
             body->SetPos(p);
-            body->SetBodyFixed(true);
+            body->SetFixed(true);
             auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_radius_g);
             body->AddVisualShape(sph);
             m_system->AddBody(body);
@@ -378,8 +378,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
         body->SetRot(b.m_init_rot);
         body->SetMass(mass * b.m_density);
         body->SetInertia(inertia * b.m_density);
-        body->SetBodyFixed(false);
-        body->SetCollide(true);
+        body->SetFixed(false);
+        body->EnableCollision(true);
 
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_g);
         body->AddCollisionShape(ct_shape);
@@ -558,7 +558,7 @@ double ChVehicleCosimTerrainNodeGranularGPU::CalculatePackingDensity(double& dep
     double Vt = m_dimX * m_dimY * (z_max - z_min);
 
     // Find volume of granular particles
-    double Vs = m_num_particles * (4.0 / 3) * CH_C_PI * std::pow(m_radius_g, 3);
+    double Vs = m_num_particles * (4.0 / 3) * CH_PI * std::pow(m_radius_g, 3);
 
     // Packing density = Vs/Vt
     return Vs / Vt;
@@ -632,8 +632,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateRigidProxy(unsigned int i) {
     body->SetIdentifier(0);
     body->SetMass(m_load_mass[i]);
     ////body->SetInertiaXX();   //// TODO
-    body->SetBodyFixed(m_fixed_proxies);
-    body->SetCollide(true);
+    body->SetFixed(m_fixed_proxies);
+    body->EnableCollision(true);
 
     // Create visualization asset (use collision shapes)
     m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::PRIMITIVES, true);
@@ -645,7 +645,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateRigidProxy(unsigned int i) {
             mesh.m_radius = m_radius_g;
         m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
         body->GetCollisionModel()->SetFamily(1);
-        body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+        body->GetCollisionModel()->DisallowCollisionsWith(1);
     }
 
     m_system->AddBody(body);
@@ -711,7 +711,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::OnInitialize(unsigned int num_objects
 void ChVehicleCosimTerrainNodeGranularGPU::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
     proxy->bodies[0]->SetPos(rigid_state.pos);
-    proxy->bodies[0]->SetPosDer(rigid_state.lin_vel);
+    proxy->bodies[0]->SetPosDt(rigid_state.lin_vel);
     proxy->bodies[0]->SetRot(rigid_state.rot);
     proxy->bodies[0]->SetAngVelParent(rigid_state.ang_vel);
 
@@ -777,7 +777,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::UpdateVisualizationParticles() {
 
 void ChVehicleCosimTerrainNodeGranularGPU::WriteCheckpoint(const std::string& filename) const {
     assert(m_num_particles == m_systemGPU->GetNumParticles());
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     // Write number of granular material bodies.
     csv << m_num_particles << endl;
@@ -790,7 +790,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::WriteCheckpoint(const std::string& fi
     }
 
     std::string checkpoint_filename = m_node_out_dir + "/" + filename;
-    csv.write_to_file(checkpoint_filename);
+    csv.WriteToFile(checkpoint_filename);
     if (m_verbose)
         cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
 }

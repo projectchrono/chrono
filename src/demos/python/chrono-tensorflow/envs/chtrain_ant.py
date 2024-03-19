@@ -53,7 +53,7 @@ class Model(object):
       self.ankle_radius = 0.04
       self.gain = 30
 
-      self.abdomen_mass = self.abdomen_density * ((4/3)*chrono.CH_C_PI*self.abdomen_x*self.abdomen_y*self.abdomen_z)
+      self.abdomen_mass = self.abdomen_density * ((4/3)*chrono.CH_PI*self.abdomen_x*self.abdomen_y*self.abdomen_z)
       self.abdomen_inertia = chrono.ChVector3d((1/5)*self.abdomen_mass*(pow(self.abdomen_y,2)+pow(self.abdomen_z,2)),(1/5)*self.abdomen_mass*(pow(self.abdomen_x,2)+pow(self.abdomen_z,2)),(1/5)*self.abdomen_mass*(pow(self.abdomen_y,2)+pow(self.abdomen_x,2)))
       self.leg_mass = self.leg_density * self.leg_length * math.pi* pow (self.leg_radius,2)
       self.leg_inertia = chrono.ChVector3d(0.5*self.leg_mass*pow(self.leg_radius,2), (self.leg_mass/12)*(3*pow(self.leg_radius,2)+pow(self.leg_length,2)),(self.leg_mass/12)*(3*pow(self.leg_radius,2)+pow(self.leg_length,2)))
@@ -62,10 +62,10 @@ class Model(object):
       
       self.leg_limit = chrono.ChLinkLimit()
       self.ankle_limit = chrono.ChLinkLimit()
-      self.leg_limit.SetRmax(math.pi/9)
-      self.leg_limit.SetRmin(-math.pi/9)
-      self.ankle_limit.SetRmax(math.pi/9)
-      self.ankle_limit.SetRmin(-math.pi/9)
+      self.leg_limit.SetDampingCoefficientMax(math.pi/9)
+      self.leg_limit.SetDampingCoefficientMin(-math.pi/9)
+      self.ankle_limit.SetDampingCoefficientMax(math.pi/9)
+      self.ankle_limit.SetDampingCoefficientMin(-math.pi/9)
       
       if (self.animate) :
           self.vis = chronoirr.ChVisualSystemIrrlicht()
@@ -88,7 +88,7 @@ class Model(object):
       abdomen_ellipsoid = chrono.ChEllipsoid(chrono.ChVector3d(0, 0, 0 ), chrono.ChVector3d(self.abdomen_x, self.abdomen_y, self.abdomen_z ))
       self.abdomen_shape = chrono.ChEllipsoidShape(abdomen_ellipsoid)
       self.body_abdomen.AddVisualShape(self.abdomen_shape)
-      self.body_abdomen.SetCollide(True)
+      self.body_abdomen.EnableCollision(True)
       self.body_abdomen.GetCollisionModel().Clear()
       body_abdomen_ct_shape = chrono.ChCollisionShapeEllipsoid(self.ant_material, self.abdomen_x, self.abdomen_y, self.abdomen_z)
       self.body_abdomen.GetCollisionModel().AddShape(body_abdomen_ct_shape)
@@ -138,7 +138,7 @@ class Model(object):
              x_rel.append( Leg_quat[i].Rotate(chrono.ChVector3d(1, 0, 0)))
              z_rel.append( Leg_quat[i].Rotate(chrono.ChVector3d(0, 0, 1)))
              Leg_qa[i].SetFromAngleAxis(-leg_ang[i] , chrono.ChVector3d(0, 1, 0))
-             z2x_leg[i].SetFromAngleAxis(chrono.CH_C_PI / 2 , x_rel[i])
+             z2x_leg[i].SetFromAngleAxis(chrono.CH_PI / 2 , x_rel[i])
              Leg_q[i] = z2x_leg[i] * Leg_qa[i] 
              Leg_rev_pos.append(chrono.ChVector3d(self.leg_pos[i]-chrono.ChVector3d(math.cos(leg_ang[i])*self.leg_length/2,0,math.sin(leg_ang[i])*self.leg_length/2)))
              Leg_chordsys.append(chrono.ChCoordsysd(Leg_rev_pos[i], Leg_q[i]))
@@ -162,7 +162,7 @@ class Model(object):
              self.ankle_motor[i].Initialize(self.leg_body[i], self.ankle_body[i],self.anklejoint_frame[i])
              self.ant_sys.Add(self.ankle_motor[i])
              # Feet collisions
-             self.ankle_body[i].SetCollide(True)
+             self.ankle_body[i].EnableCollision(True)
              self.ankle_body[i].GetCollisionModel().Clear()
              ankle_ct_shape = chrono.ChCollisionShapeSphere(self.ant_material, self.ankle_radius)
              self.ankle_body[i].GetCollisionModel().AddShape(ankle_ct_shape, chrono.ChFramed(chrono.ChVector3d(self.ankle_length/2, 0, 0), chrono.QUNIT))
@@ -171,19 +171,19 @@ class Model(object):
              
              self.ankle_body[i].AddVisualShape(self.foot_shape)
              
-             self.Leg_rev[i].GetLimit_Rz().SetActive(True)
-             self.Leg_rev[i].GetLimit_Rz().SetMin(-math.pi/3)
-             self.Leg_rev[i].GetLimit_Rz().SetMax(math.pi/3)
-             self.Ankle_rev[i].GetLimit_Rz().SetActive(True)
-             self.Ankle_rev[i].GetLimit_Rz().SetMin(-math.pi/2)
-             self.Ankle_rev[i].GetLimit_Rz().SetMax(math.pi/4)
+             self.Leg_rev[i].LimitRz().SetActive(True)
+             self.Leg_rev[i].LimitRz().SetMin(-math.pi/3)
+             self.Leg_rev[i].LimitRz().SetMax(math.pi/3)
+             self.Ankle_rev[i].LimitRz().SetActive(True)
+             self.Ankle_rev[i].LimitRz().SetMin(-math.pi/2)
+             self.Ankle_rev[i].LimitRz().SetMax(math.pi/4)
              
 
            
     # Create the room floor: a simple fixed rigid body with a collision shape
     # and a visualization shape
       self.body_floor = chrono.ChBody()
-      self.body_floor.SetBodyFixed(True)
+      self.body_floor.SetFixed(True)
       self.body_floor.SetPos(chrono.ChVector3d(0, -1, 0 ))
       
       # Floor Collision.
@@ -191,7 +191,7 @@ class Model(object):
       body_floor_ct_shape = chrono.ChCollisionShapeBox(self.ant_material, 50, 1, 50)
       self.body_floor.GetCollisionModel().AddShape(body_floor_ct_shape)
       self.body_floor.GetCollisionModel().Build()
-      self.body_floor.SetCollide(True)
+      self.body_floor.EnableCollision(True)
 
     # Visualization shape
       body_floor_shape = chrono.ChVisualShapeBox(10, 2, 10)
@@ -199,7 +199,7 @@ class Model(object):
       body_floor_shape.SetTexture(chrono.GetChronoDataFile('vehicle/terrain/textures/grass.jpg'))
       self.body_floor.AddVisualShape(body_floor_shape)   
       self.ant_sys.Add(self.body_floor)
-      #self.body_abdomen.SetBodyFixed(True)
+      #self.body_abdomen.SetFixed(True)
    
       if (self.animate):
             self.vis.BindAll()
@@ -240,7 +240,7 @@ class Model(object):
 
           ab_rot =  	self.body_abdomen.GetRot().GetCardanAnglesXYZ()
           ab_q = np.asarray([self.body_abdomen.GetPos().z, ab_rot.x, ab_rot.y, ab_rot.z])
-          ab_speed = self.body_abdomen.GetRot().RotateBack(self.body_abdomen.GetPosDer())
+          ab_speed = self.body_abdomen.GetRot().RotateBack(self.body_abdomen.GetPosDt())
           ab_qdot = np.asarray([ ab_speed.x, ab_speed.y, ab_speed.z, self.body_abdomen.GetAngVelLocal().x, self.body_abdomen.GetAngVelLocal().y, self.body_abdomen.GetAngVelLocal().z ])
           self.q_mot   = np.zeros([8,])
           self.q_dot_mot   = np.zeros([8,])
@@ -250,10 +250,10 @@ class Model(object):
                  
                  self.q_mot[i] = self.Leg_rev[i].GetRelAngle()
                  self.q_mot[i+4] = self.Ankle_rev[i].GetRelAngle() 
-                 self.q_dot_mot[i]  = self.Leg_rev[i].GetRelWvel().z
-                 self.q_dot_mot[i+4]  = self.Ankle_rev[i].GetRelWvel().z
-                 joint_at_limit = np.append(joint_at_limit,  [ self.Leg_rev[i].GetLimit_Rz().GetMax()   < self.q_mot[i]   or self.Leg_rev[i].GetLimit_Rz().GetMin()   > self.q_mot[i] ,
-                                                               self.Ankle_rev[i].GetLimit_Rz().GetMax() < self.q_mot[i+4] or self.Ankle_rev[i].GetLimit_Rz().GetMin() > self.q_mot[i+4]])
+                 self.q_dot_mot[i]  = self.Leg_rev[i].GetRelativeAngVel().z
+                 self.q_dot_mot[i+4]  = self.Ankle_rev[i].GetRelativeAngVel().z
+                 joint_at_limit = np.append(joint_at_limit,  [ self.Leg_rev[i].LimitRz().GetMax()   < self.q_mot[i]   or self.Leg_rev[i].LimitRz().GetMin()   > self.q_mot[i] ,
+                                                               self.Ankle_rev[i].LimitRz().GetMax() < self.q_mot[i+4] or self.Ankle_rev[i].LimitRz().GetMin() > self.q_mot[i+4]])
                  feet_contact = np.append(feet_contact, [self.ankle_body[i].GetContactForce().Length()] )
            
 

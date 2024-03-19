@@ -49,7 +49,7 @@ void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chas
                                                  ChTrackAssembly* track) {
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> susp_to_abs(location);
-    susp_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    susp_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Transform all points and directions to absolute frame.
     std::vector<ChVector3d> points(NUM_POINTS);
@@ -87,7 +87,7 @@ void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chas
     m_pAS = m_arm->TransformPointParentToLocal(points[SHOCK_A]);
     m_dY = m_arm->TransformDirectionParentToLocal(y_dir);
 
-    ChQuaternion<> z2y = susp_to_abs.GetRot() * QuatFromAngleX(-CH_C_PI_2);
+    ChQuaternion<> z2y = susp_to_abs.GetRot() * QuatFromAngleX(-CH_PI_2);
 
     // Create and initialize the joint between arm and chassis.
     if (m_lock_arm) {

@@ -147,31 +147,31 @@ void create_some_falling_items(ChSystemNSC& sys) {
     // Create the five walls of the rectangular container, using fixed rigid bodies of 'box' type
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, ground_mat);
     floorBody->SetPos(ChVector3d(0, -5, 0));
-    floorBody->SetBodyFixed(true);
+    floorBody->SetFixed(true);
     floorBody->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(floorBody);
 
     auto wallBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true, ground_mat);
     wallBody1->SetPos(ChVector3d(-10, 0, 0));
-    wallBody1->SetBodyFixed(true);
+    wallBody1->SetFixed(true);
     wallBody1->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(wallBody1);
 
     auto wallBody2 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, true, true, ground_mat);
     wallBody2->SetPos(ChVector3d(10, 0, 0));
-    wallBody2->SetBodyFixed(true);
+    wallBody2->SetFixed(true);
     wallBody2->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(wallBody2);
 
     auto wallBody3 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, true, true, ground_mat);
     wallBody3->SetPos(ChVector3d(0, 0, -10));
-    wallBody3->SetBodyFixed(true);
+    wallBody3->SetFixed(true);
     wallBody3->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(wallBody3);
 
     auto wallBody4 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, true, true, ground_mat);
     wallBody4->SetPos(ChVector3d(0, 0, 10));
-    wallBody4->SetBodyFixed(true);
+    wallBody4->SetFixed(true);
     wallBody4->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(wallBody4);
 
@@ -190,8 +190,8 @@ void create_some_falling_items(ChSystemNSC& sys) {
 
     // .. a motor between mixer and truss
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI_2)));
-    motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_C_PI / 2.0));
+    motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI_2)));
+    motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_PI / 2.0));
     sys.AddLink(motor);
 }
 
@@ -223,9 +223,8 @@ int main(int argc, char* argv[]) {
     vis->AddUserEventReceiver(&receiver);
 
     // Modify some setting of the physical system for the simulation, if you want
-
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(20);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(20);
 
     // Cohesion in a contact depends on the cohesion in the surface property of the
     // touching bodies, but the user can override this value when each contact is created,

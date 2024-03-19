@@ -20,12 +20,12 @@
 // =============================================================================
 
 #include "chrono/solver/ChIterativeSolverLS.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/ChConfigVehicle.h"
 #include "chrono_vehicle/ChVehicleModelData.h"
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
-#include "chrono/utils/ChUtils.h"
 
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledTrailer.h"
@@ -315,7 +315,7 @@ std::string rigidterrain_file("terrain/RigidPlane.json");
 
 // Initial vehicle position and orientation (adjust for selected terrain)
 ChVector3d initLoc(0, 0, 0.5);
-double initYaw = 20 * CH_C_DEG_TO_RAD;
+double initYaw = 20 * CH_DEG_TO_RAD;
 
 // Simulation step size
 double step_size = 2e-3;
@@ -456,7 +456,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 

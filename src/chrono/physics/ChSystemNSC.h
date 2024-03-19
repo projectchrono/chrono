@@ -30,8 +30,7 @@ class ChApi ChSystemNSC : public ChSystem {
 
   public:
     /// Create a physical system.
-    /// If init_sys is false, the collision system oand solver are not initialized.
-    ChSystemNSC(bool init_sys = true);
+    ChSystemNSC();
 
     /// Copy constructor
     ChSystemNSC(const ChSystemNSC& other);
@@ -47,6 +46,12 @@ class ChApi ChSystemNSC : public ChSystem {
 
     /// Replace the contact container.
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container) override;
+
+    /// Minimum rebounce speed for elastic collision (defualt: 0.15).
+    /// For elastic collisions with nonzero restitution coefficient, objects will rebounce only if their relative
+    /// colliding speed is above this threshold. Default 0.15 m/s. If this value is set too low, aliasing problems can
+    /// happen with small high frequency rebounces and settling to static stacking might be more difficult.
+    void SetMinBounceSpeed(double value);
 
     // SERIALIZATION
 

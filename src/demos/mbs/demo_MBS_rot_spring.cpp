@@ -54,11 +54,11 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // ChQuaternion<> rev_rot = QUNIT;
-    ChQuaternion<> rev_rot = QuatFromAngleX(CH_C_PI / 6.0);
-    // ChQuaternion<> rev_rot = QuatFromAngleX(CH_C_PI / 2.0);
+    ChQuaternion<> rev_rot = QuatFromAngleX(CH_PI / 6.0);
+    // ChQuaternion<> rev_rot = QuatFromAngleX(CH_PI / 2.0);
 
     ChVector3d rev_dir = rev_rot.GetAxisZ();
 
@@ -68,8 +68,8 @@ int main(int argc, char* argv[]) {
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
-    ground->SetCollide(false);
+    ground->SetFixed(true);
+    ground->EnableCollision(false);
 
     // Visualization for revolute joint
     ChLineSegment seg(rev_pos + 0.2 * rev_dir, rev_pos - 0.2 * rev_dir);
@@ -88,11 +88,11 @@ int main(int argc, char* argv[]) {
     auto body = chrono_types::make_shared<ChBody>();
     sys.AddBody(body);
     body->SetPos(rev_pos + offset);
-    body->SetPosDer(lin_vel);
+    body->SetPosDt(lin_vel);
     body->SetAngVelParent(ang_vel);
     body->SetIdentifier(1);
-    body->SetBodyFixed(false);
-    body->SetCollide(false);
+    body->SetFixed(false);
+    body->EnableCollision(false);
     body->SetMass(1);
     body->SetInertiaXX(ChVector3d(1, 1, 1));
 
@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
 
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, 1.5);
     cyl->SetColor(ChColor(0.7f, 0.8f, 0.8f));
-    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(-0.75, 0, 0), QuatFromAngleY(CH_C_PI_2)));
+    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(-0.75, 0, 0), QuatFromAngleY(CH_PI_2)));
 
     // Create revolute joint between body and ground
     auto rev = chrono_types::make_shared<ChLinkLockRevolute>();
@@ -113,7 +113,7 @@ int main(int argc, char* argv[]) {
     // Create the rotational spring between body and ground
     double spring_coef = 40;
     double damping_coef = 2;
-    double rest_angle = CH_C_PI / 6;
+    double rest_angle = CH_PI / 6;
 
     auto torque_functor = chrono_types::make_shared<MySpringTorque>(spring_coef, damping_coef);
     auto spring = chrono_types::make_shared<ChLinkRSDA>();
@@ -149,7 +149,7 @@ int main(int argc, char* argv[]) {
         if (frame % 50 == 0) {
             std::cout << sys.GetChTime() << "\n";
             std::cout << "Body position" << body->GetPos() << "\n";
-            std::cout << "Body lin. vel." << body->GetPosDer() << "\n";
+            std::cout << "Body lin. vel." << body->GetPosDt() << "\n";
             std::cout << "Body absolute ang. vel." << body->GetAngVelParent() << "\n";
             std::cout << "Body local ang. vel." << body->GetAngVelLocal() << "\n";
             std::cout << "Rot. spring-damper  " << spring->GetAngle() << "  " << spring->GetVelocity() << "  "

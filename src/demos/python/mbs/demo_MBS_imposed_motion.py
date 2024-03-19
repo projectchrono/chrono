@@ -35,7 +35,7 @@ sys = chrono.ChSystemNSC()
 
 # Create a floor
 mfloor = chrono.ChBodyEasyBox(3, 0.2, 3, 1000, False, False)
-mfloor.SetBodyFixed(True)
+mfloor.SetFixed(True)
 sys.Add(mfloor)
 
 #
@@ -61,7 +61,7 @@ f_xyz.SetFunctionZ(chrono.ChFunctionSine(0.5, 0.5))
 
 # Create a rotation function q(t) from a angle(time) rotation with fixed axis:
 f_rot_axis = chrono.ChFunctionRotationAxis()
-f_rot_axis.SetFunctionAngle(chrono.ChFunctionSine(chrono.CH_C_PI, 0.15))
+f_rot_axis.SetFunctionAngle(chrono.ChFunctionSine(chrono.CH_PI, 0.15))
 f_rot_axis.SetAxis(chrono.ChVector3d(1, 1, 1).GetNormalized())
 
 # Create the constraint to impose motion and rotation.
@@ -98,7 +98,7 @@ v4 = chrono.ChVector3d(0.6, 0.3, 0)
 v5 = chrono.ChVector3d(0.5, 0.5, 0.1)
 v6 = chrono.ChVector3d(0, 0.5, 0.1)
 splinepoints = chrono.vector_ChVector3d([v1, v2, v3, v4, v5, v6])
-mspline = chrono.ChLineBspline(3, splinepoints)
+mspline = chrono.ChLineBSpline(3, splinepoints)
 mspline.SetClosed(True)
 
 f_line = chrono.ChFunctionPositionLine()
@@ -128,8 +128,8 @@ mglyphasset = chrono.ChVisualShapeLine()
 mglyphasset.SetLineGeometry(mspline)
 impose_2.AddVisualShape(mglyphasset)
 
-mmoved_2.SetPos(f_line.GetVal(0) >> impose_2.GetFrame2()
-                >> impose_2.GetBody2().GetCsys())
+mmoved_2.SetPos(f_line.GetPos(0) >> impose_2.GetFrame2Rel()
+                >> impose_2.GetBody2().GetCoordsys())
 
 #
 # EXAMPLE 3

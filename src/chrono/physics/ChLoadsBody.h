@@ -414,8 +414,8 @@ class ChApi ChLoadBodyBodyBushingPlastic : public ChLoadBodyBodyBushingSpherical
 
     /// Set plastic yield, forces beyond this limit will be capped.
     /// Expressed along the x y z axes of loc_application_B.
-    void SetYeld(const ChVector3d myeld) { yield = myeld; }
-    ChVector3d GetYeld() const { return yield; }
+    void SetYield(const ChVector3d myeld) { yield = myeld; }
+    ChVector3d GetYield() const { return yield; }
 
     /// Get the current accumulated plastic deformation.
     /// This could become nonzero if forces went beyond the plastic yield.

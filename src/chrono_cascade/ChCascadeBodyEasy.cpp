@@ -65,12 +65,12 @@ void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
     this->SetMass(mass);
     this->SetInertiaXX(inertiaXX);
     this->SetInertiaXY(inertiaXY);
-    this->SetFrame_REF_to_abs(frame_ref_to_abs);
+    this->SetFrameRefToAbs(frame_ref_to_abs);
 
     chrono::ChFrame<> frame_cog_to_ref;
     frame_cog_to_ref.SetPos(cog);
     frame_cog_to_ref.SetRot(chrono::QUNIT);
-    this->SetFrame_COG_to_REF(frame_cog_to_ref);
+    this->SetFrameCOMToRef(frame_cog_to_ref);
 
     // Add a visualization asset if needed
     if (vis_params) {
@@ -86,7 +86,7 @@ void ChCascadeBodyEasy::Init(TopoDS_Shape& shape,
             assert(mat);
             auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, 0.0);
             AddCollisionShape(ct_shape);
-            SetCollide(true);
+            EnableCollision(true);
         }
     }
 }
@@ -215,12 +215,12 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
     this->SetInertiaXX(m_inertiaXX);
     this->SetInertiaXY(m_inertiaXY);
 
-    // this->SetFrame_REF_to_abs(frame_ref_to_abs); //not needed
+    // this->SetFrameRefToAbs(frame_ref_to_abs); //not needed
 
     chrono::ChFrame<> frame_cog_to_ref;
     frame_cog_to_ref.SetPos(inertia_composer.GetCOM());
     frame_cog_to_ref.SetRot(chrono::QUNIT);
-    this->SetFrame_COG_to_REF(frame_cog_to_ref);
+    this->SetFrameCOMToRef(frame_cog_to_ref);
 
     // Add a collision shape if needed
 
@@ -245,9 +245,9 @@ void ChCascadeBodyEasyProfile::UpdateCollisionAndVisualizationShapes() {
         }
     }
     if (somefacecollide)
-        SetCollide(true);
+        EnableCollision(true);
     else
-        SetCollide(false);
+        EnableCollision(false);
 }
 
 const TopoDS_Wire ChCascadeBodyEasyProfile::FromChronoPathToCascadeWire(

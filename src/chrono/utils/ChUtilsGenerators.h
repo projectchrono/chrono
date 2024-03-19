@@ -53,32 +53,32 @@ namespace utils {
 enum class MixtureType { SPHERE, ELLIPSOID, BOX, CYLINDER, CONE, CAPSULE };
 
 // Forward declarations
-class Generator;
-class MixtureIngredient;
+class ChGenerator;
+class ChMixtureIngredient;
 
 /// Encapsulation of an ingredient of one of the supported types in a mixture.
 /// Such an object defines size, mass properties and material properties for, all of which can be constant for all
 /// mixture components of this type or else obtained from associated truncated normal distributions. In addition, a
 /// mixture ingredient defines the ratio of this particular type in the containing mixture.
-class ChApi MixtureIngredient {
+class ChApi ChMixtureIngredient {
   public:
-    MixtureIngredient(Generator* generator, MixtureType type, double ratio);
-    ~MixtureIngredient();
+    ChMixtureIngredient(ChGenerator* generator, MixtureType type, double ratio);
+    ~ChMixtureIngredient();
 
-    void setDefaultMaterial(std::shared_ptr<ChContactMaterial> mat);
-    void setDefaultDensity(double density);
-    void setDefaultSize(const ChVector3d& size);
+    void SetDefaultMaterial(std::shared_ptr<ChContactMaterial> mat);
+    void SetDefaultDensity(double density);
+    void SetDefaultSize(const ChVector3d& size);
 
-    void setDistributionFriction(float friction_mean, float friction_stddev, float friction_min, float friction_max);
-    void setDistributionCohesion(float cohesion_mean, float cohesion_stddev, float cohesion_min, float cohesion_max);
-    void setDistributionYoung(float young_mean, float young_stddev, float young_min, float young_max);
-    void setDistributionPoisson(float poisson_mean, float poisson_stddev, float poisson_min, float poisson_max);
-    void setDistributionRestitution(float restitution_mean,
+    void SetDistributionFriction(float friction_mean, float friction_stddev, float friction_min, float friction_max);
+    void SetDistributionCohesion(float cohesion_mean, float cohesion_stddev, float cohesion_min, float cohesion_max);
+    void SetDistributionYoung(float young_mean, float young_stddev, float young_min, float young_max);
+    void SetDistributionPoisson(float poisson_mean, float poisson_stddev, float poisson_min, float poisson_max);
+    void SetDistributionRestitution(float restitution_mean,
                                     float restitution_stddev,
                                     float restitution_min,
                                     float restitution_max);
-    void setDistributionDensity(double density_mean, double density_stddev, double density_min, double density_max);
-    void setDistributionSize(double size_mean,
+    void SetDistributionDensity(double density_mean, double density_stddev, double density_min, double density_max);
+    void SetDistributionSize(double size_mean,
                              double size_stddev,
                              const ChVector3d& size_min,
                              const ChVector3d& size_max);
@@ -98,16 +98,16 @@ class ChApi MixtureIngredient {
     void RegisterAddBodyCallback(std::shared_ptr<AddBodyCallback> callback) { add_body_callback = callback; }
 
   private:
-    void freeMaterialDist();
-    ChVector3d getSize();
-    double getDensity();
-    void calcGeometricProps(const ChVector3d& size, double& volume, ChVector3d& gyration);
-    double calcMinSeparation();
+    void FreeMaterialDist();
+    ChVector3d GetSize();
+    double GetDensity();
+    void CalcGeometricProps(const ChVector3d& size, double& volume, ChVector3d& gyration);
+    double CalcMinSeparation();
 
-    void setMaterialProperties(std::shared_ptr<ChContactMaterialNSC> mat);
-    void setMaterialProperties(std::shared_ptr<ChContactMaterialSMC> mat);
+    void SetMaterialProperties(std::shared_ptr<ChContactMaterialNSC> mat);
+    void SetMaterialProperties(std::shared_ptr<ChContactMaterialSMC> mat);
 
-    Generator* m_generator;
+    ChGenerator* m_generator;
 
     MixtureType m_type;
     double m_ratio;
@@ -137,32 +137,32 @@ class ChApi MixtureIngredient {
 
     std::shared_ptr<AddBodyCallback> add_body_callback;
 
-    friend class Generator;
+    friend class ChGenerator;
 };
 
 /// Provides functionality for generating sets of bodies with positions drawn from a specified sampler and various
 /// mixture properties. Bodies can be generated in different bounding volumes (boxes or cylinders) which can be
 /// degenerate (to a rectangle or circle, repsectively).
-class ChApi Generator {
+class ChApi ChGenerator {
   public:
     typedef Types<double>::PointVector PointVector;
 
-    Generator(ChSystem* system);
-    ~Generator();
+    ChGenerator(ChSystem* system);
+    ~ChGenerator();
 
     /// Add a new mixture ingredient of the specified type and in the given ratio (note that the ratios are normalized
     /// before creating bodies).
-    std::shared_ptr<MixtureIngredient> AddMixtureIngredient(MixtureType type, double ratio);
+    std::shared_ptr<ChMixtureIngredient> AddMixtureIngredient(MixtureType type, double ratio);
 
     /// Get/Set the identifier that will be assigned to the next body.
     /// Identifiers are incremented for successively created bodies.
-    int getBodyIdentifier() const { return m_crtBodyId; }
-    void setBodyIdentifier(int id) { m_crtBodyId = id; }
+    int GetBodyIdentifier() const { return m_crtBodyId; }
+    void SetBodyIdentifier(int id) { m_crtBodyId = id; }
 
     /// Create bodies, according to the current mixture setup, with initial positions given by the specified sampler in
     /// the box domain specified by 'pos' and 'hdims'. Optionally, a constant initial linear velocity can be set for all
     /// created bodies.
-    void CreateObjectsBox(Sampler<double>& sampler,
+    void CreateObjectsBox(ChSampler<double>& sampler,
                           const ChVector3d& pos,
                           const ChVector3d& hdims,
                           const ChVector3d& vel = ChVector3d(0, 0, 0));
@@ -178,7 +178,7 @@ class ChApi Generator {
     /// Create bodies, according to the current mixture setup, with initial positions given by the specified sampler in
     /// the X-aligned cylinder domain specified by 'pos', 'radius' and 'halfHeight'. Optionally, a constant initial
     /// linear velocity can be set for all created bodies.
-    void CreateObjectsCylinderX(Sampler<double>& sampler,
+    void CreateObjectsCylinderX(ChSampler<double>& sampler,
                                 const ChVector3d& pos,
                                 float radius,
                                 float halfHeight,
@@ -187,7 +187,7 @@ class ChApi Generator {
     /// Create bodies, according to the current mixture setup, with initial positions given by the specified sampler in
     /// the Y-aligned cylinder domain specified by 'pos', 'radius' and 'halfHeight'. Optionally, a constant initial
     /// linear velocity can be set for all created bodies.
-    void CreateObjectsCylinderY(Sampler<double>& sampler,
+    void CreateObjectsCylinderY(ChSampler<double>& sampler,
                                 const ChVector3d& pos,
                                 float radius,
                                 float halfHeight,
@@ -196,7 +196,7 @@ class ChApi Generator {
     /// Create bodies, according to the current mixture setup, with initial positions given by the specified sampler in
     /// the Z-aligned cylinder domain specified by 'pos', 'radius' and 'halfHeight'. Optionally, a constant initial
     /// linear velocity can be set for all created bodies.
-    void CreateObjectsCylinderZ(Sampler<double>& sampler,
+    void CreateObjectsCylinderZ(ChSampler<double>& sampler,
                                 const ChVector3d& pos,
                                 float radius,
                                 float halfHeight,
@@ -205,7 +205,7 @@ class ChApi Generator {
     /// Create bodies, according to the current mixture setup, with initial positions given by the specified sampler in
     /// the spherical domain specified by 'pos' and 'radius'. Optionally, a constant initial linear velocity can be set
     /// for all created bodies.
-    void CreateObjectsSphere(Sampler<double>& sampler,
+    void CreateObjectsSphere(ChSampler<double>& sampler,
                              const ChVector3d& pos,
                              float radius,
                              const ChVector3d& vel = ChVector3d(0, 0, 0));
@@ -232,9 +232,9 @@ class ChApi Generator {
     /// Write information about the bodies created so far to the specified file (CSV format).
     void writeObjectInfo(const std::string& filename);
 
-    unsigned int getTotalNumBodies() const { return m_totalNumBodies; }
-    double getTotalMass() const { return m_totalMass; }
-    double getTotalVolume() const { return m_totalVolume; }
+    unsigned int GetTotalNumBodies() const { return m_totalNumBodies; }
+    double GetTotalMass() const { return m_totalMass; }
+    double GetTotalVolume() const { return m_totalVolume; }
 
   private:
     struct BodyInfo {
@@ -246,17 +246,17 @@ class ChApi Generator {
         std::shared_ptr<ChBody> m_body;
     };
 
-    void normalizeMixture();
-    int selectIngredient();
-    double calcMinSeparation(double sep);
-    ChVector3d calcMinSeparation(const ChVector3d& sep);
-    void createObjects(const PointVector& points, const ChVector3d& vel);
+    void NormalizeMixture();
+    int SelectIngredient();
+    double CalcMinSeparation(double sep);
+    ChVector3d CalcMinSeparation(const ChVector3d& sep);
+    void CreateObjects(const PointVector& points, const ChVector3d& vel);
 
     ChSystem* m_system;
 
     std::uniform_real_distribution<> m_mixDist;
 
-    std::vector<std::shared_ptr<MixtureIngredient>> m_mixture;
+    std::vector<std::shared_ptr<ChMixtureIngredient>> m_mixture;
     std::vector<BodyInfo> m_bodies;
     unsigned int m_totalNumBodies;
     double m_totalMass;
@@ -266,7 +266,7 @@ class ChApi Generator {
 
     int m_crtBodyId;
 
-    friend class MixtureIngredient;
+    friend class ChMixtureIngredient;
 };
 
 /// @} chrono_utils

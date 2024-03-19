@@ -217,9 +217,9 @@ Print the contained shapes, showing the assembly hierarchy:
 	// In most CADs the Y axis is horizontal, but we want it vertical.
 	// So define a root transformation for rotating all the imported objects.
 	ChQuaternion<> rotation1;
-	rotation1.Q_from_AngAxis(-CH_C_PI/2, VECT_X); // 1: rotate 90° on X axis 
+	rotation1.Q_from_AngAxis(-CH_PI/2, VECT_X); // 1: rotate 90° on X axis 
 	ChQuaternion<> rotation2;
-	rotation2.Q_from_AngAxis(CH_C_PI, VECT_Y);	 // 2: rotate 180° on vertical Y axis
+	rotation2.Q_from_AngAxis(CH_PI, VECT_Y);	 // 2: rotate 180° on vertical Y axis
 	ChQuaternion<> tot_rotation = rotation2 % rotation1;  // rotate on 1 then on 2, using quaternion product
 	ChFrameMoving<> root_frame( ChVector3<>(0,0,0), tot_rotation); 
 ~~~
@@ -241,7 +241,7 @@ Using the / slash is like addressing a Unix directory (in fact the STEP file is 
 									shape_base);
 
 				// The base is fixed to the ground
-			mrigidBody_base->GetBody()->SetBodyFixed(true);
+			mrigidBody_base->GetBody()->SetFixed(true);
 
 				// Move the body as for global displacement/rotation by pre-transform its coords.
 				// Note, it could be written also as   mrigidBody_base->GetBody() %= root_frame; 
@@ -328,7 +328,7 @@ Using the / slash is like addressing a Unix directory (in fact the STEP file is 
 									&my_system, application.GetSceneManager(), 
 									shape_hand);
 
-			//mrigidBody_hand->GetBody()->SetBodyFixed(true);
+			//mrigidBody_hand->GetBody()->SetFixed(true);
 
 				// Move the body as for global displacement/rotation
 			mrigidBody_hand->GetBody()->ConcatenatePreTransformation(root_frame);
@@ -520,7 +520,7 @@ This is a very simple way of performing the IK (Inverse Kinematics) of a robot, 
 	mrigidBody_hand->GetBody()->AddMarker(my_marker_hand);
 	mrigidBody_base->GetBody()->AddMarker(my_marker_move);
 
-	ChQuaternion<> rot_on_x; rot_on_x.Q_from_AngAxis(CH_C_PI/2, VECT_X);
+	ChQuaternion<> rot_on_x; rot_on_x.Q_from_AngAxis(CH_PI/2, VECT_X);
 	ChFrame<> frame_marker_move = ChFrame<>(VNULL, rot_on_x) >> frame_marker_wrist_hand ;
 
 	my_marker_hand->Impose_Abs_Coord( frame_marker_wrist_hand.GetCoord() );
@@ -568,8 +568,8 @@ Set motions for Z and Y coordinates of the 'my_link_teacher' marker, so that the
 	motlaw_y->SetRepeatedFunction(motlaw_y_seq);
 	motlaw_y->SetSliceWidth(4);
 
-	my_marker_move->SetMotion_Z(motlaw_z);
-	my_marker_move->SetMotion_Y(motlaw_y);
+	my_marker_move->SetMotionZ(motlaw_z);
+	my_marker_move->SetMotionY(motlaw_y);
 
 
 	// Create a large cube as a floor.
@@ -580,8 +580,8 @@ Set motions for Z and Y coordinates of the 'my_link_teacher' marker, so that the
 											ChVector3<>(0,-0.6,0),
 											ChQuaternion<>(1,0,0,0), 
 											ChVector3<>(20,1,20) );
-	mfloor->GetBody()->SetBodyFixed(true);
-	mfloor->GetBody()->SetCollide(true);
+	mfloor->GetBody()->SetFixed(true);
+	mfloor->GetBody()->EnableCollision(true);
 	video::ITexture* cubeMap = application.GetVideoDriver()->getTexture("../data/blu.png");
 	mfloor->setMaterialTexture(0,	cubeMap);
 ~~~

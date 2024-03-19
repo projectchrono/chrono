@@ -207,7 +207,7 @@ void ChElasticityKirchhoffOrthotropic::ComputeStiffnessMatrix(ChMatrixRef mC,
     mC.setZero();
 
     // Compute Qm_local for inplane stresses in material coordinate, as in sigma_local = Qm_local * eps_local
-    double nu_yx = this->Get_nu_yx();  // follows xy as it must be nu_yx*E_x = nu_xy*E_y
+    double nu_yx = this->GetPoissonRatioYX();  // follows xy as it must be nu_yx*E_x = nu_xy*E_y
     ChMatrix33<> Qm_local;
     Qm_local.setZero();
     Qm_local(0, 0) = E_x / (1. - nu_xy * nu_yx);

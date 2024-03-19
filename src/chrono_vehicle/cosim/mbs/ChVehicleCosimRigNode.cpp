@@ -79,7 +79,7 @@ void ChVehicleCosimRigNode::InitializeMBS(const ChVector2d& terrain_size, double
     m_chassis->SetInertiaXX(chassis_inertia);
     m_chassis->SetPos(origin);
     m_chassis->SetRot(QUNIT);
-    m_chassis->SetPosDer(VNULL);
+    m_chassis->SetPosDt(VNULL);
     m_system->AddBody(m_chassis);
 
     // Create the spindle body
@@ -88,7 +88,7 @@ void ChVehicleCosimRigNode::InitializeMBS(const ChVector2d& terrain_size, double
     m_spindle->SetInertiaXX(spindle_inertia);
     m_spindle->SetPos(origin);
     m_spindle->SetRot(QUNIT);
-    m_spindle->SetPosDer(VNULL);
+    m_spindle->SetPosDt(VNULL);
     m_spindle->SetAngVelLocal(VNULL);
     m_system->AddBody(m_spindle);
 
@@ -98,7 +98,7 @@ void ChVehicleCosimRigNode::InitializeMBS(const ChVector2d& terrain_size, double
     m_rev_motor->SetName("motor");
     m_rev_motor->Initialize(
         m_chassis, m_spindle,
-        ChFrame<>(origin, QuatFromAngleZ(m_toe_angle) * QuatFromAngleX(CH_C_PI_2)));
+        ChFrame<>(origin, QuatFromAngleZ(m_toe_angle) * QuatFromAngleX(CH_PI_2)));
     m_system->AddLink(m_rev_motor);
 
     // Create ChLoad objects to apply terrain forces on spindle
@@ -147,7 +147,7 @@ BodyState ChVehicleCosimRigNode::GetSpindleState(unsigned int i) const {
 
     state.pos = m_spindle->GetPos();
     state.rot = m_spindle->GetRot();
-    state.lin_vel = m_spindle->GetPosDer();
+    state.lin_vel = m_spindle->GetPosDt();
     state.ang_vel = m_spindle->GetAngVelParent();
     
     return state;
@@ -168,10 +168,10 @@ void ChVehicleCosimRigNode::OnOutputData(int frame) {
 
         const ChVector3d& chassis_pos = m_chassis->GetPos();
         const ChVector3d& spindle_pos = m_spindle->GetPos();
-        const ChVector3d& spindle_vel = m_spindle->GetPosDer();
+        const ChVector3d& spindle_vel = m_spindle->GetPosDt();
         const ChVector3d& spindle_angvel = m_spindle->GetAngVelLocal();
 
-        const ChVector3d& rfrc_motor = m_rev_motor->Get_react_force();
+        const ChVector3d& rfrc_motor = m_rev_motor->GetReaction2().force;
         const ChVector3d& rtrq_motor = m_rev_motor->GetMotorTorque();
 
         m_outf << m_system->GetChTime() << del;
@@ -194,15 +194,15 @@ void ChVehicleCosimRigNode::OnOutputData(int frame) {
     }
 
     // Create and write frame output file.
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
     csv << m_system->GetChTime() << endl;  // current time
-    csv << m_chassis->GetIdentifier() << m_chassis->GetPos() << m_chassis->GetRot() << m_chassis->GetPosDer()
-        << m_chassis->GetRotDer() << endl;
-    csv << m_spindle->GetIdentifier() << m_spindle->GetPos() << m_spindle->GetRot() << m_spindle->GetPosDer()
-        << m_spindle->GetRotDer() << endl;
+    csv << m_chassis->GetIdentifier() << m_chassis->GetPos() << m_chassis->GetRot() << m_chassis->GetPosDt()
+        << m_chassis->GetRotDt() << endl;
+    csv << m_spindle->GetIdentifier() << m_spindle->GetPos() << m_spindle->GetRot() << m_spindle->GetPosDt()
+        << m_spindle->GetRotDt() << endl;
 
     std::string filename = OutputFilename(m_node_out_dir, "data", "dat", frame + 1, 5);
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 
     if (m_verbose)
         cout << "[Rig node    ] write output file ==> " << filename << endl;

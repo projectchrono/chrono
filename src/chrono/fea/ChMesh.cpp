@@ -58,8 +58,8 @@ void ChMesh::SetupInitial() {
             vnodes[i]->SetupInitial(GetSystem());
 
             // count the degrees of freedom
-            n_dofs += vnodes[i]->GetNdofX_active();
-            n_dofs_w += vnodes[i]->GetNdofW_active();
+            n_dofs += vnodes[i]->GetNumCoordsPosLevelActive();
+            n_dofs_w += vnodes[i]->GetNumCoordsVelLevelActive();
         }
     }
 
@@ -76,16 +76,16 @@ void ChMesh::Relax() {
     }
 }
 
-void ChMesh::SetNoSpeedNoAcceleration() {
+void ChMesh::ForceToRest() {
     for (unsigned int i = 0; i < vnodes.size(); i++) {
         // set null speeds, null accelerations
-        vnodes[i]->SetNoSpeedNoAcceleration();
+        vnodes[i]->ForceToRest();
     }
 }
 
-void ChMesh::AddNode(std::shared_ptr<ChNodeFEAbase> m_node) {
-    m_node->SetIndex(static_cast<unsigned int>(vnodes.size()) + 1);
-    vnodes.push_back(m_node);
+void ChMesh::AddNode(std::shared_ptr<ChNodeFEAbase> node) {
+    node->SetIndex(static_cast<unsigned int>(vnodes.size()) + 1);
+    vnodes.push_back(node);
 
     // If the mesh is already added to a system, mark the system uninitialized and out-of-date
     if (system) {
@@ -94,8 +94,8 @@ void ChMesh::AddNode(std::shared_ptr<ChNodeFEAbase> m_node) {
     }
 }
 
-void ChMesh::AddElement(std::shared_ptr<ChElementBase> m_elem) {
-    velements.push_back(m_elem);
+void ChMesh::AddElement(std::shared_ptr<ChElementBase> elem) {
+    velements.push_back(elem);
 
     // If the mesh is already added to a system, mark the system uninitialized and out-of-date
     if (system) {
@@ -146,13 +146,13 @@ void ChMesh::Setup() {
 
     for (unsigned int i = 0; i < vnodes.size(); i++) {
         // Set node offsets in state vectors (based on the offsets of the containing mesh)
-        vnodes[i]->NodeSetOffset_x(GetOffset_x() + n_dofs);
-        vnodes[i]->NodeSetOffset_w(GetOffset_w() + n_dofs_w);
+        vnodes[i]->NodeSetOffsetPosLevel(GetOffset_x() + n_dofs);
+        vnodes[i]->NodeSetOffsetVelLevel(GetOffset_w() + n_dofs_w);
 
         // Count the actual degrees of freedom (consider only nodes that are not fixed)
         if (!vnodes[i]->IsFixed()) {
-            n_dofs += vnodes[i]->GetNdofX_active();
-            n_dofs_w += vnodes[i]->GetNdofW_active();
+            n_dofs += vnodes[i]->GetNumCoordsPosLevelActive();
+            n_dofs_w += vnodes[i]->GetNumCoordsVelLevelActive();
         }
     }
 }
@@ -196,8 +196,8 @@ void ChMesh::IntStateGather(const unsigned int off_x,
     for (unsigned int j = 0; j < vnodes.size(); j++) {
         if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntStateGather(off_x + local_off_x, x, off_v + local_off_v, v, T);
-            local_off_x += vnodes[j]->GetNdofX_active();
-            local_off_v += vnodes[j]->GetNdofW_active();
+            local_off_x += vnodes[j]->GetNumCoordsPosLevelActive();
+            local_off_v += vnodes[j]->GetNumCoordsVelLevelActive();
         }
     }
 
@@ -215,8 +215,8 @@ void ChMesh::IntStateScatter(const unsigned int off_x,
     for (unsigned int j = 0; j < vnodes.size(); j++) {
         if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntStateScatter(off_x + local_off_x, x, off_v + local_off_v, v, T);
-            local_off_x += vnodes[j]->GetNdofX_active();
-            local_off_v += vnodes[j]->GetNdofW_active();
+            local_off_x += vnodes[j]->GetNumCoordsPosLevelActive();
+            local_off_v += vnodes[j]->GetNumCoordsVelLevelActive();
         }
     }
 
@@ -228,7 +228,7 @@ void ChMesh::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& 
     for (unsigned int j = 0; j < vnodes.size(); j++) {
         if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntStateGatherAcceleration(off_a + local_off_a, a);
-            local_off_a += vnodes[j]->GetNdofW_active();
+            local_off_a += vnodes[j]->GetNumCoordsVelLevelActive();
         }
     }
 }
@@ -238,7 +238,7 @@ void ChMesh::IntStateScatterAcceleration(const unsigned int off_a, const ChState
     for (unsigned int j = 0; j < vnodes.size(); j++) {
         if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntStateScatterAcceleration(off_a + local_off_a, a);
-            local_off_a += vnodes[j]->GetNdofW_active();
+            local_off_a += vnodes[j]->GetNumCoordsVelLevelActive();
         }
     }
 }
@@ -253,8 +253,8 @@ void ChMesh::IntStateIncrement(const unsigned int off_x,
     for (unsigned int j = 0; j < vnodes.size(); j++) {
         if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntStateIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
-            local_off_x += vnodes[j]->GetNdofX_active();
-            local_off_v += vnodes[j]->GetNdofW_active();
+            local_off_x += vnodes[j]->GetNumCoordsPosLevelActive();
+            local_off_v += vnodes[j]->GetNumCoordsVelLevelActive();
         }
     }
     for (unsigned int ie = 0; ie < velements.size(); ie++) {
@@ -272,8 +272,8 @@ void ChMesh::IntStateGetIncrement(const unsigned int off_x,
     for (unsigned int j = 0; j < vnodes.size(); j++) {
         if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntStateGetIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
-            local_off_x += vnodes[j]->GetNdofX_active();
-            local_off_v += vnodes[j]->GetNdofW_active();
+            local_off_x += vnodes[j]->GetNumCoordsPosLevelActive();
+            local_off_v += vnodes[j]->GetNumCoordsVelLevelActive();
         }
     }
 }
@@ -284,7 +284,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, con
     for (unsigned int j = 0; j < vnodes.size(); j++) {
         if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntLoadResidual_F(off + local_off_v, R, c);
-            local_off_v += vnodes[j]->GetNdofW_active();
+            local_off_v += vnodes[j]->GetNumCoordsVelLevelActive();
         }
     }
 
@@ -305,7 +305,7 @@ void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, con
         //// PARALLEL FOR, must use omp atomic to avoid race condition in writing to R
 #pragma omp parallel for schedule(dynamic, 4) num_threads(nthreads)
         for (int ie = 0; ie < velements.size(); ie++) {
-            velements[ie]->EleIntLoadResidual_F_gravity(R, GetSystem()->Get_G_acc(), c);
+            velements[ie]->EleIntLoadResidual_F_gravity(R, GetSystem()->GetGravitationalAcceleration(), c);
         }
     }
 
@@ -317,15 +317,15 @@ void ChMesh::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, con
         for (int in = 0; in < vnodes.size(); in++) {
             if (!vnodes[in]->IsFixed()) {
                 if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyz>(vnodes[in])) {
-                    ChVector3d fg = c * mnode->GetMass() * system->Get_G_acc();
+                    ChVector3d fg = c * mnode->GetMass() * system->GetGravitationalAcceleration();
                     R.segment(off + local_off_v, 3) += fg.eigen();
                 }
                 // ChNodeFEAxyzrot is not inherited from ChNodeFEAxyz, so must deal with it too
                 if (auto mnode = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(vnodes[in])) {
-                    ChVector3d fg = c * mnode->GetMass() * system->Get_G_acc();
+                    ChVector3d fg = c * mnode->GetMass() * system->GetGravitationalAcceleration();
                     R.segment(off + local_off_v, 3) += fg.eigen();
                 }
-                local_off_v += vnodes[in]->GetNdofW_active();
+                local_off_v += vnodes[in]->GetNumCoordsVelLevelActive();
             }
         }
     }
@@ -411,7 +411,7 @@ void ChMesh::IntLoadResidual_Mv(const unsigned int off,      ///< offset in R re
     for (unsigned int j = 0; j < vnodes.size(); j++) {
         if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntLoadResidual_Mv(off + local_off_v, R, w, c);
-            local_off_v += vnodes[j]->GetNdofW_active();
+            local_off_v += vnodes[j]->GetNumCoordsVelLevelActive();
         }
     }
 
@@ -431,7 +431,7 @@ void ChMesh::IntLoadLumpedMass_Md(const unsigned int off,
     for (unsigned int j = 0; j < vnodes.size(); j++) {
         if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntLoadLumpedMass_Md(off + local_off_v, Md, err, c);
-            local_off_v += vnodes[j]->GetNdofW_active();
+            local_off_v += vnodes[j]->GetNumCoordsVelLevelActive();
         }
     }
 
@@ -451,7 +451,7 @@ void ChMesh::IntToDescriptor(const unsigned int off_v,
     for (unsigned int j = 0; j < vnodes.size(); j++) {
         if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntToDescriptor(off_v + local_off_v, v, R);
-            local_off_v += vnodes[j]->GetNdofW_active();
+            local_off_v += vnodes[j]->GetNumCoordsVelLevelActive();
         }
     }
 }
@@ -464,7 +464,7 @@ void ChMesh::IntFromDescriptor(const unsigned int off_v,
     for (unsigned int j = 0; j < vnodes.size(); j++) {
         if (!vnodes[j]->IsFixed()) {
             vnodes[j]->NodeIntFromDescriptor(off_v + local_off_v, v);
-            local_off_v += vnodes[j]->GetNdofW_active();
+            local_off_v += vnodes[j]->GetNumCoordsVelLevelActive();
         }
     }
 }

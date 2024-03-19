@@ -72,9 +72,9 @@ void ChElementHexaCorot_8::ShapeFunctions(ShapeVector& N, double z0, double z1, 
 }
 
 void ChElementHexaCorot_8::GetStateBlock(ChVectorDynamic<>& mD) {
-    mD.setZero(this->GetNdofs());
+    mD.setZero(this->GetNumCoordsPosLevel());
 
-    for (int i = 0; i < GetNnodes(); i++)
+    for (unsigned int i = 0; i < GetNumNodes(); i++)
         mD.segment(i * 3, 3) = (A.transpose() * this->nodes[i]->GetPos() - nodes[i]->GetX0()).eigen();
 }
 
@@ -249,7 +249,7 @@ void ChElementHexaCorot_8::ComputeStiffnessMatrix() {
     for (unsigned int i = 0; i < GpVector.size(); i++) {
         ComputeMatrB(GpVector[i], Jdet);
         BT = GpVector[i]->MatrB->transpose();
-        *temp = (Jdet * GpVector[i]->GetWeight()) * (BT * Material->Get_StressStrainMatrix() * *(GpVector[i]->MatrB));
+        *temp = (Jdet * GpVector[i]->GetWeight()) * (BT * Material->GetStressStrainMatrix() * *(GpVector[i]->MatrB));
         StiffnessMatrix += *temp;
 
         // by the way also computes volume:
@@ -296,11 +296,11 @@ void ChElementHexaCorot_8::UpdateRotation() {
 
 ChStrainTensor<> ChElementHexaCorot_8::GetStrain(double z1, double z2, double z3) {
     // set up vector of nodal displacements (in local element system) u_l = R*p - p0
-    ChVectorDynamic<> displ(GetNdofs());
+    ChVectorDynamic<> displ(GetNumCoordsPosLevel());
     this->GetStateBlock(displ);
 
     double JacobianDet;
-    ChMatrixDynamic<> amatrB(6, GetNdofs());
+    ChMatrixDynamic<> amatrB(6, GetNumCoordsPosLevel());
     ComputeMatrB(amatrB, z1, z2, z3, JacobianDet);
 
     ChStrainTensor<> mstrain = amatrB * displ;
@@ -308,30 +308,30 @@ ChStrainTensor<> ChElementHexaCorot_8::GetStrain(double z1, double z2, double z3
 }
 
 ChStressTensor<> ChElementHexaCorot_8::GetStress(double z1, double z2, double z3) {
-    ChStressTensor<> mstress = this->Material->Get_StressStrainMatrix() * this->GetStrain(z1, z2, z3);
+    ChStressTensor<> mstress = this->Material->GetStressStrainMatrix() * this->GetStrain(z1, z2, z3);
     return mstress;
 }
 
 void ChElementHexaCorot_8::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.rows() == GetNdofs()) && (H.cols() == GetNdofs()));
+    assert((H.rows() == GetNumCoordsPosLevel()) && (H.cols() == GetNumCoordsPosLevel()));
 
     // warp the local stiffness matrix K in order to obtain global
     // tangent stiffness CKCt:
-    ChMatrixDynamic<> CK(GetNdofs(), GetNdofs());
-    ChMatrixDynamic<> CKCt(GetNdofs(), GetNdofs());  // the global, corotated, K matrix, for 8 nodes
+    ChMatrixDynamic<> CK(GetNumCoordsPosLevel(), GetNumCoordsPosLevel());
+    ChMatrixDynamic<> CKCt(GetNumCoordsPosLevel(), GetNumCoordsPosLevel());  // the global, corotated, K matrix, for 8 nodes
     ChMatrixCorotation::ComputeCK(StiffnessMatrix, this->A, 8, CK);
     ChMatrixCorotation::ComputeKCt(CK, this->A, 8, CKCt);
 
     // For K stiffness matrix and R damping matrix:
 
-    double mkfactor = Kfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingK();
+    double mkfactor = Kfactor + Rfactor * this->GetMaterial()->GetRayleighDampingBeta();
     H = mkfactor * CKCt;
 
     // For M mass matrix:
     if (Mfactor) {
-        double lumped_node_mass = (this->Volume * this->Material->Get_density()) / 8.0;
-        for (int id = 0; id < GetNdofs(); id++) {
-            double amfactor = Mfactor + Rfactor * this->GetMaterial()->Get_RayleighDampingM();
+        double lumped_node_mass = (this->Volume * this->Material->GetDensity()) / 8.0;
+        for (unsigned int id = 0; id < GetNumCoordsPosLevel(); id++) {
+            double amfactor = Mfactor + Rfactor * this->GetMaterial()->GetRayleighDampingAlpha();
             H(id, id) += amfactor * lumped_node_mass;
         }
     }
@@ -339,10 +339,10 @@ void ChElementHexaCorot_8::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfacto
 }
 
 void ChElementHexaCorot_8::ComputeInternalForces(ChVectorDynamic<>& Fi) {
-    assert(Fi.size() == GetNdofs());
+    assert(Fi.size() == GetNumCoordsPosLevel());
 
     // set up vector of nodal displacements (in local element system) u_l = R*p - p0
-    ChVectorDynamic<> displ(GetNdofs());
+    ChVectorDynamic<> displ(GetNumCoordsPosLevel());
     this->GetStateBlock(displ);
 
     // [local Internal Forces] = [Klocal] * displ + [Rlocal] * displ_dt
@@ -351,10 +351,10 @@ void ChElementHexaCorot_8::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     for (int in = 0; in < 8; ++in) {
         displ.segment(in * 3, 3) = (A.transpose() * nodes[in]->pos_dt).eigen();  // nodal speeds, local
     }
-    ChMatrixDynamic<> FiR_local = Material->Get_RayleighDampingK() * StiffnessMatrix * displ;
+    ChMatrixDynamic<> FiR_local = Material->GetRayleighDampingBeta() * StiffnessMatrix * displ;
 
-    double lumped_node_mass = (this->Volume * this->Material->Get_density()) / 8.0;
-    displ *= (lumped_node_mass * Material->Get_RayleighDampingM());
+    double lumped_node_mass = (this->Volume * this->Material->GetDensity()) / 8.0;
+    displ *= (lumped_node_mass * Material->GetRayleighDampingAlpha());
     FiR_local += displ;
 
     //// TODO  better per-node lumping, or 12x12 consistent mass matrix.
@@ -366,7 +366,7 @@ void ChElementHexaCorot_8::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     ChMatrixCorotation::ComputeCK(FiK_local, this->A, 8, Fi);
 }
 
-void ChElementHexaCorot_8::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementHexaCorot_8::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 3) = nodes[1]->GetPos().eigen();
     mD.segment(block_offset + 6, 3) = nodes[2]->GetPos().eigen();
@@ -377,15 +377,15 @@ void ChElementHexaCorot_8::LoadableGetStateBlock_x(int block_offset, ChState& mD
     mD.segment(block_offset + 21, 3) = nodes[7]->GetPos().eigen();
 }
 
-void ChElementHexaCorot_8::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = nodes[0]->GetPosDer().eigen();
-    mD.segment(block_offset + 3, 3) = nodes[1]->GetPosDer().eigen();
-    mD.segment(block_offset + 6, 3) = nodes[2]->GetPosDer().eigen();
-    mD.segment(block_offset + 9, 3) = nodes[3]->GetPosDer().eigen();
-    mD.segment(block_offset + 12, 3) = nodes[4]->GetPosDer().eigen();
-    mD.segment(block_offset + 15, 3) = nodes[5]->GetPosDer().eigen();
-    mD.segment(block_offset + 18, 3) = nodes[6]->GetPosDer().eigen();
-    mD.segment(block_offset + 21, 3) = nodes[7]->GetPosDer().eigen();
+void ChElementHexaCorot_8::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
+    mD.segment(block_offset + 0, 3) = nodes[0]->GetPosDt().eigen();
+    mD.segment(block_offset + 3, 3) = nodes[1]->GetPosDt().eigen();
+    mD.segment(block_offset + 6, 3) = nodes[2]->GetPosDt().eigen();
+    mD.segment(block_offset + 9, 3) = nodes[3]->GetPosDt().eigen();
+    mD.segment(block_offset + 12, 3) = nodes[4]->GetPosDt().eigen();
+    mD.segment(block_offset + 15, 3) = nodes[5]->GetPosDt().eigen();
+    mD.segment(block_offset + 18, 3) = nodes[6]->GetPosDt().eigen();
+    mD.segment(block_offset + 21, 3) = nodes[7]->GetPosDt().eigen();
 }
 
 void ChElementHexaCorot_8::LoadableStateIncrement(const unsigned int off_x,

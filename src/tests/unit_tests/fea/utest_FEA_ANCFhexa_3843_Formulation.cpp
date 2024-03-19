@@ -129,7 +129,7 @@ ANCFBrickTest::ANCFBrickTest(bool useContInt) {
     m_useContInt = useContInt;
 
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector3d(0, 0, -9.80665));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.80665));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -141,7 +141,7 @@ ANCFBrickTest::ANCFBrickTest(bool useContInt) {
     m_system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(false);
@@ -306,7 +306,7 @@ bool ANCFBrickTest::GeneralizedGravityForceCheck(int msglvl) {
     // ComputeGravityForces method for the element
     ChVectorDynamic<double> GeneralizedForceDueToGravity;
     GeneralizedForceDueToGravity.resize(3 * NSF);
-    m_element->ComputeGravityForces(GeneralizedForceDueToGravity, m_system->Get_G_acc());
+    m_element->ComputeGravityForces(GeneralizedForceDueToGravity, m_system->GetGravitationalAcceleration());
 
     // "Exact" numeric integration is used in the element formulation so no significant error is expected in this
     // solution
@@ -416,8 +416,8 @@ bool ANCFBrickTest::GeneralizedInternalForceNoDispSmallVelCheck(int msglvl) {
         return false;
 
     // Setup the test conditions
-    ChVector3d OriginalVel = m_nodeB->GetPosDer();
-    m_nodeB->SetPosDer(ChVector3d(0.0, 0.0, 0.001));
+    ChVector3d OriginalVel = m_nodeB->GetPosDt();
+    m_nodeB->SetPosDt(ChVector3d(0.0, 0.0, 0.001));
     m_element->SetAlphaDamp(0.01);
 
     ChVectorDynamic<double> InternalForceNoDispSmallVel;
@@ -425,7 +425,7 @@ bool ANCFBrickTest::GeneralizedInternalForceNoDispSmallVelCheck(int msglvl) {
     m_element->ComputeInternalForces(InternalForceNoDispSmallVel);
 
     // Reset the element conditions back to its original values
-    m_nodeB->SetPosDer(OriginalVel);
+    m_nodeB->SetPosDt(OriginalVel);
     m_element->SetAlphaDamp(0.0);
 
     double MaxAbsError = (InternalForceNoDispSmallVel - Expected_InternalForceNoDispSmallVel).cwiseAbs().maxCoeff();
@@ -1059,8 +1059,8 @@ bool ANCFBrickTest::JacobianNoDispSmallVelWithDampingCheck(int msglvl) {
         Expected_Jacobians.block(Expected_Jacobians.cols(), 0, Expected_Jacobians.cols(), Expected_Jacobians.cols());
 
     // Setup the test conditions
-    ChVector3d OriginalVel = m_nodeB->GetPosDer();
-    m_nodeB->SetPosDer(ChVector3d(0.0, 0.0, 0.001));
+    ChVector3d OriginalVel = m_nodeB->GetPosDt();
+    m_nodeB->SetPosDt(ChVector3d(0.0, 0.0, 0.001));
     m_element->SetAlphaDamp(0.01);
 
     // Ensure that the internal force is recalculated in case the results are expected
@@ -1078,7 +1078,7 @@ bool ANCFBrickTest::JacobianNoDispSmallVelWithDampingCheck(int msglvl) {
     m_element->ComputeKRMmatricesGlobal(JacobianR_NoDispSmallVelWithDamping, 0, 1, 0);
 
     // Reset the element conditions back to its original values
-    m_nodeB->SetPosDer(OriginalVel);
+    m_nodeB->SetPosDt(OriginalVel);
     m_element->SetAlphaDamp(0.0);
 
     double small_terms_JacK = 1e-4 * Expected_JacobianK_NoDispSmallVelWithDamping.cwiseAbs().maxCoeff();
@@ -1227,7 +1227,7 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
-    system->Set_G_acc(ChVector3d(0, 0, 0));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1239,7 +1239,7 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -1385,17 +1385,17 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
     double Percent_Error = (Displacement_Model - Displacement_Theory) / Displacement_Theory * 100;
 
     bool passed_displacement = abs(Percent_Error) < 2.0;
-    bool passed_angles = (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.01) &&
-                         (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 0.01) &&
-                         (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.01);
+    bool passed_angles = (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.01) &&
+                         (abs(Tip_Angles.y() * CH_RAD_TO_DEG) < 0.01) &&
+                         (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.01);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
         std::cout << "Axial Pull Test - ANCF Tip Position: " << point << "m" << std::endl;
         std::cout << "Axial Pull Test - ANCF Tip Displacement: " << Displacement_Model << "m" << std::endl;
         std::cout << "Axial Pull Test - Analytical Tip Displacement: " << Displacement_Theory << "m" << std::endl;
-        std::cout << "Axial Pull Test - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Axial Pull Test - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {
@@ -1423,7 +1423,7 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
-    system->Set_G_acc(ChVector3d(0, 0, 0));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1435,7 +1435,7 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -1585,7 +1585,7 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
     bool passed_displacement = abs(Percent_Error) < 5.0;
     // check the off-axis angles which should be zeros
     bool passed_angles =
-        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.01);
+        (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.01);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -1593,8 +1593,8 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
         std::cout << "Cantilever Beam (Tip Load) - ANCF Tip Displacement: " << Displacement_Model << "m" << std::endl;
         std::cout << "Cantilever Beam (Tip Load) - Analytical Tip Displacement: " << Displacement_Theory << "m"
                   << std::endl;
-        std::cout << "Cantilever Beam (Tip Load) - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Cantilever Beam (Tip Load) - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {
@@ -1624,7 +1624,7 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     double g = -9.80665;
-    system->Set_G_acc(ChVector3d(0, 0, g));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, g));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1636,7 +1636,7 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -1741,7 +1741,7 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
     bool passed_displacement = abs(Percent_Error) < 5.0;
     // check the off-axis angles which should be zeros
     bool passed_angles =
-        (abs(Tip_Angles.x() * CH_C_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.001);
+        (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.001);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -1750,8 +1750,8 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
                   << std::endl;
         std::cout << "Cantilever Beam (Gravity Load) - Analytical Tip Displacement: " << Displacement_Theory << "m"
                   << std::endl;
-        std::cout << "Cantilever Beam (Gravity Load) - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Cantilever Beam (Gravity Load) - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {
@@ -1781,7 +1781,7 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
 
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
-    system->Set_G_acc(ChVector3d(0, 0, 0));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     auto solver = chrono_types::make_shared<ChSolverSparseQR>();
     solver->UseSparsityPatternLearner(true);
@@ -1793,7 +1793,7 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -1943,16 +1943,16 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
     bool passed_twist = abs(Percent_Error) < 2.0;
     // check the off-axis angles which should be zeros
     bool passed_angles =
-        (abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) < 0.001);
+        (abs(Tip_Angles.y() * CH_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.001);
     bool passed_tests = passed_twist && passed_angles;
 
     if (msglvl >= 2) {
         std::cout << "Axial Twist - ANCF Tip Position: " << point << "m" << std::endl;
-        std::cout << "Axial Twist - ANCF Twist Angles (Euler 123): " << Tip_Angles * CH_C_RAD_TO_DEG << "deg"
+        std::cout << "Axial Twist - ANCF Twist Angles (Euler 123): " << Tip_Angles * CH_RAD_TO_DEG << "deg"
                   << std::endl;
-        std::cout << "Axial Twist - Analytical Twist Angle: " << Angle_Theory * CH_C_RAD_TO_DEG << "deg" << std::endl;
-        std::cout << "Axial Twist - ANCF Tip Angles: (" << Tip_Angles.x() * CH_C_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_C_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_C_RAD_TO_DEG << ")deg"
+        std::cout << "Axial Twist - Analytical Twist Angle: " << Angle_Theory * CH_RAD_TO_DEG << "deg" << std::endl;
+        std::cout << "Axial Twist - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
                   << std::endl;
     }
     if (msglvl >= 1) {

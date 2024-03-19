@@ -28,10 +28,10 @@ void ChBeamSectionShape::GetAABB(double& ymin, double& ymax, double& zmin, doubl
     ymax = -1e30;
     zmin = 1e30;
     zmax = -1e30;
-    for (int nl = 0; nl < GetNofLines(); ++nl) {
-        std::vector<ChVector3d> mpoints(GetNofPoints(nl));
+    for (unsigned int nl = 0; nl < GetNumLines(); ++nl) {
+        std::vector<ChVector3d> mpoints(GetNumPoints(nl));
         GetPoints(nl, mpoints);
-        for (int np = 0; np < GetNofPoints(nl); ++nl) {
+        for (unsigned int np = 0; np < GetNumPoints(nl); ++nl) {
             if (mpoints[np].y() < ymin)
                 ymin = mpoints[np].y();
             if (mpoints[np].y() > ymax)
@@ -60,7 +60,7 @@ void ChBeamSectionShapeCircular::UpdateProfile() {
     points.resize(resolution + 1);
     normals.resize(resolution + 1);
     for (size_t is = 0; is < points.size(); ++is) {
-        double sangle = CH_C_2PI * ((double)is / (double)resolution);
+        double sangle = CH_2PI * ((double)is / (double)resolution);
         points[is] = ChVector3d(0, cos(sangle) * radius, sin(sangle) * radius);
         normals[is] = ChVector3d(0, cos(sangle), sin(sangle));
     }

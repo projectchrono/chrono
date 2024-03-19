@@ -93,7 +93,7 @@ int main(int argc, char* argv[]) {
 
     auto floor_body = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, true, true, floor_mat);
     floor_body->SetPos(ChVector3d(0, -5, 0));
-    floor_body->SetBodyFixed(true);
+    floor_body->SetFixed(true);
     floor_body->GetVisualShape(0)->SetColor(ChColor(0.0f, 1.0f, (float)ChRandom::Get()));
 
     auto shape1 = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
     // ---Initialize the randomizer for positions
     auto emitter_positions = chrono_types::make_shared<ChRandomParticlePositionRectangleOutlet>();
     emitter_positions->Outlet() =
-        ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI_2));  // center and alignment of the outlet
+        ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI_2));  // center and alignment of the outlet
     emitter_positions->OutletWidth() = 3.0;
     emitter_positions->OutletHeight() = 3.0;
     emitter.SetParticlePositioner(emitter_positions);
@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
             pov->Add(body);
 
             // Other stuff, ex. disable gyroscopic forces for increased integrator stabilty
-            body->SetNoGyroTorque(true);
+            body->SetUseGyroTorque(false);
         }
 
         ChVisualSystem* vis;
@@ -343,7 +343,7 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    sys.SetSolverMaxIterations(30);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(30);
 
     // Simulation loop
     double timestep = 0.02;

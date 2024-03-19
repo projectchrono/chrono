@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
 
     // set gravity
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     ChCollisionModel::SetDefaultSuggestedEnvelope(0.0025);
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(20, 20, 1, 1000, true, true, floor_mat);
     mfloor->SetPos(ChVector3d(0, 0, -1));
-    mfloor->SetBodyFixed(true);
+    mfloor->SetFixed(true);
     mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
     sys.Add(mfloor);
 
@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetWindowSize(800, 600);
             vis_vsg->SetWindowTitle("Turtlebot Robot on Rigid Terrain");
             vis_vsg->AddCamera(ChVector3d(0, 2.5, 0.5));
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
@@ -178,12 +178,12 @@ int main(int argc, char* argv[]) {
         // at time = 1 s, start left turn
         if (abs(time - 1.0f) < 1e-4) {
             robot->SetMotorSpeed(-0.f, WheelID::LD);
-            robot->SetMotorSpeed(-CH_C_PI, WheelID::RD);
+            robot->SetMotorSpeed(-CH_PI, WheelID::RD);
         }
 
         // at time = 2 s, start right turn
         if (abs(time - 2.0f) < 1e-4) {
-            robot->SetMotorSpeed(-CH_C_PI, WheelID::LD);
+            robot->SetMotorSpeed(-CH_PI, WheelID::LD);
             robot->SetMotorSpeed(-0.f, WheelID::RD);
         }
 

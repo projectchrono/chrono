@@ -48,24 +48,24 @@ TEST(FullAssembly, Assemble) {
     double g = 9.80665;                    // gravitational acceleration
 
     ChVector3d jointLoc(1, 2, 3);                                    // absolute location of revolute joint
-    double jointAngle = -CH_C_PI_4;                                  // joint rotation angle (about global X axis)
+    double jointAngle = -CH_PI_4;                                  // joint rotation angle (about global X axis)
     ChQuaternion<> jointRot = QuatFromAngleX(jointAngle);  // orientation of revolute joint
 
     // Create the mechanical system
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, -g));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -g));
 
     // Integrator settings
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(100);
-    sys.SetSolverForceTolerance(1e-4);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(100);
+    sys.GetSolver()->AsIterative()->SetTolerance(1e-10);
 
     // Create the ground body
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
     ground->SetIdentifier(0);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     // Create the pendulum body in an initial configuration at rest, with an
     // orientation that matches the specified joint orientation and a position
@@ -88,24 +88,24 @@ TEST(FullAssembly, Assemble) {
     ////revoluteJoint->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
     sys.AddLink(revoluteJoint);
 
-    // Perform a system assembly.
-    ////sys.DoAssembly(AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
-    sys.DoFullAssembly();
+    // Perform a full system assembly
+    sys.DoAssembly(AssemblyLevel::FULL);
 
     // Extract position, velocity, and acceleration of pendulum body.
     ChVector3d pos = pendulum->GetPos();
     ChQuaternion<> rot = pendulum->GetRot();
-    ChVector3d lin_vel = pendulum->GetPosDer();
+    ChVector3d lin_vel = pendulum->GetPosDt();
     ChVector3d ang_vel = pendulum->GetAngVelParent();
-    ChVector3d lin_acc = pendulum->GetPosDer2();
+    ChVector3d lin_acc = pendulum->GetPosDt2();
     ChVector3d ang_acc = pendulum->GetAngAccParent();
 
     // Joint frame on 2nd body (ground), expressed in the body frame
-    ChCoordsys<> linkCoordsys = revoluteJoint->GetLinkRelativeCoords();
+    ChFrame<> linkCoordsys = revoluteJoint->GetFrame2Rel();
 
     // Reaction force and torque on ground, expressed in joint frame
-    ChVector3d rfrc = revoluteJoint->Get_react_force();
-    ChVector3d rtrq = revoluteJoint->Get_react_torque();
+    const auto& reaction = revoluteJoint->GetReaction2();
+    ChVector3d rfrc = reaction.force;
+    ChVector3d rtrq = reaction.torque;
 
     // Reaction force and torque on ground, expressed in ground frame
     rfrc = linkCoordsys.TransformDirectionLocalToParent(rfrc);

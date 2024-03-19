@@ -43,7 +43,7 @@ TEST(ChRadarSensor, check_velocity) {
 //    // Create the system
 //    // -----------------
 //    ChSystemNSC sys;
-//    sys.Set_G_acc(ChVector3d(0, 0, -0));
+//    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -0));
 //
 //    // ----------------------
 //    // color visual materials
@@ -61,14 +61,14 @@ TEST(ChRadarSensor, check_velocity) {
 //    // -------------------------------------------
 //    auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
 //    floor->SetPos({0, 0, -1});
-//    floor->SetBodyFixed(true);
+//    floor->SetFixed(true);
 //    //    floor->SetAngVelParent(ChVector3d(-0.2,-0.4,-0.3));
-//    //    floor->SetPosDer(ChVector3d(0.1, 0,0));
+//    //    floor->SetPosDt(ChVector3d(0.1, 0,0));
 //    sys.Add(floor);
 //
 //    auto box_body = chrono_types::make_shared<ChBodyEasyBox>(5.5, 5.5, 5.5, 1000, true, false);
 //    box_body->SetPos({5, 0, 0});
-//    box_body->SetPosDer({0.1, 0, 0});
+//    box_body->SetPosDt({0.1, 0, 0});
 //    sys.Add(box_body);
 //
 //    // -----------------------
@@ -79,9 +79,9 @@ TEST(ChRadarSensor, check_velocity) {
 //    // Create a radar and add it to the sensor manager
 //    // -----------------------------------------------
 //    auto offset_pose = chrono::ChFrame<double>({0, 0, 1}, QuatFromAngleZ(0));
-//    float horizontal_fov = CH_C_PI / 10;
-//    float max_vert_angle = CH_C_PI / 10;
-//    float min_vert_angle = -CH_C_PI / 10;
+//    float horizontal_fov = CH_PI / 10;
+//    float max_vert_angle = CH_PI / 10;
+//    float min_vert_angle = -CH_PI / 10;
 //
 //    auto radar = chrono_types::make_shared<ChRadarSensor>(floor, 10.0f, offset_pose, 20, 20, horizontal_fov,
 //                                                          max_vert_angle, min_vert_angle, 100.0f);

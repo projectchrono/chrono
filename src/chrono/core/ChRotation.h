@@ -72,11 +72,11 @@ ChApi ChQuaterniond QuatFromAngleAxis(double angle, const ChVector3d& axis);
 
 /// Convert from a speed of rotation and an axis to a quaternion derivative.
 /// The rotation axis is assumed to be represented in absolute coordinates.
-ChApi ChQuaterniond QuatDerFromAngleAxis(const ChQuaterniond& quat, double angle_dt, const ChVector3d& axis);
+ChApi ChQuaterniond QuatDtFromAngleAxis(const ChQuaterniond& quat, double angle_dt, const ChVector3d& axis);
 
 /// Convert from a rotation acceleration and an axis to a quaternion second derivative.
 /// The rotation axis is assumed to be represented in absolute coordinates.
-ChApi ChQuaterniond QuatDer2FromAngleAxis(double angle_dtdt,
+ChApi ChQuaterniond QuatDt2FromAngleAxis(double angle_dtdt,
                                           const ChVector3d& axis,
                                           const ChQuaterniond& q,
                                           const ChQuaterniond& q_dt);
@@ -107,10 +107,10 @@ ChApi ChVector3d RodriguesFromQuat(const ChQuaterniond& q);
 ChApi ChQuaterniond QuatFromRodrigues(const ChVector3d& params);
 
 /// Convert from a set of Rodrigues parameter derivatives to a quaternion derivative.
-ChApi ChQuaterniond QuatDerFromRodrigues(const ChVector3d& params, const ChQuaterniond& q);
+ChApi ChQuaterniond QuatDtFromRodrigues(const ChVector3d& params, const ChQuaterniond& q);
 
 /// Convert a set of Rodrigues parameter second derivatives to a quaternion second derivative.
-ChApi ChQuaterniond QuatDer2FromRodrigues(const ChVector3d& params, const ChQuaterniond& q);
+ChApi ChQuaterniond QuatDt2FromRodrigues(const ChVector3d& params, const ChQuaterniond& q);
 
 // --------------------------
 
@@ -121,10 +121,10 @@ ChApi AngleSet AngleSetFromQuat(RotRepresentation to_seq, const ChQuaterniond& q
 ChApi ChQuaterniond QuatFromAngleSet(const AngleSet& set);
 
 /// Convert from a set of Euler angle derivatives to a quaternion derivative.
-ChApi ChQuaterniond QuatDerFromAngleSet(const AngleSet& set, const ChQuaterniond& q);
+ChApi ChQuaterniond QuatDtFromAngleSet(const AngleSet& set, const ChQuaterniond& q);
 
 /// Convert from a set of Euler angle second derivatives to a quaternion second derivative.
-ChApi ChQuaterniond QuatDer2FromAngleSet(const AngleSet& set, const ChQuaterniond& q);
+ChApi ChQuaterniond QuatDt2FromAngleSet(const AngleSet& set, const ChQuaterniond& q);
 
 // --------------------------
 

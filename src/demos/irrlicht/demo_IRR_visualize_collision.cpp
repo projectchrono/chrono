@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(10, 3, 10, 100, mat);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     ground->SetPos(ChVector3d(0.0, 0.0, 0.0));
     ground->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(ground);

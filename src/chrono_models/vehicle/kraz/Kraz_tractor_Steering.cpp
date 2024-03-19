@@ -33,7 +33,7 @@ const double Kraz_tractor_Steering::m_pitmanArmMass = 1.605;
 
 const double Kraz_tractor_Steering::m_pitmanArmRadius = 0.02;
 
-const double Kraz_tractor_Steering::m_maxAngle = 22.7 * (CH_C_PI / 180);
+const double Kraz_tractor_Steering::m_maxAngle = 22.7 * (CH_PI / 180);
 
 const ChVector3d Kraz_tractor_Steering::m_pitmanArmInertiaMoments(0.00638, 0.00756, 0.00150);
 const ChVector3d Kraz_tractor_Steering::m_pitmanArmInertiaProducts(0.0, 0.0, 0.0);

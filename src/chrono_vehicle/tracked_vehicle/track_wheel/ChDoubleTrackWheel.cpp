@@ -46,16 +46,16 @@ void ChDoubleTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     double width = 0.5 * (GetWidth() - GetGap());
     double offset = 0.25 * (GetWidth() + GetGap());
 
-    m_wheel->SetCollide(true);
+    m_wheel->EnableCollision(true);
 
     if (track->IsRoadwheelCylinder()) {
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(m_material, radius, width);
-        m_wheel->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, +offset, 0), QuatFromAngleX(CH_C_PI_2)));
-        m_wheel->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, -offset, 0), QuatFromAngleX(CH_C_PI_2)));
+        m_wheel->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, +offset, 0), QuatFromAngleX(CH_PI_2)));
+        m_wheel->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, -offset, 0), QuatFromAngleX(CH_PI_2)));
     } else {
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylindricalShell>(m_material, radius, width);
-        m_wheel->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, +offset, 0), QuatFromAngleX(CH_C_PI_2)));
-        m_wheel->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, -offset, 0), QuatFromAngleX(CH_C_PI_2)));
+        m_wheel->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, +offset, 0), QuatFromAngleX(CH_PI_2)));
+        m_wheel->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, -offset, 0), QuatFromAngleX(CH_PI_2)));
     }
 }
 

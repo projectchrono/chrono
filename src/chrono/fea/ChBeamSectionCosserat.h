@@ -145,11 +145,11 @@ class ChApi ChElasticityCosseratSimple : public ChElasticityCosserat {
     double GetYoungModulus() const { return this->E; }
 
     /// Set G, the shear modulus
-    void SetGshearModulus(double mG) { this->G = mG; }
-    double GetGshearModulus() const { return this->G; }
+    void SetShearModulus(double mG) { this->G = mG; }
+    double GetShearModulus() const { return this->G; }
 
     /// Set G, the shear modulus, given current E and the specified Poisson ratio
-    void SetGwithPoissonRatio(double mpoisson) { this->G = this->E / (2.0 * (1.0 + mpoisson)); }
+    void SetShearModulusFromPoisson(double mpoisson) { this->G = this->E / (2.0 * (1.0 + mpoisson)); }
 
     // Interface to base:
 
@@ -398,27 +398,27 @@ class ChApi ChElasticityCosseratAdvancedGeneric : public ChElasticityCosserat {
     /// Sets the torsion rigidity, for torsion about X axis, at elastic center,
     /// usually J*G for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetXtorsionRigidity(const double mv) { Txx = mv; }
+    virtual void SetTorsionRigidityX(const double mv) { Txx = mv; }
 
     /// Sets the bending rigidity, for bending about Y axis, at elastic center,
     /// usually Iyy*E for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetYbendingRigidity(const double mv) { Byy = mv; }
+    virtual void SetBendingRigidityY(const double mv) { Byy = mv; }
 
     /// Sets the bending rigidity, for bending about Z axis, at elastic center,
     /// usually Izz*E for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetZbendingRigidity(const double mv) { Bzz = mv; }
+    virtual void SetBendingRigidityZ(const double mv) { Bzz = mv; }
 
     /// Sets the shear rigidity, for shear about Y axis, at shear center,
     /// usually A*G*(Timoshenko correction factor) for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetYshearRigidity(const double mv) { Hyy = mv; }
+    virtual void SetShearRigidityY(const double mv) { Hyy = mv; }
 
     /// Sets the shear rigidity, for shear about Z axis, at shear center,
     /// usually A*G*(Timoshenko correction factor) for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetZshearRigidity(const double mv) { Hzz = mv; }
+    virtual void SetShearRigidityZ(const double mv) { Hzz = mv; }
 
     /// Set the rotation in [rad]  of the Y Z axes for which the
     /// YbendingRigidity and ZbendingRigidity values are defined.
@@ -490,9 +490,9 @@ class ChApi ChElasticityCosseratAdvancedGenericFPM : public ChElasticityCosserat
     virtual ~ChElasticityCosseratAdvancedGenericFPM() {}
 
     /// Set the FPM section & material of beam element, giving the stiffness FPM directly.
-    virtual void SetEMatrix(const ChMatrix66d& mKlaw) { Klaw = mKlaw; }
+    virtual void SetStiffnessMatrix(const ChMatrix66d& mKlaw) { Klaw = mKlaw; }
     /// Get the stiffness FPM of section & material of beam element.
-    virtual ChMatrix66d& GetEMatrix() { return Klaw; }
+    virtual ChMatrix66d& GetStiffnessMatrix() { return Klaw; }
 
     /// Set the rotation in [rad]  of the Y Z axes for which the
     /// YbendingRigidity and ZbendingRigidity values are defined.
@@ -529,7 +529,7 @@ class ChApi ChElasticityCosseratAdvancedGenericFPM : public ChElasticityCosserat
     /// Need to update the material stiffness matrix Klaw
     /// after input section rotation and elastic center/shear center offset.
     /// This should be called by end user.
-    void UpdateEMatrix();
+    void UpdateStiffnessMatrix();
 
     /// Get the tranformation matrix of seciton, may be useful for debug
     virtual ChMatrix66d& GetTransformMatrix() { return this->T; }

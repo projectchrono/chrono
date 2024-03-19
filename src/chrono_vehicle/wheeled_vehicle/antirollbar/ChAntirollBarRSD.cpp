@@ -59,11 +59,11 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> subsystem_to_abs(location);
-    subsystem_to_abs.ConcatenatePreTransformation(chassisBody->GetFrame_REF_to_abs());
+    subsystem_to_abs.ConcatenatePreTransformation(chassisBody->GetFrameRefToAbs());
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the subsystem reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassisBody->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassisBody->GetFrameRefToAbs().GetRot();
 
     // Convenience names
     double L = getArmLength();
@@ -102,22 +102,22 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
     sys->AddBody(m_arm_right);
 
     // Create and initialize the revolute joint between left arm and chassis.
-    ChFrame<> rev_ch_frame(P_arm_left, chassisRot * QuatFromAngleX(CH_C_PI_2));
+    ChFrame<> rev_ch_frame(P_arm_left, chassisRot * QuatFromAngleX(CH_PI_2));
     m_revolute_ch = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute_ch->SetNameString(m_name + "_revolute_ch");
     m_revolute_ch->Initialize(m_arm_left, chassisBody, rev_ch_frame);
     sys->AddLink(m_revolute_ch);
 
     // Create and initialize the revolute joint between left and right arms.
-    ChFrame<> rev_frame(P_center, chassisRot * QuatFromAngleX(CH_C_PI_2));
+    ChFrame<> rev_frame(P_center, chassisRot * QuatFromAngleX(CH_PI_2));
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(m_arm_left, m_arm_right, rev_frame);
     sys->AddLink(m_revolute);
 
-    m_revolute->GetForce_Rz().SetActive(1);
-    m_revolute->GetForce_Rz().SetK(getSpringCoefficient());
-    m_revolute->GetForce_Rz().SetR(getDampingCoefficient());
+    m_revolute->ForceRz().SetActive(1);
+    m_revolute->ForceRz().SetSpringCoefficient(getSpringCoefficient());
+    m_revolute->ForceRz().SetDampingCoefficient(getDampingCoefficient());
 
     // Create distance constraint to model left droplink.
     m_link_left = chrono_types::make_shared<ChLinkDistance>();

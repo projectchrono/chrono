@@ -105,6 +105,7 @@ class CH_MODELS_API Sedan_DoubleWishbone : public ChDoubleWishbone {
     static const double m_springCoefficient;
     static const double m_dampingCoefficient;
     static const double m_springRestLength;
+    static const double m_springPreload;
 };
 
 /// @} vehicle_models_sedan

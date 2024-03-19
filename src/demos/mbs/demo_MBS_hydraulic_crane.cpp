@@ -68,14 +68,14 @@ int main(int argc, char* argv[]) {
 
     ChSystemSMC sys;
     ChVector3d Gacc(0, 0, -9.8);
-    sys.Set_G_acc(Gacc);
+    sys.SetGravitationalAcceleration(Gacc);
 
     ChVector3d attachment_ground(std::sqrt(3.0) / 2, 0, 0);
     ChVector3d attachment_crane(0, 0, 0);
 
     double crane_mass = 500;
     double crane_length = 1.0;
-    double crane_angle = CH_C_PI / 6;
+    double crane_angle = CH_PI / 6;
     ChVector3d crane_pos(0.5 * crane_length * std::cos(crane_angle), 0, 0.5 * crane_length * std::sin(crane_angle));
 
     double pend_length = 0.3;
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
 
     // Create the mechanism
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     ground->AddVisualShape(connection_sph, ChFrame<>());
     ground->AddVisualShape(connection_sph, ChFrame<>(attachment_ground, QUNIT));
     sys.AddBody(ground);
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     crane->AddVisualShape(connection_sph, ChFrame<>(attachment_crane, QUNIT));
     crane->AddVisualShape(connection_sph, ChFrame<>(ChVector3d(crane_length / 2, 0, 0), QUNIT));
     auto crane_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.015, crane_length);
-    crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
+    crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, QuatFromAngleY(CH_PI_2)));
     sys.AddBody(crane);
 
     auto ball = chrono_types::make_shared<ChBody>();
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(ball);
 
     auto rev_joint = chrono_types::make_shared<ChLinkRevolute>();
-    rev_joint->Initialize(ground, crane, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+    rev_joint->Initialize(ground, crane, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
     sys.AddLink(rev_joint);
 
     auto sph_joint = chrono_types::make_shared<ChLinkLockSpherical>();
@@ -188,7 +188,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->SetWireFrameMode(false);
             vis_vsg->Initialize();
@@ -209,13 +209,13 @@ int main(int argc, char* argv[]) {
     ////sys.SetTimestepperType(ChTimestepper::Type::HHT);
     ////auto integrator = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     ////integrator->SetAlpha(-0.2);
-    ////integrator->SetMaxiters(100);
+    ////integrator->SetMaxIters(100);
     ////integrator->SetAbsTolerances(1e-3);
     ////integrator->SetStepControl(false);
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
     auto integrator = std::static_pointer_cast<chrono::ChTimestepperEulerImplicit>(sys.GetTimestepper());
-    integrator->SetMaxiters(50);
+    integrator->SetMaxIters(50);
     integrator->SetAbsTolerances(1e-4, 1e2);
 
     // Simulation loop
@@ -224,7 +224,7 @@ int main(int argc, char* argv[]) {
     double t = 0;
 
     Eigen::IOFormat rowFmt(Eigen::StreamPrecision, Eigen::DontAlignCols, "  ", "  ", "", "", "", "");
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     while (vis->Run()) {
         if (t > t_end)
@@ -245,7 +245,7 @@ int main(int argc, char* argv[]) {
     }
 
     std::string out_file = out_dir + "/hydro.out";
-    csv.write_to_file(out_file);
+    csv.WriteToFile(out_file);
 
 #ifdef CHRONO_POSTPROCESS
     {

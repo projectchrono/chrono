@@ -25,7 +25,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkLock)
 
 ChLinkLock::ChLinkLock()
-    : type(LinkType::FREE), m_num_constr(0), m_num_constr_bil(0), m_num_constr_uni(0), d_restlength(0) {
+    : type(Type::FREE), m_num_constr(0), m_num_constr_bil(0), m_num_constr_uni(0), d_restlength(0) {
     // Need to zero out the bottom-right 4x3 block
     Cq1_temp.setZero();
     Cq2_temp.setZero();
@@ -99,42 +99,42 @@ void ChLinkLock::SetForce_Rz(std::unique_ptr<ChLinkForce>&& force) {
 }
 */
 
-ChLinkForce& ChLinkLock::GetForce_D() {
+ChLinkForce& ChLinkLock::ForceD() {
     if (!force_D)
         force_D = chrono_types::make_unique<ChLinkForce>();
     return *force_D;
 }
-ChLinkForce& ChLinkLock::GetForce_R() {
+ChLinkForce& ChLinkLock::ForceRp() {
     if (!force_R)
         force_R = chrono_types::make_unique<ChLinkForce>();
     return *force_R;
 }
-ChLinkForce& ChLinkLock::GetForce_X() {
+ChLinkForce& ChLinkLock::ForceX() {
     if (!force_X)
         force_X = chrono_types::make_unique<ChLinkForce>();
     return *force_X;
 }
-ChLinkForce& ChLinkLock::GetForce_Y() {
+ChLinkForce& ChLinkLock::ForceY() {
     if (!force_Y)
         force_Y = chrono_types::make_unique<ChLinkForce>();
     return *force_Y;
 }
-ChLinkForce& ChLinkLock::GetForce_Z() {
+ChLinkForce& ChLinkLock::ForceZ() {
     if (!force_Z)
         force_Z = chrono_types::make_unique<ChLinkForce>();
     return *force_Z;
 }
-ChLinkForce& ChLinkLock::GetForce_Rx() {
+ChLinkForce& ChLinkLock::ForceRx() {
     if (!force_Rx)
         force_Rx = chrono_types::make_unique<ChLinkForce>();
     return *force_Rx;
 }
-ChLinkForce& ChLinkLock::GetForce_Ry() {
+ChLinkForce& ChLinkLock::ForceRy() {
     if (!force_Ry)
         force_Ry = chrono_types::make_unique<ChLinkForce>();
     return *force_Ry;
 }
-ChLinkForce& ChLinkLock::GetForce_Rz() {
+ChLinkForce& ChLinkLock::ForceRz() {
     if (!force_Rz)
         force_Rz = chrono_types::make_unique<ChLinkForce>();
     return *force_Rz;
@@ -173,42 +173,42 @@ void ChLinkLock::SetLimit_D(std::unique_ptr<ChLinkLimit>&& limit) {
 }
 */
 
-ChLinkLimit& ChLinkLock::GetLimit_X() {
+ChLinkLimit& ChLinkLock::LimitX() {
     if (!limit_X)
         limit_X = chrono_types::make_unique<ChLinkLimit>();
     return *limit_X;
 }
-ChLinkLimit& ChLinkLock::GetLimit_Y() {
+ChLinkLimit& ChLinkLock::LimitY() {
     if (!limit_Y)
         limit_Y = chrono_types::make_unique<ChLinkLimit>();
     return *limit_Y;
 }
-ChLinkLimit& ChLinkLock::GetLimit_Z() {
+ChLinkLimit& ChLinkLock::LimitZ() {
     if (!limit_Z)
         limit_Z = chrono_types::make_unique<ChLinkLimit>();
     return *limit_Z;
 }
-ChLinkLimit& ChLinkLock::GetLimit_Rx() {
+ChLinkLimit& ChLinkLock::LimitRx() {
     if (!limit_Rx)
         limit_Rx = chrono_types::make_unique<ChLinkLimit>();
     return *limit_Rx;
 }
-ChLinkLimit& ChLinkLock::GetLimit_Ry() {
+ChLinkLimit& ChLinkLock::LimitRy() {
     if (!limit_Ry)
         limit_Ry = chrono_types::make_unique<ChLinkLimit>();
     return *limit_Ry;
 }
-ChLinkLimit& ChLinkLock::GetLimit_Rz() {
+ChLinkLimit& ChLinkLock::LimitRz() {
     if (!limit_Rz)
         limit_Rz = chrono_types::make_unique<ChLinkLimit>();
     return *limit_Rz;
 }
-ChLinkLimit& ChLinkLock::GetLimit_Rp() {
+ChLinkLimit& ChLinkLock::LimitRp() {
     if (!limit_Rp)
         limit_Rp = chrono_types::make_unique<ChLinkLimit>();
     return *limit_Rp;
 }
-ChLinkLimit& ChLinkLock::GetLimit_D() {
+ChLinkLimit& ChLinkLock::LimitD() {
     if (!limit_D)
         limit_D = chrono_types::make_unique<ChLinkLimit>();
     return *limit_D;
@@ -228,19 +228,11 @@ void ChLinkLock::SetBroken(bool mbro) {
         BuildLink();
 }
 
-int ChLinkLock::RestoreRedundant() {
-    int mchanges = mask.RestoreRedundant();
-    if (mchanges)
-        BuildLink();
+void ChLinkLock::SetupMarkers(ChMarker* mark1, ChMarker* mark2) {
+    ChLinkMarkers::SetupMarkers(mark1, mark2);
+    assert(this->m_body1 && this->m_body2);
 
-    return mchanges;
-}
-
-void ChLinkLock::SetUpMarkers(ChMarker* mark1, ChMarker* mark2) {
-    ChLinkMarkers::SetUpMarkers(mark1, mark2);
-    assert(this->Body1 && this->Body2);
-
-    mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
+    mask.SetTwoBodiesVariables(&m_body1->Variables(), &m_body2->Variables());
 
     // We must call BuildLink here again, because only now are the constraints properly activated
     // (and hence the correct number of constraints is available).
@@ -249,9 +241,9 @@ void ChLinkLock::SetUpMarkers(ChMarker* mark1, ChMarker* mark2) {
 
 void ChLinkLock::BuildLink() {
     // set m_num_constr by counting non-dofs
-    m_num_constr = mask.GetMaskDoc();
-    m_num_constr_bil = mask.GetMaskDoc_c();
-    m_num_constr_uni = mask.GetMaskDoc_d();
+    m_num_constr = mask.GetNumConstraintsActive();
+    m_num_constr_bil = mask.GetNumConstraintsBilateralActive();
+    m_num_constr_uni = mask.GetNumConstraintsUnilateralActive();
 
     // create matrices
     C.resize(m_num_constr);
@@ -281,52 +273,52 @@ void ChLinkLock::BuildLink(bool x, bool y, bool z, bool e0, bool e1, bool e2, bo
     BuildLink();
 }
 
-void ChLinkLock::BuildLinkType(LinkType link_type) {
+void ChLinkLock::BuildLinkType(Type link_type) {
     type = link_type;
 
     // SetLockMask() sets the constraints for the link coordinates: (X,Y,Z, E0,E1,E2,E3)
     switch (type) {
-        case LinkType::FREE:
+        case Type::FREE:
             BuildLink(false, false, false, false, false, false, false);
             break;
-        case LinkType::LOCK:
+        case Type::LOCK:
             // this should never happen
             BuildLink(true, true, true, false, true, true, true);
             break;
-        case LinkType::SPHERICAL:
+        case Type::SPHERICAL:
             BuildLink(true, true, true, false, false, false, false);
             break;
-        case LinkType::POINTPLANE:
+        case Type::POINTPLANE:
             BuildLink(false, false, true, false, false, false, false);
             break;
-        case LinkType::POINTLINE:
+        case Type::POINTLINE:
             BuildLink(false, true, true, false, false, false, false);
             break;
-        case LinkType::REVOLUTE:
+        case Type::REVOLUTE:
             BuildLink(true, true, true, false, true, true, false);
             break;
-        case LinkType::CYLINDRICAL:
+        case Type::CYLINDRICAL:
             BuildLink(true, true, false, false, true, true, false);
             break;
-        case LinkType::PRISMATIC:
+        case Type::PRISMATIC:
             BuildLink(true, true, false, false, true, true, true);
             break;
-        case LinkType::PLANEPLANE:
+        case Type::PLANEPLANE:
             BuildLink(false, false, true, false, true, true, false);
             break;
-        case LinkType::OLDHAM:
+        case Type::OLDHAM:
             BuildLink(false, false, true, false, true, true, true);
             break;
-        case LinkType::ALIGN:
+        case Type::ALIGN:
             BuildLink(false, false, false, false, true, true, true);
             break;
-        case LinkType::PARALLEL:
+        case Type::PARALLEL:
             BuildLink(false, false, false, false, true, true, false);
             break;
-        case LinkType::PERPEND:
+        case Type::PERPEND:
             BuildLink(false, false, false, false, true, false, true);
             break;
-        case LinkType::REVOLUTEPRISMATIC:
+        case Type::REVOLUTEPRISMATIC:
             BuildLink(false, true, true, false, true, true, false);
             break;
         default:
@@ -335,7 +327,7 @@ void ChLinkLock::BuildLinkType(LinkType link_type) {
     }
 }
 
-void ChLinkLock::ChangeLinkType(LinkType new_link_type) {
+void ChLinkLock::ChangeType(Type new_link_type) {
     BuildLinkType(new_link_type);
 
     limit_X.reset(nullptr);
@@ -369,24 +361,24 @@ void ChLinkLock::Update(double time, bool update_assets) {
 void ChLinkLock::UpdateState() {
     // ----------- SOME PRECALCULATED VARIABLES, to optimize speed
 
-    ChStarMatrix33<> P1star(marker1->GetCsys().pos);  // [P] star matrix of rel pos of mark1
-    ChStarMatrix33<> Q2star(marker2->GetCsys().pos);  // [Q] star matrix of rel pos of mark2
+    ChStarMatrix33<> P1star(marker1->GetCoordsys().pos);  // [P] star matrix of rel pos of mark1
+    ChStarMatrix33<> Q2star(marker2->GetCoordsys().pos);  // [Q] star matrix of rel pos of mark2
 
-    ChGlMatrix34<> body1Gl(Body1->GetCsys().rot);
-    ChGlMatrix34<> body2Gl(Body2->GetCsys().rot);
+    ChGlMatrix34<> body1Gl(m_body1->GetCoordsys().rot);
+    ChGlMatrix34<> body2Gl(m_body2->GetCoordsys().rot);
 
     // COMPUTE THE  Cq Ct Qc    matrices (temporary, for complete lock constraint)
 
     ChMatrix33<> m2_Rel_A_dt;
-    marker2->ComputeRotMatDer(m2_Rel_A_dt);
+    marker2->ComputeRotMatDt(m2_Rel_A_dt);
     ChMatrix33<> m2_Rel_A_dtdt;
-    marker2->ComputeRotMatDer2(m2_Rel_A_dtdt);
+    marker2->ComputeRotMatDt2(m2_Rel_A_dtdt);
 
     // ----------- PARTIAL DERIVATIVE Ct OF CONSTRAINT
-    Ct_temp.pos = m2_Rel_A_dt.transpose() * (Body2->GetRotMat().transpose() * PQw) +
+    Ct_temp.pos = m2_Rel_A_dt.transpose() * (m_body2->GetRotMat().transpose() * PQw) +
                   marker2->GetRotMat().transpose() *
-                      (Body2->GetRotMat().transpose() * (Body1->GetRotMat() * marker1->GetCsysDer().pos) -
-                       marker2->GetCsysDer().pos);
+                      (m_body2->GetRotMat().transpose() * (m_body1->GetRotMat() * marker1->GetCoordsysDt().pos) -
+                       marker2->GetCoordsysDt().pos);
 
     Ct_temp.rot = q_AD;
 
@@ -396,25 +388,25 @@ void ChLinkLock::UpdateState() {
 
     //  JACOBIANS Cq1_temp, Cq2_temp:
 
-    ChMatrix33<> CqxT = marker2->GetRotMat().transpose() * Body2->GetRotMat().transpose();  // [CqxT]=[Aq]'[Ao2]'
-    ChStarMatrix33<> tmpStar(Body2->GetRotMat().transpose() * PQw);
+    ChMatrix33<> CqxT = marker2->GetRotMat().transpose() * m_body2->GetRotMat().transpose();  // [CqxT]=[Aq]'[Ao2]'
+    ChStarMatrix33<> tmpStar(m_body2->GetRotMat().transpose() * PQw);
 
     Cq1_temp.topLeftCorner<3, 3>() = CqxT;                                            // *- -- Cq1_temp(1-3) =  [Aqo2]
     Cq2_temp.topLeftCorner<3, 3>() = -CqxT;                                           // -- *- Cq2_temp(1-3) = -[Aqo2]
-    Cq1_temp.topRightCorner<3, 4>() = -CqxT * Body1->GetRotMat() * P1star * body1Gl;  // -* -- Cq1_temp(4-7)
-    Cq2_temp.topRightCorner<3, 4>() = CqxT * Body2->GetRotMat() * Q2star * body2Gl +  //
+    Cq1_temp.topRightCorner<3, 4>() = -CqxT * m_body1->GetRotMat() * P1star * body1Gl;  // -* -- Cq1_temp(4-7)
+    Cq2_temp.topRightCorner<3, 4>() = CqxT * m_body2->GetRotMat() * Q2star * body2Gl +  //
                                       marker2->GetRotMat().transpose() * tmpStar * body2Gl;  // -- -* Cq2_temp(4-7)
 
     {
-        ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCsys().rot), Qconjugate(Body2->GetCsys().rot)));
-        ChStarMatrix44<> stempQ2(marker1->GetCsys().rot);
+        ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCoordsys().rot), Qconjugate(m_body2->GetCoordsys().rot)));
+        ChStarMatrix44<> stempQ2(marker1->GetCoordsys().rot);
         stempQ2.semiTranspose();
         Cq1_temp.bottomRightCorner<4, 4>() = stempQ1 * stempQ2;  // =* == Cq1_temp(col 4-7, row 4-7) ... CqrR
     }
 
     {
-        ChStarMatrix44<> stempQ1(Qconjugate(marker2->GetCsys().rot));
-        ChStarMatrix44<> stempQ2(Qcross(Body1->GetCsys().rot, marker1->GetCsys().rot));
+        ChStarMatrix44<> stempQ1(Qconjugate(marker2->GetCoordsys().rot));
+        ChStarMatrix44<> stempQ2(Qcross(m_body1->GetCoordsys().rot, marker1->GetCoordsys().rot));
         stempQ2.semiTranspose();
         stempQ2.semiNegate();
         Cq2_temp.bottomRightCorner<4, 4>() = stempQ1 * stempQ2;  // == =* Cq2_temp(col 4-7, row 4-7) ... CqrR
@@ -425,18 +417,18 @@ void ChLinkLock::UpdateState() {
     ChVector3d vtemp1;
     ChVector3d vtemp2;
 
-    vtemp1 = Vcross(Body1->GetAngVelLocal(), Vcross(Body1->GetAngVelLocal(), marker1->GetCsys().pos));
-    vtemp1 = Vadd(vtemp1, marker1->GetCsysDer2().pos);
-    vtemp1 = Vadd(vtemp1, Vmul(Vcross(Body1->GetAngVelLocal(), marker1->GetCsysDer().pos), 2));
+    vtemp1 = Vcross(m_body1->GetAngVelLocal(), Vcross(m_body1->GetAngVelLocal(), marker1->GetCoordsys().pos));
+    vtemp1 = Vadd(vtemp1, marker1->GetCoordsysDt2().pos);
+    vtemp1 = Vadd(vtemp1, Vmul(Vcross(m_body1->GetAngVelLocal(), marker1->GetCoordsysDt().pos), 2));
 
-    vtemp2 = Vcross(Body2->GetAngVelLocal(), Vcross(Body2->GetAngVelLocal(), marker2->GetCsys().pos));
-    vtemp2 = Vadd(vtemp2, marker2->GetCsysDer2().pos);
-    vtemp2 = Vadd(vtemp2, Vmul(Vcross(Body2->GetAngVelLocal(), marker2->GetCsysDer().pos), 2));
+    vtemp2 = Vcross(m_body2->GetAngVelLocal(), Vcross(m_body2->GetAngVelLocal(), marker2->GetCoordsys().pos));
+    vtemp2 = Vadd(vtemp2, marker2->GetCoordsysDt2().pos);
+    vtemp2 = Vadd(vtemp2, Vmul(Vcross(m_body2->GetAngVelLocal(), marker2->GetCoordsysDt().pos), 2));
 
-    Qcx = CqxT * (Body1->GetRotMat() * vtemp1 - Body2->GetRotMat() * vtemp2);
+    Qcx = CqxT * (m_body1->GetRotMat() * vtemp1 - m_body2->GetRotMat() * vtemp2);
 
-    ChStarMatrix33<> mtemp1(Body2->GetAngVelLocal());
-    ChMatrix33<> mtemp3 = Body2->GetRotMat() * mtemp1 * mtemp1;
+    ChStarMatrix33<> mtemp1(m_body2->GetAngVelLocal());
+    ChMatrix33<> mtemp3 = m_body2->GetRotMat() * mtemp1 * mtemp1;
     vtemp2 = marker2->GetRotMat().transpose() * (mtemp3.transpose() * PQw);  // [Aq]'[[A2][w2][w2]]'*Qpq,w
     Qcx = Vadd(Qcx, vtemp2);
     Qcx = Vadd(Qcx, q_4);  // [Adtdt]'[A]'q + 2[Adt]'[Adt]'q + 2[Adt]'[A]'qdt + 2[A]'[Adt]'qdt
@@ -568,7 +560,7 @@ static void Transform_Cq_to_Cqw(const ChLinkLock::ChConstraintMatrixX7& mCq,
     mCqw.block(0, 0, mCq.rows(), 3) = mCq.block(0, 0, mCq.rows(), 3);
 
     // rotational part [Cq_w] = [Cq_q]*[Gl]'*1/4
-    ChGlMatrix34<> mGl(mbody->GetCsys().rot);
+    ChGlMatrix34<> mGl(mbody->GetCoordsys().rot);
     for (int colres = 0; colres < 3; colres++) {
         for (int row = 0; row < mCq.rows(); row++) {
             double sum = 0;
@@ -583,8 +575,8 @@ static void Transform_Cq_to_Cqw(const ChLinkLock::ChConstraintMatrixX7& mCq,
 }
 
 void ChLinkLock::UpdateCqw() {
-    Transform_Cq_to_Cqw(Cq1, Cqw1, Body1);
-    Transform_Cq_to_Cqw(Cq2, Cqw2, Body2);
+    Transform_Cq_to_Cqw(Cq1, Cqw1, m_body1);
+    Transform_Cq_to_Cqw(Cq2, Cqw2, m_body2);
 }
 
 // Override UpdateForces to include possible contributions from joint limits.
@@ -604,7 +596,7 @@ void ChLinkLock::UpdateForces(double mytime) {
 
     if (force_D && force_D->IsActive()) {
         double dfor;
-        dfor = force_D->GetForce((dist - d_restlength), dist_dt, ChTime);
+        dfor = force_D->GetForceTorque((dist - d_restlength), dist_dt, ChTime);
         m_force = Vmul(Vnorm(relM.pos), dfor);
 
         C_force = Vadd(C_force, m_force);
@@ -615,12 +607,12 @@ void ChLinkLock::UpdateForces(double mytime) {
     if (force_R && force_R->IsActive()) {
         double tor;
         // 1) the tors. spring
-        tor = force_R->GetForce(relAngle, 0, ChTime);
+        tor = force_R->GetForceTorque(relAngle, 0, ChTime);
         m_torque = Vmul(relAxis, tor);
         C_torque = Vadd(C_torque, m_torque);
         // 2) the tors. damper
         double angle_dt = Vlength(relWvel);
-        tor = force_R->GetForce(0, angle_dt, ChTime);
+        tor = force_R->GetForceTorque(0, angle_dt, ChTime);
         m_torque = Vmul(Vnorm(relWvel), tor);
         C_torque = Vadd(C_torque, m_torque);
     }
@@ -630,15 +622,15 @@ void ChLinkLock::UpdateForces(double mytime) {
     m_force = VNULL;
 
     if (force_X && force_X->IsActive()) {
-        m_force.x() = force_X->GetForce(relM.pos.x(), relM_dt.pos.x(), ChTime);
+        m_force.x() = force_X->GetForceTorque(relM.pos.x(), relM_dt.pos.x(), ChTime);
     }
 
     if (force_Y && force_Y->IsActive()) {
-        m_force.y() = force_Y->GetForce(relM.pos.y(), relM_dt.pos.y(), ChTime);
+        m_force.y() = force_Y->GetForceTorque(relM.pos.y(), relM_dt.pos.y(), ChTime);
     }
 
     if (force_Z && force_Z->IsActive()) {
-        m_force.z() = force_Z->GetForce(relM.pos.z(), relM_dt.pos.z(), ChTime);
+        m_force.z() = force_Z->GetForceTorque(relM.pos.z(), relM_dt.pos.z(), ChTime);
     }
 
     C_force = Vadd(C_force, m_force);
@@ -648,15 +640,15 @@ void ChLinkLock::UpdateForces(double mytime) {
     m_torque = VNULL;
 
     if (force_Rx && force_Rx->IsActive()) {
-        m_torque.x() = force_Rx->GetForce(relRotaxis.x(), relWvel.x(), ChTime);
+        m_torque.x() = force_Rx->GetForceTorque(relRotaxis.x(), relWvel.x(), ChTime);
     }
 
     if (force_Ry && force_Ry->IsActive()) {
-        m_torque.y() = force_Ry->GetForce(relRotaxis.y(), relWvel.y(), ChTime);
+        m_torque.y() = force_Ry->GetForceTorque(relRotaxis.y(), relWvel.y(), ChTime);
     }
 
     if (force_Rz && force_Rz->IsActive()) {
-        m_torque.z() = force_Rz->GetForce(relRotaxis.z(), relWvel.z(), ChTime);
+        m_torque.z() = force_Rz->GetForceTorque(relRotaxis.z(), relWvel.z(), ChTime);
     }
 
     C_torque = Vadd(C_torque, m_torque);
@@ -667,27 +659,27 @@ void ChLinkLock::UpdateForces(double mytime) {
     m_torque = VNULL;
 
     if (limit_X && limit_X->IsActive()) {
-        m_force.x() = limit_X->GetForce(relM.pos.x(), relM_dt.pos.x());
+        m_force.x() = limit_X->GetForceTorque(relM.pos.x(), relM_dt.pos.x());
     }
     if (limit_Y && limit_Y->IsActive()) {
-        m_force.y() = limit_Y->GetForce(relM.pos.y(), relM_dt.pos.y());
+        m_force.y() = limit_Y->GetForceTorque(relM.pos.y(), relM_dt.pos.y());
     }
     if (limit_Z && limit_Z->IsActive()) {
-        m_force.z() = limit_Z->GetForce(relM.pos.z(), relM_dt.pos.z());
+        m_force.z() = limit_Z->GetForceTorque(relM.pos.z(), relM_dt.pos.z());
     }
 
     if (limit_D && limit_D->IsActive()) {
-        m_force = Vadd(m_force, Vmul(Vnorm(relM.pos), limit_D->GetForce(dist, dist_dt)));
+        m_force = Vadd(m_force, Vmul(Vnorm(relM.pos), limit_D->GetForceTorque(dist, dist_dt)));
     }
 
     if (limit_Rx && limit_Rx->IsActive()) {
-        m_torque.x() = limit_Rx->GetForce(relRotaxis.x(), relWvel.x());
+        m_torque.x() = limit_Rx->GetForceTorque(relRotaxis.x(), relWvel.x());
     }
     if (limit_Ry && limit_Ry->IsActive()) {
-        m_torque.y() = limit_Ry->GetForce(relRotaxis.y(), relWvel.y());
+        m_torque.y() = limit_Ry->GetForceTorque(relRotaxis.y(), relWvel.y());
     }
     if (limit_Rz && limit_Rz->IsActive()) {
-        m_torque.z() = limit_Rz->GetForce(relRotaxis.z(), relWvel.z());
+        m_torque.z() = limit_Rz->GetForceTorque(relRotaxis.z(), relWvel.z());
     }
     if (limit_Rp && limit_Rp->IsActive()) {
         ChVector3d arm_xaxis = VaxisXfromQuat(relM.rot);  // the X axis of the marker1, respect to m2.
@@ -711,8 +703,8 @@ void ChLinkLock::UpdateForces(double mytime) {
 }
 
 // Count also unilateral constraints from joint limits (if any)
-int ChLinkLock::GetNumConstraintsUnilateral() {
-    int mdocd = m_num_constr_uni;
+unsigned int ChLinkLock::GetNumConstraintsUnilateral() {
+    unsigned int mdocd = m_num_constr_uni;
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive())
@@ -761,9 +753,9 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
     react = L.segment(off_L, react.size());
 
     // From react vector to the 'intuitive' react_force and react_torque
-    // const ChQuaternion<>& q2 = Body2->GetRot();
-    // const ChQuaternion<>& q1p = marker1->GetAbsCsys().rot;
-    // const ChQuaternion<>& qs = marker2->GetCsys().rot;
+    // const ChQuaternion<>& q2 = m_body2->GetRot();
+    // const ChQuaternion<>& q1p = marker1->GetAbsCoordsys().rot;
+    // const ChQuaternion<>& qs = marker2->GetCoordsys().rot;
     // const ChMatrix33<>& Cs = marker2->GetRotMat();
 
     // ChMatrix44<> Chi__q1p_barT;  //[Chi] * [transpose(bar(q1p))]
@@ -808,7 +800,7 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
     // ChMatrix34<> Ts = 0.25 * Gl_q2 * Chi__q1p_barT * qs_tilde;
     //// Ts.rightCols(3) is equal to the rotational block of Cqw2.T for completely fixed joint.
     //// The rotational block of Cqw2.T is a part of Ts.
-    //// Cqw2.T*lambda is the reaction torque acting on Body2, expressed in the local frame of Body2
+    //// Cqw2.T*lambda is the reaction torque acting on m_body2, expressed in the local frame of m_body2
     //
     // Ts_F2 = CsT*Ts;
     //// The reaction torque is then rotated to the local frame of Marker2 (frame2, F2, master frame of link)
@@ -841,7 +833,7 @@ void ChLinkLock::IntStateScatterReactions(const unsigned int off_L, const ChVect
         local_off++;
     }
 
-    ChVector3d m_torque_L;  // = Cqw2.T * lambda, reaction torque in local frame of Body2
+    ChVector3d m_torque_L;  // = Cqw2.T * lambda, reaction torque in local frame of m_body2
     if (mask.Constr_E1().IsActive()) {
         m_torque_L.x() += Cqw2T(3, local_off) * (react(local_off));
         m_torque_L.y() += Cqw2T(4, local_off) * (react(local_off));
@@ -950,14 +942,14 @@ void ChLinkLock::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L
                                      const double c)              // a scaling factor
 {
     int cnt = 0;
-    for (int i = 0; i < mask.nconstr; i++) {
-        if (mask.Constr_N(i).IsActive()) {
-            mask.Constr_N(i).MultiplyTandAdd(R, L(off_L + cnt) * c);
+    for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+        if (mask.GetConstraint(i).IsActive()) {
+            mask.GetConstraint(i).MultiplyTandAdd(R, L(off_L + cnt) * c);
             cnt++;
         }
     }
 
-    int local_offset = this->GetNumConstraintsBilateral();
+    unsigned int local_offset = this->GetNumConstraintsBilateral();
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
@@ -1028,10 +1020,10 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc 
                                      double recovery_clamp)     // value for min/max clamping of c*C
 {
     int cnt = 0;
-    for (int i = 0; i < mask.nconstr; i++) {
-        if (mask.Constr_N(i).IsActive()) {
+    for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+        if (mask.GetConstraint(i).IsActive()) {
             if (do_clamp) {
-                if (mask.Constr_N(i).IsUnilateral())
+                if (mask.GetConstraint(i).IsUnilateral())
                     Qc(off_L + cnt) += std::max(c * C(cnt), -recovery_clamp);
                 else
                     Qc(off_L + cnt) += std::min(std::max(c * C(cnt), -recovery_clamp), recovery_clamp);
@@ -1044,7 +1036,7 @@ void ChLinkLock::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc 
     if (!do_clamp)
         recovery_clamp = 1e24;
 
-    int local_offset = this->GetNumConstraintsBilateral();
+    unsigned int local_offset = this->GetNumConstraintsBilateral();
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
@@ -1113,8 +1105,8 @@ void ChLinkLock::IntLoadConstraint_Ct(const unsigned int off_L,  // offset in Qc
                                       const double c)            // a scaling factor
 {
     int cnt = 0;
-    for (int i = 0; i < mask.nconstr; i++) {
-        if (mask.Constr_N(i).IsActive()) {
+    for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+        if (mask.GetConstraint(i).IsActive()) {
             Qc(off_L + cnt) += c * Ct(cnt);
             cnt++;
         }
@@ -1129,16 +1121,16 @@ void ChLinkLock::IntToDescriptor(const unsigned int off_v,
                                  const unsigned int off_L,
                                  const ChVectorDynamic<>& L,
                                  const ChVectorDynamic<>& Qc) {
-    int cnt = 0;
-    for (int i = 0; i < mask.nconstr; i++) {
-        if (mask.Constr_N(i).IsActive()) {
-            mask.Constr_N(i).Set_l_i(L(off_L + cnt));
-            mask.Constr_N(i).Set_b_i(Qc(off_L + cnt));
+    unsigned int cnt = 0;
+    for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+        if (mask.GetConstraint(i).IsActive()) {
+            mask.GetConstraint(i).Set_l_i(L(off_L + cnt));
+            mask.GetConstraint(i).Set_b_i(Qc(off_L + cnt));
             cnt++;
         }
     }
 
-    int local_offset = this->GetNumConstraintsBilateral();
+    unsigned int local_offset = this->GetNumConstraintsBilateral();
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
@@ -1218,15 +1210,15 @@ void ChLinkLock::IntFromDescriptor(const unsigned int off_v,
                                    ChStateDelta& v,
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) {
-    int cnt = 0;
-    for (int i = 0; i < mask.nconstr; i++) {
-        if (mask.Constr_N(i).IsActive()) {
-            L(off_L + cnt) = mask.Constr_N(i).Get_l_i();
+    unsigned int cnt = 0;
+    for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+        if (mask.GetConstraint(i).IsActive()) {
+            L(off_L + cnt) = mask.GetConstraint(i).Get_l_i();
             cnt++;
         }
     }
 
-    int local_offset = this->GetNumConstraintsBilateral();
+    unsigned int local_offset = this->GetNumConstraintsBilateral();
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
@@ -1294,76 +1286,76 @@ void ChLinkLock::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     if (!this->IsActive())
         return;
 
-    for (int i = 0; i < mask.nconstr; i++) {
-        if (mask.Constr_N(i).IsActive())
-            mdescriptor.InsertConstraint(&mask.Constr_N(i));
+    for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+        if (mask.GetConstraint(i).IsActive())
+            mdescriptor.InsertConstraint(&mask.GetConstraint(i));
     }
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
-            limit_X->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_X->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_X->constr_lower);
         }
         if (limit_X->constr_upper.IsActive()) {
-            limit_X->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_X->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_X->constr_upper);
         }
     }
     if (limit_Y && limit_Y->IsActive()) {
         if (limit_Y->constr_lower.IsActive()) {
-            limit_Y->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Y->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Y->constr_lower);
         }
         if (limit_Y->constr_upper.IsActive()) {
-            limit_Y->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Y->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Y->constr_upper);
         }
     }
     if (limit_Z && limit_Z->IsActive()) {
         if (limit_Z->constr_lower.IsActive()) {
-            limit_Z->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Z->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Z->constr_lower);
         }
         if (limit_Z->constr_upper.IsActive()) {
-            limit_Z->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Z->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Z->constr_upper);
         }
     }
     if (limit_Rx && limit_Rx->IsActive()) {
         if (limit_Rx->constr_lower.IsActive()) {
-            limit_Rx->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Rx->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Rx->constr_lower);
         }
         if (limit_Rx->constr_upper.IsActive()) {
-            limit_Rx->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Rx->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Rx->constr_upper);
         }
     }
     if (limit_Ry && limit_Ry->IsActive()) {
         if (limit_Ry->constr_lower.IsActive()) {
-            limit_Ry->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Ry->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Ry->constr_lower);
         }
         if (limit_Ry->constr_upper.IsActive()) {
-            limit_Ry->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Ry->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Ry->constr_upper);
         }
     }
     if (limit_Rz && limit_Rz->IsActive()) {
         if (limit_Rz->constr_lower.IsActive()) {
-            limit_Rz->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Rz->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Rz->constr_lower);
         }
         if (limit_Rz->constr_upper.IsActive()) {
-            limit_Rz->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Rz->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             mdescriptor.InsertConstraint(&limit_Rz->constr_upper);
         }
     }
 }
 
 void ChLinkLock::ConstraintsBiReset() {
-    for (int i = 0; i < mask.nconstr; i++) {
-        mask.Constr_N(i).Set_b_i(0.);
+    for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+        mask.GetConstraint(i).Set_b_i(0.);
     }
 
     if (limit_X && limit_X->IsActive()) {
@@ -1418,16 +1410,16 @@ void ChLinkLock::ConstraintsBiReset() {
 
 void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
     int cnt = 0;
-    for (int i = 0; i < mask.nconstr; i++) {
-        if (mask.Constr_N(i).IsActive()) {
+    for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+        if (mask.GetConstraint(i).IsActive()) {
             if (do_clamp) {
-                if (mask.Constr_N(i).IsUnilateral())
-                    mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() + std::max(factor * C(cnt), -recovery_clamp));
+                if (mask.GetConstraint(i).IsUnilateral())
+                    mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() + std::max(factor * C(cnt), -recovery_clamp));
                 else
-                    mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() +
+                    mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() +
                                              std::min(std::max(factor * C(cnt), -recovery_clamp), recovery_clamp));
             } else
-                mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() + factor * C(cnt));
+                mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() + factor * C(cnt));
 
             cnt++;
         }
@@ -1563,9 +1555,9 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
 
 void ChLinkLock::ConstraintsBiLoad_Ct(double factor) {
     int cnt = 0;
-    for (int i = 0; i < mask.nconstr; i++) {
-        if (mask.Constr_N(i).IsActive()) {
-            mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() + factor * Ct(cnt));
+    for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+        if (mask.GetConstraint(i).IsActive()) {
+            mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() + factor * Ct(cnt));
             cnt++;
         }
     }
@@ -1573,9 +1565,9 @@ void ChLinkLock::ConstraintsBiLoad_Ct(double factor) {
 
 void ChLinkLock::ConstraintsBiLoad_Qc(double factor) {
     int cnt = 0;
-    for (int i = 0; i < mask.nconstr; i++) {
-        if (mask.Constr_N(i).IsActive()) {
-            mask.Constr_N(i).Set_b_i(mask.Constr_N(i).Get_b_i() + factor * Qc(cnt));
+    for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+        if (mask.GetConstraint(i).IsActive()) {
+            mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() + factor * Qc(cnt));
             cnt++;
         }
     }
@@ -1606,28 +1598,28 @@ void ChLinkLock::ConstraintsLoadJacobians() {
         return;
 
     int cnt = 0;
-    for (int i = 0; i < mask.nconstr; i++) {
-        if (mask.Constr_N(i).IsActive()) {
-            mask.Constr_N(i).Get_Cq_a().block(0, 0, 1, Cqw1.cols()) = Cqw1.block(cnt, 0, 1, Cqw1.cols());
-            mask.Constr_N(i).Get_Cq_b().block(0, 0, 1, Cqw2.cols()) = Cqw2.block(cnt, 0, 1, Cqw2.cols());
+    for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+        if (mask.GetConstraint(i).IsActive()) {
+            mask.GetConstraint(i).Get_Cq_a().block(0, 0, 1, Cqw1.cols()) = Cqw1.block(cnt, 0, 1, Cqw1.cols());
+            mask.GetConstraint(i).Get_Cq_b().block(0, 0, 1, Cqw2.cols()) = Cqw2.block(cnt, 0, 1, Cqw2.cols());
             cnt++;
 
             // sets also the CFM term
-            // mask->Constr_N(i).Set_cfm_i(this->attractor);
+            // mask->GetConstraint(i).Set_cfm_i(this->attractor);
         }
     }
 
-    ChGlMatrix34<> Gl1(Body1->GetCsys().rot);
-    ChGlMatrix34<> Gl2(Body2->GetCsys().rot);
+    ChGlMatrix34<> Gl1(m_body1->GetCoordsys().rot);
+    ChGlMatrix34<> Gl2(m_body2->GetCoordsys().rot);
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
-            limit_X->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_X->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 0, limit_X->constr_lower.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 0, limit_X->constr_lower.Get_Cq_b(), 0, Gl2);
         }
         if (limit_X->constr_upper.IsActive()) {
-            limit_X->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_X->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 0, limit_X->constr_upper.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 0, limit_X->constr_upper.Get_Cq_b(), 0, Gl2);
             limit_X->constr_upper.Get_Cq_a() *= -1;
@@ -1636,12 +1628,12 @@ void ChLinkLock::ConstraintsLoadJacobians() {
     }
     if (limit_Y && limit_Y->IsActive()) {
         if (limit_Y->constr_lower.IsActive()) {
-            limit_Y->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Y->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 1, limit_Y->constr_lower.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 1, limit_Y->constr_lower.Get_Cq_b(), 0, Gl2);
         }
         if (limit_Y->constr_upper.IsActive()) {
-            limit_Y->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Y->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 1, limit_Y->constr_upper.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 1, limit_Y->constr_upper.Get_Cq_b(), 0, Gl2);
             limit_Y->constr_upper.Get_Cq_a() *= -1;
@@ -1650,12 +1642,12 @@ void ChLinkLock::ConstraintsLoadJacobians() {
     }
     if (limit_Z && limit_Z->IsActive()) {
         if (limit_Z->constr_lower.IsActive()) {
-            limit_Z->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Z->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 2, limit_Z->constr_lower.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 2, limit_Z->constr_lower.Get_Cq_b(), 0, Gl2);
         }
         if (limit_Z->constr_upper.IsActive()) {
-            limit_Z->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Z->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 2, limit_Z->constr_upper.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 2, limit_Z->constr_upper.Get_Cq_b(), 0, Gl2);
             limit_Z->constr_upper.Get_Cq_a() *= -1;
@@ -1664,12 +1656,12 @@ void ChLinkLock::ConstraintsLoadJacobians() {
     }
     if (limit_Rx && limit_Rx->IsActive()) {
         if (limit_Rx->constr_lower.IsActive()) {
-            limit_Rx->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Rx->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 4, limit_Rx->constr_lower.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 4, limit_Rx->constr_lower.Get_Cq_b(), 0, Gl2);
         }
         if (limit_Rx->constr_upper.IsActive()) {
-            limit_Rx->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Rx->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 4, limit_Rx->constr_upper.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 4, limit_Rx->constr_upper.Get_Cq_b(), 0, Gl2);
             limit_Rx->constr_upper.Get_Cq_a() *= -1;
@@ -1678,12 +1670,12 @@ void ChLinkLock::ConstraintsLoadJacobians() {
     }
     if (limit_Ry && limit_Ry->IsActive()) {
         if (limit_Ry->constr_lower.IsActive()) {
-            limit_Ry->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Ry->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 5, limit_Ry->constr_lower.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 5, limit_Ry->constr_lower.Get_Cq_b(), 0, Gl2);
         }
         if (limit_Ry->constr_upper.IsActive()) {
-            limit_Ry->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Ry->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 5, limit_Ry->constr_upper.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 5, limit_Ry->constr_upper.Get_Cq_b(), 0, Gl2);
             limit_Ry->constr_upper.Get_Cq_a() *= -1;
@@ -1692,12 +1684,12 @@ void ChLinkLock::ConstraintsLoadJacobians() {
     }
     if (limit_Rz && limit_Rz->IsActive()) {
         if (limit_Rz->constr_lower.IsActive()) {
-            limit_Rz->constr_lower.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Rz->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 6, limit_Rz->constr_lower.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 6, limit_Rz->constr_lower.Get_Cq_b(), 0, Gl2);
         }
         if (limit_Rz->constr_upper.IsActive()) {
-            limit_Rz->constr_upper.SetVariables(&Body1->Variables(), &Body2->Variables());
+            limit_Rz->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
             Transform_Cq_to_Cqw_row(Cq1_temp, 6, limit_Rz->constr_upper.Get_Cq_a(), 0, Gl1);
             Transform_Cq_to_Cqw_row(Cq2_temp, 6, limit_Rz->constr_upper.Get_Cq_b(), 0, Gl2);
             limit_Rz->constr_upper.Get_Cq_a() *= -1;
@@ -1712,9 +1704,9 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
 
     // From constraints to react vector:
     int cnt = 0;
-    for (int i = 0; i < mask.nconstr; i++) {
-        if (mask.Constr_N(i).IsActive()) {
-            react(cnt) = mask.Constr_N(i).Get_l_i() * factor;
+    for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
+        if (mask.GetConstraint(i).IsActive()) {
+            react(cnt) = mask.GetConstraint(i).Get_l_i() * factor;
             cnt++;
         }
     }
@@ -1744,7 +1736,7 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
         n_constraint++;
     }
 
-    // Cqw2.T*lambda is the reaction torque acting on Body2, expressed in the local frame of Body2
+    // Cqw2.T*lambda is the reaction torque acting on m_body2, expressed in the local frame of m_body2
     ChMatrixDynamic<> Cqw2T = Cqw2.transpose();
     ChVector3d m_torque_L;  // = Cqw2.T * lambda
     if (mask.Constr_E1().IsActive()) {
@@ -1832,27 +1824,27 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
 // SERIALIZATION
 
 // To avoid putting the following mapper macro inside the class definition,
-// enclose macros in local 'ChLinkLock_LinkType_enum_mapper'.
-class ChLinkLock_LinkType_enum_mapper : public ChLinkLock {
+// enclose macros in local 'ChLinkLock_Type_enum_mapper'.
+class ChLinkLock_Type_enum_mapper : public ChLinkLock {
   public:
-    CH_ENUM_MAPPER_BEGIN(LinkType);
-    CH_ENUM_VAL(LinkType::LOCK);
-    CH_ENUM_VAL(LinkType::SPHERICAL);
-    CH_ENUM_VAL(LinkType::POINTPLANE);
-    CH_ENUM_VAL(LinkType::POINTLINE);
-    CH_ENUM_VAL(LinkType::CYLINDRICAL);
-    CH_ENUM_VAL(LinkType::PRISMATIC);
-    CH_ENUM_VAL(LinkType::PLANEPLANE);
-    CH_ENUM_VAL(LinkType::OLDHAM);
-    CH_ENUM_VAL(LinkType::REVOLUTE);
-    CH_ENUM_VAL(LinkType::FREE);
-    CH_ENUM_VAL(LinkType::ALIGN);
-    CH_ENUM_VAL(LinkType::PARALLEL);
-    CH_ENUM_VAL(LinkType::PERPEND);
-    CH_ENUM_VAL(LinkType::TRAJECTORY);
-    CH_ENUM_VAL(LinkType::CLEARANCE);
-    CH_ENUM_VAL(LinkType::REVOLUTEPRISMATIC);
-    CH_ENUM_MAPPER_END(LinkType);
+    CH_ENUM_MAPPER_BEGIN(Type);
+    CH_ENUM_VAL(Type::LOCK);
+    CH_ENUM_VAL(Type::SPHERICAL);
+    CH_ENUM_VAL(Type::POINTPLANE);
+    CH_ENUM_VAL(Type::POINTLINE);
+    CH_ENUM_VAL(Type::CYLINDRICAL);
+    CH_ENUM_VAL(Type::PRISMATIC);
+    CH_ENUM_VAL(Type::PLANEPLANE);
+    CH_ENUM_VAL(Type::OLDHAM);
+    CH_ENUM_VAL(Type::REVOLUTE);
+    CH_ENUM_VAL(Type::FREE);
+    CH_ENUM_VAL(Type::ALIGN);
+    CH_ENUM_VAL(Type::PARALLEL);
+    CH_ENUM_VAL(Type::PERPEND);
+    CH_ENUM_VAL(Type::TRAJECTORY);
+    CH_ENUM_VAL(Type::CLEARANCE);
+    CH_ENUM_VAL(Type::REVOLUTEPRISMATIC);
+    CH_ENUM_MAPPER_END(Type);
 };
 
 void ChLinkLock::ArchiveOut(ChArchiveOut& archive_out) {
@@ -1863,7 +1855,7 @@ void ChLinkLock::ArchiveOut(ChArchiveOut& archive_out) {
     ChLinkMarkers::ArchiveOut(archive_out);
 
     // serialize all member data
-    ChLinkLock_LinkType_enum_mapper::LinkType_mapper typemapper;
+    ChLinkLock_Type_enum_mapper::Type_mapper typemapper;
     archive_out << CHNVP(typemapper(type), "link_type");
 
     archive_out << CHNVP(mask);  //// TODO: needed?
@@ -1899,10 +1891,10 @@ void ChLinkLock::ArchiveIn(ChArchiveIn& archive_in) {
     ChLinkMarkers::ArchiveIn(archive_in);
 
     // deserialize all member data
-    ChLinkLock_LinkType_enum_mapper::LinkType_mapper typemapper;
-    LinkType link_type;
+    ChLinkLock_Type_enum_mapper::Type_mapper typemapper;
+    Type link_type;
     archive_in >> CHNVP(typemapper(link_type), "link_type");
-    ChangeLinkType(link_type);
+    ChangeType(link_type);
 
     ////if (mask) delete (mask);
     archive_in >> CHNVP(mask);  //// TODO: needed?
@@ -1932,7 +1924,7 @@ void ChLinkLock::ArchiveIn(ChArchiveIn& archive_in) {
     ////archive_in >> CHNVP(limit_Rp);
     ////archive_in >> CHNVP(limit_D);
 
-    mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
+    mask.SetTwoBodiesVariables(&m_body1->Variables(), &m_body2->Variables());
 
     BuildLink();
 }
@@ -2046,7 +2038,7 @@ ChLinkLockLock::ChLinkLockLock()
       deltaC(CSYSNORM),
       deltaC_dt(CSYSNULL),
       deltaC_dtdt(CSYSNULL) {
-    type = LinkType::LOCK;
+    type = Type::LOCK;
     BuildLink(true, true, true, false, true, true, true);
 
     motion_X = chrono_types::make_shared<ChFunctionConst>(0);  // default: no motion
@@ -2058,7 +2050,7 @@ ChLinkLockLock::ChLinkLockLock()
 }
 
 ChLinkLockLock::ChLinkLockLock(const ChLinkLockLock& other) : ChLinkLock(other) {
-    type = LinkType::LOCK;
+    type = Type::LOCK;
     BuildLink(true, true, true, false, true, true, true);
 
     motion_X = std::shared_ptr<ChFunction>(other.motion_X->Clone());
@@ -2079,31 +2071,31 @@ ChLinkLockLock::ChLinkLockLock(const ChLinkLockLock& other) : ChLinkLock(other) 
     relC_dtdt = other.relC_dtdt;
 }
 
-void ChLinkLockLock::SetMotion_X(std::shared_ptr<ChFunction> m_funct) {
+void ChLinkLockLock::SetMotionX(std::shared_ptr<ChFunction> m_funct) {
     motion_X = m_funct;
 }
 
-void ChLinkLockLock::SetMotion_Y(std::shared_ptr<ChFunction> m_funct) {
+void ChLinkLockLock::SetMotionY(std::shared_ptr<ChFunction> m_funct) {
     motion_Y = m_funct;
 }
 
-void ChLinkLockLock::SetMotion_Z(std::shared_ptr<ChFunction> m_funct) {
+void ChLinkLockLock::SetMotionZ(std::shared_ptr<ChFunction> m_funct) {
     motion_Z = m_funct;
 }
 
-void ChLinkLockLock::SetMotion_ang(std::shared_ptr<ChFunction> m_funct) {
+void ChLinkLockLock::SetMotionAng1(std::shared_ptr<ChFunction> m_funct) {
     motion_ang = m_funct;
 }
 
-void ChLinkLockLock::SetMotion_ang2(std::shared_ptr<ChFunction> m_funct) {
+void ChLinkLockLock::SetMotionAng2(std::shared_ptr<ChFunction> m_funct) {
     motion_ang2 = m_funct;
 }
 
-void ChLinkLockLock::SetMotion_ang3(std::shared_ptr<ChFunction> m_funct) {
+void ChLinkLockLock::SetMotionAng3(std::shared_ptr<ChFunction> m_funct) {
     motion_ang3 = m_funct;
 }
 
-void ChLinkLockLock::SetMotion_axis(ChVector3d m_axis) {
+void ChLinkLockLock::SetMotionAxis(ChVector3d m_axis) {
     motion_axis = m_axis;
 }
 
@@ -2159,8 +2151,8 @@ void ChLinkLockLock::UpdateTime(double time) {
 
             if ((ang != 0) || (ang_dt != 0) || (ang_dtdt != 0)) {
                 deltaC.rot = QuatFromAngleAxis(ang, motion_axis);
-                deltaC_dt.rot = QuatDerFromAngleAxis(deltaC.rot, ang_dt, motion_axis);
-                deltaC_dtdt.rot = QuatDer2FromAngleAxis(ang_dtdt, motion_axis, deltaC.rot, deltaC_dt.rot);
+                deltaC_dt.rot = QuatDtFromAngleAxis(deltaC.rot, ang_dt, motion_axis);
+                deltaC_dtdt.rot = QuatDt2FromAngleAxis(ang_dtdt, motion_axis, deltaC.rot, deltaC_dt.rot);
             } else {
                 deltaC.rot = QUNIT;
                 deltaC_dt.rot = QNULL;
@@ -2182,8 +2174,8 @@ void ChLinkLockLock::UpdateTime(double time) {
             vangles_dtdt.y() = motion_ang2->GetDer2(time);
             vangles_dtdt.z() = motion_ang3->GetDer2(time);
             deltaC.rot = QuatFromAngleSet({angleset, vangles});
-            deltaC_dt.rot = QuatDerFromAngleSet({angleset, vangles_dt}, deltaC.rot);
-            deltaC_dtdt.rot = QuatDer2FromAngleSet({angleset, vangles_dtdt}, deltaC.rot);
+            deltaC_dt.rot = QuatDtFromAngleSet({angleset, vangles_dt}, deltaC.rot);
+            deltaC_dtdt.rot = QuatDt2FromAngleSet({angleset, vangles_dtdt}, deltaC.rot);
             break;
         }
         default:
@@ -2195,11 +2187,11 @@ void ChLinkLockLock::UpdateTime(double time) {
 void ChLinkLockLock::UpdateState() {
     // ----------- SOME PRECALCULATED VARIABLES, to optimize speed
 
-    ChStarMatrix33<> P1star(marker1->GetCsys().pos);  // [P] star matrix of rel pos of mark1
-    ChStarMatrix33<> Q2star(marker2->GetCsys().pos);  // [Q] star matrix of rel pos of mark2
+    ChStarMatrix33<> P1star(marker1->GetCoordsys().pos);  // [P] star matrix of rel pos of mark1
+    ChStarMatrix33<> Q2star(marker2->GetCoordsys().pos);  // [Q] star matrix of rel pos of mark2
 
-    ChGlMatrix34<> body1Gl(Body1->GetCsys().rot);
-    ChGlMatrix34<> body2Gl(Body2->GetCsys().rot);
+    ChGlMatrix34<> body1Gl(m_body1->GetCoordsys().rot);
+    ChGlMatrix34<> body2Gl(m_body2->GetCoordsys().rot);
 
     // ----------- RELATIVE LINK-LOCK COORDINATES (violations)
 
@@ -2226,15 +2218,15 @@ void ChLinkLockLock::UpdateState() {
     // Compute the Cq Ct Qc matrices (temporary, for complete lock constraint)
 
     ChMatrix33<> m2_Rel_A_dt;
-    marker2->ComputeRotMatDer(m2_Rel_A_dt);
+    marker2->ComputeRotMatDt(m2_Rel_A_dt);
     ChMatrix33<> m2_Rel_A_dtdt;
-    marker2->ComputeRotMatDer2(m2_Rel_A_dtdt);
+    marker2->ComputeRotMatDt2(m2_Rel_A_dtdt);
 
     // ----------- PARTIAL DERIVATIVE Ct OF CONSTRAINT
-    Ct_temp.pos = m2_Rel_A_dt.transpose() * (Body2->GetRotMat().transpose() * PQw) +
+    Ct_temp.pos = m2_Rel_A_dt.transpose() * (m_body2->GetRotMat().transpose() * PQw) +
                   marker2->GetRotMat().transpose() *
-                      (Body2->GetRotMat().transpose() * (Body1->GetRotMat() * marker1->GetCsysDer().pos) -
-                       marker2->GetCsysDer().pos);
+                      (m_body2->GetRotMat().transpose() * (m_body1->GetRotMat() * marker1->GetCoordsysDt().pos) -
+                       marker2->GetCoordsysDt().pos);
     Ct_temp.pos -= deltaC_dt.pos;  // the deltaC contribute
 
     // deltaC^*(q_AD) + deltaC_dt^*q_pq
@@ -2246,26 +2238,26 @@ void ChLinkLockLock::UpdateState() {
 
     //  JACOBIANS Cq1_temp, Cq2_temp:
 
-    ChMatrix33<> CqxT = marker2->GetRotMat().transpose() * Body2->GetRotMat().transpose();  // [CqxT]=[Aq]'[Ao2]'
-    ChStarMatrix33<> tmpStar(Body2->GetRotMat().transpose() * PQw);
+    ChMatrix33<> CqxT = marker2->GetRotMat().transpose() * m_body2->GetRotMat().transpose();  // [CqxT]=[Aq]'[Ao2]'
+    ChStarMatrix33<> tmpStar(m_body2->GetRotMat().transpose() * PQw);
 
     Cq1_temp.topLeftCorner<3, 3>() = CqxT;                                            // *- -- Cq1_temp(1-3)  =[Aqo2]
     Cq2_temp.topLeftCorner<3, 3>() = -CqxT;                                           // -- *- Cq2_temp(1-3)  =-[Aqo2]
-    Cq1_temp.topRightCorner<3, 4>() = -CqxT * Body1->GetRotMat() * P1star * body1Gl;  // -* -- Cq1_temp(4-7)
-    Cq2_temp.topRightCorner<3, 4>() = CqxT * Body2->GetRotMat() * Q2star * body2Gl +  //
+    Cq1_temp.topRightCorner<3, 4>() = -CqxT * m_body1->GetRotMat() * P1star * body1Gl;  // -* -- Cq1_temp(4-7)
+    Cq2_temp.topRightCorner<3, 4>() = CqxT * m_body2->GetRotMat() * Q2star * body2Gl +  //
                                       marker2->GetRotMat().transpose() * tmpStar * body2Gl;  // -- -* Cq2_temp(4-7)
 
     {
-        ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCsys().rot), Qconjugate(Body2->GetCsys().rot)));
-        ChStarMatrix44<> stempQ2(marker1->GetCsys().rot);
+        ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCoordsys().rot), Qconjugate(m_body2->GetCoordsys().rot)));
+        ChStarMatrix44<> stempQ2(marker1->GetCoordsys().rot);
         ChStarMatrix44<> stempDC(Qconjugate(deltaC.rot));
         stempQ2.semiTranspose();
         Cq1_temp.bottomRightCorner<4, 4>() = stempDC * stempQ1 * stempQ2;  // =* == Cq1_temp(col 4-7, row 4-7) ... CqrR
     }
 
     {
-        ChStarMatrix44<> stempQ1(Qconjugate(marker2->GetCsys().rot));
-        ChStarMatrix44<> stempQ2(Qcross(Body1->GetCsys().rot, marker1->GetCsys().rot));
+        ChStarMatrix44<> stempQ1(Qconjugate(marker2->GetCoordsys().rot));
+        ChStarMatrix44<> stempQ2(Qcross(m_body1->GetCoordsys().rot, marker1->GetCoordsys().rot));
         ChStarMatrix44<> stempDC(Qconjugate(deltaC.rot));
         stempQ2.semiTranspose();
         stempQ2.semiNegate();
@@ -2278,18 +2270,18 @@ void ChLinkLockLock::UpdateState() {
     ChVector3d vtemp1;
     ChVector3d vtemp2;
 
-    vtemp1 = Vcross(Body1->GetAngVelLocal(), Vcross(Body1->GetAngVelLocal(), marker1->GetCsys().pos));
-    vtemp1 = Vadd(vtemp1, marker1->GetCsysDer2().pos);
-    vtemp1 = Vadd(vtemp1, Vmul(Vcross(Body1->GetAngVelLocal(), marker1->GetCsysDer().pos), 2));
+    vtemp1 = Vcross(m_body1->GetAngVelLocal(), Vcross(m_body1->GetAngVelLocal(), marker1->GetCoordsys().pos));
+    vtemp1 = Vadd(vtemp1, marker1->GetCoordsysDt2().pos);
+    vtemp1 = Vadd(vtemp1, Vmul(Vcross(m_body1->GetAngVelLocal(), marker1->GetCoordsysDt().pos), 2));
 
-    vtemp2 = Vcross(Body2->GetAngVelLocal(), Vcross(Body2->GetAngVelLocal(), marker2->GetCsys().pos));
-    vtemp2 = Vadd(vtemp2, marker2->GetCsysDer2().pos);
-    vtemp2 = Vadd(vtemp2, Vmul(Vcross(Body2->GetAngVelLocal(), marker2->GetCsysDer().pos), 2));
+    vtemp2 = Vcross(m_body2->GetAngVelLocal(), Vcross(m_body2->GetAngVelLocal(), marker2->GetCoordsys().pos));
+    vtemp2 = Vadd(vtemp2, marker2->GetCoordsysDt2().pos);
+    vtemp2 = Vadd(vtemp2, Vmul(Vcross(m_body2->GetAngVelLocal(), marker2->GetCoordsysDt().pos), 2));
 
-    Qcx = CqxT * (Body1->GetRotMat() * vtemp1 - Body2->GetRotMat() * vtemp2);
+    Qcx = CqxT * (m_body1->GetRotMat() * vtemp1 - m_body2->GetRotMat() * vtemp2);
 
-    ChStarMatrix33<> mtemp1(Body2->GetAngVelLocal());
-    ChMatrix33<> mtemp3 = Body2->GetRotMat() * mtemp1 * mtemp1;
+    ChStarMatrix33<> mtemp1(m_body2->GetAngVelLocal());
+    ChMatrix33<> mtemp3 = m_body2->GetRotMat() * mtemp1 * mtemp1;
     vtemp2 = marker2->GetRotMat().transpose() * (mtemp3.transpose() * PQw);  // [Aq]'[[A2][w2][w2]]'*Qpq,w
     Qcx = Vadd(Qcx, vtemp2);
     Qcx = Vadd(Qcx, q_4);              // [Adtdt]'[A]'q + 2[Adt]'[Adt]'q + 2[Adt]'[A]'qdt + 2[A]'[Adt]'qdt

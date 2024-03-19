@@ -184,7 +184,7 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
         auto post = chrono_types::make_shared<ChBody>();
         post->SetPos(post_pos);
         post->SetMass(100);
-        post->SetCollide(true);
+        post->EnableCollision(true);
         m_system->Add(post);
 
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(post_mat, m_post_radius, m_post_height);
@@ -195,7 +195,7 @@ void ChTrackTestRig::Create(bool create_track, bool detracking_control) {
         auto linact = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         linact->SetNameString("post_actuator");
         linact->SetMotionFunction(chrono_types::make_shared<ChFunctionSetpoint>());
-        linact->Initialize(m_chassis->GetBody(), post, ChFrame<>(ChVector3d(post_pos), QuatFromAngleX(CH_C_PI)));
+        linact->Initialize(m_chassis->GetBody(), post, ChFrame<>(ChVector3d(post_pos), QuatFromAngleX(CH_PI)));
         m_system->AddLink(linact);
 
         m_post.push_back(post);
@@ -223,17 +223,17 @@ void ChTrackTestRig::Initialize() {
     m_track->SetTrackShoeVisualizationType(m_vis_shoe);
 
     // Set collisions
-    m_track->GetIdlerWheel()->SetCollide((m_collide_flags & static_cast<int>(TrackedCollisionFlag::IDLER_LEFT)) != 0);
+    m_track->GetIdlerWheel()->EnableCollision((m_collide_flags & static_cast<int>(TrackedCollisionFlag::IDLER_LEFT)) != 0);
 
-    m_track->GetSprocket()->SetCollide((m_collide_flags & static_cast<int>(TrackedCollisionFlag::SPROCKET_LEFT)) != 0);
+    m_track->GetSprocket()->EnableCollision((m_collide_flags & static_cast<int>(TrackedCollisionFlag::SPROCKET_LEFT)) != 0);
 
     bool collide_wheels = (m_collide_flags & static_cast<int>(TrackedCollisionFlag::WHEELS_LEFT)) != 0;
     for (size_t i = 0; i < m_track->GetNumTrackSuspensions(); ++i)
-        m_track->GetRoadWheel(i)->SetCollide(collide_wheels);
+        m_track->GetRoadWheel(i)->EnableCollision(collide_wheels);
 
     bool collide_shoes = (m_collide_flags & static_cast<int>(TrackedCollisionFlag::SHOES_LEFT)) != 0;
     for (size_t i = 0; i < m_track->GetNumTrackShoes(); ++i)
-        m_track->GetTrackShoe(i)->SetCollide(collide_shoes);
+        m_track->GetTrackShoe(i)->EnableCollision(collide_shoes);
 
     // Post locations (in X direction)
     auto idler_x = m_track->GetIdlerWheel()->GetBody()->GetPos().x();
@@ -261,7 +261,7 @@ void ChTrackTestRig::SetDriver(std::shared_ptr<ChTrackTestRigDriver> driver) {
 
 void ChTrackTestRig::SetPostCollide(bool flag) {
     for (auto& p : m_post)
-        p->SetCollide(flag);
+        p->EnableCollision(flag);
 }
 
 // -----------------------------------------------------------------------------
@@ -272,7 +272,7 @@ double ChTrackTestRig::GetActuatorDisp(int index) {
 }
 
 double ChTrackTestRig::GetActuatorForce(int index) {
-    return m_post_linact[index]->Get_react_force().x();
+    return m_post_linact[index]->GetMotorForce();
 }
 
 double ChTrackTestRig::GetActuatorMarkerDist(int index) {
@@ -409,13 +409,13 @@ void ChTrackTestRig::Output(int frame, ChVehicleOutput& database) const {
 void ChTrackTestRig::SetPlotOutput(double output_step) {
     m_plot_output = true;
     m_plot_output_step = output_step;
-    m_csv = new utils::CSV_writer(" ");
+    m_csv = new utils::ChWriterCSV(" ");
 }
 
 void ChTrackTestRig::CollectPlotData(double time) {
     *m_csv << time;
 
-    ////const ChFrameMoving<>& c_ref = GetChassisBody()->GetFrame_REF_to_abs();
+    ////const ChFrameMoving<>& c_ref = GetChassisBody()->GetFrameRefToAbs();
     ////const ChVector3d& i_pos_abs = m_track->GetIdler()->GetWheelBody()->GetPos();
     ////const ChVector3d& s_pos_abs = m_track->GetSprocket()->GetGearBody()->GetPos();
     ////ChVector3d i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);
@@ -437,7 +437,7 @@ void ChTrackTestRig::PlotOutput(const std::string& out_dir, const std::string& o
         return;
 
     std::string out_file = out_dir + "/" + out_name + ".txt";
-    m_csv->write_to_file(out_file);
+    m_csv->WriteToFile(out_file);
 
 #ifdef CHRONO_POSTPROCESS
     std::string gplfile = out_dir + "/tmp.gpl";

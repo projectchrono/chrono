@@ -26,7 +26,7 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // dir_motor_block specifies the direction of the motor block, i.e. the
 // direction of the crankshaft, in chassis local coords. This is needed because
-// ChShaftsBody could transfer rolling torque to the chassis.
+// ChShaftBodyRotation could transfer rolling torque to the chassis.
 // -----------------------------------------------------------------------------
 ChEngineShafts::ChEngineShafts(const std::string& name, const ChVector3d& dir_motor_block)
     : ChEngine(name), m_dir_motor_block(dir_motor_block) {}
@@ -43,7 +43,7 @@ ChEngineShafts::~ChEngineShafts() {
 }
 
 double ChEngineShafts::GetOutputMotorshaftTorque() const {
-    return m_engine->GetTorqueReactionOn1() + m_engine_losses->GetTorqueReactionOn1();
+    return m_engine->GetReaction1() + m_engine_losses->GetReaction1();
 }
 
 // -----------------------------------------------------------------------------
@@ -66,7 +66,7 @@ void ChEngineShafts::Initialize(std::shared_ptr<ChChassis> chassis) {
 
     // Create  a connection between the motor block and the 3D rigid body that represents the chassis.
     // This allows to get the effect of the car 'rolling' when the longitudinal engine accelerates suddenly.
-    m_motorblock_to_body = chrono_types::make_shared<ChShaftsBody>();
+    m_motorblock_to_body = chrono_types::make_shared<ChShaftBodyRotation>();
     m_motorblock_to_body->Initialize(m_motorblock, chassis->GetBody(), m_dir_motor_block);
     sys->Add(m_motorblock_to_body);
 
@@ -96,7 +96,7 @@ void ChEngineShafts::Initialize(std::shared_ptr<ChChassis> chassis) {
 // -----------------------------------------------------------------------------
 void ChEngineShafts::Synchronize(double time, const DriverInputs& driver_inputs, double motorshaft_speed) {
     // Apply shaft speed
-    m_motorshaft->SetPosDer(motorshaft_speed);
+    m_motorshaft->SetPosDt(motorshaft_speed);
 
     // Update the throttle level in the thermal engine
     m_engine->SetThrottle(driver_inputs.m_throttle);

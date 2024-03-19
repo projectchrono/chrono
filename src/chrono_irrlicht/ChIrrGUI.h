@@ -76,7 +76,7 @@ class ChApiIrr ChIrrGUI {
 
     void DrawCollisionShapes(irr::video::SColor color);
 
-    void DumpSystemMatrices();
+    void WriteSystemMatrices();
 
     irr::IrrlichtDevice* GetDevice() { return m_device; }
     irr::video::IVideoDriver* GetVideoDriver() { return m_device->getVideoDriver(); }

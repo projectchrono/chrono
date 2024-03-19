@@ -85,15 +85,15 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(20);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(20);
 
     // Create a contact material shared by all collision shapes
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     // Creeate a container fixed to ground (invisible).
     auto container = chrono_types::make_shared<ChBody>();
-    container->SetBodyFixed(true);
-    container->SetCollide(true);
+    container->SetFixed(true);
+    container->EnableCollision(true);
     auto shape1 = chrono_types::make_shared<ChCollisionShapeBox>(mat, 40, 2, 40);
     auto shape2 = chrono_types::make_shared<ChCollisionShapeBox>(mat, 2, 80, 40);
     auto shape3 = chrono_types::make_shared<ChCollisionShapeBox>(mat, 2, 80, 40);

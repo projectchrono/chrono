@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
-    utils::CSV_writer wheelomega_csv("\t");
+    utils::ChWriterCSV wheelomega_csv("\t");
 
     // Simulation loop
     while (vis->Run()) {
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
         vis->Advance(step_size);
     }
 
-    wheelomega_csv.write_to_file(out_dir + "/FrontWheelOmega_" + std::to_string(lock_diff) + ".csv");
+    wheelomega_csv.WriteToFile(out_dir + "/FrontWheelOmega_" + std::to_string(lock_diff) + ".csv");
 
     return 0;
 }

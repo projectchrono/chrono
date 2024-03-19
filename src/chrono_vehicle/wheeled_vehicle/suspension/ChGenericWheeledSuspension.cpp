@@ -333,11 +333,11 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrameRefToAbs().GetRot();
 
     // Express the suspension reference frame in the absolute coordinate system.
     m_X_SA.SetPos(location);
-    m_X_SA.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    m_X_SA.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Initialize all bodies in the suspension subsystem
     for (auto& item : m_bodies) {
@@ -449,18 +449,18 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
         m_revolute[side]->SetNameString(Name({"spindle_rev", side}));
         m_revolute[side]->Initialize(m_spindle[side], abody,
-                                     ChFrame<>(spindlePos, spindleRot * QuatFromAngleX(CH_C_PI_2)));
+                                     ChFrame<>(spindlePos, spindleRot * QuatFromAngleX(CH_PI_2)));
         chassis->GetSystem()->AddLink(m_revolute[side]);
 
         // Axle shaft
         m_axle[side] = chrono_types::make_shared<ChShaft>();
         m_axle[side]->SetNameString(Name({"axle", side}));
         m_axle[side]->SetInertia(getAxleInertia());
-        m_axle[side]->SetPosDer(-ang_vel);
+        m_axle[side]->SetPosDt(-ang_vel);
         chassis->GetSystem()->AddShaft(m_axle[side]);
 
         // Axle connection to spindle
-        m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
+        m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftBodyRotation>();
         m_axle_to_spindle[side]->SetNameString(Name({"axle_to_spindle", side}));
         m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
         chassis->GetSystem()->Add(m_axle_to_spindle[side]);
@@ -528,7 +528,7 @@ void ChGenericWheeledSuspension::Initialize(std::shared_ptr<ChChassis> chassis,
         ChVector3d axis = TransformDirection(item.second.axis, item.first.side);
         ChMatrix33<> rot;
         rot.SetFromAxisX(axis);
-        ChQuaternion<> quat = rot.GetQuaternion() * QuatFromAngleY(CH_C_PI_2);
+        ChQuaternion<> quat = rot.GetQuaternion() * QuatFromAngleY(CH_PI_2);
         item.second.rsda = chrono_types::make_shared<ChLinkRSDA>();
         item.second.rsda->SetNameString(Name(item.first));
         item.second.rsda->Initialize(body1, body2, ChFrame<>(pos, quat));

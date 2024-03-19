@@ -118,7 +118,7 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(doubl
     m_system->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
 
     // Solver settings independent of method type
-    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
     m_system->GetSettings()->solver.use_full_inertia_tensor = false;
     m_system->GetSettings()->solver.tolerance = 0.1;
     m_system->GetSettings()->solver.max_iteration_bilateral = 100;
@@ -165,7 +165,7 @@ ChVehicleCosimTerrainNodeGranularOMP::ChVehicleCosimTerrainNodeGranularOMP(ChCon
     }
 
     // Solver settings independent of method type
-    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
     m_system->GetSettings()->solver.use_full_inertia_tensor = false;
     m_system->GetSettings()->solver.tolerance = 0.1;
     m_system->GetSettings()->solver.max_iteration_bilateral = 100;
@@ -195,7 +195,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::SetFromSpecfile(const std::string& sp
     m_system->GetSettings()->collision.collision_envelope = 0.1 * m_radius_g;
 
     double coh_pressure = d["Material properties"]["Cohesion pressure"].GetDouble();
-    double coh_force = CH_C_PI * m_radius_g * m_radius_g * coh_pressure;
+    double coh_force = CH_PI * m_radius_g * m_radius_g * coh_pressure;
 
     switch (GetSystem()->GetContactMethod()) {
         case ChContactMethod::SMC: {
@@ -368,8 +368,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     m_system->AddBody(container);
     container->SetIdentifier(-1);
     container->SetMass(1);
-    container->SetBodyFixed(true);
-    container->SetCollide(true);
+    container->SetFixed(true);
+    container->EnableCollision(true);
 
     double hdimX = m_dimX / 2;
     double hdimY = m_dimY / 2;
@@ -408,27 +408,27 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     uint particles_start_index = m_system->data_manager->num_rigid_bodies;
 
     // Create a particle generator and a mixture entirely made out of spheres
-    utils::Generator gen(m_system);
-    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
-    m1->setDefaultMaterial(m_material_terrain);
-    m1->setDefaultDensity(m_rho_g);
-    m1->setDefaultSize(m_radius_g);
+    utils::ChGenerator gen(m_system);
+    std::shared_ptr<utils::ChMixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
+    m1->SetDefaultMaterial(m_material_terrain);
+    m1->SetDefaultDensity(m_rho_g);
+    m1->SetDefaultSize(m_radius_g);
 
     // Set starting value for body identifiers
-    gen.setBodyIdentifier(body_id_particles);
+    gen.SetBodyIdentifier(body_id_particles);
 
     // Create particles using the specified volume sampling type
-    utils::Sampler<double>* sampler;
+    utils::ChSampler<double>* sampler;
     switch (m_sampling_type) {
         default:
         case utils::SamplingType::POISSON_DISK:
-            sampler = new utils::PDSampler<double>(delta);
+            sampler = new utils::ChPDSampler<double>(delta);
             break;
         case utils::SamplingType::HCP_PACK:
-            sampler = new utils::HCPSampler<double>(delta);
+            sampler = new utils::ChHCPSampler<double>(delta);
             break;
         case utils::SamplingType::REGULAR_GRID:
-            sampler = new utils::GridSampler<double>(delta);
+            sampler = new utils::ChGridSampler<double>(delta);
             break;
     }
 
@@ -438,7 +438,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         while (z < m_init_depth) {
             gen.CreateObjectsBox(*sampler, ChVector3d(0, 0, z), hdims);
             if (m_verbose)
-                cout << "   z =  " << z << "\tnum particles = " << gen.getTotalNumBodies() << endl;
+                cout << "   z =  " << z << "\tnum particles = " << gen.GetTotalNumBodies() << endl;
             z += delta;
         }
     } else {
@@ -446,7 +446,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         gen.CreateObjectsBox(*sampler, ChVector3d(0, 0, m_init_depth / 2), hdims);
     }
 
-    m_num_particles = gen.getTotalNumBodies();
+    m_num_particles = gen.GetTotalNumBodies();
     if (m_verbose)
         cout << "[Terrain node] Generated num particles = " << m_num_particles << endl;
 
@@ -495,8 +495,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
             assert(body->GetIdentifier() == identifier);
             body->SetPos(ChVector3d(pos.x(), pos.y(), pos.z()));
             body->SetRot(ChQuaternion<>(rot.e0(), rot.e1(), rot.e2(), rot.e3()));
-            body->SetPosDer(ChVector3d(pos_dt.x(), pos_dt.y(), pos_dt.z()));
-            body->SetRotDer(ChQuaternion<>(rot_dt.e0(), rot_dt.e1(), rot_dt.e2(), rot_dt.e3()));
+            body->SetPosDt(ChVector3d(pos_dt.x(), pos_dt.y(), pos_dt.z()));
+            body->SetRotDt(ChQuaternion<>(rot_dt.e0(), rot_dt.e1(), rot_dt.e2(), rot_dt.e3()));
         }
 
         if (m_verbose)
@@ -529,8 +529,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         body->SetRot(b.m_init_rot);
         body->SetMass(mass * b.m_density);
         body->SetInertia(inertia * b.m_density);
-        body->SetBodyFixed(false);
-        body->SetCollide(true);
+        body->SetFixed(false);
+        body->EnableCollision(true);
 
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_g);
         body->AddCollisionShape(ct_shape);
@@ -641,9 +641,9 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
         // Output (if enabled)
         if (m_settling_output && steps % output_steps == 0) {
             std::string filename = OutputFilename(m_node_out_dir + "/settling", "settling", "dat", output_frame + 1, 5);
-            utils::CSV_writer csv(" ");
+            utils::ChWriterCSV csv(" ");
             WriteParticleInformation(csv);
-            csv.write_to_file(filename);
+            csv.WriteToFile(filename);
             output_frame++;
         }
 
@@ -713,7 +713,7 @@ double ChVehicleCosimTerrainNodeGranularOMP::CalcTotalKineticEnergy() {
         if (body->GetIdentifier() > 0) {
             auto omg = body->GetAngVelParent();
             auto J = body->GetInertiaXX();
-            KE += body->GetMass() * body->GetPosDer().Length2() + omg.Dot(J * omg);
+            KE += body->GetMass() * body->GetPosDt().Length2() + omg.Dot(J * omg);
         }
     }
     return 0.5 * KE;
@@ -741,7 +741,7 @@ double ChVehicleCosimTerrainNodeGranularOMP::CalculatePackingDensity(double& dep
     double Vt = m_dimX * m_dimY * (z_max - z_min);
 
     // Find volume of granular particles
-    double Vs = m_num_particles * (4.0 / 3) * CH_C_PI * std::pow(m_radius_g, 3);
+    double Vs = m_num_particles * (4.0 / 3) * CH_PI * std::pow(m_radius_g, 3);
 
     // Packing density = Vs/Vt
     return Vs / Vt;
@@ -763,7 +763,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
     auto proxy = chrono_types::make_shared<ProxyBodySet>();
 
     // Note: it is assumed that there is one and only one mesh defined!
-    auto nt = m_geometry[i_shape].m_coll_meshes[0].m_trimesh->getNumTriangles();
+    auto nt = m_geometry[i_shape].m_coll_meshes[0].m_trimesh->GetNumTriangles();
     auto i_mat = m_geometry[i_shape].m_coll_meshes[0].m_matID;
     auto material = m_geometry[i_shape].m_materials[i_mat].CreateMaterial(m_method);
 
@@ -771,13 +771,13 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
     double mass_p = m_load_mass[i_shape] / nt;
     ChVector3d inertia_p = 1e-3 * mass_p * ChVector3d(0.1, 0.1, 0.1);
 
-    for (int it = 0; it < nt; it++) {
+    for (unsigned int it = 0; it < nt; it++) {
         auto body = chrono_types::make_shared<ChBody>();
         body->SetIdentifier(it);
         body->SetMass(mass_p);
         body->SetInertiaXX(inertia_p);
-        body->SetBodyFixed(m_fixed_proxies);
-        body->SetCollide(true);
+        body->SetFixed(m_fixed_proxies);
+        body->EnableCollision(true);
 
         // Create contact shape.
         // Note that the vertex locations will be updated at every synchronization time.
@@ -787,7 +787,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
         utils::AddTriangleGeometry(body.get(), material, ChVector3d(len, 0, 0), ChVector3d(0, len, 0),
                                    ChVector3d(0, 0, len), name);
         body->GetCollisionModel()->SetFamily(1);
-        body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+        body->GetCollisionModel()->DisallowCollisionsWith(1);
 
         m_system->AddBody(body);
         m_system->GetCollisionSystem()->BindItem(body);
@@ -809,8 +809,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateRigidProxy(unsigned int i) {
     body->SetIdentifier(0);
     body->SetMass(m_load_mass[i]);
     ////body->SetInertiaXX();   //// TODO
-    body->SetBodyFixed(m_fixed_proxies);
-    body->SetCollide(true);
+    body->SetFixed(m_fixed_proxies);
+    body->EnableCollision(true);
 
     // Create visualization assets (use collision shapes)
     m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::PRIMITIVES, true);
@@ -820,7 +820,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateRigidProxy(unsigned int i) {
         mesh.m_radius = m_radius_p;
     m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
     body->GetCollisionModel()->SetFamily(1);
-    body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+    body->GetCollisionModel()->DisallowCollisionsWith(1);
 
     m_system->AddBody(body);
     m_system->GetCollisionSystem()->BindItem(body);
@@ -883,8 +883,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
 
     // Note: it is assumed that there is one and only one mesh defined!
     const auto& trimesh = m_geometry[i_shape].m_coll_meshes[0].m_trimesh;
-    const auto& idx_verts = trimesh->getIndicesVertexes();
-    int nt = trimesh->getNumTriangles();
+    const auto& idx_verts = trimesh->GetIndicesVertexes();
+    int nt = trimesh->GetNumTriangles();
 
     // shape_data contains all triangle vertex locations, in groups of three real3, one group for each triangle.
     auto& shape_data = m_system->data_manager->cd_data->shape_data.triangle_rigid;
@@ -910,7 +910,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
         const ChVector3d& vC = mesh_state.vvel[idx_verts[it].z()];
 
         ChVector3d vel = (vA + vB + vC) / 3;
-        proxy->bodies[it]->SetPosDer(vel);
+        proxy->bodies[it]->SetPosDt(vel);
 
         //// RADU TODO: angular velocity
         proxy->bodies[it]->SetAngVelLocal(ChVector3d(0, 0, 0));
@@ -931,7 +931,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::UpdateMeshProxy(unsigned int i, MeshS
 void ChVehicleCosimTerrainNodeGranularOMP::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
     proxy->bodies[0]->SetPos(rigid_state.pos);
-    proxy->bodies[0]->SetPosDer(rigid_state.lin_vel);
+    proxy->bodies[0]->SetPosDt(rigid_state.lin_vel);
     proxy->bodies[0]->SetRot(rigid_state.rot);
     proxy->bodies[0]->SetAngVelParent(rigid_state.ang_vel);
 }
@@ -972,8 +972,8 @@ void ChVehicleCosimTerrainNodeGranularOMP::GetForceMeshProxy(unsigned int i, Mes
 
     // Note: it is assumed that there is one and only one mesh defined!
     const auto& trimesh = m_geometry[i_shape].m_coll_meshes[0].m_trimesh;
-    const auto& idx_verts = trimesh->getIndicesVertexes();
-    int nt = trimesh->getNumTriangles();
+    const auto& idx_verts = trimesh->GetIndicesVertexes();
+    int nt = trimesh->GetNumTriangles();
 
     // Maintain an unordered map of vertex indices and associated contact forces.
     std::unordered_map<int, ChVector3d> my_map;
@@ -1065,14 +1065,14 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnOutputData(int frame) {
     // Create and write frame output file.
     std::string filename = OutputFilename(m_node_out_dir + "/simulation", "simulation", "dat", frame + 1, 5);
 
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
     WriteParticleInformation(csv);
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 }
 
 // -----------------------------------------------------------------------------
 
-void ChVehicleCosimTerrainNodeGranularOMP::WriteParticleInformation(utils::CSV_writer& csv) {
+void ChVehicleCosimTerrainNodeGranularOMP::WriteParticleInformation(utils::ChWriterCSV& csv) {
     // Write current time, number of granular particles and their radius
     ////csv << m_system->GetChTime() << endl;
     ////csv << m_num_particles << m_radius_g << endl;
@@ -1081,13 +1081,13 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteParticleInformation(utils::CSV_w
     for (auto body : m_system->GetBodies()) {
         if (body->GetIdentifier() < body_id_particles)
             continue;
-        ////csv << body->GetIdentifier() << body->GetPos() << body->GetPosDer() << endl;
-        csv << body->GetPos() << body->GetPosDer() << endl;
+        ////csv << body->GetIdentifier() << body->GetPos() << body->GetPosDt() << endl;
+        csv << body->GetPos() << body->GetPosDt() << endl;
     }
 }
 
 void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& filename) const {
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     // Write current time and number of granular material bodies.
     csv << m_system->GetChTime() << endl;
@@ -1098,12 +1098,12 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& fi
     for (auto& body : m_system->GetBodies()) {
         if (body->GetIdentifier() < body_id_particles)
             continue;
-        csv << body->GetIdentifier() << body->GetPos() << body->GetRot() << body->GetPosDer() << body->GetRotDer()
+        csv << body->GetIdentifier() << body->GetPos() << body->GetRot() << body->GetPosDt() << body->GetRotDt()
             << endl;
     }
 
     std::string checkpoint_filename = m_node_out_dir + "/" + filename;
-    csv.write_to_file(checkpoint_filename);
+    csv.WriteToFile(checkpoint_filename);
     if (m_verbose)
         cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
 }
@@ -1125,7 +1125,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::PrintMeshProxiesUpdateData(unsigned i
             proxy->bodies.begin(), proxy->bodies.end(),
             [](std::shared_ptr<ChBody> a, std::shared_ptr<ChBody> b) { return a->GetPos().z() < b->GetPos().z(); });
         double height = (*lowest)->GetPos().z();
-        const ChVector3d& vel = (*lowest)->GetPosDer();
+        const ChVector3d& vel = (*lowest)->GetPosDt();
         cout << "[Terrain node] object: " << i << "  lowest proxy:  height = " << height << "  velocity = " << vel
              << endl;
     }

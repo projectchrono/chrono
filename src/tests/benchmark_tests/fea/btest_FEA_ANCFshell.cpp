@@ -100,7 +100,7 @@ class ANCFshell_PARDISOPROJECT : public ANCFshell<N> {
 template <int N>
 ANCFshell<N>::ANCFshell(SolverType solver_type) {
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector3d(0, -9.8, 0));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, -9.8, 0));
     m_system->SetNumThreads(4);
 
     // Set solver parameters
@@ -133,7 +133,7 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
             solver->SetTolerance(1e-10);
             solver->EnableDiagonalPreconditioner(true);
             solver->SetVerbose(false);
-            m_system->SetSolverForceTolerance(1e-10);
+            solver->SetTolerance(1e-12);
             break;
         }
         case SolverType::MKL: {
@@ -177,7 +177,7 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
     m_system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
 
@@ -227,7 +227,7 @@ ANCFshell<N>::ANCFshell(SolverType solver_type) {
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
         element->SetNodes(nodeA, nodeB, nodeD, nodeC);
         element->SetDimensions(dx, width);
-        element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, mat);
+        element->AddLayer(thickness, 0 * CH_DEG_TO_RAD, mat);
         element->SetAlphaDamp(0.0);
         mesh->AddElement(element);
 

@@ -109,7 +109,7 @@ class MySimpleForklift {
         chassis->AddCollisionShape(cshape1, ChFrame<>(ChVector3d(-0.003, 1.019, 0.192), QUNIT));
         chassis->AddCollisionShape(cshape2, ChFrame<>(ChVector3d(0.486, 0.153, -0.047), QUNIT));
         chassis->AddCollisionShape(cshape3, ChFrame<>(ChVector3d(-0.486, 0.153, -0.047), QUNIT));
-        chassis->SetCollide(true);
+        chassis->EnableCollision(true);
 
         // visualization properties:
         auto chassis_mesh = chrono_types::make_shared<ChVisualShapeModelFile>();
@@ -134,33 +134,33 @@ class MySimpleForklift {
         wheelRF->SetMass(20);
         wheelRF->SetInertiaXX(ChVector3d(2, 2, 2));
         // collision properties:
-        wheelRF->AddCollisionShape(wshapeF, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI / 2)));
-        wheelRF->SetCollide(true);
+        wheelRF->AddCollisionShape(wshapeF, ChFrame<>(VNULL, QuatFromAngleY(CH_PI / 2)));
+        wheelRF->EnableCollision(true);
         // visualization properties:
         wheelRF->AddVisualShape(wheel_mesh, ChFrame<>(-COG_wheelRF, QUNIT));
 
         // .. create the revolute joint between the wheel and the truss
         link_revoluteRF = chrono_types::make_shared<ChLinkLockRevolute>();  // right, front, upper, 1
-        link_revoluteRF->Initialize(wheelRF, chassis, ChFrame<>(COG_wheelRF, chrono::QuatFromAngleY(CH_C_PI / 2)));
+        link_revoluteRF->Initialize(wheelRF, chassis, ChFrame<>(COG_wheelRF, chrono::QuatFromAngleY(CH_PI / 2)));
         sys->AddLink(link_revoluteRF);
 
         // ..the left-front wheel
         wheelLF = chrono_types::make_shared<ChBody>();
         sys->Add(wheelLF);
         wheelLF->SetPos(COG_wheelLF);
-        wheelLF->SetRot(chrono::QuatFromAngleY(CH_C_PI));  // reuse RF wheel shape, flipped
+        wheelLF->SetRot(chrono::QuatFromAngleY(CH_PI));  // reuse RF wheel shape, flipped
         wheelLF->SetMass(20);
         wheelLF->SetInertiaXX(ChVector3d(2, 2, 2));
         // collision properties:
         auto shapeLF = chrono_types::make_shared<ChCollisionShapeCylinder>(wheel_mat, RAD_front_wheel, 0.2);
-        wheelLF->AddCollisionShape(wshapeF, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI / 2)));
-        wheelLF->SetCollide(true);
+        wheelLF->AddCollisionShape(wshapeF, ChFrame<>(VNULL, QuatFromAngleY(CH_PI / 2)));
+        wheelLF->EnableCollision(true);
         // visualization properties:
         wheelLF->AddVisualShape(wheel_mesh, ChFrame<>(-COG_wheelRF, QUNIT));
 
         // .. create the revolute joint between the wheel and the truss
         link_revoluteLF = chrono_types::make_shared<ChLinkLockRevolute>();  // right, front, upper, 1
-        link_revoluteLF->Initialize(wheelLF, chassis, ChFrame<>(COG_wheelLF, chrono::QuatFromAngleY(CH_C_PI / 2)));
+        link_revoluteLF->Initialize(wheelLF, chassis, ChFrame<>(COG_wheelLF, chrono::QuatFromAngleY(CH_PI / 2)));
         sys->AddLink(link_revoluteLF);
 
         // ..the back steering spindle (invisible)
@@ -173,26 +173,26 @@ class MySimpleForklift {
         // .. create the vertical steering link between the spindle structure and the truss
         link_steer_engineB = chrono_types::make_shared<ChLinkMotorRotationAngle>();
         link_steer_engineB->SetAngleFunction(chrono_types::make_shared<ChFunctionConst>(0));
-        link_steer_engineB->Initialize(spindleB, chassis, ChFrame<>(COG_wheelB, QuatFromAngleX(CH_C_PI_2)));
+        link_steer_engineB->Initialize(spindleB, chassis, ChFrame<>(COG_wheelB, QuatFromAngleX(CH_PI_2)));
         sys->AddLink(link_steer_engineB);
 
         // ..the back wheel
         wheelB = chrono_types::make_shared<ChBody>();
         sys->Add(wheelB);
         wheelB->SetPos(COG_wheelB);
-        wheelB->SetRot(chrono::QuatFromAngleY(CH_C_PI));
+        wheelB->SetRot(chrono::QuatFromAngleY(CH_PI));
         wheelB->SetMass(20);
         wheelB->SetInertiaXX(ChVector3d(2, 2, 2));
         // collision properties:
-        wheelB->AddCollisionShape(wshapeB, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
-        wheelB->SetCollide(true);
+        wheelB->AddCollisionShape(wshapeB, ChFrame<>(VNULL, QuatFromAngleY(CH_PI_2)));
+        wheelB->EnableCollision(true);
         // visualization properties:
         wheelB->AddVisualShape(wheel_mesh, ChFrame<>(-COG_wheelRF, QUNIT));
 
         // .. create the motor between the back wheel and the steering spindle structure
         link_engineB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         link_engineB->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0));
-        link_engineB->Initialize(wheelB, spindleB, ChFrame<>(COG_wheelB, chrono::QuatFromAngleY(CH_C_PI / 2)));
+        link_engineB->Initialize(wheelB, spindleB, ChFrame<>(COG_wheelB, chrono::QuatFromAngleY(CH_PI / 2)));
         sys->AddLink(link_engineB);
 
         // ..the arm
@@ -209,7 +209,7 @@ class MySimpleForklift {
         // .. create the revolute joint between the arm and the truss
         link_engineArm = chrono_types::make_shared<ChLinkMotorRotationAngle>();
         link_engineArm->SetAngleFunction(chrono_types::make_shared<ChFunctionConst>(0));
-        link_engineArm->Initialize(arm, chassis, ChFrame<>(POS_pivotarm, chrono::QuatFromAngleY(CH_C_PI / 2)));
+        link_engineArm->Initialize(arm, chassis, ChFrame<>(POS_pivotarm, chrono::QuatFromAngleY(CH_PI / 2)));
         sys->AddLink(link_engineArm);
 
         // ..the fork
@@ -227,7 +227,7 @@ class MySimpleForklift {
         fork->AddCollisionShape(fshape1, ChFrame<>(ChVector3d(-0.352, -0.312, 0.613), QUNIT));
         fork->AddCollisionShape(fshape2, ChFrame<>(ChVector3d(0.352, -0.312, 0.613), QUNIT));
         fork->AddCollisionShape(fshape3, ChFrame<>(ChVector3d(0.000, 0.321, -0.009), QUNIT));
-        fork->SetCollide(true);
+        fork->EnableCollision(true);
         // visualization properties:
         auto fork_mesh = chrono_types::make_shared<ChVisualShapeModelFile>();
         fork_mesh->SetFilename(GetChronoDataFile("models/forklift/forks.obj"));
@@ -236,7 +236,7 @@ class MySimpleForklift {
         // .. create the prismatic joint between the fork and arm
         // (set joint as vertical; default would be aligned to z, horizontal)
         link_prismaticFork = chrono_types::make_shared<ChLinkLockPrismatic>();
-        link_prismaticFork->Initialize(fork, arm, ChFrame<>(POS_prismatic, QuatFromAngleX(CH_C_PI / 2)));
+        link_prismaticFork->Initialize(fork, arm, ChFrame<>(POS_prismatic, QuatFromAngleX(CH_PI / 2)));
         sys->AddLink(link_prismaticFork);
 
         // .. create the linear actuator that pushes upward the fork
@@ -380,7 +380,7 @@ int main(int argc, char* argv[]) {
     // ..the world
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(40, 2, 40, 1000, true, true, ground_mat);
     sys.Add(my_ground);
-    my_ground->SetBodyFixed(true);
+    my_ground->SetFixed(true);
     my_ground->SetPos(ChVector3d(0, -1, 0));
     my_ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
 
@@ -419,7 +419,7 @@ int main(int argc, char* argv[]) {
 
     // Solver settings
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(20);  // the higher, the easier to keep the constraints satisfied.
+    sys.GetSolver()->AsIterative()->SetMaxIterations(20);
 
     // Simulation loop
     double timestep = 0.005;

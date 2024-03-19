@@ -69,8 +69,8 @@ CRGTerrain::CRGTerrain(ChSystem* system)
     m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector3d(0, 0, 0));
-    m_ground->SetBodyFixed(true);
-    m_ground->SetCollide(false);
+    m_ground->SetFixed(true);
+    m_ground->EnableCollision(false);
     system->Add(m_ground);
 
     crgMsgSetLevel(dCrgMsgLevelNone);
@@ -390,7 +390,7 @@ void CRGTerrain::SetupLineGraphics() {
     auto mat = chrono_types::make_shared<ChVisualMaterial>();
     mat->SetDiffuseColor({0.3f, 0.3f, 0.6f});
 
-    auto np = m_road_left->getNumPoints();
+    auto np = m_road_left->GetNumPoints();
     unsigned int num_render_points = std::max<unsigned int>(static_cast<unsigned int>(3 * np), 400);
 
     auto bezier_line_left = chrono_types::make_shared<ChLineBezier>(m_road_left);
@@ -412,10 +412,10 @@ void CRGTerrain::SetupLineGraphics() {
 
 void CRGTerrain::GenerateMesh() {
     m_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    auto& coords = m_mesh->getCoordsVertices();
-    auto& indices = m_mesh->getIndicesVertexes();
-    auto& coords_uv = m_mesh->getCoordsUV();
-    auto& indices_uv = m_mesh->getIndicesUV();
+    auto& coords = m_mesh->GetCoordsVertices();
+    auto& indices = m_mesh->GetIndicesVertexes();
+    auto& coords_uv = m_mesh->GetCoordsUV();
+    auto& indices_uv = m_mesh->GetIndicesUV();
 
     int nu = static_cast<int>((m_uend - m_ubeg) / m_uinc) + 1;
     int nv;

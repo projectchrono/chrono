@@ -92,8 +92,8 @@ int main(int argc, char* argv[]) {
 
     // Create the Curiosity rover
     Curiosity rover(&sys, chassis_type, wheel_type);
-    rover.SetDriver(chrono_types::make_shared<CuriositySpeedDriver>(1.0, CH_C_PI));
-    rover.Initialize(ChFrame<>(ChVector3d(-5, -0.2, 0), QuatFromAngleX(-CH_C_PI / 2)));
+    rover.SetDriver(chrono_types::make_shared<CuriositySpeedDriver>(1.0, CH_PI));
+    rover.Initialize(ChFrame<>(ChVector3d(-5, -0.2, 0), QuatFromAngleX(-CH_PI / 2)));
 
     // Create obstacles
     std::vector<std::shared_ptr<ChBodyAuxRef>> rock;
@@ -129,15 +129,15 @@ int main(int argc, char* argv[]) {
 
         auto body = chrono_types::make_shared<ChBodyAuxRef>();
         sys.Add(body);
-        body->SetBodyFixed(false);
-        body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(rock_pos[i]), QUNIT));
-        body->SetFrame_COG_to_REF(ChFrame<>(cog, principal_inertia_rot));
+        body->SetFixed(false);
+        body->SetFrameRefToAbs(ChFrame<>(ChVector3d(rock_pos[i]), QUNIT));
+        body->SetFrameCOMToRef(ChFrame<>(cog, principal_inertia_rot));
         body->SetMass(mass * rock_density);
         body->SetInertiaXX(rock_density * principal_I);
 
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rock_mat, mesh, false, false, 0.005);
         body->AddCollisionShape(ct_shape);
-        body->SetCollide(true);
+        body->EnableCollision(true);
 
         auto vis_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         vis_shape->SetMesh(mesh);
@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
     // Displace/rotate the terrain reference plane.
     // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
-    terrain.SetPlane(ChCoordsys<>(ChVector3d(0, -0.5, 0), QuatFromAngleX(-CH_C_PI_2)));
+    terrain.SetPlane(ChCoordsys<>(ChVector3d(0, -0.5, 0), QuatFromAngleX(-CH_PI_2)));
 
     // Use a regular grid
     double length = 14;
@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     }
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     // Simulation loop
     while (vis->Run()) {
@@ -278,7 +278,7 @@ int main(int argc, char* argv[]) {
 
     if (output) {
         // write output data into file
-        csv.write_to_file(out_dir + "/output.dat");
+        csv.WriteToFile(out_dir + "/output.dat");
     }
 
     return 0;

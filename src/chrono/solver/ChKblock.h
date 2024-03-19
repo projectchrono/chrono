@@ -35,7 +35,7 @@ class ChApi ChKblock {
     virtual ~ChKblock() {}
 
     /// Returns the number of referenced ChVariables items
-    virtual size_t GetNvars() const = 0;
+    virtual size_t GetNumVariables() const = 0;
 
     /// Access the K stiffness matrix as a single block, referring only to the referenced ChVariable objects
     virtual ChMatrixRef Get_K() = 0;

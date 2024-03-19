@@ -207,14 +207,14 @@ exported_items = chrono.ImportSolidWorksSystem('./collisions')
 
 + Create a *contact surface material* (surface data that will be used by collision detection to know the friction coefficient and other properties in contact points). In this example, there is a single contact surface material to share between all objects.
 ~~~{.py}
-brick_material = chrono.ChMaterialSurfaceNSC()
+brick_material = chrono.ChContactMaterialNSC()
 brick_material.SetFriction(0.6)
 ~~~
 
 <div class = "ce-info">
 Optionally, one can define surface materials with *compliance*. In such a case, one should write, for example, a material that has some friction, damping coefficient (Raleygh type), orthogonal compliance, and tangential compliance:
 ~~~{.py}
-brick_material = chrono.ChMaterialSurfaceNSC()
+brick_material = chrono.ChContactMaterialNSC()
 brick_material.SetFriction(0.6)
 brick_material.SetDampingF(0.05)
 brick_material.SetCompliance (0.000000003)
@@ -273,7 +273,7 @@ my_ground = my_system.SearchBody('ground')
 if not my_ground :
     sys.exit('Error: cannot find ground  from its name in the C::E system!')
 	
-my_floor.SetBodyFixed(False)
+my_floor.SetFixed(False)
 link_shaker = chrono.ChLinkLockLock()
 link_shaker.Initialize(my_floor, my_ground, chrono.CSYSNORM)
 my_system.Add(link_shaker)
@@ -290,7 +290,7 @@ my_funct.SetFirstOperandFunction(my_functA)
 my_funct.SetSecondOperandFunction(my_functB)
 my_funct.SetOperationType(chrono.ChOP_MUL)
 my_funct.thisown = 0
-link_shaker.SetMotion_X(my_funct)
+link_shaker.SetMotionX(my_funct)
 ~~~
 
 + It is wise to define a better position for the camera and viewpoint, for instance we changed the default position to:

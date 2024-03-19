@@ -25,7 +25,7 @@ namespace chrono {
 /// @{
 
 /// A motion function p=f(s) where p(t) is defined with a
-/// ChLine geometry object, ex. ChLineArc or ChLineBspline etc.
+/// ChLine geometry object, ex. ChLineArc or ChLineBSpline etc.
 
 class ChApi ChFunctionPositionLine : public ChFunctionPosition {
   public:

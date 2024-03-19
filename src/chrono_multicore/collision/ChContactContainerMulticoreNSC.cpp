@@ -62,8 +62,8 @@ void ChContactContainerMulticoreNSC::AddContact(const ChCollisionInfo& cinfo,
 
     if (mmboA && mmboB) {
         // Geometric information for added contact. Make sure body IDs are ordered smallest first!
-        int b1 = ((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetId();
-        int b2 = ((ChBody*)(cinfo.modelB->GetPhysicsItem()))->GetId();
+        int b1 = ((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetIndex();
+        int b2 = ((ChBody*)(cinfo.modelB->GetPhysicsItem()))->GetIndex();
         if (b1 < b2) {
             cd_data->norm_rigid_rigid.push_back(real3(cinfo.vN.x(), cinfo.vN.y(), cinfo.vN.z()));
             cd_data->cpta_rigid_rigid.push_back(real3(cinfo.vpA.x(), cinfo.vpA.y(), cinfo.vpA.z()));
@@ -121,8 +121,8 @@ void ChContactContainerMulticoreNSC::AddContact(const ChCollisionInfo& cinfo) {
         cd_data->cptb_rigid_rigid.push_back(real3(cinfo.vpB.x(), cinfo.vpB.y(), cinfo.vpB.z()));
         cd_data->dpth_rigid_rigid.push_back(cinfo.distance);
         cd_data->erad_rigid_rigid.push_back(cinfo.eff_radius);
-        cd_data->bids_rigid_rigid.push_back(vec2(((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetId(),
-                                                 ((ChBody*)(cinfo.modelB->GetPhysicsItem()))->GetId()));
+        cd_data->bids_rigid_rigid.push_back(vec2(((ChBody*)(cinfo.modelA->GetPhysicsItem()))->GetIndex(),
+                                                 ((ChBody*)(cinfo.modelB->GetPhysicsItem()))->GetIndex()));
         cd_data->num_rigid_contacts++;
     }
 }

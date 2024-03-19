@@ -24,7 +24,7 @@
 #include "chrono/timestepper/ChTimestepper.h"
 
 #include "chrono/fea/ChElementShellBST.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     // Remember to add the mesh to the system!
     sys.Add(mesh);
 
-    // sys.Set_G_acc(VNULL); // to remove gravity effect, or:
+    // sys.SetGravitationalAcceleration(VNULL); // to remove gravity effect, or:
     // mesh->SetAutomaticGravity(false);
 
     std::shared_ptr<ChNodeFEAxyz> nodePlotA;
@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
 
         element->SetNodes(node0, node1, node2, nullptr, nullptr, nullptr);  // node3, node4, node5);
 
-        element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material);
+        element->AddLayer(thickness, 0 * CH_DEG_TO_RAD, material);
 
         // TEST
         sys.Setup();
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
         node1->SetPos(node1->GetPos() + ChVector3d(0.1, 0, 0));
 
         sys.Update();
-        ChVectorDynamic<double> Fi(element->GetNdofs());
+        ChVectorDynamic<double> Fi(element->GetNumCoordsPosLevel());
         element->ComputeInternalForces(Fi);
         std::cout << "BST updated: \n"
                   << "phi: " << element->phi << "\n"
@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
                 elementA->SetNodes(nodes[(iz) * (nsections_x + 1) + ix], nodes[(iz) * (nsections_x + 1) + ix + 1],
                                    nodes[(iz + 1) * (nsections_x + 1) + ix], boundary_1, boundary_2, boundary_3);
 
-                elementA->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material);
+                elementA->AddLayer(thickness, 0 * CH_DEG_TO_RAD, material);
 
                 auto melementB = chrono_types::make_shared<ChElementShellBST>();
                 mesh->AddElement(melementB);
@@ -249,7 +249,7 @@ int main(int argc, char* argv[]) {
                                     nodes[(iz + 1) * (nsections_x + 1) + ix], nodes[(iz) * (nsections_x + 1) + ix + 1],
                                     boundary_1, boundary_2, boundary_3);
 
-                melementB->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material);
+                melementB->AddLayer(thickness, 0 * CH_DEG_TO_RAD, material);
             }
         }
 
@@ -336,9 +336,9 @@ int main(int argc, char* argv[]) {
         // Create a fixed collision shape
         auto cylinder =
             chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.1, 1.0, 1000, true, true, mat);
-        cylinder->SetBodyFixed(true);
+        cylinder->SetFixed(true);
         cylinder->SetPos(ChVector3d(0.75, -0.25, 0.5));
-        cylinder->SetRot(QuatFromAngleZ(CH_C_PI_2));
+        cylinder->SetRot(QuatFromAngleZ(CH_PI_2));
         cylinder->GetVisualShape(0)->SetColor(ChColor(0.6f, 0.4f, 0.4f));
         sys.AddBody(cylinder);
     }

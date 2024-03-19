@@ -32,7 +32,7 @@ const double mrole_PitmanArm::m_pitmanArmMass = 1.605;
 const double mrole_PitmanArm::m_steeringLinkRadius = 0.03;
 const double mrole_PitmanArm::m_pitmanArmRadius = 0.02;
 
-const double mrole_PitmanArm::m_maxAngle = 30.0 * (CH_C_PI / 180);
+const double mrole_PitmanArm::m_maxAngle = 30.0 * (CH_PI / 180);
 
 const ChVector3d mrole_PitmanArm::m_steeringLinkInertiaMoments(0.252, 0.00233, 0.254);
 const ChVector3d mrole_PitmanArm::m_steeringLinkInertiaProducts(0.0, 0.0, 0.0);

@@ -96,9 +96,9 @@
 #include "chrono/physics/ChLoaderUV.h"
 #include "chrono/physics/ChLoaderUVW.h"
 #include "chrono/fea/ChLoadsBeam.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
-#include "chrono/fea/ChLinkPointPoint.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
+#include "chrono/fea/ChLinkNodeNode.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChLoadsXYZROTnode.h"
 #include "Eigen/src/Core/util/Memory.h"
@@ -268,10 +268,10 @@ using namespace chrono::fea;
 %shared_ptr(chrono::fea::ChContactSurfaceNodeCloud)
 %shared_ptr(chrono::fea::ChMeshSurface)
 %shared_ptr(chrono::fea::ChVisulizationFEAmesh)
-%shared_ptr(chrono::fea::ChLinkDirFrame)
-%shared_ptr(chrono::fea::ChLinkPointFrame)
-%shared_ptr(chrono::fea::ChLinkPointFrameGeneric)
-%shared_ptr(chrono::fea::ChLinkPointPoint)
+%shared_ptr(chrono::fea::ChLinkNodeSlopeFrame)
+%shared_ptr(chrono::fea::ChLinkNodeFrame)
+%shared_ptr(chrono::fea::ChLinkNodeFrameGeneric)
+%shared_ptr(chrono::fea::ChLinkNodeNode)
 %shared_ptr(chrono::fea::ChMaterialShellANCF)
 %shared_ptr(chrono::fea::ChMaterialShellReissner)
 %shared_ptr(chrono::fea::ChMaterialShellReissnerIsothropic)
@@ -449,9 +449,9 @@ using namespace chrono::fea;
 %template(vector_ChElementBase) std::vector< std::shared_ptr<chrono::fea::ChElementBase> >;
 %import "../../../chrono/fea/ChMeshSurface.h" // should be already provided by ChModuleCore
 %include "../../../chrono/fea/ChMesh.h"
-%include "../../../chrono/fea/ChLinkDirFrame.h"
-%include "../../../chrono/fea/ChLinkPointFrame.h"
-%include "../../../chrono/fea/ChLinkPointPoint.h"
+%include "../../../chrono/fea/ChLinkNodeSlopeFrame.h"
+%include "../../../chrono/fea/ChLinkNodeFrame.h"
+%include "../../../chrono/fea/ChLinkNodeNode.h"
 %include "../../../chrono/fea/ChLoadsBeam.h"
 //%template(LoadLoaderBeamWrench) chrono::ChLoad< chrono::fea::ChLoaderBeamWrench >;
 %include "../../../chrono/fea/ChBuilderBeam.h"

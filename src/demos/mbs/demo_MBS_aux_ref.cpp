@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, -9.81, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));
 
     // Create the ground body with two visualization cylinders
     // -------------------------------------------------------
@@ -69,8 +69,8 @@ int main(int argc, char* argv[]) {
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
-    ground->SetCollide(false);
+    ground->SetFixed(true);
+    ground->EnableCollision(false);
 
     {
         auto cyl_1 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 0.4);
@@ -86,8 +86,8 @@ int main(int argc, char* argv[]) {
     auto pend_1 = chrono_types::make_shared<ChBody>();
     sys.AddBody(pend_1);
     pend_1->SetIdentifier(1);
-    pend_1->SetBodyFixed(false);
-    pend_1->SetCollide(false);
+    pend_1->SetFixed(false);
+    pend_1->EnableCollision(false);
     pend_1->SetMass(1);
     pend_1->SetInertiaXX(ChVector3d(0.2, 1, 1));
 
@@ -96,7 +96,7 @@ int main(int argc, char* argv[]) {
     // frame for a ChBody).
     auto cyl_1 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 2);
     cyl_1->SetColor(ChColor(0.6f, 0, 0));
-    pend_1->AddVisualShape(cyl_1, ChFrame<>(ChVector3d(), QuatFromAngleY(CH_C_PI_2)));
+    pend_1->AddVisualShape(cyl_1, ChFrame<>(ChVector3d(), QuatFromAngleY(CH_PI_2)));
 
     // Specify the initial position of the pendulum (horizontal, pointing towards
     // positive X). In this case, we set the absolute position of its center of
@@ -115,8 +115,8 @@ int main(int argc, char* argv[]) {
     auto pend_2 = chrono_types::make_shared<ChBodyAuxRef>();
     sys.Add(pend_2);
     pend_2->SetIdentifier(2);
-    pend_2->SetBodyFixed(false);
-    pend_2->SetCollide(false);
+    pend_2->SetFixed(false);
+    pend_2->EnableCollision(false);
     pend_2->SetMass(1);
     pend_2->SetInertiaXX(ChVector3d(0.2, 1, 1));
     // NOTE: the inertia tensor must still be expressed in the centroidal frame!
@@ -125,21 +125,21 @@ int main(int argc, char* argv[]) {
     // respect to the body reference frame.
     auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 2);
     cyl_2->SetColor(ChColor(0, 0, 0.6f));
-    pend_2->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(1, 0, 0), QuatFromAngleY(CH_C_PI_2)));
+    pend_2->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(1, 0, 0), QuatFromAngleY(CH_PI_2)));
 
     // In this case, we must specify the centroidal frame, relative to the body
     // reference frame.
-    pend_2->SetFrame_COG_to_REF(ChFrame<>(ChVector3d(1, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
+    pend_2->SetFrameCOMToRef(ChFrame<>(ChVector3d(1, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
 
     // Specify the initial position of the pendulum (horizontal, pointing towards
     // positive X).  Here, we want to specify the position of the body reference
     // frame (relative to the absolute frame). Recall that the body reference
     // frame is located at the pin.
-    pend_2->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(0, 0, -1)));
+    pend_2->SetFrameRefToAbs(ChFrame<>(ChVector3d(0, 0, -1)));
 
     // Note: Beware of using the method SetPos() to specify the initial position
     // (as we did for the first pendulum)!  SetPos() specifies the position of the
-    // centroidal frame.  So one could use it (instead of SetFrame_REF_to_abs) but
+    // centroidal frame.  So one could use it (instead of SetFrameRefToAbs) but
     // using:
     //   pend_2->SetPos(ChVector3d(1, 0, -1));
     // However, this defeats the goal of specifying the body through the desired
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
     // Alternatively, one could use SetPos() and pass it the position of the body
     // reference frame; i.e.
     //   pend_2->SetPos(ChVector3d(0, 0, -1));
-    // provided we do this BEFORE the call to SetFrame_COG_to_REF().
+    // provided we do this BEFORE the call to SetFrameCOMToRef().
     //
     // This also applies to SetRot().
 
@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AddCamera(ChVector3d(0, 3, 6));
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
@@ -232,22 +232,22 @@ int main(int argc, char* argv[]) {
 
             // But it's quite likely that, for the second pendulum, what we want is
             // the position of the body reference frame.  This is available with:
-            ChFrame<> frame_2 = pend_2->GetFrame_REF_to_abs();
+            ChFrame<> frame_2 = pend_2->GetFrameRefToAbs();
             pos_2 = frame_2.GetPos();
             std::cout << "      " << pos_2.x() << "  " << pos_2.y() << "\n";
 
-            // OK, what about velocities? Here again, GetPosDer() returns the linear
+            // OK, what about velocities? Here again, GetPosDt() returns the linear
             // velocity of the body COG (expressed in the global frame) for both
             // pendulums:
-            ChVector3d lin_vel_1 = pend_1->GetPosDer();
-            ChVector3d lin_vel_2 = pend_2->GetPosDer();
+            ChVector3d lin_vel_1 = pend_1->GetPosDt();
+            ChVector3d lin_vel_2 = pend_2->GetPosDt();
             std::cout << "      " << lin_vel_1.x() << "  " << lin_vel_1.y() << "\n";
             std::cout << "      " << lin_vel_2.x() << "  " << lin_vel_2.y() << "\n";
 
             // To obtain the absolute linear velocity of the body reference frame,
-            // we use again GetPosDer(), but this time for the reference frame,
-            // using GetFrame_REF_to_abs() similarly for what we did for positions:
-            lin_vel_2 = pend_2->GetFrame_REF_to_abs().GetPosDer();
+            // we use again GetPosDt(), but this time for the reference frame,
+            // using GetFrameRefToAbs() similarly for what we did for positions:
+            lin_vel_2 = pend_2->GetFrameRefToAbs().GetPosDt();
             std::cout << "      " << lin_vel_2.x() << "  " << lin_vel_2.y() << "\n";
 
             log_info = false;

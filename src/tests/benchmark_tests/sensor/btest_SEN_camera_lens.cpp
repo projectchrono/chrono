@@ -97,12 +97,12 @@ int main(int argc, char* argv[]) {
 
     auto box_body = chrono_types::make_shared<ChBodyEasyBox>(0.001, 10 * .023, 7 * .023, 1000, true, false);
     box_body->SetPos({1.9, 0, 0});
-    box_body->SetBodyFixed(true);
+    box_body->SetFixed(true);
     mphysicalSystem.Add(box_body);
 
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, false, false);
     floor->SetPos({0, 0, 0});
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     mphysicalSystem.Add(floor);
 
     auto checkerboard = chrono_types::make_shared<ChVisualMaterial>();
@@ -168,12 +168,12 @@ int main(int argc, char* argv[]) {
     double z_min = -0.4;
     double z_max = 0.4;
 
-    double ax_min = -CH_C_PI / 6;
-    double ax_max = CH_C_PI / 6;
-    double ay_min = -CH_C_PI / 6;
-    double ay_max = CH_C_PI / 6;
-    double az_min = -CH_C_PI / 6;
-    double az_max = CH_C_PI / 6;
+    double ax_min = -CH_PI / 6;
+    double ax_max = CH_PI / 6;
+    double ay_min = -CH_PI / 6;
+    double ay_max = CH_PI / 6;
+    double az_min = -CH_PI / 6;
+    double az_max = CH_PI / 6;
 
     while (ch_time < end_time) {
         // Update sensor manager

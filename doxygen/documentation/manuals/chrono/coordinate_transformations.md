@@ -107,7 +107,7 @@ by using the .Rotate() member function of quaternions. The example below shows h
 ~~~{.cpp}
 ChVector3<> vA(1,2,3);
 ChVector3<> vB();
-ChQuaternion<> qA = Q_from_AngAxis(20 * CH_C_DEG_TO_RAD, VECT_Y);
+ChQuaternion<> qA = Q_from_AngAxis(20 * CH_DEG_TO_RAD, VECT_Y);
 vB = qA.Rotate(vA);
 ~~~
 

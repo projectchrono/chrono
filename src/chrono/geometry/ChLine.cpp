@@ -62,8 +62,8 @@ bool ChLine::FindNearestLinePoint(ChVector3d& point, double& resU, double approx
 
     ChVector3d vres, vp1, vp2;
 
-    points = this->Get_complexity();
-    closed = this->Get_closed();
+    points = this->GetComplexity();
+    closed = this->IsClosed();
 
     points = points * 4;  // double sampling along line.
 
@@ -243,9 +243,9 @@ double ChLine::Length(int sampling) const {
     double par, step;
 
     if (!closed)
-        step = 1 / ((double)(Get_complexity() - 1));
+        step = 1 / ((double)(GetComplexity() - 1));
     else
-        step = 1 / ((double)(Get_complexity()));
+        step = 1 / ((double)(GetComplexity()));
 
     if (sampling > 1)
         step = step / (double)sampling;

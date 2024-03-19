@@ -44,7 +44,7 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
     virtual void Relax() override;
 
     /// Reset to no speed and acceleration.
-    virtual void SetNoSpeedNoAcceleration() override;
+    virtual void ForceToRest() override;
 
     /// Fix/release this node.
     /// If fixed, its state variables are not changed by the solver.
@@ -72,8 +72,15 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
     virtual const ChVector3d& GetForce() const { return Force; }
 
     /// Get the number of degrees of freedom
-    virtual int GetNdofX() const override { return 3; }
+    virtual unsigned int GetNumCoordsPosLevel() const override { return 3; }
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive) override;
+
+  public:
     // INTERFACE to ChVariableTupleCarrier_1vars
     virtual ChVariables* GetVariables1() override { return &Variables(); }
 
@@ -124,11 +131,6 @@ class ChApi ChNodeFEAxyz : public ChNodeFEAbase, public ChNodeXYZ, public ChVari
     virtual void VariablesQbSetSpeed(double step = 0) override;
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbIncrementPosition(double step) override;
-
-    // SERIALIZATION
-
-    virtual void ArchiveOut(ChArchiveOut& archive) override;
-    virtual void ArchiveIn(ChArchiveIn& archive) override;
 
   protected:
     ChVariablesNode variables;  ///< 3D node variables, with x,y,z

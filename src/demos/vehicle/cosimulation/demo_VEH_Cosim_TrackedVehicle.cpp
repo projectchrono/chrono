@@ -97,7 +97,7 @@ class MyDriver : public ChDriver {
         else if (eff_time > Te)
             m_steering = 1;
         else
-            m_steering = 0.5 + 0.5 * std::sin(CH_C_PI * (eff_time - Ts) / (Te - Ts) - CH_C_PI_2);
+            m_steering = 0.5 + 0.5 * std::sin(CH_PI * (eff_time - Ts) / (Te - Ts) - CH_PI_2);
     }
 
   private:

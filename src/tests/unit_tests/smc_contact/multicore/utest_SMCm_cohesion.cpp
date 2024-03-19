@@ -100,10 +100,10 @@ class CohesionTest : public ::testing::TestWithParam<ChSystemSMC::ContactForceMo
 
 TEST_P(CohesionTest, stick) {
     // Fix body1
-    body1->SetBodyFixed(true);
+    body1->SetFixed(true);
 
     // Set gravitational acceleration below cohesion value
-    sys->Set_G_acc(ChVector3d(0, -(ad - 2), 0));
+    sys->SetGravitationalAcceleration(ChVector3d(0, -(ad - 2), 0));
 
     double t_end = sys->GetChTime() + 0.5;
     while (sys->GetChTime() < t_end) {
@@ -118,10 +118,10 @@ TEST_P(CohesionTest, stick) {
 
 TEST_P(CohesionTest, detach) {
     // Fix body1
-    body1->SetBodyFixed(true);
+    body1->SetFixed(true);
 
     // Set gravitational acceleration at (or above) cohesion value
-    sys->Set_G_acc(ChVector3d(0, -(ad + 0.1), 0));
+    sys->SetGravitationalAcceleration(ChVector3d(0, -(ad + 0.1), 0));
 
     double time_sim = sys->GetChTime() + 0.5;
     while (sys->GetChTime() < time_sim) {

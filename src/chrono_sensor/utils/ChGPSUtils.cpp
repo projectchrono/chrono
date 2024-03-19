@@ -26,8 +26,8 @@ namespace sensor {
 
 void Cartesian2GPS(ChVector3d& coords, ChVector3d& ref) {
     // convert from cartesian to gps coordinates assuming a sphere
-    double lat = (coords.y() / EARTH_RADIUS) * 180.0 / chrono::CH_C_PI + ref.y();
-    double lon = (coords.x() / (EARTH_RADIUS * cos(lat * chrono::CH_C_PI / 180.0))) * 180.0 / chrono::CH_C_PI + ref.x();
+    double lat = (coords.y() / EARTH_RADIUS) * 180.0 / chrono::CH_PI + ref.y();
+    double lon = (coords.x() / (EARTH_RADIUS * cos(lat * chrono::CH_PI / 180.0))) * 180.0 / chrono::CH_PI + ref.x();
     double alt = coords.z() + ref.z();
 
     if (lon < -180.0) {
@@ -43,8 +43,8 @@ void GPS2Cartesian(ChVector3d& coords, ChVector3d& ref) {
     double lat = coords.y();
     double alt = coords.z();
 
-    double x = ((lon - ref.x()) * chrono::CH_C_PI / 180.0) * (EARTH_RADIUS * cos(lat * chrono::CH_C_PI / 180.0));
-    double y = ((lat - ref.y()) * chrono::CH_C_PI / 180.0) * EARTH_RADIUS;
+    double x = ((lon - ref.x()) * chrono::CH_PI / 180.0) * (EARTH_RADIUS * cos(lat * chrono::CH_PI / 180.0));
+    double y = ((lat - ref.y()) * chrono::CH_PI / 180.0) * EARTH_RADIUS;
     double z = alt - ref.z();
 
     coords = chrono::ChVector3d({x, y, z});

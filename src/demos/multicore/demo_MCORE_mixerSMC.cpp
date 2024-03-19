@@ -63,15 +63,15 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreSMC* sys) {
     bin->SetMass(1);
     bin->SetPos(ChVector3d(0, 0, 0));
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    bin->SetCollide(true);
-    bin->SetBodyFixed(true);
+    bin->EnableCollision(true);
+    bin->SetFixed(true);
 
     utils::AddBoxContainer(bin, mat,                                 //
                            ChFrame<>(ChVector3d(0, 0, 0.5), QUNIT),  //
                            ChVector3d(2, 2, 1), 0.2,                 //
                            ChVector3i(2, 2, -1));
     bin->GetCollisionModel()->SetFamily(1);
-    bin->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(2);
+    bin->GetCollisionModel()->DisallowCollisionsWith(2);
 
     sys->AddBody(bin);
 
@@ -81,8 +81,8 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreSMC* sys) {
     mixer->SetMass(10.0);
     mixer->SetInertiaXX(ChVector3d(50, 50, 50));
     mixer->SetPos(ChVector3d(0, 0, 0.205));
-    mixer->SetBodyFixed(false);
-    mixer->SetCollide(true);
+    mixer->SetFixed(false);
+    mixer->EnableCollision(true);
 
     ChVector3d hsize(0.8, 0.1, 0.2);
 
@@ -94,7 +94,7 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreSMC* sys) {
     // Create a motor between the two bodies, constrained to rotate at 90 deg/s
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->Initialize(mixer, bin, ChFrame<>(ChVector3d(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
-    motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, CH_C_PI / 2));
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, CH_PI / 2));
     sys->AddLink(motor);
 
     return mixer;
@@ -126,8 +126,8 @@ void AddFallingBalls(ChSystemMulticoreSMC* sys) {
             ball->SetInertiaXX(inertia);
             ball->SetPos(pos);
             ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-            ball->SetBodyFixed(false);
-            ball->SetCollide(true);
+            ball->SetFixed(false);
+            ball->EnableCollision(true);
 
             utils::AddSphereGeometry(ball.get(), ballMat, radius);
 
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
     sys.SetNumThreads(8);
 
     // Set gravitational acceleration
-    sys.Set_G_acc(ChVector3d(0, 0, -gravity));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -gravity));
 
     // Settings for the broad-phase collision detection
     sys.GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);

@@ -89,6 +89,7 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     /// The path can be absolute, or relative to the .exe current path.
     /// Note that the directory must be already existing.
     /// At the execution of ExportScript() it will create files & directories like
+    /// <pre>
     ///    base_path
     ///       exported.assets.py
     ///       anim
@@ -100,6 +101,7 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     ///          state00001.py
     ///          state00001.dat
     ///          ....
+    /// </pre>
     void SetBasePath(const std::string& mpath) { base_path = mpath; }
 
     /// Set transformation from Chrono frame to Blender

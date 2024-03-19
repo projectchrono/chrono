@@ -96,7 +96,7 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
     virtual void ApplyTrackShoeForce(int track_id, int shoe_id, const TerrainForce& force) override;
 
     /// Return the number of tracks in the vehicle system.
-    virtual int GetNumTracks() const override;
+    virtual unsigned int GetNumTracks() const override;
 
     /// Return the number of track shoes in the specified track subsystem.
     virtual size_t GetNumTrackShoes(int track_id) const override;
@@ -119,7 +119,7 @@ class CH_VEHICLE_API ChVehicleCosimTrackedVehicleNode : public ChVehicleCosimTra
     /// Impose spindle angular speed as dictated by an attached DBP rig.
     virtual void OnInitializeDBPRig(std::shared_ptr<ChFunction> func) override;
 
-    void WriteBodyInformation(utils::CSV_writer& csv);
+    void WriteBodyInformation(utils::ChWriterCSV& csv);
 
     virtual void OnRender() override;
 

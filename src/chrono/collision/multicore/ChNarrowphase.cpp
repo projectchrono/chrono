@@ -33,7 +33,7 @@
 
 namespace chrono {
 
-using namespace chrono::ch_utils;
+using namespace chrono::mc_utils;
 
 ChNarrowphase::ChNarrowphase()
     : algorithm(Algorithm::HYBRID),

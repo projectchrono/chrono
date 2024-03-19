@@ -82,7 +82,7 @@ double hthick = 0.25;
 int Id_g = 100;
 double r_g = 0.02;
 double rho_g = 2500;
-double vol_g = (4.0 / 3) * CH_C_PI * r_g * r_g * r_g;
+double vol_g = (4.0 / 3) * CH_PI * r_g * r_g * r_g;
 double mass_g = rho_g * vol_g;
 ChVector3d inertia_g = 0.4 * mass_g * r_g * r_g * ChVector3d(1, 1, 1);
 
@@ -148,26 +148,26 @@ double CreateParticles(ChSystem* sys) {
 
     // Create a particle generator and a mixture entirely made out of spheres
     double r = 1.01 * r_g;
-    utils::PDSampler<double> sampler(2 * r);
-    utils::Generator gen(sys);
-    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
-    m1->setDefaultMaterial(mat_g);
-    m1->setDefaultDensity(rho_g);
-    m1->setDefaultSize(r_g);
+    utils::ChPDSampler<double> sampler(2 * r);
+    utils::ChGenerator gen(sys);
+    std::shared_ptr<utils::ChMixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
+    m1->SetDefaultMaterial(mat_g);
+    m1->SetDefaultDensity(rho_g);
+    m1->SetDefaultSize(r_g);
 
     // Set starting value for body identifiers
-    gen.setBodyIdentifier(Id_g);
+    gen.SetBodyIdentifier(Id_g);
 
     // Create particles in layers until reaching the desired number of particles
     ChVector3d hdims(hdimX - r, hdimY - r, 0);
     ChVector3d center(0, 0, 2 * r);
 
-    while (gen.getTotalNumBodies() < num_particles) {
+    while (gen.GetTotalNumBodies() < num_particles) {
         gen.CreateObjectsBox(sampler, center, hdims);
         center.z() += 2 * r;
     }
 
-    std::cout << "Created " << gen.getTotalNumBodies() << " particles." << std::endl;
+    std::cout << "Created " << gen.GetTotalNumBodies() << " particles." << std::endl;
 
     return center.z();
 }
@@ -227,7 +227,7 @@ int main(int argc, char* argv[]) {
 #endif
 
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
-    sys->Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys->SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     // ---------------------
     // Edit sys settings.
@@ -235,7 +235,8 @@ int main(int argc, char* argv[]) {
 
 #ifdef USE_SEQ
 
-    sys->SetSolverMaxIterations(50);
+    m_system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    m_system->GetSolver()->AsIterative()->SetMaxIterations(50);
 
 #else
 
@@ -271,8 +272,8 @@ int main(int argc, char* argv[]) {
     // Ground body
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
-    ground->SetCollide(true);
+    ground->SetFixed(true);
+    ground->EnableCollision(true);
 
     // Bottom box
     utils::AddBoxGeometry(ground.get(),                                           //
@@ -340,9 +341,9 @@ int main(int argc, char* argv[]) {
     m113.SetRoadWheelVisualizationType(VisualizationType::MESH);
     m113.SetTrackShoeVisualizationType(VisualizationType::MESH);
 
-    ////m113.GetVehicle().SetCollide(TrackCollide::NONE);
-    ////m113.GetVehicle().SetCollide(TrackCollide::WHEELS_LEFT | TrackCollide::WHEELS_RIGHT);
-    ////m113.GetVehicle().SetCollide(TrackCollide::ALL & (~TrackCollide::SPROCKET_LEFT) &
+    ////m113.GetVehicle().EnableCollision(TrackCollide::NONE);
+    ////m113.GetVehicle().EnableCollision(TrackCollide::WHEELS_LEFT | TrackCollide::WHEELS_RIGHT);
+    ////m113.GetVehicle().EnableCollision(TrackCollide::ALL & (~TrackCollide::SPROCKET_LEFT) &
     ///(~TrackCollide::SPROCKET_RIGHT));
 
     // Create the driver sys
@@ -404,9 +405,9 @@ int main(int argc, char* argv[]) {
         }
 
         // Release the vehicle chassis at the end of the hold time.
-        if (m113.GetChassisBody()->GetBodyFixed() && time > time_hold) {
+        if (m113.GetChassisBody()->IsFixed() && time > time_hold) {
             std::cout << "\nRelease vehicle t = " << time << std::endl;
-            m113.GetChassisBody()->SetBodyFixed(false);
+            m113.GetChassisBody()->SetFixed(false);
         }
 
         // Update modules (process inputs from other modules)

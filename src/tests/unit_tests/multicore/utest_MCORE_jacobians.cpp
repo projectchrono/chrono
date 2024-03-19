@@ -40,8 +40,8 @@ void CreateContainer(ChSystemMulticore* system) {
     mat_walls->SetFriction(0.3f);
 
     auto container = chrono_types::make_shared<ChBody>();
-    container->SetBodyFixed(true);
-    container->SetCollide(true);
+    container->SetFixed(true);
+    container->EnableCollision(true);
     container->SetMass(10000.0);
 
     utils::AddBoxContainer(container, mat_walls,                   //
@@ -75,8 +75,8 @@ void CreateGranularMaterial(ChSystemMulticore* sys) {
                 ball->SetInertiaXX(inertia);
                 ball->SetPos(pos + rnd);
                 ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-                ball->SetBodyFixed(false);
-                ball->SetCollide(true);
+                ball->SetFixed(false);
+                ball->EnableCollision(true);
 
                 utils::AddSphereGeometry(ball.get(), ballMat, radius);
 
@@ -87,7 +87,7 @@ void CreateGranularMaterial(ChSystemMulticore* sys) {
 }
 
 void SetupSystem(ChSystemMulticoreNSC* sys) {
-    sys->Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys->SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     // Solver settings
     int max_iteration_normal = 0;
@@ -117,9 +117,9 @@ void SetupSystem(ChSystemMulticoreNSC* sys) {
 void Sync(ChSystemMulticore* msystem_A, ChSystemMulticore* msystem_B) {
     for (int i = 0; i < msystem_A->GetBodies().size(); i++) {
         ChVector3d pos = msystem_B->GetBodies().at(i)->GetPos();
-        ChVector3d pos_dt = msystem_B->GetBodies().at(i)->GetPosDer();
+        ChVector3d pos_dt = msystem_B->GetBodies().at(i)->GetPosDt();
         msystem_A->GetBodies().at(i)->SetPos(pos);
-        msystem_A->GetBodies().at(i)->SetPosDer(pos_dt);
+        msystem_A->GetBodies().at(i)->SetPosDt(pos_dt);
     }
 }
 

@@ -328,11 +328,11 @@ void ChBlender::ExportScript(const std::string& filename) {
                 assets_file << "new_object.data.type='ORTHO'" << std::endl;
                 assets_file << "new_object.data.ortho_scale="
                             << double((camera_location - camera_aim).Length() *
-                                      tan(0.5 * camera_angle * chrono::CH_C_DEG_TO_RAD))
+                                      tan(0.5 * camera_angle * chrono::CH_DEG_TO_RAD))
                             << "" << std::endl;
             } else {
                 assets_file << "new_object.data.type='PERSP'" << std::endl;
-                assets_file << "new_object.data.angle=" << camera_angle * chrono::CH_C_DEG_TO_RAD << "" << std::endl;
+                assets_file << "new_object.data.angle=" << camera_angle * chrono::CH_DEG_TO_RAD << "" << std::endl;
             }
             assets_file << "chrono_cameras.objects.link(new_object)\n"
                         << "bpy.context.scene.collection.objects.unlink(new_object)\n" << std::endl;
@@ -547,7 +547,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                 *mfile << "uv_layer.data.foreach_set('uv', uvs) " << std::endl;
             }
 
-            if (mesh->m_face_mat_indices.size() == mesh->getNumTriangles()) {
+            if (mesh->m_face_mat_indices.size() == mesh->GetNumTriangles()) {
                 *mfile << "mat_indices = [ " << std::endl;
                 for (unsigned int ip = 0; ip < mesh->m_face_mat_indices.size(); ip++) {
                     *mfile << mesh->m_face_mat_indices[ip] << "," << std::endl;
@@ -570,8 +570,8 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
             }
             *mfile << collection << ".objects.link(new_object)\n" << std::endl;
 
-            if (mesh->m_colors.size() == mesh->m_vertices.size() || mesh->getPropertiesPerVertex().size() ||
-                mesh->getPropertiesPerFace().size()) {
+            if (mesh->m_colors.size() == mesh->m_vertices.size() || mesh->GetPropertiesPerVertex().size() ||
+                mesh->GetPropertiesPerFace().size()) {
                 *mfile << "meshsetting = setup_meshsetting(new_object)" << std::endl;
             }
 
@@ -589,7 +589,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                 *mfile << "mat = update_meshsetting_color_material(new_object,meshsetting, 'chrono_color')" << std::endl;
             }
 
-            for (auto mprop : mesh->getPropertiesPerVertex()) {
+            for (auto mprop : mesh->GetPropertiesPerVertex()) {
                 if (auto mprop_scalar = dynamic_cast<ChPropertyT<double>*>(mprop)) {
                     *mfile << "data_scalars = [ " << std::endl;
                     for (unsigned int iv = 0; iv < mprop_scalar->data.size(); iv++) {
@@ -624,7 +624,7 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                            << mprop_vectors->name.c_str() << "')" << std::endl;
                 }
             }
-            for (auto mprop : mesh->getPropertiesPerFace()) {
+            for (auto mprop : mesh->GetPropertiesPerFace()) {
                 if (auto mprop_scalar = dynamic_cast<ChPropertyT<double>*>(mprop)) {
                     *mfile << "data_scalars = [ " << std::endl;
                     for (unsigned int iv = 0; iv < mprop_scalar->data.size(); iv++) {
@@ -904,11 +904,11 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
             *mfile << "new_object.data.type='ORTHO'" << std::endl;
             *mfile << "new_object.data.ortho_scale="
                    << double((camera_instance->GetPosition() - camera_instance->GetAimPoint()).Length() *
-                             tan(0.5 * camera_instance->GetAngle() * chrono::CH_C_DEG_TO_RAD))
+                             tan(0.5 * camera_instance->GetAngle() * chrono::CH_DEG_TO_RAD))
                    << "" << std::endl;
         } else {
             *mfile << "new_object.data.type='PERSP'" << std::endl;
-            *mfile << "new_object.data.angle=" << camera_instance->GetAngle() * chrono::CH_C_DEG_TO_RAD << "" << std::endl;
+            *mfile << "new_object.data.angle=" << camera_instance->GetAngle() * chrono::CH_DEG_TO_RAD << "" << std::endl;
         }
         *mfile << "chrono_cameras.objects.link(new_object)\n"
                << "bpy.context.scene.collection.objects.unlink(new_object)\n" << std::endl;
@@ -1058,7 +1058,7 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
                 state_file << "[";
                 if (shape->GetNumMaterials() && (!std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) &&
                     (!std::dynamic_pointer_cast<ChVisualShapePath>(shape))) {
-                    for (int im = 0; im < shape->GetNumMaterials(); ++im) {
+                    for (unsigned int im = 0; im < shape->GetNumMaterials(); ++im) {
                         state_file << "'";
                         auto mat = shape->GetMaterial(im);
                         std::string matname("material_" + unique_bl_id((size_t)mat.get()));
@@ -1081,9 +1081,9 @@ void ChBlender::ExportItemState(std::ofstream& state_file,
 
         if (auto particleclones = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
             state_file << " [";
-            for (unsigned int m = 0; m < particleclones->GetNparticles(); ++m) {
+            for (unsigned int m = 0; m < particleclones->GetNumParticles(); ++m) {
                 // Get the current coordinate frame of the i-th particle
-                ChCoordsys<> partframe = particleclones->GetParticle(m).GetCsys();
+                ChCoordsys<> partframe = particleclones->GetParticle(m).GetCoordsys();
                 state_file << "[(" << partframe.pos.x() << "," << partframe.pos.y() << "," << partframe.pos.z() << "),";
                 state_file << "(" << partframe.rot.e0() << "," << partframe.rot.e1() << "," << partframe.rot.e2() << ","
                            << partframe.rot.e3() << ")], " << std::endl;
@@ -1173,7 +1173,7 @@ void ChBlender::ExportData(const std::string& filename) {
             // saving a body?
             if (const auto& body = std::dynamic_pointer_cast<ChBody>(item)) {
                 // Get the current coordinate frame of the i-th object
-                const ChFrame<>& bodyframe = body->GetFrame_REF_to_abs();
+                const ChFrame<>& bodyframe = body->GetFrameRefToAbs();
 
                 // Dump the POV macro that generates the contained asset(s) tree
                 ExportItemState(state_file, body, bodyframe >> blender_frame);
@@ -1192,8 +1192,8 @@ void ChBlender::ExportData(const std::string& filename) {
             // saving a ChLinkMateGeneric constraint?
             if (auto linkmate = std::dynamic_pointer_cast<ChLinkMateGeneric>(item)) {
                 if (linkmate->GetBody1() && linkmate->GetBody2() && frames_links_show) {
-                    ChFrame<> frAabs = linkmate->GetFrame1() >> *linkmate->GetBody1() >> blender_frame;
-                    ChFrame<> frBabs = linkmate->GetFrame2() >> *linkmate->GetBody2() >> blender_frame;
+                    ChFrame<> frAabs = linkmate->GetFrame1Rel() >> *linkmate->GetBody1() >> blender_frame;
+                    ChFrame<> frBabs = linkmate->GetFrame2Rel() >> *linkmate->GetBody2() >> blender_frame;
                     state_file << "if chrono_view_links_csys:" << std::endl;
                     state_file << "\tmcsysA = make_chrono_csys(";
                     state_file << "(" << frAabs.GetPos().x() << ", " << frAabs.GetPos().y() << ", "

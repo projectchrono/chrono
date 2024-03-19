@@ -112,7 +112,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    sys->Set_G_acc(ChVector3d(0, -gravity, 0));
+    sys->SetGravitationalAcceleration(ChVector3d(0, -gravity, 0));
 
     // Set associated collision detection system
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
     sys->GetSettings()->collision.bins_per_axis = vec3(10, 10, 10);
 
     // Rotation Z->Y (because meshes used here assume Z up)
-    ChQuaternion<> z2y = QuatFromAngleX(-CH_C_PI_2);
+    ChQuaternion<> z2y = QuatFromAngleX(-CH_PI_2);
 
     // Create the falling object
     auto object = chrono_types::make_shared<ChBody>();
@@ -138,10 +138,10 @@ int main(int argc, char* argv[]) {
     object->SetInertiaXX(40.0 * ChVector3d(1, 1, 0.2));
     object->SetPos(pos);
     object->SetRot(z2y);
-    object->SetPosDer(init_vel);
+    object->SetPosDt(init_vel);
     object->SetAngVelParent(init_omg);
-    object->SetCollide(true);
-    object->SetBodyFixed(false);
+    object->EnableCollision(true);
+    object->SetFixed(false);
 
     std::shared_ptr<ChContactMaterial> object_mat;
     switch (contact_method) {
@@ -186,8 +186,8 @@ int main(int argc, char* argv[]) {
     ground->SetMass(1);
     ground->SetPos(ChVector3d(0, 0, 0));
     ground->SetRot(z2y);
-    ground->SetCollide(true);
-    ground->SetBodyFixed(true);
+    ground->EnableCollision(true);
+    ground->SetFixed(true);
 
     std::shared_ptr<ChContactMaterial> ground_mat;
     switch (contact_method) {

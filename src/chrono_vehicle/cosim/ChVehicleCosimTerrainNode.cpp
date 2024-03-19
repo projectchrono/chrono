@@ -165,7 +165,7 @@ void ChVehicleCosimTerrainNode::InitializeTireData() {
 
         // Resize mesh state vectors (if used)
         if (m_interface_type == InterfaceType::MESH) {
-            int nv = m_geometry[i].m_coll_meshes[0].m_trimesh->getNumVertices();
+            unsigned int nv = m_geometry[i].m_coll_meshes[0].m_trimesh->GetNumVertices();
             m_mesh_state[i].vpos.resize(nv);
             m_mesh_state[i].vvel.resize(nv);
         }
@@ -203,7 +203,7 @@ void ChVehicleCosimTerrainNode::InitializeTrackData() {
 
     // Resize mesh state vectors (if used)
     if (m_interface_type == InterfaceType::MESH) {
-        int nv = m_geometry[0].m_coll_meshes[0].m_trimesh->getNumVertices();
+        unsigned int nv = m_geometry[0].m_coll_meshes[0].m_trimesh->GetNumVertices();
         m_mesh_state[0].vpos.resize(nv);
         m_mesh_state[0].vvel.resize(nv);
     }
@@ -346,7 +346,7 @@ void ChVehicleCosimTerrainNode::SynchronizeTrackedBody(int step_number, double t
 void ChVehicleCosimTerrainNode::SynchronizeWheeledMesh(int step_number, double time) {
     for (int i = 0; i < m_num_objects; i++) {
         if (m_rank == TERRAIN_NODE_RANK) {
-            auto nv = m_geometry[i].m_coll_meshes[0].m_trimesh->getNumVertices();
+            auto nv = m_geometry[i].m_coll_meshes[0].m_trimesh->GetNumVertices();
 
             // Receive mesh state data
             MPI_Status status;
@@ -354,8 +354,8 @@ void ChVehicleCosimTerrainNode::SynchronizeWheeledMesh(int step_number, double t
             MPI_Recv(vert_data, 2 * 3 * nv, MPI_DOUBLE, TIRE_NODE_RANK(i), step_number, MPI_COMM_WORLD,
                      &status);
 
-            for (int iv = 0; iv < nv; iv++) {
-                int offset = 3 * iv;
+            for (unsigned int iv = 0; iv < nv; iv++) {
+                unsigned int offset = 3 * iv;
                 m_mesh_state[i].vpos[iv] =
                     ChVector3d(vert_data[offset + 0], vert_data[offset + 1], vert_data[offset + 2]);
                 offset += 3 * nv;

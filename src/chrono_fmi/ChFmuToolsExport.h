@@ -118,7 +118,7 @@ class FmuChronoComponentBase : public FmuComponentBase {
                              const std::string& description,
                              FmuVariable::CausalityType causality = FmuVariable::CausalityType::local,
                              FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous) {
-        AddFmuCsysVariable(s.GetCsys(), name, unit_name, description, causality, variability);
+        AddFmuCsysVariable(s.GetCoordsys(), name, unit_name, description, causality, variability);
     }
 
     /// Add FMU variables corresponding to the specified ChFrameMoving.
@@ -133,7 +133,7 @@ class FmuChronoComponentBase : public FmuComponentBase {
         const std::string& description,
         FmuVariable::CausalityType causality = FmuVariable::CausalityType::local,
         FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous) {
-        AddFmuCsysVariable(s.GetCsys(), name, unit_name, description, causality, variability);
+        AddFmuCsysVariable(s.GetCoordsys(), name, unit_name, description, causality, variability);
         AddFmuVecVariable(s.GetPosDer(), name + ".pos_dt", unit_name_dt, description + " position derivative",
                           causality, variability);
         AddFmuQuatVariable(s.GetRotDer(), name + ".rot_dt", "1", description + " orientation derivative", causality,
@@ -173,9 +173,9 @@ const std::unordered_map<chrono::ChCausalityType, FmuVariable::CausalityType> Ca
 // TODO expand serialization to have description
 
 /// Class for serializing to FmuComponentBase.
-class ChArchiveFmu : public ChArchiveOut {
+class ChOutputFMU : public ChArchiveOut {
   public:
-    ChArchiveFmu(FmuComponentBase& fmucomp) {
+    ChOutputFMU(FmuComponentBase& fmucomp) {
         _fmucomp = &fmucomp;
 
         tablevel = 0;
@@ -183,7 +183,7 @@ class ChArchiveFmu : public ChArchiveOut {
         is_array.push_back(false);
     };
 
-    virtual ~ChArchiveFmu() {
+    virtual ~ChOutputFMU() {
         nitems.pop();
         is_array.pop_back();
     };

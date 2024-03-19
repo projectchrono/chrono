@@ -64,7 +64,7 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     real tolerance = 1e-3;
 
     // Set gravitational acceleration
-    m_system->Set_G_acc(ChVector3d(0, 0, -gravity));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -gravity));
 
     // Set solver parameters
     m_system->GetSettings()->solver.max_iteration_bilateral = max_iteration;
@@ -95,8 +95,8 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
     auto bin = chrono_types::make_shared<ChBody>();
     bin->SetMass(1);
     bin->SetPos(ChVector3d(0, 0, 0));
-    bin->SetCollide(true);
-    bin->SetBodyFixed(true);
+    bin->EnableCollision(true);
+    bin->SetFixed(true);
 
     utils::AddBoxContainer(bin, mat,                                      //
                            ChFrame<>(ChVector3d(0, 0, hdim.z()), QUNIT),  //
@@ -112,12 +112,12 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
 
     // Create a particle generator and a mixture entirely made out of spheres
     double r = 1.01 * radius;
-    utils::PDSampler<double> sampler(2 * r);
-    utils::Generator gen(m_system);
-    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
-    m1->setDefaultMaterial(mat);
-    m1->setDefaultDensity(rho);
-    m1->setDefaultSize(radius);
+    utils::ChPDSampler<double> sampler(2 * r);
+    utils::ChGenerator gen(m_system);
+    std::shared_ptr<utils::ChMixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
+    m1->SetDefaultMaterial(mat);
+    m1->SetDefaultDensity(rho);
+    m1->SetDefaultSize(radius);
 
     // Create particles in layers until reaching the desired number of particles
     ChVector3d range(hdim.x() - r, hdim.y() - r, 0);
@@ -127,7 +127,7 @@ SettlingSMC::SettlingSMC() : m_system(new ChSystemMulticoreSMC), m_step(1e-3) {
         center.z() += 2 * r;
     }
 
-    m_num_particles = gen.getTotalNumBodies();
+    m_num_particles = gen.GetTotalNumBodies();
 }
 
 // Run settling simulation with visualization

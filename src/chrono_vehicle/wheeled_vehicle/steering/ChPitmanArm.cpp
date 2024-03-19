@@ -55,11 +55,11 @@ void ChPitmanArm::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassisBody->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassisBody->GetFrameRefToAbs().GetRot();
 
     // Express the steering reference frame in the absolute coordinate system.
     ChFrame<> steering_to_abs(location, rotation);
-    steering_to_abs.ConcatenatePreTransformation(chassisBody->GetFrame_REF_to_abs());
+    steering_to_abs.ConcatenatePreTransformation(chassisBody->GetFrameRefToAbs());
 
     // Transform all points and directions to absolute frame.
     std::vector<ChVector3d> points(NUM_POINTS);

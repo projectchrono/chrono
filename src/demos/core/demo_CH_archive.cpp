@@ -501,7 +501,7 @@ void my_system_serialization_example(ChArchiveOut& archive_out) {
     // ..create a truss
     auto my_body_A = chrono_types::make_shared<ChBody>();
     sys.AddBody(my_body_A);
-    my_body_A->SetBodyFixed(true);  // truss does not move!
+    my_body_A->SetFixed(true);  // truss does not move!
 
     // ..create a flywheel
     auto my_body_B = chrono_types::make_shared<ChBody>();
@@ -512,7 +512,7 @@ void my_system_serialization_example(ChArchiveOut& archive_out) {
     auto my_link_AB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_link_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector3d(0, 0, 0)));
     sys.AddLink(my_link_AB);
-    auto my_speed_function = chrono_types::make_shared<ChFunctionConst>(CH_C_PI);  // speed w=3.145 rad/sec
+    auto my_speed_function = chrono_types::make_shared<ChFunctionConst>(CH_PI);  // speed w=3.145 rad/sec
     my_link_AB->SetSpeedFunction(my_speed_function);
 
     // Serialize all the physical system (including bodies, links etc.),

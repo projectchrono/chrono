@@ -43,11 +43,11 @@ class ChApi ChSolverBB : public ChIterativeSolverVI {
 
     /// Number of max tolerated steps in non-monotone Armijo
     /// line search; usually good values are in 1..10 range.
-    void SetNarmijo(int mf) { n_armijo = mf; }
-    double GetNarmijo() { return n_armijo; }
+    void SetMaxStepsArmijoLineSearch(int mf) { n_armijo = mf; }
+    double GetMaxStepsArmijoLineSearch() { return n_armijo; }
 
-    void SetMaxArmijoBacktrace(int mm) { max_armijo_backtrace = mm; }
-    int GetMaxArmijoBacktrace() { return max_armijo_backtrace; }
+    void SetMaxStepsArmijoBacktrace(int mm) { max_armijo_backtrace = mm; }
+    int GetMaxStepsArmijoBacktrace() { return max_armijo_backtrace; }
 
     /// Return the tolerance error reached during the last solve.
     /// For the Barzilai-Borwein solver, this is the norm of the projected gradient.

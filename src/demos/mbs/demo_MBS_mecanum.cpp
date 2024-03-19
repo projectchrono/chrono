@@ -130,7 +130,7 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
     double roller_elliptical_rad_Vert = wheel_radius * 1.0 / (cos(roller_angle));
 
     for (int iroller = 0; iroller < n_rollers; iroller++) {
-        double pitch = CH_C_2PI * ((double)iroller / (double)n_rollers);
+        double pitch = CH_2PI * ((double)iroller / (double)n_rollers);
 
         double Roffset = -(wheel_radius - roller_midradius);
 
@@ -159,7 +159,7 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
                                                                        2 * roller_elliptical_rad_Hor,             //
                                                                        Roffset);
         roller->AddCollisionShape(shape);
-        roller->SetCollide(true);
+        roller->EnableCollision(true);
 
         // add visualization shape
         auto rollershape = chrono_types::make_shared<ChVisualShapeBarrel>(-half_length_roller, +half_length_roller,  //
@@ -170,7 +170,7 @@ std::shared_ptr<ChBody> create_mecanum_wheel(ChSystemNSC& sys,
 
         // Make the revolute joint between the roller and the central wheel
         // (preconcatenate rotation 90 degrees on X, to set axis of revolute joint)
-        ChFrameMoving<> fr(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI_2));
+        ChFrameMoving<> fr(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI_2));
         ChFrameMoving<> frabs = fr >> f3;
         auto link_roller = chrono_types::make_shared<ChLinkLockRevolute>();
         link_roller->Initialize(roller, centralWheel, frabs);
@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
 
     double platform_radius = 8;
     double wheel_radius = 3;
-    double roller_angle = CH_C_PI / 4;
+    double roller_angle = CH_PI / 4;
 
     // Create the robot truss, as a circular platform
     auto platform = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,       //
@@ -204,18 +204,18 @@ int main(int argc, char* argv[]) {
 
     // create the wheels and link them to the platform
 
-    ChFrame<> f0(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI_2));
+    ChFrame<> f0(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI_2));
     ChFrame<> f1(ChVector3d(0, 0, platform_radius), QUNIT);
-    ChFrame<> f2_wA(VNULL, QuatFromAngleY(0 * (CH_C_2PI / 3.0)));
-    ChFrame<> f2_wB(VNULL, QuatFromAngleY(1 * (CH_C_2PI / 3.0)));
-    ChFrame<> f2_wC(VNULL, QuatFromAngleY(2 * (CH_C_2PI / 3.0)));
+    ChFrame<> f2_wA(VNULL, QuatFromAngleY(0 * (CH_2PI / 3.0)));
+    ChFrame<> f2_wB(VNULL, QuatFromAngleY(1 * (CH_2PI / 3.0)));
+    ChFrame<> f2_wC(VNULL, QuatFromAngleY(2 * (CH_2PI / 3.0)));
     ChFrame<> ftot_wA = f0 >> f1 >> f2_wA;
     ChFrame<> ftot_wB = f0 >> f1 >> f2_wB;
     ChFrame<> ftot_wC = f0 >> f1 >> f2_wC;
 
     auto spindle_A = create_mecanum_wheel(sys,
-                                          ftot_wA.GetCsys().pos,  // wheel position
-                                          ftot_wA.GetCsys().rot,  // wheel alignment
+                                          ftot_wA.GetCoordsys().pos,  // wheel position
+                                          ftot_wA.GetCoordsys().rot,  // wheel alignment
                                           wheel_radius,            // wheel radius
                                           2.2,                     // wheel width
                                           8,                       // n. of rollers
@@ -230,8 +230,8 @@ int main(int argc, char* argv[]) {
     sys.AddLink(link_shaftA);
 
     auto spindle_B = create_mecanum_wheel(sys,
-                                          ftot_wB.GetCsys().pos,  // wheel position
-                                          ftot_wB.GetCsys().rot,  // wheel alignment
+                                          ftot_wB.GetCoordsys().pos,  // wheel position
+                                          ftot_wB.GetCoordsys().rot,  // wheel alignment
                                           wheel_radius,            // wheel radius
                                           2.2,                     // wheel width
                                           8,                       // n. of rollers
@@ -246,8 +246,8 @@ int main(int argc, char* argv[]) {
     sys.AddLink(link_shaftB);
 
     auto spindle_C = create_mecanum_wheel(sys,
-                                          ftot_wC.GetCsys().pos,  // wheel position
-                                          ftot_wC.GetCsys().rot,  // wheel alignment
+                                          ftot_wC.GetCoordsys().pos,  // wheel position
+                                          ftot_wC.GetCoordsys().rot,  // wheel alignment
                                           wheel_radius,            // wheel radius
                                           2.2,                     // wheel width
                                           8,                       // n. of rollers
@@ -271,7 +271,7 @@ int main(int argc, char* argv[]) {
                                                            true,         // collide
                                                            ground_mat);  // contact material
     ground->SetPos(ChVector3d(0, -5, 0));
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 100, 100);
     sys.Add(ground);
 
@@ -297,7 +297,7 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_PROJECTED);
 
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(30);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(30);
 
     // Simulation loop
 
@@ -317,15 +317,15 @@ int main(int argc, char* argv[]) {
         ChVector3d imposed_speed(STATIC_x_speed, 0, STATIC_z_speed);
         ChFrame<> roll_twist(ChVector3d(0, -wheel_radius, 0), QuatFromAngleY(-roller_angle));
 
-        ChFrame<> abs_roll_wA = roll_twist >> f2_wA >> ChFrame<>(platform->GetCsys());
+        ChFrame<> abs_roll_wA = roll_twist >> f2_wA >> ChFrame<>(platform->GetCoordsys());
         double wheel_A_rotspeed =
             (STATIC_rot_speed * platform_radius) +
             ((abs_roll_wA.GetRotMat().transpose() * imposed_speed).x() / sin(roller_angle)) / wheel_radius;
-        ChFrame<> abs_roll_wB = roll_twist >> f2_wB >> ChFrame<>(platform->GetCsys());
+        ChFrame<> abs_roll_wB = roll_twist >> f2_wB >> ChFrame<>(platform->GetCoordsys());
         double wheel_B_rotspeed =
             (STATIC_rot_speed * platform_radius) +
             ((abs_roll_wB.GetRotMat().transpose() * imposed_speed).x() / sin(roller_angle)) / wheel_radius;
-        ChFrame<> abs_roll_wC = roll_twist >> f2_wC >> ChFrame<>(platform->GetCsys());
+        ChFrame<> abs_roll_wC = roll_twist >> f2_wC >> ChFrame<>(platform->GetCoordsys());
         double wheel_C_rotspeed =
             (STATIC_rot_speed * platform_radius) +
             ((abs_roll_wC.GetRotMat().transpose() * imposed_speed).x() / sin(roller_angle)) / wheel_radius;

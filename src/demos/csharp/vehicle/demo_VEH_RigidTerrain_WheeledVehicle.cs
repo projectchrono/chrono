@@ -163,7 +163,7 @@ namespace ChronoDemo
 
             // TODO: Fix wrapping for calc height
             /*
-            CSV_writer csv_out = new CSV_writer(" ");
+            ChWriterCSV csv_out = new ChWriterCSV(" ");
             for (int ix = 0; ix < 20; ix++) {
                 double x = ix * 1.0;
                 for (int iy = 0; iy < 100; iy++) {
@@ -171,7 +171,7 @@ namespace ChronoDemo
                     //csv_out = (csv_out + x + y + z + "\n");
                 }
             }
-            csv_out.write_to_file("terrain.out");
+            csv_out.WriteToFile("terrain.out");
             */
 
             // ---------------

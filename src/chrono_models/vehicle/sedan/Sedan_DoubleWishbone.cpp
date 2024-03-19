@@ -57,9 +57,10 @@ const ChVector3d Sedan_DoubleWishbone::m_LCAInertiaProducts(0.0, 0.0, 0.0);
 
 const double Sedan_DoubleWishbone::m_axleInertia = 0.4;
 
-const double Sedan_DoubleWishbone::m_springCoefficient = 500000.0; //369149.000;
-const double Sedan_DoubleWishbone::m_dampingCoefficient = 20000.0; //22459.000;
-const double Sedan_DoubleWishbone::m_springRestLength = 0.51; //0.306;
+const double Sedan_DoubleWishbone::m_springCoefficient = 73574.10163;
+const double Sedan_DoubleWishbone::m_dampingCoefficient = 15054.53731;
+const double Sedan_DoubleWishbone::m_springRestLength = 0.511468474;
+const double Sedan_DoubleWishbone::m_springPreload = 7492.646764;
 
 // -----------------------------------------------------------------------------
 // Sedan shock functor class - implements a nonlinear damper
@@ -109,7 +110,10 @@ double Sedan_ShockForce::evaluate(double time, double rest_length, double length
 // Constructors
 // -----------------------------------------------------------------------------
 Sedan_DoubleWishbone::Sedan_DoubleWishbone(const std::string& name) : ChDoubleWishbone(name) {
-    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient);
+    m_springForceCB = chrono_types::make_shared<LinearSpringForce>(m_springCoefficient, m_springPreload);
+    auto sptr = std::static_pointer_cast<LinearSpringForce>(m_springForceCB);
+    sptr->enable_stops(m_springRestLength-0.04,m_springRestLength+0.04);
+    sptr->set_stops(2.0*m_springCoefficient,2.0*m_springCoefficient);
     m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient);
 }
 

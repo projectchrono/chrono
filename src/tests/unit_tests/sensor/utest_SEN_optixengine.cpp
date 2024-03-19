@@ -39,7 +39,7 @@ TEST(ChOptixEngine, assign_sensor_safety) {
     ChSystemNSC sys;
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
-    box->SetBodyFixed(true);
+    box->SetFixed(true);
     sys.Add(box);
 
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
@@ -51,7 +51,7 @@ TEST(ChOptixEngine, assign_sensor_safety) {
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         64,                                                                 // image width
         48,                                                                 // image height
-        (float)CH_C_PI / 3                                                  // FOV
+        (float)CH_PI / 3                                                  // FOV
     );
     cam->SetName("Camera Sensor");
     manager->AddSensor(cam);
@@ -73,7 +73,7 @@ TEST(ChOptixEngine, assign_sensor_safety) {
         chrono::ChFrame<double>({-4, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         64,                                                                 // image width
         48,                                                                 // image height
-        (float)CH_C_PI / 3                                                  // FOV
+        (float)CH_PI / 3                                                  // FOV
     );
     cam2->SetName("Camera Sensor");
     manager->AddSensor(cam2);
@@ -93,7 +93,7 @@ TEST(ChOptixEngine, construct_scene_safety) {
     ChSystemNSC sys;
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
-    box->SetBodyFixed(true);
+    box->SetFixed(true);
     sys.Add(box);
 
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
@@ -105,7 +105,7 @@ TEST(ChOptixEngine, construct_scene_safety) {
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         64,                                                                 // image width
         48,                                                                 // image height
-        (float)CH_C_PI / 3                                                  // FOV
+        (float)CH_PI / 3                                                  // FOV
     );
     cam->SetName("Camera Sensor");
     manager->AddSensor(cam);
@@ -125,7 +125,7 @@ TEST(ChOptixEngine, construct_scene_safety) {
         if (frame == 10) {
             auto b = chrono_types::make_shared<ChBodyEasyBox>(.5, .5, .5, 1000, true, false);
             b->SetPos({0, 0, 2});
-            b->SetBodyFixed(true);
+            b->SetFixed(true);
             sys.Add(b);
             engine->ConstructScene();
         }
@@ -141,7 +141,7 @@ TEST(ChOptixEngine, construct_scene_safety_2) {
     ChSystemNSC sys;
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
-    box->SetBodyFixed(true);
+    box->SetFixed(true);
     sys.Add(box);
 
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
@@ -153,7 +153,7 @@ TEST(ChOptixEngine, construct_scene_safety_2) {
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         64,                                                                 // image width
         48,                                                                 // image height
-        (float)CH_C_PI / 3                                                  // FOV
+        (float)CH_PI / 3                                                  // FOV
     );
     cam->SetName("Camera Sensor");
     // cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640,480,"RGB Camera"));
@@ -174,7 +174,7 @@ TEST(ChOptixEngine, construct_scene_safety_2) {
         if (frame == 10) {
             auto b = chrono_types::make_shared<ChBodyEasyBox>(.5, .5, .5, 1000, true, false);
             b->SetPos({0, 0, 2});
-            b->SetBodyFixed(true);
+            b->SetFixed(true);
             sys.Add(b);
             manager->ReconstructScenes();
         }
@@ -190,7 +190,7 @@ TEST(ChOptixEngine, lights) {
     ChSystemNSC sys;
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, false);
-    box->SetBodyFixed(true);
+    box->SetFixed(true);
     sys.Add(box);
 
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
@@ -202,7 +202,7 @@ TEST(ChOptixEngine, lights) {
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1,                                                                  // image width
         1,                                                                  // image height
-        (float)CH_C_PI / 3                                                  // FOV
+        (float)CH_PI / 3                                                  // FOV
     );
     cam->SetName("Camera Sensor");
     manager->AddSensor(cam);

@@ -26,7 +26,7 @@ namespace chrono {
 /// `    y(x) = offset + \int{f(s) ds}_{x_start}^{x}    `.
 /// The integral is computed using trapezoidal integration over a given number of samples.
 /// The function returns a value equal to the offset for any value x<= x_start, while returns y(x_end) for any value x>= x_end.
-/// x_start and x_end are set through the ::SetStartArg() and ::SetEndArg() methods.
+/// x_start and x_end are set through the SetStartArg() and SetEndArg() methods.
 class ChApi ChFunctionIntegral : public ChFunction {
   private:
     std::shared_ptr<ChFunction> m_integrand_fun;
@@ -34,7 +34,7 @@ class ChApi ChFunctionIntegral : public ChFunction {
     double m_offset;          ///< initial value of the integral at x=m_x_start
     double m_x_start;          ///< start of integration interval
     double m_x_end;            ///< end of integration interval
-    int m_num_samples;          ///< number of samples for the numerical quadrature
+    unsigned int m_num_samples;          ///< number of samples for the numerical quadrature
     ChArray<> m_cumintegral;  ///< precomputed integral values
 
   public:
@@ -63,7 +63,7 @@ class ChApi ChFunctionIntegral : public ChFunction {
     void SetNumSamples(int m_samples);
 
     /// Get the number of samples used for the numerical quadrature.
-    int GetNumSamples() const { return m_num_samples; }
+    unsigned int GetNumSamples() const { return m_num_samples; }
 
     /// Set the initial value of the integral.
     void SetOffsetVal(double offset) { m_offset = offset; }

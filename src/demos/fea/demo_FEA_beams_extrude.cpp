@@ -27,8 +27,8 @@
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
-#include "chrono/fea/ChLinkPointFrame.h"
-#include "chrono/fea/ChLinkDirFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -55,7 +55,7 @@ std::shared_ptr<ChBody> CreateLobedGear(ChVector3d gear_center,
 
     // cylindrical lobes
     for (int i = 0; i < lobe_copies; ++i) {
-        double phase = CH_C_2PI * ((double)i / (double)lobe_copies);
+        double phase = CH_2PI * ((double)i / (double)lobe_copies);
         ChVector3d loc(lobe_primitive_rad * sin(phase), lobe_primitive_rad * cos(phase), 0);
         // shortcut from ChUtilsCreators.h: adds both collision shape and visualization asset
         chrono::utils::AddCylinderGeometry(mgear.get(), mysurfmaterial,             //
@@ -67,7 +67,7 @@ std::shared_ptr<ChBody> CreateLobedGear(ChVector3d gear_center,
     // central hub
     chrono::utils::AddCylinderGeometry(mgear.get(), mysurfmaterial, lobe_inner_rad, lobe_thickness * 0.5, VNULL, QUNIT,
                                        true);
-    mgear->SetCollide(true);
+    mgear->EnableCollision(true);
 
     return mgear;
 }
@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
 
     // Create a ground object, useful reference for connecting constraints etc.
     auto mground = chrono_types::make_shared<ChBody>();
-    mground->SetBodyFixed(true);
+    mground->SetFixed(true);
     sys.Add(mground);
 
     // Create a mesh, that is a container for groups of elements and their referenced nodes.
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
 
     auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
     melasticity->SetYoungModulus(0.5e9);
-    melasticity->SetGshearModulus(0.5e9 * 0.7);
+    melasticity->SetShearModulus(0.5e9 * 0.7);
     melasticity->SetAsCircularSection(wire_diameter);
 
     auto mdamping = chrono_types::make_shared<ChDampingCosseratLinear>();
@@ -203,7 +203,7 @@ int main(int argc, char* argv[]) {
 
     auto gearHI = CreateLobedGear(gear_centerHI, lobe_copies, lobe_width, lobe_primitive_rad, lobe_inner_rad,
                                   lobe_outer_rad, lobe_thickness, sys, mysurfmaterial);
-    gearHI->SetRot(QuatFromAngleZ(0.5 * CH_C_2PI / lobe_copies));  // to phase half step respect to other gear
+    gearHI->SetRot(QuatFromAngleZ(0.5 * CH_2PI / lobe_copies));  // to phase half step respect to other gear
 
     auto mgear_motorHI = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     mgear_motorHI->Initialize(gearHI, mground, ChFrame<>(gear_centerHI));

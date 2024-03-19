@@ -54,7 +54,7 @@ namespace ChronoDemo
             // Create the system
             ChSystemSMC sys = new ChSystemSMC();
 
-            sys.Set_G_acc(new ChVector3d(0, gravity, 0));
+            sys.SetGravitationalAcceleration(new ChVector3d(0, gravity, 0));
             sys.SetCollisionSystemType(coll_type);
 
             // The following two lines are optional, since they are the default options. They are added for future reference,
@@ -83,11 +83,11 @@ namespace ChronoDemo
             ball.SetRot(rot);
             ball.SetLinVel(init_vel);
             // ball.SetWvel_par(new ChVector3d(0,0,3));
-            ball.SetBodyFixed(false);
+            ball.SetFixed(false);
 
             ChCollisionShapeSphere sphere_coll = new ChCollisionShapeSphere(material, radius);
             ball.AddCollisionShape(sphere_coll, new ChFramed());
-            ball.SetCollide(true);
+            ball.EnableCollision(true);
 
             ChVisualShapeSphere sphere_vis = new ChVisualShapeSphere(radius);
             sphere_vis.SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"));
@@ -103,11 +103,11 @@ namespace ChronoDemo
             bin.SetMass(1);
             bin.SetPos(new ChVector3d(0, 0, 0));
             bin.SetRot(new ChQuaterniond(1, 0, 0, 0));
-            bin.SetBodyFixed(true);
+            bin.SetFixed(true);
 
             ChCollisionShapeBox box_coll = new ChCollisionShapeBox(material, width * 2, thickness * 2, length * 2);
             bin.AddCollisionShape(box_coll, new ChFramed());
-            bin.SetCollide(true);
+            bin.EnableCollision(true);
 
             ChVisualShapeBox box_vis = new ChVisualShapeBox(width * 2, thickness * 2, length * 2);
             box_vis.SetColor(new ChColor(0.8f, 0.2f, 0.2f));
@@ -128,7 +128,7 @@ namespace ChronoDemo
             vis.AddCamera(new ChVector3d(0, 3, -6));
             vis.AttachSystem(sys);
             vis.AddGrid(0.2, 0.2, 20, 20,
-                        new ChCoordsysd(new ChVector3d(0, 0.11, 0), chrono.QuatFromAngleX(chrono.CH_C_PI_2)),
+                        new ChCoordsysd(new ChVector3d(0, 0.11, 0), chrono.QuatFromAngleX(chrono.CH_PI_2)),
                         new ChColor(0.1f, 0.1f, 0.1f));
 
             // The soft-real-time cycle
@@ -139,7 +139,7 @@ namespace ChronoDemo
             {
                 vis.BeginScene();
                 vis.Render();
-                vis.RenderFrame(new ChFramed(chrono.CastToChBodyFrame(ball).GetCsys()), 1.2 * radius);
+                vis.RenderFrame(new ChFramed(chrono.CastToChBodyFrame(ball).GetCoordsys()), 1.2 * radius);
                 vis.EndScene();
 
                 while (time < out_time)

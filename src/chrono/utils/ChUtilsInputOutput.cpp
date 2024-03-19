@@ -42,18 +42,18 @@ void WriteBodies(ChSystem* system,
                  bool active_only,
                  bool dump_vel,
                  const std::string& delim) {
-    CSV_writer csv(delim);
+    ChWriterCSV csv(delim);
 
     for (auto body : system->GetBodies()) {
         if (active_only && !body->IsActive())
             continue;
         csv << body->GetPos() << body->GetRot();
         if (dump_vel)
-            csv << body->GetPosDer() << body->GetAngVelLocal();
+            csv << body->GetPosDt() << body->GetAngVelLocal();
         csv << std::endl;
     }
 
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 }
 
 // -----------------------------------------------------------------------------
@@ -64,7 +64,7 @@ void WriteBodies(ChSystem* system,
 // -----------------------------------------------------------------------------
 bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
     // Create the CSV stream.
-    CSV_writer csv(" ");
+    ChWriterCSV csv(" ");
     std::string tab("    ");
 
     // Write contact method type (0: NSC, 1: SMC)
@@ -73,7 +73,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 
     for (auto body : system->GetBodies()) {
         // Write body identifier, the body fixed flag, and the collide flag
-        csv << body->GetIdentifier() << body->GetBodyFixed() << body->GetCollide() << tab;
+        csv << body->GetIdentifier() << body->IsFixed() << body->IsCollisionEnabled() << tab;
 
         // Write collision family information.
         csv << body->GetCollisionModel()->GetFamilyGroup() << body->GetCollisionModel()->GetFamilyMask() << tab;
@@ -83,12 +83,12 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 
         // Write body position, orientation, and their time derivatives
         csv << body->GetPos() << body->GetRot() << tab;
-        csv << body->GetPosDer() << body->GetRotDer() << tab;
+        csv << body->GetPosDt() << body->GetRotDt() << tab;
 
         csv << std::endl;
 
         // Write number of collision shapes
-        int n_shapes = body->GetCollisionModel()->GetNumShapes();
+        unsigned int n_shapes = body->GetCollisionModel()->GetNumShapes();
         csv << n_shapes << std::endl;
 
         // Loop over each shape and write its data on a separate line.
@@ -190,7 +190,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
         }
     }
 
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 
     return true;
 }
@@ -248,12 +248,12 @@ void ReadCheckpoint(ChSystem* system, const std::string& filename) {
         // Set body properties and state
         body->SetPos(bpos);
         body->SetRot(brot);
-        body->SetPosDer(bpos_dt);
-        body->SetRotDer(brot_dt);
+        body->SetPosDt(bpos_dt);
+        body->SetRotDt(brot_dt);
 
         body->SetIdentifier(bid);
-        body->SetBodyFixed(bfixed != 0);
-        body->SetCollide(bcollide != 0);
+        body->SetFixed(bfixed != 0);
+        body->EnableCollision(bcollide != 0);
 
         body->SetMass(mass);
         body->SetInertiaXX(inertiaXX);
@@ -358,11 +358,11 @@ void WriteCamera(const std::string& filename,
                  const ChVector3d& cam_target,
                  const ChVector3d& camera_upvec,
                  const std::string& delim) {
-    CSV_writer csv(delim);
+    ChWriterCSV csv(delim);
     csv << cam_location << std::endl;
     csv << cam_target << std::endl;
     csv << camera_upvec << std::endl;
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 }
 
 // -----------------------------------------------------------------------------
@@ -419,7 +419,7 @@ void WriteVisualizationAssets(ChSystem* system,
                               std::function<bool(const ChBody&)> selector,
                               bool body_info,
                               const std::string& delim) {
-    CSV_writer csv(delim);
+    ChWriterCSV csv(delim);
 
     // If requested, Loop over all bodies and write out their position and
     // orientation.  Otherwise, body count is left at 0.
@@ -430,8 +430,8 @@ void WriteVisualizationAssets(ChSystem* system,
             if (!selector(*body))
                 continue;
 
-            const ChVector3d& body_pos = body->GetFrame_REF_to_abs().GetPos();
-            const ChQuaternion<>& body_rot = body->GetFrame_REF_to_abs().GetRot();
+            const ChVector3d& body_pos = body->GetFrameRefToAbs().GetPos();
+            const ChQuaternion<>& body_rot = body->GetFrameRefToAbs().GetRot();
 
             csv << body->GetIdentifier() << body->IsActive() << body_pos << body_rot << std::endl;
 
@@ -451,7 +451,7 @@ void WriteVisualizationAssets(ChSystem* system,
         // Loop over visual shapes -- write information for supported types.
         for (auto& shape_instance : body->GetVisualModel()->GetShapes()) {
             auto& shape = shape_instance.first;
-            auto X_GS = body->GetFrame_REF_to_abs() * shape_instance.second;
+            auto X_GS = body->GetFrameRefToAbs() * shape_instance.second;
             auto& pos = X_GS.GetPos();
             auto& rot = X_GS.GetRot();
 
@@ -584,7 +584,7 @@ void WriteVisualizationAssets(ChSystem* system,
     std::stringstream header;
     header << b_count << delim << a_count << delim << l_count << delim << la_count << delim << std::endl;
 
-    csv.write_to_file(filename, header.str());
+    csv.WriteToFile(filename, header.str());
 }
 
 // -----------------------------------------------------------------------------
@@ -690,7 +690,7 @@ void WriteCurvePovray(const ChBezierCurve& curve,
                       const ChColor& col) {
     int nP = 20;
     double dt = 1.0 / nP;
-    size_t nS = curve.getNumPoints() - 1;
+    size_t nS = curve.GetNumPoints() - 1;
 
     // Open output file.
     std::string pov_filename = out_dir + "/" + curve_name + ".inc";
@@ -700,12 +700,12 @@ void WriteCurvePovray(const ChBezierCurve& curve,
     ofile << "  sphere_sweep {" << std::endl;
     ofile << "    linear_spline " << nP * nS + 1 << "," << std::endl;
 
-    ChVector3d v = curve.eval(0, 0.0);
+    ChVector3d v = curve.Eval(0, 0.0);
     ofile << "        <" << v.x() << ", " << v.z() << ", " << v.x() << "> ," << radius << std::endl;
 
     for (int iS = 0; iS < nS; iS++) {
         for (int iP = 1; iP <= nP; iP++) {
-            v = curve.eval(iS, iP * dt);
+            v = curve.Eval(iS, iP * dt);
             ofile << "        <" << v.x() << ", " << v.z() << ", " << v.y() << "> ," << radius << std::endl;
         }
     }

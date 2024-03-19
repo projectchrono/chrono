@@ -69,7 +69,7 @@ terrain.Initialize()
 
 # Left circle path
 path = veh.CirclePath(chrono.ChVector3d(-75, 0, 0.6), 20, 40, True, 10)
-npoints = path.getNumPoints()
+npoints = path.GetNumPoints()
 
 path_asset = chrono.ChVisualShapeLine()
 path_asset.SetLineGeometry(chrono.ChLineBezier(path))

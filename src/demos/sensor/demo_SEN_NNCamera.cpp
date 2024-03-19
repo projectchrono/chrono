@@ -66,7 +66,7 @@ unsigned int image_width = 1280;
 unsigned int image_height = 720;
 
 // Camera's horizontal field of view
-float fov = CH_C_PI / 3.;
+float fov = CH_PI / 3.;
 
 // Lag (in seconds) between sensing and when data becomes accessible
 float lag = 0;
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({0, 0, 0});
     mesh_body->AddVisualShape(trimesh_shape,ChFrame<>());
-    mesh_body->SetBodyFixed(true);
+    mesh_body->SetFixed(true);
     mphysicalSystem.Add(mesh_body);
 
     // -----------------------

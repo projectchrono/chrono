@@ -62,7 +62,7 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
 
         // Create the mechanical sys
         sys = new ChSystemMulticoreNSC();
-        sys->Set_G_acc(ChVector3d(0, 0, -9.81));
+        sys->SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
         // Set number of threads
         sys->SetNumThreads(1);
@@ -84,8 +84,8 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         // Create the ground body
         auto ground = chrono_types::make_shared<ChBody>();
         ground->SetIdentifier(-1);
-        ground->SetBodyFixed(true);
-        ground->SetCollide(false);
+        ground->SetFixed(true);
+        ground->EnableCollision(false);
         sys->AddBody(ground);
 
         // Create the sled body
@@ -94,9 +94,9 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         sled->SetMass(550);
         sled->SetInertiaXX(ChVector3d(100, 100, 100));
         sled->SetPos(ChVector3d(0, 0, 0));
-        sled->SetPosDer(ChVector3d(init_vel, 0, 0));
-        sled->SetBodyFixed(false);
-        sled->SetCollide(false);
+        sled->SetPosDt(ChVector3d(init_vel, 0, 0));
+        sled->SetFixed(false);
+        sled->EnableCollision(false);
 
         auto box_sled = chrono_types::make_shared<ChVisualShapeBox>(2, 0.5, 0.5);
         sled->AddVisualShape(box_sled, ChFrame<>());
@@ -110,25 +110,25 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
         wheel->SetInertiaXX(ChVector3d(50, 138, 138));
         wheel->SetPos(ChVector3d(2, 0, 0));
         wheel->SetRot(ChQuaternion<>(1, 0, 0, 0));
-        wheel->SetPosDer(ChVector3d(init_vel, 0, 0));
-        wheel->SetBodyFixed(false);
-        wheel->SetCollide(true);
+        wheel->SetPosDt(ChVector3d(init_vel, 0, 0));
+        wheel->SetFixed(false);
+        wheel->EnableCollision(true);
 
         auto wheel_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
         utils::AddCylinderGeometry(wheel.get(), wheel_mat, 0.3, 0.1, ChVector3d(0, 0, 0),
-                                   QuatFromAngleZ(CH_C_PI_2));
+                                   QuatFromAngleZ(CH_PI_2));
 
         sys->AddBody(wheel);
 
         // Create and initialize translational joint ground - sled
         prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
-        prismatic->Initialize(ground, sled, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_C_PI_2)));
+        prismatic->Initialize(ground, sled, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_PI_2)));
         sys->AddLink(prismatic);
 
         // Create and initialize revolute joint sled - wheel
         revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-        revolute->Initialize(wheel, sled, ChFrame<>(ChVector3d(1, 0, 0), QuatFromAngleX(CH_C_PI_2)));
+        revolute->Initialize(wheel, sled, ChFrame<>(ChVector3d(1, 0, 0), QuatFromAngleX(CH_PI_2)));
         sys->AddLink(revolute);
     }
 

@@ -169,14 +169,14 @@ void ChContactContainerNSC::EndAddContact() {
 }
 
 template <class Tcont, class Titer, class Ta, class Tb>
-void _OptimalContactInsert(std::list<Tcont*>& contactlist,           // contact list
-                           Titer& lastcontact,                       // last contact acquired
-                           int& n_added,                             // number of contacts inserted
-                           ChContactContainer* container,            // contact container
-                           Ta* objA,                                 // collidable object A
-                           Tb* objB,                                 // collidable object B
-                           const ChCollisionInfo& cinfo,  // collision information
-                           const ChContactMaterialCompositeNSC& cmat        // composite material
+void _OptimalContactInsert(std::list<Tcont*>& contactlist,            // contact list
+                           Titer& lastcontact,                        // last contact acquired
+                           int& n_added,                              // number of contacts inserted
+                           ChContactContainerNSC* container,          // contact container
+                           Ta* objA,                                  // collidable object A
+                           Tb* objB,                                  // collidable object B
+                           const ChCollisionInfo& cinfo,              // collision information
+                           const ChContactMaterialCompositeNSC& cmat  // composite material
 ) {
     if (lastcontact != contactlist.end()) {
         // reuse old contacts
@@ -793,6 +793,8 @@ void ChContactContainerNSC::ArchiveOut(ChArchiveOut& archive_out) {
     // serialize parent class
     ChContactContainer::ArchiveOut(archive_out);
     // serialize all member data:
+    archive_out << CHNVP(min_bounce_speed);  
+
     // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
 }
 
@@ -803,6 +805,8 @@ void ChContactContainerNSC::ArchiveIn(ChArchiveIn& archive_in) {
     // deserialize parent class
     ChContactContainer::ArchiveIn(archive_in);
     // stream in all member data:
+    archive_in >> CHNVP(min_bounce_speed);
+
     RemoveAllContacts();
     // NO SERIALIZATION of contact list because assume it is volatile and generated when needed
 }

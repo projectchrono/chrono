@@ -196,10 +196,10 @@ ChHumanDriver::ChHumanDriver(const std::string& filename,
 void ChHumanDriver::Create() {
     // Create a fixed body to carry a visualization asset for the path
     auto road = chrono_types::make_shared<ChBody>();
-    road->SetBodyFixed(true);
+    road->SetFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
 
-    auto num_points = static_cast<unsigned int>(m_path->getNumPoints());
+    auto num_points = static_cast<unsigned int>(m_path->GetNumPoints());
     auto path_asset = chrono_types::make_shared<ChVisualShapeLine>();
     path_asset->SetLineGeometry(chrono_types::make_shared<ChLineBezier>(m_path));
     path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));
@@ -218,7 +218,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
         m_run_once = false;
     }
 
-    auto& chassis_frame = m_vehicle.GetChassisBody()->GetFrame_REF_to_abs();  // chassis ref-to-world frame
+    auto& chassis_frame = m_vehicle.GetChassisBody()->GetFrameRefToAbs();  // chassis ref-to-world frame
     auto& chassis_rot = chassis_frame.GetRot();                               // chassis ref-to-world rotation
     double u = m_vehicle.GetSpeed();                                          // vehicle speed
 
@@ -256,7 +256,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
         m_sentinel = chassis_frame.TransformPointLocalToParent(factor * ChWorldFrame::Forward());
     } else {
         // m_Kug is in [°/g]
-        R = (m_L + CH_C_DEG_TO_RAD * m_Kug * ut * ut / g) / m_delta;
+        R = (m_L + CH_DEG_TO_RAD * m_Kug * ut * ut / g) / m_delta;
         double theta = ut * m_Tp / R;
         ChMatrix33<> RM(theta, ChWorldFrame::Vertical());
         m_sentinel = chassis_frame.TransformPointLocalToParent(factor * ChWorldFrame::Forward()) + R * (n_g - RM * n_g);
@@ -304,7 +304,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
     m_steering = m_delta / m_delta_max;
 
     // define field of view angle of the driver +-10 deg
-    const double ny = 10.0 * CH_C_DEG_TO_RAD;
+    const double ny = 10.0 * CH_DEG_TO_RAD;
     // which speed to choose?
     // search intervalls for longitudinal controller
     double d_long = 0;
@@ -369,7 +369,7 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
 
 void ChHumanDriver::Initialize() {
     // Information about the drive course and the road borders
-    size_t np = m_path->getNumPoints();
+    size_t np = m_path->GetNumPoints();
     m_S_l.resize(np);
     m_R_l.resize(np);
     m_R_lu.resize(np);
@@ -379,7 +379,7 @@ void ChHumanDriver::Initialize() {
 
     if (m_path->IsClosed()) {
         for (size_t i = 0; i < np; i++) {
-            m_S_l[i] = m_path->getPoint(i);
+            m_S_l[i] = m_path->GetPoint(i);
         }
         for (size_t i = 0; i < np - 1; i++) {
             m_R_l[i] = m_S_l[i + 1] - m_S_l[i];
@@ -396,7 +396,7 @@ void ChHumanDriver::Initialize() {
         m_Rj[np - 1] = m_S_l[np - 1] - 0.5 * m_road_width * m_R_lu[np - 1].Cross(ChWorldFrame::Vertical());
     } else {
         for (size_t i = 0; i < np; i++) {
-            m_S_l[i] = m_path->getPoint(i);
+            m_S_l[i] = m_path->GetPoint(i);
         }
         for (size_t i = 0; i < np - 1; i++) {
             m_R_l[i] = m_S_l[i + 1] - m_S_l[i];

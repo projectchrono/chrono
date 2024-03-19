@@ -32,16 +32,16 @@ class ChApi ChLoadable {
     virtual ~ChLoadable() {}
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() = 0;
+    virtual unsigned int GetLoadableNumCoordsPosLevel() = 0;
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() = 0;
+    virtual unsigned int GetLoadableNumCoordsVelLevel() = 0;
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) = 0;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) = 0;
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) = 0;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) = 0;
 
     /// Increment all DOFs using a delta. Default is sum, but may override if 
     /// ndof_x is different than ndof_w, for example with rotation quaternions and angular w vel.
@@ -54,19 +54,19 @@ class ChApi ChLoadable {
 
 
     /// Number of coordinates in the interpolated field (e.g., 3 for a tetrahedron, 1 for a thermal problem, etc.).
-    virtual int Get_field_ncoords() = 0;
+    virtual unsigned int GetNumFieldCoords() = 0;
 
     /// Get the number of DOFs sub-blocks (e.g., 1 for a body, 4 for a tetrahedron, etc.).
-    virtual int GetSubBlocks() = 0;
+    virtual unsigned int GetNumSubBlocks() = 0;
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) = 0;
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) = 0;
 
     /// Get the size of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) = 0;
+    virtual unsigned int GetSubBlockSize(unsigned int nblock) = 0;
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const = 0;
+    virtual bool IsSubBlockActive(unsigned int nblock) const = 0;
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) = 0;

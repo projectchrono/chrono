@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     double tire_rad = 0.8;
     double tire_vel_z0 = -3;
     ChVector3d tire_center(0, 0, 0);
-    ChMatrix33<> tire_alignment(Q_from_AngAxis(CH_C_PI, VECT_Y));  // create rotated 180 deg on y
+    ChMatrix33<> tire_alignment(Q_from_AngAxis(CH_PI, VECT_Y));  // create rotated 180 deg on y
 
     double tire_w0 = tire_vel_z0 / tire_rad;
 
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     // my_system.SetLoggingLevel(LOG_INFO, true);
 
     double gravity = 9.81;
-    my_system.Set_G_acc(ChVector3d(0, 0, 0));
+    my_system.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     ////AddContainer(&my_system);
 
@@ -91,9 +91,9 @@ int main(int argc, char* argv[]) {
     // Create a material, that must be assigned to each solid element in the mesh, and set its parameters
     auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
     mmaterial->Set_E(0.016e9);  // rubber 0.01e9, steel 200e9
-    mmaterial->Set_v(0.4);
-    mmaterial->Set_RayleighDampingK(0.004);
-    mmaterial->Set_density(1000);
+    mmaterial->SetPoissonRatio(0.4);
+    mmaterial->SetRayleighDampingBeta(0.004);
+    mmaterial->SetDensity(1000);
 
     // Load an ABAQUS .INP tetahedron mesh file from disk, defining a tetahedron mesh.
     // Note that not all features of INP files are supported. Also, quadratic tetahedrons are promoted to linear.
@@ -104,10 +104,10 @@ int main(int argc, char* argv[]) {
                                      mmaterial, node_sets, tire_center, tire_alignment);
 
     //
-    uint num_nodes = my_mesh->GetNnodes();
-    uint num_elements = my_mesh->GetNelements();
+    uint num_nodes = my_mesh->GetNumNodes();
+    uint num_elements = my_mesh->GetNumElements();
 
-    //    for (unsigned int i = 0; i < my_mesh->GetNnodes(); ++i) {
+    //    for (unsigned int i = 0; i < my_mesh->GetNumNodes(); ++i) {
     //        auto node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->GetPos();
     //        ChVector3d tang_vel = Vcross(ChVector3d(tire_w0, 0, 0), node_pos - tire_center);
     //        std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(i))->SetPos_dt(ChVector3d(0, 0, 0) + tang_vel);
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
                 if (g < gravity) {
                     g += 0.1;
                 }
-                my_system.Set_G_acc(ChVector3d(0, 0, -g));
+                my_system.SetGravitationalAcceleration(ChVector3d(0, 0, -g));
             }
             gl_window.Render();
         } else {

@@ -299,7 +299,7 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
 
             double angle1 = arc->angle1;
             double angle2 = arc->angle2;
-            if (angle1 - angle2 == CH_C_2PI)
+            if (angle1 - angle2 == CH_2PI)
                 angle1 -= 1e-7;
             auto shape_arc = chrono_types::make_shared<ChCollisionShapeArc2D>(material, *arc, thickness);
             auto bt_shape = chrono_types::make_shared<cbt2DarcShape>(
@@ -333,8 +333,8 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
 
             // insert a 0-radius fillet arc at sharp corners, to allow for sharp-corner vs arc/segment
             if (Vcross(dir_prev, dir_next).z() < -1e-9) {
-                double angle1 = atan2(dir_prev.y(), dir_prev.x()) + CH_C_PI_2;
-                double angle2 = atan2(dir_next.y(), dir_next.x()) + CH_C_PI_2;
+                double angle1 = atan2(dir_prev.y(), dir_prev.x()) + CH_PI_2;
+                double angle2 = atan2(dir_next.y(), dir_next.x()) + CH_PI_2;
                 ChLineArc arc(ChCoordsys<>(pos_prev, QUNIT), 0, angle1, angle2, false);
                 auto shape_arc = chrono_types::make_shared<ChCollisionShapeArc2D>(material, arc, thickness);
                 auto bt_shape = chrono_types::make_shared<cbt2DarcShape>(
@@ -447,7 +447,7 @@ void ChCollisionModelBullet::injectTriangleMesh(std::shared_ptr<ChCollisionShape
     auto is_convex = shape_trimesh->IsConvex();
     auto radius = shape_trimesh->GetRadius();
 
-    if (!trimesh->getNumTriangles())
+    if (!trimesh->GetNumTriangles())
         return;
 
     if (auto mesh = std::dynamic_pointer_cast<ChTriangleMeshConnected>(trimesh)) {
@@ -549,10 +549,10 @@ void ChCollisionModelBullet::injectTriangleMesh(std::shared_ptr<ChCollisionShape
     }
 
     cbtTriangleMesh* bulletMesh = new cbtTriangleMesh;
-    for (int i = 0; i < trimesh->getNumTriangles(); i++) {
-        bulletMesh->addTriangle(cbtVector3CH(trimesh->getTriangle(i).p1),  //
-                                cbtVector3CH(trimesh->getTriangle(i).p2),  //
-                                cbtVector3CH(trimesh->getTriangle(i).p3),  //
+    for (auto i = 0; i < trimesh->GetNumTriangles(); i++) {
+        bulletMesh->addTriangle(cbtVector3CH(trimesh->GetTriangle(i).p1),  //
+                                cbtVector3CH(trimesh->GetTriangle(i).p2),  //
+                                cbtVector3CH(trimesh->GetTriangle(i).p3),  //
                                 true                                       // try to remove duplicate vertices
         );
     }
@@ -661,14 +661,13 @@ ChAABB ChCollisionModelBullet::GetBoundingBox() const {
 }
 
 void ChCollisionModelBullet::SyncPosition() {
-    ChCoordsys<> mcsys = GetContactable()->GetCsysForCollisionModel();
+    auto frame = GetContactable()->GetCollisionModelFrame();
+    const auto& R = frame.GetRotMat();
+    cbtMatrix3x3 basisA((cbtScalar)R(0, 0), (cbtScalar)R(0, 1), (cbtScalar)R(0, 2), (cbtScalar)R(1, 0),
+                        (cbtScalar)R(1, 1), (cbtScalar)R(1, 2), (cbtScalar)R(2, 0), (cbtScalar)R(2, 1),
+                        (cbtScalar)R(2, 2));
 
-    bt_collision_object->getWorldTransform().setOrigin(
-        cbtVector3((cbtScalar)mcsys.pos.x(), (cbtScalar)mcsys.pos.y(), (cbtScalar)mcsys.pos.z()));
-    const ChMatrix33<>& rA(mcsys.rot);
-    cbtMatrix3x3 basisA((cbtScalar)rA(0, 0), (cbtScalar)rA(0, 1), (cbtScalar)rA(0, 2), (cbtScalar)rA(1, 0),
-                        (cbtScalar)rA(1, 1), (cbtScalar)rA(1, 2), (cbtScalar)rA(2, 0), (cbtScalar)rA(2, 1),
-                        (cbtScalar)rA(2, 2));
+    bt_collision_object->getWorldTransform().setOrigin(cbtVector3CH(frame.GetPos()));
     bt_collision_object->getWorldTransform().setBasis(basisA);
 }
 

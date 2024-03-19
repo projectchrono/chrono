@@ -27,10 +27,6 @@ namespace chrono {
 
 /// Class for using a Matlab linear solver from Chrono programs.
 class ChApiMatlab ChSolverMatlab : public ChSolver {
-
-  protected:
-    ChMatlabEngine* mengine;
-
   public:
     ChSolverMatlab(ChMatlabEngine& me);
     ChSolverMatlab();
@@ -52,6 +48,12 @@ class ChApiMatlab ChSolverMatlab : public ChSolver {
 
     /// Method to allow de serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  protected:
+    virtual bool IsIterative() const override { return false; }
+    virtual bool IsDirect() const override { return false; }
+
+    ChMatlabEngine* mengine;
 };
 
 /// @} matlab_module

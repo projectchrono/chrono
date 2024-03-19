@@ -55,7 +55,7 @@ void ChCollisionModelMulticore::Populate() {
         // Create collision shapes relative to the body COG frame
         auto frame = shape_instance.second;
         if (ChBodyAuxRef* body_ar = dynamic_cast<ChBodyAuxRef*>(GetBody())) {
-            frame = frame >> body_ar->GetFrame_REF_to_COG();
+            frame = frame >> body_ar->GetFrameRefToCOM();
         }
         const ChVector3d& position = frame.GetPos();
         const ChQuaternion<>& rotation = frame.GetRot();
@@ -231,8 +231,8 @@ void ChCollisionModelMulticore::Populate() {
                 auto shape_trimesh = std::static_pointer_cast<ChCollisionShapeTriangleMesh>(shape);
                 auto trimesh = shape_trimesh->GetMesh();
 
-                for (int i = 0; i < trimesh->getNumTriangles(); i++) {
-                    ChTriangle tri = trimesh->getTriangle(i);
+                for (unsigned int i = 0; i < trimesh->GetNumTriangles(); i++) {
+                    ChTriangle tri = trimesh->GetTriangle(i);
                     ChVector3d p1 = tri.p1 + position;
                     ChVector3d p2 = tri.p2 + position;
                     ChVector3d p3 = tri.p3 + position;
@@ -265,7 +265,7 @@ void ChCollisionModelMulticore::Populate() {
 void TransformToCOG(ChBody* body, const ChVector3d& pos, const ChMatrix33<>& rot, ChFrame<>& frame) {
     frame = ChFrame<>(pos, rot);
     if (ChBodyAuxRef* body_ar = dynamic_cast<ChBodyAuxRef*>(body)) {
-        frame = frame >> body_ar->GetFrame_REF_to_COG();
+        frame = frame >> body_ar->GetFrameRefToCOM();
     }
 }
 

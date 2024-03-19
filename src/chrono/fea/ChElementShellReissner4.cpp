@@ -179,8 +179,8 @@ void ChElementShellReissner4::UpdateNodalAndAveragePosAndOrientation() {
     for (int i = 0; i < NUMNODES; i++) {
         R_tilde_n[i] = T_overline.transpose() * Tn[i];
         phi_tilde_n[i] = rotutils::VecRot(R_tilde_n[i]);
-        // if (phi_tilde_n[i].Length()*CH_C_RAD_TO_DEG > 15)
-        //    std::cout << "WARNING phi_tilde_n[" << i << "]=" <<  phi_tilde_n[i].Length()*CH_C_RAD_TO_DEG << "deg" <<
+        // if (phi_tilde_n[i].Length()*CH_RAD_TO_DEG > 15)
+        //    std::cout << "WARNING phi_tilde_n[" << i << "]=" <<  phi_tilde_n[i].Length()*CH_RAD_TO_DEG << "deg" <<
         //    std::endl;
     }
 }
@@ -369,14 +369,14 @@ void ChElementShellReissner4::SetLayerZreferenceCentered() {
     // accumulate element thickness.
     tot_thickness = 0;
     for (size_t kl = 0; kl < m_layers.size(); kl++) {
-        tot_thickness += m_layers[kl].Get_thickness();
+        tot_thickness += m_layers[kl].GetThickness();
     }
 
     // Loop again over the layers and calculate the z levels of layers, by centering them
     m_layers_z.clear();
     m_layers_z.push_back(-0.5 * this->GetThickness());
     for (size_t kl = 0; kl < m_layers.size(); kl++) {
-        m_layers_z.push_back(m_layers_z[kl] + m_layers[kl].Get_thickness());
+        m_layers_z.push_back(m_layers_z[kl] + m_layers[kl].GetThickness());
     }
 }
 
@@ -384,14 +384,14 @@ void ChElementShellReissner4::SetLayerZreference(double z_from_bottom) {
     // accumulate element thickness.
     tot_thickness = 0;
     for (size_t kl = 0; kl < m_layers.size(); kl++) {
-        tot_thickness += m_layers[kl].Get_thickness();
+        tot_thickness += m_layers[kl].GetThickness();
     }
 
     // Loop again over the layers and calculate the z levels of layers, by centering them
     m_layers_z.clear();
     m_layers_z.push_back(z_from_bottom);
     for (size_t kl = 0; kl < m_layers.size(); kl++) {
-        m_layers_z.push_back(m_layers_z[kl] + m_layers[kl].Get_thickness());
+        m_layers_z.push_back(m_layers_z[kl] + m_layers[kl].GetThickness());
     }
 }
 
@@ -866,7 +866,7 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
         for (size_t il = 0; il < this->m_layers.size(); ++il) {
             // compute layer stresses (per-unit-length forces and torques), and accumulate
             m_layers[il].GetMaterial()->ComputeStress(l_n1, l_n2, l_m1, l_m2, eps_tot_1, eps_tot_2, k_tot_1, k_tot_2,
-                                                      m_layers_z[il], m_layers_z[il + 1], m_layers[il].Get_theta());
+                                                      m_layers_z[il], m_layers_z[il + 1], m_layers[il].GetFiberAngle());
             n1 += l_n1;
             n2 += l_n2;
             m1 += l_m1;
@@ -923,7 +923,7 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     // Note that angular velocities are in node local frame because in C::E angular
     // increments are assumed in local frame csys.
     ChStateDelta velocities(24, nullptr);
-    this->LoadableGetStateBlock_w(0, velocities);
+    this->LoadableGetStateBlockVelLevel(0, velocities);
 
     // Note that, in case of ChDampingReissnerRayleigh (rayleigh damping), this
     // is like computing Fi_damping = -beta*[Km]*v   without explicitly building [Km],
@@ -951,7 +951,7 @@ void ChElementShellReissner4::ComputeInternalForces(ChVectorDynamic<>& Fi) {
                 // compute layer stresses (per-unit-length forces and torques), and accumulate  [C]*[B_i]*v
                 m_layers[il].GetMaterial()->GetDamping()->ComputeStress(l_n1, l_n2, l_m1, l_m2, eps_dt_1, eps_dt_2,
                                                                         k_dt_1, k_dt_2, m_layers_z[il],
-                                                                        m_layers_z[il + 1], m_layers[il].Get_theta());
+                                                                        m_layers_z[il + 1], m_layers[il].GetFiberAngle());
                 n1 += l_n1;
                 n2 += l_n2;
                 m1 += l_m1;
@@ -999,7 +999,7 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
             m_layers[il].GetMaterial()->ComputeStiffnessMatrix(
                 l_C, eps_tilde_1_i[i], eps_tilde_2_i[i], k_tilde_1_i[i], k_tilde_2_i[i], m_layers_z[il],
                 m_layers_z[il + 1],
-                m_layers[il].Get_theta());  // ***TODO*** use the total epsilon including the 'hat' component from EAS
+                m_layers[il].GetFiberAngle());  // ***TODO*** use the total epsilon including the 'hat' component from EAS
             C += l_C;
         }
 
@@ -1045,7 +1045,7 @@ void ChElementShellReissner4::ComputeInternalJacobians(double Kfactor, double Rf
                 m_layers[il].GetMaterial()->GetDamping()->ComputeDampingMatrix(
                     l_C, VNULL, VNULL, VNULL, VNULL,  //// TODO  should be more general: eps_dt_tilde_1_i[i],
                                                       //eps_dt_tilde_2_i[i], k_dt_tilde_1_i[i], k_dt_tilde_2_i[i],
-                    m_layers_z[il], m_layers_z[il + 1], m_layers[il].Get_theta());
+                    m_layers_z[il], m_layers_z[il + 1], m_layers[il].GetFiberAngle());
                 C += l_C;
             }
         }
@@ -1130,7 +1130,7 @@ void ChElementShellReissner4::EvaluateSectionPoint(const double u, const double 
 // -----------------------------------------------------------------------------
 
 // Gets all the DOFs packed in a single vector (position part).
-void ChElementShellReissner4::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementShellReissner4::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
     mD.segment(block_offset + 3, 4) = m_nodes[0]->GetRot().eigen();
     mD.segment(block_offset + 7, 3) = m_nodes[1]->GetPos().eigen();
@@ -1142,14 +1142,14 @@ void ChElementShellReissner4::LoadableGetStateBlock_x(int block_offset, ChState&
 }
 
 // Gets all the DOFs packed in a single vector (velocity part).
-void ChElementShellReissner4::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
+void ChElementShellReissner4::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDt().eigen();
     mD.segment(block_offset + 3, 3) = m_nodes[0]->GetAngVelLocal().eigen();
-    mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPosDer().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPosDt().eigen();
     mD.segment(block_offset + 9, 3) = m_nodes[1]->GetAngVelLocal().eigen();
-    mD.segment(block_offset + 12, 3) = m_nodes[2]->GetPosDer().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[2]->GetPosDt().eigen();
     mD.segment(block_offset + 15, 3) = m_nodes[2]->GetAngVelLocal().eigen();
-    mD.segment(block_offset + 18, 3) = m_nodes[3]->GetPosDer().eigen();
+    mD.segment(block_offset + 18, 3) = m_nodes[3]->GetPosDt().eigen();
     mD.segment(block_offset + 21, 3) = m_nodes[3]->GetAngVelLocal().eigen();
 }
 
@@ -1167,7 +1167,7 @@ void ChElementShellReissner4::EvaluateSectionVelNorm(double U, double V, ChVecto
     ShapeVector N;
     ShapeFunctions(N, U, V);
     for (unsigned int ii = 0; ii < 4; ii++) {
-        Result += N(ii) * m_nodes[ii]->GetPosDer();
+        Result += N(ii) * m_nodes[ii]->GetPosDt();
     }
 }
 
@@ -1245,8 +1245,8 @@ void ChElementShellReissner4::ComputeNF(
 double ChElementShellReissner4::GetDensity() {
     double tot_density = 0;
     for (size_t kl = 0; kl < m_layers.size(); kl++) {
-        double rho = m_layers[kl].GetMaterial()->Get_rho();
-        double layerthick = m_layers[kl].Get_thickness();
+        double rho = m_layers[kl].GetMaterial()->GetDensity();
+        double layerthick = m_layers[kl].GetThickness();
         tot_density += rho * layerthick;
     }
     return tot_density / tot_thickness;

@@ -262,8 +262,8 @@ namespace ChronoDemo
 
                 // Test for validity of kingpin angles (max. allowed by UAZ: 27 deg)
                 var suspF = CastToChToeBarLeafspringAxle(uaz.GetVehicle().GetSuspension(0));
-                double leftAngle = suspF.GetKingpinAngleLeft() * 180.0 / chrono.CH_C_PI;
-                double rightAngle = suspF.GetKingpinAngleRight() * 180.0 / chrono.CH_C_PI;
+                double leftAngle = suspF.GetKingpinAngleLeft() * 180.0 / chrono.CH_PI;
+                double rightAngle = suspF.GetKingpinAngleRight() * 180.0 / chrono.CH_PI;
                 if (Math.Abs(leftAngle) > maxKingpinAngle)
                 {
                     maxKingpinAngle = Math.Abs(leftAngle);

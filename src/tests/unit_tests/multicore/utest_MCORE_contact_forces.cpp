@@ -108,7 +108,7 @@ ContactForceTest::ContactForceTest() : sys(nullptr) {
 
     // Set other sys properties
     double gravity = -9.81;
-    sys->Set_G_acc(ChVector3d(0, 0, gravity));
+    sys->SetGravitationalAcceleration(ChVector3d(0, 0, gravity));
     sys->GetSettings()->solver.tolerance = 1e-5;
     sys->GetSettings()->solver.max_iteration_bilateral = 100;
     sys->GetSettings()->solver.clamp_bilaterals = false;
@@ -132,10 +132,10 @@ ContactForceTest::ContactForceTest() : sys(nullptr) {
         ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector3d(1, 1, 1));
         ball->SetPos(pos + ChVector3d(i * 2 * radius, i * 2 * radius, 0));
         ball->SetRot(rot);
-        ball->SetPosDer(init_vel);
+        ball->SetPosDt(init_vel);
         ball->SetAngVelParent(init_omg);
-        ball->SetCollide(true);
-        ball->SetBodyFixed(false);
+        ball->EnableCollision(true);
+        ball->SetFixed(false);
 
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
         ball->AddCollisionShape(ct_shape);

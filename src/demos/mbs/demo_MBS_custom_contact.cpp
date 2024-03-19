@@ -34,7 +34,7 @@ class MyObstacle {
     void AddVisualization(std::shared_ptr<ChBody> body) {
         auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 1.1);
         cyl->SetColor(ChColor(0.6f, 0.3f, 0.0f));
-        body->AddVisualShape(cyl, ChFrame<>(center + ChVector3d(0, 0.55, 0), QuatFromAngleX(CH_C_PI_2)));    
+        body->AddVisualShape(cyl, ChFrame<>(center + ChVector3d(0, 0.55, 0), QuatFromAngleX(CH_PI_2)));    
     }
 
     double radius;
@@ -157,15 +157,15 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    sys->Set_G_acc(ChVector3d(0, -9.8, 0));
+    sys->SetGravitationalAcceleration(ChVector3d(0, -9.8, 0));
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Create the ground body with a plate and side walls (both collision and visualization).
     // Add obstacle visualization (in a separate level with a different color).
     auto ground = chrono_types::make_shared<ChBody>();
     sys->AddBody(ground);
-    ground->SetCollide(true);
-    ground->SetBodyFixed(true);
+    ground->EnableCollision(true);
+    ground->SetFixed(true);
 
     auto ground_vmat = chrono_types::make_shared<ChVisualMaterial>();
     ground_vmat->SetKdTexture(GetChronoDataFile("textures/blue.png"));
@@ -189,8 +189,8 @@ int main(int argc, char* argv[]) {
     ball->SetMass(10);
     ball->SetInertiaXX(4 * ball_radius * ball_radius * ChVector3d(1, 1, 1));
     ball->SetPos(ChVector3d(-3, 1.2 * ball_radius, -3));
-    ball->SetPosDer(ChVector3d(5, 0, 5));
-    ball->SetCollide(true);
+    ball->SetPosDt(ChVector3d(5, 0, 5));
+    ball->EnableCollision(true);
 
     auto ball_vmat = chrono_types::make_shared<ChVisualMaterial>();
     ball_vmat->SetKdTexture(GetChronoDataFile("textures/bluewhite.png"));

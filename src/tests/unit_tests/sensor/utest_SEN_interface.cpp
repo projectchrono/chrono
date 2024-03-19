@@ -46,7 +46,7 @@ const float ABS_ERR_F = 1e-6f;
 TEST(SensorInterface, sensors) {
     ChSystemNSC sys;
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 100, false, false);
-    box->SetBodyFixed(true);
+    box->SetFixed(true);
     sys.Add(box);
 
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
@@ -106,7 +106,7 @@ TEST(SensorInterface, sensors) {
 TEST(SensorInterface, shapes) {
     ChSystemNSC sys;
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 100, false, false);
-    box->SetBodyFixed(true);
+    box->SetFixed(true);
     sys.Add(box);
 
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
@@ -130,7 +130,7 @@ TEST(SensorInterface, shapes) {
     // add box
     auto b = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 100, true, false);
     b->SetPos({2.5, 0.0, 0.0});
-    b->SetBodyFixed(true);
+    b->SetFixed(true);
     sys.Add(b);
     manager->ReconstructScenes();
     // nothing there to begin with
@@ -148,7 +148,7 @@ TEST(SensorInterface, shapes) {
     sys.RemoveBody(b);
     auto s = chrono_types::make_shared<ChBodyEasySphere>(0.5, 100, true, false);
     s->SetPos({2.5, 0.0, 0.0});
-    s->SetBodyFixed(true);
+    s->SetFixed(true);
     sys.Add(s);
     manager->ReconstructScenes();
     // nothing there to begin with
@@ -166,7 +166,7 @@ TEST(SensorInterface, shapes) {
     sys.RemoveBody(s);
     auto c = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.5, 1.0, 100, true, false);
     c->SetPos({2.5, 0.0, 0.0});
-    c->SetBodyFixed(true);
+    c->SetFixed(true);
     sys.Add(c);
     manager->ReconstructScenes();
     // nothing there to begin with
@@ -195,22 +195,22 @@ TEST(SensorInterface, mesh_channels) {
 
     ChSystemNSC sys;
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 100, false, false);
-    box->SetBodyFixed(true);
+    box->SetFixed(true);
     sys.Add(box);
 
     // triangle with only verts and vert ids
     auto triangle = chrono_types::make_shared<ChTriangleMeshConnected>();
-    triangle->getCoordsVertices() = vertices;
-    triangle->getIndicesVertexes() = vert_ids;
+    triangle->GetCoordsVertices() = vertices;
+    triangle->GetIndicesVertexes() = vert_ids;
 
     auto triangle_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     triangle_shape->SetMesh(triangle);
     triangle_shape->SetMutable(false);
 
     auto tri_body = chrono_types::make_shared<ChBodyAuxRef>();
-    tri_body->SetFrame_REF_to_abs(ChFrame<>());
+    tri_body->SetFrameRefToAbs(ChFrame<>());
     tri_body->AddVisualShape(triangle_shape,ChFrame<>());
-    tri_body->SetBodyFixed(true);
+    tri_body->SetFixed(true);
     sys.Add(tri_body);
 
     auto manager = chrono_types::make_shared<ChSensorManager>(&sys);
@@ -231,8 +231,8 @@ TEST(SensorInterface, mesh_channels) {
     ASSERT_FLOAT_EQ(buffer->Buffer[0].range, 2.f);
 
     // triangle with verts and uvs
-    triangle->getCoordsUV() = uvs;
-    triangle->getIndicesUV() = uv_ids;
+    triangle->GetCoordsUV() = uvs;
+    triangle->GetIndicesUV() = uv_ids;
     manager->ReconstructScenes();
     while (sys.GetChTime() < 0.15) {
         manager->Update();
@@ -244,8 +244,8 @@ TEST(SensorInterface, mesh_channels) {
     ASSERT_FLOAT_EQ(buffer->Buffer[0].range, 2.f);
 
     // triangle with verts, uvs, and normals
-    triangle->getCoordsNormals() = normals;
-    triangle->getIndicesNormals() = norm_ids;
+    triangle->GetCoordsNormals() = normals;
+    triangle->GetIndicesNormals() = norm_ids;
     manager->ReconstructScenes();
     while (sys.GetChTime() < 0.25) {
         manager->Update();
@@ -257,7 +257,7 @@ TEST(SensorInterface, mesh_channels) {
     ASSERT_FLOAT_EQ(buffer->Buffer[0].range, 2.f);
 
     // triangle with verts, uv, normals, mat
-    triangle->getIndicesMaterials() = mat_ids;
+    triangle->GetIndicesMaterials() = mat_ids;
     manager->ReconstructScenes();
     while (sys.GetChTime() < 0.35) {
         manager->Update();

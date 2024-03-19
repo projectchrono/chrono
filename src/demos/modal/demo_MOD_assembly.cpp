@@ -110,9 +110,9 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
 
     section->SetDensity(beam_density);
     section->SetYoungModulus(beam_Young);
-    section->SetGwithPoissonRatio(0.31);
-    section->SetBeamRayleighDampingBeta(0.01);
-    section->SetBeamRayleighDampingAlpha(0.0001);
+    section->SetShearModulusFromPoisson(0.31);
+    section->SetRayleighDampingBeta(0.01);
+    section->SetRayleighDampingAlpha(0.0001);
     section->SetAsRectangularSection(beam_wy, beam_wz);
 
     ChBuilderBeamEuler builder;
@@ -141,7 +141,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     if (fix_subassembly) {
         // BODY: the base:
         auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 200);
-        my_body_A->SetBodyFixed(true);
+        my_body_A->SetFixed(true);
         my_body_A->SetPos(ChVector3d(-0.5, 0, 0));
         assembly->Add(my_body_A);
 
@@ -153,7 +153,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     } else {
         // BODY: the base:
         auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 200);
-        my_body_A->SetBodyFixed(true);
+        my_body_A->SetFixed(true);
         my_body_A->SetPos(ChVector3d(-0.5, 0, 0));
         sys.Add(my_body_A);
 
@@ -220,10 +220,10 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         auto rotmotor1 = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
         rotmotor1->Initialize(my_body_blade,                                             // slave
                               my_body_D,                                                 // master
-                              ChFrame<>(my_body_D->GetPos(), QuatFromAngleY(CH_C_PI_2))  // motor frame, in abs. coords
+                              ChFrame<>(my_body_D->GetPos(), QuatFromAngleY(CH_PI_2))  // motor frame, in abs. coords
         );
         auto mwspeed =
-            chrono_types::make_shared<ChFunctionConst>(CH_C_2PI);  // constant angular speed, in [rad/s], 2PI/s =360�/s
+            chrono_types::make_shared<ChFunctionConst>(CH_2PI);  // constant angular speed, in [rad/s], 2PI/s =360�/s
         rotmotor1->SetSpeedFunction(mwspeed);
         assembly0->Add(rotmotor1);
     }
@@ -262,7 +262,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     // Just for later reference, dump  M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
     sys.Setup();
     sys.Update();
-    assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
+    assembly->WriteSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
 
     if (do_modal_reduction) {
         // HERE PERFORM THE MODAL REDUCTION!
@@ -290,7 +290,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         // OPTIONAL
 
         // Just for later reference, dump reduced M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
-        assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/dump_reduced").c_str());
+        assembly->WriteSubassemblyMatrices(true, true, true, true, (out_dir + "/dump_reduced").c_str());
 
         // Use this for high simulation performance (the internal nodes won't be updated for postprocessing)
         // assembly->SetInternalNodesUpdate(false);
@@ -371,7 +371,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     while (ID_current_example == current_example && !SWITCH_EXAMPLE && vis.Run()) {
         vis.BeginScene();
         vis.Render();
-        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_C_PI_2, VECT_Z),
+        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_PI_2, VECT_Z),
                         ChColor(0.5f, 0.5f, 0.5f), true);
         vis.EndScene();
 
@@ -444,7 +444,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
 
     // no gravity used here
-    sys.Set_G_acc(VNULL);
+    sys.SetGravitationalAcceleration(VNULL);
 
     // VISUALIZATION
 

@@ -127,13 +127,13 @@ void ODEModel::CalcAcceleration() {
 void ODEModel::WriteData(double step, const std::string& filename) {
     assert(m_data.size() == 3);
 
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     for (size_t it = 0; it < m_data[0].size(); ++it) {
         csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << std::endl;
     }
 
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 }
 
 // =============================================================================
@@ -199,14 +199,14 @@ ChronoModel::ChronoModel() {
     // Create the Chrono physical system
     // ---------------------------------
     m_system = chrono_types::make_shared<ChSystemNSC>();
-    m_system->Set_G_acc(ChVector3d(0, -g, 0));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, -g, 0));
 
     // Create the ground body
     // ----------------------
     m_ground = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_ground);
     m_ground->SetIdentifier(-1);
-    m_ground->SetBodyFixed(true);
+    m_ground->SetFixed(true);
 
     // Create the slider body
     // ----------------------
@@ -239,7 +239,7 @@ ChronoModelL::ChronoModelL() {
     // Translational joint ground-cart
     // -------------------------------
     m_prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
-    m_prismatic->Initialize(m_ground, m_slider, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_C_PI_2)));
+    m_prismatic->Initialize(m_ground, m_slider, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_PI_2)));
     m_system->AddLink(m_prismatic);
 
     // Revolute joint cart-pendulum
@@ -253,7 +253,7 @@ ChronoModelM::ChronoModelM() {
     // Translational joint ground-cart
     // -------------------------------
     m_prismatic = chrono_types::make_shared<ChLinkMatePrismatic>();
-    m_prismatic->Initialize(m_ground, m_slider, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_C_PI_2)));
+    m_prismatic->Initialize(m_ground, m_slider, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleY(CH_PI_2)));
     m_system->AddLink(m_prismatic);
 
     // Revolute joint cart-pendulum
@@ -294,13 +294,13 @@ void ChronoModel::Simulate(double step, int num_steps) {
 void ChronoModel::WriteData(double step, const std::string& filename) {
     assert(m_data.size() == 3);
 
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     for (size_t it = 0; it < m_data[0].size(); ++it) {
         csv << m_data[0][it] << m_data[1][it] << m_data[2][it] << std::endl;
     }
 
-    csv.write_to_file(filename);
+    csv.WriteToFile(filename);
 }
 
 // =============================================================================
@@ -355,7 +355,7 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(20);
+    integrator->SetMaxIters(20);
     integrator->SetAbsTolerances(1e-6);
 
     // Set verbose solver and integrator (for debugging).

@@ -153,7 +153,7 @@ int main(int argc, char* argv[]) {
     // Create a Chrono physical system and associated collision system
     ChSystemNSC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     // Initialize output
     if (output) {
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     }
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     // Create the rover
     auto driver = chrono_types::make_shared<ViperDCMotorControl>();
@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
 
         // set the abs orientation, position and velocity
         auto rock_Body = chrono_types::make_shared<ChBodyAuxRef>();
-        ChQuaternion<> rock_rot = QuatFromAngleX(CH_C_PI / 2);
+        ChQuaternion<> rock_rot = QuatFromAngleX(CH_PI / 2);
         ChVector3d rock_pos;
 
         // predefined customized location
@@ -260,20 +260,20 @@ int main(int argc, char* argv[]) {
         else if (i == 19)
             rock_pos = ChVector3d(-2.0, 1.8, 0.0);
 
-        rock_Body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+        rock_Body->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
 
         rock_Body->SetMass(mmass * mdensity);  // mmass * mdensity
         rock_Body->SetInertiaXX(mdensity * principal_I);
 
-        rock_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(rock_pos), ChQuaternion<>(rock_rot)));
+        rock_Body->SetFrameRefToAbs(ChFrame<>(ChVector3d(rock_pos), ChQuaternion<>(rock_rot)));
         sys.Add(rock_Body);
 
-        rock_Body->SetBodyFixed(false);
+        rock_Body->SetFixed(false);
 
         auto rock_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_mmesh,
                                                                                       false, false, 0.005);
         rock_Body->AddCollisionShape(rock_ct_shape);
-        rock_Body->SetCollide(true);
+        rock_Body->EnableCollision(true);
 
         auto rock_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         rock_mesh->SetMesh(rock_mmesh);
@@ -412,8 +412,8 @@ int main(int argc, char* argv[]) {
                                                           offset_pose,                    // offset pose
                                                           480,                   // number of horizontal samples
                                                           300,                   // number of vertical channels
-                                                          (float)(2 * CH_C_PI),  // horizontal field of view
-                                                          (float)CH_C_PI / 12, (float)-CH_C_PI / 3,
+                                                          (float)(2 * CH_PI),  // horizontal field of view
+                                                          (float)CH_PI / 12, (float)-CH_PI / 3,
                                                           140.0f  // vertical field of view
     );
     lidar->SetName("Lidar Sensor 1");
@@ -437,7 +437,7 @@ int main(int argc, char* argv[]) {
 
     // Create a radar and attach to rover chassis
     auto radar = chrono_types::make_shared<ChRadarSensor>(viper.GetChassis()->GetBody(), 50, offset_pose, 240, 120,
-                                                          (float)(CH_C_PI / 1.5), float(CH_C_PI / 5), 100.f);
+                                                          (float)(CH_PI / 1.5), float(CH_PI / 5), 100.f);
     radar->SetName("Radar Sensor");
     radar->SetLag(0.f);
     radar->SetCollectionWindow(0.02f);
@@ -474,7 +474,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (output) {
-        csv.write_to_file(out_dir + "/output.dat");
+        csv.WriteToFile(out_dir + "/output.dat");
     }
 
     return 0;

@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
     double init_height = 0.65;
     double init_x = 0.0;
     double init_z = 0.0;
-    double init_roll = 0 * CH_C_DEG_TO_RAD;
+    double init_roll = 0 * CH_DEG_TO_RAD;
 
     ChVector3d init_vel(0, 0, 0);
     ChVector3d init_omg(0, 0, 0);
@@ -131,13 +131,14 @@ int main(int argc, char* argv[]) {
         case ChContactMethod::NSC: {
             auto sysNSC = new ChSystemNSC();
             sysNSC->SetSolverType(ChSolver::Type::APGD);
-            sysNSC->SetSolverMaxIterations(100);
+            sysNSC->GetSolver()->AsIterative()->SetMaxIterations(100);
             sysNSC->SetMaxPenetrationRecoverySpeed(10);
             sys = sysNSC;
             break;
         }
         case ChContactMethod::SMC: {
-            auto sysSMC = new ChSystemSMC(use_mat_properties);
+            auto sysSMC = new ChSystemSMC();
+            sysSMC->UseMaterialProperties(use_mat_properties);
             sysSMC->SetContactForceModel(ChSystemSMC::Hertz);
             sysSMC->SetTangentialDisplacementModel(ChSystemSMC::OneStep);
             sys = sysSMC;
@@ -145,7 +146,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    sys->Set_G_acc(ChVector3d(0, -9.81, 0));
+    sys->SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));
 
     // Create and attach the collision detection sys
     switch (collision_type) {
@@ -165,7 +166,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Rotation Z->Y (because meshes used here assume Z up)
-    ChQuaternion<> z2y = QuatFromAngleX(-CH_C_PI_2);
+    ChQuaternion<> z2y = QuatFromAngleX(-CH_PI_2);
 
     // Create the falling object
     auto object = chrono_types::make_shared<ChBody>();
@@ -176,10 +177,10 @@ int main(int argc, char* argv[]) {
     object->SetInertiaXX(40.0 * ChVector3d(1, 1, 0.2));
     object->SetPos(ChVector3d(init_x, init_height, init_z));
     object->SetRot(z2y * QuatFromAngleX(init_roll));
-    object->SetPosDer(init_vel);
+    object->SetPosDt(init_vel);
     object->SetAngVelParent(init_omg);
-    object->SetCollide(true);
-    object->SetBodyFixed(false);
+    object->EnableCollision(true);
+    object->SetFixed(false);
 
     auto object_mat = ChContactMaterial::DefaultMaterial(contact_method);
     object_mat->SetFriction(object_friction);
@@ -206,28 +207,28 @@ int main(int argc, char* argv[]) {
         }
         case CollisionShape::CYLINDER: {
             auto shape = chrono_types::make_shared<ChCollisionShapeCylinder>(object_mat, radius, 2 * hlen);
-            object->AddCollisionShape(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+            object->AddCollisionShape(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
             auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 2 * hlen);
-            object->AddVisualShape(cyl, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+            object->AddVisualShape(cyl, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
             break;
         }
         case CollisionShape::CAPSULE: {
             auto shape = chrono_types::make_shared<ChCollisionShapeCapsule>(object_mat, radius, 2 * hlen);
-            object->AddCollisionShape(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+            object->AddCollisionShape(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
             auto cap = chrono_types::make_shared<ChVisualShapeCapsule>(radius, 2 * hlen);
-            object->AddVisualShape(cap, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+            object->AddVisualShape(cap, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
             break;
         }
         case CollisionShape::CYLSHELL: {
             auto shape = chrono_types::make_shared<ChCollisionShapeCylindricalShell>(object_mat, radius, 2 * hlen);
-            object->AddCollisionShape(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+            object->AddCollisionShape(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
             auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 2 * hlen);
-            object->AddVisualShape(cyl, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+            object->AddVisualShape(cyl, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
             break;
         }
@@ -259,8 +260,8 @@ int main(int argc, char* argv[]) {
     ground->SetName("ground");
     ground->SetMass(1);
     ground->SetPos(ChVector3d(0, 0, 0));
-    ground->SetCollide(true);
-    ground->SetBodyFixed(true);
+    ground->EnableCollision(true);
+    ground->SetFixed(true);
 
     auto ground_mat = ChContactMaterial::DefaultMaterial(contact_method);
     ground_mat->SetFriction(ground_friction);

@@ -142,7 +142,7 @@ void ChPac89Tire::Advance(double step) {
     ChClampValue(m_states.cp_long_slip, -1.0, 1.0);
 
     // Ensure that cp_side_slip stays between -pi()/2 & pi()/2 (a little less to prevent tan from going to infinity)
-    ChClampValue(m_states.cp_side_slip, -CH_C_PI_2 + 0.001, CH_C_PI_2 - 0.001);
+    ChClampValue(m_states.cp_side_slip, -CH_PI_2 + 0.001, CH_PI_2 - 0.001);
 
     double mu_scale = m_mu / m_mu0;
 
@@ -163,8 +163,8 @@ void ChPac89Tire::Advance(double step) {
 
     // Express alpha and gamma in degrees. Express kappa as percentage.
     // Flip sign of alpha to convert to PAC89 modified SAE coordinates.
-    m_gamma = 90.0 - std::acos(m_states.disc_normal.z()) * CH_C_RAD_TO_DEG;
-    m_alpha = -m_states.cp_side_slip * CH_C_RAD_TO_DEG;
+    m_gamma = 90.0 - std::acos(m_states.disc_normal.z()) * CH_RAD_TO_DEG;
+    m_alpha = -m_states.cp_side_slip * CH_RAD_TO_DEG;
     m_kappa = m_states.cp_long_slip * 100.0;
 
     // Clamp |gamma| to specified value: Limit due to tire testing, avoids erratic extrapolation.

@@ -46,11 +46,11 @@ beam_wy = 0.012
 beam_wz = 0.025
 msection.SetAsRectangularSection(beam_wy, beam_wz)
 msection.SetYoungModulus(0.01e9)
-msection.SetGshearModulus(0.01e9 * 0.3)
-msection.SetBeamRaleyghDamping(0.000)
+msection.SetShearModulus(0.01e9 * 0.3)
+msection.SetRayleighDamping(0.000)
 #msection.SetCentroid(0,0.02)
 #msection.SetShearCenter(0,0.1)
-#msection.SetSectionRotation(45*chrono.CH_C_RAD_TO_DEG)
+#msection.SetSectionRotation(45*chrono.CH_RAD_TO_DEG)
 
 # Add some EULER-BERNOULLI BEAMS:
 
@@ -87,7 +87,7 @@ hnode3.SetTorque(chrono.ChVector3d(0, -0.04, 0))
 # otherwise fix it using constraints:
 
 mtruss = chrono.ChBody()
-mtruss.SetBodyFixed(True)
+mtruss.SetFixed(True)
 sys.Add(mtruss)
 
 constr_bc = chrono.ChLinkMateGeneric()

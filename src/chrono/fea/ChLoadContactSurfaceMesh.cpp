@@ -45,7 +45,7 @@ void ChLoadContactSurfaceMesh::InputSimpleForces(const std::vector<ChVector3d>& 
         std::map<ChNodeFEAxyz*, int> ptr_ind_map;                  // map from pointer-based mesh to index-based mesh
         std::map<int, std::shared_ptr<ChNodeFEAxyz>> ind_ptr_map;  // map from index-based mesh to pointer-based mesh
 
-        for (const auto& tri : m_contact_mesh->GetTriangleList()) {
+        for (const auto& tri : m_contact_mesh->GetTrianglesXYZ()) {
             if (ptr_ind_map.insert({tri->GetNode(0).get(), vertex_index}).second) {
                 ind_ptr_map.insert({vertex_index, tri->GetNode(0)});
                 ++vertex_index;
@@ -74,7 +74,7 @@ void ChLoadContactSurfaceMesh::InputSimpleForces(const std::vector<ChVector3d>& 
         std::map<ChNodeFEAxyzrot*, int> ptr_ind_map;                  // map from pointer-based mesh to index-based mesh
         std::map<int, std::shared_ptr<ChNodeFEAxyzrot>> ind_ptr_map;  // map from index-based mesh to pointer-based mesh
 
-        for (const auto& tri : m_contact_mesh->GetTriangleListRot()) {
+        for (const auto& tri : m_contact_mesh->GetTrianglesXYZROT()) {
             if (ptr_ind_map.insert({tri->GetNode(0).get(), vertex_index}).second) {
                 ind_ptr_map.insert({vertex_index, tri->GetNode(0)});
                 ++vertex_index;
@@ -110,22 +110,22 @@ void ChLoadContactSurfaceMesh::SetContactMesh(std::shared_ptr<ChContactSurfaceMe
 
 // -----------------------------------------------------------------------------
 
-int ChLoadContactSurfaceMesh::LoadGet_ndof_x() {
+int ChLoadContactSurfaceMesh::LoadGetNumCoordsPosLevel() {
     int ndoftot = 0;
     for (const auto& f : m_forces)
-        ndoftot += f->LoadGet_ndof_x();
+        ndoftot += f->LoadGetNumCoordsPosLevel();
     for (const auto& f : m_forces_rot)
-        ndoftot += f->LoadGet_ndof_x();
+        ndoftot += f->LoadGetNumCoordsPosLevel();
 
     return ndoftot;
 }
 
-int ChLoadContactSurfaceMesh::LoadGet_ndof_w() {
+int ChLoadContactSurfaceMesh::LoadGetNumCoordsVelLevel() {
     int ndoftot = 0;
     for (const auto& f : m_forces)
-        ndoftot += f->LoadGet_ndof_w();
+        ndoftot += f->LoadGetNumCoordsVelLevel();
     for (const auto& f : m_forces_rot)
-        ndoftot += f->LoadGet_ndof_w();
+        ndoftot += f->LoadGetNumCoordsVelLevel();
 
     return ndoftot;
 }
@@ -133,24 +133,24 @@ int ChLoadContactSurfaceMesh::LoadGet_ndof_w() {
 void ChLoadContactSurfaceMesh::LoadGetStateBlock_x(ChState& mD) {
     int ndoftot = 0;
     for (const auto& f : m_forces) {
-        f->loader.GetLoadable()->LoadableGetStateBlock_x(ndoftot, mD);
-        ndoftot += f->loader.GetLoadable()->LoadableGet_ndof_x();
+        f->loader.GetLoadable()->LoadableGetStateBlockPosLevel(ndoftot, mD);
+        ndoftot += f->loader.GetLoadable()->GetLoadableNumCoordsPosLevel();
     }
     for (const auto& f : m_forces_rot) {
-        f->loadable->LoadableGetStateBlock_x(ndoftot, mD);
-        ndoftot += f->loadable->LoadableGet_ndof_x();
+        f->loadable->LoadableGetStateBlockPosLevel(ndoftot, mD);
+        ndoftot += f->loadable->GetLoadableNumCoordsPosLevel();
     }
 }
 
 void ChLoadContactSurfaceMesh::LoadGetStateBlock_w(ChStateDelta& mD) {
     int ndoftot = 0;
     for (const auto& f : m_forces) {
-        f->loader.GetLoadable()->LoadableGetStateBlock_w(ndoftot, mD);
-        ndoftot += f->loader.GetLoadable()->LoadableGet_ndof_w();
+        f->loader.GetLoadable()->LoadableGetStateBlockVelLevel(ndoftot, mD);
+        ndoftot += f->loader.GetLoadable()->GetLoadableNumCoordsVelLevel();
     }
     for (const auto& f : m_forces_rot) {
-        f->loadable->LoadableGetStateBlock_w(ndoftot, mD);
-        ndoftot += f->loadable->LoadableGet_ndof_w();
+        f->loadable->LoadableGetStateBlockVelLevel(ndoftot, mD);
+        ndoftot += f->loadable->GetLoadableNumCoordsVelLevel();
     }
 }
 
@@ -159,13 +159,13 @@ void ChLoadContactSurfaceMesh::LoadStateIncrement(const ChState& x, const ChStat
     int ndoftotw = 0;
     for (const auto& f : m_forces) {
         f->loader.GetLoadable()->LoadableStateIncrement(ndoftotx, x_new, x, ndoftotw, dw);
-        ndoftotx += f->loader.GetLoadable()->LoadableGet_ndof_x();
-        ndoftotw += f->loader.GetLoadable()->LoadableGet_ndof_w();
+        ndoftotx += f->loader.GetLoadable()->GetLoadableNumCoordsPosLevel();
+        ndoftotw += f->loader.GetLoadable()->GetLoadableNumCoordsVelLevel();
     }
     for (const auto& f : m_forces_rot) {
         f->loadable->LoadableStateIncrement(ndoftotx, x_new, x, ndoftotw, dw);
-        ndoftotx += f->loadable->LoadableGet_ndof_x();
-        ndoftotw += f->loadable->LoadableGet_ndof_w();
+        ndoftotx += f->loadable->GetLoadableNumCoordsPosLevel();
+        ndoftotw += f->loadable->GetLoadableNumCoordsVelLevel();
     }
 }
 

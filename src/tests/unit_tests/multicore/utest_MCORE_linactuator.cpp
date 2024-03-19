@@ -83,7 +83,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
             sys = new ChSystemMulticoreNSC();
             break;
     }
-    sys->Set_G_acc(gravity);
+    sys->SetGravitationalAcceleration(gravity);
 
     // Set associated collision system
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
@@ -110,7 +110,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     auto ground = chrono_types::make_shared<ChBody>();
 
     sys->AddBody(ground);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     auto box_g = chrono_types::make_shared<ChVisualShapeBox>(0.1, 0.1, 5);
     ground->AddVisualShape(box_g, ChFrame<>(2.5 * axis, rot));
@@ -120,7 +120,7 @@ ChLinActuatorTest::ChLinActuatorTest() : animate(false) {
     sys->AddBody(plate);
     plate->SetPos(ChVector3d(0, 0, 0));
     plate->SetRot(rot);
-    plate->SetPosDer(speed * axis);
+    plate->SetPosDt(speed * axis);
     plate->SetMass(mass);
     plate->SetInertiaXX(inertiaXX);
 
@@ -175,8 +175,8 @@ void ChLinActuatorTest::VerifySolution(double time) {
     // ----------------------------------------------------------------
 
     ChVector3d pos = plate->GetPos();
-    ChVector3d vel = plate->GetPosDer();
-    ChVector3d acc = plate->GetPosDer2();
+    ChVector3d vel = plate->GetPosDt();
+    ChVector3d acc = plate->GetPosDt2();
 
     // The motion must be constant speed along the translation axis.
     ChVector3d pos_an = time * speed * axis;
@@ -218,11 +218,13 @@ void ChLinActuatorTest::VerifySolution(double time) {
 
     // These are expressed in the link coordinate system. We convert them to
     // the coordinate system of Body2 (in our case this is the ground).
-    ChCoordsys<> linkCoordsysP = prismatic->GetLinkRelativeCoords();
-    ChVector3d rforceP = prismatic->Get_react_force();
+    ChFrame<> linkCoordsysP = prismatic->GetFrame2Rel();
+    const auto& reactionP = prismatic->GetReaction2();
+
+    ChVector3d rforceP = reactionP.force;
     ChVector3d rforceP_ground = linkCoordsysP.TransformDirectionLocalToParent(rforceP);
 
-    ChVector3d rtorqueP = prismatic->Get_react_torque();
+    ChVector3d rtorqueP = reactionP.torque;
     ChVector3d rtorqueP_ground = linkCoordsysP.TransformDirectionLocalToParent(rtorqueP);
 
     // The reaction force in the prismatic joint is perpendicular to the
@@ -243,8 +245,9 @@ void ChLinActuatorTest::VerifySolution(double time) {
     // These are expressed in the link coordinate system. The reaction force
     // represents the force that needs to be applied to the plate in order to
     // maintain the prescribed constant velocity.
-    ChVector3d rforceA = actuator->Get_react_force();
-    ChVector3d rtorqueA = actuator->Get_react_torque();
+    const auto& reactionA = actuator->GetReaction2();
+    ChVector3d rforceA = reactionA.force;
+    ChVector3d rtorqueA = reactionA.torque;
 
     // Analytically, the driving force can be obtained from a force diagram along
     // the translation axis.
@@ -330,4 +333,4 @@ INSTANTIATE_TEST_SUITE_P(ChronoMulticore,
                          ChLinActuatorTest,
                          ::testing::Combine(::testing::Values(ChContactMethod::NSC, ChContactMethod::SMC),
                                             ::testing::Values(1.0, 0.5),
-                                            ::testing::Values(QUNIT, QuatFromAngleY(CH_C_PI / 4))));
+                                            ::testing::Values(QUNIT, QuatFromAngleY(CH_PI / 4))));

@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(1, -1, 1));
+    sys.SetGravitationalAcceleration(ChVector3d(1, -1, 1));
 
     // Create the ground body
     // ----------------------
@@ -41,8 +41,8 @@ int main(int argc, char* argv[]) {
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
-    ground->SetCollide(false);
+    ground->SetFixed(true);
+    ground->EnableCollision(false);
 
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.04, 0.4);
     ground->AddVisualShape(cyl, ChFrame<>(ChVector3d(0, 0, 1), QUNIT));
@@ -53,8 +53,8 @@ int main(int argc, char* argv[]) {
     auto pend = chrono_types::make_shared<ChBody>();
     sys.AddBody(pend);
     pend->SetIdentifier(1);
-    pend->SetBodyFixed(false);
-    pend->SetCollide(false);
+    pend->SetFixed(false);
+    pend->EnableCollision(false);
     pend->SetMass(1);
     pend->SetInertiaXX(ChVector3d(0.2, 1, 1));
 
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     // Attach visualization assets.
     auto cyl_p = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 1.92);
     cyl_p->SetColor(ChColor(0.6f, 0, 0));
-    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
+    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, QuatFromAngleY(CH_PI_2)));
 
     auto sph_p = chrono_types::make_shared<ChVisualShapeSphere>(0.04);
     sph_p->SetColor(ChColor(0.6f, 0, 0));
@@ -94,6 +94,8 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddCamera(ChVector3d(0, 3, 6));
     vis->AddTypicalLights();
+
+    vis->EnableLinkFrameDrawing(true);
 
     // Cache for point trajectory plot
     std::vector<ChVector3d > trajectory;

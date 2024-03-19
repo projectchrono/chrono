@@ -66,7 +66,7 @@ TEST(ChronoMulticore, bodyauxref) {
 
     // Create the mechanical sys
     ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
-    sys->Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys->SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     // Set number of threads
     sys->SetNumThreads(1);
@@ -86,12 +86,12 @@ TEST(ChronoMulticore, bodyauxref) {
     // Define a couple of rotations for later use
     ChQuaternion<> y2x;
     ChQuaternion<> z2y;
-    y2x.SetFromAngleZ(-CH_C_PI / 2);
-    z2y.SetFromAngleX(-CH_C_PI / 2);
+    y2x.SetFromAngleZ(-CH_PI / 2);
+    z2y.SetFromAngleX(-CH_PI / 2);
 
     // Create the ground body
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     sys->AddBody(ground);
 
     // Attach a visualization asset representing the Y axis.
@@ -102,8 +102,8 @@ TEST(ChronoMulticore, bodyauxref) {
     auto pend_1 = chrono_types::make_shared<ChBody>();
     sys->AddBody(pend_1);
     pend_1->SetIdentifier(1);
-    pend_1->SetBodyFixed(false);
-    pend_1->SetCollide(false);
+    pend_1->SetFixed(false);
+    pend_1->EnableCollision(false);
     pend_1->SetMass(1);
     pend_1->SetInertiaXX(ChVector3d(0.2, 1, 1));
 
@@ -122,21 +122,21 @@ TEST(ChronoMulticore, bodyauxref) {
     auto pend_2 = chrono_types::make_shared<ChBodyAuxRef>();
     sys->Add(pend_2);
     pend_2->SetIdentifier(2);
-    pend_2->SetBodyFixed(false);
-    pend_2->SetCollide(false);
+    pend_2->SetFixed(false);
+    pend_2->EnableCollision(false);
     pend_2->SetMass(1);
     pend_2->SetInertiaXX(ChVector3d(0.2, 1, 1));
     // NOTE: the inertia tensor must still be expressed in the centroidal frame!
 
     // In this case, we must specify the centroidal frame, relative to the body
     // reference frame.
-    pend_2->SetFrame_COG_to_REF(ChFrame<>(ChVector3d(1, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
+    pend_2->SetFrameCOMToRef(ChFrame<>(ChVector3d(1, 0, 0), ChQuaternion<>(1, 0, 0, 0)));
 
     // Specify the initial position of the pendulum (horizontal, pointing towards
     // positive X).  Here, we want to specify the position of the body reference
     // frame (relative to the absolute frame). Recall that the body reference
     // frame is located at the pin.
-    pend_2->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(0, -1, 0)));
+    pend_2->SetFrameRefToAbs(ChFrame<>(ChVector3d(0, -1, 0)));
 
     // Create a revolute joint to connect pendulum to ground. We specify the link
     // coordinate frame in the absolute frame.
@@ -182,10 +182,10 @@ TEST(ChronoMulticore, bodyauxref) {
 
             Assert_near(pend_1->GetRot(), pend_2->GetRot(), quat_tol);
 
-            Assert_near(pend_1->GetPosDer(), pend_2->GetPosDer(), vel_tol);
+            Assert_near(pend_1->GetPosDt(), pend_2->GetPosDt(), vel_tol);
             Assert_near(pend_1->GetAngVelParent(), pend_2->GetAngVelParent(), avel_tol);
 
-            Assert_near(pend_1->GetPosDer2(), pend_2->GetPosDer2(), acc_tol);
+            Assert_near(pend_1->GetPosDt2(), pend_2->GetPosDt2(), acc_tol);
             Assert_near(pend_1->GetAngAccParent(), pend_2->GetAngAccParent(), aacc_tol);
         }
     }

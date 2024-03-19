@@ -72,7 +72,7 @@ class CH_VEHICLE_API ChShaftsDriveline6WD : public ChDrivelineWV {
 
     /// Return the number of driven axles.
     /// A ChShaftsDriveline6WD driveline connects to three axles.
-    virtual int GetNumDrivenAxles() const final override { return 3; }
+    virtual unsigned int GetNumDrivenAxles() const final override { return 3; }
 
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the specified axle subsystems.
@@ -97,7 +97,7 @@ class CH_VEHICLE_API ChShaftsDriveline6WD : public ChDrivelineWV {
 
     /// Return the output driveline speed of the driveshaft.
     /// This represents the output from the driveline subsystem that is passed to the transmission subsystem.
-    virtual double GetOutputDriveshaftSpeed() const override { return m_driveshaft->GetPosDer(); }
+    virtual double GetOutputDriveshaftSpeed() const override { return m_driveshaft->GetPosDt(); }
 
   protected:
     /// Return the inertia of the driveshaft.

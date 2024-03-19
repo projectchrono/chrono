@@ -88,7 +88,7 @@ void ChSolidThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Transform the location of the axle body COM to absolute frame.
     ChVector3d axleCOM_local = getAxleTubeCOM();
@@ -105,7 +105,7 @@ void ChSolidThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleTube = chrono_types::make_shared<ChBody>();
     m_axleTube->SetNameString(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
-    m_axleTube->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_axleTube->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_axleTube->SetMass(getAxleTubeMass());
     m_axleTube->SetInertiaXX(getAxleTubeInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_axleTube);
@@ -132,7 +132,7 @@ void ChSolidThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_triangleBody = chrono_types::make_shared<ChBody>();
     m_triangleBody->SetNameString(m_name + "_triangleGuide");
     m_triangleBody->SetPos(pt_tri_cog);
-    m_triangleBody->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_triangleBody->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_triangleBody->SetMass(getTriangleMass());
     m_triangleBody->SetInertiaXX(getTriangleInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_triangleBody);
@@ -142,14 +142,14 @@ void ChSolidThreeLinkAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_triangleRev->SetNameString(m_name + "_revoluteTriangle");
     m_triangleRev->Initialize(
         m_triangleBody, chassis->GetBody(),
-        ChFrame<>(pt_tri_chassis, chassis->GetBody()->GetFrame_REF_to_abs().GetRot() * QuatFromAngleX(CH_C_PI_2)));
+        ChFrame<>(pt_tri_chassis, chassis->GetBody()->GetFrameRefToAbs().GetRot() * QuatFromAngleX(CH_PI_2)));
     chassis->GetBody()->GetSystem()->AddLink(m_triangleRev);
 
     // Create and initialize the spherical joint between axle tube and triangle.
     m_triangleSph = chrono_types::make_shared<ChLinkLockSpherical>();
     m_triangleSph->SetNameString(m_name + "_sphericalTriangle");
     m_triangleSph->Initialize(m_triangleBody, m_axleTube,
-                              ChFrame<>(pt_tri_axle, chassis->GetBody()->GetFrame_REF_to_abs().GetRot()));
+                              ChFrame<>(pt_tri_axle, chassis->GetBody()->GetFrameRefToAbs().GetRot()));
     chassis->GetBody()->GetSystem()->AddLink(m_triangleSph);
 
     m_link_axleL = m_pointsL[LINK_A];
@@ -179,7 +179,7 @@ void ChSolidThreeLinkAxle::InitializeSide(VehicleSide side,
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassis->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassis->GetFrameRefToAbs().GetRot();
 
     // Spindle orientation (based on camber and toe angles)
     double sign = (side == LEFT) ? -1 : +1;
@@ -199,7 +199,7 @@ void ChSolidThreeLinkAxle::InitializeSide(VehicleSide side,
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_axleTube,
-                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_C_PI_2)));
+                                 ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the shock damper
@@ -223,10 +223,10 @@ void ChSolidThreeLinkAxle::InitializeSide(VehicleSide side,
     m_axle[side] = chrono_types::make_shared<ChShaft>();
     m_axle[side]->SetNameString(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
-    m_axle[side]->SetPosDer(-ang_vel);
+    m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);
 
-    m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
+    m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftBodyRotation>();
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);

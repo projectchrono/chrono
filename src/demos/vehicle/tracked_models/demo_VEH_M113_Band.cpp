@@ -155,9 +155,9 @@ int main(int argc, char* argv[]) {
         meshR =
             std::static_pointer_cast<ChTrackAssemblyBandANCF>(vehicle.GetTrackAssembly(VehicleSide::RIGHT))->GetMesh();
 
-        cout << "[FEA mesh left]  n_nodes = " << meshL->GetNnodes() << " n_elements = " << meshL->GetNelements()
+        cout << "[FEA mesh left]  n_nodes = " << meshL->GetNumNodes() << " n_elements = " << meshL->GetNumElements()
              << endl;
-        cout << "[FEA mesh right] n_nodes = " << meshR->GetNnodes() << " n_elements = " << meshR->GetNelements()
+        cout << "[FEA mesh right] n_nodes = " << meshR->GetNumNodes() << " n_elements = " << meshR->GetNumElements()
              << endl;
     }
 
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
     std::static_pointer_cast<ChTrackShoeBand>(vehicle.GetTrackShoe(LEFT, 0))->WriteTreadVisualizationMesh(out_dir);
 
     // Disable gravity in this simulation
-    ////sys->Set_G_acc(ChVector3d(0, 0, 0));
+    ////sys->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // --------------------------------------------------
     // Control internal collisions and contact monitoring
@@ -190,10 +190,10 @@ int main(int argc, char* argv[]) {
         ->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
 
     // Enable contact on all tracked vehicle parts, except the left sprocket
-    ////vehicle.SetCollide(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
+    ////vehicle.EnableCollision(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
 
     // Disable contact for all tracked vehicle parts
-    ////vehicle.SetCollide(TrackedCollisionFlag::NONE);
+    ////vehicle.EnableCollision(TrackedCollisionFlag::NONE);
 
     // Disable all contacts for vehicle chassis (if chassis collision was defined)
     ////vehicle.SetChassisCollide(false);
@@ -282,7 +282,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetChaseCamera(ChVector3d(0, 0, 0), 7.0, 0.5);
             vis_vsg->AttachVehicle(&m113.GetVehicle());
             ////vis_vsg->ShowAllCoGs(0.3);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
@@ -315,9 +315,9 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup chassis position output with column headers
-    chrono::utils::CSV_writer csv("\t");
-    csv.stream().setf(std::ios::scientific | std::ios::showpos);
-    csv.stream().precision(6);
+    chrono::utils::ChWriterCSV csv("\t");
+    csv.Stream().setf(std::ios::scientific | std::ios::showpos);
+    csv.Stream().precision(6);
     csv << "Time (s)"
         << "Chassis X Pos (m)"
         << "Chassis Y Pos (m)"
@@ -397,7 +397,7 @@ int main(int argc, char* argv[]) {
     sys->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(20);
+    integrator->SetMaxIters(20);
     integrator->SetAbsTolerances(1e-2, 1e2);
     integrator->SetStepControl(false);
     integrator->SetModifiedNewton(true);
@@ -436,7 +436,7 @@ int main(int argc, char* argv[]) {
         // Debugging (console) output
         if (dbg_output) {
             cout << "Time: " << time << endl;
-            const ChFrameMoving<>& c_ref = vehicle.GetChassisBody()->GetFrame_REF_to_abs();
+            const ChFrameMoving<>& c_ref = vehicle.GetChassisBody()->GetFrameRefToAbs();
             cout << "      chassis:    " << c_pos.x() << "  " << c_pos.y() << "  " << c_pos.z() << endl;
             {
                 const ChVector3d& i_pos_abs = vehicle.GetTrackAssembly(LEFT)->GetIdler()->GetWheelBody()->GetPos();
@@ -530,7 +530,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (output) {
-        csv.write_to_file(out_dir + "/chassis_position.txt");
+        csv.WriteToFile(out_dir + "/chassis_position.txt");
     }
 
     vehicle.WriteContacts(out_dir + "/contacts.txt");
@@ -546,13 +546,13 @@ void AddFixedObstacles(ChSystem* system) {
 
     auto obstacle = chrono_types::make_shared<ChBody>();
     obstacle->SetPos(ChVector3d(10, 0, -1.8));
-    obstacle->SetBodyFixed(true);
-    obstacle->SetCollide(true);
+    obstacle->SetFixed(true);
+    obstacle->EnableCollision(true);
 
     // Visualization
     auto vis_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, length);
     vis_shape->SetTexture(vehicle::GetDataFile("terrain/textures/tile4.jpg"), 10, 10);
-    obstacle->AddVisualShape(vis_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+    obstacle->AddVisualShape(vis_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     // Contact
     auto obst_mat = chrono_types::make_shared<ChContactMaterialSMC>();
@@ -562,7 +562,7 @@ void AddFixedObstacles(ChSystem* system) {
     obst_mat->SetPoissonRatio(0.3f);
 
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(obst_mat, radius, length);
-    obstacle->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+    obstacle->AddCollisionShape(ct_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     system->AddBody(obstacle);
 }
@@ -584,59 +584,59 @@ void WriteMeshVTK(int frame, std::shared_ptr<fea::ChMesh> meshL, std::shared_ptr
 
 void WriteVehicleVTK(int frame, ChTrackedVehicle& vehicle) {
     {
-        chrono::utils::CSV_writer csv(",");
+        chrono::utils::ChWriterCSV csv(",");
         auto num_shoes_L = vehicle.GetTrackAssembly(VehicleSide::LEFT)->GetNumTrackShoes();
         auto num_shoes_R = vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetNumTrackShoes();
         for (size_t i = 0; i < num_shoes_L; i++) {
             const auto& shoe = vehicle.GetTrackAssembly(VehicleSide::LEFT)->GetTrackShoe(i)->GetShoeBody();
-            csv << shoe->GetPos() << shoe->GetRot() << shoe->GetPosDer() << shoe->GetAngVelLocal() << endl;
+            csv << shoe->GetPos() << shoe->GetRot() << shoe->GetPosDt() << shoe->GetAngVelLocal() << endl;
         }
         for (size_t i = 0; i < num_shoes_R; i++) {
             const auto& shoe = vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetTrackShoe(i)->GetShoeBody();
-            csv << shoe->GetPos() << shoe->GetRot() << shoe->GetPosDer() << shoe->GetAngVelLocal() << endl;
+            csv << shoe->GetPos() << shoe->GetRot() << shoe->GetPosDt() << shoe->GetAngVelLocal() << endl;
         }
-        csv.write_to_file(vtk_dir + "/shoes." + std::to_string(frame) + ".vtk", "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
+        csv.WriteToFile(vtk_dir + "/shoes." + std::to_string(frame) + ".vtk", "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
     }
 
     {
-        chrono::utils::CSV_writer csv(",");
+        chrono::utils::ChWriterCSV csv(",");
         auto num_wheels_L = vehicle.GetTrackAssembly(VehicleSide::LEFT)->GetNumTrackSuspensions();
         auto num_wheels_R = vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetNumTrackSuspensions();
         for (size_t i = 0; i < num_wheels_L; i++) {
             const auto& wheel = vehicle.GetTrackAssembly(VehicleSide::LEFT)->GetTrackSuspension(i)->GetWheelBody();
-            csv << wheel->GetPos() << wheel->GetRot() << wheel->GetPosDer() << wheel->GetAngVelLocal() << endl;
+            csv << wheel->GetPos() << wheel->GetRot() << wheel->GetPosDt() << wheel->GetAngVelLocal() << endl;
         }
         for (size_t i = 0; i < num_wheels_R; i++) {
             const auto& wheel = vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetTrackSuspension(i)->GetWheelBody();
-            csv << wheel->GetPos() << wheel->GetRot() << wheel->GetPosDer() << wheel->GetAngVelLocal() << endl;
+            csv << wheel->GetPos() << wheel->GetRot() << wheel->GetPosDt() << wheel->GetAngVelLocal() << endl;
         }
-        csv.write_to_file(vtk_dir + "/wheels." + std::to_string(frame) + ".vtk", "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
+        csv.WriteToFile(vtk_dir + "/wheels." + std::to_string(frame) + ".vtk", "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
     }
 
     {
-        chrono::utils::CSV_writer csv(",");
+        chrono::utils::ChWriterCSV csv(",");
         const auto& idlerL = vehicle.GetTrackAssembly(VehicleSide::LEFT)->GetIdler()->GetIdlerWheel()->GetBody();
         const auto& idlerR = vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetIdler()->GetIdlerWheel()->GetBody();
-        csv << idlerL->GetPos() << idlerL->GetRot() << idlerL->GetPosDer() << idlerL->GetAngVelLocal() << endl;
-        csv << idlerR->GetPos() << idlerR->GetRot() << idlerR->GetPosDer() << idlerR->GetAngVelLocal() << endl;
-        csv.write_to_file(vtk_dir + "/idlers." + std::to_string(frame) + ".vtk", "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
+        csv << idlerL->GetPos() << idlerL->GetRot() << idlerL->GetPosDt() << idlerL->GetAngVelLocal() << endl;
+        csv << idlerR->GetPos() << idlerR->GetRot() << idlerR->GetPosDt() << idlerR->GetAngVelLocal() << endl;
+        csv.WriteToFile(vtk_dir + "/idlers." + std::to_string(frame) + ".vtk", "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
     }
 
     {
-        chrono::utils::CSV_writer csv(",");
+        chrono::utils::ChWriterCSV csv(",");
         const auto& gearL = vehicle.GetTrackAssembly(VehicleSide::LEFT)->GetSprocket()->GetGearBody();
         const auto& gearR = vehicle.GetTrackAssembly(VehicleSide::RIGHT)->GetSprocket()->GetGearBody();
-        csv << gearL->GetPos() << gearL->GetRot() << gearL->GetPosDer() << gearL->GetAngVelLocal() << endl;
-        csv << gearR->GetPos() << gearR->GetRot() << gearR->GetPosDer() << gearR->GetAngVelLocal() << endl;
-        csv.write_to_file(vtk_dir + "/sprockets." + std::to_string(frame) + ".vtk",
+        csv << gearL->GetPos() << gearL->GetRot() << gearL->GetPosDt() << gearL->GetAngVelLocal() << endl;
+        csv << gearR->GetPos() << gearR->GetRot() << gearR->GetPosDt() << gearR->GetAngVelLocal() << endl;
+        csv.WriteToFile(vtk_dir + "/sprockets." + std::to_string(frame) + ".vtk",
                           "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
     }
 
     {
-        chrono::utils::CSV_writer csv(",");
+        chrono::utils::ChWriterCSV csv(",");
         auto chassis = vehicle.GetChassisBody();
-        csv << chassis->GetPos() << chassis->GetRot() << chassis->GetPosDer() << chassis->GetAngVelLocal() << endl;
-        csv.write_to_file(vtk_dir + "/chassis." + std::to_string(frame) + ".vtk",
+        csv << chassis->GetPos() << chassis->GetRot() << chassis->GetPosDt() << chassis->GetAngVelLocal() << endl;
+        csv.WriteToFile(vtk_dir + "/chassis." + std::to_string(frame) + ".vtk",
                           "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
     }
 }

@@ -79,7 +79,7 @@ class FmuChronoUnit : public FmuUnit {
     }
 
     /// Load the given ChCoordsys from the FMU variable with the specified name.
-    fmi2Status GetCsysVariable(const std::string& name, ChCoordsysd& csys) {
+    fmi2Status GetCoordsysVariable(const std::string& name, ChCoordsysd& csys) {
         auto status_pos = GetVecVariable(name + ".pos", csys.pos);
         if (status_pos != fmi2OK)
             return status_pos;
@@ -90,7 +90,7 @@ class FmuChronoUnit : public FmuUnit {
     }
 
     /// Set the FMU variable with specified name to the values of the given ChQuaternion.
-    fmi2Status SetCsysVariable(const std::string& name, const ChCoordsysd& csys) {
+    fmi2Status SetCoordsysVariable(const std::string& name, const ChCoordsysd& csys) {
         auto status_pos = SetVecVariable(name + ".pos", csys.pos);
         if (status_pos != fmi2OK)
             return status_pos;
@@ -103,7 +103,7 @@ class FmuChronoUnit : public FmuUnit {
     /// Load the given ChFrame from the FMU variable with the specified name.
     fmi2Status GetFrameVariable(const std::string& name, ChFrame<>& frame) {
         ChCoordsysd csys;
-        auto status = GetCsysVariable(name, csys);
+        auto status = GetCoordsysVariable(name, csys);
         frame = ChFrame<>(csys);
         return status;
     }
@@ -113,14 +113,14 @@ class FmuChronoUnit : public FmuUnit {
     /// orientation quaternion). If the rotation matrix of the ChFrame object is needed, it must be explicitly
     /// calculated before use through a call to ChFrame::Set_A_quaternion (e.g., in a pre-step callback).
     fmi2Status SetFrameVariable(const std::string& name, const ChFrame<>& frame) {
-        auto status = SetCsysVariable(name, frame.GetCsys());
+        auto status = SetCoordsysVariable(name, frame.GetCoordsys());
         return status;
     }
 
     /// Load the given ChFrameMoving from FMU variables with the specified name.
     fmi2Status GetFrameMovingVariable(const std::string& name, ChFrameMoving<>& frame) {
         ChCoordsysd csys;
-        auto status_csys = GetCsysVariable(name, csys);
+        auto status_csys = GetCoordsysVariable(name, csys);
         if (status_csys != fmi2OK)
             return status_csys;
         ChVector3d pos_dt;
@@ -145,7 +145,7 @@ class FmuChronoUnit : public FmuUnit {
     /// needed, it must be explicitly calculated before use through a call to ChFrame::Set_A_quaternion (e.g., in a
     /// pre-step callback).
     fmi2Status SetFrameMovingVariable(const std::string& name, const ChFrameMoving<>& frame) {
-        auto status_csys = SetCsysVariable(name, frame.GetCsys());
+        auto status_csys = SetCoordsysVariable(name, frame.GetCoordsys());
         if (status_csys != fmi2OK)
             return status_csys;
         auto status_pos_dt = SetVecVariable(name + ".pos_dt", frame.GetPosDer());

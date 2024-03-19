@@ -29,11 +29,14 @@ namespace fea {
 
 /// Class for a generic ED finite element node, with x,y,z displacement and a 3D rotation.
 /// This is the typical node that can be used for beams, etc.
-class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public ChVariableTupleCarrier_1vars<6>, public ChLoadableUVW {
+class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase,
+                              public ChBodyFrame,
+                              public ChVariableTupleCarrier_1vars<6>,
+                              public ChLoadableUVW {
   public:
     ChNodeFEAxyzrot(ChFrame<> initialf = ChFrame<>());
     ChNodeFEAxyzrot(const ChNodeFEAxyzrot& other);
-    ~ChNodeFEAxyzrot() {}
+    virtual ~ChNodeFEAxyzrot() {}
 
     ChNodeFEAxyzrot& operator=(const ChNodeFEAxyzrot& other);
 
@@ -42,11 +45,11 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     /// Set the rest position as the actual position.
     virtual void Relax() override {
         X0 = *this;
-        SetNoSpeedNoAcceleration();
+        ForceToRest();
     }
 
     /// Reset to no speed and acceleration.
-    virtual void SetNoSpeedNoAcceleration() override;
+    virtual void ForceToRest() override;
 
     /// Fix/release this node.
     /// If fixed, its state variables are not changed by the solver.
@@ -90,11 +93,18 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     ChFrameMoving<>& Frame() { return *this; }
 
     /// Get the number of degrees of freedom (7 because quaternion for rotation).
-    virtual int GetNdofX() const override { return 7; }
+    virtual unsigned int GetNumCoordsPosLevel() const override { return 7; }
 
     /// Get the number of degrees of freedom, derivative (6 because angular velocity for rotation derivative).
-    virtual int GetNdofW() const override { return 6; }
+    virtual unsigned int GetNumCoordsVelLevel() const override { return 6; }
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  public:
     // INTERFACE to ChVariableTupleCarrier_1vars
 
     virtual ChVariables* GetVariables1() override { return &Variables(); }
@@ -119,10 +129,10 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
                                        const unsigned int off_v,
                                        const ChStateDelta& Dv) override;
     virtual void NodeIntStateGetIncrement(const unsigned int off_x,
-                                       const ChState& x_new,
-                                       const ChState& x,
-                                       const unsigned int off_v,
-                                       ChStateDelta& Dv) override;
+                                          const ChState& x_new,
+                                          const ChState& x,
+                                          const unsigned int off_v,
+                                          ChStateDelta& Dv) override;
     virtual void NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void NodeIntLoadResidual_Mv(const unsigned int off,
                                         ChVectorDynamic<>& R,
@@ -150,16 +160,16 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     // INTERFACE to ChLoadableUVW
 
     /// Gets the number of DOFs affected by this element (position part)
-    virtual int LoadableGet_ndof_x() override { return 7; }
+    virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 7; }
 
     /// Gets the number of DOFs affected by this element (speed part)
-    virtual int LoadableGet_ndof_w() override { return 6; }
+    virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 6; }
 
     /// Gets all the DOFs packed in a single vector (position part)
-    virtual void LoadableGetStateBlock_x(int block_offset, ChState& mD) override;
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override;
 
     /// Gets all the DOFs packed in a single vector (speed part)
-    virtual void LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) override;
+    virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
     virtual void LoadableStateIncrement(const unsigned int off_x,
@@ -170,19 +180,19 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, etc. Here is 6: xyz displ + xyz rots
-    virtual int Get_field_ncoords() override { return 6; }
+    virtual unsigned int GetNumFieldCoords() override { return 6; }
 
     /// Get the number of DOFs sub-blocks.
-    virtual int GetSubBlocks() override { return 1; }
+    virtual unsigned int GetNumSubBlocks() override { return 1; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(int nblock) override { return this->NodeGetOffsetW(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return this->NodeGetOffsetVelLevel(); }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockSize(int nblock) override { return 6; }
+    virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 6; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(int nblock) const override { return true; }
+    virtual bool IsSubBlockActive(unsigned int nblock) const override { return true; }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -203,12 +213,7 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase, public ChBodyFrame, public C
     /// This is not needed because not used in quadrature.
     virtual double GetDensity() override { return 1; }
 
-    // SERIALIZATION
-
-    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
-    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
-
-  private:
+  protected:
     ChVariablesBodyOwnMass variables;  ///< 3D node variables, with x,y,z displ. and 3D rot.
     ChFrame<> X0;                      ///< reference frame
     ChVector3d Force;                  ///< applied force

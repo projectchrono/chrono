@@ -51,16 +51,17 @@ class ChApi ChSurface : public ChGeometry {
     virtual ChVector3d GetNormal(double parU, double parV) const;
 
     /// Tell if the surface is closed (periodic) on U
-    virtual bool Get_closed_U() const { return false; }
+    virtual bool IsClosedU() const { return false; }
 
     /// Tell if the surface is closed (periodic) on V
-    virtual bool Get_closed_V() const { return false; }
+    virtual bool IslosedV() const { return false; }
 
     /// This is a surface, so manifold dimension=2
     virtual int GetManifoldDimension() const override { return 2; }
 
     /// Tell if the visualization is done only as UV isolines
     bool IsWireframe() { return wireframe; }
+
     /// Set if the visualization is done only as UV isolines
     void SetWireframe(bool mw) { wireframe = mw; }
 

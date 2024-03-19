@@ -24,7 +24,7 @@ namespace chrono {
 namespace vehicle {
 namespace gclass {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 G500_AutomaticTransmissionSimpleMap::G500_AutomaticTransmissionSimpleMap(const std::string& name)
     : ChAutomaticTransmissionSimpleMap(name) {}

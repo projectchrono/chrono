@@ -67,7 +67,7 @@ class Crane {
 
         double crane_mass = 500;
         double crane_length = 1.0;
-        double crane_angle = CH_C_PI / 6;
+        double crane_angle = CH_PI / 6;
         ChVector3d crane_pos(0.5 * crane_length * std::cos(crane_angle), 0, 0.5 * crane_length * std::sin(crane_angle));
 
         double pend_length = 0.3;
@@ -78,14 +78,14 @@ class Crane {
         connection_sph->SetColor(ChColor(0.7f, 0.3f, 0.3f));
 
         // Estimate initial required force (moment balance about crane pivot)
-        auto Gacc = sys.Get_G_acc();
+        auto Gacc = sys.GetGravitationalAcceleration();
         auto Gtorque = Vcross(crane_mass * Gacc, crane_pos) + Vcross(pend_mass * Gacc, pend_pos);
         auto dir = (crane_pos - m_point_ground).GetNormalized();
         m_F0 = Gtorque.Length() / Vcross(dir, crane_pos).Length();
 
         // Create bodies
         auto ground = chrono_types::make_shared<ChBody>();
-        ground->SetBodyFixed(true);
+        ground->SetFixed(true);
         ground->AddVisualShape(connection_sph, ChFrame<>());
         ground->AddVisualShape(connection_sph, ChFrame<>(m_point_ground, QUNIT));
         sys.AddBody(ground);
@@ -97,7 +97,7 @@ class Crane {
         m_crane->AddVisualShape(connection_sph, ChFrame<>(m_point_crane, QUNIT));
         m_crane->AddVisualShape(connection_sph, ChFrame<>(ChVector3d(crane_length / 2, 0, 0), QUNIT));
         auto crane_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.015, crane_length);
-        m_crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
+        m_crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, QuatFromAngleY(CH_PI_2)));
         sys.AddBody(m_crane);
 
         auto ball = chrono_types::make_shared<ChBody>();
@@ -111,7 +111,7 @@ class Crane {
 
         // Create joints
         auto rev_joint = chrono_types::make_shared<ChLinkRevolute>();
-        rev_joint->Initialize(ground, m_crane, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+        rev_joint->Initialize(ground, m_crane, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
         sys.AddLink(rev_joint);
 
         auto sph_joint = chrono_types::make_shared<ChLinkLockSpherical>();
@@ -133,11 +133,11 @@ class Crane {
 
         sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
         auto integrator = std::static_pointer_cast<chrono::ChTimestepperEulerImplicit>(sys.GetTimestepper());
-        integrator->SetMaxiters(50);
+        integrator->SetMaxIters(50);
         integrator->SetAbsTolerances(1e-4, 1e2);
 
         // Initialize output
-        m_csv.set_delim(" ");
+        m_csv.SetDelimiter(" ");
         double s, sd;
         GetActuatorLength(s, sd);
         m_csv << 0 << s << sd << std::endl;
@@ -177,7 +177,7 @@ class Crane {
         m_csv << time << s << sd << std::endl;
     }
 
-    void WriteOutput(const std::string& filename) { m_csv.write_to_file(filename); }
+    void WriteOutput(const std::string& filename) { m_csv.WriteToFile(filename); }
 
   private:
     ChSystem& m_sys;
@@ -186,7 +186,7 @@ class Crane {
     ChVector3d m_point_ground;
     ChVector3d m_point_crane;
     double m_F0;
-    utils::CSV_writer m_csv;
+    utils::ChWriterCSV m_csv;
 };
 
 class Actuator {
@@ -217,11 +217,11 @@ class Actuator {
 
         sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
         auto integrator = std::static_pointer_cast<chrono::ChTimestepperEulerImplicit>(sys.GetTimestepper());
-        integrator->SetMaxiters(50);
+        integrator->SetMaxIters(50);
         integrator->SetAbsTolerances(1e-4, 1e2);
 
         // Initialize output
-        m_csv.set_delim(" ");
+        m_csv.SetDelimiter(" ");
       }
 
       void SetActuation(double time, double Uref) { m_actuation->SetSetpoint(Uref, time); }
@@ -242,13 +242,13 @@ class Actuator {
         m_csv << time << Uref << U << p[0] << p[1] << F << std::endl;
       }
 
-      void WriteOutput(const std::string& filename) { m_csv.write_to_file(filename); }
+      void WriteOutput(const std::string& filename) { m_csv.WriteToFile(filename); }
 
     private:
       ChSystem& m_sys;
       std::shared_ptr<ChHydraulicActuator2> m_actuator;
       std::shared_ptr<ChFunctionSetpoint> m_actuation;
-      utils::CSV_writer m_csv;
+      utils::ChWriterCSV m_csv;
 };
 
 // -----------------------------------------------------------------------------
@@ -265,8 +265,8 @@ int main(int argc, char* argv[]) {
     // Create the two Chrono systems 
     ChSystemSMC sysMBS;
     ChSystemSMC sysHYD;
-    sysMBS.Set_G_acc(ChVector3d(0, 0, -9.8));
-    sysHYD.Set_G_acc(ChVector3d(0, 0, -9.8));
+    sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
+    sysHYD.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
 
     // Construct the crane multibody system
     Crane crane(sysMBS); 
@@ -330,7 +330,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetUseSkyBox(true);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->SetWireFrameMode(false);
             vis_vsg->Initialize();

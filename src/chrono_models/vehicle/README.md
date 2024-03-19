@@ -3,6 +3,13 @@ Chrono::Vehicle Model Library
 
 Data sources for some of the vehicle models available in the Chrono::Vehicle model library are listed below. For vehicle models not listed here, synthetic data set at reasonable values are used.
 
+#### [`bmw`] BMW E90 vehicle
+
+Vehicle parameters taken from SAE paper 2007-01-0818:
+
+Salaani, M., Schwarz, C., Heydinger, G., and Grygier, P., "Parameter Determination and Vehicle Dynamics Modeling for The National Advanced Driving Simulator of the 2006 BMW 330i," SAE Technical Paper 2007-01-0818, 2007, https://doi.org/10.4271/2007-01-0818.
+
+Missing powertrain data come from a publicly available BMW datasheet and other sources on the internet.
 
 #### [`duro`] Duro multipurpose transport vehicle
 

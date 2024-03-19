@@ -194,7 +194,8 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
                      ChVector3d trans_elem2,
                      ChMatrix33<> rot_elem2,
                      bool AlsoPrint) {
-    ChSystemSMC sys(false);
+    ChSystemSMC sys;
+    sys.UseMaterialProperties(false);
 
     ChCollisionModel::SetDefaultSuggestedMargin(0.001);
     sys.SetContactForceModel(ChSystemSMC::Hooke);
@@ -241,7 +242,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
                        std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh_1->GetNode(3)));
 
     Element1->SetDimensions(L_x, L_z);
-    Element1->AddLayer(L_y, 0 * CH_C_DEG_TO_RAD, material);
+    Element1->AddLayer(L_y, 0 * CH_DEG_TO_RAD, material);
     Element1->SetAlphaDamp(0.02);  // Structural damping for this element
     my_mesh_1->AddElement(Element1);
 
@@ -252,7 +253,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
                        std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh_2->GetNode(2)),
                        std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh_2->GetNode(3)));
     Element2->SetDimensions(L_x, L_z);
-    Element2->AddLayer(L_y, 0 * CH_C_DEG_TO_RAD, material);
+    Element2->AddLayer(L_y, 0 * CH_DEG_TO_RAD, material);
     Element2->SetAlphaDamp(0.02);  // Structural damping for this element
     my_mesh_2->AddElement(Element2);
     std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_mesh_1->GetNode(0))->SetFixed(true);
@@ -270,9 +271,9 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     my_mesh_2->SetAutomaticGravity(addGravity);
 
     if (addGravity) {
-        sys.Set_G_acc(ChVector3d(0, -1, 0));
+        sys.SetGravitationalAcceleration(ChVector3d(0, -1, 0));
     } else {
-        sys.Set_G_acc(ChVector3d(0, 0, 0));
+        sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
     }
     sys.Add(my_mesh_1);
     sys.Add(my_mesh_2);
@@ -293,7 +294,7 @@ bool EvaluateContact(std::shared_ptr<ChMaterialShellANCF> material,
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(40);
+    mystepper->SetMaxIters(40);
     mystepper->SetAbsTolerances(1e-2, 1e-1);
     mystepper->SetVerbose(false);
     auto container = chrono_types::make_shared<MyContactContainer>();

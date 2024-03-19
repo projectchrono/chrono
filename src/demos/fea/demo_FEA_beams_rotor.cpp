@@ -72,19 +72,19 @@ int main(int argc, char* argv[]) {
     // BODY: the base & tower:
 
     auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(10, 2, 10, 3000);
-    my_body_A->SetBodyFixed(true);
+    my_body_A->SetFixed(true);
     my_body_A->SetPos(ChVector3d(0, -10, 0));
     sys.Add(my_body_A);
 
     // Attach a 'cylinder' shape asset for visualization of the tower.
     auto mtower = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 9.0);
-    my_body_A->AddVisualShape(mtower, ChFrame<>(ChVector3d(0, 5.5, 0), QuatFromAngleX(CH_C_PI_2)));
+    my_body_A->AddVisualShape(mtower, ChFrame<>(ChVector3d(0, 5.5, 0), QuatFromAngleX(CH_PI_2)));
 
     // BODY: the rotating hub:
 
     auto my_body_hub = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.2, 0.5, 1000);
     my_body_hub->SetPos(ChVector3d(0, 0, 1));
-    my_body_hub->SetRot(QuatFromAngleX(CH_C_PI_2));
+    my_body_hub->SetRot(QuatFromAngleX(CH_PI_2));
     sys.Add(my_body_hub);
 
     // CONSTRAINT: the hub of the motor.
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     sys.Add(my_mesh);
 
     // no gravity used here
-    sys.Set_G_acc(VNULL);
+    sys.SetGravitationalAcceleration(VNULL);
     my_mesh->SetAutomaticGravity(false);
 
     // BEAMS:
@@ -129,9 +129,9 @@ int main(int argc, char* argv[]) {
 
         msection->SetDensity(beam_density);
         msection->SetYoungModulus(beam_Young);
-        msection->SetGwithPoissonRatio(0.31);
-        msection->SetBeamRayleighDampingBeta(0 * 0.00001);
-        msection->SetBeamRayleighDampingAlpha(0 * 0.001);
+        msection->SetShearModulusFromPoisson(0.31);
+        msection->SetRayleighDampingBeta(0 * 0.00001);
+        msection->SetRayleighDampingAlpha(0 * 0.001);
         msection->SetAsRectangularSection(beam_wy, beam_wz);
         msection->compute_inertia_damping_matrix = true;    //// NOTE: not much different
         msection->compute_inertia_stiffness_matrix = true;  //// NOTE: not much different
@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
     // CONSTRAINT: connect root of blade to the hub. Use a motor, but with zero speed.
 
     auto my_root = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-    my_root->Initialize(nodes.front(), my_body_hub, ChFrame<>(ChVector3d(0, 0.5, 1), QuatFromAngleX(CH_C_PI_2)));
+    my_root->Initialize(nodes.front(), my_body_hub, ChFrame<>(ChVector3d(0, 0.5, 1), QuatFromAngleX(CH_PI_2)));
     auto my_angle = chrono_types::make_shared<ChFunctionConst>(0);  // rad
     my_root->SetMotorFunction(my_angle);
     sys.Add(my_root);
@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
         chrono::ChVector3d par_pos = par_frame.TransformDirectionLocalToParent(local_pos);
         chrono::ChVector3d alpha = par_frame.GetAngAccParent();
         chrono::ChVector3d omega = par_frame.GetAngVelParent();
-        par_acc = par_frame.GetPosDer2() + chrono::Vcross(par_frame.GetAngAccParent(), par_pos) +
+        par_acc = par_frame.GetPosDt2() + chrono::Vcross(par_frame.GetAngAccParent(), par_pos) +
                   chrono::Vcross(omega, chrono::Vcross(omega, par_pos));
     };
 
@@ -280,10 +280,10 @@ int main(int argc, char* argv[]) {
         chrono::ChVector3d acc_par_ref;  // accelerations calculated by new developed method
         PointAccelerationLocalToParent(m_rot_frame, m_dpos_rel, acc_par_ref);
 
-        std::cout << "rot_frame.GetCsys():\t" << m_rot_frame.GetCsys() << std::endl;
-        std::cout << "rot_frame.GetCsysDer():\t" << m_rot_frame.GetPosDer() << "\t" << m_rot_frame.GetAngVelLocal()
+        std::cout << "rot_frame.GetCoordsys():\t" << m_rot_frame.GetCoordsys() << std::endl;
+        std::cout << "rot_frame.GetCoordsysDt():\t" << m_rot_frame.GetPosDt() << "\t" << m_rot_frame.GetAngVelLocal()
                   << std::endl;
-        std::cout << "rot_frame.GetCsysDer2():\t" << m_rot_frame.GetPosDer2() << "\t" << m_rot_frame.GetAngAccLocal()
+        std::cout << "rot_frame.GetCoordsysDt2():\t" << m_rot_frame.GetPosDt2() << "\t" << m_rot_frame.GetAngAccLocal()
                   << std::endl;
         std::cout << "vel_par:\t" << vel_par << std::endl;
         std::cout << "acc_par from chrono method:\t" << acc_par << std::endl;
@@ -339,10 +339,10 @@ int main(int argc, char* argv[]) {
                               ChStaticNonLinearRheonomicAnalysis* analysis) override {
             for (auto in : blade_nodes) {
                 // Set node speed and angular velocity, as moved by hub motor:
-                in->SetPosDer(ChVector3d(-in->GetPos().y() * blade_rad_s, 0, 0));
+                in->SetPosDt(ChVector3d(-in->GetPos().y() * blade_rad_s, 0, 0));
                 in->SetAngVelParent(ChVector3d(0, 0, blade_rad_s));
                 // Set also centripetal acceleration:
-                in->SetPosDer2(ChVector3d(0, -in->GetPos().y() * blade_rad_s * blade_rad_s, 0));
+                in->SetPosDt2(ChVector3d(0, -in->GetPos().y() * blade_rad_s * blade_rad_s, 0));
             }
         }
         // some data used by the callback to make things simple
@@ -383,7 +383,7 @@ int main(int argc, char* argv[]) {
 
         ChVectorDynamic<> ploty_analytic(nodes.size());
         for (int i = 0; i < nodes.size(); ++i) {
-            ploty(i) = nodes[i]->GetPosDer().x();
+            ploty(i) = nodes[i]->GetPosDt().x();
             ploty_analytic(i) = -nodes[i]->GetPos().y() * rad_s;
         }
         ChGnuPlot mplot_edge_speed((out_dir + "/flapwise_speed.dat").c_str());
@@ -393,7 +393,7 @@ int main(int argc, char* argv[]) {
                               " with lines lt -1 lc rgb'#AA00EE'");
 
         for (int i = 0; i < nodes.size(); ++i) {
-            ploty(i) = nodes[i]->GetPosDer2().y();
+            ploty(i) = nodes[i]->GetPosDt2().y();
             ploty_analytic(i) = -nodes[i]->GetPos().y() * rad_s * rad_s;
         }
         ChGnuPlot mplot_centeripetal_accel((out_dir + "/centripetal_acc.dat").c_str());
@@ -406,7 +406,7 @@ int main(int argc, char* argv[]) {
     /*
     // TRICK: force nodes to needed speed
     for (auto in : nodes) {
-        in->SetPosDer(ChVector3d(-in->GetPos().y() * rad_s, 0, 0));
+        in->SetPosDt(ChVector3d(-in->GetPos().y() * rad_s, 0, 0));
         in->SetAngVelParent(ChVector3d(0, 0,  rad_s));
     }
     */
@@ -421,7 +421,7 @@ int main(int argc, char* argv[]) {
     while (vis->Run()) {
         vis->BeginScene();
         vis->Render();
-        tools::drawGrid(vis.get(), 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_C_PI_2, VECT_Z),
+        tools::drawGrid(vis.get(), 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_PI_2, VECT_Z),
                         ChColor(0.4f, 0.4f, 0.4f), true);
 
         sys.DoStepDynamics(0.01);

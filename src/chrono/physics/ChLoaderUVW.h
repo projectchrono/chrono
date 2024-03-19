@@ -59,8 +59,8 @@ class ChLoaderUVWdistributed : public ChLoaderUVW {
     virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                           ) override {
-        Q.setZero(loadable->LoadableGet_ndof_w());
-        ChVectorDynamic<> mF(loadable->Get_field_ncoords());
+        Q.setZero(loadable->GetLoadableNumCoordsVelLevel());
+        ChVectorDynamic<> mF(loadable->GetNumFieldCoords());
         mF.setZero();
 
         if (loadable->IsTetrahedronIntegrationNeeded()) {
@@ -164,8 +164,8 @@ class ChLoaderUVWatomic : public ChLoaderUVW {
     virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                           ) override {
-        Q.setZero(loadable->LoadableGet_ndof_w());
-        ChVectorDynamic<> mF(loadable->Get_field_ncoords());
+        Q.setZero(loadable->GetLoadableNumCoordsVelLevel());
+        ChVectorDynamic<> mF(loadable->GetNumFieldCoords());
         mF.setZero();
 
         // Compute F=F(u,v,w)
@@ -219,9 +219,9 @@ class ChLoaderGravity : public ChLoaderUVWdistributed {
     /// Gets the number of integration points for gravity
     int GetNumIntPoints() const { return num_int_points; }
     /// Sets the G (gravity) acceleration vector affecting the loadable object
-    void Set_G_acc(ChVector3d m_acc) { G_acc = m_acc; }
+    void SetGravitationalAcceleration(ChVector3d m_acc) { G_acc = m_acc; }
     /// Gets the G (gravity) acceleration vector affecting the loadable object
-    ChVector3d Get_G_acc() { return G_acc; }
+    ChVector3d GetGravitationalAcceleration() { return G_acc; }
 
     virtual int GetIntegrationPointsU() override { return num_int_points; }
     virtual int GetIntegrationPointsV() override { return num_int_points; }

@@ -69,10 +69,10 @@ void UAZBUS_SAEVehicle::Create(bool fixed, SteeringTypeWV steering_model, Collis
     m_axles[1]->m_wheels[0] = chrono_types::make_shared<UAZBUS_Wheel>("Wheel_RL");
     m_axles[1]->m_wheels[1] = chrono_types::make_shared<UAZBUS_Wheel>("Wheel_RR");
 
-    m_axles[0]->m_brake_left = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_FL");
-    m_axles[0]->m_brake_right = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_FR");
-    m_axles[1]->m_brake_left = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_RL");
-    m_axles[1]->m_brake_right = chrono_types::make_shared<UAZBUS_BrakeSimpleFront>("Brake_RR");
+    m_axles[0]->m_brake_left = chrono_types::make_shared<UAZBUS_BrakeShaftsFront>("Brake_FL");
+    m_axles[0]->m_brake_right = chrono_types::make_shared<UAZBUS_BrakeShaftsFront>("Brake_FR");
+    m_axles[1]->m_brake_left = chrono_types::make_shared<UAZBUS_BrakeShaftsRear>("Brake_RL");
+    m_axles[1]->m_brake_right = chrono_types::make_shared<UAZBUS_BrakeShaftsRear>("Brake_RR");
 
     // Create the driveline
     m_driveline = chrono_types::make_shared<UAZBUS_Driveline4WD>("Driveline");

@@ -69,11 +69,11 @@ void ChSteeringController::StartDataCollection() {
     // Return now if currently collecting data.
     if (m_collect)
         return;
-    // Create the CSV_writer object if needed (first call to this function).
+    // Create the ChWriterCSV object if needed (first call to this function).
     if (!m_csv) {
-        m_csv = new utils::CSV_writer("\t");
-        m_csv->stream().setf(std::ios::scientific | std::ios::showpos);
-        m_csv->stream().precision(6);
+        m_csv = new utils::ChWriterCSV("\t");
+        m_csv->Stream().setf(std::ios::scientific | std::ios::showpos);
+        m_csv->Stream().precision(6);
     }
     // Enable data collection.
     m_collect = true;
@@ -87,7 +87,7 @@ void ChSteeringController::StopDataCollection() {
 void ChSteeringController::WriteOutputFile(const std::string& filename) {
     // Do nothing if data collection was never enabled.
     if (m_csv)
-        m_csv->write_to_file(filename);
+        m_csv->WriteToFile(filename);
 }
 
 // -----------------------------------------------------------------------------
@@ -167,7 +167,7 @@ double ChPathSteeringController::Advance(const ChFrameMoving<>& ref_frame, doubl
 
 void ChPathSteeringController::CalcTargetLocation() {
     // Let the underlying tracker do its magic.
-    m_tracker->calcClosestPoint(m_sentinel, m_target);
+    m_tracker->CalcClosestPoint(m_sentinel, m_target);
 }
 
 void ChPathSteeringController::Reset(const ChFrameMoving<>& ref_frame) {
@@ -175,7 +175,7 @@ void ChPathSteeringController::Reset(const ChFrameMoving<>& ref_frame) {
     ChSteeringController::Reset(ref_frame);
 
     // Reset the path tracker with the new sentinel location.
-    m_tracker->reset(m_sentinel);
+    m_tracker->Reset(m_sentinel);
 }
 
 // -----------------------------------------------------------------------------
@@ -192,7 +192,7 @@ void ChPathSteeringController::Reset(const ChFrameMoving<>& ref_frame) {
 ChPathSteeringControllerXT::ChPathSteeringControllerXT(std::shared_ptr<ChBezierCurve> path, double max_wheel_turn_angle)
     : ChSteeringController(path),
       m_R_threshold(100000.0),
-      m_max_wheel_turn_angle(25.0 * CH_C_DEG_TO_RAD),
+      m_max_wheel_turn_angle(25.0 * CH_DEG_TO_RAD),
       m_filters_initialized(false),
       m_T1_delay(30.0 / 1000.0),
       m_Kp(0.4),
@@ -212,7 +212,7 @@ ChPathSteeringControllerXT::ChPathSteeringControllerXT(const std::string& filena
                                                        double max_wheel_turn_angle)
     : ChSteeringController(path),
       m_R_threshold(100000.0),
-      m_max_wheel_turn_angle(25.0 * CH_C_DEG_TO_RAD),
+      m_max_wheel_turn_angle(25.0 * CH_DEG_TO_RAD),
       m_filters_initialized(false),
       m_T1_delay(30.0 / 1000.0),
       m_Kp(0.4),
@@ -253,7 +253,7 @@ void ChPathSteeringControllerXT::CalcTargetLocation() {
     // we need more information about the path properties here:
     ChFrame<> tnb;
 
-    m_tracker->calcClosestPoint(m_sentinel, tnb, m_pcurvature);
+    m_tracker->CalcClosestPoint(m_sentinel, tnb, m_pcurvature);
 
     m_target = tnb.GetPos();
 
@@ -267,7 +267,7 @@ void ChPathSteeringControllerXT::Reset(const ChFrameMoving<>& ref_frame) {
     ChSteeringController::Reset(ref_frame);
 
     // Reset the path tracker with the new sentinel location.
-    m_tracker->reset(m_sentinel);
+    m_tracker->Reset(m_sentinel);
 }
 
 double ChPathSteeringControllerXT::CalcHeadingError(ChVector3d& a, ChVector3d& b) {
@@ -350,7 +350,7 @@ double ChPathSteeringControllerXT::CalcAckermannAngle() {
 double ChPathSteeringControllerXT::Advance(const ChFrameMoving<>& ref_frame, double time, double step) {
     // Calculate current "sentinel" location.  This is a point at the look-ahead distance in front of the vehicle.
     m_sentinel = ref_frame.TransformPointLocalToParent(m_dist * ChWorldFrame::Forward());
-    m_vel = ref_frame.GetPosDer();
+    m_vel = ref_frame.GetPosDt();
 
     if (!m_filters_initialized) {
         // first time we know about step size
@@ -477,14 +477,14 @@ ChPathSteeringControllerSR::ChPathSteeringControllerSR(const std::string& filena
 }
 
 void ChPathSteeringControllerSR::CalcPathPoints() {
-    size_t np = m_path->getNumPoints();
+    size_t np = m_path->GetNumPoints();
     S_l.resize(np);
     R_l.resize(np);
     R_lu.resize(np);
 
     if (m_isClosedPath) {
         for (size_t i = 0; i < np; i++) {
-            S_l[i] = m_path->getPoint(i);
+            S_l[i] = m_path->GetPoint(i);
         }
         for (size_t i = 0; i < np - 1; i++) {
             R_l[i] = S_l[i + 1] - S_l[i];
@@ -497,7 +497,7 @@ void ChPathSteeringControllerSR::CalcPathPoints() {
         R_lu[np - 1].Normalize();
     } else {
         for (size_t i = 0; i < np; i++) {
-            S_l[i] = m_path->getPoint(i);
+            S_l[i] = m_path->GetPoint(i);
         }
         for (size_t i = 0; i < np - 1; i++) {
             R_l[i] = S_l[i + 1] - S_l[i];
@@ -537,7 +537,7 @@ void ChPathSteeringControllerSR::SetPreviewTime(double Tp) {
 double ChPathSteeringControllerSR::Advance(const ChFrameMoving<>& ref_frame, double time, double step) {
     const double g = 9.81;
 
-    double u = Vdot(ref_frame.GetPosDer(), ref_frame.GetRotMat().GetAxisX()); // vehicle forward speed
+    double u = Vdot(ref_frame.GetPosDt(), ref_frame.GetRotMat().GetAxisX()); // vehicle forward speed
 
     // Calculate unit vector pointing to the yaw center
     ChVector3d n_g = ref_frame.GetRotMat().GetAxisY();  // vehicle left direction (ISO frame)
@@ -552,7 +552,7 @@ double ChPathSteeringControllerSR::Advance(const ChFrameMoving<>& ref_frame, dou
         m_sentinel = ref_frame.TransformPointLocalToParent(factor * ChWorldFrame::Forward());
     } else {
         // m_Kug is in [°/g]
-        R = (m_L + CH_C_DEG_TO_RAD * m_Kug * u * u / g) / m_delta;
+        R = (m_L + CH_DEG_TO_RAD * m_Kug * u * u / g) / m_delta;
         double theta = u * m_Tp / R;
         ChMatrix33<> RM(theta, ChWorldFrame::Vertical());
         m_sentinel = ref_frame.TransformPointLocalToParent(factor * ChWorldFrame::Forward()) + R * (n_g - RM * n_g);
@@ -685,7 +685,7 @@ double ChPathSteeringControllerStanley::Advance(const ChFrameMoving<>& ref_frame
         m_delayFilter = std::shared_ptr<utils::ChFilterPT1>(new utils::ChFilterPT1(step, m_Tdelay));
     }
 
-    double u = Vdot(ref_frame.GetPosDer(), ref_frame.GetRotMat().GetAxisX());  // vehicle forward speed
+    double u = Vdot(ref_frame.GetPosDt(), ref_frame.GetRotMat().GetAxisX());  // vehicle forward speed
 
     // Calculate current "sentinel" location.  This is a point at the look-ahead distance in front of the vehicle.
     m_sentinel = ref_frame.TransformPointLocalToParent(m_dist * ChWorldFrame::Forward());
@@ -747,7 +747,7 @@ void ChPathSteeringControllerStanley::CalcTargetLocation() {
     // we need more information about the path properties here:
     ChFrame<> tnb;
 
-    m_tracker->calcClosestPoint(m_sentinel, tnb, m_pcurvature);
+    m_tracker->CalcClosestPoint(m_sentinel, tnb, m_pcurvature);
     m_target = tnb.GetPos();
     m_ptangent = tnb.GetRot().GetAxisX();
 }

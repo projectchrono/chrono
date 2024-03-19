@@ -37,7 +37,7 @@ void ChChassisConnectorArticulated::Initialize(std::shared_ptr<ChChassis> front,
 
     // Express the connector reference frame in the absolute coordinate system
     ChFrame<> to_abs(rear->GetLocalPosFrontConnector());
-    to_abs.ConcatenatePreTransformation(rear->GetBody()->GetFrame_REF_to_abs());
+    to_abs.ConcatenatePreTransformation(rear->GetBody()->GetFrameRefToAbs());
 
     // Create the connection
     m_motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();

@@ -46,7 +46,7 @@ mesh = fea.ChMesh()
 # Remember to add the mesh to the system!
 sys.Add(mesh)
 
-# sys.Set_G_acc(VNULL) or
+# sys.SetGravitationalAcceleration(VNULL) or
 #mesh.SetAutomaticGravity(False)
 
 nodePlotA = fea.ChNodeFEAxyz()
@@ -110,7 +110,7 @@ if (False):  # set as 'true' to execute this
     
     melement.SetNodes(mnode0, mnode1, mnode2,None,None,None)
     
-    melement.AddLayer(thickness, 0 * chrono.CH_C_DEG_TO_RAD, material)
+    melement.AddLayer(thickness, 0 * chrono.CH_DEG_TO_RAD, material)
     
     # TEST
     sys.Setup()
@@ -125,7 +125,7 @@ if (False):  # set as 'true' to execute this
     mnode1.SetPos(mnode1.GetPos() + chrono.ChVector3d(0.1, 0, 0))
     
     sys.Update()
-    Fi = chrono.ChVectorDynamicd(melement.GetNdofs())
+    Fi = chrono.ChVectorDynamicd(melement.GetNumCoordsPosLevel())
     melement.ComputeInternalForces(Fi)
     print( "BST updated: \n" 
     		+ "phi: " + str(melement.phi) + "\n"
@@ -213,7 +213,7 @@ if (True):  # set as 'true' to execute this
 				mynodes[(iz + 1) * (nsections_x + 1) + ix    ], 
 				boundary_1, boundary_2, boundary_3)
 
-            melementA.AddLayer(thickness, 0 * chrono.CH_C_DEG_TO_RAD, material)
+            melementA.AddLayer(thickness, 0 * chrono.CH_DEG_TO_RAD, material)
 
 			
             melementB = fea.ChElementShellBST()
@@ -235,7 +235,7 @@ if (True):  # set as 'true' to execute this
 				mynodes[(iz    ) * (nsections_x + 1) + ix + 1],
 				boundary_1, boundary_2, boundary_3)
 
-            melementB.AddLayer(thickness, 0 * chrono.CH_C_DEG_TO_RAD, material)
+            melementB.AddLayer(thickness, 0 * chrono.CH_DEG_TO_RAD, material)
 	
     for j in range(30) :
         for k in range(30) :

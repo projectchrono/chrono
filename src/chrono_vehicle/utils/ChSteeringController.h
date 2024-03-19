@@ -119,7 +119,7 @@ class CH_VEHICLE_API ChSteeringController {
     double m_errd;  ///< error derivative
     double m_erri;  ///< integral of error
 
-    utils::CSV_writer* m_csv;  ///< CSV_writer object for data collection
+    utils::ChWriterCSV* m_csv;  ///< ChWriterCSV object for data collection
     bool m_collect;            ///< flag indicating whether or not data is being collected
 };
 

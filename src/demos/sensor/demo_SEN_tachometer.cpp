@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
 
     // Create the system
     ChSystemNSC mphysicalsystem;
-    mphysicalsystem.Set_G_acc(ChVector3d(0, 0, 0));
+    mphysicalsystem.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // add a ChBody to test
     auto body = chrono_types::make_shared<ChBodyEasyBox>(10, 1, 1, 1000, true, false);
@@ -56,7 +56,7 @@ int main(int argc, char* argv[]) {
                                                           cam_offset_pose,  // offset pose
                                                           400,              // image width
                                                           400,              // image height
-                                                          CH_C_PI / 3,      // camera's horizontal field of view
+                                                          CH_PI / 3,      // camera's horizontal field of view
                                                           1,                // supersample factor for antialiasing
                                                           CameraLensModelType::PINHOLE,
                                                           false);  // FOV

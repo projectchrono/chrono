@@ -25,6 +25,7 @@
 #include "chrono_models/vehicle/gator/Gator_Chassis.h"
 #include "chrono_models/vehicle/artcar/ARTcar_Chassis.h"
 #include "chrono_models/vehicle/feda/FEDA_Chassis.h"
+#include "chrono_models/vehicle/bmw/BMW_E90_Chassis.h"
 
 #include "chrono_models/vehicle/m113/M113_Chassis.h"
 %}
@@ -40,6 +41,7 @@
 %shared_ptr(chrono::vehicle::gator::Gator_Chassis)
 %shared_ptr(chrono::vehicle::artcar::ARTcar_Chassis)
 %shared_ptr(chrono::vehicle::feda::FEDA_Chassis)
+%shared_ptr(chrono::vehicle::bmw::BMW_E90_Chassis)
 
 %shared_ptr(chrono::vehicle::m113::M113_Chassis)
 
@@ -57,5 +59,6 @@
 %include "../../../chrono_models/vehicle/gator/Gator_Chassis.h"
 %include "../../../chrono_models/vehicle/artcar/ARTcar_Chassis.h"
 %include "../../../chrono_models/vehicle/feda/FEDA_Chassis.h"
+%include "../../../chrono_models/vehicle/bmw/BMW_E90_Chassis.h"
 
 %include "../../../chrono_models/vehicle/m113/M113_Chassis.h"

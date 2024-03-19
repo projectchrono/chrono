@@ -86,7 +86,7 @@ mphysicalSystem.Add(rotmotor);
 
 // Create a ChFunction to be used for the motor: for example a constant 
 // angular speed, in [rad/s], ex. 1 PI/s =180°/s
-auto mwspeed = chrono_types::make_shared<ChFunctionConst>(CH_C_PI); 
+auto mwspeed = chrono_types::make_shared<ChFunctionConst>(CH_PI); 
 
 // Let the motor use our motion function:
 rotmotor->SetSpeedFunction(mwspeed);
@@ -139,7 +139,7 @@ mphysicalSystem.Add(rotmotor2);
 auto msineangle = chrono_types::make_shared<ChFunctionSine>(
                                         0,      // phase [rad]
                                         0.05,   // frequency [Hz]
-                                        CH_C_PI // amplitude [rad]
+                                        CH_PI // amplitude [rad]
                                         ); 
 // Let the motor use this motion function as a motion profile:
 rotmotor2->SetAngleFunction(msineangle);
@@ -189,7 +189,7 @@ rotmotor->Initialize( rotor,                // body A (slave)
 mphysicalSystem.Add(rotmotor);
 
 // Create a ChFunction to be used for the motor: 
-auto mwspeed = chrono_types::make_shared<ChFunctionConst>(CH_C_PI); 
+auto mwspeed = chrono_types::make_shared<ChFunctionConst>(CH_PI); 
 
 // Let the motor use our motion function:
 rotmotor->SetSpeedFunction(mwspeed);
@@ -271,7 +271,7 @@ public:
         // The three-phase torque(speed) model
         double w = mymotor->GetMotorAngleDer(); 
         double s = (ns-w)/ns;// slip
-        double T = (3.0/2*CH_C_PI*ns)*(s * E2*E2 * R2) / (R2*R2 + pow(s*X2,2)); // electric torque curve
+        double T = (3.0/2*CH_PI*ns)*(s * E2*E2 * R2) / (R2*R2 + pow(s*X2,2)); // electric torque curve
         T -= w*5; // simulate also a viscous brake
         return T;
     }
@@ -394,7 +394,7 @@ my_drive->Initialize(
         );
 mphysicalSystem.Add(my_drive);
 // Create a speed(time) function, and use it in my_drive:
-auto my_driveangle = chrono_types::make_shared<ChFunctionConst>(25*CH_C_2PI);  // 25 [rps] = 1500 [rpm]
+auto my_driveangle = chrono_types::make_shared<ChFunctionConst>(25*CH_2PI);  // 25 [rps] = 1500 [rpm]
 my_drive->SetSpeedFunction(my_driveangle); 
 
 
@@ -552,7 +552,7 @@ mphysicalSystem.Add(motor2);
 auto msp = chrono_types::make_shared<ChFunctionSine>(0.8,  // amplitude
                                              0.5,        // frequency
                                              0.8         // amplitude
-                                             CH_C_PI_2);
+                                             CH_PI_2);
 // Let the motor use this motion function:
 motor2->SetSpeedFunction(msp);
 ~~~
@@ -662,7 +662,7 @@ class MyForceClass : public ChFunctionSetpointCallback {
         if (time > last_time) {
             double dt = time - last_time;
             // for example, the position to chase is this sine formula:
-            double setpoint = setpoint_position_sine_amplitude * sin(setpoint_position_sine_freq*CH_C_2PI* x );
+            double setpoint = setpoint_position_sine_amplitude * sin(setpoint_position_sine_freq*CH_2PI* x );
             double error    = setpoint - linearmotor->GetMotorPos();
             double error_dt = (error-last_error)/dt;
             // for example, finally compute the force using the PID idea:
@@ -716,13 +716,13 @@ Some guidelines:
 
 - In order to connect the two 3D parts to the 1D powertrain, you must use two 
   invisible "inner shafts" of chrono::ChShaft class, that you can access via 
-  mymotor->GetInnerShaft1lin() and mymotor->GetInnerShaft2lin().  
+  mymotor->GetInnerShaft1Lin() and mymotor->GetInnerShaft2Lin().  
   
 - Note: in the part 2 there is an additional inner shaft that operates on rotation;
   this is needed because, for example, maybe you want to model a driveline like a 
   drive+screw; you will anchor the drive to part 2 using this rotational shaft; so 
   reaction torques arising because of inner flywheel accelerations can be transmitted 
-  to this shaft. Use  mymotor->GetInnerShaft2rot()  to access it.
+  to this shaft. Use  mymotor->GetInnerShaft2Rot()  to access it.
   
 - Most often the driveline is like a graph starting at inner shaft 2 (consider 
   it to be the truss of the linear guide, that holds the motor drive and supports for reducers 
@@ -769,9 +769,9 @@ mphysicalSystem.Add(motor5);
 
 // You may want to change the inertia of 'inner' 1D shafts, ("translating" shafts: each has default 1kg)
 // Note: do not use too small values compared to 3D inertias: it might slow solver convergence.
-motor5->GetInnerShaft1lin()->SetInertia(3.0); // [kg]
-motor5->GetInnerShaft2lin()->SetInertia(3.0); // [kg]
-motor5->GetInnerShaft2rot()->SetInertia(0.8); // [kg/m^2] 
+motor5->GetInnerShaft1Lin()->SetInertia(3.0); // [kg]
+motor5->GetInnerShaft2Lin()->SetInertia(3.0); // [kg]
+motor5->GetInnerShaft2Rot()->SetInertia(0.8); // [kg/m^2] 
 
 // Now create the driveline. We want to model a drive+reducer sytem.
 // This driveline must connect "inner shafts" of s1 and s2, where:
@@ -809,7 +809,7 @@ mphysicalSystem.Add(my_shaftB);
 auto my_driveli = chrono_types::make_shared<ChShaftsMotorAngle>();
 my_driveli->Initialize(
                     my_shaftB,                   // B    , the rotor of the drive
-                    motor5->GetInnerShaft2rot()  // S2rot, the stator of the drive  
+                    motor5->GetInnerShaft2Rot()  // S2rot, the stator of the drive  
         );
 mphysicalSystem.Add(my_driveli);
 
@@ -839,9 +839,9 @@ my_driveli->SetAngleFunction(my_functangle);
 
 auto my_rackpinion = chrono_types::make_shared<ChShaftsPlanetary>();
 my_rackpinion->Initialize(
-    motor5->GetInnerShaft2lin(),// S2lin, the carrier (truss) 
+    motor5->GetInnerShaft2Lin(),// S2lin, the carrier (truss) 
     my_shaftB,                  // B,     the input shaft
-    motor5->GetInnerShaft1lin() // S1lin, the output shaft
+    motor5->GetInnerShaft1Lin() // S1lin, the output shaft
     );
 my_rackpinion->SetTransmissionRatios(-1, -1.0/100.0, 1);
 mphysicalSystem.Add(my_rackpinion);

@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     // Add a ground for perspective (no collision)
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(40, 2, 40, 1000, true, false);
     sys.AddBody(my_ground);
-    my_ground->SetBodyFixed(true);
+    my_ground->SetFixed(true);
     my_ground->SetPos(ChVector3d(0, -2.9, 0));
     my_ground->SetNameString(std::string("ground"));
     my_ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));

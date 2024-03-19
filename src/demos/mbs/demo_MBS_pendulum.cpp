@@ -43,7 +43,7 @@ void apply_fan_force(ChSystemNSC* msystem,    // contains all bodies
 {
     for (auto body : msystem->GetBodies()) {
         // Remember to reset 'user forces accumulators':
-        body->Empty_forces_accumulators();
+        body->EmptyAccumulators();
 
         // initialize speed of air (steady, if outside fan stream):
         ChVector3d abs_wind(0, 0, 0);
@@ -64,9 +64,9 @@ void apply_fan_force(ChSystemNSC* msystem,    // contains all bodies
 
         // force proportional to relative speed body-wind
         // and fluid density (NOTE! pretty simplified physics..)
-        ChVector3d abs_force = (abs_wind - body->GetPosDer()) * adensity;
+        ChVector3d abs_force = (abs_wind - body->GetPosDt()) * adensity;
         // apply this force at the body COG
-        body->Accumulate_force(abs_force, body->GetPos(), false);
+        body->AccumulateForce(abs_force, body->GetPos(), false);
     }
 }
 
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
                                                                     true,       // visualization?
                                                                     false);     // collision?
         mrigidBody0->SetPos(ChVector3d(0, 0, z_step));
-        mrigidBody0->SetBodyFixed(true);  // the truss does not move!
+        mrigidBody0->SetFixed(true);  // the truss does not move!
         sys.Add(mrigidBody0);
 
         auto mrigidBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 6, 1,  // x,y,z size
@@ -122,9 +122,9 @@ int main(int argc, char* argv[]) {
         auto my_link_01 = chrono_types::make_shared<ChLinkLockPointLine>();
         my_link_01->Initialize(mrigidBody1, mrigidBody0, ChFrame<>(ChVector3d(0, 0, z_step)));
 
-        my_link_01->GetLimit_X().SetActive(true);
-        my_link_01->GetLimit_X().SetMax(1.0);
-        my_link_01->GetLimit_X().SetMin(-1.0);
+        my_link_01->LimitX().SetActive(true);
+        my_link_01->LimitX().SetMax(1.0);
+        my_link_01->LimitX().SetMin(-1.0);
 
         sys.AddLink(my_link_01);
 
@@ -166,7 +166,7 @@ int main(int argc, char* argv[]) {
         vis->BeginScene();
         vis->Render();
         tools::drawGrid(vis.get(), 2, 2, 20, 20,
-                        ChCoordsys<>(ChVector3d(0, -20, 0), QuatFromAngleX(CH_C_PI_2)),
+                        ChCoordsys<>(ChVector3d(0, -20, 0), QuatFromAngleX(CH_PI_2)),
                         ChColor(0.3f, 0.5f, 0.5f), true);
 
         // Update the position of the spinning fan (an Irrlicht
@@ -178,7 +178,7 @@ int main(int argc, char* argv[]) {
         ChCoordsys<> my_fan_coord(ChVector3d(12, -6, 0), my_fan_rotation);
         ChFrame<> my_fan_framerotation(my_fan_coord);
         ChFrame<> my_fan_framespin(ChCoordsys<>(VNULL, my_fan_spin));
-        ChCoordsys<> my_fan_coordsys = (my_fan_framespin >> my_fan_framerotation).GetCsys();
+        ChCoordsys<> my_fan_coordsys = (my_fan_framespin >> my_fan_framerotation).GetCoordsys();
         tools::alignIrrlichtNode(fanNode, my_fan_coordsys);
 
         vis->EndScene();

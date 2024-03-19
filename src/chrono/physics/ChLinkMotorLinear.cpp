@@ -22,6 +22,9 @@ namespace chrono {
 ChLinkMotorLinear::ChLinkMotorLinear() : m_actuated_idx(0) {
     this->SetGuideConstraint(GuideConstraint::PRISMATIC);
 
+    // DEVELOPER NOTES: c_z flag should be set by derived classes according to the type of constraint
+    //                  e.g. force constraints has c_z=false since no proper constraint should be added
+
     mpos = 0;
     mpos_dt = 0;
     mpos_dtdt = 0;
@@ -82,8 +85,8 @@ void ChLinkMotorLinear::Update(double mytime, bool update_assets) {
     ChLinkMotor::Update(mytime, update_assets);
 
     // compute aux data for future reference (istantaneous pos speed accel)
-    ChFrameMoving<> aframe1 = ChFrameMoving<>(this->frame1) >> (ChFrameMoving<>)(*this->Body1);
-    ChFrameMoving<> aframe2 = ChFrameMoving<>(this->frame2) >> (ChFrameMoving<>)(*this->Body2);
+    ChFrameMoving<> aframe1 = ChFrameMoving<>(this->frame1) >> (ChFrameMoving<>)(*this->m_body1);
+    ChFrameMoving<> aframe2 = ChFrameMoving<>(this->frame2) >> (ChFrameMoving<>)(*this->m_body2);
     ChFrameMoving<> aframe12 = aframe2.TransformParentToLocal(aframe1);
 
     //// RADU TODO: revisit this.
@@ -91,8 +94,8 @@ void ChLinkMotorLinear::Update(double mytime, bool update_assets) {
     //// Should use something like sqrt(Vdot(relpos,relpos)), but taking into account sign?
 
     this->mpos = aframe12.GetPos().z();
-    this->mpos_dt = aframe12.GetPosDer().z();
-    this->mpos_dtdt = aframe12.GetPosDer2().z();
+    this->mpos_dt = aframe12.GetPosDt().z();
+    this->mpos_dtdt = aframe12.GetPosDt2().z();
 }
 
 void ChLinkMotorLinear::ArchiveOut(ChArchiveOut& archive_out) {

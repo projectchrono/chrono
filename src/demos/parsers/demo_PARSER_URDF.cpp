@@ -49,11 +49,11 @@ int main(int argc, char* argv[]) {
 
     // Create a Chrono system
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.8));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
 
     // Create a "floor" body
     auto floor = chrono_types::make_shared<ChBody>();
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     auto floor_box = chrono_types::make_shared<ChVisualShapeBox>(3, 2, 0.1);
     floor_box->SetTexture(GetChronoDataFile("textures/checker2.png"));
     floor->AddVisualShape(floor_box);
@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     auto root_loc = parser.GetRootChBody()->GetPos();
 
     // Fix root body
-    parser.GetRootChBody()->SetBodyFixed(true);
+    parser.GetRootChBody()->SetFixed(true);
 
     // Example: Change actuation function for a particular joint
     auto sfun = chrono_types::make_shared<ChFunctionSine>(1.0, 0.2);
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetUseSkyBox(false);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->SetWireFrameMode(false);
             vis_vsg->Initialize();

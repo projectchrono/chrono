@@ -71,12 +71,12 @@ for i in range(MaxMNUM):
 	MPROP[i, 2] = 0.3      # nu
 
 mmaterial = fea.ChContinuumElastic()
-mmaterial.Set_RayleighDampingK(0.0)
-mmaterial.Set_RayleighDampingM(0.0)
-mmaterial.Set_density(MPROP[0, 0])
-mmaterial.Set_E(MPROP[0, 1])
-mmaterial.Set_G(MPROP[0, 1] / (2 + 2 * MPROP[0, 2]))
-mmaterial.Set_v(MPROP[0, 2])
+mmaterial.SetRayleighDampingBeta(0.0)
+mmaterial.SetRayleighDampingAlpha(0.0)
+mmaterial.SetDensity(MPROP[0, 0])
+mmaterial.SetYoungModulus(MPROP[0, 1])
+mmaterial.SetShearModulus(MPROP[0, 1] / (2 + 2 * MPROP[0, 2]))
+mmaterial.SetPoissonRatio(MPROP[0, 2])
 #!------------------------------------------------!
 #!--------------- Element data--------------------!
 #!------------------------------------------------!
@@ -171,17 +171,11 @@ while elemcount < TotalNumElements :
     mesh.AddElement(element)
     elemcount += 1
 
-sys.Set_G_acc(chrono.ChVector3d(0, 0, -9.81))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, -9.81))
 # Remember to add the mesh to the system!
 sys.Add(mesh)
 
 # Options for visualization in irrlicht
-mvisualizemesh = chrono.ChVisualShapeFEA(mesh)
-mvisualizemesh.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_NODE_P)
-mvisualizemesh.SetShrinkElements(True, 0.85)
-mvisualizemesh.SetSmoothFaces(False)
-mesh.AddVisualShapeFEA(mvisualizemesh)
-
 mvisualizemeshref = chrono.ChVisualShapeFEA(mesh)
 mvisualizemeshref.SetFEMdataType(chrono.ChVisualShapeFEA.DataType_SURFACE)
 mvisualizemeshref.SetWireframe(True)
@@ -226,7 +220,7 @@ solver.SetVerbose(False)
 mystepper = chrono.ChTimestepperHHT(sys)
 sys.SetTimestepper(mystepper)
 mystepper.SetAlpha(-0.2)
-mystepper.SetMaxiters(100)
+mystepper.SetMaxIters(100)
 mystepper.SetAbsTolerances(1e-2)
 
 # Simulation loop

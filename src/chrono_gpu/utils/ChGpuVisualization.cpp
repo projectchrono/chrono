@@ -90,7 +90,7 @@ void ChGpuVisualization::SetCameraMoveScale(float scale) {
 }
 
 void ChGpuVisualization::AddProxyBody(std::shared_ptr<ChBody> body) {
-    body->SetBodyFixed(true);
+    body->SetFixed(true);
 #ifdef CHRONO_OPENGL
     m_system->AddBody(body);
 #endif
@@ -100,7 +100,7 @@ void ChGpuVisualization::Initialize() {
 #ifdef CHRONO_OPENGL
     m_particles = chrono_types::make_shared<ChParticleCloud>();
     m_particles->SetFixed(true);
-    for (int i = 0; i < m_systemGPU->GetNumParticles(); i++) {
+    for (unsigned int i = 0; i < m_systemGPU->GetNumParticles(); i++) {
         m_particles->AddParticle(CSYSNULL);
     }
     auto sph = chrono_types::make_shared<ChVisualShapeSphere>(m_systemGPU->GetParticleRadius());

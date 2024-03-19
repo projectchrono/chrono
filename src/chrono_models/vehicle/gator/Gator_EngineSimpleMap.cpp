@@ -18,7 +18,7 @@ namespace chrono {
 namespace vehicle {
 namespace gator {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 Gator_EngineSimpleMap::Gator_EngineSimpleMap(const std::string& name) : ChEngineSimpleMap(name) {}
 

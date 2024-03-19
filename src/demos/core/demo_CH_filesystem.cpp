@@ -79,9 +79,9 @@ int main(int argc, char** argv) {
 
     cout << "Create output file;  out_file = " << out_file << endl;
     cout << "  out_file exists? " << path(out_file).exists() << endl;
-    utils::CSV_writer csv(",");
+    utils::ChWriterCSV csv(",");
     csv << ChVector3d(1, 2, 3) << ChQuaternion<>(1, 0, 0, 0) << endl;
-    csv.write_to_file(out_file);
+    csv.WriteToFile(out_file);
     cout << "  ...Created output file" << endl;
     cout << "  out_file exists? " << path(out_file).exists() << endl;
     cout << "  out_file is file? " << path(out_file).is_file() << endl;

@@ -85,7 +85,7 @@ int main(int argc, char* argv[]) {
 
     // Fill box with bodies
     std::vector<ChVector3f> body_points =
-        utils::PDLayerSampler_BOX<float>(center, hdims, 2.f * params.sphere_radius, 1.05f);
+        utils::ChPDLayerSamplerBox<float>(center, hdims, 2.f * params.sphere_radius, 1.05f);
 
     gpu_sys.SetParticles(body_points);
 

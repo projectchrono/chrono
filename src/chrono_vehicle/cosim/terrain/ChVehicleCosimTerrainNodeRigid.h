@@ -91,7 +91,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeRigid : public ChVehicleCosimTerra
     virtual void Construct() override;
 
     /// Return current total number of contacts.
-    virtual int GetNumContacts() const override { return m_system->GetNumContacts(); }
+    virtual unsigned int GetNumContacts() const override { return m_system->GetNumContacts(); }
 
     virtual void CreateMeshProxy(unsigned int i) override;
     virtual void UpdateMeshProxy(unsigned int i, MeshState& mesh_state) override;

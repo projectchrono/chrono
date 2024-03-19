@@ -23,7 +23,7 @@ Loads can be applied to these objects through different approaches:
 
 While not being considered explicitely in the previous list, also the @ref chrono::ChLinkTSDA "ChLinkTSDA"|@ref chrono::ChLinkRSDA "ChLinkRSDA" can do similar jobs, also including the Jacobian for the generalized forces or also some advanced internal dynamic, by providing custom functors (@ref chrono::ChLinkTSDA::ForceFunctor "ChLinkTSDA::ForceFunctor"|@ref chrono::ChLinkRSDA::TorqueFunctor "ChLinkRSDA::TorqueFunctor") or even proper ODEs (only @ref chrono::ChLinkTSDA::ODE "ChLinkTSDA::ODE").
 
-Other simplified approaches, limited to _ChBody_, allow to accumulate forces, by using @ref chrono::ChBody::Accumulate_force() "Accumulate_force()" and @ref chrono::ChBody::Accumulate_torque() "Accumulate_torque()".
+Other simplified approaches, limited to _ChBody_, allow to accumulate forces, by using @ref chrono::ChBody::AccumulateForce() "AccumulateForce()" and @ref chrono::ChBody::AccumulateTorque() "AccumulateTorque()".
 
 The overall contributions of forces to a given _ChBody_ can be retrieved through @ref chrono::ChBody::GetAppliedForce() "GetAppliedForce()" and similarly for torques.
 

@@ -53,11 +53,11 @@ int main(int argc, char* argv[]) {
     double coh = 20;              // Cohesion pressure (kPa)
 
     // Convert terrain parameters
-    double slope_g = slope * CH_C_DEG_TO_RAD;  // Slope (rad)
+    double slope_g = slope * CH_DEG_TO_RAD;  // Slope (rad)
     double r_g = radius / 1000;                // Particle radius (m)
     double rho_g = rho;                        // Granular material density (kg/m3)
     double mu_g = mu;                          // Coefficient of friction
-    double area = CH_C_PI * r_g * r_g;         // Particle cross-area (m2)
+    double area = CH_PI * r_g * r_g;         // Particle cross-area (m2)
     double coh_force = area * (coh * 1e3);     // Cohesion force (N)
     double coh_g = coh_force * time_step;      // Cohesion impulse (Ns)
 
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
 
     ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
-    sys->Set_G_acc(gravity);
+    sys->SetGravitationalAcceleration(gravity);
 
     // Set number of threads
     sys->SetNumThreads(4);
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
     auto body = chrono_types::make_shared<ChBody>();
     body->SetMass(1);
     body->SetInertiaXX(ChVector3d(1, 1, 1));
-    body->SetPosDer(ChVector3d(body_speed, 0, 0));
+    body->SetPosDt(ChVector3d(body_speed, 0, 0));
     body->SetPos(pos);
     sys->AddBody(body);
 
@@ -151,7 +151,7 @@ int main(int argc, char* argv[]) {
     utils::AddSphereGeometry(body.get(), body_mat, body_rad, ChVector3d(0, 0, 0));
 
     auto joint = chrono_types::make_shared<ChLinkLockPrismatic>();
-    joint->Initialize(terrain.GetGroundBody(), body, ChFrame<>(pos, QuatFromAngleY(CH_C_PI_2)));
+    joint->Initialize(terrain.GetGroundBody(), body, ChFrame<>(pos, QuatFromAngleY(CH_PI_2)));
     sys->AddLink(joint);
 
     // Enable moving patch, based on body location
@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
         if (!is_pitched && time > time_pitch) {
             std::cout << time << "    Pitch: " << gravityR.x() << " " << gravityR.y() << " " << gravityR.z()
                       << std::endl;
-            sys->Set_G_acc(gravityR);
+            sys->SetGravitationalAcceleration(gravityR);
             is_pitched = true;
         }
 

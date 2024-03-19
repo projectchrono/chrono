@@ -47,16 +47,16 @@ class ChApi ChContactable {
     virtual bool IsContactActive() = 0;
 
     /// Get the number of DOFs affected by this object (position part).
-    virtual int ContactableGet_ndof_x() = 0;
+    virtual int GetContactableNumCoordsPosLevel() = 0;
 
     /// Get the number of DOFs affected by this object (speed part).
-    virtual int ContactableGet_ndof_w() = 0;
+    virtual int GetContactableNumCoordsVelLevel() = 0;
 
     /// Get all the DOFs packed in a single vector (position part).
-    virtual void ContactableGetStateBlock_x(ChState& x) = 0;
+    virtual void ContactableGetStateBlockPosLevel(ChState& x) = 0;
 
     /// Get all the DOFs packed in a single vector (speed part).
-    virtual void ContactableGetStateBlock_w(ChStateDelta& w) = 0;
+    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) = 0;
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
@@ -75,20 +75,20 @@ class ChApi ChContactable {
     /// Get the absolute speed of point abs_point if attached to the surface.
     virtual ChVector3d GetContactPointSpeed(const ChVector3d& abs_point) = 0;
 
-    /// Return the coordinate system for the associated collision model.
-    /// ChCollisionModel might call this to get the position of the
-    /// contact model (when rigid) and sync it.
-    virtual ChCoordsys<> GetCsysForCollisionModel() = 0;
+    /// Return the frame of the associated collision model relative to the contactable object.
+    /// ChCollisionModel might call this to get the position of the contact model (when rigid) and sync it.
+    virtual ChFrame<> GetCollisionModelFrame() = 0;
 
-    /// Apply the given force & torque at the given location and load into the global generalized force array.
-    /// The force  F and its application point are specified in the absolute reference frame. 
+    /// Apply the given force & torque at the given location and load into the global generalized force vector.
+    /// The force  F and its application point are specified in the absolute reference frame.
     /// The torque T is specified in the global frame too.
-    /// Each object must update the entries in R corresponding to its variables. 
+    /// Each object must update the entries in R corresponding to its variables.
     /// Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector3d& F, ///< force
-                                            const ChVector3d& T, ///< torque
-                                            const ChVector3d& abs_point,
-                                            ChVectorDynamic<>& R) = 0;
+    virtual void ContactForceLoadResidual_F(const ChVector3d& F,          ///< force
+                                            const ChVector3d& T,          ///< torque
+                                            const ChVector3d& abs_point,  ///< application point
+                                            ChVectorDynamic<>& R          ///< global generalized force vector
+                                            ) = 0;
 
     /// Compute a contiguous vector of generalized forces Q from a given force & torque at the given point.
     /// Used for computing stiffness matrix (square force jacobian) by backward differentiation.
@@ -96,12 +96,13 @@ class ChApi ChContactable {
     /// The torque T is specified in the global frame too.
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
-    virtual void ContactComputeQ(const ChVector3d& F, ///< force
-                                   const ChVector3d& T, ///< torque
-                                   const ChVector3d& point,
-                                   const ChState& state_x,
-                                   ChVectorDynamic<>& Q,
-                                   int offset) = 0;
+    virtual void ContactComputeQ(const ChVector3d& F,      ///< force
+                                 const ChVector3d& T,      ///< torque
+                                 const ChVector3d& point,  ///< application point
+                                 const ChState& state_x,   ///< global state vector
+                                 ChVectorDynamic<>& Q,     ///< generalized force vector
+                                 int offset                ///< index offset
+                                 ) = 0;
 
     /// This can be useful in some SMC code:
     virtual double GetContactableMass() = 0;
@@ -116,7 +117,7 @@ class ChApi ChContactable {
     enum eChContactableType {
         CONTACTABLE_UNKNOWN = 0,  ///< unknown contactable type
         CONTACTABLE_6,            ///< 1 variable with 6 DOFs (e.g., ChBody, ChNodeFEAxyzrot)
-        CONTACTABLE_3,            ///< 1 variable with 3 DOFS (e.g., ChNodeFEAxyz, ChAparticle)
+        CONTACTABLE_3,            ///< 1 variable with 3 DOFS (e.g., ChNodeFEAxyz, ChParticle)
         CONTACTABLE_333,          ///< 3 variables, each with 3 DOFs (e.g., triangle between 3 ChNodeFEAxyz nodes)
         CONTACTABLE_666           ///< 3 variables, each with 6 DOFs (e.g., triangle between 3 ChNodeFEAxyzrot nodes)
     };

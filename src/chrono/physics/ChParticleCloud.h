@@ -30,13 +30,13 @@ class ChParticleCloud;
 
 /// Class for a single particle clone in the ChParticleCloud cluster.
 /// It does not define mass, inertia and shape because those are _shared_ among them.
-class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
+class ChApi ChParticle : public ChParticleBase, public ChContactable_1vars<6> {
   public:
-    ChAparticle();
-    ChAparticle(const ChAparticle& other);
-    ~ChAparticle();
+    ChParticle();
+    ChParticle(const ChParticle& other);
+    ~ChParticle();
 
-    ChAparticle& operator=(const ChAparticle& other);
+    ChParticle& operator=(const ChParticle& other);
 
     // Access the variables of the node
     virtual ChVariables& Variables() override { return variables; }
@@ -57,19 +57,19 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     virtual bool IsContactActive() override { return true; }
 
     /// Get the number of DOFs affected by this object (position part).
-    virtual int ContactableGet_ndof_x() override { return 7; }
+    virtual int GetContactableNumCoordsPosLevel() override { return 7; }
 
     /// Get the number of DOFs affected by this object (speed part).
-    virtual int ContactableGet_ndof_w() override { return 6; }
+    virtual int GetContactableNumCoordsVelLevel() override { return 6; }
 
     /// Get all the DOFs packed in a single vector (position part)
-    virtual void ContactableGetStateBlock_x(ChState& x) override {
-        x.segment(0, 3) = GetCsys().pos.eigen();
-        x.segment(3, 4) = GetCsys().rot.eigen();
+    virtual void ContactableGetStateBlockPosLevel(ChState& x) override {
+        x.segment(0, 3) = GetCoordsys().pos.eigen();
+        x.segment(3, 4) = GetCoordsys().rot.eigen();
     }
 
     /// Get all the DOFs packed in a single vector (speed part)
-    virtual void ContactableGetStateBlock_w(ChStateDelta& w) override;
+    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override;
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
@@ -92,7 +92,7 @@ class ChApi ChAparticle : public ChParticleBase, public ChContactable_1vars<6> {
     /// Return the coordinate system for the associated collision model.
     /// ChCollisionModel might call this to get the position of the
     /// contact model (when rigid) and sync it.
-    virtual ChCoordsys<> GetCsysForCollisionModel() override { return this->Csys; }
+    virtual ChFrame<> GetCollisionModelFrame() override { return ChFrame<>(m_csys); }
 
     /// Apply the force & torque, expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.
@@ -165,8 +165,8 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     virtual ChParticleCloud* Clone() const override { return new ChParticleCloud(*this); }
 
     /// Enable/disable the collision for this cluster of particles.
-    void SetCollide(bool state);
-    virtual bool GetCollide() const override { return collide; }
+    void EnableCollision(bool state);
+    virtual bool IsCollisionEnabled() const override { return collide; }
 
     /// Set the state of all particles in the cluster to 'fixed' (default: false).
     /// If true, the particles do not move.
@@ -183,16 +183,16 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     bool GetLimitSpeed() const { return limit_speed; };
 
     /// Get the number of particles.
-    size_t GetNparticles() const override { return particles.size(); }
+    size_t GetNumParticles() const override { return particles.size(); }
 
     /// Get all particles in the cluster.
-    std::vector<ChAparticle*> GetParticles() const { return particles; }
+    std::vector<ChParticle*> GetParticles() const { return particles; }
 
     /// Get particle position.
     const ChVector3d& GetParticlePos(unsigned int n) const { return particles[n]->GetPos(); }
 
     /// Get particle linear velocity.
-    const ChVector3d& GetParticleVel(unsigned int n) const { return particles[n]->GetPosDer(); }
+    const ChVector3d& GetParticleVel(unsigned int n) const { return particles[n]->GetPosDt(); }
 
     /// Access the N-th particle.
     ChParticleBase& GetParticle(unsigned int n) override {
@@ -299,7 +299,7 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     // Other functions
 
     /// Set no speed and no accelerations (but does not change the position)
-    void SetNoSpeedNoAcceleration() override;
+    void ForceToRest() override;
 
     /// Add collision models (if any) for all particles to the provided collision system.
     virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
@@ -334,15 +334,15 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     /// be clamped). This is useful in virtual reality and real-time
     /// simulations, because it reduces the risk of bad collision detection.
     /// This speed limit is active only if you set  SetLimitSpeed(true);
-    void SetMaxSpeed(float m_max_speed) { max_speed = m_max_speed; }
-    float GetMaxSpeed() const { return max_speed; }
+    void SetMaxLinVel(float m_max_speed) { max_speed = m_max_speed; }
+    float GetMaxLinVel() const { return max_speed; }
 
     /// Trick. Set the maximum angular speed (beyond this limit it will
     /// be clamped). This is useful in virtual reality and real-time
     /// simulations, because it reduces the risk of bad collision detection.
     /// This speed limit is active only if you set  SetLimitSpeed(true);
-    void SetMaxWvel(float m_max_wvel) { max_wvel = m_max_wvel; }
-    float GetMaxWvel() const { return max_wvel; }
+    void SetMaxAngVel(float m_max_wvel) { max_wvel = m_max_wvel; }
+    float GetMaxAngVel() const { return max_wvel; }
 
     /// When this function is called, the speed of particles is clamped
     /// into limits posed by max_speed and max_wvel  - but remember to
@@ -355,12 +355,12 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     float GetSleepTime() const { return sleep_time; }
 
     /// Set the max linear speed to be kept for 'sleep_time' before freezing.
-    void SetSleepMinSpeed(float m_t) { sleep_minspeed = m_t; }
-    float GetSleepMinSpeed() const { return sleep_minspeed; }
+    void SetSleepMinLinVel(float m_t) { sleep_minspeed = m_t; }
+    float GetSleepMinLinVel() const { return sleep_minspeed; }
 
     /// Set the max linear speed to be kept for 'sleep_time' before freezing.
-    void SetSleepMinWvel(float m_t) { sleep_minwvel = m_t; }
-    float GetSleepMinWvel() const { return sleep_minwvel; }
+    void SetSleepMinAngVel(float m_t) { sleep_minwvel = m_t; }
+    float GetSleepMinAngVel() const { return sleep_minwvel; }
 
     // UPDATE FUNCTIONS
 
@@ -374,7 +374,7 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    std::vector<ChAparticle*> particles;  ///< the particles
+    std::vector<ChParticle*> particles;  ///< the particles
     ChSharedMassBody particle_mass;       ///< shared mass of particles
 
     std::shared_ptr<ColorCallback> m_color_fun;  ///< callback for dynamic coloring

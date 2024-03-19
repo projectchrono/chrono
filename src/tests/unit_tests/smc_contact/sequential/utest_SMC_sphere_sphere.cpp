@@ -53,7 +53,7 @@ std::shared_ptr<ChCollisionShape> CreateSphereShape(ShapeType type,
             auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
                 GetChronoDataFile("models/sphere.obj"), false, true);
             mesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(radius));
-            shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(mat, mesh->getCoordsVertices());
+            shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(mat, mesh->GetCoordsVertices());
             break;
         }
         case ShapeType::MESH: {
@@ -117,16 +117,16 @@ class SphereSphereTest : public ::testing::TestWithParam<std::tuple<ShapeType, S
         body1 = chrono_types::make_shared<ChBody>();
         body1->SetMass(mass);
         body1->SetPos(ChVector3d(+init_pos, 0, 0));
-        body1->SetPosDer(ChVector3d(-init_vel, 0, 0));
-        body1->SetCollide(true);
+        body1->SetPosDt(ChVector3d(-init_vel, 0, 0));
+        body1->EnableCollision(true);
         body1->AddCollisionShape(CreateSphereShape(type1, radius, mat));
         sys->AddBody(body1);
 
         body2 = chrono_types::make_shared<ChBody>();
         body2->SetMass(mass);
         body2->SetPos(ChVector3d(-init_pos, 0, 0));
-        body2->SetPosDer(ChVector3d(+init_vel, 0, 0));
-        body2->SetCollide(true);
+        body2->SetPosDt(ChVector3d(+init_vel, 0, 0));
+        body2->EnableCollision(true);
         body2->AddCollisionShape(CreateSphereShape(type2, radius, mat));
         sys->AddBody(body2);
     }
@@ -146,25 +146,25 @@ TEST_P(SphereSphereTest, impact) {
     double time_step = 3e-5;
 
     std::cout << ShapeTypeName(std::get<0>(GetParam())) << " - " << ShapeTypeName(std::get<1>(GetParam())) << std::endl;
-    std::cout << "init pos/vel 1: " << body1->GetPos().x() << " " << body1->GetPosDer().x() << std::endl;
-    std::cout << "init pos/vel 2: " << body2->GetPos().x() << " " << body2->GetPosDer().x() << std::endl;
+    std::cout << "init pos/vel 1: " << body1->GetPos().x() << " " << body1->GetPosDt().x() << std::endl;
+    std::cout << "init pos/vel 2: " << body2->GetPos().x() << " " << body2->GetPosDt().x() << std::endl;
 
     bool contact = false;
     while (sys->GetChTime() < t_end) {
         sys->DoStepDynamics(time_step);
-        ////std::cout << sys->GetChTime() << " " << body1->GetPos().x() << "  " << body1->GetPosDer().x() << std::endl;
+        ////std::cout << sys->GetChTime() << " " << body1->GetPos().x() << "  " << body1->GetPosDt().x() << std::endl;
         if (!contact && sys->GetNumContacts() > 0)
             contact = true;
     }
 
-    std::cout << "final pos/vel 1: " << body1->GetPos().x() << " " << body1->GetPosDer().x() << std::endl;
-    std::cout << "final pos/vel 2: " << body2->GetPos().x() << " " << body2->GetPosDer().x() << std::endl;
+    std::cout << "final pos/vel 1: " << body1->GetPos().x() << " " << body1->GetPosDt().x() << std::endl;
+    std::cout << "final pos/vel 2: " << body2->GetPos().x() << " " << body2->GetPosDt().x() << std::endl;
 
     ASSERT_TRUE(contact);
     ASSERT_GT(body1->GetPos().x(), radius + 0.1);
     ASSERT_LT(body2->GetPos().x(), radius - 0.1);
-    ASSERT_GT(body1->GetPosDer().x(), 0.0);
-    ASSERT_LT(body2->GetPosDer().x(), 0.0);
+    ASSERT_GT(body1->GetPosDt().x(), 0.0);
+    ASSERT_LT(body2->GetPosDt().x(), 0.0);
 }
 
 INSTANTIATE_TEST_SUITE_P(

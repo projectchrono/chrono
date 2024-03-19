@@ -30,11 +30,11 @@ TEST(ChFunctionLambda, basic_usage) {
     ChFunctionLambda fun;
     fun.SetFunction([](double x) { return std::sin(x); });
 
-    ASSERT_NEAR(fun.GetVal(-CH_C_2PI), std::sin(-CH_C_2PI), TOL_FUN);
+    ASSERT_NEAR(fun.GetVal(-CH_2PI), std::sin(-CH_2PI), TOL_FUN);
     ASSERT_NEAR(fun.GetVal(0.0), 0.0, TOL_FUN);
     ASSERT_NEAR(fun.GetVal(1.0), std::sin(1.0), TOL_FUN);
-    ASSERT_NEAR(fun.GetVal(CH_C_2PI), std::sin(CH_C_2PI), TOL_FUN);
-    ASSERT_NEAR(fun.GetVal(7 * CH_C_2PI), std::sin(7 * CH_C_2PI), TOL_FUN);
+    ASSERT_NEAR(fun.GetVal(CH_2PI), std::sin(CH_2PI), TOL_FUN);
+    ASSERT_NEAR(fun.GetVal(7 * CH_2PI), std::sin(7 * CH_2PI), TOL_FUN);
 }
 
 TEST(ChFunctionInterp, interp1_noextrap) {

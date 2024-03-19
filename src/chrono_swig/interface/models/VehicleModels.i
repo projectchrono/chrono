@@ -42,6 +42,9 @@
 #include "chrono_models/vehicle/feda/FEDA.h"
 #include "chrono_models/vehicle/feda/FEDA_Vehicle.h"
 
+#include "chrono_models/vehicle/bmw/BMW_E90.h"
+#include "chrono_models/vehicle/bmw/BMW_E90_Vehicle.h"
+
 #include "chrono_models/vehicle/m113/M113.h"
 #include "chrono_models/vehicle/m113/M113_Vehicle.h"
 
@@ -82,6 +85,9 @@
 
 %shared_ptr(chrono::vehicle::feda::FEDA)
 %shared_ptr(chrono::vehicle::feda::FEDA_Vehicle)
+
+%shared_ptr(chrono::vehicle::bmw::BMW_E90)
+%shared_ptr(chrono::vehicle::bmw::BMW_E90_Vehicle)
 
 %shared_ptr(chrono::vehicle::m113::M113)
 %shared_ptr(chrono::vehicle::m113::M113_Vehicle)
@@ -148,6 +154,9 @@
 
 %include "../../../chrono_models/vehicle/feda/FEDA.h"
 %include "../../../chrono_models/vehicle/feda/FEDA_Vehicle.h"
+
+%include "../../../chrono_models/vehicle/bmw/BMW_E90.h"
+%include "../../../chrono_models/vehicle/bmw/BMW_E90_Vehicle.h"
 
 %include "../../../chrono_models/vehicle/m113/M113.h"
 %include "../../../chrono_models/vehicle/m113/M113_Vehicle.h"

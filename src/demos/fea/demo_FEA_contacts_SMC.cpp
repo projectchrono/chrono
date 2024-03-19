@@ -75,13 +75,13 @@ int main(int argc, char* argv[]) {
         // floor as a triangle mesh surface:
         auto mfloor = chrono_types::make_shared<ChBody>();
         mfloor->SetPos(ChVector3d(0, -1, 0));
-        mfloor->SetBodyFixed(true);
+        mfloor->SetFixed(true);
         sys.Add(mfloor);
 
         auto floor_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mysurfmaterial, mmeshbox, false,
                                                                                    false, sphere_swept_thickness);
         mfloor->AddCollisionShape(floor_shape);
-        mfloor->SetCollide(true);
+        mfloor->EnableCollision(true);
 
         auto masset_meshbox = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         masset_meshbox->SetMesh(mmeshbox);
@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     } else {
         // floor as a simple collision primitive:
         auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.1, 2, 2700, true, true, mysurfmaterial);
-        mfloor->SetBodyFixed(true);
+        mfloor->SetFixed(true);
         mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
         sys.Add(mfloor);
     }
@@ -116,10 +116,10 @@ int main(int argc, char* argv[]) {
     // Create a material, that must be assigned to each solid element in the mesh,
     // and set its parameters
     auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
-    mmaterial->Set_E(0.01e9);  // rubber 0.01e9, steel 200e9
-    mmaterial->Set_v(0.3);
-    mmaterial->Set_RayleighDampingK(0.003);
-    mmaterial->Set_density(1000);
+    mmaterial->SetYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
+    mmaterial->SetPoissonRatio(0.3);
+    mmaterial->SetRayleighDampingBeta(0.003);
+    mmaterial->SetDensity(1000);
 
     if (false) {
         for (int k = 0; k < 3; ++k)
@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < 4; ++i) {
             try {
                 ChCoordsys<> cdown(ChVector3d(0, -0.4, 0));
-                ChCoordsys<> crot(VNULL, QuatFromAngleY(CH_C_2PI * ChRandom::Get()) * QuatFromAngleX(CH_C_PI_2));
+                ChCoordsys<> crot(VNULL, QuatFromAngleY(CH_2PI * ChRandom::Get()) * QuatFromAngleX(CH_PI_2));
                 ChCoordsys<> cydisp(ChVector3d(-0.3, 0.1 + i * 0.1, -0.3));
                 ChCoordsys<> ctot = cdown >> crot >> cydisp;
                 ChMatrix33<> mrot(ctot.rot);
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Create the contact surface(s).
-    // In this case it is a ChContactSurfaceMesh, that allows mesh-mesh collsions.
+    // In this case it is a ChContactSurfaceMesh, that allows mesh-mesh collisions.
 
     auto mcontactsurf = chrono_types::make_shared<ChContactSurfaceMesh>(mysurfmaterial);
     my_mesh->AddContactSurface(mcontactsurf);
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
     auto msection_cable2 = chrono_types::make_shared<ChBeamSectionCable>();
     msection_cable2->SetDiameter(0.05);
     msection_cable2->SetYoungModulus(0.01e9);
-    msection_cable2->SetBeamRayleighDamping(0.05);
+    msection_cable2->SetRayleighDamping(0.05);
 
     ChBuilderCableANCF builder;
 
@@ -259,8 +259,6 @@ int main(int argc, char* argv[]) {
     solver->SetTolerance(1e-12);
     solver->EnableDiagonalPreconditioner(true);
     solver->EnableWarmStart(true);  // Enable for better convergence when using Euler implicit linearized
-
-    sys.SetSolverForceTolerance(1e-10);
 
     while (vis->Run()) {
         vis->BeginScene();

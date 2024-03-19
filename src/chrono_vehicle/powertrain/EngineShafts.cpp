@@ -52,11 +52,11 @@ void EngineShafts::Create(const rapidjson::Document& d) {
 }
 
 void EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunctionInterp>& map) {
-    m_engine_torque.Set(*map, CH_C_RPM_TO_RPS, 1.0);
+    m_engine_torque.Set(*map, CH_RPM_TO_RAD_S, 1.0);
 }
 
 void EngineShafts::SetEngineLossesMap(std::shared_ptr<ChFunctionInterp>& map) {
-    m_engine_losses.Set(*map, CH_C_RPM_TO_RPS, 1.0);
+    m_engine_losses.Set(*map, CH_RPM_TO_RAD_S, 1.0);
 }
 
 }  // end namespace vehicle

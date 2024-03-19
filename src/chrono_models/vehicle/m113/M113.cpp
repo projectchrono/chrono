@@ -158,6 +158,8 @@ void M113::Initialize() {
             case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
                 transmission = chrono_types::make_shared<M113_AutomaticTransmissionSimpleMap>("Transmission");
                 break;
+            default:
+                break;
         }
     }
 

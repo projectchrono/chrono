@@ -80,8 +80,8 @@ RandomSurfaceTerrain::RandomSurfaceTerrain(ChSystem* system, double length, doub
     m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector3d(0, 0, 0));
-    m_ground->SetBodyFixed(true);
-    m_ground->SetCollide(false);
+    m_ground->SetFixed(true);
+    m_ground->EnableCollision(false);
     m_ground->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
     system->Add(m_ground);
 
@@ -344,13 +344,13 @@ void RandomSurfaceTerrain::CalculateSpectralCoefficients(double Phi_h0, double w
         double Lbd = 1.0 / f;
         if (Lbd > m_lambda_max)
             continue;
-        double w = CH_C_2PI * f;
+        double w = CH_2PI * f;
         double ck = std::sqrt(Phi_h0 * std::pow(w / w0, -waviness) * m_f_fft_min);
         m_ck.push_back(ck);
         m_wfft.push_back(w);
     }
     std::default_random_engine generator;
-    std::uniform_real_distribution<double> distribution(0.0, CH_C_2PI);
+    std::uniform_real_distribution<double> distribution(0.0, CH_2PI);
 
     m_phase_left.resize(m_ck.size());
     for (int i = 0; i < m_ck.size(); i++) {
@@ -376,13 +376,13 @@ void RandomSurfaceTerrain::CalculateSpectralCoefficientsCorr(double Phi_h0,
         double Lbd = 1.0 / f;
         if (Lbd > 20.0)
             continue;
-        double w = CH_C_2PI * f;
+        double w = CH_2PI * f;
         double ck = std::sqrt(Phi_h0 * std::pow(w / w0, -waviness) * m_f_fft_min);
         m_ck.push_back(ck);
         m_wfft.push_back(w);
     }
     std::default_random_engine generator;
-    std::uniform_real_distribution<double> distribution(0.0, CH_C_2PI);
+    std::uniform_real_distribution<double> distribution(0.0, CH_2PI);
 
     m_phase_left.resize(m_ck.size());
     for (int i = 0; i < m_ck.size(); i++) {
@@ -456,10 +456,10 @@ void RandomSurfaceTerrain::GenerateMesh() {
         return;
 
     m_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    auto& coords = m_mesh->getCoordsVertices();
-    auto& indices = m_mesh->getIndicesVertexes();
-    auto& normals = m_mesh->getCoordsNormals();
-    auto& normidx = m_mesh->getIndicesNormals();
+    auto& coords = m_mesh->GetCoordsVertices();
+    auto& indices = m_mesh->GetIndicesVertexes();
+    auto& normals = m_mesh->GetCoordsNormals();
+    auto& normidx = m_mesh->GetIndicesNormals();
 
     for (int i = 0; i < m_nx; i++) {
         double x = m_dx * double(i);
@@ -490,7 +490,7 @@ void RandomSurfaceTerrain::SetupVisualization(RandomSurfaceTerrain::Visualisatio
         case RandomSurfaceTerrain::VisualisationType::LINES: {
             GenerateCurves();
 
-            auto np = m_road_left->getNumPoints();
+            auto np = m_road_left->GetNumPoints();
             unsigned int num_render_points = std::max<unsigned int>(static_cast<unsigned int>(3 * np), 400);
             auto bezier_line_left = chrono_types::make_shared<ChLineBezier>(m_road_left);
             auto bezier_asset_left = chrono_types::make_shared<ChVisualShapeLine>();
@@ -535,7 +535,7 @@ void RandomSurfaceTerrain::EnableCollisionMesh(std::shared_ptr<ChContactMaterial
 void RandomSurfaceTerrain::SetupCollision() {
     GenerateMesh();
 
-    m_ground->SetCollide(true);
+    m_ground->EnableCollision(true);
 
     auto ct_shape =
         chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_material, m_mesh, true, false, m_sweep_sphere_radius);

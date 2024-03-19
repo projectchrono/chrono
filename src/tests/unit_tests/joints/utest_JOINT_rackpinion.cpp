@@ -47,7 +47,7 @@ bool TestRackPinion(const ChVector3d& jointLoc,
 bool ValidateReference(const std::string& testName, const std::string& what, double tolerance);
 bool ValidateConstraints(const std::string& testName, double tolerance);
 bool ValidateEnergy(const std::string& testName, double tolerance);
-utils::CSV_writer OutStream();
+utils::ChWriterCSV OutStream();
 
 // =============================================================================
 //
@@ -130,24 +130,24 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
     // handled by this ChSystem object.
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, -g));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -g));
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(100);
-    sys.SetSolverForceTolerance(1e-4);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(100);
+    sys.GetSolver()->AsIterative()->SetTolerance(simTimeStep * 1e-4);
 
     // Create the ground body
 
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     // Create the pinion body in an initial configuration at rest
     auto pinion = chrono_types::make_shared<ChBody>();
     sys.AddBody(pinion);
     pinion->SetPos(jointLoc);
-    pinion->SetRot(QuatFromAngleY(CH_C_PI_2));
+    pinion->SetRot(QuatFromAngleY(CH_PI_2));
     pinion->SetMass(massPinion);
     pinion->SetInertiaXX(inertiaXX_Pinion);
 
@@ -163,7 +163,7 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
     // reference frame. The revolute joint's axis of rotation (Z) will be the
     // global x axis.
     auto revoluteJoint = chrono_types::make_shared<ChLinkLockRevolute>();
-    revoluteJoint->Initialize(pinion, ground, ChFrame<>(jointLoc, QuatFromAngleY(CH_C_PI_2)));
+    revoluteJoint->Initialize(pinion, ground, ChFrame<>(jointLoc, QuatFromAngleY(CH_PI_2)));
     sys.AddLink(revoluteJoint);
 
     // Create prismatic joint between rack and ground at "loc" - Pinion Radius in the global
@@ -175,35 +175,35 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
 
     // Create the Rack and Pinion joint
     auto rackpinionJoint = chrono_types::make_shared<ChLinkMateRackPinion>();
-    rackpinionJoint->Initialize(pinion, rack, false, ChFrame<>(jointLoc, QuatFromAngleY(-CH_C_PI_2)),
-                                ChFrame<>(jointLoc + ChVector3d(0, 0, 0), QuatFromAngleY(-CH_C_PI_2)));
+    rackpinionJoint->Initialize(pinion, rack, false, ChFrame<>(jointLoc, QuatFromAngleY(-CH_PI_2)),
+                                ChFrame<>(jointLoc + ChVector3d(0, 0, 0), QuatFromAngleY(-CH_PI_2)));
     rackpinionJoint->SetPinionRadius(-radiusPinion);
-    rackpinionJoint->SetAlpha(CH_C_PI_4);
-    rackpinionJoint->SetBeta(0);
-    rackpinionJoint->SetCheckphase(1);
+    rackpinionJoint->SetPressureAngle(CH_PI_4);
+    rackpinionJoint->SetPitchAngle(0);
+    rackpinionJoint->SetEnforcePhase(1);
     sys.AddLink(rackpinionJoint);
 
     // Perform the simulation (record results option)
     // ------------------------------------------------
 
     // Create the CSV_Writer output objects (TAB delimited)
-    utils::CSV_writer out_posPinion = OutStream();
-    utils::CSV_writer out_velPinion = OutStream();
-    utils::CSV_writer out_accPinion = OutStream();
+    utils::ChWriterCSV out_posPinion = OutStream();
+    utils::ChWriterCSV out_velPinion = OutStream();
+    utils::ChWriterCSV out_accPinion = OutStream();
 
-    utils::CSV_writer out_quatPinion = OutStream();
-    utils::CSV_writer out_avelPinion = OutStream();
-    utils::CSV_writer out_aaccPinion = OutStream();
+    utils::ChWriterCSV out_quatPinion = OutStream();
+    utils::ChWriterCSV out_avelPinion = OutStream();
+    utils::ChWriterCSV out_aaccPinion = OutStream();
 
-    utils::CSV_writer out_posRack = OutStream();
-    utils::CSV_writer out_velRack = OutStream();
-    utils::CSV_writer out_accRack = OutStream();
+    utils::ChWriterCSV out_posRack = OutStream();
+    utils::ChWriterCSV out_velRack = OutStream();
+    utils::ChWriterCSV out_accRack = OutStream();
 
-    utils::CSV_writer out_quatRack = OutStream();
-    utils::CSV_writer out_avelRack = OutStream();
-    utils::CSV_writer out_aaccRack = OutStream();
+    utils::ChWriterCSV out_quatRack = OutStream();
+    utils::ChWriterCSV out_avelRack = OutStream();
+    utils::ChWriterCSV out_aaccRack = OutStream();
 
-    utils::CSV_writer out_energy = OutStream();
+    utils::ChWriterCSV out_energy = OutStream();
 
     // Write headers
     out_posPinion << "Time"
@@ -266,16 +266,15 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
                << "Delta_PE"
                << "KE+PE" << std::endl;
 
-    // Perform a system assembly to ensure we have the correct accelerations at
-    // the initial time.
-    sys.DoFullAssembly();
+    // Perform a system assembly to ensure we have the correct accelerations at the initial time.
+    sys.DoAssembly(AssemblyLevel::FULL);
 
     // Total energy at initial time.
     ChMatrix33<> inertiaPinion = pinion->GetInertia();
     ChVector3d angVelLocPinion = pinion->GetAngVelLocal();
     ChMatrix33<> inertiaRack = rack->GetInertia();
     ChVector3d angVelLocRack = rack->GetAngVelLocal();
-    double transKE = 0.5 * massPinion * pinion->GetPosDer().Length2() + 0.5 * massRack * rack->GetPosDer().Length2();
+    double transKE = 0.5 * massPinion * pinion->GetPosDt().Length2() + 0.5 * massRack * rack->GetPosDt().Length2();
     double rotKE = 0.5 * Vdot(angVelLocPinion, inertiaPinion * angVelLocPinion) +
                    0.5 * Vdot(angVelLocRack, inertiaRack * angVelLocRack);
     double deltaPE =
@@ -291,16 +290,16 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
         if (simTime >= outTime - simTimeStep / 2) {
             // CM position, velocity, and acceleration (expressed in global frame).
             const ChVector3d& positionPinion = pinion->GetPos();
-            const ChVector3d& velocityPinion = pinion->GetPosDer();
+            const ChVector3d& velocityPinion = pinion->GetPosDt();
             const ChVector3d& positionRack = rack->GetPos();
-            const ChVector3d& velocityRack = rack->GetPosDer();
+            const ChVector3d& velocityRack = rack->GetPosDt();
             out_posPinion << simTime << positionPinion << std::endl;
             out_velPinion << simTime << velocityPinion << std::endl;
-            out_accPinion << simTime << pinion->GetPosDer2() << std::endl;
+            out_accPinion << simTime << pinion->GetPosDt2() << std::endl;
 
             out_posRack << simTime << positionRack << std::endl;
             out_velRack << simTime << velocityRack << std::endl;
-            out_accRack << simTime << rack->GetPosDer2() << std::endl;
+            out_accRack << simTime << rack->GetPosDt2() << std::endl;
 
             // Orientation, angular velocity, and angular acceleration (expressed in
             // global frame).
@@ -318,7 +317,7 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
             // Delta Potential Energy (m*g*dz)
             angVelLocPinion = pinion->GetAngVelLocal();
             angVelLocRack = rack->GetAngVelLocal();
-            transKE = 0.5 * massPinion * pinion->GetPosDer().Length2() + 0.5 * massRack * rack->GetPosDer().Length2();
+            transKE = 0.5 * massPinion * pinion->GetPosDt().Length2() + 0.5 * massRack * rack->GetPosDt().Length2();
             rotKE = 0.5 * Vdot(angVelLocPinion, inertiaPinion * angVelLocPinion) +
                     0.5 * Vdot(angVelLocRack, inertiaRack * angVelLocRack);
             deltaPE = massPinion * g * (pinion->GetPos().z() - jointLoc.z()) +
@@ -338,23 +337,23 @@ bool TestRackPinion(const ChVector3d& jointLoc,      // absolute location of joi
     }
 
     // Write output files
-    out_posPinion.write_to_file(out_dir + testName + "_CHRONO_Pinion_Pos.txt", testName + "\n");
-    out_velPinion.write_to_file(out_dir + testName + "_CHRONO_Pinion_Vel.txt", testName + "\n");
-    out_accPinion.write_to_file(out_dir + testName + "_CHRONO_Pinion_Acc.txt", testName + "\n");
+    out_posPinion.WriteToFile(out_dir + testName + "_CHRONO_Pinion_Pos.txt", testName + "\n");
+    out_velPinion.WriteToFile(out_dir + testName + "_CHRONO_Pinion_Vel.txt", testName + "\n");
+    out_accPinion.WriteToFile(out_dir + testName + "_CHRONO_Pinion_Acc.txt", testName + "\n");
 
-    out_posRack.write_to_file(out_dir + testName + "_CHRONO_Rack_Pos.txt", testName + "\n");
-    out_velRack.write_to_file(out_dir + testName + "_CHRONO_Rack_Vel.txt", testName + "\n");
-    out_accRack.write_to_file(out_dir + testName + "_CHRONO_Rack_Acc.txt", testName + "\n");
+    out_posRack.WriteToFile(out_dir + testName + "_CHRONO_Rack_Pos.txt", testName + "\n");
+    out_velRack.WriteToFile(out_dir + testName + "_CHRONO_Rack_Vel.txt", testName + "\n");
+    out_accRack.WriteToFile(out_dir + testName + "_CHRONO_Rack_Acc.txt", testName + "\n");
 
-    out_quatPinion.write_to_file(out_dir + testName + "_CHRONO_Pinion_Quat.txt", testName + "\n");
-    out_avelPinion.write_to_file(out_dir + testName + "_CHRONO_Pinion_Avel.txt", testName + "\n");
-    out_aaccPinion.write_to_file(out_dir + testName + "_CHRONO_Pinion_Aacc.txt", testName + "\n");
+    out_quatPinion.WriteToFile(out_dir + testName + "_CHRONO_Pinion_Quat.txt", testName + "\n");
+    out_avelPinion.WriteToFile(out_dir + testName + "_CHRONO_Pinion_Avel.txt", testName + "\n");
+    out_aaccPinion.WriteToFile(out_dir + testName + "_CHRONO_Pinion_Aacc.txt", testName + "\n");
 
-    out_quatRack.write_to_file(out_dir + testName + "_CHRONO_Rack_Quat.txt", testName + "\n");
-    out_avelRack.write_to_file(out_dir + testName + "_CHRONO_Rack_Avel.txt", testName + "\n");
-    out_aaccRack.write_to_file(out_dir + testName + "_CHRONO_Rack_Aacc.txt", testName + "\n");
+    out_quatRack.WriteToFile(out_dir + testName + "_CHRONO_Rack_Quat.txt", testName + "\n");
+    out_avelRack.WriteToFile(out_dir + testName + "_CHRONO_Rack_Avel.txt", testName + "\n");
+    out_aaccRack.WriteToFile(out_dir + testName + "_CHRONO_Rack_Aacc.txt", testName + "\n");
 
-    out_energy.write_to_file(out_dir + testName + "_CHRONO_Energy.txt", testName + "\n");
+    out_energy.WriteToFile(out_dir + testName + "_CHRONO_Energy.txt", testName + "\n");
 
     return true;
 }
@@ -402,11 +401,11 @@ bool ValidateEnergy(const std::string& testName,  // name of this test
 //
 // Utility function to create a CSV output stream and set output format options.
 //
-utils::CSV_writer OutStream() {
-    utils::CSV_writer out("\t");
+utils::ChWriterCSV OutStream() {
+    utils::ChWriterCSV out("\t");
 
-    out.stream().setf(std::ios::scientific | std::ios::showpos);
-    out.stream().precision(6);
+    out.Stream().setf(std::ios::scientific | std::ios::showpos);
+    out.Stream().precision(6);
 
     return out;
 }

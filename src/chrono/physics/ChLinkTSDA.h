@@ -83,17 +83,23 @@ class ChApi ChLinkTSDA : public ChLink {
     /// Get current force (in the direction of the force element).
     double GetForce() const { return m_force; }
 
-    /// Get the endpoint location on 1st body (expressed in body coordinate system)
+    /// Get the endpoint location on 1st body (expressed in body 1 coordinate system)
     const ChVector3d& GetPoint1Rel() const { return m_loc1; }
 
     /// Get the endpoint location on 1st body (expressed in absolute coordinate system)
     const ChVector3d& GetPoint1Abs() const { return m_aloc1; }
 
-    /// Get the endpoint location on 2nd body (expressed in body coordinate system)
+    /// Get the endpoint location on 2nd body (expressed in body 2 coordinate system)
     const ChVector3d& GetPoint2Rel() const { return m_loc2; }
 
     /// Get the endpoint location on 1st body (expressed in absolute coordinate system)
     const ChVector3d& GetPoint2Abs() const { return m_aloc2; }
+
+    /// Get the link frame 1, relative to body 1.
+    virtual ChFrame<> GetFrame1Rel() const override { return ChFramed(m_loc1); }
+
+    /// Get the link frame 2, relative to body 2.
+    virtual ChFrame<> GetFrame2Rel() const override { return ChFramed(m_loc2); }
 
     /// Get the value of the spring coefficient.
     /// Meaningful only if no force functor is provided.
@@ -141,7 +147,7 @@ class ChApi ChLinkTSDA : public ChLink {
         virtual ~ODE() {}
 
         /// Specify number of states (dimension of y).
-        virtual int GetNumStates() const = 0;
+        virtual unsigned int GetNumStates() const = 0;
 
         /// Set initial conditions.
         /// Must load y0 = y(0).
@@ -193,7 +199,7 @@ class ChApi ChLinkTSDA : public ChLink {
   private:
     virtual void Update(double mytime, bool update_assets = true) override;
 
-    virtual int GetNumCoordinatesPos() override { return m_nstates; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return m_nstates; }
 
     // Interface to solver
     ChVariables& Variables() { return *m_variables; }

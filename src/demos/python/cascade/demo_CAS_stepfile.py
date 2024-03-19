@@ -39,9 +39,9 @@ load_ok = mydoc.Load_STEP(chrono.GetChronoDataFile('cascade/assembly.stp'))
 # In most CAD systems the Y axis is horizontal, but we want it vertical.
 # So define a root transformation for rotating all the imported objects.
 rotation1 = chrono.ChQuaterniond()
-rotation1.SetFromAngleAxis(-chrono.CH_C_PI / 2, chrono.ChVector3d(1, 0, 0))  # 1: rotate 90° on X axis
+rotation1.SetFromAngleAxis(-chrono.CH_PI / 2, chrono.ChVector3d(1, 0, 0))  # 1: rotate 90° on X axis
 rotation2 = chrono.ChQuaterniond()
-rotation2.SetFromAngleAxis(chrono.CH_C_PI, chrono.ChVector3d(0, 1, 0))  # 2: rotate 180° on vertical Y axis
+rotation2.SetFromAngleAxis(chrono.CH_PI, chrono.ChVector3d(0, 1, 0))  # 2: rotate 180° on vertical Y axis
 tot_rotation = chrono.ChQuaterniond()
 tot_rotation = rotation2 * rotation1     # rotate on 1 then on 2, using quaternion product
 root_frame = chrono.ChFrameMovingD(chrono.ChVector3d(0, 0, 0), tot_rotation)
@@ -57,7 +57,7 @@ if load_ok:
     shape1 = TopoDS.TopoDS_Shape()
     if (mydoc.GetNamedShape(shape1, "Assem1/body1")):
         body1 = cascade.ChCascadeBodyEasy(shape1, 1000) # density
-        body1.SetBodyFixed(True) 
+        body1.SetFixed(True) 
         sys.Add(body1)
         
         # Move the body as for global displacement/rotation (also body1 %= root_frame; )
@@ -100,7 +100,7 @@ if (rigidBody1 and rigidBody2):
 # Create a large cube as a floor.
 floor = chrono.ChBodyEasyBox(1, 0.2, 1, 1000)
 floor.SetPos(chrono.ChVector3d(0,-0.3,0))
-floor.SetBodyFixed(True)
+floor.SetFixed(True)
 floor.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile('textures/blue.png'))
 sys.Add(floor)
 

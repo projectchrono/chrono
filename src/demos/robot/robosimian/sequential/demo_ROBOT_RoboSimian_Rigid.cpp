@@ -85,8 +85,8 @@ class RayCaster {
 RayCaster::RayCaster(ChSystem* sys, const ChFrame<>& origin, const ChVector2d& dims, double spacing)
     : m_sys(sys), m_origin(origin), m_dims(dims), m_spacing(spacing) {
     m_body = chrono_types::make_shared<ChBody>();
-    m_body->SetBodyFixed(true);
-    m_body->SetCollide(false);
+    m_body->SetFixed(true);
+    m_body->EnableCollision(false);
     sys->AddBody(m_body);
 
     m_glyphs = chrono_types::make_shared<ChGlyphs>();
@@ -137,8 +137,8 @@ std::shared_ptr<ChBody> CreateTerrain(ChSystem* sys, double length, double width
     }
 
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
-    ground->SetCollide(true);
+    ground->SetFixed(true);
+    ground->EnableCollision(true);
 
     auto shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, length, width, 0.2);
     ground->AddCollisionShape(shape, ChFrame<>(ChVector3d(offset, 0, height - 0.1), QUNIT));
@@ -194,10 +194,10 @@ int main(int argc, char* argv[]) {
     }
 
     my_sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    my_sys->SetSolverMaxIterations(200);
     my_sys->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    my_sys->Set_G_acc(ChVector3d(0, 0, -9.8));
-    ////my_sys->Set_G_acc(ChVector3d(0, 0, 0));
+    my_sys->GetSolver()->AsIterative()->SetMaxIterations(200);
+    my_sys->SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
+    ////my_sys->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // -----------------------
     // Create RoboSimian robot
@@ -215,10 +215,10 @@ int main(int argc, char* argv[]) {
 
     // Control collisions (default: true for sled and wheels only)
 
-    ////robot.SetCollide(robosimian::CollisionFlags::NONE);
-    ////robot.SetCollide(robosimian::CollisionFlags::ALL);
-    ////robot.SetCollide(robosimian::CollisionFlags::LIMBS);
-    ////robot.SetCollide(robosimian::CollisionFlags::CHASSIS | robosimian::CollisionFlags::WHEELS);
+    ////robot.EnableCollision(robosimian::CollisionFlags::NONE);
+    ////robot.EnableCollision(robosimian::CollisionFlags::ALL);
+    ////robot.EnableCollision(robosimian::CollisionFlags::LIMBS);
+    ////robot.EnableCollision(robosimian::CollisionFlags::CHASSIS | robosimian::CollisionFlags::WHEELS);
 
     // Set visualization modes (default: all COLLISION)
 
@@ -235,7 +235,7 @@ int main(int argc, char* argv[]) {
     // Initialize Robosimian robot
 
     ////robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
-    robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI)));
+    robot.Initialize(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI)));
 
     // -----------------------------------
     // Create a driver and attach to robot
@@ -283,9 +283,9 @@ int main(int argc, char* argv[]) {
     // Cast rays into collision models
     // -------------------------------
 
-    ////RayCaster caster(my_sys, ChFrame<>(ChVector3d(2, 0, -1), QuatFromAngleY(-CH_C_PI_2)),
+    ////RayCaster caster(my_sys, ChFrame<>(ChVector3d(2, 0, -1), QuatFromAngleY(-CH_PI_2)),
     ////                 ChVector2d(2.5, 2.5), 0.02);
-    RayCaster caster(my_sys, ChFrame<>(ChVector3d(0, -2, -1), QuatFromAngleX(-CH_C_PI_2)),
+    RayCaster caster(my_sys, ChFrame<>(ChVector3d(0, -2, -1), QuatFromAngleX(-CH_PI_2)),
                      ChVector2d(2.5, 2.5), 0.02);
 
     // -------------------------------
@@ -356,7 +356,7 @@ int main(int argc, char* argv[]) {
             SetContactProperties(&robot);
 
             // Release robot
-            robot.GetChassisBody()->SetBodyFixed(false);
+            robot.GetChassisBody()->SetFixed(false);
 
             terrain_created = true;
         }
@@ -386,9 +386,9 @@ int main(int argc, char* argv[]) {
         }
 
         ////double time = my_sys->GetChTime();
-        ////double A = CH_C_PI / 6;
+        ////double A = CH_PI / 6;
         ////double freq = 2;
-        ////double val = 0.5 * A * (1 - std::cos(CH_C_2PI * freq * time));
+        ////double val = 0.5 * A * (1 - std::cos(CH_2PI * freq * time));
         ////robot.Activate(robosimian::FR, "joint2", time, val);
         ////robot.Activate(robosimian::RL, "joint5", time, val);
 

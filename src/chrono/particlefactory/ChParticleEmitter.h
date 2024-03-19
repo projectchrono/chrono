@@ -118,7 +118,7 @@ class ChParticleEmitter {
 
             // transform if pre_transform is used
             ChCoordsys<> mcoords_abs;
-            mcoords_abs = mcoords >> pre_transform.GetCsys();
+            mcoords_abs = mcoords >> pre_transform.GetCoordsys();
 
             // 3)
             // Random creation of particle
@@ -141,7 +141,7 @@ class ChParticleEmitter {
                 mv_abs = pre_transform.TransformDirectionLocalToParent(mv_loc);
                 mw_abs = pre_transform.TransformDirectionLocalToParent(mw_loc);
             }
-            mbody->SetPosDer(mv_abs);
+            mbody->SetPosDt(mv_abs);
             mbody->SetAngVelParent(mw_abs);
 
             if (this->jitter_declustering) {

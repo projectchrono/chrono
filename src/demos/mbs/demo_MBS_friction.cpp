@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
         double initial_angspeed = 10;
         double initial_linspeed = initial_angspeed * mradius;
         sphereBody->SetAngVelParent(ChVector3d(0, 0, -initial_angspeed));
-        sphereBody->SetPosDer(ChVector3d(initial_linspeed, 0, 0));
+        sphereBody->SetPosDt(ChVector3d(initial_linspeed, 0, 0));
 
         // Add to the system
         sys.Add(sphereBody);
@@ -109,8 +109,8 @@ int main(int argc, char* argv[]) {
     // Create a container fixed to ground
     auto bin = chrono_types::make_shared<ChBody>();
     bin->SetPos(ChVector3d(0, -1, 0));
-    bin->SetBodyFixed(true);
-    bin->SetCollide(true);
+    bin->SetFixed(true);
+    bin->EnableCollision(true);
 
     // Set rolling and friction coefficients for the container.
     // By default, the composite material will use the minimum value for an interacting collision pair.
@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AddCamera(ChVector3d(0, 14, -20));
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->SetWireFrameMode(false);
             vis_vsg->Initialize();
@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation
     sys.SetSolverType(ChSolver::Type::APGD);
-    sys.SetSolverMaxIterations(100);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(100);
 
     // Simulation loop
     double timestep = 0.005;

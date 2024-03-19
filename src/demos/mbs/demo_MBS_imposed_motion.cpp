@@ -23,7 +23,7 @@
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkLockTrajectory.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/geometry/ChLineBspline.h"
+#include "chrono/geometry/ChLineBSpline.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
 
     auto mfloor =
         chrono_types::make_shared<ChBodyEasyBox>(3, 0.2, 3, 1000, false, false);  // no visualization, no collision
-    mfloor->SetBodyFixed(true);
+    mfloor->SetFixed(true);
     sys.Add(mfloor);
 
     //
@@ -79,7 +79,7 @@ int main(int argc, char* argv[]) {
 
     // Create a rotation function q(t) from a angle(time) rotation with fixed axis:
     auto f_rot_axis = chrono_types::make_shared<ChFunctionRotationAxis>();
-    f_rot_axis->SetFunctionAngle(chrono_types::make_shared<ChFunctionSine>(chrono::CH_C_PI, 0.15));  // phase freq ampl
+    f_rot_axis->SetFunctionAngle(chrono_types::make_shared<ChFunctionSine>(chrono::CH_PI, 0.15));  // phase freq ampl
     f_rot_axis->SetAxis(ChVector3d(1, 1, 1).GetNormalized());
 
     // Create the constraint to impose motion and rotation.
@@ -111,7 +111,7 @@ int main(int argc, char* argv[]) {
     mmoved_2->SetPos(ChVector3d(0.5, 0, 0));
 
     // Create a spline geometry:
-    auto mspline = chrono_types::make_shared<ChLineBspline>(
+    auto mspline = chrono_types::make_shared<ChLineBSpline>(
         3,  // spline order
         std::vector<ChVector3d>{
             // std::vector with ChVector3d controlpoints
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
             {0, .5, .1}});
     mspline->SetClosed(true);
 
-    // Create a line motion that uses the 3D ChLineBspline above (but in SetLine() you
+    // Create a line motion that uses the 3D ChLineBSpline above (but in SetLine() you
     // might use also other ChLine objects such as a ChLinePath, a ChLineArc, etc.)
     auto f_line = chrono_types::make_shared<ChFunctionPositionLine>();
     f_line->SetLine(mspline);
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
 
     // Btw for periodic closed splines, the 1st contr point is not exactly the start of spline,
     // so better move the sample object exactly to beginning:
-    mmoved_2->SetPos(f_line->GetPos(0) >> impose_2->GetFrame2() >> impose_2->GetBody2()->GetCsys());
+    mmoved_2->SetPos(f_line->GetPos(0) >> impose_2->GetFrame2Rel() >> impose_2->GetBody2()->GetCoordsys());
 
     //
     // EXAMPLE 3
@@ -280,7 +280,7 @@ int main(int argc, char* argv[]) {
 
         double t = sys.GetChTime();
 
-        if (sys.GetStepcount() % 10 == 0) {
+        if (sys.GetNumSteps() % 10 == 0) {
             f_pos_setpoint->SetSetpoint(0.2 * ChVector3d(cos(t * 12), sin(t * 12), 0), t);
             // f_rot_setpoint->SetSetpoint(QuatFromAngleZ(t*0.5), t );
             // std::cout << "set p = " << f_setpoint->GetVal(t).y() << " at t=" << t  << std::endl;

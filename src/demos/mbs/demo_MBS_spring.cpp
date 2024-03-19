@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Create the ground body with two visualization spheres
     // -----------------------------------------------------
@@ -80,8 +80,8 @@ int main(int argc, char* argv[]) {
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
-    ground->SetCollide(false);
+    ground->SetFixed(true);
+    ground->EnableCollision(false);
 
     {
         auto sph_1 = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
@@ -98,8 +98,8 @@ int main(int argc, char* argv[]) {
     sys.AddBody(body_1);
     body_1->SetPos(ChVector3d(-1, -3, 0));
     body_1->SetIdentifier(1);
-    body_1->SetBodyFixed(false);
-    body_1->SetCollide(false);
+    body_1->SetFixed(false);
+    body_1->EnableCollision(false);
     body_1->SetMass(1);
     body_1->SetInertiaXX(ChVector3d(1, 1, 1));
 
@@ -127,8 +127,8 @@ int main(int argc, char* argv[]) {
     sys.AddBody(body_2);
     body_2->SetPos(ChVector3d(1, -3, 0));
     body_2->SetIdentifier(1);
-    body_2->SetBodyFixed(false);
-    body_2->SetCollide(false);
+    body_2->SetFixed(false);
+    body_2->EnableCollision(false);
     body_2->SetMass(1);
     body_2->SetInertiaXX(ChVector3d(1, 1, 1));
 
@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AddCamera(ChVector3d(0, 0, 12));
             vis_vsg->SetCameraAngleDeg(40);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 

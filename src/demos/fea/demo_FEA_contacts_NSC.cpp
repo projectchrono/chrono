@@ -76,13 +76,13 @@ int main(int argc, char* argv[]) {
         // floor as a triangle mesh surface:
         auto mfloor = chrono_types::make_shared<ChBody>();
         mfloor->SetPos(ChVector3d(0, -1, 0));
-        mfloor->SetBodyFixed(true);
+        mfloor->SetFixed(true);
         sys.Add(mfloor);
 
         auto floor_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mysurfmaterial, mmeshbox, false,
                                                                                    false, sphere_swept_thickness);
         mfloor->AddCollisionShape(floor_shape);
-        mfloor->SetCollide(true);
+        mfloor->EnableCollision(true);
 
         auto masset_meshbox = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         masset_meshbox->SetMesh(mmeshbox);
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
     } else {
         // floor as a simple collision primitive:
         auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(2, 0.1, 2, 2700, true, true, mysurfmaterial);
-        mfloor->SetBodyFixed(true);
+        mfloor->SetFixed(true);
         mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
         sys.Add(mfloor);
     }
@@ -116,18 +116,18 @@ int main(int argc, char* argv[]) {
     // and set its parameters
 
     auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
-    mmaterial->Set_E(2e5);  // rubber 0.01e9, steel 200e9
-    mmaterial->Set_v(0.3);
-    mmaterial->Set_RayleighDampingK(0.01);
-    mmaterial->Set_density(1000);
+    mmaterial->SetYoungModulus(2e5);  // rubber 0.01e9, steel 200e9
+    mmaterial->SetPoissonRatio(0.3);
+    mmaterial->SetRayleighDampingBeta(0.01);
+    mmaterial->SetDensity(1000);
 
     // Example: stack of tetrahedral meshes, with collision on the skin
 
     if (true) {
         for (int i = 0; i < 3; ++i) {
-            ChCoordsys<> cdown1(VNULL, QuatFromAngleX(CH_C_PI_2));
+            ChCoordsys<> cdown1(VNULL, QuatFromAngleX(CH_PI_2));
             ChCoordsys<> cdown2(ChVector3d(0, -0.4, 0));
-            ChCoordsys<> crot(VNULL, QuatFromAngleY(5 * CH_C_2PI * ChRandom::Get()));
+            ChCoordsys<> crot(VNULL, QuatFromAngleY(5 * CH_2PI * ChRandom::Get()));
             for (int j = -1; j < 2; ++j) {
                 try {
                     ChCoordsys<> cydisp(ChVector3d(0.3 * j, 0.1 + i * 0.1, 0));
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
 
     if (false) {
         std::map<std::string, std::vector<std::shared_ptr<ChNodeFEAbase>>> node_sets;
-        ChCoordsys<> cpos(ChVector3d(0, 0.8, 0), QuatFromAngleY(CH_C_PI_2));
+        ChCoordsys<> cpos(ChVector3d(0, 0.8, 0), QuatFromAngleY(CH_PI_2));
         ChMeshFileLoader::FromAbaqusFile(my_mesh,
                                          GetChronoDataFile("models/tractor_wheel/tractor_wheel_fine.INP").c_str(),
                                          mmaterial, node_sets, cpos.pos, cpos.rot);
@@ -176,11 +176,11 @@ int main(int argc, char* argv[]) {
         auto msection_cable2 = chrono_types::make_shared<ChBeamSectionCable>();
         msection_cable2->SetDiameter(0.05);
         msection_cable2->SetYoungModulus(0.01e9);
-        msection_cable2->SetBeamRayleighDamping(0.05);
+        msection_cable2->SetRayleighDamping(0.05);
 
         ChBuilderCableANCF builder;
 
-        ChCoordsys<> cablepos(ChVector3d(0, icable * 0.11, 0), QuatFromAngleY(ChRandom::Get() * CH_C_2PI));
+        ChCoordsys<> cablepos(ChVector3d(0, icable * 0.11, 0), QuatFromAngleY(ChRandom::Get() * CH_2PI));
 
         builder.BuildBeam(my_mesh_beams,    // the mesh where to put the created nodes and elements
                           msection_cable2,  // the ChBeamSectionCable to use for the ChElementCableANCF elements
@@ -260,8 +260,6 @@ int main(int argc, char* argv[]) {
     solver->SetRho(1);
     solver->SetStepAdjustPolicy(ChSolverADMM::AdmmStepType::BALANCED_UNSCALED);
     sys.SetSolver(solver);
-
-    sys.SetSolverForceTolerance(1e-10);
 
     while (vis->Run()) {
         vis->BeginScene();

@@ -136,7 +136,7 @@ void SprocketSinglePinContactCB::OnCustomCollision(ChSystem* system) {
     // Return now if collision disabled on sprocket or track shoes.
     if (m_track->GetNumTrackShoes() == 0)
         return;
-    if (!m_sprocket->GetGearBody()->GetCollide() || !m_track->GetTrackShoe(0)->GetShoeBody()->GetCollide())
+    if (!m_sprocket->GetGearBody()->IsCollisionEnabled() || !m_track->GetTrackShoe(0)->GetShoeBody()->IsCollisionEnabled())
         return;
 
     // Sprocket gear center location, expressed in global frame
@@ -263,7 +263,7 @@ void SprocketSinglePinContactCB::CheckCircleProfile(std::shared_ptr<ChTrackShoeS
 // It is assumed that the gear profile is specified with an arc at its lowest z value.
 ChVector3d SprocketSinglePinContactCB::FindClosestArc(const ChVector3d& loc) {
     // Angle between two consecutive gear teeth
-    double delta = CH_C_2PI / m_gear_nteeth;
+    double delta = CH_2PI / m_gear_nteeth;
     // Angle formed by 'loc' and the line z<0
     double angle = std::atan2(loc.x(), -loc.z());
     // Find angle of closest profile arc
@@ -355,7 +355,7 @@ std::shared_ptr<ChLinePath> ChSprocketSinglePin::GetProfile() const {
     double R_C = GetArcCentersRadius();
     double R = GetArcRadius();
 
-    double beta = CH_C_2PI / num_teeth;
+    double beta = CH_2PI / num_teeth;
     double sbeta = std::sin(beta / 2);
     double cbeta = std::cos(beta / 2);
     double y = (R_T * R_T + R_C * R_C - R * R) / (2 * R_C);
@@ -363,7 +363,7 @@ std::shared_ptr<ChLinePath> ChSprocketSinglePin::GetProfile() const {
     double gamma = std::asin(x / R);
 
     for (int i = 0; i < num_teeth; ++i) {
-        double alpha = CH_C_PI - i * beta;
+        double alpha = CH_PI - i * beta;
         ChVector3d p0(0, R_C, 0);
         ChVector3d p1(-R_T * sbeta, R_T * cbeta, 0);
         ChVector3d p2(-x, y, 0);
@@ -378,8 +378,8 @@ std::shared_ptr<ChLinePath> ChSprocketSinglePin::GetProfile() const {
         p3 = rot * p3;
         p4 = rot * p4;
         ChLineSegment seg1(p1, p2);
-        double angle1 = alpha + 1.5 * CH_C_PI - gamma;
-        double angle2 = alpha + 1.5 * CH_C_PI + gamma;
+        double angle1 = alpha + 1.5 * CH_PI - gamma;
+        double angle2 = alpha + 1.5 * CH_PI + gamma;
         ChLineArc arc(ChCoordsys<>(p0), R, angle1, angle2, true);
         ChLineSegment seg2(p3, p4);
         profile->AddSubLine(seg1);

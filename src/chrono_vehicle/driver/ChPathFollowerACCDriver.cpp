@@ -77,11 +77,11 @@ void ChPathFollowerACCDriver::Create() {
 
     // Create a fixed body to carry a visualization asset for the path
     auto road = chrono_types::make_shared<ChBody>();
-    road->SetBodyFixed(true);
+    road->SetFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
 
     auto bezier_curve = m_steeringPID.GetPath();
-    auto num_points = static_cast<unsigned int>(bezier_curve->getNumPoints());
+    auto num_points = static_cast<unsigned int>(bezier_curve->GetNumPoints());
     auto path_asset = chrono_types::make_shared<ChVisualShapeLine>();
     path_asset->SetLineGeometry(chrono_types::make_shared<ChLineBezier>(bezier_curve));
     path_asset->SetColor(ChColor(0.8f, 0.8f, 0.0f));

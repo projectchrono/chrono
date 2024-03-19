@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
     }
 
     auto mtruss = chrono_types::make_shared<ChBody>();
-    mtruss->SetBodyFixed(true);
+    mtruss->SetFixed(true);
     sys.Add(mtruss);
 
     // Initialize output
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     }
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     //
     // Create a rigid body with a mesh or a cylinder collision shape
@@ -173,21 +173,21 @@ int main(int argc, char* argv[]) {
             double radius = 0.5;
             double width = 0.4;
             auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(material, radius, width);
-            wheel->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0), QuatFromAngleY(CH_C_PI_2)));
+            wheel->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0), QuatFromAngleY(CH_PI_2)));
 
             auto vis_shape = chrono_types::make_shared<ChVisualShapeCylinder>(radius, width);
             vis_shape->SetColor(ChColor(0.3f, 0.3f, 0.3f));
-            wheel->AddVisualShape(vis_shape, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
+            wheel->AddVisualShape(vis_shape, ChFrame<>(VNULL, QuatFromAngleY(CH_PI_2)));
 
             break;
         }
     }
-    wheel->SetCollide(true);
+    wheel->EnableCollision(true);
 
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
-    motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, CH_C_PI / 4.0));
-    motor->Initialize(wheel, mtruss, ChFrame<>(tire_center, QuatFromAngleY(CH_C_PI_2)));
+    motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, CH_PI / 4.0));
+    motor->Initialize(wheel, mtruss, ChFrame<>(tire_center, QuatFromAngleY(CH_PI_2)));
     sys.Add(motor);
 
     //
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
     // Displace/rotate the terrain reference plane.
     // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
-    mterrain.SetPlane(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_C_PI_2)));
+    mterrain.SetPlane(ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_PI_2)));
 
     // Initialize the geometry of the soil
 
@@ -312,7 +312,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->Initialize();
 
             vis = vis_vsg;
@@ -340,7 +340,7 @@ int main(int argc, char* argv[]) {
         sys.SetTimestepperType(ChTimestepper::Type::HHT);
         auto integrator = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
         integrator->SetAlpha(-0.2);
-        integrator->SetMaxiters(8);
+        integrator->SetMaxIters(8);
         integrator->SetAbsTolerances(1e-1, 10);
         integrator->SetModifiedNewton(true);
         integrator->SetVerbose(true);
@@ -379,7 +379,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (output) {
-        csv.write_to_file(out_dir + "/output.dat");
+        csv.WriteToFile(out_dir + "/output.dat");
     }
 
     return 0;

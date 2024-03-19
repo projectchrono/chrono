@@ -51,7 +51,7 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
     // Add a ball mesh to the GPU system
     float ball_radius = 20.f;
     float ball_density = params.sphere_density;
-    float ball_mass = 4.0f * (float)CH_C_PI * ball_radius * ball_radius * ball_radius * ball_density / 3.f;
+    float ball_mass = 4.0f * (float)CH_PI * ball_radius * ball_radius * ball_radius * ball_density / 3.f;
     gpu_sys.AddMesh(GetChronoDataFile("models/sphere.obj"), ChVector3f(0), ChMatrix33<float>(ball_radius),
                     ball_mass);
 
@@ -66,7 +66,7 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
     ChSystemSMC sys_ball;
     sys_ball.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
     sys_ball.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
-    sys_ball.Set_G_acc(ChVector3d(0, 0, -980));
+    sys_ball.SetGravitationalAcceleration(ChVector3d(0, 0, -980));
 
     double inertia = 2.0 / 5.0 * ball_mass * ball_radius * ball_radius;
     ChVector3d ball_initial_pos(0, 0, params.box_Z / 4.0 + ball_radius + 2 * params.sphere_radius);
@@ -104,16 +104,16 @@ void runBallDrop(ChSystemGpuMesh& gpu_sys, ChGpuSimulationParameters& params) {
 
     clock_t start = std::clock();
     for (double t = 0; t < (double)params.time_end; t += iteration_step, curr_step++) {
-        gpu_sys.ApplyMeshMotion(0, ball_body->GetPos(), ball_body->GetRot(), ball_body->GetPosDer(),
+        gpu_sys.ApplyMeshMotion(0, ball_body->GetPos(), ball_body->GetRot(), ball_body->GetPosDt(),
                                 ball_body->GetAngVelParent());
 
         ChVector3d ball_force;
         ChVector3d ball_torque;
         gpu_sys.CollectMeshContactForces(0, ball_force, ball_torque);
 
-        ball_body->Empty_forces_accumulators();
-        ball_body->Accumulate_force(ball_force, ball_body->GetPos(), false);
-        ball_body->Accumulate_torque(ball_torque, false);
+        ball_body->EmptyAccumulators();
+        ball_body->AccumulateForce(ball_force, ball_body->GetPos(), false);
+        ball_body->AccumulateTorque(ball_torque, false);
 
         if (curr_step % out_steps == 0) {
             std::cout << "Output frame " << currframe + 1 << " of " << total_frames << std::endl;
@@ -198,8 +198,8 @@ int main(int argc, char* argv[]) {
     double fill_bottom = -params.box_Z / 2.0;
     double fill_top = params.box_Z / 4.0;
 
-    chrono::utils::PDSampler<float> sampler(2.4f * params.sphere_radius);
-    // chrono::utils::HCPSampler<float> sampler(2.05 * params.sphere_radius);
+    chrono::utils::ChPDSampler<float> sampler(2.4f * params.sphere_radius);
+    // chrono::utils::ChHCPSampler<float> sampler(2.05 * params.sphere_radius);
 
     // leave a 4cm margin at edges of sampling
     ChVector3d hdims(params.box_X / 2 - 4.0, params.box_Y / 2 - 4.0, 0);
@@ -266,7 +266,7 @@ int main(int argc, char* argv[]) {
         double3 pos = {0, 0, 0};
 
         double t0 = 0.5;
-        double freq = CH_C_PI / 4;
+        double freq = CH_PI / 4;
 
         if (t > t0) {
             pos.x = 0.1 * params.box_X * std::sin((t - t0) * freq);

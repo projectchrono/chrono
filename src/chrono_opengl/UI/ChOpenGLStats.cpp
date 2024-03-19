@@ -208,7 +208,7 @@ void ChOpenGLStatsDefault::GenerateSystem(ChSystem& sys) {
     if (parallel_system) {
         num_shapes =
             parallel_system->data_manager->cd_data->num_rigid_shapes + parallel_system->data_manager->num_fluid_bodies;
-        num_rigid_bodies = parallel_system->data_manager->num_rigid_bodies + parallel_system->GetNumOtherPhysicsItems();
+        num_rigid_bodies = parallel_system->data_manager->num_rigid_bodies + parallel_system->GetNumOtherPhysicsItemsActive();
         num_fluid_bodies = parallel_system->data_manager->num_fluid_bodies;
         num_contacts = parallel_system->GetNumContacts();
         num_bilaterals = parallel_system->data_manager->num_bilaterals;

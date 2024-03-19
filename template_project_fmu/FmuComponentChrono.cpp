@@ -46,7 +46,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
                    FmuVariable::CausalityType::parameter, FmuVariable::VariabilityType::fixed);
 
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     sys.Add(ground);
 
     // Cart is moving along X axis, Pendulum rotates along Z axis
@@ -72,7 +72,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     pendulum_rev->SetName("pendulum_rev");
     sys.Add(pendulum_rev);
 
-    sys.DoFullAssembly();
+    sys.DoAssembly(AssemblyLevel::FULL);
 
 #ifdef CHRONO_IRRLICHT
     vis = chrono_types::make_shared<irrlicht::ChVisualSystemIrrlicht>();
@@ -94,14 +94,14 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 
 void FmuComponent::_preModelDescriptionExport() {
     _exitInitializationMode();
-    ChArchiveFmu archive_fmu(*this);
+    ChOutputFMU archive_fmu(*this);
     archive_fmu << CHNVP(sys);
 }
 
 void FmuComponent::_postModelDescriptionExport() {}
 
 void FmuComponent::_exitInitializationMode() {
-    sys.DoFullAssembly();
+    sys.DoAssembly(AssemblyLevel::FULL);
 };
 
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,

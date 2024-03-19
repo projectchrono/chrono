@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     MySine1d mfx;
     // Invoke 6th order Gauss-Legendre quadrature on 0..PI interval:
     double qresult = 0;
-    ChQuadrature::Integrate1D<double>(qresult, mfx, 0, CH_C_PI, 6);
+    ChQuadrature::Integrate1D<double>(qresult, mfx, 0, CH_PI, 6);
     std::cout << "Quadrature 1d result: " << qresult << " (analytic solution: 2.0)" << std::endl;
 
     // Other quadrature tests, this time in 2D
@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
 
     MySine2d mfx2d;
     qresult = 0;
-    ChQuadrature::Integrate2D<double>(qresult, mfx2d, 0, CH_C_PI, -1, 1, 6);
+    ChQuadrature::Integrate2D<double>(qresult, mfx2d, 0, CH_PI, -1, 1, 6);
     std::cout << "Quadrature 2d result: " << qresult << " (analytic solution: 4.0)" << std::endl;
 
     // Other quadrature tests, this time with vector function (that is, integrates 2x1 matrix)

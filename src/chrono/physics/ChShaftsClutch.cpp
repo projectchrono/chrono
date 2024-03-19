@@ -30,15 +30,12 @@ ChShaftsClutch::ChShaftsClutch(const ChShaftsClutch& other) : ChShaftsCouple(oth
     torque_react = other.torque_react;
 }
 
-bool ChShaftsClutch::Initialize(std::shared_ptr<ChShaft> mshaft1, std::shared_ptr<ChShaft> mshaft2) {
+bool ChShaftsClutch::Initialize(std::shared_ptr<ChShaft> shaft_1, std::shared_ptr<ChShaft> shaft_2) {
     // parent class initialization
-    if (!ChShaftsCouple::Initialize(mshaft1, mshaft2))
+    if (!ChShaftsCouple::Initialize(shaft_1, shaft_2))
         return false;
 
-    ChShaft* mm1 = mshaft1.get();
-    ChShaft* mm2 = mshaft2.get();
-
-    constraint.SetVariables(&mm1->Variables(), &mm2->Variables());
+    constraint.SetVariables(&shaft_1->Variables(), &shaft_2->Variables());
 
     SetSystem(shaft1->GetSystem());
 
@@ -58,8 +55,6 @@ void ChShaftsClutch::SetTorqueLimit(double ml, double mu) {
     maxT = mu;
 }
 
-//// STATE BOOKKEEPING FUNCTIONS
-
 void ChShaftsClutch::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     L(off_L) = torque_react;
 }
@@ -72,7 +67,7 @@ void ChShaftsClutch::IntLoadResidual_CqL(const unsigned int off_L,    // offset 
                                          ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
                                          const ChVectorDynamic<>& L,  // the L vector
                                          const double c               // a scaling factor
-                                         ) {
+) {
     if (!active)
         return;
 
@@ -84,7 +79,7 @@ void ChShaftsClutch::IntLoadConstraint_C(const unsigned int off_L,  // offset in
                                          const double c,            // a scaling factor
                                          bool do_clamp,             // apply clamping to c*C?
                                          double recovery_clamp      // value for min/max clamping of c*C
-                                         ) {
+) {
     if (!active)
         return;
 
@@ -103,7 +98,7 @@ void ChShaftsClutch::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>
     if (!active)
         return;
 
-    double dt = system->GetStep(); //// TODO: check this if ever using variable-step integrators
+    double dt = system->GetStep();  //// TODO: check this if ever using variable-step integrators
     constraint.SetBoxedMinMax(dt * minT * modulation, dt * maxT * modulation);
 }
 
@@ -129,8 +124,6 @@ void ChShaftsClutch::IntFromDescriptor(const unsigned int off_v,  // offset in v
 
     L(off_L) = constraint.Get_l_i();
 }
-
-// SOLVER INTERFACES
 
 void ChShaftsClutch::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     if (!active)
@@ -175,8 +168,6 @@ void ChShaftsClutch::ConstraintsFetch_react(double factor) {
     torque_react = constraint.Get_l_i() * factor;
 }
 
-//////// FILE I/O
-
 void ChShaftsClutch::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChShaftsClutch>();
@@ -190,10 +181,9 @@ void ChShaftsClutch::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(modulation);
 }
 
-/// Method to allow de serialization of transient data from archives.
 void ChShaftsClutch::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChShaftsClutch>();
+    /*int version =*/archive_in.VersionRead<ChShaftsClutch>();
 
     // deserialize parent class:
     ChShaftsCouple::ArchiveIn(archive_in);
@@ -203,7 +193,6 @@ void ChShaftsClutch::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(minT);
     archive_in >> CHNVP(modulation);
     constraint.SetVariables(&shaft1->Variables(), &shaft2->Variables());
-
 }
 
 }  // end namespace chrono

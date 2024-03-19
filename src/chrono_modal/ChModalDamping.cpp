@@ -36,10 +36,10 @@ void ChModalDampingFactorRmm::ComputeR(ChModalAssembly& assembly,
                                        const ChMatrixDynamic<>& modal_K,
                                        const ChMatrixDynamic<>& Psi,
                                        ChMatrixDynamic<>& modal_R) const {
-    int n_mod_coords = assembly.Get_n_modes_coords_w();
-    int n_bou_coords = assembly.GetNumCoordinatesVelBoundary();
+    unsigned int n_mod_coords = assembly.Get_n_modes_coords_w();
+    unsigned int n_bou_coords = assembly.GetNumCoordinatesVelBoundary();
 
-    ChVectorDynamic<> omegas = CH_C_2PI * assembly.Get_modes_frequencies();
+    ChVectorDynamic<> omegas = CH_2PI * assembly.Get_modes_frequencies();
     ChVectorDynamic<> zetas;
     zetas.setZero(n_mod_coords);
 
@@ -49,7 +49,7 @@ void ChModalDampingFactorRmm::ComputeR(ChModalAssembly& assembly,
         zetas = this->damping_factors.segment(0, n_mod_coords);
     if (this->damping_factors.size() < n_mod_coords) {
         zetas.segment(0, this->damping_factors.size()) = this->damping_factors;
-        for (int i = this->damping_factors.size(); i < n_mod_coords; ++i) {
+        for (unsigned int i = this->damping_factors.size(); i < n_mod_coords; ++i) {
             zetas(i) = zetas(this->damping_factors.size() - 1);  // repeat last of user provided factors
         }
     }
@@ -123,7 +123,7 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     unsymmetry causes modes_V_reduced to have some imaginary part. eigsolver.Solve(M_reduced, R_null, K_reduced,
     Cq_reduced, modes_V_reduced, eig_reduced, freq_reduced, damp_factors, n_bou_mod_coords-Cq_reduced.rows());
     */
-    ChVectorDynamic<> omegas = CH_C_2PI * freq_reduced;
+    ChVectorDynamic<> omegas = CH_2PI * freq_reduced;
     ChVectorDynamic<> zetas;
     zetas.setZero(n_bou_mod_coords);
 
@@ -166,31 +166,31 @@ void ChModalDampingFactorAssembly::ComputeR(ChModalAssembly& assembly,
     // the operation to a sub block, leaving the rest as zero.
     modal_R.block(0, 0, modal_R_nonzero.rows(), modal_R_nonzero.cols()) = modal_R_nonzero;
 
-    if (true) {
+    if (false) {
         std::ofstream fileM("dump_modald_M.dat");
         fileM << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(M_reduced.toDense(), fileM);
+        StreamOut(M_reduced.toDense(), fileM);
         std::ofstream fileK("dump_modald_K.dat");
         fileK << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(K_reduced.toDense(), fileK);
+        StreamOut(K_reduced.toDense(), fileK);
         std::ofstream fileCq("dump_modald_Cq.dat");
         fileCq << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(Cq_reduced.toDense(), fileCq);
+        StreamOut(Cq_reduced.toDense(), fileCq);
         std::ofstream fileV("dump_modald_V.dat");
         fileV << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(V, fileV);
+        StreamOut(V, fileV);
         std::ofstream fileF("dump_modald_f.dat");
         fileF << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(freq_reduced, fileF);
+        StreamOut(freq_reduced, fileF);
         std::ofstream fileRnz("dump_modald_Rnz.dat");
         fileRnz << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(modal_R_nonzero, fileRnz);
+        StreamOut(modal_R_nonzero, fileRnz);
         std::ofstream fileMm("dump_modald_Mm.dat");
         fileMm << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(Mmodal, fileMm);
+        StreamOut(Mmodal, fileMm);
         std::ofstream fileMm_matr("dump_modald_Mm_matr.dat");
         fileMm_matr << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(Mmodal_matr, fileMm_matr);
+        StreamOut(Mmodal_matr, fileMm_matr);
     }
 }
 

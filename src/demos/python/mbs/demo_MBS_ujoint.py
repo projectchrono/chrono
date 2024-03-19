@@ -28,7 +28,7 @@ print ("Example: demonstration of a universal joint")
 #
 
 sys      = chrono.ChSystemNSC()
-sys.Set_G_acc(chrono.ChVector3d(0, 0, 0))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, 0))
 
 # Set the half-length of the two shafts
 hl = 2
@@ -44,8 +44,8 @@ rot   = chrono.QuatFromAngleX(angle)
 # ----------------------
 ground = chrono.ChBody()
 ground.SetIdentifier(-1)
-ground.SetBodyFixed(True)
-ground.SetCollide(False)
+ground.SetFixed(True)
+ground.EnableCollision(False)
 sys.Add(ground)
 
 # attach visualization assets to represent the revolute and cylindrical
@@ -64,8 +64,8 @@ ground.AddVisualShape(cyl_2, seg.GetFrame())
 shaft_1 = chrono.ChBody()
 sys.AddBody(shaft_1)
 shaft_1.SetIdentifier(1)
-shaft_1.SetBodyFixed(False)
-shaft_1.SetCollide(False)
+shaft_1.SetFixed(False)
+shaft_1.EnableCollision(False)
 shaft_1.SetMass(1)
 shaft_1.SetInertiaXX(chrono.ChVector3d(1, 1, 0.2))
 shaft_1.SetPos(chrono.ChVector3d(0, 0, -hl))
@@ -78,7 +78,7 @@ shaft_1.AddVisualShape(box_1)
 
 cyl_2 = chrono.ChVisualShapeCylinder(0.05, 0.4)
 cyl_2.SetColor(chrono.ChColor(0.9, 0.4, 0.1))
-shaft_1.AddVisualShape(cyl_2, chrono.ChFramed(chrono.ChVector3d(0, 0, hl), chrono.QuatFromAngleY(chrono.CH_C_PI_2)))
+shaft_1.AddVisualShape(cyl_2, chrono.ChFramed(chrono.ChVector3d(0, 0, hl), chrono.QuatFromAngleY(chrono.CH_PI_2)))
 
 # Create the second shaft body
 # ----------------------------
@@ -89,8 +89,8 @@ shaft_1.AddVisualShape(cyl_2, chrono.ChFramed(chrono.ChVector3d(0, 0, hl), chron
 shaft_2 = chrono.ChBody()
 sys.AddBody(shaft_2)
 shaft_2.SetIdentifier(1)
-shaft_2.SetBodyFixed(False)
-shaft_2.SetCollide(False)
+shaft_2.SetFixed(False)
+shaft_2.EnableCollision(False)
 shaft_2.SetMass(1)
 shaft_2.SetInertiaXX(chrono.ChVector3d(1, 1, 0.2))
 shaft_2.SetPos(chrono.ChVector3d(0, -hl * sina, hl * cosa))
@@ -103,7 +103,7 @@ shaft_2.AddVisualShape(box_1)
 
 cyl_2 = chrono.ChVisualShapeCylinder(0.05, 0.4)
 cyl_2.SetColor(chrono.ChColor(0.2, 0.4, 0.8))
-shaft_2.AddVisualShape(cyl_2, chrono.ChFramed(chrono.ChVector3d(0, 0, -hl), chrono.QuatFromAngleX(chrono.CH_C_PI_2)))
+shaft_2.AddVisualShape(cyl_2, chrono.ChFramed(chrono.ChVector3d(0, 0, -hl), chrono.QuatFromAngleX(chrono.CH_PI_2)))
 
 # Connect the first shaft to ground
 # ---------------------------------

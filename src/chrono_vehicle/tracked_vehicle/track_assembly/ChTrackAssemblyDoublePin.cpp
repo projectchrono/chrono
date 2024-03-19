@@ -128,8 +128,8 @@ bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 
     // Wrap around sprocket.
     // ATTENTION:  USING SOME MAGIC NUMBERS HERE (angle adjustments)!!!!
-    double delta = sign * CH_C_2PI / m_sprocket->GetNumTeeth();
-    for (int is = 1; is <= m_sprocket->GetNumTeeth() / 2; is++) {
+    double delta = sign * CH_2PI / m_sprocket->GetNumTeeth();
+    for (unsigned int is = 1; is <= m_sprocket->GetNumTeeth() / 2; is++) {
         A = sprocket_pos + sprocket_radius * ChVector2d(std::sin(is * delta), -std::cos(is * delta));
         double angle = sign * std::atan2(A.y() - p2.y(), sign * (A.x() - p2.x()));
         as = angle - sign * 0.07;
@@ -150,7 +150,7 @@ bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // Calculate the constant pitch angle.
     double dy = (sprocket_pos.y() + sprocket_radius) - (idler_pos.y() + idler_radius);
     double dx = sign * (sprocket_pos.x() - idler_pos.x());
-    double angle = ccw ? CH_C_PI + std::atan2(dy, dx) : -CH_C_PI - std::atan2(dy, dx);
+    double angle = ccw ? CH_PI + std::atan2(dy, dx) : -CH_PI - std::atan2(dy, dx);
 
     // Create track shoes with constant orientation
     ////while (-sign * (idler_pos.x() - p2.x() + shoe_pitch) > 0 && index < num_shoes) {
@@ -168,7 +168,7 @@ bool ChTrackAssemblyDoublePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     double tmp = shoe_pitch / (2 * idler_radius);
     double delta_angle = sign * std::asin(tmp);
 
-    while (std::abs(angle) < CH_C_2PI && index < num_shoes) {
+    while (std::abs(angle) < CH_2PI && index < num_shoes) {
         ps = p2 + sign * Vrot(ChVector2d(shoe_length / 2, 0), angle);
         pc = ps + sign * Vrot(ChVector2d((shoe_length + connector_length) / 2, 0), angle);
         CreateTrackShoe(chassis, index, ps, pc, angle, angle);

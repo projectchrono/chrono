@@ -60,10 +60,10 @@ class EigenSolver {
         ChSparseMatrix K_sp;
         ChSparseMatrix R_sp;
         ChSparseMatrix Cq_sp;
-        msys.GetMassMatrix(&M_sp);
-        msys.GetStiffnessMatrix(&K_sp);
-        msys.GetDampingMatrix(&R_sp);
-        msys.GetConstraintJacobianMatrix(&Cq_sp);
+        msys.GetMassMatrix(M_sp);
+        msys.GetStiffnessMatrix(K_sp);
+        msys.GetDampingMatrix(R_sp);
+        msys.GetConstraintJacobianMatrix(Cq_sp);
 
         int n_v = Cq_sp.cols();
         int n_c = Cq_sp.rows();
@@ -152,7 +152,7 @@ void test_pendulum() {
     // The mass of the end point, kg
     double tip_mass = 15.0;
     // The offset angle of the pendulum at the initial configuration, rad
-    double offset_angle = 30.0 * CH_C_DEG_TO_RAD;
+    double offset_angle = 30.0 * CH_DEG_TO_RAD;
 
     // Gravity acceleration, m/s^2
     double gacc = 9.81;
@@ -173,16 +173,16 @@ void test_pendulum() {
     sys.Add(load_container);
 
     auto my_root = chrono_types::make_shared<ChBody>();
-    my_root->SetCsys(VNULL, QUNIT);
+    my_root->SetCoordsys(VNULL, QUNIT);
     my_root->SetMass(1e6);
     my_root->SetInertiaXX(ChVector3d(1, 1, 1));
     my_root->SetNameString("base");
-    my_root->SetBodyFixed(true);
-    my_root->SetCollide(false);
+    my_root->SetFixed(true);
+    my_root->EnableCollision(false);
     sys.AddBody(my_root);
 
     auto cyl_rev = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, 0.4);
-    my_root->AddVisualShape(cyl_rev, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
+    my_root->AddVisualShape(cyl_rev, ChFrame<>(VNULL, QuatFromAngleY(CH_PI_2)));
 
     auto my_mass = chrono_types::make_shared<ChBody>();
     ChVector3d mass_pos = ChVector3d(length * std::sin(offset_angle), 0, -length * std::cos(offset_angle));
@@ -194,11 +194,11 @@ void test_pendulum() {
     ChVector3d mZ;
     Xdir.GetDirectionAxesAsX(mX, mY, mZ, Ydir);
     ChQuaternion<> mass_rot = ChMatrix33<>(mX, mY, mZ).GetQuaternion();
-    my_mass->SetCsys(mass_pos, mass_rot);
+    my_mass->SetCoordsys(mass_pos, mass_rot);
     my_mass->SetMass(tip_mass);
     my_mass->SetInertiaXX(ChVector3d(0, 0, 0));
     my_mass->SetNameString("mass");
-    my_mass->SetCollide(false);
+    my_mass->EnableCollision(false);
     sys.AddBody(my_mass);
 
     auto sph = chrono_types::make_shared<ChVisualShapeSphere>(0.3);
@@ -235,7 +235,7 @@ void test_pendulum() {
     vis->EnableLinkFrameDrawing(false);
 
     // gravity
-    sys.Set_G_acc({0, 0, -gacc});
+    sys.SetGravitationalAcceleration({0, 0, -gacc});
 
     // Change solver to PardisoMKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -259,10 +259,10 @@ void test_pendulum() {
               << "\tx:  " << my_mass->GetPos().x() << "\ty:  " << my_mass->GetPos().y()
               << "\tz:  " << my_mass->GetPos().z() << std::endl;
 
-    // Firstly, we call DoFullAssembly() to calculate the reaction forces/torques at the initial configuration of
-    // system.
-    sys.DoFullAssembly();
-    // Secondly, we perform the static analysis using the solver ChStaticNonLinearRigidMotion().
+    // First, perform a full assembly to calculate the reaction forces/torques at the initial system configuration
+    sys.DoAssembly(AssemblyLevel::FULL);
+
+    // Second, perform the static analysis using the solver ChStaticNonLinearRigidMotion()
     sys.DoStaticAnalysis(rigid_static_analysis);
 
     while (vis->Run()) {
@@ -272,16 +272,18 @@ void test_pendulum() {
         vis->EndScene();
     }
 
+    const auto& pos = my_mass->GetPos();
+    const auto& reaction = my_joint->GetReaction2();
+    const auto& rforce = reaction.force;
+    const auto& rtorque = reaction.torque;
+
     std::cout << "\nAfter doing the nonlinear static analysis:" << std::endl;
     std::cout << "\tThe final position of the end mass is:\n"
-              << "\t\tx:  " << my_mass->GetPos().x() << "\ty:  " << my_mass->GetPos().y()
-              << "\tz:  " << my_mass->GetPos().z() << std::endl;
+              << "\t\tx:  " << pos.x() << "\ty:  " << pos.y() << "\tz:  " << pos.z() << std::endl;
     std::cout << "\tThe reaction forces at the root are:\n"
-              << "\t\tfx:  " << my_joint->Get_react_force().x() << "\tfy:  " << my_joint->Get_react_force().y()
-              << "\tfz:  " << my_joint->Get_react_force().z() << std::endl;
+              << "\t\tfx:  " << rforce.x() << "\tfy:  " << rforce.y() << "\tfz:  " << rforce << std::endl;
     std::cout << "\tThe reaction torques at the root are:\n"
-              << "\t\tmx:  " << my_joint->Get_react_torque().x() << "\tmy:  " << my_joint->Get_react_torque().y()
-              << "\tmz:  " << my_joint->Get_react_torque().z() << std::endl;
+              << "\t\tmx:  " << rtorque.x() << "\tmy:  " << rtorque.y() << "\tmz:  " << rtorque.z() << std::endl;
 
     // ====================================
     // Eigenvalue analysis
@@ -341,14 +343,14 @@ void test_anchorchain() {
     auto wallA = chrono_types::make_shared<ChBody>();
     wallA->SetNameString("wallA");
     wallA->SetPos({xA, 0, 0});
-    wallA->SetBodyFixed(true);
+    wallA->SetFixed(true);
     wallA->AddVisualShape(box);
     sys.AddBody(wallA);
 
     auto anchorA = chrono_types::make_shared<ChBody>();
     anchorA->SetNameString("anchorA");
     anchorA->SetPos({xA, 0, 0});
-    anchorA->SetRot(QuatFromAngleY(CH_C_PI_4));
+    anchorA->SetRot(QuatFromAngleY(CH_PI_4));
     anchorA->SetMass(mass);
     anchorA->SetInertiaXX({Jxx, Jyy, Jzz});
     anchorA->AddVisualShape(box);
@@ -362,14 +364,14 @@ void test_anchorchain() {
     auto wallB = chrono_types::make_shared<ChBody>();
     wallB->SetNameString("wallB");
     wallB->SetPos({xB, 0, 0});
-    wallB->SetBodyFixed(true);
+    wallB->SetFixed(true);
     wallB->AddVisualShape(box);
     sys.AddBody(wallB);
 
     auto anchorB = chrono_types::make_shared<ChBody>();
     anchorB->SetNameString("anchorB");
     anchorB->SetPos({xB, 0, 0});
-    anchorB->SetRot(QuatFromAngleY(-CH_C_PI_4));
+    anchorB->SetRot(QuatFromAngleY(-CH_PI_4));
     anchorB->SetMass(mass);
     anchorB->SetInertiaXX({Jxx, Jyy, Jzz});
     anchorB->AddVisualShape(box);
@@ -413,7 +415,7 @@ void test_anchorchain() {
 
             auto cyl_rev = chrono_types::make_shared<ChVisualShapeCylinder>(0.1, len * 0.8);
             cyl_rev->SetColor(ChColor(0, 0, 1));
-            knot->AddVisualShape(cyl_rev, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
+            knot->AddVisualShape(cyl_rev, ChFrame<>(VNULL, QuatFromAngleY(CH_PI_2)));
 
             knot_list.push_back(knot);
             sys.AddBody(knot);
@@ -442,7 +444,7 @@ void test_anchorchain() {
     }
 
     // Gravity
-    sys.Set_G_acc({0, 0, -gacc});
+    sys.SetGravitationalAcceleration({0, 0, -gacc});
     sys.Setup();
 
     // Change solver to PardisoMKL
@@ -476,10 +478,10 @@ void test_anchorchain() {
         std::cout << "anchorC position:\t" << anchorC->GetPos().x() << "\t" << anchorC->GetPos().y() << "\t"
                   << anchorC->GetPos().z() << std::endl;
 
-        // Firstly, we call DoFullAssembly() to calculate the reaction forces/torques at the initial configuration of
-        // system.
-        sys.DoFullAssembly();
-        // Secondly, we perform the static analysis using the solver ChStaticNonLinearRigidMotion().
+        // First, perform a full assembly to calculate the reaction forces/torques at the initial system configuration
+        sys.DoAssembly(AssemblyLevel::FULL);
+
+        // Second, perform the static analysis using the solver ChStaticNonLinearRigidMotion()
         sys.DoStaticAnalysis(rigid_static_analysis);
 
         std::cout << "\nAfter doing the static nonlinear analysis:" << std::endl;
@@ -502,11 +504,12 @@ void test_anchorchain() {
         ChMatrixDynamic<> reactions;
         reactions.resize(sys.GetLinks().size(), 7);
         for (int i_link = 0; i_link < sys.GetLinks().size(); i_link++) {
-            reactions(i_link, 0) = sys.GetLinks().at(i_link)->GetLinkAbsoluteCoords().pos.x();
+            reactions(i_link, 0) = sys.GetLinks().at(i_link)->GetFrame2Abs().GetCoordsys().pos.x();
 
-            ChVector3d f_loc = sys.GetLinks().at(i_link)->Get_react_force();
-            ChVector3d m_loc = sys.GetLinks().at(i_link)->Get_react_torque();
-            ChQuaternion<> q_link = sys.GetLinks().at(i_link)->GetLinkAbsoluteCoords().rot;
+            const auto& reaction = sys.GetLinks().at(i_link)->GetReaction2();
+            const auto& f_loc = reaction.force;
+            const auto& m_loc = reaction.torque;
+            ChQuaternion<> q_link = sys.GetLinks().at(i_link)->GetFrame2Abs().GetCoordsys().rot;
             // Transform the reaction forces and torques of the joints from local frame to the absolute frame.
             // The horizontal reaction forces (along X direction) should be equal among all joints for the catenary
             // curve.
@@ -545,17 +548,17 @@ void test_anchorchain() {
             // coordinates of rigid bodies
             std::ofstream file_coords(out_dir + "/equilibrium_coords.dat");
             file_coords << std::setprecision(12) << std::scientific;
-            StreamOutDenseMatlabFormat(coords, file_coords);
+            StreamOut(coords, file_coords);
 
             // catinary curve for comparison with the analytical formula
             std::ofstream file_catenary(out_dir + "/catenary_cmp.dat");
             file_catenary << std::setprecision(12) << std::scientific;
-            StreamOutDenseMatlabFormat(catenary_cmp, file_catenary);
+            StreamOut(catenary_cmp, file_catenary);
 
             // reaction forces and torques of all joints
             std::ofstream file_reactions(out_dir + "/equilibrium_reactions.dat");
             file_reactions << std::setprecision(12) << std::scientific;
-            StreamOutDenseMatlabFormat(reactions, file_reactions);
+            StreamOut(reactions, file_reactions);
         } else {
             std::cerr << "  ...Error creating subdirectories" << std::endl;
         }
@@ -574,9 +577,9 @@ void test_anchorchain() {
             eig_vect_and_val eig_i = eig_solver.GetMode(imode);
             modal_freq(imode - 1, 0) = eig_i.eigen_val.real();
             modal_freq(imode - 1, 1) = eig_i.eigen_val.imag();
-            modal_freq(imode - 1, 2) = eig_i.eigen_val.imag() / CH_C_2PI;
+            modal_freq(imode - 1, 2) = eig_i.eigen_val.imag() / CH_2PI;
 
-            ChMatrixDynamic<> modal_shape_i(sys.GetNumBodies(), 10);
+            ChMatrixDynamic<> modal_shape_i(sys.GetNumBodiesActive(), 10);
             int r = 0;
             for (auto ibody : sys.GetBodies()) {
                 if (ibody->IsActive()) {
@@ -598,7 +601,7 @@ void test_anchorchain() {
             if (create_directory(path(out_dir))) {
                 std::ofstream file_shape(out_dir + "/modal_shape_" + std::to_string(imode) + ".dat");
                 file_shape << std::setprecision(12) << std::scientific;
-                StreamOutDenseMatlabFormat(modal_shape_i, file_shape);
+                StreamOut(modal_shape_i, file_shape);
             } else {
                 std::cerr << "  ...Error creating subdirectories" << std::endl;
             }
@@ -607,7 +610,7 @@ void test_anchorchain() {
         if (create_directory(path(out_dir))) {
             std::ofstream file_freq(out_dir + "/modal_freq.dat");
             file_freq << std::setprecision(12) << std::scientific;
-            StreamOutDenseMatlabFormat(modal_freq, file_freq);
+            StreamOut(modal_freq, file_freq);
         } else {
             std::cerr << "  ...Error creating subdirectories" << std::endl;
         }
@@ -683,7 +686,7 @@ void test_anchorchain() {
             if (create_directory(path(out_dir))) {
                 std::ofstream file_vibration(out_dir + "/" + filename + ".dat");
                 file_vibration << std::setprecision(12) << std::scientific;
-                StreamOutDenseMatlabFormat(vibration, file_vibration);
+                StreamOut(vibration, file_vibration);
             } else {
                 std::cout << "  ...Error creating subdirectories" << std::endl;
             }

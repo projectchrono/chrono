@@ -42,7 +42,7 @@ rod_length   = 1.5
 # Create the floor truss
 mfloor = chrono.ChBodyEasyBox(3, 1, 3, 1000)
 mfloor.SetPos(chrono.ChVector3d(0,-0.5,0))
-mfloor.SetBodyFixed(True)
+mfloor.SetFixed(True)
 sys.Add(mfloor)
 
 # Create the flywheel crank
@@ -71,7 +71,7 @@ my_motor = chrono.ChLinkMotorRotationSpeed()
 my_motor.Initialize(mcrank,   # the first connected body
                     mfloor,   # the second connected body
                     chrono.ChFramed(crank_center)) # where to create the motor in abs.space
-my_angularspeed = chrono.ChFunctionConst(chrono.CH_C_PI) # ang.speed: 180°/s
+my_angularspeed = chrono.ChFunctionConst(chrono.CH_PI) # ang.speed: 180°/s
 my_motor.SetMotorFunction(my_angularspeed)
 sys.Add(my_motor)
 
@@ -135,7 +135,7 @@ while vis.Run():
     array_time.append(sys.GetChTime())
     array_angle.append(my_motor.GetMotorAngle())
     array_pos.append(mpiston.GetPos().x)
-    array_speed.append(mpiston.GetPosDer().x)
+    array_speed.append(mpiston.GetPosDt().x)
     
     # here happens the visualization and step time integration
     vis.BeginScene() 

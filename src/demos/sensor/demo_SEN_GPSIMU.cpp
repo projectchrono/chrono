@@ -111,38 +111,38 @@ int main(int argc, char* argv[]) {
     // Create the system
     // -----------------
     ChSystemNSC sys;
-    sys.Set_G_acc({0, 0, -9.81});
+    sys.SetGravitationalAcceleration({0, 0, -9.81});
 
     // -------------------------------
     // Create a double pendulum system
     // -------------------------------
     auto base = chrono_types::make_shared<ChBodyEasyBox>(.2, .2, 1, 1000, true, false);
     base->SetPos(ChVector3d(-.2, 0, .5));
-    base->SetBodyFixed(true);  // the truss does not move!
+    base->SetFixed(true);  // the truss does not move!
     sys.Add(base);
 
     auto pendulum_leg_1 = chrono_types::make_shared<ChBodyEasyBox>(.2, .4, .2, 1000, true, false);
     pendulum_leg_1->SetPos(ChVector3d(0, .2, 1));
-    pendulum_leg_1->SetBodyFixed(false);
+    pendulum_leg_1->SetFixed(false);
     sys.Add(pendulum_leg_1);
 
     auto pendulum_leg_2 = chrono_types::make_shared<ChBodyEasyBox>(.2, .4, .2, 1000, true, false);
     pendulum_leg_2->SetPos(ChVector3d(0, .6, 1));
-    pendulum_leg_2->SetBodyFixed(false);
+    pendulum_leg_2->SetFixed(false);
     sys.Add(pendulum_leg_2);
 
     auto plate = chrono_types::make_shared<ChBodyEasyBox>(.4, .2, .2, 1000, true, false);
     plate->SetPos(ChVector3d(0, 0, 4));
-    plate->SetBodyFixed(true);
+    plate->SetFixed(true);
     sys.Add(plate);
 
     auto link1 = chrono_types::make_shared<ChLinkLockRevolute>();
-    link1->Initialize(base, pendulum_leg_1, ChFrame<>({0, 0, 1}, chrono::QuatFromAngleAxis(CH_C_PI / 2, VECT_Y)));
+    link1->Initialize(base, pendulum_leg_1, ChFrame<>({0, 0, 1}, chrono::QuatFromAngleAxis(CH_PI / 2, VECT_Y)));
     sys.AddLink(link1);
 
     auto link2 = chrono_types::make_shared<ChLinkLockRevolute>();
     link2->Initialize(pendulum_leg_1, pendulum_leg_2,
-                      ChFrame<>({0, .4, 1}, chrono::QuatFromAngleAxis(CH_C_PI / 2, VECT_Y)));
+                      ChFrame<>({0, .4, 1}, chrono::QuatFromAngleAxis(CH_PI / 2, VECT_Y)));
     sys.AddLink(link2);
 
     // -----------------------
@@ -261,8 +261,8 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a CSV writers to record the IMU and GPS data
-    utils::CSV_writer imu_csv(" ");
-    utils::CSV_writer gps_csv(" ");
+    utils::ChWriterCSV imu_csv(" ");
+    utils::ChWriterCSV gps_csv(" ");
 
     // ---------------
     // Simulate system
@@ -344,8 +344,8 @@ int main(int argc, char* argv[]) {
     std::string imu_file = out_dir + "/imu_pendulum_leg_1.csv";
     std::string gps_file = out_dir + "/gps_pendulum_leg_2.csv";
 
-    imu_csv.write_to_file(imu_file);
-    gps_csv.write_to_file(gps_file);
+    imu_csv.WriteToFile(imu_file);
+    gps_csv.WriteToFile(gps_file);
 
     return 0;
 }

@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
 
         // Create rigid bodies and add them to the system:
         auto my_body_A = chrono_types::make_shared<ChBody>();  // truss
-        my_body_A->SetBodyFixed(true);                         // truss does not move!
+        my_body_A->SetFixed(true);                         // truss does not move!
         my_system.AddBody(my_body_A);
 
         auto my_body_B = chrono_types::make_shared<ChBody>();  // moving body
@@ -82,9 +82,9 @@ int main(int argc, char* argv[]) {
         my_link_springdamper->SetRestLength(my_link_springdamper->GetLength());
         my_system.AddLink(my_link_springdamper);
 
-        my_system.Set_G_acc(ChVector3d(0, 0, 0));
+        my_system.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
         my_system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-        my_system.SetSolverMaxIterations(20);
+        my_system.GetSolver()->AsIterative()->SetMaxIterations(20);
 
         // 2) Add a socket framework object
         ChSocketFramework socket_tools;

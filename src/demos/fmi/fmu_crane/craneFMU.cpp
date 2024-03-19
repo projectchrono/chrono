@@ -76,7 +76,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 
     // Set gravitational acceleration
     ChVector3d Gacc(0, 0, -9.8);
-    sys.Set_G_acc(Gacc);
+    sys.SetGravitationalAcceleration(Gacc);
 
     // Estimate initial required force (moment balance about crane pivot)
     auto Gtorque = Vcross(crane_mass * Gacc, crane_pos) + Vcross(pend_mass * Gacc, pend_pos);
@@ -89,7 +89,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 
     // Create bodies
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     ground->AddVisualShape(connection_sph, ChFrame<>());
     ground->AddVisualShape(connection_sph, ChFrame<>(m_point_ground, QUNIT));
     sys.AddBody(ground);
@@ -101,7 +101,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
     m_crane->AddVisualShape(connection_sph, ChFrame<>(m_point_crane, QUNIT));
     m_crane->AddVisualShape(connection_sph, ChFrame<>(ChVector3d(crane_length / 2, 0, 0), QUNIT));
     auto crane_cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.015, crane_length);
-    m_crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
+    m_crane->AddVisualShape(crane_cyl, ChFrame<>(VNULL, QuatFromAngleY(CH_PI_2)));
     sys.AddBody(m_crane);
 
     auto ball = chrono_types::make_shared<ChBody>();
@@ -115,7 +115,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 
     // Create joints
     auto rev_joint = chrono_types::make_shared<ChLinkRevolute>();
-    rev_joint->Initialize(ground, m_crane, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+    rev_joint->Initialize(ground, m_crane, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
     sys.AddLink(rev_joint);
 
     auto sph_joint = chrono_types::make_shared<ChLinkLockSpherical>();
@@ -137,7 +137,7 @@ FmuComponent::FmuComponent(fmi2String instanceName,
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT);
     auto integrator = std::static_pointer_cast<chrono::ChTimestepperEulerImplicit>(sys.GetTimestepper());
-    integrator->SetMaxiters(50);
+    integrator->SetMaxIters(50);
     integrator->SetAbsTolerances(1e-4, 1e2);
 
     // Initialize FMU outputs (in case they are queried before the first step)
@@ -175,7 +175,7 @@ void FmuComponent::CalculateActuatorLength() {
 
 void FmuComponent::_preModelDescriptionExport() {
     _exitInitializationMode();
-    ////ChArchiveFmu archive_fmu(*this);
+    ////ChOutputFMU archive_fmu(*this);
     ////archive_fmu << CHNVP(sys);
 }
 
@@ -201,7 +201,7 @@ void FmuComponent::_exitInitializationMode() {
 #endif
     }
 
-    sys.DoFullAssembly();
+    sys.DoAssembly(AssemblyLevel::FULL);
 }
 
 fmi2Status FmuComponent::_doStep(fmi2Real currentCommunicationPoint,

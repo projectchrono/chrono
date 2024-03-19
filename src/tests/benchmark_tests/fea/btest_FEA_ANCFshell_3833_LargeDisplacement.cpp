@@ -32,7 +32,7 @@
 
 #include "chrono/fea/ChElementShellANCF_3833.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 
 #ifdef CHRONO_IRRLICHT
@@ -93,7 +93,7 @@ ANCFShellTest::ANCFShellTest(int num_elements, SolverType solver_type, int NumTh
     m_NumElements = 2 * num_elements * num_elements;
     m_NumThreads = NumThreads;
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector3d(0, 0, -9.80665));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.80665));
     m_system->SetNumThreads(NumThreads, 1, NumThreads);
 
     // Set solver parameters
@@ -126,7 +126,7 @@ ANCFShellTest::ANCFShellTest(int num_elements, SolverType solver_type, int NumTh
             solver->SetTolerance(1e-10);
             solver->EnableDiagonalPreconditioner(true);
             solver->SetVerbose(false);
-            m_system->SetSolverForceTolerance(1e-10);
+            solver->SetTolerance(1e-12);
             break;
         }
         case SolverType::MKL: {
@@ -181,7 +181,7 @@ ANCFShellTest::ANCFShellTest(int num_elements, SolverType solver_type, int NumTh
     m_system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -228,7 +228,7 @@ ANCFShellTest::ANCFShellTest(int num_elements, SolverType solver_type, int NumTh
 
     // Create a grounded body to connect the 3D pendulum to
     auto grounded = chrono_types::make_shared<ChBody>();
-    grounded->SetBodyFixed(true);
+    grounded->SetFixed(true);
     m_system->Add(grounded);
 
     // Create and add the nodes
@@ -239,7 +239,7 @@ ANCFShellTest::ANCFShellTest(int num_elements, SolverType solver_type, int NumTh
                 auto node = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(dx * i, dy * j, 0.0), dir1, Curv1);
                 mesh->AddNode(node);
 
-                auto pos_constraint = chrono_types::make_shared<ChLinkPointFrame>();
+                auto pos_constraint = chrono_types::make_shared<ChLinkNodeFrame>();
                 pos_constraint->Initialize(node, grounded);  // body to be connected to
                 m_system->Add(pos_constraint);
             } else if (((i % 2) == 0) || ((j % 2) == 0)) {
@@ -273,7 +273,7 @@ ANCFShellTest::ANCFShellTest(int num_elements, SolverType solver_type, int NumTh
                               std::dynamic_pointer_cast<ChNodeFEAxyzDD>(mesh->GetNode(nodeG_idx)),
                               std::dynamic_pointer_cast<ChNodeFEAxyzDD>(mesh->GetNode(nodeH_idx)));
             element->SetDimensions(dx, dy);
-            element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material);
+            element->AddLayer(thickness, 0 * CH_DEG_TO_RAD, material);
             element->SetAlphaDamp(0.01);
 
             // By default the "continuous" integration style of calculation method is used since it is typically faster.

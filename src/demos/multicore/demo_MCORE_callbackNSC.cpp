@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
 
     // Create the sys
     ChSystemMulticoreNSC sys;
-    sys.Set_G_acc(ChVector3d(0, -10, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, -10, 0));
     sys.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
 
     sys.GetSettings()->solver.solver_mode = SolverMode::SLIDING;
@@ -114,20 +114,20 @@ int main(int argc, char* argv[]) {
     auto container = chrono_types::make_shared<ChBody>();
     sys.Add(container);
     container->SetPos(ChVector3d(0, 0, 0));
-    container->SetBodyFixed(true);
+    container->SetFixed(true);
     container->SetIdentifier(-1);
 
-    container->SetCollide(true);
+    container->EnableCollision(true);
     utils::AddBoxGeometry(container.get(), material, ChVector3d(8, 1, 8), ChVector3d(0, -0.5, 0));
 
     auto obj1 = chrono_types::make_shared<ChBody>();
     obj1->SetMass(10);
     obj1->SetInertiaXX(ChVector3d(1, 1, 1));
     obj1->SetPos(ChVector3d(-1, 0.21, -1));
-    obj1->SetPosDer(ChVector3d(5, 0, 0));
+    obj1->SetPosDt(ChVector3d(5, 0, 0));
 
-    obj1->SetCollide(true);
-    utils::AddCapsuleGeometry(obj1.get(), material, 0.2, 0.4, ChVector3d(0), QuatFromAngleZ(CH_C_PI_2));
+    obj1->EnableCollision(true);
+    utils::AddCapsuleGeometry(obj1.get(), material, 0.2, 0.4, ChVector3d(0), QuatFromAngleZ(CH_PI_2));
 
     sys.AddBody(obj1);
 
@@ -135,10 +135,10 @@ int main(int argc, char* argv[]) {
     obj2->SetMass(10);
     obj2->SetInertiaXX(ChVector3d(1, 1, 1));
     obj2->SetPos(ChVector3d(-1, 0.21, +1));
-    obj2->SetPosDer(ChVector3d(5, 0, 0));
+    obj2->SetPosDt(ChVector3d(5, 0, 0));
 
-    obj2->SetCollide(true);
-    utils::AddCapsuleGeometry(obj2.get(), material, 0.2, 0.4, ChVector3d(0), QuatFromAngleZ(CH_C_PI_2));
+    obj2->EnableCollision(true);
+    utils::AddCapsuleGeometry(obj2.get(), material, 0.2, 0.4, ChVector3d(0), QuatFromAngleZ(CH_PI_2));
 
     sys.AddBody(obj2);
 

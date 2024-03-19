@@ -57,33 +57,33 @@ ChLinkLockGear::ChLinkLockGear(const ChLinkLockGear& other) : ChLinkLock(other) 
     local_shaft2 = other.local_shaft2;
 }
 
-ChVector3d ChLinkLockGear::Get_shaft_dir1() const {
-    if (Body1) {
-        ChFrame<double> absframe = ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1);
+ChVector3d ChLinkLockGear::GetDirShaft1() const {
+    if (m_body1) {
+        ChFrame<double> absframe = ((ChFrame<double>*)m_body1)->TransformLocalToParent(local_shaft1);
         return absframe.GetRotMat().GetAxisZ();
     } else
         return VECT_Z;
 }
 
-ChVector3d ChLinkLockGear::Get_shaft_dir2() const {
-    if (Body1) {
-        ChFrame<double> absframe = ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2);
+ChVector3d ChLinkLockGear::GetDirShaft2() const {
+    if (m_body1) {
+        ChFrame<double> absframe = ((ChFrame<double>*)m_body2)->TransformLocalToParent(local_shaft2);
         return absframe.GetRotMat().GetAxisZ();
     } else
         return VECT_Z;
 }
 
-ChVector3d ChLinkLockGear::Get_shaft_pos1() const {
-    if (Body1) {
-        ChFrame<double> absframe = ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1);
+ChVector3d ChLinkLockGear::GetPosShaft1() const {
+    if (m_body1) {
+        ChFrame<double> absframe = ((ChFrame<double>*)m_body1)->TransformLocalToParent(local_shaft1);
         return absframe.GetPos();
     } else
         return VNULL;
 }
 
-ChVector3d ChLinkLockGear::Get_shaft_pos2() const {
-    if (Body1) {
-        ChFrame<double> absframe = ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2);
+ChVector3d ChLinkLockGear::GetPosShaft2() const {
+    if (m_body1) {
+        ChFrame<double> absframe = ((ChFrame<double>*)m_body2)->TransformLocalToParent(local_shaft2);
         return absframe.GetPos();
     } else
         return VNULL;
@@ -104,12 +104,12 @@ void ChLinkLockGear::UpdateTime(double mytime) {
     ChVector3d lastX;
     ChVector3d vrota;
 
-    ChFrame<double> abs_shaft1 = ((ChFrame<double>*)Body1)->TransformLocalToParent(local_shaft1);
-    ChFrame<double> abs_shaft2 = ((ChFrame<double>*)Body2)->TransformLocalToParent(local_shaft2);
+    ChFrame<double> abs_shaft1 = ((ChFrame<double>*)m_body1)->TransformLocalToParent(local_shaft1);
+    ChFrame<double> abs_shaft2 = ((ChFrame<double>*)m_body2)->TransformLocalToParent(local_shaft2);
 
-    ChVector3d vbdist = Vsub(Get_shaft_pos1(), Get_shaft_pos2());
-    ////ChVector3d Trad1 = Vnorm(Vcross(Get_shaft_dir1(), Vnorm(Vcross(Get_shaft_dir1(), vbdist))));
-    ////ChVector3d Trad2 = Vnorm(Vcross(Vnorm(Vcross(Get_shaft_dir2(), vbdist)), Get_shaft_dir2()));
+    ChVector3d vbdist = Vsub(GetPosShaft1(), GetPosShaft2());
+    ////ChVector3d Trad1 = Vnorm(Vcross(GetDirShaft1(), Vnorm(Vcross(GetDirShaft1(), vbdist))));
+    ////ChVector3d Trad2 = Vnorm(Vcross(Vnorm(Vcross(GetDirShaft2(), vbdist)), GetDirShaft2()));
 
     double dist = Vlength(vbdist);
 
@@ -121,19 +121,19 @@ void ChLinkLockGear::UpdateTime(double mytime) {
     double periodic_a2 = std::atan2(md2.y(), md2.x());
     double old_a1 = a1;
     double old_a2 = a2;
-    double turns_a1 = floor(old_a1 / CH_C_2PI);
-    double turns_a2 = floor(old_a2 / CH_C_2PI);
-    double a1U = turns_a1 * CH_C_2PI + periodic_a1 + CH_C_2PI;
-    double a1M = turns_a1 * CH_C_2PI + periodic_a1;
-    double a1L = turns_a1 * CH_C_2PI + periodic_a1 - CH_C_2PI;
+    double turns_a1 = floor(old_a1 / CH_2PI);
+    double turns_a2 = floor(old_a2 / CH_2PI);
+    double a1U = turns_a1 * CH_2PI + periodic_a1 + CH_2PI;
+    double a1M = turns_a1 * CH_2PI + periodic_a1;
+    double a1L = turns_a1 * CH_2PI + periodic_a1 - CH_2PI;
     a1 = a1M;
     if (fabs(a1U - old_a1) < fabs(a1M - old_a1))
         a1 = a1U;
     if (fabs(a1L - a1) < fabs(a1M - a1))
         a1 = a1L;
-    double a2U = turns_a2 * CH_C_2PI + periodic_a2 + CH_C_2PI;
-    double a2M = turns_a2 * CH_C_2PI + periodic_a2;
-    double a2L = turns_a2 * CH_C_2PI + periodic_a2 - CH_C_2PI;
+    double a2U = turns_a2 * CH_2PI + periodic_a2 + CH_2PI;
+    double a2M = turns_a2 * CH_2PI + periodic_a2;
+    double a2L = turns_a2 * CH_2PI + periodic_a2 - CH_2PI;
     a2 = a2M;
     if (fabs(a2U - old_a2) < fabs(a2M - old_a2))
         a2 = a2U;
@@ -142,13 +142,13 @@ void ChLinkLockGear::UpdateTime(double mytime) {
 
     // compute new markers coordsystem alignment
     my = Vnorm(vbdist);
-    mz = Get_shaft_dir1();
+    mz = GetDirShaft1();
     mx = Vnorm(Vcross(my, mz));
     mr = Vnorm(Vcross(mz, mx));
     mz = Vnorm(Vcross(mx, my));
     ChVector3d mz2, mx2, mr2, my2;
     my2 = my;
-    mz2 = Get_shaft_dir2();
+    mz2 = GetDirShaft2();
     mx2 = Vnorm(Vcross(my2, mz2));
     mr2 = Vnorm(Vcross(mz2, mx2));
 
@@ -175,9 +175,9 @@ void ChLinkLockGear::UpdateTime(double mytime) {
     ChMatrix33<> ma2 = ma1;
 
     // is a bevel gear?
-    double be = acos(Vdot(Get_shaft_dir1(), Get_shaft_dir2()));
+    double be = acos(Vdot(GetDirShaft1(), GetDirShaft2()));
     bool is_bevel = true;
-    if (fabs(Vdot(Get_shaft_dir1(), Get_shaft_dir2())) > 0.96)
+    if (fabs(Vdot(GetDirShaft1(), GetDirShaft2())) > 0.96)
         is_bevel = false;
 
     // compute wheel radii so that:
@@ -198,8 +198,8 @@ void ChLinkLockGear::UpdateTime(double mytime) {
         } else {
             gamma2 = be / (-tau + 1.0);
         }
-        double al = CH_C_PI - acos(Vdot(Get_shaft_dir2(), my));
-        double te = CH_C_PI - al - be;
+        double al = CH_PI - acos(Vdot(GetDirShaft2(), my));
+        double te = CH_PI - al - be;
         double fd = sin(te) * (dist / sin(be));
         r2 = fd * tan(gamma2);
         r1 = r2 * tau;
@@ -207,7 +207,7 @@ void ChLinkLockGear::UpdateTime(double mytime) {
 
     // compute markers positions, supposing they
     // stay on the ideal wheel contact point
-    mmark1 = Vadd(Get_shaft_pos2(), Vmul(mr2, r2));
+    mmark1 = Vadd(GetPosShaft2(), Vmul(mr2, r2));
     mmark2 = mmark1;
     contact_pt = mmark1;
 
@@ -219,25 +219,25 @@ void ChLinkLockGear::UpdateTime(double mytime) {
         double m_delta;
         m_delta = -(a2 / realtau) - a1 - phase;
 
-        if (m_delta > CH_C_PI)
-            m_delta -= (CH_C_2PI);  // range -180..+180 is better than 0...360
-        if (m_delta > (CH_C_PI / 4.0))
-            m_delta = (CH_C_PI / 4.0);  // phase correction only in +/- 45�
-        if (m_delta < -(CH_C_PI / 4.0))
-            m_delta = -(CH_C_PI / 4.0);
+        if (m_delta > CH_PI)
+            m_delta -= (CH_2PI);  // range -180..+180 is better than 0...360
+        if (m_delta > (CH_PI / 4.0))
+            m_delta = (CH_PI / 4.0);  // phase correction only in +/- 45�
+        if (m_delta < -(CH_PI / 4.0))
+            m_delta = -(CH_PI / 4.0);
 
         vrota.x() = vrota.y() = 0.0;
         vrota.z() = -m_delta;
         mrotma.SetFromCardanAnglesXYZ(vrota);  // rotate about Z of shaft to correct
-        mmark1 = abs_shaft1.GetRotMat().transpose() * (mmark1 - Get_shaft_pos1());
+        mmark1 = abs_shaft1.GetRotMat().transpose() * (mmark1 - GetPosShaft1());
         mmark1 = mrotma * mmark1;
-        mmark1 = abs_shaft1.GetRotMat() * mmark1 + Get_shaft_pos1();
+        mmark1 = abs_shaft1.GetRotMat() * mmark1 + GetPosShaft1();
     }
     // Move Shaft 1 along its direction if not aligned to wheel
-    double offset = Vdot(Get_shaft_dir1(), (contact_pt - Get_shaft_pos1()));
-    ChVector3d moff = Get_shaft_dir1() * offset;
+    double offset = Vdot(GetDirShaft1(), (contact_pt - GetPosShaft1()));
+    ChVector3d moff = GetDirShaft1() * offset;
     if (fabs(offset) > 0.0001)
-        local_shaft1.SetPos(local_shaft1.GetPos() + Body1->TransformDirectionParentToLocal(moff));
+        local_shaft1.SetPos(local_shaft1.GetPos() + m_body1->TransformDirectionParentToLocal(moff));
 
     // ! Require that the BDF routine of marker won't handle speed and acc.calculus of the moved marker 2!
     marker2->SetMotionType(ChMarker::MotionType::EXTERNAL);
@@ -293,7 +293,7 @@ void ChLinkLockGear::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(local_shaft1);
     archive_in >> CHNVP(local_shaft2);
 
-    mask.SetTwoBodiesVariables(&Body1->Variables(), &Body2->Variables());
+    mask.SetTwoBodiesVariables(&m_body1->Variables(), &m_body2->Variables());
     BuildLink();
 
 }

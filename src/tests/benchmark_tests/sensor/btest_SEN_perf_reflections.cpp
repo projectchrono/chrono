@@ -59,25 +59,25 @@ int main(int argc, char* argv[]) {
 
     auto mirror_left = chrono_types::make_shared<ChBodyEasyBox>(50, .1, 5, 1000, true, false);
     mirror_left->SetPos({0, -1, 0});
-    mirror_left->SetBodyFixed(true);
+    mirror_left->SetFixed(true);
     sys.Add(mirror_left);
     mirror_left->GetVisualModel()->GetShapes()[0].first->AddMaterial(reflective_color);
 
     auto mirror_right = chrono_types::make_shared<ChBodyEasyBox>(50, .1, 5, 1000, true, false);
     mirror_right->SetPos({0, 1, 0});
-    mirror_right->SetBodyFixed(true);
+    mirror_right->SetFixed(true);
     sys.Add(mirror_right);
     mirror_right->GetVisualModel()->GetShapes()[0].first->AddMaterial(reflective_color);
 
     auto ball = chrono_types::make_shared<ChBodyEasySphere>(.25, 1000, true, false);
     ball->SetPos({4, 0, 0});
-    ball->SetBodyFixed(true);
+    ball->SetFixed(true);
     sys.Add(ball);
     ball->GetVisualModel()->GetShapes()[0].first->AddMaterial(red_color);
 
 
     auto cam_body = chrono_types::make_shared<ChBodyEasyBox>(.01, .01, .01, 1000, false, false);
-    cam_body->SetBodyFixed(true);
+    cam_body->SetFixed(true);
     sys.Add(cam_body);
 
     // -----------------------
@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-10, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
         1920,                                                                // image width
         1080,                                                                // image height
-        (float)CH_C_PI / 1.2f                                                // FOV
+        (float)CH_PI / 1.2f                                                // FOV
     );
     cam->SetName("Camera Sensor");
     cam->PushFilter(std::make_shared<ChFilterVisualize>(1920, 1080));

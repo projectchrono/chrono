@@ -84,7 +84,7 @@ class CH_MODELS_API M113_TrackShoeBandBushing : public ChTrackShoeBandBushing {
     virtual double GetToothArcRadius() const override { return m_tooth_arc_radius; }
 
     /// Return the number of segments that the web section is broken up into.
-    virtual int GetNumWebSegments() const override { return m_num_web_segments; }
+    virtual unsigned int GetNumWebSegments() const override { return m_num_web_segments; }
     /// Return the combined length of all of the web sections (in the X direction)
     virtual double GetWebLength() const override { return m_web_length; }
     /// Return the thickness of the web section (in the Z direction)

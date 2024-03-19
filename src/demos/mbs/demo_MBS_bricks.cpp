@@ -70,7 +70,7 @@ void create_wall_bodies(ChSystemNSC& sys) {
                                                                 true,         // collision?
                                                                 mat);         // contact material
     mrigidFloor->SetPos(ChVector3d(0, -2, 0));
-    mrigidFloor->SetBodyFixed(true);
+    mrigidFloor->SetFixed(true);
 
     sys.Add(mrigidFloor);
 
@@ -82,7 +82,7 @@ void create_wall_bodies(ChSystemNSC& sys) {
                                                                   mat);  // contact material
     mrigidBall->SetPos(ChVector3d(0, -2, 0));
     mrigidBall->SetPos(ChVector3d(0, 3, -8));
-    mrigidBall->SetPosDer(ChVector3d(0, 0, 16));  // set initial speed
+    mrigidBall->SetPosDt(ChVector3d(0, 0, 16));  // set initial speed
     mrigidBall->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     sys.Add(mrigidBall);
 }
@@ -138,7 +138,7 @@ void create_jengatower_bodies(ChSystemNSC& sys) {
                                                                 true,         // collision?
                                                                 mat);         // contact material
     mrigidFloor->SetPos(ChVector3d(0, -2, 0));
-    mrigidFloor->SetBodyFixed(true);
+    mrigidFloor->SetFixed(true);
 
     sys.Add(mrigidFloor);
 
@@ -149,7 +149,7 @@ void create_jengatower_bodies(ChSystemNSC& sys) {
                                                                   true,  // collision?
                                                                   mat);  // contact material
     mrigidBall->SetPos(ChVector3d(0, 3, -8));
-    mrigidBall->SetPosDer(ChVector3d(0, 0, 2));  // set initial speed
+    mrigidBall->SetPosDt(ChVector3d(0, 0, 2));  // set initial speed
     mrigidBall->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/bluewhite.png"));
     sys.Add(mrigidBall);
 }
@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->AddCamera(ChVector3d(-30, 28, -60), ChVector3d(0, 5, 0));
             vis_vsg->SetCameraAngleDeg(40);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
     solver->EnableWarmStart(true);
     sys.SetSolver(solver);
 
-    // sys.SetUseSleeping(true);
+    // sys.SetSleepingAllowed(true);
     sys.SetMaxPenetrationRecoverySpeed(1.0);
 
     // Simulation loop

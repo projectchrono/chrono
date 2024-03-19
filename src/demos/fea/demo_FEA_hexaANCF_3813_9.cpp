@@ -87,7 +87,7 @@ void DPCapPress() {
     sys.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
     // sys.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
@@ -152,14 +152,12 @@ void DPCapPress() {
     double rho = 2149.0;
     ChVector3d E(54.1e6, 54.1e6, 54.1e6);         // (1.379e7, 1.379e7, 1.379e7);
     ChVector3d nu(0.293021, 0.293021, 0.293021);  // (0.3, 0.3, 0.3);
-    // ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    // material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
 
     // Read hardening parameter look-up table
     FILE* inputfile;
@@ -340,7 +338,7 @@ void DPCapPress() {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(25);
+    mystepper->SetMaxIters(25);
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(true);
 
@@ -364,7 +362,7 @@ void DPCapPress() {
         int offset_mid = (numDiv_y / 2 - 1) * N_x;
         int inc = 0;
         // node force
-        force = -1700 * std::sin(sys.GetChTime() * CH_C_PI);
+        force = -1700 * std::sin(sys.GetChTime() * CH_PI);
         for (inc = 0; inc < numDiv_x / 4; inc++) {
             for (int ii = 0; ii < numDiv_x / 2 + 1; ii++) {
                 auto nodeforce = std::dynamic_pointer_cast<ChNodeFEAxyz>(
@@ -404,7 +402,7 @@ void ShellBrickContact() {
     sys.UseMaterialProperties(false);
     sys.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
@@ -499,14 +497,12 @@ void ShellBrickContact() {
     double rho = 200.0;
     ChVector3d E(1.379e7, 1.379e7, 1.379e7);
     ChVector3d nu(0.3, 0.3, 0.3);
-    // ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    // material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
     double rhoS = 8000;
     ChVector3d ES(2.1e10, 2.1e10, 2.1e10);                 // Modulus of elasticity
     ChVector3d nuS(0.3, 0.3, 0.3);                         // Poisson ratio
@@ -611,7 +607,7 @@ void ShellBrickContact() {
                                std::dynamic_pointer_cast<ChNodeFEAxyzD>(my_shell_mesh->GetNode(node3)));
 
         elementshell->SetDimensions(Sdx, Sdy);
-        elementshell->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
+        elementshell->AddLayer(dz, 0 * CH_DEG_TO_RAD, mat);
         elementshell->SetAlphaDamp(0.0);  // Structural damping for this element
         my_shell_mesh->AddElement(elementshell);
     }
@@ -623,7 +619,7 @@ void ShellBrickContact() {
     my_shell_mesh->AddContactSurface(my_contactsurface_shell);
     my_contactsurface_shell->AddFacesFromBoundary(0.005);
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -9.81));
     // Turn off gravity for only the shell elements
     my_shell_mesh->SetAutomaticGravity(false);
 
@@ -721,7 +717,7 @@ void ShellBrickContact() {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(true);
 
@@ -763,7 +759,7 @@ void ShellBrickContact() {
         std::cout << nodetip1->GetPos().x() << std::endl;
         std::cout << nodetip1->GetPos().y() << std::endl;
         std::cout << nodetip1->GetPos().z() << std::endl;
-        std::cout << nodetip1->GetPosDer().z() << std::endl;
+        std::cout << nodetip1->GetPosDt().z() << std::endl;
 
         fprintf(outputfile, "%15.7e  ", sys.GetChTime());
         for (int in = 0; in < XYNumNodes; in++) {
@@ -792,7 +788,7 @@ void SimpleBoxContact() {
     sys.UseMaterialProperties(false);
     sys.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
@@ -856,14 +852,12 @@ void SimpleBoxContact() {
     double rho = 8000.0;
     ChVector3d E(200e9, 200e9, 200e9);
     ChVector3d nu(0.3, 0.3, 0.3);
-    // ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    // material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
     std::shared_ptr<ChContactMaterialSMC> my_surfacematerial(new ChContactMaterialSMC);
     my_surfacematerial->SetKn(1e6f);
     my_surfacematerial->SetKt(1e6f);
@@ -956,12 +950,12 @@ void SimpleBoxContact() {
     auto Plate =
         chrono_types::make_shared<ChBodyEasyBox>(plate_l, plate_w, plate_h, 1000, true, true, my_surfacematerial);
     sys.Add(Plate);
-    Plate->SetBodyFixed(true);
+    Plate->SetFixed(true);
     Plate->SetPos(ChVector3d(0.025, 0.025, -0.0015 - plate_h / 2));
     Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
-    // Plate->SetPosDer(ChVector3d(0.0, 0.0, -0.1));
+    // Plate->SetPosDt(ChVector3d(0.0, 0.0, -0.1));
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -9.81));
 
     // -------------------------------------
     // Options for visualization in irrlicht
@@ -1021,7 +1015,7 @@ void SimpleBoxContact() {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-3, 1e-2);
     mystepper->SetVerbose(true);
 
@@ -1048,12 +1042,12 @@ void SimpleBoxContact() {
         // std::cout << "t = " << sys.GetChTime() << std::endl;
         // std::cout << "Last it: " << mystepper->GetNumIterations() << std::endl;
         // std::cout << "Plate Pos: " << Plate->GetPos();
-        // std::cout << "Plate Vel: " << Plate->GetPosDer();
+        // std::cout << "Plate Vel: " << Plate->GetPosDt();
         // std::cout << "Body Contact F: " << Plate->GetContactForce() << std::endl;
         // std::cout << nodetip1->GetPos().x() << std::endl;
         // std::cout << nodetip1->GetPos().y() << std::endl;
         // std::cout << nodetip1->GetPos().z() << std::endl;
-        // std::cout << nodetip1->GetPosDer().z() << std::endl;
+        // std::cout << nodetip1->GetPosDt().z() << std::endl;
         fprintf(outputfile, "%15.7e  ", sys.GetChTime());
         for (int in = 0; in < XYNumNodes; in++) {
             auto nodetest = std::dynamic_pointer_cast<ChNodeFEAxyz>(my_mesh->GetNode(in));
@@ -1083,7 +1077,7 @@ void SoilBin() {
     sys.SetAdhesionForceModel(ChSystemSMC::AdhesionForceModel::Constant);
     // sys.SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     sys.SetContactForceModel(ChSystemSMC::ContactForceModel::Hooke);
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
@@ -1151,14 +1145,12 @@ void SoilBin() {
     double rho = 200.0;
     ChVector3d E(1.379e7, 1.379e7, 1.379e7);
     ChVector3d nu(0.3, 0.3, 0.3);
-    // ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    // material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
     std::shared_ptr<ChContactMaterialSMC> my_surfacematerial(new ChContactMaterialSMC);
     my_surfacematerial->SetKn(0.2e4);  // 0.2e6
     my_surfacematerial->SetKt(0.2e4);  // 0.2e6
@@ -1250,21 +1242,21 @@ void SoilBin() {
     auto Plate =
         chrono_types::make_shared<ChBodyEasyBox>(plate_l, plate_w, plate_h, 1000, true, true, my_surfacematerial);
     sys.Add(Plate);
-    Plate->SetBodyFixed(false);
+    Plate->SetFixed(false);
     Plate->SetPos(ChVector3d(0.2, 0.2, 0.6001 + plate_h / 2));
     Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
-    Plate->SetPosDer(ChVector3d(0.0, 0.0, 0.0));
-    Plate->SetRotDer(ChQuaternion<>(0.0, 0.0, 0.0, 0.0));
+    Plate->SetPosDt(ChVector3d(0.0, 0.0, 0.0));
+    Plate->SetRotDt(ChQuaternion<>(0.0, 0.0, 0.0, 0.0));
     Plate->SetMass(1.2265625);
 
     //// Create ground body
     auto Ground = chrono_types::make_shared<ChBody>();
-    Ground->SetBodyFixed(true);
+    Ground->SetFixed(true);
     Ground->SetPos(ChVector3d(0.0, 0.0, -0.02));
     Ground->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
     sys.Add(Ground);
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -9.81));
     my_mesh->SetAutomaticGravity(false);
 
     std::shared_ptr<ChLinkLockPointPlane> constraintLateral;
@@ -1273,11 +1265,11 @@ void SoilBin() {
     ////// Constrain only the lateral displacement of the Rim
     constraintLateral = chrono_types::make_shared<ChLinkLockPointPlane>();
     sys.AddLink(constraintLateral);
-    constraintLateral->Initialize(Plate, Ground, ChFrame<>(Plate->GetPos(), QuatFromAngleX(CH_C_PI_2)));
+    constraintLateral->Initialize(Plate, Ground, ChFrame<>(Plate->GetPos(), QuatFromAngleX(CH_PI_2)));
 
     constraintLongitudinal = chrono_types::make_shared<ChLinkLockPointPlane>();
     sys.AddLink(constraintLongitudinal);
-    constraintLongitudinal->Initialize(Plate, Ground, ChFrame<>(Plate->GetPos(), QuatFromAngleY(CH_C_PI_2)));
+    constraintLongitudinal->Initialize(Plate, Ground, ChFrame<>(Plate->GetPos(), QuatFromAngleY(CH_PI_2)));
 
     // Create a load container and a body force load on the plate
     auto load_container = chrono_types::make_shared<ChLoadContainer>();
@@ -1344,7 +1336,7 @@ void SoilBin() {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(false);
 
@@ -1369,7 +1361,7 @@ void SoilBin() {
         double time = sys.GetChTime();
         if (time > 1)
             break;
-        plate_load->SetForce(ChVector3d(0, 0, -1500 * sin(time * CH_C_PI)), false);
+        plate_load->SetForce(ChVector3d(0, 0, -1500 * sin(time * CH_PI)), false);
         Plate->SetRot(ChQuaternion<>(1.0, 0.0, 0.0, 0.0));
 
         vis->BeginScene();
@@ -1381,9 +1373,9 @@ void SoilBin() {
         std::cout << "t = " << time << std::endl;
         std::cout << "   Last it: " << mystepper->GetNumIterations() << std::endl;
         std::cout << "   Plate Pos: " << Plate->GetPos() << std::endl;
-        std::cout << "   Plate Vel: " << Plate->GetPosDer() << std::endl;
+        std::cout << "   Plate Vel: " << Plate->GetPosDt() << std::endl;
         std::cout << "   Plate Rot: " << Plate->GetRot() << std::endl;
-        std::cout << "   Plate Rot_v: " << Plate->GetRotDer() << std::endl;
+        std::cout << "   Plate Rot_v: " << Plate->GetRotDt() << std::endl;
         std::cout << "   Body Contact F: " << Plate->GetContactForce() << std::endl;
         std::cout << "   Center node pos: " << nodecenter->GetPos() << std::endl;
 
@@ -1414,7 +1406,7 @@ void SoilBin() {
 void AxialDynamics() {
     FILE* outputfile;
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     std::cout << "-----------------------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------------------" << std::endl;
@@ -1488,14 +1480,12 @@ void AxialDynamics() {
     double rho = 7850.0;
     ChVector3d E(1.0e7, 1.0e7, 1.0e7);
     ChVector3d nu(0.3, 0.3, 0.3);
-    ChVector3d G(3.8461538e6, 3.8461538e6, 3.8461538e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    // material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
 
     ChMatrixNM<double, 9, 8> CCPInitial;
     for (int k = 0; k < 8; k++) {
@@ -1565,7 +1555,7 @@ void AxialDynamics() {
     // Add the mesh to the system
     sys.Add(my_mesh);
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, 0.0));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, 0.0));
     my_mesh->SetAutomaticGravity(false);
 
     // -------------------------------------
@@ -1612,7 +1602,7 @@ void AxialDynamics() {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(0.0);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-4, 1e-2);
     mystepper->SetVerbose(false);
 
@@ -1633,7 +1623,7 @@ void AxialDynamics() {
         // application.Render();
         // application.DoStep();
 
-        force = 300 * std::sin(sys.GetChTime() * CH_C_PI) / 4;
+        force = 300 * std::sin(sys.GetChTime() * CH_PI) / 4;
         nodetip1->SetForce(ChVector3d(force, 0.0, 0.0));
         nodetip2->SetForce(ChVector3d(force, 0.0, 0.0));
         nodetip3->SetForce(ChVector3d(force, 0.0, 0.0));
@@ -1663,7 +1653,7 @@ void AxialDynamics() {
 void BendingQuasiStatic() {
     FILE* outputfile;
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     std::cout << "-----------------------------------------------------------" << std::endl;
     std::cout << "-----------------------------------------------------------" << std::endl;
@@ -1729,14 +1719,12 @@ void BendingQuasiStatic() {
     double rho = 500;
     ChVector3d E(2.1e8, 2.1e8, 2.1e8);
     ChVector3d nu(0.3, 0.3, 0.3);
-    ChVector3d G(8.0769231e7, 8.0769231e7, 8.0769231e7);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -1782,7 +1770,7 @@ void BendingQuasiStatic() {
     // Add the mesh to the system
     sys.Add(my_mesh);
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, 0.0));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, 0.0));
 
     // -------------------------------------
     // Options for visualization in irrlicht
@@ -1840,7 +1828,7 @@ void BendingQuasiStatic() {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(2000);
+    mystepper->SetMaxIters(2000);
     mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(true);
 
@@ -1887,10 +1875,10 @@ void BendingQuasiStatic() {
 void SwingingShell() {
     FILE* outputfile;
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     sys.AddBody(ground);
 
     std::cout << "--------------------------------------------------------------------" << std::endl;
@@ -1957,14 +1945,12 @@ void SwingingShell() {
     double rho = 1000;
     ChVector3d E(2.1e7, 2.1e7, 2.1e7);
     ChVector3d nu(0.3, 0.3, 0.3);
-    ChVector3d G(8.0769231e6, 8.0769231e6, 8.0769231e6);
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_RayleighDampingK(0.0);
-    material->Set_RayleighDampingM(0.0);
-    material->Set_density(rho);
-    material->Set_E(E.x());
-    material->Set_G(G.x());
-    material->Set_v(nu.x());
+    material->SetRayleighDampingBeta(0.0);
+    material->SetRayleighDampingAlpha(0.0);
+    material->SetDensity(rho);
+    material->SetYoungModulus(E.x());
+    material->SetPoissonRatio(nu.x());
 
     // Create the elements
     for (int i = 0; i < TotalNumElements; i++) {
@@ -2013,7 +1999,7 @@ void SwingingShell() {
     // Options for visualization in irrlicht
     // -------------------------------------
 
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -9.81));
 
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
     mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_SPEED_NORM);
@@ -2067,7 +2053,7 @@ void SwingingShell() {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(20);
+    mystepper->SetMaxIters(20);
     mystepper->SetAbsTolerances(1e-3, 1e-1);
     mystepper->SetVerbose(true);
 

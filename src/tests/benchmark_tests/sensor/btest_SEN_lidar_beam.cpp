@@ -52,17 +52,17 @@ int main(int argc, char* argv[]) {
 
     auto floor = std::make_shared<ChBodyEasyBox>(100, 100, .1, 1000, true, true);
     floor->SetPos({0, 0, -1});
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     sys.Add(floor);
 
     auto first_wall = std::make_shared<ChBodyEasyBox>(.1, 1, 1, 1000, true, true);
     first_wall->SetPos({50.05, 0, 0});
-    first_wall->SetBodyFixed(true);
+    first_wall->SetFixed(true);
     sys.Add(first_wall);
 
     auto second_wall = std::make_shared<ChBodyEasyBox>(.1, 10, 10, 1000, true, true);
     second_wall->SetPos({60.05, 0, 0});
-    second_wall->SetBodyFixed(true);
+    second_wall->SetFixed(true);
     sys.Add(second_wall);
 
     // -----------------------
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     lidar3->PushFilter(std::make_shared<ChFilterDIAccess>());
     manager->AddSensor(lidar3);
 
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     UserDIBufferPtr data1 = lidar1->GetMostRecentBuffer<UserDIBufferPtr>();
     UserDIBufferPtr data2 = lidar2->GetMostRecentBuffer<UserDIBufferPtr>();
@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
             data3->Buffer = NULL;
         }
     }
-    csv.write_to_file("lidar_beam_results.csv");
+    csv.WriteToFile("lidar_beam_results.csv");
     std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
     std::cout << "Simulation time: " << sys.GetChTime() << " seconds, wall time: " << wall_time.count()

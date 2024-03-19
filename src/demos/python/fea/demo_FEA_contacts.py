@@ -59,14 +59,14 @@ if (do_mesh_collision_floor) :
     # floor as a triangle mesh surface:
     mfloor = chrono.chronoChBody()
     mfloor.SetPos(chrono.ChVector3d(0, -1, 0))
-    mfloor.SetBodyFixed(True)
+    mfloor.SetFixed(True)
     sys.Add(mfloor)
     
     mfloor.GetCollisionModel().Clear()
     mfloor_ct_shape = chrono.ChCollisionShapeTriangleMesh(mysurfmaterial, mmeshbox, False, False, sphere_swept_thickness)
     mfloor.GetCollisionModel().AddShape(mfloor_ct_shape)
     mfloor.GetCollisionModel().Build()
-    mfloor.SetCollide(True)
+    mfloor.EnableCollision(True)
     
     masset_meshbox = chrono.ChVisualShapeTriangleMesh()
     masset_meshbox.SetMesh(mmeshbox)
@@ -80,7 +80,7 @@ else :
     # floor as a simple collision primitive:
     
     mfloor = chrono.ChBodyEasyBox(2, 0.1, 2, 2700, True, True, mysurfmaterial)
-    mfloor.SetBodyFixed(True)
+    mfloor.SetFixed(True)
     mfloor.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/concrete.jpg"))
     sys.Add(mfloor)
 
@@ -108,17 +108,17 @@ mesh = fea.ChMesh()
 # Create a material, that must be assigned to each solid element in the mesh,
 # and set its parameters
 mmaterial = fea.ChContinuumElastic()
-mmaterial.Set_E(0.01e9)  # rubber 0.01e9, steel 200e9
-mmaterial.Set_v(0.3)
-mmaterial.Set_RayleighDampingK(0.003)
-mmaterial.Set_density(1000)
+mmaterial.SetYoungModulus(0.01e9)  # rubber 0.01e9, steel 200e9
+mmaterial.SetPoissonRatio(0.3)
+mmaterial.SetRayleighDampingBeta(0.003)
+mmaterial.SetDensity(1000)
 
 
 for i in range(4) :
     try :
         cdown = chrono.ChCoordsysd(chrono.ChVector3d(0, -0.4, 0))
-        crot = chrono.ChCoordsysd(chrono.VNULL, chrono.QuatFromAngleAxis(chrono.CH_C_2PI * chrono.ChRandom.Get(), chrono.VECT_Y) * 
-                                                chrono.QuatFromAngleAxis(chrono.CH_C_PI_2, chrono.VECT_X))
+        crot = chrono.ChCoordsysd(chrono.VNULL, chrono.QuatFromAngleAxis(chrono.CH_2PI * chrono.ChRandom.Get(), chrono.VECT_Y) * 
+                                                chrono.QuatFromAngleAxis(chrono.CH_PI_2, chrono.VECT_X))
         cydisp = chrono.ChCoordsysd(chrono.ChVector3d(-0.3, 0.1 + i * 0.1, -0.3))
         ctot = cydisp.TransformLocalToParent(crot.TransformLocalToParent(cdown))
         mrot = chrono.ChMatrix33d(ctot.rot)
@@ -155,7 +155,7 @@ my_mesh_beams = fea.ChMesh()
 msection_cable2 = fea.ChBeamSectionCable()
 msection_cable2.SetDiameter(0.05)
 msection_cable2.SetYoungModulus(0.01e9)
-msection_cable2.SetBeamRaleyghDamping(0.05)
+msection_cable2.SetRayleighDamping(0.05)
 
 builder = fea.ChBuilderCableANCF()
 
@@ -235,7 +235,7 @@ solver.SetTolerance(1e-12)
 solver.EnableDiagonalPreconditioner(True)
 solver.EnableWarmStart(True)  # Enable for better convergence when using Euler implicit linearized
 
-sys.SetSolverForceTolerance(1e-10)
+sys.GetSolver().AsIterative().SetTolerance(1e-10)
 
 # Simulation loop
 while vis.Run():

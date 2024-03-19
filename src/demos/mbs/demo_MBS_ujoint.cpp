@@ -39,14 +39,14 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
 
     // Disable gravity
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Set the half-length of the two shafts
     double hl = 2;
 
     // Set the bend angle between the two shafts (positive rotation about the
     // global X axis)
-    double angle = CH_C_PI / 6;
+    double angle = CH_PI / 6;
     double cosa = std::cos(angle);
     double sina = std::sin(angle);
     ChQuaternion<> rot = QuatFromAngleX(angle);
@@ -57,8 +57,8 @@ int main(int argc, char* argv[]) {
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
-    ground->SetCollide(false);
+    ground->SetFixed(true);
+    ground->EnableCollision(false);
 
     // attach visualization assets to represent the revolute and cylindrical
     // joints that connect the two shafts to ground
@@ -78,8 +78,8 @@ int main(int argc, char* argv[]) {
     auto shaft_1 = chrono_types::make_shared<ChBody>();
     sys.AddBody(shaft_1);
     shaft_1->SetIdentifier(1);
-    shaft_1->SetBodyFixed(false);
-    shaft_1->SetCollide(false);
+    shaft_1->SetFixed(false);
+    shaft_1->EnableCollision(false);
     shaft_1->SetMass(1);
     shaft_1->SetInertiaXX(ChVector3d(1, 1, 0.2));
     shaft_1->SetPos(ChVector3d(0, 0, -hl));
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
 
         auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.05, 0.4);
         cyl_2->SetColor(ChColor(0.6f, 0, 0));
-        shaft_1->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(0, 0, hl), QuatFromAngleY(CH_C_PI_2)));
+        shaft_1->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(0, 0, hl), QuatFromAngleY(CH_PI_2)));
     }
 
     // Create the second shaft body
@@ -106,8 +106,8 @@ int main(int argc, char* argv[]) {
     auto shaft_2 = chrono_types::make_shared<ChBody>();
     sys.AddBody(shaft_2);
     shaft_2->SetIdentifier(1);
-    shaft_2->SetBodyFixed(false);
-    shaft_2->SetCollide(false);
+    shaft_2->SetFixed(false);
+    shaft_2->EnableCollision(false);
     shaft_2->SetMass(1);
     shaft_2->SetInertiaXX(ChVector3d(1, 1, 0.2));
     shaft_2->SetPos(ChVector3d(0, -hl * sina, hl * cosa));
@@ -122,7 +122,7 @@ int main(int argc, char* argv[]) {
 
         auto cyl_2 = chrono_types::make_shared<ChVisualShapeCylinder>(0.05, 0.4);
         cyl_2->SetColor(ChColor(0, 0, 0.6f));
-        shaft_2->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(0, 0, -hl), QuatFromAngleX(CH_C_PI_2)));
+        shaft_2->AddVisualShape(cyl_2, ChFrame<>(ChVector3d(0, 0, -hl), QuatFromAngleX(CH_PI_2)));
     }
 
     // Connect the first shaft to ground

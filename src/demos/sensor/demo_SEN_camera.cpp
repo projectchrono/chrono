@@ -64,7 +64,7 @@ unsigned int image_width = 1280;
 unsigned int image_height = 720;
 
 // Camera's horizontal field of view
-float fov = (float)CH_C_PI / 3.;
+float fov = (float)CH_PI / 3.;
 
 // Lag (in seconds) between sensing and when data becomes accessible
 float lag = .05f;
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({-6, 0, 0});
     mesh_body->AddVisualShape(trimesh_shape, ChFrame<>(ChVector3d(0, 0, 0)));
-    mesh_body->SetBodyFixed(true);
+    mesh_body->SetFixed(true);
     sys.Add(mesh_body);
 
     auto vis_mat3 = chrono_types::make_shared<ChVisualMaterial>();
@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
 
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(20, 20, .1, 1000, true, false);
     floor->SetPos({0, 0, -1});
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     sys.Add(floor);
     {
         auto shape = floor->GetVisualModel()->GetShapes()[0].first;
@@ -154,7 +154,7 @@ int main(int argc, char* argv[]) {
 
     auto box_body = chrono_types::make_shared<ChBodyEasyBox>(1.0, 1.0, 1.0, 1000, true, false);
     box_body->SetPos({0, -2, 0});
-    box_body->SetBodyFixed(true);
+    box_body->SetFixed(true);
     sys.Add(box_body);
     {
         auto shape = box_body->GetVisualModel()->GetShapes()[0].first;
@@ -177,7 +177,7 @@ int main(int argc, char* argv[]) {
 
     auto sphere_body = chrono_types::make_shared<ChBodyEasySphere>(.5, 1000, true, false);
     sphere_body->SetPos({0, 0, 0});
-    sphere_body->SetBodyFixed(true);
+    sphere_body->SetFixed(true);
     sys.Add(sphere_body);
     {
         auto shape = sphere_body->GetVisualModel()->GetShapes()[0].first;
@@ -200,7 +200,7 @@ int main(int argc, char* argv[]) {
 
     auto cyl_body = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, .25, 1, 1000, true, false);
     cyl_body->SetPos({0, 2, 0});
-    cyl_body->SetBodyFixed(true);
+    cyl_body->SetFixed(true);
     sys.Add(cyl_body);
     {
         auto shape = cyl_body->GetVisualModel()->GetShapes()[0].first;
@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
 
     auto ground_body = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, false, false);
     ground_body->SetPos({0, 0, 0});
-    ground_body->SetBodyFixed(true);
+    ground_body->SetFixed(true);
     sys.Add(ground_body);
 
     // -----------------------
@@ -298,7 +298,7 @@ int main(int argc, char* argv[]) {
     // Create a second camera and add it to the sensor manager
     // -------------------------------------------------------
 
-    chrono::ChFrame<double> offset_pose2({5, 0, 0}, QuatFromAngleAxis(CH_C_PI, {0, 0, 1}));
+    chrono::ChFrame<double> offset_pose2({5, 0, 0}, QuatFromAngleAxis(CH_PI, {0, 0, 1}));
     auto cam2 = chrono_types::make_shared<ChCameraSensor>(ground_body,   // body camera is attached to
                                                           update_rate,   // update rate in Hz
                                                           offset_pose2,  // offset pose
@@ -380,15 +380,15 @@ int main(int argc, char* argv[]) {
         // Rotate the cameras around the mesh at a fixed rate
         cam->SetOffsetPose(chrono::ChFrame<double>(
             {orbit_radius * cos(ch_time * orbit_rate), orbit_radius * sin(ch_time * orbit_rate), 2},
-            QuatFromAngleAxis(ch_time * orbit_rate + CH_C_PI, {0, 0, 1})));
+            QuatFromAngleAxis(ch_time * orbit_rate + CH_PI, {0, 0, 1})));
 
         cam2->SetOffsetPose(chrono::ChFrame<double>(
             {orbit_radius * cos(ch_time * orbit_rate), orbit_radius * sin(ch_time * orbit_rate), 2},
-            QuatFromAngleAxis(ch_time * orbit_rate + CH_C_PI, {0, 0, 1})));
+            QuatFromAngleAxis(ch_time * orbit_rate + CH_PI, {0, 0, 1})));
 
         seg->SetOffsetPose(chrono::ChFrame<double>(
             {orbit_radius * cos(ch_time * orbit_rate), orbit_radius * sin(ch_time * orbit_rate), 2},
-            QuatFromAngleAxis(ch_time * orbit_rate + CH_C_PI, {0, 0, 1})));
+            QuatFromAngleAxis(ch_time * orbit_rate + CH_PI, {0, 0, 1})));
 
         // Access the RGBA8 buffer from the first camera
         // rgba8_ptr = cam->GetMostRecentBuffer<UserRGBA8BufferPtr>();

@@ -44,7 +44,7 @@ void ChFunctionIntegral::Setup() {
 
     m_cumintegral(0) = this->GetOffsetVal();
 
-    for (int i = 1; i < this->m_num_samples; i++) {
+    for (unsigned int i = 1; i < this->m_num_samples; i++) {
         x_b = m_x_start + ((double)i) * (mstep);
         x_a = x_b - mstep;
         y_a = this->m_integrand_fun->GetVal(x_a);
@@ -73,9 +73,9 @@ double ChFunctionIntegral::GetVal(double x) const {
     if ((x < m_x_start) || (x > m_x_end))
         return 0.0;
 
-    int i_a, i_b;
+    unsigned int i_a, i_b;
     double position = (double)(m_num_samples - 1) * ((x - m_x_start) / (m_x_end - m_x_start));
-    i_a = (int)(floor(position));
+    i_a = (unsigned int)(floor(position));
     i_b = i_a + 1;
 
     if (i_b > m_num_samples - 1)

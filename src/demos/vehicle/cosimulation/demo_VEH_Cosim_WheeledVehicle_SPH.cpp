@@ -231,7 +231,7 @@ int main(int argc, char** argv) {
     if (rank == MBS_NODE_RANK) {
         auto vehicle = static_cast<ChVehicleCosimWheeledVehicleNode*>(node);
         auto path = CreatePath(vehicle::GetDataFile(path_specfile));
-        ////double x_max = path->getPoint(path->getNumPoints() - 2).x() - 3.0;
+        ////double x_max = path->GetPoint(path->GetNumPoints() - 2).x() - 3.0;
         auto driver = chrono_types::make_shared<DriverWrapper>(*vehicle->GetVehicle(), path, "path", target_speed, 0.5);
         driver->GetSteeringController().SetLookAheadDistance(2.0);
         driver->GetSteeringController().SetGains(1.0, 0, 0);

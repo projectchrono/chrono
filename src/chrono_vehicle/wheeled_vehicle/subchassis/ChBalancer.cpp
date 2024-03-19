@@ -46,7 +46,7 @@ void ChBalancer::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d
 
     // Express the subchassis reference frame in the absolute coordinate system
     ChFrame<> to_abs(location);
-    to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Transform all hardpoints to absolute frame
     m_pointsL.resize(NUM_POINTS);
@@ -76,7 +76,7 @@ void ChBalancer::InitializeSide(VehicleSide side,
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrameRefToAbs().GetRot();
 
     // Orientation of revolute joint
     ChVector3d w = dir.GetNormalized();
@@ -105,9 +105,9 @@ void ChBalancer::InitializeSide(VehicleSide side,
 
     if (m_balancer_joint[side]->IsKinematic()) {
         auto rev = std::static_pointer_cast<ChLinkLock>(m_balancer_joint[side]->GetAsLink());
-        rev->GetLimit_Rz().SetActive(true);
-        rev->GetLimit_Rz().SetMin(-GetBalancerMaxPitch());
-        rev->GetLimit_Rz().SetMax(+GetBalancerMaxPitch());
+        rev->LimitRz().SetActive(true);
+        rev->LimitRz().SetMin(-GetBalancerMaxPitch());
+        rev->LimitRz().SetMax(+GetBalancerMaxPitch());
     }
 }
 

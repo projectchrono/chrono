@@ -116,11 +116,11 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     /// Get the current deformation velocity of the shock (damper) element.
     double GetShockVelocity(VehicleSide side) const { return m_shock[side]->GetVelocity(); }
 
-    /// Global coordinates, LCA ball joint position
-    ChVector3d Get_LCA_sph_pos(VehicleSide side) { return m_sphericalLCA[side]->GetPos(); }
+    /// Get position of the LCA ball joint (expressed in the global frame).
+    ChVector3d GetBallJointPosLCA(VehicleSide side) { return m_sphericalLCA[side]->GetPos(); }
 
-    /// Global coordinates, UCA ball joint position
-    ChVector3d Get_UCA_sph_pos(VehicleSide side) { return m_sphericalUCA[side]->GetPos(); }
+    /// Get position of the UCA ball joint (expressed in the global frame).
+    ChVector3d GetBallJointPosUCA(VehicleSide side) { return m_sphericalUCA[side]->GetPos(); }
 
     /// Log current constraint violations.
     virtual void LogConstraintViolations(VehicleSide side) override;

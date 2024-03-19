@@ -30,9 +30,9 @@
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChLoadContactSurfaceMesh.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
@@ -94,7 +94,7 @@ int main(int argc, char* argv[]) {
     // Adding the ground
     if (true) {
         auto mfloor = chrono_types::make_shared<ChBodyEasyBox>(3, 3, 0.2, 8000, true, true, mysurfmaterial);
-        mfloor->SetBodyFixed(true);
+        mfloor->SetFixed(true);
         mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
         sys.Add(mfloor);
     }
@@ -127,14 +127,14 @@ int main(int argc, char* argv[]) {
     ////my_mesh->AddContactSurface(mcontactcloud);
     ////mcontactcloud->AddAllNodes(sphere_swept_thickness);
 
-    ////auto TotalNumNodes = my_mesh->GetNnodes();
-    auto TotalNumElements = my_mesh->GetNelements();
+    ////auto TotalNumNodes = my_mesh->GetNumNodes();
+    auto TotalNumElements = my_mesh->GetNumElements();
 
     for (unsigned int ele = 0; ele < TotalNumElements; ele++) {
         auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
         element = std::dynamic_pointer_cast<ChElementShellANCF_3423>(my_mesh->GetElement(ele));
         // Add a single layers with a fiber angle of 0 degrees.
-        element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, material);
+        element->AddLayer(dz, 0 * CH_DEG_TO_RAD, material);
         // Set other element properties
         element->SetAlphaDamp(0.08);  // Structural damping for this element
     }
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
     // Switch off mesh class gravity
 
     my_mesh->SetAutomaticGravity(addGravity);
-    sys.Set_G_acc(ChVector3d(0, 0, -9.8));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
 
     // Add the mesh to the system
     sys.Add(my_mesh);
@@ -206,7 +206,7 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(200);
+    mystepper->SetMaxIters(200);
     mystepper->SetAbsTolerances(1e-04);
     mystepper->SetVerbose(false);
     ////sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise

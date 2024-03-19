@@ -74,15 +74,15 @@ int main(int argc, char* argv[]) {
     phys_mat->SetFriction(0.2f);
 
     ChSystemNSC sys;
-    sys.Set_G_acc({0, 0, -9.81});
+    sys.SetGravitationalAcceleration({0, 0, -9.81});
 
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(100, 100, 1,      // x,y,z size
                                                           1000,             // density
                                                           true,             // collide enable?
                                                           true, phys_mat);  // visualization?
     floor->SetPos({0, 0, -1.0});
-    floor->SetRot(QuatFromAngleZ(CH_C_PI / 2.0));
-    floor->SetBodyFixed(true);
+    floor->SetRot(QuatFromAngleZ(CH_PI / 2.0));
+    floor->SetFixed(true);
     sys.Add(floor);
 
     // place objects to visually test rotations
@@ -91,7 +91,7 @@ int main(int argc, char* argv[]) {
                                                              true,             // collide enable?
                                                              true, phys_mat);  // visualization?
     scalebox->SetPos({0, -1, 1});
-    scalebox->SetBodyFixed(true);
+    scalebox->SetFixed(true);
     sys.Add(scalebox);
 
     // test max reflections
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
                                                                true,             // collide enable?
                                                                true, phys_mat);  // visualization?
     top_mirror->SetPos({0, -1, 1.5});
-    top_mirror->SetBodyFixed(true);
+    top_mirror->SetFixed(true);
     sys.Add(top_mirror);
     {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
                                                                   true,             // collide enable?
                                                                   true, phys_mat);  // visualization?
     bottom_mirror->SetPos({0, -1, 0.5});
-    bottom_mirror->SetBodyFixed(true);
+    bottom_mirror->SetFixed(true);
     sys.Add(bottom_mirror);
     {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
@@ -152,22 +152,22 @@ int main(int argc, char* argv[]) {
     // walls to contain falling objects
     auto wall1 = chrono_types::make_shared<ChBodyEasyBox>(40.0, .1, 10.0, 1000, true, true, phys_mat);
     wall1->SetPos({0, -20, 4});
-    wall1->SetBodyFixed(true);
+    wall1->SetFixed(true);
     sys.Add(wall1);
 
     auto wall2 = chrono_types::make_shared<ChBodyEasyBox>(40.0, .1, 10.0, 1000, true, true, phys_mat);
     wall2->SetPos({0, 20, 4});
-    wall2->SetBodyFixed(true);
+    wall2->SetFixed(true);
     sys.Add(wall2);
 
     auto wall3 = chrono_types::make_shared<ChBodyEasyBox>(.1, 40.0, 10.0, 1000, true, true, phys_mat);
     wall3->SetPos({-20, 0, 4});
-    wall3->SetBodyFixed(true);
+    wall3->SetFixed(true);
     sys.Add(wall3);
 
     auto wall4 = chrono_types::make_shared<ChBodyEasyBox>(.1, 40.0, 10.0, 1000, true, true, phys_mat);
     wall4->SetPos({20, 0, 4});
-    wall4->SetBodyFixed(true);
+    wall4->SetFixed(true);
     sys.Add(wall4);
 
     auto texbox = chrono_types::make_shared<ChBodyEasyBox>(1, 1,
@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
                                                            true,              // vis enable?
                                                            false, phys_mat);  //
     texbox->SetPos({1, 0, 3});
-    texbox->SetBodyFixed(true);
+    texbox->SetFixed(true);
     sys.Add(texbox);
     {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
@@ -191,7 +191,7 @@ int main(int argc, char* argv[]) {
                                                                  true,              // vis enable?
                                                                  false, phys_mat);  //
     texsphere->SetPos({1, -2, 3});
-    texsphere->SetBodyFixed(true);
+    texsphere->SetFixed(true);
     sys.Add(texsphere);
     {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
                                                                 true,                 // vis enable?
                                                                 false, phys_mat);     //
     texcyl->SetPos({1, -4, 3});
-    texcyl->SetBodyFixed(true);
+    texcyl->SetFixed(true);
     sys.Add(texcyl);
     {
         auto vis_mat = chrono_types::make_shared<ChVisualMaterial>();
@@ -274,16 +274,16 @@ int main(int argc, char* argv[]) {
         }
 
         auto mesh_body = chrono_types::make_shared<ChBodyAuxRef>();
-        mesh_body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+        mesh_body->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
         mesh_body->SetMass(mmass * mdensity);
         mesh_body->SetInertiaXX(mdensity * principal_I);
-        mesh_body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(ChRandom::Get(), ChRandom::Get(), 2.0 + i)));
+        mesh_body->SetFrameRefToAbs(ChFrame<>(ChVector3d(ChRandom::Get(), ChRandom::Get(), 2.0 + i)));
         sys.Add(mesh_body);
 
         auto mesh_ct_shape =
             chrono_types::make_shared<ChCollisionShapeTriangleMesh>(phys_mat, mmesh, false, false, 0.005);
         mesh_body->AddCollisionShape(mesh_ct_shape);
-        mesh_body->SetCollide(true);
+        mesh_body->EnableCollision(true);
 
         mesh_body->AddVisualShape(trimesh_shape, ChFrame<>());
     }
@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-10, 0, 1}, QuatFromAngleZ(0)),  // offset pose
         1920,                                                     // image width
         1080,                                                     // image height
-        (float)CH_C_PI / 4,                                       // field of view
+        (float)CH_PI / 4,                                       // field of view
         2, CameraLensModelType::FOV_LENS, false);
 
     std::string color_data_path = "SENSOR_OUTPUT/cam_color/";
@@ -366,8 +366,8 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleX(0)),  // offset pose from body
         923,                                                     // horizontal samples
         23,                                                      // vertical samples/channels
-        2.f * (float)CH_C_PI / 3.0f,                             // horizontal field of view
-        (float)CH_C_PI / 8.0f, -(float)CH_C_PI / 8.0f, 100.0f    // vertical field of view
+        2.f * (float)CH_PI / 3.0f,                             // horizontal field of view
+        (float)CH_PI / 8.0f, -(float)CH_PI / 8.0f, 100.0f    // vertical field of view
     );
     lidar->SetName("Lidar Sensor");
     lidar->SetLag(.1f);
@@ -394,9 +394,9 @@ int main(int argc, char* argv[]) {
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleX(0)),  // offset pose from body
         923,                                                     // horizontal samples
         23,                                                      // vertical samples/channels
-        2.f * (float)CH_C_PI / 3.0f,                             // horizontal field of view
-        (float)CH_C_PI / 8.0f,                                   // max vert angle
-        -(float)CH_C_PI / 8.0f,                                  // min vert angle
+        2.f * (float)CH_PI / 3.0f,                             // horizontal field of view
+        (float)CH_PI / 8.0f,                                   // max vert angle
+        -(float)CH_PI / 8.0f,                                  // min vert angle
         100.0f,                                                  // max range
         LidarBeamShape::RECTANGULAR,                             // beam shape
         3,                                                       // beam sample radius
@@ -469,7 +469,7 @@ int main(int argc, char* argv[]) {
             chrono::ChFrame<double>({-3, 0, 2}, QuatFromAngleX(0)),  // offset pose
             1280,                                                    // image width
             720,                                                     // image height
-            (float)CH_C_PI / 3);
+            (float)CH_PI / 3);
         cams.push_back(cam1);
 
         std::stringstream nm;

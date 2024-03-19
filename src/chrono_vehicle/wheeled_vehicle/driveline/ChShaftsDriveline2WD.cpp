@@ -29,7 +29,7 @@ namespace vehicle {
 // the conic gear pair, in chassis local coords.
 //
 // dir_axle specifies the direction of the axle, i.e. the output of the conic
-// conic gear pair, in chassis local coords. This is needed because ChShaftsBody
+// conic gear pair, in chassis local coords. This is needed because ChShaftBodyRotation
 // could transfer pitch torque to the chassis.
 // -----------------------------------------------------------------------------
 ChShaftsDriveline2WD::ChShaftsDriveline2WD(const std::string& name)
@@ -120,9 +120,9 @@ double ChShaftsDriveline2WD::GetSpindleTorque(int axle, VehicleSide side) const 
     if (axle == m_driven_axles[0]) {
         switch (side) {
             case LEFT:
-                return -m_differential->GetTorqueReactionOn2() - m_clutch->GetTorqueReactionOn1();
+                return -m_differential->GetReaction2() - m_clutch->GetReaction1();
             case RIGHT:
-                return -m_differential->GetTorqueReactionOn3() - m_clutch->GetTorqueReactionOn2();
+                return -m_differential->GetTorqueReactionOn3() - m_clutch->GetReaction2();
         }
     }
 

@@ -111,7 +111,7 @@ class ChApiParsers ChParserOpenSim {
     );
 
     /// Enable collision between bodies in this model (default: false).
-    void SetCollide(bool val) { m_collide = val; }
+    void EnableCollision(bool val) { m_collide = val; }
 
     /// Set collision families (to disable collision between a body and its parent).
     /// Note: automaticaly enables collision.

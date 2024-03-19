@@ -11,7 +11,7 @@ class simulation:
 
     def __init__(self) -> None:
         self.system = chrono.ChSystemNSC()
-        self.system.Set_G_acc(chrono.ChVector3d(0,0,0))
+        self.system.SetGravitationalAcceleration(chrono.ChVector3d(0,0,0))
 
         green = self.init_vis_mat(chrono.ChColor(0,1,0))
         black = self.init_vis_mat(chrono.ChColor(1,1,1))
@@ -19,7 +19,7 @@ class simulation:
 
         ground = chrono.ChBodyEasyBox(1000,40,1,1000,True,False)
         ground.SetPos(chrono.ChVector3d(0,0,-1))
-        ground.SetBodyFixed(True)
+        ground.SetFixed(True)
         ground.GetVisualShape(0).SetMaterial(0, green)
         self.system.Add(ground)
 
@@ -30,7 +30,7 @@ class simulation:
 
         frontcar = chrono.ChBodyEasyBox(5,2,2,1000,True,False)
         frontcar.SetPos(chrono.ChVector3d(20,1,1))
-        frontcar.SetPosDer(chrono.ChVector3d(5,0,0))
+        frontcar.SetPosDt(chrono.ChVector3d(5,0,0))
         frontcar.GetVisualShape(0).SetMaterial(0, yellow)
         self.system.Add(frontcar)
 
@@ -38,7 +38,7 @@ class simulation:
         for i in range(10):
             leftcar = chrono.ChBodyEasyBox(5,2,2,1000,True,False)
             leftcar.SetPos(chrono.ChVector3d(10 + i * 15 ,20,1))
-            leftcar.SetPosDer(chrono.ChVector3d(-5,0,0))
+            leftcar.SetPosDt(chrono.ChVector3d(-5,0,0))
             leftcar.GetVisualShape(0).SetMaterial(0, yellow)
             self.system.Add(leftcar)
 
@@ -47,7 +47,7 @@ class simulation:
         for i in range(10):
             rightcar = chrono.ChBodyEasyBox(5,2,2,1000,True,False)
             rightcar.SetPos(chrono.ChVector3d(10 + i * 15 ,-20,1))
-            rightcar.SetPosDer(chrono.ChVector3d(15,0,0))
+            rightcar.SetPosDt(chrono.ChVector3d(15,0,0))
             rightcar.GetVisualShape(0).SetMaterial(0, black)
             self.system.Add(rightcar)
 

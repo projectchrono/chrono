@@ -99,7 +99,7 @@ bool TestTranSpringCB(const ChVector3d& jointLocGnd,
 bool ValidateReference(const std::string& testName, const std::string& what, double tolerance);
 bool ValidateConstraints(const std::string& testName, double tolerance);
 bool ValidateEnergy(const std::string& testName, double tolerance);
-utils::CSV_writer OutStream();
+utils::ChWriterCSV OutStream();
 
 // =============================================================================
 //
@@ -170,7 +170,7 @@ int main(int argc, char* argv[]) {
 
     test_name = "TranSpringCB_Case04";
     TestTranSpringCB(ChVector3d(0, 0, 0), ChVector3d(0, 2, 0),
-                     ChCoordsys<>(ChVector3d(0, 4, 0), QuatFromAngleZ(-CH_C_PI_2)), 3, sim_step, out_step,
+                     ChCoordsys<>(ChVector3d(0, 4, 0), QuatFromAngleZ(-CH_PI_2)), 3, sim_step, out_step,
                      test_name);
     test_passed &= ValidateReference(test_name, "Pos", 1e-4);
     test_passed &= ValidateReference(test_name, "Vel", 5e-4);
@@ -220,18 +220,18 @@ bool TestTranSpringCB(const ChVector3d& jointLocGnd,   // absolute location of t
     // handled by this ChSystem object.
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, -g));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -g));
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(100);
-    sys.SetSolverForceTolerance(1e-4);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(100);
+    sys.GetSolver()->AsIterative()->SetTolerance(simTimeStep * 1e-4);
 
     // Create the ground body
 
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     // Create the pendulum body in an initial configuration at rest, with an
     // orientatoin that matches the specified joint orientation and a position
@@ -267,18 +267,18 @@ bool TestTranSpringCB(const ChVector3d& jointLocGnd,   // absolute location of t
     // ------------------------------------------------
 
     // Create the CSV_Writer output objects (TAB delimited)
-    utils::CSV_writer out_pos = OutStream();
-    utils::CSV_writer out_vel = OutStream();
-    utils::CSV_writer out_acc = OutStream();
+    utils::ChWriterCSV out_pos = OutStream();
+    utils::ChWriterCSV out_vel = OutStream();
+    utils::ChWriterCSV out_acc = OutStream();
 
-    utils::CSV_writer out_quat = OutStream();
-    utils::CSV_writer out_avel = OutStream();
-    utils::CSV_writer out_aacc = OutStream();
+    utils::ChWriterCSV out_quat = OutStream();
+    utils::ChWriterCSV out_avel = OutStream();
+    utils::ChWriterCSV out_aacc = OutStream();
 
-    utils::CSV_writer out_rfrc = OutStream();
-    utils::CSV_writer out_rtrq = OutStream();
+    utils::ChWriterCSV out_rfrc = OutStream();
+    utils::ChWriterCSV out_rtrq = OutStream();
 
-    utils::CSV_writer out_energy = OutStream();
+    utils::ChWriterCSV out_energy = OutStream();
 
     // Write headers
     out_pos << "Time"
@@ -323,14 +323,13 @@ bool TestTranSpringCB(const ChVector3d& jointLocGnd,   // absolute location of t
                << "Delta_PE"
                << "KE+PE" << std::endl;
 
-    // Perform a system assembly to ensure we have the correct accelerations at
-    // the initial time.
-    sys.DoFullAssembly();
+    // Perform a system assembly to ensure we have the correct accelerations at the initial time.
+    sys.DoAssembly(AssemblyLevel::FULL);
 
     // Total energy at initial time.
     ChMatrix33<> inertia = pendulum->GetInertia();
     ChVector3d angVelLoc = pendulum->GetAngVelLocal();
-    double transKE = 0.5 * mass * pendulum->GetPosDer().Length2();
+    double transKE = 0.5 * mass * pendulum->GetPosDt().Length2();
     double rotKE = 0.5 * Vdot(angVelLoc, inertia * angVelLoc);
     double deltaPE = mass * g * (pendulum->GetPos().z() - PendCSYS.pos.z());
     double totalE0 = transKE + rotKE + deltaPE;
@@ -344,10 +343,10 @@ bool TestTranSpringCB(const ChVector3d& jointLocGnd,   // absolute location of t
         if (simTime >= outTime - simTimeStep / 2) {
             // CM position, velocity, and acceleration (expressed in global frame).
             const ChVector3d& position = pendulum->GetPos();
-            const ChVector3d& velocity = pendulum->GetPosDer();
+            const ChVector3d& velocity = pendulum->GetPosDt();
             out_pos << simTime << position << std::endl;
             out_vel << simTime << velocity << std::endl;
-            out_acc << simTime << pendulum->GetPosDer2() << std::endl;
+            out_acc << simTime << pendulum->GetPosDt2() << std::endl;
 
             // Orientation, angular velocity, and angular acceleration (expressed in
             // global frame).
@@ -366,8 +365,8 @@ bool TestTranSpringCB(const ChVector3d& jointLocGnd,   // absolute location of t
             ChVector3d springForceGlobal = springForce * springVector;
             out_rfrc << simTime << springForceGlobal << std::endl;
 
-            ChCoordsys<> linkCoordsys = spring->GetLinkRelativeCoords();
-            ChVector3d reactTorque = spring->Get_react_torque();
+            ChFrame<> linkCoordsys = spring->GetFrame2Rel();
+            ChVector3d reactTorque = spring->GetReaction2().torque;
             ChVector3d reactTorqueGlobal = linkCoordsys.TransformDirectionLocalToParent(reactTorque);
             out_rtrq << simTime << reactTorqueGlobal << std::endl;
 
@@ -394,18 +393,18 @@ bool TestTranSpringCB(const ChVector3d& jointLocGnd,   // absolute location of t
     }
 
     // Write output files
-    out_pos.write_to_file(out_dir + testName + "_CHRONO_Pos.txt", testName + "\n");
-    out_vel.write_to_file(out_dir + testName + "_CHRONO_Vel.txt", testName + "\n");
-    out_acc.write_to_file(out_dir + testName + "_CHRONO_Acc.txt", testName + "\n");
+    out_pos.WriteToFile(out_dir + testName + "_CHRONO_Pos.txt", testName + "\n");
+    out_vel.WriteToFile(out_dir + testName + "_CHRONO_Vel.txt", testName + "\n");
+    out_acc.WriteToFile(out_dir + testName + "_CHRONO_Acc.txt", testName + "\n");
 
-    out_quat.write_to_file(out_dir + testName + "_CHRONO_Quat.txt", testName + "\n");
-    out_avel.write_to_file(out_dir + testName + "_CHRONO_Avel.txt", testName + "\n");
-    out_aacc.write_to_file(out_dir + testName + "_CHRONO_Aacc.txt", testName + "\n");
+    out_quat.WriteToFile(out_dir + testName + "_CHRONO_Quat.txt", testName + "\n");
+    out_avel.WriteToFile(out_dir + testName + "_CHRONO_Avel.txt", testName + "\n");
+    out_aacc.WriteToFile(out_dir + testName + "_CHRONO_Aacc.txt", testName + "\n");
 
-    out_rfrc.write_to_file(out_dir + testName + "_CHRONO_Rforce.txt", testName + "\n");
-    out_rtrq.write_to_file(out_dir + testName + "_CHRONO_Rtorque.txt", testName + "\n");
+    out_rfrc.WriteToFile(out_dir + testName + "_CHRONO_Rforce.txt", testName + "\n");
+    out_rtrq.WriteToFile(out_dir + testName + "_CHRONO_Rtorque.txt", testName + "\n");
 
-    out_energy.write_to_file(out_dir + testName + "_CHRONO_Energy.txt", testName + "\n");
+    out_energy.WriteToFile(out_dir + testName + "_CHRONO_Energy.txt", testName + "\n");
 
     return true;
 }
@@ -436,11 +435,11 @@ bool ValidateReference(const std::string& testName,  // name of this test
 //
 // Utility function to create a CSV output stream and set output format options.
 //
-utils::CSV_writer OutStream() {
-    utils::CSV_writer out("\t");
+utils::ChWriterCSV OutStream() {
+    utils::ChWriterCSV out("\t");
 
-    out.stream().setf(std::ios::scientific | std::ios::showpos);
-    out.stream().precision(6);
+    out.Stream().setf(std::ios::scientific | std::ios::showpos);
+    out.Stream().precision(6);
 
     return out;
 }

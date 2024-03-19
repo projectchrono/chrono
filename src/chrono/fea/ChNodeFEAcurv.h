@@ -35,7 +35,7 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
                   const ChVector3d& rzz = VNULL   ///< initial value of zz 2nd derivative of position vector
                   );
     ChNodeFEAcurv(const ChNodeFEAcurv& other);
-    ~ChNodeFEAcurv();
+    virtual ~ChNodeFEAcurv();
 
     ChNodeFEAcurv& operator=(const ChNodeFEAcurv& other);
 
@@ -83,7 +83,7 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     virtual void Relax() override;
 
     /// Reset to no speed and acceleration.
-    virtual void SetNoSpeedNoAcceleration() override;
+    virtual void ForceToRest() override;
 
     /// Fix/release this node.
     /// If fixed, its state variables are not changed by the solver.
@@ -93,11 +93,18 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     virtual bool IsFixed() const override;
 
     /// Get the number of degrees of freedom.
-    virtual int GetNdofX() const override { return 9; }
+    virtual unsigned int GetNumCoordsPosLevel() const override { return 9; }
 
     /// Get the number of degrees of freedom, derivative.
-    virtual int GetNdofW() const override { return 9; }
+    virtual unsigned int GetNumCoordsVelLevel() const override { return 9; }
 
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow de-serialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  public:
     // Functions for interfacing to the state bookkeeping
 
     virtual void NodeIntStateGather(const unsigned int off_x,
@@ -118,10 +125,10 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
                                        const unsigned int off_v,
                                        const ChStateDelta& Dv) override;
     virtual void NodeIntStateGetIncrement(const unsigned int off_x,
-                                       const ChState& x_new,
-                                       const ChState& x,
-                                       const unsigned int off_v,
-                                       ChStateDelta& Dv) override;
+                                          const ChState& x_new,
+                                          const ChState& x,
+                                          const unsigned int off_v,
+                                          ChStateDelta& Dv) override;
     virtual void NodeIntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void NodeIntLoadResidual_Mv(const unsigned int off,
                                         ChVectorDynamic<>& R,
@@ -146,15 +153,7 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbIncrementPosition(double step) override;
 
-    // SERIALIZATION
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
-
-    /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
-
-  private:
+    protected:
     ChVariablesGenericDiagonalMass* m_variables;
 
     ChVector3d m_rxx;

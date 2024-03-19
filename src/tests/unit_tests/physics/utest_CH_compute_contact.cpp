@@ -106,7 +106,7 @@ ContactForceTest::ContactForceTest() {
     system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     double gravity = -9.81;
-    system->Set_G_acc(ChVector3d(0, 0, gravity));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, gravity));
 
     // Create the falling balls
     unsigned int num_balls = 8;
@@ -129,10 +129,10 @@ ContactForceTest::ContactForceTest() {
         ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector3d(1, 1, 1));
         ball->SetPos(pos + ChVector3d(i * 2 * radius, i * 2 * radius, 0));
         ball->SetRot(rot);
-        ball->SetPosDer(init_vel);
+        ball->SetPosDt(init_vel);
         ball->SetAngVelParent(init_omg);
-        ball->SetCollide(true);
-        ball->SetBodyFixed(false);
+        ball->EnableCollision(true);
+        ball->SetFixed(false);
 
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
         ball->AddCollisionShape(ct_shape);
@@ -158,8 +158,10 @@ ContactForceTest::ContactForceTest() {
     // -------------------
 
     std::cout << "Using default solver." << std::endl;
-    system->SetSolverMaxIterations(100);
-    system->SetSolverForceTolerance(1e-6);
+    if (system->GetSolver()->IsIterative()) {
+        system->GetSolver()->AsIterative()->SetMaxIterations(100);
+        system->GetSolver()->AsIterative()->SetTolerance(5e-9);
+    }
 
     // ----------------
     // Setup integrator
@@ -170,7 +172,7 @@ ContactForceTest::ContactForceTest() {
         system->SetTimestepperType(ChTimestepper::Type::HHT);
         auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
         integrator->SetAlpha(0.0);
-        integrator->SetMaxiters(100);
+        integrator->SetMaxIters(100);
         integrator->SetAbsTolerances(1e-08);
     } else {
         std::cout << "Using default integrator." << std::endl;

@@ -115,7 +115,7 @@ class CH_VEHICLE_API ChTrackedVehicle : public ChVehicle {
     /// track shoes. To override these default settings, this function must be called
     /// called after the call to Initialize(). The 'flags' argument can be any of the
     /// TrackedCollisionFlag enums, or a combination thereof (using bit-wise operators).
-    void SetCollide(int flags);
+    void EnableCollision(int flags);
 
     /// Enable/disable collision between the chassis and all other vehicle
     /// subsystems. This only controls collisions between the chassis and the

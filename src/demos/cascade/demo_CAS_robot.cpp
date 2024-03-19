@@ -89,9 +89,9 @@ int main(int argc, char* argv[]) {
     // Note, In most CADs the Y axis is horizontal, but we want it vertical.
     // So define a root transformation for rotating all the imported objects.
     ChQuaternion<> rotation1;
-    rotation1.SetFromAngleX(-CH_C_PI_2);  // 1: rotate 90 deg on X axis
+    rotation1.SetFromAngleX(-CH_PI_2);  // 1: rotate 90 deg on X axis
     ChQuaternion<> rotation2;
-    rotation2.SetFromAngleY(CH_C_PI);                     // 2: rotate 180 deg on vertical Y axis
+    rotation2.SetFromAngleY(CH_PI);                     // 2: rotate 180 deg on vertical Y axis
     ChQuaternion<> tot_rotation = rotation2 * rotation1;  // rotate on 1 then on 2, using quaternion product
     ChFrameMoving<> root_frame(ChVector3d(0, 0, 0), tot_rotation);
 
@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
             sys.Add(body_base);
 
             // The base is fixed to the ground
-            body_base->SetBodyFixed(true);
+            body_base->SetFixed(true);
             body_base->ConcatenatePreTransformation(root_frame);
         } else
             std::cerr << "WARNING: Desired object not found in document" << std::endl;
@@ -162,7 +162,7 @@ int main(int argc, char* argv[]) {
 
             // also create a collision shape attached to the hand:
             auto mcube = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.08, 0.08, 1000, true, true, mysurfmaterial);
-            mcube->SetCsys(ChCoordsys<>(ChVector3d(0.1, 0, 0)) >> body_hand->GetCsys());
+            mcube->SetCoordsys(ChCoordsys<>(ChVector3d(0.1, 0, 0)) >> body_hand->GetCoordsys());
             sys.Add(mcube);
             auto mcubelink = chrono_types::make_shared<ChLinkLockLock>();
             mcubelink->Initialize(mcube, body_hand, *mcube);
@@ -315,7 +315,7 @@ int main(int argc, char* argv[]) {
     body_base->AddMarker(my_marker_move);
 
     ChQuaternion<> rot_on_x;
-    rot_on_x.SetFromAngleX(CH_C_PI_2);
+    rot_on_x.SetFromAngleX(CH_PI_2);
     ChFrame<> frame_marker_move = ChFrame<>(VNULL, rot_on_x) >> frame_marker_wrist_hand;
 
     my_marker_hand->ImposeAbsoluteTransform(frame_marker_wrist_hand);
@@ -362,13 +362,13 @@ int main(int argc, char* argv[]) {
     auto motlaw_y = chrono_types::make_shared<ChFunctionRepeat>(motlaw_y_seq);
     motlaw_y->SetSliceWidth(4);
 
-    my_marker_move->SetMotionAxisZ(motlaw_z);
-    my_marker_move->SetMotionAxisY(motlaw_y);
+    my_marker_move->SetMotionZ(motlaw_z);
+    my_marker_move->SetMotionY(motlaw_y);
 
     // Create a large cube as a floor.
 
     std::shared_ptr<ChBodyEasyBox> mfloor(new ChBodyEasyBox(8, 1, 8, 1000, true, true, mysurfmaterial));
-    mfloor->SetBodyFixed(true);
+    mfloor->SetFixed(true);
     mfloor->SetPos(ChVector3d(0, -0.5, 0));
     mfloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/blue.png"));
     sys.Add(mfloor);
@@ -435,7 +435,7 @@ int main(int argc, char* argv[]) {
     // So switch to a more precise solver, ex. BARZILAIBORWEIN
 
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    sys.SetSolverMaxIterations(200);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(200);
 
     /*
     // Alternative: the ADMM solver offers higher precision and it can also support FEA + nonsmooth contacts

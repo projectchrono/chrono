@@ -23,7 +23,6 @@
 
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemNSC.h"
-#include "chrono/physics/ChSystemSMC.h"
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -45,7 +44,7 @@ class ChainTest : public utils::ChBenchmarkTest {
     void SimulateVis();
 
   private:
-    ChSystem* m_system;
+    ChSystemNSC* m_system;
     double m_length;
     double m_step;
 };
@@ -57,7 +56,7 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
 
     // Create system
     m_system = new ChSystemNSC;
-    m_system->Set_G_acc(ChVector3d(0, -1, 0));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, -1, 0));
 
     // Set solver parameters
     switch (solver_type) {
@@ -93,7 +92,7 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
             m_system->SetTimestepperType(ChTimestepper::Type::HHT);
             auto integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
             integrator->SetAlpha(-0.2);
-            integrator->SetMaxiters(50);
+            integrator->SetMaxIters(50);
             integrator->SetAbsTolerances(1e-4, 1e2);
             integrator->SetStepControl(false);
             integrator->SetModifiedNewton(false);
@@ -106,7 +105,7 @@ ChainTest<N>::ChainTest() : m_length(0.25), m_step(1e-3) {
 
     // Create ground
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     m_system->AddBody(ground);
 
     // Create pendulums

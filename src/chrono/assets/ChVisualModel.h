@@ -49,7 +49,7 @@ class ChApi ChVisualModel {
     void AddShapeFEA(std::shared_ptr<ChVisualShapeFEA> shapeFEA);
 
     /// Get the number of visual shapes in the model.
-    int GetNumShapes() const { return (int)m_shapes.size(); }
+    unsigned int GetNumShapes() const { return (unsigned int)m_shapes.size(); }
 
     /// Get the visual shapes in the model.
     const std::vector<ShapeInstance>& GetShapes() const { return m_shapes; }
@@ -58,7 +58,7 @@ class ChApi ChVisualModel {
     std::shared_ptr<ChVisualShape> GetShape(unsigned int i) const { return m_shapes[i].first; }
 
     /// Get the number of visual shapes in the model.
-    int GetNumShapesFEA() const { return (int)m_shapesFEA.size(); }
+    unsigned int GetNumShapesFEA() const { return (unsigned int)m_shapesFEA.size(); }
 
     /// Get the FEA visualization shapes in the model.
     const std::vector<std::shared_ptr<ChVisualShapeFEA>>& GetShapesFEA() const { return m_shapesFEA; }

@@ -37,7 +37,7 @@ class ChApi ChLineArc : public ChLine {
   public:
     ChLineArc(const ChCoordsys<>& morigin = CSYSNULL,
               double mradius = 1,
-              double mangle1 = CH_C_2PI,
+              double mangle1 = CH_2PI,
               double mangle2 = 0,
               bool mcounterclockwise = false);
     ChLineArc(const ChLineArc& source);
@@ -49,7 +49,7 @@ class ChApi ChLineArc : public ChLine {
     /// Get the class type as an enum.
     virtual Type GetType() const override { return Type::LINE_ARC; }
 
-    virtual int Get_complexity() const override { return 2; }
+    virtual int GetComplexity() const override { return 2; }
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
     virtual ChVector3d Evaluate(double U) const override;
@@ -61,10 +61,10 @@ class ChApi ChLineArc : public ChLine {
     void SetCounterclockwise(bool mcc) { counterclockwise = mcc; }
 
     // Shortcut for setting angle1 in degrees instead than radians
-    void SetAngle1deg(double a1) { angle1 = a1 * CH_C_DEG_TO_RAD; }
+    void SetAngle1deg(double a1) { angle1 = a1 * CH_DEG_TO_RAD; }
 
     // shortcut for setting angle2 in degrees instead than radians
-    void SetAngle2deg(double a2) { angle2 = a2 * CH_C_DEG_TO_RAD; }
+    void SetAngle2deg(double a2) { angle2 = a2 * CH_DEG_TO_RAD; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

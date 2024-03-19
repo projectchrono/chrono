@@ -177,7 +177,7 @@ void ChNodeFEAxyzP::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChNodeFEAxyzP::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChNodeFEAxyzP>();
+    /*int version =*/archive_in.VersionRead<ChNodeFEAxyzP>();
     // deserialize parent class
     ChNodeFEAbase::ArchiveIn(archive_in);
     // stream in all member data:

@@ -47,7 +47,7 @@ class SystemFixture : public ::benchmark::Fixture {
   public:
     void SetUp(const ::benchmark::State& st) override {
         m_system = new ChSystemSMC();
-        m_system->Set_G_acc(ChVector3d(0, -9.8, 0));
+        m_system->SetGravitationalAcceleration(ChVector3d(0, -9.8, 0));
 
         // Mesh properties
         double length = 1;
@@ -83,7 +83,7 @@ class SystemFixture : public ::benchmark::Fixture {
             auto element = chrono_types::make_shared<ChElementShellANCF_3423>();
             element->SetNodes(nodeA, nodeB, nodeD, nodeC);
             element->SetDimensions(dx, width);
-            element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, mat);
+            element->AddLayer(thickness, 0 * CH_DEG_TO_RAD, mat);
             element->SetAlphaDamp(0.0);
             mesh->AddElement(element);
 

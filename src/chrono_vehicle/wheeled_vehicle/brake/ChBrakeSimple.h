@@ -63,7 +63,7 @@ class CH_VEHICLE_API ChBrakeSimple : public ChBrake {
     virtual double GetBrakeTorque() override { return m_modulation * GetMaxBrakingTorque(); }
 
     /// Get the current brake angular speed, relative between disc and caliper [rad/s]
-    double GetBrakeSpeed() { return m_brake->GetRelWvel().Length(); }
+    double GetBrakeSpeed() { return m_brake->GetRelativeAngVel().Length(); }
 
   protected:
     /// Get the max braking torque (for modulation =1)

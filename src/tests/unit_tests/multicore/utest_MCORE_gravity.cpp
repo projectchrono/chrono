@@ -24,7 +24,7 @@ using namespace chrono;
 TEST(ChronoMulticore, gravity) {
   ChVector3d gravity = ChVector3d(0, -9.80665, 0);
   ChSystemMulticoreNSC msystem;
-  msystem.Set_G_acc(gravity);
+  msystem.SetGravitationalAcceleration(gravity);
   msystem.SetNumThreads(1);
 
   auto ball = chrono_types::make_shared<ChBody>();
@@ -32,7 +32,7 @@ TEST(ChronoMulticore, gravity) {
   ChVector3d vel = ChVector3d(2, 2, 0);
   ball->SetMass(1);
   ball->SetPos(pos);
-  ball->SetPosDer(vel);
+  ball->SetPosDt(vel);
   msystem.AddBody(ball);
 
   for (int i = 0; i < 1000; i++) {

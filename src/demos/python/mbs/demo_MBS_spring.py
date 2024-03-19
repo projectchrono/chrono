@@ -53,7 +53,7 @@ class MySpringForce(chrono.ForceFunctor):
 print("Copyright (c) 2017 projectchrono.org")
 
 sys = chrono.ChSystemNSC()
-sys.Set_G_acc(chrono.ChVector3d(0, 0, 0))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, 0))
 
 # Create the ground body with two visualization spheres
 # -----------------------------------------------------
@@ -61,8 +61,8 @@ sys.Set_G_acc(chrono.ChVector3d(0, 0, 0))
 ground = chrono.ChBody()
 sys.AddBody(ground)
 ground.SetIdentifier(-1)
-ground.SetBodyFixed(True)
-ground.SetCollide(False)
+ground.SetFixed(True)
+ground.EnableCollision(False)
 
 sph_1 = chrono.ChVisualShapeSphere(0.1)
 ground.AddVisualShape(sph_1, chrono.ChFramed(chrono.ChVector3d(-1, 0, 0)))
@@ -77,8 +77,8 @@ body_1 = chrono.ChBody()
 sys.AddBody(body_1)
 body_1.SetPos(chrono.ChVector3d(-1, -3, 0))
 body_1.SetIdentifier(1)
-body_1.SetBodyFixed(False)
-body_1.SetCollide(False)
+body_1.SetFixed(False)
+body_1.EnableCollision(False)
 body_1.SetMass(1)
 body_1.SetInertiaXX(chrono.ChVector3d(1, 1, 1))
 
@@ -106,8 +106,8 @@ body_2 = chrono.ChBody()
 sys.AddBody(body_2)
 body_2.SetPos(chrono.ChVector3d(1, -3, 0))
 body_2.SetIdentifier(1)
-body_2.SetBodyFixed(False)
-body_2.SetCollide(False)
+body_2.SetFixed(False)
+body_2.EnableCollision(False)
 body_2.SetMass(1)
 body_2.SetInertiaXX(chrono.ChVector3d(1, 1, 1))
 

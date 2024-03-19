@@ -43,8 +43,8 @@ int main(int argc, char* argv[]) {
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
-    ground->SetCollide(false);
+    ground->SetFixed(true);
+    ground->EnableCollision(false);
 
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.04, 0.4);
     ground->AddVisualShape(cyl);
@@ -55,8 +55,8 @@ int main(int argc, char* argv[]) {
     auto pend = chrono_types::make_shared<ChBody>();
     sys.AddBody(pend);
     pend->SetIdentifier(1);
-    pend->SetBodyFixed(false);
-    pend->SetCollide(false);
+    pend->SetFixed(false);
+    pend->EnableCollision(false);
     pend->SetMass(1);
     pend->SetInertiaXX(ChVector3d(0.2, 1, 1));
 
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     // Attach visualization assets.
     auto cyl_p = chrono_types::make_shared<ChVisualShapeCylinder>(0.2, 2.92);
     cyl_p->SetColor(ChColor(0.6f, 0, 0));
-    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, QuatFromAngleY(CH_C_PI_2)));
+    pend->AddVisualShape(cyl_p, ChFrame<>(VNULL, QuatFromAngleY(CH_PI_2)));
 
     // Create a revolute joint to connect pendulum to ground
     // -----------------------------------------------------
@@ -76,10 +76,10 @@ int main(int argc, char* argv[]) {
 
     // Add limits to the Z rotation of the revolute joint
     double min_angle = 0;
-    double max_angle = 0.75 * CH_C_PI;
-    rev->GetLimit_Rz().SetActive(true);
-    rev->GetLimit_Rz().SetMin(min_angle);
-    rev->GetLimit_Rz().SetMax(max_angle);
+    double max_angle = 0.75 * CH_PI;
+    rev->LimitRz().SetActive(true);
+    rev->LimitRz().SetMin(min_angle);
+    rev->LimitRz().SetMax(max_angle);
 
     // Initialize the joint specifying a coordinate sys (expressed in the absolute frame).
     rev->Initialize(ground, pend, ChFrame<>(ChVector3d(0, 0, 0), ChQuaternion<>(1, 0, 0, 0)));

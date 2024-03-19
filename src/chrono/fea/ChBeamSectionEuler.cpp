@@ -287,7 +287,7 @@ ChBeamSectionEulerEasyRectangular::ChBeamSectionEulerEasyRectangular(double widt
                                                                      double myG,
                                                                      double mydensity) {
     this->SetYoungModulus(myE);
-    this->SetGshearModulus(myG);
+    this->SetShearModulus(myG);
     this->SetDensity(mydensity);
     this->SetAsRectangularSection(width_y, width_z);
 }
@@ -297,7 +297,7 @@ ChBeamSectionEulerEasyCircular::ChBeamSectionEulerEasyCircular(double diameter,
                                                                double myG,
                                                                double mydensity) {
     this->SetYoungModulus(myE);
-    this->SetGshearModulus(myG);
+    this->SetShearModulus(myG);
     this->SetDensity(mydensity);
     this->SetAsCircularSection(diameter);
 }
@@ -364,7 +364,7 @@ ChBeamSectionRayleighEasyRectangular::ChBeamSectionRayleighEasyRectangular(doubl
                                                                            double mG,
                                                                            double mdensity) {
     this->SetYoungModulus(mE);
-    this->SetGshearModulus(mG);
+    this->SetShearModulus(mG);
     this->SetDensity(mdensity);
     this->SetAsRectangularSection(mwidth_y, mwidth_z);
 }
@@ -374,7 +374,7 @@ ChBeamSectionRayleighEasyCircular::ChBeamSectionRayleighEasyCircular(double diam
                                                                      double mG,
                                                                      double mdensity) {
     this->SetYoungModulus(mE);
-    this->SetGshearModulus(mG);
+    this->SetShearModulus(mG);
     this->SetDensity(mdensity);
     this->SetAsCircularSection(diameter);
 }

@@ -69,7 +69,7 @@ ObsModTerrain::ObsModTerrain(ChSystem* system,
         // m_Q is already set up
     } else if (aa <= 175.0) {
         // mound obstacle
-        ramp_angle = CH_C_DEG_TO_RAD * abs(m_aa - 180.0);
+        ramp_angle = CH_DEG_TO_RAD * abs(m_aa - 180.0);
         ramp_length = m_obsheight / tan(ramp_angle);
         m_x[0] = m_xmin;
         m_x[1] = m_x[0] + ramp_length;
@@ -89,7 +89,7 @@ ObsModTerrain::ObsModTerrain(ChSystem* system,
         m_Q(1, 2) = m_obsheight;
     } else {
         // trench obstacle
-        ramp_angle = CH_C_DEG_TO_RAD * abs(m_aa - 180.0);
+        ramp_angle = CH_DEG_TO_RAD * abs(m_aa - 180.0);
         ramp_length = m_obsheight / tan(ramp_angle);
         if (m_obslength <= 0.0) {
             m_obslength = 0.1;
@@ -109,8 +109,8 @@ ObsModTerrain::ObsModTerrain(ChSystem* system,
     m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector3d(0, 0, 0));
-    m_ground->SetBodyFixed(true);
-    m_ground->SetCollide(false);
+    m_ground->SetFixed(true);
+    m_ground->EnableCollision(false);
 
     m_ground->AddVisualModel(chrono_types::make_shared<ChVisualModel>());
 
@@ -203,10 +203,10 @@ void ObsModTerrain::Initialize(ObsModTerrain::VisualisationType vType) {
 
 void ObsModTerrain::GenerateMesh() {
     m_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    auto& coords = m_mesh->getCoordsVertices();
-    auto& indices = m_mesh->getIndicesVertexes();
-    auto& normals = m_mesh->getCoordsNormals();
-    auto& normidx = m_mesh->getIndicesNormals();
+    auto& coords = m_mesh->GetCoordsVertices();
+    auto& indices = m_mesh->GetIndicesVertexes();
+    auto& normals = m_mesh->GetCoordsNormals();
+    auto& normidx = m_mesh->GetIndicesNormals();
 
     for (size_t i = 0; i < m_nx; i++) {
         double x = m_x[i];
@@ -247,7 +247,7 @@ void ObsModTerrain::EnableCollisionMesh(std::shared_ptr<ChContactMaterial> mater
 void ObsModTerrain::SetupCollision() {
     GenerateMesh();
 
-    m_ground->SetCollide(true);
+    m_ground->EnableCollision(true);
 
     auto ct_shape =
         chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_material, m_mesh, true, false, m_sweep_sphere_radius);

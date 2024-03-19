@@ -94,7 +94,7 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Express the suspension reference frame in the absolute coordinate system.
     ChFrame<> suspension_to_abs(location);
-    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    suspension_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Transform the location of the axle body COM to absolute frame.
     ChVector3d axleCOM_local = getAxlehousingCOM();
@@ -112,7 +112,7 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axlehousing = chrono_types::make_shared<ChBody>();
     m_axlehousing->SetNameString(m_name + "_axlehousing");
     m_axlehousing->SetPos(axleCOM);
-    m_axlehousing->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_axlehousing->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_axlehousing->SetMass(getAxlehousingMass());
     m_axlehousing->SetInertiaXX(getAxlehousingInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_axlehousing);
@@ -145,7 +145,7 @@ void ChHendricksonPRIMAXX::Initialize(std::shared_ptr<ChChassis> chassis,
     m_transversebeam = chrono_types::make_shared<ChBody>();
     m_transversebeam->SetNameString(m_name + "_transversebeam");
     m_transversebeam->SetPos(tbCOM);
-    m_transversebeam->SetRot(chassis->GetBody()->GetFrame_REF_to_abs().GetRot());
+    m_transversebeam->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_transversebeam->SetMass(getTransversebeamMass());
     m_transversebeam->SetInertiaXX(getTransversebeamInertia());
     chassis->GetBody()->GetSystem()->AddBody(m_transversebeam);
@@ -166,7 +166,7 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
 
     // Chassis orientation (expressed in absolute frame)
     // Recall that the suspension reference frame is aligned with the chassis.
-    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
+    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrameRefToAbs().GetRot();
 
     // Unit vectors for orientation matrices.
     ChVector3d u;
@@ -261,21 +261,21 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     m_revoluteTorquerod[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revoluteTorquerod[side]->SetNameString(m_name + "_revoluteTorquerod" + suffix);
     m_revoluteTorquerod[side]->Initialize(chassis->GetBody(), m_torquerod[side],
-                                          ChFrame<>(points[TORQUEROD_C], chassisRot * QuatFromAngleX(CH_C_PI_2)));
+                                          ChFrame<>(points[TORQUEROD_C], chassisRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revoluteTorquerod[side]);
 
     // Create and initialize the revolute joint between chassis and lower beam.
     m_revoluteLowerbeam[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revoluteLowerbeam[side]->SetNameString(m_name + "_revoluteLowerbeam" + suffix);
     m_revoluteLowerbeam[side]->Initialize(chassis->GetBody(), m_lowerbeam[side],
-                                          ChFrame<>(points[LOWERBEAM_C], chassisRot * QuatFromAngleX(CH_C_PI_2)));
+                                          ChFrame<>(points[LOWERBEAM_C], chassisRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revoluteLowerbeam[side]);
 
     // Create and initialize the revolute joint between upright and spindle.
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_knuckle[side],
-                                 ChFrame<>(points[SPINDLE], chassisRot * QuatFromAngleX(CH_C_PI_2)));
+                                 ChFrame<>(points[SPINDLE], chassisRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the spring/damper between axle housing and chassis
@@ -331,10 +331,10 @@ void ChHendricksonPRIMAXX::InitializeSide(VehicleSide side,
     m_axle[side] = chrono_types::make_shared<ChShaft>();
     m_axle[side]->SetNameString(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
-    m_axle[side]->SetPosDer(-ang_vel);
+    m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);
 
-    m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftsBody>();
+    m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftBodyRotation>();
     m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);

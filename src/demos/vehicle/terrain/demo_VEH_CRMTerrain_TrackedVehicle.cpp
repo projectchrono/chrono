@@ -103,8 +103,8 @@ int main(int argc, char* argv[]) {
 
     // Set SPH parameters and soil material properties
     const ChVector3d gravity(0, 0, -9.81);
-    sysFSI.Set_G_acc(gravity);
-    sys.Set_G_acc(gravity);
+    sysFSI.SetGravitationalAcceleration(gravity);
+    sys.SetGravitationalAcceleration(gravity);
 
     ChSystemFsi::ElasticMaterialProperties mat_props;
     mat_props.Young_modulus = youngs_modulus;
@@ -116,8 +116,8 @@ int main(int argc, char* argv[]) {
     mat_props.mu_fric_s = friction;
     mat_props.mu_fric_2 = friction;
     mat_props.average_diam = 0.005;
-    mat_props.friction_angle = CH_C_PI / 10;  // default
-    mat_props.dilation_angle = CH_C_PI / 10;  // default
+    mat_props.friction_angle = CH_PI / 10;  // default
+    mat_props.dilation_angle = CH_PI / 10;  // default
     mat_props.cohesion_coeff = 0;             // default
     mat_props.kernel_threshold = 0.8;
 
@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
     // Create driver
     cout << "Create path..." << endl;
     auto path = CreatePath(terrain_dir + "/path.txt");
-    double x_max = path->getPoint(path->getNumPoints() - 2).x() - 3.0;
+    double x_max = path->GetPoint(path->GetNumPoints() - 2).x() - 3.0;
     ChPathFollowerDriver driver(*vehicle, path, "my_path", target_speed);
     driver.GetSteeringController().SetLookAheadDistance(2.0);
     driver.GetSteeringController().SetGains(1.0, 0, 0);

@@ -148,8 +148,8 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
                                            (2. * std::pow((I1 * I1 - 3 * I2), (3. / 2.))));
         double k = (2. / 3.) * (std::sqrt(I1 * I1 - 3. * I2));
         e1 = (I1 / 3.) + k * std::cos(phi);
-        e2 = (I1 / 3.) + k * std::cos(phi + (2. / 3.) * chrono::CH_C_PI);
-        e3 = (I1 / 3.) + k * std::cos(phi + (4. / 3.) * chrono::CH_C_PI);
+        e2 = (I1 / 3.) + k * std::cos(phi + (2. / 3.) * chrono::CH_PI);
+        e3 = (I1 / 3.) + k * std::cos(phi + (4. / 3.) * chrono::CH_PI);
     }
 
     /// Compute the eigenvectors and the eigenvalues.

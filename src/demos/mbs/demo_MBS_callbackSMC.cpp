@@ -112,7 +112,7 @@ class CompsiteMaterial : public ChContactMaterialCompositionStrategy {
 class ContactForce : public ChSystemSMC::ChContactForceTorqueSMC {
   public:
     // Demonstration only.
-    virtual std::pair<ChVector3d, ChVector3d> CalculateForceTorque(
+    virtual ChWrenchd CalculateForceTorque(
         const ChSystemSMC& sys,             ///< containing sys
         const ChVector3d& normal_dir,       ///< normal contact direction (expressed in global frame)
         const ChVector3d& p1,               ///< most penetrated point on obj1 (expressed in global frame)
@@ -161,7 +161,7 @@ class ContactForce : public ChSystemSMC::ChContactForceTorqueSMC {
         // for torque do nothing (this could be used to simulate rolling or spinning friction, if needed)
         ChVector3d torque = VNULL;
 
-        return std::make_pair(force, torque);
+        return {force, torque};
     }
 };
 
@@ -173,18 +173,21 @@ int main(int argc, char* argv[]) {
     // ----------------
 
     float friction = 0.6f;
+    double step_size = 1e-3;
 
     // -----------------
     // Create the sys
     // -----------------
 
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector3d(0, -10, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, -10, 0));
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Set solver settings
-    sys.SetSolverMaxIterations(100);
-    sys.SetSolverForceTolerance(0);
+    if (sys.GetSolver()->IsIterative()) {
+        sys.GetSolver()->AsIterative()->SetMaxIterations(100);
+        sys.GetSolver()->AsIterative()->SetTolerance(0 * step_size);
+    }
 
     // Change default collision effective radius of curvature
     ////ChCollisionInfo::SetDefaultEffectiveCurvatureRadius(1);
@@ -203,10 +206,10 @@ int main(int argc, char* argv[]) {
     auto container = chrono_types::make_shared<ChBody>();
     sys.Add(container);
     container->SetPos(ChVector3d(0, 0, 0));
-    container->SetBodyFixed(true);
+    container->SetFixed(true);
     container->SetIdentifier(-1);
 
-    container->SetCollide(true);
+    container->EnableCollision(true);
     utils::AddBoxGeometry(container.get(), material, ChVector3d(8, 1, 8), ChVector3d(0, -0.5, 0));
     container->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.4f, 0.4f));
 
@@ -214,9 +217,9 @@ int main(int argc, char* argv[]) {
     box1->SetMass(10);
     box1->SetInertiaXX(ChVector3d(1, 1, 1));
     box1->SetPos(ChVector3d(-1, 0.21, -1));
-    box1->SetPosDer(ChVector3d(5, 0, 0));
+    box1->SetPosDt(ChVector3d(5, 0, 0));
 
-    box1->SetCollide(true);
+    box1->EnableCollision(true);
     utils::AddBoxGeometry(box1.get(), material, ChVector3d(0.8, 0.4, 0.2));
     box1->GetVisualShape(0)->SetColor(ChColor(0.1f, 0.1f, 0.4f));
 
@@ -226,9 +229,9 @@ int main(int argc, char* argv[]) {
     box2->SetMass(10);
     box2->SetInertiaXX(ChVector3d(1, 1, 1));
     box2->SetPos(ChVector3d(-1, 0.21, +1));
-    box2->SetPosDer(ChVector3d(5, 0, 0));
+    box2->SetPosDt(ChVector3d(5, 0, 0));
 
-    box2->SetCollide(true);
+    box2->EnableCollision(true);
     utils::AddBoxGeometry(box2.get(), material, ChVector3d(0.8, 0.4, 0.2));
     box2->GetVisualShape(0)->SetColor(ChColor(0.4f, 0.1f, 0.1f));
 
@@ -260,7 +263,7 @@ int main(int argc, char* argv[]) {
             vis_irr->AddSkyBox();
             vis_irr->AddCamera(ChVector3d(4, 4, -6));
             vis_irr->AddTypicalLights();
-            vis_irr->AddGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI_2)),
+            vis_irr->AddGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI_2)),
                              ChColor(1, 0, 0));
 
             vis = vis_irr;
@@ -281,10 +284,10 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->SetWireFrameMode(false);
-            vis_vsg->AddGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI_2)),
+            vis_vsg->AddGrid(0.5, 0.5, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI_2)),
                              ChColor(1, 0, 0));
             vis_vsg->Initialize();
 
@@ -322,7 +325,7 @@ int main(int argc, char* argv[]) {
         vis->Render();
         vis->RenderCOGFrames(1.0);
 
-        sys.DoStepDynamics(1e-3);
+        sys.DoStepDynamics(step_size);
         vis->EndScene();
 
         // Process contacts

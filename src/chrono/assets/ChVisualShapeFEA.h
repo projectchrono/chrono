@@ -66,7 +66,7 @@ class ChApi ChVisualShapeFEA {
         ELEM_BEAM_TX,
         ELEM_BEAM_TY,
         ELEM_BEAM_TZ,
-        NODE_P,
+        NODE_FIELD_VALUE,
         ANCF_BEAM_AX,
         ANCF_BEAM_BD
     };

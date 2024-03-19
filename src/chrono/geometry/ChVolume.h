@@ -48,13 +48,13 @@ class ChApi ChVolume : public ChGeometry {
     virtual ChVector3d Evaluate(double parU, double parV, double parW) const { return VNULL; }
 
     /// Tell if the volume is closed (periodic) in parametric coordinate
-    virtual bool Get_closed_U() const { return false; }
+    virtual bool IsClosedU() const { return false; }
 
     /// Tell if the volume is closed (periodic) in parametric coordinate
-    virtual bool Get_closed_V() const { return false; }
+    virtual bool IslosedV() const { return false; }
 
     /// Tell if the volume is closed (periodic) in parametric coordinate
-    virtual bool Get_closed_W() const { return false; }
+    virtual bool IsClosedW() const { return false; }
 
     /// This is a volume.
     virtual int GetManifoldDimension() const override final { return 3; }

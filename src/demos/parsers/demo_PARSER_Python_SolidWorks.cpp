@@ -96,14 +96,14 @@ int main(int argc, char* argv[]) {
 
     if (mescape_wheel && mtruss && mbalance && manchor) {
         // Set a constant torque to escape wheel, in a very simple way
-        mescape_wheel->Empty_forces_accumulators();
-        mescape_wheel->Accumulate_torque(ChVector3d(0, -0.03, 0), false);
+        mescape_wheel->EmptyAccumulators();
+        mescape_wheel->AccumulateTorque(ChVector3d(0, -0.03, 0), false);
 
         // Add a torsional spring
         std::shared_ptr<ChLinkLockFree> mspring(new ChLinkLockFree);
         mspring->Initialize(mtruss, mbalance, ChFrame<>());  // origin does not matter, it's only torque
-        mspring->GetForce_Ry().SetK(0.24);
-        mspring->GetForce_Ry().SetActive(1);
+        mspring->ForceRy().SetSpringCoefficient(0.24);
+        mspring->ForceRy().SetActive(1);
         sys.Add(mspring);
 
         // Set an initial angular velocity to the balance:

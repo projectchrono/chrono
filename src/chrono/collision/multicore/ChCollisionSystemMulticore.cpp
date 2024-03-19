@@ -87,7 +87,7 @@ void ChCollisionSystemMulticore::Add(std::shared_ptr<ChCollisionModel> model) {
     auto ct_model = chrono_types::make_shared<ChCollisionModelMulticore>(model.get());
     ct_model->Populate();
 
-    int body_id = ct_model->GetBody()->GetId();
+    auto body_id = ct_model->GetBody()->GetIndex();
     short2 fam = S2(ct_model->model->GetFamilyGroup(), ct_model->model->GetFamilyMask());
 
     // The offset for this shape will the current total number of points in the convex data list
@@ -264,7 +264,7 @@ void ChCollisionSystemMulticore::PreProcess() {
         rotation[i] = quaternion(body_rot.e0(), body_rot.e1(), body_rot.e2(), body_rot.e3());
 
         active[i] = body->IsActive();
-        collide[i] = body->GetCollide();
+        collide[i] = body->IsCollisionEnabled();
     }
 }
 
@@ -615,20 +615,20 @@ void DrawHemisphere(ChCollisionSystem::VisualizationCallback* vis,
     int rstep = 30;  // degrees
 
     for (int j = 0; j < 90; j += vstep) {
-        double y_low = radius * std::sin(j * CH_C_DEG_TO_RAD);
-        double r_low = radius * std::cos(j * CH_C_DEG_TO_RAD);
+        double y_low = radius * std::sin(j * CH_DEG_TO_RAD);
+        double r_low = radius * std::cos(j * CH_DEG_TO_RAD);
 
-        double y_top = radius * std::sin((j + vstep) * CH_C_DEG_TO_RAD);
-        double r_top = radius * std::cos((j + vstep) * CH_C_DEG_TO_RAD);
+        double y_top = radius * std::sin((j + vstep) * CH_DEG_TO_RAD);
+        double r_top = radius * std::cos((j + vstep) * CH_DEG_TO_RAD);
 
         ChVector3d crt(r_low, y_low, 0);
         for (int i = 0; i < 360; i += rstep) {
-            double rc = r_top * std::cos(i * CH_C_DEG_TO_RAD);
-            double rs = r_top * std::sin(i * CH_C_DEG_TO_RAD);
+            double rc = r_top * std::cos(i * CH_DEG_TO_RAD);
+            double rs = r_top * std::sin(i * CH_DEG_TO_RAD);
             ChVector3d up(rc, y_top, rs);
             vis->DrawLine(csys.TransformPointLocalToParent(crt), csys.TransformPointLocalToParent(up), color);
-            rc = r_low * std::cos((i + rstep) * CH_C_DEG_TO_RAD);
-            rs = r_low * std::sin((i + rstep) * CH_C_DEG_TO_RAD);
+            rc = r_low * std::cos((i + rstep) * CH_DEG_TO_RAD);
+            rs = r_low * std::sin((i + rstep) * CH_DEG_TO_RAD);
             ChVector3d next(rc, y_low, rs);
             vis->DrawLine(csys.TransformPointLocalToParent(crt), csys.TransformPointLocalToParent(next), color);
             crt = next;
@@ -642,7 +642,7 @@ void DrawSphere(ChCollisionSystem::VisualizationCallback* vis,
                 const ChColor& color) {
     DrawHemisphere(vis, csys, radius, color);
     ChCoordsys<> csys1 = csys;
-    csys1.rot = csys.rot * QuatFromAngleX(CH_C_PI);
+    csys1.rot = csys.rot * QuatFromAngleX(CH_PI);
     DrawHemisphere(vis, csys1, radius, color);
 }
 
@@ -687,8 +687,8 @@ void DrawCylinder(ChCollisionSystem::VisualizationCallback* vis,
 
     for (int i = 0; i < 360; i += rstep) {
         vis->DrawLine(csys.TransformPointLocalToParent(p_start), csys.TransformPointLocalToParent(p_end), color);
-        double rc = radius * std::cos((i + rstep) * CH_C_DEG_TO_RAD);
-        double rs = radius * std::sin((i + rstep) * CH_C_DEG_TO_RAD);
+        double rc = radius * std::cos((i + rstep) * CH_DEG_TO_RAD);
+        double rs = radius * std::sin((i + rstep) * CH_DEG_TO_RAD);
         ChVector3d start(rc, rs, -hlen);
         ChVector3d end(rc, rs, +hlen);
         vis->DrawLine(csys.TransformPointLocalToParent(p_start), csys.TransformPointLocalToParent(start), color);
@@ -709,8 +709,8 @@ void DrawCone(ChCollisionSystem::VisualizationCallback* vis,
 
     for (int i = 0; i < 360; i += rstep) {
         vis->DrawLine(csys.TransformPointLocalToParent(p_start), csys.TransformPointLocalToParent(p_end), color);
-        double rc = radius * std::cos((i + rstep) * CH_C_DEG_TO_RAD);
-        double rs = radius * std::sin((i + rstep) * CH_C_DEG_TO_RAD);
+        double rc = radius * std::cos((i + rstep) * CH_DEG_TO_RAD);
+        double rs = radius * std::sin((i + rstep) * CH_DEG_TO_RAD);
         ChVector3d start(rc, rs, 0);
         ChVector3d end(rc, rs, 2 * hlen);
         vis->DrawLine(csys.TransformPointLocalToParent(p_start), csys.TransformPointLocalToParent(start), color);
@@ -726,8 +726,8 @@ void DrawCapsule(ChCollisionSystem::VisualizationCallback* vis,
     int rstep = 30;
 
     for (int i = 0; i < 360; i += rstep) {
-        double rc = radius * std::cos((i + rstep) * CH_C_DEG_TO_RAD);
-        double rs = radius * std::sin((i + rstep) * CH_C_DEG_TO_RAD);
+        double rc = radius * std::cos((i + rstep) * CH_DEG_TO_RAD);
+        double rs = radius * std::sin((i + rstep) * CH_DEG_TO_RAD);
         ChVector3d start(rc, rs, -hlen);
         ChVector3d end(rc, rs, +hlen);
         vis->DrawLine(csys.TransformPointLocalToParent(start), csys.TransformPointLocalToParent(end), color);
@@ -738,7 +738,7 @@ void DrawCapsule(ChCollisionSystem::VisualizationCallback* vis,
     DrawHemisphere(vis, csys1, radius, color);
     ChCoordsys<> csys2;
     csys2.pos = csys.TransformPointLocalToParent(ChVector3d(0, 0, -hlen));
-    csys2.rot = csys.rot * QuatFromAngleX(CH_C_PI);
+    csys2.rot = csys.rot * QuatFromAngleX(CH_PI);
     DrawHemisphere(vis, csys2, radius, color);
 }
 

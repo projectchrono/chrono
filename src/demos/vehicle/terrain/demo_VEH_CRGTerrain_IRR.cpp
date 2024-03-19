@@ -271,8 +271,9 @@ int main(int argc, char* argv[]) {
 
     ChSystemSMC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys.Set_G_acc(-9.81 * ChWorldFrame::Vertical());
-    sys.SetSolverMaxIterations(150);
+    sys.SetGravitationalAcceleration(-9.81 * ChWorldFrame::Vertical());
+    sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(150);
     sys.SetMaxPenetrationRecoverySpeed(4.0);
 
     // ------------------
@@ -306,7 +307,7 @@ int main(int argc, char* argv[]) {
         chrono_types::make_shared<ChVisualShapeBox>(ChBox(1, road_width, 0.1)),
         ChFrame<>(init_csys.pos - 0.05 * ChWorldFrame::Vertical(), init_csys.rot));
 
-    path->write(out_dir + "/path.txt");
+    path->Write(out_dir + "/path.txt");
 
     // ------------------
     // Create the vehicle

@@ -68,7 +68,7 @@ unsigned int rl_image_width = 80;
 unsigned int rl_image_height = 45;
 
 // Camera's horizontal field of view
-float fov = CH_C_PI / 3.;
+float fov = CH_PI / 3.;
 
 // Lag (in seconds) between sensing and when data becomes accessible
 float lag = 0;
@@ -232,7 +232,7 @@ int main(int argc, char* argv[]) {
     for (int i = 0; i < 3; i++) {
         auto box = chrono_types::make_shared<ChBodyEasyBox>(2, 2, 10, 1000, true, true);
         box->SetPos({25 + 25 * i, (((float)rand() / (float)RAND_MAX) - .5) * 10, 5.05});
-        box->SetBodyFixed(true);
+        box->SetFixed(true);
 
         // Add visual asset to be sensed by camera
         // Will be a solid blue color
@@ -259,7 +259,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize output file for driver inputs
     std::string driver_file = out_dir + "/driver_inputs.txt";
-    utils::CSV_writer driver_csv(" ");
+    utils::ChWriterCSV driver_csv(" ");
 
     // Set up vehicle output
     my_hmmwv.GetVehicle().SetChassisOutput(true);
@@ -494,7 +494,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (driver_mode == RECORD) {
-        driver_csv.write_to_file(driver_file);
+        driver_csv.WriteToFile(driver_file);
     }
 
     return 0;

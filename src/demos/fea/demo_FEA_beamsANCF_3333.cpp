@@ -43,7 +43,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.8));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
 
     // Set up solver
     auto solver = chrono_types::make_shared<ChSolverPardisoMKL>();
@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
     // Set up integrator
     auto integrator = chrono_types::make_shared<ChTimestepperHHT>(&sys);
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
             double tc = 2;
             double Fz = Fmax;
             if (t < tc) {
-                Fz = 0.5 * Fmax * (1 - cos(CH_C_PI * t / tc));
+                Fz = 0.5 * Fmax * (1 - cos(CH_PI * t / tc));
             }
 
             F.setZero();

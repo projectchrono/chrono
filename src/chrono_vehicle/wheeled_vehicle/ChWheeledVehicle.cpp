@@ -208,7 +208,7 @@ void ChWheeledVehicle::SetTireVisualizationType(VisualizationType vis) {
 void ChWheeledVehicle::SetWheelCollide(bool state) {
     for (auto& axle : m_axles) {
         for (auto& wheel : axle->m_wheels) {
-            wheel->SetCollide(state);
+            wheel->EnableCollision(state);
         }
     }
 }
@@ -220,19 +220,19 @@ void ChWheeledVehicle::SetWheelCollide(bool state) {
 void ChWheeledVehicle::SetChassisVehicleCollide(bool state) {
     if (state) {
         // Chassis collides with tires
-        m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskDoCollisionWithFamily(WheeledCollisionFamily::TIRE);
-        m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskDoCollisionWithFamily(WheeledCollisionFamily::WHEEL);
+        m_chassis->GetBody()->GetCollisionModel()->AllowCollisionsWith(WheeledCollisionFamily::TIRE);
+        m_chassis->GetBody()->GetCollisionModel()->AllowCollisionsWith(WheeledCollisionFamily::WHEEL);
         for (auto& c : m_chassis_rear) {
-            c->GetBody()->GetCollisionModel()->SetFamilyMaskDoCollisionWithFamily(WheeledCollisionFamily::TIRE);
-            c->GetBody()->GetCollisionModel()->SetFamilyMaskDoCollisionWithFamily(WheeledCollisionFamily::WHEEL);
+            c->GetBody()->GetCollisionModel()->AllowCollisionsWith(WheeledCollisionFamily::TIRE);
+            c->GetBody()->GetCollisionModel()->AllowCollisionsWith(WheeledCollisionFamily::WHEEL);
         }
     } else {
         // Chassis does not collide with tires
-        m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::TIRE);
-        m_chassis->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::WHEEL);
+        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(WheeledCollisionFamily::TIRE);
+        m_chassis->GetBody()->GetCollisionModel()->DisallowCollisionsWith(WheeledCollisionFamily::WHEEL);
         for (auto& c : m_chassis_rear) {
-            c->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::TIRE);
-            c->GetBody()->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::WHEEL);
+            c->GetBody()->GetCollisionModel()->DisallowCollisionsWith(WheeledCollisionFamily::TIRE);
+            c->GetBody()->GetCollisionModel()->DisallowCollisionsWith(WheeledCollisionFamily::WHEEL);
         }
     }
 }

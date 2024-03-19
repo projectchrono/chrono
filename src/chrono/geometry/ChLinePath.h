@@ -38,7 +38,7 @@ class ChApi ChLinePath : public ChLine {
     /// Get the class type as an enum.
     virtual Type GetType() const override { return Type::LINE_PATH; }
 
-    virtual int Get_complexity() const override { return 2; }
+    virtual int GetComplexity() const override { return 2; }
 
     /// Return curve length.
     /// Sampling does not matter.

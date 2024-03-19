@@ -83,7 +83,7 @@ sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 
 # Create the ground
 ground = chrono.ChBody()
-ground.SetBodyFixed(True)
+ground.SetFixed(True)
 sys.Add(ground)
 
 # Create the rigid body with contact mesh
@@ -112,7 +112,7 @@ body_ct_shape = chrono.ChCollisionShapeTriangleMesh(material, # contact material
                                                     False,    # is it convex?
                                                     0.01)     # "thickness" for increased robustness
 body.AddCollisionShape(body_ct_shape)
-body.SetCollide(True)
+body.EnableCollision(True)
 
 # Create motor
 motor = chrono.ChLinkMotorRotationAngle()

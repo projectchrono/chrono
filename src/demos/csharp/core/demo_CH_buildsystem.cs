@@ -31,12 +31,12 @@ namespace ChronoDemo
 
             ChSystemNSC sys = new ChSystemNSC();
 
-            sys.Set_G_acc(new ChVector3d(0, -10, 0));
+            sys.SetGravitationalAcceleration(new ChVector3d(0, -10, 0));
 
             // ..the truss
             ChBody my_body_A = new ChBody();
             sys.AddBody(my_body_A);
-            my_body_A.SetBodyFixed(true);  // truss does not move!
+            my_body_A.SetFixed(true);  // truss does not move!
             my_body_A.SetName("Ground-Truss");
 
             // ..the crank
@@ -81,7 +81,7 @@ namespace ChronoDemo
 
             ChBodyEasyBox myEasyBox = new ChBodyEasyBox(0.1, 0.2, 0.3, 1000, true, true, mat);
             ChBodyAuxRef myBAuxRef = new ChBodyAuxRef();
-            myBAuxRef.SetBodyFixed(true);
+            myBAuxRef.SetFixed(true);
 
             sys.Add(myBAuxRef);
             sys.Add(myEasyBox);

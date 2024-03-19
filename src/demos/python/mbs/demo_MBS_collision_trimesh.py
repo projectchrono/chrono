@@ -46,7 +46,7 @@ contact_material = chrono.ChContactMaterialNSC()
 
 # Create a floor
 mfloor = chrono.ChBodyEasyBox(3, 0.2, 3, 1000,True,True, contact_material)
-mfloor.SetBodyFixed(True)
+mfloor.SetFixed(True)
 mfloor.GetVisualShape(0).SetColor(chrono.ChColor(0.2, 0.2, 0.6))
 sys.Add(mfloor)
 
@@ -104,7 +104,7 @@ body_B.SetPos(chrono.ChVector3d(0,0.5,0))
 body_B.SetMass(16)
 body_B.SetInertiaXX(chrono.ChVector3d(0.270,0.400,0.427))
 body_B.SetInertiaXY(chrono.ChVector3d(0.057,0.037,-0.062))
-body_B.SetFrame_COG_to_REF(chrono.ChFramed(
+body_B.SetFrameCOMToRef(chrono.ChFramed(
             chrono.ChVector3d( 0.12,0.0,0),
             chrono.ChQuaterniond(1,0,0,0)))
 
@@ -134,7 +134,7 @@ mesh_for_collision.LoadWavefrontMesh(chrono.GetChronoDataFile('models/bulldozer/
 mesh_for_collision.Transform(chrono.ChVector3d(0.01,0,0), chrono.ChMatrix33d(1))
 body_B_ct_shape = chrono.ChCollisionShapeTriangleMesh(contact_material, mesh_for_collision, False, False)
 body_B.AddCollisionShape(body_B_ct_shape)
-body_B.SetCollide(True)
+body_B.EnableCollision(True)
 
 sys.Add(body_B)
 
@@ -155,5 +155,3 @@ while vis.Run():
     vis.Render()
     vis.EndScene()
     sys.DoStepDynamics(5e-3)
-
-

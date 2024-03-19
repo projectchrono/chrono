@@ -151,14 +151,14 @@ class MBTireModel : public ChPhysicsItem {
     void CalculateForces();
 
     // ChPhysicsItem overrides
-    virtual bool GetCollide() const override { return true; }
+    virtual bool IsCollisionEnabled() const override { return true; }
 
     virtual void SyncCollisionModels() override;
     virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
     virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
 
-    virtual int GetNumCoordinatesPos() override { return m_dofs; }
-    virtual int GetNumCoordinatesVel() override { return m_dofs_w; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return m_dofs; }
+    virtual unsigned int GetNumCoordsVelLevel() override { return m_dofs_w; }
     virtual void SetupInitial() override;
     virtual void Setup() override;
     virtual void Update(double t, bool update_assets = true) override;
@@ -227,8 +227,8 @@ class MBTireModel : public ChPhysicsItem {
     // Get normal and elemental area for the node with current ring and division indices.
     void CalcNormal(int ir, int id, ChVector3d& normal, double& area);
 
-    int m_dofs;    // total degrees of freedom
-    int m_dofs_w;  // total degrees of freedom, derivative (Lie algebra)
+    unsigned int m_dofs;    // total degrees of freedom
+    unsigned int m_dofs_w;  // total degrees of freedom, derivative (Lie algebra)
 
     int m_num_rings;      // number of rings
     int m_num_divs;       // number of nodes per ring

@@ -24,7 +24,7 @@
 #include "chrono/collision/multicore/ChCollisionUtils.h"
 
 namespace chrono {
-namespace ch_utils {
+namespace mc_utils {
 
 // -----------------------------------------------------------------------------
 // Utilities for triangle collisions
@@ -454,5 +454,5 @@ int box_intersects_triangle(const real3& hdims, const real3& v0, const real3& v1
     return (minOverlap >= separation) ? -1 : +1;
 }
 
-}  // end namespace ch_utils
+}  // end namespace mc_utils
 }  // end namespace chrono

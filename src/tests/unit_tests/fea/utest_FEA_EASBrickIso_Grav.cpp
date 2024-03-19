@@ -34,8 +34,8 @@
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementHexaANCF_3813.h"
 #include "chrono/fea/ChElementSpring.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
     // Create the physical system
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 
@@ -122,12 +122,11 @@ int main(int argc, char* argv[]) {
     }
 
     std::shared_ptr<ChContinuumElastic> mmaterial(new ChContinuumElastic);
-    mmaterial->Set_RayleighDampingK(0.0);
-    mmaterial->Set_RayleighDampingM(0.0);
-    mmaterial->Set_density(MPROP(0, 0));
-    mmaterial->Set_E(MPROP(0, 1));
-    mmaterial->Set_G(MPROP(0, 1) / (2 + 2 * MPROP(0, 2)));
-    mmaterial->Set_v(MPROP(0, 2));
+    mmaterial->SetRayleighDampingBeta(0.0);
+    mmaterial->SetRayleighDampingAlpha(0.0);
+    mmaterial->SetDensity(MPROP(0, 0));
+    mmaterial->SetYoungModulus(MPROP(0, 1));
+    mmaterial->SetPoissonRatio(MPROP(0, 2));
 
     //!--------------- Element data--------------------
 
@@ -252,7 +251,7 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.01);
-    mystepper->SetMaxiters(10000);
+    mystepper->SetMaxIters(10000);
     mystepper->SetAbsTolerances(1e-5);
 
     // Simulation loop
@@ -263,9 +262,9 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         // Initialize the output stream and set precision.
-        utils::CSV_writer out("\t");
-        out.stream().setf(std::ios::scientific | std::ios::showpos);
-        out.stream().precision(7);
+        utils::ChWriterCSV out("\t");
+        out.Stream().setf(std::ios::scientific | std::ios::showpos);
+        out.Stream().precision(7);
         int Iterations = 0;
         // Simulate to final time, while saving position of tip node.
         while (sys.GetChTime() < sim_time) {
@@ -276,7 +275,7 @@ int main(int argc, char* argv[]) {
                      << nodetip->GetForce().z() << "\t" << Iterations << "\n";
         }
         // Write results to output file.
-        out.write_to_file("../TEST_Brick/UT_EASBrickIso_Grav.txt.txt");
+        out.WriteToFile("../TEST_Brick/UT_EASBrickIso_Grav.txt.txt");
     } else {
         double max_err = 0;
         for (unsigned int it = 0; it < num_steps_UT; it++) {

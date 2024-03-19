@@ -65,7 +65,7 @@ class CH_VEHICLE_API ChTrackWheel : public ChPart {
     virtual double GetWidth() const = 0;
 
     /// Turn on/off collision flag for the track wheel (default: true).
-    void SetCollide(bool val) { m_wheel->SetCollide(val); }
+    void EnableCollision(bool val) { m_wheel->EnableCollision(val); }
 
     /// Initialize this track wheel subsystem.
     /// The track wheel subsystem is initialized by attaching it to the specified

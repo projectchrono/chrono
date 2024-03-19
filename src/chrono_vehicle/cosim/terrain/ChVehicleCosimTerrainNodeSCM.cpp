@@ -69,7 +69,7 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(double length, double
     m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Solver settings independent of method type
-    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
     // Set default number of threads
     m_system->SetNumThreads(1, 1, 1);
@@ -86,7 +86,7 @@ ChVehicleCosimTerrainNodeSCM::ChVehicleCosimTerrainNodeSCM(const std::string& sp
     m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
     // Solver settings independent of method type
-    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
     // Set default number of threads
     m_system->SetNumThreads(1, 1, 1);
@@ -229,9 +229,9 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         body->SetRot(b.m_init_rot);
         body->SetMass(mass * b.m_density);
         body->SetInertia(inertia * b.m_density);
-        body->SetBodyFixed(false);
+        body->SetFixed(false);
 
-        body->SetCollide(true);
+        body->EnableCollision(true);
         auto ct_shape =
             chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_p);
         body->AddCollisionShape(ct_shape);
@@ -285,7 +285,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateMeshProxy(unsigned int i) {
     auto material = m_geometry[i_shape].m_materials[trimesh_shape.m_matID].CreateMaterial(m_method);
 
     //// RADU TODO:  better approximation of mass / inertia?
-    ////double mass_p = m_load_mass[i_shape] / trimesh->getNumTriangles();
+    ////double mass_p = m_load_mass[i_shape] / trimesh->GetNumTriangles();
 
     // Create a contact surface mesh constructed from the provided trimesh
     auto surface = chrono_types::make_shared<fea::ChContactSurfaceMesh>(material);
@@ -294,7 +294,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateMeshProxy(unsigned int i) {
     // Create maps from pointer-based to index-based for the nodes in the mesh contact surface.
     // Note that here, the contact surface includes all faces in the geometry trimesh..
     int vertex_index = 0;
-    for (const auto& tri : surface->GetTriangleList()) {
+    for (const auto& tri : surface->GetTrianglesXYZ()) {
         if (proxy->ptr2ind_map.insert({tri->GetNode(0), vertex_index}).second) {
             proxy->ind2ptr_map.insert({vertex_index, tri->GetNode(0)});
             ++vertex_index;
@@ -340,8 +340,8 @@ void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
     body->SetIdentifier(0);
     body->SetMass(m_load_mass[i_shape]);
     ////body->SetInertiaXX();   //// TODO
-    body->SetBodyFixed(false);  // Cannot fix the proxies with SCM
-    body->SetCollide(true);
+    body->SetFixed(false);  // Cannot fix the proxies with SCM
+    body->EnableCollision(true);
 
     // Create visualization asset (use collision shapes)
     m_geometry[i_shape].CreateVisualizationAssets(body, VisualizationType::PRIMITIVES, true);
@@ -351,7 +351,7 @@ void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
         mesh.m_radius = m_radius_p;
     m_geometry[i_shape].CreateCollisionShapes(body, 1, m_method);
     body->GetCollisionModel()->SetFamily(1);
-    body->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(1);
+    body->GetCollisionModel()->DisallowCollisionsWith(1);
 
     m_system->AddBody(body);
     m_system->GetCollisionSystem()->BindItem(body);
@@ -415,7 +415,7 @@ void ChVehicleCosimTerrainNodeSCM::UpdateMeshProxy(unsigned int i, MeshState& me
     for (int in = 0; in < num_vertices; in++) {
         auto& node = proxy->ind2ptr_map[in];
         node->SetPos(mesh_state.vpos[in]);
-        node->SetPosDer(mesh_state.vvel[in]);
+        node->SetPosDt(mesh_state.vvel[in]);
     }
 }
 
@@ -423,7 +423,7 @@ void ChVehicleCosimTerrainNodeSCM::UpdateMeshProxy(unsigned int i, MeshState& me
 void ChVehicleCosimTerrainNodeSCM::UpdateRigidProxy(unsigned int i, BodyState& rigid_state) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
     proxy->bodies[0]->SetPos(rigid_state.pos);
-    proxy->bodies[0]->SetPosDer(rigid_state.lin_vel);
+    proxy->bodies[0]->SetPosDt(rigid_state.lin_vel);
     proxy->bodies[0]->SetRot(rigid_state.rot);
     proxy->bodies[0]->SetAngVelParent(rigid_state.ang_vel);
 }
@@ -491,7 +491,7 @@ void ChVehicleCosimTerrainNodeSCM::OnOutputData(int frame) {
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeSCM::WriteCheckpoint(const std::string& filename) const {
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     // Get all SCM grid nodes modified from start of simulation
     const auto& nodes = m_terrain->GetModifiedNodes(true);
@@ -506,7 +506,7 @@ void ChVehicleCosimTerrainNodeSCM::WriteCheckpoint(const std::string& filename) 
     }
 
     std::string checkpoint_filename = m_node_out_dir + "/" + filename;
-    csv.write_to_file(checkpoint_filename);
+    csv.WriteToFile(checkpoint_filename);
     if (m_verbose)
         cout << "[Terrain node] write checkpoint ===> " << checkpoint_filename << endl;
 }

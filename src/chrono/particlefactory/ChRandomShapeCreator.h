@@ -112,7 +112,7 @@ class ChRandomShapeCreatorSpheres : public ChRandomShapeCreator {
         double mrad = 0.5 * diameter->GetRandom();
         auto mbody = chrono_types::make_shared<ChBodyEasySphere>(
             mrad, density->GetRandom(), this->add_visualization_asset, this->add_collision_shape, material);
-        mbody->SetCsys(mcoords);
+        mbody->SetCoordsys(mcoords);
         return mbody;
     };
 
@@ -152,7 +152,7 @@ class ChRandomShapeCreatorBoxes : public ChRandomShapeCreator {
         double sz = fabs(sx * sizeratioYZ->GetRandom() * sizeratioZ->GetRandom());
         auto mbody = chrono_types::make_shared<ChBodyEasyBox>(
             sx, sy, sz, fabs(density->GetRandom()), this->add_visualization_asset, this->add_collision_shape, material);
-        mbody->SetCsys(mcoords);
+        mbody->SetCoordsys(mcoords);
         return mbody;
     };
 
@@ -197,7 +197,7 @@ class ChRandomShapeCreatorCylinders : public ChRandomShapeCreator {
         auto mbody = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, rad, height, density->GetRandom(),
                                                                    this->add_visualization_asset,
                                                                    this->add_collision_shape, material);
-        mbody->SetCsys(mcoords);
+        mbody->SetCoordsys(mcoords);
         return mbody;
     };
 
@@ -263,7 +263,7 @@ class ChRandomShapeCreatorConvexHulls : public ChRandomShapeCreator {
         }
         auto mbody = chrono_types::make_shared<ChBodyEasyConvexHull>(
             points, density->GetRandom(), this->add_visualization_asset, this->add_collision_shape, material);
-        mbody->SetCsys(mcoords);
+        mbody->SetCoordsys(mcoords);
         return mbody;
     };
 
@@ -352,7 +352,7 @@ class ChRandomShapeCreatorShavings : public ChRandomShapeCreator {
         // << " inertiaXX" << mbody->GetInertiaXX() << std::endl << " inertiaXY:" <<  mbody->GetInertiaXY() <<
         // std::endl;
 
-        mbody->SetCsys(mcoords);
+        mbody->SetCoordsys(mcoords);
         return mbody;
     };
 
@@ -455,7 +455,7 @@ class ChRandomShapeCreatorFromFamilies : public ChRandomShapeCreator {
         if (probability_mode == MASS_PROBABILITY)
             generated_stats[tested_family] += sample->GetMass();
 
-        sample->SetCsys(mcoords);
+        sample->SetCoordsys(mcoords);
         return sample;
     };
 

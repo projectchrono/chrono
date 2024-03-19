@@ -36,7 +36,7 @@ ChShaft::ChShaft()
       fixed(false),
       limitspeed(false),
       sleeping(false) {
-    SetUseSleeping(true);
+    SetSleepingAllowed(true);
     variables.SetShaft(this);
 }
 
@@ -69,14 +69,12 @@ void ChShaft::SetInertia(double newJ) {
     variables.SetInertia(newJ);
 }
 
-//// STATE BOOKKEEPING FUNCTIONS
-
 void ChShaft::IntStateGather(const unsigned int off_x,  // offset in x state vector
                              ChState& x,                // state vector, position part
                              const unsigned int off_v,  // offset in v state vector
                              ChStateDelta& v,           // state vector, speed part
                              double& T                  // time
-                             ) {
+) {
     x(off_x) = pos;
     v(off_v) = pos_dt;
     T = GetChTime();
@@ -90,7 +88,7 @@ void ChShaft::IntStateScatter(const unsigned int off_x,  // offset in x state ve
                               bool full_update           // perform complete update
 ) {
     SetPos(x(off_x));
-    SetPosDer(v(off_v));
+    SetPosDt(v(off_v));
     Update(T, full_update);
 }
 
@@ -99,13 +97,13 @@ void ChShaft::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta&
 }
 
 void ChShaft::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
-    SetPosDer2(a(off_a));
+    SetPosDt2(a(off_a));
 }
 
 void ChShaft::IntLoadResidual_F(const unsigned int off,  // offset in R residual
                                 ChVectorDynamic<>& R,    // result: the R residual, R += c*F
                                 const double c           // a scaling factor
-                                ) {
+) {
     // add applied forces to 'fb' vector
     R(off) += torque * c;
 }
@@ -114,15 +112,11 @@ void ChShaft::IntLoadResidual_Mv(const unsigned int off,      // offset in R res
                                  ChVectorDynamic<>& R,        // result: the R residual, R += c*M*v
                                  const ChVectorDynamic<>& w,  // the w vector
                                  const double c               // a scaling factor
-                                 ) {
+) {
     R(off) += c * inertia * w(off);
 }
 
-void ChShaft::IntLoadLumpedMass_Md(const unsigned int off,
-                                   ChVectorDynamic<>& Md,
-                                   double& err,
-                                   const double c  
-) {
+void ChShaft::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) {
     Md(off) += c * inertia;
 }
 
@@ -143,7 +137,6 @@ void ChShaft::IntFromDescriptor(const unsigned int off_v,  // offset in v
     v(off_v) = variables.Get_qb()(0, 0);
 }
 
-////
 void ChShaft::InjectVariables(ChSystemDescriptor& mdescriptor) {
     variables.SetDisabled(!IsActive());
 
@@ -196,12 +189,11 @@ void ChShaft::VariablesQbIncrementPosition(double dt_step) {
     pos = pos + newspeed * dt_step;
 }
 
-void ChShaft::SetNoSpeedNoAcceleration() {
+void ChShaft::ForceToRest() {
     pos_dt = 0;
     pos_dtdt = 0;
 }
 
-////
 void ChShaft::ClampSpeed() {
     if (GetLimitSpeed()) {
         if (pos_dt > max_speed)
@@ -212,8 +204,8 @@ void ChShaft::ClampSpeed() {
 }
 
 bool ChShaft::TrySleeping() {
-    if (GetUseSleeping()) {
-        if (GetSleeping())
+    if (IsSleepingAllowed()) {
+        if (IsSleeping())
             return true;
 
         if (fabs(pos_dt) < sleep_minspeed) {
@@ -237,8 +229,6 @@ void ChShaft::Update(double mytime, bool update_assets) {
     // TrySleeping();    // See if the body can fall asleep; if so, put it to sleeping
     ClampSpeed();  // Apply limits (if in speed clamping mode) to speeds.
 }
-
-//////// FILE I/O
 
 void ChShaft::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
@@ -264,10 +254,9 @@ void ChShaft::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(use_sleeping);
 }
 
-/// Method to allow de serialization of transient data from archives.
 void ChShaft::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChShaft>();
+    /*int version =*/archive_in.VersionRead<ChShaft>();
 
     // deserialize parent class:
     ChPhysicsItem::ArchiveIn(archive_in);

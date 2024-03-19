@@ -57,41 +57,35 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
 
     // Example here taken from the Dear imgui comments (mostly)
     virtual void render() override {
-        char label[64];
-        int nstr = sizeof(label) - 1;
         ImGui::SetNextWindowSize(ImVec2(0.0f, 0.0f));
         ////ImGui::SetNextWindowPos(ImVec2(5.0f, 5.0f));
         ImGui::Begin("Simulation");
 
         if (ImGui::BeginTable("SimTable", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
-            snprintf(label, nstr, "%8.3f s", m_app->GetSimulationTime());
             ImGui::TableNextColumn();
-            ImGui::Text("Model Time:");
+            ImGui::TextUnformatted("Model Time:");
             ImGui::TableNextColumn();
-            ImGui::Text(label);
+            ImGui::Text("%8.3f s", m_app->GetSimulationTime());
 
             ImGui::TableNextRow();
             double current_time = double(clock()) / double(CLOCKS_PER_SEC);
-            snprintf(label, nstr, "%8.3f s", current_time - m_app->m_start_time);
             ImGui::TableNextColumn();
-            ImGui::Text("Wall Clock Time:");
+            ImGui::TextUnformatted("Wall Clock Time:");
             ImGui::TableNextColumn();
-            ImGui::Text(label);
+            ImGui::Text("%8.3f s", current_time - m_app->m_start_time);
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::Text("Real Time Factor:");
+            ImGui::TextUnformatted("Real Time Factor:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%8.3f", m_app->GetSimulationRTF());
-            ImGui::Text(label);
+            ImGui::Text("%8.3f", m_app->GetSimulationRTF());
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::Text("Rendering FPS:");
+            ImGui::TextUnformatted("Rendering FPS:");
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "%8.3f", m_app->GetRenderingFPS());
-            ImGui::Text(label);
+            ImGui::Text("%8.3f", m_app->GetRenderingFPS());
 
             ImGui::EndTable();
         }
@@ -100,7 +94,7 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
 
         if (ImGui::BeginTable("Frames", 2, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
-            ImGui::Text("COG:");
+            ImGui::TextUnformatted("COG:");
             ImGui::TableNextColumn();
             static bool bCOG_frame_active = false;
             if (ImGui::Checkbox("COG", &bCOG_frame_active))
@@ -113,7 +107,7 @@ class ChBaseGuiComponentVSG : public ChGuiComponentVSG {
             m_app->m_cog_frame_scale = cog_frame_scale;
 
             ImGui::TableNextRow();
-            ImGui::Text("Joint:");
+            ImGui::TextUnformatted("Joint:");
             ImGui::TableNextColumn();
             static bool bJoint_frame_active = false;
             if (ImGui::Checkbox("Joint", &bJoint_frame_active))
@@ -144,9 +138,6 @@ class ChCameraGuiComponentVSG : public ChGuiComponentVSG {
     ChCameraGuiComponentVSG(ChVisualSystemVSG* app) : m_app(app) { m_visible = false; }
 
     virtual void render() override {
-        char label[64];
-        int nstr = sizeof(label) - 1;
-
         auto p = m_app->GetCameraPosition();
         auto t = m_app->GetCameraTarget();
 
@@ -157,23 +148,19 @@ class ChCameraGuiComponentVSG : public ChGuiComponentVSG {
         if (ImGui::BeginTable("Location", 4, ImGuiTableFlags_BordersOuter | ImGuiTableFlags_SizingFixedFit,
                               ImVec2(0.0f, 0.0f))) {
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "Location");
-            ImGui::Text(label);
+            ImGui::TextUnformatted("Location");
             for (int i = 0; i < 3; i++) {
                 ImGui::TableNextColumn();
-                snprintf(label, nstr, " %5.1f", p[i]);
-                ImGui::Text(label);
+                ImGui::Text(" %5.1f", p[i]);
             }
 
             ImGui::TableNextRow();
 
             ImGui::TableNextColumn();
-            snprintf(label, nstr, "Look-at");
-            ImGui::Text(label);
+            ImGui::TextUnformatted("Look-at");
             for (int i = 0; i < 3; i++) {
                 ImGui::TableNextColumn();
-                snprintf(label, nstr, " %5.1f", t[i]);
-                ImGui::Text(label);
+                ImGui::Text(" %5.1f", t[i]);
             }
 
             ImGui::EndTable();
@@ -456,7 +443,7 @@ ChVisualSystemVSG::ChVisualSystemVSG(int num_divs)
     SetUseSkyBox(true);
     SetCameraAngleDeg(40);
     SetLightIntensity(1.0);
-    SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+    SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
 #ifdef __APPLE__
     SetGuiFontSize(20.0);
 #else
@@ -678,8 +665,8 @@ void ChVisualSystemVSG::SetLightDirection(double azimuth, double elevation) {
         std::cerr << "Function ChVisualSystemVSG::SetLightDirection must be used before initialization!" << std::endl;
         return;
     }
-    m_azimuth = ChClamp(azimuth, -CH_C_PI, CH_C_PI);
-    m_elevation = ChClamp(elevation, 0.0, CH_C_PI_2);
+    m_azimuth = ChClamp(azimuth, -CH_PI, CH_PI);
+    m_elevation = ChClamp(elevation, 0.0, CH_PI_2);
 }
 
 void ChVisualSystemVSG::Initialize() {
@@ -984,7 +971,7 @@ void ChVisualSystemVSG::Render() {
     for (auto& def_mesh : m_def_meshes) {
         if (def_mesh.dynamic_vertices) {
             const auto& new_vertices =
-                def_mesh.mesh_soup ? def_mesh.trimesh->getFaceVertices() : def_mesh.trimesh->getCoordsVertices();
+                def_mesh.mesh_soup ? def_mesh.trimesh->getFaceVertices() : def_mesh.trimesh->GetCoordsVertices();
             assert(def_mesh.vertices->size() == new_vertices.size());
             size_t k = 0;
             for (auto& v : *def_mesh.vertices)
@@ -1004,7 +991,7 @@ void ChVisualSystemVSG::Render() {
 
         if (def_mesh.dynamic_colors) {
             const auto& new_colors =
-                def_mesh.mesh_soup ? def_mesh.trimesh->getFaceColors() : def_mesh.trimesh->getCoordsColors();
+                def_mesh.mesh_soup ? def_mesh.trimesh->getFaceColors() : def_mesh.trimesh->GetCoordsColors();
             assert(def_mesh.colors->size() == new_colors.size());
             size_t k = 0;
             for (auto& c : *def_mesh.colors)
@@ -1188,7 +1175,7 @@ void ChVisualSystemVSG::PopulateGroup(vsg::ref_ptr<vsg::Group> group,
             auto grp = vsg::Group::create();
             auto transform = vsg::MatrixTransform::create();
             transform->matrix =
-                vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * QuatFromAngleX(-CH_C_PI_2)), scale);
+                vsg::dmat4CH(ChFrame<>(X_SM.GetPos(), X_SM.GetRot() * QuatFromAngleX(-CH_PI_2)), scale);
             grp->addChild(transform);
             // needed, when BindAll() is called after Initialization
             // vsg::observer_ptr<vsg::Viewer> observer_viewer(m_viewer);
@@ -1277,7 +1264,7 @@ void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
         if (!trimesh)
             continue;
 
-        if (trimesh->GetMesh()->getNumVertices() == 0)
+        if (trimesh->GetMesh()->GetNumVertices() == 0)
             continue;
 
         DeformableMesh def_mesh;
@@ -1292,7 +1279,7 @@ void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
         def_mesh.mesh_soup = true;
 
         def_mesh.vertices = vsg::visit<FindVec3BufferData<0>>(child).getBufferData();
-        assert(def_mesh.vertices->size() == 3 * trimesh->GetMesh()->getNumTriangles());
+        assert(def_mesh.vertices->size() == 3 * trimesh->GetMesh()->GetNumTriangles());
         def_mesh.vertices->properties.dataVariance = vsg::DYNAMIC_DATA;
         def_mesh.dynamic_vertices = true;
 
@@ -1320,7 +1307,7 @@ void ChVisualSystemVSG::BindMesh(const std::shared_ptr<fea::ChMesh>& mesh) {
 
 void ChVisualSystemVSG::BindParticleCloud(const std::shared_ptr<ChParticleCloud>& pcloud) {
     const auto& vis_model = pcloud->GetVisualModel();
-    auto num_particles = pcloud->GetNparticles();
+    auto num_particles = pcloud->GetNumParticles();
 
     if (!vis_model)
         return;
@@ -1541,8 +1528,8 @@ void ChVisualSystemVSG::BindLinkFrame(const std::shared_ptr<ChLinkBase>& link) {
         frameA = *link_markers->GetMarker1() >> *link_markers->GetBody1();
         frameB = *link_markers->GetMarker2() >> *link_markers->GetBody2();
     } else if (auto link_mate = std::dynamic_pointer_cast<ChLinkMateGeneric>(link)) {
-        frameA = link_mate->GetFrame1() >> *link_mate->GetBody1();
-        frameB = link_mate->GetFrame2() >> *link_mate->GetBody2();
+        frameA = link_mate->GetFrame1Rel() >> *link_mate->GetBody1();
+        frameB = link_mate->GetFrame2Rel() >> *link_mate->GetBody2();
     }
 
     auto joint_transform = vsg::MatrixTransform::create();
@@ -1648,8 +1635,8 @@ void ChVisualSystemVSG::UpdateFromMBS() {
                 frameA = *link_markers->GetMarker1() >> *link_markers->GetBody1();
                 frameB = *link_markers->GetMarker2() >> *link_markers->GetBody2();
             } else if (auto link_mate = std::dynamic_pointer_cast<ChLinkMateGeneric>(link)) {
-                frameA = link_mate->GetFrame1() >> *link_mate->GetBody1();
-                frameB = link_mate->GetFrame2() >> *link_mate->GetBody2();
+                frameA = link_mate->GetFrame1Rel() >> *link_mate->GetBody1();
+                frameB = link_mate->GetFrame2Rel() >> *link_mate->GetBody2();
             }
 
             transform->matrix = vsg::dmat4CH(frameB, m_joint_frame_scale);

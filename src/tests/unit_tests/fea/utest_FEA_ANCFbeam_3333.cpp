@@ -49,7 +49,7 @@ int main(int argc, char* argv[]) {
     // their referenced nodes.
     auto my_mesh = chrono_types::make_shared<ChMesh>();
 
-    sys.Set_G_acc(ChVector3d(0, -9.81, 0.0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, -9.81, 0.0));
     const double beam_h = 0.5;  // Beam height (y)
     const double beam_w = 0.1;  // Beam width (z)
     const double beam_l = 2.0;  // Beam length
@@ -152,15 +152,13 @@ int main(int argc, char* argv[]) {
         solver->SetTolerance(1e-15);
         solver->EnableDiagonalPreconditioner(true);
         solver->SetVerbose(false);
-
-        sys.SetSolverForceTolerance(1e-14);
     }
 
     // Setup integrator
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(10);
+    mystepper->SetMaxIters(10);
     mystepper->SetAbsTolerances(1e-10);
     mystepper->SetVerbose(true);
     mystepper->SetModifiedNewton(false);

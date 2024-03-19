@@ -193,7 +193,7 @@ int main(int argc, char* argv[]) {
     vis->SetChaseCamera(ChVector3d(0.0, 0.0, 0.0), 3.0, 0.0);
     vis->SetChaseCameraPosition(target_point + ChVector3d(-2, 3, 0));
     vis->SetChaseCameraState(utils::ChChaseCamera::Free);
-    vis->SetChaseCameraAngle(-CH_C_PI_2);
+    vis->SetChaseCameraAngle(-CH_PI_2);
     vis->SetChaseCameraMultipliers(1e-4, 10);
 
     // -----------------------------------
@@ -223,7 +223,7 @@ int main(int argc, char* argv[]) {
     rig->SetMaxTorque(6000);
 
     // Disable gravity in this simulation
-    ////rig->GetSystem()->Set_G_acc(ChVector3d(0, 0, 0));
+    ////rig->GetSystem()->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Visualization settings
     rig->SetSprocketVisualizationType(VisualizationType::PRIMITIVES);
@@ -234,9 +234,9 @@ int main(int argc, char* argv[]) {
     rig->SetTrackShoeVisualizationType(VisualizationType::PRIMITIVES);
 
     // Control internal collisions and contact monitoring
-    ////rig->SetCollide(TrackedCollisionFlag::NONE);
-    ////rig->SetCollide(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
-    ////rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->SetCollide(false);
+    ////rig->EnableCollision(TrackedCollisionFlag::NONE);
+    ////rig->EnableCollision(TrackedCollisionFlag::SPROCKET_LEFT | TrackedCollisionFlag::SHOES_LEFT);
+    ////rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->EnableCollision(false);
 
     rig->Initialize();
 
@@ -291,7 +291,7 @@ int main(int argc, char* argv[]) {
     rig->GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(rig->GetSystem()->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(50);
+    integrator->SetMaxIters(50);
     integrator->SetAbsTolerances(1e-2, 1e2);
     integrator->SetStepControl(false);
     integrator->SetModifiedNewton(true);
@@ -330,7 +330,7 @@ int main(int argc, char* argv[]) {
 
         // Debugging output
         if (dbg_output) {
-            const ChFrameMoving<>& c_ref = rig->GetChassisBody()->GetFrame_REF_to_abs();
+            const ChFrameMoving<>& c_ref = rig->GetChassisBody()->GetFrameRefToAbs();
             const ChVector3d& i_pos_abs = rig->GetTrackAssembly()->GetIdler()->GetWheelBody()->GetPos();
             const ChVector3d& s_pos_abs = rig->GetTrackAssembly()->GetSprocket()->GetGearBody()->GetPos();
             ChVector3d i_pos_rel = c_ref.TransformPointParentToLocal(i_pos_abs);

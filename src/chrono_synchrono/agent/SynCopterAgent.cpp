@@ -45,8 +45,8 @@ void SynCopterAgent::InitializeZombie(ChSystem* system) {
 
         auto prop = chrono_types::make_shared<ChBody>();
         prop->AddVisualShape(prop_trimesh);
-        prop->SetCollide(false);
-        prop->SetBodyFixed(true);
+        prop->EnableCollision(false);
+        prop->SetFixed(true);
         system->Add(prop);
 
         m_prop_list.push_back(prop);
@@ -55,9 +55,9 @@ void SynCopterAgent::InitializeZombie(ChSystem* system) {
 
 void SynCopterAgent::SynchronizeZombie(std::shared_ptr<SynMessage> message) {
     if (auto state = std::dynamic_pointer_cast<SynCopterStateMessage>(message)) {
-        m_zombie_body->SetCsys(state->chassis.GetFrame().GetPos(), state->chassis.GetFrame().GetRot());
+        m_zombie_body->SetCoordsys(state->chassis.GetFrame().GetPos(), state->chassis.GetFrame().GetRot());
         for (int i = 0; i < state->props.size(); i++)
-            m_prop_list[i]->SetCsys(state->props[i].GetFrame().GetPos(), state->props[i].GetFrame().GetRot());
+            m_prop_list[i]->SetCoordsys(state->props[i].GetFrame().GetPos(), state->props[i].GetFrame().GetRot());
     }
 }
 
@@ -67,18 +67,18 @@ void SynCopterAgent::Update() {
 
     auto chassis_body = m_copter->GetChassis();
     SynPose chassis_pose(chassis_body->GetPos(), chassis_body->GetRot());
-    chassis_pose.GetFrame().SetPosDer(chassis_body->GetPosDer());
-    chassis_pose.GetFrame().SetPosDer2(chassis_body->GetPosDer2());
-    chassis_pose.GetFrame().SetRotDer(chassis_body->GetRotDer());
-    chassis_pose.GetFrame().SetRotDer2(chassis_body->GetRotDer2());
+    chassis_pose.GetFrame().SetPosDt(chassis_body->GetPosDt());
+    chassis_pose.GetFrame().SetPosDt2(chassis_body->GetPosDt2());
+    chassis_pose.GetFrame().SetRotDt(chassis_body->GetRotDt());
+    chassis_pose.GetFrame().SetRotDt2(chassis_body->GetRotDt2());
 
     std::vector<SynPose> props_poses;
     for (auto prop : m_copter->GetProps() ) {
         SynPose frame(prop->GetPos(), prop->GetRot());
-        frame.GetFrame().SetPosDer(prop->GetPosDer());
-        frame.GetFrame().SetPosDer2(prop->GetPosDer2());
-        frame.GetFrame().SetRotDer(prop->GetRotDer());
-        frame.GetFrame().SetRotDer2(prop->GetRotDer2());
+        frame.GetFrame().SetPosDt(prop->GetPosDt());
+        frame.GetFrame().SetPosDt2(prop->GetPosDt2());
+        frame.GetFrame().SetRotDt(prop->GetRotDt());
+        frame.GetFrame().SetRotDt2(prop->GetRotDt2());
         props_poses.emplace_back(frame);
     }
 
@@ -113,8 +113,8 @@ std::shared_ptr<ChBody> SynCopterAgent::CreateChassisZombieBody(const std::strin
 
     auto zombie_body = chrono_types::make_shared<ChBody>();
     zombie_body->AddVisualShape(trimesh);
-    zombie_body->SetCollide(false);
-    zombie_body->SetBodyFixed(true);
+    zombie_body->EnableCollision(false);
+    zombie_body->SetFixed(true);
     system->Add(zombie_body);
 
     return zombie_body;

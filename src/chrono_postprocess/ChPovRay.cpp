@@ -675,11 +675,11 @@ void ChPovRay::ExportObjData(std::ofstream& pov_file,
     auto commands = m_custom_commands.find((size_t)item.get());
 
     auto vis_model = item->GetVisualModel();
-    int num_shapes = vis_model->GetNumShapes();
-    int num_shapesFEA = vis_model->GetNumShapesFEA();
+    unsigned int num_shapes = vis_model->GetNumShapes();
+    unsigned int num_shapesFEA = vis_model->GetNumShapesFEA();
     int num_cameras = (int)item->GetCameras().size();
     int num_commands = (commands == m_custom_commands.end()) ? 0 : 1;
-    int num_csys = (parentframe.GetCsys() == CSYSNORM) ? 0 : 1;
+    int num_csys = (parentframe.GetCoordsys() == CSYSNORM) ? 0 : 1;
 
     // Use a union only if more than one element
     bool use_union = num_shapes + num_shapesFEA + num_cameras + num_commands + num_csys > 1;
@@ -800,15 +800,15 @@ void ChPovRay::ExportData(const std::string& filename) {
             if (const auto& body = std::dynamic_pointer_cast<ChBody>(item)) {
                 // Get the current coordinate frame of the i-th object
                 ChCoordsys<> assetcsys = CSYSNORM;
-                const ChFrame<>& bodyframe = body->GetFrame_REF_to_abs();
-                assetcsys = bodyframe.GetCsys();
+                const ChFrame<>& bodyframe = body->GetFrameRefToAbs();
+                assetcsys = bodyframe.GetCoordsys();
 
                 // Dump the POV macro that generates the contained asset(s) tree
                 ExportObjData(pov_file, body, bodyframe);
 
                 // Show body COG?
                 if (COGs_show) {
-                    const ChCoordsys<>& cogcsys = body->GetFrame_COG_to_abs().GetCsys();
+                    const ChCoordsys<>& cogcsys = body->GetFrame_COG_to_abs().GetCoordsys();
                     pov_file << "sh_csysCOG(";
                     pov_file << cogcsys.pos.x() << "," << cogcsys.pos.y() << "," << cogcsys.pos.z() << ",";
                     pov_file << cogcsys.rot.e0() << "," << cogcsys.rot.e1() << "," << cogcsys.rot.e2() << ","
@@ -829,7 +829,7 @@ void ChPovRay::ExportData(const std::string& filename) {
             if (const auto& clones = std::dynamic_pointer_cast<ChParticleCloud>(item)) {
                 pov_file << " " << std::endl;
                 pov_file << "#declare Index = 0; " << std::endl;
-                pov_file << "#while(Index < " << clones->GetNparticles() << ") " << std::endl;
+                pov_file << "#while(Index < " << clones->GetNumParticles() << ") " << std::endl;
                 pov_file << "  #read (MyDatFile, apx, apy, apz, aq0, aq1, aq2, aq3) " << std::endl;
                 pov_file << "  object{" << std::endl;
                 ChFrame<> nullframe(CSYSNORM);
@@ -842,10 +842,10 @@ void ChPovRay::ExportData(const std::string& filename) {
                 pov_file << " " << std::endl;
 
                 // Loop on all particle clones
-                for (unsigned int m = 0; m < clones->GetNparticles(); ++m) {
+                for (unsigned int m = 0; m < clones->GetNumParticles(); ++m) {
                     // Get the current coordinate frame of the i-th particle
                     ChCoordsys<> assetcsys = CSYSNORM;
-                    assetcsys = clones->GetParticle(m).GetCsys();
+                    assetcsys = clones->GetParticle(m).GetCoordsys();
 
                     data_file << assetcsys.pos.x() << ", ";
                     data_file << assetcsys.pos.y() << ", ";
@@ -863,8 +863,8 @@ void ChPovRay::ExportData(const std::string& filename) {
             // saving a ChLinkMateGeneric constraint?
             if (auto linkmate = std::dynamic_pointer_cast<ChLinkMateGeneric>(item)) {
                 if (linkmate->GetBody1() && linkmate->GetBody2() && links_show) {
-                    ChFrame<> frAabs = linkmate->GetFrame1() >> *linkmate->GetBody1();
-                    ChFrame<> frBabs = linkmate->GetFrame2() >> *linkmate->GetBody2();
+                    ChFrame<> frAabs = linkmate->GetFrame1Rel() >> *linkmate->GetBody1();
+                    ChFrame<> frBabs = linkmate->GetFrame2Rel() >> *linkmate->GetBody2();
                     pov_file << "sh_csysFRM(";
                     pov_file << frAabs.GetPos().x() << "," << frAabs.GetPos().y() << "," << frAabs.GetPos().z() << ",";
                     pov_file << frAabs.GetRot().e0() << "," << frAabs.GetRot().e1() << "," << frAabs.GetRot().e2()

@@ -55,7 +55,7 @@ void ChWheel::Initialize(std::shared_ptr<ChChassis> chassis,
 
     if (m_spindle->GetCollisionModel()) {
         m_spindle->GetCollisionModel()->SetFamily(WheeledCollisionFamily::WHEEL);
-        m_spindle->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(WheeledCollisionFamily::WHEEL);
+        m_spindle->GetCollisionModel()->DisallowCollisionsWith(WheeledCollisionFamily::WHEEL);
     }
 
     // Create ChLoad objects to apply terrain forces on spindle
@@ -100,8 +100,8 @@ void ChWheel::Synchronize() {
 }
 
 void ChWheel::Synchronize(const TerrainForce& tire_force) {
-    m_spindle->Accumulate_force(tire_force.force, tire_force.point, false);
-    m_spindle->Accumulate_torque(tire_force.moment, false);
+    m_spindle->AccumulateForce(tire_force.force, tire_force.point, false);
+    m_spindle->AccumulateTorque(tire_force.moment, false);
 
     ////m_spindle_terrain_force->SetForce(tire_force.force, false);
     ////m_spindle_terrain_force->SetApplicationPoint(tire_force.point, false);
@@ -119,7 +119,7 @@ WheelState ChWheel::GetState() const {
     ChFrameMoving<> wheel_abs = m_spindle->TransformLocalToParent(wheel_loc);
     state.pos = wheel_abs.GetPos();
     state.rot = wheel_abs.GetRot();
-    state.lin_vel = wheel_abs.GetPosDer();
+    state.lin_vel = wheel_abs.GetPosDt();
     state.ang_vel = wheel_abs.GetAngVelParent();
 
     ChVector3d ang_vel_loc = state.rot.RotateBack(state.ang_vel);
@@ -136,7 +136,7 @@ void ChWheel::AddVisualizationAssets(VisualizationType vis) {
 
     if (vis == VisualizationType::MESH && !m_vis_mesh_file.empty()) {
         ChQuaternion<> rot =
-            (m_side == VehicleSide::LEFT) ? QuatFromAngleZ(0) : QuatFromAngleZ(CH_C_PI);
+            (m_side == VehicleSide::LEFT) ? QuatFromAngleZ(0) : QuatFromAngleZ(CH_PI);
         auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_vis_mesh_file),
                                                                                   true, true);
         m_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();

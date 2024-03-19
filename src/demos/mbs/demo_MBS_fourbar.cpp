@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
     // ..the truss
     auto my_body_A = chrono_types::make_shared<ChBody>();
     sys.AddBody(my_body_A);
-    my_body_A->SetBodyFixed(true);  // truss does not move!
+    my_body_A->SetFixed(true);  // truss does not move!
 
     // ..the flywheel
     auto my_body_B = chrono_types::make_shared<ChBody>();
@@ -124,7 +124,7 @@ int main(int argc, char* argv[]) {
     auto my_link_AB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     my_link_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector3d(0, 0, 0)));
     sys.AddLink(my_link_AB);
-    auto my_speed_function = chrono_types::make_shared<ChFunctionConst>(CH_C_PI);  // speed w=3.145 rad/sec
+    auto my_speed_function = chrono_types::make_shared<ChFunctionConst>(CH_PI);  // speed w=3.145 rad/sec
     my_link_AB->SetSpeedFunction(my_speed_function);
 
     // .. a revolute joint between flywheel and rod
@@ -190,22 +190,22 @@ int main(int argc, char* argv[]) {
         // .. draw a circle representing flywheel
         tools::drawCircle(vis.get(), 2.1, ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
         // .. draw a small circle representing joint BC
-        tools::drawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_BC->GetMarker1()->GetAbsCsys().pos, QUNIT));
+        tools::drawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_BC->GetMarker1()->GetAbsCoordsys().pos, QUNIT));
         // .. draw a small circle representing joint CD
-        tools::drawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_CD->GetMarker1()->GetAbsCsys().pos, QUNIT));
+        tools::drawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_CD->GetMarker1()->GetAbsCoordsys().pos, QUNIT));
         // .. draw a small circle representing joint DA
-        tools::drawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_DA->GetMarker1()->GetAbsCsys().pos, QUNIT));
+        tools::drawCircle(vis.get(), 0.06, ChCoordsys<>(my_link_DA->GetMarker1()->GetAbsCoordsys().pos, QUNIT));
         // .. draw the rod (from joint BC to joint CD)
-        tools::drawSegment(vis.get(), my_link_BC->GetMarker1()->GetAbsCsys().pos,
-                           my_link_CD->GetMarker1()->GetAbsCsys().pos, ChColor(0, 1, 0));
+        tools::drawSegment(vis.get(), my_link_BC->GetMarker1()->GetAbsCoordsys().pos,
+                           my_link_CD->GetMarker1()->GetAbsCoordsys().pos, ChColor(0, 1, 0));
         // .. draw the rocker (from joint CD to joint DA)
-        tools::drawSegment(vis.get(), my_link_CD->GetMarker1()->GetAbsCsys().pos,
-                           my_link_DA->GetMarker1()->GetAbsCsys().pos, ChColor(1, 0, 0));
+        tools::drawSegment(vis.get(), my_link_CD->GetMarker1()->GetAbsCoordsys().pos,
+                           my_link_DA->GetMarker1()->GetAbsCoordsys().pos, ChColor(1, 0, 0));
         // .. draw the trajectory of the rod-point
         tools::drawPolyline(vis.get(), mtrajectory, ChColor(0, 0.5f, 0));
 
         // We need to add another point to the array of 3d points describing the trajectory to be drawn..
-        mtrajectory.push_back(my_body_C->Point_Body2World(ChVector3d(1, 1, 0)));
+        mtrajectory.push_back(my_body_C->TransformPointLocalToParent(ChVector3d(1, 1, 0)));
         // keep only last 150 points..
         if (mtrajectory.size() > 150)
             mtrajectory.erase(mtrajectory.begin());

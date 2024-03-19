@@ -53,14 +53,14 @@ void create_column(ChSystemNSC& sys,
 
     std::vector<ChVector3d> mpoints;
     for (int i = 0; i < col_nedges; ++i) {
-        double alpha = CH_C_2PI * ((double)i / (double)col_nedges);  // polar coord
+        double alpha = CH_2PI * ((double)i / (double)col_nedges);  // polar coord
         double x = col_radius_hi * cos(alpha);
         double z = col_radius_hi * sin(alpha);
         double y = col_base + col_height;
         mpoints.push_back(ChVector3d(x, y, z));
     }
     for (int i = 0; i < col_nedges; ++i) {
-        double alpha = CH_C_2PI * ((double)i / (double)col_nedges);  // polar coord
+        double alpha = CH_2PI * ((double)i / (double)col_nedges);  // polar coord
         double x = col_radius_lo * cos(alpha);
         double z = col_radius_lo * sin(alpha);
         double y = col_base;
@@ -69,7 +69,7 @@ void create_column(ChSystemNSC& sys,
     auto bodyColumn = chrono_types::make_shared<ChBodyEasyConvexHull>(mpoints, col_density, true, true, material);
     ChCoordsys<> cog_column(ChVector3d(0, col_base + col_height / 2, 0));
     ChCoordsys<> abs_cog_column = cog_column >> base_pos;
-    bodyColumn->SetCsys(abs_cog_column);
+    bodyColumn->SetCoordsys(abs_cog_column);
     sys.Add(bodyColumn);
 }
 
@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
 
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 2, 20, 3000, true, false);
     floorBody->SetPos(ChVector3d(0, -2, 0));
-    floorBody->SetBodyFixed(true);
+    floorBody->SetFixed(true);
     floorBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/blue.png"));
     sys.Add(floorBody);
 
@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
     linkEarthquake->Initialize(tableBody, floorBody, ChFrame<>(ChVector3d(0, 0, 0)));
 
     auto mmotion_x = chrono_types::make_shared<ChFunctionSine>(0.2, 0.6);  // phase freq ampl
-    linkEarthquake->SetMotion_X(mmotion_x);
+    linkEarthquake->SetMotionX(mmotion_x);
 
     sys.Add(linkEarthquake);
 
@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
                                                                     column_mat);        // contact material
 
             ChCoordsys<> cog_top(ChVector3d(icol * spacing + spacing / 2, 4.5 + 0.4 / 2, 0));
-            bodyTop->SetCsys(cog_top);
+            bodyTop->SetCoordsys(cog_top);
 
             sys.Add(bodyTop);
         }
@@ -183,7 +183,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->AddCamera(ChVector3d(1, 8, -15));
             vis_vsg->SetCameraAngleDeg(50);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
@@ -195,9 +195,9 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(50);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(50);
 
-    // sys.SetUseSleeping(true);
+    // sys.SetSleepingAllowed(true);
 
     // Simulation loop
     double timestep = 0.005;

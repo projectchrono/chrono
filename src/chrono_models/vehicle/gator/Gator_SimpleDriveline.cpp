@@ -50,12 +50,12 @@ void Gator_SimpleDriveline::Synchronize(double time, const DriverInputs& driver_
         return;
 
     // Enforce driveshaft speed
-    m_driveshaft_speed = 0.5 * (m_left->GetPosDer() + m_right->GetPosDer());
+    m_driveshaft_speed = 0.5 * (m_left->GetPosDt() + m_right->GetPosDt());
 
     // Split the driveshaft torque for the corresponding left/right wheels.
     // Use a siple model of a Torsten limited-slip differential with a max_bias:1 torque bias ratio.
-    double speed_left = m_left->GetPosDer();
-    double speed_right = m_right->GetPosDer();
+    double speed_left = m_left->GetPosDt();
+    double speed_right = m_right->GetPosDt();
     double diff = std::abs(speed_left - speed_right);
 
     // The bias grows from 1 at diff=0.25 to m_diff_bias at diff=0.5

@@ -125,7 +125,7 @@ class AirCoilSpringBistopForce : public ChLinkTSDA::ForceFunctor {
           m_coilSpringF0(coilSpringF0),
           m_P0(p0) {
         // percalculations
-        double A0 = pow(m_piston_radius, 2.0) * CH_C_PI;
+        double A0 = pow(m_piston_radius, 2.0) * CH_PI;
         double V0 = m_cylinder_compression_length * A0;
         m_airSpringF0 = m_P0 * A0;
         std::cout << "Fzero = " << m_airSpringF0 << "N\n";
@@ -257,7 +257,7 @@ class FEDA_ShockODE : public ChLinkTSDA::ODE {
         m_lf_damper_table.AddPoint(5.0, 74851.94949);  // found by linear extrapolation
     }
 
-    virtual int GetNumStates() const override { return 2; }
+    virtual unsigned int GetNumStates() const override { return 2; }
     virtual void SetInitialConditions(ChVectorDynamic<>& states,  // output vector containig initial conditions
                                       const ChLinkTSDA& link      // associated link
                                       ) override {

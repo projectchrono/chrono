@@ -80,7 +80,7 @@ namespace ChronoDemo
             hmmwv.SetTireType(TireModelType.TMEASY);
             hmmwv.SetTireStepSize(step_size);
             hmmwv.Initialize();
-            if (isYUp) { hmmwv.GetSystem().Set_G_acc(new ChVector3d(0, -9.81, 0)); } // adjust the gravity
+            if (isYUp) { hmmwv.GetSystem().SetGravitationalAcceleration(new ChVector3d(0, -9.81, 0)); } // adjust the gravity
 
             // Visualisation of vehicle
             hmmwv.SetChassisVisualizationType(VisualizationType.MESH);
@@ -106,10 +106,10 @@ namespace ChronoDemo
 
 
             // NB: in Y-Up the +vs Zaxis is to the right of the vehicle, and a +ve slope angle causes an upwards gradient ramp
-            ChQuaterniond slope = (isYUp) ? chrono.QuatFromAngleZ(15 * chrono.CH_C_DEG_TO_RAD) : chrono.QuatFromAngleY(-15 * chrono.CH_C_DEG_TO_RAD);
+            ChQuaterniond slope = (isYUp) ? chrono.QuatFromAngleZ(15 * chrono.CH_DEG_TO_RAD) : chrono.QuatFromAngleY(-15 * chrono.CH_DEG_TO_RAD);
 
             // Rotate for Y-Up world
-            ChQuaterniond rotateYUp = new ChQuaterniond(chrono.Q_ROTATE_Z_TO_Y); // // alternatively, could use the call chrono.QuatFromAngleX(-chrono.CH_C_PI_2));
+            ChQuaterniond rotateYUp = new ChQuaterniond(chrono.Q_ROTATE_Z_TO_Y); // // alternatively, could use the call chrono.QuatFromAngleX(-chrono.CH_PI_2));
             // Adjust the slope rotation for the Y-Up world
             ChQuaterniond resultantSlopeRot = new ChQuaterniond();
             resultantSlopeRot.Cross(slope, rotateYUp);
@@ -180,7 +180,7 @@ namespace ChronoDemo
                         camera_pos.z = 12;
                         camera.SetCameraPos(camera_pos);
                         vis.SetChaseCameraState(ChChaseCamera.State.Free);
-                        vis.SetChaseCameraAngle(chrono.CH_C_PI_2 / 2); // point camera towards the vehicle and ramp after freeing it
+                        vis.SetChaseCameraAngle(chrono.CH_PI_2 / 2); // point camera towards the vehicle and ramp after freeing it
                     }
                 }
                 else if (!isYUp)
@@ -194,7 +194,7 @@ namespace ChronoDemo
                         camera_pos.z = 2;
                         camera.SetCameraPos(camera_pos);
                         vis.SetChaseCameraState(ChChaseCamera.State.Free);
-                        vis.SetChaseCameraAngle(chrono.CH_C_PI_2 / 2); // point camera towards the vehicle and ramp after freeing it
+                        vis.SetChaseCameraAngle(chrono.CH_PI_2 / 2); // point camera towards the vehicle and ramp after freeing it
                     }
                 }
 
@@ -220,7 +220,7 @@ namespace ChronoDemo
                 double interval = 1.0; // The interval between points, make smaller to refine grid (slows simulation down however)
                 // Create a rigid body to store the terrian grid polylines
                 ChBody gridBody = new ChBody();
-                gridBody.SetBodyFixed(true);
+                gridBody.SetFixed(true);
 
                 // Calculate the start and end positions based on the grid size
                 double halfGridSize = gridSize / 2;
@@ -238,7 +238,7 @@ namespace ChronoDemo
                     {
                         double x = -halfGridSize + i * interval + gridCentre.x;
                         double height = terrain.GetHeight(new ChVector3d(x, (isYUp ? 1000 : gridAxis), (isYUp ? gridAxis : 1000))); // Height query of terrain at set point
-                        polyline.Set_point(i, new ChVector3d(x, (isYUp ? height : gridAxis), (isYUp ? gridAxis : height)));  // Set each point along the polyline
+                        polyline.SetPoint(i, new ChVector3d(x, (isYUp ? height : gridAxis), (isYUp ? gridAxis : height)));  // Set each point along the polyline
                     }
 
                     // Add polyline to visualisation
@@ -258,7 +258,7 @@ namespace ChronoDemo
                     {
                         double crossAxis = -halfGridSize + j * interval + (isYUp ? gridCentre.z : gridCentre.y);
                         double height = terrain.GetHeight(new ChVector3d(x, (isYUp ? 1000 : crossAxis), (isYUp ? crossAxis : 1000))); // Query the height
-                        polyline.Set_point(j, new ChVector3d(x, (isYUp ? height : crossAxis), (isYUp ? crossAxis : height)));  // Set each point along the polyline
+                        polyline.SetPoint(j, new ChVector3d(x, (isYUp ? height : crossAxis), (isYUp ? crossAxis : height)));  // Set each point along the polyline
                     }
 
                     // Add polyline to visualisation

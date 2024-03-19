@@ -50,7 +50,7 @@ void ChBodyEasySphere::SetupBody(double radius,
                                  bool visualize,
                                  bool collide,
                                  std::shared_ptr<ChContactMaterial> material) {
-    double mmass = density * ((4.0 / 3.0) * CH_C_PI * pow(radius, 3));
+    double mmass = density * ((4.0 / 3.0) * CH_PI * pow(radius, 3));
     double inertia = (2.0 / 5.0) * mmass * pow(radius, 2);
 
     SetMass(mmass);
@@ -60,7 +60,7 @@ void ChBodyEasySphere::SetupBody(double radius,
         assert(material);
         auto cshape = chrono_types::make_shared<ChCollisionShapeSphere>(material, radius);
         AddCollisionShape(cshape);
-        SetCollide(true);
+        EnableCollision(true);
     }
     if (visualize) {
         auto vshape = chrono_types::make_shared<ChVisualShapeSphere>(radius);
@@ -103,7 +103,7 @@ void ChBodyEasyEllipsoid::SetupBody(ChVector3d axes,
                                     bool visualize,
                                     bool collide,
                                     std::shared_ptr<ChContactMaterial> material) {
-    double mmass = density * ((1 / 6.0) * CH_C_PI * axes.x() * axes.y() * axes.z());
+    double mmass = density * ((1 / 6.0) * CH_PI * axes.x() * axes.y() * axes.z());
     double inertiax = (1 / 20.0) * mmass * (pow(axes.y(), 2) + pow(axes.z(), 2));
     double inertiay = (1 / 20.0) * mmass * (pow(axes.x(), 2) + pow(axes.z(), 2));
     double inertiaz = (1 / 20.0) * mmass * (pow(axes.x(), 2) + pow(axes.y(), 2));
@@ -115,7 +115,7 @@ void ChBodyEasyEllipsoid::SetupBody(ChVector3d axes,
         assert(material);
         auto cshape = chrono_types::make_shared<ChCollisionShapeEllipsoid>(material, axes);
         AddCollisionShape(cshape);
-        SetCollide(true);
+        EnableCollision(true);
     }
     if (visualize) {
         auto vshape = chrono_types::make_shared<ChVisualShapeEllipsoid>(axes);
@@ -166,7 +166,7 @@ void ChBodyEasyCylinder::SetupBody(ChAxis direction,
                                    bool visualize,
                                    bool collide,
                                    std::shared_ptr<ChContactMaterial> material) {
-    double mass = density * (CH_C_PI * pow(radius, 2) * height);
+    double mass = density * (CH_PI * pow(radius, 2) * height);
     double I_axis = 0.5 * mass * pow(radius, 2);
     double I_orth = (1 / 12.0) * mass * (3 * pow(radius, 2) + pow(height, 2));
     ChQuaternion<> rot;
@@ -175,11 +175,11 @@ void ChBodyEasyCylinder::SetupBody(ChAxis direction,
 
     switch (direction) {
         case ChAxis::X:
-            rot = QuatFromAngleY(CH_C_PI_2);
+            rot = QuatFromAngleY(CH_PI_2);
             SetInertiaXX(ChVector3d(I_axis, I_orth, I_orth));
             break;
         case ChAxis::Y:
-            rot = QuatFromAngleX(CH_C_PI_2);
+            rot = QuatFromAngleX(CH_PI_2);
             SetInertiaXX(ChVector3d(I_orth, I_axis, I_orth));
             break;
         case ChAxis::Z:
@@ -192,7 +192,7 @@ void ChBodyEasyCylinder::SetupBody(ChAxis direction,
         assert(material);
         auto cshape = chrono_types::make_shared<ChCollisionShapeCylinder>(material, radius, height);
         AddCollisionShape(cshape, ChFrame<>(VNULL, rot));
-        SetCollide(true);
+        EnableCollision(true);
     }
 
     if (visualize) {
@@ -255,7 +255,7 @@ void ChBodyEasyBox::SetupBody(double Xsize,
         assert(material);
         auto cshape = chrono_types::make_shared<ChCollisionShapeBox>(material, Xsize, Ysize, Zsize);
         AddCollisionShape(cshape);
-        SetCollide(true);
+        EnableCollision(true);
     }
     if (visualize) {
         auto vshape = chrono_types::make_shared<ChVisualShapeBox>(Xsize, Ysize, Zsize);
@@ -320,8 +320,8 @@ void ChBodyEasyConvexHull::SetupBody(std::vector<ChVector3d>& points,
     vshape->GetMesh()->ComputeMassProperties(true, mass, baricenter, inertia);
 
     // Translate the convex hull baricenter so that body origin is also baricenter
-    for (unsigned int i = 0; i < vshape->GetMesh()->getCoordsVertices().size(); ++i)
-        vshape->GetMesh()->getCoordsVertices()[i] -= baricenter;
+    for (unsigned int i = 0; i < vshape->GetMesh()->GetCoordsVertices().size(); ++i)
+        vshape->GetMesh()->GetCoordsVertices()[i] -= baricenter;
 
     SetMass(mass * density);
     SetInertia(inertia * density);
@@ -331,13 +331,13 @@ void ChBodyEasyConvexHull::SetupBody(std::vector<ChVector3d>& points,
         // avoid passing to collision the inner points discarded by convex hull
         // processor, so use mesh vertexes instead of all argument points
         std::vector<ChVector3d> points_reduced;
-        points_reduced.resize(vshape->GetMesh()->getCoordsVertices().size());
-        for (unsigned int i = 0; i < vshape->GetMesh()->getCoordsVertices().size(); ++i)
-            points_reduced[i] = vshape->GetMesh()->getCoordsVertices()[i];
+        points_reduced.resize(vshape->GetMesh()->GetCoordsVertices().size());
+        for (unsigned int i = 0; i < vshape->GetMesh()->GetCoordsVertices().size(); ++i)
+            points_reduced[i] = vshape->GetMesh()->GetCoordsVertices()[i];
 
         auto cshape = chrono_types::make_shared<ChCollisionShapeConvexHull>(material, points_reduced);
         AddCollisionShape(cshape);
-        SetCollide(true);
+        EnableCollision(true);
     }
 
     m_mesh = vshape->GetMesh();
@@ -411,20 +411,20 @@ void ChBodyEasyConvexHullAuxRef::SetupBody(std::vector<ChVector3d>& points,
     SetInertiaXX(ChVector3d(principal_I) * density);
 
     // Set the COG coordinates to barycenter, without displacing the REF reference
-    SetFrame_COG_to_REF(ChFrame<>(baricenter, principal_inertia_csys));
+    SetFrameCOMToRef(ChFrame<>(baricenter, principal_inertia_csys));
 
     if (collide) {
         assert(material);
         // avoid passing to collision the inner points discarded by convex hull
         // processor, so use mesh vertexes instead of all argument points
         std::vector<ChVector3d> points_reduced;
-        points_reduced.resize(vshape->GetMesh()->getCoordsVertices().size());
-        for (unsigned int i = 0; i < vshape->GetMesh()->getCoordsVertices().size(); ++i)
-            points_reduced[i] = vshape->GetMesh()->getCoordsVertices()[i];
+        points_reduced.resize(vshape->GetMesh()->GetCoordsVertices().size());
+        for (unsigned int i = 0; i < vshape->GetMesh()->GetCoordsVertices().size(); ++i)
+            points_reduced[i] = vshape->GetMesh()->GetCoordsVertices()[i];
 
         auto cshape = chrono_types::make_shared<ChCollisionShapeConvexHull>(material, points_reduced);
         AddCollisionShape(cshape);
-        SetCollide(true);
+        EnableCollision(true);
     }
 
     m_mesh = vshape->GetMesh();
@@ -524,7 +524,7 @@ void ChBodyEasyMesh::SetupBody(std::shared_ptr<ChTriangleMeshConnected> trimesh,
         SetInertiaXX(ChVector3d(principal_I) * density);
 
         // Set the COG coordinates to barycenter, without displacing the REF reference
-        SetFrame_COG_to_REF(ChFrame<>(baricenter, principal_inertia_csys));
+        SetFrameCOMToRef(ChFrame<>(baricenter, principal_inertia_csys));
     }
 
     if (collide) {
@@ -533,7 +533,7 @@ void ChBodyEasyMesh::SetupBody(std::shared_ptr<ChTriangleMeshConnected> trimesh,
         auto cshape =
             chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, trimesh, false, false, sphere_swept);
         AddCollisionShape(cshape);
-        SetCollide(true);
+        EnableCollision(true);
     }
 }
 
@@ -589,12 +589,12 @@ void ChBodyEasyClusterOfSpheres::SetupBody(std::vector<ChVector3d>& positions,
     ChVector3d baricenter = VNULL;
     totinertia.setZero();
     for (unsigned int i = 0; i < positions.size(); ++i) {
-        double sphmass = density * ((4.0 / 3.0) * CH_C_PI * pow(radii[i], 3));
+        double sphmass = density * ((4.0 / 3.0) * CH_PI * pow(radii[i], 3));
         baricenter = (baricenter * totmass + positions[i] * sphmass) / (totmass + sphmass);
         totmass += sphmass;
     }
     for (unsigned int i = 0; i < positions.size(); ++i) {
-        double sphmass = density * ((4.0 / 3.0) * CH_C_PI * pow(radii[i], 3));
+        double sphmass = density * ((4.0 / 3.0) * CH_PI * pow(radii[i], 3));
         double sphinertia = (2.0 / 5.0) * sphmass * pow(radii[i], 2);
 
         // Huygens-Steiner parallel axis theorem:
@@ -626,7 +626,7 @@ void ChBodyEasyClusterOfSpheres::SetupBody(std::vector<ChVector3d>& positions,
             collision_model->AddShape(cshape, ChFrame<>(offset_positions[i], QUNIT));
         }
         AddCollisionModel(collision_model);
-        SetCollide(true);
+        EnableCollision(true);
     }
     if (visualize) {
         auto vmodel = chrono_types::make_shared<ChVisualModel>();

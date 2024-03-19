@@ -189,7 +189,7 @@ void ChVehicleCosimDBPRigImposedSlip::InitializeRig(std::shared_ptr<ChBody> chas
 
     // Create a "ground" body
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     chassis->GetSystem()->AddBody(ground);
 
     // Create a "carrier" body.
@@ -200,7 +200,7 @@ void ChVehicleCosimDBPRigImposedSlip::InitializeRig(std::shared_ptr<ChBody> chas
     carrier->SetInertiaXX(ChVector3d(1, 1, 1));
     carrier->SetPos(chassis->GetPos());
     carrier->SetRot(QUNIT);
-    carrier->SetPosDer(ChVector3d(m_lin_vel, 0, 0));
+    carrier->SetPosDt(ChVector3d(m_lin_vel, 0, 0));
     chassis->GetSystem()->AddBody(carrier);
 
     // Connect chassis body to connector using a vertical prismatic joint
@@ -241,7 +241,7 @@ void ChVehicleCosimDBPRigImposedAngVel::InitializeRig(std::shared_ptr<ChBody> ch
 
     // Create a "ground" body
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     chassis->GetSystem()->AddBody(ground);
 
     // Create a "carrier" body.
@@ -261,7 +261,7 @@ void ChVehicleCosimDBPRigImposedAngVel::InitializeRig(std::shared_ptr<ChBody> ch
 
     // Connect carrier to ground with a horizonal prismatic joint
     auto prism_horiz = chrono_types::make_shared<ChLinkLockPrismatic>();
-    prism_horiz->Initialize(m_carrier, ground, ChFrame<>(m_carrier->GetPos(), QuatFromAngleY(CH_C_PI_2)));
+    prism_horiz->Initialize(m_carrier, ground, ChFrame<>(m_carrier->GetPos(), QuatFromAngleY(CH_PI_2)));
     chassis->GetSystem()->AddLink(prism_horiz);
 
     // Apply a resistive force to carrier body
@@ -282,13 +282,13 @@ std::shared_ptr<ChFunction> ChVehicleCosimDBPRigImposedAngVel::GetMotorFunction(
 }
 
 double ChVehicleCosimDBPRigImposedAngVel::GetSlip() const {
-    double lin_vel = m_carrier->GetPosDer().x();
+    double lin_vel = m_carrier->GetPosDt().x();
     double slip = 1 - lin_vel / (m_ang_vel * m_tire_radius);
     return slip;
 }
 
 double ChVehicleCosimDBPRigImposedAngVel::GetLinVel() const {
-    return m_carrier->GetPosDer().x();
+    return m_carrier->GetPosDt().x();
 }
 
 double ChVehicleCosimDBPRigImposedAngVel::GetDBP() const {

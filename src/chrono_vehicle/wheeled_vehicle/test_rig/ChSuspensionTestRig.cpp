@@ -193,8 +193,8 @@ void ChSuspensionTestRig::IncludeSteeringMechanism(int index) {
 }
 
 void ChSuspensionTestRig::Initialize() {
-    for (auto ia : m_axle_index) {
-        if (ia < 0 || ia >= m_vehicle->GetNumberAxles()) {
+    for (int ia : m_axle_index) {
+        if (ia < 0 || ia >= (int)m_vehicle->GetNumberAxles()) {
             throw std::runtime_error("Incorrect axle index " + std::to_string(ia) + " for the given vehicle");
         }
         for (const auto& wheel : m_vehicle->GetAxle(ia)->GetWheels()) {
@@ -432,8 +432,8 @@ void ChSuspensionTestRig::SetPlotOutput(double output_step) {
         auto trq = axle->m_suspension->ReportSuspensionTorque(LEFT);
 
         PlotData pd;
-        pd.csvL.set_delim(" ");
-        pd.csvR.set_delim(" ");
+        pd.csvL.SetDelimiter(" ");
+        pd.csvR.SetDelimiter(" ");
         pd.num_tsda = (int)frc.size();
         pd.num_rsda = (int)trq.size();
 
@@ -457,8 +457,8 @@ void ChSuspensionTestRig::CollectPlotData(double time) {
         auto trqR = axle->m_suspension->ReportSuspensionTorque(RIGHT);
 
         // Tire camber angle (flip sign of reported camber angle on the left to get common definition)
-        double gammaL = -axle->m_wheels[0]->GetTire()->GetCamberAngle() * CH_C_RAD_TO_DEG;
-        double gammaR = axle->m_wheels[1]->GetTire()->GetCamberAngle() * CH_C_RAD_TO_DEG;
+        double gammaL = -axle->m_wheels[0]->GetTire()->GetCamberAngle() * CH_RAD_TO_DEG;
+        double gammaR = axle->m_wheels[1]->GetTire()->GetCamberAngle() * CH_RAD_TO_DEG;
 
         csvL << time;                                                                          // 1
         csvL << m_left_inputs[ia] << GetActuatorDisp(ia, LEFT) << GetActuatorForce(ia, LEFT);  // 2 3 4
@@ -493,8 +493,8 @@ void ChSuspensionTestRig::PlotOutput(const std::string& out_dir, const std::stri
     for (int ia = 0; ia < m_naxles; ia++) {
         std::string outfileL = prefix + std::to_string(ia) + "_L.txt";
         std::string outfileR = prefix + std::to_string(ia) + "_R.txt";
-        m_plot_data[ia].csvL.write_to_file(outfileL);
-        m_plot_data[ia].csvR.write_to_file(outfileR);
+        m_plot_data[ia].csvL.WriteToFile(outfileL);
+        m_plot_data[ia].csvR.WriteToFile(outfileR);
 
 #ifdef CHRONO_POSTPROCESS
         std::string lsL = "set style line 1 lt rgb 'dark-green' lw 2";
@@ -685,7 +685,7 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         auto post_L = chrono_types::make_shared<ChBody>();
         post_L->SetPos(pos_postL);
         post_L->SetMass(100);
-        post_L->SetCollide(true);
+        post_L->EnableCollision(true);
         sys->Add(post_L);
         AddPostVisualization(post_L, ChColor(0.1f, 0.8f, 0.15f));
 
@@ -698,7 +698,7 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         auto post_R = chrono_types::make_shared<ChBody>();
         post_R->SetPos(pos_postR);
         post_R->SetMass(100);
-        post_R->SetCollide(true);
+        post_R->EnableCollision(true);
         sys->Add(post_R);
         AddPostVisualization(post_R, ChColor(0.8f, 0.1f, 0.1f));
 
@@ -711,14 +711,14 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         auto linact_L = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         linact_L->SetNameString("L_post_linActuator");
         linact_L->SetMotionFunction(func_L);
-        ////linact_L->Initialize(post_L, m_vehicle->GetChassisBody(), ChFrame<>(pos_postL, QuatFromAngleY(CH_C_PI_2)));
+        ////linact_L->Initialize(post_L, m_vehicle->GetChassisBody(), ChFrame<>(pos_postL, QuatFromAngleY(CH_PI_2)));
         linact_L->Initialize(post_L, m_vehicle->GetChassisBody(), ChFrame<>(pos_postL, QUNIT));
         sys->AddLink(linact_L);
 
         auto linact_R = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         linact_R->SetNameString("R_post_linActuator");
         linact_R->SetMotionFunction(func_R);
-        ////linact_R->Initialize(post_R, m_vehicle->GetChassisBody(), ChFrame<>(pos_postR, QuatFromAngleY(CH_C_PI_2)));
+        ////linact_R->Initialize(post_R, m_vehicle->GetChassisBody(), ChFrame<>(pos_postR, QuatFromAngleY(CH_PI_2)));
         linact_R->Initialize(post_R, m_vehicle->GetChassisBody(), ChFrame<>(pos_postR, QUNIT));
         sys->AddLink(linact_R);
 
@@ -789,7 +789,7 @@ double ChSuspensionTestRigPlatform::GetActuatorDisp(int axle, VehicleSide side) 
 }
 
 double ChSuspensionTestRigPlatform::GetActuatorForce(int axle, VehicleSide side) {
-    return (side == LEFT) ? m_linact_L[axle]->Get_react_force().x() : m_linact_R[axle]->Get_react_force().x();
+    return (side == LEFT) ? m_linact_L[axle]->GetMotorForce() : m_linact_R[axle]->GetMotorForce();
 }
 
 double ChSuspensionTestRigPlatform::GetRideHeight(int axle) const {
@@ -843,7 +843,7 @@ void ChSuspensionTestRigPushrod::InitializeRig() {
         linact_L->SetNameString("L_rod_linActuator");
         linact_L->SetMotionFunction(func_L);
         ////linact_L->Initialize(suspension->GetSpindle(LEFT), m_vehicle->GetChassisBody(),
-        ////                     ChFrame<>(pos_spindleL, QuatFromAngleY(CH_C_PI_2)));
+        ////                     ChFrame<>(pos_spindleL, QuatFromAngleY(CH_PI_2)));
         linact_L->Initialize(suspension->GetSpindle(LEFT), m_vehicle->GetChassisBody(),
                              ChFrame<>(pos_spindleL, QUNIT));
         sys->AddLink(linact_L);
@@ -853,7 +853,7 @@ void ChSuspensionTestRigPushrod::InitializeRig() {
         linact_R->SetNameString("R_rod_linActuator");
         linact_R->SetMotionFunction(func_R);
         ////linact_R->Initialize(suspension->GetSpindle(RIGHT), m_vehicle->GetChassisBody(),
-        ////                     ChFrame<>(pos_spindleR, QuatFromAngleY(CH_C_PI_2)));
+        ////                     ChFrame<>(pos_spindleR, QuatFromAngleY(CH_PI_2)));
         linact_R->Initialize(suspension->GetSpindle(RIGHT), m_vehicle->GetChassisBody(),
                              ChFrame<>(pos_spindleR, QUNIT));
         sys->AddLink(linact_R);
@@ -861,13 +861,13 @@ void ChSuspensionTestRigPushrod::InitializeRig() {
         // Create the two rod bodies (used only for visualization)
         auto rod_L = chrono_types::make_shared<ChBody>();
         rod_L->SetPos(pos_spindleL);
-        rod_L->SetBodyFixed(true);
+        rod_L->SetFixed(true);
         sys->Add(rod_L);
         AddRodVisualization(rod_L, ChColor(0.1f, 0.8f, 0.15f));
 
         auto rod_R = chrono_types::make_shared<ChBody>();
         rod_R->SetPos(pos_spindleR);
-        rod_R->SetBodyFixed(true);
+        rod_R->SetFixed(true);
         sys->Add(rod_R);
         AddRodVisualization(rod_R, ChColor(0.8f, 0.1f, 0.1f));
 
@@ -927,7 +927,7 @@ double ChSuspensionTestRigPushrod::GetActuatorDisp(int axle, VehicleSide side) {
 }
 
 double ChSuspensionTestRigPushrod::GetActuatorForce(int axle, VehicleSide side) {
-    return (side == LEFT) ? m_linact_L[axle]->Get_react_force().x() : m_linact_R[axle]->Get_react_force().x();
+    return (side == LEFT) ? m_linact_L[axle]->GetMotorForce() : m_linact_R[axle]->GetMotorForce();
 }
 
 double ChSuspensionTestRigPushrod::GetRideHeight(int axle) const {

@@ -88,7 +88,7 @@ namespace ChronoDemo
             hmmwv.SetTireCollisionType(ChTire.CollisionType.SINGLE_POINT);
             hmmwv.SetTireStepSize(step_size);
             hmmwv.Initialize();
-            if (isYUp) { hmmwv.GetSystem().Set_G_acc(new ChVector3d(0, -9.81, 0)); } // adjust the gravity to the world
+            if (isYUp) { hmmwv.GetSystem().SetGravitationalAcceleration(new ChVector3d(0, -9.81, 0)); } // adjust the gravity to the world
 
             // Visualisation of vehicle
             hmmwv.SetChassisVisualizationType(VisualizationType.MESH);
@@ -228,12 +228,12 @@ namespace ChronoDemo
             ChVector3d positionZ = new ChVector3d(0,10,0); // ZUp
             ChVector3d positionY = new ChVector3d(0, 0, -10); // YUp
             // rotations about the vertical axis
-            ChQuaterniond rotationZ = chrono.QuatFromAngleZ(-170 * chrono.CH_C_DEG_TO_RAD); // Rotation in ZUp
-            ChQuaterniond rotationY = chrono.QuatFromAngleY(-170 * chrono.CH_C_DEG_TO_RAD); // Rotation in Yup
+            ChQuaterniond rotationZ = chrono.QuatFromAngleZ(-170 * chrono.CH_DEG_TO_RAD); // Rotation in ZUp
+            ChQuaterniond rotationY = chrono.QuatFromAngleY(-170 * chrono.CH_DEG_TO_RAD); // Rotation in Yup
 
             // Rotate for Y-Up world
             ChQuaterniond resultantSlopeRot = new ChQuaterniond();
-            ChQuaterniond rotateYUp = new ChQuaterniond(chrono.Q_ROTATE_Z_TO_Y); // alternatively, could use the call chrono.QuatFromAngleX(-chrono.CH_C_PI_2));
+            ChQuaterniond rotateYUp = new ChQuaterniond(chrono.Q_ROTATE_Z_TO_Y); // alternatively, could use the call chrono.QuatFromAngleX(-chrono.CH_PI_2));
             resultantSlopeRot.Cross(rotationY, rotateYUp); // alter the rotation around the vertical axis, about the x-axis to suit the YUp world
 
             // Generate the patch of terrain built from the combined point cloud

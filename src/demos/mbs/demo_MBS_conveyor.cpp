@@ -231,12 +231,12 @@ int main(int argc, char* argv[]) {
     auto fence1 = chrono_types::make_shared<ChBodyEasyBox>(2, 0.11, 0.04, 1000, true, true, fence_mat);
     sys.Add(fence1);
     fence1->SetPos(ChVector3d(0, 0, -0.325));
-    fence1->SetBodyFixed(true);
+    fence1->SetFixed(true);
 
     auto fence2 = chrono_types::make_shared<ChBodyEasyBox>(2, 0.11, 0.04, 1000, true, true, fence_mat);
     sys.Add(fence2);
     fence2->SetPos(ChVector3d(0, 0, 0.325));
-    fence2->SetBodyFixed(true);
+    fence2->SetFixed(true);
 
     // Create the conveyor belt (this is a pure Chrono::Engine object,
     // because an Irrlicht 'SceneNode' wrapper is not yet available, so it is invisible - no 3D preview)
@@ -244,7 +244,7 @@ int main(int argc, char* argv[]) {
     conveyor_mat->SetFriction(0.35f);
 
     auto conveyor = chrono_types::make_shared<ChConveyor>(2, 0.05, 0.6);
-    conveyor->SetBodyFixed(true);
+    conveyor->SetFixed(true);
     conveyor->SetMaterialSurface(conveyor_mat);
     conveyor->SetConveyorSpeed(STATIC_speed);
     conveyor->SetPos(ChVector3d(0, 0, 0));

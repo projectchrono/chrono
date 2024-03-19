@@ -66,7 +66,7 @@ ChAdaptiveSpeedController::~ChAdaptiveSpeedController() {
 }
 
 void ChAdaptiveSpeedController::Reset(const ChFrameMoving<>& ref_frame) {
-    m_speed = Vdot(ref_frame.GetPosDer(), ref_frame.GetRotMat().GetAxisX());
+    m_speed = Vdot(ref_frame.GetPosDt(), ref_frame.GetRotMat().GetAxisX());
     m_err = 0;
     m_erri = 0;
     m_errd = 0;
@@ -80,7 +80,7 @@ double ChAdaptiveSpeedController::Advance(const ChFrameMoving<>& ref_frame,
                                           double time,
                                           double step) {
     // Current vehicle speed.
-    m_speed = Vdot(ref_frame.GetPosDer(), ref_frame.GetRotMat().GetAxisX());
+    m_speed = Vdot(ref_frame.GetPosDt(), ref_frame.GetRotMat().GetAxisX());
 
     double desired_gap = target_speed / target_following_time;
     double distance = current_distance;
@@ -128,11 +128,11 @@ void ChAdaptiveSpeedController::StartDataCollection() {
     // Return now if currently collecting data.
     if (m_collect)
         return;
-    // Create the CSV_writer object if needed (first call to this function).
+    // Create the ChWriterCSV object if needed (first call to this function).
     if (!m_csv) {
-        m_csv = new utils::CSV_writer("\t");
-        m_csv->stream().setf(std::ios::scientific | std::ios::showpos);
-        m_csv->stream().precision(6);
+        m_csv = new utils::ChWriterCSV("\t");
+        m_csv->Stream().setf(std::ios::scientific | std::ios::showpos);
+        m_csv->Stream().precision(6);
     }
     // Enable data collection.
     m_collect = true;
@@ -146,7 +146,7 @@ void ChAdaptiveSpeedController::StopDataCollection() {
 void ChAdaptiveSpeedController::WriteOutputFile(const std::string& filename) {
     // Do nothing if data collection was never enabled.
     if (m_csv)
-        m_csv->write_to_file(filename);
+        m_csv->WriteToFile(filename);
 }
 
 }  // end namespace vehicle

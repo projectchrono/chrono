@@ -99,14 +99,14 @@ int main(int argc, char* argv[]) {
     // Create a rigid body as usual, and add it
     // to the physical system:
     auto floor = chrono_types::make_shared<ChBody>();
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
 
     // Define a collision shape
     auto floor_mat = chrono_types::make_shared<ChContactMaterialNSC>();
 
     auto floor_shape = chrono_types::make_shared<ChCollisionShapeBox>(floor_mat, 20, 1, 20);
     floor->AddCollisionShape(floor_shape, ChFrame<>(ChVector3d(0, -1, 0), QUNIT));
-    floor->SetCollide(true);
+    floor->EnableCollision(true);
 
     // Add body to system
     sys.Add(floor);
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
 
     // Create the rigid body as usual (this won't move, it is only for visualization tests)
     auto body = chrono_types::make_shared<ChBody>();
-    body->SetBodyFixed(true);
+    body->SetFixed(true);
     sys.Add(body);
 
     // ==Asset== Attach a 'sphere' shape
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
 
     // ==Asset== Attach also a 'cylinder' shape
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.3, 0.7);
-    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(2, 0.15, 0), QuatFromAngleX(CH_C_PI_2)));
+    body->AddVisualShape(cyl, ChFrame<>(ChVector3d(2, 0.15, 0), QuatFromAngleX(CH_PI_2)));
     body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
                          ChFrame<>(ChVector3d(2, -0.2, 0), QUNIT));
     body->AddVisualShape(chrono_types::make_shared<ChVisualShapeSphere>(0.03),
@@ -155,7 +155,7 @@ int main(int argc, char* argv[]) {
     for (int j = 0; j < 20; j++) {
         auto smallbox = chrono_types::make_shared<ChVisualShapeBox>(0.2, 0.2, 0.02);
         smallbox->SetColor(ChColor(j * 0.05f, 1 - j * 0.05f, 0.0f));
-        ChMatrix33<> rot(QuatFromAngleY(j * 21 * CH_C_DEG_TO_RAD));
+        ChMatrix33<> rot(QuatFromAngleY(j * 21 * CH_DEG_TO_RAD));
         ChVector3d pos = rot * ChVector3d(0.4, 0, 0) + ChVector3d(0, j * 0.02, 0);
         body->AddVisualShape(smallbox, ChFrame<>(pos, rot));
     }
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
     auto particle_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     auto particle_shape = chrono_types::make_shared<ChCollisionShapeSphere>(particle_mat, 0.05);
     particles->AddCollisionShape(particle_shape);
-    particles->SetCollide(true);
+    particles->EnableCollision(true);
 
     // Create the random particles
     for (int np = 0; np < 100; ++np)

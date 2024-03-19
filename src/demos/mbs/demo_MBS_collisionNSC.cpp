@@ -89,31 +89,31 @@ std::shared_ptr<ChBody> AddContainer(ChSystemNSC& sys) {
     // Create the five walls of the rectangular container, using fixed rigid bodies of 'box' type
     auto floorBody = chrono_types::make_shared<ChBodyEasyBox>(20, 1, 20, 1000, ground_mat);
     floorBody->SetPos(ChVector3d(0, -5, 0));
-    floorBody->SetBodyFixed(true);
+    floorBody->SetFixed(true);
     floorBody->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(floorBody);
 
     auto wallBody1 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, ground_mat);
     wallBody1->SetPos(ChVector3d(-10, 0, 0));
-    wallBody1->SetBodyFixed(true);
+    wallBody1->SetFixed(true);
     wallBody1->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(wallBody1);
 
     auto wallBody2 = chrono_types::make_shared<ChBodyEasyBox>(1, 10, 20.99, 1000, ground_mat);
     wallBody2->SetPos(ChVector3d(10, 0, 0));
-    wallBody2->SetBodyFixed(true);
+    wallBody2->SetFixed(true);
     wallBody2->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(wallBody2);
 
     auto wallBody3 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, ground_mat);
     wallBody3->SetPos(ChVector3d(0, 0, -10));
-    wallBody3->SetBodyFixed(true);
+    wallBody3->SetFixed(true);
     wallBody3->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(wallBody3);
 
     auto wallBody4 = chrono_types::make_shared<ChBodyEasyBox>(20.99, 10, 1, 1000, ground_mat);
     wallBody4->SetPos(ChVector3d(0, 0, 10));
-    wallBody4->SetBodyFixed(true);
+    wallBody4->SetFixed(true);
     wallBody4->GetVisualShape(0)->SetMaterial(0, ground_mat_vis);
     sys.Add(wallBody4);
 
@@ -132,8 +132,8 @@ std::shared_ptr<ChBody> AddContainer(ChSystemNSC& sys) {
     // .. a motor between mixer and truss
 
     auto my_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    my_motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_C_PI_2)));
-    auto mfun = chrono_types::make_shared<ChFunctionConst>(CH_C_PI / 4.0);  // speed 45 deg/s
+    my_motor->Initialize(rotatingBody, floorBody, ChFrame<>(ChVector3d(0, 0, 0), QuatFromAngleX(CH_PI_2)));
+    auto mfun = chrono_types::make_shared<ChFunctionConst>(CH_PI / 4.0);  // speed 45 deg/s
     my_motor->SetSpeedFunction(mfun);
     sys.AddLink(my_motor);
 
@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->SetWireFrameMode(false);
             vis_vsg->Initialize();
@@ -222,8 +222,9 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(50);
-    ////sys.SetUseSleeping(true);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(50);
+
+    ////sys.SetSleepingAllowed(true);
 
     // Simulation loop
     ChRealtimeStepTimer rt;

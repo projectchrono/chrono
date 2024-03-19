@@ -223,7 +223,7 @@ int main() {
     rig.SetGravitationalAcceleration(0);
     rig.SetNormalLoad(8000);
 
-    ////rig.SetCamberAngle(+15 * CH_C_DEG_TO_RAD);
+    ////rig.SetCamberAngle(+15 * CH_DEG_TO_RAD);
 
     rig.SetTireStepsize(step_size);
     rig.SetTireCollisionType(ChTire::CollisionType::FOUR_POINTS);
@@ -255,8 +255,8 @@ int main() {
     //   angular speed: 10 RPM
     //   slip angle: sinusoidal +- 5 deg with 5 s period
     rig.SetLongSpeedFunction(chrono_types::make_shared<ChFunctionConst>(0.2));
-    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10 * CH_C_RPM_TO_RPS));
-    ////rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunctionSine>(5 * CH_C_DEG_TO_RAD, 0.2));
+    ////rig.SetAngSpeedFunction(chrono_types::make_shared<ChFunctionConst>(10 * CH_RPM_TO_RAD_S));
+    ////rig.SetSlipAngleFunction(chrono_types::make_shared<ChFunctionSine>(5 * CH_DEG_TO_RAD, 0.2));
 
     // Scenario: specified longitudinal slip (overrrides other definitons of motion functions)
     ////rig.SetConstantLongitudinalSlip(0.2, 0.1);
@@ -320,7 +320,7 @@ int main() {
             vis_vsg->SetWindowSize(1200, 600);
             vis_vsg->SetWindowTitle("Tire Test Rig");
             vis_vsg->AddCamera(ChVector3d(1.0, 2.5, 1.0));
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetShadows(true);
             vis_vsg->Initialize();
 
@@ -361,8 +361,8 @@ int main() {
 
         if (time > time_offset) {
             long_slip.AddPoint(time, tire->GetLongitudinalSlip());
-            slip_angle.AddPoint(time, tire->GetSlipAngle() * CH_C_RAD_TO_DEG);
-            camber_angle.AddPoint(time, tire->GetCamberAngle() * CH_C_RAD_TO_DEG);
+            slip_angle.AddPoint(time, tire->GetSlipAngle() * CH_RAD_TO_DEG);
+            camber_angle.AddPoint(time, tire->GetCamberAngle() * CH_RAD_TO_DEG);
         }
 
         auto& loc = rig.GetPos();

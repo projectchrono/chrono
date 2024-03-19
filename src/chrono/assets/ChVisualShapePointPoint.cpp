@@ -24,8 +24,8 @@ namespace chrono {
 void ChVisualShapePointPoint::Update(ChPhysicsItem* updater, const ChFrame<>& frame) {
     // Extract two positions from updater if it has any, and then update line geometry from these positions.
     if (auto link_markers = dynamic_cast<ChLinkMarkers*>(updater)) {
-        UpdateLineGeometry(frame.TransformPointParentToLocal(link_markers->GetMarker1()->GetAbsCsys().pos),
-                           frame.TransformPointParentToLocal(link_markers->GetMarker2()->GetAbsCsys().pos));
+        UpdateLineGeometry(frame.TransformPointParentToLocal(link_markers->GetMarker1()->GetAbsCoordsys().pos),
+                           frame.TransformPointParentToLocal(link_markers->GetMarker2()->GetAbsCoordsys().pos));
     } else if (auto link_dist = dynamic_cast<ChLinkDistance*>(updater)) {
         UpdateLineGeometry(frame.TransformPointParentToLocal(link_dist->GetEndPoint1Abs()),
                            frame.TransformPointParentToLocal(link_dist->GetEndPoint2Abs()));
@@ -36,8 +36,8 @@ void ChVisualShapePointPoint::Update(ChPhysicsItem* updater, const ChFrame<>& fr
         UpdateLineGeometry(frame.TransformPointParentToLocal(link_tsda->GetPoint1Abs()),
                            frame.TransformPointParentToLocal(link_tsda->GetPoint2Abs()));
     } else if (auto link_mate = dynamic_cast<ChLinkMateGeneric*>(updater)) {
-        auto pt1 = link_mate->GetBody1()->TransformPointLocalToParent(link_mate->GetFrame1().GetPos());
-        auto pt2 = link_mate->GetBody2()->TransformPointLocalToParent(link_mate->GetFrame2().GetPos());
+        auto pt1 = link_mate->GetBody1()->TransformPointLocalToParent(link_mate->GetFrame1Rel().GetPos());
+        auto pt2 = link_mate->GetBody2()->TransformPointLocalToParent(link_mate->GetFrame2Rel().GetPos());
         UpdateLineGeometry(frame.TransformPointParentToLocal(pt1), frame.TransformPointParentToLocal(pt2));
     } else if (auto link = dynamic_cast<ChLink*>(updater)) {
         UpdateLineGeometry(frame.TransformPointParentToLocal(link->GetBody1()->GetPos()),
@@ -62,10 +62,8 @@ void ChVisualShapeSpring::UpdateLineGeometry(const ChVector3d& endpoint1, const 
     ChVector3d dist = endpoint2 - endpoint1;
     ChVector3d Vx, Vy, Vz;
     double length = dist.Length();
-    ChVector3d dir = dist.GetNormalized();
-    XdirToDxDyDz(dir, VECT_Y, Vx, Vy, Vz);
-
-    ChMatrix33<> rel_matrix(Vx, Vy, Vz);
+    ChMatrix33<> rel_matrix;
+    rel_matrix.SetFromAxisX(dist, VECT_Y);
     ChCoordsys<> mpos(endpoint1, rel_matrix.GetQuaternion());
 
     double phaseA = 0;
@@ -74,7 +72,7 @@ void ChVisualShapeSpring::UpdateLineGeometry(const ChVector3d& endpoint1, const 
     double heightB = 0;
 
     for (int iu = 1; iu <= resolution; iu++) {
-        phaseB = turns * CH_C_2PI * (double)iu / (double)resolution;
+        phaseB = turns * CH_2PI * (double)iu / (double)resolution;
         heightB = length * ((double)iu / (double)resolution);
         ChVector3d V1(heightA, radius * cos(phaseA), radius * sin(phaseA));
         ChVector3d V2(heightB, radius * cos(phaseB), radius * sin(phaseB));
@@ -100,7 +98,7 @@ void ChVisualShapeRotSpring::Update(ChPhysicsItem* updater, const ChFrame<>& fra
     ChVector3d V1(m_radius, 0, 0);
     for (int iu = 1; iu <= m_resolution; iu++) {
         double crt_angle = iu * del_angle;
-        double crt_radius = m_radius - (iu * del_angle / CH_C_2PI) * (m_radius / 10);
+        double crt_radius = m_radius - (iu * del_angle / CH_2PI) * (m_radius / 10);
         ChVector3d V2(crt_radius * std::cos(crt_angle), crt_radius * std::sin(crt_angle), 0);
         auto segment = ChLineSegment(V1, V2);
         linepath->AddSubLine(segment);

@@ -27,18 +27,18 @@ namespace chrono {
 // CLASS FOR A PARTICLE
 // -----------------------------------------------------------------------------
 
-ChAparticle::ChAparticle() : container(NULL), UserForce(VNULL), UserTorque(VNULL) {}
+ChParticle::ChParticle() : container(NULL), UserForce(VNULL), UserTorque(VNULL) {}
 
-ChAparticle::ChAparticle(const ChAparticle& other) : ChParticleBase(other) {
+ChParticle::ChParticle(const ChParticle& other) : ChParticleBase(other) {
     container = other.container;
     UserForce = other.UserForce;
     UserTorque = other.UserTorque;
     variables = other.variables;
 }
 
-ChAparticle::~ChAparticle() {}
+ChParticle::~ChParticle() {}
 
-ChAparticle& ChAparticle::operator=(const ChAparticle& other) {
+ChParticle& ChParticle::operator=(const ChParticle& other) {
     if (&other == this)
         return *this;
 
@@ -57,12 +57,12 @@ ChAparticle& ChAparticle::operator=(const ChAparticle& other) {
     return *this;
 }
 
-void ChAparticle::ContactableGetStateBlock_w(ChStateDelta& w) {
-    w.segment(0, 3) = GetPosDer().eigen();
+void ChParticle::ContactableGetStateBlockVelLevel(ChStateDelta& w) {
+    w.segment(0, 3) = GetPosDt().eigen();
     w.segment(3, 3) = GetAngVelLocal().eigen();
 }
 
-void ChAparticle::ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) {
+void ChParticle::ContactableIncrementState(const ChState& x, const ChStateDelta& dw, ChState& x_new) {
     // Increment position
     x_new(0) = x(0) + dw(0);
     x_new(1) = x(1) + dw(1);
@@ -71,7 +71,7 @@ void ChAparticle::ContactableIncrementState(const ChState& x, const ChStateDelta
     // Increment rotation: rot' = delta*rot  (use quaternion for delta rotation)
     ChQuaternion<> mdeltarot;
     ChQuaternion<> moldrot(x.segment(3, 4));
-    ChVector3d newwel_abs = Rmat * ChVector3d(dw.segment(3, 3));
+    ChVector3d newwel_abs = m_rmat * ChVector3d(dw.segment(3, 3));
     double mangle = newwel_abs.Length();
     newwel_abs.Normalize();
     mdeltarot.SetFromAngleAxis(mangle, newwel_abs);
@@ -79,12 +79,12 @@ void ChAparticle::ContactableIncrementState(const ChState& x, const ChStateDelta
     x_new.segment(3, 4) = mnewrot.eigen();
 }
 
-ChVector3d ChAparticle::GetContactPoint(const ChVector3d& loc_point, const ChState& state_x) {
+ChVector3d ChParticle::GetContactPoint(const ChVector3d& loc_point, const ChState& state_x) {
     ChCoordsys<> csys(state_x.segment(0, 7));
     return csys.TransformPointLocalToParent(loc_point);
 }
 
-ChVector3d ChAparticle::GetContactPointSpeed(const ChVector3d& loc_point,
+ChVector3d ChParticle::GetContactPointSpeed(const ChVector3d& loc_point,
                                              const ChState& state_x,
                                              const ChStateDelta& state_w) {
     ChCoordsys<> csys(state_x.segment(0, 7));
@@ -95,12 +95,12 @@ ChVector3d ChAparticle::GetContactPointSpeed(const ChVector3d& loc_point,
     return abs_vel + Vcross(abs_omg, loc_point);
 }
 
-ChVector3d ChAparticle::GetContactPointSpeed(const ChVector3d& abs_point) {
+ChVector3d ChParticle::GetContactPointSpeed(const ChVector3d& abs_point) {
     ChVector3d m_p1_loc = this->TransformPointParentToLocal(abs_point);
     return this->PointSpeedLocalToParent(m_p1_loc);
 }
 
-void ChAparticle::ContactForceLoadResidual_F(const ChVector3d& F,
+void ChParticle::ContactForceLoadResidual_F(const ChVector3d& F,
                                              const ChVector3d& T,
                                              const ChVector3d& abs_point,
                                              ChVectorDynamic<>& R) {
@@ -113,7 +113,7 @@ void ChAparticle::ContactForceLoadResidual_F(const ChVector3d& F,
     R.segment(Variables().GetOffset() + 3, 3) += torque1_loc.eigen();
 }
 
-void ChAparticle::ContactComputeQ(const ChVector3d& F,
+void ChParticle::ContactComputeQ(const ChVector3d& F,
                                     const ChVector3d& T,
                                     const ChVector3d& point,
                                     const ChState& state_x,
@@ -129,7 +129,7 @@ void ChAparticle::ContactComputeQ(const ChVector3d& F,
     Q.segment(offset + 3, 3) = torque_loc.eigen();
 }
 
-void ChAparticle::ComputeJacobianForContactPart(
+void ChParticle::ComputeJacobianForContactPart(
     const ChVector3d& abs_point,
     ChMatrix33<>& contact_plane,
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
@@ -156,7 +156,7 @@ void ChAparticle::ComputeJacobianForContactPart(
     jacobian_tuple_V.Get_Cq().segment(3, 3) = Jr1.row(2);
 }
 
-void ChAparticle::ComputeJacobianForRollingContactPart(
+void ChParticle::ComputeJacobianForRollingContactPart(
     const ChVector3d& abs_point,
     ChMatrix33<>& contact_plane,
     ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
@@ -175,13 +175,13 @@ void ChAparticle::ComputeJacobianForRollingContactPart(
     jacobian_tuple_V.Get_Cq().segment(3, 3) = Jr1.row(2);
 }
 
-ChPhysicsItem* ChAparticle::GetPhysicsItem() {
+ChPhysicsItem* ChParticle::GetPhysicsItem() {
     return container;
 }
 
-void ChAparticle::ArchiveOut(ChArchiveOut& archive_out) {
+void ChParticle::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    archive_out.VersionWrite<ChAparticle>();
+    archive_out.VersionWrite<ChParticle>();
 
     // serialize parent class
     ChParticleBase::ArchiveOut(archive_out);
@@ -194,9 +194,9 @@ void ChAparticle::ArchiveOut(ChArchiveOut& archive_out) {
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChAparticle::ArchiveIn(ChArchiveIn& archive_in) {
+void ChParticle::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/archive_in.VersionRead<ChAparticle>();
+    /*int version =*/archive_in.VersionRead<ChParticle>();
 
     // deserialize parent class:
     ChParticleBase::ArchiveIn(archive_in);
@@ -219,7 +219,7 @@ ChParticleCloud::ChParticleCloud()
       limit_speed(false),
       fixed(false),
       max_speed(0.5f),
-      max_wvel((float)CH_C_2PI),
+      max_wvel((float)CH_2PI),
       sleep_time(0.6f),
       sleep_starttime(0),
       sleep_minspeed(0.1f),
@@ -246,7 +246,7 @@ ChParticleCloud::ChParticleCloud(const ChParticleCloud& other) : ChIndexedPartic
     else
         particle_collision_model = nullptr;
 
-    ResizeNparticles((int)other.GetNparticles());
+    ResizeNparticles((unsigned int)other.GetNumParticles());
 
     max_speed = other.max_speed;
     max_wvel = other.max_wvel;
@@ -271,8 +271,8 @@ void ChParticleCloud::AddCollisionShape(std::shared_ptr<ChCollisionShape> shape,
 void ChParticleCloud::ResizeNparticles(int newsize) {
     //// TODO REVISIT THIS
 
-    bool oldcoll = GetCollide();
-    SetCollide(false);
+    bool oldcoll = IsCollisionEnabled();
+    EnableCollision(false);
 
     for (unsigned int j = 0; j < particles.size(); j++) {
         delete (particles[j]);
@@ -282,7 +282,7 @@ void ChParticleCloud::ResizeNparticles(int newsize) {
     particles.resize(newsize);
 
     for (unsigned int j = 0; j < particles.size(); j++) {
-        particles[j] = new ChAparticle;
+        particles[j] = new ChParticle;
 
         particles[j]->SetContainer(this);
 
@@ -296,12 +296,12 @@ void ChParticleCloud::ResizeNparticles(int newsize) {
         }
     }
 
-    SetCollide(oldcoll);
+    EnableCollision(oldcoll);
 }
 
 void ChParticleCloud::AddParticle(ChCoordsys<double> initial_state) {
-    ChAparticle* newp = new ChAparticle;
-    newp->SetCsys(initial_state);
+    ChParticle* newp = new ChParticle;
+    newp->SetCoordsys(initial_state);
 
     newp->SetContainer(this);
 
@@ -339,7 +339,7 @@ void ChParticleCloud::IntStateGather(const unsigned int off_x,  // offset in x s
         x.segment(off_x + 7 * j + 0, 3) = particles[j]->GetPos().eigen();
         x.segment(off_x + 7 * j + 3, 4) = particles[j]->GetRot().eigen();
 
-        v.segment(off_v + 6 * j + 0, 3) = particles[j]->GetPosDer().eigen();
+        v.segment(off_v + 6 * j + 0, 3) = particles[j]->GetPosDt().eigen();
         v.segment(off_v + 6 * j + 3, 3) = particles[j]->GetAngVelLocal().eigen();
 
         T = GetChTime();
@@ -354,8 +354,8 @@ void ChParticleCloud::IntStateScatter(const unsigned int off_x,  // offset in x 
                                       bool full_update           // perform complete update
 ) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        particles[j]->SetCsys(x.segment(off_x + 7 * j, 7));
-        particles[j]->SetPosDer(v.segment(off_v + 6 * j, 3));
+        particles[j]->SetCoordsys(x.segment(off_x + 7 * j, 7));
+        particles[j]->SetPosDt(v.segment(off_v + 6 * j, 3));
         particles[j]->SetAngVelLocal(v.segment(off_v + 6 * j + 3, 3));
     }
     SetChTime(T);
@@ -364,14 +364,14 @@ void ChParticleCloud::IntStateScatter(const unsigned int off_x,  // offset in x 
 
 void ChParticleCloud::IntStateGatherAcceleration(const unsigned int off_a, ChStateDelta& a) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        a.segment(off_a + 6 * j + 0, 3) = particles[j]->GetPosDer2().eigen();
+        a.segment(off_a + 6 * j + 0, 3) = particles[j]->GetPosDt2().eigen();
         a.segment(off_a + 6 * j + 3, 3) = particles[j]->GetAngAccLocal().eigen();
     }
 }
 
 void ChParticleCloud::IntStateScatterAcceleration(const unsigned int off_a, const ChStateDelta& a) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        particles[j]->SetPosDer2(a.segment(off_a + 6 * j, 3));
+        particles[j]->SetPosDt2(a.segment(off_a + 6 * j, 3));
         particles[j]->SetAngAccLocal(a.segment(off_a + 6 * j + 3, 3));
     }
 }
@@ -425,7 +425,7 @@ void ChParticleCloud::IntLoadResidual_F(const unsigned int off,  // offset in R 
 ) {
     ChVector3d Gforce;
     if (GetSystem())
-        Gforce = GetSystem()->Get_G_acc() * particle_mass.GetBodyMass();
+        Gforce = GetSystem()->GetGravitationalAcceleration() * particle_mass.GetBodyMass();
 
     for (unsigned int j = 0; j < particles.size(); j++) {
         // particle gyroscopic force:
@@ -506,7 +506,7 @@ void ChParticleCloud::VariablesFbReset() {
 void ChParticleCloud::VariablesFbLoadForces(double factor) {
     ChVector3d Gforce;
     if (GetSystem())
-        Gforce = GetSystem()->Get_G_acc() * particle_mass.GetBodyMass();
+        Gforce = GetSystem()->GetGravitationalAcceleration() * particle_mass.GetBodyMass();
 
     for (unsigned int j = 0; j < particles.size(); j++) {
         // particle gyroscopic force:
@@ -522,7 +522,7 @@ void ChParticleCloud::VariablesFbLoadForces(double factor) {
 void ChParticleCloud::VariablesQbLoadSpeed() {
     for (unsigned int j = 0; j < particles.size(); j++) {
         // set current speed in 'qb', it can be used by the solver when working in incremental mode
-        particles[j]->variables.Get_qb().segment(0, 3) = particles[j]->GetCsysDer().pos.eigen();
+        particles[j]->variables.Get_qb().segment(0, 3) = particles[j]->GetCoordsysDt().pos.eigen();
         particles[j]->variables.Get_qb().segment(3, 3) = particles[j]->GetAngVelLocal().eigen();
     }
 }
@@ -535,10 +535,10 @@ void ChParticleCloud::VariablesFbIncrementMq() {
 
 void ChParticleCloud::VariablesQbSetSpeed(double step) {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        ChCoordsys<> old_coord_dt = particles[j]->GetCsysDer();
+        ChCoordsys<> old_coord_dt = particles[j]->GetCoordsysDt();
 
         // from 'qb' vector, sets body speed, and updates auxiliary data
-        particles[j]->SetPosDer(particles[j]->variables.Get_qb().segment(0, 3));
+        particles[j]->SetPosDt(particles[j]->variables.Get_qb().segment(0, 3));
         particles[j]->SetAngVelLocal(particles[j]->variables.Get_qb().segment(3, 3));
 
         // apply limits (if in speed clamping mode) to speeds.
@@ -546,8 +546,8 @@ void ChParticleCloud::VariablesQbSetSpeed(double step) {
 
         // Compute accel. by BDF (approximate by differentiation);
         if (step) {
-            particles[j]->SetPosDer2((particles[j]->GetCsysDer().pos - old_coord_dt.pos) / step);
-            particles[j]->SetRotDer2((particles[j]->GetCsysDer().rot - old_coord_dt.rot) / step);
+            particles[j]->SetPosDt2((particles[j]->GetCoordsysDt().pos - old_coord_dt.pos) / step);
+            particles[j]->SetRotDt2((particles[j]->GetCoordsysDt().rot - old_coord_dt.rot) / step);
         }
     }
 }
@@ -578,25 +578,25 @@ void ChParticleCloud::VariablesQbIncrementPosition(double dt_step) {
     }
 }
 
-void ChParticleCloud::SetNoSpeedNoAcceleration() {
+void ChParticleCloud::ForceToRest() {
     for (unsigned int j = 0; j < particles.size(); j++) {
-        particles[j]->SetPosDer(VNULL);
+        particles[j]->SetPosDt(VNULL);
         particles[j]->SetAngVelLocal(VNULL);
-        particles[j]->SetPosDer2(VNULL);
-        particles[j]->SetRotDer2(QNULL);
+        particles[j]->SetPosDt2(VNULL);
+        particles[j]->SetRotDt2(QNULL);
     }
 }
 
 void ChParticleCloud::ClampSpeed() {
     if (limit_speed) {
         for (unsigned int j = 0; j < particles.size(); j++) {
-            double w = 2.0 * particles[j]->GetRotDer().Length();
+            double w = 2.0 * particles[j]->GetRotDt().Length();
             if (w > max_wvel)
-                particles[j]->SetRotDer(particles[j]->GetRotDer() * max_wvel / w);
+                particles[j]->SetRotDt(particles[j]->GetRotDt() * max_wvel / w);
 
-            double v = particles[j]->GetPosDer().Length();
+            double v = particles[j]->GetPosDt().Length();
             if (v > max_speed)
-                particles[j]->SetPosDer(particles[j]->GetPosDer() * max_speed / v);
+                particles[j]->SetPosDt(particles[j]->GetPosDt() * max_speed / v);
         }
     }
 }
@@ -650,7 +650,7 @@ void ChParticleCloud::Update(double mytime, bool update_assets) {
     ClampSpeed();  // Apply limits (if in speed clamping mode) to speeds.
 }
 
-void ChParticleCloud::SetCollide(bool state) {
+void ChParticleCloud::EnableCollision(bool state) {
     // Nothing to do if no change in state
     if (state == collide)
         return;

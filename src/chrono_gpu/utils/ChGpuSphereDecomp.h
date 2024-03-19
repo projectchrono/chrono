@@ -47,9 +47,9 @@ std::vector<ChVector3<Real>> MeshSphericalDecomposition(
 
     // For each triangle in the mesh, label the vertices as A,B,C
     // Fill in successive parallel lines starting at BC and advancing toward A
-    int n_triangles_mesh = mesh.getNumTriangles();
-    for (int i = 0; i < n_triangles_mesh; i++) {
-        ChTriangle tri = mesh.getTriangle(i);
+    unsigned int n_triangles_mesh = mesh.GetNumTriangles();
+    for (unsigned int i = 0; i < n_triangles_mesh; i++) {
+        ChTriangle tri = mesh.GetTriangle(i);
         ChVector3<Real> A = tri.p1;
         ChVector3<Real> B = tri.p2;
         ChVector3<Real> C = tri.p3;
@@ -60,7 +60,7 @@ std::vector<ChVector3<Real>> MeshSphericalDecomposition(
         ChVector3<Real> bc = C - B;
         Real theta_A = std::abs(std::acos(ab.Dot(ac) / (ab.Length() * ac.Length())));
         Real theta_B = std::abs(std::acos(bc.Dot(-ab) / (bc.Length() * ab.Length())));
-        Real theta_C = (Real)CH_C_PI - (theta_A + theta_B);
+        Real theta_C = (Real)CH_PI - (theta_A + theta_B);
 
         int small_i = (theta_A <= theta_C) ? ((theta_A <= theta_B) ? 0 : 1) : ((theta_C <= theta_B) ? 2 : 1);
 

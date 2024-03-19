@@ -333,11 +333,11 @@ namespace ChronoDemo
             // Set the gravity. Must be set after Y-UP
             ChVector3d gravity = new ChVector3d(ChWorldFrame.Vertical());
             gravity.Scale(-9.81);
-            sys.Set_G_acc(gravity);
+            sys.SetGravitationalAcceleration(gravity);
             Console.WriteLine($"Gravity direction: {gravity.x}, {gravity.y}, {gravity.z}");
 
             // Solver settings
-            sys.SetSolverMaxIterations(150);
+            sys.GetSolver().AsIterative().SetMaxIterations(150);
             sys.SetMaxPenetrationRecoverySpeed(4.0);
 
             // ------------------
@@ -376,7 +376,7 @@ namespace ChronoDemo
             shapeLocation.Sub(initCsys.pos, halfUpVector);
             terrain.GetGround().AddVisualShape(new ChVisualShapeBox(new ChBox(1, roadWidth, 0.1)),
                                     new ChFramed(shapeLocation, initCsys.rot));
-            path.write(outDir + "/path.txt");
+            path.Write(outDir + "/path.txt");
 
 
             // ----------------------------

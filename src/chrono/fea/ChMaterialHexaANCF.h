@@ -42,7 +42,7 @@ class ChApi ChMaterialHexaANCF {
     );
 
     /// Return the material density.
-    double Get_rho() const { return m_rho; }
+    double GetDensity() const { return m_rho; }
 
     const ChMatrix66d& Get_D() const { return m_D; }
 

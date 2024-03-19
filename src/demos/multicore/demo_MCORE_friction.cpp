@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
     // Create the multicore sys and set associated collision detection system
     ChSystemMulticoreNSC sys;
     sys.SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
-    sys.Set_G_acc(ChVector3d(0, -9.81, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));
 
     // Set number of threads
     sys.SetNumThreads(1);
@@ -72,9 +72,9 @@ int main(int argc, char** argv) {
     auto container = chrono_types::make_shared<ChBody>();
     sys.Add(container);
     container->SetPos(ChVector3d(0, 0, 0));
-    container->SetBodyFixed(true);
+    container->SetFixed(true);
     container->SetIdentifier(-1);
-    container->SetCollide(true);
+    container->EnableCollision(true);
 
     // Set rolling and friction coefficients for the container.
     // By default, the composite material will use the minimum value for an interacting collision pair.
@@ -91,7 +91,7 @@ int main(int argc, char** argv) {
 
     // Create some spheres that roll horizontally, with increasing rolling friction values
     double density = 1000;
-    double mass = density * (4.0 / 3.0) * CH_C_PI * pow(radius, 3);
+    double mass = density * (4.0 / 3.0) * CH_PI * pow(radius, 3);
     double inertia = (2.0 / 5.0) * mass * pow(radius, 2);
     double initial_angspeed = 10;
     double initial_linspeed = initial_angspeed * radius;
@@ -108,11 +108,11 @@ int main(int argc, char** argv) {
 
         // Initial position and velocity
         ball->SetPos(ChVector3d(-7, radius - 0.5, -5 + bi * radius * 2.5));
-        ball->SetPosDer(ChVector3d(initial_linspeed, 0, 0));
+        ball->SetPosDt(ChVector3d(initial_linspeed, 0, 0));
         ball->SetAngVelParent(ChVector3d(0, 0, -initial_angspeed));
 
         // Contact geometry
-        ball->SetCollide(true);
+        ball->EnableCollision(true);
         utils::AddSphereGeometry(ball.get(), mat, radius);
 
         // Add to the sys
@@ -132,11 +132,11 @@ int main(int argc, char** argv) {
 
         // Initial position and velocity
         ball->SetPos(ChVector3d(-8, 1 + radius - 0.5, -5 + bi * radius * 2.5));
-        ball->SetPosDer(ChVector3d(0, 0, 0));
+        ball->SetPosDt(ChVector3d(0, 0, 0));
         ball->SetAngVelParent(ChVector3d(0, 20, 0));
 
         // Contact geometry
-        ball->SetCollide(true);
+        ball->EnableCollision(true);
         utils::AddSphereGeometry(ball.get(), mat, radius);
 
         // Add to the sys

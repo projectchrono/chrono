@@ -28,13 +28,13 @@ class ChApi ChLinkLockPulley : public ChLinkLockLock {
 
   protected:
     double tau;       ///< transmission coeff.
-    double r1;        ///< radius of pulley in body1
-    double r2;        ///< radius of pulley in body2
+    double r1;        ///< radius of pulley in body 1
+    double r2;        ///< radius of pulley in body 2
     double phase;     ///< mounting phase angle
     bool checkphase;  ///< keep pulleys always on phase
 
-    double a1;  ///< auxiliary
-    double a2;  ///< auxiliary
+    double a1;  ///< auxiliary, rotation of pulley 1
+    double a2;  ///< auxiliary, rotation of pulley 2
 
     double shaft_dist;  ///< distance between shafts
 
@@ -58,22 +58,23 @@ class ChApi ChLinkLockPulley : public ChLinkLockLock {
     virtual void UpdateTime(double mytime) override;
 
     /// Set radius of 1st pulley.
-    void Set_r1(double mr);
+    void SetRadius1(double mr);
 
     /// Set radius of 2nd pulley.
-    void Set_r2(double mr);
+    void SetRadius2(double mr);
 
     /// Get radius of 1st pulley.
-    double Get_r1() const { return r1; }
+    double GetRadius1() const { return r1; }
     /// Get radius of 2nd pulley.
-    double Get_r2() const { return r2; }
+    double GetRadius2() const { return r2; }
 
     /// Get the transmission ratio. Its value is assumed always positive.
-    double Get_tau() const { return tau; }
+    double GetTransmissionRatio() const { return tau; }
 
-    /// Get the initial phase of rotation of pulley A.
-    double Get_phase() const { return phase; }
-    /// Set the initial phase of rotation of pulley A.
+    /// Get the initial phase of rotation of pulley 1.
+    double GetPhase() const { return phase; }
+
+    /// Set the initial phase of rotation of pulley 1.
     void SetPhase(double mset) { phase = mset; }
 
     /// If true, enforce check on exact phase between pulleys
@@ -86,54 +87,64 @@ class ChApi ChLinkLockPulley : public ChLinkLockLock {
     /// values, which might be affected by loss of numerical precision
     /// after few thousands of revolutions, so this is NOT suited to
     /// real-time simulators which must run for many hours.
-    void Set_checkphase(bool mset) { checkphase = mset; }
-    bool Get_checkphase() const { return checkphase; };
+    void SetEnforcePhase(bool mset) { checkphase = mset; }
+
+    bool GetEnforcePhase() const { return checkphase; };
 
     /// Get total rotation of 1st pulley, respect to interaxis, in radians
-    double Get_a1() const { return a1; }
+    double GetRotation1() const { return a1; }
+
     /// Get total rotation of 1st pulley, respect to interaxis, in radians
-    double Get_a2() const { return a2; }
+    double GetRotation2() const { return a2; }
+
     /// Reset the total rotations of a1 and a2.
-    void Reset_a1a2() { a1 = a2 = 0; }
+    void ResetRotations() { a1 = a2 = 0; }
 
     /// Get shaft position and direction, for 1st pulley, in body1-relative reference.
     /// The shaft direction is the Z axis of that frame.
-    const ChFrame<double>& Get_local_shaft1() const { return local_shaft1; }
+    const ChFrame<double>& GetFrameShaft1() const { return local_shaft1; }
+
     /// Set shaft position and direction, for 1st pulley, in body1-relative reference.
     /// The shaft direction is the Z axis of that frame.  It should be parallel to shaft 2.
     /// Note that the origin of shaft position will be automatically shifted along
     /// shaft direction in order to have both pulleys on same plane.
-    void Set_local_shaft1(ChFrame<double> mf) { local_shaft1 = mf; }
+    void SetFrameShaft1(ChFrame<double> mf) { local_shaft1 = mf; }
 
     /// Get shaft position and direction, for 2nd pulley, in body2-relative reference.
     /// The shaft direction is the Z axis of that frame.
-    const ChFrame<double>& Get_local_shaft2() const { return local_shaft2; }
+    const ChFrame<double>& GetFrameShaft2() const { return local_shaft2; }
+
     /// Set shaft position and direction, for 2nd pulley, in body2-relative reference.
     /// The shaft direction is the Z axis of that frame.  It should be parallel to shaft 1.
-    void Set_local_shaft2(ChFrame<double> mf) { local_shaft2 = mf; }
+    void SetFrameShaft2(ChFrame<double> mf) { local_shaft2 = mf; }
 
     /// Get shaft direction, for 1st pulley, in absolute reference
-    ChVector3d Get_shaft_dir1();
+    ChVector3d GetDirShaft1();
+
     /// Get shaft direction, for 2nd pulley, in absolute reference
-    ChVector3d Get_shaft_dir2();
+    ChVector3d GetDirShaft2();
 
     /// Get shaft position, for 1st pulley, in absolute reference
-    ChVector3d Get_shaft_pos1();
+    ChVector3d GetPosShaft1();
+
     /// Get shaft position, for 2nd pulley, in absolute reference
-    ChVector3d Get_shaft_pos2();
+    ChVector3d GetPosShaft2();
 
     /// Get the endpoint of belt, on pulley of body1, for the 'upper' segment,
     /// in absolute coordinates.
-    ChVector3d Get_belt_up1() const { return belt_up1; }
+    ChVector3d GetBeltUpPos1() const { return belt_up1; }
+
     /// Get the endpoint of belt, on pulley of body2, for the 'upper' segment,
     /// in absolute coordinates.
-    ChVector3d Get_belt_up2() const { return belt_up2; }
+    ChVector3d GetBeltUpPos2() const { return belt_up2; }
+
     /// Get the endpoint of belt, on pulley of body1, for the 'lower' segment,
     /// in absolute coordinates.
-    ChVector3d Get_belt_low1() const { return belt_low1; }
+    ChVector3d GetBeltBottomPos1() const { return belt_low1; }
+
     /// Get the endpoint of belt, on pulley of body1, for the 'lower' segment,
     /// in absolute coordinates.
-    ChVector3d Get_belt_low2() const { return belt_low2; }
+    ChVector3d GetBeltBottomPos2() const { return belt_low2; }
 
     /// Return distance between the two axes.
     double GetShaftsDistance() const { return shaft_dist; }

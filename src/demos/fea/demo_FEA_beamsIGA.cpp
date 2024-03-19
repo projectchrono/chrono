@@ -28,8 +28,8 @@
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
-#include "chrono/fea/ChLinkPointFrame.h"
-#include "chrono/fea/ChLinkDirFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
 #include "chrono/physics/ChLinkMotorRotationSpeed.h"
 #include "chrono/physics/ChLinkMotorRotationAngle.h"
 
@@ -167,7 +167,7 @@ void MakeAndRunDemo1(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis,
 
     auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
     melasticity->SetYoungModulus(0.02e10);
-    melasticity->SetGshearModulus(0.02e10 * 0.38);
+    melasticity->SetShearModulus(0.02e10 * 0.38);
     melasticity->SetAsRectangularSection(beam_wy, beam_wz);  // automatically sets A, Ixx, Iyy, Ksy, Ksz and J
 
     auto msection =
@@ -213,13 +213,13 @@ void MakeAndRunDemo1(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis,
     sys.DoStaticLinear();
 
     // For comparison with analytical results.
-    double poisson = melasticity->GetYoungModulus() / (2.0 * melasticity->GetGshearModulus()) - 1.0;
+    double poisson = melasticity->GetYoungModulus() / (2.0 * melasticity->GetShearModulus()) - 1.0;
     double Ks_y = 10.0 * (1.0 + poisson) / (12.0 + 11.0 * poisson);
     double analytic_timoshenko_displ =
         (beam_tip_load * pow(beam_L, 3)) /
             (3 * melasticity->GetYoungModulus() * (1. / 12.) * beam_wz * pow(beam_wy, 3)) +
         (beam_tip_load * beam_L) /
-            (Ks_y * melasticity->GetGshearModulus() * beam_wz * beam_wy);  // = (P*L^3)/(3*E*I) + (P*L)/(k*A*G)
+            (Ks_y * melasticity->GetShearModulus() * beam_wz * beam_wy);  // = (P*L^3)/(3*E*I) + (P*L)/(k*A*G)
     double numerical_displ =
         builder.GetLastBeamNodes().back()->GetPos().y() - builder.GetLastBeamNodes().back()->GetX0().GetPos().y();
 
@@ -281,7 +281,7 @@ void MakeAndRunDemo2(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     std::vector<ChVector3d> my_points = {{0, 0, 0.2}, {0, 0, 0.3}, {0, -0.01, 0.4}, {0, -0.04, 0.5}, {0, -0.1, 0.6}};
 
-    ChLineBspline my_spline(3,           // order (3 = cubic, etc)
+    ChLineBSpline my_spline(3,           // order (3 = cubic, etc)
                             my_points);  // control points, will become the IGA nodes
 
     builderR.BuildBeam(my_mesh,    // the mesh to put the elements in
@@ -292,7 +292,7 @@ void MakeAndRunDemo2(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     builderR.GetLastBeamNodes().front()->SetFixed(true);
 
     auto mbodywing = chrono_types::make_shared<ChBodyEasyBox>(0.01, 0.2, 0.05, 2000);
-    mbodywing->SetCsys(builderR.GetLastBeamNodes().back()->GetCsys());
+    mbodywing->SetCoordsys(builderR.GetLastBeamNodes().back()->GetCoordsys());
     sys.Add(mbodywing);
 
     auto myjoint = chrono_types::make_shared<ChLinkMateFix>();
@@ -352,7 +352,7 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
     melasticity->SetYoungModulus(0.02e10);
-    melasticity->SetGshearModulus(0.02e10 * 0.3);
+    melasticity->SetShearModulus(0.02e10 * 0.3);
     melasticity->SetAsRectangularSection(beam_wy, beam_wz);  // automatically sets A, Ixx, Iyy, Ksy, Ksz and J
 
     auto mplasticity = chrono_types::make_shared<ChPlasticityCosseratLumped>();
@@ -386,7 +386,7 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     // up to repeated plasticization.
     auto truss = chrono_types::make_shared<ChBody>();
     sys.Add(truss);
-    truss->SetBodyFixed(true);
+    truss->SetFixed(true);
 
     auto motor = chrono_types::make_shared<ChLinkMotorLinearPosition>();
     sys.Add(motor);
@@ -425,8 +425,8 @@ void MakeAndRunDemo3(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
         vis->EndScene();
 
         // Save to file: plastic flow of the 1st element, and other data
-        ChMatrixDynamic<> mK(builder.GetLastBeamElements()[0]->GetNdofs(),
-                             builder.GetLastBeamElements()[0]->GetNdofs());
+        ChMatrixDynamic<> mK(builder.GetLastBeamElements()[0]->GetNumCoordsPosLevel(),
+                             builder.GetLastBeamElements()[0]->GetNumCoordsPosLevel());
         builder.GetLastBeamElements()[0]->ComputeKRMmatricesGlobal(mK, 1, 0, 0);
         auto plasticdat = builder.GetLastBeamElements()[0]->GetPlasticData()[0].get();
         auto plasticdata = dynamic_cast<ChInternalDataLumpedCosserat*>(plasticdat);
@@ -463,7 +463,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     // for max precision in gravity of FE, at least 2 integration points per element when using cubic IGA
     my_mesh->SetAutomaticGravity(true, 2);
-    sys.Set_G_acc(ChVector3d(0, -9.81, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));
 
     double beam_L = 6;
     double beam_ro = 0.050;
@@ -474,17 +474,17 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     auto minertia = chrono_types::make_shared<ChInertiaCosseratSimple>();
     minertia->SetDensity(7800);
-    minertia->SetArea(CH_C_PI * (pow(beam_ro, 2) - pow(beam_ri, 2)));
-    minertia->SetIyy((CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
-    minertia->SetIzz((CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
+    minertia->SetArea(CH_PI * (pow(beam_ro, 2) - pow(beam_ri, 2)));
+    minertia->SetIyy((CH_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
+    minertia->SetIzz((CH_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
 
     auto melasticity = chrono_types::make_shared<ChElasticityCosseratSimple>();
     melasticity->SetYoungModulus(210e9);
-    melasticity->SetGwithPoissonRatio(0.3);
-    melasticity->SetArea(CH_C_PI * (pow(beam_ro, 2) - pow(beam_ri, 2)));
-    melasticity->SetIyy((CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
-    melasticity->SetIzz((CH_C_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
-    melasticity->SetJ((CH_C_PI / 2.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
+    melasticity->SetShearModulusFromPoisson(0.3);
+    melasticity->SetArea(CH_PI * (pow(beam_ro, 2) - pow(beam_ri, 2)));
+    melasticity->SetIyy((CH_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
+    melasticity->SetIzz((CH_PI / 4.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
+    melasticity->SetJ((CH_PI / 2.0) * (pow(beam_ro, 4) - pow(beam_ri, 4)));
     // set the Timoshenko shear factors, if needed: melasticity->SetKsy(..) melasticity->SetKsy(..)
 
     auto msection = chrono_types::make_shared<ChBeamSectionCosserat>(minertia, melasticity);
@@ -510,9 +510,9 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     auto mbodyflywheel = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y,          //
                                                                        0.24, 0.05, 7800);  // R, h, density
-    mbodyflywheel->SetCsys(
+    mbodyflywheel->SetCoordsys(
         ChCoordsys<>(node_mid->GetPos() + ChVector3d(0, 0.05, 0),  // flywheel initial center (plus Y offset)
-                     QuatFromAngleZ(CH_C_PI_2))  // flywheel initial alignment (rotate 90 deg so cylinder axis is on X)
+                     QuatFromAngleZ(CH_PI_2))  // flywheel initial alignment (rotate 90 deg so cylinder axis is on X)
     );
     sys.Add(mbodyflywheel);
 
@@ -522,7 +522,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
 
     // Create the truss
     auto truss = chrono_types::make_shared<ChBody>();
-    truss->SetBodyFixed(true);
+    truss->SetFixed(true);
     sys.Add(truss);
 
     // Create the end bearing
@@ -538,7 +538,7 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
     rotmotor1->Initialize(builder.GetLastBeamNodes().front(),  // body A (slave)
                           truss,                               // body B (master)
                           ChFrame<>(builder.GetLastBeamNodes().front()->GetPos(),
-                                    QuatFromAngleY(CH_C_PI_2))  // motor frame, in abs. coords
+                                    QuatFromAngleY(CH_PI_2))  // motor frame, in abs. coords
     );
     sys.Add(rotmotor1);
 
@@ -555,11 +555,11 @@ void MakeAndRunDemo4(ChSystem& sys, std::shared_ptr<ChVisualSystemIrrlicht> vis)
             double T3 = 1.25;
             double w = 60;
             if (x < T1)
-                return A1 * w * (1. - cos(CH_C_PI * x / T1)) / 2.0;
+                return A1 * w * (1. - cos(CH_PI * x / T1)) / 2.0;
             else if (x > T1 && x <= T2)
                 return A1 * w;
             else if (x > T2 && x <= T3)
-                return A1 * w + (A2 - A1) * w * (1.0 - cos(CH_C_PI * (x - T2) / (T3 - T2))) / 2.0;
+                return A1 * w + (A2 - A1) * w * (1.0 - cos(CH_PI * (x - T2) / (T3 - T2))) / 2.0;
             else  // if (x > T3)
                 return A2 * w;
         }
@@ -648,8 +648,7 @@ int main(int argc, char* argv[]) {
     solver->EnableDiagonalPreconditioner(true);
     solver->EnableWarmStart(true);  // IMPORTANT for convergence when using EULER_IMPLICIT_LINEARIZED
     solver->SetVerbose(false);
-
-    sys.SetSolverForceTolerance(1e-14);
+    solver->SetTolerance(1e-14);
 
 #ifdef USE_MKL
     auto mkl_solver = chrono_types::make_shared<ChSolverPardisoMKL>();

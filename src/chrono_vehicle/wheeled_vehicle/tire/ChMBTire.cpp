@@ -265,8 +265,8 @@ void MBTireModel::EdgeSpring2::Initialize(bool stiff, bool full_jac) {
 void MBTireModel::Spring2::CalculateForce() {
     const auto& pos1 = node1->GetPos();
     const auto& pos2 = node2->GetPos();
-    const auto& vel1 = node1->GetPosDer();
-    const auto& vel2 = node2->GetPosDer();
+    const auto& vel1 = node1->GetPosDt();
+    const auto& vel2 = node2->GetPosDt();
 
     auto d = pos2 - pos1;
     double l = d.Length();
@@ -285,8 +285,8 @@ void MBTireModel::Spring2::CalculateForce() {
 ChMatrix33<> MBTireModel::Spring2::CalculateJacobianBlock(double Kfactor, double Rfactor) {
     const auto& pos1 = node1->GetPos();
     const auto& pos2 = node2->GetPos();
-    const auto& vel1 = node1->GetPosDer();
-    const auto& vel2 = node2->GetPosDer();
+    const auto& vel1 = node1->GetPosDt();
+    const auto& vel2 = node2->GetPosDt();
 
     auto d = pos2 - pos1;
     double l = d.Length();
@@ -347,8 +347,8 @@ ChMatrixNM<double, 6, 6> MBTireModel::GridSpring2::CalculateJacobianFD(double Kf
 
     ChVector3d pos1 = node1->GetPos();
     ChVector3d pos2 = node2->GetPos();
-    ChVector3d vel1 = node1->GetPosDer();
-    ChVector3d vel2 = node2->GetPosDer();
+    ChVector3d vel1 = node1->GetPosDt();
+    ChVector3d vel2 = node2->GetPosDt();
 
     CalculateForce();
     auto force1_0 = force1;
@@ -365,12 +365,12 @@ ChMatrixNM<double, 6, 6> MBTireModel::GridSpring2::CalculateJacobianFD(double Kf
         node1->SetPos(pos1);
 
         vel1[i] += FD_step;
-        node1->SetPosDer(vel1);
+        node1->SetPosDt(vel1);
         CalculateForce();
         R.col(i).segment(0, 3) = (force1.eigen() - force1_0.eigen()) / FD_step;
         R.col(i).segment(3, 3) = (force2.eigen() - force2_0.eigen()) / FD_step;
         vel1[i] -= FD_step;
-        node1->SetPosDer(vel1);
+        node1->SetPosDt(vel1);
     }
 
     // node2 states (columms 3,4,5)
@@ -384,12 +384,12 @@ ChMatrixNM<double, 6, 6> MBTireModel::GridSpring2::CalculateJacobianFD(double Kf
         node2->SetPos(pos2);
 
         vel2[i] += FD_step;
-        node2->SetPosDer(vel2);
+        node2->SetPosDt(vel2);
         CalculateForce();
         R.col(3 + i).segment(0, 3) = (force1.eigen() - force1_0.eigen()) / FD_step;
         R.col(3 + i).segment(3, 3) = (force2.eigen() - force2_0.eigen()) / FD_step;
         vel2[i] -= FD_step;
-        node2->SetPosDer(vel2);
+        node2->SetPosDt(vel2);
     }
 
     return Kfactor * K + Rfactor * R;
@@ -416,7 +416,7 @@ void MBTireModel::EdgeSpring2::CalculateJacobian(bool full_jac, double Kfactor, 
         ChVector3d p = wheel->GetPos();          // wheel body position
         ChQuaterniond q = wheel->GetRot();       // wheel body orientation quaternion
         ChMatrix33 R = wheel->GetRotMat();       // wheel body rotation matrix
-        ChVector3d v = wheel->GetPosDer();       // wheel linear velocity
+        ChVector3d v = wheel->GetPosDt();       // wheel linear velocity
         ChVector3d w = wheel->GetAngVelLocal();  // wheel angular velocity (in local frame)
 
         ChVectorN<double, 4> e;   // quaternion
@@ -704,9 +704,9 @@ ChMatrixNM<double, 9, 9> MBTireModel::GridSpring3::CalculateJacobianFD(double Kf
     ChVector3d pos_p = node_p->GetPos();
     ChVector3d pos_c = node_c->GetPos();
     ChVector3d pos_n = node_n->GetPos();
-    ChVector3d vel_p = node_p->GetPosDer();
-    ChVector3d vel_c = node_c->GetPosDer();
-    ChVector3d vel_n = node_n->GetPosDer();
+    ChVector3d vel_p = node_p->GetPosDt();
+    ChVector3d vel_c = node_c->GetPosDt();
+    ChVector3d vel_n = node_n->GetPosDt();
 
     CalculateForce();
     auto force_p_0 = force_p;
@@ -725,13 +725,13 @@ ChMatrixNM<double, 9, 9> MBTireModel::GridSpring3::CalculateJacobianFD(double Kf
         node_p->SetPos(pos_p);
 
         vel_p[i] += FD_step;
-        node_p->SetPosDer(vel_p);
+        node_p->SetPosDt(vel_p);
         CalculateForce();
         R.col(i).segment(0, 3) = (force_p.eigen() - force_p_0.eigen()) / FD_step;
         R.col(i).segment(3, 3) = (force_c.eigen() - force_c_0.eigen()) / FD_step;
         R.col(i).segment(6, 3) = (force_n.eigen() - force_n_0.eigen()) / FD_step;
         vel_p[i] -= FD_step;
-        node_p->SetPosDer(vel_p);
+        node_p->SetPosDt(vel_p);
     }
 
     // node_c states (columns 3,4,5)
@@ -746,13 +746,13 @@ ChMatrixNM<double, 9, 9> MBTireModel::GridSpring3::CalculateJacobianFD(double Kf
         node_c->SetPos(pos_c);
 
         vel_c[i] += FD_step;
-        node_c->SetPosDer(vel_c);
+        node_c->SetPosDt(vel_c);
         CalculateForce();
         R.col(3 + i).segment(0, 3) = (force_p.eigen() - force_p_0.eigen()) / FD_step;
         R.col(3 + i).segment(3, 3) = (force_c.eigen() - force_c_0.eigen()) / FD_step;
         R.col(3 + i).segment(6, 3) = (force_n.eigen() - force_n_0.eigen()) / FD_step;
         vel_c[i] -= FD_step;
-        node_c->SetPosDer(vel_c);
+        node_c->SetPosDt(vel_c);
     }
 
     // node_n states (columns 6,7,8)
@@ -767,13 +767,13 @@ ChMatrixNM<double, 9, 9> MBTireModel::GridSpring3::CalculateJacobianFD(double Kf
         node_n->SetPos(pos_n);
 
         vel_n[i] += FD_step;
-        node_n->SetPosDer(vel_n);
+        node_n->SetPosDt(vel_n);
         CalculateForce();
         R.col(6 + i).segment(0, 3) = (force_p.eigen() - force_p_0.eigen()) / FD_step;
         R.col(6 + i).segment(3, 3) = (force_c.eigen() - force_c_0.eigen()) / FD_step;
         R.col(6 + i).segment(6, 3) = (force_n.eigen() - force_n_0.eigen()) / FD_step;
         vel_n[i] -= FD_step;
-        node_n->SetPosDer(vel_n);
+        node_n->SetPosDt(vel_n);
     }
 
     return Kfactor * K + Rfactor * R;
@@ -808,7 +808,7 @@ void MBTireModel::EdgeSpring3::CalculateJacobian(bool full_jac, double Kfactor, 
         ChVector3d p = wheel->GetPos();          // wheel body position
         ChQuaterniond q = wheel->GetRot();       // wheel body orientation quaternion
         ChMatrix33 R = wheel->GetRotMat();       // wheel body rotation matrix
-        ChVector3d v = wheel->GetPosDer();       // wheel linear velocity
+        ChVector3d v = wheel->GetPosDt();        // wheel linear velocity
         ChVector3d w = wheel->GetAngVelLocal();  // wheel angular velocity (in local frame)
 
         ChVectorN<double, 4> e;   // quaternion
@@ -879,19 +879,19 @@ void MBTireModel::Construct() {
     // Create the visualization shape and get accessors to the underling trimesh
     m_trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     auto trimesh = m_trimesh_shape->GetMesh();
-    auto& vertices = trimesh->getCoordsVertices();
-    auto& normals = trimesh->getCoordsNormals();
-    auto& idx_vertices = trimesh->getIndicesVertexes();
-    auto& idx_normals = trimesh->getIndicesNormals();
-    ////auto& uv_coords = trimesh->getCoordsUV();
-    auto& colors = trimesh->getCoordsColors();
+    auto& vertices = trimesh->GetCoordsVertices();
+    auto& normals = trimesh->GetCoordsNormals();
+    auto& idx_vertices = trimesh->GetIndicesVertexes();
+    auto& idx_normals = trimesh->GetIndicesNormals();
+    ////auto& uv_coords = trimesh->GetCoordsUV();
+    auto& colors = trimesh->GetCoordsColors();
 
     // ------------ Nodes
 
     // Create the FEA nodes (with positions expressed in the global frame) and load the mesh vertices.
     m_nodes.resize(m_num_nodes);
     vertices.resize(m_num_nodes);
-    double dphi = CH_C_2PI / m_num_divs;
+    double dphi = CH_2PI / m_num_divs;
     int k = 0;
     for (int ir = 0; ir < m_num_rings; ir++) {
         double y = m_offsets[ir];
@@ -1218,7 +1218,7 @@ void MBTireModel::CalculateInertiaProperties(ChVector3d& com, ChMatrix33<>& iner
 
 // Set position and velocity of rim nodes from wheel/spindle state
 void MBTireModel::SetRimNodeStates() {
-    double dphi = CH_C_2PI / m_num_divs;
+    double dphi = CH_2PI / m_num_divs;
     int k = 0;
     {
         double y = m_offsets[0];
@@ -1229,7 +1229,7 @@ void MBTireModel::SetRimNodeStates() {
             double z = m_rim_radius * std::sin(phi);
             auto pos_loc = ChVector3d(x, y, z);
             m_rim_nodes[k]->SetPos(m_wheel->TransformPointLocalToParent(pos_loc));
-            m_rim_nodes[k]->SetPosDer(m_wheel->PointSpeedLocalToParent(pos_loc));
+            m_rim_nodes[k]->SetPosDt(m_wheel->PointSpeedLocalToParent(pos_loc));
             k++;
         }
     }
@@ -1242,7 +1242,7 @@ void MBTireModel::SetRimNodeStates() {
             double z = m_rim_radius * std::sin(phi);
             auto pos_loc = ChVector3d(x, y, z);
             m_rim_nodes[k]->SetPos(m_wheel->TransformPointLocalToParent(pos_loc));
-            m_rim_nodes[k]->SetPosDer(m_wheel->PointSpeedLocalToParent(pos_loc));
+            m_rim_nodes[k]->SetPosDt(m_wheel->PointSpeedLocalToParent(pos_loc));
             k++;
         }
     }
@@ -1261,7 +1261,7 @@ void MBTireModel::CalculateForces() {
 
     // ------------ Gravitational and pressure forces
 
-    ChVector3d gforce = m_node_mass * GetSystem()->Get_G_acc();
+    ChVector3d gforce = m_node_mass * GetSystem()->GetGravitationalAcceleration();
     bool pressure_enabled = m_tire->IsPressureEnabled();
     double pressure = m_tire->GetPressure();
     ChVector3d normal;
@@ -1357,8 +1357,8 @@ void MBTireModel::SetupInitial() {
     m_dofs_w = 0;
     for (auto& node : m_nodes) {
         node->SetupInitial(GetSystem());
-        m_dofs += node->GetNdofX_active();
-        m_dofs_w += node->GetNdofW_active();
+        m_dofs += node->GetNumCoordsPosLevelActive();
+        m_dofs_w += node->GetNumCoordsVelLevelActive();
     }
 }
 
@@ -1369,19 +1369,19 @@ void MBTireModel::Setup() {
     m_dofs_w = 0;
     for (auto& node : m_nodes) {
         // Set node offsets in state vectors (based on the offsets of the container)
-        node->NodeSetOffset_x(GetOffset_x() + m_dofs);
-        node->NodeSetOffset_w(GetOffset_w() + m_dofs_w);
+        node->NodeSetOffsetPosLevel(GetOffset_x() + m_dofs);
+        node->NodeSetOffsetVelLevel(GetOffset_w() + m_dofs_w);
 
         // Count the actual degrees of freedom (consider only nodes that are not fixed)
-        m_dofs += node->GetNdofX_active();
-        m_dofs_w += node->GetNdofW_active();
+        m_dofs += node->GetNumCoordsPosLevelActive();
+        m_dofs_w += node->GetNumCoordsVelLevelActive();
     }
 
     // Update visualization mesh
     auto trimesh = m_trimesh_shape->GetMesh();
-    auto& vertices = trimesh->getCoordsVertices();
-    auto& normals = trimesh->getCoordsNormals();
-    auto& colors = trimesh->getCoordsColors();
+    auto& vertices = trimesh->GetCoordsVertices();
+    auto& normals = trimesh->GetCoordsNormals();
+    auto& colors = trimesh->GetCoordsColors();
 
     for (int k = 0; k < m_num_nodes; k++) {
         vertices[k] = m_nodes[k]->GetPos();
@@ -1459,8 +1459,8 @@ void MBTireModel::IntStateGather(const unsigned int off_x,
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
         node->NodeIntStateGather(off_x + local_off_x, x, off_v + local_off_v, v, T);
-        local_off_x += node->GetNdofX_active();
-        local_off_v += node->GetNdofW_active();
+        local_off_x += node->GetNumCoordsPosLevelActive();
+        local_off_v += node->GetNumCoordsVelLevelActive();
     }
 
     T = GetChTime();
@@ -1476,8 +1476,8 @@ void MBTireModel::IntStateScatter(const unsigned int off_x,
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
         node->NodeIntStateScatter(off_x + local_off_x, x, off_v + local_off_v, v, T);
-        local_off_x += node->GetNdofX_active();
-        local_off_v += node->GetNdofW_active();
+        local_off_x += node->GetNumCoordsPosLevelActive();
+        local_off_v += node->GetNumCoordsVelLevelActive();
     }
 
     Update(T, full_update);
@@ -1487,7 +1487,7 @@ void MBTireModel::IntStateGatherAcceleration(const unsigned int off_a, ChStateDe
     unsigned int local_off_a = 0;
     for (auto& node : m_nodes) {
         node->NodeIntStateGatherAcceleration(off_a + local_off_a, a);
-        local_off_a += node->GetNdofW_active();
+        local_off_a += node->GetNumCoordsVelLevelActive();
     }
 }
 
@@ -1495,7 +1495,7 @@ void MBTireModel::IntStateScatterAcceleration(const unsigned int off_a, const Ch
     unsigned int local_off_a = 0;
     for (auto& node : m_nodes) {
         node->NodeIntStateScatterAcceleration(off_a + local_off_a, a);
-        local_off_a += node->GetNdofW_active();
+        local_off_a += node->GetNumCoordsVelLevelActive();
     }
 }
 
@@ -1508,8 +1508,8 @@ void MBTireModel::IntStateIncrement(const unsigned int off_x,
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
         node->NodeIntStateIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
-        local_off_x += node->GetNdofX_active();
-        local_off_v += node->GetNdofW_active();
+        local_off_x += node->GetNumCoordsPosLevelActive();
+        local_off_v += node->GetNumCoordsVelLevelActive();
     }
 }
 
@@ -1522,8 +1522,8 @@ void MBTireModel::IntStateGetIncrement(const unsigned int off_x,
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
         node->NodeIntStateGetIncrement(off_x + local_off_x, x_new, x, off_v + local_off_v, Dv);
-        local_off_x += node->GetNdofX_active();
-        local_off_v += node->GetNdofW_active();
+        local_off_x += node->GetNumCoordsPosLevelActive();
+        local_off_v += node->GetNumCoordsVelLevelActive();
     }
 }
 
@@ -1540,7 +1540,7 @@ void MBTireModel::IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
         node->NodeIntLoadResidual_F(off + local_off_v, R, c);
-        local_off_v += node->GetNdofW_active();
+        local_off_v += node->GetNumCoordsVelLevelActive();
     }
 
     ////std::cout << "   " << m_wheel_force << "             " << m_wheel_torque << std::endl;
@@ -1559,7 +1559,7 @@ void MBTireModel::IntLoadResidual_Mv(const unsigned int off,
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
         node->NodeIntLoadResidual_Mv(off + local_off_v, R, w, c);
-        local_off_v += node->GetNdofW_active();
+        local_off_v += node->GetNumCoordsVelLevelActive();
     }
 }
 
@@ -1567,7 +1567,7 @@ void MBTireModel::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
         node->NodeIntLoadLumpedMass_Md(off + local_off_v, Md, err, c);
-        local_off_v += node->GetNdofW_active();
+        local_off_v += node->GetNumCoordsVelLevelActive();
     }
 }
 
@@ -1580,7 +1580,7 @@ void MBTireModel::IntToDescriptor(const unsigned int off_v,
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
         node->NodeIntToDescriptor(off_v + local_off_v, v, R);
-        local_off_v += node->GetNdofW_active();
+        local_off_v += node->GetNumCoordsVelLevelActive();
     }
 }
 
@@ -1591,7 +1591,7 @@ void MBTireModel::IntFromDescriptor(const unsigned int off_v,
     unsigned int local_off_v = 0;
     for (auto& node : m_nodes) {
         node->NodeIntFromDescriptor(off_v + local_off_v, v);
-        local_off_v += node->GetNdofW_active();
+        local_off_v += node->GetNumCoordsVelLevelActive();
     }
 }
 

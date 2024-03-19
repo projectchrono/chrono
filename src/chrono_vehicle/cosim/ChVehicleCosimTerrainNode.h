@@ -90,7 +90,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNode : public ChVehicleCosimBaseNode {
 
     /// Return current number of contacts.
     /// (concrete terrain specific)
-    virtual int GetNumContacts() const { return 0; }
+    virtual unsigned int GetNumContacts() const { return 0; }
 
   protected:
     /// Construct a terrain node to wrap a terrain patch of given length and width.

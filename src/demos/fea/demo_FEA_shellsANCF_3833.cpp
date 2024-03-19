@@ -20,8 +20,8 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/fea/ChElementShellANCF_3833.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/solver/ChDirectSolverLS.h"
@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
     double time_step = 1e-3;
 
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     std::cout << "-----------------------------------------------------------------\n";
     std::cout << " Higher order ANCF Shell Element demo with different constraints \n";
@@ -118,7 +118,7 @@ int main(int argc, char* argv[]) {
         element->SetAlphaDamp(0.001);
 
         // Add a single layers with a fiber angle of 0 degrees.
-        element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material);
+        element->AddLayer(thickness, 0 * CH_DEG_TO_RAD, material);
 
         mesh->AddElement(element);
 
@@ -145,7 +145,7 @@ int main(int argc, char* argv[]) {
 
     // Create the ground body to connect the cantilever beam to
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     sys.Add(ground);
 
     // Create the first nodes
@@ -159,36 +159,36 @@ int main(int argc, char* argv[]) {
     mesh->AddNode(nodeH);
 
     // Fix the position of the starting nodes to the ground body
-    auto constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraintxyz = chrono_types::make_shared<ChLinkNodeFrame>();
     constraintxyz->Initialize(nodeA, ground);
     sys.Add(constraintxyz);
 
-    constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
+    constraintxyz = chrono_types::make_shared<ChLinkNodeFrame>();
     constraintxyz->Initialize(nodeD, ground);
     sys.Add(constraintxyz);
 
-    constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
+    constraintxyz = chrono_types::make_shared<ChLinkNodeFrame>();
     constraintxyz->Initialize(nodeH, ground);
     sys.Add(constraintxyz);
 
     // Fix the position vector gradient coordinate set normal to the surface of the shell to remain parallel to the
     // original axis on the ground body (in this case the z axis)
-    auto constraintD = chrono_types::make_shared<ChLinkDirFrame>();
+    auto constraintD = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
     constraintD->Initialize(nodeA, ground);
     sys.Add(constraintD);
 
-    constraintD = chrono_types::make_shared<ChLinkDirFrame>();
+    constraintD = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
     constraintD->Initialize(nodeD, ground);
     sys.Add(constraintD);
 
-    constraintD = chrono_types::make_shared<ChLinkDirFrame>();
+    constraintD = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
     constraintD->Initialize(nodeH, ground);
     sys.Add(constraintD);
 
     // Constrain curvature at the base nodes (keep at initial value)
-    nodeA->SetFixedDD(true);
-    nodeD->SetFixedDD(true);
-    nodeH->SetFixedDD(true);
+    nodeA->SetSlope2Fixed(true);
+    nodeD->SetSlope2Fixed(true);
+    nodeH->SetSlope2Fixed(true);
 
     // Store the starting nodes so that their coordinates can be inspected
     auto nodebaseA_beam2 = nodeA;
@@ -215,7 +215,7 @@ int main(int argc, char* argv[]) {
         element->SetAlphaDamp(0.001);
 
         // Add a single layers with a fiber angle of 0 degrees.
-        element->AddLayer(thickness, 0 * CH_C_DEG_TO_RAD, material);
+        element->AddLayer(thickness, 0 * CH_DEG_TO_RAD, material);
 
         mesh->AddElement(element);
 
@@ -275,7 +275,7 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(50);
+    mystepper->SetMaxIters(50);
     mystepper->SetAbsTolerances(1e-4, 1e2);
     mystepper->SetStepControl(false);
     mystepper->SetModifiedNewton(true);
@@ -289,10 +289,10 @@ int main(int argc, char* argv[]) {
                   << nodetipB_beam1->GetPos().z() - nodetipB_beam2->GetPos().z() << "\n";
         std::cout << "  Beam2 Base Node A Coordinates (xyz):   " << nodebaseA_beam2->GetPos().x() << " "
                   << nodebaseA_beam2->GetPos().y() << " " << nodebaseA_beam2->GetPos().z() << "\n";
-        std::cout << "  Beam2 Base Node A Coordinates (D):     " << nodebaseA_beam2->GetD().x() << " "
-                  << nodebaseA_beam2->GetD().y() << " " << nodebaseA_beam2->GetD().z() << "\n";
-        std::cout << "  Beam2 Base Node A Coordinates (DD):    " << nodebaseA_beam2->GetDD().x() << " "
-                  << nodebaseA_beam2->GetDD().y() << " " << nodebaseA_beam2->GetDD().z() << "\n";
+        std::cout << "  Beam2 Base Node A Coordinates (D):     " << nodebaseA_beam2->GetSlope1().x() << " "
+                  << nodebaseA_beam2->GetSlope1().y() << " " << nodebaseA_beam2->GetSlope1().z() << "\n";
+        std::cout << "  Beam2 Base Node A Coordinates (DD):    " << nodebaseA_beam2->GetSlope2().x() << " "
+                  << nodebaseA_beam2->GetSlope2().y() << " " << nodebaseA_beam2->GetSlope2().z() << "\n";
 
         vis->BeginScene();
         vis->Render();

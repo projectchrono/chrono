@@ -184,7 +184,7 @@ void ChParserURDF::PopulateSystem(ChSystem& sys) {
     ChFrame<> frame = m_init_pose;
     if (root_link->inertial) {
         m_root_body = toChBody(root_link);
-        m_root_body->SetFrame_REF_to_abs(frame);
+        m_root_body->SetFrameRefToAbs(frame);
         m_sys->AddBody(m_root_body);
     }
     createChildren(root_link, frame);
@@ -202,7 +202,7 @@ void ChParserURDF::createChildren(urdf::LinkConstSharedPtr parent, const ChFrame
         // Create the child Chrono body
         auto body = toChBody(*child);
         if (body) {
-            body->SetFrame_REF_to_abs(child_frame);
+            body->SetFrameRefToAbs(child_frame);
             m_sys->AddBody(body);
         }
 
@@ -366,12 +366,12 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
                         }
                         case MeshCollisionType::CONVEX_HULL: {
                             auto ct_shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(
-                                contact_material, trimesh->getCoordsVertices());
+                                contact_material, trimesh->GetCoordsVertices());
                             body->AddCollisionShape(ct_shape, frame);
                             break;
                         }
                         case MeshCollisionType::NODE_CLOUD: {
-                            for (const auto& v : trimesh->getCoordsVertices()) {
+                            for (const auto& v : trimesh->GetCoordsVertices()) {
                                 auto ct_shape =
                                     chrono_types::make_shared<ChCollisionShapeSphere>(contact_material, 0.002);
                                 body->AddCollisionShape(ct_shape, ChFrame<>(v, QUNIT));
@@ -382,7 +382,6 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
                     break;
                 }
             }
-            collision->origin;
         }
     }
 }
@@ -437,7 +436,7 @@ std::shared_ptr<ChBodyAuxRef> ChParserURDF::toChBody(urdf::LinkConstSharedPtr li
     // Create the Chrono body
     auto body = chrono_types::make_shared<ChBodyAuxRef>();
     body->SetNameString(link->name);
-    body->SetFrame_COG_to_REF(toChFrame(inertial->origin));
+    body->SetFrameCOMToRef(toChFrame(inertial->origin));
     body->SetMass(mass);
     body->SetInertiaXX(inertia_moments);
     body->SetInertiaXY(inertia_products);
@@ -488,7 +487,7 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
     joint_axis.GetDirectionAxesAsX(d1, d2, d3);
 
     // Create motors or passive joints
-    ChFrame<> joint_frame = child->GetFrame_REF_to_abs();  // default joint frame == child body frame
+    ChFrame<> joint_frame = child->GetFrameRefToAbs();  // default joint frame == child body frame
 
     if (m_actuated_joints.find(joint->name) != m_actuated_joints.end()) {
         // Create a motor (with a default zero constant motor function)
@@ -539,9 +538,9 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
         if (joint_type == urdf::Joint::REVOLUTE || joint_type == urdf::Joint::CONTINUOUS) {
             auto revolute = chrono_types::make_shared<ChLinkLockRevolute>();
             if (joint_type == urdf::Joint::REVOLUTE) {
-                revolute->GetLimit_Rz().SetActive(true);
-                revolute->GetLimit_Rz().SetMin(joint->limits->lower);
-                revolute->GetLimit_Rz().SetMax(joint->limits->upper);
+                revolute->LimitRz().SetActive(true);
+                revolute->LimitRz().SetMin(joint->limits->lower);
+                revolute->LimitRz().SetMax(joint->limits->upper);
             }
             joint_frame.SetRot(joint_frame.GetRotMat() * ChMatrix33<>(d2, d3, d1));  // Chrono revolute axis along Z
             revolute->Initialize(parent, child, joint_frame);
@@ -552,9 +551,9 @@ std::shared_ptr<ChLink> ChParserURDF::toChLink(urdf::JointSharedPtr& joint) {
         if (joint_type == urdf::Joint::PRISMATIC) {
             auto prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
             {
-                prismatic->GetLimit_Rz().SetActive(true);
-                prismatic->GetLimit_Rz().SetMin(joint->limits->lower);
-                prismatic->GetLimit_Rz().SetMax(joint->limits->upper);
+                prismatic->LimitRz().SetActive(true);
+                prismatic->LimitRz().SetMin(joint->limits->lower);
+                prismatic->LimitRz().SetMax(joint->limits->upper);
             }
             joint_frame.SetRot(joint_frame.GetRotMat() * ChMatrix33<>(d2, d3, d1));  // Chrono prismatic axis along Z
             prismatic->Initialize(parent, child, joint_frame);

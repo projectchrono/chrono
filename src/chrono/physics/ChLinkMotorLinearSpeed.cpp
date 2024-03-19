@@ -23,7 +23,10 @@ ChLinkMotorLinearSpeed::ChLinkMotorLinearSpeed() {
     variable.GetMass()(0, 0) = 1.0;
     variable.GetInvMass()(0, 0) = 1.0;
 
-    m_func = chrono_types::make_shared<ChFunctionConst>(1.0);
+    this->c_z = true;
+    SetupLinkMask();
+
+    m_func = chrono_types::make_shared<ChFunctionConst>(0.0);
 
     pos_offset = 0;
 
@@ -58,7 +61,7 @@ void ChLinkMotorLinearSpeed::Update(double mytime, bool update_assets) {
 
 void ChLinkMotorLinearSpeed::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
     double mCt = -m_func->GetVal(this->GetChTime());
-    if (mask.Constr_N(m_actuated_idx).IsActive()) {
+    if (mask.GetConstraint(m_actuated_idx).IsActive()) {
         Qc(off_L + m_actuated_idx) += c * mCt;
     }
 }
@@ -68,8 +71,8 @@ void ChLinkMotorLinearSpeed::ConstraintsBiLoad_Ct(double factor) {
         return;
 
     double mCt = -m_func->GetVal(this->GetChTime());
-    if (mask.Constr_N(m_actuated_idx).IsActive()) {
-        mask.Constr_N(m_actuated_idx).Set_b_i(mask.Constr_N(m_actuated_idx).Get_b_i() + factor * mCt);
+    if (mask.GetConstraint(m_actuated_idx).IsActive()) {
+        mask.GetConstraint(m_actuated_idx).Set_b_i(mask.GetConstraint(m_actuated_idx).Get_b_i() + factor * mCt);
     }
 }
 

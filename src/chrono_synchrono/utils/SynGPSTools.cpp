@@ -112,7 +112,7 @@ std::shared_ptr<ChBezierCurve> SynGPSTools::CurveFromGPS(const std::string& file
                  << "\n";
 
         ifile.close();
-        return ChBezierCurve::read(filename);
+        return ChBezierCurve::Read(filename);
     }
 
     // Not the expected number of columns.  Close the file and throw an exception.

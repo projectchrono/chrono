@@ -57,21 +57,21 @@ int main(int argc, char* argv[]) {
 
     // Create the sys
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     // Create the ground body
     auto ground = chrono_types::make_shared<ChBodyEasyBox>(0.6, 0.6, 0.15, 10000, true, false);
     sys.Add(ground);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     // Create a moving body that will 'bounce' thanks to a flexible bushing.
     // Give it an initial angular velocity and attach also a small sphere to show the anchoring of the bushing.
     auto body = chrono_types::make_shared<ChBodyEasyBox>(0.9, 0.9, 0.15, 1000, true, false);
     sys.Add(body);
-    body->SetBodyFixed(false);
+    body->SetFixed(false);
     body->SetPos(ChVector3d(1.0, 0.0, 0.0));
     body->SetAngVelLocal(ChVector3d(1.5, 1.5, -1.5));
-    body->SetPosDer(ChVector3d(1.0, -0.4, 0.2));
+    body->SetPosDt(ChVector3d(1.0, -0.4, 0.2));
     body->GetVisualShape(0)->SetColor(ChColor(0.6f, 0, 0));
 
     auto symbol_bushing = chrono_types::make_shared<ChVisualShapeSphere>(0.1);

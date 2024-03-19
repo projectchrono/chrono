@@ -78,8 +78,8 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Create a body for the wall
     auto body = chrono_types::make_shared<ChBody>();
     body->SetIdentifier(-1);
-    body->SetBodyFixed(true);
-    body->SetCollide(true);
+    body->SetFixed(true);
+    body->EnableCollision(true);
 
     // Size and position of the bottom and top walls
     auto initSpace0 = sysFSI.GetInitialSpacing();
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Create SPH particles for the fluid domain
-    chrono::utils::GridSampler<> sampler(initSpace0);
+    chrono::utils::ChGridSampler<> sampler(initSpace0);
     ChVector3d boxCenter(0, 0, bzDim * 0.5);
     ChVector3d boxHalfDim(bxDim / 2, byDim / 2, bzDim / 2);
     std::vector<ChVector3d> points = sampler.SampleBox(boxCenter, boxHalfDim);

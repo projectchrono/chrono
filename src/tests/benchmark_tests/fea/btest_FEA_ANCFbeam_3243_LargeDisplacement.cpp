@@ -33,7 +33,7 @@
 
 #include "chrono/fea/ChElementBeamANCF_3243.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 
 #ifdef CHRONO_IRRLICHT
@@ -94,7 +94,7 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
     m_NumElements = num_elements;
     m_NumThreads = NumThreads;
     m_system = new ChSystemSMC();
-    m_system->Set_G_acc(ChVector3d(0, 0, -9.80665));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.80665));
     m_system->SetNumThreads(NumThreads, 1, NumThreads);
 
     // Set solver parameters
@@ -127,7 +127,7 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
             solver->SetTolerance(1e-10);
             solver->EnableDiagonalPreconditioner(true);
             solver->SetVerbose(false);
-            m_system->SetSolverForceTolerance(1e-10);
+            solver->SetTolerance(1e-12);
             break;
         }
         case SolverType::MKL: {
@@ -182,7 +182,7 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
     m_system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -232,19 +232,19 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
 
     // Create a grounded body to connect the 3D pendulum to
     auto grounded = chrono_types::make_shared<ChBody>();
-    grounded->SetBodyFixed(true);
+    grounded->SetFixed(true);
     m_system->Add(grounded);
 
     // Create the first node and fix only its position to ground (Spherical Joint constraint)
     auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, 0, 0.0), dir1, dir2, dir3);
     mesh->AddNode(nodeA);
-    auto pos_constraint = chrono_types::make_shared<ChLinkPointFrame>();
+    auto pos_constraint = chrono_types::make_shared<ChLinkNodeFrame>();
     pos_constraint->Initialize(nodeA, grounded);  // body to be connected to
     m_system->Add(pos_constraint);
 
     for (int i = 1; i <= num_elements; i++) {
         auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, 0, 0), dir1, dir2, dir3);
-        nodeB->SetPosDer(ChVector3d(0, omega_z * (dx * (2 * i)), 0));
+        nodeB->SetPosDt(ChVector3d(0, omega_z * (dx * (2 * i)), 0));
         mesh->AddNode(nodeB);
 
         auto element = chrono_types::make_shared<ChElementBeamANCF_3243>();

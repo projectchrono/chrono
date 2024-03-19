@@ -51,7 +51,7 @@ namespace vehicle {
 
 ChPac02Tire::ChPac02Tire(const std::string& name)
     : ChForceElementTire(name),
-      m_gamma_limit(3.0 * CH_C_DEG_TO_RAD),
+      m_gamma_limit(3.0 * CH_DEG_TO_RAD),
       m_mu0(0.8),
       m_measured_side(LEFT),
       m_allow_mirroring(true),
@@ -147,7 +147,7 @@ void ChPac02Tire::CalcFxyMz(double& Fx, double& Fy, double& Mz, double kappa, do
                 (1.0 + m_par.PPX1 * m_states.dpi + m_par.PPX2 * pow(m_states.dpi, 2)) * m_par.LKX;
     double Bx = Kx / (Cx * Dx + 0.1);
     double X1 = Bx * kappa_x;
-    ChClampValue(X1, -CH_C_PI_2 + 0.01, CH_C_PI_2 - 0.01);
+    ChClampValue(X1, -CH_PI_2 + 0.01, CH_PI_2 - 0.01);
     // Fx0 = Dx * sin(Cx * atan(Bx * kappa_x - Ex * (Bx * kappa_x - atan(Bx * kappa_x)))) + Svx;
     Fx0 = Dx * sin(Cx * atan(X1 - Ex * (X1 - atan(X1)))) + Svx;
 
@@ -174,7 +174,7 @@ void ChPac02Tire::CalcFxyMz(double& Fx, double& Fy, double& Mz, double kappa, do
     double Dy = mu_y * Fz;
     double By = Ky / (Cy * Dy + 0.1);
     double Y1 = By * alpha_y;
-    ChClampValue(Y1, -CH_C_PI_2 + 0.01, CH_C_PI_2 - 0.01);
+    ChClampValue(Y1, -CH_PI_2 + 0.01, CH_PI_2 - 0.01);
     // Fy0 = Dy * sin(Cy * atan(By * alpha_y - Ey * (By * alpha_y - atan(By * alpha_y)))) + Svy;
     Fy0 = Dy * sin(Cy * atan(Y1 - Ey * (Y1 - atan(Y1)))) + Svy;
 
@@ -198,7 +198,7 @@ void ChPac02Tire::CalcFxyMz(double& Fx, double& Fy, double& Mz, double kappa, do
     double Bt = std::abs((m_par.QBZ1 + m_par.QBZ2 * m_states.dfz0 + m_par.QBZ3 * pow(m_states.dfz0, 2)) *
                          (1.0 + m_par.QBZ4 * gamma_z + m_par.QBZ5 * std::abs(gamma_z)) * m_par.LKY / m_par.LMUY);
     double Et = (m_par.QEZ1 + m_par.QEZ2 * m_states.dfz0 + m_par.QEZ3 * pow(m_states.dfz0, 2)) *
-                (1.0 + (m_par.QEZ4 + m_par.QEZ5 * gamma_z) * ((2.0 / CH_C_PI) * atan(Bt * Ct * alpha_t)));
+                (1.0 + (m_par.QEZ4 + m_par.QEZ5 * gamma_z) * ((2.0 / CH_PI) * atan(Bt * Ct * alpha_t)));
     if (Et > 1.0)
         Et = 1.0;
     double Dt = Fz * (m_par.QDZ1 + m_par.QDZ2 * m_states.dfz0) * (1.0 - m_par.QPZ1 * m_states.dpi) *
@@ -1639,7 +1639,7 @@ void ChPac02Tire::LoadSectionAligning(FILE* fp) {
 void ChPac02Tire::Initialize(std::shared_ptr<ChWheel> wheel) {
     ChTire::Initialize(wheel);
 
-    m_g = wheel->GetSpindle()->GetSystem()->Get_G_acc().Length();
+    m_g = wheel->GetSpindle()->GetSystem()->GetGravitationalAcceleration().Length();
 
     // Let derived class set the MF tire parameters
     SetMFParams();
@@ -1712,7 +1712,7 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
     // Calculate tire kinematics
     CalculateKinematics(wheel_state, m_data.frame);
 
-    m_states.gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_C_DEG_TO_RAD, m_gamma_limit * CH_C_DEG_TO_RAD);
+    m_states.gamma = ChClamp(GetCamberAngle(), -m_gamma_limit * CH_DEG_TO_RAD, m_gamma_limit * CH_DEG_TO_RAD);
 
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
@@ -1750,7 +1750,7 @@ void ChPac02Tire::Synchronize(double time, const ChTerrain& terrain) {
         // Ensure that kappa stays between -1 & 1
         ChClampValue(m_states.kappa, -1.0, 1.0);
         // Ensure that alpha stays between -pi()/2 & pi()/2 (a little less to prevent tan from going to infinity)
-        ChClampValue(m_states.alpha, -CH_C_PI_2 + 0.01, CH_C_PI_2 - 0.01);
+        ChClampValue(m_states.alpha, -CH_PI_2 + 0.01, CH_PI_2 - 0.01);
         // Clamp |gamma| to specified value: Limit due to tire testing, avoids erratic extrapolation. m_gamma_limit is
         // in rad too.
         ChClampValue(m_states.gamma, -m_gamma_limit, m_gamma_limit);

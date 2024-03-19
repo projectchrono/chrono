@@ -71,7 +71,7 @@ ChTriangleMeshConnected::~ChTriangleMeshConnected() {
         delete (id);
 }
 
-void ChTriangleMeshConnected::addTriangle(const ChVector3d& vertex0,
+void ChTriangleMeshConnected::AddTriangle(const ChVector3d& vertex0,
                                           const ChVector3d& vertex1,
                                           const ChVector3d& vertex2) {
     int base_v = (int)m_vertices.size();
@@ -81,7 +81,7 @@ void ChTriangleMeshConnected::addTriangle(const ChVector3d& vertex0,
     m_face_v_indices.push_back(ChVector3i(base_v, base_v + 1, base_v + 2));
 }
 
-void ChTriangleMeshConnected::addTriangle(const ChTriangle& atriangle) {
+void ChTriangleMeshConnected::AddTriangle(const ChTriangle& atriangle) {
     int base_v = (int)m_vertices.size();
     m_vertices.push_back(atriangle.p1);
     m_vertices.push_back(atriangle.p2);
@@ -154,7 +154,7 @@ void ChTriangleMeshConnected::ComputeMassProperties(bool bodyCoords,
     double integral[10] = {(double)0.0, (double)0.0, (double)0.0, (double)0.0, (double)0.0,
                            (double)0.0, (double)0.0, (double)0.0, (double)0.0, (double)0.0};
 
-    for (int i = 0; i < this->getNumTriangles(); i++) {
+    for (unsigned int i = 0; i < this->GetNumTriangles(); i++) {
         // Get vertices of triangle i.
         ChVector3d v0 = this->m_vertices[m_face_v_indices[i].x()];
         ChVector3d v1 = this->m_vertices[m_face_v_indices[i].y()];
@@ -587,7 +587,9 @@ bool ChTriangleMeshConnected::ComputeNeighbouringTriangleMap(std::vector<std::ar
             }
         }
     }
-    return pathological_edges;
+
+    // Return true on success, false if pathological edges exist
+    return !pathological_edges;
 }
 
 bool ChTriangleMeshConnected::ComputeWingedEdges(std::map<std::pair<int, int>, std::pair<int, int>>& winged_edges,
@@ -644,7 +646,9 @@ bool ChTriangleMeshConnected::ComputeWingedEdges(std::map<std::pair<int, int>, s
             // two triangles." << std::endl;
         }
     }
-    return pathological_edges;
+
+    // Return true on success, false if pathological edges exist
+    return !pathological_edges;
 }
 
 int ChTriangleMeshConnected::RepairDuplicateVertexes(double tolerance) {
@@ -709,8 +713,8 @@ bool ChTriangleMeshConnected::MakeOffset(double moffset) {
             for (int j = 0; j < ntri; ++j) {
                 b(j, 0) = 1;
                 for (int k = 0; k < ntri; ++k) {
-                    A(j, k) = Vdot(this->getTriangle(mverttriangles[j]).GetNormal(),
-                                   this->getTriangle(mverttriangles[k]).GetNormal());
+                    A(j, k) = Vdot(this->GetTriangle(mverttriangles[j]).GetNormal(),
+                                   this->GetTriangle(mverttriangles[k]).GetNormal());
                 }
             }
 
@@ -736,7 +740,7 @@ bool ChTriangleMeshConnected::MakeOffset(double moffset) {
             // weighted sum as offset vector
             voffsets[i] = VNULL;
             for (int j = 0; j < ntri; ++j) {
-                voffsets[i] += this->getTriangle(mverttriangles[j]).GetNormal() * x(j);
+                voffsets[i] += this->GetTriangle(mverttriangles[j]).GetNormal() * x(j);
             }
         }
     }
@@ -909,7 +913,6 @@ bool ChTriangleMeshConnected::SplitEdge(
             // for m_face_v_indices buffer (vertex indexes) only:
             if (ibuffer == 0) {
                 // Update triangle neighboring map
-
                 std::array<int, 4> topo_A_1 = tri_map[itA];
                 std::array<int, 4> topo_A_2 = tri_map[itA];
                 topo_A_1[1 + neA] = itB_1;
@@ -922,12 +925,20 @@ bool ChTriangleMeshConnected::SplitEdge(
                 topo_A_2[is2] = itA_1;
                 int itD = topo_A_1[is2];
                 int itC = topo_A_2[is1];
-                for (int in = 1; in < 4; ++in)
-                    if (tri_map[itD][in] == itA)
-                        tri_map[itD][in] = itA_1;  // not needed?
-                for (int in = 1; in < 4; ++in)
-                    if (tri_map[itC][in] == itA)
-                        tri_map[itC][in] = itA_2;
+
+                for (int in = 1; in < 4; ++in) {
+                    if (itD >= 0 && itD < tri_map.size()) {
+                        if (tri_map[itD][in] == itA)
+                            tri_map[itD][in] = itA_1;
+                    }
+                }
+                for (int in = 1; in < 4; ++in) {
+                    if (itC >= 0 && itC < tri_map.size()) {
+                        if (tri_map[itC][in] == itA)
+                            tri_map[itC][in] = itA_2;
+                    }
+                }
+
                 tri_map[itA] = topo_A_1;      // reuse
                 tri_map.push_back(topo_A_2);  // allocate
                 topo_A_2[0] = (int)tri_map.size() - 1;
@@ -945,12 +956,20 @@ bool ChTriangleMeshConnected::SplitEdge(
                     topo_B_2[is2] = itB_1;
                     int itF = topo_B_1[is2];
                     int itE = topo_B_2[is1];
-                    for (int in = 1; in < 4; ++in)
-                        if (tri_map[itF][in] == itB)
-                            tri_map[itF][in] = itB_1;  // not needed?
-                    for (int in = 1; in < 4; ++in)
-                        if (tri_map[itE][in] == itB)
-                            tri_map[itE][in] = itB_2;
+
+                    for (int in = 1; in < 4; ++in) {
+                        if (itF >= 0 && itF < tri_map.size()) {
+                            if (tri_map[itF][in] == itB)
+                                tri_map[itF][in] = itB_1;
+                        }
+                    }
+                    for (int in = 1; in < 4; ++in) {
+                        if (itE >= 0 && itE < tri_map.size()) {
+                            if (tri_map[itE][in] == itB)
+                                tri_map[itE][in] = itB_2;
+                        }
+                    }
+
                     tri_map[itB] = topo_B_1;      // reuse
                     tri_map.push_back(topo_B_2);  // allocate
                     topo_B_2[0] = (int)tri_map.size() - 1;
@@ -1055,7 +1074,7 @@ void ChTriangleMeshConnected::RefineMeshEdges(
             }
 
             if (L_max < edge_maxlen) {
-                //  std::cerr << "  already small triangle - pop it and break while " << std::endl;
+                ////std::cerr << "  already small triangle - pop it and break while " << std::endl;
                 mlist.pop_back();
                 break;
             }
@@ -1063,8 +1082,11 @@ void ChTriangleMeshConnected::RefineMeshEdges(
             // add longest-edge neighbour to the list
             mlist.push_back(t_N1);
 
-            if (mlist.size() > 1000)
-                throw std::runtime_error("overflow in ChTriangleMeshConnected::RefineMeshEdges");
+            if (mlist.size() > 1000) {
+                ////std::cerr << "overflow in ChTriangleMeshConnected::RefineMeshEdges" << std::endl;
+                ////throw std::runtime_error("overflow in ChTriangleMeshConnected::RefineMeshEdges");            
+                continue;  // set the cap, exit this triangle loop, continue to the next
+            }
 
             // if boundary edge: always terminal edge
             if (t_N1 == -1) {
@@ -1082,9 +1104,11 @@ void ChTriangleMeshConnected::RefineMeshEdges(
                     }
                 }
 
-                // remove from list
-                mlist.pop_back();
-                mlist.pop_back();
+                // remove from list, but ensure pop_back not called if empty
+                if (!mlist.empty())
+                    mlist.pop_back();
+                if (!mlist.empty())
+                    mlist.pop_back();
 
             } else {
                 //  find longest-edge in neighboring triangle
@@ -1124,8 +1148,10 @@ void ChTriangleMeshConnected::RefineMeshEdges(
                     }
 
                     // remove from list
-                    mlist.pop_back();
-                    mlist.pop_back();
+                    if (!mlist.empty())
+                        mlist.pop_back();
+                    if (!mlist.empty())
+                        mlist.pop_back();
                 }
             }
         }
@@ -1134,12 +1160,12 @@ void ChTriangleMeshConnected::RefineMeshEdges(
 }
 
 const std::vector<ChVector3d>& ChTriangleMeshConnected::getFaceVertices() {
-    int n_faces = getNumTriangles();
+    unsigned int n_faces = GetNumTriangles();
 
     m_tmp_vectors.resize(3 * n_faces);
 
     // Collect vertices from all mesh faces
-    for (int it = 0; it < n_faces; it++) {
+    for (unsigned int it = 0; it < n_faces; it++) {
         m_tmp_vectors[3 * it + 0] = m_vertices[m_face_v_indices[it][0]];
         m_tmp_vectors[3 * it + 1] = m_vertices[m_face_v_indices[it][1]];
         m_tmp_vectors[3 * it + 2] = m_vertices[m_face_v_indices[it][2]];
@@ -1149,12 +1175,12 @@ const std::vector<ChVector3d>& ChTriangleMeshConnected::getFaceVertices() {
 }
 
 const std::vector<ChVector3d>& ChTriangleMeshConnected::getFaceNormals() {
-    int n_faces = getNumTriangles();
+    unsigned int n_faces = GetNumTriangles();
 
     m_tmp_vectors.resize(3 * n_faces);
 
     // Calculate face normals and assign to each face vertex
-    for (int it = 0; it < n_faces; it++) {
+    for (unsigned int it = 0; it < n_faces; it++) {
         const auto& v0 = m_vertices[m_face_v_indices[it][0]];
         const auto& v1 = m_vertices[m_face_v_indices[it][1]];
         const auto& v2 = m_vertices[m_face_v_indices[it][2]];
@@ -1199,8 +1225,8 @@ const std::vector<ChColor>& ChTriangleMeshConnected::getFaceColors() {
 }
 
 const std::vector<ChVector3d>& ChTriangleMeshConnected::getAverageNormals() {
-    int n_verts = getNumVertices();
-    int n_faces = getNumTriangles();
+    unsigned int n_verts = GetNumVertices();
+    unsigned int n_faces = GetNumTriangles();
 
     m_tmp_vectors.resize(n_verts);
 
@@ -1208,7 +1234,7 @@ const std::vector<ChVector3d>& ChTriangleMeshConnected::getAverageNormals() {
     std::vector<int> accumulators(n_verts, 0);
 
     // Calculate normals and then average the normals from all adjacent faces
-    for (int it = 0; it < n_faces; it++) {
+    for (unsigned int it = 0; it < n_faces; it++) {
         // Calculate the triangle normal as a normalized cross product.
         ChVector3d nrm = Vcross(m_vertices[m_face_v_indices[it][1]] - m_vertices[m_face_v_indices[it][0]],
                                 m_vertices[m_face_v_indices[it][2]] - m_vertices[m_face_v_indices[it][0]]);
@@ -1226,7 +1252,7 @@ const std::vector<ChVector3d>& ChTriangleMeshConnected::getAverageNormals() {
     }
 
     // Set the normals to the average values
-    for (int in = 0; in < n_verts; in++) {
+    for (unsigned int in = 0; in < n_verts; in++) {
         m_tmp_vectors[in] /= (double)accumulators[in];
     }
 

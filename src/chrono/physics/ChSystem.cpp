@@ -53,10 +53,7 @@ ChSystem::ChSystem()
       ch_time(0),
       m_RTF(0),
       step(0.04),
-      tol_force(-1),
-      maxiter(6),
       use_sleeping(false),
-      min_bounce_speed(0.15),
       max_penetration_recovery_speed(0.6),
       stepcount(0),
       setupcount(0),
@@ -69,7 +66,6 @@ ChSystem::ChSystem()
       nthreads_chrono(ChOMP::GetNumProcs()),
       nthreads_eigen(1),
       nthreads_collision(1),
-      last_err(false),
       applied_forces_current(false) {
     assembly.system = this;
 
@@ -100,16 +96,13 @@ ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr),
     write_matrix = other.write_matrix;
     output_dir = other.output_dir;
     SetTimestepperType(other.GetTimestepperType());
-    tol_force = other.tol_force;
     nthreads_chrono = other.nthreads_chrono;
     nthreads_eigen = other.nthreads_eigen;
     nthreads_collision = other.nthreads_collision;
     is_initialized = false;
     is_updated = false;
     applied_forces_current = false;
-    maxiter = other.maxiter;
 
-    min_bounce_speed = other.min_bounce_speed;
     max_penetration_recovery_speed = other.max_penetration_recovery_speed;
     SetSolverType(other.GetSolverType());
     use_sleeping = other.use_sleeping;
@@ -117,8 +110,6 @@ ChSystem::ChSystem(const ChSystem& other) : m_RTF(0), collision_system(nullptr),
     ncontacts = other.ncontacts;
 
     collision_callbacks = other.collision_callbacks;
-
-    last_err = other.last_err;
 }
 
 ChSystem::~ChSystem() {
@@ -139,12 +130,13 @@ void ChSystem::Clear() {
 // -----------------------------------------------------------------------------
 
 void ChSystem::AddBody(std::shared_ptr<ChBody> body) {
-    body->SetId(static_cast<int>(GetBodies().size()));
+    body->index = static_cast<unsigned int>(GetBodies().size());
     assembly.AddBody(body);
     body->SetSystem(this);
 }
 
 void ChSystem::AddShaft(std::shared_ptr<ChShaft> shaft) {
+    shaft->index = static_cast<unsigned int>(GetShafts().size());
     assembly.AddShaft(shaft);
     shaft->SetSystem(this);
 }
@@ -254,32 +246,6 @@ void ChSystem::Remove(std::shared_ptr<ChPhysicsItem> item) {
 
 // -----------------------------------------------------------------------------
 
-void ChSystem::SetSolverMaxIterations(int max_iters) {
-    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
-        iter_solver->SetMaxIterations(max_iters);
-    }
-}
-
-int ChSystem::GetSolverMaxIterations() const {
-    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
-        return iter_solver->GetMaxIterations();
-    }
-    return 0;
-}
-
-void ChSystem::SetSolverTolerance(double tolerance) {
-    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
-        iter_solver->SetTolerance(tolerance);
-    }
-}
-
-double ChSystem::GetSolverTolerance() const {
-    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
-        return iter_solver->GetTolerance();
-    }
-    return 0;
-}
-
 void ChSystem::SetSolverType(ChSolver::Type type) {
     // Do nothing if changing to a CUSTOM solver.
     if (type == ChSolver::Type::CUSTOM)
@@ -325,18 +291,6 @@ void ChSystem::SetSolverType(ChSolver::Type type) {
     }
 }
 
-std::shared_ptr<ChSolver> ChSystem::GetSolver() {
-    // In case the solver is iterative, and if the user specified a force-level tolerance,
-    // overwrite the solver's tolerance threshold.
-    if (auto iter_solver = std::dynamic_pointer_cast<ChIterativeSolver>(solver)) {
-        if (tol_force > 0) {
-            iter_solver->SetTolerance(tol_force * step);
-        }
-    }
-
-    return solver;
-}
-
 void ChSystem::EnableSolverMatrixWrite(bool val, const std::string& out_dir) {
     write_matrix = val;
     output_dir = out_dir;
@@ -361,13 +315,14 @@ void ChSystem::SetSystemDescriptor(std::shared_ptr<ChSystemDescriptor> newdescri
     assert(newdescriptor);
     descriptor = newdescriptor;
 }
+
 void ChSystem::SetSolver(std::shared_ptr<ChSolver> newsolver) {
     assert(newsolver);
     solver = newsolver;
 }
 
 void ChSystem::SetCollisionSystemType(ChCollisionSystem::Type type) {
-    assert(assembly.GetNumBodies() == 0);
+    assert(assembly.GetNumBodiesActive() == 0);
 
     auto coll_sys_type = type;
 
@@ -468,7 +423,7 @@ void ChSystem::SetTimestepperType(ChTimestepper::Type type) {
     switch (type) {
         case ChTimestepper::Type::EULER_IMPLICIT:
             timestepper = chrono_types::make_shared<ChTimestepperEulerImplicit>(this);
-            std::static_pointer_cast<ChTimestepperEulerImplicit>(timestepper)->SetMaxiters(4);
+            std::static_pointer_cast<ChTimestepperEulerImplicit>(timestepper)->SetMaxIters(4);
             break;
         case ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED:
             timestepper = chrono_types::make_shared<ChTimestepperEulerImplicitLinearized>(this);
@@ -478,15 +433,15 @@ void ChSystem::SetTimestepperType(ChTimestepper::Type type) {
             break;
         case ChTimestepper::Type::TRAPEZOIDAL:
             timestepper = chrono_types::make_shared<ChTimestepperTrapezoidal>(this);
-            std::static_pointer_cast<ChTimestepperTrapezoidal>(timestepper)->SetMaxiters(4);
+            std::static_pointer_cast<ChTimestepperTrapezoidal>(timestepper)->SetMaxIters(4);
             break;
         case ChTimestepper::Type::TRAPEZOIDAL_LINEARIZED:
             timestepper = chrono_types::make_shared<ChTimestepperTrapezoidalLinearized>(this);
-            std::static_pointer_cast<ChTimestepperTrapezoidalLinearized>(timestepper)->SetMaxiters(4);
+            std::static_pointer_cast<ChTimestepperTrapezoidalLinearized>(timestepper)->SetMaxIters(4);
             break;
         case ChTimestepper::Type::HHT:
             timestepper = chrono_types::make_shared<ChTimestepperHHT>(this);
-            std::static_pointer_cast<ChTimestepperHHT>(timestepper)->SetMaxiters(4);
+            std::static_pointer_cast<ChTimestepperHHT>(timestepper)->SetMaxIters(4);
             break;
         case ChTimestepper::Type::HEUN:
             timestepper = chrono_types::make_shared<ChTimestepperHeun>(this);
@@ -509,7 +464,7 @@ void ChSystem::SetTimestepperType(ChTimestepper::Type type) {
 }
 
 bool ChSystem::ManageSleepingBodies() {
-    if (!GetUseSleeping())
+    if (!IsSleepingAllowed())
         return 0;
 
     // STEP 1:
@@ -545,12 +500,12 @@ bool ChSystem::ManageSleepingBodies() {
             ChBody* b2 = dynamic_cast<ChBody*>(contactobjB);
             if (!(b1 && b2))
                 return true;
-            bool sleep1 = b1->GetSleeping();
-            bool sleep2 = b2->GetSleeping();
-            bool could_sleep1 = b1->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
-            bool could_sleep2 = b2->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
-            bool ground1 = b1->GetBodyFixed();
-            bool ground2 = b2->GetBodyFixed();
+            bool sleep1 = b1->IsSleeping();
+            bool sleep2 = b2->IsSleeping();
+            bool could_sleep1 = b1->candidate_sleeping;
+            bool could_sleep2 = b2->candidate_sleeping;
+            bool ground1 = b1->IsFixed();
+            bool ground2 = b2->IsFixed();
             if (sleep1 && !(sleep2 || could_sleep2) && !ground2) {
                 b1->SetSleeping(false);
                 need_Setup_A = true;
@@ -560,10 +515,10 @@ bool ChSystem::ManageSleepingBodies() {
                 need_Setup_A = true;
             }
             if (could_sleep1 && !(sleep2 || could_sleep2) && !ground2) {
-                b1->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
+                b1->candidate_sleeping = false;
             }
             if (could_sleep2 && !(sleep1 || could_sleep1) && !ground1) {
-                b2->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
+                b2->candidate_sleeping = false;
             }
             someone_sleeps = someone_sleeps || sleep1 || sleep2;
 
@@ -591,10 +546,10 @@ bool ChSystem::ManageSleepingBodies() {
                     ChBody* b1 = dynamic_cast<ChBody*>(Lpointer->GetBody1());
                     ChBody* b2 = dynamic_cast<ChBody*>(Lpointer->GetBody2());
                     if (b1 && b2) {
-                        bool sleep1 = b1->GetSleeping();
-                        bool sleep2 = b2->GetSleeping();
-                        bool could_sleep1 = b1->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
-                        bool could_sleep2 = b2->BFlagGet(ChBody::BodyFlag::COULDSLEEP);
+                        bool sleep1 = b1->IsSleeping();
+                        bool sleep2 = b2->IsSleeping();
+                        bool could_sleep1 = b1->candidate_sleeping;
+                        bool could_sleep2 = b2->candidate_sleeping;
                         if (sleep1 && !(sleep2 || could_sleep2)) {
                             b1->SetSleeping(false);
                             need_Setup_L = true;
@@ -604,10 +559,10 @@ bool ChSystem::ManageSleepingBodies() {
                             need_Setup_L = true;
                         }
                         if (could_sleep1 && !(sleep2 || could_sleep2)) {
-                            b1->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
+                            b1->candidate_sleeping = false;
                         }
                         if (could_sleep2 && !(sleep1 || could_sleep1)) {
-                            b2->BFlagSet(ChBody::BodyFlag::COULDSLEEP, false);
+                            b2->candidate_sleeping = false;
                         }
                     }
                 }
@@ -625,7 +580,7 @@ bool ChSystem::ManageSleepingBodies() {
     /// If some body still must change from no sleep-> sleep, do it
     int need_Setup_B = 0;
     for (auto& body : assembly.bodylist) {
-        if (body->BFlagGet(ChBody::BodyFlag::COULDSLEEP)) {
+        if (body->candidate_sleeping) {
             body->SetSleeping(true);
             ++need_Setup_B;
         }
@@ -696,9 +651,9 @@ void ChSystem::Setup() {
 
     bool check_bookkeeping = false;
     if (check_bookkeeping) {
-        ChState test_x(GetNumCoordinatesPos(), this);
-        ChStateDelta test_v(GetNumCoordinatesVel(), this);
-        ChStateDelta test_a(GetNumCoordinatesVel(), this);
+        ChState test_x(GetNumCoordsPosLevel(), this);
+        ChStateDelta test_v(GetNumCoordsVelLevel(), this);
+        ChStateDelta test_a(GetNumCoordsVelLevel(), this);
         ChVectorDynamic<> test_L(GetNumConstraints());
         double poison_x = -8888.888;
         double poison_v = -9999.999;
@@ -1103,11 +1058,11 @@ bool ChSystem::StateSolveCorrection(
 
         std::ofstream file_x(output_dir + "/" + prefix + "_x_pre.dat");
         file_x << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(x, file_x);
+        StreamOut(x, file_x);
 
         std::ofstream file_v(output_dir + "/" + prefix + "_v_pre.dat");
         file_v << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(v, file_v);
+        StreamOut(v, file_v);
     }
 
     GetSolver()->EnableWrite(write_matrix, std::to_string(stepcount) + "_" + std::to_string(solvecount), output_dir);
@@ -1138,20 +1093,20 @@ bool ChSystem::StateSolveCorrection(
 
         std::ofstream file_Dv(output_dir + "/" + prefix + "Dv.dat");
         file_Dv << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(Dv, file_Dv);
+        StreamOut(Dv, file_Dv);
 
         std::ofstream file_Dl(output_dir + "/" + prefix + "Dl.dat");
         file_Dl << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(Dl, file_Dl);
+        StreamOut(Dl, file_Dl);
 
         // Just for diagnostic, dump also unscaled loads (forces,torques),
         // since the .._f.dat vector dumped in WriteMatrixBlocks() might contain scaled loads, and also +M*v
-        ChVectorDynamic<> tempF(this->GetNumCoordinatesVel());
+        ChVectorDynamic<> tempF(this->GetNumCoordsVelLevel());
         tempF.setZero();
         LoadResidual_F(tempF, 1.0);
         std::ofstream file_F(output_dir + "/" + prefix + "F_pre.dat");
         file_F << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(tempF, file_F);
+        StreamOut(tempF, file_F);
     }
 
     solvecount++;
@@ -1164,7 +1119,7 @@ ChVector3d ChSystem::GetBodyAppliedForce(ChBody* body) {
         return ChVector3d(0, 0, 0);
 
     if (!applied_forces_current) {
-        applied_forces.setZero(this->GetNumCoordinatesVel());
+        applied_forces.setZero(this->GetNumCoordsVelLevel());
         LoadResidual_F(applied_forces, 1.0);
         applied_forces_current = true;
     }
@@ -1176,7 +1131,7 @@ ChVector3d ChSystem::GetBodyAppliedTorque(ChBody* body) {
         return ChVector3d(0, 0, 0);
 
     if (!applied_forces_current) {
-        applied_forces.setZero(this->GetNumCoordinatesVel());
+        applied_forces.setZero(this->GetNumCoordsVelLevel());
         LoadResidual_F(applied_forces, 1.0);
         applied_forces_current = true;
     }
@@ -1270,7 +1225,7 @@ void ChSystem::LoadConstraint_Ct(ChVectorDynamic<>& Qc, const double c) {
 //   COLLISION OPERATIONS
 // -----------------------------------------------------------------------------
 
-int ChSystem::GetNumContacts() {
+unsigned int ChSystem::GetNumContacts() {
     return contact_container->GetNumContacts();
 }
 
@@ -1357,7 +1312,7 @@ void ChSystem::ResetTimers() {
 //   PHYSICAL OPERATIONS
 // =============================================================================
 
-void ChSystem::GetMassMatrix(ChSparseMatrix* M) {
+void ChSystem::GetMassMatrix(ChSparseMatrix& M) {
     // IntToDescriptor(0, Dv, R, 0, L, Qc);
     // ConstraintsLoadJacobians();
 
@@ -1367,10 +1322,10 @@ void ChSystem::GetMassMatrix(ChSparseMatrix* M) {
     descriptor->SetMassFactor(1.0);
 
     // Fill system-level M matrix
-    this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, M, nullptr, nullptr, nullptr, nullptr, false, false);
+    this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, &M, nullptr, nullptr, nullptr, nullptr, false, false);
 }
 
-void ChSystem::GetStiffnessMatrix(ChSparseMatrix* K) {
+void ChSystem::GetStiffnessMatrix(ChSparseMatrix& K) {
     // IntToDescriptor(0, Dv, R, 0, L, Qc);
     // ConstraintsLoadJacobians();
 
@@ -1380,10 +1335,10 @@ void ChSystem::GetStiffnessMatrix(ChSparseMatrix* K) {
     descriptor->SetMassFactor(0.0);
 
     // Fill system-level K matrix
-    this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, K, nullptr, nullptr, nullptr, nullptr, false, false);
+    this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, &K, nullptr, nullptr, nullptr, nullptr, false, false);
 }
 
-void ChSystem::GetDampingMatrix(ChSparseMatrix* R) {
+void ChSystem::GetDampingMatrix(ChSparseMatrix& R) {
     // IntToDescriptor(0, Dv, R, 0, L, Qc);
     // ConstraintsLoadJacobians();
 
@@ -1393,50 +1348,55 @@ void ChSystem::GetDampingMatrix(ChSparseMatrix* R) {
     descriptor->SetMassFactor(0.0);
 
     // Fill system-level R matrix
-    this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, R, nullptr, nullptr, nullptr, nullptr, false, false);
+    this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, &R, nullptr, nullptr, nullptr, nullptr, false, false);
 }
 
-void ChSystem::GetConstraintJacobianMatrix(ChSparseMatrix* Cq) {
+void ChSystem::GetConstraintJacobianMatrix(ChSparseMatrix& Cq) {
     // IntToDescriptor(0, Dv, R, 0, L, Qc);
 
     // Load all jacobian matrices
     this->ConstraintsLoadJacobians();
 
     // Fill system-level R matrix
-    this->GetSystemDescriptor()->ConvertToMatrixForm(Cq, nullptr, nullptr, nullptr, nullptr, nullptr, false, false);
+    this->GetSystemDescriptor()->ConvertToMatrixForm(&Cq, nullptr, nullptr, nullptr, nullptr, nullptr, false, false);
 }
 
-void ChSystem::DumpSystemMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path) {
+void ChSystem::WriteSystemMatrices(bool save_M,
+                                   bool save_K,
+                                   bool save_R,
+                                   bool save_Cq,
+                                   const std::string& path,
+                                   bool one_indexed) {
     // Prepare lists of variables and constraints, if not already prepared.
     DescriptorPrepareInject(*descriptor);
 
     if (save_M) {
         ChSparseMatrix mM;
-        this->GetMassMatrix(&mM);
+        this->GetMassMatrix(mM);
         std::ofstream file_M(path + "_M.dat");
         file_M << std::setprecision(12) << std::scientific;
-        StreamOutSparseMatlabFormat(mM, file_M);
+        StreamOut(mM, file_M, one_indexed);
     }
     if (save_K) {
         ChSparseMatrix mK;
-        this->GetStiffnessMatrix(&mK);
+        this->GetStiffnessMatrix(mK);
         std::ofstream file_K(path + "_K.dat");
         file_K << std::setprecision(12) << std::scientific;
-        StreamOutSparseMatlabFormat(mK, file_K);
+        StreamOut(mK, file_K, one_indexed);
     }
     if (save_R) {
         ChSparseMatrix mR;
-        this->GetDampingMatrix(&mR);
+        this->GetDampingMatrix(mR);
         std::ofstream file_R(path + "_R.dat");
         file_R << std::setprecision(12) << std::scientific;
-        StreamOutSparseMatlabFormat(mR, file_R);
+        StreamOut(mR, file_R, one_indexed);
     }
     if (save_Cq) {
         ChSparseMatrix mCq;
-        this->GetConstraintJacobianMatrix(&mCq);
+        this->GetConstraintJacobianMatrix(mCq);
         std::ofstream file_Cq(path + "_Cq.dat");
         file_Cq << std::setprecision(12) << std::scientific;
-        StreamOutSparseMatlabFormat(mCq, file_Cq);
+        StreamOut(mCq, file_Cq, one_indexed);
     }
 }
 
@@ -1449,7 +1409,7 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
 
     ChSparseMatrix Cq;
     GetSystemDescriptor()->ConvertToMatrixForm(&Cq, nullptr, nullptr, nullptr, nullptr, nullptr, true, true);
-    int Cq_rows = Cq.rows();
+    unsigned int Cq_rows = Cq.rows();
 
     ChSparseMatrix CqT = Cq.transpose();
     CqT.makeCompressed();
@@ -1459,14 +1419,14 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     QR_dec.compute(CqT);
 
     double diag_val;
-    int independent_row_count = 0;
-    int max_diag = std::min(QR_dec.matrixR().rows(), QR_dec.matrixR().cols());
-    for (int diag_sel = 0; diag_sel < max_diag; diag_sel++) {
+    unsigned int independent_row_count = 0;
+    unsigned int max_diag = std::min(QR_dec.matrixR().rows(), QR_dec.matrixR().cols());
+    for (unsigned int diag_sel = 0; diag_sel < max_diag; diag_sel++) {
         diag_val = QR_dec.matrixR().coeff(diag_sel, diag_sel);
         if (std::abs(diag_val) > qr_tol)
             independent_row_count++;
     }
-    int dependent_row_count = Cq_rows - independent_row_count;
+    unsigned int dependent_row_count = Cq_rows - independent_row_count;
     ChVectorDynamic<int> redundant_constraints_idx = QR_dec.colsPermutation().indices().tail(dependent_row_count);
 
     if (verbose) {
@@ -1481,8 +1441,8 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
             // find corresponding link
             std::shared_ptr<ChLinkBase> corr_link;
             for (const auto& link : GetLinks()) {
-                if (redundant_constraints_idx[c_sel] >= link->GetOffset_L() &&
-                    redundant_constraints_idx[c_sel] < link->GetOffset_L() + link->GetNumConstraints()) {
+                if ((unsigned int)redundant_constraints_idx[c_sel] >= link->GetOffset_L() &&
+                    (unsigned int)redundant_constraints_idx[c_sel] < link->GetOffset_L() + link->GetNumConstraints()) {
                     corr_link = link;
                     break;
                 }
@@ -1495,20 +1455,20 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     }
 
     // Remove identified redundant constraints
-    std::vector<ChConstraint*>& constrList = GetSystemDescriptor()->GetConstraintsList();
+    std::vector<ChConstraint*>& constrList = GetSystemDescriptor()->GetConstraints();
     for (auto c_sel = 0; c_sel < redundant_constraints_idx.size(); c_sel++)
         constrList[redundant_constraints_idx[c_sel]]->SetRedundant(true);
     GetSystemDescriptor()->UpdateCountsAndOffsets();
 
     // Remove Degrees of Constraint to ChLinkMate constraints
-    std::map<int, std::shared_ptr<ChLinkBase>> constr_map;  // store an ordered list of constraints offsets
-    for (int i = 0; i < GetLinks().size(); ++i) {
+    std::map<unsigned int, std::shared_ptr<ChLinkBase>> constr_map;  // store an ordered list of constraints offsets
+    for (unsigned int i = 0; i < (unsigned int)GetLinks().size(); ++i) {
         // store the link offset
         auto link = GetLinks()[i];
         constr_map[link->GetOffset_L()] = link;
     }
 
-    std::map<int, std::array<bool, 6>> constrnewmask_map;  // store the mask of ChLinkMate constraints (only if they are
+    std::map<unsigned int, std::array<bool, 6>> constrnewmask_map;  // store the mask of ChLinkMate constraints (only if they are
                                                            // ChLinkMate!) that have redundant equations
     for (auto r_sel = 0; r_sel < redundant_constraints_idx.size(); ++r_sel) {
         // pick the constraint with redundant degrees of constraints
@@ -1528,12 +1488,12 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
 
             // find which degree of constraint is redundant within the link
             auto redundant_offset = redundant_constraints_idx[r_sel] - sel_constr_offset;
-            int active_constraints = -1;
-            for (int m_sel = 0; m_sel < original_mask.size(); ++m_sel) {
+            unsigned int active_constraints = 0;
+            for (unsigned int m_sel = 0; m_sel < original_mask.size(); ++m_sel) {
                 if (original_mask[m_sel] == true) {
                     ++active_constraints;
                 }
-                if (active_constraints == redundant_offset) {
+                if (active_constraints == redundant_offset + 1) {
                     constrnewmask_map[sel_constr_offset][m_sel] = false;
                     break;
                 }
@@ -1576,27 +1536,7 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
 }
 
 // -----------------------------------------------------------------------------
-//  PERFORM AN INTEGRATION STEP.  ----
-//
-//  Advances a single time step.
-//
-//  Note that time step can be modified if some variable-time stepper is used.
-// -----------------------------------------------------------------------------
-
-int ChSystem::DoStepDynamics(double step_size) {
-    Initialize();
-
-    applied_forces_current = false;
-    step = step_size;
-    bool ret = Integrate_Y();
-
-    m_RTF = timer_step() / step;
-
-    return ret;
-}
-
-// -----------------------------------------------------------------------------
-//  PERFORM INTEGRATION STEP  using pluggable timestepper
+//  Forward dynamics analysis
 // -----------------------------------------------------------------------------
 
 bool ChSystem::Integrate_Y() {
@@ -1644,13 +1584,14 @@ bool ChSystem::Integrate_Y() {
     ////descriptor->UpdateCountsAndOffsets();
 
     // Set some settings in timestepper object
-    timestepper->SetQcDoClamp(true);
-    timestepper->SetQcClamping(max_penetration_recovery_speed);
-    if (std::dynamic_pointer_cast<ChTimestepperHHT>(timestepper) ||
-        std::dynamic_pointer_cast<ChTimestepperNewmark>(timestepper))
-        timestepper->SetQcDoClamp(false);
+    if (timestepper->GetType() == ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED) {
+        timestepper->Qc_do_clamp = true;
+        timestepper->Qc_clamping = max_penetration_recovery_speed;      
+    } else {
+        timestepper->Qc_do_clamp = false;        
+    }
 
-    // PERFORM TIME STEP HERE!
+    // Advance system state by one step
     {
         CH_PROFILE("Advance");
         timer_advance.start();
@@ -1677,63 +1618,49 @@ bool ChSystem::Integrate_Y() {
     return true;
 }
 
-// -----------------------------------------------------------------------------
-// **** SATISFY ALL CONSTRAINT EQUATIONS WITH NEWTON
-// **** ITERATION, UNTIL TOLERANCE SATISFIED, THEN UPDATE
-// **** THE "Y" STATE WITH SetY (WHICH AUTOMATICALLY UPDATES
-// **** ALSO AUXILIARY MATRICES).
-// -----------------------------------------------------------------------------
-
-bool ChSystem::DoAssembly(int action) {
+int ChSystem::DoStepDynamics(double step_size) {
     Initialize();
 
     applied_forces_current = false;
+    step = step_size;
 
-    solvecount = 0;
-    setupcount = 0;
+    bool success = Integrate_Y();
 
-    Setup();
-    Update();
+    m_RTF = timer_step() / step;
 
-    // Overwrite various parameters
-    int new_max_iters = 300;       // if using an iterative solver
-    double new_tolerance = 1e-10;  // if using an iterative solver
-    double new_step = 1e-6;
+    return success;
+}
 
-    int old_max_iters = GetSolverMaxIterations();
-    double old_tolerance = GetSolverTolerance();
-    double old_step = GetStep();
+bool ChSystem::DoFrameDynamics(double frame_time, double step_size) {
+    Initialize();
 
-    SetSolverMaxIterations(std::max(old_max_iters, new_max_iters));
-    SetSolverTolerance(new_tolerance);
-    SetStep(new_step);
+    applied_forces_current = false;
+    step = step_size;
+    bool success = true;
 
-    // Prepare lists of variables and constraints.
-    DescriptorPrepareInject(*descriptor);
+    while (ch_time < frame_time) {
+        double left_time = frame_time - ch_time;
 
-    ChAssemblyAnalysis manalysis(*this);
-    manalysis.SetMaxAssemblyIters(GetMaxiter());
+        if (left_time < 1e-12)
+            break;
 
-    // Perform analysis
-    manalysis.AssemblyAnalysis(action, new_step);
+        if (left_time < 1.3 * step)
+            step = left_time;
 
-    // Restore parameters
-    SetSolverMaxIterations(old_max_iters);
-    SetSolverTolerance(old_tolerance);
-    SetStep(old_step);
+        if (!Integrate_Y()) {
+            success = false;
+            break;
+        }
+    }
 
-    // Update any attached visualization system
-    if (visual_system)
-        visual_system->OnUpdate(this);
-
-    return true;
+    return success;
 }
 
 // -----------------------------------------------------------------------------
-// **** PERFORM THE LINEAR STATIC ANALYSIS
+// System asembly
 // -----------------------------------------------------------------------------
 
-bool ChSystem::DoStaticLinear() {
+bool ChSystem::DoAssembly(int action, int max_num_iterations) {
     Initialize();
 
     applied_forces_current = false;
@@ -1744,38 +1671,32 @@ bool ChSystem::DoStaticLinear() {
     Setup();
     Update();
 
-    int old_maxsteps = GetSolverMaxIterations();
-    SetSolverMaxIterations(std::max(old_maxsteps, 300));
+    // Overwrite solver parameters (only if iterative)
+    int new_max_iters = 300;     
+    double new_tolerance = 1e-10; 
+    int old_max_iters = 0;
+    double old_tolerance = 0.0;
+    if (solver->IsIterative()) {
+        old_max_iters = solver->AsIterative()->GetMaxIterations();
+        old_tolerance = solver->AsIterative()->GetTolerance();
+        solver->AsIterative()->SetMaxIterations(std::max(old_max_iters, new_max_iters));
+        solver->AsIterative()->SetTolerance(new_tolerance);
+    }
 
-    // Prepare lists of variables and constraints.
+    // Prepare lists of variables and constraints
     DescriptorPrepareInject(*descriptor);
 
+    ChAssemblyAnalysis manalysis(*this);
+    manalysis.SetMaxAssemblyIters(max_num_iterations);
+
     // Perform analysis
-    ChStaticLinearAnalysis analysis;
-    analysis.SetIntegrable(this);
-    analysis.StaticAnalysis();
+    step = 1e-6;
+    manalysis.AssemblyAnalysis(action, step);
 
-    SetSolverMaxIterations(old_maxsteps);
-
-    bool dump_data = false;
-
-    if (dump_data) {
-        descriptor->WriteMatrixBlocks("", "solve");
-
-        // optional check for correctness in result
-        ChVectorDynamic<double> md;
-        GetSystemDescriptor()->BuildDiVector(md);  // d={f;-b}
-
-        ChVectorDynamic<double> mx;
-        GetSystemDescriptor()->FromUnknownsToVector(mx, true);  // x ={q,-l}
-        std::ofstream file_x("solve_x.dat");
-        StreamOutDenseMatlabFormat(mx, file_x);
-
-        ChVectorDynamic<double> mZx;
-        GetSystemDescriptor()->SystemProduct(mZx, mx);  // Zx = Z*x
-
-        std::cout << "CHECK: norm of solver residual: ||Z*x-d|| -------------------" << std::endl;
-        std::cout << (mZx - md).lpNorm<Eigen::Infinity>() << std::endl;
+    // Restore solver parameters
+    if (solver->IsIterative()) {
+        solver->AsIterative()->SetMaxIterations(old_max_iters);
+        solver->AsIterative()->SetTolerance(old_tolerance);
     }
 
     // Update any attached visualization system
@@ -1786,41 +1707,51 @@ bool ChSystem::DoStaticLinear() {
 }
 
 // -----------------------------------------------------------------------------
-// **** PERFORM THE NONLINEAR STATIC ANALYSIS
+// Inverse kinematics analysis
 // -----------------------------------------------------------------------------
 
-bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
+bool ChSystem::DoStepKinematics(double step_size) {
     Initialize();
 
     applied_forces_current = false;
+    ch_time += step_size;
 
-    solvecount = 0;
-    setupcount = 0;
-
-    Setup();
     Update();
+    bool success = DoAssembly(AssemblyLevel::FULL);
 
-    int old_maxsteps = GetSolverMaxIterations();
-    SetSolverMaxIterations(std::max(old_maxsteps, 300));
-
-    // Prepare lists of variables and constraints.
-    DescriptorPrepareInject(*descriptor);
-
-    // Perform analysis
-    ChStaticNonLinearAnalysis analysis;
-    analysis.SetIntegrable(this);
-    analysis.SetMaxIterations(nsteps);
-    analysis.SetVerbose(verbose);
-    analysis.StaticAnalysis();
-
-    SetSolverMaxIterations(old_maxsteps);
-
-    // Update any attached visualization system
-    if (visual_system)
-        visual_system->OnUpdate(this);
-
-    return true;
+    return success;
 }
+
+bool ChSystem::DoFrameKinematics(double frame_time, double step_size) {
+    Initialize();
+
+    applied_forces_current = false;
+    step = step_size;
+    bool success = true;
+
+    while (ch_time < frame_time) {
+        double left_time = frame_time - ch_time;
+
+        if (left_time < 1e-12)
+            break;
+
+        if (left_time < (1.3 * step))
+            step = left_time;
+
+        if (!DoAssembly(AssemblyLevel::FULL)) {
+            success = false;
+            break;
+        }
+
+        ch_time += step;
+    }
+
+    return success;
+}
+
+// -----------------------------------------------------------------------------
+// Static analysis
+// -----------------------------------------------------------------------------
 
 bool ChSystem::DoStaticAnalysis(ChStaticAnalysis& analysis) {
     Initialize();
@@ -1844,8 +1775,109 @@ bool ChSystem::DoStaticAnalysis(ChStaticAnalysis& analysis) {
     return true;
 }
 
+bool ChSystem::DoStaticLinear() {
+    Initialize();
+
+    applied_forces_current = false;
+
+    solvecount = 0;
+    setupcount = 0;
+
+    Setup();
+    Update();
+
+    // Overwrite solver parameters (only if iterative)
+    int new_max_iters = 300;
+    int old_max_iters = 0;
+    if (solver->IsIterative()) {
+        old_max_iters = solver->AsIterative()->GetMaxIterations();
+        solver->AsIterative()->SetMaxIterations(std::max(old_max_iters, new_max_iters));
+    }
+
+    // Prepare lists of variables and constraints.
+    DescriptorPrepareInject(*descriptor);
+
+    // Perform analysis
+    ChStaticLinearAnalysis analysis;
+    analysis.SetIntegrable(this);
+    analysis.StaticAnalysis();
+
+    // Restore solver parameters
+    if (solver->IsIterative()) {
+        solver->AsIterative()->SetMaxIterations(old_max_iters);
+    }
+
+    bool dump_data = false;
+
+    if (dump_data) {
+        descriptor->WriteMatrixBlocks("", "solve");
+
+        // optional check for correctness in result
+        ChVectorDynamic<double> md;
+        GetSystemDescriptor()->BuildDiVector(md);  // d={f;-b}
+
+        ChVectorDynamic<double> mx;
+        GetSystemDescriptor()->FromUnknownsToVector(mx, true);  // x ={q,-l}
+        std::ofstream file_x("solve_x.dat");
+        StreamOut(mx, file_x);
+
+        ChVectorDynamic<double> mZx;
+        GetSystemDescriptor()->SystemProduct(mZx, mx);  // Zx = Z*x
+
+        std::cout << "CHECK: norm of solver residual: ||Z*x-d|| -------------------" << std::endl;
+        std::cout << (mZx - md).lpNorm<Eigen::Infinity>() << std::endl;
+    }
+
+    // Update any attached visualization system
+    if (visual_system)
+        visual_system->OnUpdate(this);
+
+    return true;
+}
+
+bool ChSystem::DoStaticNonlinear(int nsteps, bool verbose) {
+    Initialize();
+
+    applied_forces_current = false;
+
+    solvecount = 0;
+    setupcount = 0;
+
+    Setup();
+    Update();
+
+    // Overwrite solver parameters (only if iterative)
+    int new_max_iters = 300;
+    int old_max_iters = 0;
+    if (solver->IsIterative()) {
+        old_max_iters = solver->AsIterative()->GetMaxIterations();
+        solver->AsIterative()->SetMaxIterations(std::max(old_max_iters, new_max_iters));
+    }
+
+    // Prepare lists of variables and constraints.
+    DescriptorPrepareInject(*descriptor);
+
+    // Perform analysis
+    ChStaticNonLinearAnalysis analysis;
+    analysis.SetIntegrable(this);
+    analysis.SetMaxIterations(nsteps);
+    analysis.SetVerbose(verbose);
+    analysis.StaticAnalysis();
+
+    // Restore solver parameters
+    if (solver->IsIterative()) {
+        solver->AsIterative()->SetMaxIterations(old_max_iters);
+    }
+
+    // Update any attached visualization system
+    if (visual_system)
+        visual_system->OnUpdate(this);
+
+    return true;
+}
+
 bool ChSystem::DoStaticNonlinearRheonomic(
-    int nsteps,
+    int max_num_iterations,
     bool verbose,
     std::shared_ptr<ChStaticNonLinearRheonomicAnalysis::IterationCallback> callback) {
     Initialize();
@@ -1858,8 +1890,13 @@ bool ChSystem::DoStaticNonlinearRheonomic(
     Setup();
     Update();
 
-    int old_maxsteps = GetSolverMaxIterations();
-    SetSolverMaxIterations(std::max(old_maxsteps, 300));
+    // Overwrite solver parameters (only if iterative)
+    int new_max_iters = 300;
+    int old_max_iters = 0;
+    if (solver->IsIterative()) {
+        old_max_iters = solver->AsIterative()->GetMaxIterations();
+        solver->AsIterative()->SetMaxIterations(std::max(old_max_iters, new_max_iters));
+    }
 
     // Prepare lists of variables and constraints.
     DescriptorPrepareInject(*descriptor);
@@ -1867,12 +1904,15 @@ bool ChSystem::DoStaticNonlinearRheonomic(
     // Perform analysis
     ChStaticNonLinearRheonomicAnalysis analysis;
     analysis.SetIntegrable(this);
-    analysis.SetMaxIterations(nsteps);
+    analysis.SetMaxIterations(max_num_iterations);
     analysis.SetVerbose(verbose);
     analysis.SetCallbackIterationBegin(callback);
     analysis.StaticAnalysis();
 
-    SetSolverMaxIterations(old_maxsteps);
+    // Restore solver parameters
+    if (solver->IsIterative()) {
+        solver->AsIterative()->SetMaxIterations(old_max_iters);
+    }
 
     // Update any attached visualization system
     if (visual_system)
@@ -1881,287 +1921,38 @@ bool ChSystem::DoStaticNonlinearRheonomic(
     return true;
 }
 
-// -----------------------------------------------------------------------------
-// **** PERFORM THE STATIC ANALYSIS, FINDING THE STATIC
-// **** EQUILIBRIUM OF THE SYSTEM, WITH ITERATIVE SOLUTION
-// -----------------------------------------------------------------------------
-
-bool ChSystem::DoStaticRelaxing(int nsteps) {
+bool ChSystem::DoStaticRelaxing(double step_size, int num_iterations) {
     Initialize();
 
     applied_forces_current = false;
+    double current_time = ch_time;
+    bool success = true;
 
     solvecount = 0;
     setupcount = 0;
 
-    int err = 0;
+    if (m_num_coords_pos == 0 || m_num_coords_pos < m_num_constr)
+        return false;
 
-    // TODO: DARIOM the original check was on (m_num_coords_pos - ndoc >= 0)
-    // but should be more appropriate to have (m_num_coords_pos - m_num_constr >= 0)
-    // since there are no quaternion constraints anymore
-    if ((m_num_coords_pos > 0) && (m_num_coords_pos - m_num_constr >= 0)) {
-        for (int m_iter = 0; m_iter < nsteps; m_iter++) {
-            for (auto& body : assembly.bodylist) {
-                // Set no body speed and no body accel.
-                body->SetNoSpeedNoAcceleration();
-            }
-            for (auto& mesh : assembly.meshlist) {
-                mesh->SetNoSpeedNoAcceleration();
-            }
-            for (auto& item : assembly.otherphysicslist) {
-                item->SetNoSpeedNoAcceleration();
-            }
-
-            double undotime = GetChTime();
-            DoFrameDynamics(undotime + (step * 1.8) * (((double)nsteps - (double)m_iter)) / (double)nsteps);
-            ch_time = undotime;
-        }
-
-        for (auto& body : assembly.bodylist) {
-            // Set no body speed and no body accel.
-            body->SetNoSpeedNoAcceleration();
-        }
-        for (auto& mesh : assembly.meshlist) {
-            mesh->SetNoSpeedNoAcceleration();
-        }
-        for (auto& item : assembly.otherphysicslist) {
-            item->SetNoSpeedNoAcceleration();
-        }
+    for (int i = 0; i < num_iterations; i++) {
+        double frame_time = current_time + (step_size * 1.8) * (num_iterations - i) / (double)num_iterations;
+        assembly.ForceToRest();
+        success = DoFrameDynamics(frame_time, step_size);
+        ch_time = current_time;
+        if (!success)
+            break;
     }
 
-    if (err) {
-        last_err = true;
-        std::cerr << "WARNING: some constraints may be redundant, but couldn't be eliminated" << std::endl;
-    }
+    assembly.ForceToRest();
 
     // Update any attached visualization system
     if (visual_system)
         visual_system->OnUpdate(this);
 
-    return last_err;
+    return success;
 }
 
 // -----------------------------------------------------------------------------
-// **** ---    THE KINEMATIC SIMULATION  ---
-// **** PERFORM IK (INVERSE KINEMATICS) UNTIL THE END_TIME IS
-// **** REACHED, STARTING FROM THE CURRENT TIME.
-// -----------------------------------------------------------------------------
-
-bool ChSystem::DoEntireKinematics(double end_time) {
-    Initialize();
-
-    applied_forces_current = false;
-
-    Setup();
-
-    int action = AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION;
-
-    DoAssembly(action);
-    // first check if there are redundant links (at least one NR cycle
-    // even if the structure is already assembled)
-
-    while (ch_time < end_time) {
-        // Newton-Raphson iteration, closing constraints
-        DoAssembly(action);
-
-        if (last_err)
-            return false;
-
-        // Update time and repeat.
-        ch_time += step;
-    }
-
-    return true;
-}
-
-// -----------------------------------------------------------------------------
-// **** ---   THE DYNAMICAL SIMULATION   ---
-// **** PERFORM EXPLICIT OR IMPLICIT INTEGRATION TO GET
-// **** THE DYNAMICAL SIMULATION OF THE SYSTEM, UNTIL THE
-// **** END_TIME IS REACHED.
-// -----------------------------------------------------------------------------
-
-bool ChSystem::DoEntireDynamics(double end_time) {
-    Initialize();
-
-    applied_forces_current = false;
-
-    Setup();
-
-    // the system may have wrong layout, or too large
-    // clearances in constraints, so it is better to
-    // check for constraint violation each time the integration starts
-    DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
-
-    // Perform the integration steps until the end
-    // time is reached.
-    // All the updating (of Y, Y_dt and time) is done
-    // automatically by Integrate()
-
-    while (ch_time < end_time) {
-        if (!Integrate_Y())
-            break;  // >>> 1- single integration step,
-                    //        updating Y, from t to t+dt.
-        if (last_err)
-            return false;
-    }
-
-    if (last_err)
-        return false;
-    return true;
-}
-
-// Perform the dynamical integration, from current ChTime to
-// the specified end time, and terminating the integration exactly
-// on the end time. Therefore, the step of integration may get a
-// little increment/decrement to have the last step ending in end time.
-// Note that this function can be used in iterations to provide results in
-// a evenly spaced frames of time, even if the steps are changing.
-// Also note that if the time step is higher than the time increment
-// requested to reach end time, the step is lowered.
-
-bool ChSystem::DoFrameDynamics(double end_time) {
-    Initialize();
-
-    applied_forces_current = false;
-
-    double old_step = 0;
-    double left_time;
-    bool restore_oldstep = false;
-    int counter = 0;
-
-    while (ch_time < end_time) {
-        restore_oldstep = false;
-        counter++;
-
-        left_time = end_time - ch_time;
-
-        if (left_time < 1e-12)
-            break;  // - no integration if backward or null frame step.
-
-        if (left_time < (1.3 * step))  // - step changed if too little frame step
-        {
-            old_step = step;
-            step = left_time;
-            restore_oldstep = true;
-        }
-
-        if (!Integrate_Y())
-            break;  // ***  Single integration step,
-                    // ***  updating Y, from t to t+dt.
-                    // ***  This also changes local ChTime, and may change step
-
-        if (last_err)
-            break;
-    }
-
-    if (restore_oldstep)
-        step = old_step;  // if timestep was changed to meet the end of frametime, restore pre-last (even for
-                          // time-varying schemes)
-
-    if (last_err)
-        return false;
-    return true;
-}
-
-// Performs the dynamical simulation, but using "frame integration"
-// iteratively. The results are provided only at each frame (evenly
-// spaced by "frame_step") rather than at each "step" (steps can be much
-// more than frames, and they may be automatically changed by integrator).
-// Moreover, the integration results shouldn't be dependent by the
-// "frame_step" value (steps are performed anyway, like in normal "DoEntireDynamics"
-// command).
-
-bool ChSystem::DoEntireUniformDynamics(double end_time, double frame_step) {
-    Initialize();
-
-    applied_forces_current = false;
-
-    // the initial system may have wrong layout, or too large clearances in constraints.
-    Setup();
-    DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
-
-    while (ch_time < end_time) {
-        double goto_time = (ch_time + frame_step);
-        if (!DoFrameDynamics(goto_time))
-            return false;
-    }
-
-    return true;
-}
-
-// Like DoFrameDynamics, but performs kinematics instead of dynamics
-
-bool ChSystem::DoFrameKinematics(double end_time) {
-    Initialize();
-
-    applied_forces_current = false;
-
-    double old_step = 0;
-    double left_time;
-    int restore_oldstep;
-    int counter = 0;
-
-    ////double frame_step = (end_time - ch_time);
-
-    while (ch_time < end_time) {
-        restore_oldstep = false;
-        counter++;
-
-        left_time = end_time - ch_time;
-
-        if (left_time < 0.000000001)
-            break;  // - no kinematics for backward
-
-        if (left_time < (1.3 * step))  // - step changed if too little frame step
-        {
-            old_step = step;
-            step = left_time;
-            restore_oldstep = true;
-        }
-
-        // Newton Raphson kinematic equations solver
-        DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
-
-        if (last_err)
-            return false;
-
-        ch_time += step;
-
-        if (restore_oldstep)
-            step = old_step;  // if timestep was changed to meet the end of frametime
-    }
-
-    return true;
-}
-
-bool ChSystem::DoStepKinematics(double step_size) {
-    Initialize();
-
-    applied_forces_current = false;
-
-    ch_time += step_size;
-
-    Update();
-
-    // Newton Raphson kinematic equations solver
-    DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
-
-    if (last_err)
-        return false;
-
-    return true;
-}
-
-// Full assembly -computes also forces-
-bool ChSystem::DoFullAssembly() {
-    DoAssembly(AssemblyLevel::POSITION | AssemblyLevel::VELOCITY | AssemblyLevel::ACCELERATION);
-
-    return last_err;
-}
-
-// -----------------------------------------------------------------------------
-//  STREAMING - FILE HANDLING
 
 void ChSystem::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
@@ -2180,14 +1971,11 @@ void ChSystem::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(stepcount);
     archive_out << CHNVP(write_matrix);
 
-    archive_out << CHNVP(tol_force);
-    archive_out << CHNVP(maxiter);
     archive_out << CHNVP(use_sleeping);
 
     archive_out << CHNVP(descriptor);
     archive_out << CHNVP(solver);
 
-    archive_out << CHNVP(min_bounce_speed);
     archive_out << CHNVP(max_penetration_recovery_speed);
 
     archive_out << CHNVP(composition_strategy);
@@ -2215,14 +2003,11 @@ void ChSystem::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(stepcount);
     archive_in >> CHNVP(write_matrix);
 
-    archive_in >> CHNVP(tol_force);
-    archive_in >> CHNVP(maxiter);
     archive_in >> CHNVP(use_sleeping);
 
     archive_in >> CHNVP(descriptor);
     archive_in >> CHNVP(solver);
 
-    archive_in >> CHNVP(min_bounce_speed);
     archive_in >> CHNVP(max_penetration_recovery_speed);
 
     archive_in >> CHNVP(composition_strategy);

@@ -60,7 +60,7 @@ bool SetChronoSolver(chrono::ChSystem& sys,
 
     // Barzilai-Borwein cannot be used with stiffness matrices
     if (slvr_type == chrono::ChSolver::Type::BARZILAIBORWEIN &&
-        sys.GetSystemDescriptor()->GetKblocksList().size() > 0) {
+        sys.GetSystemDescriptor()->GetKblocks().size() > 0) {
         cout << prefix << "BARZILAIBORWEIN cannot be used for a system that includes stiffness matrices!" << endl;
         return false;
     }
@@ -120,9 +120,6 @@ bool SetChronoSolver(chrono::ChSystem& sys,
                 solver->SetMaxIterations(100);
                 solver->SetOmega(0.8);
                 solver->SetSharpnessLambda(1.0);
-
-                ////sys.SetMaxPenetrationRecoverySpeed(1.5);
-                ////sys.SetMinBounceSpeed(2.0);
                 break;
             }
             case chrono::ChSolver::Type::BICGSTAB:
@@ -144,7 +141,7 @@ bool SetChronoSolver(chrono::ChSystem& sys,
         case chrono::ChTimestepper::Type::HHT: {
             auto integrator = std::static_pointer_cast<chrono::ChTimestepperHHT>(sys.GetTimestepper());
             integrator->SetAlpha(-0.2);
-            integrator->SetMaxiters(50);
+            integrator->SetMaxIters(50);
             integrator->SetAbsTolerances(1e-4, 1e2);
             integrator->SetStepControl(false);
             integrator->SetModifiedNewton(false);
@@ -152,7 +149,7 @@ bool SetChronoSolver(chrono::ChSystem& sys,
         }
         case chrono::ChTimestepper::Type::EULER_IMPLICIT: {
             auto integrator = std::static_pointer_cast<chrono::ChTimestepperEulerImplicit>(sys.GetTimestepper());
-            integrator->SetMaxiters(50);
+            integrator->SetMaxIters(50);
             integrator->SetAbsTolerances(1e-4, 1e2);
             break;
         }

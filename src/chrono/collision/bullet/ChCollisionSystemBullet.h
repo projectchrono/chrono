@@ -104,12 +104,12 @@ class ChApi ChCollisionSystemBullet : public ChCollisionSystem {
     /// visualization callback was not specified with RegisterVisualizationCallback().
     virtual void Visualize(int flags) override;
 
-    // Get the underlying Bullet collision world.
+    /// Get the underlying Bullet collision world.
     cbtCollisionWorld* GetBulletCollisionWorld() { return bt_collision_world; }
 
-    // Change default contact breaking/merging threshold tolerance of Bullet.
-    // This is the static gContactBreakingThreshold scalar in Bullet.
-    // Call this function only once, before running the simulation.
+    /// Change default contact breaking/merging threshold tolerance of Bullet.
+    /// This is the static gContactBreakingThreshold scalar in Bullet.
+    /// Call this function only once, before running the simulation.
     static void SetContactBreakingThreshold(double threshold);
 
     /// Method to allow serialization of transient data to archives.

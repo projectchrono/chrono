@@ -24,8 +24,8 @@ ChSolverPJacobi::ChSolverPJacobi() : maxviolation(0) {
 }
 
 double ChSolverPJacobi::Solve(ChSystemDescriptor& sysd) {
-    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraintsList();
-    std::vector<ChVariables*>& mvariables = sysd.GetVariablesList();
+    std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
+    std::vector<ChVariables*>& mvariables = sysd.GetVariables();
 
     m_iterations = 0;
     maxviolation = 0;

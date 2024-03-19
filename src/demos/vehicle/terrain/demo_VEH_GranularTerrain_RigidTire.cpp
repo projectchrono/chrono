@@ -51,17 +51,17 @@ int main(int argc, char* argv[]) {
     double coh = 20;              // Cohesion pressure (kPa)
 
     // Convert terrain parameters
-    double slope_g = slope * CH_C_DEG_TO_RAD;  // Slope (rad)
+    double slope_g = slope * CH_DEG_TO_RAD;  // Slope (rad)
     double r_g = radius / 1000;                // Particle radius (m)
     double rho_g = rho;                        // Granular material density (kg/m3)
     double mu_g = mu;                          // Coefficient of friction
-    double area = CH_C_PI * r_g * r_g;         // Particle cross-area (m2)
+    double area = CH_PI * r_g * r_g;         // Particle cross-area (m2)
     double coh_force = area * (coh * 1e3);     // Cohesion force (N)
     double coh_g = coh_force * time_step;      // Cohesion impulse (Ns)
 
     // Tire parameters
     double tire_rad = 0.8;           // Radius (m)
-    double tire_ang_vel = CH_C_2PI;  // Tire angular velocity (rad/s)
+    double tire_ang_vel = CH_2PI;  // Tire angular velocity (rad/s)
 
     // Collision envelope (10% of particle radius)
     double envelope = 0.1 * r_g;
@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
 
     ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
     sys->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    sys->Set_G_acc(gravity);
+    sys->SetGravitationalAcceleration(gravity);
 
     // Set number of threads
     sys->SetNumThreads(4);
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
     body->SetMass(500);
     body->SetInertiaXX(ChVector3d(20, 20, 20));
     body->SetPos(tire_center);
-    body->SetRot(QuatFromAngleZ(CH_C_PI_2));
+    body->SetRot(QuatFromAngleZ(CH_PI_2));
     sys->AddBody(body);
 
     auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
@@ -156,12 +156,12 @@ int main(int argc, char* argv[]) {
     body->AddCollisionShape(ct_shape);
     ////utils::AddSphereGeometry(body.get(), body_mat, tire_rad, ChVector3d(0, 0, 0));
 
-    body->SetCollide(true);
+    body->EnableCollision(true);
 
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     motor->SetSpindleConstraint(ChLinkMotorRotation::SpindleConstraint::OLDHAM);
     motor->SetAngleFunction(chrono_types::make_shared<ChFunctionRamp>(0, -tire_ang_vel));
-    motor->Initialize(body, terrain.GetGroundBody(), ChFrame<>(tire_center, QuatFromAngleX(CH_C_PI_2)));
+    motor->Initialize(body, terrain.GetGroundBody(), ChFrame<>(tire_center, QuatFromAngleX(CH_PI_2)));
     sys->Add(motor);
 
     std::cout << "Tire location: " << tire_center.x() << " " << tire_center.y() << " " << tire_center.z() << std::endl;
@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
         if (!is_pitched && time > time_pitch) {
             std::cout << time << "    Pitch: " << gravityR.x() << " " << gravityR.y() << " " << gravityR.z()
                       << std::endl;
-            sys->Set_G_acc(gravityR);
+            sys->SetGravitationalAcceleration(gravityR);
             is_pitched = true;
         }
 

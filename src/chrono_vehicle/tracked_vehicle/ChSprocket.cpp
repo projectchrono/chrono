@@ -50,9 +50,9 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d
     m_rel_loc = location;
 
     // The sprocket reference frame is aligned with that of the chassis and centered at the specified location.
-    ChVector3d loc = chassis->GetBody()->GetFrame_REF_to_abs().TransformPointLocalToParent(location);
-    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrame_REF_to_abs().GetRot();
-    ChQuaternion<> y2z = QuatFromAngleX(CH_C_PI_2);
+    ChVector3d loc = chassis->GetBody()->GetFrameRefToAbs().TransformPointLocalToParent(location);
+    ChQuaternion<> chassisRot = chassis->GetBody()->GetFrameRefToAbs().GetRot();
+    ChQuaternion<> y2z = QuatFromAngleX(CH_PI_2);
     ChMatrix33<> rot_y2z(y2z);
 
     // Create and initialize the gear body (same orientation as the chassis).
@@ -82,13 +82,13 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d
     m_axle->SetInertia(GetAxleInertia());
     chassis->GetSystem()->AddShaft(m_axle);
 
-    m_axle_to_spindle = chrono_types::make_shared<ChShaftsBody>();
+    m_axle_to_spindle = chrono_types::make_shared<ChShaftBodyRotation>();
     m_axle_to_spindle->SetNameString(m_name + "_axle_to_spindle");
     m_axle_to_spindle->Initialize(m_axle, m_gear, ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle);
 
     // Enable contact for the gear body and set contact material properties.
-    m_gear->SetCollide(true);
+    m_gear->EnableCollision(true);
     CreateContactMaterial(chassis->GetSystem()->GetContactMethod());
 
     // Set user-defined custom collision callback class for sprocket-shoes contact.
@@ -107,7 +107,7 @@ void ChSprocket::InitializeInertiaProperties() {
 }
 
 void ChSprocket::UpdateInertiaProperties() {
-    m_xform = m_gear->GetFrame_REF_to_abs();
+    m_xform = m_gear->GetFrameRefToAbs();
 }
 
 // -----------------------------------------------------------------------------
@@ -118,7 +118,7 @@ void ChSprocket::AddVisualizationAssets(VisualizationType vis) {
     auto sep = GetSeparation();
     auto profile = GetProfile();
 
-    ChQuaternion<> y2z = QuatFromAngleX(CH_C_PI_2);
+    ChQuaternion<> y2z = QuatFromAngleX(CH_PI_2);
     ChMatrix33<> rot_y2z(y2z);
 
     //// RADU TODO: can use a single instance of the LineShape
@@ -169,12 +169,12 @@ std::shared_ptr<ChTriangleMeshConnected> ChSprocket::CreateVisualizationMesh(dou
 
     // Create trimesh
     auto mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    std::vector<ChVector3d>& vertices = mesh->getCoordsVertices();
-    std::vector<ChVector3d>& normals = mesh->getCoordsNormals();
-    std::vector<ChVector3i>& idx_vertices = mesh->getIndicesVertexes();
-    std::vector<ChVector3i>& idx_normals = mesh->getIndicesNormals();
-    ////std::vector<ChVector2d>& uv_coords = mesh->getCoordsUV();
-    std::vector<ChColor>& colors = mesh->getCoordsColors();
+    std::vector<ChVector3d>& vertices = mesh->GetCoordsVertices();
+    std::vector<ChVector3d>& normals = mesh->GetCoordsNormals();
+    std::vector<ChVector3i>& idx_vertices = mesh->GetIndicesVertexes();
+    std::vector<ChVector3i>& idx_normals = mesh->GetIndicesNormals();
+    ////std::vector<ChVector2d>& uv_coords = mesh->GetCoordsUV();
+    std::vector<ChColor>& colors = mesh->GetCoordsColors();
 
     // Calculate number of vertices, normals, and faces. Resize mesh arrays.
     auto npoints = ppoints.size();

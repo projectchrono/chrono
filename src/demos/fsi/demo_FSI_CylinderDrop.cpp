@@ -128,7 +128,7 @@ void WriteCylinderVTK(const std::string& filename, double radius, double length,
 //------------------------------------------------------------------
 void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // Set gravity to the rigid body system in chrono
-    sysMBS.Set_G_acc(sysFSI.Get_G_acc());
+    sysMBS.SetGravitationalAcceleration(sysFSI.GetGravitationalAcceleration());
 
     // Set common material Properties
     auto cmaterial = chrono_types::make_shared<ChContactMaterialSMC>();
@@ -145,7 +145,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     box->SetPos(ChVector3d(0.0, 0.0, 0.0));
     box->SetRot(ChQuaternion<>(1, 0, 0, 0));
     box->SetIdentifier(-1);
-    box->SetBodyFixed(true);
+    box->SetFixed(true);
     sysMBS.AddBody(box);
 
     // Add collision geometry for the container walls
@@ -154,7 +154,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
                                    ChVector3d(bxDim, byDim, bzDim), 0.1,           //
                                    ChVector3i(2, 2, -1),                        //
                                    false);
-    box->SetCollide(true);
+    box->EnableCollision(true);
 
     // Add BCE particles attached on the walls into FSI system
     sysFSI.AddBoxContainerBCE(box,                                            //
@@ -173,15 +173,15 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     ChVector3d cyl_vel = ChVector3d(0.0, 0.0, 0.0);
     ChVector3d gyration = ChCylinder::GetGyration(cyl_radius, cyl_length / 2).diagonal();
     cylinder->SetPos(cyl_pos);
-    cylinder->SetPosDer(cyl_vel);
+    cylinder->SetPosDt(cyl_vel);
     cylinder->SetMass(mass);
     cylinder->SetInertiaXX(mass * gyration);
 
     // Set the collision and visualization geometry
-    cylinder->SetCollide(true);
-    cylinder->SetBodyFixed(false);
+    cylinder->EnableCollision(true);
+    cylinder->SetFixed(false);
     chrono::utils::AddCylinderGeometry(cylinder.get(), cmaterial, cyl_radius, cyl_length, VNULL,
-                                       QuatFromAngleX(CH_C_PI_2));
+                                       QuatFromAngleX(CH_PI_2));
     cylinder->GetCollisionModel()->SetSafeMargin(initSpace0);
 
     cylinder->GetVisualShape(0)->SetColor(ChColor(0.65f, 0.20f, 0.10f));
@@ -193,7 +193,7 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     sysFSI.AddFsiBody(cylinder);
 
     // Add BCE particles attached on the cylinder into FSI system
-    sysFSI.AddCylinderBCE(cylinder, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)), cyl_radius, cyl_length,
+    sysFSI.AddCylinderBCE(cylinder, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)), cyl_radius, cyl_length,
                           true);
 }
 
@@ -243,7 +243,7 @@ int main(int argc, char* argv[]) {
     sysFSI.SetBoundaries(cMin, cMax);
 
     // Create an initial box for the terrain patch
-    chrono::utils::GridSampler<> sampler(initSpace0);
+    chrono::utils::ChGridSampler<> sampler(initSpace0);
 
     // Use a chrono sampler to create a bucket of granular material
     ChVector3d boxCenter(0, 0, bzDim / 2);
@@ -252,7 +252,7 @@ int main(int argc, char* argv[]) {
 
     // Add SPH particles from the sampler points to the FSI system
     size_t numPart = (int)points.size();
-    double gz = std::abs(sysFSI.Get_G_acc().z());
+    double gz = std::abs(sysFSI.GetGravitationalAcceleration().z());
     for (int i = 0; i < numPart; i++) {
         double pre_ini = sysFSI.GetDensity() * gz * (-points[i].z() + bzDim);
         double rho_ini = sysFSI.GetDensity() + pre_ini / (sysFSI.GetSoundSpeed() * sysFSI.GetSoundSpeed());
@@ -269,7 +269,7 @@ int main(int argc, char* argv[]) {
     sysMBS.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::static_pointer_cast<ChTimestepperHHT>(sysMBS.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(1000);
+    mystepper->SetMaxIters(1000);
     mystepper->SetAbsTolerances(1e-6);
 
     // Create a run-tme visualizer
@@ -333,7 +333,7 @@ int main(int argc, char* argv[]) {
             sysFSI.PrintFsiInfoToFile(out_dir + "/fsi", time);
             static int counter = 0;
             std::string filename = out_dir + "/vtk/cylinder." + std::to_string(counter++) + ".vtk";
-            WriteCylinderVTK(filename, cyl_radius, cyl_length, sysFSI.GetFsiBodies()[0]->GetFrame_REF_to_abs(), 100);
+            WriteCylinderVTK(filename, cyl_radius, cyl_length, sysFSI.GetFsiBodies()[0]->GetFrameRefToAbs(), 100);
         }
 
         // Render SPH particles

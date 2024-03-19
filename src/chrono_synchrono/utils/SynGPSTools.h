@@ -55,8 +55,8 @@ class SYN_API GPScoord {
     const double alt() const { return m_vector.z(); }
 
     /// Access to components with conversions
-    const double lat_rad() const { return lat() * CH_C_DEG_TO_RAD; }
-    const double lon_rad() const { return lon() * CH_C_DEG_TO_RAD; }
+    const double lat_rad() const { return lat() * CH_DEG_TO_RAD; }
+    const double lon_rad() const { return lon() * CH_DEG_TO_RAD; }
 
     ChVector3d GetVector() const { return m_vector; }
     void SetVector(ChVector3d vector) { m_vector = vector; }

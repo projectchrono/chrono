@@ -54,7 +54,7 @@ ChVehicleCosimWheeledMBSNode::ChVehicleCosimWheeledMBSNode() : ChVehicleCosimBas
     // Create the (sequential) SMC system
     m_system = new ChSystemSMC;
     m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
     // Set default number of threads
     m_system->SetNumThreads(1, 1, 1);
@@ -133,7 +133,7 @@ void ChVehicleCosimWheeledMBSNode::Initialize() {
         MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    GetChassisBody()->SetBodyFixed(m_fix_chassis);
+    GetChassisBody()->SetFixed(m_fix_chassis);
 
     // For each TIRE, send initial location
     for (unsigned int i = 0; i < m_num_tire_nodes; i++) {
@@ -247,7 +247,7 @@ void ChVehicleCosimWheeledMBSNode::InitializeSystem() {
             m_system->SetTimestepperType(ChTimestepper::Type::HHT);
             m_integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
             m_integrator->SetAlpha(-0.2);
-            m_integrator->SetMaxiters(50);
+            m_integrator->SetMaxIters(50);
             m_integrator->SetAbsTolerances(1e-1, 10);
             m_integrator->SetVerbose(false);
             m_integrator->SetMaxItersSuccess(5);

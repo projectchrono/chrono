@@ -30,7 +30,7 @@
 #include "chrono/physics/ChLinkMotorRotationTorque.h"
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChSystemSMC.h"
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/physics/ChInertiaUtils.h"
 
 #include "chrono_models/robot/curiosity/Curiosity.h"
@@ -42,7 +42,7 @@ namespace curiosity {
 
 // Maximum steering angle
 // hard limit: +- 95 deg, soft limit: +- 85 deg
-static const double max_steer_angle = 85 * CH_C_DEG_TO_RAD;
+static const double max_steer_angle = 85 * CH_DEG_TO_RAD;
 
 // rover wheels positions
 static const ChVector3d wheel_rel_pos_lf = ChVector3d(1.095, 1.063, 0.249);
@@ -119,12 +119,12 @@ std::shared_ptr<ChLinkLockRevolute> AddRevoluteJoint(std::shared_ptr<ChBodyAuxRe
                                                      std::shared_ptr<CuriosityChassis> chassis,
                                                      const ChVector3d& rel_joint_pos,
                                                      const ChQuaternion<>& rel_joint_rot) {
-    const ChFrame<>& X_GP = chassis->GetBody()->GetFrame_REF_to_abs();  // global -> parent
+    const ChFrame<>& X_GP = chassis->GetBody()->GetFrameRefToAbs();  // global -> parent
     ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);                       // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                                       // global -> child
 
     auto joint = chrono_types::make_shared<ChLinkLockRevolute>();
-    joint->Initialize(body_1, body_2, ChFrame<>(X_GC.GetCsys().pos, X_GC.GetCsys().rot));
+    joint->Initialize(body_1, body_2, ChFrame<>(X_GC.GetCoordsys().pos, X_GC.GetCoordsys().rot));
     chassis->GetBody()->GetSystem()->AddLink(joint);
 
     return joint;
@@ -138,7 +138,7 @@ std::shared_ptr<ChLinkMotorRotationSpeed> AddMotorSpeed(std::shared_ptr<ChBody> 
                                                         const ChVector3d& rel_pos,
                                                         const ChQuaternion<>& rel_rot) {
     // Express relative frame in global
-    ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
+    ChFrame<> X_GC = chassis->GetBody()->GetFrameRefToAbs() * ChFrame<>(rel_pos, rel_rot);
 
     // Create motor (actuated DOF about Z axis of X_GC frame)
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
@@ -156,7 +156,7 @@ std::shared_ptr<ChLinkMotorRotationAngle> AddMotorAngle(std::shared_ptr<ChBody> 
                                                         const ChVector3d& rel_pos,
                                                         const ChQuaternion<>& rel_rot) {
     // Express relative frame in global
-    ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
+    ChFrame<> X_GC = chassis->GetBody()->GetFrameRefToAbs() * ChFrame<>(rel_pos, rel_rot);
 
     // Create motor (actuated DOF about Z axis of X_GC frame)
     auto motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
@@ -174,7 +174,7 @@ std::shared_ptr<ChLinkMotorRotationTorque> AddMotorTorque(std::shared_ptr<ChBody
                                                           const ChVector3d& rel_pos,
                                                           const ChQuaternion<>& rel_rot) {
     // Express relative frame in global
-    ChFrame<> X_GC = chassis->GetBody()->GetFrame_REF_to_abs() * ChFrame<>(rel_pos, rel_rot);
+    ChFrame<> X_GC = chassis->GetBody()->GetFrameRefToAbs() * ChFrame<>(rel_pos, rel_rot);
 
     // Create motor (actuated DOF about Z axis of X_GC frame)
     auto motor = chrono_types::make_shared<ChLinkMotorRotationTorque>();
@@ -198,7 +198,7 @@ void CuriosityPart::Construct(ChSystem* system) {
     m_body->SetNameString(m_name + "_body");
     m_body->SetMass(m_mass);
     m_body->SetInertiaXX(m_inertia);
-    m_body->SetFrame_COG_to_REF(m_cog);
+    m_body->SetFrameCOMToRef(m_cog);
 
     // Add visualization shape
     if (m_visualize) {
@@ -226,7 +226,7 @@ void CuriosityPart::Construct(ChSystem* system) {
             chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_mat, trimesh_col, false, false, 0.005);
         m_body->AddCollisionShape(shape);
 
-        m_body->SetCollide(m_collide);
+        m_body->EnableCollision(m_collide);
     }
 
     system->AddBody(m_body);
@@ -253,8 +253,8 @@ void CuriosityPart::Initialize(std::shared_ptr<ChBodyAuxRef> chassis) {
     Construct(chassis->GetSystem());
 
     // Set absolute position
-    ChFrame<> X_GC = chassis->GetFrame_REF_to_abs() * m_pos;
-    m_body->SetFrame_REF_to_abs(X_GC);
+    ChFrame<> X_GC = chassis->GetFrameRefToAbs() * m_pos;
+    m_body->SetFrameRefToAbs(X_GC);
 }
 
 // =============================================================================
@@ -285,7 +285,7 @@ CuriosityChassis::CuriosityChassis(const std::string& name,
 void CuriosityChassis::Initialize(ChSystem* system, const ChFrame<>& pos) {
     Construct(system);
 
-    m_body->SetFrame_REF_to_abs(pos);
+    m_body->SetFrameRefToAbs(pos);
 }
 
 // Curiosity Wheel
@@ -313,7 +313,7 @@ CuriosityWheel::CuriosityWheel(const std::string& name,
     double thickness = 0.8e-3;  // average thickness
     double density = 2700;      // aluminum
     double radius1 = radius - thickness;
-    double vol = (CH_C_2PI * radius * width + CH_C_PI * radius * radius) * thickness;
+    double vol = (CH_2PI * radius * width + CH_PI * radius * radius) * thickness;
     double gyration1 = (3 * (radius * radius + radius1 * radius1) + width * width) / 12.0;
     double gyration2 = (radius * radius + radius1 * radius1) / 2.0;
     m_mass = density * vol;
@@ -412,9 +412,9 @@ void Curiosity::Create(CuriosityChassisType chassis_type, CuriosityWheelType whe
         m_wheels[i] = chrono_types::make_shared<CuriosityWheel>("wheel", ChFrame<>(wheel_pos[i], QUNIT),
                                                                 m_wheel_material, wheel_type);
     }
-    m_wheels[C_RF]->m_mesh_xform = ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI));
-    m_wheels[C_RM]->m_mesh_xform = ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI));
-    m_wheels[C_RB]->m_mesh_xform = ChFrame<>(VNULL, QuatFromAngleZ(CH_C_PI));
+    m_wheels[C_RF]->m_mesh_xform = ChFrame<>(VNULL, QuatFromAngleZ(CH_PI));
+    m_wheels[C_RM]->m_mesh_xform = ChFrame<>(VNULL, QuatFromAngleZ(CH_PI));
+    m_wheels[C_RB]->m_mesh_xform = ChFrame<>(VNULL, QuatFromAngleZ(CH_PI));
 
     // Create Curiosity suspension rockers and bogies
     m_rockers[0] = chrono_types::make_shared<CuriosityRocker>(  //
@@ -428,7 +428,7 @@ void Curiosity::Create(CuriosityChassisType chassis_type, CuriosityWheelType whe
         "bogie_R", ChFrame<>(cr_rel_pos_rb, QUNIT), m_default_material, 1);
 
     // Create the steering uprights
-    ChQuaternion<> steer_rot = QuatFromAngleZ(CH_C_PI);
+    ChQuaternion<> steer_rot = QuatFromAngleZ(CH_PI);
 
     m_rocker_uprights[0] = chrono_types::make_shared<CuriosityUpright>(  //
         "upright_FL", ChFrame<>(sr_rel_pos_lf, QUNIT), m_default_material);
@@ -475,7 +475,7 @@ void Curiosity::Initialize(const ChFrame<>& pos) {
     }
 
     // Add drive motors on all six wheels
-    ChQuaternion<> z2y = QuatFromAngleX(CH_C_PI_2);  // align Z with (negative) Y
+    ChQuaternion<> z2y = QuatFromAngleX(CH_PI_2);  // align Z with (negative) Y
 
     // Front (wheels attached to rocker uprights)
     for (int i = 0; i < 2; i++) {
@@ -530,7 +530,7 @@ void Curiosity::Initialize(const ChFrame<>& pos) {
 
         // Connect shaft aligned with the wheel's axis of rotation (local wheel Y).
         // Set connection such that a positive torque applied to the shaft results in forward rover motion.
-        auto shaftbody_connection = chrono_types::make_shared<ChShaftsBody>();
+        auto shaftbody_connection = chrono_types::make_shared<ChShaftBodyRotation>();
         shaftbody_connection->Initialize(m_drive_shafts[i], m_wheels[i]->GetBody(), ChVector3d(0, -1, 0));
         m_system->Add(shaftbody_connection);
     }
@@ -540,7 +540,7 @@ void Curiosity::Initialize(const ChFrame<>& pos) {
     for (int i = 0; i < 2; i++) {
         m_rocker_motor_funcs[i] = chrono_types::make_shared<ChFunctionConst>(0.0);
         m_rocker_motors[i] = AddMotorAngle(m_rocker_uprights[i]->GetBody(), m_rockers[i]->GetBody(), m_chassis,
-                                           rocker_motor_loc[i], QuatFromAngleX(CH_C_PI));
+                                           rocker_motor_loc[i], QuatFromAngleX(CH_PI));
         m_rocker_motors[i]->SetMotorFunction(m_rocker_motor_funcs[i]);
     }
 
@@ -608,7 +608,7 @@ void Curiosity::SetSuspensionVisualization(bool state) {
 void Curiosity::FixChassis(bool fixed) {
     if (!m_initialized)
         return;
-    m_chassis->GetBody()->SetBodyFixed(fixed);
+    m_chassis->GetBody()->SetFixed(fixed);
 }
 
 void Curiosity::FixSuspension(bool fixed) {
@@ -708,13 +708,13 @@ void CuriosityDriver::SetSteering(double angle, CuriosityWheelID id) {
 
 CuriosityDCMotorControl::CuriosityDCMotorControl()
     : m_stall_torque({300, 300, 300, 300, 300, 300}),
-      m_no_load_speed({CH_C_PI, CH_C_PI, CH_C_PI, CH_C_PI, CH_C_PI, CH_C_PI}) {}
+      m_no_load_speed({CH_PI, CH_PI, CH_PI, CH_PI, CH_PI, CH_PI}) {}
 
 void CuriosityDCMotorControl::Update(double time) {
     double speed_reading;
     double target_torque;
     for (int i = 0; i < 6; i++) {
-        speed_reading = -curiosity->m_drive_shafts[i]->GetPosDer();
+        speed_reading = -curiosity->m_drive_shafts[i]->GetPosDt();
 
         if (speed_reading > m_no_load_speed[i]) {
             target_torque = 0;

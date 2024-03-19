@@ -106,7 +106,7 @@ class ChApi ChPhysicsItem : public ChObj {
 
     /// Tell if the object is subject to collision.
     /// Only for interface; child classes may override this, using internal flags.
-    virtual bool GetCollide() const { return false; }
+    virtual bool IsCollisionEnabled() const { return false; }
 
     /// Add to the provided collision system any collision models managed by this physics item.
     /// A derived calss should invoke ChCollisionSystem::Add for each of its collision models.
@@ -156,26 +156,26 @@ class ChApi ChPhysicsItem : public ChObj {
     virtual void Update(bool update_assets = true) { Update(ChTime, update_assets); }
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
-    /// Child classes should implement this function if GetNumCoordinatesPos() > 0.
+    /// Child classes should implement this function if GetNumCoordsPosLevel() > 0.
     /// It is used by owner ChSystem for some static analysis.
-    virtual void SetNoSpeedNoAcceleration() {}
+    virtual void ForceToRest() {}
 
     /// Get the number of coordinates at the position level.
     /// Might differ from coordinates at velocity level if quaternions are used for rotations.
-    virtual int GetNumCoordinatesPos() { return 0; }
+    virtual unsigned int GetNumCoordsPosLevel() { return 0; }
 
     /// Get the number of coordinates at the velocity level.
     /// Might differ from coordinates at position level if quaternions are used for rotations.
-    virtual int GetNumCoordinatesVel() { return GetNumCoordinatesPos(); }
+    virtual unsigned int GetNumCoordsVelLevel() { return GetNumCoordsPosLevel(); }
 
     /// Get the number of scalar constraints.
-    virtual int GetNumConstraints() { return GetNumConstraintsBilateral() + GetNumConstraintsUnilateral(); }
+    virtual unsigned int GetNumConstraints() { return GetNumConstraintsBilateral() + GetNumConstraintsUnilateral(); }
 
     /// Get the number of bilateral scalar constraints.
-    virtual int GetNumConstraintsBilateral() { return 0; }
+    virtual unsigned int GetNumConstraintsBilateral() { return 0; }
 
     /// Get the number of unilateral scalar constraints.
-    virtual int GetNumConstraintsUnilateral() { return 0; }
+    virtual unsigned int GetNumConstraintsUnilateral() { return 0; }
 
     /// Get offset in the state vector (position part)
     unsigned int GetOffset_x() { return offset_x; }
@@ -243,7 +243,7 @@ class ChApi ChPhysicsItem : public ChObj {
                                    const unsigned int off_v,  ///< offset in v state vector
                                    const ChStateDelta& Dv     ///< state vector, increment
     ) {
-        for (int i = 0; i < GetNumCoordinatesPos(); ++i) {
+        for (unsigned int i = 0; i < GetNumCoordsPosLevel(); ++i) {
             x_new(off_x + i) = x(off_x + i) + Dv(off_v + i);
         }
     }
@@ -257,7 +257,7 @@ class ChApi ChPhysicsItem : public ChObj {
                                       const unsigned int off_v,  ///< offset in v state vector
                                       ChStateDelta& Dv           ///< state vector, increment. Here gets the result
     ) {
-        for (int i = 0; i < GetNumCoordinatesPos(); ++i) {
+        for (unsigned int i = 0; i < GetNumCoordsPosLevel(); ++i) {
             Dv(off_v + i) = x_new(off_x + i) - x(off_x + i);
         }
     }

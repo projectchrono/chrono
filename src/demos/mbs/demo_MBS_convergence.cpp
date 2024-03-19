@@ -50,16 +50,16 @@ void create_items(ChSystem& sys) {
     double dens = 1000;
 
     if (do_stack) {
-        int m_num_bodies = 15;
+        int num_bodies = 15;
 
         double totmass = 0;
         double level = 0;
         double sphrad_base = 0.2;
         double oddfactor = 100;
 
-        for (int bi = 0; bi < m_num_bodies; bi++) {
+        for (int bi = 0; bi < num_bodies; bi++) {
             double sphrad = sphrad_base;
-            if (do_oddmass && bi == (m_num_bodies - 1))
+            if (do_oddmass && bi == (num_bodies - 1))
                 sphrad = sphrad * pow(oddfactor, 1. / 3.);
 
             std::shared_ptr<ChBody> rigidBody;
@@ -92,7 +92,7 @@ void create_items(ChSystem& sys) {
             totmass += rigidBody->GetMass();
         }
 
-        std::cout << "Expected contact force at bottom F=" << (totmass * sys.Get_G_acc().y()) << "\n";
+        std::cout << "Expected contact force at bottom F=" << (totmass * sys.GetGravitationalAcceleration().y()) << "\n";
     }
 
     if (do_wall) {
@@ -128,7 +128,7 @@ void create_items(ChSystem& sys) {
         sys.Add(rigidHeavy);
 
         std::cout << "Expected contact deformation at side sphere="
-                  << (rigidHeavy->GetMass() * sys.Get_G_acc().y()) * material->GetCompliance() << "\n";
+                  << (rigidHeavy->GetMass() * sys.GetGravitationalAcceleration().y()) * material->GetCompliance() << "\n";
     }
 
     // Create the floor using a fixed rigid body of 'box' type:
@@ -139,7 +139,7 @@ void create_items(ChSystem& sys) {
                                                                true,       // collision?
                                                                material);  // contact material
     rigidFloor->SetPos(ChVector3d(0, -2, 0));
-    rigidFloor->SetBodyFixed(true);
+    rigidFloor->SetFixed(true);
     rigidFloor->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
 
     sys.Add(rigidFloor);
@@ -184,7 +184,7 @@ int main(int argc, char* argv[]) {
     // Modify some setting of the physical system for the simulation, if you want
 
     sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
-    sys.SetSolverMaxIterations(60);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(60);
 
     // When using compliance, exp. for large compliances, the max. penetration recovery speed
     // also affects reaction forces, thus it must be deactivated (or used as a very large value)

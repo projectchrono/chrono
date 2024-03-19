@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
 
     // Create a ChronoENGINE physical system
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     Little_Hexy myhexy(sys, VNULL);
     myhexy.AddVisualizationAssets();
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
                                                            true,         // collide
                                                            ground_mat);  // contact material
     ground->SetPos(ChVector3d(0, 0, -3));
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
     ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"), 100, 100);
     sys.Add(ground);
 
@@ -148,7 +148,7 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_PROJECTED);
 
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(30);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(30);
 
     // Simulation loop
 

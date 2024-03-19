@@ -41,7 +41,7 @@
 using namespace chrono;
 
 // Tilt angle (about global Y axis) of the container.
-double tilt_angle = 1 * CH_C_PI / 20;
+double tilt_angle = 1 * CH_PI / 20;
 
 // Number of balls: (2 * count_X + 1) * (2 * count_Y + 1)
 int count_X = 2;
@@ -71,8 +71,8 @@ void AddContainer(ChSystemMulticoreSMC* sys) {
     bin->SetMass(1);
     bin->SetPos(ChVector3d(0, 0, 0));
     bin->SetRot(QuatFromAngleY(tilt_angle));
-    bin->SetCollide(true);
-    bin->SetBodyFixed(true);
+    bin->EnableCollision(true);
+    bin->SetFixed(true);
 
     utils::AddBoxContainer(bin, mat,                                 //
                            ChFrame<>(ChVector3d(0, 0, 0.5), QUNIT),  //
@@ -109,8 +109,8 @@ void AddFallingBalls(ChSystemMulticore* sys) {
             ball->SetInertiaXX(inertia);
             ball->SetPos(pos);
             ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-            ball->SetBodyFixed(false);
-            ball->SetCollide(true);
+            ball->SetFixed(false);
+            ball->EnableCollision(true);
 
             utils::AddSphereGeometry(ball.get(), ballMat, radius);
 
@@ -144,7 +144,7 @@ int main(int argc, char* argv[]) {
     sys.SetNumThreads(8);
 
     // Set gravitational acceleration
-    sys.Set_G_acc(ChVector3d(0, 0, -gravity));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -gravity));
 
     // Set solver parameters
     sys.GetSettings()->solver.max_iteration_bilateral = max_iteration;

@@ -80,8 +80,8 @@ GranularTerrain::GranularTerrain(ChSystem* system)
     m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetName("ground");
     m_ground->SetPos(ChVector3d(0, 0, 0));
-    m_ground->SetBodyFixed(true);
-    m_ground->SetCollide(false);
+    m_ground->SetFixed(true);
+    m_ground->EnableCollision(false);
 
     // Create a collsion model for the ground body (required for the custom boundary detection algorithm)
     m_ground->AddCollisionModel(chrono_types::make_shared<ChCollisionModel>());
@@ -392,16 +392,16 @@ void GranularTerrain::Initialize(const ChVector3d& center,
 
     // Create a particle generator and a mixture entirely made out of spheres.
     // Set the starting value for particle body identifiers.
-    utils::Generator generator(m_ground->GetSystem());
-    generator.setBodyIdentifier(m_start_id + 1);
-    std::shared_ptr<utils::MixtureIngredient> m1 = generator.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
-    m1->setDefaultMaterial(m_material);
-    m1->setDefaultDensity(density);
-    m1->setDefaultSize(radius);
+    utils::ChGenerator generator(m_ground->GetSystem());
+    generator.SetBodyIdentifier(m_start_id + 1);
+    std::shared_ptr<utils::ChMixtureIngredient> m1 = generator.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
+    m1->SetDefaultMaterial(m_material);
+    m1->SetDefaultDensity(density);
+    m1->SetDefaultSize(radius);
 
     // Create particles, in layers, until exceeding the specified number.
     double r = safety_factor * radius;
-    utils::PDSampler<double> sampler(2 * r);
+    utils::ChPDSampler<double> sampler(2 * r);
     unsigned int layer = 0;
     ChVector3d layer_hdims(length / 2 - r, width / 2 - r, 0);
     ChVector3d layer_center = center;
@@ -412,7 +412,7 @@ void GranularTerrain::Initialize(const ChVector3d& center,
             std::cout << "Create layer at height: " << layer_center.z() << "\n";
         generator.CreateObjectsBox(sampler, layer_center, layer_hdims, init_vel);
         layer_center.z() += 2 * r;
-        m_num_particles = generator.getTotalNumBodies();
+        m_num_particles = generator.GetTotalNumBodies();
         layer++;
     }
 
@@ -435,7 +435,7 @@ void GranularTerrain::Synchronize(double time) {
         return;
 
     // Check distance from monitored body to front boundary.
-    double dist = m_front - m_body->GetFrame_REF_to_abs().GetPos().x();
+    double dist = m_front - m_body->GetFrameRefToAbs().GetPos().x();
     if (dist >= m_buffer_distance)
         return;
 
@@ -457,7 +457,7 @@ void GranularTerrain::Synchronize(double time) {
     // relocation volume.
     std::vector<ChVector3d> new_points;
     double r = safety_factor * m_radius;
-    utils::PDSampler<> sampler(2 * r);
+    utils::ChPDSampler<> sampler(2 * r);
     ChVector3d layer_hdims(m_shift_distance / 2 - r, m_width / 2 - r, 0);
     ChVector3d layer_center(m_front + m_shift_distance / 2, (m_left + m_right) / 2, m_bottom + offset_factor * r);
     while (new_points.size() < num_moved_particles) {
@@ -471,7 +471,7 @@ void GranularTerrain::Synchronize(double time) {
     for (auto body : m_ground->GetSystem()->GetBodies()) {
         if (body->GetIdentifier() > m_start_id && body->GetPos().x() - m_radius < m_rear) {
             body->SetPos(new_points[ip++]);
-            body->SetPosDer(m_init_part_vel);
+            body->SetPosDt(m_init_part_vel);
         }
     }
 

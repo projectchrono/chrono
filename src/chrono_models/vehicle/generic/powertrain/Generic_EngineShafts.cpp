@@ -29,7 +29,7 @@ const double Generic_EngineShafts::m_motorshaft_inertia = 1.1;
 Generic_EngineShafts::Generic_EngineShafts(const std::string& name) : ChEngineShafts(name, ChVector3d(1, 0, 0)) {}
 
 void Generic_EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunctionInterp>& map) {
-    double rpm_to_radsec = CH_C_2PI / 60.;
+    double rpm_to_radsec = CH_2PI / 60.;
 
     map->AddPoint(-100 * rpm_to_radsec, 300);  // to start engine
     map->AddPoint(800 * rpm_to_radsec, 382);
@@ -54,7 +54,7 @@ void Generic_EngineShafts::SetEngineTorqueMap(std::shared_ptr<ChFunctionInterp>&
 }
 
 void Generic_EngineShafts::SetEngineLossesMap(std::shared_ptr<ChFunctionInterp>& map) {
-    double rpm_to_radsec = CH_C_2PI / 60.;
+    double rpm_to_radsec = CH_2PI / 60.;
 
     map->AddPoint(-50 * rpm_to_radsec, 30);  // it should never work in negative direction, anyway..
     map->AddPoint(0 * rpm_to_radsec, 0);

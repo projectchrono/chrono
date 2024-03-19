@@ -94,11 +94,11 @@ friction = 0.6
 
 sys = chrono.ChSystemSMC()
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
-sys.Set_G_acc(chrono.ChVector3d(0, -10, 0))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, -10, 0))
 
 # Set solver settings
-sys.SetSolverMaxIterations(100)
-sys.SetSolverForceTolerance(0)
+sys.GetSolver().AsIterative().SetMaxIterations(100)
+sys.GetSolver().AsIterative().SetTolerance(0)
 
 # --------------------------------------------------
 # Create a contact material, shared among all bodies
@@ -114,10 +114,10 @@ material.SetFriction(friction)
 container = chrono.ChBody()
 sys.Add(container)
 container.SetPos(chrono.ChVector3d(0, 0, 0))
-container.SetBodyFixed(True)
+container.SetFixed(True)
 container.SetIdentifier(-1)
 
-container.SetCollide(True)
+container.EnableCollision(True)
 chrono.AddBoxGeometry(container, material, chrono.ChVector3d(8, 1, 8), chrono.ChVector3d(0, -0.5, 0))
 
 container.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.4, 0.4))
@@ -126,9 +126,9 @@ box1 = chrono.ChBody()
 box1.SetMass(10)
 box1.SetInertiaXX(chrono.ChVector3d(1, 1, 1))
 box1.SetPos(chrono.ChVector3d(-1, 0.21, -1))
-box1.SetPosDer(chrono.ChVector3d(5, 0, 0))
+box1.SetPosDt(chrono.ChVector3d(5, 0, 0))
 
-box1.SetCollide(True)
+box1.EnableCollision(True)
 chrono.AddBoxGeometry(box1, material, chrono.ChVector3d(0.4, 0.2, 0.1))
 
 box1.GetVisualShape(0).SetColor(chrono.ChColor(0.1, 0.1, 0.4))
@@ -139,9 +139,9 @@ box2 = chrono.ChBody()
 box2.SetMass(10)
 box2.SetInertiaXX(chrono.ChVector3d(1, 1, 1))
 box2.SetPos(chrono.ChVector3d(-1, 0.21, +1))
-box2.SetPosDer(chrono.ChVector3d(5, 0, 0))
+box2.SetPosDt(chrono.ChVector3d(5, 0, 0))
 
-box2.SetCollide(True)
+box2.EnableCollision(True)
 chrono.AddBoxGeometry(box2, material, chrono.ChVector3d(0.4, 0.2, 0.1))
 
 box2.GetVisualShape(0).SetColor(chrono.ChColor(0.4, 0.1, 0.1))
@@ -175,7 +175,7 @@ while vis.Run():
     vis.BeginScene() 
     vis.Render()
     chronoirr.drawGrid(vis, 0.5, 0.5, 12, 12,
-                       chrono.ChCoordsysd(chrono.ChVector3d(0, 0, 0), chrono.QuatFromAngleX(chrono.CH_C_PI_2)))
+                       chrono.ChCoordsysd(chrono.ChVector3d(0, 0, 0), chrono.QuatFromAngleX(chrono.CH_PI_2)))
     chronoirr.drawAllCOGs(vis, 1.0)
     vis.EndScene()
     sys.DoStepDynamics(1e-3)

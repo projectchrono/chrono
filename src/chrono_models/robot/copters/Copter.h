@@ -192,7 +192,7 @@ Copter<nop>::Copter(ChSystem& sys,
     // placeholder Data.
     chassis->SetMass(10);
     chassis->SetInertiaXX(ChVector3d(1, 1, 1));
-    chassis->SetBodyFixed(false);
+    chassis->SetFixed(false);
     sys.AddBody(chassis);
     h0 = chassis->GetPos() ^ up;
     // 26.4 inch propellers
@@ -207,7 +207,7 @@ Copter<nop>::Copter(ChSystem& sys,
         // Data from little hexy, page 132.
         prop->SetMass(1);
         prop->SetInertiaXX(ChVector3d(0.2, 0.2, 0.2));
-        prop->SetBodyFixed(false);
+        prop->SetFixed(false);
         sys.AddBody(prop);
 
         auto propmot = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
@@ -302,7 +302,7 @@ template <int nop>
 void Copter<nop>::ControlIncremental(double inputs[nop]) {
     for (int i = 0; i < nop; i++) {
         u_p[i] = ChClamp(u_p[i] + inputs[i], -1.0, 1.0);
-        speeds[i]->SetConstant(u_p[i] * rps_max * CH_C_2PI);
+        speeds[i]->SetConstant(u_p[i] * rps_max * CH_2PI);
     }
 }
 
@@ -311,7 +311,7 @@ template <int nop>
 void Copter<nop>::ControlAbsolute(double inputs[nop]) {
     for (int i = 0; i < nop; i++) {
         u_p[i] = ChClamp<double>(inputs[i], -1, 1);
-        speeds[i]->SetConstant(u_p[i] * rps_max * CH_C_2PI);
+        speeds[i]->SetConstant(u_p[i] * rps_max * CH_2PI);
     }
 }
 
@@ -320,13 +320,13 @@ template <int nop>
 void Copter<nop>::Update(double timestep) {
     // update propeller forces/torques
     for (int i = 0; i < nop; i++) {
-        double rps = motors[i]->GetMotorAngleDer() / CH_C_2PI;
+        double rps = motors[i]->GetMotorAngleDt() / CH_2PI;
         thrusts[i]->SetMforce(Ct * rho * pow(rps, 2) * pow(Dp, 4));
-        backtorques[i]->SetMforce((1 / CH_C_2PI) * Cp * rho * pow(rps, 2) * pow(Dp, 5));
+        backtorques[i]->SetMforce((1 / CH_2PI) * Cp * rho * pow(rps, 2) * pow(Dp, 5));
     }
     // update linear drag / drag torque
-    lin_drag->SetMforce(0.5 * Cd * Surf * rho * chassis->GetPosDer().Length2());
-    lin_drag->SetDir(-chassis->GetPosDer());
+    lin_drag->SetMforce(0.5 * Cd * Surf * rho * chassis->GetPosDt().Length2());
+    lin_drag->SetDir(-chassis->GetPosDt());
     // update pressure, temperature, altitude:
     UpdateAirData();
 }

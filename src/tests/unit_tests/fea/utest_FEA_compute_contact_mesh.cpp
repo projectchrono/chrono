@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     system.SetTangentialDisplacementModel(tdispl_model);
     system.SetStiffContact(stiff_contact);
 
-    system.Set_G_acc(ChVector3d(0, 0, gravity));
+    system.SetGravitationalAcceleration(ChVector3d(0, 0, gravity));
 
     system.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
 
@@ -213,8 +213,9 @@ int main(int argc, char* argv[]) {
     switch (solver_type) {
         case DEFAULT_SOLVER: {
             std::cout << "Using DEFAULT solver.\n";
-            system.SetSolverMaxIterations(100);
-            system.SetSolverForceTolerance(1e-6);
+            system.SetSolverType(ChSolver::Type::PSOR);
+            system.GetSolver()->AsIterative()->SetMaxIterations(100);
+            system.GetSolver()->AsIterative()->SetTolerance(time_step * 1e-6);
             break;
         }
         case MINRES_SOLVER: {
@@ -225,7 +226,6 @@ int main(int argc, char* argv[]) {
             solver->SetTolerance(1e-8);
             solver->EnableDiagonalPreconditioner(true);
             solver->SetVerbose(false);
-            system.SetSolverForceTolerance(1e-6);
             break;
         }
         default:
@@ -239,7 +239,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Using HHT integrator.\n";
     auto integrator = chrono_types::make_shared<ChTimestepperHHT>(&system);
     integrator->SetAlpha(0.0);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-08);
 
     // ---------------

@@ -63,20 +63,20 @@ class ChApi ChLoadBodyMesh : public ChLoadBase {
 
     /// Access the list of applied forces, to allow adding new ones, removing them, counting them, etc.
     /// Note that only nodes from the reference mesh should be added.
-    std::vector<std::shared_ptr<ChLoadBodyForce>>& GetForceList() { return forces; }
+    std::vector<std::shared_ptr<ChLoadBodyForce>>& GetForces() { return forces; }
 
     //
     // ChLoadBase interface
     //
 
-    virtual int LoadGet_ndof_x() override;
-    virtual int LoadGet_ndof_w() override;
+    virtual int LoadGetNumCoordsPosLevel() override;
+    virtual int LoadGetNumCoordsVelLevel() override;
     virtual void LoadGetStateBlock_x(ChState& mD) override;
     virtual void LoadGetStateBlock_w(ChStateDelta& mD) override;
     virtual void LoadStateIncrement(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
 
     // simple.. field is x y z, hardcoded return val:
-    virtual int LoadGet_field_ncoords() override { return 3; }
+    virtual int LoadGetNumFieldCoords() override { return 3; }
 
     /// Compute Q, the generalized load.
     virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q

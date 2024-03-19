@@ -62,14 +62,14 @@ class ChApi ChConveyor : public ChPhysicsItem {
 
     // Shortcuts for ChBody-like transformations etc.
     // These, and others, can also be done as my_conveyor->GetTruss()->Ch***(...).
-    void SetBodyFixed(bool mev) { GetTruss()->SetBodyFixed(mev); }
-    bool GetBodyFixed() { return GetTruss()->GetBodyFixed(); }
+    void SetFixed(bool mev) { GetTruss()->SetFixed(mev); }
+    bool IsFixed() { return GetTruss()->IsFixed(); }
 
-    ChCoordsys<>& GetCsys() { return GetTruss()->GetCsys(); }
+    ChCoordsys<>& GetCoordsys() { return GetTruss()->GetCoordsys(); }
     ChVector3d& GetPos() { return GetTruss()->GetPos(); }
     ChQuaternion<>& GetRot() { return GetTruss()->GetRot(); }
-    void SetCsys(const ChCoordsys<>& mcoord) { return GetTruss()->SetCsys(mcoord); }
-    void SetCsys(const ChVector3d& mv, const ChQuaternion<>& mq) { GetTruss()->SetCsys(mv, mq); }
+    void SetCoordsys(const ChCoordsys<>& mcoord) { return GetTruss()->SetCoordsys(mcoord); }
+    void SetCoordsys(const ChVector3d& mv, const ChQuaternion<>& mq) { GetTruss()->SetCoordsys(mv, mq); }
     void SetRot(const ChQuaternion<>& mrot) { GetTruss()->SetRot(mrot); }
     void SetPos(const ChVector3d& mpos) { GetTruss()->SetPos(mpos); }
 
@@ -84,11 +84,11 @@ class ChApi ChConveyor : public ChPhysicsItem {
     //
 
     /// Number of coordinates: this contains an auxiliary body, so it is 14 (with quaternions for rotations)
-    virtual int GetNumCoordinatesPos() override { return 7 + 7; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 7 + 7; }
     /// Number of coordinates of the particle cluster (for two bodies).
-    virtual int GetNumCoordinatesVel() override { return 6 + 6; }
+    virtual unsigned int GetNumCoordsVelLevel() override { return 6 + 6; }
     /// Get the number of scalar constraints. In this case, a lock constraint is embedded.
-    virtual int GetNumConstraintsBilateral() override { return 6; }
+    virtual unsigned int GetNumConstraintsBilateral() override { return 6; }
 
     // Override/implement interfaces for global state vectors (see ChPhysicsItem for details)
 
@@ -168,7 +168,7 @@ class ChApi ChConveyor : public ChPhysicsItem {
 
     // Other functions
 
-    virtual bool GetCollide() const override { return true; }
+    virtual bool IsCollisionEnabled() const override { return true; }
     virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
     virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
     virtual void SyncCollisionModels() override;

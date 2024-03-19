@@ -12,8 +12,8 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#ifndef CHMODALASSEMBLY_H
-#define CHMODALASSEMBLY_H
+#ifndef CH_MODAL_ASSEMBLY_H
+#define CH_MODAL_ASSEMBLY_H
 
 #include "chrono_modal/ChApiModal.h"
 #include "chrono_modal/ChModalDamping.h"
@@ -30,7 +30,6 @@ namespace modal {
 /// where many "internal" DOFs of finite elements will be reduced to few modal modes that are superimposed
 /// to the motion of a floating frame (for small deflections). Some nodes can be selected as "boundary nodes"
 /// to allow connecting this modal assembly to external joints and forces.
-
 class ChApiModal ChModalAssembly : public ChAssembly {
   public:
     ChModalAssembly();
@@ -47,9 +46,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// and just use the "boundary" bodies, meshes, etc. (those normally added via Add() ).
     /// Set false to consider all internal bodies, meshes etc. as normal items in a normal assembly.
     void SetModalMode(bool mmodal) {
-        this->is_modal = mmodal;
-
-        this->Setup();
+        is_modal = mmodal;
+        Setup();
     }
 
     bool IsModalMode() { return this->is_modal; }
@@ -57,31 +55,25 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Compute the undamped modes for the current assembly.
     /// Later you can fetch results via Get_modes_V(), Get_modes_frequencies() etc.
     /// Usually done for the assembly in full mode, but can be done also SwitchModalReductionON()
-    bool ComputeModes(const ChModalSolveUndamped&
-                          n_modes_settings);  ///< int as n. of lower modes to keep, or a full ChModalSolveUndamped
+    bool ComputeModes(const ChModalSolveUndamped& n_modes_settings);
 
     /// Compute the undamped modes from M and K matrices. Later you can fetch results via Get_modes_V() etc.
-    bool ComputeModesExternalData(
-        ChSparseMatrix& mM,
-        ChSparseMatrix& mK,
-        ChSparseMatrix& full_Cq,
-        const ChModalSolveUndamped&
-            n_modes_settings);  ///< int as the n. of lower modes to keep, or a full ChModalSolveUndamped
+    bool ComputeModesExternalData(ChSparseMatrix& mM,
+                                  ChSparseMatrix& mK,
+                                  ChSparseMatrix& full_Cq,
+                                  const ChModalSolveUndamped& n_modes_settings);
 
     /// Compute the damped modes for the entire assembly.
     /// Expect complex eigenvalues/eigenvectors if damping is used.
     /// Later you can fetch results via Get_modes_V(), Get_modes_frequencies(), Get_modes_damping_ratios() etc.
     /// Usually done for the assembly in full mode, but can be done also after SwitchModalReductionON()
-    bool ComputeModesDamped(const ChModalSolveDamped& n_modes_settings);  ///< int as the n. of lower modes to keep, or
-                                                                          ///< a full ChModalSolveDamped
+    bool ComputeModesDamped(const ChModalSolveDamped& n_modes_settings);
 
     /// Perform modal reduction on this assembly, from the current "full" ("boundary"+"internal") assembly.
     /// - An undamped modal analysis will be done on the full assembly with  nodes.
     /// - The "internal" nodes will be replaced by n_modes modal coordinates.
-    void SwitchModalReductionON(
-        const ChModalSolveUndamped&
-            n_modes_settings,  ///< int as the n. of lower modes to keep, or a full ChModalSolveUndamped
-        const ChModalDamping& damping_model = ChModalDampingNone());  ///< a damping model to use for the reduced model
+    void SwitchModalReductionON(const ChModalSolveUndamped& n_modes_settings,
+                                const ChModalDamping& damping_model = ChModalDampingNone());
 
     /// Perform modal reduction on this assembly that contains only the "boundary" nodes, whereas
     /// the "internal" nodes have been modeled only in an external FEA software with the
@@ -93,13 +85,11 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// - in Chrono, only boundary nodes are added to a ChModalAssembly
     /// - in Chrono, run this function passing such M and K matrices: a modal analysis will be done on K and M
     /// Note that the size of M (and K) must be at least > m_num_coords_vel_boundary.
-    void SwitchModalReductionON(
-        ChSparseMatrix& full_M,
-        ChSparseMatrix& full_K,
-        ChSparseMatrix& full_Cq,
-        const ChModalSolveUndamped&
-            n_modes_settings,  ///< int as the n. of lower modes to keep, or a full ChModalSolveUndamped
-        const ChModalDamping& damping_model = ChModalDampingNone());  ///< a damping model to use for the reduced model
+    void SwitchModalReductionON(ChSparseMatrix& full_M,
+                                ChSparseMatrix& full_K,
+                                ChSparseMatrix& full_Cq,
+                                const ChModalSolveUndamped& n_modes_settings,
+                                const ChModalDamping& damping_model = ChModalDampingNone());
 
     /// For displaying modes, you can use the following function. It sets the state of this subassembly
     /// (both boundary and inner items) using the n-th eigenvector multiplied by a "amplitude" factor * sin(phase).
@@ -177,11 +167,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
         virtual ~CustomForceFullCallback() {}
 
         /// Compute the custom force vector applied on the full coordinates, at the specified configuration.
-        virtual void evaluate(
-            ChVectorDynamic<>&
-                computed_custom_F_full,  //< compute F here, size= m_num_coords_vel_boundary + m_num_coords_vel_internal
-            const ChModalAssembly& link  ///< associated modal assembly
-            ) = 0;
+        /// Size of F: m_num_coords_vel_boundary + m_num_coords_vel_internal
+        virtual void evaluate(ChVectorDynamic<>& computed_custom_F_full, const ChModalAssembly& link) = 0;
     };
 
     /// Specify the optional callback object for computing a custom force acting on the full (not reduced) coordinates.
@@ -231,9 +218,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Read only. Use one of the ComputeModes() functions to set it.
     const ChVectorDynamic<>& Get_modes_assembly_x0() const { return modes_assembly_x0; }
 
-    //
     // CONTAINER FUNCTIONS
-    //
 
     /// Removes all inserted items: bodies, links, etc., both boundary and internal.
     void Clear();
@@ -286,65 +271,79 @@ class ChApiModal ChModalAssembly : public ChAssembly {
         return internal_otherphysicslist;
     }
 
-    //
     // STATISTICS
-    //
 
     /// Get the number of internal bodies
-    int GetNumBodiesInternal() const { return m_num_bodies_internal; }
+    unsigned int GetNumBodiesInternal() const { return m_num_bodies_internal; }
+
     /// Get the number of internal links.
-    int GetNumLinksInternal() const { return m_num_links_internal; }
+    unsigned int GetNumLinksInternal() const { return m_num_links_internal; }
+
     /// Get the number of internal meshes.
-    int GetNumMeshesInternal() const { return m_num_meshes_internal; }
+    unsigned int GetNumMeshesInternal() const { return m_num_meshes_internal; }
+
     /// Get the number of other internal physics items (other than bodies, links, or meshes).
-    int GetNumOtherPhysicsItemsInternal() const { return m_num_otherphysicsitems_internal; }
+    unsigned int GetNumOtherPhysicsItemsInternal() const { return m_num_otherphysicsitems_internal; }
 
     /// Get the number of internal coordinates at the position level.
-    /// Might differ from ::GetNumCoordinatesPosInternal in case of quaternions.
-    int GetNumCoordinatesPosInternal() const { return m_num_coords_pos_internal; }
+    /// Might differ from GetNumCoordinatesPosInternal in case of quaternions.
+    unsigned int GetNumCoordinatesPosInternal() const { return m_num_coords_pos_internal; }
+
     /// Get the number of internal coordinates at the velocity level.
-    /// Might differ from ::GetNumCoordinatesPosInternal in case of quaternions.
-    int GetNumCoordinatesVelInternal() const { return m_num_coords_vel_internal; }
+    /// Might differ from GetNumCoordinatesPosInternal in case of quaternions.
+    unsigned int GetNumCoordinatesVelInternal() const { return m_num_coords_vel_internal; }
+
     /// Get the number of internal scalar constraints.
-    int GetNumConstraintsInternal() const { return m_num_constr_internal; }
+    unsigned int GetNumConstraintsInternal() const { return m_num_constr_internal; }
+
     /// Get the number of internal bilateral scalar constraints.
-    int GetNumConstraintsBilateralInternal() const { return m_num_constr_bil_internal; }
+    unsigned int GetNumConstraintsBilateralInternal() const { return m_num_constr_bil_internal; }
+
     /// Get the number of internal unilateral scalar constraints.
-    int GetNumConstraintsUnilateralInternal() const { return m_num_constr_uni_internal; }
+    unsigned int GetNumConstraintsUnilateralInternal() const { return m_num_constr_uni_internal; }
 
     /// Get the number of boundary bodies
-    int GetNumBodiesBoundary() const { return m_num_bodies_boundary; }
+    unsigned int GetNumBodiesBoundary() const { return m_num_bodies_boundary; }
+
     /// Get the number of boundary links.
-    int GetNumLinksBoundary() const { return m_num_links_boundary; }
+    unsigned int GetNumLinksBoundary() const { return m_num_links_boundary; }
+
     /// Get the number of boundary meshes.
-    int GetNumMeshesBoundary() const { return m_num_meshes_boundary; }
+    unsigned int GetNumMeshesBoundary() const { return m_num_meshes_boundary; }
+
     /// Get the number of other boundary physics items (other than bodies, links, or meshes).
-    int GetNumOtherPhysicsItemsBoundary() const { return m_num_otherphysicsitems_boundary; }
+    unsigned int GetNumOtherPhysicsItemsBoundary() const { return m_num_otherphysicsitems_boundary; }
 
     /// Get the number of boundary coordinates at the position level.
-    /// Might differ from ::GetNumCoordinatesPosInternal in case of quaternions.
-    int GetNumCoordinatesPosBoundary() const { return m_num_coords_pos_boundary; }
+    /// Might differ from GetNumCoordinatesPosInternal in case of quaternions.
+    unsigned int GetNumCoordinatesPosBoundary() const { return m_num_coords_pos_boundary; }
+
     /// Get the number of boundary coordinates at the velocity level.
-    /// Might differ from ::GetNumCoordinatesPosInternal in case of quaternions.
-    int GetNumCoordinatesVelBoundary() const { return m_num_coords_vel_boundary; }
+    /// Might differ from GetNumCoordinatesPosInternal in case of quaternions.
+    unsigned int GetNumCoordinatesVelBoundary() const { return m_num_coords_vel_boundary; }
+
     /// Get the number of boundary scalar constraints.
-    int GetNumConstraintsBoundary() const { return m_num_constr_boundary; }
+    unsigned int GetNumConstraintsBoundary() const { return m_num_constr_boundary; }
+
     /// Get the number of boundary scalar bilateral constraints (only bilaterals).
-    int GetNumConstraintsBilateralBoundary() const { return m_num_constr_bil_boundary; }
+    unsigned int GetNumConstraintsBilateralBoundary() const { return m_num_constr_bil_boundary; }
+
     /// Get the number of boundary scalar constraints (only unilaterals).
-    int GetNumConstraintsUnilateralBoundary() const { return m_num_constr_uni_boundary; }
+    unsigned int GetNumConstraintsUnilateralBoundary() const { return m_num_constr_uni_boundary; }
 
-    //
     // OTHER FUNCTIONS
-    //
 
-    /// Dump the M mass matrix, K damping matrix, R damping matrix, Cq constraint jacobian
-    /// matrix (at the current configuration) for this subassembly,
-    /// Assumes the rows/columns of the matrices are ordered as the ChVariable objects used in this assembly,
-    /// first the all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal
-    /// assembly). The name of the files will be [path]_M.dat [path]_K.dat [path]_R.dat [path]_Cq.dat Might throw
-    /// exception if file can't be saved.
-    void DumpSubassemblyMatrices(bool save_M, bool save_K, bool save_R, bool save_Cq, const std::string& path);
+    /// Write the mass (M), damping (K), damping (R), and constraint Jacobian (C) matrices at current configuration.
+    /// Assumes the rows/columns of the matrices are ordered as the ChVariable objects used in this assembly, first all
+    /// the "boundary" variables then all the "inner" variables (or modal variables if switched to modal assembly).
+    /// The sparse matrices are saved in COO format in [path]_M.dat [path]_K.dat [path]_R.dat, and [path]_Cq.dat.
+    /// By default, uses 1-based indices (as in Matlab).
+    void WriteSubassemblyMatrices(bool save_M,
+                                  bool save_K,
+                                  bool save_R,
+                                  bool save_Cq,
+                                  const std::string& path,
+                                  bool one_indexed = true);
 
     /// Compute the mass matrix of the subassembly.
     /// Assumes the rows/columns of the matrix are ordered as the ChVariable objects used in this assembly,
@@ -372,9 +371,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// first the boundary and then the inner.
     void GetSubassemblyConstraintJacobianMatrix(ChSparseMatrix* Cq);  ///< fill this system damping matrix
 
-    //
     // PHYSICS ITEM INTERFACE
-    //
 
     /// Set the pointer to the parent ChSystem() and
     /// also add to new collision system / remove from old coll.system
@@ -393,18 +390,18 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     virtual void Update(bool update_assets = true) override;
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
-    virtual void SetNoSpeedNoAcceleration() override;
+    virtual void ForceToRest() override;
 
     /// Get the number of scalar coordinates (ex. dim of position vector)
-    virtual int GetNumCoordinatesPos() override { return m_num_coords_pos; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return m_num_coords_pos; }
     /// Get the number of scalar coordinates of variables derivatives (ex. dim of speed vector)
-    virtual int GetNumCoordinatesVel() override { return m_num_coords_vel; }
+    virtual unsigned int GetNumCoordsVelLevel() override { return m_num_coords_vel; }
     /// Get the number of scalar constraints, if any, in this item
-    virtual int GetNumConstraints() override { return m_num_constr; }
+    virtual unsigned int GetNumConstraints() override { return m_num_constr; }
     /// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
-    virtual int GetNumConstraintsBilateral() override { return m_num_constr_bil; }
+    virtual unsigned int GetNumConstraintsBilateral() override { return m_num_constr_bil; }
     /// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
-    virtual int GetNumConstraintsUnilateral() override { return m_num_constr_uni; }
+    virtual unsigned int GetNumConstraintsUnilateral() override { return m_num_constr_uni; }
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGather(const unsigned int off_x,
@@ -495,9 +492,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Get cumulative time for modal solver.
     double GetTimeModalSolver() const { return m_timer_modal_solver_call(); }
 
-    //
     // SERIALIZATION
-    //
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

@@ -112,7 +112,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
 
     /// Set collision flags for the various subsystems.
     /// By default, collision is enabled for sprocket, idler, road wheels, and track shoes.
-    void SetCollide(int flags) { m_collide_flags = flags; }
+    void EnableCollision(int flags) { m_collide_flags = flags; }
 
     /// Enable/disable collision for the rig posts (default: true).
     void SetPostCollide(bool flag);
@@ -242,7 +242,7 @@ class CH_VEHICLE_API ChTrackTestRig : public ChVehicle {
     bool m_plot_output;
     double m_plot_output_step;
     double m_next_plot_output_time;
-    utils::CSV_writer* m_csv;
+    utils::ChWriterCSV* m_csv;
 
     friend class ChTrackTestRigVisualSystemIrrlicht;
 };

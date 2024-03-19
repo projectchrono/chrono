@@ -16,7 +16,7 @@
 //
 // =============================================================================
 
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/physics/ChShaftsClutch.h"
 #include "chrono/physics/ChShaftsGear.h"
 #include "chrono/physics/ChShaftsPlanetary.h"
@@ -43,10 +43,11 @@ class ChShaftTest : public ::testing::TestWithParam<ChContactMethod> {
         }
 
         // Edit system settings
-        if (GetParam() == ChContactMethod::NSC) {
+        if (GetParam() == ChContactMethod::NSC)
             system->SetSolverType(ChSolver::Type::APGD);
-        }
-        system->SetSolverMaxIterations(150);
+
+        if (system->GetSolver()->IsIterative())
+            system->GetSolver()->AsIterative()->SetMaxIterations(150);
     }
 
     ~ChShaftTest() { delete system; }
@@ -124,15 +125,15 @@ TEST_P(ChShaftTest, shaft_shaft) {
         double pos2_an = acc2_an * time * time / 2;
 
         double pos1 = shaftA->GetPos();
-        double vel1 = shaftA->GetPosDer();
-        double acc1 = shaftA->GetPosDer2();
+        double vel1 = shaftA->GetPosDt();
+        double acc1 = shaftA->GetPosDt2();
 
         double pos2 = shaftB->GetPos();
-        double vel2 = shaftB->GetPosDer();
-        double acc2 = shaftB->GetPosDer2();
+        double vel2 = shaftB->GetPosDt();
+        double acc2 = shaftB->GetPosDt2();
 
-        double Tr1 = gearAB->GetTorqueReactionOn1();
-        double Tr2 = gearAB->GetTorqueReactionOn2();
+        double Tr1 = gearAB->GetReaction1();
+        double Tr2 = gearAB->GetReaction2();
 
         ASSERT_NEAR(pos1, pos1_an, tol_pos);
         ASSERT_NEAR(pos2, pos2_an, tol_pos);
@@ -148,12 +149,12 @@ TEST_P(ChShaftTest, shaft_shaft) {
     }
 
     ////std::cout << "Time: " << time << "\n"
-    ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPosDer()
-    ////          << "  accel: " << shaftA->GetPosDer2() << "\n"
-    ////          << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPosDer()
-    ////          << "  accel: " << shaftB->GetPosDer2() << "\n"
-    ////          << "  torque on A side: " << gearAB->GetTorqueReactionOn1()
-    ////          << "  torque on B side: " << gearAB->GetTorqueReactionOn2() << "\n\n\n";
+    ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPosDt()
+    ////          << "  accel: " << shaftA->GetPosDt2() << "\n"
+    ////          << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPosDt()
+    ////          << "  accel: " << shaftB->GetPosDt2() << "\n"
+    ////          << "  torque on A side: " << gearAB->GetReaction1()
+    ////          << "  torque on B side: " << gearAB->GetReaction2() << "\n\n\n";
 }
 
 // -----------------------------------------------------------------------------
@@ -180,7 +181,7 @@ TEST_P(ChShaftTest, shaft_body) {
     // Create 'B', a 3D rigid body
     auto bodyB = chrono_types::make_shared<ChBody>();
 
-    bodyB->Accumulate_torque(ChVector3d(0, 0, 3), true);  // set some constant torque to body
+    bodyB->AccumulateTorque(ChVector3d(0, 0, 3), true);  // set some constant torque to body
     system->Add(bodyB);
 
     // Make the torsional spring-damper between shafts A and C.
@@ -193,7 +194,7 @@ TEST_P(ChShaftTest, shaft_body) {
     // Make the shaft 'A' connected to the rotation of the 3D body 'B'.
     // We must specify the direction (in body coordinates) along which the
     // shaft will affect the body.
-    auto shaftbody_connection = chrono_types::make_shared<ChShaftsBody>();
+    auto shaftbody_connection = chrono_types::make_shared<ChShaftBodyRotation>();
     ChVector3d shaftdir(VECT_Z);
     shaftbody_connection->Initialize(shaftA, bodyB, shaftdir);
     system->Add(shaftbody_connection);
@@ -229,25 +230,25 @@ TEST_P(ChShaftTest, shaft_body) {
     double trqB = 2.83766;   // reaction on bodyB (z component)
 
     ASSERT_NEAR(shaftA->GetPos(), posA, tol_pos);
-    ASSERT_NEAR(shaftA->GetPosDer(), velA, tol_vel);
-    ASSERT_NEAR(shaftA->GetPosDer2(), accA, tol_acc);
+    ASSERT_NEAR(shaftA->GetPosDt(), velA, tol_vel);
+    ASSERT_NEAR(shaftA->GetPosDt2(), accA, tol_acc);
 
     ASSERT_NEAR(bodyB->GetAngVelLocal().z(), avelB, tol_acc);
     ASSERT_NEAR(bodyB->GetAngAccLocal().z(), aaccB, tol_acc);
 
-    ASSERT_NEAR(shaft_torsionAC->GetTorqueReactionOn1(), spring_trqA, tol_trq);
-    ASSERT_NEAR(shaft_torsionAC->GetTorqueReactionOn2(), spring_trqC, tol_trq);
+    ASSERT_NEAR(shaft_torsionAC->GetReaction1(), spring_trqA, tol_trq);
+    ASSERT_NEAR(shaft_torsionAC->GetReaction2(), spring_trqC, tol_trq);
 
     ASSERT_NEAR(shaftbody_connection->GetTorqueReactionOnShaft(), trqA, tol_trq);
     ASSERT_NEAR(shaftbody_connection->GetTorqueReactionOnBody().z(), trqB, tol_trq);
 
     ////std::cout << "Time: " << time << "\n"
-    ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPosDer()
-    ////          << "  accel: " << shaftA->GetPosDer2() << "\n"
+    ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPosDt()
+    ////          << "  accel: " << shaftA->GetPosDt2() << "\n"
     ////          << "  body B angular speed on z: " << bodyB->GetAngVelLocal().z() << "  accel on z: " <<
     /// bodyB->GetAngAccLocal().z() /          << "\n" /          << "  AC spring, torque on A side: " <<
-    /// shaft_torsionAC->GetTorqueReactionOn1() /          << "  torque on C side: " <<
-    /// shaft_torsionAC->GetTorqueReactionOn2() << "\n" /          << "  torque on shaft A: " <<
+    /// shaft_torsionAC->GetReaction1() /          << "  torque on C side: " <<
+    /// shaft_torsionAC->GetReaction2() << "\n" /          << "  torque on shaft A: " <<
     /// shaftbody_connection->GetTorqueReactionOnShaft() << "\n" /          << "  torque on body B: " <<
     /// shaftbody_connection->GetTorqueReactionOnBody().x() << " " /          <<
     /// shaftbody_connection->GetTorqueReactionOnBody().y() << " " /          <<
@@ -268,13 +269,13 @@ TEST_P(ChShaftTest, clutch) {
     // Create a ChShaft that starts with nonzero angular velocity
     auto shaftA = chrono_types::make_shared<ChShaft>();
     shaftA->SetInertia(0.5);
-    shaftA->SetPosDer(30);
+    shaftA->SetPosDt(30);
     system->Add(shaftA);
 
     // Create another ChShaft, with opposite initial angular velocity
     auto shaftB = chrono_types::make_shared<ChShaft>();
     shaftB->SetInertia(0.6);
-    shaftB->SetPosDer(-10);
+    shaftB->SetPosDt(-10);
     system->Add(shaftB);
 
     // Create a ChShaftsClutch, that represents a simplified model
@@ -299,21 +300,21 @@ TEST_P(ChShaftTest, clutch) {
             clutchAB->SetModulation(1);
 
         ////std::cout << "Time: " << time << "\n"
-        ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPosDer()
-        ////          << "  accel: " << shaftA->GetPosDer2() << "\n"
-        ////          << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPosDer()
-        ////          << "  accel: " << shaftB->GetPosDer2() << "\n"
-        ////          << "  torque on A side: " << clutchAB->GetTorqueReactionOn1()
-        ////          << "  torque on B side: " << clutchAB->GetTorqueReactionOn2() << "\n";
+        ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPosDt()
+        ////          << "  accel: " << shaftA->GetPosDt2() << "\n"
+        ////          << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPosDt()
+        ////          << "  accel: " << shaftB->GetPosDt2() << "\n"
+        ////          << "  torque on A side: " << clutchAB->GetReaction1()
+        ////          << "  torque on B side: " << clutchAB->GetReaction2() << "\n";
     }
 
     ////std::cout << "Time: " << time << "\n"
-    ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPosDer()
-    ////          << "  accel: " << shaftA->GetPosDer2() << "\n"
-    ////          << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPosDer()
-    ////          << "  accel: " << shaftB->GetPosDer2() << "\n"
-    ////          << "  torque on A side: " << clutchAB->GetTorqueReactionOn1()
-    ////          << "  torque on B side: " << clutchAB->GetTorqueReactionOn2() << "\n\n\n";
+    ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPosDt()
+    ////          << "  accel: " << shaftA->GetPosDt2() << "\n"
+    ////          << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPosDt()
+    ////          << "  accel: " << shaftB->GetPosDt2() << "\n"
+    ////          << "  torque on A side: " << clutchAB->GetReaction1()
+    ////          << "  torque on B side: " << clutchAB->GetReaction2() << "\n\n\n";
 }
 
 // -----------------------------------------------------------------------------
@@ -374,24 +375,24 @@ TEST_P(ChShaftTest, shaft_shaft_shaft) {
         time += time_step;
 
         ////std::cout << "Time: " << time << "\n"
-        ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPosDer()
-        ////          << "  accel: " << shaftA->GetPosDer2() << "\n"
-        ////          << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPosDer()
-        ////          << "  accel: " << shaftB->GetPosDer2() << "\n"
+        ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPosDt()
+        ////          << "  accel: " << shaftA->GetPosDt2() << "\n"
+        ////          << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPosDt()
+        ////          << "  accel: " << shaftB->GetPosDt2() << "\n"
         ////          << "  planetary react torques on shafts:\n"
-        ////          << "     on A: " << planetaryBAC->GetTorqueReactionOn2()
-        ////          << "     on B: " << planetaryBAC->GetTorqueReactionOn1()
+        ////          << "     on A: " << planetaryBAC->GetReaction2()
+        ////          << "     on B: " << planetaryBAC->GetReaction1()
         ////          << "     on C: " << planetaryBAC->GetTorqueReactionOn3() << "\n";
     }
 
     ////std::cout << "Time: " << time << "\n"
-    ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPosDer()
-    ////          << "  accel: " << shaftA->GetPosDer2() << "\n"
-    ////          << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPosDer()
-    ////          << "  accel: " << shaftB->GetPosDer2() << "\n"
+    ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPosDt()
+    ////          << "  accel: " << shaftA->GetPosDt2() << "\n"
+    ////          << "  shaft B rot: " << shaftB->GetPos() << "  speed: " << shaftB->GetPosDt()
+    ////          << "  accel: " << shaftB->GetPosDt2() << "\n"
     ////          << "  planetary react torques on shafts:\n"
-    ////          << "     on A: " << planetaryBAC->GetTorqueReactionOn2()
-    ////          << "     on B: " << planetaryBAC->GetTorqueReactionOn1()
+    ////          << "     on A: " << planetaryBAC->GetReaction2()
+    ////          << "     on B: " << planetaryBAC->GetReaction1()
     ////          << "     on C: " << planetaryBAC->GetTorqueReactionOn3() << "\n\n\n";
 }
 

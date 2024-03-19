@@ -41,8 +41,8 @@ class ChApi ChLinePoly : public ChLine {
     /// Get the class type as an enum.
     virtual Type GetType() const override { return Type::LINE_POLY; }
 
-    virtual int Get_complexity() const override { return (int)points.size(); }
-    virtual void Set_complexity(int mc) override{};
+    virtual int GetComplexity() const override { return (int)points.size(); }
+    virtual void SetComplexity(int mc) override{};
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
     virtual ChVector3d Evaluate(double U) const override;
@@ -51,17 +51,16 @@ class ChApi ChLinePoly : public ChLine {
     virtual double Length(int sampling) const override;
 
     /// Gets the number of control points
-    size_t Get_numpoints() const;
+    size_t GetNumPoints() const;
 
-    /// Get the degree of the curve (1= linear,
-    /// 2= quadric, 3= cubic, etc.)
-    int Get_degree() const;
+    /// Get the degree of the curve (1= linear, 2= quadric, 3= cubic, etc.)
+    int GetDegree() const;
 
-    /// Get the n-th control point
-    ChVector3d Get_point(size_t mnum) const;
+    /// Get the n-th control point.
+    ChVector3d GetPoint(size_t mnum) const;
 
     /// Set the n-th control point
-    bool Set_point(int mnum, ChVector3d mpoint);
+    bool SetPoint(int mnum, const ChVector3d& mpoint);
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

@@ -156,7 +156,7 @@ void SCMTerrain::SetSoilParameters(
     m_loader->m_Bekker_Kc = Bekker_Kc;
     m_loader->m_Bekker_n = Bekker_n;
     m_loader->m_Mohr_cohesion = Mohr_cohesion;
-    m_loader->m_Mohr_mu = std::tan(Mohr_friction * CH_C_DEG_TO_RAD);
+    m_loader->m_Mohr_mu = std::tan(Mohr_friction * CH_DEG_TO_RAD);
     m_loader->m_Janosi_shear = Janosi_shear;
     m_loader->m_elastic_K = std::max(elastic_K, Bekker_Kphi);
     m_loader->m_damping_R = damping_R;
@@ -175,7 +175,7 @@ void SCMTerrain::SetBulldozingParameters(
     int erosion_propagations  // number of concentric vertex selections subject to erosion
 ) {
     m_loader->m_flow_factor = flow_factor;
-    m_loader->m_erosion_slope = std::tan(erosion_angle * CH_C_DEG_TO_RAD);
+    m_loader->m_erosion_slope = std::tan(erosion_angle * CH_DEG_TO_RAD);
     m_loader->m_erosion_iterations = erosion_iterations;
     m_loader->m_erosion_propagations = erosion_propagations;
 }
@@ -352,7 +352,7 @@ SCMContactableData::SCMContactableData(double area_ratio,
                                        double Janosi_shear)
     : area_ratio(area_ratio),
       Mohr_cohesion(Mohr_cohesion),
-      Mohr_mu(std::tan(Mohr_friction * CH_C_DEG_TO_RAD)),
+      Mohr_mu(std::tan(Mohr_friction * CH_DEG_TO_RAD)),
       Janosi_shear(Janosi_shear) {}
 
 // -----------------------------------------------------------------------------
@@ -377,7 +377,7 @@ SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nul
     // Bulldozing effects
     m_bulldozing = false;
     m_flow_factor = 1.2;
-    m_erosion_slope = std::tan(40.0 * CH_C_DEG_TO_RAD);
+    m_erosion_slope = std::tan(40.0 * CH_DEG_TO_RAD);
     m_erosion_iterations = 3;
     m_erosion_propagations = 10;
 
@@ -386,7 +386,7 @@ SCMLoader::SCMLoader(ChSystem* system, bool visualization_mesh) : m_soil_fun(nul
     m_Bekker_Kc = 0;
     m_Bekker_n = 1.1;
     m_Mohr_cohesion = 50;
-    m_Mohr_mu = std::tan(20.0 * CH_C_DEG_TO_RAD);
+    m_Mohr_mu = std::tan(20.0 * CH_DEG_TO_RAD);
     m_Janosi_shear = 0.01;
     m_elastic_K = 50000000;
     m_damping_R = 0;
@@ -527,8 +527,8 @@ void SCMLoader::Initialize(const ChTriangleMeshConnected& trimesh, double delta)
     m_type = PatchType::TRI_MESH;
 
     // Load triangular mesh
-    const auto& vertices = trimesh.getCoordsVertices();
-    const auto& faces = trimesh.getIndicesVertexes();
+    const auto& vertices = trimesh.GetCoordsVertices();
+    const auto& faces = trimesh.GetIndicesVertexes();
 
     // Find x, y, and z ranges of vertex data
     auto minmaxX = std::minmax_element(begin(vertices), end(vertices),
@@ -610,12 +610,12 @@ void SCMLoader::CreateVisualizationMesh(double sizeX, double sizeY) {
     // Readability aliases
     auto trimesh = m_trimesh_shape->GetMesh();
     trimesh->Clear();
-    std::vector<ChVector3d>& vertices = trimesh->getCoordsVertices();
-    std::vector<ChVector3d>& normals = trimesh->getCoordsNormals();
-    std::vector<ChVector3i>& idx_vertices = trimesh->getIndicesVertexes();
-    std::vector<ChVector3i>& idx_normals = trimesh->getIndicesNormals();
-    std::vector<ChVector2d>& uv_coords = trimesh->getCoordsUV();
-    std::vector<ChColor>& colors = trimesh->getCoordsColors();
+    std::vector<ChVector3d>& vertices = trimesh->GetCoordsVertices();
+    std::vector<ChVector3d>& normals = trimesh->GetCoordsNormals();
+    std::vector<ChVector3i>& idx_vertices = trimesh->GetIndicesVertexes();
+    std::vector<ChVector3i>& idx_normals = trimesh->GetIndicesNormals();
+    std::vector<ChVector2d>& uv_coords = trimesh->GetCoordsUV();
+    std::vector<ChColor>& colors = trimesh->GetCoordsColors();
 
     // Resize mesh arrays.
     vertices.resize(n_verts);
@@ -915,7 +915,7 @@ void SCMLoader::UpdateMovingPatch(MovingPatchInfo& p, const ChVector3d& Z) {
         // OOBB corner in body frame
         ChVector3d c_body = p.m_center + p.m_hdims * ChVector3d(2.0 * ix - 1, 2.0 * iy - 1, 2.0 * iz - 1);
         // OOBB corner in absolute frame
-        ChVector3d c_abs = p.m_body->GetFrame_REF_to_abs().TransformPointLocalToParent(c_body);
+        ChVector3d c_abs = p.m_body->GetFrameRefToAbs().TransformPointLocalToParent(c_body);
         // OOBB corner expressed in SCM frame
         ChVector3d c_scm = m_plane.TransformPointParentToLocal(c_abs);
 
@@ -1349,7 +1349,7 @@ void SCMLoader::ComputeInternalForces() {
             double Mohr_friction;
             m_soil_fun->Set(hit_point_loc, Bekker_Kphi, Bekker_Kc, Bekker_n, Mohr_cohesion, Mohr_friction, Janosi_shear,
                             elastic_K, damping_R);
-            Mohr_mu = std::tan(Mohr_friction * CH_C_DEG_TO_RAD);
+            Mohr_mu = std::tan(Mohr_friction * CH_DEG_TO_RAD);
         }
 
         nr.hit_level = hit_point_loc.z();                              // along SCM z axis
@@ -1697,8 +1697,8 @@ void SCMLoader::RemoveMaterialFromNode(double amount, NodeRecord& nr) {
 // Update vertex position and color in visualization mesh
 void SCMLoader::UpdateMeshVertexCoordinates(const ChVector2i ij, int iv, const NodeRecord& nr) {
     auto& trimesh = *m_trimesh_shape->GetMesh();
-    std::vector<ChVector3d>& vertices = trimesh.getCoordsVertices();
-    std::vector<ChColor>& colors = trimesh.getCoordsColors();
+    std::vector<ChVector3d>& vertices = trimesh.GetCoordsVertices();
+    std::vector<ChColor>& colors = trimesh.GetCoordsColors();
 
     // Update visualization mesh vertex position
     vertices[iv] = m_plane.TransformPointLocalToParent(ChVector3d(ij.x() * m_delta, ij.y() * m_delta, nr.level));
@@ -1762,9 +1762,9 @@ void SCMLoader::UpdateMeshVertexCoordinates(const ChVector2i ij, int iv, const N
 // Update vertex normal in visualization mesh.
 void SCMLoader::UpdateMeshVertexNormal(const ChVector2i ij, int iv) {
     auto& trimesh = *m_trimesh_shape->GetMesh();
-    std::vector<ChVector3d>& vertices = trimesh.getCoordsVertices();
-    std::vector<ChVector3d>& normals = trimesh.getCoordsNormals();
-    std::vector<ChVector3i>& idx_normals = trimesh.getIndicesNormals();
+    std::vector<ChVector3d>& vertices = trimesh.GetCoordsVertices();
+    std::vector<ChVector3d>& normals = trimesh.GetCoordsNormals();
+    std::vector<ChVector3i>& idx_normals = trimesh.GetIndicesNormals();
 
     // Average normals from adjacent faces
     normals[iv] = ChVector3d(0, 0, 0);

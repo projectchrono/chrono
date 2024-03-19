@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
     // Global parameter for tire:
     double tire_rad = 0.8;
     ChVector3d tire_center(0, 0.02 + tire_rad, 0.5);
-    ChMatrix33<> tire_alignment(QuatFromAngleY(CH_C_PI));  // create rotated 180 deg on y
+    ChMatrix33<> tire_alignment(QuatFromAngleY(CH_PI));  // create rotated 180 deg on y
 
     // Create a Chrono physical system and the associated collision system
     ChSystemSMC sys;
@@ -125,10 +125,10 @@ int main(int argc, char* argv[]) {
     // Create a material, that must be assigned to each solid element in the mesh,
     // and set its parameters
     auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
-    mmaterial->Set_E(0.003e9);  // rubber 0.01e9, steel 200e9
-    mmaterial->Set_v(0.4);
-    mmaterial->Set_RayleighDampingK(0.004);
-    mmaterial->Set_density(1000);
+    mmaterial->SetYoungModulus(0.003e9);  // rubber 0.01e9, steel 200e9
+    mmaterial->SetPoissonRatio(0.4);
+    mmaterial->SetRayleighDampingBeta(0.004);
+    mmaterial->SetDensity(1000);
 
     // Load an ABAQUS .INP tetrahedron mesh file from disk, defining a tetrahedron mesh.
     // Note that not all features of INP files are supported. Also, quadratic tetrahedrons are promoted to linear.
@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
 
     auto mesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
         GetChronoDataFile("models/tractor_wheel/tractor_wheel_fine.obj"));
-    mesh->Transform(VNULL, QuatFromAngleY(CH_C_PI));
+    mesh->Transform(VNULL, QuatFromAngleY(CH_PI));
     auto mesh_asset = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     mesh_asset->SetMesh(mesh);
     mrigidbody->AddVisualShape(mesh_asset);
@@ -220,8 +220,6 @@ int main(int argc, char* argv[]) {
     solver->SetTolerance(1e-10);
     solver->EnableDiagonalPreconditioner(true);
     solver->EnableWarmStart(true);  // Enable for better convergence if using Euler implicit linearized
-
-    sys.SetSolverForceTolerance(1e-10);
 
     // Change type of integrator:
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);  // fast, less precise
@@ -278,7 +276,7 @@ int main(int argc, char* argv[]) {
         // End of cosimulation block
         // -------------------------------------------------------------------------
 
-        tools::drawGrid(vis.get(), 0.1, 0.1, 20, 20, ChCoordsys<>(VNULL, CH_C_PI_2, VECT_X),
+        tools::drawGrid(vis.get(), 0.1, 0.1, 20, 20, ChCoordsys<>(VNULL, CH_PI_2, VECT_X),
                         ChColor(0.40f, 0.40f, 0.40f), true);
 
         vis->EndScene();

@@ -60,10 +60,10 @@ class ChApi ChFunctionRotationSQUAD : public ChFunctionRotation {
     double ComputeKnotUfromU(double U) const { return U * (knots(knots.size() - 1) - knots(0)) + knots(0); }
 
     /// Access the rotations, ie. quaternion SQUAD control points
-    std::vector<ChQuaternion<>>& GetRotation() { return rotations; }
+    std::vector<ChQuaternion<>>& Rotations() { return rotations; }
 
     /// Access the knots
-    ChVectorDynamic<>& GetKnots() { return knots; }
+    ChVectorDynamic<>& Knots() { return knots; }
 
     /// Get the order of spline
     int GetOrder() { return p; }

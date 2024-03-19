@@ -22,7 +22,7 @@ def main():
     # Create the system
     #------------------
     mphysicalSystem = chrono.ChSystemNSC()
-    mphysicalSystem.Set_G_acc(chrono.ChVector3d(0,0,0))
+    mphysicalSystem.SetGravitationalAcceleration(chrono.ChVector3d(0,0,0))
 
     red = chrono.ChVisualMaterial()
     red.SetDiffuseColor(chrono.ChColor(1,0,0))
@@ -38,7 +38,7 @@ def main():
 
     floor = chrono.ChBodyEasyBox(1000,20,1, 1000, True, False)
     floor.SetPos(chrono.ChVector3d(0,0,-1))
-    floor.SetBodyFixed(True)
+    floor.SetFixed(True)
     mphysicalSystem.Add(floor)
 
     for i in range(10):
@@ -47,7 +47,7 @@ def main():
         z = 0
         box = chrono.ChBodyEasyBox(0.5, 0.5, 0.5, 1000, True, False)
         box.SetPos(chrono.ChVector3d(5+x, y, z))
-        box.SetPosDer(chrono.ChVector3d(-0.5, 0, 0))
+        box.SetPosDt(chrono.ChVector3d(-0.5, 0, 0))
         box.GetVisualShape(0).SetMaterial(0, red)
         mphysicalSystem.Add(box)
     
@@ -57,7 +57,7 @@ def main():
         z = 0
         box = chrono.ChBodyEasyBox(0.5, 0.5, 0.5, 1000, True, False)
         box.SetPos(chrono.ChVector3d(10-x, y, z))
-        box.SetPosDer(chrono.ChVector3d(0.5, 0, 0))
+        box.SetPosDt(chrono.ChVector3d(0.5, 0, 0))
         box.GetVisualShape(0).SetMaterial(0, red)
         mphysicalSystem.Add(box)
 
@@ -123,9 +123,9 @@ horizontal_samples = 100
 vertical_samples = 100
 
 # Horizontal and vertical field of view (radians)
-horizontal_fov =  chrono.CH_C_PI /9 # 20 degrees
-max_vert_angle = chrono.CH_C_PI / 15
-min_vert_angle = -chrono.CH_C_PI / 15
+horizontal_fov =  chrono.CH_PI /9 # 20 degrees
+max_vert_angle = chrono.CH_PI / 15
+min_vert_angle = -chrono.CH_PI / 15
 
 # camera to have same view as radar
 aspect_ratio = horizontal_fov / (max_vert_angle - min_vert_angle)

@@ -73,7 +73,7 @@ ChVehicleCosimTireNode::ChVehicleCosimTireNode(int index, const std::string& tir
     // Create the (sequential) SMC system
     m_system = new ChSystemSMC;
     m_system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
-    m_system->Set_G_acc(ChVector3d(0, 0, m_gacc));
+    m_system->SetGravitationalAcceleration(ChVector3d(0, 0, m_gacc));
 
     // Create a tire subsystem from JSON specification file (if provided)
     if (!tire_json.empty())
@@ -282,7 +282,7 @@ void ChVehicleCosimTireNode::InitializeSystem() {
             m_system->SetTimestepperType(ChTimestepper::Type::HHT);
             m_integrator = std::static_pointer_cast<ChTimestepperHHT>(m_system->GetTimestepper());
             m_integrator->SetAlpha(-0.2);
-            m_integrator->SetMaxiters(50);
+            m_integrator->SetMaxIters(50);
             m_integrator->SetAbsTolerances(1e-04, 1e2);
             m_integrator->SetStepControl(false);
             m_integrator->SetModifiedNewton(false);

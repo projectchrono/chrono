@@ -41,7 +41,7 @@ int main(int argc, char* argv[]) {
     // Create a ChBody that contains the trajectory (a floor, fixed body)
 
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(3, 0.2, 3, 1000, true, false);
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     // floor->SetRot(QuatFromAngleZ(0.1));
     sys.Add(floor);
 
@@ -49,13 +49,13 @@ int main(int argc, char* argv[]) {
     auto path = chrono_types::make_shared<ChLinePath>();
     ChLineSegment mseg1(ChVector3d(1, 2, 0), ChVector3d(2, 2, 0));
     path->AddSubLine(mseg1);
-    ChLineArc marc1(ChCoordsys<>(ChVector3d(2, 2.5, 0)), 0.5, -CH_C_PI_2, CH_C_PI_2, true);
+    ChLineArc marc1(ChCoordsys<>(ChVector3d(2, 2.5, 0)), 0.5, -CH_PI_2, CH_PI_2, true);
     path->AddSubLine(marc1);
     ChLineSegment mseg2(ChVector3d(2, 3, 0), ChVector3d(1, 3, 0));
     path->AddSubLine(mseg2);
-    ChLineArc marc2(ChCoordsys<>(ChVector3d(1, 2.5, 0)), 0.5, CH_C_PI_2, -CH_C_PI_2, true);
+    ChLineArc marc2(ChCoordsys<>(ChVector3d(1, 2.5, 0)), 0.5, CH_PI_2, -CH_PI_2, true);
     path->AddSubLine(marc2);
-    path->Set_closed(true);
+    path->SetClosed(true);
 
     // Create a ChVisualShapeLine, a visualization asset for lines.
     // The ChLinePath is a special type of ChLine and it can be visualized.
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
     // Optionally, set a function that gets the curvilinear
     // abscyssa s of the line, as a function of time s(t). By default it was simply  s=t.
     auto mspacefx = chrono_types::make_shared<ChFunctionRamp>(0, 0.5);
-    trajectory->Set_space_fx(mspacefx);
+    trajectory->SetTimeLaw(mspacefx);
 
     sys.Add(trajectory);
 
@@ -100,21 +100,21 @@ int main(int argc, char* argv[]) {
     // Create a motor that spins the wheel
     auto motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     motor->Initialize(wheel, floor, ChFrame<>(ChVector3d(-3, 2, 0)));
-    motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_C_PI / 4.0));
+    motor->SetSpeedFunction(chrono_types::make_shared<ChFunctionConst>(CH_PI / 4.0));
     sys.AddLink(motor);
 
     // Create a ChLinePath geometry, and insert sub-paths:
     auto glyph = chrono_types::make_shared<ChLinePath>();
     ChLineSegment ms1(ChVector3d(-0.5, -0.5, 0), ChVector3d(0.5, -0.5, 0));
     glyph->AddSubLine(ms1);
-    ChLineArc ma1(ChCoordsys<>(ChVector3d(0.5, 0, 0)), 0.5, -CH_C_PI_2, CH_C_PI_2, true);
+    ChLineArc ma1(ChCoordsys<>(ChVector3d(0.5, 0, 0)), 0.5, -CH_PI_2, CH_PI_2, true);
     glyph->AddSubLine(ma1);
     ChLineSegment ms2(ChVector3d(0.5, 0.5, 0), ChVector3d(-0.5, 0.5, 0));
     glyph->AddSubLine(ms2);
-    ChLineArc ma2(ChCoordsys<>(ChVector3d(-0.5, 0, 0)), 0.5, CH_C_PI_2, -CH_C_PI_2, true);
+    ChLineArc ma2(ChCoordsys<>(ChVector3d(-0.5, 0, 0)), 0.5, CH_PI_2, -CH_PI_2, true);
     glyph->AddSubLine(ma2);
     glyph->SetPathDuration(1);
-    glyph->Set_closed(true);
+    glyph->SetClosed(true);
 
     // Create a ChVisualShapeLine, a visualization asset for lines.
     // The ChLinePath is a special type of ChLine and it can be visualized.
@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
                                 ChFrame<>(ChVector3d(0, 0.5, 0)),  // point on body1 that will follow the trajectory
                                 ChFrame<>());
 
-    glyphconstraint->Set_trajectory_line(glyph);
+    glyphconstraint->SetTrajectory(glyph);
 
     sys.Add(glyphconstraint);
 

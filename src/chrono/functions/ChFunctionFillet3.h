@@ -24,10 +24,10 @@ namespace chrono {
 
 /// Cubic fillet function.
 /// Cubic polynomial `y(x)` that smoothly connects two points with given start and end derivatives.
-/// - `y(0)`     = ::GetStartVal()
-/// - `y(width)` = ::GetEndVal()
-/// - `der(y)(0)` = ::GetStartDer()
-/// - `der(y)(width)` = ::GetEndDer()
+/// - `y(0)`     = GetStartVal()
+/// - `y(width)` = GetEndVal()
+/// - `der(y)(0)` = GetStartDer()
+/// - `der(y)(width)` = GetEndDer()
 class ChApi ChFunctionFillet3 : public ChFunction {
   private:
     double m_width;      ///< width of the fillet

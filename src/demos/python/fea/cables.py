@@ -34,7 +34,7 @@ class Model1:
         msection_cable = fea.ChBeamSectionCable()
         msection_cable.SetDiameter(beam_diameter)
         msection_cable.SetYoungModulus(0.01e9)
-        msection_cable.SetBeamRaleyghDamping(0.000)
+        msection_cable.SetRayleighDamping(0.000)
 
         # Create the nodes
         hnodeancf1 = fea.ChNodeFEAxyzD(chrono.ChVector3d(0, 0, -0.2), chrono.ChVector3d(1, 0, 0))
@@ -63,11 +63,11 @@ class Model1:
         self.body.SetPos(hnodeancf2.GetPos() + chrono.ChVector3d(0.05, 0, 0))
         system.Add(self.body)
 
-        constraint_pos = fea.ChLinkPointFrame()
+        constraint_pos = fea.ChLinkNodeFrame()
         constraint_pos.Initialize(hnodeancf2, self.body)
         system.Add(constraint_pos)
 
-        constraint_dir = fea.ChLinkDirFrame()
+        constraint_dir = fea.ChLinkNodeSlopeFrame()
         constraint_dir.Initialize(hnodeancf2, self.body)
         constraint_dir.SetDirectionInAbsoluteCoords(chrono.ChVector3d(1, 0, 0))
         system.Add(constraint_dir)
@@ -90,7 +90,7 @@ class Model2 :
         msection_cable2 = fea.ChBeamSectionCable()
         msection_cable2.SetDiameter(0.015)
         msection_cable2.SetYoungModulus(0.01e9)
-        msection_cable2.SetBeamRaleyghDamping(0.000)
+        msection_cable2.SetRayleighDamping(0.000)
 
         # This ChBuilderCableANCF helper object is very useful because it will
         # subdivide 'beams' into sequences of finite elements of beam type, ex.
@@ -113,9 +113,9 @@ class Model2 :
         # For instance, now retrieve the A end and add a constrato
         # block the position only of that node:
         mtruss = chrono.ChBody()
-        mtruss.SetBodyFixed(True)
+        mtruss.SetFixed(True)
 
-        constraint_hinge = fea.ChLinkPointFrame()
+        constraint_hinge = fea.ChLinkNodeFrame()
         constraint_hinge.Initialize(builder.GetLastBeamNodes().back(), mtruss)
         system.Add(constraint_hinge)
 
@@ -130,10 +130,10 @@ class Model3 :
         msection_cable2 = fea.ChBeamSectionCable()
         msection_cable2.SetDiameter(0.015)
         msection_cable2.SetYoungModulus(0.01e9)
-        msection_cable2.SetBeamRaleyghDamping(0.000)
+        msection_cable2.SetRayleighDamping(0.000)
 
         mtruss = chrono.ChBody()
-        mtruss.SetBodyFixed(True)
+        mtruss.SetFixed(True)
 
         for j in range(n_chains):
             builder = fea.ChBuilderCableANCF()
@@ -148,7 +148,7 @@ class Model3 :
 
             builder.GetLastBeamNodes().back().SetForce(chrono.ChVector3d(0, -0.2, 0))
 
-            constraint_hinge = fea.ChLinkPointFrame()
+            constraint_hinge = fea.ChLinkNodeFrame()
             constraint_hinge.Initialize(builder.GetLastBeamNodes().front(), mtruss)
             system.Add(constraint_hinge)
 
@@ -160,11 +160,11 @@ class Model3 :
             mbox.SetPos(builder.GetLastBeamNodes().back().GetPos() + chrono.ChVector3d(0.1, 0, 0))
             system.Add(mbox)
 
-            constraint_pos = fea.ChLinkPointFrame()
+            constraint_pos = fea.ChLinkNodeFrame()
             constraint_pos.Initialize(builder.GetLastBeamNodes().back(), mbox)
             system.Add(constraint_pos)
 
-            constraint_dir = fea.ChLinkDirFrame()
+            constraint_dir = fea.ChLinkNodeSlopeFrame()
             constraint_dir.Initialize(builder.GetLastBeamNodes().back(), mbox)
             constraint_dir.SetDirectionInAbsoluteCoords(chrono.ChVector3d(1, 0, 0))
             system.Add(constraint_dir)
@@ -178,11 +178,11 @@ class Model3 :
                 chrono.ChVector3d(mbox.GetPos().x + 0.1 + 0.1 * (n_chains - j), 0, -0.1 * j)  # poB (end of beam)
             )
 
-            constraint_pos2 = fea.ChLinkPointFrame()
+            constraint_pos2 = fea.ChLinkNodeFrame()
             constraint_pos2.Initialize(builder.GetLastBeamNodes().front(), mbox)
             system.Add(constraint_pos2)
 
-            constraint_dir2 = fea.ChLinkDirFrame()
+            constraint_dir2 = fea.ChLinkNodeSlopeFrame()
             constraint_dir2.Initialize(builder.GetLastBeamNodes().front(), mbox)
             constraint_dir2.SetDirectionInAbsoluteCoords(chrono.ChVector3d(1, 0, 0))
             system.Add(constraint_dir2)
@@ -192,11 +192,11 @@ class Model3 :
             self.bodies[j].SetPos(builder.GetLastBeamNodes().back().GetPos() + chrono.ChVector3d(0.1, 0, 0))
             system.Add(self.bodies[j])
 
-            constraint_pos3 = fea.ChLinkPointFrame()
+            constraint_pos3 = fea.ChLinkNodeFrame()
             constraint_pos3.Initialize(builder.GetLastBeamNodes().back(), self.bodies[j])
             system.Add(constraint_pos3)
 
-            constraint_dir3 = fea.ChLinkDirFrame()
+            constraint_dir3 = fea.ChLinkNodeSlopeFrame()
             constraint_dir3.Initialize(builder.GetLastBeamNodes().back(), self.bodies[j])
             constraint_dir3.SetDirectionInAbsoluteCoords(chrono.ChVector3d(1, 0, 0))
             system.Add(constraint_dir3)

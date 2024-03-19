@@ -196,7 +196,7 @@ HMMWV_Driver::HMMWV_Driver(chrono::vehicle::ChVehicle& vehicle,
     m_steeringPID.Reset(m_vehicle.GetRefFrame());
 
     auto road = chrono_types::make_shared<ChBody>();
-    road->SetBodyFixed(true);
+    road->SetFixed(true);
     m_vehicle.GetSystem()->AddBody(road);
 
     auto path_asset = chrono_types::make_shared<chrono::ChVisualShapeLine>();
@@ -254,12 +254,12 @@ int main(int argc, char* argv[]) {
     // Convert input parameters
     // ------------------------
 
-    double slope_g = slope * CH_C_DEG_TO_RAD;
+    double slope_g = slope * CH_DEG_TO_RAD;
     double r_g = radius / 1000;
     double rho_g = density;
     double mu_g = mu;
 
-    double area = CH_C_PI * r_g * r_g;
+    double area = CH_PI * r_g * r_g;
     double coh_force = area * (coh * 1e3);
     double coh_g = coh_force * time_step;
 
@@ -301,7 +301,7 @@ int main(int argc, char* argv[]) {
 
     ChSystemMulticoreNSC* sys = new ChSystemMulticoreNSC();
     sys->SetCollisionSystemType(ChCollisionSystem::Type::MULTICORE);
-    sys->Set_G_acc(gravity);
+    sys->SetGravitationalAcceleration(gravity);
 
     // Use a custom material property composition strategy.
     // This ensures that tire-terrain interaction always uses the same coefficient of friction.
@@ -459,7 +459,7 @@ int main(int argc, char* argv[]) {
         // Rotate gravity vector
         if (!is_pitched && time > time_pitch) {
             cout << time << "    Pitch: " << gravityR.x() << " " << gravityR.y() << " " << gravityR.z() << endl;
-            sys->Set_G_acc(gravityR);
+            sys->SetGravitationalAcceleration(gravityR);
             is_pitched = true;
         }
 
@@ -480,8 +480,8 @@ int main(int argc, char* argv[]) {
             // Save output
             if (output && sim_frame == next_out_frame) {
                 ChVector3d pv = hmmwv->GetRefFrame().GetPos();
-                ChVector3d vv = hmmwv->GetRefFrame().GetPosDer();
-                ChVector3d av = hmmwv->GetRefFrame().GetPosDer2();
+                ChVector3d vv = hmmwv->GetRefFrame().GetPosDt();
+                ChVector3d av = hmmwv->GetRefFrame().GetPosDt2();
 
                 ofile << sys->GetChTime() << del;
                 ofile << driver_inputs.m_throttle << del << driver_inputs.m_steering << del;
@@ -624,12 +624,12 @@ void TimingOutput(chrono::ChSystem* mSys, std::ostream* ofile) {
     double UPDT = mSys->GetTimerUpdate();
     double RESID = 0;
     int REQ_ITS = 0;
-    int BODS = mSys->GetNumBodies();
+    int BODS = mSys->GetNumBodiesActive();
     int CNTC = mSys->GetNumContacts();
     if (chrono::ChSystemMulticore* multicore_sys = dynamic_cast<chrono::ChSystemMulticore*>(mSys)) {
         RESID = std::static_pointer_cast<chrono::ChIterativeSolverMulticore>(mSys->GetSolver())->GetResidual();
         REQ_ITS = std::static_pointer_cast<chrono::ChIterativeSolverMulticore>(mSys->GetSolver())->GetIterations();
-        BODS = multicore_sys->GetNumBodies();
+        BODS = multicore_sys->GetNumBodiesActive();
         CNTC = multicore_sys->GetNumContacts();
     }
 

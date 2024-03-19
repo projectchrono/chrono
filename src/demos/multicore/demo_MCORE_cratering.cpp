@@ -78,12 +78,12 @@ static inline void TimingOutput(chrono::ChSystem* mSys, std::ostream* ofile = NU
     double UPDT = mSys->GetTimerUpdate();
     double RESID = 0;
     int REQ_ITS = 0;
-    int BODS = mSys->GetNumBodies();
+    int BODS = mSys->GetNumBodiesActive();
     int CNTC = mSys->GetNumContacts();
     if (chrono::ChSystemMulticore* multicore_sys = dynamic_cast<chrono::ChSystemMulticore*>(mSys)) {
         RESID = std::static_pointer_cast<chrono::ChIterativeSolverMulticore>(mSys->GetSolver())->GetResidual();
         REQ_ITS = std::static_pointer_cast<chrono::ChIterativeSolverMulticore>(mSys->GetSolver())->GetIterations();
-        BODS = multicore_sys->GetNumBodies();
+        BODS = multicore_sys->GetNumBodiesActive();
         CNTC = multicore_sys->GetNumContacts();
     }
 
@@ -104,7 +104,7 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
   public:
     ContactReporter(ChSystemMulticore* system) : sys(system) { csv << sys->GetChTime() << sys->GetNumContacts() << endl; }
 
-    void write(const std::string& filename) { csv.write_to_file(filename); }
+    void write(const std::string& filename) { csv.WriteToFile(filename); }
 
   private:
     virtual bool OnReportContact(const ChVector3d& pA,
@@ -128,7 +128,7 @@ class ContactReporter : public ChContactContainer::ReportContactCallback {
     }
 
     ChSystemMulticore* sys;
-    utils::CSV_writer csv;
+    utils::ChWriterCSV csv;
 };
 
 // =============================================================================
@@ -191,7 +191,7 @@ int out_fps_dropping = 1200;
 int Id_g = 1;
 double r_g = 1e-3;
 double rho_g = 2500;
-double vol_g = (4.0 / 3) * CH_C_PI * r_g * r_g * r_g;
+double vol_g = (4.0 / 3) * CH_PI * r_g * r_g * r_g;
 double mass_g = rho_g * vol_g;
 ChVector3d inertia_g = 0.4 * mass_g * r_g * r_g * ChVector3d(1, 1, 1);
 
@@ -203,7 +203,7 @@ float cr_g = 0.1f;
 int Id_b = 0;
 double R_b = 2.54e-2 / 2;
 double rho_b = 700;
-double vol_b = (4.0 / 3) * CH_C_PI * R_b * R_b * R_b;
+double vol_b = (4.0 / 3) * CH_PI * R_b * R_b * R_b;
 double mass_b = rho_b * vol_b;
 ChVector3d inertia_b = 0.4 * mass_b * R_b * R_b * ChVector3d(1, 1, 1);
 
@@ -267,24 +267,24 @@ int CreateObjects(ChSystemMulticore* system) {
 
     // Create a mixture entirely made out of spheres
     double r = 1.01 * r_g;
-    utils::PDSampler<double> sampler(2 * r);
-    utils::Generator gen(system);
+    utils::ChPDSampler<double> sampler(2 * r);
+    utils::ChGenerator gen(system);
 
-    std::shared_ptr<utils::MixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
-    m1->setDefaultMaterial(mat_g);
-    m1->setDefaultDensity(rho_g);
-    m1->setDefaultSize(r_g);
+    std::shared_ptr<utils::ChMixtureIngredient> m1 = gen.AddMixtureIngredient(utils::MixtureType::SPHERE, 1.0);
+    m1->SetDefaultMaterial(mat_g);
+    m1->SetDefaultDensity(rho_g);
+    m1->SetDefaultSize(r_g);
 
-    gen.setBodyIdentifier(Id_g);
+    gen.SetBodyIdentifier(Id_g);
 
     for (int i = 0; i < numLayers; i++) {
         double center = r + layerHeight / 2 + i * (2 * r + layerHeight);
         gen.CreateObjectsBox(sampler, ChVector3d(0, 0, center),
                              ChVector3d(sizeX / 2 - r, sizeY / 2 - r, layerHeight / 2));
-        cout << "Layer " << i << "  total bodies: " << gen.getTotalNumBodies() << endl;
+        cout << "Layer " << i << "  total bodies: " << gen.GetTotalNumBodies() << endl;
     }
 
-    return gen.getTotalNumBodies();
+    return gen.GetTotalNumBodies();
 }
 
 // -----------------------------------------------------------------------------
@@ -311,9 +311,9 @@ void CreateFallingBall(ChSystemMulticore* system, double z, double vz) {
     ball->SetInertiaXX(inertia_b);
     ball->SetPos(ChVector3d(0, 0, z + r_g + R_b));
     ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    ball->SetPosDer(ChVector3d(0, 0, -vz));
-    ball->SetCollide(true);
-    ball->SetBodyFixed(false);
+    ball->SetPosDt(ChVector3d(0, 0, -vz));
+    ball->EnableCollision(true);
+    ball->SetFixed(false);
 
     utils::AddSphereGeometry(ball.get(), mat_b, R_b);
 
@@ -352,7 +352,7 @@ bool CheckSettled(ChSystem* sys, double threshold) {
 
     for (auto body : sys->GetBodies()) {
         if (body->GetIdentifier() > 0) {
-            double vel2 = body->GetPosDer().Length2();
+            double vel2 = body->GetPosDt().Length2();
             if (vel2 > t2)
                 return false;
         }
@@ -383,7 +383,7 @@ int main(int argc, char* argv[]) {
     cout << "Using " << threads << " threads" << endl;
 
     // Set gravitational acceleration
-    sys->Set_G_acc(ChVector3d(0, 0, -gravity));
+    sys->SetGravitationalAcceleration(ChVector3d(0, 0, -gravity));
 
     // Edit system settings
     sys->GetSettings()->solver.use_full_inertia_tensor = false;
@@ -425,7 +425,7 @@ int main(int argc, char* argv[]) {
         // Create the fixed falling ball just below the granular material
         CreateFallingBall(sys, -3 * R_b, 0);
         ball = sys->GetBodies().at(0);
-        ball->SetBodyFixed(true);
+        ball->SetFixed(true);
         CreateObjects(sys);
     } else {
         time_end = time_dropping;
@@ -450,8 +450,8 @@ int main(int argc, char* argv[]) {
         ball = sys->GetBodies().at(0);
         ball->SetPos(ChVector3d(0, 0, z + r_g + R_b));
         ball->SetRot(ChQuaternion<>(1, 0, 0, 0));
-        ball->SetPosDer(ChVector3d(0, 0, -vz));
-        ball->SetBodyFixed(false);
+        ball->SetPosDt(ChVector3d(0, 0, -vz));
+        ball->SetFixed(false);
     }
 
     // Number of steps

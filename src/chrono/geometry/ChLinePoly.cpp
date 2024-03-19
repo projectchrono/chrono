@@ -29,23 +29,23 @@ ChLinePoly::ChLinePoly(const ChLinePoly& source) : ChLine(source) {
     degree = source.degree;
 }
 
-size_t ChLinePoly::Get_numpoints() const {
+size_t ChLinePoly::GetNumPoints() const {
     return points.size();
 }
 
-int ChLinePoly::Get_degree() const {
+int ChLinePoly::GetDegree() const {
     return degree;
 }
 
-ChVector3d ChLinePoly::Get_point(size_t mnum) const {
-    if (mnum >= Get_numpoints())
+ChVector3d ChLinePoly::GetPoint(size_t mnum) const {
+    if (mnum >= GetNumPoints())
         return VNULL;
 
     return points[mnum];
 }
 
-bool ChLinePoly::Set_point(int mnum, ChVector3d mpoint) {
-    if (mnum >= Get_numpoints())
+bool ChLinePoly::SetPoint(int mnum, const ChVector3d& mpoint) {
+    if (mnum >= GetNumPoints())
         return false;
 
     this->points[mnum] = mpoint;
@@ -68,22 +68,22 @@ ChVector3d ChLinePoly::Evaluate(double parU) const {
     size_t pB = 0;
     double epar;
     if (!closed)
-        epar = par * (Get_numpoints() - 1);
+        epar = par * (GetNumPoints() - 1);
     else
-        epar = par * Get_numpoints();
+        epar = par * GetNumPoints();
     pA = (size_t)floor(epar);
     pB = (size_t)ceil(epar);
 
-    if (pA >= (Get_numpoints() - 1))
-        pA = (Get_numpoints() - 1);
-    if (pB >= Get_numpoints()) {
+    if (pA >= (GetNumPoints() - 1))
+        pA = (GetNumPoints() - 1);
+    if (pB >= GetNumPoints()) {
         if (!closed)
-            pB = (Get_numpoints() - 1);
+            pB = (GetNumPoints() - 1);
         else
             pB = 0;
     }
     // linear interpolation
-    return Vadd(Vmul(Get_point(pA), 1 - (epar - (double)pA)), Vmul(Get_point(pB), epar - (double)pA));
+    return Vadd(Vmul(GetPoint(pA), 1 - (epar - (double)pA)), Vmul(GetPoint(pB), epar - (double)pA));
 }
 
 double ChLinePoly::Length(int sampling) const {

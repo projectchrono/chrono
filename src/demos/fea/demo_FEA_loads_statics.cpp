@@ -29,9 +29,9 @@
 #include "chrono/fea/ChElementShellANCF_3423.h"
 #include "chrono/fea/ChElementTetraCorot_10.h"
 #include "chrono/fea/ChElementTetraCorot_4.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChLoadsBeam.h"
 #include "chrono/fea/ChMesh.h"
 
@@ -71,8 +71,8 @@ int main(int argc, char* argv[]) {
     double beam_wz = 0.2;
     beam_section->SetAsRectangularSection(beam_wy, beam_wz);
     beam_section->SetYoungModulus(0.01e9);
-    beam_section->SetGshearModulus(0.01e9 * 0.3);
-    beam_section->SetBeamRayleighDamping(0.200);
+    beam_section->SetShearModulus(0.01e9 * 0.3);
+    beam_section->SetRayleighDamping(0.200);
     beam_section->SetDensity(1500);
 
     // Create a beam of Euler-Bernoulli type:
@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
 
     // Create also a truss
     auto truss = chrono_types::make_shared<ChBody>();
-    truss->SetBodyFixed(true);
+    truss->SetFixed(true);
     sys.Add(truss);
 
     // Create a constraint at the end of the beam
@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
                 node_vel = state_w->segment(0, 3);
             } else {
                 node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPos();
-                node_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPosDer();
+                node_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPosDt();
             }
             // Just implement a simple force+spring+damper in xy plane,
             // for spring&damper connected to absolute reference:
@@ -256,7 +256,7 @@ int main(int argc, char* argv[]) {
                 node_vel = state_w->segment(0, 3);
             } else {
                 node_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPos();
-                node_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPosDer();
+                node_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadable)->GetPosDt();
             }
             // Just implement a simple force+spring+damper in xy plane,
             // for spring&damper connected to absolute reference:
@@ -342,9 +342,9 @@ int main(int argc, char* argv[]) {
                 // explicit integrators might call ComputeQ(0,0), null pointers mean
                 // that we assume current state, without passing state_x for efficiency
                 Enode_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[0])->GetPos();
-                Enode_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[0])->GetPosDer();
+                Enode_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[0])->GetPosDt();
                 Fnode_pos = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[1])->GetPos();
-                Fnode_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[1])->GetPosDer();
+                Fnode_vel = std::dynamic_pointer_cast<ChNodeFEAxyz>(loadables[1])->GetPosDt();
             }
             // Just implement two simple force+spring+dampers in xy plane:
             // ... from node E to ground,
@@ -399,8 +399,10 @@ int main(int argc, char* argv[]) {
     // Perform a static analysis:
     sys.DoStaticLinear();
 
-    std::cout << " constraintA reaction force  F= " << constraintA->Get_react_force() << std::endl;
-    std::cout << " constraintA reaction torque T= " << constraintA->Get_react_torque() << std::endl;
+    auto reaction = constraintA->GetReaction2();
+
+    std::cout << " constraintA reaction force  F= " << reaction.force << std::endl;
+    std::cout << " constraintA reaction torque T= " << reaction.torque << std::endl;
 
     std::cout << " nodeC position = " << nodeC->GetPos() << std::endl;
     std::cout << " stiff_load K jacobian=" << stiff_load->GetJacobians()->K << std::endl;

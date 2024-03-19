@@ -56,7 +56,7 @@ bool ChTrackAssemblyBandBushing::Assemble(std::shared_ptr<ChBodyAuxRef> chassis)
     double seg_length = m_shoes[0]->GetWebLength() / m_shoes[0]->GetNumWebSegments();
     std::vector<double> connection_lengths(1 + m_shoes[0]->GetNumWebSegments());
     connection_lengths[0] = m_shoes[0]->GetToothBaseLength();
-    for (int is = 1; is <= m_shoes[0]->GetNumWebSegments(); is++) {
+    for (unsigned int is = 1; is <= m_shoes[0]->GetNumWebSegments(); is++) {
         connection_lengths[is] = seg_length;
     }
 

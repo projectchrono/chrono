@@ -19,8 +19,8 @@
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/fea/ChElementHexaANCF_3813.h"
 #include "chrono/fea/ChElementBar.h"
-#include "chrono/fea/ChLinkPointFrame.h"
-#include "chrono/fea/ChLinkDirFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -80,12 +80,11 @@ int main(int argc, char* argv[]) {
         MPROP(i, 2) = 0.3;      // nu
     }
     auto mmaterial = chrono_types::make_shared<ChContinuumElastic>();
-    mmaterial->Set_RayleighDampingK(0.0);
-    mmaterial->Set_RayleighDampingM(0.0);
-    mmaterial->Set_density(MPROP(0, 0));
-    mmaterial->Set_E(MPROP(0, 1));
-    mmaterial->Set_G(MPROP(0, 1) / (2 + 2 * MPROP(0, 2)));
-    mmaterial->Set_v(MPROP(0, 2));
+    mmaterial->SetRayleighDampingBeta(0.0);
+    mmaterial->SetRayleighDampingAlpha(0.0);
+    mmaterial->SetDensity(MPROP(0, 0));
+    mmaterial->SetYoungModulus(MPROP(0, 1));
+    mmaterial->SetPoissonRatio(MPROP(0, 2));
     //!------------------------------------------------!
     //!--------------- Element data--------------------!
     //!------------------------------------------------!
@@ -188,13 +187,13 @@ int main(int argc, char* argv[]) {
         elemcount++;
     }
 
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     // Remember to add the mesh to the system!
     sys.Add(my_mesh);
 
     // Options for visualization in irrlicht
     auto mvisualizemesh = chrono_types::make_shared<ChVisualShapeFEA>(my_mesh);
-    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_P);
+    mvisualizemesh->SetFEMdataType(ChVisualShapeFEA::DataType::NODE_FIELD_VALUE);
     mvisualizemesh->SetShrinkElements(true, 0.85);
     mvisualizemesh->SetSmoothFaces(false);
     my_mesh->AddVisualShapeFEA(mvisualizemesh);
@@ -242,7 +241,7 @@ int main(int argc, char* argv[]) {
     sys.SetTimestepperType(ChTimestepper::Type::HHT);
     auto mystepper = std::dynamic_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
     mystepper->SetAlpha(-0.2);
-    mystepper->SetMaxiters(100);
+    mystepper->SetMaxIters(100);
     mystepper->SetAbsTolerances(1e-3);
 
     while (vis->Run()) {

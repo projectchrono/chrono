@@ -40,21 +40,20 @@ using namespace chrono::fea;
 int main(int argc, char* argv[]) {
     auto system = new ChSystemSMC();
     // Set gravity to 0 since this is a statics test against an analytical solution
-    system->Set_G_acc(ChVector3d(0, 0, 0));
+    system->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
     system->SetSolver(solver);
     solver->SetMaxIterations(100);
-    solver->SetTolerance(1e-10);
+    solver->SetTolerance(1e-12);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
-    system->SetSolverForceTolerance(1e-10);
 
     // Set up integrator
     system->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(system->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(100);
+    integrator->SetMaxIters(100);
     integrator->SetAbsTolerances(1e-5);
     integrator->SetVerbose(false);
     integrator->SetModifiedNewton(true);
@@ -170,15 +169,15 @@ int main(int argc, char* argv[]) {
     double Percent_Error = (Tip_Angles.x() - Angle_Theory) / Angle_Theory * 100;
 
     std::cout << "ANCF Tip Position: " << point << "m" << std::endl;
-    std::cout << "ANCF Twist Angles (Euler 123): " << Tip_Angles * CH_C_RAD_TO_DEG << "deg" << std::endl;
-    std::cout << "Analytical Twist Angle: " << Angle_Theory * CH_C_RAD_TO_DEG << "deg" << std::endl;
+    std::cout << "ANCF Twist Angles (Euler 123): " << Tip_Angles * CH_RAD_TO_DEG << "deg" << std::endl;
+    std::cout << "Analytical Twist Angle: " << Angle_Theory * CH_RAD_TO_DEG << "deg" << std::endl;
     std::cout << "Percent Error: " << Percent_Error << "%" << std::endl;
 
     if (abs(Percent_Error) > 5.0) {
         std::cout << "Unit test check failed - Twist Angle Error is too large\n";
         return 1;
     }
-    if ((abs(Tip_Angles.y() * CH_C_RAD_TO_DEG) > 0.001) || (abs(Tip_Angles.z() * CH_C_RAD_TO_DEG) > 0.001)) {
+    if ((abs(Tip_Angles.y() * CH_RAD_TO_DEG) > 0.001) || (abs(Tip_Angles.z() * CH_RAD_TO_DEG) > 0.001)) {
         std::cout << "Unit test check failed - Off axis angle is too large.\n";
         return 1;
     }

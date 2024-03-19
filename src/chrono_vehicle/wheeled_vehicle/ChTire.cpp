@@ -94,7 +94,7 @@ void ChTire::CalculateKinematics(const WheelState& wheel_state,
 std::shared_ptr<ChVisualShapeTriangleMesh> ChTire::AddVisualizationMesh(const std::string& mesh_file_left,
                                                                   const std::string& mesh_file_right) {
     bool left = (m_wheel->GetSide() == VehicleSide::LEFT);
-    ChQuaternion<> rot = left ? QuatFromAngleZ(0) : QuatFromAngleZ(CH_C_PI);
+    ChQuaternion<> rot = left ? QuatFromAngleZ(0) : QuatFromAngleZ(CH_PI);
     m_vis_mesh_file = left ? mesh_file_left : mesh_file_right;
 
     auto trimesh =
@@ -401,7 +401,7 @@ bool ChTire::DiscTerrainCollisionEnvelope(
 // A rubber material is assumed, using a density of 1050 kg/m^3.
 // -----------------------------------------------------------------------------
 double VolumeCyl(double r_outer, double r_inner, double cyl_height) {
-    return CH_C_PI * cyl_height * (r_outer * r_outer - r_inner * r_inner);
+    return CH_PI * cyl_height * (r_outer * r_outer - r_inner * r_inner);
 }
 
 double InertiaRotCyl(double mass, double r_outer, double r_inner) {

@@ -45,12 +45,12 @@ class RotMotors : public ::testing::TestWithParam<Options> {
         opts = GetParam();
 
         system = new ChSystemMulticoreNSC();
-        system->Set_G_acc(ChVector3d(0, 0, -9.81));
+        system->SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
         system->GetSettings()->solver.tolerance = 1e-5;
         system->ChangeSolverType(SolverType::BB);
 
         auto ground = chrono_types::make_shared<ChBody>();
-        ground->SetBodyFixed(true);
+        ground->SetFixed(true);
         system->AddBody(ground);
 
         auto body = chrono_types::make_shared<ChBody>();
@@ -85,7 +85,7 @@ TEST_P(RotMotors, simulate) {
     while (system->GetChTime() < 2) {
         system->DoStepDynamics(1e-3);
         if (system->GetChTime() > 0.1) {
-            ASSERT_NEAR(motor->GetMotorAngleDer(), opts.speed, 1e-6);
+            ASSERT_NEAR(motor->GetMotorAngleDt(), opts.speed, 1e-6);
         }
     }
 }

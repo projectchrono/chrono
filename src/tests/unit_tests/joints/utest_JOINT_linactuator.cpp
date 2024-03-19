@@ -45,7 +45,7 @@ bool TestLinActuator(const ChQuaternion<>& rot,
                      const std::string& testName);
 bool ValidateReference(const std::string& testName, const std::string& what, double tolerance);
 bool ValidateConstraints(const std::string& testName, const std::string& what, double tolerance);
-utils::CSV_writer OutStream();
+utils::ChWriterCSV OutStream();
 
 // =============================================================================
 //
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
     // Case 2 - Translation axis along X = Z, imposed speed 0.5 m/s
 
     test_name = "LinActuator_Case02";
-    TestLinActuator(QuatFromAngleY(CH_C_PI / 4), 0.5, sim_step, out_step, test_name);
+    TestLinActuator(QuatFromAngleY(CH_PI / 4), 0.5, sim_step, out_step, test_name);
     test_passed &= ValidateReference(test_name, "Pos", 2e-3);
     test_passed &= ValidateReference(test_name, "Vel", 1e-3);
     test_passed &= ValidateReference(test_name, "Acc", 2e-2);
@@ -136,18 +136,18 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     // ----------------------------
 
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0.0, 0.0, -g));
+    sys.SetGravitationalAcceleration(ChVector3d(0.0, 0.0, -g));
 
     sys.SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(100);
-    sys.SetSolverForceTolerance(1e-4);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(100);
+    sys.GetSolver()->AsIterative()->SetTolerance(simTimeStep * 1e-4);
 
     // Create the ground body.
 
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetBodyFixed(true);
+    ground->SetFixed(true);
 
     // Create the plate body.
 
@@ -155,7 +155,7 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     sys.AddBody(plate);
     plate->SetPos(ChVector3d(0, 0, 0));
     plate->SetRot(rot);
-    plate->SetPosDer(desiredSpeed * axis);
+    plate->SetPosDt(desiredSpeed * axis);
     plate->SetMass(mass);
     plate->SetInertiaXX(inertiaXX);
 
@@ -190,23 +190,23 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     // ------------------------------------------------
 
     // Create the CSV_Writer output objects (TAB delimited)
-    utils::CSV_writer out_pos = OutStream();
-    utils::CSV_writer out_vel = OutStream();
-    utils::CSV_writer out_acc = OutStream();
+    utils::ChWriterCSV out_pos = OutStream();
+    utils::ChWriterCSV out_vel = OutStream();
+    utils::ChWriterCSV out_acc = OutStream();
 
-    utils::CSV_writer out_quat = OutStream();
-    utils::CSV_writer out_avel = OutStream();
-    utils::CSV_writer out_aacc = OutStream();
+    utils::ChWriterCSV out_quat = OutStream();
+    utils::ChWriterCSV out_avel = OutStream();
+    utils::ChWriterCSV out_aacc = OutStream();
 
-    utils::CSV_writer out_rfrcP = OutStream();
-    utils::CSV_writer out_rtrqP = OutStream();
+    utils::ChWriterCSV out_rfrcP = OutStream();
+    utils::ChWriterCSV out_rtrqP = OutStream();
 
-    utils::CSV_writer out_rfrcA = OutStream();
-    utils::CSV_writer out_rtrqA = OutStream();
+    utils::ChWriterCSV out_rfrcA = OutStream();
+    utils::ChWriterCSV out_rtrqA = OutStream();
 
-    utils::CSV_writer out_cnstrP = OutStream();
+    utils::ChWriterCSV out_cnstrP = OutStream();
 
-    utils::CSV_writer out_cnstrA = OutStream();
+    utils::ChWriterCSV out_cnstrA = OutStream();
 
     // Write headers
     out_pos << "Time"
@@ -273,10 +273,10 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
         if (simTime >= outTime - simTimeStep / 2) {
             // CM position, velocity, and acceleration (expressed in global frame).
             const ChVector3d& position = plate->GetPos();
-            const ChVector3d& velocity = plate->GetPosDer();
+            const ChVector3d& velocity = plate->GetPosDt();
             out_pos << simTime << position << std::endl;
             out_vel << simTime << velocity << std::endl;
-            out_acc << simTime << plate->GetPosDer2() << std::endl;
+            out_acc << simTime << plate->GetPosDt2() << std::endl;
 
             // Orientation, angular velocity, and angular acceleration (expressed in
             // global frame).
@@ -287,12 +287,14 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
             // Reaction Force and Torque in prismatic joint.
             // These are expressed in the link coordinate system. We convert them to
             // the coordinate system of Body2 (in our case this is the ground).
-            ChCoordsys<> linkCoordsysP = prismatic->GetLinkRelativeCoords();
-            ChVector3d reactForceP = prismatic->Get_react_force();
+            ChFrame<> linkCoordsysP = prismatic->GetFrame2Rel();
+            const auto& reactionP = prismatic->GetReaction2();
+
+            ChVector3d reactForceP = reactionP.force;
             ChVector3d reactForceGlobalP = linkCoordsysP.TransformDirectionLocalToParent(reactForceP);
             out_rfrcP << simTime << reactForceGlobalP << std::endl;
 
-            ChVector3d reactTorqueP = prismatic->Get_react_torque();
+            ChVector3d reactTorqueP = reactionP.torque;
             ChVector3d reactTorqueGlobalP = linkCoordsysP.TransformDirectionLocalToParent(reactTorqueP);
             out_rtrqP << simTime << reactTorqueGlobalP << std::endl;
 
@@ -302,13 +304,15 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
             // the reaction force represents the force that needs to be applied to the
             // plate in order to maintain the prescribed constant velocity.  These are
             // then converted to the global frame for comparison to ADAMS
-            ChCoordsys<> linkCoordsysA = actuator->GetLinkRelativeCoords();
-            ChVector3d reactForceA = actuator->Get_react_force();
+            ChFrame<> linkCoordsysA = actuator->GetFrame2Rel();
+            const auto& reactionA = actuator->GetReaction2();
+
+            ChVector3d reactForceA = reactionA.force;
             reactForceA = linkCoordsysA.TransformDirectionLocalToParent(reactForceA);
             ChVector3d reactForceGlobalA = plate->TransformDirectionLocalToParent(reactForceA);
             out_rfrcA << simTime << reactForceGlobalA << std::endl;
 
-            ChVector3d reactTorqueA = actuator->Get_react_torque();
+            ChVector3d reactTorqueA = reactionA.torque;
             reactTorqueA = linkCoordsysA.TransformDirectionLocalToParent(reactTorqueA);
             ChVector3d reactTorqueGlobalA = plate->TransformDirectionLocalToParent(reactTorqueA);
             out_rtrqA << simTime << reactTorqueGlobalA << std::endl;
@@ -333,23 +337,23 @@ bool TestLinActuator(const ChQuaternion<>& rot,    // translation along Z axis
     }
 
     // Write output files
-    out_pos.write_to_file(out_dir + testName + "_CHRONO_Pos.txt", testName + "\n");
-    out_vel.write_to_file(out_dir + testName + "_CHRONO_Vel.txt", testName + "\n");
-    out_acc.write_to_file(out_dir + testName + "_CHRONO_Acc.txt", testName + "\n");
+    out_pos.WriteToFile(out_dir + testName + "_CHRONO_Pos.txt", testName + "\n");
+    out_vel.WriteToFile(out_dir + testName + "_CHRONO_Vel.txt", testName + "\n");
+    out_acc.WriteToFile(out_dir + testName + "_CHRONO_Acc.txt", testName + "\n");
 
-    out_quat.write_to_file(out_dir + testName + "_CHRONO_Quat.txt", testName + "\n");
-    out_avel.write_to_file(out_dir + testName + "_CHRONO_Avel.txt", testName + "\n");
-    out_aacc.write_to_file(out_dir + testName + "_CHRONO_Aacc.txt", testName + "\n");
+    out_quat.WriteToFile(out_dir + testName + "_CHRONO_Quat.txt", testName + "\n");
+    out_avel.WriteToFile(out_dir + testName + "_CHRONO_Avel.txt", testName + "\n");
+    out_aacc.WriteToFile(out_dir + testName + "_CHRONO_Aacc.txt", testName + "\n");
 
-    out_rfrcP.write_to_file(out_dir + testName + "_CHRONO_RforceP.txt", testName + "\n");
-    out_rtrqP.write_to_file(out_dir + testName + "_CHRONO_RtorqueP.txt", testName + "\n");
+    out_rfrcP.WriteToFile(out_dir + testName + "_CHRONO_RforceP.txt", testName + "\n");
+    out_rtrqP.WriteToFile(out_dir + testName + "_CHRONO_RtorqueP.txt", testName + "\n");
 
-    out_rfrcA.write_to_file(out_dir + testName + "_CHRONO_RforceA.txt", testName + "\n");
-    out_rtrqA.write_to_file(out_dir + testName + "_CHRONO_RtorqueA.txt", testName + "\n");
+    out_rfrcA.WriteToFile(out_dir + testName + "_CHRONO_RforceA.txt", testName + "\n");
+    out_rtrqA.WriteToFile(out_dir + testName + "_CHRONO_RtorqueA.txt", testName + "\n");
 
-    out_cnstrP.write_to_file(out_dir + testName + "_CHRONO_ConstraintsP.txt", testName + "\n");
+    out_cnstrP.WriteToFile(out_dir + testName + "_CHRONO_ConstraintsP.txt", testName + "\n");
 
-    out_cnstrA.write_to_file(out_dir + testName + "_CHRONO_ConstraintsA.txt", testName + "\n");
+    out_cnstrA.WriteToFile(out_dir + testName + "_CHRONO_ConstraintsA.txt", testName + "\n");
 
     return true;
 }
@@ -398,11 +402,11 @@ bool ValidateConstraints(const std::string& testName,  // name of this test
 //
 // Utility function to create a CSV output stream and set output format options.
 //
-utils::CSV_writer OutStream() {
-    utils::CSV_writer out("\t");
+utils::ChWriterCSV OutStream() {
+    utils::ChWriterCSV out("\t");
 
-    out.stream().setf(std::ios::scientific | std::ios::showpos);
-    out.stream().precision(6);
+    out.Stream().setf(std::ios::scientific | std::ios::showpos);
+    out.Stream().precision(6);
 
     return out;
 }

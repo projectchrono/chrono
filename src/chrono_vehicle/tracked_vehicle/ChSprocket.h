@@ -31,7 +31,7 @@
 #define CH_SPROCKET_H
 
 #include "chrono/physics/ChShaft.h"
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/geometry/ChLinePath.h"
 #include "chrono/geometry/ChLineSegment.h"
 #include "chrono/geometry/ChLineArc.h"
@@ -56,7 +56,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     virtual ~ChSprocket();
 
     /// Get the number of teeth of the gear.
-    virtual int GetNumTeeth() const = 0;
+    virtual unsigned int GetNumTeeth() const = 0;
 
     /// Get the track assembly radius.
     /// This quantity is used during the automatic track assembly. It represents a
@@ -78,10 +78,10 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     std::shared_ptr<ChLinkLockRevolute> GetRevolute() const { return m_revolute; }
 
     /// Get the angular speed of the axle.
-    double GetAxleSpeed() const { return m_axle->GetPosDer(); }
+    double GetAxleSpeed() const { return m_axle->GetPosDt(); }
 
     /// Turn on/off collision flag for the gear wheel.
-    void SetCollide(bool val) { m_gear->SetCollide(val); }
+    void EnableCollision(bool val) { m_gear->EnableCollision(val); }
 
     /// Get the sprocket contact material.
     std::shared_ptr<ChContactMaterial> GetContactMaterial() const { return m_material; }
@@ -165,7 +165,7 @@ class CH_VEHICLE_API ChSprocket : public ChPart {
     ChVector3d m_rel_loc;                             ///< sprocket subsystem location relative to chassis
     std::shared_ptr<ChBody> m_gear;                   ///< sprocket gear body
     std::shared_ptr<ChShaft> m_axle;                  ///< gear shafts
-    std::shared_ptr<ChShaftsBody> m_axle_to_spindle;  ///< gear-shaft connector
+    std::shared_ptr<ChShaftBodyRotation> m_axle_to_spindle;  ///< gear-shaft connector
     std::shared_ptr<ChLinkLockRevolute> m_revolute;   ///< sprocket revolute joint
     std::shared_ptr<ChContactMaterial> m_material;    ///< contact material;
 

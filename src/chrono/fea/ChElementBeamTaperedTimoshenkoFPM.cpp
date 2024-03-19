@@ -31,14 +31,14 @@ ChElementBeamTaperedTimoshenkoFPM::ChElementBeamTaperedTimoshenkoFPM() : guass_o
 
     nodes.resize(2);
 
-    Km.setZero(this->GetNdofs(), this->GetNdofs());
-    Kg.setZero(this->GetNdofs(), this->GetNdofs());
-    M.setZero(this->GetNdofs(), this->GetNdofs());
-    Rm.setZero(this->GetNdofs(), this->GetNdofs());
-    Ri.setZero(this->GetNdofs(), this->GetNdofs());
-    Ki.setZero(this->GetNdofs(), this->GetNdofs());
+    Km.setZero(this->GetNumCoordsPosLevel(), this->GetNumCoordsPosLevel());
+    Kg.setZero(this->GetNumCoordsPosLevel(), this->GetNumCoordsPosLevel());
+    M.setZero(this->GetNumCoordsPosLevel(), this->GetNumCoordsPosLevel());
+    Rm.setZero(this->GetNumCoordsPosLevel(), this->GetNumCoordsPosLevel());
+    Ri.setZero(this->GetNumCoordsPosLevel(), this->GetNumCoordsPosLevel());
+    Ki.setZero(this->GetNumCoordsPosLevel(), this->GetNumCoordsPosLevel());
 
-    T.setZero(this->GetNdofs(), this->GetNdofs());
+    T.setZero(this->GetNumCoordsPosLevel(), this->GetNumCoordsPosLevel());
     Rs.setIdentity(6, 6);
     Rc.setIdentity(6, 6);
 }
@@ -338,7 +338,7 @@ void ChElementBeamTaperedTimoshenkoFPM::SetupInitial(ChSystem* system) {
 void ChElementBeamTaperedTimoshenkoFPM::EvaluateSectionDisplacement(const double eta,
                                                                     ChVector3d& u_displ,
                                                                     ChVector3d& u_rotaz) {
-    ChVectorDynamic<> displ(this->GetNdofs());
+    ChVectorDynamic<> displ(this->GetNumCoordsPosLevel());
     this->GetStateBlock(displ);
     // No transformation for the displacement of two nodes,
     // so the section displacement is evaluated at the centerline of beam
@@ -364,7 +364,7 @@ void ChElementBeamTaperedTimoshenkoFPM::EvaluateSectionForceTorque(const double 
                                                                    ChVector3d& Mtorque) {
     assert(tapered_section_fpm);
 
-    ChVectorDynamic<> displ(this->GetNdofs());
+    ChVectorDynamic<> displ(this->GetNumCoordsPosLevel());
     this->GetStateBlock(displ);
 
     // transform the displacement of two nodes to elastic axis
@@ -400,7 +400,7 @@ void ChElementBeamTaperedTimoshenkoFPM::EvaluateSectionStrain(const double eta,
                                                               ChVector3d& StrainV_rot) {
     assert(tapered_section_fpm);
 
-    ChVectorDynamic<> displ(this->GetNdofs());
+    ChVectorDynamic<> displ(this->GetNumCoordsPosLevel());
     this->GetStateBlock(displ);
 
     // transform the displacement of two nodes to elastic axis

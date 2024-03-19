@@ -84,20 +84,20 @@ void ChLinkMotorRotation::Update(double mytime, bool update_assets) {
     ChLinkMotor::Update(mytime, update_assets);
 
     // compute aux data for future reference (istantaneous pos speed accel)
-    ChFrameMoving<> aframe1 = ChFrameMoving<>(this->frame1) >> (ChFrameMoving<>)(*this->Body1);
-    ChFrameMoving<> aframe2 = ChFrameMoving<>(this->frame2) >> (ChFrameMoving<>)(*this->Body2);
+    ChFrameMoving<> aframe1 = ChFrameMoving<>(this->frame1) >> (ChFrameMoving<>)(*this->m_body1);
+    ChFrameMoving<> aframe2 = ChFrameMoving<>(this->frame2) >> (ChFrameMoving<>)(*this->m_body2);
     ChFrameMoving<> aframe12 = aframe2.TransformParentToLocal(aframe1);
 
     // multi-turn rotation code
     double last_totrot = this->mrot;
-    double last_rot = remainder(last_totrot, CH_C_2PI);
+    double last_rot = remainder(last_totrot, CH_2PI);
     double last_turns = last_totrot - last_rot;
-    double new_rot = remainder(aframe12.GetRot().GetRotVec().z(), CH_C_2PI);
+    double new_rot = remainder(aframe12.GetRot().GetRotVec().z(), CH_2PI);
     this->mrot = last_turns + new_rot;
-    if (fabs(new_rot + CH_C_2PI - last_rot) < fabs(new_rot - last_rot))
-        this->mrot = last_turns + new_rot + CH_C_2PI;
-    if (fabs(new_rot - CH_C_2PI - last_rot) < fabs(new_rot - last_rot))
-        this->mrot = last_turns + new_rot - CH_C_2PI;
+    if (fabs(new_rot + CH_2PI - last_rot) < fabs(new_rot - last_rot))
+        this->mrot = last_turns + new_rot + CH_2PI;
+    if (fabs(new_rot - CH_2PI - last_rot) < fabs(new_rot - last_rot))
+        this->mrot = last_turns + new_rot - CH_2PI;
 
     this->mrot_dt = aframe12.GetAngVelLocal().z();
     this->mrot_dtdt = aframe12.GetAngAccLocal().z();

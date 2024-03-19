@@ -67,8 +67,8 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     // General setting of ground body
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
-    ground->SetCollide(false);
+    ground->SetFixed(true);
+    ground->EnableCollision(false);
     sysMBS.AddBody(ground);
 
     // Add BCE particles attached on the walls into FSI system
@@ -120,12 +120,12 @@ int main(int argc, char* argv[]) {
     ChVector3d boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
 
     // Use a chrono sampler to create a bucket of points
-    chrono::utils::GridSampler<> sampler(initSpace0);
-    chrono::utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
+    chrono::utils::ChGridSampler<> sampler(initSpace0);
+    chrono::utils::ChGenerator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
 
     // Add fluid particles from the sampler points to the FSI system
     size_t numPart = points.size();
-    double gz = std::abs(sysFSI.Get_G_acc().z());
+    double gz = std::abs(sysFSI.GetGravitationalAcceleration().z());
     for (int i = 0; i < numPart; i++) {
         // Calculate the pressure of a steady state (p = rho*g*h)
         auto pre_ini = sysFSI.GetDensity() * gz * (-points[i].z() + fzDim);

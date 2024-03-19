@@ -36,7 +36,7 @@ sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
 # Create a rigid body as usual, and add it
 # to the physical sys:
 floor = chrono.ChBody()
-floor.SetBodyFixed(True)
+floor.SetFixed(True)
 
 
 # Contact material
@@ -46,7 +46,7 @@ floor_mat = chrono.ChContactMaterialNSC()
 # Define a collision shape
 floor_ct_shape = chrono.ChCollisionShapeBox(floor_mat, 20, 1, 20)
 floor.AddCollisionShape(floor_ct_shape, chrono.ChFramed(chrono.ChVector3d(0, -1, 0), chrono.QUNIT))
-floor.SetCollide(True)
+floor.EnableCollision(True)
 
 # Add body to sys
 sys.Add(floor)
@@ -64,7 +64,7 @@ floor.AddVisualShape(boxfloor, chrono.ChFramed(chrono.ChVector3d(0, -1, 0), chro
 pathfloor = chrono.ChVisualShapePath()
 mseg1 = chrono.ChLineSegment(chrono.ChVector3d(1,2,0), chrono.ChVector3d(1,3,0))
 mseg2 = chrono.ChLineSegment(chrono.ChVector3d(1, 3, 0), chrono.ChVector3d(2, 3, 0))
-marc1 = chrono.ChLineArc(chrono.ChCoordsysd(chrono.ChVector3d(2, 3.5, 0)), 0.5, -chrono.CH_C_PI_2, chrono.CH_C_PI_2)
+marc1 = chrono.ChLineArc(chrono.ChCoordsysd(chrono.ChVector3d(2, 3.5, 0)), 0.5, -chrono.CH_PI_2, chrono.CH_PI_2)
 pathfloor.GetPathGeometry().AddSubLine(mseg1)
 pathfloor.GetPathGeometry().AddSubLine(mseg2)
 pathfloor.GetPathGeometry().AddSubLine(marc1)
@@ -121,7 +121,7 @@ floor.AddVisualShape(nurbsasset)
 
 # Create the rigid body as usual (this won't move, it is only for visualization tests)
 body = chrono.ChBody()
-body.SetBodyFixed(True)
+body.SetFixed(True)
 sys.Add(body)
 
 # Create a shared visual material
@@ -142,12 +142,12 @@ body.AddVisualShape(box, chrono.ChFramed(chrono.ChVector3d(1,1,0), chrono.QUNIT)
 cyl = chrono.ChVisualShapeCylinder(0.3, 0.7)
 body.AddVisualShape(cyl, 
                     chrono.ChFramed(chrono.ChVector3d(2, 0.15, 0),
-                                    chrono.QuatFromAngleX(chrono.CH_C_PI_2)))
+                                    chrono.QuatFromAngleX(chrono.CH_PI_2)))
 
 # ==Asset== Attach three instances of the same 'triangle mesh' shape
 # TODO: not sure how to add vertices
 mesh = chrono.ChVisualShapeTriangleMesh()
-mesh.GetMesh().addTriangle(chrono.ChVector3d(0, 0, 0), chrono.ChVector3d(0, 1, 0), chrono.ChVector3d(1, 0, 0))
+mesh.GetMesh().AddTriangle(chrono.ChVector3d(0, 0, 0), chrono.ChVector3d(0, 1, 0), chrono.ChVector3d(1, 0, 0))
 mesh.AddMaterial(orange_mat)
 
 body.AddVisualShape(mesh, chrono.ChFramed(chrono.ChVector3d(2,0,2), chrono.QUNIT))
@@ -165,7 +165,7 @@ body.AddVisualShape(objmesh, chrono.ChFramed(chrono.ChVector3d(0,0,2), chrono.QU
 for j in range(20):
     smallbox = chrono.ChVisualShapeBox(0.2, 0.2, 0.02)
     smallbox.SetColor(chrono.ChColor(j * 0.05, 1 - j * 0.05, 0.0))
-    rot = chrono.ChMatrix33d(chrono.QuatFromAngleY(j * 21 * chrono.CH_C_DEG_TO_RAD))
+    rot = chrono.ChMatrix33d(chrono.QuatFromAngleY(j * 21 * chrono.CH_DEG_TO_RAD))
     pos = rot * chrono.ChVector3d(0.4, 0, 0) + chrono.ChVector3d(0, j * 0.02, 0)
     body.AddVisualShape(smallbox, chrono.ChFramed(pos, rot))
 
@@ -187,7 +187,7 @@ particle_mat = chrono.ChContactMaterialNSC()
 
 particles_ct_shape = chrono.ChCollisionShapeSphere(particle_mat, 0.05)
 particles.AddCollisionShape(particles_ct_shape)
-particles.SetCollide(True)
+particles.EnableCollision(True)
 
 # Create the random particles
 for i in range(100):

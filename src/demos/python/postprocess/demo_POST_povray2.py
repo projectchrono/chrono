@@ -54,7 +54,7 @@ particle_material = chrono.ChContactMaterialNSC()
 
 body_particles_ct_shape = chrono.ChCollisionShapeSphere(particle_material, 0.005)
 body_particles.AddCollisionShape(body_particles_ct_shape)
-body_particles.SetCollide(True)
+body_particles.EnableCollision(True)
 
 # add particles
 for ix in range(0,5):
@@ -75,14 +75,14 @@ sys.Add(body_particles)
 # and a visualization shape
 
 body_floor = chrono.ChBody()
-body_floor.SetBodyFixed(True)
+body_floor.SetFixed(True)
 
 # Collision shape
 floor_material = chrono.ChContactMaterialNSC()
 
 body_floor_ct_shape = chrono.ChCollisionShapeBox(floor_material, 0.1, 0.02, 0.1)
 body_floor.AddCollisionShape(body_floor_ct_shape)
-body_floor.SetCollide(True)
+body_floor.EnableCollision(True)
 
 # Visualization shape
 body_floor_shape = chrono.ChVisualShapeBox(0.2, 0.04, 0.2)
@@ -105,7 +105,7 @@ for ix in range(0,2):
         # Collision shape
         body_brick_ct_shape = chrono.ChCollisionShapeBox(floor_material, 0.01, 0.01, 0.01)
         body_brick.AddCollisionShape(body_brick_ct_shape)
-        body_brick.SetCollide(True)
+        body_brick.EnableCollision(True)
 
         # Visualization shape
         body_brick_shape = chrono.ChVisualShapeBox(0.02, 0.02, 0.02)
@@ -161,7 +161,7 @@ pov_exporter.SetShowContacts(True,
 pov_exporter.ExportScript()
 
 #sys.SetSolverType(chrono.ChSolver.Type_PMINRES)
-sys.SetSolverMaxIterations(50)
+sys.GetSolver().AsIterative().SetMaxIterations(50)
 
 
  # Perform a short simulation

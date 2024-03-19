@@ -100,7 +100,7 @@ class CH_VEHICLE_API ChTrackContactManager : public ChContactContainer::ReportCo
     bool m_render_forces;   ///< render contact forces
     double m_scale_forces;  ///< contact force rendering scale
 
-    utils::CSV_writer m_csv;
+    utils::ChWriterCSV m_csv;
 
     std::shared_ptr<ChChassis> m_chassis;
     std::shared_ptr<ChSprocket> m_sprocket_L;

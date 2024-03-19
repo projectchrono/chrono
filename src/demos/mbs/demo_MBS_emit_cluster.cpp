@@ -45,7 +45,7 @@ class MyCreatorForAll : public ChRandomShapeCreator::AddBodyCallback {
             coll->Add(mbody->GetCollisionModel());
 
         // Dsable gyroscopic forces for increased integrator stability
-        mbody->SetNoGyroTorque(true);
+        mbody->SetUseGyroTorque(false);
     }
     ChVisualSystem* vis;
     ChCollisionSystem* coll;
@@ -161,10 +161,10 @@ int main(int argc, char* argv[]) {
 
     // Modify some setting of the physical system for the simulation, if you want
     sys.SetSolverType(ChSolver::Type::PSOR);
-    sys.SetSolverMaxIterations(40);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(40);
 
     // Turn off default -9.8 downward gravity
-    sys.Set_G_acc(ChVector3d(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Simulation loop
     double timestep = 0.01;
@@ -179,7 +179,7 @@ int main(int argc, char* argv[]) {
         // Apply custom forcefield (brute force approach..)
         // A) reset 'user forces accumulators':
         for (auto body : sys.GetBodies()) {
-            body->Empty_forces_accumulators();
+            body->EmptyAccumulators();
         }
 
         // B) store user computed force:
@@ -194,8 +194,8 @@ int main(int argc, char* argv[]) {
                 double f_attract = G_constant * (abodyA->GetMass() * abodyB->GetMass()) / (pow(r_attract, 2));
                 ChVector3d F_attract = (D_attract / r_attract) * f_attract;
 
-                abodyA->Accumulate_force(F_attract, abodyA->GetPos(), false);
-                abodyB->Accumulate_force(-F_attract, abodyB->GetPos(), false);
+                abodyA->AccumulateForce(F_attract, abodyA->GetPos(), false);
+                abodyB->AccumulateForce(-F_attract, abodyB->GetPos(), false);
             }
         }
 

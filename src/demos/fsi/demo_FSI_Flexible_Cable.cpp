@@ -23,8 +23,8 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshExporter.h"
 #include "chrono/fea/ChBuilderBeam.h"
@@ -140,10 +140,10 @@ int main(int argc, char* argv[]) {
     sysFSI.SetRigidBodyBC(BceVersion::ADAMI);
 
     // Create SPH particles of fluid region
-    chrono::utils::GridSampler<> sampler(initSpace0);
+    chrono::utils::ChGridSampler<> sampler(initSpace0);
     ChVector3d boxCenter(-bxDim / 2 + fxDim / 2, 0, fzDim / 2 + 1 * initSpace0);
     ChVector3d boxHalfDim(fxDim / 2, fyDim / 2, fzDim / 2);
-    chrono::utils::Generator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
+    chrono::utils::ChGenerator::PointVector points = sampler.SampleBox(boxCenter, boxHalfDim);
     size_t numPart = points.size();
     for (int i = 0; i < numPart; i++) {
         sysFSI.AddSPHParticle(points[i]);
@@ -175,10 +175,9 @@ int main(int argc, char* argv[]) {
     auto solver = chrono_types::make_shared<ChSolverMINRES>();
     sysMBS.SetSolver(solver);
     solver->SetMaxIterations(2000);
-    solver->SetTolerance(1e-10);
+    solver->SetTolerance(1e-12);
     solver->EnableDiagonalPreconditioner(true);
     solver->SetVerbose(false);
-    sysMBS.SetSolverForceTolerance(1e-10);
 #endif
 
     // Simulation loop
@@ -227,13 +226,13 @@ int main(int argc, char* argv[]) {
 // Create the objects of the MBD system. Rigid/flexible bodies, and if
 // fsi, their bce representation are created and added to the systems
 void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
-    sysMBS.Set_G_acc(ChVector3d(0, 0, 0));
-    sysFSI.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sysMBS.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
+    sysFSI.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
 
     auto ground = chrono_types::make_shared<ChBody>();
     ground->SetIdentifier(-1);
-    ground->SetBodyFixed(true);
-    ground->SetCollide(false);
+    ground->SetFixed(true);
+    ground->EnableCollision(false);
     sysMBS.AddBody(ground);
 
     // Fluid representation of walls
@@ -253,7 +252,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     msection_cable->SetDiameter(initSpace0);
     msection_cable->SetYoungModulus(E);
     msection_cable->SetDensity(density);
-    msection_cable->SetBeamRayleighDamping(BeamRayleighDamping);
+    msection_cable->SetRayleighDamping(BeamRayleighDamping);
 
     ChBuilderCableANCF builder;
     builder.BuildBeam(my_mesh,                               // FEA mesh with nodes and elements
@@ -266,13 +265,13 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     );
 
     auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(builder.GetLastBeamNodes().back());
-    auto pos_const = chrono_types::make_shared<ChLinkPointFrame>();
+    auto pos_const = chrono_types::make_shared<ChLinkNodeFrame>();
     pos_const->Initialize(node, ground);
     sysMBS.Add(pos_const);
 
-    auto dir_const = chrono_types::make_shared<ChLinkDirFrame>();
+    auto dir_const = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
     dir_const->Initialize(node, ground);
-    dir_const->SetDirectionInAbsoluteCoords(node->GetD());
+    dir_const->SetDirectionInAbsoluteCoords(node->GetSlope1());
     sysMBS.Add(dir_const);
 
     // Add the mesh to the system

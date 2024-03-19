@@ -51,7 +51,7 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
     CreateContactMaterial(wheel_body->GetSystem()->GetContactMethod());
     assert(m_material && m_material->GetContactMethod() == wheel_body->GetSystem()->GetContactMethod());
     
-    wheel_body->SetCollide(true);
+    wheel_body->EnableCollision(true);
 
     if (m_use_contact_mesh) {
         // Mesh contact
@@ -71,7 +71,7 @@ void ChRigidTire::Initialize(std::shared_ptr<ChWheel> wheel) {
         // Cylinder contact
         auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(m_material, GetRadius(), GetWidth());
         wheel_body->AddCollisionShape(ct_shape,
-                                      ChFrame<>(ChVector3d(0, 0, GetOffset()), QuatFromAngleX(CH_C_PI_2)));
+                                      ChFrame<>(ChVector3d(0, 0, GetOffset()), QuatFromAngleX(CH_PI_2)));
     }
 
     wheel_body->GetCollisionModel()->SetFamily(WheeledCollisionFamily::TIRE);
@@ -236,7 +236,7 @@ std::shared_ptr<ChTriangleMeshConnected> ChRigidTire::GetContactMesh() const {
 
 void ChRigidTire::GetMeshVertexStates(std::vector<ChVector3d>& pos, std::vector<ChVector3d>& vel) const {
     assert(m_use_contact_mesh);
-    auto vertices = m_trimesh->getCoordsVertices();
+    auto vertices = m_trimesh->GetCoordsVertices();
 
     for (size_t i = 0; i < vertices.size(); ++i) {
         pos.push_back(m_wheel->GetSpindle()->TransformPointLocalToParent(vertices[i]));

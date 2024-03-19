@@ -207,6 +207,21 @@ class ChCoordsys {
         return rot.RotateBack(d);
     }
 
+    /// Transform a wrench from the local coordinate system to the parent coordinate system.
+    ChWrench<Real> TransformWrenchLocalToParent(const ChWrench<Real>& w) const {
+        auto force_parent = TransformDirectionLocalToParent(w.force);
+        return {force_parent,                                                            //
+                Vcross(pos, force_parent) + TransformDirectionLocalToParent(w.torque)};  //
+    }
+
+    /// Transform a wrench from the parent coordinate system to the local coordinate system.
+    ChWrench<Real> TransformWrenchParentToLocal(const ChWrench<Real>& w) const {
+        auto force_local = TransformDirectionParentToLocal(w.force);
+        auto pos_local = TransformDirectionParentToLocal(-pos);
+        return {force_local,                                                                  //
+                Vcross(pos_local, force_local) + TransformDirectionParentToLocal(w.torque)};  //
+    }
+
     /// Transform a coordinate system from 'this' local coordinate system to parent coordinate system.
     ChCoordsys<Real> TransformLocalToParent(const ChCoordsys<Real>& F) const {
         return ChCoordsys<Real>(TransformPointLocalToParent(F.pos), rot * F.rot);
@@ -379,13 +394,6 @@ typedef ChCoordsys<float> ChCoordsysf;
 
 ChApi extern const ChCoordsysd CSYSNULL;
 ChApi extern const ChCoordsysd CSYSNORM;
-
-// -----------------------------------------------------------------------------
-// STATIC COORDSYS OPERATIONS
-//
-
-/// Force 3d coordsys to lie on a XY plane (note: no normaliz. on quat)
-ChApi ChCoordsysd Force2Dcsys(const ChCoordsysd& cs);
 
 }  // end namespace chrono
 

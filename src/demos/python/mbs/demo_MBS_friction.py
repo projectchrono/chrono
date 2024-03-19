@@ -61,7 +61,7 @@ for bi in range(10):
     initial_angspeed = 10
     initial_linspeed = initial_angspeed * mradius
     msphereBody.SetAngVelParent(chrono.ChVector3d(0, 0, -initial_angspeed))
-    msphereBody.SetPosDer(chrono.ChVector3d(initial_linspeed, 0, 0))
+    msphereBody.SetPosDt(chrono.ChVector3d(initial_linspeed, 0, 0))
 
     # Add to the sys
     sys.Add(msphereBody)
@@ -96,8 +96,8 @@ for bi in range(10):
 # Create a container fixed to ground
 bin = chrono.ChBody()
 bin.SetPos(chrono.ChVector3d(0, -1, 0))
-bin.SetBodyFixed(True)
-bin.SetCollide(True)
+bin.SetFixed(True)
+bin.EnableCollision(True)
 
 # Set rolling and spinning friction coefficients for the container.
 # By default, the composite material will use the minimum value for an interacting collision pair.

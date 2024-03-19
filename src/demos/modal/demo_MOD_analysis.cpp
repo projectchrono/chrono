@@ -72,7 +72,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
     // BODY: the base:
 
     auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 200);
-    my_body_A->SetBodyFixed(base_fixed);
+    my_body_A->SetFixed(base_fixed);
     my_body_A->SetPos(ChVector3d(-0.5, 0, 0));
     assembly->Add(my_body_A);
 
@@ -90,9 +90,9 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
 
     section->SetDensity(beam_density);
     section->SetYoungModulus(beam_Young);
-    section->SetGwithPoissonRatio(0.31);
-    section->SetBeamRayleighDampingBeta(0.00001);
-    section->SetBeamRayleighDampingAlpha(0.001);
+    section->SetShearModulusFromPoisson(0.31);
+    section->SetRayleighDampingBeta(0.00001);
+    section->SetRayleighDampingAlpha(0.001);
     section->SetAsRectangularSection(beam_wy, beam_wz);
 
     // This helps creating sequences of nodes and ChElementBeamEuler elements:
@@ -130,7 +130,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
     mesh->AddVisualShapeFEA(visualizebeamC);
 
     // Just for later reference, dump M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
-    assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
+    assembly->WriteSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
 
     // Here we perform the modal analysis on the ChModalAssembly.
     // - We compute only the first n modes. This helps dealing with very large
@@ -192,7 +192,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
     while ((ID_current_example == current_example) && vis.Run()) {
         vis.BeginScene();
         vis.Render();
-        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_C_PI_2, VECT_Z),
+        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_PI_2, VECT_Z),
                         ChColor(0.5f, 0.5f, 0.5f), true);
         vis.EndScene();
     }
@@ -227,9 +227,9 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
 
     section->SetDensity(beam_density);
     section->SetYoungModulus(beam_Young);
-    section->SetGwithPoissonRatio(0.31);
-    section->SetBeamRayleighDampingBeta(0.00001);
-    section->SetBeamRayleighDampingAlpha(0.001);
+    section->SetShearModulusFromPoisson(0.31);
+    section->SetRayleighDampingBeta(0.00001);
+    section->SetRayleighDampingAlpha(0.001);
     section->SetAsRectangularSection(beam_wy, beam_wz);
 
     // This helps creating sequences of nodes and ChElementBeamEuler elements:
@@ -255,14 +255,14 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
     // BODY: 1st end
 
     auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 200);
-    my_body_A->SetBodyFixed(body1fixed);
+    my_body_A->SetFixed(body1fixed);
     my_body_A->SetPos(ChVector3d(-0.25, 0, 0));
     assembly->Add(my_body_A);
 
     // BODY: 2nd end
 
     auto my_body_B = chrono_types::make_shared<ChBodyEasyBox>(0.5, 0.5, 0.5, 200);
-    my_body_B->SetBodyFixed(body2fixed);
+    my_body_B->SetFixed(body2fixed);
     my_body_B->SetPos(ChVector3d(beam_L, beam_L * 0.5 + 0.25, 0));
     assembly->Add(my_body_B);
 
@@ -294,7 +294,7 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
     mesh->AddVisualShapeFEA(visualizebeamC);
 
     // Just for later reference, dump M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
-    assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
+    assembly->WriteSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
 
     // Here we perform the modal analysis on the ChModalAssembly.
     // - We compute only the first n modes. This helps dealing with very large
@@ -333,7 +333,7 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
     while ((ID_current_example == current_example) && vis.Run()) {
         vis.BeginScene();
         vis.Render();
-        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_C_PI_2, VECT_Z),
+        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_PI_2, VECT_Z),
                         ChColor(0.5f, 0.5f, 0.5f), true);
         vis.EndScene();
     }
@@ -386,7 +386,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
 
     // no gravity used here
-    sys.Set_G_acc(VNULL);
+    sys.SetGravitationalAcceleration(VNULL);
 
     // VISUALIZATION
 

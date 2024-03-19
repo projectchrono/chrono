@@ -38,7 +38,7 @@ ChLinkLockPointSpline::ChLinkLockPointSpline(const ChLinkLockPointSpline& other)
     tolerance = other.tolerance;
 }
 
-void ChLinkLockPointSpline::Set_trajectory_line(std::shared_ptr<ChLine> mline) {
+void ChLinkLockPointSpline::SetTrajectory(std::shared_ptr<ChLine> mline) {
     trajectory_line = mline;
 }
 
@@ -52,8 +52,8 @@ void ChLinkLockPointSpline::UpdateTime(double time) {
         double mu, ds, dh, mrad;
 
         // find nearest point
-        vpoint = marker1->GetAbsCsys().pos;
-        vpoint = Body2->TransformPointParentToLocal(vpoint);
+        vpoint = marker1->GetAbsCoordsys().pos;
+        vpoint = m_body2->TransformPointParentToLocal(vpoint);
         trajectory_line->FindNearestLinePoint(vpoint, mu, 0, tolerance);
 
         param.y() = 0;
@@ -87,8 +87,8 @@ void ChLinkLockPointSpline::UpdateTime(double time) {
         }
         ChQuaterniond qabsdir = ma.GetQuaternion();
 
-        ptang = Body2->TransformPointLocalToParent(ptang);
-        qabsdir = Body2->GetRot() * qabsdir;
+        ptang = m_body2->TransformPointLocalToParent(ptang);
+        qabsdir = m_body2->GetRot() * qabsdir;
 
         marker2->ImposeAbsoluteTransform(ChFrame<>(ptang, qabsdir));  // move "main" marker2 into tangent position
         marker2->SetMotionType(ChMarker::MotionType::EXTERNAL);
@@ -97,14 +97,14 @@ void ChLinkLockPointSpline::UpdateTime(double time) {
         dh = Vdot(Vsub(ptang2, ptang), vrad);
         mrad = ((ds * ds) / (2 * dh));  // radius of curvature on spline
 
-        //ChMatrix33<> mw(marker2->GetAbsCsys().rot);
+        //ChMatrix33<> mw(marker2->GetAbsCoordsys().rot);
 
         deltaC.pos = VNULL;
         deltaC_dt.pos = VNULL;
         deltaC_dtdt.pos.x() = 0;  // csys X axis aligned to vdir: just
         deltaC_dtdt.pos.y() = 0;  // impose centripetal acceleration
-        // deltaC_dtdt.pos.z() =   pow(Vdot(this->GetRelM_dt().pos, vdir), 2) / mrad;
-        deltaC_dtdt.pos.z() = pow(GetRelM_dt().pos.x(), 2) / mrad;
+        // deltaC_dtdt.pos.z() =   pow(Vdot(this->GetRelCoordsysDt().pos, vdir), 2) / mrad;
+        deltaC_dtdt.pos.z() = pow(GetRelCoordsysDt().pos.x(), 2) / mrad;
 
         deltaC.rot = QUNIT;
         deltaC_dt.rot = QNULL;

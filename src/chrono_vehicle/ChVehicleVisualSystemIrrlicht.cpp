@@ -208,7 +208,7 @@ void ChVehicleVisualSystemIrrlicht::Advance(double step) {
     // Update sound pitch
     if (m_car_sound && m_vehicle->GetPowertrainAssembly()) {
         stepsbetweensound++;
-        double engine_rpm = m_vehicle->GetPowertrainAssembly()->GetEngine()->GetMotorSpeed() * 60 / CH_C_2PI;
+        double engine_rpm = m_vehicle->GetPowertrainAssembly()->GetEngine()->GetMotorSpeed() * 60 / CH_2PI;
         double soundspeed = engine_rpm / (4000.);  // denominator: to guess
         if (soundspeed < 0.1)
             soundspeed = 0.1;
@@ -295,7 +295,7 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
         const auto& engine = powertrain->GetEngine();
         const auto& transmission = powertrain->GetTransmission();
 
-        double engine_rpm = engine->GetMotorSpeed() * 60 / CH_C_2PI;
+        double engine_rpm = engine->GetMotorSpeed() * 60 / CH_2PI;
         snprintf(msg, sizeof(msg), "Eng.speed(RPM): %+.2f", engine_rpm);
         renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, m_HUD_y + 50, 170, 15);
 
@@ -321,7 +321,7 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
             snprintf(msg, sizeof(msg), "T.conv.out(Nm): %+.2f", tc_torqueout);
             renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 130, 170, 15);
 
-            double tc_rpmout = transmission_auto->GetTorqueConverterOutputSpeed() * 60 / CH_C_2PI;
+            double tc_rpmout = transmission_auto->GetTorqueConverterOutputSpeed() * 60 / CH_2PI;
             snprintf(msg, sizeof(msg), "T.conv.out(RPM): %+.2f", tc_rpmout);
             renderLinGauge(std::string(msg), tc_rpmout / 7000, false, m_HUD_x, m_HUD_y + 150, 170, 15);
             switch (transmission_auto->GetShiftMode()) {

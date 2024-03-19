@@ -156,10 +156,10 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(
     if (false) {
         std::ofstream fileA("dump_modal_A.dat");
         fileA << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(ChMatrixDynamic<>(A), fileA);
+        StreamOut(ChMatrixDynamic<>(A), fileA);
         std::ofstream fileB("dump_modal_B.dat");
         fileB << std::setprecision(12) << std::scientific;
-        StreamOutDenseMatlabFormat(ChMatrixDynamic<>(B), fileB);
+        StreamOut(ChMatrixDynamic<>(B), fileB);
     }
 
     // The Krylov-Schur solver, using the shift and invert mode:
@@ -217,7 +217,7 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(
             eigen_vectors.col(i).head(n_vars);  // store only displacement part of eigenvector, no constraint part
         V.col(i).normalize();                   // check if necessary or already normalized
         eig(i) = eigen_values(i);
-        freq(i) = (1.0 / CH_C_2PI) * sqrt(-eig(i).real());
+        freq(i) = (1.0 / CH_2PI) * sqrt(-eig(i).real());
     }
 
     return true;
@@ -310,7 +310,7 @@ bool ChGeneralizedEigenvalueSolverLanczos::Solve(
             eigen_vectors.col(i).head(n_vars);  // store only displacement part of eigenvector, no constraint part
         V.col(i).normalize();                   // check if necessary or already normalized
         eig(i) = eigen_values(i);
-        freq(i) = (1.0 / CH_C_2PI) * sqrt(-eig(i).real());
+        freq(i) = (1.0 / CH_2PI) * sqrt(-eig(i).real());
     }
 
     return true;
@@ -333,7 +333,7 @@ int ChModalSolveUndamped::Solve(
     for (int i = 0; i < this->freq_spans.size(); ++i) {
         int nmodes_goal_i = this->freq_spans[i].nmodes;
         double sigma_i =
-            -pow(this->freq_spans[i].freq * CH_C_2PI, 2);  // sigma for shift&invert, as lowest eigenvalue, from Hz info
+            -pow(this->freq_spans[i].freq * CH_2PI, 2);  // sigma for shift&invert, as lowest eigenvalue, from Hz info
 
         ChMatrixDynamic<std::complex<double>> V_i;
         ChVectorDynamic<std::complex<double>> eig_i;
@@ -478,7 +478,7 @@ bool ChQuadraticEigenvalueSolverNullspaceDirect::Solve(
         V.col(i) = mvhns;
         V.col(i).normalize();  // check if necessary or already normalized
         eig(i) = all_eigen_values_and_vectors.at(i_half).eigen_val;
-        freq(i) = (1.0 / CH_C_2PI) * (std::abs(eig(i)));  // undamped freq.
+        freq(i) = (1.0 / CH_2PI) * (std::abs(eig(i)));  // undamped freq.
         damping_ratio(i) = -eig(i).real() / std::abs(eig(i));
     }
 
@@ -682,7 +682,7 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(
                                      (all_eigen_values_and_vectors[i].eigen_val - settings.sigma);
             std::cout << "   Sorted Eig " << i << "= " << all_eigen_values_and_vectors[i].eigen_val.real() << ", "
                       << all_eigen_values_and_vectors[i].eigen_val.imag() << "i "
-                      << "   freq= " << (1.0 / CH_C_2PI) * std::abs(all_eigen_values_and_vectors[i].eigen_val)
+                      << "   freq= " << (1.0 / CH_2PI) * std::abs(all_eigen_values_and_vectors[i].eigen_val)
                       << "; res: " << resCallback.norm() << std::endl;
         }
     }
@@ -706,7 +706,7 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(
             n_vars);           // store only displacement part of eigenvector, no speed part, no constraint part
         V.col(i).normalize();  // check if necessary or already normalized
         eig(i) = all_eigen_values_and_vectors.at(i_half).eigen_val;
-        freq(i) = (1.0 / CH_C_2PI) * (std::abs(eig(i)));  // undamped freq.
+        freq(i) = (1.0 / CH_2PI) * (std::abs(eig(i)));  // undamped freq.
         damping_ratio(i) = -eig(i).real() / std::abs(eig(i));
     }
 
@@ -735,7 +735,7 @@ int ChModalSolveDamped::Solve(
     for (int i = 0; i < this->freq_spans.size(); ++i) {
         int nmodes_goal_i = this->freq_spans[i].nmodes;
         double sigma_i =
-            (this->freq_spans[i].freq * CH_C_2PI);  // sigma for shift&invert, as lowest eigenvalue, from Hz info
+            (this->freq_spans[i].freq * CH_2PI);  // sigma for shift&invert, as lowest eigenvalue, from Hz info
         // Note, for the damped case, the sigma_i assumed as a *complex* shift, as w are on the imaginary axis.
 
         ChMatrixDynamic<std::complex<double>> V_i;

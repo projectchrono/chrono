@@ -15,23 +15,16 @@
 
 namespace chrono {
 
-static const double CH_C_PI = 3.141592653589793238462643383279;
-static const double CH_C_PI_2 = 1.570796326794896619231321691639;
-static const double CH_C_PI_4 = 0.785398163397448309615660845819;
-static const double CH_C_1_PI = 0.318309886183790671537767526745;
-static const double CH_C_2PI = 6.283185307179586476925286766559;
-static const double CH_C_RAD_TO_DEG = 180.0 / 3.1415926535897932384626433832795;
-static const double CH_C_DEG_TO_RAD = 3.1415926535897932384626433832795 / 180.0;
-static const double CH_C_RPM_TO_RPS = CH_C_PI / 30.0;
+static constexpr double CH_PI = 3.141592653589793238462643383279;
+static constexpr double CH_PI_2 = 1.570796326794896619231321691639;
+static constexpr double CH_PI_4 = 0.785398163397448309615660845819;
+static constexpr double CH_2PI = 6.283185307179586476925286766559;
+static constexpr double CH_RAD_TO_DEG = 180.0 / CH_PI;
+static constexpr double CH_DEG_TO_RAD = CH_PI / 180.0;
+static constexpr double CH_RPM_TO_RAD_S = CH_2PI / 60.0;
+static constexpr double CH_RAD_S_TO_RPM = 60.0 / CH_2PI;
 
-static const double CH_C_SQRT_2 = 1.41421356237309504880;
-static const double CH_C_SQRT_1_2 = 0.70710678118654752440;
-
-static const double CH_C_E = 2.71828182845904523536;
-static const double CH_C_LOG2E = 1.44269504088896340736;
-static const double CH_C_LOG10E = 0.43429448190325182765;
-static const double CH_C_LN2 = 0.69314718055994530941;
-static const double CH_C_LN10 = 2.30258509299404568402;
+static constexpr double CH_SQRT_2 = 1.41421356237309504880;
 
 }  // end namespace chrono
 

@@ -39,7 +39,7 @@ def AddFallingItems(sys):
 
             body_ct_shape = chrono.ChCollisionShapeSphere(mat, radius)
             body.AddCollisionShape(body_ct_shape)
-            body.SetCollide(True)
+            body.EnableCollision(True)
 
             sphere = chrono.ChVisualShapeSphere(radius)
             sphere.SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
@@ -57,7 +57,7 @@ def AddFallingItems(sys):
 
             body_ct_shape = chrono.ChCollisionShapeBox(mat, size.x, size.y, size.z)
             body.AddCollisionShape(body_ct_shape)
-            body.SetCollide(True)
+            body.EnableCollision(True)
 
             box = chrono.ChVisualShapeBox(size)
             box.SetTexture(chrono.GetChronoDataFile("textures/pinkwhite.png"))
@@ -78,9 +78,9 @@ def AddContainer(sys):
     fixedBody = chrono.ChBody()
 
     fixedBody.SetMass(1.0)
-    fixedBody.SetBodyFixed(True)
+    fixedBody.SetFixed(True)
     fixedBody.SetPos(chrono.ChVector3d())
-    fixedBody.SetCollide(True)
+    fixedBody.EnableCollision(True)
 
     # Contact material for container
     fixed_mat = chrono.ChContactMaterialSMC()
@@ -99,7 +99,7 @@ def AddContainer(sys):
     rotatingBody.SetMass(10.0)
     rotatingBody.SetInertiaXX(chrono.ChVector3d(50, 50, 50))
     rotatingBody.SetPos(chrono.ChVector3d(0, -1.6, 0))
-    rotatingBody.SetCollide(True)
+    rotatingBody.EnableCollision(True)
 
     # Contact material for mixer body
     rot_mat = chrono.ChContactMaterialSMC()
@@ -120,8 +120,8 @@ def AddContainer(sys):
     my_motor.Initialize(rotatingBody,
                         fixedBody,
                         chrono.ChFramed(chrono.ChVector3d(0, 0, 0), 
-                                        chrono.QuatFromAngleAxis(chrono.CH_C_PI_2, chrono.VECT_X)))
-    mfun = chrono.ChFunctionConst(chrono.CH_C_PI / 2.0)  # speed w=90°/s
+                                        chrono.QuatFromAngleAxis(chrono.CH_PI_2, chrono.VECT_X)))
+    mfun = chrono.ChFunctionConst(chrono.CH_PI / 2.0)  # speed w=90°/s
     my_motor.SetSpeedFunction(mfun)
 
     sys.AddLink(my_motor)

@@ -58,7 +58,7 @@ class CH_VEHICLE_API ChTrackBrakeSimple : public ChTrackBrake {
     virtual double GetBrakeTorque() override { return m_braking * GetMaxBrakingTorque(); }
 
     /// Get the current brake angular speed (between disc and caliper) [rad/s].
-    double GetBrakeSpeed() { return m_brake->GetRelWvel().Length(); }
+    double GetBrakeSpeed() { return m_brake->GetRelativeAngVel().Length(); }
 
   protected:
     /// Get the max braking torque (for braking = 1)

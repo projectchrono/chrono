@@ -58,7 +58,7 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Express the steering reference frame in the absolute coordinate system.
     ChFrame<> steering_to_abs(location, rotation);
-    steering_to_abs.ConcatenatePreTransformation(chassisBody->GetFrame_REF_to_abs());
+    steering_to_abs.ConcatenatePreTransformation(chassisBody->GetFrameRefToAbs());
 
     // Create and initialize the steering link body
     ChVector3d link_pos = steering_to_abs.TransformPointLocalToParent(ChVector3d(0, GetSteeringLinkCOM(), 0));
@@ -76,7 +76,7 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
     m_prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     m_prismatic->SetNameString(m_name + "_prismatic");
     m_prismatic->Initialize(chassisBody, m_link,
-                            ChFrame<>(link_pos, link_rot * QuatFromAngleX(CH_C_PI_2)));
+                            ChFrame<>(link_pos, link_rot * QuatFromAngleX(CH_PI_2)));
     sys->AddLink(m_prismatic);
 
     // Create and initialize the linear actuator.

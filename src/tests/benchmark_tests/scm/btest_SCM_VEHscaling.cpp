@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
     // Create the Chrono system
     // ------------------------
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     sys.SetNumThreads(nthreads, nthreads, 1);
     if (chrono_collsys) {
 #ifdef CHRONO_COLLISION
@@ -249,7 +249,8 @@ int main(int argc, char* argv[]) {
     hmmwv.GetVehicle().EnableRealtime(false);
 
     // Solver settings
-    sys.SetSolverMaxIterations(50);
+    sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(50);
 
     // Initialize simulation frame counter
     int step_number = 0;

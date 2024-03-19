@@ -192,7 +192,7 @@ int main(int argc, char* argv[]) {
     double distance = node_id * 2.5;
     // Create the vehicle, set parameters, and initialize
     ChSystemNSC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.81));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.81));
     Little_Hexy myhexy(sys, ChVector3d(0, distance, 0));
     myhexy.AddVisualizationAssets();
     auto mymat = chrono_types::make_shared<ChContactMaterialNSC>();

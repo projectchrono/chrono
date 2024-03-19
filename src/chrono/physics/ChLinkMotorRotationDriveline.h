@@ -18,30 +18,22 @@
 
 #include "chrono/physics/ChLinkMotorRotation.h"
 #include "chrono/physics/ChShaft.h"
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 
 namespace chrono {
 
 
-/// This is an "interface" from 3D to a powertrain/powertrain that is modeled via
-/// 1D elements such as ChShaft, ChShaftsMotor, ChShaftsGearbox, ChShaftsClutch, etc. 
+/// Couples the relative rotation of two bodies (along Z direction of the link frames) with the rotation of a 1D shaft.
 ///
-///  This is the most avanced type of "motor" because using many of those 1D
-/// elements one can build very complex drivelines, for example use
-/// this ChLinkMotorRotationDriveline to represent a drive+reducer,
-/// hence taking into account of the inertia of the motor shaft (as in
-/// many cases of robotic actuators, that has electric drives+reducers.)
-/// At the same time, using 1D elements avoids the unnecessary complication 
-/// of using complete 3D parts to make fast spindles, 3D gears etc. 
+/// This link adds two additional ChShaft rotational objects, one on each body, oriented along the Z axis of the bodies.
+/// The _rotational_ shaft is connected to Body 2 (through a ChShaftBodyRotation) along a direction (default: Z axis) that can
+/// be later set through SetInnerShaft2RotDirection(). Any action applied to the shafts is then reflected back to the
+/// respective bodies along their given directions.
 ///
-///  The 1D driveline is "interfaced" to the two connected threedimensional
-/// parts using two "inner" 1D shafts, each rotating as the connected 3D part;
-/// it is up to the user to build the driveline that connects those two shafts.
-///
-///  Most often the driveline is a graph starting at inner shaft 2 (consider 
-/// it to be the truss for holding the motor drive, also the support for reducers 
-/// if any) and ending at inner shaft 1 (consider it to be the output, i.e. the 
-/// slow-rotation spindle).
+///                  [**** ChLinkMotorRotationDriveline ****]
+///     [ Body2 ]----[----(ChShaftBodyRotation)----[Shaft2Rot]----]---->
+///     [ Body1 ]----[----(ChShaftBodyRotation)----[Shaft1Rot]----]---->
+///     
 ///  Note that it is up to the user to create a driveline where all torques are
 /// balanced action/reactions: in this case, 
 ///    GetMotorTorque() = GetInnerTorque1() = - GetInnerTorque2(). 
@@ -52,8 +44,8 @@ class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
 
     std::shared_ptr<ChShaft> innershaft1;            
     std::shared_ptr<ChShaft> innershaft2;            
-    std::shared_ptr<ChShaftsBody> innerconstraint1;  
-    std::shared_ptr<ChShaftsBody> innerconstraint2;  
+    std::shared_ptr<ChShaftBodyRotation> innerconstraint1;  
+    std::shared_ptr<ChShaftBodyRotation> innerconstraint2;  
 
   public:
     ChLinkMotorRotationDriveline();
@@ -127,9 +119,9 @@ class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
     //
     // STATE FUNCTIONS
     //
-    virtual int GetNumCoordinatesPos() override;
-    virtual int GetNumConstraints() override;
-    virtual int GetNumConstraintsBilateral() override;
+    virtual unsigned int GetNumCoordsPosLevel() override;
+    virtual unsigned int GetNumConstraints() override;
+    virtual unsigned int GetNumConstraintsBilateral() override;
 
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,

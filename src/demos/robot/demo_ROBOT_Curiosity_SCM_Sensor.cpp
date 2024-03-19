@@ -140,17 +140,17 @@ int main(int argc, char* argv[]) {
             return 1;
         }
     }
-    utils::CSV_writer csv(" ");
+    utils::ChWriterCSV csv(" ");
 
     // Curiosity rover initial position and orientation
     ChVector3d body_pos(-5, -0.2, 0);
-    ChQuaternion<> body_rot = QuatFromAngleX(-CH_C_PI / 2);
+    ChQuaternion<> body_rot = QuatFromAngleX(-CH_PI / 2);
 
     // Create a Curiosity rover
     Curiosity rover(&sys, chassis_type, wheel_type);
 
     // Create a CuriosityDriver to command the rover
-    auto driver = chrono_types::make_shared<CuriositySpeedDriver>(1.0, CH_C_PI);
+    auto driver = chrono_types::make_shared<CuriositySpeedDriver>(1.0, CH_PI);
     rover.SetDriver(driver);
     rover.Initialize(ChFrame<>(body_pos, body_rot));
 
@@ -192,20 +192,20 @@ int main(int argc, char* argv[]) {
             rock1_pos = ChVector3d(-2.5, -0.3, 1.0);
         }
 
-        rock1_Body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+        rock1_Body->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
 
         rock1_Body->SetMass(mmass * mdensity);  // mmass * mdensity
         rock1_Body->SetInertiaXX(mdensity * principal_I);
 
-        rock1_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(rock1_pos), ChQuaternion<>(rock1_rot)));
+        rock1_Body->SetFrameRefToAbs(ChFrame<>(ChVector3d(rock1_pos), ChQuaternion<>(rock1_rot)));
         sys.Add(rock1_Body);
 
-        rock1_Body->SetBodyFixed(false);
+        rock1_Body->SetFixed(false);
 
         auto rock1_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_1_mmesh, false,
                                                                                 false, 0.005);
         rock1_Body->AddCollisionShape(rock1_ct_shape);
-        rock1_Body->SetCollide(true);
+        rock1_Body->EnableCollision(true);
 
         auto rock1_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         rock1_mesh->SetMesh(rock_1_mmesh);
@@ -247,20 +247,20 @@ int main(int argc, char* argv[]) {
             rock2_pos = ChVector3d(-1.0, -0.3, 1.0);
         }
 
-        rock2_Body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+        rock2_Body->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
 
         rock2_Body->SetMass(mmass * mdensity);  // mmass * mdensity
         rock2_Body->SetInertiaXX(mdensity * principal_I);
 
-        rock2_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(rock2_pos), ChQuaternion<>(rock2_rot)));
+        rock2_Body->SetFrameRefToAbs(ChFrame<>(ChVector3d(rock2_pos), ChQuaternion<>(rock2_rot)));
         sys.Add(rock2_Body);
 
-        rock2_Body->SetBodyFixed(false);
+        rock2_Body->SetFixed(false);
 
         auto rock2_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_2_mmesh,
                                                                                       false, false, 0.005);
         rock2_Body->AddCollisionShape(rock2_ct_shape);
-        rock2_Body->SetCollide(true);
+        rock2_Body->EnableCollision(true);
 
         auto rock2_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         rock2_mesh->SetMesh(rock_2_mmesh);
@@ -302,20 +302,20 @@ int main(int argc, char* argv[]) {
             rock3_pos = ChVector3d(0.5, -0.3, 1.0);
         }
 
-        rock3_Body->SetFrame_COG_to_REF(ChFrame<>(mcog, principal_inertia_rot));
+        rock3_Body->SetFrameCOMToRef(ChFrame<>(mcog, principal_inertia_rot));
 
         rock3_Body->SetMass(mmass * mdensity);  // mmass * mdensity
         rock3_Body->SetInertiaXX(mdensity * principal_I);
 
-        rock3_Body->SetFrame_REF_to_abs(ChFrame<>(ChVector3d(rock3_pos), ChQuaternion<>(rock3_rot)));
+        rock3_Body->SetFrameRefToAbs(ChFrame<>(ChVector3d(rock3_pos), ChQuaternion<>(rock3_rot)));
         sys.Add(rock3_Body);
 
-        rock3_Body->SetBodyFixed(false);
+        rock3_Body->SetFixed(false);
 
         auto rock3_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_3_mmesh,
                                                                                       false, false, 0.005);
         rock3_Body->AddCollisionShape(rock3_ct_shape);
-        rock3_Body->SetCollide(true);
+        rock3_Body->EnableCollision(true);
 
         auto rock3_mesh = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         rock3_mesh->SetMesh(rock_3_mmesh);
@@ -340,7 +340,7 @@ int main(int argc, char* argv[]) {
     // Note that SCMTerrain uses a default ISO reference frame (Z up). Since the mechanism is modeled here in
     // a Y-up global frame, we rotate the terrain plane by -90 degrees about the X axis.
     // Note: Irrlicht uses a Y-up frame
-    terrain.SetPlane(ChCoordsys<>(ChVector3d(0, -0.5, 0), QuatFromAngleX(-CH_C_PI_2)));
+    terrain.SetPlane(ChCoordsys<>(ChVector3d(0, -0.5, 0), QuatFromAngleX(-CH_PI_2)));
 
     // Use a regular grid:
     double length = 14;
@@ -473,8 +473,8 @@ int main(int argc, char* argv[]) {
                                                           offset_pose,                    // offset pose
                                                           480,                   // number of horizontal samples
                                                           300,                   // number of vertical channels
-                                                          (float)(2 * CH_C_PI),  // horizontal field of view
-                                                          (float)CH_C_PI / 12, (float)-CH_C_PI / 6,
+                                                          (float)(2 * CH_PI),  // horizontal field of view
+                                                          (float)CH_PI / 12, (float)-CH_PI / 6,
                                                           120.0f  // vertical field of view
     );
     lidar->SetName("Lidar Sensor 1");
@@ -503,7 +503,7 @@ int main(int argc, char* argv[]) {
 
     // Create a radar and attach to rover chassis
     auto radar = chrono_types::make_shared<ChRadarSensor>(rover.GetChassis()->GetBody(), 25, offset_pose_1, 300, 200,
-                                                          (float)(CH_C_PI / 1.5), float(CH_C_PI / 5), 100.f);
+                                                          (float)(CH_PI / 1.5), float(CH_PI / 5), 100.f);
     radar->SetName("Radar Sensor");
     radar->SetLag(0.f);
     radar->SetCollectionWindow(0.04f);
@@ -544,7 +544,7 @@ int main(int argc, char* argv[]) {
 
     if (output) {
         // write output data into file
-        csv.write_to_file(out_dir + "/output.dat");
+        csv.WriteToFile(out_dir + "/output.dat");
     }
 
     return 0;

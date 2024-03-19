@@ -60,7 +60,7 @@ class ChApi ChSurfaceNurbs : public ChSurface {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChSurfaceNurbs* Clone() const override { return new ChSurfaceNurbs(*this); }
 
-    // virtual int Get_complexity() const override { return points.GetRows(); }
+    // virtual int GetComplexity() const override { return points.GetRows(); }
 
     /// Return a point on the surface, given parametric coordinates U,V.
     /// Parameters U and V always work in 0..1 range.  As such, to use u' in knot range, use ComputeUfromKnotU().

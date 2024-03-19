@@ -182,7 +182,7 @@ void FmuComponent::ConfigureSystem() {
     // Containing system
     auto system = vehicle->GetSystem();
 
-    system->Set_G_acc(g_acc);
+    system->SetGravitationalAcceleration(g_acc);
 
     // Associate a collision system
     system->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);

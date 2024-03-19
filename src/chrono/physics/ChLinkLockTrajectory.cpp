@@ -24,7 +24,7 @@ CH_FACTORY_REGISTER(ChLinkLockTrajectory)
 
 ChLinkLockTrajectory::ChLinkLockTrajectory() : modulo_s(false) {
     // initializes type
-    type = LinkType::TRAJECTORY;
+    type = Type::TRAJECTORY;
 
     // default s(t) function. User will provide better fx.
     space_fx = chrono_types::make_shared<ChFunctionRamp>(0, 1.);
@@ -43,11 +43,11 @@ ChLinkLockTrajectory::ChLinkLockTrajectory(const ChLinkLockTrajectory& other) : 
     trajectory_line = std::shared_ptr<ChLine>((ChLine*)other.trajectory_line->Clone());  // deep copy
 }
 
-void ChLinkLockTrajectory::Set_space_fx(std::shared_ptr<ChFunction> m_funct) {
+void ChLinkLockTrajectory::SetTimeLaw(std::shared_ptr<ChFunction> m_funct) {
     space_fx = m_funct;
 }
 
-void ChLinkLockTrajectory::Set_trajectory_line(std::shared_ptr<ChLine> mline) {
+void ChLinkLockTrajectory::SetTrajectory(std::shared_ptr<ChLine> mline) {
     trajectory_line = mline;
 }
 
@@ -76,8 +76,8 @@ void ChLinkLockTrajectory::UpdateTime(double time) {
         deltaC_dtdt.pos = (resultA + resultB - result * 2) * (4 / pow(2 * tstep, 2));
         /*
         // if line coordinate is relative to absolute space:
-        ChMatrix33<> mw(marker2->GetAbsCsys().rot);
-        deltaC.pos = mw.transpose() * (result - marker2->GetAbsCsys().pos);  //// CORRECT?
+        ChMatrix33<> mw(marker2->GetAbsCoordsys().rot);
+        deltaC.pos = mw.transpose() * (result - marker2->GetAbsCoordsys().pos);  //// CORRECT?
         deltaC_dt.pos = mw.transpose() * ((resultB - resultA) * (1 / (2 * tstep)));
         deltaC_dtdt.pos = mw.transpose() * ((resultA + resultB - result * 2) * (4 / pow(2 * tstep, 2)));
         */
@@ -95,7 +95,7 @@ void ChLinkLockTrajectory::Initialize(std::shared_ptr<ChBody> body1,
                                   const ChVector3d& pos1,
                                   std::shared_ptr<ChLine> line) {
     ChLinkMarkers::Initialize(body1, body2, true, ChFrame<>(pos1), ChFrame<>());
-    this->Set_trajectory_line(line);
+    this->SetTrajectory(line);
 }
 
 void ChLinkLockTrajectory::ArchiveOut(ChArchiveOut& archive_out) {

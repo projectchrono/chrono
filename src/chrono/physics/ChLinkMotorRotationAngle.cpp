@@ -20,8 +20,12 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkMotorRotationAngle)
 
 ChLinkMotorRotationAngle::ChLinkMotorRotationAngle() {
-    // default motion function: ramp with initial value y(0) = 0 and slope dy/dt = 1
-    m_func = chrono_types::make_shared<ChFunctionRamp>(0.0, 1.0);
+
+    this->c_rz = true;
+    SetupLinkMask();
+    
+    // default motion function
+    m_func = chrono_types::make_shared<ChFunctionConst>(0.0);
 
     rot_offset = 0;
 }
@@ -39,9 +43,9 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
     // Override the rotational jacobian [Cq] and the rotational residual C,
     // by assuming an additional hidden frame that rotates about frame1:
 
-    if (this->Body1 && this->Body2) {
-        ChFrame<> aframe1 = this->frame1 >> (*this->Body1);
-        ChFrame<> aframe2 = this->frame2 >> (*this->Body2);
+    if (this->m_body1 && this->m_body2) {
+        ChFrame<> aframe1 = this->frame1 >> (*this->m_body1);
+        ChFrame<> aframe2 = this->frame2 >> (*this->m_body2);
 
         //ChFrame<> aframe12 = aframe2.TransformParentToLocal(aframe1);
 
@@ -58,12 +62,12 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
         this->P = 0.5 * (ChMatrix33<>(aframe1rotating2.GetRot().e0()) +
                          ChStarMatrix33<>(aframe1rotating2.GetRot().GetVector()));
 
-        ChMatrix33<> Jw1 = this->P.transpose() * aframe2.GetRotMat().transpose() * Body1->GetRotMat();
-        ChMatrix33<> Jw2 = -this->P.transpose() * aframe2.GetRotMat().transpose() * Body2->GetRotMat();
+        ChMatrix33<> Jw1 = this->P.transpose() * aframe2.GetRotMat().transpose() * m_body1->GetRotMat();
+        ChMatrix33<> Jw2 = -this->P.transpose() * aframe2.GetRotMat().transpose() * m_body2->GetRotMat();
 
         // Another equivalent expression:
-        // ChMatrix33<> Jw1 = this->P * aframe1rotating.GetRotMat().transpose() * Body1->GetRotMat();
-        // ChMatrix33<> Jw2 = -this->P * aframe1rotating.GetRotMat().transpose() * Body2->GetRotMat();
+        // ChMatrix33<> Jw1 = this->P * aframe1rotating.GetRotMat().transpose() * m_body1->GetRotMat();
+        // ChMatrix33<> Jw2 = -this->P * aframe1rotating.GetRotMat().transpose() * m_body2->GetRotMat();
 
         int nc = 0;
 
@@ -78,26 +82,26 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
         }
         if (c_rx) {
             C(nc) = aframe1rotating2.GetRot().e1();
-            mask.Constr_N(nc).Get_Cq_a().setZero();
-            mask.Constr_N(nc).Get_Cq_b().setZero();
-            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(0);
-            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(0);
+            mask.GetConstraint(nc).Get_Cq_a().setZero();
+            mask.GetConstraint(nc).Get_Cq_b().setZero();
+            mask.GetConstraint(nc).Get_Cq_a().segment(3, 3) = Jw1.row(0);
+            mask.GetConstraint(nc).Get_Cq_b().segment(3, 3) = Jw2.row(0);
             nc++;
         }
         if (c_ry) {
             C(nc) = aframe1rotating2.GetRot().e2();
-            mask.Constr_N(nc).Get_Cq_a().setZero();
-            mask.Constr_N(nc).Get_Cq_b().setZero();
-            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(1);
-            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(1);
+            mask.GetConstraint(nc).Get_Cq_a().setZero();
+            mask.GetConstraint(nc).Get_Cq_b().setZero();
+            mask.GetConstraint(nc).Get_Cq_a().segment(3, 3) = Jw1.row(1);
+            mask.GetConstraint(nc).Get_Cq_b().segment(3, 3) = Jw2.row(1);
             nc++;
         }
         if (c_rz) {
             C(nc) = aframe1rotating2.GetRot().e3();
-            mask.Constr_N(nc).Get_Cq_a().setZero();
-            mask.Constr_N(nc).Get_Cq_b().setZero();
-            mask.Constr_N(nc).Get_Cq_a().segment(3, 3) = Jw1.row(2);
-            mask.Constr_N(nc).Get_Cq_b().segment(3, 3) = Jw2.row(2);
+            mask.GetConstraint(nc).Get_Cq_a().setZero();
+            mask.GetConstraint(nc).Get_Cq_b().setZero();
+            mask.GetConstraint(nc).Get_Cq_a().segment(3, 3) = Jw1.row(2);
+            mask.GetConstraint(nc).Get_Cq_b().segment(3, 3) = Jw2.row(2);
             nc++;
         }
     }
@@ -109,12 +113,12 @@ void ChLinkMotorRotationAngle::KRMmatricesLoad(double Kfactor, double Rfactor, d
         return;
 
     if (this->Kmatr) {
-        ChMatrix33<> R_B1_W = Body1->GetRotMat();
-        ChMatrix33<> R_B2_W = Body2->GetRotMat();
+        ChMatrix33<> R_B1_W = m_body1->GetRotMat();
+        ChMatrix33<> R_B2_W = m_body2->GetRotMat();
         // ChMatrix33<> R_F1_B1 = frame1.GetRotMat();
         // ChMatrix33<> R_F2_B2 = frame2.GetRotMat();
-        ChFrame<> F1_W = this->frame1 >> (*this->Body1);
-        ChFrame<> F2_W = this->frame2 >> (*this->Body2);
+        ChFrame<> F1_W = this->frame1 >> (*this->m_body1);
+        ChFrame<> F2_W = this->frame2 >> (*this->m_body2);
         ChMatrix33<> R_F1_W = F1_W.GetRotMat();
         ChMatrix33<> R_F2_W = F2_W.GetRotMat();
         ChVector3d P12_B2 = R_B2_W.transpose() * (F1_W.GetPos() - F2_W.GetPos());
@@ -174,8 +178,8 @@ void ChLinkMotorRotationAngle::KRMmatricesLoad(double Kfactor, double Rfactor, d
 
 void ChLinkMotorRotationAngle::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
     double mCt = -0.5 * m_func->GetDer(this->GetChTime());
-    int ncrz = mask.nconstr - 1;
-    if (mask.Constr_N(ncrz).IsActive()) {
+    unsigned int ncrz = mask.GetNumConstraints() - 1;
+    if (mask.GetConstraint(ncrz).IsActive()) {
         Qc(off_L + ncrz) += c * mCt;
     }
 }
@@ -185,9 +189,9 @@ void ChLinkMotorRotationAngle::ConstraintsBiLoad_Ct(double factor) {
         return;
 
     double mCt = -0.5 * m_func->GetDer(this->GetChTime());
-    int ncrz = mask.nconstr - 1;
-    if (mask.Constr_N(ncrz).IsActive()) {
-        mask.Constr_N(ncrz).Set_b_i(mask.Constr_N(ncrz).Get_b_i() + factor * mCt);
+    unsigned int ncrz = mask.GetNumConstraints() - 1;
+    if (mask.GetConstraint(ncrz).IsActive()) {
+        mask.GetConstraint(ncrz).Set_b_i(mask.GetConstraint(ncrz).Get_b_i() + factor * mCt);
     }
 }
 

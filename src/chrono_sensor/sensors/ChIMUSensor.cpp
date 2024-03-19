@@ -33,7 +33,7 @@ CH_SENSOR_API ChAccelerometerSensor::ChAccelerometerSensor(std::shared_ptr<chron
 
 CH_SENSOR_API void ChAccelerometerSensor::PushKeyFrame() {
     ChVector3d tran_acc_no_offset = m_parent->PointAccelerationLocalToParent(m_offsetPose.GetPos());
-    ChVector3d tran_acc_offset = -m_parent->GetSystem()->Get_G_acc();
+    ChVector3d tran_acc_offset = -m_parent->GetSystem()->GetGravitationalAcceleration();
     tran_acc_offset = m_parent->GetRot().Rotate(tran_acc_offset);
     m_keyframes.push_back(tran_acc_no_offset + tran_acc_offset);
 }

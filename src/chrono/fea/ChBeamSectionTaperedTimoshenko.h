@@ -182,25 +182,25 @@ class ChApi ChBeamSectionTimoshenkoAdvancedGeneric : public ChBeamSectionRayleig
     /// Sets the shear rigidity, for shearing along Y axis, at shear center,
     /// usually Ayy*G for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetYshearRigidity(const double mv) { GAyy = mv; }
+    virtual void SetShearRigidityY(const double mv) { GAyy = mv; }
 
     /// Sets the shear rigidity, for shearing along Z axis, at shear center,
     /// usually Azz*G for uniform elasticity, but for nonuniform elasticity
     /// here you can put a value ad-hoc from a preprocessor
-    virtual void SetZshearRigidity(const double mv) { GAzz = mv; }
+    virtual void SetShearRigidityZ(const double mv) { GAzz = mv; }
 
     /// Gets the shear rigidity, for shearing along Y axis at shear center, usually Ayy*G, but might be ad hoc
-    virtual double GetYshearRigidity() const { return this->GAyy; }
+    virtual double GetShearRigidityY() const { return this->GAyy; }
 
     /// Gets the shear rigidity, for shearing along Z axis at shear center, usually Azz*G, but might be ad hoc
-    virtual double GetZshearRigidity() const { return this->GAzz; }
+    virtual double GetShearRigidityZ() const { return this->GAzz; }
 
     /// Sets the damping parameters of section. You have a chance to assign different coefficients for axial, bending
     /// and torsion directions. This would be helpful for those anisotropic material, such as wind turbine blade.
-    virtual void SetBeamRayleighDamping(DampingCoefficients mdamping_coeff) { this->rdamping_coeff = mdamping_coeff; }
+    virtual void SetRayleighDamping(DampingCoefficients mdamping_coeff) { this->rdamping_coeff = mdamping_coeff; }
 
     ///  Gets the damping parameters of section.
-    virtual DampingCoefficients GetBeamRayleighDamping() const { return this->rdamping_coeff; }
+    virtual DampingCoefficients GetRayleighDamping() const { return this->rdamping_coeff; }
 
     /// Set the Jyy Jzz Jyz components of the sectional inertia per unit length,
     /// in centerline reference, measured along centerline main axes.
@@ -342,7 +342,7 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
     );
 
     /// Get the average damping parameters of this tapered cross-section.
-    virtual DampingCoefficients GetBeamRayleighDamping() const;
+    virtual DampingCoefficients GetRayleighDamping() const;
 
     /// Compute the average section parameters: mass, inertia and rigidity, etc.
     virtual void ComputeAverageSectionParameters();

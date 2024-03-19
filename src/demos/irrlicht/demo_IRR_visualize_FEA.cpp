@@ -27,7 +27,7 @@
 #include "chrono/fea/ChElementHexaCorot_20.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -47,10 +47,10 @@ int main(int argc, char* argv[]) {
 
     // Create a material, that must be assigned to each element and set its parameters
     auto material = chrono_types::make_shared<ChContinuumElastic>();
-    material->Set_E(0.01e9);  // rubber 0.01e9, steel 200e9
-    material->Set_v(0.3);
-    material->Set_RayleighDampingK(0.001);
-    material->Set_density(1000);
+    material->SetYoungModulus(0.01e9);  // rubber 0.01e9, steel 200e9
+    material->SetPoissonRatio(0.3);
+    material->SetRayleighDampingBeta(0.001);
+    material->SetDensity(1000);
 
     // Add some TETAHEDRONS from .nmode and .ele input files
     try {
@@ -62,7 +62,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Apply a force to a node
-    auto nodelast = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(mesh->GetNnodes() - 1));
+    auto nodelast = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(mesh->GetNumNodes() - 1));
     nodelast->SetForce(ChVector3d(50, 0, 50));
 
     // Add some HEXAHEDRONS (isoparametric bricks)
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     double sx = 0.1;
     double sz = 0.1;
     for (int e = 0; e < 6; ++e) {
-        double angle = e * (2 * CH_C_PI / 8.0);
+        double angle = e * (2 * CH_PI / 8.0);
         hexpos.z() = 0.3 * cos(angle);
         hexpos.x() = 0.3 * sin(angle);
         ChMatrix33<> hexrot(QuatFromAngleY(angle));
@@ -118,15 +118,15 @@ int main(int argc, char* argv[]) {
 
     // Create a truss
     auto truss = chrono_types::make_shared<ChBody>();
-    truss->SetBodyFixed(true);
+    truss->SetFixed(true);
     sys.Add(truss);
 
     // Create constraints between nodes and truss
     // (for example, fix to ground all nodes which are near y=0)
-    for (unsigned int inode = 0; inode < mesh->GetNnodes(); ++inode) {
+    for (unsigned int inode = 0; inode < mesh->GetNumNodes(); ++inode) {
         if (auto node = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(inode))) {
             if (node->GetPos().y() < 0.01) {
-                auto constraint = chrono_types::make_shared<ChLinkPointFrame>();
+                auto constraint = chrono_types::make_shared<ChLinkNodeFrame>();
                 constraint->Initialize(node, truss);
                 sys.Add(constraint);
 

@@ -113,7 +113,7 @@ bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
            F_CGS_TO_SI * reaction_force.x(), F_CGS_TO_SI * reaction_force.y(), F_CGS_TO_SI * reaction_force.z());
 
     float computed_bottom_force = reaction_force.z();
-    float expected_bottom_force = (float)body_points.size() * (4.f / 3.f) * (float)CH_C_PI * sphereRadius *
+    float expected_bottom_force = (float)body_points.size() * (4.f / 3.f) * (float)CH_PI * sphereRadius *
                                   sphereRadius * sphereRadius * sphereDensity * grav_acceleration;
 
     // 1% error allowed, max

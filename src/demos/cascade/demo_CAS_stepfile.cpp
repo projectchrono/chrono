@@ -66,9 +66,9 @@ int main(int argc, char* argv[]) {
     // In most CADs the Y axis is horizontal, but we want it vertical.
     // So define a root transformation for rotating all the imported objects.
     ChQuaternion<> rotation1;
-    rotation1.SetFromAngleX(-CH_C_PI_2);  // 1: rotate 90 deg on X axis
+    rotation1.SetFromAngleX(-CH_PI_2);  // 1: rotate 90 deg on X axis
     ChQuaternion<> rotation2;
-    rotation2.SetFromAngleY(CH_C_PI);                     // 2: rotate 180 deg on vertical Y axis
+    rotation2.SetFromAngleY(CH_PI);                     // 2: rotate 180 deg on vertical Y axis
     ChQuaternion<> tot_rotation = rotation2 * rotation1;  // rotate on 1 then on 2, using quaternion product
     ChFrameMoving<> root_frame(ChVector3d(0, 0, 0), tot_rotation);
 
@@ -89,7 +89,7 @@ int main(int argc, char* argv[]) {
                                                                  false  // add a collision model
             );
             sys.Add(body1);
-            body1->SetBodyFixed(true);
+            body1->SetFixed(true);
             // Move the body as for global displacement/rotation (also mbody1 %= root_frame; )
             body1->ConcatenatePreTransformation(root_frame);
         } else
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     // Create a large cube as a floor.
     std::shared_ptr<ChBodyEasyBox> floor(new ChBodyEasyBox(1, 0.2, 1, 1000));
     floor->SetPos(ChVector3d(0, -0.3, 0));
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     floor->GetVisualShape(0)->SetColor(ChColor(0.3f, 0.3f, 0.8f));
     sys.Add(floor);
 

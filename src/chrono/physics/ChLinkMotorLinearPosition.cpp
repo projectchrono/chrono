@@ -20,8 +20,12 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkMotorLinearPosition)
 
 ChLinkMotorLinearPosition::ChLinkMotorLinearPosition() {
-    // default motion function: ramp with initial value y(0) = 0 and slope dy/dt = 1
-    m_func = chrono_types::make_shared<ChFunctionRamp>(0.0, 1.0);
+
+    this->c_z = true;
+    SetupLinkMask();
+
+    // default motion function
+    m_func = chrono_types::make_shared<ChFunctionConst>(0.0);
 
     pos_offset = 0;
 }
@@ -46,7 +50,7 @@ void ChLinkMotorLinearPosition::Update(double mytime, bool update_assets) {
 
 void ChLinkMotorLinearPosition::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
     double mCt = -m_func->GetDer(this->GetChTime());
-    if (mask.Constr_N(m_actuated_idx).IsActive()) {
+    if (mask.GetConstraint(m_actuated_idx).IsActive()) {
         Qc(off_L + m_actuated_idx) += c * mCt;
     }
 }
@@ -56,8 +60,8 @@ void ChLinkMotorLinearPosition::ConstraintsBiLoad_Ct(double factor) {
         return;
 
     double mCt = -m_func->GetDer(this->GetChTime());
-    if (mask.Constr_N(m_actuated_idx).IsActive()) {
-        mask.Constr_N(m_actuated_idx).Set_b_i(mask.Constr_N(m_actuated_idx).Get_b_i() + factor * mCt);
+    if (mask.GetConstraint(m_actuated_idx).IsActive()) {
+        mask.GetConstraint(m_actuated_idx).Set_b_i(mask.GetConstraint(m_actuated_idx).Get_b_i() + factor * mCt);
     }
 }
 

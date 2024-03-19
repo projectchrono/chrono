@@ -33,7 +33,7 @@ void ChElementBar::SetNodes(std::shared_ptr<ChNodeFEAxyz> nodeA, std::shared_ptr
 }
 
 void ChElementBar::GetStateBlock(ChVectorDynamic<>& mD) {
-    mD.setZero(this->GetNdofs());
+    mD.setZero(this->GetNumCoordsPosLevel());
     mD.segment(0, 3) = this->nodes[0]->GetPos().eigen();
     mD.segment(3, 3) = this->nodes[1]->GetPos().eigen();
 }
@@ -112,7 +112,7 @@ double ChElementBar::GetCurrentForce() {
 	ChVector3d dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
     double L_ref = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
     double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
-    double L_dt = Vdot((nodes[1]->GetPosDer() - nodes[0]->GetPosDer()), dir);
+    double L_dt = Vdot((nodes[1]->GetPosDt() - nodes[0]->GetPosDt()), dir);
     double Kstiffness = ((this->area * this->E) / this->length);
     double Rdamping = this->rdamping * Kstiffness;
     double internal_Kforce_local = Kstiffness * (L - L_ref);

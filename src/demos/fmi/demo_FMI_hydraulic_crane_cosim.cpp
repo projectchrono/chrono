@@ -67,7 +67,7 @@ void CreateCraneFMU(FmuChronoUnit& crane_fmu,
     fmi2Real crane_length = 1.0;
     fmi2Real pend_mass = 100;
     fmi2Real pend_length = 0.3;
-    fmi2Real crane_angle = CH_C_PI / 6;
+    fmi2Real crane_angle = CH_PI / 6;
 
     crane_fmu.SetVariable("crane_mass", crane_mass, FmuVariable::Type::Real);
     crane_fmu.SetVariable("crane_length", crane_length, FmuVariable::Type::Real);
@@ -171,8 +171,8 @@ int main(int argc, char* argv[]) {
     auto actuation = chrono_types::make_shared<ChFunctionRepeat>(f_segment, 0, 10, 10);
 
     // Initialize combined output
-    utils::CSV_writer csv;
-    csv.set_delim(" ");
+    utils::ChWriterCSV csv;
+    csv.SetDelimiter(" ");
 
     // Simulation loop
     double time = 0;
@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
     }
 
     std::string out_file = out_dir + "/hydraulic_crane.out";
-    csv.write_to_file(out_file);
+    csv.WriteToFile(out_file);
 
 #ifdef CHRONO_POSTPROCESS
     {

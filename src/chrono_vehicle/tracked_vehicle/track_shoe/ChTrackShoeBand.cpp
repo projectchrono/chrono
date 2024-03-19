@@ -67,9 +67,9 @@ void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector2d tooth_tip_p(GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2);
     m_center_p = CalcCircleCenter(tooth_base_p, tooth_tip_p, GetToothArcRadius(), -1);
     m_center_p_arc_start = std::atan2(tooth_base_p.y() - m_center_p.y(), tooth_base_p.x() - m_center_p.x());
-    m_center_p_arc_start = m_center_p_arc_start < 0 ? m_center_p_arc_start + CH_C_2PI : m_center_p_arc_start;
+    m_center_p_arc_start = m_center_p_arc_start < 0 ? m_center_p_arc_start + CH_2PI : m_center_p_arc_start;
     m_center_p_arc_end = std::atan2(tooth_tip_p.y() - m_center_p.y(), tooth_tip_p.x() - m_center_p.x());
-    m_center_p_arc_end = m_center_p_arc_end < 0 ? m_center_p_arc_end + CH_C_2PI : m_center_p_arc_end;
+    m_center_p_arc_end = m_center_p_arc_end < 0 ? m_center_p_arc_end + CH_2PI : m_center_p_arc_end;
     if (m_center_p_arc_start > m_center_p_arc_end) {
         double temp = m_center_p_arc_start;
         m_center_p_arc_start = m_center_p_arc_end;
@@ -81,9 +81,9 @@ void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector2d tooth_tip_m(-GetToothTipLength() / 2, GetToothHeight() + GetWebThickness() / 2);
     m_center_m = CalcCircleCenter(tooth_base_m, tooth_tip_m, GetToothArcRadius(), +1);
     m_center_m_arc_start = std::atan2(tooth_base_m.y() - m_center_m.y(), tooth_base_m.x() - m_center_m.x());
-    m_center_m_arc_start = m_center_m_arc_start < 0 ? m_center_m_arc_start + CH_C_2PI : m_center_m_arc_start;
+    m_center_m_arc_start = m_center_m_arc_start < 0 ? m_center_m_arc_start + CH_2PI : m_center_m_arc_start;
     m_center_m_arc_end = std::atan2(tooth_tip_m.y() - m_center_m.y(), tooth_tip_m.x() - m_center_m.x());
-    m_center_m_arc_end = m_center_m_arc_end < 0 ? m_center_m_arc_end + CH_C_2PI : m_center_m_arc_end;
+    m_center_m_arc_end = m_center_m_arc_end < 0 ? m_center_m_arc_end + CH_2PI : m_center_m_arc_end;
     if (m_center_m_arc_start > m_center_m_arc_end) {
         double temp = m_center_m_arc_start;
         m_center_m_arc_start = m_center_m_arc_end;
@@ -102,7 +102,7 @@ void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     m_shoe->SetRot(rot);
     m_shoe->SetMass(GetTreadMass());
     m_shoe->SetInertiaXX(GetTreadInertia());
-    m_shoe->SetCollide(true);
+    m_shoe->EnableCollision(true);
     chassis->GetSystem()->AddBody(m_shoe);
 
     // Add contact geometry for the tread body and create material for the teeth (sprocket contact)
@@ -145,7 +145,7 @@ void ChTrackShoeBand::AddShoeContact(ChContactMethod contact_method) {
     m_shoe->AddCollisionShape(t_shape, ChFrame<>(t_loc, QUNIT));
 
     m_shoe->GetCollisionModel()->SetFamily(TrackedCollisionFamily::SHOES);
-    m_shoe->GetCollisionModel()->SetFamilyMaskNoCollisionWithFamily(TrackedCollisionFamily::SHOES);
+    m_shoe->GetCollisionModel()->DisallowCollisionsWith(TrackedCollisionFamily::SHOES);
 }
 
 // -----------------------------------------------------------------------------
@@ -250,10 +250,10 @@ std::shared_ptr<ChVisualShapeTriangleMesh> ChTrackShoeBand::ToothMesh(double y) 
 
     // Create the triangular mesh.
     auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
-    std::vector<ChVector3d>& vertices = trimesh->getCoordsVertices();
-    std::vector<ChVector3d>& normals = trimesh->getCoordsNormals();
-    std::vector<ChVector3i>& idx_vertices = trimesh->getIndicesVertexes();
-    std::vector<ChVector3i>& idx_normals = trimesh->getIndicesNormals();
+    std::vector<ChVector3d>& vertices = trimesh->GetCoordsVertices();
+    std::vector<ChVector3d>& normals = trimesh->GetCoordsNormals();
+    std::vector<ChVector3i>& idx_vertices = trimesh->GetIndicesVertexes();
+    std::vector<ChVector3i>& idx_normals = trimesh->GetIndicesNormals();
 
     // Number of vertices:
     //   - 1 for the middle of the tooth base on +y side

@@ -29,9 +29,9 @@ class ChFunctionMyFun (chrono.ChFunction):
          chrono.ChFunction.__init__(self)
     def GetVal(self,x):
         if (x > 0.4):
-            return chrono.CH_C_PI
+            return chrono.CH_PI
         else:
-            return -chrono.CH_C_PI * (1.0 - m.cos(chrono.CH_C_PI * x / 0.4)) / 2.0
+            return -chrono.CH_PI * (1.0 - m.cos(chrono.CH_PI * x / 0.4)) / 2.0
 
 # Output directory
 out_dir = chrono.GetChronoOutputPath() + "BEAM_BUCKLING"
@@ -52,7 +52,7 @@ vd = chrono.ChVector3d(0, 0, 0.0001)
 
 # Create a truss:
 body_truss = chrono.ChBody()
-body_truss.SetBodyFixed(True)
+body_truss.SetFixed(True)
 
 sys.AddBody(body_truss)
 
@@ -93,7 +93,7 @@ minertia.SetAsRectangularSection(beam_wy, beam_wz, 2700)  # automatically sets A
 
 melasticity = fea.ChElasticityCosseratSimple()
 melasticity.SetYoungModulus(73.0e9)
-melasticity.SetGwithPoissonRatio(0.3)
+melasticity.SetShearModulusFromPoisson(0.3)
 melasticity.SetAsRectangularSection(beam_wy, beam_wz)
 
 msection1 = fea.ChBeamSectionCosserat(minertia, melasticity)
@@ -118,8 +118,8 @@ section2 = fea.ChBeamSectionEulerAdvanced()
 hbeam_d = 0.024
 section2.SetDensity(2700)
 section2.SetYoungModulus(73.0e9)
-section2.SetGwithPoissonRatio(0.3)
-section2.SetBeamRaleyghDamping(0.000)
+section2.SetShearModulusFromPoisson(0.3)
+section2.SetRayleighDamping(0.000)
 section2.SetAsCircularSection(hbeam_d)
 
 builderA = fea.ChBuilderBeamEuler()
@@ -150,8 +150,8 @@ section3 = fea.ChBeamSectionEulerAdvanced()
 crankbeam_d = 0.048
 section3.SetDensity(2700)
 section3.SetYoungModulus(73.0e9)
-section3.SetGwithPoissonRatio(0.3)
-section3.SetBeamRaleyghDamping(0.000)
+section3.SetShearModulusFromPoisson(0.3)
+section3.SetRayleighDamping(0.000)
 section3.SetAsCircularSection(crankbeam_d)
 builderB = fea.ChBuilderBeamEuler()
 builderB.BuildBeam(mesh,               # the mesh where to put the created nodes and elements
@@ -241,7 +241,7 @@ while vis.Run():
     vis.Render()
     chronoirr.drawGrid(vis,
         0.05, 0.05, 20, 20, 
-        chrono.ChCoordsysd(chrono.ChVector3d(0, 0, 0), chrono.QuatFromAngleZ(chrono.CH_C_PI_2)))
+        chrono.ChCoordsysd(chrono.ChVector3d(0, 0, 0), chrono.QuatFromAngleZ(chrono.CH_PI_2)))
     vis.EndScene()
 
     sys.DoStepDynamics(0.001)

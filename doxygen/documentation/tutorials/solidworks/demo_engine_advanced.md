@@ -119,7 +119,7 @@ revolute_frame = my_marker.GetAbsFrame()
 link_motor = chrono.ChLinkMotorRotationSpeed()
 link_motor.Initialize(my_shaft, my_ground, revolute_frame)
 link_motor.SetSpindleConstraint(chrono.ChLinkMotorRotationSpeed.SpindleConstraint_CYLINDRICAL)
-link_motor.SetMotorFunction(chrono.ChFunctionConst(1.0*chrono.CH_C_2PI))  # 1.0 Hz to rad/s
+link_motor.SetMotorFunction(chrono.ChFunctionConst(1.0*chrono.CH_2PI))  # 1.0 Hz to rad/s
 my_system.Add(link_motor)
 ~~~
 

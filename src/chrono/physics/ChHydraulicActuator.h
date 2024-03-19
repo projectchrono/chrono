@@ -204,7 +204,7 @@ class ChApi ChHydraulicActuator2 : public ChHydraulicActuatorBase {
   private:
     // Interface to ChExternalDynamics
 
-    virtual int GetNumStates() const override { return 1 + 2; }
+    virtual unsigned int GetNumStates() const override { return 1 + 2; }
 
     virtual void SetInitialConditions(ChVectorDynamic<>& y0) override;
 
@@ -294,7 +294,7 @@ class ChApi ChHydraulicActuator3 : public ChHydraulicActuatorBase {
   private:
     // Interface to ChExternalDynamics
 
-    virtual int GetNumStates() const override { return 1 + 3; }
+    virtual unsigned int GetNumStates() const override { return 1 + 3; }
 
     virtual void SetInitialConditions(ChVectorDynamic<>& y0) override;
 

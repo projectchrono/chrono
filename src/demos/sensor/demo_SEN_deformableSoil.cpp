@@ -89,7 +89,7 @@ unsigned int image_width = 1920;
 unsigned int image_height = 1080;
 
 // Camera's horizontal field of view
-float fov = (float)(CH_C_PI / 3);
+float fov = (float)(CH_PI / 3);
 
 // Lag (in seconds) between sensing and when data becomes accessible
 float lag = 0;
@@ -153,7 +153,7 @@ class MyDriver : public ChDriver {
         if (eff_time < 2)
             m_steering = 0;
         else
-            m_steering = 0.6 * std::sin(CH_C_2PI * (eff_time - 2) / 6);
+            m_steering = 0.6 * std::sin(CH_2PI * (eff_time - 2) / 6);
     }
 
   private:
@@ -172,7 +172,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     // Assemble the tire contact from 15 segments, properly offset.
     // Each segment is further decomposed in convex hulls.
     for (int iseg = 0; iseg < 15; iseg++) {
-        ChQuaternion<> rot = QuatFromAngleAxis(iseg * 24 * CH_C_DEG_TO_RAD, VECT_Y);
+        ChQuaternion<> rot = QuatFromAngleAxis(iseg * 24 * CH_DEG_TO_RAD, VECT_Y);
         for (int ihull = 0; ihull < num_hulls; ihull++) {
             std::vector<ChVector3d > convexhull;
             lugged_convex.GetConvexHullResult(ihull, convexhull);
@@ -183,7 +183,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
 
     // Add a cylinder to represent the wheel hub.
     auto cyl_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(wheel_material, 0.223, 0.252);
-    wheel_body->AddCollisionShape(cyl_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_C_PI_2)));
+    wheel_body->AddCollisionShape(cyl_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     // Visualization
     auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
@@ -361,8 +361,9 @@ int main(int argc, char* argv[]) {
     // ---------------
     std::cout << "Vehicle mass: " << my_hmmwv.GetVehicle().GetMass() << std::endl;
 
-    // Solver settings.
-    system->SetSolverMaxIterations(50);
+    // Solver settings
+    system->SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    system->GetSolver()->AsIterative()->SetMaxIterations(50);
 
     // Number of simulation steps between two 3D view render frames
     int render_steps = (int)std::ceil(render_step_size / step_size);

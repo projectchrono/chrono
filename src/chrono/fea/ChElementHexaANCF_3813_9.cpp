@@ -221,7 +221,7 @@ void ChElementHexaANCF_3813_9::ComputeMassMatrix() {
                                                           3              // order of integration
     );
 
-    m_MassMatrix *= m_material->Get_density();
+    m_MassMatrix *= m_material->GetDensity();
 }
 
 // -----------------------------------------------------------------------------
@@ -261,7 +261,7 @@ void ChElementHexaANCF_3813_9::ComputeGravityForceScale() {
                                                      2                  // order of integration
     );
 
-    m_GravForceScale *= m_material->Get_density();
+    m_GravForceScale *= m_material->GetDensity();
 }
 
 // Compute the generalized force vector due to gravity
@@ -344,10 +344,10 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
     DefF(1, 2) = Nz_d(0, 1);
     DefF(2, 2) = Nz_d(0, 2);
 
-    double E = m_element->GetMaterial()->Get_E();
-    double nu = m_element->GetMaterial()->Get_v();
+    double E = m_element->GetMaterial()->GetYoungModulus();
+    double nu = m_element->GetMaterial()->GetPoissonRatio();
     double C1 = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu));
-    double C2 = m_element->GetMaterial()->Get_G();
+    double C2 = m_element->GetMaterial()->GetShearModulus();
 
     // Matrix of elastic coefficients
     ChMatrixNM<double, 6, 6> E_eps;
@@ -665,8 +665,8 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
 
                         J2Rt = NormSn / sqrt(2.0);
 
-                        double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
-                        double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
+                        double phi = m_element->m_FrictionAngle * CH_DEG_TO_RAD;    // Friction angle
+                        double phi2 = m_element->m_DilatancyAngle * CH_DEG_TO_RAD;  // Dilatancy angle
 
                         double eta = 0;  // Coefficient multiplying hydros. pressure in yield function - function of
                                          // internal friction
@@ -835,8 +835,8 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
 
                         J2Rt = NormSn / sqrt(2.0);
 
-                        double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
-                        double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
+                        double phi = m_element->m_FrictionAngle * CH_DEG_TO_RAD;    // Friction angle
+                        double phi2 = m_element->m_DilatancyAngle * CH_DEG_TO_RAD;  // Dilatancy angle
 
                         double eta = 0;  // Coefficient multiplying hydros. pressure in yield function - function of
                                          // internal friction
@@ -1245,7 +1245,7 @@ void Brick9_Force::Evaluate(ChVectorN<double, 33>& result, const double x, const
 // Compute internal forces and load them in the Fi vector.
 void ChElementHexaANCF_3813_9::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     CalcCoordMatrix(m_d);
-    CalcCoordDerivMatrix(m_d_dt);
+    CalcCoordDtMatrix(m_d_dt);
     m_ddT = m_d * m_d.transpose();
 
     Fi.setZero();
@@ -1338,10 +1338,10 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
     DefF(1, 2) = Nz_d(0, 1);
     DefF(2, 2) = Nz_d(0, 2);
 
-    double E = m_element->GetMaterial()->Get_E();
-    double nu = m_element->GetMaterial()->Get_v();
+    double E = m_element->GetMaterial()->GetYoungModulus();
+    double nu = m_element->GetMaterial()->GetPoissonRatio();
     double C1 = E * nu / ((1.0 + nu) * (1.0 - 2.0 * nu));
-    double C2 = m_element->GetMaterial()->Get_G();
+    double C2 = m_element->GetMaterial()->GetShearModulus();
 
     // Matrix of elastic coefficients
     ChMatrixNM<double, 6, 6> E_eps;
@@ -1735,8 +1735,8 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
 
                         J2Rt = NormSn / sqrt(2.0);
 
-                        double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
-                        double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
+                        double phi = m_element->m_FrictionAngle * CH_DEG_TO_RAD;    // Friction angle
+                        double phi2 = m_element->m_DilatancyAngle * CH_DEG_TO_RAD;  // Dilatancy angle
                         double eta = 0;  // Coefficient multiplying hydros. pressure in yield function - function of
                                          // internal friction
                         double gsi = 0;  // Coefficient multiplying 'current' cohesion value in yield function
@@ -1911,8 +1911,8 @@ void Brick9_Jacobian::Evaluate(ChMatrixNM<double, 33, 33>& result, const double 
 
                         J2Rt = NormSn / sqrt(2.0);
 
-                        double phi = m_element->m_FrictionAngle * CH_C_DEG_TO_RAD;    // Friction angle
-                        double phi2 = m_element->m_DilatancyAngle * CH_C_DEG_TO_RAD;  // Dilatancy angle
+                        double phi = m_element->m_FrictionAngle * CH_DEG_TO_RAD;    // Friction angle
+                        double phi2 = m_element->m_DilatancyAngle * CH_DEG_TO_RAD;  // Dilatancy angle
 
                         double eta = 0;  // Coefficient multiplying hydros. pressure in yield function - function of
                                          // internal friction
@@ -2605,7 +2605,7 @@ void ChElementHexaANCF_3813_9::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kf
 // -----------------------------------------------------------------------------
 
 // Get all the DOFs packed in a single vector (position part).
-void ChElementHexaANCF_3813_9::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementHexaANCF_3813_9::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     for (int i = 0; i < 8; i++) {
         mD.segment(block_offset + 3 * i, 3) = m_nodes[i]->GetPos().eigen();
     }
@@ -2615,9 +2615,9 @@ void ChElementHexaANCF_3813_9::LoadableGetStateBlock_x(int block_offset, ChState
 }
 
 // Get all the DOFs packed in a single vector (speed part).
-void ChElementHexaANCF_3813_9::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
+void ChElementHexaANCF_3813_9::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
     for (int i = 0; i < 8; i++) {
-        mD.segment(block_offset + 3 * i, 3) = m_nodes[i]->GetPosDer().eigen();
+        mD.segment(block_offset + 3 * i, 3) = m_nodes[i]->GetPosDt().eigen();
     }
     mD.segment(block_offset + 24, 3) = m_central_node->GetCurvatureXX_dt().eigen();
     mD.segment(block_offset + 27, 3) = m_central_node->GetCurvatureYY_dt().eigen();
@@ -2847,9 +2847,9 @@ void ChElementHexaANCF_3813_9::CalcCoordMatrix(ChMatrixNM<double, 11, 3>& d) {
     d(10, 2) = rzz.z();
 }
 
-void ChElementHexaANCF_3813_9::CalcCoordDerivMatrix(ChVectorN<double, 33>& dt) {
+void ChElementHexaANCF_3813_9::CalcCoordDtMatrix(ChVectorN<double, 33>& dt) {
     for (int i = 0; i < 8; i++) {
-        const ChVector3d& vel = m_nodes[i]->GetPosDer();
+        const ChVector3d& vel = m_nodes[i]->GetPosDt();
         dt(3 * i + 0) = vel.x();
         dt(3 * i + 1) = vel.y();
         dt(3 * i + 2) = vel.z();

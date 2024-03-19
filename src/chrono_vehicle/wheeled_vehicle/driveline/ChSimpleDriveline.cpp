@@ -96,8 +96,8 @@ void ChSimpleDriveline::Synchronize(double time, const DriverInputs& driver_inpu
         return;
 
     // Set driveshaft speed (output to transmission)
-    double speed_front = 0.5 * (m_front_left->GetPosDer() + m_front_right->GetPosDer());
-    double speed_rear = 0.5 * (m_rear_left->GetPosDer() + m_rear_right->GetPosDer());
+    double speed_front = 0.5 * (m_front_left->GetPosDt() + m_front_right->GetPosDt());
+    double speed_rear = 0.5 * (m_rear_left->GetPosDt() + m_rear_right->GetPosDt());
     double alpha = GetFrontTorqueFraction();
     m_driveshaft_speed = alpha * speed_front + (1 - alpha) * speed_rear;
 
@@ -110,12 +110,12 @@ void ChSimpleDriveline::Synchronize(double time, const DriverInputs& driver_inpu
     double torque_left;
     double torque_right;
 
-    differentialSplit(torque_front, GetFrontDifferentialMaxBias(), m_front_left->GetPosDer(),
-                      m_front_right->GetPosDer(), torque_left, torque_right);
+    differentialSplit(torque_front, GetFrontDifferentialMaxBias(), m_front_left->GetPosDt(),
+                      m_front_right->GetPosDt(), torque_left, torque_right);
     m_front_left->SetAppliedTorque(-torque_left);
     m_front_right->SetAppliedTorque(-torque_right);
 
-    differentialSplit(torque_rear, GetRearDifferentialMaxBias(), m_rear_left->GetPosDer(), m_rear_right->GetPosDer(),
+    differentialSplit(torque_rear, GetRearDifferentialMaxBias(), m_rear_left->GetPosDt(), m_rear_right->GetPosDt(),
                       torque_left, torque_right);
     m_rear_left->SetAppliedTorque(-torque_left);
     m_rear_right->SetAppliedTorque(-torque_right);

@@ -32,7 +32,7 @@ class MyObstacle:
         cyl = chrono.ChVisualShapeCylinder(self.radius, 1.1)
         cyl.SetColor(chrono.ChColor(0.6, 0.3, 0.0))
         body.AddVisualShape(cyl, chrono.ChFramed(self.center + chrono.ChVector3d(0, 0.55, 0),
-                                                 chrono.QuatFromAngleX(chrono.CH_C_PI_2)))
+                                                 chrono.QuatFromAngleX(chrono.CH_PI_2)))
 
 # Custom collision detection callback class
 class MyCustomCollisionDetection(chrono.CustomCollisionCallback):
@@ -140,13 +140,13 @@ else: # use SMC contact method
     frame_skip = 100
 
 sys.SetCollisionSystemType(chrono.ChCollisionSystem.Type_BULLET)
-sys.Set_G_acc(chrono.ChVector3d(0, -9.8, 0))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, -9.8, 0))
 
 # Create the ground body with a plate and side walls (both collision and visualization).
 ground = chrono.ChBody()
 sys.AddBody(ground)
-ground.SetCollide(True)
-ground.SetBodyFixed(True)
+ground.EnableCollision(True)
+ground.SetFixed(True)
 
 
 cshape_1 = chrono.ChCollisionShapeBox(ground_mat, 10.0, 2.0, 10.0)
@@ -194,8 +194,8 @@ ball.SetMass(10)
 comp = 4 * ball_radius * ball_radius
 ball.SetInertiaXX(chrono.ChVector3d(comp, comp, comp))
 ball.SetPos(chrono.ChVector3d(-3, 1.2 * ball_radius, -3))
-ball.SetPosDer(chrono.ChVector3d(5, 0, 5))
-ball.SetCollide(True)
+ball.SetPosDt(chrono.ChVector3d(5, 0, 5))
+ball.EnableCollision(True)
 
 ball_ct_shape = chrono.ChCollisionShapeSphere(ball_mat, ball_radius)
 ball.AddCollisionShape(ball_ct_shape)

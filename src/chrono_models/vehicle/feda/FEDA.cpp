@@ -137,6 +137,8 @@ void FEDA::Initialize() {
         case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
             transmission = chrono_types::make_shared<FEDA_AutomaticTransmissionSimpleMap>("Transmission");
             break;
+        default:
+            break;
     }
 
     if (engine && transmission) {

@@ -83,9 +83,9 @@ class CH_VEHICLE_API ChVehicleCosimTireNodeFlexible : public ChVehicleCosimTireN
 
   private:
     /// Write mesh vertex positions and velocities.
-    void WriteTireStateInformation(utils::CSV_writer& csv);
+    void WriteTireStateInformation(utils::ChWriterCSV& csv);
     /// Write mesh connectivity and strain information.
-    void WriteTireMeshInformation(utils::CSV_writer& csv);
+    void WriteTireMeshInformation(utils::ChWriterCSV& csv);
     /// Print the current lowest mesh node.
     void PrintLowestNode();
     /// Print current contact forces.

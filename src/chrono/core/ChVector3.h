@@ -310,6 +310,22 @@ typedef ChVector3<int> ChVector3i;
 typedef ChVector3<bool> ChVector3b;
 
 // -----------------------------------------------------------------------------
+
+/// Definition of a wrench (force + torque).
+/// The wrench is assumed to be represented in some frame with the force application point at the frame origin.
+template <class Real = double>
+struct ChWrench {
+    ChVector3<Real> force;
+    ChVector3<Real> torque;
+};
+
+/// Alias for double-precision wrenches.
+typedef ChWrench<double> ChWrenchd;
+
+/// Alias for single-precision wrenches.
+typedef ChWrench<float> ChWrenchf;
+
+// -----------------------------------------------------------------------------
 // CONSTANTS
 
 ChApi extern const ChVector3d VNULL;
@@ -452,43 +468,6 @@ ChVector3<RealA> VfromPolar(double norm_angle, double pol_angle) {
     return res;
 }
 
-// From non-normalized x direction, to versors DxDyDz.
-// Vsingular sets the normal to the plane on which Dz must lie.
-template <class RealA>
-void XdirToDxDyDz(const ChVector3<RealA>& Vxdir,
-                  const ChVector3<RealA>& Vsingular,
-                  ChVector3<RealA>& Vx,
-                  ChVector3<RealA>& Vy,
-                  ChVector3<RealA>& Vz) {
-    ChVector3<RealA> mVnull(0, 0, 0);
-    double zlen;
-
-    if (Vequal(Vxdir, mVnull))
-        Vx = ChVector3<RealA>(1, 0, 0);
-    else
-        Vx = Vnorm(Vxdir);
-
-    Vz = Vcross(Vx, Vsingular);
-    zlen = Vlength(Vz);
-
-    // If close to singularity, change reference vector
-    if (zlen < 0.0001) {
-        ChVector3d mVsingular;
-        if (std::abs(Vsingular.z()) < 0.9)
-            mVsingular = ChVector3<RealA>(0, 0, 1);
-        if (std::abs(Vsingular.y()) < 0.9)
-            mVsingular = ChVector3<RealA>(0, 1, 0);
-        if (std::abs(Vsingular.x()) < 0.9)
-            mVsingular = ChVector3<RealA>(1, 0, 0);
-        Vz = Vcross(Vx, mVsingular);
-        zlen = Vlength(Vz);  // now should be nonzero length.
-    }
-
-    // normalize Vz
-    Vz = Vmul(Vz, 1.0 / zlen);
-    // compute Vy
-    Vy = Vcross(Vz, Vx);
-}
 
 /// Insertion of a 3D vector to output stream.
 template <typename Real>

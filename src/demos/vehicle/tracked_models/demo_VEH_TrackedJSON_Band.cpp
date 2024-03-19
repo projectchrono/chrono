@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
     TrackedVehicle vehicle(vehicle::GetDataFile(vehicle_file), ChContactMethod::SMC);
 
     // Disable gravity in this simulation
-    ////vehicle.GetSystem()->Set_G_acc(ChVector3d(0, 0, 0));
+    ////vehicle.GetSystem()->SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Control steering type (enable crossdrive capability).
     ////vehicle.GetDriveline()->SetGyrationMode(true);
@@ -150,10 +150,10 @@ int main(int argc, char* argv[]) {
     // --------------------------------------------------
 
     // Enable contact on all tracked vehicle parts, except the left sprocket
-    ////vehicle.SetCollide(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
+    ////vehicle.EnableCollision(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));
 
     // Disable contact for all tracked vehicle parts
-    ////vehicle.SetCollide(TrackedCollisionFlag::NONE);
+    ////vehicle.EnableCollision(TrackedCollisionFlag::NONE);
 
     // Disable all contacts for vehicle chassis (if chassis collision was defined)
     ////vehicle.SetChassisCollide(false);
@@ -258,9 +258,9 @@ int main(int argc, char* argv[]) {
     }
 
     // Setup chassis position output with column headers
-    utils::CSV_writer csv("\t");
-    csv.stream().setf(std::ios::scientific | std::ios::showpos);
-    csv.stream().precision(6);
+    utils::ChWriterCSV csv("\t");
+    csv.Stream().setf(std::ios::scientific | std::ios::showpos);
+    csv.Stream().precision(6);
     csv << "Time (s)"
         << "Chassis X Pos (m)"
         << "Chassis Y Pos (m)"
@@ -340,7 +340,7 @@ int main(int argc, char* argv[]) {
     vehicle.GetSystem()->SetTimestepperType(ChTimestepper::Type::HHT);
     auto integrator = std::static_pointer_cast<ChTimestepperHHT>(vehicle.GetSystem()->GetTimestepper());
     integrator->SetAlpha(-0.2);
-    integrator->SetMaxiters(50);
+    integrator->SetMaxIters(50);
     integrator->SetAbsTolerances(1e-2, 1e2);
     integrator->SetStepControl(false);
     integrator->SetModifiedNewton(true);
@@ -374,7 +374,7 @@ int main(int argc, char* argv[]) {
         // Debugging output
         if (dbg_output) {
             cout << "Time: " << vehicle.GetSystem()->GetChTime() << endl;
-            const ChFrameMoving<>& c_ref = vehicle.GetChassisBody()->GetFrame_REF_to_abs();
+            const ChFrameMoving<>& c_ref = vehicle.GetChassisBody()->GetFrameRefToAbs();
             cout << "      chassis:    " << c_pos.x() << "  " << c_pos.y() << "  " << c_pos.z() << endl;
             {
                 const ChVector3d& i_pos_abs = vehicle.GetTrackAssembly(LEFT)->GetIdler()->GetWheelBody()->GetPos();
@@ -475,7 +475,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (output) {
-        csv.write_to_file(out_dir + "/chassis_position.txt");
+        csv.WriteToFile(out_dir + "/chassis_position.txt");
     }
 
     vehicle.WriteContacts(out_dir + "/contacts.txt");

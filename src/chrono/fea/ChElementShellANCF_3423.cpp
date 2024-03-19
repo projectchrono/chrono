@@ -62,13 +62,13 @@ void ChElementShellANCF_3423::SetNodes(std::shared_ptr<ChNodeFEAxyzD> nodeA,
     m_nodes[3] = nodeD;
     std::vector<ChVariables*> mvars;
     mvars.push_back(&m_nodes[0]->Variables());
-    mvars.push_back(&m_nodes[0]->Variables_D());
+    mvars.push_back(&m_nodes[0]->VariablesSlope1());
     mvars.push_back(&m_nodes[1]->Variables());
-    mvars.push_back(&m_nodes[1]->Variables_D());
+    mvars.push_back(&m_nodes[1]->VariablesSlope1());
     mvars.push_back(&m_nodes[2]->Variables());
-    mvars.push_back(&m_nodes[2]->Variables_D());
+    mvars.push_back(&m_nodes[2]->VariablesSlope1());
     mvars.push_back(&m_nodes[3]->Variables());
-    mvars.push_back(&m_nodes[3]->Variables_D());
+    mvars.push_back(&m_nodes[3]->VariablesSlope1());
     Kmatr.SetVariables(mvars);
 
     // Initial positions and slopes of the element nodes
@@ -92,16 +92,16 @@ void ChElementShellANCF_3423::AddLayer(double thickness, double theta, std::shar
 void ChElementShellANCF_3423::SetupInitial(ChSystem* system) {
     m_element_dof = 0;
     for (int i = 0; i < 4; i++) {
-        m_element_dof += m_nodes[i]->GetNdofX();
+        m_element_dof += m_nodes[i]->GetNumCoordsPosLevel();
     }
 
     m_full_dof = (m_element_dof == 4 * 6);
 
     if (!m_full_dof) {
         m_mapping_dof.resize(m_element_dof);
-        int dof = 0;
+        unsigned int dof = 0;
         for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < m_nodes[i]->GetNdofX(); j++)
+            for (unsigned int j = 0; j < m_nodes[i]->GetNumCoordsPosLevel(); j++)
                 m_mapping_dof(dof++) = i * 6 + j;
         }
     }
@@ -111,7 +111,7 @@ void ChElementShellANCF_3423::SetupInitial(ChSystem* system) {
     m_thickness = 0;
     for (size_t kl = 0; kl < m_numLayers; kl++) {
         m_layers[kl].SetupInitial();
-        m_thickness += m_layers[kl].Get_thickness();
+        m_thickness += m_layers[kl].GetThickness();
     }
 
     // Loop again over the layers and calculate the range for Gauss integration in the
@@ -119,7 +119,7 @@ void ChElementShellANCF_3423::SetupInitial(ChSystem* system) {
     m_GaussZ.push_back(-1);
     double z = 0;
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        z += m_layers[kl].Get_thickness();
+        z += m_layers[kl].GetThickness();
         m_GaussZ.push_back(2 * z / m_thickness - 1);
     }
 
@@ -147,19 +147,19 @@ void ChElementShellANCF_3423::Update() {
 // Fill the D vector with the current field values at the element nodes.
 void ChElementShellANCF_3423::GetStateBlock(ChVectorDynamic<>& mD) {
     mD.segment(0, 3) = m_nodes[0]->GetPos().eigen();
-    mD.segment(3, 3) = m_nodes[0]->GetD().eigen();
+    mD.segment(3, 3) = m_nodes[0]->GetSlope1().eigen();
     mD.segment(6, 3) = m_nodes[1]->GetPos().eigen();
-    mD.segment(9, 3) = m_nodes[1]->GetD().eigen();
+    mD.segment(9, 3) = m_nodes[1]->GetSlope1().eigen();
     mD.segment(12, 3) = m_nodes[2]->GetPos().eigen();
-    mD.segment(15, 3) = m_nodes[2]->GetD().eigen();
+    mD.segment(15, 3) = m_nodes[2]->GetSlope1().eigen();
     mD.segment(18, 3) = m_nodes[3]->GetPos().eigen();
-    mD.segment(21, 3) = m_nodes[3]->GetD().eigen();
+    mD.segment(21, 3) = m_nodes[3]->GetSlope1().eigen();
 }
 
 // Calculate the global matrix H as a linear combination of K, R, and M:
 //   H = Mfactor * [M] + Kfactor * [K] + Rfactor * [R]
 void ChElementShellANCF_3423::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, double Rfactor, double Mfactor) {
-    assert((H.rows() == GetNdofs()) && (H.cols() == GetNdofs()));
+    assert((H.rows() == GetNumCoordsPosLevel()) && (H.cols() == GetNumCoordsPosLevel()));
 
     // Calculate the linear combination Kfactor*[K] + Rfactor*[R]
     ComputeInternalJacobians(Kfactor, Rfactor);
@@ -215,7 +215,7 @@ void ChElementShellANCF_3423::ComputeMassMatrix() {
     m_MassMatrix.setZero();
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        double rho = m_layers[kl].GetMaterial()->Get_rho();
+        double rho = m_layers[kl].GetMaterial()->GetDensity();
         ShellANCF_Mass myformula(this);
         ChMatrixNM<double, 24, 24> TempMassMatrix;
         TempMassMatrix.setZero();
@@ -270,7 +270,7 @@ void ChElementShellANCF_3423::ComputeGravityForceScale() {
     m_GravForceScale.setZero();
 
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        double rho = m_layers[kl].GetMaterial()->Get_rho();
+        double rho = m_layers[kl].GetMaterial()->GetDensity();
         ShellANCF_Gravity myformula(this);
         VectorN Fgravity;
         Fgravity.setZero();
@@ -288,7 +288,7 @@ void ChElementShellANCF_3423::ComputeGravityForceScale() {
 
 // Compute the generalized force vector due to gravity using the efficient ANCF specific method
 void ChElementShellANCF_3423::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVector3d& G_acc) {
-    assert(Fg.size() == GetNdofs());
+    assert(Fg.size() == GetNumCoordsPosLevel());
 
     // Calculate and add the generalized force due to gravity to the generalized internal force vector for the element.
     // The generalized force due to gravity could be computed once prior to the start of the simulation if gravity was
@@ -373,7 +373,7 @@ void ShellANCF_Force::Evaluate(ChVectorN<double, 54>& result, const double x, co
     A2.Cross(A3, A1);
 
     // Direction for orthotropic material
-    double theta = m_element->GetLayer(m_kl).Get_theta();  // Fiber angle
+    double theta = m_element->GetLayer(m_kl).GetFiberAngle();  // Fiber angle
     ChVector3d AA1;
     ChVector3d AA2;
     ChVector3d AA3;
@@ -587,7 +587,7 @@ void ShellANCF_Force::Evaluate(ChVectorN<double, 54>& result, const double x, co
 void ChElementShellANCF_3423::ComputeInternalForces(ChVectorDynamic<>& Fi) {
     // Current nodal coordinates and velocities
     CalcCoordMatrix(m_d);
-    CalcCoordDerivMatrix(m_d_dt);
+    CalcCoordDtMatrix(m_d_dt);
     m_ddT = m_d * m_d.transpose();
     // Assumed Natural Strain (ANS):  Calculate m_strainANS and m_strainANS_D
     CalcStrainANSbilinearShell();
@@ -714,7 +714,7 @@ void ShellANCF_Jacobian::Evaluate(ChVectorN<double, 696>& result, const double x
     A2.Cross(A3, A1);
 
     // Direction for orthotropic material
-    double theta = m_element->GetLayer(m_kl).Get_theta();  // Fiber angle
+    double theta = m_element->GetLayer(m_kl).GetFiberAngle();  // Fiber angle
     ChVector3d AA1;
     ChVector3d AA2;
     ChVector3d AA3;
@@ -1126,13 +1126,13 @@ double ChElementShellANCF_3423::Calc_detJ0(double x, double y, double z) {
 
 void ChElementShellANCF_3423::CalcCoordMatrix(ChMatrixNM<double, 8, 3>& d) {
     const ChVector3d& pA = m_nodes[0]->GetPos();
-    const ChVector3d& dA = m_nodes[0]->GetD();
+    const ChVector3d& dA = m_nodes[0]->GetSlope1();
     const ChVector3d& pB = m_nodes[1]->GetPos();
-    const ChVector3d& dB = m_nodes[1]->GetD();
+    const ChVector3d& dB = m_nodes[1]->GetSlope1();
     const ChVector3d& pC = m_nodes[2]->GetPos();
-    const ChVector3d& dC = m_nodes[2]->GetD();
+    const ChVector3d& dC = m_nodes[2]->GetSlope1();
     const ChVector3d& pD = m_nodes[3]->GetPos();
-    const ChVector3d& dD = m_nodes[3]->GetD();
+    const ChVector3d& dD = m_nodes[3]->GetSlope1();
 
     d(0, 0) = pA.x();
     d(0, 1) = pA.y();
@@ -1163,15 +1163,15 @@ void ChElementShellANCF_3423::CalcCoordMatrix(ChMatrixNM<double, 8, 3>& d) {
     d(7, 2) = dD.z();
 }
 
-void ChElementShellANCF_3423::CalcCoordDerivMatrix(ChVectorN<double, 24>& dt) {
-    const ChVector3d& pA_dt = m_nodes[0]->GetPosDer();
-    const ChVector3d& dA_dt = m_nodes[0]->GetD_dt();
-    const ChVector3d& pB_dt = m_nodes[1]->GetPosDer();
-    const ChVector3d& dB_dt = m_nodes[1]->GetD_dt();
-    const ChVector3d& pC_dt = m_nodes[2]->GetPosDer();
-    const ChVector3d& dC_dt = m_nodes[2]->GetD_dt();
-    const ChVector3d& pD_dt = m_nodes[3]->GetPosDer();
-    const ChVector3d& dD_dt = m_nodes[3]->GetD_dt();
+void ChElementShellANCF_3423::CalcCoordDtMatrix(ChVectorN<double, 24>& dt) {
+    const ChVector3d& pA_dt = m_nodes[0]->GetPosDt();
+    const ChVector3d& dA_dt = m_nodes[0]->GetSlope1Dt();
+    const ChVector3d& pB_dt = m_nodes[1]->GetPosDt();
+    const ChVector3d& dB_dt = m_nodes[1]->GetSlope1Dt();
+    const ChVector3d& pC_dt = m_nodes[2]->GetPosDt();
+    const ChVector3d& dC_dt = m_nodes[2]->GetSlope1Dt();
+    const ChVector3d& pD_dt = m_nodes[3]->GetPosDt();
+    const ChVector3d& dD_dt = m_nodes[3]->GetSlope1Dt();
 
     dt(0) = pA_dt.x();
     dt(1) = pA_dt.y();
@@ -1500,27 +1500,27 @@ void ChElementShellANCF_3423::EvaluateSectionPoint(const double u, const double 
 // -----------------------------------------------------------------------------
 
 // Gets all the DOFs packed in a single vector (position part).
-void ChElementShellANCF_3423::LoadableGetStateBlock_x(int block_offset, ChState& mD) {
+void ChElementShellANCF_3423::LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) {
     mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPos().eigen();
-    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetSlope1().eigen();
     mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPos().eigen();
-    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetD().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetSlope1().eigen();
     mD.segment(block_offset + 12, 3) = m_nodes[2]->GetPos().eigen();
-    mD.segment(block_offset + 15, 3) = m_nodes[2]->GetD().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[2]->GetSlope1().eigen();
     mD.segment(block_offset + 18, 3) = m_nodes[3]->GetPos().eigen();
-    mD.segment(block_offset + 21, 3) = m_nodes[3]->GetD().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[3]->GetSlope1().eigen();
 }
 
 // Gets all the DOFs packed in a single vector (velocity part).
-void ChElementShellANCF_3423::LoadableGetStateBlock_w(int block_offset, ChStateDelta& mD) {
-    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDer().eigen();
-    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetD_dt().eigen();
-    mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPosDer().eigen();
-    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetD_dt().eigen();
-    mD.segment(block_offset + 12, 3) = m_nodes[2]->GetPosDer().eigen();
-    mD.segment(block_offset + 15, 3) = m_nodes[2]->GetD_dt().eigen();
-    mD.segment(block_offset + 18, 3) = m_nodes[3]->GetPosDer().eigen();
-    mD.segment(block_offset + 21, 3) = m_nodes[3]->GetD_dt().eigen();
+void ChElementShellANCF_3423::LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) {
+    mD.segment(block_offset + 0, 3) = m_nodes[0]->GetPosDt().eigen();
+    mD.segment(block_offset + 3, 3) = m_nodes[0]->GetSlope1Dt().eigen();
+    mD.segment(block_offset + 6, 3) = m_nodes[1]->GetPosDt().eigen();
+    mD.segment(block_offset + 9, 3) = m_nodes[1]->GetSlope1Dt().eigen();
+    mD.segment(block_offset + 12, 3) = m_nodes[2]->GetPosDt().eigen();
+    mD.segment(block_offset + 15, 3) = m_nodes[2]->GetSlope1Dt().eigen();
+    mD.segment(block_offset + 18, 3) = m_nodes[3]->GetPosDt().eigen();
+    mD.segment(block_offset + 21, 3) = m_nodes[3]->GetSlope1Dt().eigen();
 }
 
 void ChElementShellANCF_3423::LoadableStateIncrement(const unsigned int off_x,
@@ -1537,8 +1537,8 @@ void ChElementShellANCF_3423::EvaluateSectionVelNorm(double U, double V, ChVecto
     ShapeVector N;
     ShapeFunctions(N, U, V, 0);
     for (unsigned int ii = 0; ii < 4; ii++) {
-        Result += N(ii * 2) * m_nodes[ii]->GetPosDer();
-        Result += N(ii * 2 + 1) * m_nodes[ii]->GetPosDer();
+        Result += N(ii * 2) * m_nodes[ii]->GetPosDt();
+        Result += N(ii * 2 + 1) * m_nodes[ii]->GetPosDt();
     }
 }
 
@@ -1546,7 +1546,7 @@ void ChElementShellANCF_3423::EvaluateSectionVelNorm(double U, double V, ChVecto
 void ChElementShellANCF_3423::LoadableGetVariables(std::vector<ChVariables*>& mvars) {
     for (int i = 0; i < m_nodes.size(); ++i) {
         mvars.push_back(&m_nodes[i]->Variables());
-        mvars.push_back(&m_nodes[i]->Variables_D());
+        mvars.push_back(&m_nodes[i]->VariablesSlope1());
     }
 }
 
@@ -1697,8 +1697,8 @@ void ChElementShellANCF_3423::ComputeNF(
 double ChElementShellANCF_3423::GetDensity() {
     double tot_density = 0;
     for (size_t kl = 0; kl < m_numLayers; kl++) {
-        double rho = m_layers[kl].GetMaterial()->Get_rho();
-        double layerthick = m_layers[kl].Get_thickness();
+        double rho = m_layers[kl].GetMaterial()->GetDensity();
+        double layerthick = m_layers[kl].GetThickness();
         tot_density += rho * layerthick;
     }
     return tot_density / m_thickness;

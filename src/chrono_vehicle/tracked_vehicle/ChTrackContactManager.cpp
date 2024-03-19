@@ -461,7 +461,7 @@ bool ChTrackContactManager::OnReportContact(const ChVector3d& pA,
 
 void ChTrackContactManager::WriteContacts(const std::string& filename) {
     if (m_collect && m_flags != 0)
-        m_csv.write_to_file(filename);
+        m_csv.WriteToFile(filename);
 }
 
 // -----------------------------------------------------------------------------
@@ -614,7 +614,7 @@ void ChTrackCustomContact::ApplyForces() {
             ComputeGroundContactForce(cInfo, ground_body, shoe_body, force_shoe);
 
             // Apply equal and opposite forces on the two bodies (ground and track shoe) in contact
-            if (!ground_body->GetBodyFixed()) {
+            if (!ground_body->IsFixed()) {
                 Add(chrono_types::make_shared<ChLoadBodyForce>(ground_body, -force_shoe, false, cInfo.vpA, false));
             }
             Add(chrono_types::make_shared<ChLoadBodyForce>(shoe_body, +force_shoe, false, cInfo.vpB, false));

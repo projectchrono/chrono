@@ -58,6 +58,7 @@
 namespace chrono {
 namespace vehicle {
 
+/// TMeasy handling tire model.
 class CH_VEHICLE_API ChTMeasyTire : public ChForceElementTire {
   public:
     ChTMeasyTire(const std::string& name);

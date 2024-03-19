@@ -141,7 +141,7 @@ class CH_FSI_API ChSystemFsi {
     void SetInitPressure(const double fzDim);
 
     /// Set gravity for the FSI syatem.
-    void Set_G_acc(const ChVector3d& gravity);
+    void SetGravitationalAcceleration(const ChVector3d& gravity);
 
     /// Set a constant force applied to the fluid.
     /// Solid bodies are not explicitly affected by this force, but they are affected indirectly through the fluid.
@@ -212,7 +212,7 @@ class CH_FSI_API ChSystemFsi {
     double GetBasePressure() const;
 
     /// Return gravitational acceleration.
-    ChVector3d Get_G_acc() const;
+    ChVector3d GetGravitationalAcceleration() const;
 
     /// Return the speed of sound in the fluid phase.
     double GetSoundSpeed() const;

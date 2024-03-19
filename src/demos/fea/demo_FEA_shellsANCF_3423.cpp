@@ -19,8 +19,8 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/fea/ChElementShellANCF_3423.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     ChSystemSMC sys;
-    sys.Set_G_acc(ChVector3d(0, 0, -9.8));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
 
     std::cout << "-----------------------------------------------------------\n";
     std::cout << "-----------------------------------------------------------\n";
@@ -116,7 +116,7 @@ int main(int argc, char* argv[]) {
         element->SetDimensions(dx, dy);
 
         // Add a single layers with a fiber angle of 0 degrees.
-        element->AddLayer(dz, 0 * CH_C_DEG_TO_RAD, mat);
+        element->AddLayer(dz, 0 * CH_DEG_TO_RAD, mat);
 
         // Set other element properties
         element->SetAlphaDamp(0.0);  // Structural damping for this element
@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
     ////auto stepper = std::static_pointer_cast<ChTimestepperHHT>(sys.GetTimestepper());
 
     stepper->SetAlpha(-0.2);
-    stepper->SetMaxiters(5);
+    stepper->SetMaxIters(5);
     stepper->SetAbsTolerances(1e-2);
     stepper->SetStepControl(true);
     stepper->SetMinStepSize(1e-4);

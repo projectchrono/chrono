@@ -44,6 +44,7 @@
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftsLoads.h"
 #include "chrono/physics/ChShaftsFreewheel.h"
+#include "chrono/physics/ChShaftsAppliedTorque.h"
 #include "chrono/physics/ChMarker.h"
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChShaftsCouple.h"
@@ -136,6 +137,8 @@ using namespace chrono::vehicle::citybus;
 using namespace chrono::vehicle::man;
 using namespace chrono::vehicle::uaz;
 using namespace chrono::vehicle::gator;
+using namespace chrono::vehicle::feda;
+using namespace chrono::vehicle::bmw;
 using namespace chrono::vehicle::man;
 using namespace chrono::vehicle::fmtv;
 using namespace chrono::vehicle::kraz;

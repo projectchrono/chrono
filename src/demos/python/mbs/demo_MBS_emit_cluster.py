@@ -42,7 +42,7 @@ class MyCreatorForAll(chrono.ChRandomShapeCreator_AddBodyCallback):
         self.coll.BindItem(body)
 
         # Other stuff, ex. disable gyroscopic forces for increased integrator stability
-        body.SetNoGyroTorque(True)
+        body.SetUseGyroTorque(False)
 
 
 
@@ -163,10 +163,10 @@ emitter.RegisterAddBodyCallback(mcreation_callback)
 
 # Modify some setting of the physical sys for the simulation, if you want
 sys.SetSolverType(chrono.ChSolver.Type_PSOR)
-sys.SetSolverMaxIterations(40)
+sys.GetSolver().AsIterative().SetMaxIterations(40)
 
 # Turn off default -9.8 downward gravity
-sys.Set_G_acc(chrono.ChVector3d(0, 0, 0))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, 0))
 
 # Simulation loop
 stepsize = 1e-2
@@ -182,7 +182,7 @@ while vis.Run():
     # Apply custom forcefield (brute force approach..)
     # A) reset 'user forces accumulators':
     for body in sys.GetBodies() :
-        body.Empty_forces_accumulators()
+        body.EmptyAccumulators()
 
 
     # B) store user computed force:
@@ -197,8 +197,8 @@ while vis.Run():
         r_attract = D_attract.Length()
         f_attract = G_constant * (abodyA.GetMass() * abodyB.GetMass()) /(pow(r_attract, 2))
         F_attract = (D_attract / r_attract) * f_attract
-        abodyA.Accumulate_force(F_attract, abodyA.GetPos(), False)
-        abodyB.Accumulate_force(-F_attract, abodyB.GetPos(), False)
+        abodyA.AccumulateForce(F_attract, abodyA.GetPos(), False)
+        abodyB.AccumulateForce(-F_attract, abodyB.GetPos(), False)
 
     sys.DoStepDynamics(stepsize)
 
