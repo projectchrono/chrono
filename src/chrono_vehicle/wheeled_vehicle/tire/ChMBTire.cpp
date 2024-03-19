@@ -412,6 +412,46 @@ void MBTireModel::EdgeSpring2::CalculateJacobian(bool full_jac, double Kfactor, 
     if (!full_jac) {
         K.block(0, 0, 3, 3) = A;  // block for F2 and node2
         return;
+    } else {
+        ChVector3d p = wheel->GetPos();          // wheel body position
+        ChQuaterniond q = wheel->GetRot();       // wheel body orientation quaternion
+        ChMatrix33 R = wheel->GetRotMat();       // wheel body rotation matrix
+        ChVector3d v = wheel->GetPosDer();       // wheel linear velocity
+        ChVector3d w = wheel->GetAngVelLocal();  // wheel angular velocity (in local frame)
+
+        ChVectorN<double, 4> e;   // quaternion
+        ChVectorN<double, 3> rp;  // local positon
+
+        // Jac_Af_m = 2 *
+        //       [2*e0*rp1+e2*rp3-e3*rp2, 2*e1*rp1+e2*rp2+e3*rp3, e0*rp3+e1*rp2,          e1*rp3-e0*rp2;
+        //        2*e0*rp2-e1*rp3+e3*rp1, e2*rp1-e0 *rp3,         e1*rp1+2*e2*rp2+e3*rp3, e0*rp1+e2*rp3;
+        //        2*e0*rp3+e1*rp2-e2*rp1, e0*rp2 + e3*rp1,        e3*rp2-e0*rp1,          e1*rp1+e2*rp2+2*e3*rp3];
+        ChMatrixNM<double, 3, 4> Jac_Af_m;
+
+        Jac_Af_m(0, 0) = 2 * e[0] * rp[0] + e[2] * rp[2] - e[3] * rp[1];  // 2*e0*rp1 + e2*rp3 - e3*rp2,
+        Jac_Af_m(0, 1) = 2 * e[1] * rp[0] + e[2] * rp[1] + e[3] * rp[2];  // 2*e1*rp1 + e2*rp2 + e3*rp3
+        Jac_Af_m(0, 2) = e[0] * rp[2] + e[1] * rp[1];                     // e0*rp3 + e1*rp2
+        Jac_Af_m(0, 3) = e[1] * rp[2] - e[0] * rp[1];                     // e1*rp3 - e0*rp2
+
+        Jac_Af_m(1, 0) = 2 * e[0] * rp[1] - e[1] * rp[2] + e[3] * rp[0];  // 2*e0*rp2 - e1*rp3 + e3*rp1
+        Jac_Af_m(1, 1) = e[2] * rp[0] - e[0] * rp[2];                     // e2*rp1 - e0 *rp3
+        Jac_Af_m(1, 2) = e[1] * rp[0] + 2 * e[2] * rp[1] + e[3] * rp[2];  // e1*rp1 + 2*e2*rp2 + e3*rp3
+        Jac_Af_m(1, 3) = e[0] * rp[0] + e[2] * rp[2];                     // e0 *rp1 + e2 *rp3
+
+        Jac_Af_m(2, 0) = 2 * e[0] * rp[2] + e[1] * rp[1] - e[2] * rp[0];  // 2*e0*rp3 + e1*rp2 - e2*rp1
+        Jac_Af_m(2, 1) = e[0] * rp[1] + e[3] * rp[0];                     // e0*rp2 + e3*rp1
+        Jac_Af_m(2, 2) = e[3] * rp[1] - e[0] * rp[0];                     // e3*rp2 - e0*rp1
+        Jac_Af_m(2, 3) = e[1] * rp[0] + e[2] * rp[1] + 2 * e[3] * rp[2];  // e1*rp1 + e2*rp2 + 2*e3*rp3
+
+        Jac_Af_m *= 2;
+
+        K.block(0, 0, 3, 3) = -A;
+        K.block(0, 3, 3, 4) = -A * Jac_Af_m;
+        K.block(0, 7, 3, 3) = A;
+
+        K.block(3, 0, 3, 3) = A;
+        K.block(3, 3, 3, 3) = A * Jac_Af_m;
+        K.block(3, 6, 3, 4) = -A;
     }
 
     //// TODO - full_jac = true
@@ -761,9 +801,69 @@ void MBTireModel::EdgeSpring3::CalculateJacobian(bool full_jac, double Kfactor, 
     // substitution of all into matrix
     if (!full_jac) {
         // substitution of all into matrix
-        K.block(0, 0, 3, 6) = Jn.rightCols(6);
-        K.block(3, 0, 3, 6) = -Jn.rightCols(6);
+        K.block(0, 0, 3, 6) = -Jn.rightCols(6);
+        K.block(3, 0, 3, 6) = Jn.rightCols(6);
         return;
+    } else {
+        ChVector3d p = wheel->GetPos();          // wheel body position
+        ChQuaterniond q = wheel->GetRot();       // wheel body orientation quaternion
+        ChMatrix33 R = wheel->GetRotMat();       // wheel body rotation matrix
+        ChVector3d v = wheel->GetPosDer();       // wheel linear velocity
+        ChVector3d w = wheel->GetAngVelLocal();  // wheel angular velocity (in local frame)
+
+        ChVectorN<double, 4> e;   // quaternion
+        ChVectorN<double, 3> rp;  // local positon
+
+        // Jac_Af_m = 2 *
+        //       [2*e0*rp1+e2*rp3-e3*rp2, 2*e1*rp1+e2*rp2+e3*rp3, e0*rp3+e1*rp2,          e1*rp3-e0*rp2;
+        //        2*e0*rp2-e1*rp3+e3*rp1, e2*rp1-e0 *rp3,         e1*rp1+2*e2*rp2+e3*rp3, e0*rp1+e2*rp3;
+        //        2*e0*rp3+e1*rp2-e2*rp1, e0*rp2 + e3*rp1,        e3*rp2-e0*rp1,          e1*rp1+e2*rp2+2*e3*rp3];
+        ChMatrixNM<double, 3, 4> Jac_Af_m;
+
+        Jac_Af_m(0, 0) = 2 * e[0] * rp[0] + e[2] * rp[2] - e[3] * rp[1];  // 2*e0*rp1 + e2*rp3 - e3*rp2,
+        Jac_Af_m(0, 1) = 2 * e[1] * rp[0] + e[2] * rp[1] + e[3] * rp[2];  // 2*e1*rp1 + e2*rp2 + e3*rp3
+        Jac_Af_m(0, 2) = e[0] * rp[2] + e[1] * rp[1];                     // e0*rp3 + e1*rp2
+        Jac_Af_m(0, 3) = e[1] * rp[2] - e[0] * rp[1];                     // e1*rp3 - e0*rp2
+
+        Jac_Af_m(1, 0) = 2 * e[0] * rp[1] - e[1] * rp[2] + e[3] * rp[0];  // 2*e0*rp2 - e1*rp3 + e3*rp1
+        Jac_Af_m(1, 1) = e[2] * rp[0] - e[0] * rp[2];                     // e2*rp1 - e0 *rp3
+        Jac_Af_m(1, 2) = e[1] * rp[0] + 2 * e[2] * rp[1] + e[3] * rp[2];  // e1*rp1 + 2*e2*rp2 + e3*rp3
+        Jac_Af_m(1, 3) = e[0] * rp[0] + e[2] * rp[2];                     // e0 *rp1 + e2 *rp3
+
+        Jac_Af_m(2, 0) = 2 * e[0] * rp[2] + e[1] * rp[1] - e[2] * rp[0];  // 2*e0*rp3 + e1*rp2 - e2*rp1
+        Jac_Af_m(2, 1) = e[0] * rp[1] + e[3] * rp[0];                     // e0*rp2 + e3*rp1
+        Jac_Af_m(2, 2) = e[3] * rp[1] - e[0] * rp[0];                     // e3*rp2 - e0*rp1
+        Jac_Af_m(2, 3) = e[1] * rp[0] + e[2] * rp[1] + 2 * e[3] * rp[2];  // e1*rp1 + e2*rp2 + 2*e3*rp3
+
+        Jac_Af_m *= 2;
+
+        ChMatrixNM<double, 6, 4> J2_quat = J2.leftCols(3) * Jac_Af_m;
+        ChMatrixNM<double, 6, 4> J1_quat;
+
+        ChMatrixNM<double, 4, 3> Jac_Af_mT = Jac_Af_m.transpose();
+        J1_quat.block(0, 0, 6, 1) =
+            Jac_Af_mT(0, 1) * J1.col(0) + Jac_Af_mT(0, 2) * J1.col(2) + Jac_Af_mT(0, 3) * J1.col(3);
+        J1_quat.block(0, 1, 6, 1) =
+            Jac_Af_mT(1, 1) * J1.col(0) + Jac_Af_mT(1, 2) * J1.col(2) + Jac_Af_mT(1, 3) * J1.col(3);
+        J1_quat.block(0, 2, 6, 1) =
+            Jac_Af_mT(2, 1) * J1.col(0) + Jac_Af_mT(2, 2) * J1.col(2) + Jac_Af_mT(2, 3) * J1.col(3);
+        J1_quat.block(0, 3, 6, 1) =
+            Jac_Af_mT(3, 1) * J1.col(0) + Jac_Af_mT(3, 2) * J1.col(2) + Jac_Af_mT(3, 3) * J1.col(3);
+
+        // insert new columns
+        ChMatrixNM<double, 3, 13> Jp_new;
+        Jp_new.block(0, 0, 3, 3) = J1.topRows(3).leftCols(3) + J2.topRows(3).leftCols(3);
+        Jp_new.block(0, 3, 3, 4) = J1_quat.topRows(3) + J2_quat.topRows(3);
+        Jp_new.block(0, 7, 3, 6) = J1.topRows(3).rightCols(6) + J2.topRows(3).rightCols(6);
+
+        ChMatrixNM<double, 3, 13> Jn_new;
+        Jn_new.block(0, 0, 3, 3) = J1.bottomRows(3).leftCols(3) + J2.bottomRows(3).leftCols(3);
+        Jn_new.block(0, 3, 3, 4) = J1_quat.bottomRows(3) + J2_quat.bottomRows(3);
+        Jn_new.block(0, 7, 3, 6) = J1.bottomRows(3).rightCols(6) + J2.bottomRows(3).rightCols(6);
+
+        K.block(0, 0, 3, 13) = -Jp;
+        K.block(3, 0, 3, 13) = Jp + Jn;
+        K.block(6, 0, 3, 13) = -Jn;
     }
 }
 
