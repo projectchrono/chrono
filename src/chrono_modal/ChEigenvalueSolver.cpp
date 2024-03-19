@@ -12,17 +12,18 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
+#include <numeric>
+#include <iomanip>
+
 #include "chrono_modal/ChEigenvalueSolver.h"
 #include "chrono_modal/ChKrylovSchurEig.h"
-#include "chrono/core/ChMathematics.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/solver/ChDirectSolverLScomplex.h"
+#include "chrono/utils/ChConstants.h"
 
 #include <Eigen/Core>
 #include <Eigen/SparseCore>
 #include <Eigen/Eigenvalues>
-
-#include <numeric>
 
 #include <Spectra/KrylovSchurGEigsSolver.h>
 #include <Spectra/SymGEigsSolver.h>
@@ -108,7 +109,7 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(
     // Scale constraints matrix
     double scaling = 0;
     if (settings.scaleCq) {
-        // GetLog() << "Scaling Cq\n";
+        // std::cout << "Scaling Cq\n";
         scaling = K.diagonal().mean();
         for (int k = 0; k < Cq.outerSize(); ++k)
             for (ChSparseMatrix::InnerIterator it(Cq, k); it; ++it) {
@@ -147,19 +148,19 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(
 
     // Dump data for test. ***TODO*** remove when well tested
     if (false) {
-        ChStreamOutAsciiFile fileA("dump_modal_A.dat");
-        fileA.SetNumFormat("%.12g");
-        StreamOutDenseMatlabFormat(ChMatrixDynamic<>(A), fileA);
-        ChStreamOutAsciiFile fileB("dump_modal_B.dat");
-        fileB.SetNumFormat("%.12g");
-        StreamOutDenseMatlabFormat(ChMatrixDynamic<>(B), fileB);
+        std::ofstream fileA("dump_modal_A.dat");
+        fileA << std::setprecision(12) << std::scientific;
+        StreamOut(ChMatrixDynamic<>(A), fileA);
+        std::ofstream fileB("dump_modal_B.dat");
+        fileB << std::setprecision(12) << std::scientific;
+        StreamOut(ChMatrixDynamic<>(B), fileB);
     }
 
     // The Krylov-Schur solver, using the shift and invert mode:
     KrylovSchurGEigsShiftInvert<OpType, BOpType> eigen_solver(
         op, Bop, settings.n_modes, m,
         settings.sigma
-            .real());  //*** OK EIGVECTS, WRONG EIGVALS REQUIRE eigen_values(i) = (1.0 / eigen_values(i)) + sigma;
+            .real());  //// TODO: OK EIGVECTS, WRONG EIGVALS REQUIRE eigen_values(i) = (1.0 / eigen_values(i)) + sigma;
 
     eigen_solver.init();
 
@@ -167,25 +168,25 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(
 
     if (settings.verbose) {
         if (eigen_solver.info() != CompInfo::Successful) {
-            GetLog() << "KrylovSchurGEigsSolver FAILED. \n";
+            std::cout << "KrylovSchurGEigsSolver FAILED." << std::endl;
             if (eigen_solver.info() == CompInfo::NotComputed)
-                GetLog() << " Error: not computed. \n";
+                std::cout << " Error: not computed." << std::endl;
             if (eigen_solver.info() == CompInfo::NotConverging)
-                GetLog() << " Error: not converging. \n";
+                std::cout << " Error: not converging." << std::endl;
             if (eigen_solver.info() == CompInfo::NumericalIssue)
-                GetLog() << " Error: numerical issue. \n";
-            GetLog() << " nconv  = " << nconv << "\n";
-            GetLog() << " niter  = " << eigen_solver.num_iterations() << "\n";
-            GetLog() << " nops   = " << eigen_solver.num_operations() << "\n";
+                std::cout << " Error: numerical issue." << std::endl;
+            std::cout << " nconv  = " << nconv << std::endl;
+            std::cout << " niter  = " << eigen_solver.num_iterations() << std::endl;
+            std::cout << " nops   = " << eigen_solver.num_operations() << std::endl;
             return false;
         } else {
-            GetLog() << "KrylovSchurGEigsSolver successfull. \n";
-            GetLog() << " nconv   = " << nconv << "\n";
-            GetLog() << " niter   = " << eigen_solver.num_iterations() << "\n";
-            GetLog() << " nops    = " << eigen_solver.num_operations() << "\n";
-            GetLog() << " n_modes = " << settings.n_modes << "\n";
-            GetLog() << " n_vars  = " << n_vars << "\n";
-            GetLog() << " n_constr= " << n_constr << "\n";
+            std::cout << "KrylovSchurGEigsSolver successful." << std::endl;
+            std::cout << " nconv   = " << nconv << std::endl;
+            std::cout << " niter   = " << eigen_solver.num_iterations() << std::endl;
+            std::cout << " nops    = " << eigen_solver.num_operations() << std::endl;
+            std::cout << " n_modes = " << settings.n_modes << std::endl;
+            std::cout << " n_vars  = " << n_vars << std::endl;
+            std::cout << " n_constr= " << n_constr << std::endl;
         }
     }
     Eigen::VectorXcd eigen_values = eigen_solver.eigenvalues();
@@ -217,7 +218,7 @@ bool ChGeneralizedEigenvalueSolverKrylovSchur::Solve(
             V.col(i).normalize();
 
         eig(i) = eigen_values(i);
-        freq(i) = (1.0 / CH_C_2PI) * sqrt(-eig(i).real());
+        freq(i) = (1.0 / CH_2PI) * sqrt(-eig(i).real());
     }
 
     return true;
@@ -276,25 +277,25 @@ bool ChGeneralizedEigenvalueSolverLanczos::Solve(
 
     if (settings.verbose) {
         if (eigen_solver.info() != CompInfo::Successful) {
-            GetLog() << "Lanczos eigenvalue solver FAILED. \n";
+            std::cout << "Lanczos eigenvalue solver FAILED." << std::endl;
             if (eigen_solver.info() == CompInfo::NotComputed)
-                GetLog() << " Error: not computed. \n";
+                std::cout << " Error: not computed." << std::endl;
             if (eigen_solver.info() == CompInfo::NotConverging)
-                GetLog() << " Error: not converging. \n";
+                std::cout << " Error: not converging." << std::endl;
             if (eigen_solver.info() == CompInfo::NumericalIssue)
-                GetLog() << " Error: numerical issue. \n";
-            GetLog() << " nconv  = " << nconv << "\n";
-            GetLog() << " niter  = " << eigen_solver.num_iterations() << "\n";
-            GetLog() << " nops   = " << eigen_solver.num_operations() << "\n";
+                std::cout << " Error: numerical issue." << std::endl;
+            std::cout << " nconv  = " << nconv << std::endl;
+            std::cout << " niter  = " << eigen_solver.num_iterations() << std::endl;
+            std::cout << " nops   = " << eigen_solver.num_operations() << std::endl;
             return false;
         } else {
-            GetLog() << "Lanczos eigenvalue solver successfull. \n";
-            GetLog() << " nconv   = " << nconv << "\n";
-            GetLog() << " niter   = " << eigen_solver.num_iterations() << "\n";
-            GetLog() << " nops    = " << eigen_solver.num_operations() << "\n";
-            GetLog() << " n_modes = " << settings.n_modes << "\n";
-            GetLog() << " n_vars  = " << n_vars << "\n";
-            GetLog() << " n_constr= " << n_constr << "\n";
+            std::cout << "Lanczos eigenvalue solver successfull." << std::endl;
+            std::cout << " nconv   = " << nconv << std::endl;
+            std::cout << " niter   = " << eigen_solver.num_iterations() << std::endl;
+            std::cout << " nops    = " << eigen_solver.num_operations() << std::endl;
+            std::cout << " n_modes = " << settings.n_modes << std::endl;
+            std::cout << " n_vars  = " << n_vars << std::endl;
+            std::cout << " n_constr= " << n_constr << std::endl;
         }
     }
     Eigen::VectorXcd eigen_values = eigen_solver.eigenvalues();
@@ -317,7 +318,7 @@ bool ChGeneralizedEigenvalueSolverLanczos::Solve(
             V.col(i).normalize();
 
         eig(i) = eigen_values(i);
-        freq(i) = (1.0 / CH_C_2PI) * sqrt(-eig(i).real());
+        freq(i) = (1.0 / CH_2PI) * sqrt(-eig(i).real());
     }
 
     return true;
@@ -340,7 +341,7 @@ int ChModalSolveUndamped::Solve(
     for (int i = 0; i < this->freq_spans.size(); ++i) {
         int nmodes_goal_i = this->freq_spans[i].nmodes;
         double sigma_i =
-            -pow(this->freq_spans[i].freq * CH_C_2PI, 2);  // sigma for shift&invert, as lowest eigenvalue, from Hz info
+            -pow(this->freq_spans[i].freq * CH_2PI, 2);  // sigma for shift&invert, as lowest eigenvalue, from Hz info
 
         ChMatrixDynamic<std::complex<double>> V_i;
         ChVectorDynamic<std::complex<double>> eig_i;
@@ -470,7 +471,7 @@ bool ChQuadraticEigenvalueSolverNullspaceDirect::Solve(
         nmodes = M.rows() - Cq.rows();
 
     // cannot use more modes than n. of dofs, if so, clamp
-    nmodes = ChMin(nmodes, M.rows() - Cq.rows());
+    nmodes = std::min(nmodes, (int)(M.rows() - Cq.rows()));
 
     V.setZero(M.rows(), nmodes);
     eig.setZero(nmodes);
@@ -494,7 +495,7 @@ bool ChQuadraticEigenvalueSolverNullspaceDirect::Solve(
             V.col(i).normalize();
 
         eig(i) = all_eigen_values_and_vectors.at(i_half).eigen_val;
-        freq(i) = (1.0 / CH_C_2PI) * (std::abs(eig(i)));  // undamped freq.
+        freq(i) = (1.0 / CH_2PI) * (std::abs(eig(i)));  // undamped freq.
         damping_ratio(i) = -eig(i).real() / std::abs(eig(i));
     }
 
@@ -526,10 +527,11 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(
     int n_vars = M.rows();
     int n_constr = Cq.rows();
 
+
     // Scale constraints matrix
     double scaling = 0;
     if (settings.scaleCq) {
-        // GetLog() << "Scaling Cq\n";
+        // std::cout << "Scaling Cq" << std::endl;
         scaling = K.diagonal().mean();
         for (int k = 0; k < Cq.outerSize(); ++k)
             for (ChSparseMatrix::InnerIterator it(Cq, k); it; ++it) {
@@ -555,8 +557,6 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(
     for (int k = 0; k < R.outerSize(); ++k)
         for (ChSparseMatrix::InnerIterator it(R, k); it; ++it)
             As_resSize[it.col() + n_vars]++;
-
-    // TODO: possible bug, since Cq as an instance of ChSparseMatrix(), is row-major
     for (auto col_i = 0; col_i < Cq.outerSize(); col_i++) {
         As_resSize[col_i + 2 * n_vars] +=
             Cq.isCompressed() ? Cq.outerIndexPtr()[col_i + 1] - Cq.outerIndexPtr()[col_i] : Cq.innerNonZeroPtr()[col_i];
@@ -654,16 +654,16 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(
 
     if (settings.verbose) {
         if (flag == 1) {
-            GetLog() << "KrylovSchurEig FAILED. \n";
-            GetLog() << " shift   = (" << settings.sigma.real() << "," << settings.sigma.imag() << ")\n";
-            GetLog() << " nconv = " << nconv << "\n";
-            GetLog() << " niter = " << niter << "\n";
+            std::cout << "KrylovSchurEig FAILED." << std::endl;
+            std::cout << " shift   = (" << settings.sigma.real() << "," << settings.sigma.imag() << ")" << std::endl;
+            std::cout << " nconv = " << nconv << std::endl;
+            std::cout << " niter = " << niter << std::endl;
             return false;
         } else {
-            GetLog() << "KrylovSchurEig successfull. \n";
-            GetLog() << " shift   = (" << settings.sigma.real() << "," << settings.sigma.imag() << ")\n";
-            GetLog() << " nconv   = " << nconv << "\n";
-            GetLog() << " niter   = " << niter << "\n";
+            std::cout << "KrylovSchurEig successfull." << std::endl;
+            std::cout << " shift   = (" << settings.sigma.real() << "," << settings.sigma.imag() << ")" << std::endl;
+            std::cout << " nconv   = " << nconv << std::endl;
+            std::cout << " niter   = " << niter << std::endl;
         }
     }
 
@@ -698,10 +698,10 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(
             Ax_function3.compute(temp, all_eigen_values_and_vectors[i].eigen_vect);
             resCallback = temp - all_eigen_values_and_vectors[i].eigen_vect * 1.0 /
                                      (all_eigen_values_and_vectors[i].eigen_val - settings.sigma);
-            GetLog() << "   Sorted Eig " << i << "= " << all_eigen_values_and_vectors[i].eigen_val.real() << ", "
-                     << all_eigen_values_and_vectors[i].eigen_val.imag() << "i "
-                     << "   freq= " << (1.0 / CH_C_2PI) * std::abs(all_eigen_values_and_vectors[i].eigen_val)
-                     << "; res: " << resCallback.norm() << "\n";
+            std::cout << "   Sorted Eig " << i << "= " << all_eigen_values_and_vectors[i].eigen_val.real() << ", "
+                      << all_eigen_values_and_vectors[i].eigen_val.imag() << "i "
+                      << "   freq= " << (1.0 / CH_2PI) * std::abs(all_eigen_values_and_vectors[i].eigen_val)
+                      << "; res: " << resCallback.norm() << std::endl;
         }
     }
 
@@ -731,7 +731,7 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(
             V.col(i).normalize();
 
         eig(i) = all_eigen_values_and_vectors.at(i_half).eigen_val;
-        freq(i) = (1.0 / CH_C_2PI) * (std::abs(eig(i)));  // undamped freq.
+        freq(i) = (1.0 / CH_2PI) * (std::abs(eig(i)));  // undamped freq.
         damping_ratio(i) = -eig(i).real() / std::abs(eig(i));
     }
 
@@ -760,7 +760,7 @@ int ChModalSolveDamped::Solve(
     for (int i = 0; i < this->freq_spans.size(); ++i) {
         int nmodes_goal_i = this->freq_spans[i].nmodes;
         double sigma_i =
-            (this->freq_spans[i].freq * CH_C_2PI);  // sigma for shift&invert, as lowest eigenvalue, from Hz info
+            (this->freq_spans[i].freq * CH_2PI);  // sigma for shift&invert, as lowest eigenvalue, from Hz info
         // Note, for the damped case, the sigma_i assumed as a *complex* shift, as w are on the imaginary axis.
 
         ChMatrixDynamic<std::complex<double>> V_i;

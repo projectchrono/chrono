@@ -29,8 +29,6 @@
 
 namespace chrono {
 
-using namespace geometry;
-
 ChParticleContainer::ChParticleContainer() {
     body_offset = 0;
     compliance = 0;
@@ -155,7 +153,7 @@ void ChParticleContainer::UpdatePosition(double ChTime) {
     }
 }
 
-int ChParticleContainer::GetNumConstraints() {
+unsigned int ChParticleContainer::GetNumConstraints() {
     const auto num_fluid_contacts = data_manager->cd_data->num_fluid_contacts;
     int num_fluid_fluid = 0;
     if (mu == 0) {
@@ -173,7 +171,7 @@ int ChParticleContainer::GetNumConstraints() {
     return num_fluid_fluid;
 }
 
-int ChParticleContainer::GetNumNonZeros() {
+unsigned int ChParticleContainer::GetNumNonZeros() {
     const auto num_fluid_contacts = data_manager->cd_data->num_fluid_contacts;
     int nnz_fluid_fluid = 0;
     if (mu == 0) {

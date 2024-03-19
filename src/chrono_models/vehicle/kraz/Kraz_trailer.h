@@ -37,7 +37,7 @@ class CH_MODELS_API Kraz_trailer : public ChWheeledTrailer {
 
     ~Kraz_trailer() {}
 
-    virtual int GetNumberAxles() const override { return 3; }
+    virtual unsigned int GetNumberAxles() const override { return 3; }
 
     double GetSpringForce(int axle, VehicleSide side) const;
     double GetSpringLength(int axle, VehicleSide side) const;

@@ -39,7 +39,7 @@ class CH_MODELS_API G500_RearAxle : public ChRigidPanhardAxle {
 
   
   protected:
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
     virtual double getCamberAngle() const override { return 0; }
     virtual double getToeAngle() const override { return 0; }
@@ -58,12 +58,12 @@ class CH_MODELS_API G500_RearAxle : public ChRigidPanhardAxle {
     virtual double getPanhardRodRadius() const override { return m_panhardRodRadius; }
     virtual double getARBRadius() const override { return m_arbRadius; }
 
-    virtual const ChVector<> getAxleTubeCOM() const override { return ChVector<>(0,0,0); }
+    virtual const ChVector3d getAxleTubeCOM() const override { return ChVector3d(0,0,0); }
 
-    virtual const ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getPanhardRodInertia() const override { return m_panhardRodInertia; }
-    virtual const ChVector<>& getARBInertia() const override { return m_arbInertia; }
+    virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getPanhardRodInertia() const override { return m_panhardRodInertia; }
+    virtual const ChVector3d& getARBInertia() const override { return m_arbInertia; }
 
     virtual double getAxleInertia() const override { return m_axleShaftInertia; }
     
@@ -90,10 +90,10 @@ class CH_MODELS_API G500_RearAxle : public ChRigidPanhardAxle {
     static const double m_panhardRodRadius;
     static const double m_arbRadius;
 
-    static const ChVector<> m_axleTubeInertia;
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_panhardRodInertia;
-    static const ChVector<> m_arbInertia;
+    static const ChVector3d m_axleTubeInertia;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_panhardRodInertia;
+    static const ChVector3d m_arbInertia;
 
     static const double m_springCoefficient;
     static const double m_springRestLength;

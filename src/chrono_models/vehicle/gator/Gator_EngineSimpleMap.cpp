@@ -18,7 +18,7 @@ namespace chrono {
 namespace vehicle {
 namespace gator {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 Gator_EngineSimpleMap::Gator_EngineSimpleMap(const std::string& name) : ChEngineSimpleMap(name) {}
 
@@ -26,7 +26,7 @@ double Gator_EngineSimpleMap::GetMaxEngineSpeed() {
     return 2700 * rpm2rads;
 }
 
-void Gator_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+void Gator_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) {
     map0.AddPoint(-10.0, 0.0);
     map0.AddPoint(10.0, 0.0);
     map0.AddPoint(rpm2rads * 7.3654652540894313e+02, -10.0);

@@ -51,8 +51,12 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChMesh* Clone() const override { return new ChMesh(*this); }
 
-    void AddNode(std::shared_ptr<ChNodeFEAbase> m_node);
-    void AddElement(std::shared_ptr<ChElementBase> m_elem);
+    /// Add provided node to the mesh.
+    void AddNode(std::shared_ptr<ChNodeFEAbase> node);
+    
+    /// Add provided element to the mesh.
+    void AddElement(std::shared_ptr<ChElementBase> elem);
+
     void ClearNodes();
     void ClearElements();
 
@@ -69,16 +73,16 @@ class ChApi ChMesh : public ChIndexedNodes {
     std::shared_ptr<ChElementBase> GetElement(unsigned int n) { return velements[n]; }
 
     /// Get the number of nodes in the mesh.
-    virtual unsigned int GetNnodes() const override { return (unsigned int)vnodes.size(); }
+    virtual unsigned int GetNumNodes() const override { return (unsigned int)vnodes.size(); }
 
     /// Get the number of elements in the mesh.
-    unsigned int GetNelements() { return (unsigned int)velements.size(); }
+    unsigned int GetNumElements() { return (unsigned int)velements.size(); }
 
-    virtual int GetDOF() override { return n_dofs; }
-    virtual int GetDOF_w() override { return n_dofs_w; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return n_dofs; }
+    virtual unsigned int GetNumCoordsVelLevel() override { return n_dofs_w; }
 
     /// Override default in ChPhysicsItem.
-    virtual bool GetCollide() const override { return true; }
+    virtual bool IsCollisionEnabled() const override { return true; }
 
     /// Reset counters for internal force and Jacobian evaluations.
     void ResetCounters() {
@@ -86,9 +90,9 @@ class ChApi ChMesh : public ChIndexedNodes {
         ncalls_KRMload = 0;
     }
     /// Get cumulative number of calls to internal forces evaluation.
-    int GetNumCallsInternalForces() { return ncalls_internal_forces; }
+    unsigned int GetNumCallsInternalForces() { return ncalls_internal_forces; }
     /// Get cumulative number of calls to load Jacobian information.
-    int GetNumCallsJacobianLoad() { return ncalls_KRMload; }
+    unsigned int GetNumCallsJacobianLoad() { return ncalls_KRMload; }
 
     /// Reset timers for internal force and Jacobian evaluations.
     void ResetTimers() {
@@ -110,7 +114,7 @@ class ChApi ChMesh : public ChIndexedNodes {
     std::shared_ptr<ChContactSurface> GetContactSurface(unsigned int n) { return vcontactsurfaces[n]; }
 
     /// Get number of added contact surfaces.
-    unsigned int GetNcontactSurfaces() { return (unsigned int)vcontactsurfaces.size(); }
+    unsigned int GetNumContactSurfaces() { return (unsigned int)vcontactsurfaces.size(); }
 
     /// Remove all contact surfaces.
     void ClearContactSurfaces();
@@ -125,7 +129,7 @@ class ChApi ChMesh : public ChIndexedNodes {
     std::shared_ptr<ChMeshSurface> GetMeshSurface(unsigned int n) { return vmeshsurfaces[n]; }
 
     /// Get number of added mesh surfaces
-    unsigned int GetNmeshSurfaces() { return (unsigned int)vmeshsurfaces.size(); }
+    unsigned int GetNumMeshSurfaces() { return (unsigned int)vmeshsurfaces.size(); }
 
     /// Remove all mesh surfaces.
     void ClearMeshSurfaces() { vmeshsurfaces.clear(); }
@@ -134,7 +138,7 @@ class ChApi ChMesh : public ChIndexedNodes {
     void Relax();
 
     /// Set no speed and no accelerations in nodes (but does not change reference positions).
-    void SetNoSpeedNoAcceleration() override;
+    void ForceToRest() override;
 
     /// This recomputes the number of DOFs, constraints,
     /// as well as state offsets of contained items.
@@ -166,7 +170,7 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// Get ChMesh mass properties. The inertia tensor is solved with respect to the absolute frame, 
     /// and also aligned with the absolute frame, NOT at the center of mass.
     void ComputeMassProperties(double& mass,          ///< ChMesh object mass
-                               ChVector<>& com,       ///< ChMesh center of gravity
+                               ChVector3d& com,       ///< ChMesh center of gravity
                                ChMatrix33<>& inertia  ///< ChMesh inertia tensor
                                );
 
@@ -258,7 +262,7 @@ class ChApi ChMesh : public ChIndexedNodes {
     ///     pos += qb * step
     /// </pre>
     /// If qb is a speed, this behaves like a single step of 1-st order
-    /// numerical integration (Eulero integration).
+    /// numerical integration (Euler integration).
     virtual void VariablesQbIncrementPosition(double step) override;
 
     /// Tell to a system descriptor that there are variables of type
@@ -290,8 +294,8 @@ class ChApi ChMesh : public ChIndexedNodes {
 
     ChTimer timer_internal_forces;
     ChTimer timer_KRMload;
-    int ncalls_internal_forces;
-    int ncalls_KRMload;
+    unsigned int ncalls_internal_forces;
+    unsigned int ncalls_KRMload;
 
 
     friend class chrono::ChSystem;

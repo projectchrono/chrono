@@ -214,8 +214,7 @@ void ChCastingMap::AddCastingFunction(const std::string& from,
 
 void ChCastingMap::PrintCastingFunctions() {
     for (const auto& element_from : ChCastingMap::getCastingMap()) {
-        std::cout << "From: " << element_from.first.first << " -> " << element_from.first.second
-                  << "\nTo: " << std::endl;
+        std::cout << element_from.first.first << " -> " << element_from.first.second << std::endl;
     }
 }
 

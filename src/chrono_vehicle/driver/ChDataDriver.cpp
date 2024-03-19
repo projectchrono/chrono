@@ -65,7 +65,7 @@ ChDataDriver::ChDataDriver(ChVehicle& vehicle, const std::string& filename, bool
     if (!sorted)
         std::sort(m_data.begin(), m_data.end(), ChDataDriver::compare);
 
-    GetLog() << "Loaded driver file: " << filename.c_str() << "\n";
+    std::cout << "Loaded driver file: " << filename.c_str() << std::endl;
 }
 
 ChDataDriver::ChDataDriver(ChVehicle& vehicle, const std::vector<Entry>& data, bool sorted)

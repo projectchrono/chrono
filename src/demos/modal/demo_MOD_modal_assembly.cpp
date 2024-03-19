@@ -73,7 +73,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
                               bool add_force,
                               bool add_other_assemblies,
                               bool fix_subassembly) {
-    GetLog() << "\n\nRUN TEST\n";
+    std::cout << "\n\nRUN TEST" << std::endl;
 
     // Clear previous demo, if any:
     sys.Clear();
@@ -110,9 +110,9 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
 
     section->SetDensity(beam_density);
     section->SetYoungModulus(beam_Young);
-    section->SetGwithPoissonRatio(0.31);
-    section->SetBeamRaleyghDampingBeta(0.01);
-    section->SetBeamRaleyghDampingAlpha(0.0001);
+    section->SetShearModulusFromPoisson(0.31);
+    section->SetRayleighDampingBeta(0.01);
+    section->SetRayleighDampingAlpha(0.0001);
     section->SetAsRectangularSection(beam_wy, beam_wz);
 
     ChBuilderBeamEuler builder;
@@ -124,7 +124,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     mesh_boundary->AddNode(my_node_A_boundary);
 
     // The last node is a boundary node: add it to mesh_boundary
-    auto my_node_B_boundary = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(beam_L, 0, 0)));
+    auto my_node_B_boundary = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(beam_L, 0, 0)));
     my_node_B_boundary->SetMass(0);
     my_node_B_boundary->GetInertia().setZero();
     mesh_boundary->AddNode(my_node_B_boundary);
@@ -134,56 +134,56 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
                       section,             // the ChBeamSectionEuler to use for the ChElementBeamEuler elements
                       n_elements,          // the number of ChElementBeamEuler to create
                       my_node_A_boundary,  // the 'A' point in space (beginning of beam)
-                      my_node_B_boundary,  // ChVector<>(beam_L, 0, 0), // the 'B' point in space (end of beam)
-                      ChVector<>(0, 1, 0)  // the 'Y' up direction of the section for the beam
+                      my_node_B_boundary,  // ChVector3d(beam_L, 0, 0), // the 'B' point in space (end of beam)
+                      ChVector3d(0, 1, 0)  // the 'Y' up direction of the section for the beam
     );
 
     if (fix_subassembly) {
         // BODY: the base:
         auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 200);
-        my_body_A->SetBodyFixed(true);
-        my_body_A->SetPos(ChVector<>(-0.5, 0, 0));
+        my_body_A->SetFixed(true);
+        my_body_A->SetPos(ChVector3d(-0.5, 0, 0));
         assembly->Add(my_body_A);
 
         // my_node_A_boundary->SetFixed(true); // NO - issues with bookeeping in modal_Hblock ***TO FIX***, for the
         // moment: Constraint the boundary node to truss
         auto my_root = chrono_types::make_shared<ChLinkMateGeneric>();
-        my_root->Initialize(my_node_A_boundary, my_body_A, ChFrame<>(ChVector<>(0, 0, 1), QUNIT));
+        my_root->Initialize(my_node_A_boundary, my_body_A, ChFrame<>(ChVector3d(0, 0, 1), QUNIT));
         assembly->Add(my_root);
     } else {
         // BODY: the base:
         auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 200);
-        my_body_A->SetBodyFixed(true);
-        my_body_A->SetPos(ChVector<>(-0.5, 0, 0));
+        my_body_A->SetFixed(true);
+        my_body_A->SetPos(ChVector3d(-0.5, 0, 0));
         sys.Add(my_body_A);
 
         // Constraint the boundary node to truss
         auto my_root = chrono_types::make_shared<ChLinkMateGeneric>();
-        my_root->Initialize(my_node_A_boundary, my_body_A, ChFrame<>(ChVector<>(0, 0, 1), QUNIT));
+        my_root->Initialize(my_node_A_boundary, my_body_A, ChFrame<>(ChVector3d(0, 0, 1), QUNIT));
         sys.Add(my_root);
     }
 
     if (add_internal_body) {
         // BODY: in the middle, as internal
         auto my_body_B = chrono_types::make_shared<ChBodyEasyBox>(1.8, 1.8, 1.8, 200);
-        my_body_B->SetPos(ChVector<>(beam_L * 0.5, 0, 0));
+        my_body_B->SetPos(ChVector3d(beam_L * 0.5, 0, 0));
         assembly->AddInternal(my_body_B);
 
         auto my_mid_constr = chrono_types::make_shared<ChLinkMateGeneric>();
         my_mid_constr->Initialize(builder.GetLastBeamNodes()[n_elements / 2], my_body_B,
-                                  ChFrame<>(ChVector<>(beam_L * 0.5, 0, 0), QUNIT));
+                                  ChFrame<>(ChVector3d(beam_L * 0.5, 0, 0), QUNIT));
         assembly->AddInternal(my_mid_constr);
     }
 
     if (add_boundary_body) {
         // BODY: in the end, as boundary
         auto my_body_C = chrono_types::make_shared<ChBodyEasyBox>(0.8, 0.8, 0.8, 200);
-        my_body_C->SetPos(ChVector<>(beam_L, 0, 0));
+        my_body_C->SetPos(ChVector3d(beam_L, 0, 0));
         assembly->Add(my_body_C);
 
         auto my_end_constr = chrono_types::make_shared<ChLinkMateGeneric>();
         my_end_constr->Initialize(builder.GetLastBeamNodes().back(), my_body_C,
-                                  ChFrame<>(ChVector<>(beam_L, 0, 0), QUNIT));
+                                  ChFrame<>(ChVector3d(beam_L, 0, 0), QUNIT));
         assembly->Add(my_end_constr);
     }
 
@@ -201,12 +201,12 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
 
         // example if putting additional items directly in the ChSystem:
         auto my_body_D = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.4, 0.4, 200);
-        my_body_D->SetPos(ChVector<>(beam_L * 1.1, 0, 0));
+        my_body_D->SetPos(ChVector3d(beam_L * 1.1, 0, 0));
         sys.Add(my_body_D);
 
         auto my_end_constr2 = chrono_types::make_shared<ChLinkMateGeneric>();
         my_end_constr2->Initialize(builder.GetLastBeamNodes().back(), my_body_D,
-                                   ChFrame<>(ChVector<>(beam_L, 0, 0), QUNIT));
+                                   ChFrame<>(ChVector3d(beam_L, 0, 0), QUNIT));
         sys.Add(my_end_constr2);
 
         // example if putting additional items in a second assembly (just a simple rotating blade)
@@ -214,36 +214,35 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         sys.Add(assembly0);
 
         auto my_body_blade = chrono_types::make_shared<ChBodyEasyBox>(0.2, 0.6, 0.2, 150);
-        my_body_blade->SetPos(ChVector<>(beam_L * 1.15, 0.3, 0));
+        my_body_blade->SetPos(ChVector3d(beam_L * 1.15, 0.3, 0));
         assembly0->Add(my_body_blade);
 
         auto rotmotor1 = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-        rotmotor1->Initialize(
-            my_body_blade,                                                     // slave
-            my_body_D,                                                         // master
-            ChFrame<>(my_body_D->GetPos(), Q_from_AngAxis(CH_C_PI_2, VECT_Y))  // motor frame, in abs. coords
+        rotmotor1->Initialize(my_body_blade,                                             // slave
+                              my_body_D,                                                 // master
+                              ChFrame<>(my_body_D->GetPos(), QuatFromAngleY(CH_PI_2))  // motor frame, in abs. coords
         );
         auto mwspeed =
-            chrono_types::make_shared<ChFunction_Const>(CH_C_2PI);  // constant angular speed, in [rad/s], 2PI/s =360�/s
+            chrono_types::make_shared<ChFunctionConst>(CH_2PI);  // constant angular speed, in [rad/s], 2PI/s =360�/s
         rotmotor1->SetSpeedFunction(mwspeed);
         assembly0->Add(rotmotor1);
     }
 
     if (add_force) {
         // Add a force to boundary nodes in the same way as in a full-state assembly
-        my_node_B_boundary->SetForce(ChVector<>(0, -3, 0));  // to trigger some vibration at the free end
+        my_node_B_boundary->SetForce(ChVector3d(0, -3, 0));  // to trigger some vibration at the free end
 
         // Add a force to internal nodes in the same way as in a full-state assembly
         auto node_int =
-            std::dynamic_pointer_cast<ChNodeFEAxyzrot>(assembly->Get_internal_meshlist().front()->GetNodes().back());
-        node_int->SetForce(ChVector<>(0, 1, 0));
-        node_int->SetTorque(ChVector<>(0, 2, 0));
+            std::dynamic_pointer_cast<ChNodeFEAxyzrot>(assembly->GetMeshesInternal().front()->GetNodes().back());
+        node_int->SetForce(ChVector3d(0, 1, 0));
+        node_int->SetTorque(ChVector3d(0, 2, 0));
     }
 
     // Just for later reference, dump  M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
     sys.Setup();
     sys.Update();
-    assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
+    assembly->WriteSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
 
     if (do_modal_reduction) {
         // HERE PERFORM THE MODAL REDUCTION!
@@ -271,7 +270,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         // OPTIONAL
 
         // Just for later reference, dump reduced M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
-        assembly->DumpSubassemblyMatrices(true, true, true, true, (out_dir + "/dump_reduced").c_str());
+        assembly->WriteSubassemblyMatrices(true, true, true, true, (out_dir + "/dump_reduced").c_str());
 
         // Use this for high simulation performance (the internal nodes won't be updated for postprocessing)
         // assembly->SetInternalNodesUpdate(false);
@@ -280,8 +279,8 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         assembly->ComputeModesDamped(0);
 
         for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i)
-            GetLog() << " Damped mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i)
-                     << "   damping factor z: " << assembly->Get_modes_damping_ratios()(i) << "\n";
+            std::cout << " Damped mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i)
+                     << "   damping factor z: " << assembly->Get_modes_damping_ratios()(i) << std::endl;
 
         // Finally, check if we approximately have the same eigenmodes of the original not reduced assembly:
         assembly->ComputeModes(12);
@@ -299,7 +298,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         */
 
         for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i)
-            GetLog() << " Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i) << "\n";
+            std::cout << " Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i) << std::endl;
 
     } else {
         // Otherwise we perform a conventional modal analysis on the full ChModalAssembly.
@@ -317,7 +316,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         */
 
         for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i)
-            GetLog() << " Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i) << "\n";
+            std::cout << " Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i) << std::endl;
     }
 
     // VISUALIZATION ASSETS:
@@ -352,7 +351,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     while (ID_current_example == current_example && !SWITCH_EXAMPLE && vis.Run()) {
         vis.BeginScene();
         vis.Render();
-        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector<>(0, 0, 0), CH_C_PI_2, VECT_Z),
+        tools::drawGrid(&vis, 1, 1, 12, 12, ChCoordsys<>(ChVector3d(0, 0, 0), CH_PI_2, VECT_Z),
                         ChColor(0.5f, 0.5f, 0.5f), true);
         vis.EndScene();
 
@@ -411,7 +410,7 @@ class MyEventReceiver : public irr::IEventReceiver {
 };
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Directory for output data
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -425,7 +424,7 @@ int main(int argc, char* argv[]) {
     ChSystemNSC sys;
 
     // no gravity used here
-    sys.Set_G_acc(VNULL);
+    sys.SetGravitationalAcceleration(VNULL);
 
     // VISUALIZATION
 
@@ -437,10 +436,10 @@ int main(int argc, char* argv[]) {
     vis.Initialize();
     vis.AddLogo();
     vis.AddSkyBox();
-    vis.AddCamera(ChVector<>(1, 1.3, 6), ChVector<>(3, 0, 0));
-    vis.AddLightWithShadow(ChVector<>(20, 20, 20), ChVector<>(0, 0, 0), 50, 5, 50, 55);
-    vis.AddLight(ChVector<>(-20, -20, 0), 6, ChColor(0.6f, 1.0f, 1.0f));
-    vis.AddLight(ChVector<>(0, -20, -20), 6, ChColor(0.6f, 1.0f, 1.0f));
+    vis.AddCamera(ChVector3d(1, 1.3, 6), ChVector3d(3, 0, 0));
+    vis.AddLightWithShadow(ChVector3d(20, 20, 20), ChVector3d(0, 0, 0), 50, 5, 50, 55);
+    vis.AddLight(ChVector3d(-20, -20, 0), 6, ChColor(0.6f, 1.0f, 1.0f));
+    vis.AddLight(ChVector3d(0, -20, -20), 6, ChColor(0.6f, 1.0f, 1.0f));
 
     // This is for GUI tweaking of system parameters..
     MyEventReceiver receiver(vis);

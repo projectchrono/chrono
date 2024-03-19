@@ -38,7 +38,6 @@
 #include "chrono_sensor/filters/ChFilterImageOps.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 // -----------------------------------------------------------------------------
@@ -65,7 +64,7 @@ unsigned int image_width = 1280;
 unsigned int image_height = 720;
 
 // Camera's horizontal field of view
-float fov = (float)CH_C_PI / 3.;
+float fov = (float)CH_PI / 3.;
 
 // Lag (in seconds) between sensing and when data becomes accessible
 float lag = .05f;
@@ -97,7 +96,7 @@ bool vis = true;
 const std::string out_dir = "SENSOR_OUTPUT/CAM_DEMO/";
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2020 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2020 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------
     // Create the system
@@ -109,7 +108,7 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------
     auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("vehicle/audi/audi_chassis.obj"),
                                                                   false, true);
-    mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
+    mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));  // scale to a different size
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(mmesh);
@@ -118,8 +117,8 @@ int main(int argc, char* argv[]) {
 
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({-6, 0, 0});
-    mesh_body->AddVisualShape(trimesh_shape, ChFrame<>(ChVector<>(0, 0, 0)));
-    mesh_body->SetBodyFixed(true);
+    mesh_body->AddVisualShape(trimesh_shape, ChFrame<>(ChVector3d(0, 0, 0)));
+    mesh_body->SetFixed(true);
     sys.Add(mesh_body);
 
     auto vis_mat3 = chrono_types::make_shared<ChVisualMaterial>();
@@ -132,7 +131,7 @@ int main(int argc, char* argv[]) {
 
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(20, 20, .1, 1000, true, false);
     floor->SetPos({0, 0, -1});
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     sys.Add(floor);
     {
         auto shape = floor->GetVisualModel()->GetShapes()[0].first;
@@ -155,7 +154,7 @@ int main(int argc, char* argv[]) {
 
     auto box_body = chrono_types::make_shared<ChBodyEasyBox>(1.0, 1.0, 1.0, 1000, true, false);
     box_body->SetPos({0, -2, 0});
-    box_body->SetBodyFixed(true);
+    box_body->SetFixed(true);
     sys.Add(box_body);
     {
         auto shape = box_body->GetVisualModel()->GetShapes()[0].first;
@@ -178,7 +177,7 @@ int main(int argc, char* argv[]) {
 
     auto sphere_body = chrono_types::make_shared<ChBodyEasySphere>(.5, 1000, true, false);
     sphere_body->SetPos({0, 0, 0});
-    sphere_body->SetBodyFixed(true);
+    sphere_body->SetFixed(true);
     sys.Add(sphere_body);
     {
         auto shape = sphere_body->GetVisualModel()->GetShapes()[0].first;
@@ -199,9 +198,9 @@ int main(int argc, char* argv[]) {
     vis_mat4->SetClassID(30000);
     vis_mat4->SetInstanceID(1000);
 
-    auto cyl_body = chrono_types::make_shared<ChBodyEasyCylinder>(geometry::ChAxis::Y, .25, 1, 1000, true, false);
+    auto cyl_body = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, .25, 1, 1000, true, false);
     cyl_body->SetPos({0, 2, 0});
-    cyl_body->SetBodyFixed(true);
+    cyl_body->SetFixed(true);
     sys.Add(cyl_body);
     {
         auto shape = cyl_body->GetVisualModel()->GetShapes()[0].first;
@@ -215,7 +214,7 @@ int main(int argc, char* argv[]) {
 
     auto ground_body = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, false, false);
     ground_body->SetPos({0, 0, 0});
-    ground_body->SetBodyFixed(true);
+    ground_body->SetFixed(true);
     sys.Add(ground_body);
 
     // -----------------------
@@ -233,7 +232,7 @@ int main(int argc, char* argv[]) {
     // ------------------------------------------------
     // Create a camera and add it to the sensor manager
     // ------------------------------------------------
-    chrono::ChFrame<double> offset_pose1({-8, 0, 2}, Q_from_AngAxis(.2, {0, 1, 0}));
+    chrono::ChFrame<double> offset_pose1({-8, 0, 2}, QuatFromAngleAxis(.2, {0, 1, 0}));
     auto cam = chrono_types::make_shared<ChCameraSensor>(ground_body,   // body camera is attached to
                                                          update_rate,   // update rate in Hz
                                                          offset_pose1,  // offset pose
@@ -299,7 +298,7 @@ int main(int argc, char* argv[]) {
     // Create a second camera and add it to the sensor manager
     // -------------------------------------------------------
 
-    chrono::ChFrame<double> offset_pose2({5, 0, 0}, Q_from_AngAxis(CH_C_PI, {0, 0, 1}));
+    chrono::ChFrame<double> offset_pose2({5, 0, 0}, QuatFromAngleAxis(CH_PI, {0, 0, 1}));
     auto cam2 = chrono_types::make_shared<ChCameraSensor>(ground_body,   // body camera is attached to
                                                           update_rate,   // update rate in Hz
                                                           offset_pose2,  // offset pose
@@ -381,15 +380,15 @@ int main(int argc, char* argv[]) {
         // Rotate the cameras around the mesh at a fixed rate
         cam->SetOffsetPose(chrono::ChFrame<double>(
             {orbit_radius * cos(ch_time * orbit_rate), orbit_radius * sin(ch_time * orbit_rate), 2},
-            Q_from_AngAxis(ch_time * orbit_rate + CH_C_PI, {0, 0, 1})));
+            QuatFromAngleAxis(ch_time * orbit_rate + CH_PI, {0, 0, 1})));
 
         cam2->SetOffsetPose(chrono::ChFrame<double>(
             {orbit_radius * cos(ch_time * orbit_rate), orbit_radius * sin(ch_time * orbit_rate), 2},
-            Q_from_AngAxis(ch_time * orbit_rate + CH_C_PI, {0, 0, 1})));
+            QuatFromAngleAxis(ch_time * orbit_rate + CH_PI, {0, 0, 1})));
 
         seg->SetOffsetPose(chrono::ChFrame<double>(
             {orbit_radius * cos(ch_time * orbit_rate), orbit_radius * sin(ch_time * orbit_rate), 2},
-            Q_from_AngAxis(ch_time * orbit_rate + CH_C_PI, {0, 0, 1})));
+            QuatFromAngleAxis(ch_time * orbit_rate + CH_PI, {0, 0, 1})));
 
         // Access the RGBA8 buffer from the first camera
         // rgba8_ptr = cam->GetMostRecentBuffer<UserRGBA8BufferPtr>();
@@ -423,14 +422,14 @@ int main(int argc, char* argv[]) {
         //     // Retreive and print the first RGBA pixel
         //     PixelRGBA8 first_pixel = rgba8_ptr->Buffer[0];
         //     std::cout << "First Pixel: [ " << unsigned(first_pixel.R) << ", " << unsigned(first_pixel.G) << ", "
-        //               << unsigned(first_pixel.B) << ", " << unsigned(first_pixel.A) << " ]" << std::endl
+        //               << unsigned(first_pixel.B) << ", " << unsigned(first_pixel.A) << " ]\n"
         //               << std::endl;
         //
         //     // Retreive and print the last RGBA pixel
         //     int buffer_length = rgba8_ptr->Height * rgba8_ptr->Width;
         //     PixelRGBA8 last_pixel = rgba8_ptr->Buffer[buffer_length - 1];
         //     std::cout << "Last Pixel: [ " << unsigned(last_pixel.R) << ", " << unsigned(last_pixel.G) << ", "
-        //               << unsigned(last_pixel.B) << ", " << unsigned(last_pixel.A) << " ]" << std::endl
+        //               << unsigned(last_pixel.B) << ", " << unsigned(last_pixel.A) << " ]\n"
         //               << std::endl;
         // }
 

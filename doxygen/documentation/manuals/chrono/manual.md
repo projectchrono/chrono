@@ -16,7 +16,7 @@ Chrono Core User Manual {#manual_core}
 * @subpage shared_pointers
 
 * @subpage coordinate_transformations
-	* [Vectors](@ref manual_ChVector)
+	* [Vectors](@ref manual_ChVector3)
 	* [Quaternions](@ref manual_ChQuaternion)
 	* [Rotation matrices](@ref manual_ChMatrix33)
 	* [ChCoordsys](@ref manual_ChCoordsys)

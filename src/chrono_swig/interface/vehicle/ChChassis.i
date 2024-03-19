@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"

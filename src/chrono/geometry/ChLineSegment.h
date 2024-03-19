@@ -21,12 +21,14 @@
 #include "chrono/geometry/ChLine.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// Geometric object representing a segment in 3D space with two end points.
 class ChApi ChLineSegment : public ChLine {
   public:
-    ChLineSegment(const ChVector<> A = VNULL, const ChVector<> B = VNULL) : pA(A), pB(B) {}
+    ChLineSegment(const ChVector3d A = VNULL, const ChVector3d B = VNULL) : pA(A), pB(B) {}
     ChLineSegment(const ChLineSegment& source);
     ~ChLineSegment() {}
 
@@ -34,12 +36,12 @@ class ChApi ChLineSegment : public ChLine {
     virtual ChLineSegment* Clone() const override { return new ChLineSegment(*this); }
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::LINE_SEGMENT; }
+    virtual Type GetType() const override { return Type::LINE_SEGMENT; }
 
-    virtual int Get_complexity() const override { return 2; }
+    virtual int GetComplexity() const override { return 2; }
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
-    virtual ChVector<> Evaluate(double U) const override;
+    virtual ChVector3d Evaluate(double U) const override;
 
     /// Return curve length.
     virtual double Length(int sampling) const override { return (pA - pB).Length(); }
@@ -52,18 +54,18 @@ class ChApi ChLineSegment : public ChLine {
     ChFrame<> GetFrame() const;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-    ChVector<> pA;  ///< first segment endpoint
-    ChVector<> pB;  ///< second segment endpoint
+    ChVector3d pA;  ///< first segment endpoint
+    ChVector3d pB;  ///< second segment endpoint
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChLineSegment, 0)
+CH_CLASS_VERSION(ChLineSegment, 0)
 
 }  // end namespace chrono
 

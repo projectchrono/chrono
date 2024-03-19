@@ -33,7 +33,7 @@ const double CityBus_RigidTire::m_radius = .525;  //.545; //(26.49/2.0)*0.0254;
 const double CityBus_RigidTire::m_width = .305;   // 8.07 * 0.0254;
 
 const double CityBus_RigidTire::m_mass = 68.6;
-const ChVector<> CityBus_RigidTire::m_inertia(6.104, 12.0, 6.104);
+const ChVector3d CityBus_RigidTire::m_inertia(6.104, 12.0, 6.104);
 
 const std::string CityBus_RigidTire::m_meshFile = "citybus/CityBusTire.obj";
 

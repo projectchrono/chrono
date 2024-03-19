@@ -12,7 +12,7 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/timestepper/ChAssemblyAnalysis.h"
 
 namespace chrono {
@@ -36,12 +36,12 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
     if (action & AssemblyLevel::POSITION) {
         ChStateDelta Dx;
 
-        for (int m_iter = 0; m_iter < max_assembly_iters; m_iter++) {
+        for (unsigned int m_iter = 0; m_iter < max_assembly_iters; m_iter++) {
             // Set up auxiliary vectors
-            Dx.setZero(integrable->GetNcoords_v(), GetIntegrable());
-            R.setZero(integrable->GetNcoords_v());
-            Qc.setZero(integrable->GetNconstr());
-            L.setZero(integrable->GetNconstr());
+            Dx.setZero(integrable->GetNumCoordsVelLevel(), GetIntegrable());
+            R.setZero(integrable->GetNumCoordsVelLevel());
+            Qc.setZero(integrable->GetNumConstraints());
+            L.setZero(integrable->GetNumConstraints());
 
             integrable->StateGather(X, V, T);  // state <- system
 
@@ -73,10 +73,10 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
         ChStateDelta Vold;
 
         // setup auxiliary vectors
-        Vold.setZero(integrable->GetNcoords_v(), GetIntegrable());
-        R.setZero(integrable->GetNcoords_v());
-        Qc.setZero(integrable->GetNconstr());
-        L.setZero(integrable->GetNconstr());
+        Vold.setZero(integrable->GetNumCoordsVelLevel(), GetIntegrable());
+        R.setZero(integrable->GetNumCoordsVelLevel());
+        Qc.setZero(integrable->GetNumConstraints());
+        L.setZero(integrable->GetNumConstraints());
 
         integrable->StateGather(X, V, T);  // state <- system
 

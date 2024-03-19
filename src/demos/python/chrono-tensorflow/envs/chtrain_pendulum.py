@@ -27,7 +27,7 @@ class Model(object):
 
 
     # Create a contact material (surface property)to share between all objects.
-      self.rod_material = chrono.ChMaterialSurfaceNSC()
+      self.rod_material = chrono.ChContactMaterialNSC()
       self.rod_material.SetFriction(0.5)
       self.rod_material.SetDampingF(0.2)
       self.rod_material.SetCompliance (0.0000001)
@@ -42,7 +42,7 @@ class Model(object):
       self.radius_rod = 0.05
       self.density_rod = 50;    # kg/m^3
 
-      self.mass_rod = self.density_rod * self.size_rod_y *chrono.CH_C_PI* (self.radius_rod**2);  
+      self.mass_rod = self.density_rod * self.size_rod_y *chrono.CH_PI* (self.radius_rod**2);  
       self.inertia_rod_y = (self.radius_rod**2) * self.mass_rod/2;
       self.inertia_rod_x = (self.mass_rod/12)*((self.size_rod_y**2)+3*(self.radius_rod**2))
       
@@ -57,7 +57,7 @@ class Model(object):
              self.vis.Initialize()
              self.vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
              self.vis.AddSkyBox()
-             self.vis.AddCamera(chrono.ChVectorD(0.5,0.5,1.0))
+             self.vis.AddCamera(chrono.ChVector3d(0.5,0.5,1.0))
              self.vis.AddTypicalLights()
 
    def reset(self):
@@ -67,19 +67,19 @@ class Model(object):
             # create it
       self.body_rod = chrono.ChBody()
     # set initial position
-      self.body_rod.SetPos(chrono.ChVectorD(0, self.size_rod_y/2, 0 ))
+      self.body_rod.SetPos(chrono.ChVector3d(0, self.size_rod_y/2, 0 ))
     # set mass properties
       self.body_rod.SetMass(self.mass_rod)
 
-      self.body_rod.SetInertiaXX(chrono.ChVectorD(self.inertia_rod_x,self.inertia_rod_y,self.inertia_rod_x))
+      self.body_rod.SetInertiaXX(chrono.ChVector3d(self.inertia_rod_x,self.inertia_rod_y,self.inertia_rod_x))
 
 
 
 
     # Visualization shape, for rendering animation
 
-      self.cyl_base1= chrono.ChVectorD(0, -self.size_rod_y/2, 0 )
-      self.cyl_base2= chrono.ChVectorD(0, self.size_rod_y/2, 0 )
+      self.cyl_base1= chrono.ChVector3d(0, -self.size_rod_y/2, 0 )
+      self.cyl_base2= chrono.ChVector3d(0, self.size_rod_y/2, 0 )
 
       self.body_rod_shape = chrono.ChVisualShapeCylinder()
       self.body_rod_shape.GetCylinderGeometry().p1= self.cyl_base1
@@ -91,8 +91,8 @@ class Model(object):
 
 
       self.body_floor = chrono.ChBody()
-      self.body_floor.SetBodyFixed(True)
-      self.body_floor.SetPos(chrono.ChVectorD(0, -5, 0 ))
+      self.body_floor.SetFixed(True)
+      self.body_floor.SetPos(chrono.ChVector3d(0, -5, 0 ))
 
 
 
@@ -106,7 +106,7 @@ class Model(object):
 
 
       self.body_table = chrono.ChBody()
-      self.body_table.SetPos(chrono.ChVectorD(0, -self.size_table_y/2, 0 ))
+      self.body_table.SetPos(chrono.ChVector3d(0, -self.size_table_y/2, 0 ))
 
 
       if self.render:
@@ -120,25 +120,25 @@ class Model(object):
 
 
       self.link_slider = chrono.ChLinkLockPrismatic()
-      z2x = chrono.ChQuaternionD()
-      z2x.Q_from_AngAxis(-chrono.CH_C_PI / 2 , chrono.ChVectorD(0, 1, 0))
+      z2x = chrono.ChQuaterniond()
+      z2x.SetFromAngleAxis(-chrono.CH_PI / 2 , chrono.ChVector3d(0, 1, 0))
 
-      self.link_slider.Initialize(self.body_table, self.body_floor, chrono.ChCoordsysD(chrono.ChVectorD(0, 0, 0), z2x))
+      self.link_slider.Initialize(self.body_table, self.body_floor, chrono.ChFramed(chrono.ChVector3d(0, 0, 0), z2x))
       self.rev_pend_sys.Add(self.link_slider)
 
 
-      self.act_initpos = chrono.ChVectorD(0,0,0)
+      self.act_initpos = chrono.ChVector3d(0,0,0)
       self.actuator = chrono.ChLinkMotorLinearForce()
-      self.actuator.Initialize(self.body_table, self.body_floor, chrono.ChFrameD(self.act_initpos))
+      self.actuator.Initialize(self.body_table, self.body_floor, chrono.ChFramed(self.act_initpos))
       self.rev_pend_sys.Add(self.actuator)
 
       self.rod_pin = chrono.ChMarker()
       self.body_rod.AddMarker(self.rod_pin)
-      self.rod_pin.Impose_Abs_Coord(chrono.ChCoordsysD(chrono.ChVectorD(0,0,0)))
+      self.rod_pin.ImposeAbsoluteTransform(chrono.ChCoordsysd(chrono.ChVector3d(0,0,0)))
 
       self.table_pin = chrono.ChMarker()
       self.body_table.AddMarker(self.table_pin)
-      self.table_pin.Impose_Abs_Coord(chrono.ChCoordsysD(chrono.ChVectorD(0,0,0)))
+      self.table_pin.ImposeAbsoluteTransform(chrono.ChCoordsysd(chrono.ChVector3d(0,0,0)))
 
       self.pin_joint = chrono.ChLinkLockRevolute()
       self.pin_joint.Initialize(self.rod_pin, self.table_pin)
@@ -157,9 +157,9 @@ class Model(object):
        
        action=float(ac[0])
        self.steps += 1
-       self.ac = chrono.ChFunction_Const(action)
+       self.ac = chrono.ChFunctionConst(action)
        self.actuator.SetForceFunction(self.ac)
-       self.omega = self.pin_joint.GetRelWvel().Length()  
+       self.omega = self.pin_joint.GetRelativeAngVel().Length()  
        
        if self.render:
               self.vis.Run()
@@ -180,12 +180,12 @@ class Model(object):
    def get_ob(self):
            
 
-          self.state = [self.link_slider.GetDist(), self.link_slider.GetDist_dt(), self.pin_joint.GetRelAngle(), self.omega]
+          self.state = [self.link_slider.GetDistance(), self.link_slider.GetDistanceDt(), self.pin_joint.GetRelAngle(), self.omega]
           return np.asarray(self.state)
 
                  
    def is_done(self):
-          if abs(self.link_slider.GetDist()) > 2 or self.steps> 100000 or abs(self.pin_joint.GetRelAngle()) >  0.2  :
+          if abs(self.link_slider.GetDistance()) > 2 or self.steps> 100000 or abs(self.pin_joint.GetRelAngle()) >  0.2  :
                  self.isdone = True
                         
        

@@ -73,7 +73,7 @@ Since the CRG terrain model currently does not carry any collision and contact i
 
 ## Deformable SCM (Soil Contact Model) {#vehicle_terrain_scm}
 
-In the recently redesigned [SCMDeformableTerrain](@ref chrono::vehicle::SCMDeformableTerrain), the terrain is represented by an implicit regular Cartesian grid whose deformation is achieved via vertical deflection of its nodes.  This soil model draws on the general-purpose collision engine in Chrono and its lightweight formulation allows computing vehicle-terrain contact forces in close to real-time.
+In the [SCMTerrain](@ref chrono::vehicle::SCMTerrain), the terrain is represented by an implicit regular Cartesian grid whose deformation is achieved via vertical deflection of its nodes.  This soil model draws on the general-purpose collision engine in Chrono and its lightweight formulation allows computing vehicle-terrain contact forces in close to real-time.
 To address memory and computational efficiency concerns, the grid is never created explicitly. Instead, only nodes that have been deformed are maintained in a hash map.  Furthermore, ray-casting in the collision system (the most costly operation in the SCM calculation) is multi-threaded.  To allow efficient visualization of the deformed terrain, the Chrono SCM subsystem provides methods for incrementally updating a visualization mesh and, when using an external visualization system, reporting the subset of nodes deformed over the last time step.
 
 Shown below, a tire makes ruts in deformable soil, illustrating the mesh structure of the Chrono version of the SCM.
@@ -101,7 +101,7 @@ Some other features of the Chrono SCM implementation are:
   - programatically
 - support for arbitrary orientation of the terrain reference plane; by default, the terrain is defined as the \f$(x,y)\f$ plane of a \f$z\f$-up [ISO frame](@ref vehicle_ISO_frame)
 - support for a moving-patch approach wherein ray-casting (the most costly operation) is confined to a specified domain -- either a rectangular patch moving relative to the vehicle or the projection of a bounding box
-- support for specifying location-dependent soil parameters; this can be achieved by providing a custom callback class which implements a method that returns all soil parameters at a given \f$(x,y)\f$ point specified in the terrain's reference plane. See [SCMDeformableTerrain::SoilParametersCallback](@ref chrono::vehicle::SCMDeformableTerrain::SoilParametersCallback)
+- support for specifying location-dependent soil parameters; this can be achieved by providing a custom callback class which implements a method that returns all soil parameters at a given \f$(x,y)\f$ point specified in the terrain's reference plane. See [SCMTerrain::SoilParametersCallback](@ref chrono::vehicle::SCMTerrain::SoilParametersCallback)
 
 Since the interaction with this terrain type is done through the underlying Chrono contact system, it can be used in conjunction with [rigid](@ref wheeled_tire_rigid) or [FEA](@ref wheeled_tire_fea) tire models and with tracked vehicles.
 
@@ -125,7 +125,7 @@ Since the interaction with this terrain type is done through the underlying Chro
 
 ## Deformable FEA (ANCF solid elements) {#vehicle_terrain_fea}
 
-[FEADeformableTerrain](@ref chrono::vehicle::FEADeformableTerrain) provides a deformable terrain model based on specialized FEA brick elements of type [ChElementHexaANCF_3813_9](@ref chrono::fea::ChElementHexaANCF_3813_9).  
+[FEATerrain](@ref chrono::vehicle::FEATerrain) provides a deformable terrain model based on specialized FEA brick elements of type [ChElementHexaANCF_3813_9](@ref chrono::fea::ChElementHexaANCF_3813_9).  
 
 This terrain model permits:
 - discretization of a box domain into a user-prescribed number of elements

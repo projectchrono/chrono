@@ -194,12 +194,12 @@ void ChConstraintThreeGeneric::Build_CqT(ChSparseMatrix& storage, int inscol) {
         PasteMatrix(storage, Cq_c.transpose(), variables_c->GetOffset(), inscol);
 }
 
-void ChConstraintThreeGeneric::ArchiveOut(ChArchiveOut& marchive) {
+void ChConstraintThreeGeneric::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChConstraintThreeGeneric>();
+    archive_out.VersionWrite<ChConstraintThreeGeneric>();
 
     // serialize the parent class data too
-    ChConstraintThree::ArchiveOut(marchive);
+    ChConstraintThree::ArchiveOut(archive_out);
 
     // serialize all member data:
     // NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so
@@ -209,12 +209,12 @@ void ChConstraintThreeGeneric::ArchiveOut(ChArchiveOut& marchive) {
     // mstream << Cq_b;
 }
 
-void ChConstraintThreeGeneric::ArchiveIn(ChArchiveIn& marchive) {
+void ChConstraintThreeGeneric::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChConstraintThreeGeneric>();
+    /*int version =*/ archive_in.VersionRead<ChConstraintThreeGeneric>();
 
     // deserialize the parent class data too
-    ChConstraintThree::ArchiveIn(marchive);
+    ChConstraintThree::ArchiveIn(archive_in);
 
     // deserialize all member data:
     // NOTHING INTERESTING TO SERIALIZE (the Cq jacobians are not so

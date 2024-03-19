@@ -42,9 +42,9 @@ void ChFsiVisualization::SetSize(int width, int height) {}
 
 void ChFsiVisualization::SetTitle(const std::string& title) {}
 
-void ChFsiVisualization::AddCamera(const ChVector<>& pos, const ChVector<>& target) {}
+void ChFsiVisualization::AddCamera(const ChVector3d& pos, const ChVector3d& target) {}
 
-void ChFsiVisualization::UpdateCamera(const ChVector<>& pos, const ChVector<>& target) {}
+void ChFsiVisualization::UpdateCamera(const ChVector3d& pos, const ChVector3d& target) {}
 
 void ChFsiVisualization::SetCameraVertical(CameraVerticalDir up) {}
 
@@ -57,7 +57,7 @@ void ChFsiVisualization::SetRenderMode(RenderMode mode) {}
 void ChFsiVisualization::EnableInfoOverlay(bool val) {}
 
 void ChFsiVisualization::AddProxyBody(std::shared_ptr<ChBody> body) {
-    body->SetBodyFixed(true);
+    body->SetFixed(true);
     m_system->AddBody(body);
 }
 

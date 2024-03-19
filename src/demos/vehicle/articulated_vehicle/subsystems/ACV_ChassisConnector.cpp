@@ -21,6 +21,6 @@
 using namespace chrono;
 using namespace chrono::vehicle;
 
-const double ACV_ChassisConnector::m_maxangle = CH_C_PI / 6;
+const double ACV_ChassisConnector::m_maxangle = CH_PI / 6;
 
 ACV_ChassisConnector::ACV_ChassisConnector(const std::string& name) : ChChassisConnectorArticulated(name) {}

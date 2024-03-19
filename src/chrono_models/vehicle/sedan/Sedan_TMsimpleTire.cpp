@@ -33,7 +33,7 @@ namespace sedan {
 const std::string Sedan_TMsimpleTire::m_meshFile = "sedan/sedan_tire.obj";
 
 const double Sedan_TMsimpleTire::m_mass = 11.5;
-const ChVector<> Sedan_TMsimpleTire::m_inertia(0.156, 0.679, 0.156);
+const ChVector3d Sedan_TMsimpleTire::m_inertia(0.156, 0.679, 0.156);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

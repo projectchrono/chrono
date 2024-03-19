@@ -36,7 +36,7 @@ class CH_MULTICORE_API ChContactContainerMulticore : public ChContactContainer {
     ChContactContainerMulticore(const ChContactContainerMulticore& other);
     virtual ~ChContactContainerMulticore();
 
-    virtual int GetNcontacts() const override { return data_manager->cd_data->num_rigid_contacts; }
+    virtual unsigned int GetNumContacts() const override { return data_manager->cd_data->num_rigid_contacts; }
 
     virtual void RemoveAllContacts() override;
     virtual void BeginAddContact() override;
@@ -65,12 +65,12 @@ class CH_MULTICORE_API ChContactContainerMulticore : public ChContactContainer {
     /// Return the resultant contact force acting on the specified contactable object.
     /// Note that ComputeContactForces must be called prior to calling this function
     /// at any time where reporting of contact forces is desired.
-    virtual ChVector<> GetContactableForce(ChContactable* contactable) override;
+    virtual ChVector3d GetContactableForce(ChContactable* contactable) override;
 
     /// Return the resultant contact torque acting on the specified contactable object.
     /// Note that ComputeContactForces must be called prior to calling this function
     /// at any time where reporting of contact torques is desired.
-    virtual ChVector<> GetContactableTorque(ChContactable* contactable) override;
+    virtual ChVector3d GetContactableTorque(ChContactable* contactable) override;
 
     /// Return the list of contacts between rigid bodies
     const std::list<ChContact_6_6*>& GetContactList() const { return contactlist_6_6; }

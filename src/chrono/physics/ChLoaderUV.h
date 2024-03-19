@@ -57,8 +57,8 @@ class ChLoaderUVdistributed : public ChLoaderUV {
     virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                           ) override {
-        Q.setZero(loadable->LoadableGet_ndof_w());
-        ChVectorDynamic<> mF(loadable->Get_field_ncoords());
+        Q.setZero(loadable->GetLoadableNumCoordsVelLevel());
+        ChVectorDynamic<> mF(loadable->GetNumFieldCoords());
         mF.setZero();
 
         if (!loadable->IsTriangleIntegrationNeeded()) {
@@ -124,8 +124,8 @@ class ChLoaderUVatomic : public ChLoaderUV {
     virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate Q
                           ) override {
-        Q.setZero(loadable->LoadableGet_ndof_w());
-        ChVectorDynamic<> mF(loadable->Get_field_ncoords());
+        Q.setZero(loadable->GetLoadableNumCoordsVelLevel());
+        ChVectorDynamic<> mF(loadable->GetNumFieldCoords());
         mF.setZero();
 
         // Compute F=F(u,v)
@@ -152,7 +152,7 @@ class ChLoaderUVatomic : public ChLoaderUV {
 
 class ChLoaderForceOnSurface : public ChLoaderUVatomic {
   private:
-    ChVector<> force;
+    ChVector3d force;
 
   public:
     ChLoaderForceOnSurface(std::shared_ptr<ChLoadableUV> mloadable) : ChLoaderUVatomic(mloadable) {}
@@ -166,9 +166,9 @@ class ChLoaderForceOnSurface : public ChLoaderUVatomic {
         F.segment(0, 3) = force.eigen();
     }
     // Set constant force (assumed in absolute coordinates)
-    void SetForce(ChVector<> mforce) { force = mforce; }
+    void SetForce(ChVector3d mforce) { force = mforce; }
     // Get constant force (assumed in absolute coordinates)
-    ChVector<> GetForce() { return force; }
+    ChVector3d GetForce() { return force; }
 
     virtual bool IsStiff() override { return false; }
 };
@@ -191,7 +191,7 @@ class ChLoaderPressure : public ChLoaderUVdistributed {
                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
                           ) override {
-        ChVector<> mnorm = this->loadable->ComputeNormal(U, V);
+        ChVector3d mnorm = this->loadable->ComputeNormal(U, V);
         F.segment(0, 3) = -pressure * mnorm.eigen();
     }
 

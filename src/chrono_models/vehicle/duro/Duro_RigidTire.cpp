@@ -33,7 +33,7 @@ const double Duro_RigidTire::m_radius = 0.939 / 2.0;
 const double Duro_RigidTire::m_width = 0.275;
 
 const double Duro_RigidTire::m_mass = 34.4;
-const ChVector<> Duro_RigidTire::m_inertia(3.34, 6.28, 3.34);
+const ChVector3d Duro_RigidTire::m_inertia(3.34, 6.28, 3.34);
 
 const std::string Duro_RigidTire::m_meshFile = "duro/Duro_Tire.obj";
 

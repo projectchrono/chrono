@@ -18,8 +18,11 @@
 
 #include <algorithm>
 
-#include "chrono/utils/ChFilters.h"
 #include "chrono/core/ChMatrix.h"
+#include "chrono/utils/ChUtils.h"
+#include "chrono/utils/ChFilters.h"
+#include "chrono/utils/ChConstants.h"
+
 
 namespace chrono {
 namespace utils {
@@ -48,7 +51,7 @@ ChMovingAverage::ChMovingAverage(const std::valarray<double>& data, int n) {
     m_out.resize(np);
 
     // Start and end of data
-    int lim = ChMin(n, np);
+    int lim = std::min(n, np);
     for (int i = 0; i < lim; i++) {
         m_out[i] = data[i];
         for (int j = 1; j <= i; j++)
@@ -72,8 +75,9 @@ ChMovingAverage::ChMovingAverage(const std::valarray<double>& data, int n) {
     }
 }
 
-//******************************************************
+/******************************************************
 // Integral filter implementation
+******************************************************/
 
 ChFilterI::ChFilterI(double step, double Ti) {
     Config(step, Ti);
@@ -97,8 +101,9 @@ double ChFilterI::Filter(double u) {
     return m_y_old;
 }
 
-//******************************************************
+/******************************************************
 // Differential filter implementation
+******************************************************/
 
 ChFilterD::ChFilterD(double step, double Td) {
     Config(step, Td);
@@ -196,13 +201,13 @@ double ChFilterPDT1::Filter(double u) {
 }
 
 //--------------------------------------- IIR filters ----------------------------------
-ChButterworth_Lowpass::ChButterworth_Lowpass() {}
+ChButterworthLowpass::ChButterworthLowpass() {}
 
-ChButterworth_Lowpass::ChButterworth_Lowpass(unsigned int nPoles, double step, double fc) {
+ChButterworthLowpass::ChButterworthLowpass(unsigned int nPoles, double step, double fc) {
     Config(nPoles, step, fc);
 }
 
-void ChButterworth_Lowpass::Reset() {
+void ChButterworthLowpass::Reset() {
     if (m_n_single == 1) {
         m_u_hist1 = 0.0;
         m_y_hist1 = 0.0;
@@ -213,12 +218,12 @@ void ChButterworth_Lowpass::Reset() {
     }
 }
 
-void ChButterworth_Lowpass::Config(unsigned int nPoles, double step, double fc) {
+void ChButterworthLowpass::Config(unsigned int nPoles, double step, double fc) {
     const unsigned int nPolesMin = 1;
     const unsigned int nPolesMax = 6;
 
     m_Ts = step;
-    double wc = fc * CH_C_2PI;
+    double wc = fc * CH_2PI;
 
     if (nPoles < nPolesMin) {
         nPoles = 1;
@@ -237,11 +242,11 @@ void ChButterworth_Lowpass::Config(unsigned int nPoles, double step, double fc) 
     m_Q.resize(m_n_biquad);
     if (m_n_single == 1) {
         for (unsigned int k = 1; k <= (nPoles - 1) / 2; k++) {
-            m_Q[k - 1] = -2.0 * cos(CH_C_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
+            m_Q[k - 1] = -2.0 * cos(CH_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
         }
     } else {
         for (unsigned int k = 1; k <= nPoles / 2; k++) {
-            m_Q[k - 1] = -2.0 * cos(CH_C_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
+            m_Q[k - 1] = -2.0 * cos(CH_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
         }
     }
 
@@ -291,7 +296,7 @@ void ChButterworth_Lowpass::Config(unsigned int nPoles, double step, double fc) 
     Reset();
 }
 
-double ChButterworth_Lowpass::Filter(double u) {
+double ChButterworthLowpass::Filter(double u) {
     double y = 0.0;
     if (m_n_single == 1) {
         y = m_b0 * u + m_b1 * m_u_hist1 - m_a1 * m_y_hist1;
@@ -311,13 +316,13 @@ double ChButterworth_Lowpass::Filter(double u) {
     return y;
 }
 
-ChButterworth_Highpass::ChButterworth_Highpass() {}
+ChButterworthHighpass::ChButterworthHighpass() {}
 
-ChButterworth_Highpass::ChButterworth_Highpass(unsigned int nPoles, double step, double fc) {
+ChButterworthHighpass::ChButterworthHighpass(unsigned int nPoles, double step, double fc) {
     Config(nPoles, step, fc);
 }
 
-void ChButterworth_Highpass::Reset() {
+void ChButterworthHighpass::Reset() {
     if (m_n_single == 1) {
         m_u_hist1 = 0.0;
         m_y_hist1 = 0.0;
@@ -328,12 +333,12 @@ void ChButterworth_Highpass::Reset() {
     }
 }
 
-void ChButterworth_Highpass::Config(unsigned int nPoles, double step, double fc) {
+void ChButterworthHighpass::Config(unsigned int nPoles, double step, double fc) {
     const unsigned int nPolesMin = 1;
     const unsigned int nPolesMax = 6;
 
     m_Ts = step;
-    double wc = fc * CH_C_2PI;
+    double wc = fc * CH_2PI;
 
     if (nPoles < nPolesMin) {
         nPoles = 1;
@@ -352,11 +357,11 @@ void ChButterworth_Highpass::Config(unsigned int nPoles, double step, double fc)
     m_Q.resize(m_n_biquad);
     if (m_n_single == 1) {
         for (unsigned int k = 1; k <= (nPoles - 1) / 2; k++) {
-            m_Q[k - 1] = -2.0 * cos(CH_C_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
+            m_Q[k - 1] = -2.0 * cos(CH_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
         }
     } else {
         for (unsigned int k = 1; k <= nPoles / 2; k++) {
-            m_Q[k - 1] = -2.0 * cos(CH_C_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
+            m_Q[k - 1] = -2.0 * cos(CH_PI * (2.0 * k + nPoles - 1) / (2.0 * nPoles));
         }
     }
 
@@ -404,7 +409,7 @@ void ChButterworth_Highpass::Config(unsigned int nPoles, double step, double fc)
     Reset();
 }
 
-double ChButterworth_Highpass::Filter(double u) {
+double ChButterworthHighpass::Filter(double u) {
     double y = 0.0;
     if (m_n_single == 1) {
         y = m_b0 * u + m_b1 * m_u_hist1 - m_a1 * m_y_hist1;
@@ -440,7 +445,7 @@ void ChISO2631_1_AVTransition::Config(double step, double f4, double Q4) {
     // Standard Bilinear Transform
     m_Ts = step;
     m_wc3 = 0.0;
-    m_wc4 = CH_C_2PI * f4;
+    m_wc4 = CH_2PI * f4;
     m_Q4 = Q4;
 
     m_b0 = m_Q4 * m_Ts * m_Ts * m_wc4 * m_wc4;
@@ -464,8 +469,8 @@ void ChISO2631_1_AVTransition::Config(double step, double f4, double Q4) {
 
 void ChISO2631_1_AVTransition::Config(double step, double f3, double f4, double Q4) {
     m_Ts = step;
-    m_wc3 = CH_C_2PI * f3;
-    m_wc4 = CH_C_2PI * f4;
+    m_wc3 = CH_2PI * f3;
+    m_wc4 = CH_2PI * f4;
     m_Q4 = Q4;
 
     m_b0 = m_Q4 * m_Ts * m_wc4 * m_wc4 * (m_Ts * m_wc3 + 2.0);
@@ -515,8 +520,8 @@ ChISO2631_1_UpwardStep::ChISO2631_1_UpwardStep(double step, double f5, double f6
 void ChISO2631_1_UpwardStep::Config(double step, double f5, double f6, double Q5, double Q6) {
     m_Ts = step;
 
-    m_wc5 = CH_C_2PI * f5;
-    m_wc6 = CH_C_2PI * f6;
+    m_wc5 = CH_2PI * f5;
+    m_wc6 = CH_2PI * f6;
     m_Q5 = Q5;
     m_Q6 = Q6;
 
@@ -764,15 +769,15 @@ void ChISO2631_5_Wz::Filter(std::vector<double>& u, std::vector<double>& y) {
 // Absorbed Power Vertical Filter Class
 // -----------------------------------------------------------------------------
 
-ChAbsorbed_Power_Vertical::ChAbsorbed_Power_Vertical() {
+ChAbsorbedPowerVertical::ChAbsorbedPowerVertical() {
     Reset();
 }
 
-ChAbsorbed_Power_Vertical::ChAbsorbed_Power_Vertical(double step) {
+ChAbsorbedPowerVertical::ChAbsorbedPowerVertical(double step) {
     Config(step);
 }
 
-double ChAbsorbed_Power_Vertical::Filter(double u) {
+double ChAbsorbedPowerVertical::Filter(double u) {
     double y = m_b0 * u + m_b1 * m_u_hist1 + m_b2 * m_u_hist2 + m_b3 * m_u_hist3 - m_a1 * m_y_hist1 - m_a2 * m_y_hist2 -
                m_a3 * m_y_hist3;
 
@@ -787,13 +792,13 @@ double ChAbsorbed_Power_Vertical::Filter(double u) {
     return y;
 }
 
-void ChAbsorbed_Power_Vertical::Reset() {
+void ChAbsorbedPowerVertical::Reset() {
     // keep filter coefficients, clear history buffer
     m_u_hist1 = m_u_hist2 = m_u_hist3 = 0;
     m_y_hist1 = m_y_hist2 = m_y_hist3 = 0;
 }
 
-void ChAbsorbed_Power_Vertical::Config(double step) {
+void ChAbsorbedPowerVertical::Config(double step) {
     m_Ts = step;
 
     m_b0 = (29.0 * m_Ts * (22.0 * m_Ts + 1.0));
@@ -835,6 +840,9 @@ void ChISO2631_Vibration_SeatCushionLogger::Config(double step) {
     m_step = step;
     m_logging_time = 0.0;
 
+    m_sinestep =
+        chrono_types::make_unique<ChFunctionSineStep>(ChVector2d(m_tstart1, 0.0), ChVector2d(m_tstart2, 1.0));
+
     // prepare all filters for 1st usage
     m_filter_wd_x.Config(step);
     m_filter_wd_y.Config(step);
@@ -856,7 +864,7 @@ void ChISO2631_Vibration_SeatCushionLogger::Config(double step) {
 
 void ChISO2631_Vibration_SeatCushionLogger::AddData(double speed, double acc_x, double acc_y, double acc_z) {
     const double meter_to_ft = 3.280839895;
-    double startFactor = ChSineStep(m_logging_time, m_tstart1, 0.0, m_tstart2, 1.0);
+    double startFactor = m_sinestep->GetVal(m_logging_time);
 
     m_data_speed.push_back(speed);
 
@@ -1113,7 +1121,7 @@ ChISO2631_Shock_SeatCushionLogger::ChISO2631_Shock_SeatCushionLogger(double step
 }
 
 void ChISO2631_Shock_SeatCushionLogger::AddData(double ax, double ay, double az) {
-    double startFactor = ChSineStep(m_logging_time, m_tstart1, 0.0, m_tstart2, 1.0);
+    double startFactor = m_sinestep->GetVal(m_logging_time);
 
     // speed of a vehicle changes very much during obstacle crossing, we take the first value as significant
     // instead of an average value
@@ -1133,6 +1141,9 @@ void ChISO2631_Shock_SeatCushionLogger::Config(double step) {
 
     m_legacy_lpz.Config(4, m_step_inp, 30.0);
 
+    m_sinestep =
+        chrono_types::make_unique<ChFunctionSineStep>(ChVector2d(m_tstart1, 0.0), ChVector2d(m_tstart2, 1.0));
+
     Reset();
 }
 
@@ -1150,9 +1161,9 @@ double ChISO2631_Shock_SeatCushionLogger::GetSe() {
 
     for (size_t i = 0; i < nInDat; i++) {
         double t = m_step * i;
-        m_inp_x[i] = m_raw_inp_x.Get_y(t);
-        m_inp_y[i] = m_raw_inp_y.Get_y(t);
-        m_inp_z[i] = m_raw_inp_z.Get_y(t);
+        m_inp_x[i] = m_raw_inp_x.GetVal(t);
+        m_inp_y[i] = m_raw_inp_y.GetVal(t);
+        m_inp_z[i] = m_raw_inp_z.GetVal(t);
     }
 
     m_out_x.resize(nInDat);
@@ -1181,7 +1192,7 @@ double ChISO2631_Shock_SeatCushionLogger::GetLegacyAz() {
     std::vector<double> legacy_az;
     for (size_t i = 0; i < nInDat; i++) {
         double t = m_step_inp * i;
-        legacy_az.push_back(m_legacy_lpz.Filter(m_raw_inp_z.Get_y(t) * to_g));
+        legacy_az.push_back(m_legacy_lpz.Filter(m_raw_inp_z.GetVal(t) * to_g));
         if (legacy_az[i] > az_max) {
             az_max = legacy_az[i];
         }

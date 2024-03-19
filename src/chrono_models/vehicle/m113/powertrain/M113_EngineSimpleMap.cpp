@@ -22,7 +22,7 @@ namespace chrono {
 namespace vehicle {
 namespace m113 {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 M113_EngineSimpleMap::M113_EngineSimpleMap(const std::string& name) : ChEngineSimpleMap(name) {}
 
@@ -30,7 +30,7 @@ double M113_EngineSimpleMap::GetMaxEngineSpeed() {
     return 3000 * rpm2rads;
 }
 
-void M113_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+void M113_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) {
     const double lbft2Nm = 1.0 / 0.73756;
     
     map0.AddPoint(-100 * rpm2rads, 0 * lbft2Nm);  // to start engine

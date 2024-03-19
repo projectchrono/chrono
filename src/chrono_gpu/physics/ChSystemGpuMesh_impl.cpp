@@ -19,7 +19,7 @@
 #include <cmath>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChQuaternion.h"
 #include "chrono/core/ChMatrix33.h"
 

@@ -38,7 +38,7 @@ class ChApi ChVisualShapePointPoint : public ChVisualShapeLine {
   private:
     // Update underlying line geometry from given two endpoints.
     // This method will be called on Update() call and should be implemented by derived classes.
-    virtual void UpdateLineGeometry(const ChVector<>& endpoint1, const ChVector<>& endpoint2) = 0;
+    virtual void UpdateLineGeometry(const ChVector3d& endpoint1, const ChVector3d& endpoint2) = 0;
 };
 
 /// Shape for visualizing a line segment between two moving points related to the parent ChPhysicsItem.
@@ -48,7 +48,7 @@ class ChApi ChVisualShapePointPoint : public ChVisualShapeLine {
 class ChApi ChVisualShapeSegment : public ChVisualShapePointPoint {
   private:
     // Set line geometry as segment between two end point
-    virtual void UpdateLineGeometry(const ChVector<>& endpoint1, const ChVector<>& endpoint2) override;
+    virtual void UpdateLineGeometry(const ChVector3d& endpoint1, const ChVector3d& endpoint2) override;
 };
 
 /// Shape for visualizing a coil spring between two moving points related to the parent ChPhysicsItem.
@@ -66,7 +66,7 @@ class ChApi ChVisualShapeSpring : public ChVisualShapePointPoint {
 
   private:
     // Set line geometry as coil between two end point
-    virtual void UpdateLineGeometry(const ChVector<>& endpoint1, const ChVector<>& endpoint2) override;
+    virtual void UpdateLineGeometry(const ChVector3d& endpoint1, const ChVector3d& endpoint2) override;
 
   private:
     double radius;

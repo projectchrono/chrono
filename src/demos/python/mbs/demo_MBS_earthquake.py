@@ -39,14 +39,14 @@ chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001)
 # per timestep, etc.
 
 #sys.SetSolverType(chrono.ChSolver.Type_BARZILAIBORWEIN) # precise, more slow
-sys.SetSolverMaxIterations(70)
+sys.GetSolver().AsIterative().SetMaxIterations(70)
 
 
 
 # Create a contact material (surface property)to share between all objects.
 # The rolling and spinning parameters are optional - if enabled they double
 # the computational time.
-brick_material = chrono.ChMaterialSurfaceNSC()
+brick_material = chrono.ChContactMaterialNSC()
 brick_material.SetFriction(0.5)
 brick_material.SetDampingF(0.2)
 brick_material.SetCompliance (0.0000001)
@@ -75,15 +75,15 @@ for ix in range(0,nbricks_on_x):
         # create it
         body_brick = chrono.ChBody()
         # set initial position
-        body_brick.SetPos(chrono.ChVectorD(ix*size_brick_x, (iy+0.5)*size_brick_y, 0 ))
+        body_brick.SetPos(chrono.ChVector3d(ix*size_brick_x, (iy+0.5)*size_brick_y, 0 ))
         # set mass properties
         body_brick.SetMass(mass_brick)
-        body_brick.SetInertiaXX(chrono.ChVectorD(inertia_brick,inertia_brick,inertia_brick))       
+        body_brick.SetInertiaXX(chrono.ChVector3d(inertia_brick,inertia_brick,inertia_brick))       
 
         # Collision shape
         body_brick_ct_shape = chrono.ChCollisionShapeBox(brick_material, size_brick_x, size_brick_y, size_brick_z)
         body_brick.AddCollisionShape(body_brick_ct_shape)
-        body_brick.SetCollide(True)
+        body_brick.EnableCollision(True)
 
         # Visualization shape, for rendering animation
         body_brick_shape = chrono.ChVisualShapeBox(size_brick_x, size_brick_y, size_brick_z)
@@ -98,13 +98,13 @@ for ix in range(0,nbricks_on_x):
 # and a visualization shape
 
 body_floor = chrono.ChBody()
-body_floor.SetBodyFixed(True)
-body_floor.SetPos(chrono.ChVectorD(0, -2, 0 ))
+body_floor.SetFixed(True)
+body_floor.SetPos(chrono.ChVector3d(0, -2, 0 ))
 
 # Collision shape
 body_floor_ct_shape = chrono.ChCollisionShapeBox(brick_material, 6, 2, 6)
 body_floor.AddCollisionShape(body_floor_ct_shape)
-body_floor.SetCollide(True)
+body_floor.EnableCollision(True)
 
 # Visualization shape
 body_floor_shape = chrono.ChVisualShapeBox(6, 2, 6)
@@ -122,12 +122,12 @@ size_table_y = 0.2;
 size_table_z = 1;
 
 body_table = chrono.ChBody()
-body_table.SetPos(chrono.ChVectorD(0, -size_table_y/2, 0 ))
+body_table.SetPos(chrono.ChVector3d(0, -size_table_y/2, 0 ))
 
 # Collision shape
 body_table_ct_shape = chrono.ChCollisionShapeBox(brick_material, size_table_x, size_table_y, size_table_z)
 body_table.AddCollisionShape(body_table_ct_shape)
-body_table.SetCollide(True)
+body_table.EnableCollision(True)
 
 # Visualization shape
 body_table_shape = chrono.ChVisualShapeBox(size_table_x, size_table_y, size_table_z)
@@ -143,18 +143,18 @@ sys.Add(body_table)
 # depends on a specified motion law.
 
 link_shaker = chrono.ChLinkLockLock()
-link_shaker.Initialize(body_table, body_floor, chrono.CSYSNORM)
+link_shaker.Initialize(body_table, body_floor, chrono.ChFramed())
 sys.Add(link_shaker)
 
 # ..create the function for imposed x horizontal motion, etc.
-mfunY = chrono.ChFunction_Sine(0,1.5,0.001)  # phase, frequency, amplitude
-link_shaker.SetMotion_Y(mfunY)
+mfunY = chrono.ChFunctionSine(0.001,1.5)  # amplitude, frequency
+link_shaker.SetMotionY(mfunY)
 
 # ..create the function for imposed y vertical motion, etc.
-mfunZ = chrono.ChFunction_Sine(0,1.5,0.12)  # phase, frequency, amplitude
-link_shaker.SetMotion_Z(mfunZ)
+mfunZ = chrono.ChFunctionSine(0.12,1.5)  # amplitude, frequency
+link_shaker.SetMotionZ(mfunZ)
 
-# Note that you could use other types of ChFunction_ objects, or create
+# Note that you could use other types of ChFunction objects, or create
 # your custom function by class inheritance (see demo_python.py), or also
 # set a function for table rotation , etc.
 
@@ -172,10 +172,10 @@ vis.SetWindowTitle('Earthquake demo')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0.5,0.5,1.0))
+vis.AddCamera(chrono.ChVector3d(0.5,0.5,1.0))
 vis.AddTypicalLights()
-vis.AddLightWithShadow(chrono.ChVectorD(0, 3, 6),    # point
-                       chrono.ChVectorD(0, 3, 6),    # aimpoint
+vis.AddLightWithShadow(chrono.ChVector3d(0, 3, 6),    # point
+                       chrono.ChVector3d(0, 3, 6),    # aimpoint
                        9,                 # radius (power)
                        1,9,               # near, far
                        30)                # angle of FOV

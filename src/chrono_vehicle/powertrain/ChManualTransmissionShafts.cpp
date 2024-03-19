@@ -52,7 +52,7 @@ void ChManualTransmissionShafts::Initialize(std::shared_ptr<ChChassis> chassis) 
 
     //// TODO: allow longitudinal/transversal transmission block?
     ////       get from engine?
-    ChVector<> dir_transmissionblock(1, 0, 0);
+    ChVector3d dir_transmissionblock(1, 0, 0);
 
     // Create the motor block.
     // ChShaftsThermalEngine connects this motor block to the motorshaft and applies the engine torque between them.
@@ -61,7 +61,7 @@ void ChManualTransmissionShafts::Initialize(std::shared_ptr<ChChassis> chassis) 
     sys->AddShaft(m_transmissionblock);
 
     // Create  a connection between the transmission block and the 3D rigid body that represents the chassis.
-    m_transmissionblock_to_body = chrono_types::make_shared<ChShaftsBody>();
+    m_transmissionblock_to_body = chrono_types::make_shared<ChShaftBodyRotation>();
     m_transmissionblock_to_body->Initialize(m_transmissionblock, chassis->GetBody(), dir_transmissionblock);
     sys->Add(m_transmissionblock_to_body);
 
@@ -103,7 +103,7 @@ void ChManualTransmissionShafts::Synchronize(double time,
                                              double driveshaft_speed) {
     // Enforce inputs from engine (torque) and driveline (speed)
     m_motorshaft->SetAppliedTorque(motorshaft_torque);
-    m_driveshaft->SetPos_dt(driveshaft_speed);
+    m_driveshaft->SetPosDt(driveshaft_speed);
 
     // Clutch
     m_clutch->SetModulation(1.0 - driver_inputs.m_clutch);
@@ -114,7 +114,7 @@ double ChManualTransmissionShafts::GetOutputDriveshaftTorque() const {
 }
 
 double ChManualTransmissionShafts::GetOutputMotorshaftSpeed() const {
-    return m_motorshaft->GetPos_dt();
+    return m_motorshaft->GetPosDt();
 }
 
 }  // end namespace vehicle

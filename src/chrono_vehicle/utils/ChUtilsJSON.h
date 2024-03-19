@@ -23,9 +23,9 @@
 
 #include "chrono/assets/ChColor.h"
 #include "chrono/core/ChQuaternion.h"
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 
-#include "chrono/motion_functions/ChFunction_Recorder.h"
+#include "chrono/functions/ChFunctionInterp.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
 #include "chrono_vehicle/ChChassis.h"
@@ -57,16 +57,16 @@ CH_VEHICLE_API void ReadFileJSON(const std::string& filename, rapidjson::Documen
 
 // -----------------------------------------------------------------------------
 
-/// Load and return a ChVector from the specified JSON array
-CH_VEHICLE_API ChVector<> ReadVectorJSON(const rapidjson::Value& a);
+/// Load and return a ChVector3d from the specified JSON array.
+CH_VEHICLE_API ChVector3d ReadVectorJSON(const rapidjson::Value& a);
 
-///  Load and return a ChQuaternion from the specified JSON array
+///  Load and return a ChQuaternion from the specified JSON array.
 CH_VEHICLE_API ChQuaternion<> ReadQuaternionJSON(const rapidjson::Value& a);
 
 /// Load and return a coordinate system from the specific JSON value.
 CH_VEHICLE_API ChCoordsys<> ReadCoordinateSystemJSON(const rapidjson::Value& a);
 
-///  Load and return a ChColor from the specified JSON array
+///  Load and return a ChColor from the specified JSON array.
 CH_VEHICLE_API ChColor ReadColorJSON(const rapidjson::Value& a);
 
 // -----------------------------------------------------------------------------
@@ -173,7 +173,7 @@ class CH_VEHICLE_API ChMapData {
 
     /// Set the map data to the specified recorder function.
     /// The map data is scaled by the specified factors.
-    void Set(ChFunction_Recorder& map, double x_factor = 1, double y_factor = 1) const;
+    void Set(ChFunctionInterp& map, double x_factor = 1, double y_factor = 1) const;
 
     /// Set the map data to the specified vector of pairs.
     /// The map data is scaled by the specified factors.

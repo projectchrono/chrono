@@ -57,11 +57,11 @@ class CH_VEHICLE_API ObsModTerrain : public ChTerrain {
 
     /// Get the terrain height below the specified location.
     /// Returns the constant value passed at construction.
-    virtual double GetHeight(const ChVector<>& loc) const override;
+    virtual double GetHeight(const ChVector3d& loc) const override;
 
     /// Get the terrain normal at the point below the specified location.
     /// Returns a constant unit vector along the vertical axis.
-    virtual ChVector<> GetNormal(const ChVector<>& loc) const override;
+    virtual ChVector3d GetNormal(const ChVector3d& loc) const override;
 
     /// Get the terrain coefficient of friction at the point below the specified location.
     /// This coefficient of friction value may be used by certain tire models to modify
@@ -70,7 +70,7 @@ class CH_VEHICLE_API ObsModTerrain : public ChTerrain {
     /// For ObsModTerrain, this function defers to the user-provided functor object
     /// of type ChTerrain::FrictionFunctor, if one was specified.
     /// Otherwise, it returns the constant value specified at construction.
-    virtual float GetCoefficientFriction(const ChVector<>& loc) const override;
+    virtual float GetCoefficientFriction(const ChVector3d& loc) const override;
 
     void Initialize(ObsModTerrain::VisualisationType vType = ObsModTerrain::VisualisationType::MESH);
 
@@ -82,7 +82,7 @@ class CH_VEHICLE_API ObsModTerrain : public ChTerrain {
     /// Optionally (length > 0), create a flat lane of given length positioned before the uneven portion.
     /// The specified radius (default 0) is used as a "mesh thickness" to improve robustness of the collision detection.
     /// Note that this function must be called before Initialize().
-    void EnableCollisionMesh(std::shared_ptr<ChMaterialSurface> material,
+    void EnableCollisionMesh(std::shared_ptr<ChContactMaterial> material,
                              double length = 0,
                              double sweep_sphere_radius = 0);
 
@@ -123,9 +123,9 @@ class CH_VEHICLE_API ObsModTerrain : public ChTerrain {
     std::vector<double> m_y;           ///< hold the unequally spaced y values
     ChMatrixDynamic<> m_Q;             ///< matrix of uneven height values
     std::shared_ptr<ChBody> m_ground;  ///< ground body
-    std::shared_ptr<geometry::ChTriangleMeshConnected> m_mesh;  ///< mesh for visualization/export
+    std::shared_ptr<ChTriangleMeshConnected> m_mesh;  ///< mesh for visualization/export
 
-    std::shared_ptr<ChMaterialSurface> m_material;
+    std::shared_ptr<ChContactMaterial> m_material;
     bool m_collision_mesh;
     double m_start_length;
     double m_sweep_sphere_radius;

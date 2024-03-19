@@ -38,24 +38,24 @@ class CH_VEHICLE_API Balancer : public ChBalancer {
     ~Balancer();
 
     virtual double GetBalancerBeamMass() const override { return m_beam_mass; }
-    virtual const ChVector<>& GetBalancerBeamInertia() const override { return m_beam_inertia; }
+    virtual const ChVector3d& GetBalancerBeamInertia() const override { return m_beam_inertia; }
     virtual const double GetBalancerMaxPitch() const override { return m_beam_max_pitch; }
-    virtual const ChVector<>& GetBalancerBeamDimensions() const override { return m_beam_dimensions; }
+    virtual const ChVector3d& GetBalancerBeamDimensions() const override { return m_beam_dimensions; }
 
     virtual std::shared_ptr<ChVehicleBushingData> GetBushingData() const override { return m_bushingData; }
 
   private:
-    virtual const ChVector<> GetLocation(PointId which) override { return m_points[which]; }
-    virtual const ChVector<> GetDirection() override { return m_dir; }
+    virtual const ChVector3d GetLocation(PointId which) override { return m_points[which]; }
+    virtual const ChVector3d GetDirection() override { return m_dir; }
 
     virtual void Create(const rapidjson::Document& d) override;
 
-    ChVector<> m_points[NUM_POINTS];
-    ChVector<> m_dir;
+    ChVector3d m_points[NUM_POINTS];
+    ChVector3d m_dir;
     double m_beam_max_pitch;
     double m_beam_mass;
-    ChVector<> m_beam_inertia;
-    ChVector<> m_beam_dimensions;
+    ChVector3d m_beam_inertia;
+    ChVector3d m_beam_dimensions;
 
     std::shared_ptr<ChVehicleBushingData> m_bushingData;
 };

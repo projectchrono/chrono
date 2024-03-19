@@ -26,12 +26,12 @@ class ChApi ChVisualShapeCone : public ChVisualShape {
   public:
     ChVisualShapeCone();
     ChVisualShapeCone(double radius, double height);
-    ChVisualShapeCone(const geometry::ChCone& cone);
+    ChVisualShapeCone(const ChCone& cone);
 
     ~ChVisualShapeCone() {}
 
     /// Access the cone geometry.
-    geometry::ChCone& GetGeometry() { return gcone; }
+    ChCone& GetGeometry() { return gcone; }
 
     /// Get the cone radius.
     double GetRadius() const { return gcone.GetRadius(); }
@@ -40,13 +40,13 @@ class ChApi ChVisualShapeCone : public ChVisualShape {
     double GetHeight() const { return gcone.GetHeight(); }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    geometry::ChCone gcone;
+    ChCone gcone;
 };
 
 /// @} chrono_assets

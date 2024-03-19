@@ -250,7 +250,7 @@ class CH_SENSOR_API ChOptixPipeline {
     cudaArray_t md_miss_img_texture = {};              ///< handle to the environment image texture
 
     /// keep track of chrono meshes we've added and their corresponding mesh pool id
-    std::vector<std::tuple<std::shared_ptr<geometry::ChTriangleMeshConnected>, unsigned int>> m_known_meshes;
+    std::vector<std::tuple<std::shared_ptr<ChTriangleMeshConnected>, unsigned int>> m_known_meshes;
 
     /// list of deformable meshes <mesh shape, dvertices, dnormals, num prev triangles>
     std::vector<std::tuple<std::shared_ptr<ChVisualShapeTriangleMesh>, CUdeviceptr, CUdeviceptr, unsigned int>>

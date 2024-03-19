@@ -12,6 +12,8 @@
 
 #include "gtest/gtest.h"
 #include "chrono/utils/ChFilters.h"
+#include "chrono/utils/ChConstants.h"
+
 
 using namespace chrono;
 
@@ -179,7 +181,7 @@ SawtoothTestbed::SawtoothTestbed(size_t nSawTeeth)
     default:
         m_Nsaw = 0; // continous sawtooth signal
     }
-    m_aSaw = CH_C_2PI / m_wSaw;
+    m_aSaw = CH_2PI / m_wSaw;
     size_t nPoints = (size_t)(m_tDuration * m_fSample + 1);
     input_signal.resize(nPoints, 0.0);
     output_signal.resize(nPoints, 0.0);
@@ -227,8 +229,8 @@ public:
     double Test();
 
 private:
-    chrono::utils::ChButterworth_Highpass hp;
-    chrono::utils::ChButterworth_Lowpass lp;
+    chrono::utils::ChButterworthHighpass hp;
+    chrono::utils::ChButterworthLowpass lp;
 };
 
 SawtoothTestBandfilter::SawtoothTestBandfilter(size_t nSawTeeth)

@@ -1,38 +1,35 @@
 %{
-#include "chrono/motion_functions/ChFunction_Base.h"
-#include "chrono/motion_functions/ChFunction_BSpline.h"
-#include "chrono/motion_functions/ChFunction_Const.h"
-#include "chrono/motion_functions/ChFunction_ConstAcc.h"
-#include "chrono/motion_functions/ChFunction_Cycloidal.h"
-#include "chrono/motion_functions/ChFunction_Derive.h"
-#include "chrono/motion_functions/ChFunction_DoubleS.h"
-#include "chrono/motion_functions/ChFunction_Fillet3.h"
-#include "chrono/motion_functions/ChFunction_Integrate.h"
-#include "chrono/motion_functions/ChFunction_Mirror.h"
-#include "chrono/motion_functions/ChFunction_Mocap.h"
-#include "chrono/motion_functions/ChFunction_Noise.h"
-#include "chrono/motion_functions/ChFunction_Operation.h"
-#include "chrono/motion_functions/ChFunction_Oscilloscope.h"
-#include "chrono/motion_functions/ChFunction_Poly.h"
-#include "chrono/motion_functions/ChFunction_Poly345.h"
-#include "chrono/motion_functions/ChFunction_Ramp.h"
-#include "chrono/motion_functions/ChFunction_Recorder.h"
-#include "chrono/motion_functions/ChFunction_Repeat.h"
-#include "chrono/motion_functions/ChFunction_Sequence.h"
-#include "chrono/motion_functions/ChFunction_Sigma.h"
-#include "chrono/motion_functions/ChFunction_Sine.h"
-#include "chrono/motion_functions/ChFunction_Setpoint.h"
-
-#include "chrono/motion_functions/ChFunctionRotation.h"
-#include "chrono/motion_functions/ChFunctionRotation_axis.h"
-#include "chrono/motion_functions/ChFunctionRotation_ABCfunctions.h"
-#include "chrono/motion_functions/ChFunctionRotation_setpoint.h"
-#include "chrono/motion_functions/ChFunctionRotation_spline.h"
-#include "chrono/motion_functions/ChFunctionRotation_SQUAD.h"
-#include "chrono/motion_functions/ChFunctionPosition.h"
-#include "chrono/motion_functions/ChFunctionPosition_line.h"
-#include "chrono/motion_functions/ChFunctionPosition_setpoint.h"
-#include "chrono/motion_functions/ChFunctionPosition_XYZfunctions.h"
+#include "chrono/functions/ChFunctionBase.h"
+#include "chrono/functions/ChFunctionBSpline.h"
+#include "chrono/functions/ChFunctionConst.h"
+#include "chrono/functions/ChFunctionConstAcc.h"
+#include "chrono/functions/ChFunctionConstJerk.h"
+#include "chrono/functions/ChFunctionCycloidal.h"
+#include "chrono/functions/ChFunctionDerivative.h"
+#include "chrono/functions/ChFunctionFillet3.h"
+#include "chrono/functions/ChFunctionIntegral.h"
+#include "chrono/functions/ChFunctionMirror.h"
+#include "chrono/functions/ChFunctionOperator.h"
+#include "chrono/functions/ChFunctionPoly.h"
+#include "chrono/functions/ChFunctionPoly345.h"
+#include "chrono/functions/ChFunctionRamp.h"
+#include "chrono/functions/ChFunctionInterp.h"
+#include "chrono/functions/ChFunctionRepeat.h"
+#include "chrono/functions/ChFunctionSequence.h"
+#include "chrono/functions/ChFunctionPoly23.h"
+#include "chrono/functions/ChFunctionSine.h"
+#include "chrono/functions/ChFunctionSineStep.h"
+#include "chrono/functions/ChFunctionSetpoint.h"
+#include "chrono/functions/ChFunctionRotation.h"
+#include "chrono/functions/ChFunctionRotationAxis.h"
+#include "chrono/functions/ChFunctionRotationABCFunctions.h"
+#include "chrono/functions/ChFunctionRotationSetpoint.h"
+#include "chrono/functions/ChFunctionRotationBSpline.h"
+#include "chrono/functions/ChFunctionRotationSQUAD.h"
+#include "chrono/functions/ChFunctionPosition.h"
+#include "chrono/functions/ChFunctionPositionLine.h"
+#include "chrono/functions/ChFunctionPositionSetpoint.h"
+#include "chrono/functions/ChFunctionPositionXYZFunctions.h"
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
@@ -43,46 +40,44 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 {
   if (out)
   {
-		if      ( typeid(*out)==typeid(chrono::ChFunction_BSpline) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_BSpline, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunction_Const) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Const, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunction_ConstAcc) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_ConstAcc, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunction_Cycloidal) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Cycloidal, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunction_Derive) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Derive, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunction_Fillet3) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Fillet3, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunction_Integrate) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Integrate, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunction_Mirror) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Mirror, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunction_Mocap) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Mocap, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunction_Noise) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Noise, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunction_Operation) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Operation, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunction_Oscilloscope) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Oscilloscope, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunction_Poly) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Poly, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunction_Poly345) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Poly345, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunction_Ramp) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Ramp, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunction_Recorder) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Recorder, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunction_Repeat) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Repeat, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunction_Sequence) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Sequence, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunction_Sigma) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Sigma, 0 |  0 );
-		else if ( typeid(*out)==typeid(chrono::ChFunction_Sine) )
-			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction_Sine, 0 |  0 );
+		if      ( typeid(*out)==typeid(chrono::ChFunctionBSpline) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionBSpline, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionConst) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionConst, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionConstAcc) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionConstAcc, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionConstJerk) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionConstJerk, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionCycloidal) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionCycloidal, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionDerivative) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionDerivative, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionFillet3) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionFillet3, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionIntegral) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionIntegral, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionMirror) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionMirror, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionOperator) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionOperator, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionPoly) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionPoly, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionPoly23) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionPoly23, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionPoly345) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionPoly345, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionRamp) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionRamp, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionInterp) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionInterp, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionRepeat) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionRepeat, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionSequence) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionSequence, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionSine) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionSine, 0 |  0 );
+		else if ( typeid(*out)==typeid(chrono::ChFunctionSineStep) )
+			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunctionSineStep, 0 |  0 );
 		else
 			return SWIG_NewPointerObj(SWIG_as_voidptr(out), SWIGTYPE_p_chrono__ChFunction, 0 |  0 );
    } 
@@ -95,90 +90,95 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 %}
 
 %shared_ptr(chrono::ChFunction)  
-%shared_ptr(chrono::ChFunction_BSpline)
-%shared_ptr(chrono::ChFunction_Const)
-%shared_ptr(chrono::ChFunction_ConstAcc)
-%shared_ptr(chrono::ChFunction_Cycloidal)
-%shared_ptr(chrono::ChFunction_Derive)
-%shared_ptr(chrono::ChFunction_DoubleS)
-%shared_ptr(chrono::ChFunction_Fillet3)
-%shared_ptr(chrono::ChFunction_Integrate)
-%shared_ptr(chrono::ChFunction_Mirror)
-%shared_ptr(chrono::ChFunction_Mocap)
-%shared_ptr(chrono::ChFunction_Noise)
-%shared_ptr(chrono::ChFunction_Operation)
-%shared_ptr(chrono::ChFunction_Oscilloscope)
-%shared_ptr(chrono::ChFunction_Poly)
-%shared_ptr(chrono::ChFunction_Poly345)
-%shared_ptr(chrono::ChFunction_Ramp)
-%shared_ptr(chrono::ChFunction_Recorder)
-%shared_ptr(chrono::ChFunction_Repeat)
-%shared_ptr(chrono::ChFunction_Sequence)
-%shared_ptr(chrono::ChFunction_Sigma)
-%shared_ptr(chrono::ChFunction_Sine)
-%shared_ptr(chrono::ChFunction_Setpoint)
-%shared_ptr(chrono::ChFunction_SetpointCallback)
+%shared_ptr(chrono::ChFunctionBSpline)
+%shared_ptr(chrono::ChFunctionConst)
+%shared_ptr(chrono::ChFunctionConstAcc)
+%shared_ptr(chrono::ChFunctionConstJerk)
+%shared_ptr(chrono::ChFunctionCycloidal)
+%shared_ptr(chrono::ChFunctionDerivative)
+%shared_ptr(chrono::ChFunctionFillet3)
+%shared_ptr(chrono::ChFunctionIntegral)
+%shared_ptr(chrono::ChFunctionMirror)
+%shared_ptr(chrono::ChFunctionOperator)
+%shared_ptr(chrono::ChFunctionPoly)
+%shared_ptr(chrono::ChFunctionPoly345)
+%shared_ptr(chrono::ChFunctionRamp)
+%shared_ptr(chrono::ChFunctionInterp)
+%shared_ptr(chrono::ChFunctionRepeat)
+%shared_ptr(chrono::ChFunctionSequence)
+%shared_ptr(chrono::ChFunctionPoly23)
+%shared_ptr(chrono::ChFunctionSine)
+%shared_ptr(chrono::ChFunctionSineStep)
+%shared_ptr(chrono::ChFunctionSetpoint)
+%shared_ptr(chrono::ChFunctionSetpointCallback)
 
 %shared_ptr(chrono::ChFunctionRotation)
-%shared_ptr(chrono::ChFunctionRotation_axis)
-%shared_ptr(chrono::ChFunctionRotation_ABCfunctions)
-%shared_ptr(chrono::ChFunctionRotation_setpoint)
-%shared_ptr(chrono::ChFunctionRotation_spline)
-%shared_ptr(chrono::ChFunctionRotation_SQUAD)
+%shared_ptr(chrono::ChFunctionRotationAxis)
+%shared_ptr(chrono::ChFunctionRotationABCFunctions)
+%shared_ptr(chrono::ChFunctionRotationSetpoint)
+%shared_ptr(chrono::ChFunctionRotationBSpline)
+%shared_ptr(chrono::ChFunctionRotationSQUAD)
 %shared_ptr(chrono::ChFunctionPosition)
-%shared_ptr(chrono::ChFunctionPosition_line)
-%shared_ptr(chrono::ChFunctionPosition_setpoint)
-%shared_ptr(chrono::ChFunctionPosition_XYZfunctions)
+%shared_ptr(chrono::ChFunctionPositionLine)
+%shared_ptr(chrono::ChFunctionPositionSetpoint)
+%shared_ptr(chrono::ChFunctionPositionXYZFunctions)
+
+
+// Director classes generates C# code with calls to the C# methods .GetType()
+// thus clashing with ChFunction::GetType() method. We need to rename the C++ method GetType() to GetFunctionType()
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+%rename(GetFunctionType) chrono::ChFunction::GetType() const;  // rename for all derived classes as well
+#endif             // --------------------------------------------------------------------- CSHARP
 
 
 // Cross-inheritance for callbacks that must be inherited.
 // Put this 'director' feature _before_ class wrapping declaration.
 %feature("director") chrono::ChFunction;
-%feature("director") chrono::ChFunction_Setpoint;
-%feature("director") chrono::ChFunction_SetpointCallback;
+%feature("director") chrono::ChFunctionSetpoint;
+%feature("director") chrono::ChFunctionSetpointCallback;
 %feature("director") chrono::ChFunctionPosition;
-%feature("director") chrono::ChFunctionPosition_setpoint;
+%feature("director") chrono::ChFunctionPositionSetpoint;
 %feature("director") chrono::ChFunctionRotation;
-%feature("director") chrono::ChFunctionRotation_setpoint;
+%feature("director") chrono::ChFunctionRotationSetpoint;
 %ignore chrono::ChFunction::Clone;
 %ignore chrono::ChFunctionPosition::Clone;
 %ignore chrono::ChFunctionRotation::Clone;
 
-// Parse the header file to generate wrappers
-%include "../../../chrono/motion_functions/ChFunction_Base.h" 
-%include "../../../chrono/motion_functions/ChFunction_BSpline.h" 
-%include "../../../chrono/motion_functions/ChFunction_Const.h"
-%include "../../../chrono/motion_functions/ChFunction_ConstAcc.h"
-%include "../../../chrono/motion_functions/ChFunction_Cycloidal.h"
-%include "../../../chrono/motion_functions/ChFunction_Derive.h"
-%include "../../../chrono/motion_functions/ChFunction_DoubleS.h"
-%include "../../../chrono/motion_functions/ChFunction_Fillet3.h"
-%include "../../../chrono/motion_functions/ChFunction_Integrate.h"
-%include "../../../chrono/motion_functions/ChFunction_Mirror.h"
-%include "../../../chrono/motion_functions/ChFunction_Mocap.h"
-%include "../../../chrono/motion_functions/ChFunction_Noise.h"
-%include "../../../chrono/motion_functions/ChFunction_Operation.h"
-%include "../../../chrono/motion_functions/ChFunction_Oscilloscope.h"
-%include "../../../chrono/motion_functions/ChFunction_Poly.h"
-%include "../../../chrono/motion_functions/ChFunction_Poly345.h"
-%include "../../../chrono/motion_functions/ChFunction_Ramp.h"
-%include "../../../chrono/motion_functions/ChFunction_Recorder.h"
-%include "../../../chrono/motion_functions/ChFunction_Repeat.h"
-%include "../../../chrono/motion_functions/ChFunction_Sequence.h"
-%include "../../../chrono/motion_functions/ChFunction_Sigma.h"
-%include "../../../chrono/motion_functions/ChFunction_Sine.h"
-%include "../../../chrono/motion_functions/ChFunction_Setpoint.h"
 
-%include "../../../chrono/motion_functions/ChFunctionRotation.h"
-%include "../../../chrono/motion_functions/ChFunctionRotation_axis.h"
-%include "../../../chrono/motion_functions/ChFunctionRotation_ABCfunctions.h"
-%include "../../../chrono/motion_functions/ChFunctionRotation_setpoint.h"
-%include "../../../chrono/motion_functions/ChFunctionRotation_spline.h"
-%include "../../../chrono/motion_functions/ChFunctionRotation_SQUAD.h"
-%include "../../../chrono/motion_functions/ChFunctionPosition.h"
-%include "../../../chrono/motion_functions/ChFunctionPosition_line.h"
-%include "../../../chrono/motion_functions/ChFunctionPosition_setpoint.h"
-%include "../../../chrono/motion_functions/ChFunctionPosition_XYZfunctions.h"
+
+// Parse the header file to generate wrappers
+%include "../../../chrono/functions/ChFunctionBase.h" 
+%include "../../../chrono/functions/ChFunctionBSpline.h" 
+%include "../../../chrono/functions/ChFunctionConst.h"
+%include "../../../chrono/functions/ChFunctionConstAcc.h"
+%include "../../../chrono/functions/ChFunctionConstJerk.h"
+%include "../../../chrono/functions/ChFunctionCycloidal.h"
+%include "../../../chrono/functions/ChFunctionDerivative.h"
+%include "../../../chrono/functions/ChFunctionFillet3.h"
+%include "../../../chrono/functions/ChFunctionIntegral.h"
+%include "../../../chrono/functions/ChFunctionInterp.h"
+%include "../../../chrono/functions/ChFunctionMirror.h"
+%include "../../../chrono/functions/ChFunctionOperator.h"
+%include "../../../chrono/functions/ChFunctionPoly.h"
+%include "../../../chrono/functions/ChFunctionPoly23.h"
+%include "../../../chrono/functions/ChFunctionPoly345.h"
+%include "../../../chrono/functions/ChFunctionRamp.h"
+%include "../../../chrono/functions/ChFunctionRepeat.h"
+%include "../../../chrono/functions/ChFunctionSequence.h"
+%include "../../../chrono/functions/ChFunctionSetpoint.h"
+%include "../../../chrono/functions/ChFunctionSine.h"
+%include "../../../chrono/functions/ChFunctionSineStep.h"
+
+%include "../../../chrono/functions/ChFunctionPosition.h"
+%include "../../../chrono/functions/ChFunctionPositionLine.h"
+%include "../../../chrono/functions/ChFunctionPositionSetpoint.h"
+%include "../../../chrono/functions/ChFunctionPositionXYZFunctions.h"
+%include "../../../chrono/functions/ChFunctionRotation.h"
+%include "../../../chrono/functions/ChFunctionRotationABCFunctions.h"
+%include "../../../chrono/functions/ChFunctionRotationAxis.h"
+%include "../../../chrono/functions/ChFunctionRotationBSpline.h"
+%include "../../../chrono/functions/ChFunctionRotationSetpoint.h"
+%include "../../../chrono/functions/ChFunctionRotationSQUAD.h"
 
 
 //... so use the following custom trick
@@ -188,25 +188,23 @@ SWIGRUNTIME PyObject* DowncastChFunction(chrono::ChFunction* out)
 }
 
 
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_BSpline)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Const)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_ConstAcc)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Cycloidal)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Derive)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_DoubleS)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Fillet3)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Integrate)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Mirror)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Mocap)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Noise)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Operation)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Oscilloscope)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Poly)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Poly345)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Ramp)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Recorder)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Repeat)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Sequence)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Sigma)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Sine)
-%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunction_Setpoint)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionBSpline)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionConst)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionConstAcc)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionConstJerk)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionCycloidal)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionDerivative)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionFillet3)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionIntegral)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionMirror)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionOperator)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionPoly)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionPoly345)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionRamp)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionInterp)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionRepeat)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionSequence)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionPoly23)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionSine)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionSineStep)
+%DefSharedPtrDynamicDowncast(chrono, ChFunction, ChFunctionSetpoint)

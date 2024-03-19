@@ -260,8 +260,8 @@ class ChApi ChConstraint {
     /// Default behavior: if constraint is unilateral and l_i<0, reset l_i=0
     /// *** This function MAY BE OVERRIDDEN by specialized
     /// inherited classes! For example, a bilateral constraint
-    /// can do nothing, a monolateral: l_i= ChMax(0., l_i);
-    /// a 'boxed constraint': l_i= ChMin(ChMax(min., l_i), max); etc. etc.
+    /// can do nothing, a monolateral: l_i= std::max(0., l_i);
+    /// a 'boxed constraint': l_i= std::min(std::max(min., l_i), max); etc. etc.
     virtual void Project();
 
     /// Given the residual of the constraint computed as the
@@ -287,10 +287,10 @@ class ChApi ChConstraint {
     int GetOffset() const { return offset; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 
   private:
     void UpdateActiveFlag() {

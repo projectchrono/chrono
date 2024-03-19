@@ -17,6 +17,8 @@
 //
 // =============================================================================
 
+#include <iomanip>
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMate.h"
@@ -88,15 +90,15 @@ void MakeAndRunDemo_Buckling(bool do_modal_reduction, double P0, ChMatrixDynamic
     // parent system
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 10);
     my_ground->SetPos(VNULL);
-    my_ground->SetBodyFixed(true);
+    my_ground->SetFixed(true);
     sys.AddBody(my_ground);
 
     // Prepare for mesh: Beam section:
     auto section = chrono_types::make_shared<ChBeamSectionRayleighAdvancedGeneric>();
     section->SetAxialRigidity(EA);
-    section->SetXtorsionRigidity(GIp);
-    section->SetYbendingRigidity(EIyy);
-    section->SetZbendingRigidity(EIzz);
+    section->SetTorsionRigidityX(GIp);
+    section->SetBendingRigidityY(EIyy);
+    section->SetBendingRigidityZ(EIzz);
     section->SetMassPerUnitLength(mass_per_unit_length);
     section->SetInertiaJxxPerUnitLength(Jxx);
     section->SetInertiasPerUnitLength(Jyy, Jzz, Jyz);
@@ -107,8 +109,8 @@ void MakeAndRunDemo_Buckling(bool do_modal_reduction, double P0, ChMatrixDynamic
     section->SetCentroidZ(0);
     section->SetShearCenterY(0);
     section->SetShearCenterZ(0);
-    section->SetBeamRaleyghDampingBeta(0.0002);
-    section->SetBeamRaleyghDampingAlpha(0.000);
+    section->SetRayleighDampingBeta(0.0002);
+    section->SetRayleighDampingAlpha(0.000);
 
     // A function to make a single modal assembly
     auto MakeSingleModalAssembly = [&](std::shared_ptr<ChModalAssembly> mmodal_assembly, int mn_ele, double mstart_x,
@@ -116,9 +118,9 @@ void MakeAndRunDemo_Buckling(bool do_modal_reduction, double P0, ChMatrixDynamic
         // Settings
         mmodal_assembly->use_linear_inertial_term = USE_LINEAR_INERTIAL_TERM;
         if (USE_HERTING)
-            mmodal_assembly->modal_reduction_type = chrono::modal::ChModalAssembly::Reduction_Type::Herting;
+            mmodal_assembly->modal_reduction_type = chrono::modal::ChModalAssembly::ReductionType::HERTING;
         else
-            mmodal_assembly->modal_reduction_type = chrono::modal::ChModalAssembly::Reduction_Type::Craig_Bampton;
+            mmodal_assembly->modal_reduction_type = chrono::modal::ChModalAssembly::ReductionType::CRAIG_BAMPTON;
 
         sys.Add(mmodal_assembly);
 
@@ -131,12 +133,12 @@ void MakeAndRunDemo_Buckling(bool do_modal_reduction, double P0, ChMatrixDynamic
         mesh_boundary->SetAutomaticGravity(false);
 
         // Build boundary nodes
-        auto my_node_L = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(mstart_x, 0, 0), QUNIT));
+        auto my_node_L = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(mstart_x, 0, 0), QUNIT));
         my_node_L->SetMass(0);
         my_node_L->GetInertia().setZero();
         mesh_boundary->AddNode(my_node_L);
 
-        auto my_node_R = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector<>(mend_x, 0, 0), QUNIT));
+        auto my_node_R = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(ChVector3d(mend_x, 0, 0), QUNIT));
         my_node_R->SetMass(0);
         my_node_R->GetInertia().setZero();
         mesh_boundary->AddNode(my_node_R);
@@ -148,7 +150,7 @@ void MakeAndRunDemo_Buckling(bool do_modal_reduction, double P0, ChMatrixDynamic
                           mn_ele,              // the number of ChElementBeamEuler to create
                           my_node_L,           // the 'A' point in space (beginning of beam)
                           my_node_R,           // the 'B' point in space (end of beam)
-                          ChVector<>(0, 1, 0)  // the 'Y' up direction of the section for the beam
+                          ChVector3d(0, 1, 0)  // the 'Y' up direction of the section for the beam
         );
     };
 
@@ -165,9 +167,9 @@ void MakeAndRunDemo_Buckling(bool do_modal_reduction, double P0, ChMatrixDynamic
     if (n_parts > 1)
         for (int i_link = 0; i_link < n_parts - 1; i_link++) {
             auto node_L = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(
-                modal_assembly_list.at(i_link)->Get_meshlist().front()->GetNodes().back());
+                modal_assembly_list.at(i_link)->GetMeshes().front()->GetNodes().back());
             auto node_R = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(
-                modal_assembly_list.at(i_link + 1)->Get_meshlist().front()->GetNodes().front());
+                modal_assembly_list.at(i_link + 1)->GetMeshes().front()->GetNodes().front());
             auto my_link = chrono_types::make_shared<ChLinkMateFix>();
             my_link->Initialize(node_L, node_R);
             sys.AddLink(my_link);
@@ -175,17 +177,17 @@ void MakeAndRunDemo_Buckling(bool do_modal_reduction, double P0, ChMatrixDynamic
 
     // Root link
     auto root_node = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(
-        modal_assembly_list.front()->Get_meshlist().front()->GetNodes().front());
+        modal_assembly_list.front()->GetMeshes().front()->GetNodes().front());
     auto my_rootlink = chrono_types::make_shared<ChLinkMateFix>();
     my_rootlink->Initialize(root_node, my_ground);
     sys.AddLink(my_rootlink);
 
     // Retrieve the tip node
     auto tip_node = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(
-        modal_assembly_list.back()->Get_meshlist().front()->GetNodes().back());
+        modal_assembly_list.back()->GetMeshes().front()->GetNodes().back());
 
     // gravity is zero
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Set linear solver
 #ifdef CHRONO_PARDISO_MKL
@@ -209,7 +211,7 @@ void MakeAndRunDemo_Buckling(bool do_modal_reduction, double P0, ChMatrixDynamic
             auto damping_beam = ChModalDampingReductionR(*modal_assembly_list.at(i_part));
             // modal_assembly_list.at(i_part)->verbose = true;
             modal_assembly_list.at(i_part)->SwitchModalReductionON(modes_settings, damping_beam);
-            modal_assembly_list.at(i_part)->DumpSubassemblyMatrices(
+            modal_assembly_list.at(i_part)->WriteSubassemblyMatrices(
                 true, true, true, true, (out_dir + "/modal_assembly_" + std::to_string(i_part)).c_str());
         }
     }
@@ -234,23 +236,22 @@ void MakeAndRunDemo_Buckling(bool do_modal_reduction, double P0, ChMatrixDynamic
         double T = 2.0;
         double P = 0;
         double Fy = 10e-9;
-        GetLog() << "The applied lateral perturbation force is:\t" << Fy << " N.\n";
+        std::cout << "The applied lateral perturbation force is:\t" << Fy << " N.\n";
 
         mdeflection.resize(Nframes, 14);
         mdeflection.setZero();
         while (frame < Nframes) {
             double t = sys.GetChTime();
             if (t <= 0.5 * T)
-                P = P0 * (1.0 - cos(CH_C_2PI * t / T)) * 0.5;
+                P = P0 * (1.0 - cos(CH_2PI * t / T)) * 0.5;
             else
                 P = P0;
 
-            tip_node->SetForce(ChVector<>(-P, Fy, 0));
+            tip_node->SetForce(ChVector3d(-P, Fy, 0));
 
             sys.DoStepDynamics(time_step);
 
-            ChFrameMoving<> relative_frame_tip;
-            root_node->TransformParentToLocal(tip_node->Frame(), relative_frame_tip);
+            ChFrameMoving<> relative_frame_tip = root_node->TransformParentToLocal(tip_node->Frame());
 
             mdeflection(frame, 0) = sys.GetChTime();
             mdeflection(frame, 1) = P;
@@ -258,25 +259,23 @@ void MakeAndRunDemo_Buckling(bool do_modal_reduction, double P0, ChMatrixDynamic
             mdeflection(frame, 2) = relative_frame_tip.GetPos().x();
             mdeflection(frame, 3) = relative_frame_tip.GetPos().y();
             mdeflection(frame, 4) = relative_frame_tip.GetPos().z();
-            mdeflection(frame, 5) = relative_frame_tip.GetRot().Q_to_Rotv().x();
-            mdeflection(frame, 6) = relative_frame_tip.GetRot().Q_to_Rotv().y();
-            mdeflection(frame, 7) = relative_frame_tip.GetRot().Q_to_Rotv().z();
+            mdeflection(frame, 5) = relative_frame_tip.GetRot().GetRotVec().x();
+            mdeflection(frame, 6) = relative_frame_tip.GetRot().GetRotVec().y();
+            mdeflection(frame, 7) = relative_frame_tip.GetRot().GetRotVec().z();
             if (do_modal_reduction) {
-                ChFrameMoving<> relative_frame_F;
-                root_node->TransformParentToLocal(modal_assembly_list.back()->GetFloatingFrameOfReference(),
-                                                  relative_frame_F);
+                ChFrameMoving<> relative_frame_F = root_node->TransformParentToLocal(modal_assembly_list.back()->GetFloatingFrameOfReference());
                 mdeflection(frame, 8) = relative_frame_F.GetPos().x();
                 mdeflection(frame, 9) = relative_frame_F.GetPos().y();
                 mdeflection(frame, 10) = relative_frame_F.GetPos().z();
-                mdeflection(frame, 11) = relative_frame_F.GetRot().Q_to_Rotv().x();
-                mdeflection(frame, 12) = relative_frame_F.GetRot().Q_to_Rotv().y();
-                mdeflection(frame, 13) = relative_frame_F.GetRot().Q_to_Rotv().z();
+                mdeflection(frame, 11) = relative_frame_F.GetRot().GetRotVec().x();
+                mdeflection(frame, 12) = relative_frame_F.GetRot().GetRotVec().y();
+                mdeflection(frame, 13) = relative_frame_F.GetRot().GetRotVec().z();
             }
 
             if (frame % 100 == 0) {
-                GetLog() << "t: " << sys.GetChTime() << "\t";
-                GetLog() << "Tip force Px: " << mdeflection(frame, 1) << "\t";
-                GetLog() << "Rel. Def.:\t" << relative_frame_tip.GetPos().x() << "\t" << relative_frame_tip.GetPos().y()
+                std::cout << "t: " << sys.GetChTime() << "\t";
+                std::cout << "Tip force Px: " << mdeflection(frame, 1) << "\t";
+                std::cout << "Rel. Def.:\t" << relative_frame_tip.GetPos().x() << "\t" << relative_frame_tip.GetPos().y()
                          << "\t" << relative_frame_tip.GetPos().z() << "\n";
             }
             frame++;
@@ -285,7 +284,7 @@ void MakeAndRunDemo_Buckling(bool do_modal_reduction, double P0, ChMatrixDynamic
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Directory for output data
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -299,10 +298,10 @@ int main(int argc, char* argv[]) {
         double time_modal = 0;
 
         if (RUN_ORIGIN) {
-            GetLog() << "1. Run corotational beam model:\n";
+            std::cout << "1. Run corotational beam model:\n";
 
             double P0 = 37.6;
-            GetLog() << "The applied axial compressive force is:\t" << P0 << " N.\n";
+            std::cout << "The applied axial compressive force is:\t" << P0 << " N.\n";
 
             m_timer_computation.start();
             ChMatrixDynamic<> rel_deflection_corot;
@@ -310,19 +309,19 @@ int main(int argc, char* argv[]) {
             m_timer_computation.stop();
 
             time_corot = m_timer_computation.GetTimeSeconds();
-            GetLog() << "Computation time of corotational beam model: t_corot = \t" << time_corot << " seconds\n";
+            std::cout << "Computation time of corotational beam model: t_corot = \t" << time_corot << " seconds\n";
             m_timer_computation.reset();
 
-            ChStreamOutAsciiFile file_defl_corot((out_dir + "/deflection_corot.dat").c_str());
-            file_defl_corot.SetNumFormat("%.12g");
-            StreamOutDenseMatlabFormat(rel_deflection_corot, file_defl_corot);
+            std::ofstream file_defl_corot((out_dir + "/deflection_corot.dat").c_str());
+            file_defl_corot<< std::setprecision(12) << std::scientific;
+            StreamOut(rel_deflection_corot, file_defl_corot);
         }
 
         if (RUN_MODAL) {
-            GetLog() << "\n\n2. Run modal reduction model:\n";
+            std::cout << "\n\n2. Run modal reduction model:\n";
 
             double P0 = 38.0;
-            GetLog() << "The applied axial compressive force is:\t" << P0 << " N.\n";
+            std::cout << "The applied axial compressive force is:\t" << P0 << " N.\n";
 
             m_timer_computation.start();
             ChMatrixDynamic<> rel_deflection_modal;
@@ -330,18 +329,18 @@ int main(int argc, char* argv[]) {
             m_timer_computation.stop();
 
             time_modal = m_timer_computation.GetTimeSeconds();
-            GetLog() << "Computation time of modal reduction model: t_modal = \t" << time_modal << " seconds\n";
+            std::cout << "Computation time of modal reduction model: t_modal = \t" << time_modal << " seconds\n";
             m_timer_computation.reset();
 
-            ChStreamOutAsciiFile file_defl_modal((out_dir + "/deflection_modal.dat").c_str());
-            file_defl_modal.SetNumFormat("%.12g");
-            StreamOutDenseMatlabFormat(rel_deflection_modal, file_defl_modal);
+            std::ofstream file_defl_modal((out_dir + "/deflection_modal.dat").c_str());
+            file_defl_modal<< std::setprecision(12) << std::scientific;
+            StreamOut(rel_deflection_modal, file_defl_modal);
         }
 
         if (time_corot && time_modal)
-            GetLog() << "\n\n3. Ratio of computation time: t_modal / t_corot = \t" << time_modal / time_corot << "\n";
+            std::cout << "\n\n3. Ratio of computation time: t_modal / t_corot = \t" << time_modal / time_corot << "\n";
     } else {
-        GetLog() << "  ...Error creating subdirectories\n";
+        std::cout << "  ...Error creating subdirectories\n";
     }
 
     return 0;

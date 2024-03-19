@@ -12,6 +12,8 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
+#include <iomanip>
+
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/solver/ChConstraintTwoTuplesContactN.h"
 #include "chrono/solver/ChConstraintTwoTuplesFrictionT.h"
@@ -63,7 +65,7 @@ void ChSystemDescriptor::ComputeFeasabilityViolation(double& resulting_maxviolat
 int ChSystemDescriptor::CountActiveVariables() {
     if (freeze_count)  // optimization, avoid list count all times
         return n_q;
-    
+
     auto vv_size = vvariables.size();
 
     n_q = 0;
@@ -107,8 +109,8 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
                                              ChVectorDynamic<>* Frict,
                                              bool only_bilaterals,
                                              bool skip_contacts_uv) {
-    std::vector<ChConstraint*>& mconstraints = GetConstraintsList();
-    std::vector<ChVariables*>& mvariables = GetVariablesList();
+    std::vector<ChConstraint*>& mconstraints = GetConstraints();
+    std::vector<ChVariables*>& mvariables = GetVariables();
 
     auto mv_size = mvariables.size();
     auto mc_size = mconstraints.size();
@@ -194,8 +196,8 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
 }
 
 void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<>* rhs) {
-    std::vector<ChConstraint*>& mconstraints = GetConstraintsList();
-    std::vector<ChVariables*>& mvariables = GetVariablesList();
+    std::vector<ChConstraint*>& mconstraints = GetConstraints();
+    std::vector<ChVariables*>& mvariables = GetVariables();
 
     auto mv_size = mvariables.size();
     auto mc_size = mconstraints.size();
@@ -213,7 +215,7 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<
 
     if (Z) {
         Z->conservativeResize(n_q + mn_c, n_q + mn_c);
-        Z->setZeroValues();        
+        Z->setZeroValues();
 
         // Fill Z with masses and inertias.
         int s_q = 0;
@@ -481,9 +483,9 @@ int ChSystemDescriptor::FromVectorToUnknowns(const ChVectorDynamic<>& mvector) {
     return n_q + n_c;
 }
 
-void ChSystemDescriptor::ShurComplementProduct(ChVectorDynamic<>& result,
-                                               const ChVectorDynamic<>& lvector,
-                                               std::vector<bool>* enabled) {
+void ChSystemDescriptor::SchurComplementProduct(ChVectorDynamic<>& result,
+                                                const ChVectorDynamic<>& lvector,
+                                                std::vector<bool>* enabled) {
     // currently, the case with ChKblock items is not supported (only diagonal M is supported, no K)
     assert(vstiffness.size() == 0);
     assert(lvector.size() == CountActiveConstraints());
@@ -627,25 +629,7 @@ void ChSystemDescriptor::UnknownsProject(ChVectorDynamic<>& mx) {
 
 // -----------------------------------------------------------------------------
 
-void ChSystemDescriptor::WriteMatrix(const std::string& path, const std::string& prefix) {
-    const char* numformat = "%.12g";
-
-    ChSparseMatrix Z;
-    ChVectorDynamic<double> rhs;
-    ConvertToMatrixForm(&Z, &rhs);
-
-    ChStreamOutAsciiFile file_Z(path + "/" + prefix + "_Z.dat");
-    file_Z.SetNumFormat(numformat);
-    StreamOutSparseMatlabFormat(Z, file_Z);
-
-    ChStreamOutAsciiFile file_rhs(path + "/" + prefix + "_rhs.dat");
-    file_rhs.SetNumFormat(numformat);
-    StreamOutDenseMatlabFormat(rhs, file_rhs);
-}
-
-void ChSystemDescriptor::WriteMatrixBlocks(const std::string& path, const std::string& prefix) {
-    const char* numformat = "%.12g";
-
+void ChSystemDescriptor::WriteMatrixBlocks(const std::string& path, const std::string& prefix, bool one_indexed) {
     ChSparseMatrix mdM;
     ChSparseMatrix mdCq;
     ChSparseMatrix mdE;
@@ -654,34 +638,46 @@ void ChSystemDescriptor::WriteMatrixBlocks(const std::string& path, const std::s
     ChVectorDynamic<double> mdfric;
     ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
 
-    ChStreamOutAsciiFile file_M(path + "/" + prefix + "_M.dat");
-    file_M.SetNumFormat(numformat);
-    StreamOutSparseMatlabFormat(mdM, file_M);
+    std::ofstream file_M(path + "/" + prefix + "_M.dat");
+    file_M << std::setprecision(12) << std::scientific;
+    StreamOut(mdM, file_M, one_indexed);
 
-    ChStreamOutAsciiFile file_Cq(path + "/" + prefix + "_Cq.dat");
-    file_Cq.SetNumFormat(numformat);
-    StreamOutSparseMatlabFormat(mdCq, file_Cq);
+    std::ofstream file_Cq(path + "/" + prefix + "_Cq.dat");
+    file_Cq << std::setprecision(12) << std::scientific;
+    StreamOut(mdCq, file_Cq, one_indexed);
 
-    ChStreamOutAsciiFile file_E(path + "/" + prefix + "_E.dat");
-    file_E.SetNumFormat(numformat);
-    StreamOutSparseMatlabFormat(mdE, file_E);
+    std::ofstream file_E(path + "/" + prefix + "_E.dat");
+    file_E << std::setprecision(12) << std::scientific;
+    StreamOut(mdE, file_E, one_indexed);
 
-    ChStreamOutAsciiFile file_f(path + "/" + prefix + "_f.dat");
-    file_f.SetNumFormat(numformat);
-    StreamOutDenseMatlabFormat(mdf, file_f);
+    std::ofstream file_f(path + "/" + prefix + "_f.dat");
+    file_f << std::setprecision(12) << std::scientific;
+    StreamOut(mdf, file_f);
 
-    ChStreamOutAsciiFile file_b(path + "/" + prefix + "_b.dat");
-    file_b.SetNumFormat(numformat);
-    StreamOutDenseMatlabFormat(mdb, file_b);
+    std::ofstream file_b(path + "/" + prefix + "_b.dat");
+    file_b << std::setprecision(12) << std::scientific;
+    StreamOut(mdb, file_b);
 
-    ChStreamOutAsciiFile file_fric(path + "/" + prefix + "_fric.dat");
-    file_fric.SetNumFormat(numformat);
-    StreamOutDenseMatlabFormat(mdfric, file_fric);
+    std::ofstream file_fric(path + "/" + prefix + "_fric.dat");
+    file_fric << std::setprecision(12) << std::scientific;
+    StreamOut(mdfric, file_fric);
 }
 
-void ChSystemDescriptor::WriteMatrixSpmv(const std::string& path, const std::string& prefix) {
-    const char* numformat = "%.12g";
+void ChSystemDescriptor::WriteMatrix(const std::string& path, const std::string& prefix, bool one_indexed) {
+    ChSparseMatrix Z;
+    ChVectorDynamic<double> rhs;
+    ConvertToMatrixForm(&Z, &rhs);
 
+    std::ofstream file_Z(path + "/" + prefix + "_Z.dat");
+    file_Z << std::setprecision(12) << std::scientific;
+    StreamOut(Z, file_Z, one_indexed);
+
+    std::ofstream file_rhs(path + "/" + prefix + "_rhs.dat");
+    file_rhs << std::setprecision(12) << std::scientific;
+    StreamOut(rhs, file_rhs);
+}
+
+void ChSystemDescriptor::WriteMatrixSpmv(const std::string& path, const std::string& prefix, bool one_indexed) {
     // Count constraints.
     int mn_c = 0;
     for (auto& cnstr : vconstraints) {
@@ -707,16 +703,16 @@ void ChSystemDescriptor::WriteMatrixSpmv(const std::string& path, const std::str
     ChSparseMatrix Z = A.sparseView();
 
     // Write sparse matrix to file
-    ChStreamOutAsciiFile file_Z(path + "/" + prefix + "_Z.dat");
-    file_Z.SetNumFormat(numformat);
-    StreamOutSparseMatlabFormat(Z, file_Z);
+    std::ofstream file_Z(path + "/" + prefix + "_Z.dat");
+    file_Z << std::setprecision(12) << std::scientific;
+    StreamOut(Z, file_Z, one_indexed);
 
     // Write RHS to file
     ChVectorDynamic<double> rhs;
     ConvertToMatrixForm(nullptr, &rhs);
-    ChStreamOutAsciiFile file_rhs(path + "/" + prefix + "_rhs.dat");
-    file_rhs.SetNumFormat(numformat);
-    StreamOutDenseMatlabFormat(rhs, file_rhs);
+    std::ofstream file_rhs(path + "/" + prefix + "_rhs.dat");
+    file_rhs << std::setprecision(12) << std::scientific;
+    StreamOut(rhs, file_rhs);
 }
 
 }  // end namespace chrono

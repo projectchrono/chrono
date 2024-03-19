@@ -17,6 +17,8 @@
 //
 // =============================================================================
 
+#include <iomanip>
+
 #include "chrono/physics/ChSystemNSC.h"
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChLinkMate.h"
@@ -50,7 +52,7 @@ double time_length = 5.0;
 bool use_tangent_stiffness_Kc = true;
 
 void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, ChMatrixDynamic<>& mdistance) {
-    GetLog() << "\n\nRUN TEST\n";
+    std::cout << "\n\nRUN TEST\n";
 
     // Create a Chrono::Engine physical system
     ChSystemNSC sys;
@@ -70,9 +72,9 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
     // Beam section:
     auto section = chrono_types::make_shared<ChBeamSectionEulerAdvancedGeneric>();
     section->SetAxialRigidity(EA);
-    section->SetXtorsionRigidity(GJxx);
-    section->SetYbendingRigidity(EIyy);
-    section->SetZbendingRigidity(EIzz);
+    section->SetTorsionRigidityX(GJxx);
+    section->SetBendingRigidityY(EIyy);
+    section->SetBendingRigidityZ(EIzz);
     section->SetMassPerUnitLength(mass_per_unit_length);
     section->SetInertiaJxxPerUnitLength(Jxx);
     section->SetSectionRotation(0);
@@ -82,17 +84,17 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
     section->SetShearCenterY(0);
     section->SetShearCenterZ(0);
     section->SetArtificialJyyJzzFactor(1.0 / 500);
-    section->SetBeamRaleyghDampingBeta(0.002);
-    section->SetBeamRaleyghDampingAlpha(0.000);
+    section->SetRayleighDampingBeta(0.002);
+    section->SetRayleighDampingAlpha(0.000);
 
     // parent system
     auto my_ground = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 10);
-    my_ground->SetPos(ChVector<>(0, 0, 0));
-    my_ground->SetBodyFixed(true);
+    my_ground->SetPos(ChVector3d(0, 0, 0));
+    my_ground->SetFixed(true);
     sys.AddBody(my_ground);
 
     auto my_truss = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 10);
-    my_truss->SetPos(ChVector<>(0.1, -1.2, 0));
+    my_truss->SetPos(ChVector3d(0.1, -1.2, 0));
     sys.AddBody(my_truss);
 
     auto my_link_truss = chrono_types::make_shared<ChLinkMateGeneric>();
@@ -105,7 +107,7 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
     sys.AddMesh(my_mesh);
 
     auto my_node_Upper =
-        chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(my_truss->GetPos() + ChVector<>(-0.1, -1.3, 0), QUNIT));
+        chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(my_truss->GetPos() + ChVector3d(-0.1, -1.3, 0), QUNIT));
     my_node_Upper->SetMass(0);
     my_node_Upper->GetInertia().setZero();
     my_mesh->AddNode(my_node_Upper);
@@ -118,7 +120,7 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
     sys.AddLink(my_link_node_Upper);
 
     auto my_node_Down = chrono_types::make_shared<ChNodeFEAxyzrot>(
-        ChFrame<>(my_node_Upper->GetPos() + ChVector<>(0.5, -13.5, 0), QUNIT));
+        ChFrame<>(my_node_Upper->GetPos() + ChVector3d(0.5, -13.5, 0), QUNIT));
     my_node_Down->SetMass(0);
     my_node_Down->GetInertia().setZero();
     my_mesh->AddNode(my_node_Down);
@@ -130,14 +132,14 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
                           n_elements,          // the number of ChElementBeamEuler to create
                           my_node_Upper,       // the 'A' point in space (beginning of beam)
                           my_node_Down,        // the 'B' point in space (end of beam)
-                          ChVector<>(0, 1, 0)  // the 'Y' up direction of the section for the beam
+                          ChVector3d(0, 1, 0)  // the 'Y' up direction of the section for the beam
     );
 
     // assembly A: the first substructure
     auto mesh_A = chrono_types::make_shared<ChMesh>();
 
     auto my_node_L_A = chrono_types::make_shared<ChNodeFEAxyzrot>(
-        ChFrame<>(my_node_Down->GetPos() + ChVector<>(-0.1, -1.3, 0), QUNIT));
+        ChFrame<>(my_node_Down->GetPos() + ChVector3d(-0.1, -1.3, 0), QUNIT));
     my_node_L_A->SetMass(0);
     my_node_L_A->GetInertia().setZero();
     mesh_A->AddNode(my_node_L_A);
@@ -149,7 +151,7 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
     my_link_L_A->SetUseTangentStiffness(use_tangent_stiffness_Kc);
 
     auto my_node_R_A = chrono_types::make_shared<ChNodeFEAxyzrot>(
-        ChFrame<>(my_node_L_A->GetPos() + ChVector<>(-13.8, -12.3, 0), QUNIT));
+        ChFrame<>(my_node_L_A->GetPos() + ChVector3d(-13.8, -12.3, 0), QUNIT));
     my_node_R_A->SetMass(0);
     my_node_R_A->GetInertia().setZero();
     mesh_A->AddNode(my_node_R_A);
@@ -161,11 +163,11 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
                         n_elements,          // the number of ChElementBeamEuler to create
                         my_node_L_A,         // the 'A' point in space (beginning of beam)
                         my_node_R_A,         // the 'B' point in space (end of beam)
-                        ChVector<>(0, 1, 0)  // the 'Y' up direction of the section for the beam
+                        ChVector3d(0, 1, 0)  // the 'Y' up direction of the section for the beam
     );
 
     auto my_body_A = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 2, 10);
-    my_body_A->SetPos(my_node_R_A->GetPos() + ChVector<>(-2.5, -3.3, 0));
+    my_body_A->SetPos(my_node_R_A->GetPos() + ChVector3d(-2.5, -3.3, 0));
 
     auto my_link_R_A = chrono_types::make_shared<ChLinkMateGeneric>();
     my_link_R_A->Initialize(my_node_R_A, my_body_A,
@@ -191,7 +193,7 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
     auto mesh_B = chrono_types::make_shared<ChMesh>();
 
     auto my_body_B = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 1.5, 10);
-    my_body_B->SetPos(my_node_Down->GetPos() + ChVector<>(0.22, -0.5, 0));
+    my_body_B->SetPos(my_node_Down->GetPos() + ChVector3d(0.22, -0.5, 0));
 
     auto my_link_L_B = chrono_types::make_shared<ChLinkMateGeneric>();
     my_link_L_B->Initialize(my_body_B, my_node_Down,
@@ -200,7 +202,7 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
     my_link_L_B->SetUseTangentStiffness(use_tangent_stiffness_Kc);
 
     auto my_node_L_B =
-        chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(my_body_B->GetPos() + ChVector<>(0.2, -0.3, -0.4), QUNIT));
+        chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(my_body_B->GetPos() + ChVector3d(0.2, -0.3, -0.4), QUNIT));
     my_node_L_B->SetMass(0);
     my_node_L_B->GetInertia().setZero();
     mesh_B->AddNode(my_node_L_B);
@@ -208,7 +210,7 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
     auto my_link_R_B = chrono_types::make_shared<ChLinkMotorRotationAngle>();
     my_link_R_B->Initialize(my_node_L_B, my_body_B,
                             ChFrame<>(0.5 * (my_node_L_B->GetPos() + my_body_B->GetPos()), QUNIT));
-    auto driving_fun_B = chrono_types::make_shared<ChFunction_Setpoint>();
+    auto driving_fun_B = chrono_types::make_shared<ChFunctionSetpoint>();
     driving_fun_B->SetSetpoint(0, 0);
     my_link_R_B->SetAngleFunction(driving_fun_B);
     my_link_R_B->SetUseTangentStiffness(use_tangent_stiffness_Kc);
@@ -220,7 +222,7 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
     // my_link_R_B->SetUseTangentStiffness(use_tangent_stiffness_Kc);
 
     auto my_node_R_B = chrono_types::make_shared<ChNodeFEAxyzrot>(
-        ChFrame<>(my_node_L_B->GetPos() + ChVector<>(0.8, -15.0, 10), QUNIT));
+        ChFrame<>(my_node_L_B->GetPos() + ChVector3d(0.8, -15.0, 10), QUNIT));
     my_node_R_B->SetMass(0);
     my_node_R_B->GetInertia().setZero();
     mesh_B->AddNode(my_node_R_B);
@@ -232,7 +234,7 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
                         n_elements,          // the number of ChElementBeamEuler to create
                         my_node_L_B,         // the 'A' point in space (beginning of beam)
                         my_node_R_B,         // the 'B' point in space (end of beam)
-                        ChVector<>(0, 1, 0)  // the 'Y' up direction of the section for the beam
+                        ChVector3d(0, 1, 0)  // the 'Y' up direction of the section for the beam
     );
 
     if (add_subassembly_B) {
@@ -251,7 +253,7 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
 
     // parent part C
     auto my_body_C = chrono_types::make_shared<ChBodyEasyBox>(1, 2, 1.5, 10);
-    my_body_C->SetPos(my_node_R_B->GetPos() + ChVector<>(-0.22, 0.5, 0));
+    my_body_C->SetPos(my_node_R_B->GetPos() + ChVector3d(-0.22, 0.5, 0));
     sys.AddBody(my_body_C);
 
     auto my_link_body_C = chrono_types::make_shared<ChLinkMateGeneric>();
@@ -265,7 +267,7 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
     sys.AddMesh(mesh_C);
 
     auto my_node_L_C = chrono_types::make_shared<ChNodeFEAxyzrot>(
-        ChFrame<>(my_body_C->GetPos() + ChVector<>(-7.0, -12.0, 0.4), QUNIT));
+        ChFrame<>(my_body_C->GetPos() + ChVector3d(-7.0, -12.0, 0.4), QUNIT));
     my_node_L_C->SetMass(0);
     my_node_L_C->GetInertia().setZero();
     mesh_C->AddNode(my_node_L_C);
@@ -278,7 +280,7 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
     sys.AddLink(my_link_L_C);
 
     auto my_node_R_C =
-        chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(my_body_A->GetPos() + ChVector<>(0.2, -0.3, 0), QUNIT));
+        chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(my_body_A->GetPos() + ChVector3d(0.2, -0.3, 0), QUNIT));
     my_node_R_C->SetMass(0);
     my_node_R_C->GetInertia().setZero();
     mesh_C->AddNode(my_node_R_C);
@@ -297,21 +299,21 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
                         n_elements,          // the number of ChElementBeamEuler to create
                         my_node_L_C,         // the 'A' point in space (beginning of beam)
                         my_node_R_C,         // the 'B' point in space (end of beam)
-                        ChVector<>(0, 1, 0)  // the 'Y' up direction of the section for the beam
+                        ChVector3d(0, 1, 0)  // the 'Y' up direction of the section for the beam
     );
 
     bool add_force = true;
     if (add_force) {
         builder_A.GetLastBeamNodes()[(int)(n_elements / 2.0)]->SetForce(
-            ChVector<>(10, -30, 0));  // to trigger some vibration at the middle point of beam A
+            ChVector3d(10, -30, 0));  // to trigger some vibration at the middle point of beam A
         builder_B.GetLastBeamNodes()[(int)(n_elements / 2.0)]->SetForce(
-            ChVector<>(-21.2, -12.3, 30.6));  // to trigger some vibration at the middle point of beam B
+            ChVector3d(-21.2, -12.3, 30.6));  // to trigger some vibration at the middle point of beam B
         builder_C.GetLastBeamNodes()[(int)(n_elements / 2.0)]->SetForce(
-            ChVector<>(21.2, 12.3, -30.6));  // to trigger some vibration at the middle point of beam B
+            ChVector3d(21.2, 12.3, -30.6));  // to trigger some vibration at the middle point of beam B
     }
 
     // gravity along -Y
-    sys.Set_G_acc(ChVector<>(0, -9.81, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));
 
     // Set linear solver
 #ifdef CHRONO_PARDISO_MKL
@@ -325,10 +327,10 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
     sys.Setup();
     sys.Update();
 
-    sys.DumpSystemMatrices(true, true, true, true, (out_dir + "/sys_assembly_dump").c_str());
+    sys.WriteSystemMatrices(true, true, true, true, (out_dir + "/sys_assembly_dump").c_str());
 
     // sys.RemoveRedundantConstraints(true,1e-9,true);
-    // sys.ShowHierarchy(GetLog());
+    // sys.ShowHierarchy(std::cout);
 
     // Do dynamics simulation
     {
@@ -357,7 +359,7 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
             double tao = sys.GetChTime() / T;
             double rot_angle = 0;
             if (tao < 1.0)
-                rot_angle = omega * T * (tao * tao / 2.0 + (cos(CH_C_2PI * tao) - 1.0) / pow(CH_C_2PI, 2.0));
+                rot_angle = omega * T * (tao * tao / 2.0 + (cos(CH_2PI * tao) - 1.0) / pow(CH_2PI, 2.0));
             else
                 rot_angle = omega * T * (tao - 0.5);
 
@@ -365,8 +367,7 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
 
             sys.DoStepDynamics(time_step);
 
-            ChFrameMoving<> relative_frame;
-            my_body_A->TransformParentToLocal(my_node_R_B->Frame(), relative_frame);
+            ChFrameMoving<> relative_frame = my_body_A->TransformParentToLocal(my_node_R_B->Frame());
 
             mdistance(frame, 0) = sys.GetChTime();
             mdistance(frame, 1) = relative_frame.GetPos().x();
@@ -374,8 +375,8 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
             mdistance(frame, 3) = relative_frame.GetPos().z();
 
             if (frame % 100 == 0) {
-                GetLog() << "t: " << sys.GetChTime() << "\t";
-                GetLog() << "Distance of two tips:\t" << relative_frame.GetPos().x() << "\t"
+                std::cout << "t: " << sys.GetChTime() << "\t";
+                std::cout << "Distance of two tips:\t" << relative_frame.GetPos().x() << "\t"
                          << relative_frame.GetPos().y() << "\t" << relative_frame.GetPos().z() << "\n";
             }
             frame++;
@@ -384,7 +385,7 @@ void MakeAndRunDemo_SlewingBeam(bool add_subassembly_A, bool add_subassembly_B, 
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Directory for output data
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -406,7 +407,7 @@ int main(int argc, char* argv[]) {
     distance_diff.resize(distance_ref.rows(), 4);
     distance_diff.setZero();
     distance_diff = distance_2 - distance_ref;
-    GetLog() << "The norm of the difference of tip distances is:\t" << distance_diff.norm() << "\n";
+    std::cout << "The norm of the difference of tip distances is:\t" << distance_diff.norm() << "\n";
     assert(distance_diff.norm() < 1e-5 && "The results are different, implying something is wrong in ChAssembly()");
 
     // Output results
@@ -416,11 +417,11 @@ int main(int argc, char* argv[]) {
     distance_cmp << distance_ref, distance_2, distance_diff;
 
     if (create_directory(path(out_dir))) {
-        ChStreamOutAsciiFile file_distance((out_dir + "/tip_distance_comparison.dat").c_str());
-        file_distance.SetNumFormat("%.12g");
-        StreamOutDenseMatlabFormat(distance_cmp, file_distance);
+        std::ofstream file_distance((out_dir + "/tip_distance_comparison.dat").c_str());
+        file_distance<< std::setprecision(12) << std::scientific;
+        StreamOut(distance_cmp, file_distance);
     } else {
-        GetLog() << "  ...Error creating subdirectories\n";
+        std::cout << "  ...Error creating subdirectories\n";
     }
 
     return 0;

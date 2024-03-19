@@ -25,11 +25,11 @@
 namespace chrono {
 namespace sensor {
 
-ChFilterGPSUpdate::ChFilterGPSUpdate(ChVector<double> gps_reference, std::shared_ptr<ChNoiseModel> noise_model)
+ChFilterGPSUpdate::ChFilterGPSUpdate(ChVector3d gps_reference, std::shared_ptr<ChNoiseModel> noise_model)
     : m_ref(gps_reference), m_noise_model(noise_model), ChFilter("GPS Updater") {}
 
 CH_SENSOR_API void ChFilterGPSUpdate::Apply() {
-    ChVector<double> coords = {0, 0, 0};
+    ChVector3d coords = {0, 0, 0};
     float ch_time = 0;
     float last_ch_time = 0;
     if (m_GPSSensor->m_keyframes.size() > 0) {
@@ -43,7 +43,7 @@ CH_SENSOR_API void ChFilterGPSUpdate::Apply() {
     }
 
     if (m_noise_model) {
-        m_noise_model->AddNoise(coords);  // 3 is length of ChVector
+        m_noise_model->AddNoise(coords);
     }
 
     Cartesian2GPS(coords, m_ref);

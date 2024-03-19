@@ -38,7 +38,7 @@ DeDionAxle::DeDionAxle(const std::string& filename) : ChDeDionAxle(""), m_spring
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 DeDionAxle::DeDionAxle(const rapidjson::Document& d) : ChDeDionAxle(""), m_springForceCB(NULL), m_shockForceCB(NULL) {
@@ -56,12 +56,12 @@ void DeDionAxle::Create(const rapidjson::Document& d) {
     ChPart::Create(d);
 
     if (d.HasMember("Camber Angle (deg)"))
-        m_camber_angle = d["Camber Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
+        m_camber_angle = d["Camber Angle (deg)"].GetDouble() * CH_DEG_TO_RAD;
     else
         m_camber_angle = 0;
 
     if (d.HasMember("Toe Angle (deg)"))
-        m_toe_angle = d["Toe Angle (deg)"].GetDouble() * CH_C_DEG_TO_RAD;
+        m_toe_angle = d["Toe Angle (deg)"].GetDouble() * CH_DEG_TO_RAD;
     else
         m_toe_angle = 0;
 

@@ -130,8 +130,8 @@ void ChVehicleVisualSystemIrrlicht::AttachVehicle(ChVehicle* vehicle) {
 
     // Add the Irrlicht camera (controlled through the chase-cam) if already initialized
     if (GetDevice()) {
-        ChVector<> cam_pos = m_camera->GetCameraPos();
-        ChVector<> cam_target = m_camera->GetTargetPos();
+        ChVector3d cam_pos = m_camera->GetCameraPos();
+        ChVector3d cam_target = m_camera->GetTargetPos();
         AddCamera(cam_pos, cam_target);
     }
 }
@@ -148,8 +148,8 @@ void ChVehicleVisualSystemIrrlicht::Initialize() {
 
     // Add the Irrlicht camera (controlled through the chase-cam) if already attach to a vehicle
     if (m_vehicle) {
-        ChVector<> cam_pos = m_camera->GetCameraPos();
-        ChVector<> cam_target = m_camera->GetTargetPos();
+        ChVector3d cam_pos = m_camera->GetCameraPos();
+        ChVector3d cam_target = m_camera->GetTargetPos();
         AddCamera(cam_pos, cam_target);
     }
 }
@@ -172,7 +172,7 @@ void ChVehicleVisualSystemIrrlicht::EnableSound(bool sound) {
                 m_sound_engine->play2D(GetChronoDataFile("vehicle/sounds/carsound.ogg").c_str(), true, false, true);
             m_car_sound->setIsPaused(true);
         } else
-            GetLog() << "Cannot start sound engine Irrklang \n";
+            std::cerr << "Cannot start sound engine Irrklang" << std::endl;
     } else {
         m_sound_engine = 0;
         m_car_sound = 0;
@@ -196,8 +196,8 @@ void ChVehicleVisualSystemIrrlicht::Advance(double step) {
     }
 
     // Update the Irrlicht camera
-    ChVector<> cam_pos = m_camera->GetCameraPos();
-    ChVector<> cam_target = m_camera->GetTargetPos();
+    ChVector3d cam_pos = m_camera->GetCameraPos();
+    ChVector3d cam_target = m_camera->GetTargetPos();
 
     GetActiveCamera()->setPosition(core::vector3dfCH(cam_pos));
     GetActiveCamera()->setTarget(core::vector3dfCH(cam_target));
@@ -208,7 +208,7 @@ void ChVehicleVisualSystemIrrlicht::Advance(double step) {
     // Update sound pitch
     if (m_car_sound && m_vehicle->GetPowertrainAssembly()) {
         stepsbetweensound++;
-        double engine_rpm = m_vehicle->GetPowertrainAssembly()->GetEngine()->GetMotorSpeed() * 60 / CH_C_2PI;
+        double engine_rpm = m_vehicle->GetPowertrainAssembly()->GetEngine()->GetMotorSpeed() * 60 / CH_2PI;
         double soundspeed = engine_rpm / (4000.);  // denominator: to guess
         if (soundspeed < 0.1)
             soundspeed = 0.1;
@@ -295,7 +295,7 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
         const auto& engine = powertrain->GetEngine();
         const auto& transmission = powertrain->GetTransmission();
 
-        double engine_rpm = engine->GetMotorSpeed() * 60 / CH_C_2PI;
+        double engine_rpm = engine->GetMotorSpeed() * 60 / CH_2PI;
         snprintf(msg, sizeof(msg), "Eng.speed(RPM): %+.2f", engine_rpm);
         renderLinGauge(std::string(msg), engine_rpm / 7000, false, m_HUD_x, m_HUD_y + 50, 170, 15);
 
@@ -321,7 +321,7 @@ void ChVehicleVisualSystemIrrlicht::renderStats() {
             snprintf(msg, sizeof(msg), "T.conv.out(Nm): %+.2f", tc_torqueout);
             renderLinGauge(std::string(msg), tc_torqueout / 600, false, m_HUD_x, m_HUD_y + 130, 170, 15);
 
-            double tc_rpmout = transmission_auto->GetTorqueConverterOutputSpeed() * 60 / CH_C_2PI;
+            double tc_rpmout = transmission_auto->GetTorqueConverterOutputSpeed() * 60 / CH_2PI;
             snprintf(msg, sizeof(msg), "T.conv.out(RPM): %+.2f", tc_rpmout);
             renderLinGauge(std::string(msg), tc_rpmout / 7000, false, m_HUD_x, m_HUD_y + 150, 170, 15);
             switch (transmission_auto->GetShiftMode()) {

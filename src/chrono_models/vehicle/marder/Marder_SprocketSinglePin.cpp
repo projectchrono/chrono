@@ -36,7 +36,7 @@ namespace marder {
 const int Marder_SprocketSinglePin::m_num_teeth = 12;
 
 const double Marder_SprocketSinglePin::m_gear_mass = 27.68;
-const ChVector<> Marder_SprocketSinglePin::m_gear_inertia(0.646, 0.883, 0.646);
+const ChVector3d Marder_SprocketSinglePin::m_gear_inertia(0.646, 0.883, 0.646);
 const double Marder_SprocketSinglePin::m_axle_inertia = 0.4;
 const double Marder_SprocketSinglePin::m_separation = 0.225;
 
@@ -66,7 +66,7 @@ void Marder_SprocketSinglePin::CreateContactMaterial(ChContactMethod contact_met
 // -----------------------------------------------------------------------------
 void Marder_SprocketSinglePin::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH) {
-        ////auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
+        ////auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetMeshFile(), false, false);
         auto trimesh = CreateVisualizationMesh(0.15, 0.03, 0.02);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);

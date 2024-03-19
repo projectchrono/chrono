@@ -49,7 +49,7 @@ class CH_SENSOR_API ChGPSSensor : public ChDynamicSensor {
     ChGPSSensor(std::shared_ptr<chrono::ChBody> parent,
                 float updateRate,
                 chrono::ChFrame<double> offsetPose,
-                ChVector<double> gps_reference,
+                ChVector3d gps_reference,
                 std::shared_ptr<ChNoiseModel> noise_model);
 
     /// Class destructor
@@ -59,7 +59,7 @@ class CH_SENSOR_API ChGPSSensor : public ChDynamicSensor {
 
   private:
     /// Variable for communicating the sensor's keyframes from the ChSystem into the data generation filter
-    std::vector<std::tuple<float, ChVector<double>>> m_keyframes;
+    std::vector<std::tuple<float, ChVector3d>> m_keyframes;
     friend class ChFilterGPSUpdate;
 };
 

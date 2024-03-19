@@ -73,8 +73,8 @@ TEST_P(gpuPyramid, check) {
     }
 
     // generate the ground for the pyramid
-    ChVector<float> ground_plate_pos(0.0, 0.0, 0.0);
-    ChVector<float> ground_plate_normal(0.0, 0.0, 1.0f);
+    ChVector3f ground_plate_pos(0.0, 0.0, 0.0);
+    ChVector3f ground_plate_normal(0.0, 0.0, 1.0f);
     gpu_sys.CreateBCPlane(ground_plate_pos, ground_plate_normal, true);
 
     gpu_sys.SetVerbosity(CHGPU_VERBOSITY::QUIET);

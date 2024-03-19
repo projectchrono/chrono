@@ -50,34 +50,34 @@ double ChSolverMatlab::Solve(ChSystemDescriptor& sysd) {
 
     ChMatrixDynamic<> mx;
     if (!mengine->GetVariable(mx, "mdx"))
-        GetLog() << "ERROR!! cannot fetch mdx";
+        std::cerr << "ERROR!! cannot fetch mdx" << std::endl;
 
     sysd.FromVectorToUnknowns(mx);
 
     mengine->Eval("resid = norm(mdZ*mdx - mdd);");
     ChMatrixDynamic<> mres;
     mengine->GetVariable(mres, "resid");
-    GetLog() << " Matlab computed residual:" << mres(0, 0) << "\n";
+    std::cout << " Matlab computed residual:" << mres(0, 0) << std::endl;
 
     return 0;
 }
 
-void ChSolverMatlab::ArchiveOut(ChArchiveOut& marchive) {
+void ChSolverMatlab::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChSolverMatlab>();
+    archive_out.VersionWrite<ChSolverMatlab>();
     // serialize parent class
-    ChSolver::ArchiveOut(marchive);
+    ChSolver::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(mengine);
+    archive_out << CHNVP(mengine);
 }
 
-void ChSolverMatlab::ArchiveIn(ChArchiveIn& marchive) {
+void ChSolverMatlab::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChSolverMatlab>();
+    /*int version =*/ archive_in.VersionRead<ChSolverMatlab>();
     // deserialize parent class
-    ChSolver::ArchiveIn(marchive);
+    ChSolver::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(mengine);
+    archive_in >> CHNVP(mengine);
 }
 
 }  // end namespace chrono

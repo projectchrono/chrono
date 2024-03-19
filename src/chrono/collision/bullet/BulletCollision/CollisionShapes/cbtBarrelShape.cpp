@@ -80,7 +80,7 @@ cbtBarrelShape::cbtBarrelShape(cbtScalar sY_low, cbtScalar sY_high, cbtScalar sR
 
 void	cbtBarrelShape::calculateLocalInertia(cbtScalar mass,cbtVector3& inertia) const
 {
-	//***TO DO***
+	//// TODO 
 	//as an approximation, take the inertia of the box that bounds the barrell
 
 	cbtTransform ident;

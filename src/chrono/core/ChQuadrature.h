@@ -283,7 +283,7 @@ class ChApi ChQuadrature {
                             const int order)               ///< order of integration
     {
         if ((unsigned int)order > GetStaticTablesTriangle()->Weight.size()) 
-            throw ChException("Too high order of quadrature for triangle. Use lower order.");
+            throw std::invalid_argument("Too high order of quadrature for triangle. Use lower order.");
 
         ChQuadratureTablesTriangle* mtables = GetStaticTablesTriangle();
         std::vector<double>* lrootsU = &mtables->LrootsU[order - 1];
@@ -311,7 +311,7 @@ class ChApi ChQuadrature {
                             const int order)               ///< order of integration
     {
         if ((unsigned int)order > GetStaticTablesTetrahedron()->Weight.size()) 
-            throw ChException("Too high order of quadrature for tetrahedron. Use lower order.");
+            throw std::invalid_argument("Too high order of quadrature for tetrahedron. Use lower order.");
 
         ChQuadratureTablesTetrahedron* mtables = GetStaticTablesTetrahedron();
         std::vector<double>* lrootsU = &mtables->LrootsU[order - 1];

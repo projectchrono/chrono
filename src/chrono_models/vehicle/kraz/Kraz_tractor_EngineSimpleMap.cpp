@@ -26,7 +26,7 @@ namespace chrono {
 namespace vehicle {
 namespace kraz {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 Kraz_tractor_EngineSimpleMap::Kraz_tractor_EngineSimpleMap(const std::string& name) : ChEngineSimpleMap(name) {}
 
@@ -34,7 +34,7 @@ double Kraz_tractor_EngineSimpleMap::GetMaxEngineSpeed() {
     return 2700 * rpm2rads;
 }
 
-void Kraz_tractor_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+void Kraz_tractor_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) {
     map0.AddPoint(-10.472, 0.000);
     map0.AddPoint(83.776, -20.0);
     map0.AddPoint(104.720, -20.0);

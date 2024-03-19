@@ -23,7 +23,7 @@
 #include <sstream>
 #include <fstream>
 
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChUtils.h"
 #include "chrono_vehicle/wheeled_vehicle/test_rig/ChSuspensionTestRigDriver.h"
 
 namespace chrono {

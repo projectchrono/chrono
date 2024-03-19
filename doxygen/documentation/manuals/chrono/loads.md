@@ -23,11 +23,11 @@ Loads can be applied to these objects through different approaches:
 
 While not being considered explicitely in the previous list, also the @ref chrono::ChLinkTSDA "ChLinkTSDA"|@ref chrono::ChLinkRSDA "ChLinkRSDA" can do similar jobs, also including the Jacobian for the generalized forces or also some advanced internal dynamic, by providing custom functors (@ref chrono::ChLinkTSDA::ForceFunctor "ChLinkTSDA::ForceFunctor"|@ref chrono::ChLinkRSDA::TorqueFunctor "ChLinkRSDA::TorqueFunctor") or even proper ODEs (only @ref chrono::ChLinkTSDA::ODE "ChLinkTSDA::ODE").
 
-Other simplified approaches, limited to _ChBody_, allow to accumulate forces, by using @ref chrono::ChBody::Accumulate_force() "Accumulate_force()" and @ref chrono::ChBody::Accumulate_torque() "Accumulate_torque()".
+Other simplified approaches, limited to _ChBody_, allow to accumulate forces, by using @ref chrono::ChBody::AccumulateForce() "AccumulateForce()" and @ref chrono::ChBody::AccumulateTorque() "AccumulateTorque()".
 
 The overall contributions of forces to a given _ChBody_ can be retrieved through @ref chrono::ChBody::GetAppliedForce() "GetAppliedForce()" and similarly for torques.
 
-For FEA nodes, similary to the @ref chrono::ChForce "ChForce" for @ref chrono::ChBody "ChBody", it is possible to add a force directly to the node through @ref chrono::fea::ChNodeFEAxyz::SetForce() "ChNodeFEAxyz::SetForce()". However, in this case the options are even more limited, since the force is expressed as a simple @ref chrono::ChVector "ChVector", thus always assumed constant and expressed in absolute frame. The @ref chrono::fea::ChNodeFEAxyzrot "ChNodeFEAxyzrot" class implements also @ref chrono::fea::ChNodeFEAxyzrot::SetTorque() "ChNodeFEAxyzrot::SetTorque()".
+For FEA nodes, similary to the @ref chrono::ChForce "ChForce" for @ref chrono::ChBody "ChBody", it is possible to add a force directly to the node through @ref chrono::fea::ChNodeFEAxyz::SetForce() "ChNodeFEAxyz::SetForce()". However, in this case the options are even more limited, since the force is expressed as a simple @ref chrono::ChVector3 "ChVector3", thus always assumed constant and expressed in absolute frame. The @ref chrono::fea::ChNodeFEAxyzrot "ChNodeFEAxyzrot" class implements also @ref chrono::fea::ChNodeFEAxyzrot::SetTorque() "ChNodeFEAxyzrot::SetTorque()".
 
 Some more peculiar class has been excluded from this list: please look at @ref chrono::ChLoadBase "ChLoadBase" to have a full perspective on the load classes in Chrono.
 
@@ -60,7 +60,7 @@ Contrary to @ref chrono::ChForce "ChForce", these other _ChLoad_s requires the i
   auto load_container = chrono_types::make_shared<ChLoadContainer>();
   sys.Add(load_container);
 
-  auto load_bb = chrono_types::make_shared<ChLoadBodyBodyTorque>(bodyA, bodyB, ChVector<>(0,10.0,0), false);
+  auto load_bb = chrono_types::make_shared<ChLoadBodyBodyTorque>(bodyA, bodyB, ChVector3<>(0,10.0,0), false);
   load_container->Add(load_bb);
 ~~~
 

@@ -24,21 +24,21 @@ ChMaterialHexaANCF::ChMaterialHexaANCF(double rho,  // material density
                                        )
     : m_rho(rho) {
     double G = 0.5 * E / (1 + nu);
-    Calc_D(ChVector<>(E), ChVector<>(nu), ChVector<>(G));
+    Calc_D(ChVector3d(E), ChVector3d(nu), ChVector3d(G));
 }
 
 // Construct a (possibly) orthotropic material.
 ChMaterialHexaANCF::ChMaterialHexaANCF(double rho,            // material density
-                                       const ChVector<>& E,   // elasticity moduli (E_x, E_y, E_z)
-                                       const ChVector<>& nu,  // Poisson ratios (nu_xy, nu_xz, nu_yz)
-                                       const ChVector<>& G    // shear moduli (G_xy, G_xz, G_yz)
+                                       const ChVector3d& E,   // elasticity moduli (E_x, E_y, E_z)
+                                       const ChVector3d& nu,  // Poisson ratios (nu_xy, nu_xz, nu_yz)
+                                       const ChVector3d& G    // shear moduli (G_xy, G_xz, G_yz)
                                        )
     : m_rho(rho) {
     Calc_D(E, nu, G);
 }
 
 // Calculate the 6x6 matrix form of stiffness tensors used by the ANCF element
-void ChMaterialHexaANCF::Calc_D(const ChVector<>& E, const ChVector<>& nu, const ChVector<>& G) {
+void ChMaterialHexaANCF::Calc_D(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G) {
     // orthotropic material ref: http://homes.civil.aau.dk/lda/Continuum/material.pdf
     // except position of the shear terms is different to match the original ANCF reference paper
 
@@ -50,7 +50,7 @@ void ChMaterialHexaANCF::Calc_D(const ChVector<>& E, const ChVector<>& nu, const
     double nu_32 = nu_23 * E.z() / E.y();
     double k = 1.0 - nu_23 * nu_32 - nu_12 * nu_21 - nu_13 * nu_31 - nu_12 * nu_23 * nu_31 - nu_21 * nu_32 * nu_13;
 
-    ChMatrixNM<double, 6, 6> D;
+    ChMatrix66d D;
     D.setZero();
     D(0, 0) = E.x() * (1 - nu_23 * nu_32) / k;
     D(1, 0) = E.y() * (nu_13 * nu_32 + nu_12) / k;

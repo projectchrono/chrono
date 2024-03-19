@@ -28,28 +28,28 @@ class ChApi ChVisualShapeBox : public ChVisualShape {
   public:
     ChVisualShapeBox();
     ChVisualShapeBox(double length_x, double length_y, double length_z);
-    ChVisualShapeBox(const ChVector<>& lengths);
-    ChVisualShapeBox(const geometry::ChBox& box);
+    ChVisualShapeBox(const ChVector3d& lengths);
+    ChVisualShapeBox(const ChBox& box);
 
     ~ChVisualShapeBox() {}
 
     /// Access the box geometry.
-    geometry::ChBox& GetGeometry() { return gbox; }
+    ChBox& GetGeometry() { return gbox; }
 
     /// Get the box half-lengths.
-    const ChVector<>& GetHalflengths() const { return gbox.GetHalflengths(); }
+    const ChVector3d& GetHalflengths() const { return gbox.GetHalflengths(); }
 
     /// Get the box dimensions.
-    ChVector<> GetLengths() const { return gbox.GetLengths(); }
+    ChVector3d GetLengths() const { return gbox.GetLengths(); }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    geometry::ChBox gbox;
+    ChBox gbox;
 };
 
 /// @} chrono_assets

@@ -40,7 +40,7 @@ HendricksonPRIMAXX::HendricksonPRIMAXX(const std::string& filename) : ChHendrick
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 HendricksonPRIMAXX::HendricksonPRIMAXX(const rapidjson::Document& d) : ChHendricksonPRIMAXX("") {
@@ -136,7 +136,7 @@ void HendricksonPRIMAXX::Create(const rapidjson::Document& d) {
     } else {
         m_tierodMass = 0;
         m_tierodRadius = 0;
-        m_tierodInertia = ChVector<>(0);
+        m_tierodInertia = ChVector3d(0);
         m_use_tierod_bodies = false;
     }
 
@@ -164,10 +164,10 @@ void HendricksonPRIMAXX::Create(const rapidjson::Document& d) {
     m_axleInertia = d["Axle"]["Inertia"].GetDouble();
 
     //// TODO
-    m_dirs[UNIV_AXIS_TORQUEROD_ROD] = ChVector<>(1, 0, 0);
-    m_dirs[UNIV_AXIS_TORQUEROD_CHASSIS] = ChVector<>(1, 0, 0);
-    m_dirs[UNIV_AXIS_LOWERBEAM_BEAM] = ChVector<>(1, 0, 0);
-    m_dirs[UNIV_AXIS_LOWERBEAM_CHASSIS] = ChVector<>(1, 0, 0);
+    m_dirs[UNIV_AXIS_TORQUEROD_ROD] = ChVector3d(1, 0, 0);
+    m_dirs[UNIV_AXIS_TORQUEROD_CHASSIS] = ChVector3d(1, 0, 0);
+    m_dirs[UNIV_AXIS_LOWERBEAM_BEAM] = ChVector3d(1, 0, 0);
+    m_dirs[UNIV_AXIS_LOWERBEAM_CHASSIS] = ChVector3d(1, 0, 0);
 }
 
 }  // end namespace vehicle

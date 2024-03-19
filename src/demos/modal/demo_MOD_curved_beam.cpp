@@ -53,7 +53,7 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
 
     // Parameters
     double radius = 100.0;
-    double rotangle = 45.0 * CH_C_DEG_TO_RAD;
+    double rotangle = 45.0 * CH_DEG_TO_RAD;
     int n_parts = 4;
     int n_totalelements = n_parts * 8;
 
@@ -63,20 +63,20 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
     double Iyy = 1 / 12.0 * b * h * h * h;
     double Izz = 1 / 12.0 * h * b * b * b;
     double Iyz = 0;
-    double Ip = Iyy + Izz;
+    //double Ip = Iyy + Izz;
 
     double rho = 7800 * 2.2046226218 / pow(39.37007874, 3);
     double mass_per_unit_length = rho * Area;
     double Jyy = rho * Iyy;
     double Jzz = rho * Izz;
-    double Jxx = rho * Ip;
+    //double Jxx = rho * Ip;
     double Jyz = rho * Iyz;
 
     // Parent system: ground
     auto my_ground = chrono_types::make_shared<ChBody>();
     my_ground->SetMass(1.0);
     my_ground->SetPos(VNULL);
-    my_ground->SetBodyFixed(true);
+    my_ground->SetFixed(true);
     sys.AddBody(my_ground);
 
     // Prepare for mesh: Beam section
@@ -102,8 +102,8 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
     Klaw(0, 5) = k16;
     Klaw(5, 0) = k16;
     section->SetStiffnessMatrixFPM(Klaw);
-    section->SetBeamRaleyghDampingBeta(0.002);
-    section->SetBeamRaleyghDampingAlpha(0.000);
+    section->SetRayleighDampingBeta(0.002);
+    section->SetRayleighDampingAlpha(0.000);
 
     auto tapered_section = chrono_types::make_shared<ChBeamSectionTaperedTimoshenkoAdvancedGenericFPM>();
     tapered_section->SetSectionA(section);
@@ -115,9 +115,9 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
         // Settings
         mmodal_assembly->use_linear_inertial_term = USE_LINEAR_INERTIAL_TERM;
         if (USE_HERTING)
-            mmodal_assembly->modal_reduction_type = chrono::modal::ChModalAssembly::Reduction_Type::Herting;
+            mmodal_assembly->modal_reduction_type = chrono::modal::ChModalAssembly::ReductionType::HERTING;
         else
-            mmodal_assembly->modal_reduction_type = chrono::modal::ChModalAssembly::Reduction_Type::Craig_Bampton;
+            mmodal_assembly->modal_reduction_type = chrono::modal::ChModalAssembly::ReductionType::CRAIG_BAMPTON;
 
         sys.Add(mmodal_assembly);
 
@@ -135,7 +135,7 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
         for (int i_node = 0; i_node < mn_ele + 1; i_node++) {
             double loc_angle = mstart_angle + mdelta_angle * i_node;
             ChQuaternion qrot;
-            qrot.Q_from_AngZ(-loc_angle);
+            qrot.SetFromAngleZ(-loc_angle);
             mbeam_nodes.at(i_node) = chrono_types::make_shared<ChNodeFEAxyzrot>(
                 ChFrame<>({radius * sin(loc_angle), -radius * (1.0 - cos(loc_angle)), 0}, qrot));
 
@@ -153,9 +153,9 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
             mbeam_elements.at(i_ele)->SetNodes(mbeam_nodes.at(i_ele), mbeam_nodes.at(i_ele + 1));
 
             ChMatrix33<> mrot;
-            mrot.Set_A_Xdir(mbeam_nodes.at(i_ele + 1)->Frame().GetPos() - mbeam_nodes.at(i_ele)->Frame().GetPos(),
+            mrot.SetFromAxisX(mbeam_nodes.at(i_ele + 1)->Frame().GetPos() - mbeam_nodes.at(i_ele)->Frame().GetPos(),
                             VECT_Y);
-            ChQuaternion<> elrot = mrot.Get_A_quaternion();
+            ChQuaternion<> elrot = mrot.GetQuaternion();
             mbeam_elements.at(i_ele)->SetNodeAreferenceRot(elrot.GetConjugate() *
                                                            mbeam_elements.at(i_ele)->GetNodeA()->Frame().GetRot());
             mbeam_elements.at(i_ele)->SetNodeBreferenceRot(elrot.GetConjugate() *
@@ -181,9 +181,9 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
     if (n_parts > 1)
         for (int i_link = 0; i_link < n_parts - 1; i_link++) {
             auto node_L = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(
-                modal_assembly_list.at(i_link)->Get_meshlist().front()->GetNodes().back());
+                modal_assembly_list.at(i_link)->GetMeshes().front()->GetNodes().back());
             auto node_R = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(
-                modal_assembly_list.at(i_link + 1)->Get_meshlist().front()->GetNodes().front());
+                modal_assembly_list.at(i_link + 1)->GetMeshes().front()->GetNodes().front());
             auto my_link = chrono_types::make_shared<ChLinkMateFix>();
             my_link->Initialize(node_L, node_R);
             sys.AddLink(my_link);
@@ -191,18 +191,18 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
 
     // Root link
     auto root_node = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(
-        modal_assembly_list.front()->Get_meshlist().front()->GetNodes().front());
+        modal_assembly_list.front()->GetMeshes().front()->GetNodes().front());
     auto my_rootlink = chrono_types::make_shared<ChLinkMateFix>();
     my_rootlink->Initialize(root_node, my_ground);
     sys.AddLink(my_rootlink);
 
     // Retrieve the tip node
     auto tip_node = std::dynamic_pointer_cast<ChNodeFEAxyzrot>(
-        modal_assembly_list.back()->Get_meshlist().front()->GetNodes().back());
-    ChVector<> tip_pos_x0 = tip_node->GetPos();
+        modal_assembly_list.back()->GetMeshes().front()->GetNodes().back());
+    ChVector3d tip_pos_x0 = tip_node->GetPos();
 
     // Gravity is zero
-    sys.Set_G_acc(ChVector<>(0, 0, 0));
+    sys.SetGravitationalAcceleration(ChVector3d(0, 0, 0));
 
     // Set linear solver
 #ifdef CHRONO_PARDISO_MKL
@@ -227,26 +227,26 @@ void MakeAndRunDemo_CurvedBeam(bool do_modal_reduction) {
             auto damping_beam = ChModalDampingReductionR(*modal_assembly_list.at(i_part));
             // modal_assembly_list.at(i_part)->verbose = true;
             modal_assembly_list.at(i_part)->SwitchModalReductionON(modes_settings, damping_beam);
-            modal_assembly_list.at(i_part)->DumpSubassemblyMatrices(
+            modal_assembly_list.at(i_part)->WriteSubassemblyMatrices(
                 true, true, true, true, (out_dir + "/modal_assembly_" + std::to_string(i_part)).c_str());
         }
     }
 
     // Apply the external load
     double Pz = 600;
-    tip_node->SetForce(ChVector<>(0, 0, Pz));
-    GetLog() << "The applied force is: " << Pz << " N\n";
+    tip_node->SetForce(ChVector3d(0, 0, Pz));
+    std::cout << "The applied force is: " << Pz << " N\n";
 
     // Static analysis
     sys.DoStaticNonlinear(100);
 
     // Postprocess: print the tip displacement
-    ChVector<> tip_displ = tip_node->GetPos() - tip_pos_x0;
-    GetLog() << "Tip displacement:\t" << tip_displ.x() << "\t" << tip_displ.y() << "\t" << tip_displ.z() << "\n";
+    ChVector3d tip_displ = tip_node->GetPos() - tip_pos_x0;
+    std::cout << "Tip displacement:\t" << tip_displ.x() << "\t" << tip_displ.y() << "\t" << tip_displ.z() << "\n";
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2021 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
 
     // Directory for output data
     if (!filesystem::create_directory(filesystem::path(out_dir))) {
@@ -261,33 +261,33 @@ int main(int argc, char* argv[]) {
         double time_modal = 0;
 
         if (RUN_ORIGIN) {
-            GetLog() << "1. Run corotational beam model:\n";
+            std::cout << "1. Run corotational beam model:\n";
 
             m_timer_computation.start();
             MakeAndRunDemo_CurvedBeam(false);
             m_timer_computation.stop();
 
             time_corot = m_timer_computation.GetTimeSeconds();
-            GetLog() << "Computation time of corotational beam model: t_corot = \t" << time_corot << " seconds\n";
+            std::cout << "Computation time of corotational beam model: t_corot = \t" << time_corot << " seconds\n";
             m_timer_computation.reset();
         }
 
         if (RUN_MODAL) {
-            GetLog() << "\n\n2. Run modal reduction model:\n";
+            std::cout << "\n\n2. Run modal reduction model:\n";
 
             m_timer_computation.start();
             MakeAndRunDemo_CurvedBeam(true);
             m_timer_computation.stop();
 
             time_modal = m_timer_computation.GetTimeSeconds();
-            GetLog() << "Computation time of modal reduction model: t_modal = \t" << time_modal << " seconds\n";
+            std::cout << "Computation time of modal reduction model: t_modal = \t" << time_modal << " seconds\n";
             m_timer_computation.reset();
         }
 
         if (time_corot && time_modal)
-            GetLog() << "\n\n3. Ratio of computation time: t_modal / t_corot = \t" << time_modal / time_corot << "\n";
+            std::cout << "\n\n3. Ratio of computation time: t_modal / t_corot = \t" << time_modal / time_corot << "\n";
     } else {
-        GetLog() << "  ...Error creating subdirectories\n";
+        std::cout << "  ...Error creating subdirectories\n";
     }
 
     return 0;

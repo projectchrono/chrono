@@ -36,7 +36,7 @@ class CH_MODELS_API MAN_10t_Front1Axle : public ChSolidBellcrankThreeLinkAxle {
     ~MAN_10t_Front1Axle();
 
   protected:
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
     virtual double getAxleTubeMass() const override { return m_axleTubeMass; }
     virtual double getSpindleMass() const override { return m_spindleMass; }
@@ -51,16 +51,16 @@ class CH_MODELS_API MAN_10t_Front1Axle : public ChSolidBellcrankThreeLinkAxle {
     virtual double getSpindleRadius() const override { return m_spindleRadius; }
     virtual double getSpindleWidth() const override { return m_spindleWidth; }
 
-    virtual const ChVector<> getAxleTubeCOM() const override { return ChVector<>(0, 0, 0); }
+    virtual const ChVector3d getAxleTubeCOM() const override { return ChVector3d(0, 0, 0); }
 
-    virtual const ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getKnuckleInertia() const override { return m_knuckleInertia; }
-    virtual const ChVector<>& getBellcrankInertia() const override { return m_bellcrankInertia; }
-    virtual const ChVector<>& getDraglinkInertia() const override { return m_draglinkInertia; }
-    virtual const ChVector<>& getTriangleInertia() const override { return m_triangleInertia; }
-    virtual const ChVector<>& getLinkInertia() const override { return m_linkInertia; }
-    virtual const ChVector<>& getTierodInertia() const override { return m_tierodInertia; }
+    virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getKnuckleInertia() const override { return m_knuckleInertia; }
+    virtual const ChVector3d& getBellcrankInertia() const override { return m_bellcrankInertia; }
+    virtual const ChVector3d& getDraglinkInertia() const override { return m_draglinkInertia; }
+    virtual const ChVector3d& getTriangleInertia() const override { return m_triangleInertia; }
+    virtual const ChVector3d& getLinkInertia() const override { return m_linkInertia; }
+    virtual const ChVector3d& getTierodInertia() const override { return m_tierodInertia; }
 
     virtual double getAxleInertia() const override { return m_axleShaftInertia; }
 
@@ -89,14 +89,14 @@ class CH_MODELS_API MAN_10t_Front1Axle : public ChSolidBellcrankThreeLinkAxle {
     static const double m_spindleRadius;
     static const double m_spindleWidth;
 
-    static const ChVector<> m_axleTubeInertia;
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_knuckleInertia;
-    static const ChVector<> m_bellcrankInertia;
-    static const ChVector<> m_draglinkInertia;
-    static const ChVector<> m_triangleInertia;
-    static const ChVector<> m_linkInertia;
-    static const ChVector<> m_tierodInertia;
+    static const ChVector3d m_axleTubeInertia;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_knuckleInertia;
+    static const ChVector3d m_bellcrankInertia;
+    static const ChVector3d m_draglinkInertia;
+    static const ChVector3d m_triangleInertia;
+    static const ChVector3d m_linkInertia;
+    static const ChVector3d m_tierodInertia;
 
     static const double m_springCoefficient1;
     static const double m_springCoefficient2;

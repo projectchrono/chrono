@@ -29,11 +29,11 @@ namespace vehicle {
 // the conic gear pair, in chassis local coords.
 //
 // dir_axle specifies the direction of the axle, i.e. the output of the conic
-// conic gear pair, in chassis local coords. This is needed because ChShaftsBody
+// conic gear pair, in chassis local coords. This is needed because ChShaftBodyRotation
 // could transfer pitch torque to the chassis.
 // -----------------------------------------------------------------------------
 ChShaftsDriveline2WD::ChShaftsDriveline2WD(const std::string& name)
-    : ChDrivelineWV(name), m_dir_motor_block(ChVector<>(1, 0, 0)), m_dir_axle(ChVector<>(0, 1, 0)) {}
+    : ChDrivelineWV(name), m_dir_motor_block(ChVector3d(1, 0, 0)), m_dir_axle(ChVector3d(0, 1, 0)) {}
 
 ChShaftsDriveline2WD::~ChShaftsDriveline2WD() {
     auto sys = m_differential->GetSystem();
@@ -112,7 +112,7 @@ void ChShaftsDriveline2WD::LockAxleDifferential(int axle, bool lock) {
 }
 
 void ChShaftsDriveline2WD::LockCentralDifferential(int which, bool lock) {
-    GetLog() << "WARNINIG: " << GetTemplateName() << " does not contain a central differential.\n";
+    std::cerr << "WARNINIG: " << GetTemplateName() << " does not contain a central differential." << std::endl;
 }
 
 // -----------------------------------------------------------------------------

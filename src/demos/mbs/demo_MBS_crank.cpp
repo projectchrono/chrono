@@ -35,7 +35,7 @@ using namespace chrono;
 using namespace chrono::irrlicht;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     //
     // HERE YOU CREATE THE MECHANICAL SYSTEM OF CHRONO...
@@ -53,20 +53,20 @@ int main(int argc, char* argv[]) {
     // ..the truss
     auto my_body_A = chrono_types::make_shared<ChBody>();
     sys.AddBody(my_body_A);
-    my_body_A->SetBodyFixed(true);  // truss does not move!
+    my_body_A->SetFixed(true);  // truss does not move!
     my_body_A->SetName("Ground-Truss");
 
     // ..the crank
     auto my_body_B = chrono_types::make_shared<ChBody>();
     sys.AddBody(my_body_B);
-    my_body_B->SetPos(ChVector<>(1, 0, 0));  // position of COG of crank
+    my_body_B->SetPos(ChVector3d(1, 0, 0));  // position of COG of crank
     my_body_B->SetMass(2);
     my_body_B->SetName("Crank");
 
     // ..the rod
     auto my_body_C = chrono_types::make_shared<ChBody>();
     sys.AddBody(my_body_C);
-    my_body_C->SetPos(ChVector<>(4, 0, 0));  // position of COG of rod
+    my_body_C->SetPos(ChVector3d(4, 0, 0));  // position of COG of rod
     my_body_C->SetMass(3);
     my_body_C->SetName("Rod");
 
@@ -75,21 +75,21 @@ int main(int argc, char* argv[]) {
     // .. a revolute joint between crank and rod
     auto my_link_BC = chrono_types::make_shared<ChLinkLockRevolute>();
     my_link_BC->SetName("RevJointCrankRod");
-    my_link_BC->Initialize(my_body_B, my_body_C, ChCoordsys<>(ChVector<>(2, 0, 0)));
+    my_link_BC->Initialize(my_body_B, my_body_C, ChFrame<>(ChVector3d(2, 0, 0)));
     sys.AddLink(my_link_BC);
 
     // .. a slider joint between rod and truss
     auto my_link_CA = chrono_types::make_shared<ChLinkLockPointLine>();
     my_link_CA->SetName("TransJointRodGround");
-    my_link_CA->Initialize(my_body_C, my_body_A, ChCoordsys<>(ChVector<>(6, 0, 0)));
+    my_link_CA->Initialize(my_body_C, my_body_A, ChFrame<>(ChVector3d(6, 0, 0)));
     sys.AddLink(my_link_CA);
 
     // .. a motor between crank and truss
     auto my_link_AB = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-    my_link_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector<>(0, 0, 0)));
+    my_link_AB->Initialize(my_body_A, my_body_B, ChFrame<>(ChVector3d(0, 0, 0)));
     my_link_AB->SetName("RotationalMotor");
     sys.AddLink(my_link_AB);
-    auto my_speed_function = chrono_types::make_shared<ChFunction_Const>(CH_C_PI);  // speed w=3.145 rad/sec
+    auto my_speed_function = chrono_types::make_shared<ChFunctionConst>(CH_PI);  // speed w=3.145 rad/sec
     my_link_AB->SetSpeedFunction(my_speed_function);
 
     // 4- Create the Irrlicht visualization system
@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 0, -6));
+    vis->AddCamera(ChVector3d(0, 0, -6));
     vis->AddTypicalLights();
 
     // Simulation loop
@@ -126,13 +126,13 @@ int main(int argc, char* argv[]) {
         vis->GetGUIEnvironment()->drawAll();
 
         // .. draw the rod (from joint BC to joint CA)
-        tools::drawSegment(vis.get(), my_link_BC->GetMarker1()->GetAbsCoord().pos,
-                           my_link_CA->GetMarker1()->GetAbsCoord().pos, ChColor(0, 1, 0));
+        tools::drawSegment(vis.get(), my_link_BC->GetMarker1()->GetAbsCoordsys().pos,
+                           my_link_CA->GetMarker1()->GetAbsCoordsys().pos, ChColor(0, 1, 0));
         // .. draw the crank (from joint AB to joint BC)
-        tools::drawSegment(vis.get(), my_link_AB->GetLinkAbsoluteCoords().pos,
-                           my_link_BC->GetMarker1()->GetAbsCoord().pos, ChColor(1, 0, 0));
+        tools::drawSegment(vis.get(), my_link_AB->GetFrame2Abs().GetCoordsys().pos,
+                           my_link_BC->GetMarker1()->GetAbsCoordsys().pos, ChColor(1, 0, 0));
         // .. draw a small circle at crank origin
-        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(ChVector<>(0, 0, 0), QUNIT));
+        tools::drawCircle(vis.get(), 0.1, ChCoordsys<>(ChVector3d(0, 0, 0), QUNIT));
 
         /* test: delete a link after 10 seconds
         if (sys.GetChTime() >10 && (!removed))

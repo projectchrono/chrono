@@ -41,13 +41,13 @@ ChTrackWheel::~ChTrackWheel() {
 // -----------------------------------------------------------------------------
 void ChTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
                               std::shared_ptr<ChBody> carrier,
-                              const ChVector<>& location,
+                              const ChVector3d& location,
                               ChTrackAssembly* track) {
     m_track = track;
 
     // Express the wheel reference frame in the absolute coordinate system.
     ChFrame<> wheel_to_abs(location);
-    wheel_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrame_REF_to_abs());
+    wheel_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Create and initialize the wheel body.
     m_wheel = chrono_types::make_shared<ChBody>();
@@ -64,7 +64,7 @@ void ChTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
     m_revolute->SetNameString(m_name + "_revolute");
     m_revolute->Initialize(carrier, m_wheel,
-                           ChCoordsys<>(wheel_to_abs.GetPos(), wheel_to_abs.GetRot() * Q_from_AngX(CH_C_PI_2)));
+                           ChFrame<>(wheel_to_abs.GetPos(), wheel_to_abs.GetRot() * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute);
 
     // Mark as initialized
@@ -79,19 +79,19 @@ void ChTrackWheel::InitializeInertiaProperties() {
 }
 
 void ChTrackWheel::UpdateInertiaProperties() {
-    m_xform = m_wheel->GetFrame_REF_to_abs();
+    m_xform = m_wheel->GetFrameRefToAbs();
 }
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 void ChTrackWheel::LogConstraintViolations() {
     ChVectorDynamic<> C = m_revolute->GetConstraintViolation();
-    GetLog() << "  Road-wheel revolute\n";
-    GetLog() << "  " << C(0) << "  ";
-    GetLog() << "  " << C(1) << "  ";
-    GetLog() << "  " << C(2) << "  ";
-    GetLog() << "  " << C(3) << "  ";
-    GetLog() << "  " << C(4) << "\n";
+    std::cout << "  Road-wheel revolute\n";
+    std::cout << "  " << C(0) << "  ";
+    std::cout << "  " << C(1) << "  ";
+    std::cout << "  " << C(2) << "  ";
+    std::cout << "  " << C(3) << "  ";
+    std::cout << "  " << C(4) << "\n";
 }
 
 // -----------------------------------------------------------------------------

@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/core/ChFrame.h"
 #include "chrono/assets/ChColor.h"
 #include "chrono/geometry/ChTriangleMeshConnected.h"
@@ -15,14 +15,16 @@
 #include "chrono_vehicle/terrain/RigidTerrain.h"
 
 #include "chrono_vehicle/terrain/SCMTerrain.h"
-
+#if defined(SWIGCSHARP) && defined(HAVE_OPENCRG)
+    #include "chrono_vehicle/terrain/CRGTerrain.h"
+#endif
 #include "chrono_thirdparty/rapidjson/document.h"
 %}
 
 #ifdef SWIGCSHARP
 %import "chrono_swig/interface/core/ChColor.i"
 %import "chrono_swig/interface/core/ChSystem.i"
-%import "chrono_swig/interface/core/ChVector.i"
+%import "chrono_swig/interface/core/ChVector3.i"
 %import "chrono_swig/interface/core/ChFrame.i"
 %import "chrono_swig/interface/core/ChBody.i"
 %import "chrono_swig/interface/core/ChNodeXYZ.i"
@@ -33,7 +35,7 @@
 #ifdef SWIGPYTHON
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChColor.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChSystem.i"
-%import(module = "pychrono.core") "chrono_swig/interface/core/ChVector.i"
+%import(module = "pychrono.core") "chrono_swig/interface/core/ChVector3.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChFrame.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChBody.i"
 %import(module = "pychrono.core") "chrono_swig/interface/core/ChNodeXYZ.i"
@@ -49,6 +51,10 @@
 %shared_ptr(chrono::vehicle::SCMTerrain)
 %shared_ptr(chrono::vehicle::SCMTerrain::SoilParametersCallback)
 
+#if defined(SWIGCSHARP) && defined(HAVE_OPENCRG)
+%shared_ptr(chrono::vehicle::CRGTerrain)
+#endif
+
 %template(ChPatchList) std::vector<std::shared_ptr<chrono::vehicle::RigidTerrain::Patch>>;
 
 // Parse the header file to generate wrappers
@@ -63,4 +69,6 @@
 %pointer_functions(double, doublep)
 %include "../../../chrono_vehicle/terrain/SCMTerrain.h"
 
-//%include "../../../chrono_vehicle/terrain/CRGTerrain.h"
+#if defined(SWIGCSHARP) && defined(HAVE_OPENCRG)
+%include "../../../chrono_vehicle/terrain/CRGTerrain.h"
+#endif

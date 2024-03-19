@@ -7,18 +7,18 @@
 /* Parse the header file to generate wrappers */
 %include "../../../chrono/core/ChFrame.h"    
 
-%template(ChFrameD) chrono::ChFrame<double>; 
-// %template(ChFrameF) chrono::ChFrame<float>; 
+%template(ChFramed) chrono::ChFrame<double>; 
+// %template(ChFramef) chrono::ChFrame<float>; 
 
 //%rename(__rshift__) chrono::ChFrame<double>::operator>>;
 
-%extend chrono::ChVector<double>{
+%extend chrono::ChVector3<double>{
 		public:
 					// Workaround because mixed 'out of class' operators  
                     // not supported in Swig
-			chrono::ChVector<double> operator>> (chrono::ChFrame<double>& mframe) const
+			chrono::ChVector3<double> operator>> (chrono::ChFrame<double>& mframe) const
 			{
-					return mframe.TransformLocalToParent(*$self);
+					return mframe.TransformPointLocalToParent(*$self);
 			}
 			
 		};

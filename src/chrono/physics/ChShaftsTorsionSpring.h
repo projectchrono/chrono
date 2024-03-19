@@ -15,21 +15,12 @@
 #ifndef CHSHAFTSTORSIONSPRING_H
 #define CHSHAFTSTORSIONSPRING_H
 
-#include "chrono/physics/ChShaftsTorqueBase.h"
+#include "chrono/physics/ChShaftsTorque.h"
 
 namespace chrono {
 
-/// Class for defining a torsional spring-damper between two 1D parts;
-/// i.e., shafts that can be used to build 1D models of powertrains. This is
-/// more efficient than simulating power trains modeled with full 3D ChBody
-/// objects.
-
-class ChApi ChShaftsTorsionSpring : public ChShaftsTorqueBase {
-
-  private:
-    double stiffness;
-    double damping;
-
+/// Class for defining a torsional spring-damper between two 1D parts.
+class ChApi ChShaftsTorsionSpring : public ChShaftsTorque {
   public:
     ChShaftsTorsionSpring();
     ChShaftsTorsionSpring(const ChShaftsTorsionSpring& other);
@@ -38,28 +29,33 @@ class ChApi ChShaftsTorsionSpring : public ChShaftsTorqueBase {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChShaftsTorsionSpring* Clone() const override { return new ChShaftsTorsionSpring(*this); }
 
-    /// Set the torsional stiffness between the two shafts
+    /// Set the torsional stiffness between the two shafts.
     void SetTorsionalStiffness(double mt) { stiffness = mt; }
-    /// Get the torsional stiffness between the two shafts
+
+    /// Get the torsional stiffness between the two shafts.
     double GetTorsionalStiffness() const { return stiffness; }
 
-    /// Set the torsional damping between the two shafts
+    /// Set the torsional damping between the two shafts.
     void SetTorsionalDamping(double mt) { damping = mt; }
-    /// Get the torsional damping between the two shafts
+
+    /// Get the torsional damping between the two shafts.
     double GetTorsionalDamping() const { return damping; }
 
-    /// This is the function that actually contains the
-    /// formula for computing T=T(rot,vel,time,etc)
-    virtual double ComputeTorque() override;
-
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    double stiffness;
+    double damping;
+
+    /// Compute T=T(rot,vel,time,etc).
+    virtual double ComputeTorque() override;
 };
 
-CH_CLASS_VERSION(ChShaftsTorsionSpring,0)
+CH_CLASS_VERSION(ChShaftsTorsionSpring, 0)
 
 }  // end namespace chrono
 

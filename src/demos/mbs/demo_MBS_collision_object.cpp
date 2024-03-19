@@ -31,13 +31,13 @@ using namespace chrono::irrlicht;
 class ContactManager : public ChContactContainer::ReportContactCallback {
   public:
     ContactManager() {}
-    virtual bool OnReportContact(const ChVector<>& pA,
-                                 const ChVector<>& pB,
+    virtual bool OnReportContact(const ChVector3d& pA,
+                                 const ChVector3d& pB,
                                  const ChMatrix33<>& plane_coord,
                                  const double& distance,
                                  const double& eff_radius,
-                                 const ChVector<>& cforce,
-                                 const ChVector<>& ctorque,
+                                 const ChVector3d& cforce,
+                                 const ChVector3d& ctorque,
                                  ChContactable* modA,
                                  ChContactable* modB) override;
 };
@@ -89,10 +89,10 @@ int main(int argc, char* argv[]) {
     double init_height = 0.65;
     double init_x = 0.0;
     double init_z = 0.0;
-    double init_roll = 0 * CH_C_DEG_TO_RAD;
+    double init_roll = 0 * CH_DEG_TO_RAD;
 
-    ChVector<> init_vel(0, 0, 0);
-    ChVector<> init_omg(0, 0, 0);
+    ChVector3d init_vel(0, 0, 0);
+    ChVector3d init_omg(0, 0, 0);
 
     double radius = 0.5;  // cylinder radius
     double hlen = 0.4;    // cylinder half-length
@@ -131,13 +131,14 @@ int main(int argc, char* argv[]) {
         case ChContactMethod::NSC: {
             auto sysNSC = new ChSystemNSC();
             sysNSC->SetSolverType(ChSolver::Type::APGD);
-            sysNSC->SetSolverMaxIterations(100);
+            sysNSC->GetSolver()->AsIterative()->SetMaxIterations(100);
             sysNSC->SetMaxPenetrationRecoverySpeed(10);
             sys = sysNSC;
             break;
         }
         case ChContactMethod::SMC: {
-            auto sysSMC = new ChSystemSMC(use_mat_properties);
+            auto sysSMC = new ChSystemSMC();
+            sysSMC->UseMaterialProperties(use_mat_properties);
             sysSMC->SetContactForceModel(ChSystemSMC::Hertz);
             sysSMC->SetTangentialDisplacementModel(ChSystemSMC::OneStep);
             sys = sysSMC;
@@ -145,13 +146,13 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    sys->Set_G_acc(ChVector<>(0, -9.81, 0));
+    sys->SetGravitationalAcceleration(ChVector3d(0, -9.81, 0));
 
     // Create and attach the collision detection sys
     switch (collision_type) {
         case ChCollisionSystem::Type::MULTICORE: {
             auto cd = chrono_types::make_shared<ChCollisionSystemMulticore>();
-            cd->SetBroadphaseGridResolution(ChVector<int>(1, 1, 1));
+            cd->SetBroadphaseGridResolution(ChVector3i(1, 1, 1));
             cd->SetNarrowphaseAlgorithm(narrowphase_algorithm);
             cd->SetEnvelope(collision_envelope);
             sys->SetCollisionSystem(cd);
@@ -165,7 +166,7 @@ int main(int argc, char* argv[]) {
     }
 
     // Rotation Z->Y (because meshes used here assume Z up)
-    ChQuaternion<> z2y = Q_from_AngX(-CH_C_PI_2);
+    ChQuaternion<> z2y = QuatFromAngleX(-CH_PI_2);
 
     // Create the falling object
     auto object = chrono_types::make_shared<ChBody>();
@@ -173,19 +174,19 @@ int main(int argc, char* argv[]) {
 
     object->SetName("object");
     object->SetMass(1500);
-    object->SetInertiaXX(40.0 * ChVector<>(1, 1, 0.2));
-    object->SetPos(ChVector<>(init_x, init_height, init_z));
-    object->SetRot(z2y * Q_from_AngX(init_roll));
-    object->SetPos_dt(init_vel);
-    object->SetWvel_par(init_omg);
-    object->SetCollide(true);
-    object->SetBodyFixed(false);
+    object->SetInertiaXX(40.0 * ChVector3d(1, 1, 0.2));
+    object->SetPos(ChVector3d(init_x, init_height, init_z));
+    object->SetRot(z2y * QuatFromAngleX(init_roll));
+    object->SetPosDt(init_vel);
+    object->SetAngVelParent(init_omg);
+    object->EnableCollision(true);
+    object->SetFixed(false);
 
-    auto object_mat = ChMaterialSurface::DefaultMaterial(contact_method);
+    auto object_mat = ChContactMaterial::DefaultMaterial(contact_method);
     object_mat->SetFriction(object_friction);
     object_mat->SetRestitution(object_restitution);
     if (contact_method == ChContactMethod::SMC) {
-        auto matSMC = std::static_pointer_cast<ChMaterialSurfaceSMC>(object_mat);
+        auto matSMC = std::static_pointer_cast<ChContactMaterialSMC>(object_mat);
         matSMC->SetYoungModulus(object_young_modulus);
         matSMC->SetPoissonRatio(object_poisson_ratio);
         matSMC->SetKn(object_kn);
@@ -206,34 +207,34 @@ int main(int argc, char* argv[]) {
         }
         case CollisionShape::CYLINDER: {
             auto shape = chrono_types::make_shared<ChCollisionShapeCylinder>(object_mat, radius, 2 * hlen);
-            object->AddCollisionShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+            object->AddCollisionShape(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
             auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 2 * hlen);
-            object->AddVisualShape(cyl, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+            object->AddVisualShape(cyl, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
             break;
         }
         case CollisionShape::CAPSULE: {
             auto shape = chrono_types::make_shared<ChCollisionShapeCapsule>(object_mat, radius, 2 * hlen);
-            object->AddCollisionShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+            object->AddCollisionShape(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
             auto cap = chrono_types::make_shared<ChVisualShapeCapsule>(radius, 2 * hlen);
-            object->AddVisualShape(cap, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+            object->AddVisualShape(cap, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
             break;
         }
         case CollisionShape::CYLSHELL: {
             auto shape = chrono_types::make_shared<ChCollisionShapeCylindricalShell>(object_mat, radius, 2 * hlen);
-            object->AddCollisionShape(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+            object->AddCollisionShape(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
             auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(radius, 2 * hlen);
-            object->AddVisualShape(cyl, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+            object->AddVisualShape(cyl, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
             break;
         }
         case CollisionShape::MESH: {
             double sphere_r = 0.005;
-            auto trimesh = geometry::ChTriangleMeshConnected::CreateFromWavefrontFile(tire_mesh_file, true, false);
+            auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(tire_mesh_file, true, false);
             if (!trimesh)
                 return 1;
 
@@ -258,15 +259,15 @@ int main(int argc, char* argv[]) {
 
     ground->SetName("ground");
     ground->SetMass(1);
-    ground->SetPos(ChVector<>(0, 0, 0));
-    ground->SetCollide(true);
-    ground->SetBodyFixed(true);
+    ground->SetPos(ChVector3d(0, 0, 0));
+    ground->EnableCollision(true);
+    ground->SetFixed(true);
 
-    auto ground_mat = ChMaterialSurface::DefaultMaterial(contact_method);
+    auto ground_mat = ChContactMaterial::DefaultMaterial(contact_method);
     ground_mat->SetFriction(ground_friction);
     ground_mat->SetRestitution(ground_restitution);
     if (contact_method == ChContactMethod::SMC) {
-        auto matSMC = std::static_pointer_cast<ChMaterialSurfaceSMC>(ground_mat);
+        auto matSMC = std::static_pointer_cast<ChContactMaterialSMC>(ground_mat);
         matSMC->SetYoungModulus(ground_young_modulus);
         matSMC->SetPoissonRatio(ground_poisson_ratio);
         matSMC->SetKn(ground_kn);
@@ -280,11 +281,11 @@ int main(int argc, char* argv[]) {
     double size_z = 2;
 
     auto shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, size_x, size_y, size_z);
-    ground->AddCollisionShape(shape, ChFrame<>(ChVector<>(0, -size_y / 2, 0), QUNIT));
+    ground->AddCollisionShape(shape, ChFrame<>(ChVector3d(0, -size_y / 2, 0), QUNIT));
 
     auto box = chrono_types::make_shared<ChVisualShapeBox>(size_x, size_y, size_z);
     box->SetTexture(GetChronoDataFile("textures/checker1.png"), 4, 2);
-    ground->AddVisualShape(box, ChFrame<>(ChVector<>(0, -size_y / 2, 0), QUNIT));
+    ground->AddVisualShape(box, ChFrame<>(ChVector3d(0, -size_y / 2, 0), QUNIT));
 
     // Create the Irrlicht visualization sys
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
@@ -294,7 +295,7 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(3, 1, init_z), ChVector<>(0, 0, init_z));
+    vis->AddCamera(ChVector3d(3, 1, init_z), ChVector3d(0, 0, init_z));
     vis->AddTypicalLights();
 
     // Render contact forces or normals
@@ -314,15 +315,15 @@ int main(int argc, char* argv[]) {
         sys->DoStepDynamics(time_step);
 
         /*
-        std::cout << "----\nTime: " << sys->GetChTime() << "  " << sys->GetNcontacts() << std::endl;
+        std::cout << "----\nTime: " << sys->GetChTime() << "  " << sys->GetNumContacts() << std::endl;
         std::cout << "Object position: " << object->GetPos() << std::endl;
-        if (sys->GetNcontacts()) {
+        if (sys->GetNumContacts()) {
             // Report all contacts
             sys->GetContactContainer()->ReportAllContacts(cmanager);
 
             // Cumulative contact force on object
-            ChVector<> frc1 = object->GetContactForce();
-            ChVector<> trq1 = object->GetContactTorque();
+            ChVector3d frc1 = object->GetContactForce();
+            ChVector3d trq1 = object->GetContactTorque();
             std::cout << "Contact force at COM:  " << frc1 << std::endl;
             std::cout << "Contact torque at COM: " << trq1 << std::endl;
         }
@@ -334,13 +335,13 @@ int main(int argc, char* argv[]) {
 
 // ====================================================================================
 
-bool ContactManager::OnReportContact(const ChVector<>& pA,
-                                     const ChVector<>& pB,
+bool ContactManager::OnReportContact(const ChVector3d& pA,
+                                     const ChVector3d& pB,
                                      const ChMatrix33<>& plane_coord,
                                      const double& distance,
                                      const double& eff_radius,
-                                     const ChVector<>& cforce,
-                                     const ChVector<>& ctorque,
+                                     const ChVector3d& cforce,
+                                     const ChVector3d& ctorque,
                                      ChContactable* modA,
                                      ChContactable* modB) {
     auto bodyA = static_cast<ChBody*>(modA);
@@ -350,7 +351,7 @@ bool ContactManager::OnReportContact(const ChVector<>& pA,
     std::cout << "  " << bodyA->GetPos() << std::endl;
     std::cout << "  " << distance << std::endl;
     std::cout << "  " << pA << "    " << pB << std::endl;
-    std::cout << "  " << plane_coord.Get_A_Xaxis() << std::endl;
+    std::cout << "  " << plane_coord.GetAxisX() << std::endl;
     std::cout << std::endl;
 
     return true;

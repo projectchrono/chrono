@@ -27,7 +27,7 @@ namespace sedan {
 // -----------------------------------------------------------------------------
 
 const double Sedan_RackPinion::m_steeringLinkMass = 1.889;
-const ChVector<> Sedan_RackPinion::m_steeringLinkInertia(.138, 0.00009, .138);
+const ChVector3d Sedan_RackPinion::m_steeringLinkInertia(.138, 0.00009, .138);
 const double Sedan_RackPinion::m_steeringLinkCOM = 0;
 //const double Sedan_RackPinion::m_steeringLinkLength = 0.896;
 const double Sedan_RackPinion::m_steeringLinkLength = 0.5;

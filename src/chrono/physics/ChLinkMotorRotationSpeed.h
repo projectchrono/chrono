@@ -49,15 +49,12 @@ class ChApi ChLinkMotorRotationSpeed : public ChLinkMotorRotation {
     void SetAngleOffset(double mo) { rot_offset = mo; }
 
     /// Get initial offset, in [rad].
-    double GetAngleOffset() { return rot_offset; }
+    double GetAngleOffset() const { return rot_offset; }
 
-    /// Set if the constraint must avoid angular drift. If true, it
-    /// means that the constraint is satisfied also at the rotation level,
-    /// by integrating the velocity in a separate auxiliary state. Default, true.
-    void SetAvoidAngleDrift(bool mb) { this->avoid_angle_drift = mb; }
-
-    /// Set if the constraint is in "avoid angle drift" mode.
-    bool GetAvoidAngleDrift() { return this->avoid_angle_drift; }
+    /// Enable angular drift avoidance (default: true).
+    /// If true, it means that the constraint is satisfied also at the rotation level, by integrating the velocity in a
+    /// separate auxiliary state.
+    void AvoidAngleDrift(bool avoid) { this->avoid_angle_drift = avoid; }
 
     /// Get the current actuator reaction torque [Nm]
     virtual double GetMotorTorque() const override { return -this->react_torque.z(); }
@@ -68,7 +65,7 @@ class ChApi ChLinkMotorRotationSpeed : public ChLinkMotorRotation {
     // STATE FUNCTIONS
     //
 
-    virtual int GetDOF() override { return 1; }
+    virtual unsigned int GetNumCoordsPosLevel() override { return 1; }
 
     ChVariablesGeneric& Variables() { return variable; }
 
@@ -125,10 +122,10 @@ class ChApi ChLinkMotorRotationSpeed : public ChLinkMotorRotation {
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     double rot_offset;

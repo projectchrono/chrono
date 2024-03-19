@@ -17,15 +17,15 @@
 
 namespace chrono {
 
-ChLoadBodyMesh::ChLoadBodyMesh(std::shared_ptr<ChBody> cbody, geometry::ChTriangleMeshConnected& cmesh) {
+ChLoadBodyMesh::ChLoadBodyMesh(std::shared_ptr<ChBody> cbody, ChTriangleMeshConnected& cmesh) {
     contactbody = cbody;
     contactmesh = cmesh;
 }
 
 void ChLoadBodyMesh::OutputSimpleMesh(
-    std::vector<ChVector<>>& vert_pos,     // array of vertexes (absolute xyz positions)
-    std::vector<ChVector<>>& vert_vel,     // array of vertexes (absolute xyz velocities, might be useful)
-    std::vector<ChVector<int>>& triangles  // array of triangles (indexes to vertexes, ccw)
+    std::vector<ChVector3d>& vert_pos,     // array of vertexes (absolute xyz positions)
+    std::vector<ChVector3d>& vert_vel,     // array of vertexes (absolute xyz velocities, might be useful)
+    std::vector<ChVector3i>& triangles  // array of triangles (indexes to vertexes, ccw)
 ) {
     vert_pos.resize(contactmesh.m_vertices.size());
     vert_vel.resize(contactmesh.m_vertices.size());
@@ -38,7 +38,7 @@ void ChLoadBodyMesh::OutputSimpleMesh(
 }
 
 void ChLoadBodyMesh::InputSimpleForces(
-    const std::vector<ChVector<>> vert_forces,  // array of forces (absolute xyz forces in [N])
+    const std::vector<ChVector3d> vert_forces,  // array of forces (absolute xyz forces in [N])
     const std::vector<int> vert_ind             // array of indexes to vertexes to whom you apply forces
 ) {
     // check the vert_forces and vert_ind arrays must have same size:
@@ -48,7 +48,7 @@ void ChLoadBodyMesh::InputSimpleForces(
 
     // Populate the array of applied loads to nodes
     for (size_t i = 0; i < vert_forces.size(); ++i) {
-        ChVector<> rel_application = contactmesh.m_vertices[vert_ind[i]];
+        ChVector3d rel_application = contactmesh.m_vertices[vert_ind[i]];
 
         std::shared_ptr<ChLoadBodyForce> mforce(
             new ChLoadBodyForce(contactbody, vert_forces[i], false, rel_application, true));
@@ -59,42 +59,42 @@ void ChLoadBodyMesh::InputSimpleForces(
     contactbody->GetSystem()->ForceUpdate();
 }
 
-void ChLoadBodyMesh::SetContactMesh(geometry::ChTriangleMeshConnected& mmesh) {
+void ChLoadBodyMesh::SetContactMesh(ChTriangleMeshConnected& mmesh) {
     this->contactmesh = mmesh;
     this->forces.clear();
 }
 
-int ChLoadBodyMesh::LoadGet_ndof_x() {
+int ChLoadBodyMesh::LoadGetNumCoordsPosLevel() {
     int ndoftot = 0;
     for (int i = 0; i < forces.size(); ++i)
-        ndoftot += forces[i]->LoadGet_ndof_x();
+        ndoftot += forces[i]->LoadGetNumCoordsPosLevel();
     return ndoftot;
 }
 
-int ChLoadBodyMesh::LoadGet_ndof_w() {
+int ChLoadBodyMesh::LoadGetNumCoordsVelLevel() {
     int ndoftot = 0;
     for (int i = 0; i < forces.size(); ++i)
-        ndoftot += forces[i]->LoadGet_ndof_w();
+        ndoftot += forces[i]->LoadGetNumCoordsVelLevel();
     return ndoftot;
 }
 
 void ChLoadBodyMesh::LoadGetStateBlock_x(ChState& mD) {
     int ndoftot = 0;
     for (int i = 0; i < forces.size(); ++i) {
-        ChState mDi(forces[i]->LoadGet_ndof_x(), nullptr);
+        ChState mDi(forces[i]->LoadGetNumCoordsPosLevel(), nullptr);
         forces[i]->LoadGetStateBlock_x(mDi);
         mD.segment(ndoftot, mDi.size()) = mDi;
-        ndoftot += forces[i]->LoadGet_ndof_x();
+        ndoftot += forces[i]->LoadGetNumCoordsPosLevel();
     }
 }
 
 void ChLoadBodyMesh::LoadGetStateBlock_w(ChStateDelta& mD) {
     int ndoftot = 0;
     for (int i = 0; i < forces.size(); ++i) {
-        ChStateDelta mDi(forces[i]->LoadGet_ndof_w(), nullptr);
+        ChStateDelta mDi(forces[i]->LoadGetNumCoordsVelLevel(), nullptr);
         forces[i]->LoadGetStateBlock_w(mDi);
         mD.segment(ndoftot, mDi.size()) = mDi;
-        ndoftot += forces[i]->LoadGet_ndof_w();
+        ndoftot += forces[i]->LoadGetNumCoordsVelLevel();
     }
 }
 
@@ -102,15 +102,15 @@ void ChLoadBodyMesh::LoadStateIncrement(const ChState& x, const ChStateDelta& dw
     int ndoftotx = 0;
     int ndoftotw = 0;
     for (int i = 0; i < forces.size(); ++i) {
-        ChState mx_inc(forces[i]->LoadGet_ndof_x(), nullptr);
-        ChState mx(forces[i]->LoadGet_ndof_x(), nullptr);
-        ChStateDelta mDi(forces[i]->LoadGet_ndof_w(), nullptr);
+        ChState mx_inc(forces[i]->LoadGetNumCoordsPosLevel(), nullptr);
+        ChState mx(forces[i]->LoadGetNumCoordsPosLevel(), nullptr);
+        ChStateDelta mDi(forces[i]->LoadGetNumCoordsVelLevel(), nullptr);
         mx = x.segment(ndoftotx, mx.size());
         mDi = dw.segment(ndoftotw, mDi.size());
         forces[i]->LoadStateIncrement(mx, mDi, mx_inc);
         x_new.segment(ndoftotx, mx_inc.size()) = mx_inc;
-        ndoftotx += forces[i]->LoadGet_ndof_x();
-        ndoftotw += forces[i]->LoadGet_ndof_w();
+        ndoftotx += forces[i]->LoadGetNumCoordsPosLevel();
+        ndoftotw += forces[i]->LoadGetNumCoordsVelLevel();
     }
 }
 

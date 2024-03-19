@@ -34,7 +34,7 @@ const std::string ARTcar_TMeasyTire::m_meshFile_left = "artcar/tire_left.obj";
 const std::string ARTcar_TMeasyTire::m_meshFile_right = "artcar/tire_right.obj";
 
 const double ARTcar_TMeasyTire::m_mass = .200;
-const ChVector<> ARTcar_TMeasyTire::m_inertia(.0008, 0.001, .0008);
+const ChVector3d ARTcar_TMeasyTire::m_inertia(.0008, 0.001, .0008);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

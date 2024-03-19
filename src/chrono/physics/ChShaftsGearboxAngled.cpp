@@ -38,26 +38,23 @@ ChShaftsGearboxAngled::ChShaftsGearboxAngled(const ChShaftsGearboxAngled& other)
 }
 
 bool ChShaftsGearboxAngled::Initialize(
-    std::shared_ptr<ChShaft> mshaft1,    // first (input) shaft to join
-    std::shared_ptr<ChShaft> mshaft2,    // second  (output) shaft to join
-    std::shared_ptr<ChBodyFrame> mbody,  // 3D body to use as truss (also carrier, if rotates as in planetary gearboxes)
-    ChVector<>& mdir1,  // the direction of the first shaft on 3D body defining the gearbox truss
-    ChVector<>& mdir2   // the direction of the first shaft on 3D body defining the gearbox truss
-    ) {
-    ChShaft* mm1 = mshaft1.get();
-    ChShaft* mm2 = mshaft2.get();
-    ChBodyFrame* mm3 = mbody.get();
-    assert(mm1 && mm2 && mm3);
-    assert(mm1 != mm2);
-    assert((mm1->GetSystem() == mm2->GetSystem()));
+    std::shared_ptr<ChShaft> shaft_1,    // first (input) shaft to join
+    std::shared_ptr<ChShaft> shaft_2,    // second  (output) shaft to join
+    std::shared_ptr<ChBodyFrame> truss,  // truss body (also carrier, if rotating as in planetary gearboxes)
+    ChVector3d& dir_1,                   // direction of the first shaft on the gearbox truss
+    ChVector3d& dir_2                    // direction of the second shaft on the gearbox truss
+) {
+    shaft1 = shaft_1.get();
+    shaft2 = shaft_2.get();
+    body = truss.get();
+    shaft_dir1 = dir_1;
+    shaft_dir2 = dir_2;
 
-    shaft1 = mm1;
-    shaft2 = mm2;
-    body = mm3;
-    shaft_dir1 = mdir1;
-    shaft_dir2 = mdir2;
+    assert(shaft1 && shaft2 && body);
+    assert(shaft1 != shaft2);
+    assert((shaft1->GetSystem() == shaft2->GetSystem()));
 
-    constraint.SetVariables(&mm1->Variables(), &mm2->Variables(), &mm3->Variables());
+    constraint.SetVariables(&shaft_1->Variables(), &shaft_2->Variables(), &truss->Variables());
 
     SetSystem(shaft1->GetSystem());
 
@@ -72,13 +69,11 @@ void ChShaftsGearboxAngled::Update(double mytime, bool update_assets) {
     // ...
 }
 
-//// STATE BOOKKEEPING FUNCTIONS
-
 void ChShaftsGearboxAngled::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
                                                 ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
                                                 const ChVectorDynamic<>& L,  // the L vector
                                                 const double c               // a scaling factor
-                                                ) {
+) {
     constraint.MultiplyTandAdd(R, L(off_L) * c);
 }
 
@@ -87,13 +82,13 @@ void ChShaftsGearboxAngled::IntLoadConstraint_C(const unsigned int off_L,  // of
                                                 const double c,            // a scaling factor
                                                 bool do_clamp,             // apply clamping to c*C?
                                                 double recovery_clamp      // value for min/max clamping of c*C
-                                                ) {
+) {
     double res = 0;  // no residual anyway! allow drifting...
 
     double cnstr_violation = c * res;
 
     if (do_clamp) {
-        cnstr_violation = ChMin(ChMax(cnstr_violation, -recovery_clamp), recovery_clamp);
+        cnstr_violation = std::min(std::max(cnstr_violation, -recovery_clamp), recovery_clamp);
     }
 
     Qc(off_L) += cnstr_violation;
@@ -116,8 +111,6 @@ void ChShaftsGearboxAngled::IntFromDescriptor(const unsigned int off_v,  // offs
                                               ChVectorDynamic<>& L) {
     L(off_L) = constraint.Get_l_i();
 }
-
-// SOLVER INTERFACES
 
 void ChShaftsGearboxAngled::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     L(off_L) = torque_react;
@@ -159,8 +152,8 @@ void ChShaftsGearboxAngled::ConstraintsLoadJacobians() {
     constraint.Get_Cq_a()(0) = t0;
     constraint.Get_Cq_b()(0) = -1.0;
 
-    // ChVector<> jacw = body->TransformDirectionParentToLocal(t0*shaft_dir1 - shaft_dir2);
-    ChVector<> jacw = (t0 * shaft_dir1 - shaft_dir2);
+    // ChVector3d jacw = body->TransformDirectionParentToLocal(t0*shaft_dir1 - shaft_dir2);
+    ChVector3d jacw = (t0 * shaft_dir1 - shaft_dir2);
 
     constraint.Get_Cq_c()(0) = 0;
     constraint.Get_Cq_c()(1) = 0;
@@ -175,39 +168,36 @@ void ChShaftsGearboxAngled::ConstraintsFetch_react(double factor) {
     torque_react = constraint.Get_l_i() * factor;
 }
 
-//////// FILE I/O
-
-void ChShaftsGearboxAngled::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsGearboxAngled::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsGearboxAngled>();
+    archive_out.VersionWrite<ChShaftsGearboxAngled>();
 
     // serialize parent class
-    ChPhysicsItem::ArchiveOut(marchive);
+    ChPhysicsItem::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(t0);
-    marchive << CHNVP(shaft_dir1);
-    marchive << CHNVP(shaft_dir2);
-    marchive << CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    marchive << CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    marchive << CHNVP(body); //***TODO*** serialize with shared ptr
+    archive_out << CHNVP(t0);
+    archive_out << CHNVP(shaft_dir1);
+    archive_out << CHNVP(shaft_dir2);
+    archive_out << CHNVP(shaft1);  //// TODO  serialize with shared ptr
+    archive_out << CHNVP(shaft2);  //// TODO  serialize with shared ptr
+    archive_out << CHNVP(body);    //// TODO  serialize with shared ptr
 }
 
-/// Method to allow de serialization of transient data from archives.
-void ChShaftsGearboxAngled::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsGearboxAngled::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsGearboxAngled>();
+    /*int version =*/archive_in.VersionRead<ChShaftsGearboxAngled>();
 
     // deserialize parent class:
-    ChPhysicsItem::ArchiveIn(marchive);
+    ChPhysicsItem::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(t0);
-    marchive >> CHNVP(shaft_dir1);
-    marchive >> CHNVP(shaft_dir2);
-    marchive >> CHNVP(shaft1); //***TODO*** serialize with shared ptr
-    marchive >> CHNVP(shaft2); //***TODO*** serialize with shared ptr
-    marchive >> CHNVP(body); //***TODO*** serialize with shared ptr
+    archive_in >> CHNVP(t0);
+    archive_in >> CHNVP(shaft_dir1);
+    archive_in >> CHNVP(shaft_dir2);
+    archive_in >> CHNVP(shaft1);  //// TODO  serialize with shared ptr
+    archive_in >> CHNVP(shaft2);  //// TODO  serialize with shared ptr
+    archive_in >> CHNVP(body);    //// TODO  serialize with shared ptr
     constraint.SetVariables(&shaft1->Variables(), &shaft2->Variables(), &body->Variables());
 }
 

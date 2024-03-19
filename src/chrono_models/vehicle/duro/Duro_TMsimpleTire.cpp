@@ -34,7 +34,7 @@ const std::string Duro_TMsimpleTire::m_meshFile_left = "duro/Duro_Tire.obj";
 const std::string Duro_TMsimpleTire::m_meshFile_right = "duro/Duro_Tire.obj";
 
 const double Duro_TMsimpleTire::m_mass = 34.4;
-const ChVector<> Duro_TMsimpleTire::m_inertia(3.34, 6.28, 3.34);
+const ChVector3d Duro_TMsimpleTire::m_inertia(3.34, 6.28, 3.34);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

@@ -48,11 +48,11 @@ class CH_MODELS_API Duro_Vehicle : public ChWheeledVehicle {
 
     ~Duro_Vehicle();
 
-    virtual int GetNumberAxles() const override { return 2; }
+    virtual unsigned int GetNumberAxles() const override { return 2; }
 
     virtual double GetWheelbase() const override { return 2.3; }
     virtual double GetMinTurningRadius() const override { return 5.8; }
-    virtual double GetMaxSteeringAngle() const override { return 27 * CH_C_DEG_TO_RAD; }
+    virtual double GetMaxSteeringAngle() const override { return 27 * CH_DEG_TO_RAD; }
 
     void SetInitWheelAngVel(const std::vector<double>& omega) {
         assert(omega.size() == 4);
@@ -76,8 +76,8 @@ class CH_MODELS_API Duro_Vehicle : public ChWheeledVehicle {
   private:
     void Create(bool fixed, BrakeType brake_type, SteeringTypeWV steering_model, CollisionType chassis_collision_type);
     static void AddVisualizationLink(std::shared_ptr<ChBody> body,
-                                     const ChVector<> pt_1,
-                                     const ChVector<> pt_2,
+                                     const ChVector3d pt_1,
+                                     const ChVector3d pt_2,
                                      double radius,
                                      const ChColor& color);
 

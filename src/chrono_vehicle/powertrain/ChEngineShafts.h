@@ -23,7 +23,7 @@
 #include "chrono_vehicle/ChEngine.h"
 
 #include "chrono/physics/ChShaft.h"
-#include "chrono/physics/ChShaftsBody.h"
+#include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/physics/ChShaftsThermalEngine.h"
 
 namespace chrono {
@@ -44,7 +44,7 @@ class CH_VEHICLE_API ChEngineShafts : public ChEngine {
     virtual std::string GetTemplateName() const override { return "EngineShafts"; }
 
     /// Return the current engine speed.
-    virtual double GetMotorSpeed() const override { return m_motorshaft->GetPos_dt(); }
+    virtual double GetMotorSpeed() const override { return m_motorshaft->GetPosDt(); }
 
     /// Return the output engine torque.
     /// This is the torque passed to a transmission subsystem.
@@ -52,7 +52,7 @@ class CH_VEHICLE_API ChEngineShafts : public ChEngine {
 
   protected:
     /// Construct a shafts-based engine model.
-    ChEngineShafts(const std::string& name, const ChVector<>& dir_motor_block = ChVector<>(1, 0, 0));
+    ChEngineShafts(const std::string& name, const ChVector3d& dir_motor_block = ChVector3d(1, 0, 0));
 
     /// Set inertia of the motor block.
     virtual double GetMotorBlockInertia() const = 0;
@@ -61,10 +61,10 @@ class CH_VEHICLE_API ChEngineShafts : public ChEngine {
     virtual double GetMotorshaftInertia() const = 0;
 
     /// Engine speed-torque map.
-    virtual void SetEngineTorqueMap(std::shared_ptr<ChFunction_Recorder>& map) = 0;
+    virtual void SetEngineTorqueMap(std::shared_ptr<ChFunctionInterp>& map) = 0;
 
     /// Engine speed-torque braking effect because of losses.
-    virtual void SetEngineLossesMap(std::shared_ptr<ChFunction_Recorder>& map) = 0;
+    virtual void SetEngineLossesMap(std::shared_ptr<ChFunctionInterp>& map) = 0;
 
   private:
     /// Initialize this engine system.
@@ -82,12 +82,12 @@ class CH_VEHICLE_API ChEngineShafts : public ChEngine {
     virtual void Advance(double step) override {}
 
     std::shared_ptr<ChShaft> m_motorblock;
-    std::shared_ptr<ChShaftsBody> m_motorblock_to_body;
+    std::shared_ptr<ChShaftBodyRotation> m_motorblock_to_body;
     std::shared_ptr<ChShaftsThermalEngine> m_engine;
     std::shared_ptr<ChShaftsThermalEngine> m_engine_losses;
     std::shared_ptr<ChShaft> m_motorshaft;  ///< shaft connection to the transmission
 
-    ChVector<> m_dir_motor_block;
+    ChVector3d m_dir_motor_block;
 };
 
 /// @} vehicle_powertrain

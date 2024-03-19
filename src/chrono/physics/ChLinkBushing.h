@@ -44,29 +44,29 @@ class ChApi ChLinkBushing : public ChLinkLock {
 
     void Initialize(std::shared_ptr<ChBody> body1,
                     std::shared_ptr<ChBody> body2,
-                    const ChCoordsys<>& pos,
-                    const ChMatrixNM<double, 6, 6>& K,
-                    const ChMatrixNM<double, 6, 6>& R);
+                    const ChFrame<>& frame,
+                    const ChMatrix66d& K,
+                    const ChMatrix66d& R);
 
     /// Return the current bushing force vector.
-    ChVector<> GetForce() const;
+    ChVector3d GetForce() const;
 
     /// Return the current bushing torque vector (if rotational compliance).
-    ChVector<> GetTorque() const;
+    ChVector3d GetTorque() const;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
     using ChLinkMarkers::Initialize;
 
     Type m_type;  ///< bushing link type
 
-    ChMatrixNM<double, 6, 6> m_constants_K;  ///< 6x6 matrices for linear stiffness- TODO, coupling terms
-    ChMatrixNM<double, 6, 6> m_constants_R;  ///< 6x6 matrices for linear damping- TODO, coupling terms
+    ChMatrix66d m_constants_K;  ///< 6x6 matrices for linear stiffness- TODO, coupling terms
+    ChMatrix66d m_constants_R;  ///< 6x6 matrices for linear damping- TODO, coupling terms
 
   public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW

@@ -22,7 +22,7 @@ def main() :
 
     # Create the vehicle system
     vehicle = veh.WheeledVehicle(vehicle_file, chrono.ChContactMethod_NSC)
-    vehicle.Initialize(chrono.ChCoordsysD(initLoc, initRot))
+    vehicle.Initialize(chrono.ChCoordsysd(initLoc, initRot))
     #vehicle.GetChassis().SetFixed(True)
     vehicle.SetChassisVisualizationType(veh.VisualizationType_PRIMITIVES)
     vehicle.SetChassisRearVisualizationType(veh.VisualizationType_PRIMITIVES)
@@ -52,7 +52,7 @@ def main() :
     vis = veh.ChWheeledVehicleVisualSystemIrrlicht()
     vis.SetWindowTitle('HMMWV JSON specification')
     vis.SetWindowSize(1280, 1024)
-    vis.SetChaseCamera(chrono.ChVectorD(0.0, 0.0, 1.75), 6.0, 0.5)
+    vis.SetChaseCamera(chrono.ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5)
     vis.Initialize()
     vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
     vis.AddLightDirectional()
@@ -79,7 +79,8 @@ def main() :
     vehicle.ExportComponentList(out_dir + "/component_list.json")
 
     # Simulation loop
-    vehicle.EnableRealtime(True);
+    vehicle.EnableRealtime(True)
+
     while vis.Run() :
         # Render scene
         vis.BeginScene()
@@ -126,10 +127,10 @@ tire_file = veh.GetDataFile('hmmwv/tire/HMMWV_Pac02Tire.json')
 #tire_file = veh.GetDataFile('articulated_chassis/ACV_RigidTire.json')
 
 # Initial vehicle position
-initLoc = chrono.ChVectorD(0, 0, 0.5)
+initLoc = chrono.ChVector3d(0, 0, 0.5)
 
 # Initial vehicle orientation
-initRot = chrono.ChQuaternionD(1, 0, 0, 0)
+initRot = chrono.ChQuaterniond(1, 0, 0, 0)
 
 # Simulation step size
 step_size = 2e-3

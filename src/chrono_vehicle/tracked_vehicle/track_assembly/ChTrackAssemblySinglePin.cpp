@@ -22,8 +22,6 @@
 
 #include <cmath>
 
-#include "chrono/core/ChLog.h"
-
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblySinglePin.h"
 
 namespace chrono {
@@ -57,13 +55,13 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     size_t index = 0;
 
     // Positions of sprocket, idler, and (front and rear) wheels.
-    const ChVector<>& sprocket_pos = chassis->TransformPointParentToLocal(m_sprocket->GetGearBody()->GetPos());
-    const ChVector<>& idler_pos = chassis->TransformPointParentToLocal(m_idler->GetWheelBody()->GetPos());
+    const ChVector3d& sprocket_pos = chassis->TransformPointParentToLocal(m_sprocket->GetGearBody()->GetPos());
+    const ChVector3d& idler_pos = chassis->TransformPointParentToLocal(m_idler->GetWheelBody()->GetPos());
 
-    ChVector<> front_wheel_pos = chassis->TransformPointParentToLocal(m_suspensions[0]->GetWheelBody()->GetPos());
-    ChVector<> rear_wheel_pos = front_wheel_pos;
+    ChVector3d front_wheel_pos = chassis->TransformPointParentToLocal(m_suspensions[0]->GetWheelBody()->GetPos());
+    ChVector3d rear_wheel_pos = front_wheel_pos;
     for (size_t i = 1; i < num_wheels; i++) {
-        const ChVector<>& wheel_pos = chassis->TransformPointParentToLocal(m_suspensions[i]->GetWheelBody()->GetPos());
+        const ChVector3d& wheel_pos = chassis->TransformPointParentToLocal(m_suspensions[i]->GetWheelBody()->GetPos());
         if (wheel_pos.x() > front_wheel_pos.x())
             front_wheel_pos = wheel_pos;
         if (wheel_pos.x() < rear_wheel_pos.x())
@@ -82,17 +80,17 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // clockwise (sprocket behind idler).
     bool ccw = sprocket_pos.x() > idler_pos.x();
     double sign = ccw ? -1 : +1;
-    const ChVector<>& wheel_sprocket_pos = ccw ? front_wheel_pos : rear_wheel_pos;
-    const ChVector<>& wheel_idler_pos = ccw ? rear_wheel_pos : front_wheel_pos;
+    const ChVector3d& wheel_sprocket_pos = ccw ? front_wheel_pos : rear_wheel_pos;
+    const ChVector3d& wheel_idler_pos = ccw ? rear_wheel_pos : front_wheel_pos;
 
     // 1. Create shoes around the sprocket, starting under the sprocket and
     //    moving away from the idler. Stop before creating a horizontal track
     //    shoe above the sprocket.
 
     // Initialize the location of the first shoe connection point.
-    ChVector<> p0 = sprocket_pos - ChVector<>(0, 0, sprocket_radius);
-    ChVector<> p1 = p0;
-    ChVector<> p2;
+    ChVector3d p0 = sprocket_pos - ChVector3d(0, 0, sprocket_radius);
+    ChVector3d p1 = p0;
+    ChVector3d p2;
 
     // Calculate the incremental pitch angle around the sprocket.
     double tmp = shoe_pitch / (2 * sprocket_radius);
@@ -100,10 +98,10 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     double angle = delta_angle;
 
     // Create track shoes around the sprocket.
-    while (std::abs(angle) < CH_C_PI && index < num_shoes) {
-        p2 = p1 - sign * shoe_pitch * ChVector<>(std::cos(angle), 0, -std::sin(angle));
+    while (std::abs(angle) < CH_PI && index < num_shoes) {
+        p2 = p1 - sign * shoe_pitch * ChVector3d(std::cos(angle), 0, -std::sin(angle));
         m_shoes[index]->SetIndex(index);
-        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
+        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), QuatFromAngleY(angle));
         p1 = p2;
         angle += 2 * delta_angle;
         ++index;
@@ -117,13 +115,13 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // Calculate the constant pitch angle.
     double dz = (sprocket_pos.z() + sprocket_radius) - (idler_pos.z() + idler_radius);
     double dx = sprocket_pos.x() - idler_pos.x();
-    angle = ccw ? -CH_C_PI - std::atan2(dz, dx) : CH_C_PI + std::atan2(dz, -dx);
+    angle = ccw ? -CH_PI - std::atan2(dz, dx) : CH_PI + std::atan2(dz, -dx);
 
     // Create track shoes with constant orientation
     while (sign * (idler_pos.x() - p2.x()) > shoe_pitch && index < num_shoes) {
-        p2 = p1 - sign * shoe_pitch * ChVector<>(std::cos(angle), 0, -std::sin(angle));
+        p2 = p1 - sign * shoe_pitch * ChVector3d(std::cos(angle), 0, -std::sin(angle));
         m_shoes[index]->SetIndex(index);
-        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
+        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), QuatFromAngleY(angle));
         p1 = p2;
         ++index;
     }
@@ -134,10 +132,10 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     tmp = shoe_pitch / (2 * idler_radius);
     delta_angle = sign * std::asin(tmp);
 
-    while (std::abs(angle) < CH_C_2PI && index < num_shoes) {
-        p2 = p1 - sign * shoe_pitch * ChVector<>(std::cos(angle), 0, -std::sin(angle));
+    while (std::abs(angle) < CH_2PI && index < num_shoes) {
+        p2 = p1 - sign * shoe_pitch * ChVector3d(std::cos(angle), 0, -std::sin(angle));
         m_shoes[index]->SetIndex(index);
-        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
+        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), QuatFromAngleY(angle));
         p1 = p2;
         angle += 2 * delta_angle;
         ++index;
@@ -149,13 +147,13 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
 
     dz = (idler_pos.z() - idler_radius) - (wheel_idler_pos.z() - wheel_radius);
     dx = idler_pos.x() - wheel_idler_pos.x();
-    angle = ccw ? -CH_C_2PI + std::atan2(dz, -dx) : -CH_C_2PI - std::atan2(dz, dx);
+    angle = ccw ? -CH_2PI + std::atan2(dz, -dx) : -CH_2PI - std::atan2(dz, dx);
 
     // Create track shoes with constant orientation
     while (sign * (p2.x() - wheel_idler_pos.x()) > 0 && index < num_shoes) {
-        p2 = p1 - sign * shoe_pitch * ChVector<>(std::cos(angle), 0, -std::sin(angle));
+        p2 = p1 - sign * shoe_pitch * ChVector3d(std::cos(angle), 0, -std::sin(angle));
         m_shoes[index]->SetIndex(index);
-        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
+        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), QuatFromAngleY(angle));
         p1 = p2;
         ++index;
     }
@@ -163,12 +161,12 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // 5. Create shoes below the road wheels. These shoes are horizontal. Stop when
     //    passing the position of the wheel closest to the sprocket.
 
-    angle = ccw ? 0 : CH_C_2PI;
+    angle = ccw ? 0 : CH_2PI;
 
     while (sign * (p2.x() - wheel_sprocket_pos.x()) > 0 && index < num_shoes) {
-        p2 = p1 - sign * shoe_pitch * ChVector<>(std::cos(angle), 0, -std::sin(angle));
+        p2 = p1 - sign * shoe_pitch * ChVector3d(std::cos(angle), 0, -std::sin(angle));
         m_shoes[index]->SetIndex(index);
-        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
+        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), QuatFromAngleY(angle));
         p1 = p2;
         ++index;
     }
@@ -178,9 +176,9 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     size_t num_left = num_shoes - index;
 
     if (num_left % 2 == 1) {
-        p2 = p1 - sign * shoe_pitch * ChVector<>(std::cos(angle), 0, -std::sin(angle));
+        p2 = p1 - sign * shoe_pitch * ChVector3d(std::cos(angle), 0, -std::sin(angle));
         m_shoes[index]->SetIndex(index);
-        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
+        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), QuatFromAngleY(angle));
         p1 = p2;
         ++index;
         --num_left;
@@ -191,12 +189,12 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     double gap = (p0 - p1).Length();
 
     if (num_left * shoe_pitch < gap) {
-        GetLog() << "\nInsufficient number of track shoes for this configuration.\n";
-        GetLog() << "Missing distance: " << gap - num_left * shoe_pitch << "\n\n";
+        std::cerr << "\nInsufficient number of track shoes for this configuration.\n" << std::endl;
+        std::cerr << "Missing distance: " << gap - num_left * shoe_pitch << "\n" << std::endl;
         for (size_t i = index; i < num_shoes; i++) {
-            p2 = p1 - sign * shoe_pitch * ChVector<>(std::cos(angle), 0, -std::sin(angle));
+            p2 = p1 - sign * shoe_pitch * ChVector3d(std::cos(angle), 0, -std::sin(angle));
             m_shoes[i]->SetIndex(i);
-            m_shoes[i]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
+            m_shoes[i]->Initialize(chassis, 0.5 * (p1 + p2), QuatFromAngleY(angle));
             p1 = p2;
         }
         return ccw;
@@ -212,9 +210,9 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // Create half of the remaining shoes (with a pitch angle = alpha-beta).
     angle = alpha - sign * beta;
     for (size_t i = 0; i < num_left / 2; i++) {
-        p2 = p1 - sign * shoe_pitch * ChVector<>(std::cos(angle), 0, -std::sin(angle));
+        p2 = p1 - sign * shoe_pitch * ChVector3d(std::cos(angle), 0, -std::sin(angle));
         m_shoes[index]->SetIndex(index);
-        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
+        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), QuatFromAngleY(angle));
         p1 = p2;
         ++index;
     }
@@ -222,14 +220,13 @@ bool ChTrackAssemblySinglePin::Assemble(std::shared_ptr<ChBodyAuxRef> chassis) {
     // Create the second half of the remaining shoes (pitch angle = alpha+beta).
     angle = alpha + sign * beta;
     for (size_t i = 0; i < num_left / 2; i++) {
-        p2 = p1 - sign * shoe_pitch * ChVector<>(std::cos(angle), 0, -std::sin(angle));
+        p2 = p1 - sign * shoe_pitch * ChVector3d(std::cos(angle), 0, -std::sin(angle));
         m_shoes[index]->SetIndex(index);
-        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), Q_from_AngY(angle));
+        m_shoes[index]->Initialize(chassis, 0.5 * (p1 + p2), QuatFromAngleY(angle));
         p1 = p2;
         ++index;
     }
 
-    ////GetLog() << "Track assembly done.  Number of track shoes: " << index << "\n";
     return ccw;
 }
 

@@ -35,7 +35,6 @@
 #include "chrono_sensor/ChSensorManager.h"
 
 using namespace chrono;
-using namespace chrono::geometry;
 using namespace chrono::sensor;
 
 float end_time = 20.0f;
@@ -47,7 +46,7 @@ float ranf() {
 }
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2019 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // -----------------
     // Create the system
@@ -59,7 +58,7 @@ int main(int argc, char* argv[]) {
     // ---------------------------------------
     auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("vehicle/hmmwv/hmmwv_chassis.obj"),
                                                                   false, true);
-    mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(2));  // scale to a different size
+    mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(2));  // scale to a different size
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(mmesh);
@@ -68,8 +67,8 @@ int main(int argc, char* argv[]) {
 
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({0, 0, 0});
-    mesh_body->AddVisualShape(trimesh_shape,ChFrame<>());
-    mesh_body->SetBodyFixed(true);
+    mesh_body->AddVisualShape(trimesh_shape, ChFrame<>());
+    mesh_body->SetFixed(true);
     sys.Add(mesh_body);
 
     // -----------------------
@@ -86,7 +85,7 @@ int main(int argc, char* argv[]) {
     // Create a camera and add it to the sensor manager
     // ------------------------------------------------
     auto cam = Sensor::CreateFromJSON(GetChronoDataFile("sensor/json/generic/Camera.json"), mesh_body,
-                                      ChFrame<>({-5, 0, 0}, Q_from_AngZ(0)));
+                                      ChFrame<>({-5, 0, 0}, QuatFromAngleZ(0)));
     // add sensor to the manager
     manager->AddSensor(cam);
 
@@ -94,7 +93,7 @@ int main(int argc, char* argv[]) {
     // Create a lidar and add it to the sensor manager
     // -----------------------------------------------
     auto lidar = Sensor::CreateFromJSON(GetChronoDataFile("sensor/json/generic/Lidar.json"), mesh_body,
-                                        ChFrame<>({-5, 0, .5}, Q_from_AngZ(0)));
+                                        ChFrame<>({-5, 0, .5}, QuatFromAngleZ(0)));
     // add sensor to the manager
     manager->AddSensor(lidar);
 
@@ -102,7 +101,7 @@ int main(int argc, char* argv[]) {
     // Create a gps and add it to the sensor manager
     // ---------------------------------------------
     auto gps = Sensor::CreateFromJSON(GetChronoDataFile("sensor/json/generic/GPS.json"), mesh_body,
-                                      ChFrame<>({0, 0, 0}, Q_from_AngZ(0)));
+                                      ChFrame<>({0, 0, 0}, QuatFromAngleZ(0)));
     // add sensor to the manager
     manager->AddSensor(gps);
 
@@ -110,17 +109,17 @@ int main(int argc, char* argv[]) {
     // Create a imu and add it to the sensor manager
     // ---------------------------------------------
     auto acc = Sensor::CreateFromJSON(GetChronoDataFile("sensor/json/generic/Accelerometer.json"), mesh_body,
-                                      ChFrame<>({0, 0, 0}, Q_from_AngZ(0)));
+                                      ChFrame<>({0, 0, 0}, QuatFromAngleZ(0)));
     // add sensor to the manager
     manager->AddSensor(acc);
 
     auto gyro = Sensor::CreateFromJSON(GetChronoDataFile("sensor/json/generic/Gyroscope.json"), mesh_body,
-                                       ChFrame<>({0, 0, 0}, Q_from_AngZ(0)));
+                                       ChFrame<>({0, 0, 0}, QuatFromAngleZ(0)));
     // add sensor to the manager
     manager->AddSensor(gyro);
 
     auto mag = Sensor::CreateFromJSON(GetChronoDataFile("sensor/json/generic/Magnetometer.json"), mesh_body,
-                                      ChFrame<>({0, 0, 0}, Q_from_AngZ(0)));
+                                      ChFrame<>({0, 0, 0}, QuatFromAngleZ(0)));
     // add sensor to the manager
     manager->AddSensor(mag);
 
@@ -144,30 +143,30 @@ int main(int argc, char* argv[]) {
 
         cam->SetOffsetPose(chrono::ChFrame<double>(
             {-orbit_radius * cos(ch_time * orbit_rate), -orbit_radius * sin(ch_time * orbit_rate), 3},
-            Q_from_AngAxis(ch_time * orbit_rate, {0, 0, 1})));
+            QuatFromAngleAxis(ch_time * orbit_rate, {0, 0, 1})));
 
         UserR8BufferPtr camera_data = cam->GetMostRecentBuffer<UserR8BufferPtr>();
         if (camera_data->Buffer) {
             num_camera_updates++;
-            // std::cout << "Data recieved from camera. Frame: " << num_camera_updates << std::endl;
+            // std::cout << "Data received from camera. Frame: " << num_camera_updates << std::endl;
         }
 
         UserXYZIBufferPtr lidar_data = lidar->GetMostRecentBuffer<UserXYZIBufferPtr>();
         if (lidar_data->Buffer) {
             num_lidar_updates++;
-            // std::cout << "Data recieved from lidar. Frame: " << num_lidar_updates << std::endl;
+            // std::cout << "Data received from lidar. Frame: " << num_lidar_updates << std::endl;
         }
 
         UserGPSBufferPtr gps_data = gps->GetMostRecentBuffer<UserGPSBufferPtr>();
         if (gps_data->Buffer) {
             num_gps_updates++;
-            // std::cout << "Data recieved from gps. Frame: " << num_gps_updates << std::endl;
+            // std::cout << "Data received from gps. Frame: " << num_gps_updates << std::endl;
         }
 
         UserAccelBufferPtr acc_data = acc->GetMostRecentBuffer<UserAccelBufferPtr>();
         if (acc_data->Buffer) {
             num_imu_updates++;
-            // std::cout << "Data recieved from imu. Frame: " << num_imu_updates << std::endl;
+            // std::cout << "Data received from imu. Frame: " << num_imu_updates << std::endl;
         }
 
         ch_time = (float)sys.GetChTime();

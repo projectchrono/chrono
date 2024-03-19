@@ -27,7 +27,7 @@ namespace m113 {
 // Static variables
 // -----------------------------------------------------------------------------
 const double M113_Suspension::m_arm_mass = 75.26;
-const ChVector<> M113_Suspension::m_arm_inertia(0.37, 0.77, 0.77);
+const ChVector3d M113_Suspension::m_arm_inertia(0.37, 0.77, 0.77);
 const double M113_Suspension::m_arm_radius = 0.03;
 
 const double M113_Suspension::m_torsion_a0 = 0;
@@ -106,27 +106,27 @@ M113_Suspension::M113_Suspension(const std::string& name,
 M113_Suspension::~M113_Suspension() {}
 
 // -----------------------------------------------------------------------------
-const ChVector<> M113_Suspension::GetLocation(PointId which) {
-    ChVector<> point;
+const ChVector3d M113_Suspension::GetLocation(PointId which) {
+    ChVector3d point;
 
     switch (which) {
         case ARM:
-            point = ChVector<>(0.144, -0.12, 0.067);
+            point = ChVector3d(0.144, -0.12, 0.067);
             break;
         case ARM_WHEEL:
-            point = ChVector<>(0, -0.12, 0);
+            point = ChVector3d(0, -0.12, 0);
             break;
         case ARM_CHASSIS:
-            point = ChVector<>(0.288, -0.12, 0.134);
+            point = ChVector3d(0.288, -0.12, 0.134);
             break;
         case SHOCK_A:
-            point = ChVector<>(0.184, -0.12, -0.106);
+            point = ChVector3d(0.184, -0.12, -0.106);
             break;
         case SHOCK_C:
-            point = ChVector<>(-0.3, -0.12, 0.3);
+            point = ChVector3d(-0.3, -0.12, 0.3);
             break;
         default:
-            point = ChVector<>(0, 0, 0);
+            point = ChVector3d(0, 0, 0);
             break;
     }
 

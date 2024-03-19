@@ -28,29 +28,29 @@ namespace fmtv {
 
 const double FMTV_RotaryArm::m_pitmanArmMass = 1.605;
 const double FMTV_RotaryArm::m_pitmanArmRadius = 0.02;
-const double FMTV_RotaryArm::m_maxAngle = 22.7 * (CH_C_PI / 180);
-const ChVector<> FMTV_RotaryArm::m_pitmanArmInertiaMoments(0.00638, 0.00756, 0.00150);
-const ChVector<> FMTV_RotaryArm::m_pitmanArmInertiaProducts(0.0, 0.0, 0.0);
+const double FMTV_RotaryArm::m_maxAngle = 22.7 * (CH_PI / 180);
+const ChVector3d FMTV_RotaryArm::m_pitmanArmInertiaMoments(0.00638, 0.00756, 0.00150);
+const ChVector3d FMTV_RotaryArm::m_pitmanArmInertiaProducts(0.0, 0.0, 0.0);
 
 FMTV_RotaryArm::FMTV_RotaryArm(const std::string& name) : ChRotaryArm(name) {}
 
-const ChVector<> FMTV_RotaryArm::getLocation(PointId which) {
+const ChVector3d FMTV_RotaryArm::getLocation(PointId which) {
     switch (which) {
         case ARM_L:
-            return ChVector<>(1.0, 0.708341392, 0.1);
+            return ChVector3d(1.0, 0.708341392, 0.1);
         case ARM_C:
-            return ChVector<>(1.0, 0.708341392, 0.3);
+            return ChVector3d(1.0, 0.708341392, 0.3);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 
-const ChVector<> FMTV_RotaryArm::getDirection(DirectionId which) {
+const ChVector3d FMTV_RotaryArm::getDirection(DirectionId which) {
     switch (which) {
         case REV_AXIS:
-            return ChVector<>(0, 1, 0);
+            return ChVector3d(0, 1, 0);
         default:
-            return ChVector<>(0, 1, 0);
+            return ChVector3d(0, 1, 0);
     }
 }
 

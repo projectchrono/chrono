@@ -49,7 +49,7 @@
 #define SWIG_FILE_WITH_INIT
 #include <memory>
 #include "chrono/solver/ChSolver.h"
-#include "chrono/physics/ChMaterialSurface.h"
+#include "chrono/physics/ChContactMaterial.h"
 #include "chrono/solver/ChSolver.h"
 #include "chrono/solver/ChIterativeSolver.h"
 
@@ -143,7 +143,7 @@ using namespace chrono::sensor;
 // For each class, keep updated the  A, B, C sections:
 //
 
-//%template(ChFrameDList) std::vector<chrono::ChFrame<double>> ;
+//%template(ChFramedList) std::vector<chrono::ChFrame<double>> ;
 
 
 //
@@ -262,11 +262,11 @@ using namespace chrono::sensor;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChFrame.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChBody.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector.i"
+%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector3.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChColor.i"
 %import(module = "pychrono.core") "chrono/assets/ChVisualShapeTriangleMesh.h"
 
-%template(vector_ChFrameD) std::vector< chrono::ChFrame<double> >;
+%template(vector_ChFramed) std::vector< chrono::ChFrame<double> >;
 
 
 %include "chrono_sensor/sensors/ChSensorBuffer.h"

@@ -13,29 +13,22 @@
 // a Chrono::Engine simulator with 3D view.
 // =============================================================================
 
+#include <iostream>
 
 #include "FmuToolsImport.hpp"
 
-#include <iostream>
-
 std::string unzipped_fmu_folder = FMU_UNPACK_DIRECTORY;
-//std::string unzipped_fmu_folder = FMU_MAIN_DIRECTORY; // for debug
+// std::string unzipped_fmu_folder = FMU_MAIN_DIRECTORY; // for debug
 int main(int argc, char* argv[]) {
-    
     FmuUnit my_fmu;
 
     try {
+        // my_fmu.LoadUnzipped(unzipped_fmu_folder);
+        my_fmu.Load(FMU_FILENAME, FMU_UNPACK_DIRECTORY);  // make sure the user has appropriate privileges to
+                                                          // remove/create FMU_UNPACK_DIRECTORY
+        // my_fmu.Load(FMU_FILENAME); // will go in TEMP/_fmu_temp
 
-
-        //my_fmu.LoadUnzipped(unzipped_fmu_folder);
-        my_fmu.Load(FMU_FILENAME, FMU_UNPACK_DIRECTORY); // make sure the user has appropriate privileges to remove/create FMU_UNPACK_DIRECTORY
-        //my_fmu.Load(FMU_FILENAME); // will go in TEMP/_fmu_temp
-
-        my_fmu.BuildVariablesTree();
-        my_fmu.BuildVisualizersList(&my_fmu.tree_variables);
-
-    }catch (std::exception& my_exception) {
-
+    } catch (std::exception& my_exception) {
         std::cout << "ERROR loading FMU: " << my_exception.what() << "\n";
     }
 
@@ -54,42 +47,35 @@ int main(int argc, char* argv[]) {
 
     double start_time = 0;
     double stop_time = 2;
-    my_fmu._fmi2SetupExperiment(my_fmu.component, 
-        fmi2False, // tolerance defined
-        0.0,       // tolerance 
-        start_time, 
-        fmi2False,  // use stop time
-        stop_time); 
+    my_fmu._fmi2SetupExperiment(my_fmu.component,
+                                fmi2False,  // tolerance defined
+                                0.0,        // tolerance
+                                start_time,
+                                fmi2False,  // use stop time
+                                stop_time);
 
     my_fmu._fmi2EnterInitializationMode(my_fmu.component);
 
-     //// play a bit with set/get:
-     //fmi2String m_str;
-     //unsigned int sref = 1;
-     //my_fmu._fmi2GetString(my_fmu.component, &sref, 1, &m_str);
-     //std::cout << "FMU variable 1 has value: "   << m_str << "\n";
+    //// play a bit with set/get:
+    // fmi2String m_str;
+    // unsigned int sref = 1;
+    // my_fmu._fmi2GetString(my_fmu.component, &sref, 1, &m_str);
+    // std::cout << "FMU variable 1 has value: "   << m_str << "\n";
 
     my_fmu._fmi2ExitInitializationMode(my_fmu.component);
 
-    
     // test a simulation loop:
     double time = 0;
     double dt = 0.001;
-    
-    for (int i = 0; i<1000; ++i) {
 
+    for (int i = 0; i < 1000; ++i) {
         my_fmu._fmi2DoStep(my_fmu.component, time, dt, fmi2True);
 
-        time +=dt;
+        time += dt;
     }
 
-
-
-
-
-
     // Just some dumps for checking:
-    
+
     /*
     //my_fmu.DumpTree(&my_fmu.tree_variables,0);  // dump all tree
     my_fmu.DumpTree(&my_fmu.tree_variables.children["body1"],0);  // dump only one subtree
@@ -116,11 +102,9 @@ int main(int argc, char* argv[]) {
     }
     */
 
-
     //======================================================================
 
     std::cout << "\n\n\n";
-
 
     return 0;
 }

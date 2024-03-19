@@ -112,7 +112,7 @@ void TrackedVehicle::Create(const std::string& filename) {
         }
     }
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 // -----------------------------------------------------------------------------
@@ -122,8 +122,8 @@ void TrackedVehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     m_chassis->Initialize(m_system, chassisPos, chassisFwdVel, WheeledCollisionFamily::CHASSIS);
 
     // Initialize the left and right track assemblies
-    m_tracks[0]->Initialize(m_chassis, ChVector<>(0, m_track_offset[0], 0));
-    m_tracks[1]->Initialize(m_chassis, ChVector<>(0, m_track_offset[1], 0));
+    m_tracks[0]->Initialize(m_chassis, ChVector3d(0, m_track_offset[0], 0));
+    m_tracks[1]->Initialize(m_chassis, ChVector3d(0, m_track_offset[1], 0));
 
     // Initialize the driveline
     m_driveline->Initialize(m_chassis, m_tracks[0], m_tracks[1]);

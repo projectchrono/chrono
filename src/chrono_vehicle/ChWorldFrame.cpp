@@ -23,17 +23,17 @@ namespace vehicle {
 
 void ChWorldFrame::Set(const ChMatrix33<>& rot) {
     instance().m_rot = rot;
-    instance().m_quat = rot.Get_A_quaternion();
-    instance().m_vertical = rot.transpose() * ChVector<>(0, 0, 1);
-    instance().m_forward = rot.transpose() * ChVector<>(1, 0, 0);
+    instance().m_quat = rot.GetQuaternion();
+    instance().m_vertical = rot.transpose() * ChVector3d(0, 0, 1);
+    instance().m_forward = rot.transpose() * ChVector3d(1, 0, 0);
     instance().m_ISO = false;
 }
 
 void ChWorldFrame::SetYUP() {
-    instance().m_rot = ChMatrix33<>(Q_from_AngX(CH_C_PI_2));
-    instance().m_quat = instance().m_rot.Get_A_quaternion();
-    instance().m_vertical = ChVector<>(0, 1, 0);
-    instance().m_forward = ChVector<>(1, 0, 0);
+    instance().m_rot = ChMatrix33<>(QuatFromAngleX(CH_PI_2));
+    instance().m_quat = instance().m_rot.GetQuaternion();
+    instance().m_vertical = ChVector3d(0, 1, 0);
+    instance().m_forward = ChVector3d(1, 0, 0);
     instance().m_ISO = false;
 }
 
@@ -49,27 +49,27 @@ const ChQuaternion<>& ChWorldFrame::Quaternion() {
     return instance().m_quat;
 }
 
-const ChVector<>& ChWorldFrame::Vertical() {
+const ChVector3d& ChWorldFrame::Vertical() {
     return instance().m_vertical;
 }
 
-const ChVector<>& ChWorldFrame::Forward() {
+const ChVector3d& ChWorldFrame::Forward() {
     return instance().m_forward;
 }
 
-ChVector<> ChWorldFrame::ToISO(const ChVector<>& v) {
+ChVector3d ChWorldFrame::ToISO(const ChVector3d& v) {
     return instance().m_rot * v;
 }
 
-ChVector<> ChWorldFrame::FromISO(const ChVector<>& v) {
+ChVector3d ChWorldFrame::FromISO(const ChVector3d& v) {
     return instance().m_rot.transpose() * v;
 }
 
-double ChWorldFrame::Height(const ChVector<>& v) {
+double ChWorldFrame::Height(const ChVector3d& v) {
     return instance().m_vertical ^ v;  // dot product
 }
 
-void ChWorldFrame::Project(ChVector<>& v) {
+void ChWorldFrame::Project(ChVector3d& v) {
     v -= Height(v) * Vertical();
 }
 

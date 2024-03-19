@@ -56,7 +56,7 @@ class CH_VEHICLE_API Pac02Tire : public ChPac02Tire {
     ~Pac02Tire() {}
 
     virtual double GetTireMass() const override { return m_mass; }
-    virtual ChVector<> GetTireInertia() const override { return m_inertia; }
+    virtual ChVector3d GetTireInertia() const override { return m_inertia; }
 
     virtual double GetVisualizationWidth() const override { return m_visualization_width; }
 
@@ -69,7 +69,7 @@ class CH_VEHICLE_API Pac02Tire : public ChPac02Tire {
     virtual void Create(const rapidjson::Document& d) override;
 
     double m_mass;
-    ChVector<> m_inertia;
+    ChVector3d m_inertia;
     std::string m_tir_file;
     bool m_has_mesh;
 

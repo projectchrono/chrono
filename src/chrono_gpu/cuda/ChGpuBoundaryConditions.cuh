@@ -19,7 +19,6 @@
 #include "chrono_gpu/physics/ChGpuBoundaryConditions.h"
 #include "chrono_gpu/cuda/ChCudaMathUtils.cuh"
 #include "chrono_gpu/cuda/ChGpuHelpers.cuh"
-//#include "chrono/core/ChMathematics.h"
 #include <math_constants.h>
 using chrono::gpu::CHGPU_TIME_INTEGRATOR;
 using chrono::gpu::CHGPU_FRICTION_MODE;

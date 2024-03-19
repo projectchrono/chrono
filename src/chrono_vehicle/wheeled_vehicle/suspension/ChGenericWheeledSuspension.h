@@ -97,11 +97,11 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
     void DefineBody(
         const std::string& name,             ///< body name
         bool mirrored,                       ///< true if mirrored on right side
-        const ChVector<>& pos,               ///< body COM position (in subsystem reference frame)
+        const ChVector3d& pos,               ///< body COM position (in subsystem reference frame)
         const ChQuaternion<>& rot,           ///< body frame orientation (in subsystem reference frame)
         double mass,                         ///< body mass
-        const ChVector<>& inertia_moments,   ///< body moments of inertia (relative to COG frame)
-        const ChVector<>& inertia_products,  ///< body products of inertia (relative to COG frame)
+        const ChVector3d& inertia_moments,   ///< body moments of inertia (relative to COG frame)
+        const ChVector3d& inertia_products,  ///< body products of inertia (relative to COG frame)
         std::shared_ptr<ChVehicleGeometry> geometry = nullptr  ///< optional collision and visualization geometry
     );
 
@@ -112,7 +112,7 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
                      ChVehicleJoint::Type type,  ///< joint type
                      BodyIdentifier body1,       ///< first connected body
                      BodyIdentifier body2,       ///< second connected body
-                     const ChVector<>& pos,      ///< joint position (in subsystem reference frame)
+                     const ChVector3d& pos,      ///< joint position (in subsystem reference frame)
                      const ChQuaternion<>& rot,  ///< joint frame orientation (in subsystem reference frame)
                      std::shared_ptr<ChVehicleBushingData> bdata = nullptr  ///< optional bushing data
     );
@@ -122,8 +122,8 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
                                   bool mirrored,             ///< true if mirrored on right side
                                   BodyIdentifier body1,      ///< first connected body
                                   BodyIdentifier body2,      ///< second connected body
-                                  const ChVector<>& point1,  ///< point on body1 (in subsystem reference frame)
-                                  const ChVector<>& point2   ///< point on body2 (in subsystem reference frame)
+                                  const ChVector3d& point1,  ///< point on body1 (in subsystem reference frame)
+                                  const ChVector3d& point2   ///< point on body2 (in subsystem reference frame)
     );
 
     /// Add a TSDA to model a suspension spring or shock.
@@ -131,8 +131,8 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
                     bool mirrored,                                    ///< true if mirrored on right side
                     BodyIdentifier body1,                             ///< first connected body
                     BodyIdentifier body2,                             ///< second connected body
-                    const ChVector<>& point1,                         ///< point on body1 (in subsystem reference frame)
-                    const ChVector<>& point2,                         ///< point on body2 (in subsystem reference frame)
+                    const ChVector3d& point1,                         ///< point on body1 (in subsystem reference frame)
+                    const ChVector3d& point2,                         ///< point on body2 (in subsystem reference frame)
                     double rest_length,                               ///< rest (free) length
                     std::shared_ptr<ChLinkTSDA::ForceFunctor> force,  ///< functor for TSDA force evaluation
                     std::shared_ptr<ChTSDAGeometry> geometry = nullptr  ///< optional visualization geometry
@@ -143,8 +143,8 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
                     bool mirrored,                                     ///< true if mirrored on right side
                     BodyIdentifier body1,                              ///< first connected body
                     BodyIdentifier body2,                              ///< second connected body
-                    const ChVector<>& pos,                             ///< RSDA position (in subsystem reference frame)
-                    const ChVector<>& axis,                            ///< axis of action for the RSDA
+                    const ChVector3d& pos,                             ///< RSDA position (in subsystem reference frame)
+                    const ChVector3d& axis,                            ///< axis of action for the RSDA
                     double rest_angle,                                 ///< rest (free) angle
                     std::shared_ptr<ChLinkRSDA::TorqueFunctor> torque  ///< functor for RSDA torque evaluation
     );
@@ -157,7 +157,7 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
         std::shared_ptr<ChChassis> chassis,        ///< associated chassis subsystem
         std::shared_ptr<ChSubchassis> subchassis,  ///< associated subchassis subsystem (may be null)
         std::shared_ptr<ChSteering> steering,      ///< associated steering subsystem (may be null)
-        const ChVector<>& location,                ///< location relative to the chassis frame
+        const ChVector3d& location,                ///< location relative to the chassis frame
         double left_ang_vel = 0,                   ///< initial angular velocity of left wheel
         double right_ang_vel = 0                   ///< initial angular velocity of right wheel
         ) override;
@@ -197,11 +197,11 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
     virtual double getToeAngle() const { return 0; }
 
     /// Return the location of the spindle body.
-    virtual ChVector<> getSpindlePos() const = 0;
+    virtual ChVector3d getSpindlePos() const = 0;
     /// Return the mass of the spindle body.
     virtual double getSpindleMass() const = 0;
     /// Return the moments of inertia of the spindle body.
-    virtual const ChVector<>& getSpindleInertia() const = 0;
+    virtual const ChVector3d& getSpindleInertia() const = 0;
     /// Specify the suspension body to which the spindle is attached.
     virtual BodyIdentifier getSpindleAttachmentBody() const = 0;
 
@@ -217,11 +217,11 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
     /// Internal specification of a suspension body.
     struct Body {
         std::shared_ptr<ChBody> body;  ///< underlying Chrono body
-        ChVector<> pos;                ///< body position (in subsystem frame)
+        ChVector3d pos;                ///< body position (in subsystem frame)
         ChQuaternion<> rot;            ///< body rotation (in subsystem frame)
         double mass;                   ///< body mass
-        ChVector<> inertia_moments;    ///< moments of inertia
-        ChVector<> inertia_products;   ///< products of inertia
+        ChVector3d inertia_moments;    ///< moments of inertia
+        ChVector3d inertia_products;   ///< products of inertia
         ChVehicleGeometry geometry;    ///< (optional) visualization and collision geometry
     };
 
@@ -231,7 +231,7 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
         ChVehicleJoint::Type type;                    ///< joint type
         BodyIdentifier body1;                         ///< identifier of 1st body
         BodyIdentifier body2;                         ///< identifier of 2nd body
-        ChVector<> pos;                               ///< joint position in subsystem frame
+        ChVector3d pos;                               ///< joint position in subsystem frame
         ChQuaternion<> rot;                           ///< joint orientation in subsystem frame
         std::shared_ptr<ChVehicleBushingData> bdata;  ///< bushing data
     };
@@ -241,8 +241,8 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
         std::shared_ptr<ChLinkDistance> dist;  ///< underlying Chrono distance constraint
         BodyIdentifier body1;                  ///< identifier of 1st body
         BodyIdentifier body2;                  ///< identifier of 2nd body
-        ChVector<> point1;                     ///< point on body1 (in subsystem frame)
-        ChVector<> point2;                     ///< point on body2 (in subsystem frame)
+        ChVector3d point1;                     ///< point on body1 (in subsystem frame)
+        ChVector3d point2;                     ///< point on body2 (in subsystem frame)
     };
 
     /// Internal specification of a suspension TSDA.
@@ -250,8 +250,8 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
         std::shared_ptr<ChLinkTSDA> tsda;                 ///< underlying Chrono TSDA element
         BodyIdentifier body1;                             ///< identifier of 1st body
         BodyIdentifier body2;                             ///< identifier of 2nd body
-        ChVector<> point1;                                ///< point on body1 (in subsystem frame)
-        ChVector<> point2;                                ///< point on body2 (in subsystem frame)
+        ChVector3d point1;                                ///< point on body1 (in subsystem frame)
+        ChVector3d point2;                                ///< point on body2 (in subsystem frame)
         double rest_length;                               ///< TSDA rest (free) length
         std::shared_ptr<ChLinkTSDA::ForceFunctor> force;  ///< force functor
         ChTSDAGeometry geometry;                          ///< (optional) visualization geometry
@@ -262,8 +262,8 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
         std::shared_ptr<ChLinkRSDA> rsda;                   ///< underlying Chrono RSDA element
         BodyIdentifier body1;                               ///< identifier of 1st body
         BodyIdentifier body2;                               ///< identifier of 2nd body
-        ChVector<> pos;                                     ///< RSDA position (in subsystem frame)
-        ChVector<> axis;                                    ///< axis of action for the RSDA (in subsystem frame)
+        ChVector3d pos;                                     ///< RSDA position (in subsystem frame)
+        ChVector3d axis;                                    ///< axis of action for the RSDA (in subsystem frame)
         double rest_angle;                                  ///< RSDA rest (free) angle
         std::shared_ptr<ChLinkRSDA::TorqueFunctor> torque;  ///< torque functor
     };
@@ -290,10 +290,10 @@ class CH_VEHICLE_API ChGenericWheeledSuspension : public ChSuspension {
     std::string Name(const PartKey& id) const;
 
     /// Express a point given in the suspension reference frame to the absolute coordinate frame.
-    ChVector<> TransformPosition(const ChVector<>& pos_loc, int side) const;
+    ChVector3d TransformPosition(const ChVector3d& pos_loc, int side) const;
 
     /// Express a direction vector given in the suspension reference frame to the absolute coordinate frame.
-    ChVector<> TransformDirection(const ChVector<>& dir_loc, int side) const;
+    ChVector3d TransformDirection(const ChVector3d& dir_loc, int side) const;
 
     /// Express a quaternion given in the suspension reference frame to the absolute coordinate frame.
     ChQuaternion<> TransformRotation(const ChQuaternion<>& rot_local, int side) const;

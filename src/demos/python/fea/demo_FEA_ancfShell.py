@@ -40,7 +40,7 @@ def CastNode(nb):
 time_step = 1e-3
 
 sys = chrono.ChSystemSMC()
-sys.Set_G_acc(chrono.ChVectorD(0, 0, -9.8))
+sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, -9.8))
 
 print( "-----------------------------------------------------------\n")
 print("------------------------------------------------------------\n")
@@ -80,7 +80,7 @@ for i in range(TotalNumNodes) :
     dir_z = 1
 
     # Create the node
-    node = fea.ChNodeFEAxyzD(chrono.ChVectorD(loc_x, loc_y, loc_z), chrono.ChVectorD(dir_x, dir_y, dir_z))
+    node = fea.ChNodeFEAxyzD(chrono.ChVector3d(loc_x, loc_y, loc_z), chrono.ChVector3d(dir_x, dir_y, dir_z))
 
     node.SetMass(0)
 
@@ -100,9 +100,9 @@ nodetip = fea.CastToChNodeFEAxyzD(tempfeanode)
 # Create an orthotropic material.
 # All layers for all elements share the same material.
 rho = 500
-E = chrono.ChVectorD(2.1e7, 2.1e7, 2.1e7)
-nu = chrono.ChVectorD(0.3, 0.3, 0.3)
-G = chrono.ChVectorD(8.0769231e6, 8.0769231e6, 8.0769231e6)
+E = chrono.ChVector3d(2.1e7, 2.1e7, 2.1e7)
+nu = chrono.ChVector3d(0.3, 0.3, 0.3)
+G = chrono.ChVector3d(8.0769231e6, 8.0769231e6, 8.0769231e6)
 mat = fea.ChMaterialShellANCF(rho, E, nu, G)
 # Create the elements
 for i in range(TotalNumElements):
@@ -123,7 +123,7 @@ for i in range(TotalNumElements):
     element.SetDimensions(dx, dy)
 
     # Add a single layers with a fiber angle of 0 degrees.
-    element.AddLayer(dz, 0 * chrono.CH_C_DEG_TO_RAD, mat)
+    element.AddLayer(dz, 0 * chrono.CH_DEG_TO_RAD, mat)
 
     # Set other element properties
     element.SetAlphaDamp(0.0)    # Structural damping for this element
@@ -174,7 +174,7 @@ vis.SetWindowTitle('ANCF shells')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(-0.4, -1.3, 0.0), chrono.ChVectorD(0.0, 0.5, -0.1))
+vis.AddCamera(chrono.ChVector3d(-0.4, -1.3, 0.0), chrono.ChVector3d(0.0, 0.5, -0.1))
 vis.AddTypicalLights()
 
 # ----------------------------------
@@ -189,8 +189,8 @@ sys.SetSolver(solver)
 solver.EnableDiagonalPreconditioner(True)
 #solver.SetVerbose(True)
 
-sys.SetSolverMaxIterations(100)
-sys.SetSolverForceTolerance(1e-10)
+sys.GetSolver().AsIterative().SetMaxIterations(100)
+sys.GetSolver().AsIterative().SetTolerance(1e-10)
 
 # Set up integrator
 
@@ -198,7 +198,7 @@ stepper = chrono.ChTimestepperHHT(sys)
 sys.SetTimestepper(stepper)
 
 stepper.SetAlpha(-0.2)
-stepper.SetMaxiters(5)
+stepper.SetMaxIters(5)
 stepper.SetAbsTolerances(1e-2)
 stepper.SetStepControl(True)
 stepper.SetMinStepSize(1e-4)

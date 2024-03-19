@@ -1,3 +1,10 @@
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+
+%csmethodmodifiers chrono::ChLoadBodyInertia::LoadIntLoadResidual_Mv "public override"
+
+#endif             // --------------------------------------------------------------------- CSHARP
+
+
 %{
 
 /* Includes the header in the wrapper code */

@@ -39,14 +39,14 @@ const double MAN_10t_Front1Axle::m_axleTubeRadius = 0.0476;
 const double MAN_10t_Front1Axle::m_spindleRadius = 0.10;
 const double MAN_10t_Front1Axle::m_spindleWidth = 0.06;
 
-const ChVector<> MAN_10t_Front1Axle::m_axleTubeInertia(21.23, 8.12, 21.31);
-const ChVector<> MAN_10t_Front1Axle::m_spindleInertia(0.04117 * 6.56, 0.07352 * 6.56, 0.04117 * 6.56);
-const ChVector<> MAN_10t_Front1Axle::m_bellcrankInertia(0.05, 0.29, 0.30);
-const ChVector<> MAN_10t_Front1Axle::m_knuckleInertia(2.40, 3.97, 2.45);
-const ChVector<> MAN_10t_Front1Axle::m_draglinkInertia(0.29, 0.67, 0.95);
-const ChVector<> MAN_10t_Front1Axle::m_triangleInertia(0.2, 0.2, 0.2);
-const ChVector<> MAN_10t_Front1Axle::m_linkInertia(0.05, 0.1, 0.1);
-const ChVector<> MAN_10t_Front1Axle::m_tierodInertia(0.05, 0.05, 0.5);
+const ChVector3d MAN_10t_Front1Axle::m_axleTubeInertia(21.23, 8.12, 21.31);
+const ChVector3d MAN_10t_Front1Axle::m_spindleInertia(0.04117 * 6.56, 0.07352 * 6.56, 0.04117 * 6.56);
+const ChVector3d MAN_10t_Front1Axle::m_bellcrankInertia(0.05, 0.29, 0.30);
+const ChVector3d MAN_10t_Front1Axle::m_knuckleInertia(2.40, 3.97, 2.45);
+const ChVector3d MAN_10t_Front1Axle::m_draglinkInertia(0.29, 0.67, 0.95);
+const ChVector3d MAN_10t_Front1Axle::m_triangleInertia(0.2, 0.2, 0.2);
+const ChVector3d MAN_10t_Front1Axle::m_linkInertia(0.05, 0.1, 0.1);
+const ChVector3d MAN_10t_Front1Axle::m_tierodInertia(0.05, 0.05, 0.5);
 
 const double MAN_10t_Front1Axle::m_springDesignLength = 0.480919952;
 const double MAN_10t_Front1Axle::m_springCoefficient1 = 85490.0;   // linear
@@ -89,7 +89,7 @@ class MAN_10t_SpringForceFront1 : public ChLinkTSDA::ForceFunctor {
     double m_max_length;
     double m_scale;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionInterp m_bump;
 };
 
 MAN_10t_SpringForceFront1::MAN_10t_SpringForceFront1(double spring_constant1,
@@ -134,7 +134,7 @@ double MAN_10t_SpringForceFront1::evaluate(double time,
     }
 
     force = m_scale * (defl_spring * m_spring_constant1 + defl_spring * std::abs(defl_spring) * m_spring_constant2) +
-            m_bump.Get_y(defl_bump) - m_bump.Get_y(defl_rebound);
+            m_bump.GetVal(defl_bump) - m_bump.GetVal(defl_rebound);
 
     return force;
 }
@@ -152,46 +152,46 @@ MAN_10t_Front1Axle::MAN_10t_Front1Axle(const std::string& name) : ChSolidBellcra
 // -----------------------------------------------------------------------------
 MAN_10t_Front1Axle::~MAN_10t_Front1Axle() {}
 
-const ChVector<> MAN_10t_Front1Axle::getLocation(PointId which) {
+const ChVector3d MAN_10t_Front1Axle::getLocation(PointId which) {
     switch (which) {
         case SPRING_A:
-            return ChVector<>(0.000, 0.590, 0.090);
+            return ChVector3d(0.000, 0.590, 0.090);
         case SPRING_C:
-            return ChVector<>(0.010, 0.552, 0.588);
+            return ChVector3d(0.010, 0.552, 0.588);
         case SHOCK_A:
-            return ChVector<>(0.246, 0.523, -0.125);
+            return ChVector3d(0.246, 0.523, -0.125);
         case SHOCK_C:
-            return ChVector<>(0.235, 0.562, 0.570);
+            return ChVector3d(0.235, 0.562, 0.570);
         case SPINDLE:
-            return ChVector<>(0.0, 2.066 / 2.0, 0.0);
+            return ChVector3d(0.0, 2.066 / 2.0, 0.0);
         case TRIANGLE_A:
-            return ChVector<>(0.125, 0.000, 0.260);
+            return ChVector3d(0.125, 0.000, 0.260);
         case TRIANGLE_C:
-            return ChVector<>(0.871, 0.420, 0.165);
+            return ChVector3d(0.871, 0.420, 0.165);
         case LINK_A:
-            return ChVector<>(-0.115, 0.490, -0.090);
+            return ChVector3d(-0.115, 0.490, -0.090);
         case LINK_C:
-            return ChVector<>(-1.138, 0.270, 0.115);
+            return ChVector3d(-1.138, 0.270, 0.115);
         case DRAGLINK_S:
-            return ChVector<>(0.741, -0.217, 0.089);
+            return ChVector3d(0.741, -0.217, 0.089);
         case BELLCRANK_A:
-            return ChVector<>(-0.023, 0.000, 0.250);
+            return ChVector3d(-0.023, 0.000, 0.250);
         case BELLCRANK_D:
-            return ChVector<>(0.045, 0.256, 0.153);
+            return ChVector3d(0.045, 0.256, 0.153);
         case BELLCRANK_T:
-            return ChVector<>(-0.273, 0.042, 0.153);
+            return ChVector3d(-0.273, 0.042, 0.153);
         case KNUCKLE_L:
-            return ChVector<>(0.000, 0.845 + 2 * 0.004374433, -0.10);
+            return ChVector3d(0.000, 0.845 + 2 * 0.004374433, -0.10);
         case KNUCKLE_U:
-            return ChVector<>(0.000, 0.845 - 2 * 0.004374433, 0.10);
+            return ChVector3d(0.000, 0.845 - 2 * 0.004374433, 0.10);
         case KNUCKLE_T:
-            // return ChVector<>(-0.236, 0.800, 0.153); 5t/7t front axle
-            return ChVector<>(-0.238119607, 0.813061735, 0.153);  // 10 front 1 axle
-            // return ChVector<>(-0.235882642, 0.799388826 , 0.153);  // 10 front 2 axle
+            // return ChVector3d(-0.236, 0.800, 0.153); 5t/7t front axle
+            return ChVector3d(-0.238119607, 0.813061735, 0.153);  // 10 front 1 axle
+            // return ChVector3d(-0.235882642, 0.799388826 , 0.153);  // 10 front 2 axle
         case KNUCKLE_CM:
-            return ChVector<>(0.000, 0.937, 0.000);
+            return ChVector3d(0.000, 0.937, 0.000);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

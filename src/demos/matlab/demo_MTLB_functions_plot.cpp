@@ -15,7 +15,7 @@
 // and calling Matlab from Chrono (in particular, using Matlab to plot data)
 // =============================================================================
 
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 #include "chrono_matlab/ChMatlabEngine.h"
 
 // Use the namespace of Chrono
@@ -23,13 +23,13 @@
 using namespace chrono;
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
     // Better put the Matlab stuff inside a try{}, since it may throw exception if
     // the engine is not started (because Matlab not properly installed)
     try {
-        GetLog() << "PERFORM TESTS OF MATLAB<->CHRONOENGINE INTERACTION\n\n";
-        GetLog() << "(please wait few seconds: Matlab engine must be loaded)\n\n";
+        std::cout << "PERFORM TESTS OF MATLAB<->CHRONOENGINE INTERACTION\n\n";
+        std::cout << "(please wait few seconds: Matlab engine must be loaded)\n\n";
 
         // This is the object that you can use to access the Matlab engine.
         // As soon as created, it loads the Matlab engine (if troubles happen, it
@@ -40,30 +40,30 @@ int main(int argc, char* argv[]) {
         // EXAMPLE 1: create a ramp ChFunction, set properties, evaluate it.
         //
 
-        GetLog() << "==== Test 1...\n\n";
+        std::cout << "==== Test 1...\n\n";
 
-        ChFunction_Ramp f_ramp;
+        ChFunctionRamp f_ramp;
 
-        f_ramp.Set_ang(0.1);  // set angular coefficient;
-        f_ramp.Set_y0(0.4);   // set y value for x=0;
+        f_ramp.SetAngularCoeff(0.1);  // set angular coefficient;
+        f_ramp.SetStartVal(0.4);      // set y value for x=0;
 
-        // Evaluate y=f(x) function at a given x value, using Get_y() :
-        double y = f_ramp.Get_y(10);
-        // Evaluate derivative df(x)/dx at a given x value, using Get_y_dx() :
-        double ydx = f_ramp.Get_y_dx(10);
+        // Evaluate y=f(x) function at a given x value, using GetVal() :
+        double y = f_ramp.GetVal(10);
+        // Evaluate derivative df(x)/dx at a given x value, using GetDer() :
+        double ydx = f_ramp.GetDer(10);
 
-        GetLog() << "   ChFunction_Ramp at x=0: y=" << y << "  dy/dx=" << ydx << "\n\n";
+        std::cout << "   ChFunctionRamp at x=0: y=" << y << "  dy/dx=" << ydx << "\n\n";
 
         //
         // EXAMPLE 2: plot a sine ChFunction
         //
 
-        GetLog() << "==== Test 2...\n\n";
+        std::cout << "==== Test 2...\n\n";
 
-        ChFunction_Sine f_sine;
+        ChFunctionSine f_sine;
 
-        f_sine.Set_amp(2);     // set amplitude;
-        f_sine.Set_freq(0.9);  // set frequency;
+        f_sine.SetAmplitude(2);    // set amplitude;
+        f_sine.SetFrequency(0.9);  // set frequency;
 
         // Evaluate y=f(x) function along 100 x points:
         ChMatrixDynamic<> x_array(100, 1);
@@ -73,9 +73,9 @@ int main(int argc, char* argv[]) {
         for (int i = 0; i < 100; i++) {
             double x = (double)i / 50.0;
             x_array(i) = x;
-            y_array(i) = f_sine.Get_y(x);
-            ydx_array(i) = f_sine.Get_y_dx(x);
-            ydxdx_array(i) = f_sine.Get_y_dxdx(x);
+            y_array(i) = f_sine.GetVal(x);
+            ydx_array(i) = f_sine.GetDer(x);
+            ydxdx_array(i) = f_sine.GetDer2(x);
         }
 
         // Send resulting vectors of values to Matlab
@@ -90,10 +90,10 @@ int main(int argc, char* argv[]) {
         matlab_engine.Eval("grid on; plot(x_array,ydxdx_array,'r');");
         matlab_engine.Eval("legend ('y','dy/dx','ddy/dxdx');");
 
-        GetLog() << "Press a key to finish... \n";
+        std::cout << "Press a key to finish... \n";
         getchar();  // pause until key..
-    } catch (ChException mex) {
-        GetLog() << mex.what();  // Print error on console, if Matlab did not start.
+    } catch (std::exception mex) {
+        std::cerr << mex.what() << std::endl;  // Print error on console, if Matlab did not start.
     }
 
     return 0;

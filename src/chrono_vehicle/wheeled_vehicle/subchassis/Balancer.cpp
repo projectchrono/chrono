@@ -32,7 +32,7 @@ Balancer::Balancer(const std::string& filename) : ChBalancer(""), m_bushingData(
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 Balancer::Balancer(const rapidjson::Document& d) : ChBalancer(""), m_bushingData(nullptr) {
@@ -69,7 +69,7 @@ void Balancer::Create(const rapidjson::Document& d) {
     if (d["Beam"].HasMember("Pin Direction")) {
         m_dir = ReadVectorJSON(d["Beam"]["Pin Direction"]);
     } else {
-        m_dir = ChVector<>(0, 1, 0);
+        m_dir = ChVector3d(0, 1, 0);
     }
 }
 

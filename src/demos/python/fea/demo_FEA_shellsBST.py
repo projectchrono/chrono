@@ -26,7 +26,6 @@ out_dir = chrono.GetChronoOutputPath() + "FEA_SHELLS_BST"
 # If running from a different directory, you must change the path to the data directory with: 
 #chrono.SetChronoDataPath('path/to/data')
 
-#GetLog() << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n"
 
 # Create (if needed) output directory
 try:
@@ -47,17 +46,17 @@ mesh = fea.ChMesh()
 # Remember to add the mesh to the system!
 sys.Add(mesh)
 
-# sys.Set_G_acc(VNULL) or
+# sys.SetGravitationalAcceleration(VNULL) or
 #mesh.SetAutomaticGravity(False)
 
 nodePlotA = fea.ChNodeFEAxyz()
 nodePlotB = fea.ChNodeFEAxyz()
 nodesLoad = [] # std::vector<std::shared_ptr<ChNodeFEAxyz>> 
 
-ref_X = chrono.ChFunction_Recorder()
-ref_Y = chrono.ChFunction_Recorder()
+ref_X = chrono.ChFunctionInterp()
+ref_Y = chrono.ChFunctionInterp()
 
-load_force = chrono.ChVectorD()
+load_force = chrono.ChVector3d()
 
 #
 # BENCHMARK n.1
@@ -84,12 +83,12 @@ if (False):  # set as 'true' to execute this
     # Create nodes
     L = 1.0
     
-    p0 = chrono.ChVectorD(0, 0, 0)
-    p1 = chrono.ChVectorD(L, 0, 0)
-    p2 = chrono.ChVectorD(0, L, 0)
-    p3 = chrono.ChVectorD(L, L, 0)
-    p4 = chrono.ChVectorD(-L, L, 0)
-    p5 = chrono.ChVectorD(L, -L, 0)
+    p0 = chrono.ChVector3d(0, 0, 0)
+    p1 = chrono.ChVector3d(L, 0, 0)
+    p2 = chrono.ChVector3d(0, L, 0)
+    p3 = chrono.ChVector3d(L, L, 0)
+    p4 = chrono.ChVector3d(-L, L, 0)
+    p5 = chrono.ChVector3d(L, -L, 0)
     
     mnode0 = fea.ChNodeFEAxyz(p0)
     mnode1 = fea.ChNodeFEAxyz(p1)
@@ -111,7 +110,7 @@ if (False):  # set as 'true' to execute this
     
     melement.SetNodes(mnode0, mnode1, mnode2,None,None,None)
     
-    melement.AddLayer(thickness, 0 * chrono.CH_C_DEG_TO_RAD, material)
+    melement.AddLayer(thickness, 0 * chrono.CH_DEG_TO_RAD, material)
     
     # TEST
     sys.Setup()
@@ -123,10 +122,10 @@ if (False):  # set as 'true' to execute this
     	+ "k0: " + str(melement.k0) + "\n"
     	+ "e0: " + str(melement.e0) + "\n")
     
-    mnode1.SetPos(mnode1.GetPos() + chrono.ChVectorD(0.1, 0, 0))
+    mnode1.SetPos(mnode1.GetPos() + chrono.ChVector3d(0.1, 0, 0))
     
     sys.Update()
-    Fi = chrono.ChVectorDynamicD(melement.GetNdofs())
+    Fi = chrono.ChVectorDynamicd(melement.GetNumCoordsPosLevel())
     melement.ComputeInternalForces(Fi)
     print( "BST updated: \n" 
     		+ "phi: " + str(melement.phi) + "\n"
@@ -140,7 +139,7 @@ if (False):  # set as 'true' to execute this
     for i in range(Fi.Size()-2):
         if (i % 3 == 0) :
             print( "-------" + str(i / 3) + "\n")
-            fi = chrono.ChVectorD(Fi[i], Fi[i+1], Fi[i+2])
+            fi = chrono.ChVector3d(Fi[i], Fi[i+1], Fi[i+2])
             resultant += fi
         print( str(Fi[i]) + "\n")
         	
@@ -179,7 +178,7 @@ if (True):  # set as 'true' to execute this
     mynodes = [] # for future loop when adding elements
     for iz in range(nsections_z+1) :
         for ix in range(nsections_x+1):
-            p = chrono.ChVectorD(ix * (L_x / nsections_x), 0, iz * (L_z / nsections_z))
+            p = chrono.ChVector3d(ix * (L_x / nsections_x), 0, iz * (L_z / nsections_z))
             mnode = fea.ChNodeFEAxyz(p)
             mesh.AddNode(mnode)
             mynodes.append(mnode)
@@ -214,7 +213,7 @@ if (True):  # set as 'true' to execute this
 				mynodes[(iz + 1) * (nsections_x + 1) + ix    ], 
 				boundary_1, boundary_2, boundary_3)
 
-            melementA.AddLayer(thickness, 0 * chrono.CH_C_DEG_TO_RAD, material)
+            melementA.AddLayer(thickness, 0 * chrono.CH_DEG_TO_RAD, material)
 
 			
             melementB = fea.ChElementShellBST()
@@ -236,7 +235,7 @@ if (True):  # set as 'true' to execute this
 				mynodes[(iz    ) * (nsections_x + 1) + ix + 1],
 				boundary_1, boundary_2, boundary_3)
 
-            melementB.AddLayer(thickness, 0 * chrono.CH_C_DEG_TO_RAD, material)
+            melementB.AddLayer(thickness, 0 * chrono.CH_DEG_TO_RAD, material)
 	
     for j in range(30) :
         for k in range(30) :
@@ -304,7 +303,7 @@ vis.SetWindowTitle('Shells FEA test: triangle BST elements')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(1, .3, 1.3), chrono.ChVectorD(.5, -.3, .5))
+vis.AddCamera(chrono.ChVector3d(1, .3, 1.3), chrono.ChVector3d(.5, -.3, .5))
 vis.AddTypicalLights()
 
 # Change solver to PardisoMKL
@@ -321,8 +320,8 @@ timestep = 0.005
 sys.Setup()
 sys.Update()
 
-rec_X = chrono.ChFunction_Recorder()
-rec_Y = chrono.ChFunction_Recorder()
+rec_X = chrono.ChFunctionInterp()
+rec_Y = chrono.ChFunctionInterp()
 
 mtime = 0
 

@@ -18,7 +18,7 @@ namespace chrono {
 namespace vehicle {
 namespace citybus {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 const double lbft2nm = 1.3558;
 
 CityBus_EngineSimpleMap::CityBus_EngineSimpleMap(const std::string& name) : ChEngineSimpleMap(name) {}
@@ -27,7 +27,7 @@ double CityBus_EngineSimpleMap::GetMaxEngineSpeed() {
     return 2200 * rpm2rads;
 }
 
-void CityBus_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+void CityBus_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) {
     map0.AddPoint(-100 * rpm2rads,    0.0 * lbft2nm);
     map0.AddPoint(   0 * rpm2rads,    0.0 * lbft2nm);
     map0.AddPoint( 100 * rpm2rads,    0.0 * lbft2nm);

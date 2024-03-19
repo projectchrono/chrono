@@ -42,7 +42,7 @@ class CH_MODELS_API Marder_RoadWheel : public ChDoubleTrackWheel {
     /// Return the mass of the idler wheel body.
     virtual double GetMass() const override { return m_wheel_mass; }
     /// Return the moments of inertia of the idler wheel body.
-    virtual const ChVector<>& GetInertia() override { return m_wheel_inertia; }
+    virtual const ChVector3d& GetInertia() override { return m_wheel_inertia; }
     /// Return the radius of the idler wheel.
     virtual double GetRadius() const override { return m_wheel_radius; }
     /// Return the total width of the idler wheel.
@@ -64,7 +64,7 @@ class CH_MODELS_API Marder_RoadWheel : public ChDoubleTrackWheel {
     virtual void AddVisualizationAssets(VisualizationType vis) override;
 
     static const double m_wheel_mass;
-    static const ChVector<> m_wheel_inertia;
+    static const ChVector3d m_wheel_inertia;
     static const double m_wheel_radius;
     static const double m_wheel_width;
     static const double m_wheel_gap;

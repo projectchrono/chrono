@@ -219,7 +219,7 @@ void ChIterativeSolverMulticore::PerformStabilization() {
         DynamicVector<real> gamma_b = blaze::subvector(gamma, num_unilaterals, num_bilaterals);
 
         data_manager->measures.solver.total_iteration +=
-            bilateral_solver->Solve(ShurProductBilateral,                                   //
+            bilateral_solver->Solve(SchurProductBilateral,                                  //
                                     ProjectNone,                                            //
                                     data_manager->settings.solver.max_iteration_bilateral,  //
                                     num_bilaterals,                                         //

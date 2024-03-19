@@ -47,8 +47,8 @@ void FMTV_AutomaticTransmissionShafts::SetGearRatios(std::vector<double>& fwd, d
     fwd.push_back(1.0);              // 7th gear
 }
 
-void FMTV_AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunction_Recorder>& map) {
-    double rpm_to_radsec = CH_C_2PI / 60.;
+void FMTV_AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std::shared_ptr<ChFunctionInterp>& map) {
+    double rpm_to_radsec = CH_2PI / 60.;
 
     map->AddPoint(-100.0 * rpm_to_radsec, 200.00);
     map->AddPoint(0 * rpm_to_radsec, 200.00);
@@ -65,7 +65,7 @@ void FMTV_AutomaticTransmissionShafts::SetTorqueConverterCapacityFactorMap(std::
     map->AddPoint(2700 * rpm_to_radsec, -400);
 }
 
-void FMTV_AutomaticTransmissionShafts::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunction_Recorder>& map) {
+void FMTV_AutomaticTransmissionShafts::SetTorqeConverterTorqueRatioMap(std::shared_ptr<ChFunctionInterp>& map) {
     map->AddPoint(0.0, 2.17);
     map->AddPoint(0.85, 1.00);
     map->AddPoint(1.00, 1.00);

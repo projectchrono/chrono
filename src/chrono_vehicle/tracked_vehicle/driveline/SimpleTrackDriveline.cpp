@@ -33,7 +33,7 @@ SimpleTrackDriveline::SimpleTrackDriveline(const std::string& filename) : ChSimp
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 SimpleTrackDriveline::SimpleTrackDriveline(const rapidjson::Document& d) : ChSimpleTrackDriveline("") {

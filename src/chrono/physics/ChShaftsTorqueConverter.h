@@ -15,37 +15,19 @@
 #ifndef CHSHAFTSTORQUECONVERTER_H
 #define CHSHAFTSTORQUECONVERTER_H
 
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 #include "chrono/physics/ChShaftsCouple.h"
 
 namespace chrono {
 
-/// Class for defining a torque converter between two one-degree-of-freedom parts;
-/// i.e., shafts that can be used to build 1D models of powertrains. Note that is
-/// not inherited from ChShaftsTorqueBase, because it requires a third part: the stator.
-/// The torque converter multiplies the input torque if there is slippage between input
-/// and output, then the multiplicative effect becomes closer to unity when the slippage
-/// is almost null; so it is similar to a variable-transmission-ratio gearbox, and just
-/// like any gearbox it requires a truss (the 'stator') that gets some torque.
-/// When the vehicle is coasting, the stator is always inactive, then the output torque
-/// cannot be increased.
+/// Class for defining a torque converter between two one-degree-of-freedom parts.
+/// Note that is not inherited from ChShaftsTorque, because it requires a third part: the stator.
+/// The torque converter multiplies the input torque if there is slippage between input and output, then the
+/// multiplicative effect becomes closer to unity when the slippage is almost null; so it is similar to a
+/// variable-transmission-ratio gearbox, and just like any gearbox it requires a truss (the 'stator') that gets some
+/// torque. When the vehicle is coasting, the stator is always inactive, then the output torque cannot be increased.
 /// Note: it can work only in a given direction.
-
 class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
-  private:
-    ChShaft* shaft1;
-    ChShaft* shaft2;
-    ChShaft* shaft_stator;
-
-    double torque_in;
-    double torque_out;
-
-    std::shared_ptr<ChFunction> K;
-    std::shared_ptr<ChFunction> T;
-
-    bool state_warning_reverseflow;
-    bool state_warning_wrongimpellerdirection;
-
   public:
     ChShaftsTorqueConverter();
     ChShaftsTorqueConverter(const ChShaftsTorqueConverter& other);
@@ -54,44 +36,37 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChShaftsTorqueConverter* Clone() const override { return new ChShaftsTorqueConverter(*this); }
 
-    /// Number of scalar constraints
-    virtual int GetDOC_c() override { return 0; }
-
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
-
-    // Override/implement system functions of ChPhysicsItem
-    // (to assemble/manage data for system solver)
-
-    virtual void VariablesFbLoadForces(double factor) override;
-
-    /// Use this function after torque converter creation, to initialize it, given
-    /// input and output shafts to join (plus the stator shaft, that should be fixed).
-    /// Each shaft must belong to the same ChSystem.
-    bool Initialize(std::shared_ptr<ChShaft> mshaft1,       ///< input shaft
-                    std::shared_ptr<ChShaft> mshaft2,       ///< output shaft
-                    std::shared_ptr<ChShaft> mshaft_stator  ///< stator shaft (often fixed)
+    /// Initialize the torque converter, given input and output shafts to join.
+    /// The third input shaft is the stator shaft, which should be fixed.
+    /// All shafts must belong to the same ChSystem.
+    bool Initialize(std::shared_ptr<ChShaft> shaft_1,  ///< input shaft
+                    std::shared_ptr<ChShaft> shaft_2,  ///< output shaft
+                    std::shared_ptr<ChShaft> shaft_st  ///< stator shaft (often fixed)
     );
 
-    /// Get the input shaft
-    ChShaft* GetShaftInput() { return shaft1; }
-    /// Get the output shaft
-    ChShaft* GetShaftOutput() { return shaft2; }
-    /// Get the stator shaft (the truss)
-    ChShaft* GetShaftStator() { return shaft_stator; }
+    /// Get the input shaft.
+    ChShaft* GetShaftInput() const { return shaft1; }
+
+    /// Get the output shaft.
+    ChShaft* GetShaftOutput() const { return shaft2; }
+
+    /// Get the stator shaft (the truss).
+    ChShaft* GetShaftStator() const { return shaft_stator; }
 
     /// Set the capacity factor curve, function of speed ratio R.
     /// It is K(R)= input speed / square root of the input torque.
     /// Units: (rad/s) / sqrt(Nm)
     void SetCurveCapacityFactor(std::shared_ptr<ChFunction> mf) { K = mf; }
+
     /// Get the capacity factor curve.
     std::shared_ptr<ChFunction> GetCurveCapacityFactor() { return K; }
 
     /// Set the torque ratio curve, function of speed ratio R.
     /// It is T(R) = (output torque) / (input torque)
     void SetCurveTorqueRatio(std::shared_ptr<ChFunction> mf) { T = mf; }
+
     /// Get the torque ratio curve.
-    std::shared_ptr<ChFunction> GetCurveTorqueRatio() { return T; }
+    std::shared_ptr<ChFunction> GetCurveTorqueRatio() const { return T; }
 
     /// Get the torque applied to the input shaft
     double GetTorqueReactionOnInput() const { return torque_in; }
@@ -126,10 +101,28 @@ class ChApi ChShaftsTorqueConverter : public ChPhysicsItem {
     virtual void Update(double mytime, bool update_assets = true) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    ChShaft* shaft1;
+    ChShaft* shaft2;
+    ChShaft* shaft_stator;
+
+    double torque_in;
+    double torque_out;
+
+    std::shared_ptr<ChFunction> K;
+    std::shared_ptr<ChFunction> T;
+
+    bool state_warning_reverseflow;
+    bool state_warning_wrongimpellerdirection;
+
+    virtual unsigned int GetNumConstraintsBilateral() override { return 0; }
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
+    virtual void VariablesFbLoadForces(double factor) override;
 };
 
 CH_CLASS_VERSION(ChShaftsTorqueConverter, 0)

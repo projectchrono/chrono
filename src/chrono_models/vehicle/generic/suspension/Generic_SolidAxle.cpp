@@ -52,16 +52,16 @@ const double Generic_SolidAxle::m_tierodRadius = 0.007;
 const double Generic_SolidAxle::m_draglinkRadius = 0.007;
 const double Generic_SolidAxle::m_bellCrankRadius = 0.007;
 
-const ChVector<> Generic_SolidAxle::m_axleTubeCOM(0, 0, 0);
+const ChVector3d Generic_SolidAxle::m_axleTubeCOM(0, 0, 0);
 
-const ChVector<> Generic_SolidAxle::m_axleTubeInertia(7.744, 0.045, 7.744);
-const ChVector<> Generic_SolidAxle::m_spindleInertia(0.0000558, 0.0000279, 0.0000558);
-const ChVector<> Generic_SolidAxle::m_ULInertia(0.011, 0.011, 0.000142);
-const ChVector<> Generic_SolidAxle::m_LLInertia(0.0514, 0.0514, 0.00037);
-const ChVector<> Generic_SolidAxle::m_knuckleInertia(0.00255, 0.00134, 0.00196);
-const ChVector<> Generic_SolidAxle::m_tierodInertia(0.252, 0.001, 0.252);
-const ChVector<> Generic_SolidAxle::m_draglinkInertia(0.005, 0.005, 0.001);
-const ChVector<> Generic_SolidAxle::m_bellCrankInertia(0.001, 0.001, 0.001);
+const ChVector3d Generic_SolidAxle::m_axleTubeInertia(7.744, 0.045, 7.744);
+const ChVector3d Generic_SolidAxle::m_spindleInertia(0.0000558, 0.0000279, 0.0000558);
+const ChVector3d Generic_SolidAxle::m_ULInertia(0.011, 0.011, 0.000142);
+const ChVector3d Generic_SolidAxle::m_LLInertia(0.0514, 0.0514, 0.00037);
+const ChVector3d Generic_SolidAxle::m_knuckleInertia(0.00255, 0.00134, 0.00196);
+const ChVector3d Generic_SolidAxle::m_tierodInertia(0.252, 0.001, 0.252);
+const ChVector3d Generic_SolidAxle::m_draglinkInertia(0.005, 0.005, 0.001);
+const ChVector3d Generic_SolidAxle::m_bellCrankInertia(0.001, 0.001, 0.001);
 
 const double Generic_SolidAxle::m_axleInertia = 0.4;
 
@@ -86,48 +86,48 @@ Generic_SolidAxle::~Generic_SolidAxle() {}
 // Implementation of the getLocation() virtual methods.
 // -----------------------------------------------------------------------------
 
-const ChVector<> Generic_SolidAxle::getLocation(PointId which) {
+const ChVector3d Generic_SolidAxle::getLocation(PointId which) {
     switch (which) {
         case SHOCK_A:
-            return ChVector<>(-0.065, 0.575, -0.025);
+            return ChVector3d(-0.065, 0.575, -0.025);
         case SHOCK_C:
-            return ChVector<>(-0.080, 0.56, 0.3);
+            return ChVector3d(-0.080, 0.56, 0.3);
         case KNUCKLE_L:
-            return ChVector<>(0.005, 0.7, -0.05);
+            return ChVector3d(0.005, 0.7, -0.05);
         case KNUCKLE_U:
-            return ChVector<>(-0.015, 0.675, 0.075);
+            return ChVector3d(-0.015, 0.675, 0.075);
         case LL_A:
-            return ChVector<>(0.01, 0.6, -0.075);
+            return ChVector3d(0.01, 0.6, -0.075);
         case LL_C:
-            return ChVector<>(0.45, 0.35, -0.045);
+            return ChVector3d(0.45, 0.35, -0.045);
         case UL_A:
-            return ChVector<>(-0.055, 0.475, 0.15);
+            return ChVector3d(-0.055, 0.475, 0.15);
         case UL_C:
-            return ChVector<>(0.355, 0.5, 0.15);
+            return ChVector3d(0.355, 0.5, 0.15);
         case SPRING_A:
-            return ChVector<>(-0.065, 0.575, -0.025);
+            return ChVector3d(-0.065, 0.575, -0.025);
         case SPRING_C:
-            return ChVector<>(-0.080, 0.56, 0.3);
+            return ChVector3d(-0.080, 0.56, 0.3);
         case TIEROD_K:
-            return ChVector<>(-0.075, 0.68, -0.065);
+            return ChVector3d(-0.075, 0.68, -0.065);
         case SPINDLE:
-            return ChVector<>(0, 0.910, 0);
+            return ChVector3d(0, 0.910, 0);
         case KNUCKLE_CM:
-            return ChVector<>(0, 0.7, 0);
+            return ChVector3d(0, 0.7, 0);
         case LL_CM:
-            return ChVector<>(0.23, 0.475, -0.06);
+            return ChVector3d(0.23, 0.475, -0.06);
         case UL_CM:
-            return ChVector<>(0.15, 0.4875, 0.15);
+            return ChVector3d(0.15, 0.4875, 0.15);
         case BELLCRANK_TIEROD:
-            return ChVector<>(-0.075, 0.325, -0.065);
+            return ChVector3d(-0.075, 0.325, -0.065);
         case BELLCRANK_AXLE:
-            return ChVector<>(0, 0.325, -0.05);
+            return ChVector3d(0, 0.325, -0.05);
         case BELLCRANK_DRAGLINK:
-            return ChVector<>(0, 0.425, -0.05);
+            return ChVector3d(0, 0.425, -0.05);
         case DRAGLINK_C:
-            return ChVector<>(0.385, 0.45, -0.02);
+            return ChVector3d(0.385, 0.45, -0.02);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

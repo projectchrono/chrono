@@ -28,8 +28,8 @@ namespace vehicle {
 /// Straight line path between the two specified end points.
 /// Intermediate points can be optionally included.
 CH_VEHICLE_API std::shared_ptr<ChBezierCurve> StraightLinePath(
-    const ChVector<>& start,           ///< start point
-    const ChVector<> end,              ///< end point
+    const ChVector3d& start,           ///< start point
+    const ChVector3d end,              ///< end point
     unsigned int num_intermediate = 0  ///< number of intermediate points
     );
 
@@ -48,7 +48,7 @@ CH_VEHICLE_API std::shared_ptr<ChBezierCurve> StraightLinePath(
 ///         run
 /// </pre>
 CH_VEHICLE_API std::shared_ptr<ChBezierCurve> CirclePath(
-    const ChVector<>& start,  ///< start point
+    const ChVector3d& start,  ///< start point
     double radius,            ///< circle radius
     double run,               ///< length of initial straight line
     bool left_turn = true,    ///< left turn (true), right turn (false)
@@ -69,7 +69,7 @@ CH_VEHICLE_API std::shared_ptr<ChBezierCurve> CirclePath(
 ///     run       ramp   length    ramp      run
 /// </pre>
 CH_VEHICLE_API std::shared_ptr<ChBezierCurve> DoubleLaneChangePath(
-    const ChVector<>& start,  ///< start point
+    const ChVector3d& start,  ///< start point
     double ramp,              ///< length of ramp sections
     double width,             ///< lane separation
     double length,            ///< distance in lane

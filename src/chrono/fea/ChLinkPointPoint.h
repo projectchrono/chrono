@@ -32,17 +32,6 @@ namespace fea {
 /// The two nodes will be joined, as overlapping. Nodes are 3-DOF points that are used in point-based primitives, such
 /// as finite elements.
 class ChApi ChLinkPointPoint : public ChLinkBase {
-  private:
-    ChVector<> react;
-
-    // used as an interface to the solver.
-    ChConstraintTwoGeneric constraint1;
-    ChConstraintTwoGeneric constraint2;
-    ChConstraintTwoGeneric constraint3;
-
-    std::shared_ptr<fea::ChNodeFEAxyz> mnodeA;
-    std::shared_ptr<fea::ChNodeFEAxyz> mnodeB;
-
   public:
     ChLinkPointPoint();
     ChLinkPointPoint(const ChLinkPointPoint& other);
@@ -52,20 +41,49 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
     virtual ChLinkPointPoint* Clone() const override { return new ChLinkPointPoint(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() override { return 3 + 3; }
+    virtual unsigned int GetNumAffectedCoords() override { return 3 + 3; }
 
     /// Number of scalar constraints
-    virtual int GetDOC_c() override { return 3; }
-
-    /// To get reaction force, expressed in link coordinate system:
-    virtual ChVector<> Get_react_force() override { return GetReactionOnNode(); }
+    virtual unsigned int GetNumConstraintsBilateral() override { return 3; }
 
     // Get constraint violations
     virtual ChVectorDynamic<> GetConstraintViolation() const override;
 
-    //
+    /// Return the link frame at node 1, expressed in absolute coordinates.
+    ChFrame<> GetFrameNode1Abs() const { return ChFrame<>(m_node1->GetPos(), QUNIT); }
+
+    /// Return the link frame at node 2, expressed in absolute coordinates.
+    ChFrame<> GetFrameNode2Abs() const { return ChFrame<>(m_node2->GetPos(), QUNIT); }
+
+    /// Initialize the constraint, given the two nodes to join.
+    /// The attachment position is the actual position of the node.
+    /// Note that nodes must belong to the same ChSystem.
+    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> node1,  ///< xyz node (point) to join
+                           std::shared_ptr<ChNodeFEAxyz> node2   ///< xyz node (point) to join
+    );
+
+    /// Get the 1st connected xyz node.
+    std::shared_ptr<fea::ChNodeFEAxyz> GetNode1() const { return m_node1; }
+
+    /// Get the 2nd connected xyz node.
+    std::shared_ptr<fea::ChNodeFEAxyz> GetNode2() const { return m_node2; }
+
+    /// Get the reaction force considered as applied to the 1st node.
+    ChVector3d GetReactionOnNode1() const { return +react; }
+
+    /// Get the reaction force considered as applied to the 2nd node.
+    ChVector3d GetReactionOnNode2() const { return -react; }
+
+    /// Update all auxiliary data of the gear transmission at given time
+    virtual void Update(double mytime, bool update_assets = true) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
     // STATE FUNCTIONS
-    //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
@@ -100,43 +118,28 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
     virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
-    // Other functions
+  private:
+    ChVector3d react;
 
-    virtual ChCoordsys<> GetLinkAbsoluteCoords() override { return CSYSNORM; }
+    // used as an interface to the solver.
+    ChConstraintTwoGeneric m_constraint1;
+    ChConstraintTwoGeneric m_constraint2;
+    ChConstraintTwoGeneric m_constraint3;
 
-    /// Use this function after object creation, to initialize it, given
-    /// the two nodes join.
-    /// The attachment position is the actual position of the node.
-    /// Note, mnodes must belong to the same ChSystem.
-    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,  ///< xyz node (point) to join
-                           std::shared_ptr<ChNodeFEAxyz> anodeB   ///< xyz node (point) to join
-                           );
+    std::shared_ptr<fea::ChNodeFEAxyz> m_node1;
+    std::shared_ptr<fea::ChNodeFEAxyz> m_node2;
 
-    /// Get the 1st connected xyz node (point)
-    std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeA() const { return this->mnodeA; }
+    /// Get the link frame 1, on the 1st node, expressed in the absolute frame.
+    virtual ChFramed GetFrame1Abs() const override { return GetFrameNode1Abs(); }
 
-    /// Get the 2nd connected xyz node (point)
-    std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNodeB() const { return this->mnodeB; }
+    /// Get the link frame 2, on the 2nd node, expressed in the absolute frame.
+    virtual ChFramed GetFrame2Abs() const override { return GetFrameNode2Abs(); }
 
-    /// Get the reaction force considered as applied to ChShaft.
-    ChVector<> GetReactionOnNode() const { return -react; }
+    /// Get reaction force and torque on 1st node, expressed on link frame 1.
+    virtual ChWrenchd GetReaction1() const override { return {GetReactionOnNode1(), VNULL}; }
 
-    //
-    // UPDATE FUNCTIONS
-    //
-
-    /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true) override;
-
-    //
-    // STREAMING
-    //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    /// Get reaction force and torque on 2nd node, expressed on link frame 2.
+    virtual ChWrenchd GetReaction2() const override { return {GetReactionOnNode2(), VNULL}; }
 };
 
 /// @} fea_constraints

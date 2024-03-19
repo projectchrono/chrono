@@ -73,7 +73,7 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     /// Enable/disable contact for the wheel.
     /// This function controls contact of the wheel with all other collision shapes in the simulation. Must be called
     /// after initialization and has effect only if the derived object has defined some collision shapes.
-    void SetCollide(bool state) { m_spindle->SetCollide(state); }
+    void EnableCollision(bool state) { m_spindle->EnableCollision(state); }
 
     /// Synchronize the wheel subsystem. 
     /// This version queries the forces from the attached tire and applies them to the associated suspension.
@@ -96,7 +96,7 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     VehicleSide GetSide() const { return m_side; }
 
     /// Get wheel position (expressed in absolute frame).
-    ChVector<> GetPos() const;
+    ChVector3d GetPos() const;
 
     /// Get the current state for this wheel.
     /// This includes the location, orientation, linear and angular velocities,
@@ -123,7 +123,7 @@ class CH_VEHICLE_API ChWheel : public ChPart {
     virtual void UpdateInertiaProperties() override;
 
     virtual double GetWheelMass() const = 0;
-    virtual const ChVector<>& GetWheelInertia() const = 0;
+    virtual const ChVector3d& GetWheelInertia() const = 0;
 
     std::shared_ptr<ChBody> m_spindle;             ///< associated suspension spindle body
     std::shared_ptr<ChTire> m_tire;                ///< attached tire subsystem

@@ -63,10 +63,10 @@ class ChApi ChLoadBase : public ChObj {
     virtual ~ChLoadBase();
 
     /// Gets the number of DOFs affected by this load (position part)
-    virtual int LoadGet_ndof_x() = 0;
+    virtual int LoadGetNumCoordsPosLevel() = 0;
 
     /// Gets the number of DOFs affected by this load (speed part)
-    virtual int LoadGet_ndof_w() = 0;
+    virtual int LoadGetNumCoordsVelLevel() = 0;
 
     /// Gets all the current DOFs packed in a single vector (position part)
     virtual void LoadGetStateBlock_x(ChState& mD) = 0;
@@ -81,7 +81,7 @@ class ChApi ChLoadBase : public ChObj {
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
-    virtual int LoadGet_field_ncoords() = 0;
+    virtual int LoadGetNumFieldCoords() = 0;
 
     /// Compute Q, the generalized load(s).
     /// Where Q is stored depends on children classes.
@@ -175,12 +175,12 @@ class ChLoad : public ChLoadBase {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLoad* Clone() const override { return new ChLoad(*this); }
 
-    virtual int LoadGet_ndof_x() override;
-    virtual int LoadGet_ndof_w() override;
+    virtual int LoadGetNumCoordsPosLevel() override;
+    virtual int LoadGetNumCoordsVelLevel() override;
     virtual void LoadGetStateBlock_x(ChState& mD) override;
     virtual void LoadGetStateBlock_w(ChStateDelta& mD) override;
     virtual void LoadStateIncrement(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
-    virtual int LoadGet_field_ncoords() override;
+    virtual int LoadGetNumFieldCoords() override;
 
     /// Compute Q, the generalized load.
     /// Q is stored in the wrapped ChLoader.
@@ -244,12 +244,12 @@ class ChApi ChLoadCustom : public ChLoadBase {
 
     virtual ~ChLoadCustom() {}
 
-    virtual int LoadGet_ndof_x() override;
-    virtual int LoadGet_ndof_w() override;
+    virtual int LoadGetNumCoordsPosLevel() override;
+    virtual int LoadGetNumCoordsVelLevel() override;
     virtual void LoadGetStateBlock_x(ChState& mD) override;
     virtual void LoadGetStateBlock_w(ChStateDelta& mD) override;
     virtual void LoadStateIncrement(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
-    virtual int LoadGet_field_ncoords() override;
+    virtual int LoadGetNumFieldCoords() override;
 
     /// Compute jacobians (default fallback).
     /// Uses a numerical differentiation for computing K, R, M jacobians, if stiff load.
@@ -313,12 +313,12 @@ class ChApi ChLoadCustomMultiple : public ChLoadBase {
 
     virtual ~ChLoadCustomMultiple() {}
 
-    virtual int LoadGet_ndof_x() override;
-    virtual int LoadGet_ndof_w() override;
+    virtual int LoadGetNumCoordsPosLevel() override;
+    virtual int LoadGetNumCoordsVelLevel() override;
     virtual void LoadGetStateBlock_x(ChState& mD) override;
     virtual void LoadGetStateBlock_w(ChStateDelta& mD) override;
     virtual void LoadStateIncrement(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
-    virtual int LoadGet_field_ncoords() override;
+    virtual int LoadGetNumFieldCoords() override;
 
     /// Compute jacobians (default fallback).
     /// Compute the K=-dQ/dx, R=-dQ/dv , M=-dQ/da jacobians.
@@ -366,23 +366,23 @@ class ChApi ChLoadCustomMultiple : public ChLoadBase {
 // =============================================================================
 
 template <class Tloader>
-inline int ChLoad<Tloader>::LoadGet_ndof_x() {
-    return this->loader.GetLoadable()->LoadableGet_ndof_x();
+inline int ChLoad<Tloader>::LoadGetNumCoordsPosLevel() {
+    return this->loader.GetLoadable()->GetLoadableNumCoordsPosLevel();
 }
 
 template <class Tloader>
-inline int ChLoad<Tloader>::LoadGet_ndof_w() {
-    return this->loader.GetLoadable()->LoadableGet_ndof_w();
+inline int ChLoad<Tloader>::LoadGetNumCoordsVelLevel() {
+    return this->loader.GetLoadable()->GetLoadableNumCoordsVelLevel();
 }
 
 template <class Tloader>
 inline void ChLoad<Tloader>::LoadGetStateBlock_x(ChState& mD) {
-    this->loader.GetLoadable()->LoadableGetStateBlock_x(0, mD);
+    this->loader.GetLoadable()->LoadableGetStateBlockPosLevel(0, mD);
 }
 
 template <class Tloader>
 inline void ChLoad<Tloader>::LoadGetStateBlock_w(ChStateDelta& mD) {
-    this->loader.GetLoadable()->LoadableGetStateBlock_w(0, mD);
+    this->loader.GetLoadable()->LoadableGetStateBlockVelLevel(0, mD);
 }
 
 template <class Tloader>
@@ -391,8 +391,8 @@ inline void ChLoad<Tloader>::LoadStateIncrement(const ChState& x, const ChStateD
 }
 
 template <class Tloader>
-inline int ChLoad<Tloader>::LoadGet_field_ncoords() {
-    return this->loader.GetLoadable()->Get_field_ncoords();
+inline int ChLoad<Tloader>::LoadGetNumFieldCoords() {
+    return this->loader.GetLoadable()->GetNumFieldCoords();
 }
 
 template <class Tloader>
@@ -408,8 +408,8 @@ inline void ChLoad<Tloader>::ComputeJacobian(ChState* state_x,
                                              ChMatrixRef mM) {
     double Delta = 1e-8;
 
-    int mrows_w = this->LoadGet_ndof_w();
-    int mrows_x = this->LoadGet_ndof_x();
+    int mrows_w = this->LoadGetNumCoordsVelLevel();
+    int mrows_x = this->LoadGetNumCoordsPosLevel();
 
     // compute Q at current speed & position, x_0, v_0
     ChVectorDynamic<> Q0(mrows_w);
@@ -450,7 +450,7 @@ inline void ChLoad<Tloader>::ComputeJacobian(ChState* state_x,
 template <class Tloader>
 inline void ChLoad<Tloader>::LoadIntLoadResidual_F(ChVectorDynamic<>& R, double c) {
     unsigned int rowQ = 0;
-    for (int i = 0; i < this->loader.GetLoadable()->GetSubBlocks(); ++i) {
+    for (unsigned int i = 0; i < this->loader.GetLoadable()->GetNumSubBlocks(); ++i) {
         if (this->loader.GetLoadable()->IsSubBlockActive(i)) {
             unsigned int moffset = this->loader.GetLoadable()->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < this->loader.GetLoadable()->GetSubBlockSize(i); ++row) {
@@ -466,10 +466,10 @@ inline void ChLoad<Tloader>::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const 
     if (!this->jacobians)
         return;
     // fetch w as a contiguous vector
-    ChVectorDynamic<> grouped_w(this->LoadGet_ndof_w());
-    ChVectorDynamic<> grouped_cMv(this->LoadGet_ndof_w());
+    ChVectorDynamic<> grouped_w(this->LoadGetNumCoordsVelLevel());
+    ChVectorDynamic<> grouped_cMv(this->LoadGetNumCoordsVelLevel());
     unsigned int rowQ = 0;
-    for (int i = 0; i < this->loader.GetLoadable()->GetSubBlocks(); ++i) {
+    for (unsigned int i = 0; i < this->loader.GetLoadable()->GetNumSubBlocks(); ++i) {
         if (this->loader.GetLoadable()->IsSubBlockActive(i)) {
             unsigned int moffset = this->loader.GetLoadable()->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < this->loader.GetLoadable()->GetSubBlockSize(i); ++row) {
@@ -481,7 +481,7 @@ inline void ChLoad<Tloader>::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const 
     // do computation R=c*M*v
     grouped_cMv = c * this->jacobians->M * grouped_w;
     rowQ = 0;
-    for (int i = 0; i < this->loader.GetLoadable()->GetSubBlocks(); ++i) {
+    for (unsigned int i = 0; i < this->loader.GetLoadable()->GetNumSubBlocks(); ++i) {
         if (this->loader.GetLoadable()->IsSubBlockActive(i)) {
             unsigned int moffset = this->loader.GetLoadable()->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < this->loader.GetLoadable()->GetSubBlockSize(i); ++row) {
@@ -498,7 +498,7 @@ inline void ChLoad<Tloader>::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, dou
         return;
     // do computation Md=c*diag(M)
     unsigned int rowQ = 0;
-    for (int i = 0; i < this->loader.GetLoadable()->GetSubBlocks(); ++i) {
+    for (unsigned int i = 0; i < this->loader.GetLoadable()->GetNumSubBlocks(); ++i) {
         if (this->loader.GetLoadable()->IsSubBlockActive(i)) {
             unsigned int moffset = this->loader.GetLoadable()->GetSubBlockOffset(i);
             for (unsigned int row = 0; row < this->loader.GetLoadable()->GetSubBlockSize(i); ++row) {

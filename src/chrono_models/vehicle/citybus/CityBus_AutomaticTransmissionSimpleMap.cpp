@@ -18,7 +18,7 @@ namespace chrono {
 namespace vehicle {
 namespace citybus {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 const double lbft2nm = 1.3558;
 
 CityBus_AutomaticTransmissionSimpleMap::CityBus_AutomaticTransmissionSimpleMap(const std::string& name) : ChAutomaticTransmissionSimpleMap(name) {}

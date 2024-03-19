@@ -18,7 +18,9 @@
 #include "chrono/geometry/ChVolume.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// A capsule geometric object for collision and visualization.
 class ChApi ChCapsule : public ChVolume {
@@ -32,7 +34,7 @@ class ChApi ChCapsule : public ChVolume {
     virtual ChCapsule* Clone() const override { return new ChCapsule(*this); }
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::CAPSULE; }
+    virtual Type GetType() const override { return Type::CAPSULE; }
 
     /// Return the volume of this solid.
     virtual double GetVolume() const override;
@@ -47,10 +49,10 @@ class ChApi ChCapsule : public ChVolume {
     virtual double GetBoundingSphereRadius() const override;
 
     /// Compute the baricenter of the capsule.
-    virtual ChVector<> Baricenter() const override { return ChVector<>(0); }
+    virtual ChVector3d Baricenter() const override { return ChVector3d(0); }
 
     /// Evaluate position in box volume.
-    virtual ChVector<> Evaluate(double parU, double parV, double parW) const override {
+    virtual ChVector3d Evaluate(double parU, double parV, double parW) const override {
         //// TODO
         return VNULL;
     }
@@ -65,10 +67,10 @@ class ChApi ChCapsule : public ChVolume {
     double GetLength() const { return h + 2 * r; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
     /// Return the volume of this type of solid with given dimensions.
     static double GetVolume(double radius, double height);
@@ -86,9 +88,9 @@ class ChApi ChCapsule : public ChVolume {
     double h;  ///< height of cylindrical portion
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChCapsule, 0)
+CH_CLASS_VERSION(ChCapsule, 0)
 
 }  // end namespace chrono
 

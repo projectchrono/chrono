@@ -19,22 +19,22 @@
 namespace chrono {
 namespace sensor {
 
-ChNoiseNormal::ChNoiseNormal(ChVector<double> mean, ChVector<double> stdev)
+ChNoiseNormal::ChNoiseNormal(ChVector3d mean, ChVector3d stdev)
     : m_mean(mean), m_stdev(stdev), ChNoiseModel() {
     m_generator =
         std::minstd_rand((unsigned int)(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
 }
 
-void ChNoiseNormal::AddNoise(ChVector<double>& data) {
+void ChNoiseNormal::AddNoise(ChVector3d& data) {
     std::normal_distribution<double> dist_x(m_mean.x(), m_stdev.x());
     std::normal_distribution<double> dist_y(m_mean.y(), m_stdev.y());
     std::normal_distribution<double> dist_z(m_mean.z(), m_stdev.z());
-    data += ChVector<double>(dist_x(m_generator), dist_y(m_generator), dist_z(m_generator));
+    data += ChVector3d(dist_x(m_generator), dist_y(m_generator), dist_z(m_generator));
 }
 
 ChNoiseNormalDrift::ChNoiseNormalDrift(double updateRate,
-                                       ChVector<double> mean,
-                                       ChVector<double> stdev,
+                                       ChVector3d mean,
+                                       ChVector3d stdev,
                                        double drift_bias,
                                        double tau_drift)
     : m_updateRate(updateRate),
@@ -48,13 +48,13 @@ ChNoiseNormalDrift::ChNoiseNormalDrift(double updateRate,
         std::minstd_rand((unsigned int)(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
 }
 
-void ChNoiseNormalDrift::AddNoise(ChVector<double>& data) {
+void ChNoiseNormalDrift::AddNoise(ChVector3d& data) {
     std::normal_distribution<double> dist_a_x(m_mean.x(), m_stdev.x());
     std::normal_distribution<double> dist_a_y(m_mean.y(), m_stdev.y());
     std::normal_distribution<double> dist_a_z(m_mean.z(), m_stdev.z());
-    ChVector<double> eta_a = {dist_a_x(m_generator), dist_a_y(m_generator), dist_a_z(m_generator)};
+    ChVector3d eta_a = {dist_a_x(m_generator), dist_a_y(m_generator), dist_a_z(m_generator)};
 
-    ChVector<double> eta_b = {0, 0, 0};
+    ChVector3d eta_b = {0, 0, 0};
     if (m_tau_drift > std::numeric_limits<double>::epsilon() && m_drift_bias > std::numeric_limits<double>::epsilon()) {
         std::normal_distribution<double> dist_b(0.0, m_drift_bias * sqrt(1 / (m_updateRate * m_tau_drift)));
         eta_b = {dist_b(m_generator), dist_b(m_generator), dist_b(m_generator)};

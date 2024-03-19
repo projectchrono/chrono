@@ -38,7 +38,7 @@ ChSystemMulticoreNSC::ChSystemMulticoreNSC() : ChSystemMulticore() {
     data_manager->system_timer.AddTimer("ChSolverMulticore_solverG");
     data_manager->system_timer.AddTimer("ChSolverMulticore_Project");
     data_manager->system_timer.AddTimer("ChSolverMulticore_Solve");
-    data_manager->system_timer.AddTimer("ShurProduct");
+    data_manager->system_timer.AddTimer("SchurProduct");
     data_manager->system_timer.AddTimer("ChIterativeSolverMulticore_D");
     data_manager->system_timer.AddTimer("ChIterativeSolverMulticore_E");
     data_manager->system_timer.AddTimer("ChIterativeSolverMulticore_R");
@@ -87,8 +87,8 @@ void ChSystemMulticoreNSC::UpdateMaterialSurfaceData(int index, ChBody* body) {
 
     if (body->GetCollisionModel() && body->GetCollisionModel()->GetNumShapes() > 0) {
         auto shape = body->GetCollisionModel()->GetShape(0).first;
-        auto mat = std::static_pointer_cast<ChMaterialSurfaceNSC>(shape->GetMaterial());
-        friction[index] = mat->GetKfriction();
+        auto mat = std::static_pointer_cast<ChContactMaterialNSC>(shape->GetMaterial());
+        friction[index] = mat->GetSlidingFriction();
         cohesion[index] = mat->GetCohesion();
     }
 }
@@ -124,8 +124,8 @@ real3 ChSystemMulticoreNSC::GetBodyContactTorque(uint body_id) const {
                  data_manager->host_data.Fc[body_id * 6 + 5]);
 }
 
-static inline chrono::ChVector<real> ToChVector(const real3& a) {
-    return chrono::ChVector<real>(a.x, a.y, a.z);
+static inline chrono::ChVector3<real> ToChVector(const real3& a) {
+    return chrono::ChVector3<real>(a.x, a.y, a.z);
 }
 
 void ChSystemMulticoreNSC::SolveSystem() {
@@ -160,8 +160,8 @@ void ChSystemMulticoreNSC::AssembleSystem() {
     chrono::ChCollisionInfo icontact;
     for (int i = 0; i < (signed)data_manager->cd_data->num_rigid_contacts; i++) {
         vec2 cd_pair = data_manager->cd_data->bids_rigid_rigid[i];
-        icontact.modelA = Get_bodylist()[cd_pair.x]->GetCollisionModel().get();
-        icontact.modelB = Get_bodylist()[cd_pair.y]->GetCollisionModel().get();
+        icontact.modelA = GetBodies()[cd_pair.x]->GetCollisionModel().get();
+        icontact.modelB = GetBodies()[cd_pair.y]->GetCollisionModel().get();
         icontact.vN = ToChVector(data_manager->cd_data->norm_rigid_rigid[i]);
         icontact.vpA =
             ToChVector(data_manager->cd_data->cpta_rigid_rigid[i] + data_manager->host_data.pos_rigid[cd_pair.x]);
@@ -174,10 +174,10 @@ void ChSystemMulticoreNSC::AssembleSystem() {
     contact_container->EndAddContact();
 
     // Reset sparse representation accumulators.
-    for (auto& link : Get_linklist()) {
+    for (auto& link : GetLinks()) {
         link->ConstraintsBiReset();
     }
-    for (auto& body : Get_bodylist()) {
+    for (auto& body : GetBodies()) {
         body->VariablesFbReset();
     }
     contact_container->ConstraintsBiReset();
@@ -191,7 +191,7 @@ void ChSystemMulticoreNSC::AssembleSystem() {
     double Ct_factor = 1;
     double C_factor = 1 / step;
 
-    for (auto& link : Get_linklist()) {
+    for (auto& link : GetLinks()) {
         link->ConstraintsBiLoad_C(C_factor, max_penetration_recovery_speed, true);
         link->ConstraintsBiLoad_Ct(Ct_factor);
         link->VariablesQbLoadSpeed();
@@ -200,15 +200,15 @@ void ChSystemMulticoreNSC::AssembleSystem() {
         link->ConstraintsFbLoadForces(F_factor);
     }
 
-    for (int ip = 0; ip < Get_bodylist().size(); ++ip) {
-        std::shared_ptr<ChBody> Bpointer = Get_bodylist()[ip];
+    for (int ip = 0; ip < GetBodies().size(); ++ip) {
+        std::shared_ptr<ChBody> Bpointer = GetBodies()[ip];
 
         Bpointer->VariablesFbLoadForces(F_factor);
         Bpointer->VariablesQbLoadSpeed();
         Bpointer->VariablesFbIncrementMq();
     }
 
-    for (auto& item : Get_otherphysicslist()) {
+    for (auto& item : GetOtherPhysicsItems()) {
         item->VariablesFbLoadForces(F_factor);
         item->VariablesQbLoadSpeed();
         item->VariablesFbIncrementMq();
@@ -225,10 +225,10 @@ void ChSystemMulticoreNSC::AssembleSystem() {
 
     // Inject all variables and constraints into the system descriptor.
     descriptor->BeginInsertion();
-    for (auto& body : Get_bodylist()) {
+    for (auto& body : GetBodies()) {
         body->InjectVariables(*descriptor);
     }
-    for (auto& link : Get_linklist()) {
+    for (auto& link : GetLinks()) {
         link->InjectConstraints(*descriptor);
     }
     contact_container->InjectConstraints(*descriptor);

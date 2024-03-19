@@ -89,6 +89,7 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     /// The path can be absolute, or relative to the .exe current path.
     /// Note that the directory must be already existing.
     /// At the execution of ExportScript() it will create files & directories like
+    /// <pre>
     ///    base_path
     ///       exported.assets.py
     ///       anim
@@ -100,6 +101,7 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     ///          state00001.py
     ///          state00001.dat
     ///          ....
+    /// </pre>
     void SetBasePath(const std::string& mpath) { base_path = mpath; }
 
     /// Set transformation from Chrono frame to Blender
@@ -125,10 +127,10 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     };
 
     /// Set the default camera position and aim point - will write this in the output .assets.py file.
-    void SetCamera(ChVector<> location, ChVector<> aim, double angle, bool ortho = false);
+    void SetCamera(ChVector3d location, ChVector3d aim, double angle, bool ortho = false);
 
     /// Set the default light position and color - will write this in the output .assets.py file.
-    void SetLight(ChVector<> location, ChColor color, bool cast_shadow);
+    void SetLight(ChVector3d location, ChColor color, bool cast_shadow);
 
     /// Set the background color - will write this in the output .assets.py file.
     void SetBackground(ChColor color) { background = color; }
@@ -246,16 +248,16 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
 
   private:
     void UpdateRenderList();
-    void ExportAssets(ChStreamOutAsciiFile& assets_file, ChStreamOutAsciiFile& state_file);
-    void ExportShapes(ChStreamOutAsciiFile& assets_file,
-                      ChStreamOutAsciiFile& state_file,
+    void ExportAssets(std::ofstream& assets_file, std::ofstream& state_file);
+    void ExportShapes(std::ofstream& assets_file,
+                      std::ofstream& state_file,
                       std::shared_ptr<ChPhysicsItem> item);
-    void ExportMaterials(ChStreamOutAsciiFile& mfile,
+    void ExportMaterials(std::ofstream& mfile,
                          std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>>& m_materials,
                          const std::vector<std::shared_ptr<ChVisualMaterial>>& materials,
                          bool per_frame,
                          std::shared_ptr<ChVisualShape> mshape);
-    void ExportItemState(ChStreamOutAsciiFile& state_file,
+    void ExportItemState(std::ofstream& state_file,
                          std::shared_ptr<ChPhysicsItem> item,
                          const ChFrame<>& parentframe);
 
@@ -289,14 +291,14 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     ChFrame<> blender_frame;
 
     bool camera_add_default;
-    ChVector<> camera_location;
-    ChVector<> camera_aim;
-    ChVector<> camera_up;
+    ChVector3d camera_location;
+    ChVector3d camera_aim;
+    ChVector3d camera_up;
     double camera_angle;
     bool camera_orthographic;
     bool camera_found_in_assets;
 
-    ChVector<> def_light_location;
+    ChVector3d def_light_location;
     ChColor def_light_color;
     bool def_light_cast_shadows;
 

@@ -1,27 +1,14 @@
-//////////////////////////////////////////////////
+// =====================================================================================
 //  
-//   ChModuleIrrlicht.i
+// ChModuleIrrlicht.i
+// Create the Python and C# wrappers for the Chrono::Irrlicht module.
 //
-//   SWIG configuration file.
-//   This is processed by SWIG to create the C::E
-//   wrapper for Python.
+// ATTENTION: 
+// Must be included from another SWIG interface file which defines the module.
 //
-///////////////////////////////////////////////////
-
-
-
-// Define the module to be used in Python when typing 
-//  'import pychrono.irrlicht'
-
-#ifdef SWIGPYTHON
-%module(directors="1") irrlicht
-#else
-%module(directors="1") chrono_irrlicht
-#endif
-
+// =====================================================================================
 
 // Turn on the documentation of members, for more intuitive IDE typing
-
 %feature("autodoc", "1");
 %feature("flatnested", "1");
 
@@ -49,7 +36,9 @@
 // Include C++ headers this way...
 
 %{
-#include "chrono/solver/ChSolver.h"
+#include "chrono/solver/ChSolver.h"                      //// RADU: REMOVE?
+
+#include "chrono/assets/ChVisualShapes.h"
 
 #include <irrlicht.h>
 #include "chrono_irrlicht/ChIrrTools.h"
@@ -58,6 +47,7 @@
 #include "chrono_irrlicht/ChIrrNodeShape.h"
 #include "chrono_irrlicht/ChIrrNodeModel.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
+
 using namespace chrono;
 using namespace chrono::irrlicht;
 using namespace irr;
@@ -73,6 +63,7 @@ using namespace gui;
 // Undefine ChApi and other macros that otherwise SWIG gives a syntax error
 #define ChApiIrr 
 #define ChApi 
+#define EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 #define IRRLICHT_API
 #define _IRR_DEPRECATED_
 #define CH_DEPRECATED(msg)
@@ -86,9 +77,9 @@ using namespace gui;
 %include "std_vector.i"
 %include "typemaps.i"
 %include "wchar.i"
-#ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
+#ifdef SWIGPYTHON   // --------------------------------------------------------------------- PYTHON
 %include "python/cwstring.i"
-#endif // --------------------------------------------------------------------- PYTHON
+#endif              // --------------------------------------------------------------------- PYTHON
 %include "cstring.i"
 %include "cpointer.i"
 
@@ -106,9 +97,9 @@ using namespace gui;
 // is enough that a single class in an inheritance tree uses %shared_ptr, and all other in the 
 // tree must be promoted to %shared_ptr too).
 
-%shared_ptr(chrono::irrlicht::ChVisualSystemIrrlicht)
 %shared_ptr(chrono::irrlicht::ChIrrNodeShape)
 %shared_ptr(chrono::irrlicht::ChIrrNodeModel)
+%shared_ptr(chrono::irrlicht::ChVisualSystemIrrlicht)
 
 //
 // B- INCLUDE HEADERS
@@ -129,20 +120,39 @@ using namespace gui;
 // in the .i file, before the %include of the .h, even if already forwarded in .h
 
 
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChClassFactory.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChSystem.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChVector.i"
-%import(module = "pychrono.core")  "chrono_swig/interface/core/ChCoordsys.i"
+// WARNING: the drawChFunction is not working properly since it cannot recognize that ChFunction_XXX is derived from ChFunction
 
-%include "IReferenceCounted.h"
-%include "IImage.h"
-%include "IImageWriter.h"
-%ignore irr::io::createWriteFile;
-%include "IWriteFile.h"
+%import(module="pychrono.core") "chrono_swig/interface/core/ChClassFactory.i"
+%import(module="pychrono.core") "chrono_swig/interface/core/ChVector3.i"
+%import(module="pychrono.core") "chrono_swig/interface/core/ChMatrix.i"
+%import(module="pychrono.core") "chrono_swig/interface/core/ChCoordsys.i"
+%import(module="pychrono.core") "chrono_swig/interface/core/ChFrame.i"
+// %import(module="pychrono.core") "../../../chrono/functions/ChFunction.h"
+// %import(module="pychrono.core") "chrono_swig/interface/core/ChFunction.i"
+%import(module="pychrono.core") "chrono_swig/interface/core/ChPhysicsItem.i"
+%import(module="pychrono.core") "chrono_swig/interface/core/ChVisualMaterial.i"
+%import(module="pychrono.core") "chrono_swig/interface/core/ChVisualShape.i"
+%import(module="pychrono.core") "chrono_swig/interface/core/ChVisualModel.i"
+%import(module="pychrono.core") "chrono_swig/interface/core/ChColor.i"
+%import(module="pychrono.core") "chrono_swig/interface/core/ChSystem.i"
+
+#ifdef SWIGCSHARP  // --------------------------------------------------------------------- CSHARP
+
+%csmethodmodifiers irr::scene::ICameraSceneNode::OnEvent "public"
+
+#endif             // --------------------------------------------------------------------- CSHARP
+
+%include "IReferenceCounted.h"                         //// RADU: REMOVE?
+%include "IImage.h"                                    //// RADU: REMOVE?
+%include "IImageWriter.h"                              //// RADU: REMOVE?
+%ignore irr::io::createWriteFile;                      //// RADU: REMOVE?
+%include "IWriteFile.h"                                //// RADU: REMOVE?
 %include "irrTypes.h"
 %include "vector2d.h"
 %template(vector2df) irr::core::vector2d<irr::f32>;
 %template(vector2di) irr::core::vector2d<irr::s32>;
+%include "dimension2d.h"
+%template(dimension2du) irr::core::dimension2d<irr::u32>;
 %include "vector3d.h"
 %template(vector3df) irr::core::vector3d<irr::f32>;
 %template(vector3di) irr::core::vector3d<irr::s32>;
@@ -152,18 +162,21 @@ using namespace gui;
 %include "SColor.h"
 %include "SMaterial.h"
 %include "SMaterialLayer.h"
+%include "IReferenceCounted.h"
+%include "IImage.h"
+%include "IImageWriter.h"
+%ignore irr::io::createWriteFile;
+%include "IWriteFile.h"
 %include "IVideoDriver.h"
+%include "IEventReceiver.h"
 %include "ISceneNode.h"
 %include "ICameraSceneNode.h"
 %include "IrrlichtDevice.h"
 %include "IMeshSceneNode.h"
 %include "ISceneManager.h"
 %include "IGUIEnvironment.h"
-%include "dimension2d.h"
-%template(dimension2du) irr::core::dimension2d<irr::u32>;
 
-%import(module = "pychrono.core") "chrono_swig/interface/core/ChVisualSystem.i"
-%import(module = "pychrono.core") "chrono_swig/interface/core/ChColor.i"
+
 
 %ignore chrono::irrlicht::ScreenQuadCB;
 %include "../../../chrono_irrlicht/ChIrrEffects.h"

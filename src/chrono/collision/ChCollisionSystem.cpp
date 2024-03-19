@@ -47,14 +47,18 @@ void ChCollisionSystem::BindItem(std::shared_ptr<ChPhysicsItem> item) {
     item->AddCollisionModelsToSystem(this);
 }
 
-void ChCollisionSystem::ArchiveOut(ChArchiveOut& marchive) {
-    // version number
-    marchive.VersionWrite<ChCollisionSystem>();
+void ChCollisionSystem::UnbindItem(std::shared_ptr<ChPhysicsItem> item) {
+    item->RemoveCollisionModelsFromSystem(this);
 }
 
-void ChCollisionSystem::ArchiveIn(ChArchiveIn& marchive) {
+void ChCollisionSystem::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    /*int version =*/marchive.VersionRead<ChCollisionSystem>();
+    archive_out.VersionWrite<ChCollisionSystem>();
+}
+
+void ChCollisionSystem::ArchiveIn(ChArchiveIn& archive_in) {
+    // version number
+    /*int version =*/archive_in.VersionRead<ChCollisionSystem>();
 }
 
 }  // namespace chrono

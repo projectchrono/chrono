@@ -42,8 +42,8 @@ const double mrole_Driveline8WD::m_axle_differential_locking_limit = 3000;
 // the axles is along the Y axis (relative to the chassis coordinate frame),
 // -----------------------------------------------------------------------------
 mrole_Driveline8WD::mrole_Driveline8WD(const std::string& name) : ChShaftsDriveline8WD(name) {
-    SetMotorBlockDirection(ChVector<>(1, 0, 0));
-    SetAxleDirection(ChVector<>(0, 1, 0));
+    SetMotorBlockDirection(ChVector3d(1, 0, 0));
+    SetAxleDirection(ChVector3d(0, 1, 0));
 }
 
 }  // namespace mrole

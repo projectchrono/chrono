@@ -25,23 +25,23 @@ ChVisualShapeCascade::ChVisualShapeCascade(const TopoDS_Shape& ms) : mshape(ms) 
 
 ChVisualShapeCascade::~ChVisualShapeCascade() {}
 
-void ChVisualShapeCascade::ArchiveOut(ChArchiveOut& marchive) {
+void ChVisualShapeCascade::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVisualShapeCascade>();
+    archive_out.VersionWrite<ChVisualShapeCascade>();
     // serialize parent class
-    ChVisualShape::ArchiveOut(marchive);
+    ChVisualShape::ArchiveOut(archive_out);
     // serialize all member data:
-    // marchive << ...; //***TODO*** serialize shape chunk using Cascade xml or STEP formats
+    // archive_out << ...; //***TODO*** serialize shape chunk using Cascade xml or STEP formats
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChVisualShapeCascade::ArchiveIn(ChArchiveIn& marchive) {
+void ChVisualShapeCascade::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChVisualShapeCascade>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapeCascade>();
     // deserialize parent class
-    ChVisualShape::ArchiveIn(marchive);
+    ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:
-    // marchive >> ...; //***TODO*** deserialize shape chunk using Cascade xml or STEP formats
+    // archive_in >> ...; //***TODO*** deserialize shape chunk using Cascade xml or STEP formats
 }
 
 }  // namespace cascade

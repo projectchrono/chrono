@@ -19,16 +19,16 @@ using namespace chrono;
 #define xstr(s) str(s)
 #define str(s) #s
 
-#define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols)   \
-    {                                              \
-        uint current = (uint)M.capacity();         \
-        if (current > 0) {                         \
-            clear(M);                              \
-        }                                          \
-        if (current < (unsigned)nnz) {             \
-            M.reserve(nnz * (size_t)1.1);          \
-        }                                          \
-        M.resize(rows, cols, false);               \
+#define CLEAR_RESERVE_RESIZE(M, nnz, rows, cols) \
+    {                                            \
+        uint current = (uint)M.capacity();       \
+        if (current > 0) {                       \
+            clear(M);                            \
+        }                                        \
+        if (current < (unsigned)nnz) {           \
+            M.reserve(nnz*(size_t)1.1);          \
+        }                                        \
+        M.resize(rows, cols, false);             \
     }
 
 void ChIterativeSolverMulticoreNSC::RunTimeStep() {
@@ -96,8 +96,8 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
             data_manager->host_data.D_T *
                 (data_manager->host_data.v + data_manager->host_data.M_inv * data_manager->host_data.hf);
     }
-    ShurProductFull.Setup(data_manager);
-    ShurProductBilateral.Setup(data_manager);
+    SchurProductFull.Setup(data_manager);
+    SchurProductBilateral.Setup(data_manager);
     ProjectFull.Setup(data_manager);
 
     PerformStabilization();
@@ -109,7 +109,7 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
             data_manager->settings.solver.local_solver_mode = SolverMode::NORMAL;
             SetR();
             data_manager->measures.solver.total_iteration +=
-                solver->Solve(ShurProductFull,                                     //
+                solver->Solve(SchurProductFull,                                    //
                               ProjectFull,                                         //
                               data_manager->settings.solver.max_iteration_normal,  //
                               data_manager->num_constraints,                       //
@@ -123,7 +123,7 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
             data_manager->settings.solver.local_solver_mode = SolverMode::SLIDING;
             SetR();
             data_manager->measures.solver.total_iteration +=
-                solver->Solve(ShurProductFull,                                      //
+                solver->Solve(SchurProductFull,                                     //
                               ProjectFull,                                          //
                               data_manager->settings.solver.max_iteration_sliding,  //
                               data_manager->num_constraints,                        //
@@ -136,7 +136,7 @@ void ChIterativeSolverMulticoreNSC::RunTimeStep() {
             data_manager->settings.solver.local_solver_mode = SolverMode::SPINNING;
             SetR();
             data_manager->measures.solver.total_iteration +=
-                solver->Solve(ShurProductFull,                                       //
+                solver->Solve(SchurProductFull,                                      //
                               ProjectFull,                                           //
                               data_manager->settings.solver.max_iteration_spinning,  //
                               data_manager->num_constraints,                         //
@@ -305,8 +305,8 @@ void ChIterativeSolverMulticoreNSC::ComputeN() {
 
     data_manager->system_timer.start("ChIterativeSolverMulticore_N");
     const CompressedMatrix<real>& D_T = data_manager->host_data.D_T;
-    CompressedMatrix<real>& Nshur = data_manager->host_data.Nshur;
-    Nshur = D_T * data_manager->host_data.M_invD;
+    CompressedMatrix<real>& Nschur = data_manager->host_data.Nschur;
+    Nschur = D_T * data_manager->host_data.M_invD;
     data_manager->system_timer.stop("ChIterativeSolverMulticore_N");
 }
 
@@ -413,6 +413,6 @@ void ChIterativeSolverMulticoreNSC::ChangeSolverType(SolverType type) {
             solver = new ChSolverMulticoreGS();
             break;
         default:
-                break;
+            break;
     }
 }

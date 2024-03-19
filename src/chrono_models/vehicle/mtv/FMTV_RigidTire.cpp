@@ -33,7 +33,7 @@ const double FMTV_RigidTire::m_radius = 0.531;
 const double FMTV_RigidTire::m_width = 0.395;
 
 const double FMTV_RigidTire::m_mass = 110.0;
-const ChVector<> FMTV_RigidTire::m_inertia(13.0, 22.0, 13.0);
+const ChVector3d FMTV_RigidTire::m_inertia(13.0, 22.0, 13.0);
 
 const std::string FMTV_RigidTire::m_meshFile = "mtv/meshes/MTV_tire.obj";
 

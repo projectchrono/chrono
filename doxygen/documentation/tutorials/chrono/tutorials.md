@@ -36,10 +36,6 @@ for examples with a 3D graphical output.
 -   @subpage tutorial_demo_coords
 
     Coordinate transformations related issues. See also the [manual page](@ref coordinate_transformations) discussing this topic.
-	
--   @subpage tutorial_demo_stream
-
-    Using ChStream classes to write/load from file streams.
 
 -   @subpage tutorial_demo_archive
 

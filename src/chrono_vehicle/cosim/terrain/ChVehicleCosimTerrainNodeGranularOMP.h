@@ -69,7 +69,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     /// The type of material must be consistent with the contact method (SMC or NSC)
     /// specified at construction. These parameters characterize the material for the container and
     /// (if applicable) the granular material.  Object contact material is received from the rig node.
-    void SetMaterialSurface(const std::shared_ptr<ChMaterialSurface>& mat);
+    void SetMaterialSurface(const std::shared_ptr<ChContactMaterial>& mat);
 
     /// Specify whether contact coefficients are based on material properties (default: true).
     /// Note that this setting is only relevant when using the SMC method.
@@ -170,7 +170,7 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     virtual void Construct() override;
 
     /// Return current total number of contacts.
-    virtual int GetNumContacts() const override { return m_system->GetNcontacts(); }
+    virtual unsigned int GetNumContacts() const override { return m_system->GetNumContacts(); }
 
     virtual void CreateMeshProxy(unsigned int i) override;
     virtual void UpdateMeshProxy(unsigned int i, MeshState& mesh_state) override;
@@ -191,12 +191,12 @@ class CH_VEHICLE_API ChVehicleCosimTerrainNodeGranularOMP : public ChVehicleCosi
     /// Calculate total kinetic energy of granular material.
     double CalcTotalKineticEnergy();
 
-    void WriteParticleInformation(utils::CSV_writer& csv);
+    void WriteParticleInformation(utils::ChWriterCSV& csv);
 
-    static ChVector<> CalcBarycentricCoords(const ChVector<>& v1,
-                                            const ChVector<>& v2,
-                                            const ChVector<>& v3,
-                                            const ChVector<>& vP);
+    static ChVector3d CalcBarycentricCoords(const ChVector3d& v1,
+                                            const ChVector3d& v2,
+                                            const ChVector3d& v3,
+                                            const ChVector3d& vP);
 };
 
 /// @} vehicle_cosim_chrono

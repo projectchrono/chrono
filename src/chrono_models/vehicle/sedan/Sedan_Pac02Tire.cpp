@@ -28,7 +28,7 @@ namespace sedan {
 
 // Static variables
 const double Sedan_Pac02Tire::m_mass = 11.5;
-const ChVector<> Sedan_Pac02Tire::m_inertia(0.156, 0.679, 0.156);
+const ChVector3d Sedan_Pac02Tire::m_inertia(0.156, 0.679, 0.156);
 const std::string Sedan_Pac02Tire::m_meshFile_left = "sedan/sedan_tire.obj";
 const std::string Sedan_Pac02Tire::m_meshFile_right = "sedan/sedan_tire.obj";
 

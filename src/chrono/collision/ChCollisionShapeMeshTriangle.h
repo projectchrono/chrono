@@ -32,13 +32,13 @@ class ChApi ChCollisionShapeMeshTriangle : public ChCollisionShape {
   public:
     ChCollisionShapeMeshTriangle();
     ChCollisionShapeMeshTriangle(                     //
-        std::shared_ptr<ChMaterialSurface> material,  ///< contact material
-        ChVector<>* V1,                               ///< vertex1 coords
-        ChVector<>* V2,                               ///< vertex2 coords
-        ChVector<>* V3,                               ///< vertex3 coords
-        ChVector<>* eP1,                              ///< neighboring vertex at edge1 if any
-        ChVector<>* eP2,                              ///< neighboring vertex at edge2 if any
-        ChVector<>* eP3,                              ///< neighboring vertex at edge3 if any
+        std::shared_ptr<ChContactMaterial> material,  ///< contact material
+        ChVector3d* V1,                               ///< vertex1 coords
+        ChVector3d* V2,                               ///< vertex2 coords
+        ChVector3d* V3,                               ///< vertex3 coords
+        ChVector3d* eP1,                              ///< neighboring vertex at edge1 if any
+        ChVector3d* eP2,                              ///< neighboring vertex at edge2 if any
+        ChVector3d* eP3,                              ///< neighboring vertex at edge3 if any
         bool ownsV1,                                  ///< vertex1 owned by this triangle (otherwise, owned by neighbor)
         bool ownsV2,                                  ///< vertex2 owned by this triangle (otherwise, owned by neighbor)
         bool ownsV3,                                  ///< vertex3 owned by this triangle (otherwise, owned by neighbor)
@@ -50,17 +50,17 @@ class ChApi ChCollisionShapeMeshTriangle : public ChCollisionShape {
     ~ChCollisionShapeMeshTriangle() {}
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-    ChVector<>* V1;
-    ChVector<>* V2;
-    ChVector<>* V3;
-    ChVector<>* eP1;
-    ChVector<>* eP2;
-    ChVector<>* eP3;
+    ChVector3d* V1;
+    ChVector3d* V2;
+    ChVector3d* V3;
+    ChVector3d* eP1;
+    ChVector3d* eP2;
+    ChVector3d* eP3;
     bool ownsV1;
     bool ownsV2;
     bool ownsV3;

@@ -23,10 +23,10 @@ print ("Example: demonstration of collisions and contacts")
 
 def AddFallingItems(sys):
     # Shared contact materials for falling objects
-    sph_mat = chrono.ChMaterialSurfaceNSC()
+    sph_mat = chrono.ChContactMaterialNSC()
     sph_mat.SetFriction(0.2)
-    box_mat = chrono.ChMaterialSurfaceNSC()
-    cyl_mat = chrono.ChMaterialSurfaceNSC()
+    box_mat = chrono.ChContactMaterialNSC()
+    cyl_mat = chrono.ChContactMaterialNSC()
 
     # Create falling rigid bodies (spheres and boxes etc.)
     for bi in range(29):
@@ -35,7 +35,7 @@ def AddFallingItems(sys):
                                               True,     # visualization?
                                               True,     # collision?
                                               sph_mat)  # contact material
-        msphereBody.SetPos(chrono.ChVectorD(-5 + chrono.ChRandom() * 10, 4 + bi * 0.05, -5 + chrono.ChRandom() * 10))
+        msphereBody.SetPos(chrono.ChVector3d(-5 + chrono.ChRandom.Get() * 10, 4 + bi * 0.05, -5 + chrono.ChRandom.Get() * 10))
         msphereBody.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/bluewhite.png"))
         sys.Add(msphereBody)
 
@@ -44,7 +44,7 @@ def AddFallingItems(sys):
                                         True,          # visualization?
                                         True,          # collision?
                                         box_mat)       # contact material
-        mboxBody.SetPos(chrono.ChVectorD(-5 + chrono.ChRandom() * 10, 4 + bi * 0.05, -5 + chrono.ChRandom() * 10))
+        mboxBody.SetPos(chrono.ChVector3d(-5 + chrono.ChRandom.Get() * 10, 4 + bi * 0.05, -5 + chrono.ChRandom.Get() * 10))
         mboxBody.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/cubetexture_bluewhite.png"))
         sys.Add(mboxBody)
 
@@ -54,13 +54,13 @@ def AddFallingItems(sys):
                                              True,      # visualization?
                                              True,      # collision?
                                              cyl_mat)   # contact material
-        mcylBody.SetPos(chrono.ChVectorD(-5 + chrono.ChRandom() * 10, 4 + bi * 0.05, -5 + chrono.ChRandom() * 10))
+        mcylBody.SetPos(chrono.ChVector3d(-5 + chrono.ChRandom.Get() * 10, 4 + bi * 0.05, -5 + chrono.ChRandom.Get() * 10))
         mcylBody.GetVisualShape(0).SetTexture(chrono.GetChronoDataFile("textures/pinkwhite.png"))
         sys.Add(mcylBody)
 
 def AddContainer(sys):
     # Contact material for container
-    ground_mat = chrono.ChMaterialSurfaceNSC()
+    ground_mat = chrono.ChContactMaterialNSC()
 
     # Visualization material for container
     ground_vis_mat = chrono.ChVisualMaterial()
@@ -68,36 +68,36 @@ def AddContainer(sys):
 
     # Create the five walls of the rectangular container, using fixed rigid bodies of 'box' type
     floorBody = chrono.ChBodyEasyBox(20, 1, 20, 1000, True, True, ground_mat)
-    floorBody.SetPos(chrono.ChVectorD(0, -5, 0))
-    floorBody.SetBodyFixed(True)
+    floorBody.SetPos(chrono.ChVector3d(0, -5, 0))
+    floorBody.SetFixed(True)
     floorBody.GetVisualShape(0).SetMaterial(0, ground_vis_mat)
     sys.Add(floorBody)
 
     wallBody1 = chrono.ChBodyEasyBox(1, 10, 20.99, 1000, True, True, ground_mat)
-    wallBody1.SetPos(chrono.ChVectorD(-10, 0, 0))
-    wallBody1.SetBodyFixed(True)
+    wallBody1.SetPos(chrono.ChVector3d(-10, 0, 0))
+    wallBody1.SetFixed(True)
     wallBody1.GetVisualShape(0).SetMaterial(0, ground_vis_mat)
     sys.Add(wallBody1)
 
     wallBody2 = chrono.ChBodyEasyBox(1, 10, 20.99, 1000, True, True, ground_mat)
-    wallBody2.SetPos(chrono.ChVectorD(10, 0, 0))
-    wallBody2.SetBodyFixed(True)
+    wallBody2.SetPos(chrono.ChVector3d(10, 0, 0))
+    wallBody2.SetFixed(True)
     wallBody2.GetVisualShape(0).SetMaterial(0, ground_vis_mat)
     sys.Add(wallBody2)
 
     wallBody3 = chrono.ChBodyEasyBox(20.99, 10, 1, 1000, False, True, ground_mat)
-    wallBody3.SetPos(chrono.ChVectorD(0, 0, -10))
-    wallBody3.SetBodyFixed(True)
+    wallBody3.SetPos(chrono.ChVector3d(0, 0, -10))
+    wallBody3.SetFixed(True)
     sys.Add(wallBody3)
 
     wallBody4 = chrono.ChBodyEasyBox(20.99, 10, 1, 1000, True, True, ground_mat)
-    wallBody4.SetPos(chrono.ChVectorD(0, 0, 10))
-    wallBody4.SetBodyFixed(True)
+    wallBody4.SetPos(chrono.ChVector3d(0, 0, 10))
+    wallBody4.SetFixed(True)
     wallBody4.GetVisualShape(0).SetMaterial(0, ground_vis_mat)
     sys.Add(wallBody4)
 
     # Add the rotating mixer
-    mixer_mat = chrono.ChMaterialSurfaceNSC()
+    mixer_mat = chrono.ChContactMaterialNSC()
     mixer_mat.SetFriction(0.4)
 
     rotatingBody = chrono.ChBodyEasyBox(10, 5, 1,  # x,y,z size
@@ -105,16 +105,16 @@ def AddContainer(sys):
                                         True,      # visualization?
                                         True,      # collision?
                                         mixer_mat) # contact material
-    rotatingBody.SetPos(chrono.ChVectorD(0, -1.6, 0))
+    rotatingBody.SetPos(chrono.ChVector3d(0, -1.6, 0))
     sys.Add(rotatingBody)
 
     # .. a motor between mixer and truss
     my_motor = chrono.ChLinkMotorRotationSpeed()
     my_motor.Initialize(rotatingBody,
                         floorBody, 
-                        chrono.ChFrameD(chrono.ChVectorD(0, 0, 0), 
-                            chrono.Q_from_AngAxis(chrono.CH_C_PI_2, chrono.VECT_X)))
-    mfun = chrono.ChFunction_Const(chrono.CH_C_PI / 4.0)  # speed 45 deg/s 
+                        chrono.ChFramed(chrono.ChVector3d(0, 0, 0), 
+                        chrono.QuatFromAngleAxis(chrono.CH_PI_2, chrono.VECT_X)))
+    mfun = chrono.ChFunctionConst(chrono.CH_PI / 4.0)  # speed 45 deg/s 
     my_motor.SetSpeedFunction(mfun)
     sys.AddLink(my_motor)
 
@@ -137,12 +137,12 @@ vis.SetWindowTitle('Collisions between objects')
 vis.Initialize()
 vis.AddLogo(chrono.GetChronoDataFile('logo_pychrono_alpha.png'))
 vis.AddSkyBox()
-vis.AddCamera(chrono.ChVectorD(0, 14 , -20))
+vis.AddCamera(chrono.ChVector3d(0, 14 , -20))
 vis.AddTypicalLights()
 
 # Modify some setting of the physical syustem for the simulation, if you want
 sys.SetSolverType(chrono.ChSolver.Type_PSOR)
-sys.SetSolverMaxIterations(20)
+sys.GetSolver().AsIterative().SetMaxIterations(20)
 
 #  Run the simulation
 while vis.Run():

@@ -20,12 +20,12 @@ ChMatlabEngine::ChMatlabEngine() {
 #ifdef __APPLE__
     ep = matlabengine::engOpen("matlab -automation -nosplash \0");
     if (!ep) {
-        throw ChException("Can't start MATLAB engine");
+        throw std::runtime_error("Can't start MATLAB engine");
     }
 #else
     ep = matlabengine::engOpen("-automation \0");
     if (!ep) {
-        throw ChException("Can't start MATLAB engine");
+        throw std::runtime_error("Can't start MATLAB engine");
     }
 #endif
 }

@@ -73,10 +73,10 @@ class ChApi ChConstraintTwoGenericBoxed : public ChConstraintTwoGeneric {
     virtual double Violation(double mc_i) override;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 }  // end namespace chrono

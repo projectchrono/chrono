@@ -115,9 +115,9 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// The file extension determines the image format.
     virtual void WriteImageToFile(const std::string& filename) override;
 
-    void SetWindowSize(const ChVector2<int>& size);
+    void SetWindowSize(const ChVector2i& size);
     void SetWindowSize(int width, int height);
-    void SetWindowPosition(const ChVector2<int>& pos);
+    void SetWindowPosition(const ChVector2i& pos);
     void SetWindowPosition(int from_left, int from_top);
     void SetWindowTitle(const std::string& title);
     void SetClearColor(const ChColor& color);
@@ -133,30 +133,30 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     /// Add a camera to the VSG scene.
     /// Note that currently only one camera is supported.
-    virtual int AddCamera(const ChVector<>& pos, ChVector<> targ = VNULL) override;
+    virtual int AddCamera(const ChVector3d& pos, ChVector3d targ = VNULL) override;
 
     /// Set the location of the specified camera.
-    virtual void SetCameraPosition(int id, const ChVector<>& pos) override;
+    virtual void SetCameraPosition(int id, const ChVector3d& pos) override;
 
     /// Set the target (look-at) point of the specified camera.
-    virtual void SetCameraTarget(int id, const ChVector<>& target) override;
+    virtual void SetCameraTarget(int id, const ChVector3d& target) override;
 
     /// Set the location of the current (active) camera.
-    virtual void SetCameraPosition(const ChVector<>& pos) override;
+    virtual void SetCameraPosition(const ChVector3d& pos) override;
 
     /// Set the target (look-at) point of the current (active) camera.
-    virtual void SetCameraTarget(const ChVector<>& target) override;
+    virtual void SetCameraTarget(const ChVector3d& target) override;
 
     /// Get the location of the current (active) camera.
-    virtual ChVector<> GetCameraPosition() const override;
+    virtual ChVector3d GetCameraPosition() const override;
 
     /// Get the target (look-at) point of the current (active) camera.
-    virtual ChVector<> GetCameraTarget() const override;
+    virtual ChVector3d GetCameraTarget() const override;
 
     /// Get estimated FPS.
     double GetRenderingFPS() const { return m_fps; }
 
-    /// Enable/disable VSG information terminal output during initialization (default: true).
+    /// Enable/disable VSG information terminal output during initialization (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
     /// Enable/disable Shadows, use before Initialization, to see an effect
@@ -268,7 +268,7 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
 
     /// Data related to deformable meshes (FEA and SCM).
     struct DeformableMesh {
-        std::shared_ptr<geometry::ChTriangleMeshConnected> trimesh;  ///< reference to the Chrono triangle mesh
+        std::shared_ptr<ChTriangleMeshConnected> trimesh;  ///< reference to the Chrono triangle mesh
         vsg::ref_ptr<vsg::vec3Array> vertices;                       ///< mesh vertices
         vsg::ref_ptr<vsg::vec3Array> normals;                        ///< mesh normals
         vsg::ref_ptr<vsg::vec4Array> colors;                         ///< mesh vertex colors

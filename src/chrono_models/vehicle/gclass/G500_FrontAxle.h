@@ -38,7 +38,7 @@ class CH_MODELS_API G500_FrontAxle : public ChToeBarRigidPanhardAxle {
 
   
   protected:
-    virtual const ChVector<> getLocation(PointId which) override;
+    virtual const ChVector3d getLocation(PointId which) override;
 
     virtual double getCamberAngle() const override { return 0; }
     virtual double getToeAngle() const override { return 0; }
@@ -60,15 +60,15 @@ class CH_MODELS_API G500_FrontAxle : public ChToeBarRigidPanhardAxle {
     virtual double getPanhardRodRadius() const override { return m_panhardRodRadius; }
     virtual double getARBRadius() const override { return m_arbRadius; }
 
-    virtual const ChVector<> getAxleTubeCOM() const override { return ChVector<>(0,0,0); }
+    virtual const ChVector3d getAxleTubeCOM() const override { return ChVector3d(0,0,0); }
 
-    virtual const ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getKnuckleInertia() const override { return m_knuckleInertia; }
-    virtual const ChVector<>& getTierodInertia() const override { return m_tierodInertia; }
-    virtual const ChVector<>& getDraglinkInertia() const override { return m_draglinkInertia; }
-    virtual const ChVector<>& getPanhardRodInertia() const override { return m_panhardRodInertia; }
-    virtual const ChVector<>& getARBInertia() const override { return m_arbInertia; }
+    virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getKnuckleInertia() const override { return m_knuckleInertia; }
+    virtual const ChVector3d& getTierodInertia() const override { return m_tierodInertia; }
+    virtual const ChVector3d& getDraglinkInertia() const override { return m_draglinkInertia; }
+    virtual const ChVector3d& getPanhardRodInertia() const override { return m_panhardRodInertia; }
+    virtual const ChVector3d& getARBInertia() const override { return m_arbInertia; }
 
     virtual double getARBStiffness() const override { return m_arbStiffness; }
     virtual double getARBDamping() const override { return m_arbDamping; }
@@ -104,13 +104,13 @@ class CH_MODELS_API G500_FrontAxle : public ChToeBarRigidPanhardAxle {
     static const double m_panhardRodRadius;
     static const double m_arbRadius;
 
-    static const ChVector<> m_axleTubeInertia;
-    static const ChVector<> m_spindleInertia;
-    static const ChVector<> m_knuckleInertia;
-    static const ChVector<> m_tierodInertia;
-    static const ChVector<> m_draglinkInertia;
-    static const ChVector<> m_panhardRodInertia;
-    static const ChVector<> m_arbInertia;
+    static const ChVector3d m_axleTubeInertia;
+    static const ChVector3d m_spindleInertia;
+    static const ChVector3d m_knuckleInertia;
+    static const ChVector3d m_tierodInertia;
+    static const ChVector3d m_draglinkInertia;
+    static const ChVector3d m_panhardRodInertia;
+    static const ChVector3d m_arbInertia;
 
     static const double m_springCoefficient;
     static const double m_springRestLength;

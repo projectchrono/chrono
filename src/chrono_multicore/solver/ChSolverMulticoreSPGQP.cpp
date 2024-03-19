@@ -39,7 +39,7 @@ void ChSolverMulticoreSPGQP::UpdateR() {
     R_n = -b_n - D_n_T * M_invk + s_n;
 }
 
-uint ChSolverMulticoreSPGQP::Solve(ChShurProduct& ShurProduct,
+uint ChSolverMulticoreSPGQP::Solve(ChSchurProduct& SchurProduct,
                                   ChProjectConstraints& Project,
                                   const uint max_iter,
                                   const uint size,
@@ -75,12 +75,12 @@ uint ChSolverMulticoreSPGQP::Solve(ChShurProduct& ShurProduct,
         }
     } else if (data_manager->settings.solver.use_power_iteration) {
         data_manager->measures.solver.lambda_max =
-            LargestEigenValue(ShurProduct, temp, data_manager->measures.solver.lambda_max);
+            LargestEigenValue(SchurProduct, temp, data_manager->measures.solver.lambda_max);
         alpha = 1.95 / data_manager->measures.solver.lambda_max;
     }
     x = gamma;
     x_candidate = gamma;
-    ShurProduct(x, temp);
+    SchurProduct(x, temp);
     g = temp - r;
 
     f_hist[0] = (0.5 * (g - r, x));
@@ -104,7 +104,7 @@ uint ChSolverMulticoreSPGQP::Solve(ChShurProduct& ShurProduct,
         }
 
         f_max = max_compare;
-        ShurProduct(d_k, Ad_k);
+        SchurProduct(d_k, Ad_k);
         real Ad_k_dot_d_k = (Ad_k, d_k);
 
         xi = (f_max - f_hist[current_iteration]) / Ad_k_dot_d_k;

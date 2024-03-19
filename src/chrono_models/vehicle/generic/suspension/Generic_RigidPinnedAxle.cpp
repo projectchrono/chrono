@@ -43,11 +43,11 @@ const double Generic_RigidPinnedAxle::m_spindleRadius = 0.15;
 const double Generic_RigidPinnedAxle::m_spindleWidth = 0.06;
 const double Generic_RigidPinnedAxle::m_axleTubeRadius = 0.05;
 
-const ChVector<> Generic_RigidPinnedAxle::m_spindleInertia(0.000478, 0.000496, 0.000478);
-const ChVector<> Generic_RigidPinnedAxle::m_axleTubeInertia(0.006, 0.003, 0.006);
+const ChVector3d Generic_RigidPinnedAxle::m_spindleInertia(0.000478, 0.000496, 0.000478);
+const ChVector3d Generic_RigidPinnedAxle::m_axleTubeInertia(0.006, 0.003, 0.006);
 
-const ChVector<> Generic_RigidPinnedAxle::m_axleTubeCOM(0, 0, 0);
-const ChVector<> Generic_RigidPinnedAxle::m_axlePinLoc(0, 0, 0.15);
+const ChVector3d Generic_RigidPinnedAxle::m_axleTubeCOM(0, 0, 0);
+const ChVector3d Generic_RigidPinnedAxle::m_axlePinLoc(0, 0, 0.15);
 
 const double Generic_RigidPinnedAxle::m_axleInertia = 0.4;
 
@@ -60,12 +60,12 @@ const double Generic_RigidPinnedAxle::m_axleInertia = 0.4;
 // function are for the left half of the suspension only.
 // -----------------------------------------------------------------------------
 
-const ChVector<> Generic_RigidPinnedAxle::getLocation(PointId which) {
+const ChVector3d Generic_RigidPinnedAxle::getLocation(PointId which) {
     switch (which) {
         case SPINDLE:
-            return ChVector<>(0, 1.100, 0);  // location of spindle center of mass
+            return ChVector3d(0, 1.100, 0);  // location of spindle center of mass
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

@@ -102,22 +102,22 @@ void ChVariablesNode::Build_M(ChSparseMatrix& storage, int insrow, int inscol, c
     storage.SetElement(insrow + 2, inscol + 2, scaledmass);
 }
 
-void ChVariablesNode::ArchiveOut(ChArchiveOut& marchive) {
+void ChVariablesNode::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChVariablesNode>();
+    archive_out.VersionWrite<ChVariablesNode>();
     // serialize parent class
-    ChVariables::ArchiveOut(marchive);
+    ChVariables::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(mass);
+    archive_out << CHNVP(mass);
 }
 
-void ChVariablesNode::ArchiveIn(ChArchiveIn& marchive) {
+void ChVariablesNode::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChVariablesNode>();
+    /*int version =*/ archive_in.VersionRead<ChVariablesNode>();
     // deserialize parent class
-    ChVariables::ArchiveIn(marchive);
+    ChVariables::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(mass);
+    archive_in >> CHNVP(mass);
     SetNodeMass(mass);
 }
 

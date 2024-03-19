@@ -48,7 +48,7 @@ class CH_SENSOR_API ChTachometerSensor : public ChDynamicSensor {
 
   private:
     /// Variable for communicating the sensor's keyframes from the ChSystem into the data generation filter
-    std::vector<ChVector<double>> m_keyframes;   
+    std::vector<ChVector3d> m_keyframes;   
     friend class ChFilterTachometerUpdate;
     Axis m_axis;
 };

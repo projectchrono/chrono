@@ -31,18 +31,15 @@ ChShaftsGear::ChShaftsGear(const ChShaftsGear& other) : ChShaftsCouple(other), v
     phase2 = other.phase2;
 }
 
-bool ChShaftsGear::Initialize(std::shared_ptr<ChShaft> mshaft1, std::shared_ptr<ChShaft> mshaft2) {
+bool ChShaftsGear::Initialize(std::shared_ptr<ChShaft> shaft_1, std::shared_ptr<ChShaft> shaft_2) {
     // Parent initialization
-    if (!ChShaftsCouple::Initialize(mshaft1, mshaft2))
+    if (!ChShaftsCouple::Initialize(shaft_1, shaft_2))
         return false;
-
-    ChShaft* mm1 = mshaft1.get();
-    ChShaft* mm2 = mshaft2.get();
 
     phase1 = shaft1->GetPos();
     phase2 = shaft2->GetPos();
 
-    constraint.SetVariables(&mm1->Variables(), &mm2->Variables());
+    constraint.SetVariables(&shaft_1->Variables(), &shaft_2->Variables());
 
     SetSystem(shaft1->GetSystem());
     return true;
@@ -56,7 +53,7 @@ void ChShaftsGear::Update(double mytime, bool update_assets) {
     violation = ratio * (shaft1->GetPos() - phase1) - 1.0 * (shaft2->GetPos() - phase2);
 }
 
-//// STATE BOOKKEEPING FUNCTIONS
+// STATE BOOKKEEPING FUNCTIONS
 
 void ChShaftsGear::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     L(off_L) = torque_react;
@@ -70,7 +67,7 @@ void ChShaftsGear::IntLoadResidual_CqL(const unsigned int off_L,    // offset in
                                        ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
                                        const ChVectorDynamic<>& L,  // the L vector
                                        const double c               // a scaling factor
-                                       ) {
+) {
     constraint.MultiplyTandAdd(R, L(off_L) * c);
 }
 
@@ -79,16 +76,15 @@ void ChShaftsGear::IntLoadConstraint_C(const unsigned int off_L,  // offset in Q
                                        const double c,            // a scaling factor
                                        bool do_clamp,             // apply clamping to c*C?
                                        double recovery_clamp      // value for min/max clamping of c*C
-                                       ) {
-    double res = this->ratio * (this->shaft1->GetPos() - phase1) + 
-                 -1.0        * (this->shaft2->GetPos() - phase2);
-    if (!avoid_phase_drift) 
+) {
+    double res = this->ratio * (this->shaft1->GetPos() - phase1) + -1.0 * (this->shaft2->GetPos() - phase2);
+    if (!avoid_phase_drift)
         res = 0;
 
     double cnstr_violation = c * res;
 
     if (do_clamp) {
-        cnstr_violation = ChMin(ChMax(cnstr_violation, -recovery_clamp), recovery_clamp);
+        cnstr_violation = std::min(std::max(cnstr_violation, -recovery_clamp), recovery_clamp);
     }
 
     Qc(off_L) += cnstr_violation;
@@ -111,8 +107,6 @@ void ChShaftsGear::IntFromDescriptor(const unsigned int off_v,  // offset in v
                                      ChVectorDynamic<>& L) {
     L(off_L) = constraint.Get_l_i();
 }
-
-// SOLVER INTERFACES
 
 void ChShaftsGear::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // if (!IsActive())
@@ -145,35 +139,32 @@ void ChShaftsGear::ConstraintsFetch_react(double factor) {
     torque_react = constraint.Get_l_i() * factor;
 }
 
-//////// FILE I/O
-
-void ChShaftsGear::ArchiveOut(ChArchiveOut& marchive) {
+void ChShaftsGear::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChShaftsGear>();
+    archive_out.VersionWrite<ChShaftsGear>();
 
     // serialize parent class
-    ChShaftsCouple::ArchiveOut(marchive);
+    ChShaftsCouple::ArchiveOut(archive_out);
 
     // serialize all member data:
-    marchive << CHNVP(ratio);
-    marchive << CHNVP(avoid_phase_drift);
-    marchive << CHNVP(phase1);
-    marchive << CHNVP(phase2);
+    archive_out << CHNVP(ratio);
+    archive_out << CHNVP(avoid_phase_drift);
+    archive_out << CHNVP(phase1);
+    archive_out << CHNVP(phase2);
 }
 
-/// Method to allow de serialization of transient data from archives.
-void ChShaftsGear::ArchiveIn(ChArchiveIn& marchive) {
+void ChShaftsGear::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ marchive.VersionRead<ChShaftsGear>();
+    /*int version =*/archive_in.VersionRead<ChShaftsGear>();
 
     // deserialize parent class:
-    ChShaftsCouple::ArchiveIn(marchive);
+    ChShaftsCouple::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    marchive >> CHNVP(ratio);
-    marchive >> CHNVP(avoid_phase_drift);
-    marchive >> CHNVP(phase1);
-    marchive >> CHNVP(phase2);
+    archive_in >> CHNVP(ratio);
+    archive_in >> CHNVP(avoid_phase_drift);
+    archive_in >> CHNVP(phase1);
+    archive_in >> CHNVP(phase2);
     constraint.SetVariables(&shaft1->Variables(), &shaft2->Variables());
 }
 

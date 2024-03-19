@@ -42,12 +42,12 @@ class CH_MODELS_API Marder_Idler : public ChTranslationalIdler {
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the idler subsystem reference frame.
-    virtual const ChVector<> GetLocation(PointId which) override;
+    virtual const ChVector3d GetLocation(PointId which) override;
 
     /// Return the mass of the carrier body.
     virtual double GetCarrierMass() const override { return m_carrier_mass; }
     /// Return the moments of inertia of the carrier body.
-    virtual const ChVector<>& GetCarrierInertia() override { return m_carrier_inertia; }
+    virtual const ChVector3d& GetCarrierInertia() override { return m_carrier_inertia; }
     /// Return a visualization radius for the carrier body.
     virtual double GetCarrierVisRadius() const override { return m_carrier_radius; }
 
@@ -68,7 +68,7 @@ class CH_MODELS_API Marder_Idler : public ChTranslationalIdler {
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_tensionerForceCB;
 
     static const double m_carrier_mass;
-    static const ChVector<> m_carrier_inertia;
+    static const ChVector3d m_carrier_inertia;
     static const double m_carrier_radius;
 
     static const double m_tensioner_l0;

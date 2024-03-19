@@ -23,7 +23,7 @@
 
 #include <string>
 
-#include "chrono/core/ChVector.h"
+#include "chrono/core/ChVector3.h"
 #include "chrono/assets/ChTexture.h"
 #include "chrono/assets/ChColor.h"
 
@@ -93,7 +93,7 @@ class ChApi ChVisualMaterial {
     const std::string& GetDisplacementTexture() const { return disp_texture.GetFilename(); }
     const std::string& GetAmbientOcclusionTexture() const { return ao_texture.GetFilename(); }
 
-    const ChVector2<float>& GetTextureScale() const;
+    const ChVector2f& GetTextureScale() const;
 
     float GetFresnelExp() const { return fresnel_exp; }
     float GetFresnelMax() const { return fresnel_max; }
@@ -105,10 +105,10 @@ class ChApi ChVisualMaterial {
     unsigned short int GetInstanceID() const { return instance_id; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 
     /// Create a default material.
     static std::shared_ptr<ChVisualMaterial> Default();

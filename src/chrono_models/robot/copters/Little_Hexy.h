@@ -30,14 +30,14 @@ namespace copter {
 /// Little hexy (hexacopter) model.
 class CH_MODELS_API Little_Hexy : public Copter<6> {
   public:
-    Little_Hexy(ChSystem& sys, const ChVector<>& cpos);
+    Little_Hexy(ChSystem& sys, const ChVector3d& cpos);
 
     /// Add specific visualization shapes to shapes and propellers.
     void AddVisualizationAssets();
 
     /// Add collision shapes.
     /// The collision shape is a box + cylinder.
-    void AddCollisionShapes(std::shared_ptr<ChMaterialSurface> material);
+    void AddCollisionShapes(std::shared_ptr<ChContactMaterial> material);
 
     /// Pitch down by the specified angle.
     void Pitch_Down(double delta);
@@ -70,7 +70,7 @@ class CH_MODELS_API Little_Hexy : public Copter<6> {
     virtual const std::string& GetPropellerMeshFilename() const override { return propeller_mesh_path; }
 
   protected:
-    static std::vector<ChVector<>> getPosVect();
+    static std::vector<ChVector3d> getPosVect();
 
   private:
     // clockwise (true) or CCW rotations according to Little Hexy manual

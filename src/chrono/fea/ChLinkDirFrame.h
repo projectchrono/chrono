@@ -33,20 +33,6 @@ namespace fea {
 /// (frame). The D direction of the ChNodeFEAxyzD is enforced to stay parallel to a given direction associated to the
 /// ChBodyFrame.
 class ChApi ChLinkDirFrame : public ChLinkBase {
-  private:
-    ChVector<> m_react;
-
-    // used as an interface to the solver.
-    ChConstraintTwoGeneric constraint1;
-    ChConstraintTwoGeneric constraint2;
-
-    std::shared_ptr<fea::ChNodeFEAxyzD> m_node;
-    std::shared_ptr<ChBodyFrame> m_body;
-
-    // Coordinate system, attached to the body, whose X direction is
-    // constrained to remain parallel to the node's D direction.
-    ChCoordsys<> m_csys;
-
   public:
     ChLinkDirFrame();
     ChLinkDirFrame(const ChLinkDirFrame& other);
@@ -56,20 +42,59 @@ class ChApi ChLinkDirFrame : public ChLinkBase {
     virtual ChLinkDirFrame* Clone() const override { return new ChLinkDirFrame(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link.
-    virtual int GetNumCoords() override { return 3 + 4; }
+    virtual unsigned int GetNumAffectedCoords() override { return 3 + 4; }
 
     /// Number of scalar constraints.
-    virtual int GetDOC_c() override { return 2; }
-
-    /// Get the reaction torque on the body, expressed in the link coordinate system.
-    virtual ChVector<> Get_react_torque() override { return GetReactionOnBody(); }
+    virtual unsigned int GetNumConstraintsBilateral() override { return 2; }
 
     // Get constraint violations
     virtual ChVectorDynamic<> GetConstraintViolation() const override;
 
-    //
+    // Get the link coordinate system, expressed in the absolute frame.
+    ChFrame<> GetFrameNodeAbs() const;
+
+    /// Initialize this constraint, given the node and body frame to join.
+    /// The constrained direction is the actual direction of the node (unless
+    /// otherwise defined, using the optional 'dir' parameter).
+    /// Note: the node and body must belong to the same ChSystem.
+    virtual int Initialize(std::shared_ptr<ChNodeFEAxyzD> node,  ///< xyzD node to join (with the direction)
+                           std::shared_ptr<ChBodyFrame> body,    ///< body (frame) to join
+                           ChVector3d* dir = nullptr             ///< direction in absolute coordinates
+    );
+
+    /// Get the connected xyzD node (point).
+    virtual std::shared_ptr<ChNodeFEAxyzD> GetConstrainedNode() { return m_node; }
+
+    /// Get the connected body (frame).
+    virtual std::shared_ptr<ChBodyFrame> GetConstrainedBodyFrame() { return m_body; }
+
+    /// Get the constrained direction, expressed in the reference coordinates of the body.
+    ChVector3d GetDirection() const { return m_csys.rot.GetAxisX(); }
+
+    /// Set the constrained direction, expressed in the reference coordinates of the body.
+    /// This function may be called only after initialization.
+    void SetDirectionInBodyCoords(const ChVector3d& dir_loc);
+
+    /// Set the constrained direction, expressed in absolute coordinates.
+    /// This function may be called only after initialization.
+    void SetDirectionInAbsoluteCoords(const ChVector3d& dir_abs);
+
+    /// Get the reaction torque on the node, expressed in the link coordinate system.
+    ChVector3d GetReactionOnNode() const { return -GetReactionOnBody(); }
+
+    /// Get the reaction torque on the body, expressed in the link coordinate system.
+    ChVector3d GetReactionOnBody() const;
+
+    /// Update all auxiliary data of the gear transmission at given time
+    virtual void Update(double mytime, bool update_assets = true) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
     // STATE FUNCTIONS
-    //
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
@@ -103,59 +128,31 @@ class ChApi ChLinkDirFrame : public ChLinkBase {
     virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1.) override;
 
-    // Other functions
+  private:
+    ChVector3d m_react;
 
-    // Get the link coordinate system, expressed in the absolute frame.
-    virtual ChCoordsys<> GetLinkAbsoluteCoords() override;
+    // used as an interface to the solver.
+    ChConstraintTwoGeneric constraint1;
+    ChConstraintTwoGeneric constraint2;
 
-    /// Initialize this constraint, given the node and body frame to join.
-    /// The constrained direction is the actual direction of the node (unless
-    /// otherwise defined, using the optional 'dir' parameter).
-    /// Note: the node and body must belong to the same ChSystem.
-    virtual int Initialize(std::shared_ptr<ChNodeFEAxyzD> node,  ///< xyzD node to join (with the direction)
-                           std::shared_ptr<ChBodyFrame> body,    ///< body (frame) to join
-                           ChVector<>* dir = nullptr             ///< direction in absolute coordinates
-                           );
+    std::shared_ptr<fea::ChNodeFEAxyzD> m_node;
+    std::shared_ptr<ChBodyFrame> m_body;
 
-    /// Get the connected xyzD node (point).
-    virtual std::shared_ptr<ChNodeFEAxyzD> GetConstrainedNode() { return m_node; }
+    // Coordinate system, attached to the body, whose X direction is
+    // constrained to remain parallel to the node's D direction.
+    ChCoordsys<> m_csys;
 
-    /// Get the connected body (frame).
-    virtual std::shared_ptr<ChBodyFrame> GetConstrainedBodyFrame() { return m_body; }
+    /// Get the link frame 1, on the connected node, expressed in the absolute frame.
+    virtual ChFramed GetFrame1Abs() const override { return GetFrameNodeAbs(); }
 
-    /// Get the constrained direction, expressed in the reference coordinates of the body.
-    ChVector<> GetDirection() const { return m_csys.rot.GetXaxis(); }
+    /// Get the link frame 2, on the body, expressed in the absolute frame.
+    virtual ChFramed GetFrame2Abs() const override { return ChFramed(); }  //// TODO
 
-    /// Set the constrained direction, expressed in the reference coordinates of the body.
-    /// This function may be called only after initialization.
-    void SetDirectionInBodyCoords(const ChVector<>& dir_loc);
+    /// Get reaction force and torque on node, expressed on link frame 1.
+    virtual ChWrenchd GetReaction1() const override { return {VNULL, GetReactionOnNode()}; }
 
-    /// Set the constrained direction, expressed in absolute coordinates.
-    /// This function may be called only after initialization.
-    void SetDirectionInAbsoluteCoords(const ChVector<>& dir_abs);
-
-    /// Get the reaction torque on the node, expressed in the link coordinate system.
-    ChVector<> GetReactionOnNode() const { return -GetReactionOnBody(); }
-
-    /// Get the reaction torque on the body, expressed in the link coordinate system.
-    ChVector<> GetReactionOnBody() const;
-
-    //
-    // UPDATE FUNCTIONS
-    //
-
-    /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true) override;
-
-    //
-    // STREAMING
-    //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    /// Get reaction force and torque on frame, expressed on link frame 2.
+    virtual ChWrenchd GetReaction2() const override { return {VNULL, GetReactionOnBody()}; }
 };
 
 /// @} fea_constraints

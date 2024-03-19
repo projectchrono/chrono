@@ -37,8 +37,8 @@ class CH_VEHICLE_API RigidPinnedAxle : public ChRigidPinnedAxle {
     RigidPinnedAxle(const rapidjson::Document& d);
     ~RigidPinnedAxle() {}
 
-    virtual const ChVector<> getAxleTubeCOM() const override { return m_axleTubeCOM; }
-    virtual const ChVector<> getAxlePinLocation() const override { return m_axlePinLoc; }
+    virtual const ChVector3d getAxleTubeCOM() const override { return m_axleTubeCOM; }
+    virtual const ChVector3d getAxlePinLocation() const override { return m_axlePinLoc; }
 
     virtual double getSpindleMass() const override { return m_spindleMass; }
     virtual double getAxleTubeMass() const override { return m_axleTubeMass; }
@@ -47,17 +47,17 @@ class CH_VEHICLE_API RigidPinnedAxle : public ChRigidPinnedAxle {
     virtual double getSpindleWidth() const override { return m_spindleWidth; }
     virtual double getAxleTubeRadius() const override { return m_axleTubeRadius; }
 
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
-    virtual const ChVector<>& getAxleTubeInertia() const override { return m_axleTubeInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
   private:
-    virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
+    virtual const ChVector3d getLocation(PointId which) override { return m_points[which]; }
 
     virtual void Create(const rapidjson::Document& d) override;
 
-    ChVector<> m_points[NUM_POINTS];
+    ChVector3d m_points[NUM_POINTS];
 
     double m_spindleMass;
     double m_axleTubeMass;
@@ -66,11 +66,11 @@ class CH_VEHICLE_API RigidPinnedAxle : public ChRigidPinnedAxle {
     double m_spindleWidth;
     double m_axleTubeRadius;
 
-    ChVector<> m_spindleInertia;
-    ChVector<> m_axleTubeInertia;
+    ChVector3d m_spindleInertia;
+    ChVector3d m_axleTubeInertia;
 
-    ChVector<> m_axleTubeCOM;
-    ChVector<> m_axlePinLoc;
+    ChVector3d m_axleTubeCOM;
+    ChVector3d m_axlePinLoc;
 
     double m_axleInertia;
 };

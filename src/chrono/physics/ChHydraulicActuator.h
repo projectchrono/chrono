@@ -30,7 +30,7 @@
 #include "chrono/physics/ChExternalDynamics.h"
 #include "chrono/physics/ChHydraulicCircuit.h"
 #include "chrono/physics/ChBody.h"
-#include "chrono/motion_functions/ChFunction.h"
+#include "chrono/functions/ChFunction.h"
 
 namespace chrono {
 
@@ -76,8 +76,8 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
     void Initialize(std::shared_ptr<ChBody> body1,  ///< first connected body
                     std::shared_ptr<ChBody> body2,  ///< second connected body
                     bool local,                     ///< true if locations given in body local frames
-                    ChVector<> loc1,                ///< location of connection point on body 1
-                    ChVector<> loc2                 ///< location of connection point on body 2
+                    ChVector3d loc1,                ///< location of connection point on body 1
+                    ChVector3d loc2                 ///< location of connection point on body 2
     );
 
     /// Access the hydraulic cylinder in this circuit.
@@ -88,11 +88,11 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
 
     /// Get the endpoint location on 1st body (expressed in absolute coordinate system).
     /// Returns a zero location if the actuator is not attached to bodies.
-    ChVector<> GetPoint1Abs() const { return m_aloc1; }
+    ChVector3d GetPoint1Abs() const { return m_aloc1; }
 
     /// Get the endpoint location on 2nd body (expressed in body coordinate system).
     /// Returns a zero location if the actuator is not attached to bodies.
-    ChVector<> GetPoint2Abs() const { return m_aloc2; }
+    ChVector3d GetPoint2Abs() const { return m_aloc2; }
 
     /// Set the current actuator length and rate of change.
     /// Can be used in a co-simulation interface.
@@ -137,10 +137,10 @@ class ChApi ChHydraulicActuatorBase : public ChExternalDynamics {
     bool is_attached;            ///< true if actuator attached to bodies
     ChBody* m_body1;             ///< first conected body
     ChBody* m_body2;             ///< second connected body
-    ChVector<> m_loc1;           ///< point on body 1 (local frame)
-    ChVector<> m_loc2;           ///< point on body 2 (local frame)
-    ChVector<> m_aloc1;          ///< point on body 1 (global frame)
-    ChVector<> m_aloc2;          ///< point on body 2 (global frame)
+    ChVector3d m_loc1;           ///< point on body 1 (local frame)
+    ChVector3d m_loc2;           ///< point on body 2 (local frame)
+    ChVector3d m_aloc1;          ///< point on body 1 (global frame)
+    ChVector3d m_aloc2;          ///< point on body 2 (global frame)
     ChVectorDynamic<> m_Qforce;  ///< generalized forcing terms
 
     ChHydraulicCylinder cyl;                ///< hydraulic cylinder
@@ -204,7 +204,7 @@ class ChApi ChHydraulicActuator2 : public ChHydraulicActuatorBase {
   private:
     // Interface to ChExternalDynamics
 
-    virtual int GetNumStates() const override { return 1 + 2; }
+    virtual unsigned int GetNumStates() const override { return 1 + 2; }
 
     virtual void SetInitialConditions(ChVectorDynamic<>& y0) override;
 
@@ -294,7 +294,7 @@ class ChApi ChHydraulicActuator3 : public ChHydraulicActuatorBase {
   private:
     // Interface to ChExternalDynamics
 
-    virtual int GetNumStates() const override { return 1 + 3; }
+    virtual unsigned int GetNumStates() const override { return 1 + 3; }
 
     virtual void SetInitialConditions(ChVectorDynamic<>& y0) override;
 

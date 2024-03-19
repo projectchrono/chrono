@@ -35,7 +35,7 @@ ANCFTire::ANCFTire(const std::string& filename) : ChANCFTire(""), m_ANCF8(false)
 
     ProcessJSON(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 ANCFTire::ANCFTire(const rapidjson::Document& d) : ChANCFTire("") {
@@ -75,9 +75,9 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
             m_materials[i] = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu);
         } else if (type.compare("Orthotropic") == 0) {
             double rho = d["Materials"][i]["Density"].GetDouble();
-            ChVector<> E = ReadVectorJSON(d["Materials"][i]["E"]);
-            ChVector<> nu = ReadVectorJSON(d["Materials"][i]["nu"]);
-            ChVector<> G = ReadVectorJSON(d["Materials"][i]["G"]);
+            ChVector3d E = ReadVectorJSON(d["Materials"][i]["E"]);
+            ChVector3d nu = ReadVectorJSON(d["Materials"][i]["nu"]);
+            ChVector3d G = ReadVectorJSON(d["Materials"][i]["G"]);
             m_materials[i] = chrono_types::make_shared<ChMaterialShellANCF>(rho, E, nu, G);
         }
     }
@@ -91,8 +91,8 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
     // Read layer information for the Bead Section
     m_bead.num_divs = d["Bead Section"]["Number Elements"].GetInt();
     m_bead.num_layers = d["Bead Section"]["Layer Thickness"].Size();
-    assert(d["Bead Section"]["Ply Angle"].Size() == m_bead.num_layers);
-    assert(d["Bead Section"]["Material ID"].Size() == m_bead.num_layers);
+    assert(d["Bead Section"]["Ply Angle"].Size() == (unsigned int)m_bead.num_layers);
+    assert(d["Bead Section"]["Material ID"].Size() == (unsigned int)m_bead.num_layers);
     for (int i = 0; i < m_bead.num_layers; i++) {
         double thickness = d["Bead Section"]["Layer Thickness"][i].GetDouble();
         double angle = d["Bead Section"]["Ply Angle"][i].GetDouble();
@@ -106,8 +106,8 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
     // Read layer information for the Sidewall Section
     m_sidewall.num_divs = d["Sidewall Section"]["Number Elements"].GetInt();
     m_sidewall.num_layers = d["Sidewall Section"]["Layer Thickness"].Size();
-    assert(d["Sidewall Section"]["Ply Angle"].Size() == m_sidewall.num_layers);
-    assert(d["Sidewall Section"]["Material ID"].Size() == m_sidewall.num_layers);
+    assert((int)d["Sidewall Section"]["Ply Angle"].Size() == m_sidewall.num_layers);
+    assert((int)d["Sidewall Section"]["Material ID"].Size() == m_sidewall.num_layers);
     for (int i = 0; i < m_sidewall.num_layers; i++) {
         double thickness = d["Sidewall Section"]["Layer Thickness"][i].GetDouble();
         double angle = d["Sidewall Section"]["Ply Angle"][i].GetDouble();
@@ -121,8 +121,8 @@ void ANCFTire::ProcessJSON(const rapidjson::Document& d) {
     // Read layer information for the Tread Section
     m_tread.num_divs = d["Tread Section"]["Number Elements"].GetInt();
     m_tread.num_layers = d["Tread Section"]["Layer Thickness"].Size();
-    assert(d["Tread Section"]["Ply Angle"].Size() == m_tread.num_layers);
-    assert(d["Tread Section"]["Material ID"].Size() == m_tread.num_layers);
+    assert((int)d["Tread Section"]["Ply Angle"].Size() == m_tread.num_layers);
+    assert((int)d["Tread Section"]["Material ID"].Size() == m_tread.num_layers);
     for (int i = 0; i < m_tread.num_layers; i++) {
         double thickness = d["Tread Section"]["Layer Thickness"][i].GetDouble();
         double angle = d["Tread Section"]["Ply Angle"][i].GetDouble();
@@ -173,7 +173,7 @@ void ANCFTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) 
 }
 
 void ANCFTire::CreateContactMaterial() {
-    m_contact_mat = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    m_contact_mat = chrono_types::make_shared<ChContactMaterialSMC>();
     m_contact_mat->SetFriction(m_mat_info.mu);
     m_contact_mat->SetRestitution(m_mat_info.cr);
     m_contact_mat->SetYoungModulus(m_mat_info.Y);

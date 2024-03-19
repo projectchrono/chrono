@@ -47,8 +47,8 @@ namespace sensor {
 /// to camera ray misses
 struct Background {
     BackgroundMode mode;            ///< 0=solid zenith color, 1=gradient, 2=environment map
-    ChVector<float> color_zenith;   ///< color at zenith
-    ChVector<float> color_horizon;  ///< color at horizon (for gradient)
+    ChVector3f color_zenith;   ///< color at zenith
+    ChVector3f color_horizon;  ///< color at horizon (for gradient)
     std::string env_tex;            ///< full path name of the texture
 };
 
@@ -65,7 +65,7 @@ class CH_SENSOR_API ChScene {
     /// @param color The golor of the light source
     /// @param max_range the range at which the light intensity is equal to 1% of its maximum intensity
     /// @return the index of the light that has been added
-    unsigned int AddPointLight(ChVector<float> pos, ChColor color, float max_range);
+    unsigned int AddPointLight(ChVector3f pos, ChColor color, float max_range);
 
     /// Add a point light that emits light in all directions.
     /// @param p A point light the will be added directly
@@ -93,11 +93,11 @@ class CH_SENSOR_API ChScene {
 
     /// Function for setting the ambient light color
     /// @param color the color+intensity of ambient light
-    void SetAmbientLight(ChVector<float> color) { m_ambient_light = color; }
+    void SetAmbientLight(ChVector3f color) { m_ambient_light = color; }
 
     /// Function for setting the ambient light color
     /// @return the ambient light in the scene
-    ChVector<float> GetAmbientLight() { return m_ambient_light; }
+    ChVector3f GetAmbientLight() { return m_ambient_light; }
 
     /// Function for resetting the lights changed variable
     void ResetLightsChanged() { lights_changed = false; }
@@ -110,10 +110,10 @@ class CH_SENSOR_API ChScene {
     bool GetBackgroundChanged() { return background_changed; }
 
     /// Function to set the fog color
-    void SetFogColor(ChVector<float> color);
+    void SetFogColor(ChVector3f color);
 
     /// Function to get the fog color
-    ChVector<float> GetFogColor() { return m_fog_color; }
+    ChVector3f GetFogColor() { return m_fog_color; }
 
     /// Function to set the fog scattering coefficient
     void SetFogScattering(float coefficient);
@@ -135,7 +135,7 @@ class CH_SENSOR_API ChScene {
     /// Function to change the origin offset if necessary
     /// @param sensor_pos the position of the sensor
     /// @param force whether to force updating even if threshold is not met
-    void UpdateOriginOffset(ChVector<float> sensor_pos, bool force = false);
+    void UpdateOriginOffset(ChVector3f sensor_pos, bool force = false);
 
     bool GetOriginChanged() { return m_origin_changed; }
 
@@ -143,7 +143,7 @@ class CH_SENSOR_API ChScene {
 
     /// Access function for the origin offset
     /// @returns the origin offset
-    ChVector<float> GetOriginOffset() { return m_origin_offset; }
+    ChVector3f GetOriginOffset() { return m_origin_offset; }
 
     /// Set the threshold for moving the origin
     /// @param threshold the threshold outside of which to move the scene origin
@@ -156,7 +156,7 @@ class CH_SENSOR_API ChScene {
   private:
     std::vector<PointLight> m_pointlights;  //< list of point lights in the scene
     Background m_background;                ///< The background object
-    ChVector<float> m_ambient_light;        ///< ambient light color used in the scene
+    ChVector3f m_ambient_light;        ///< ambient light color used in the scene
 
     bool lights_changed;      ///< for detecting if lights changed
     bool background_changed;  ///< for detecting if background changed
@@ -165,11 +165,11 @@ class CH_SENSOR_API ChScene {
     bool m_dynamic_origin_offset;      ///< whether to dynamically change the scene origin when sensors are outside of
                                        ///< threshold
     float m_dynamic_origin_threshold;  ///< threshold to prompt moving the origin
-    ChVector<float> m_origin_offset;   ///< scene origin offset from Chrono
+    ChVector3f m_origin_offset;   ///< scene origin offset from Chrono
     bool m_origin_changed;             ///< whether the origin changed since last reset
 
     float m_fog_scattering;       ///< scattering coefficient of fog in the scene
-    ChVector<float> m_fog_color;  ///< color of the fog in the scene
+    ChVector3f m_fog_color;  ///< color of the fog in the scene
 };
 
 /// @} sensor_scene

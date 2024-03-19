@@ -64,14 +64,14 @@ bool ChOpenGLMesh::Initialize(chrono::ChVisualShapeTriangleMesh* tri_mesh, ChOpe
     if (!super::Initialize()) {
         return false;
     }
-    int num_triangles = tri_mesh->GetMesh()->getNumTriangles();
+    unsigned int num_triangles = tri_mesh->GetMesh()->GetNumTriangles();
 
     for (unsigned int i = 0; i < (unsigned)num_triangles; i++) {
-        chrono::geometry::ChTriangle tri = tri_mesh->GetMesh()->getTriangle(i);
-        ChVector<> norm = tri.GetNormal();
-        ChVector<> v1 = tri.p1;
-        ChVector<> v2 = tri.p2;
-        ChVector<> v3 = tri.p3;
+        chrono::ChTriangle tri = tri_mesh->GetMesh()->GetTriangle(i);
+        ChVector3d norm = tri.GetNormal();
+        ChVector3d v1 = tri.p1;
+        ChVector3d v2 = tri.p2;
+        ChVector3d v3 = tri.p3;
         this->vertex_indices.push_back(i * 3 + 0);
         this->vertex_indices.push_back(i * 3 + 1);
         this->vertex_indices.push_back(i * 3 + 2);
@@ -88,12 +88,12 @@ bool ChOpenGLMesh::Initialize(chrono::ChVisualShapeTriangleMesh* tri_mesh, ChOpe
     diffuse = mat.diffuse_color;
     specular = mat.specular_color;
     //
-    //   std::vector<ChVector<int> >& indices =
-    //   tri_mesh->GetMesh().getIndicesVertexes();
-    //   std::vector<ChVector<double> >& vertices =
-    //   tri_mesh->GetMesh().getCoordsVertices();
-    //   std::vector<ChVector<double> >& normals =
-    //   tri_mesh->GetMesh().getCoordsNormals();
+    //   std::vector<ChVector3i >& indices =
+    //   tri_mesh->GetMesh().GetIndicesVertexes();
+    //   std::vector<ChVector3d >& vertices =
+    //   tri_mesh->GetMesh().GetCoordsVertices();
+    //   std::vector<ChVector3d >& normals =
+    //   tri_mesh->GetMesh().GetCoordsNormals();
     //
 
     //   this->vertex_indices.resize(indices.size() * 3);

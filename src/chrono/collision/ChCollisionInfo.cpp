@@ -23,7 +23,7 @@ ChCollisionInfo::ChCollisionInfo()
       shapeB(nullptr),
       vpA(VNULL),
       vpB(VNULL),
-      vN(ChVector<>(1, 0, 0)),
+      vN(ChVector3d(1, 0, 0)),
       distance(0),
       eff_radius(default_eff_radius),
       reaction_cache(nullptr) {}
@@ -57,7 +57,7 @@ void ChCollisionInfo::SwapModels() {
     modeltemp = modelA;
     modelA = modelB;
     modelB = modeltemp;
-    ChVector<> vtemp;
+    ChVector3d vtemp;
     vtemp = vpA;
     vpA = vpB;
     vpB = vtemp;

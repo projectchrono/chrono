@@ -44,10 +44,10 @@ double ChTrackAssemblySegmented::TrackBendingFunctor::evaluate(double time,
                                                                double vel,
                                                                const ChLinkRSDA& link) {
     // Clamp angle in [-pi, +pi]
-    if (angle < -CH_C_PI)
-        angle = CH_C_2PI - angle;
-    if (angle > CH_C_PI)
-        angle = angle - CH_C_2PI;
+    if (angle < -CH_PI)
+        angle = CH_2PI - angle;
+    if (angle > CH_PI)
+        angle = angle - CH_2PI;
     // Linear spring-damper (assume 0 rest angle)
     return m_t - m_k * angle - m_c * vel;
 }

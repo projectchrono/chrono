@@ -46,16 +46,16 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     /// are given as indexes to the three vertexes in that vector (similar to Wavefront OBJ meshes) Note, indexes are
     /// 0-based. These vectors can be later sent to another computing node that computes, say, CFD forces on the mesh.
     void OutputSimpleMesh(
-        std::vector<ChVector<>>& vert_pos,     ///< array of vertexes (absolute xyz positions)
-        std::vector<ChVector<>>& vert_vel,     ///< array of vertexes (absolute xyz velocities, might be useful)
-        std::vector<ChVector<int>>& triangles  ///< array of triangles (indexes to vertexes, ccw)
+        std::vector<ChVector3d>& vert_pos,     ///< array of vertexes (absolute xyz positions)
+        std::vector<ChVector3d>& vert_vel,     ///< array of vertexes (absolute xyz velocities, might be useful)
+        std::vector<ChVector3i>& triangles  ///< array of triangles (indexes to vertexes, ccw)
     );
 
     /// Set the forces to the nodes in a pointer-less way, where forces are given as a vector of xyz vectors and indexes
     /// to the referenced vertex, as obtained by OutputSimpleMesh.
     /// NOTE: do not insert/remove nodes from the collision mesh between the OutputSimpleMesh-InputSimpleForces pair!
     void InputSimpleForces(
-        const std::vector<ChVector<>>& vert_forces,  ///< array of forces (absolute xyz forces in [N])
+        const std::vector<ChVector3d>& vert_forces,  ///< array of forces (absolute xyz forces in [N])
         const std::vector<int>& vert_ind             ///< array of indexes to vertexes to which forces are applied
     );
 
@@ -68,18 +68,19 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     /// Access the list of applied forces, so you can add new ones by using push_back(),
     /// remove them, count them, etc.
     /// Note that if you add nodes, these should belong to the referenced mesh.
-    std::vector<std::shared_ptr<ChLoadXYZnode>>& GetForceList() { return m_forces; }
+    std::vector<std::shared_ptr<ChLoadXYZnode>>& GetForces() { return m_forces; }
 
+  private:
     // ChLoadBase interface
 
-    virtual int LoadGet_ndof_x() override;
-    virtual int LoadGet_ndof_w() override;
+    virtual int LoadGetNumCoordsPosLevel() override;
+    virtual int LoadGetNumCoordsVelLevel() override;
     virtual void LoadGetStateBlock_x(ChState& mD) override;
     virtual void LoadGetStateBlock_w(ChStateDelta& mD) override;
     virtual void LoadStateIncrement(const ChState& x, const ChStateDelta& dw, ChState& x_new) override;
 
     // simple.. field is x y z, hardcoded return val:
-    virtual int LoadGet_field_ncoords() override { return 3; }
+    virtual int LoadGetNumFieldCoords() override { return 3; }
 
     /// Compute Q, the generalized load.
     virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
@@ -104,7 +105,6 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
 
-  private:
     std::shared_ptr<ChContactSurfaceMesh> m_contact_mesh;
     std::vector<std::shared_ptr<ChLoadXYZnode>> m_forces;
     std::vector<std::shared_ptr<ChLoadXYZROTnodeForceAbsolute>> m_forces_rot;

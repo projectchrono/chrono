@@ -35,7 +35,7 @@ class CH_VEHICLE_API ChDrivelineWV : public ChDriveline {
     virtual ~ChDrivelineWV() {}
 
     /// Return the number of driven axles.
-    virtual int GetNumDrivenAxles() const = 0;
+    virtual unsigned int GetNumDrivenAxles() const = 0;
 
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the specified axle subsystems.

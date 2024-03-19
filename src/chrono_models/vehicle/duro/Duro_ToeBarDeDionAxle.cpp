@@ -48,13 +48,13 @@ const double Duro_ToeBarDeDionAxle::m_tierodRadius = 0.02;
 const double Duro_ToeBarDeDionAxle::m_draglinkRadius = 0.02;
 const double Duro_ToeBarDeDionAxle::m_wattLinkRadius = 0.03;
 
-const ChVector<> Duro_ToeBarDeDionAxle::m_axleTubeInertia(22.21, 0.0775, 22.21);
-const ChVector<> Duro_ToeBarDeDionAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
-const ChVector<> Duro_ToeBarDeDionAxle::m_knuckleInertia(0.1, 0.1, 0.1);
-const ChVector<> Duro_ToeBarDeDionAxle::m_tierodInertia(1.0, 0.1, 1.0);
-const ChVector<> Duro_ToeBarDeDionAxle::m_draglinkInertia(0.1, 1.0, 0.1);
-const ChVector<> Duro_ToeBarDeDionAxle::m_wattCenterInertia(0.05, 0.01, 0.05);
-const ChVector<> Duro_ToeBarDeDionAxle::m_wattSideInertia(0.07, 0.01, 0.07);
+const ChVector3d Duro_ToeBarDeDionAxle::m_axleTubeInertia(22.21, 0.0775, 22.21);
+const ChVector3d Duro_ToeBarDeDionAxle::m_spindleInertia(0.04117, 0.07352, 0.04117);
+const ChVector3d Duro_ToeBarDeDionAxle::m_knuckleInertia(0.1, 0.1, 0.1);
+const ChVector3d Duro_ToeBarDeDionAxle::m_tierodInertia(1.0, 0.1, 1.0);
+const ChVector3d Duro_ToeBarDeDionAxle::m_draglinkInertia(0.1, 1.0, 0.1);
+const ChVector3d Duro_ToeBarDeDionAxle::m_wattCenterInertia(0.05, 0.01, 0.05);
+const ChVector3d Duro_ToeBarDeDionAxle::m_wattSideInertia(0.07, 0.01, 0.07);
 
 const double Duro_ToeBarDeDionAxle::m_springDesignLength = 0.3;
 const double Duro_ToeBarDeDionAxle::m_springCoefficient = 166283.0949;
@@ -85,7 +85,7 @@ class Duro_FPPSpringForceFront : public ChLinkTSDA::ForceFunctor {
     double m_min_length;
     double m_max_length;
 
-    ChFunction_Recorder m_bump;
+    ChFunctionInterp m_bump;
 };
 
 Duro_FPPSpringForceFront::Duro_FPPSpringForceFront(double spring_constant, double min_length, double max_length)
@@ -122,7 +122,7 @@ double Duro_FPPSpringForceFront::evaluate(double time,
         defl_rebound = length - m_max_length;
     }
 
-    force = defl_spring * m_spring_constant + m_bump.Get_y(defl_bump) - m_bump.Get_y(defl_rebound);
+    force = defl_spring * m_spring_constant + m_bump.GetVal(defl_bump) - m_bump.GetVal(defl_rebound);
 
     return force;
 }
@@ -190,44 +190,44 @@ Duro_ToeBarDeDionAxle::Duro_ToeBarDeDionAxle(const std::string& name) : ChToeBar
 // -----------------------------------------------------------------------------
 Duro_ToeBarDeDionAxle::~Duro_ToeBarDeDionAxle() {}
 
-const ChVector<> Duro_ToeBarDeDionAxle::getLocation(PointId which) {
+const ChVector3d Duro_ToeBarDeDionAxle::getLocation(PointId which) {
     switch (which) {
         case SPRING_A:
-            return ChVector<>(0.03, 0.55, 0.068);
+            return ChVector3d(0.03, 0.55, 0.068);
         case SPRING_C:
-            return ChVector<>(0.01, 0.52, 0.368);
+            return ChVector3d(0.01, 0.52, 0.368);
         case SHOCK_A:
-            return ChVector<>(-0.1, 0.55, 0.124);
+            return ChVector3d(-0.1, 0.55, 0.124);
         case SHOCK_C:
-            return ChVector<>(-0.12, 0.52, 0.468);
+            return ChVector3d(-0.12, 0.52, 0.468);
         case SPINDLE:
-            return ChVector<>(0.0, 0.84, 0.0);  // 0.84 - 0.635 = 0.205
+            return ChVector3d(0.0, 0.84, 0.0);  // 0.84 - 0.635 = 0.205
         case KNUCKLE_CM:
-            return ChVector<>(0.0, 0.635 - 0.07 + 0.155, 0.0);
+            return ChVector3d(0.0, 0.635 - 0.07 + 0.155, 0.0);
         case KNUCKLE_L:
-            return ChVector<>(0.0, 0.635 - 0.07 + 0.0098058067569092 + 0.155, -0.1);
+            return ChVector3d(0.0, 0.635 - 0.07 + 0.0098058067569092 + 0.155, -0.1);
         case KNUCKLE_U:
-            return ChVector<>(0.0, 0.635 - 0.07 - 0.0098058067569092 + 0.155, 0.1);
+            return ChVector3d(0.0, 0.635 - 0.07 - 0.0098058067569092 + 0.155, 0.1);
         case KNUCKLE_DRL:
-            return ChVector<>(0.22, -(0.635 - 0.2 + 0.155), 0.1);
+            return ChVector3d(0.22, -(0.635 - 0.2 + 0.155), 0.1);
         case TIEROD_K:
-            return ChVector<>(-0.190568826619798, (0.635 - 0.07 - 0.060692028477827 + 0.155), 0.1);
+            return ChVector3d(-0.190568826619798, (0.635 - 0.07 - 0.060692028477827 + 0.155), 0.1);
         case DRAGLINK_C:
-            return ChVector<>(0.22, 0.635 - 0.2 + 0.155, 0.1);
+            return ChVector3d(0.22, 0.635 - 0.2 + 0.155, 0.1);
         case AXLE_C:
-            return ChVector<>(-1.675, 0.0, 0.1);
+            return ChVector3d(-1.675, 0.0, 0.1);
         case STABI_CON:
-            return ChVector<>(-1.675, 0.42, 0.1);
+            return ChVector3d(-1.675, 0.42, 0.1);
         case WATT_CNT_LE:
-            return ChVector<>(0.15, 0, 0.25);
+            return ChVector3d(0.15, 0, 0.25);
         case WATT_CNT_RI:
-            return ChVector<>(0.15, 0.0, 0.05);
+            return ChVector3d(0.15, 0.0, 0.05);
         case WATT_LE_CH:
-            return ChVector<>(0.15, -0.44, 0.25);
+            return ChVector3d(0.15, -0.44, 0.25);
         case WATT_RI_CH:
-            return ChVector<>(0.15, 0.44, 0.05);
+            return ChVector3d(0.15, 0.44, 0.05);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

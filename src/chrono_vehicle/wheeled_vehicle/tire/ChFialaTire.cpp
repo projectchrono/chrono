@@ -29,7 +29,7 @@
 #include <cmath>
 
 #include "chrono/core/ChGlobal.h"
-#include "chrono/core/ChLog.h"
+#include "chrono/functions/ChFunctionSineStep.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ChFialaTire.h"
 
@@ -46,9 +46,9 @@ ChFialaTire::ChFialaTire(const std::string& name)
       m_c_alpha(0),
       m_frblend_begin(1),
       m_frblend_end(3) {
-    m_tireforce.force = ChVector<>(0, 0, 0);
-    m_tireforce.point = ChVector<>(0, 0, 0);
-    m_tireforce.moment = ChVector<>(0, 0, 0);
+    m_tireforce.force = ChVector3d(0, 0, 0);
+    m_tireforce.point = ChVector3d(0, 0, 0);
+    m_tireforce.moment = ChVector3d(0, 0, 0);
 }
 
 // -----------------------------------------------------------------------------
@@ -76,7 +76,7 @@ void ChFialaTire::Synchronize(double time, const ChTerrain& terrain) {
 
     // Extract the wheel normal (expressed in global frame)
     ChMatrix33<> A(wheel_state.rot);
-    ChVector<> disc_normal = A.Get_A_Yaxis();
+    ChVector3d disc_normal = A.GetAxisY();
 
     // Assuming the tire is a disc, check contact with terrain
     float mu;
@@ -90,7 +90,7 @@ void ChFialaTire::Synchronize(double time, const ChTerrain& terrain) {
 
     if (m_data.in_contact) {
         // Wheel velocity in the ISO-C Frame
-        ChVector<> vel = wheel_state.lin_vel;
+        ChVector3d vel = wheel_state.lin_vel;
         m_data.vel = m_data.frame.TransformDirectionParentToLocal(vel);
 
         // Generate normal contact force (recall, all forces are reduced to the wheel
@@ -123,14 +123,14 @@ void ChFialaTire::Synchronize(double time, const ChTerrain& terrain) {
         m_states.abs_vt = 0;
         m_states.brx = 0;
         m_states.bry = 0;
-        m_states.disc_normal = ChVector<>(0, 0, 0);
+        m_states.disc_normal = ChVector3d(0, 0, 0);
     }
 }
 
 void ChFialaTire::Advance(double step) {
     // Set tire forces to zero.
-    m_tireforce.force = ChVector<>(0, 0, 0);
-    m_tireforce.moment = ChVector<>(0, 0, 0);
+    m_tireforce.force = ChVector3d(0, 0, 0);
+    m_tireforce.moment = ChVector3d(0, 0, 0);
 
     // Return now if no contact.
     if (!m_data.in_contact)
@@ -181,7 +181,7 @@ void ChFialaTire::Advance(double step) {
 
     CombinedCoulombForces(Fx0, Fy0, m_data.normal_force, m_mu / m_mu_0);
 
-    double frblend = ChSineStep(m_data.vel.x(), m_frblend_begin, 0.0, m_frblend_end, 1.0);
+    double frblend = ChFunctionSineStep::Eval(m_data.vel.x(), m_frblend_begin, 0.0, m_frblend_end, 1.0);
 
     FialaPatchForces(Fx, Fy, Mz, m_states.kappa, m_states.alpha, m_data.normal_force);
 
@@ -189,7 +189,7 @@ void ChFialaTire::Advance(double step) {
     Fy = (1.0 - frblend) * Fy0 + frblend * Fy;
 
     // Smoothing factor dependend on m_state.abs_vx, allows soft switching of My
-    double myStartUp = ChSineStep(m_states.abs_vx, vx_min, 0.0, vx_max, 1.0);
+    double myStartUp = ChFunctionSineStep::Eval(m_states.abs_vx, vx_min, 0.0, vx_max, 1.0);
     // Rolling Resistance
     My = -myStartUp * m_rolling_resistance * m_data.normal_force * ChSignum(m_states.omega);
 
@@ -211,18 +211,18 @@ void ChFialaTire::Advance(double step) {
     }
 
     // Smooth starting transients
-    double tr_fact = ChSineStep(m_time, 0, 0, m_time_trans, 1.0);
+    double tr_fact = ChFunctionSineStep::Eval(m_time, 0, 0, m_time_trans, 1.0);
     m_states.Fx_l *= tr_fact;
     m_states.Fy_l *= tr_fact;
 
     // compile the force and moment vectors so that they can be
     // transformed into the global coordinate system
-    m_tireforce.force = ChVector<>(m_states.Fx_l, m_states.Fy_l, m_data.normal_force);
-    m_tireforce.moment = ChVector<>(0, My, Mz);
+    m_tireforce.force = ChVector3d(m_states.Fx_l, m_states.Fy_l, m_data.normal_force);
+    m_tireforce.moment = ChVector3d(0, My, Mz);
 }
 
 void ChFialaTire::CombinedCoulombForces(double& fx, double& fy, double fz, double muscale) {
-    ChVector2<> F;
+    ChVector2d F;
     /*
      The Dahl Friction Model elastic tread blocks representated by a single bristle. At tire stand still it acts
      like a spring which enables holding of a vehicle on a slope without creeping (hopefully). Damping terms
@@ -297,7 +297,7 @@ void ChFialaTire::FialaPatchForces(double& fx, double& fy, double& mz, double ka
 
 void ChFialaTire::WritePlots(const std::string& plFileName, const std::string& plTireFormat) {
     if (m_c_slip == 0.0 || m_c_alpha == 0.0) {
-        GetLog() << "Fiala Tire Object is not yet initialized! No Plots available.\n";
+        std::cerr << "Fiala Tire Object is not yet initialized! No Plots available." << std::endl;
         return;
     }
     const double Fz_nom = 1.0;

@@ -25,7 +25,9 @@
 #include "chrono/geometry/ChTriangleMesh.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// A triangle mesh with connectivity info: vertices can be shared between faces.
 /// To keep this simple, the class assumes that you will manage the size of vectors
@@ -44,28 +46,28 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChTriangleMeshConnected* Clone() const override { return new ChTriangleMeshConnected(*this); }
 
-    std::vector<ChVector<double>>& getCoordsVertices() { return m_vertices; }
-    std::vector<ChVector<double>>& getCoordsNormals() { return m_normals; }
-    std::vector<ChVector2<double>>& getCoordsUV() { return m_UV; }
-    std::vector<ChColor>& getCoordsColors() { return m_colors; }
-    std::vector<ChVector<int>>& getIndicesVertexes() { return m_face_v_indices; }
-    std::vector<ChVector<int>>& getIndicesNormals() { return m_face_n_indices; }
-    std::vector<ChVector<int>>& getIndicesUV() { return m_face_uv_indices; }
-    std::vector<ChVector<int>>& getIndicesColors() { return m_face_col_indices; }
-    std::vector<int>& getIndicesMaterials() { return m_face_mat_indices; }
+    std::vector<ChVector3d>& GetCoordsVertices() { return m_vertices; }
+    std::vector<ChVector3d>& GetCoordsNormals() { return m_normals; }
+    std::vector<ChVector2d>& GetCoordsUV() { return m_UV; }
+    std::vector<ChColor>& GetCoordsColors() { return m_colors; }
+    std::vector<ChVector3i>& GetIndicesVertexes() { return m_face_v_indices; }
+    std::vector<ChVector3i>& GetIndicesNormals() { return m_face_n_indices; }
+    std::vector<ChVector3i>& GetIndicesUV() { return m_face_uv_indices; }
+    std::vector<ChVector3i>& GetIndicesColors() { return m_face_col_indices; }
+    std::vector<int>& GetIndicesMaterials() { return m_face_mat_indices; }
 
-    std::vector<ChProperty*>& getPropertiesPerVertex() { return m_properties_per_vertex; }
-    std::vector<ChProperty*>& getPropertiesPerFace() { return m_properties_per_face; };
+    std::vector<ChProperty*>& GetPropertiesPerVertex() { return m_properties_per_vertex; }
+    std::vector<ChProperty*>& GetPropertiesPerFace() { return m_properties_per_face; };
 
-    const std::vector<ChVector<double>>& getCoordsVertices() const { return m_vertices; }
-    const std::vector<ChVector<double>>& getCoordsNormals() const { return m_normals; }
-    const std::vector<ChVector2<double>>& getCoordsUV() const { return m_UV; }
-    const std::vector<ChColor>& getCoordsColors() const { return m_colors; }
-    const std::vector<ChVector<int>>& getIndicesVertexes() const { return m_face_v_indices; }
-    const std::vector<ChVector<int>>& getIndicesNormals() const { return m_face_n_indices; }
-    const std::vector<ChVector<int>>& getIndicesUV() const { return m_face_uv_indices; }
-    const std::vector<ChVector<int>>& getIndicesColors() const { return m_face_col_indices; }
-    const std::vector<int>& getIndicesMaterials() const { return m_face_mat_indices; }
+    const std::vector<ChVector3d>& GetCoordsVertices() const { return m_vertices; }
+    const std::vector<ChVector3d>& GetCoordsNormals() const { return m_normals; }
+    const std::vector<ChVector2d>& GetCoordsUV() const { return m_UV; }
+    const std::vector<ChColor>& GetCoordsColors() const { return m_colors; }
+    const std::vector<ChVector3i>& GetIndicesVertexes() const { return m_face_v_indices; }
+    const std::vector<ChVector3i>& GetIndicesNormals() const { return m_face_n_indices; }
+    const std::vector<ChVector3i>& GetIndicesUV() const { return m_face_uv_indices; }
+    const std::vector<ChVector3i>& GetIndicesColors() const { return m_face_col_indices; }
+    const std::vector<int>& GetIndicesMaterials() const { return m_face_mat_indices; }
 
     /// Add a property as an array of data per-vertex. Deletion will be automatic at the end of mesh life.
     /// Warning: mprop.data.size() must be equal to m_vertices.size().  Cost: allocation and a data copy.
@@ -100,22 +102,22 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     /// Add a triangle to this triangle mesh, by specifying the three coordinates.
     /// This is disconnected - no vertex sharing is used even if it could be.
-    virtual void addTriangle(const ChVector<>& vertex0, const ChVector<>& vertex1, const ChVector<>& vertex2) override;
+    virtual void AddTriangle(const ChVector3d& vertex0, const ChVector3d& vertex1, const ChVector3d& vertex2) override;
 
     /// Add a triangle to this triangle mesh, by specifying a ChTriangle.
-    virtual void addTriangle(const ChTriangle& atriangle) override;
+    virtual void AddTriangle(const ChTriangle& atriangle) override;
 
     /// Get the number of vertices in this mesh.
-    int getNumVertices() const { return (int)m_vertices.size(); }
+    unsigned int GetNumVertices() const { return (unsigned int)m_vertices.size(); }
 
     /// Get the number of normals in this mesh.
-    int getNumNormals() const { return (int)m_normals.size(); }
+    unsigned int GetNumNormals() const { return (unsigned int)m_normals.size(); }
 
     /// Get the number of triangles already added to this mesh.
-    virtual int getNumTriangles() const override { return (int)m_face_v_indices.size(); }
+    virtual unsigned int GetNumTriangles() const override { return (unsigned int)m_face_v_indices.size(); }
 
     /// Access the n-th triangle in mesh
-    virtual ChTriangle getTriangle(int index) const override {
+    virtual ChTriangle GetTriangle(unsigned int index) const override {
         return ChTriangle(m_vertices[m_face_v_indices[index].x()], m_vertices[m_face_v_indices[index].y()],
                           m_vertices[m_face_v_indices[index].z()]);
     }
@@ -127,13 +129,13 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     virtual ChAABB GetBoundingBox() const override;
 
     /// Compute barycenter, mass, inertia tensor.
-    void ComputeMassProperties(bool bodyCoords, double& mass, ChVector<>& center, ChMatrix33<>& inertia);
+    void ComputeMassProperties(bool bodyCoords, double& mass, ChVector3d& center, ChMatrix33<>& inertia);
 
     /// Get the filename of the triangle mesh.
     const std::string& GetFileName() const { return m_filename; }
 
     /// Transform all vertexes, by displacing and rotating (rotation  via matrix, so also scaling if needed).
-    virtual void Transform(const ChVector<> displ, const ChMatrix33<> rotscale) override;
+    virtual void Transform(const ChVector3d displ, const ChMatrix33<> rotscale) override;
 
     /// Create a map of neighboring triangles, vector [Ti TieA TieB TieC]
     /// (the free sides have triangle id = -1).
@@ -164,9 +166,9 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
 
     /// Return the indexes of the two vertexes of the i-th edge of the triangle.
     /// If unique=true, swap the pair so that 1st < 2nd, to permit test sharing with other triangle.
-    std::pair<int, int> GetTriangleEdgeIndexes(const ChVector<int>& face_indices,  ///< indices of a triangular face
-                                               int nedge,                          ///< number of edge: 0, 1, 2
-                                               bool unique                         ///< swap?
+    std::pair<int, int> GetTriangleEdgeIndexes(const ChVector3i& face_indices,  ///< indices of a triangular face
+                                               int nedge,                       ///< number of edge: 0, 1, 2
+                                               bool unique                      ///< swap?
     );
 
     /// Split a given edge by inserting a vertex in the middle: from two triangles one gets four triangles.
@@ -185,7 +187,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
                    std::vector<std::vector<double>*>& aux_data_double,   ///< auxiliary buffers
                    std::vector<std::vector<int>*>& aux_data_int,         ///< auxiliary buffers
                    std::vector<std::vector<bool>*>& aux_data_bool,       ///< auxiliary buffers
-                   std::vector<std::vector<ChVector<>>*>& aux_data_vect  ///< auxiliary buffers
+                   std::vector<std::vector<ChVector3d>*>& aux_data_vect  ///< auxiliary buffers
     );
 
     /// Class to be used optionally in RefineMeshEdges().
@@ -204,7 +206,7 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     /// tends to produce triangles with bounded angles even if starting from skewed/skinny
     /// triangles in the coarse mesh.
     /// Based on "Multithread parallelization of Lepp-bisection algorithms"
-    ///    M.-C. Rivara et al., Applied Numerical Mathematics 62 (2012) 473–488
+    ///    M.-C. Rivara et al., Applied Numerical Mathematics 62 (2012) 473ï¿½488
     /// The auxiliary buffers are used for refinement and assumed to be indexed like the vertex buffer.
     void RefineMeshEdges(
         std::vector<int>& marked_tris,     ///< indexes of triangles to refine (also surrounding triangles might be
@@ -216,36 +218,36 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
         std::vector<std::vector<double>*>& aux_data_double,   ///< auxiliary buffer
         std::vector<std::vector<int>*>& aux_data_int,         ///< auxiliary buffer
         std::vector<std::vector<bool>*>& aux_data_bool,       ///< auxiliary buffer
-        std::vector<std::vector<ChVector<>>*>& aux_data_vect  ///< auxiliary buffer
+        std::vector<std::vector<ChVector3d>*>& aux_data_vect  ///< auxiliary buffer
     );
 
-    const std::vector<ChVector<>>& getFaceVertices();
-    const std::vector<ChVector<>>& getFaceNormals();
+    const std::vector<ChVector3d>& getFaceVertices();
+    const std::vector<ChVector3d>& getFaceNormals();
     const std::vector<ChColor>& getFaceColors();
-    const std::vector<ChVector<>>& getAverageNormals();
+    const std::vector<ChVector3d>& getAverageNormals();
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::TRIANGLEMESH_CONNECTED; }
+    virtual Type GetType() const override { return Type::TRIANGLEMESH_CONNECTED; }
 
     /// Return the bounding box of a triangle mesh with given vertices.
-    static ChAABB GetBoundingBox(std::vector<ChVector<>> vertices);
+    static ChAABB GetBoundingBox(std::vector<ChVector3d> vertices);
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   public:
-    std::vector<ChVector<double>> m_vertices;
-    std::vector<ChVector<double>> m_normals;
-    std::vector<ChVector2<double>> m_UV;
+    std::vector<ChVector3d> m_vertices;
+    std::vector<ChVector3d> m_normals;
+    std::vector<ChVector2d> m_UV;
     std::vector<ChColor> m_colors;
 
-    std::vector<ChVector<int>> m_face_v_indices;
-    std::vector<ChVector<int>> m_face_n_indices;
-    std::vector<ChVector<int>> m_face_uv_indices;
-    std::vector<ChVector<int>> m_face_col_indices;
+    std::vector<ChVector3i> m_face_v_indices;
+    std::vector<ChVector3i> m_face_n_indices;
+    std::vector<ChVector3i> m_face_uv_indices;
+    std::vector<ChVector3i> m_face_col_indices;
     std::vector<int> m_face_mat_indices;
 
     std::string m_filename;  ///< file string if loading an obj file
@@ -253,13 +255,13 @@ class ChApi ChTriangleMeshConnected : public ChTriangleMesh {
     std::vector<ChProperty*> m_properties_per_vertex;
     std::vector<ChProperty*> m_properties_per_face;
 
-    std::vector<ChVector<>> m_tmp_vectors;
+    std::vector<ChVector3d> m_tmp_vectors;
     std::vector<ChColor> m_tmp_colors;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChTriangleMeshConnected, 0)
+CH_CLASS_VERSION(ChTriangleMeshConnected, 0)
 
 }  // end namespace chrono
 

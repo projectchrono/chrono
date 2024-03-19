@@ -46,12 +46,12 @@ class ChApi ChCollisionModelMulticore : public ChCollisionModelImpl {
     void SetBody(ChBody* body) { mbody = body; }
 
     /// Return the axis aligned bounding box for this collision model.
-    virtual geometry::ChAABB GetBoundingBox() const override;
+    virtual ChAABB GetBoundingBox() const override;
 
     std::vector<real3> local_convex_data;
 
-    ChVector<> aabb_min;
-    ChVector<> aabb_max;
+    ChVector3d aabb_min;
+    ChVector3d aabb_max;
 
   protected:
     struct ctCollisionShape {

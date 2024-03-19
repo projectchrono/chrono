@@ -29,7 +29,7 @@
 #include <sstream>
 #include <cstring>
 
-#include "chrono/core/ChMathematics.h"
+#include "chrono/utils/ChUtils.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRigDataDriver.h"
 
 namespace chrono {

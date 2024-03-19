@@ -22,7 +22,6 @@
 
 #include <cmath>
 
-#include "chrono/core/ChLog.h"
 #include "chrono_vehicle/tracked_vehicle/track_assembly/ChTrackAssemblyBandBushing.h"
 
 namespace chrono {
@@ -57,12 +56,12 @@ bool ChTrackAssemblyBandBushing::Assemble(std::shared_ptr<ChBodyAuxRef> chassis)
     double seg_length = m_shoes[0]->GetWebLength() / m_shoes[0]->GetNumWebSegments();
     std::vector<double> connection_lengths(1 + m_shoes[0]->GetNumWebSegments());
     connection_lengths[0] = m_shoes[0]->GetToothBaseLength();
-    for (int is = 1; is <= m_shoes[0]->GetNumWebSegments(); is++) {
+    for (unsigned int is = 1; is <= m_shoes[0]->GetNumWebSegments(); is++) {
         connection_lengths[is] = seg_length;
     }
 
     // Calculate assembly points
-    std::vector<ChVector2<>> shoe_points;
+    std::vector<ChVector2d> shoe_points;
     bool ccw = FindAssemblyPoints(chassis, num_shoes, connection_lengths, shoe_points);
 
     // Now create all of the track shoes at the located points
@@ -70,11 +69,11 @@ bool ChTrackAssemblyBandBushing::Assemble(std::shared_ptr<ChBodyAuxRef> chassis)
     for (int s = 0; s < num_shoes; s++) {
         std::vector<ChCoordsys<>> shoe_components_coordsys;
         for (auto i = 0; i < num_shoe_elements; i++) {
-            ChVector2<> mid = (shoe_points[i + 1 + s * num_shoe_elements] + shoe_points[i + s * num_shoe_elements]) / 2;
-            ChVector2<> dir = shoe_points[i + 1 + s * num_shoe_elements] - shoe_points[i + s * num_shoe_elements];
-            ChVector<> loc(mid.x(), m_sprocket_offset, mid.y());
+            ChVector2d mid = (shoe_points[i + 1 + s * num_shoe_elements] + shoe_points[i + s * num_shoe_elements]) / 2;
+            ChVector2d dir = shoe_points[i + 1 + s * num_shoe_elements] - shoe_points[i + s * num_shoe_elements];
+            ChVector3d loc(mid.x(), m_sprocket_offset, mid.y());
             double ang = std::atan2(dir.y(), dir.x());
-            ChQuaternion<> rot = Q_from_AngY(-ang);  // Negative of the angle in 3D
+            ChQuaternion<> rot = QuatFromAngleY(-ang);  // Negative of the angle in 3D
 
             shoe_components_coordsys.push_back(ChCoordsys<>(loc, rot));
         }
@@ -84,8 +83,6 @@ bool ChTrackAssemblyBandBushing::Assemble(std::shared_ptr<ChBodyAuxRef> chassis)
         // Initialize the track shoe system
         m_shoes[s]->Initialize(chassis, shoe_components_coordsys);
     }
-
-    ////GetLog() << "Track assembly done.  Number of track shoes: " << num_shoes << "\n";
 
     return ccw;
 }

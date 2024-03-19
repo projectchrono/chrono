@@ -47,20 +47,20 @@ chrono.ChCollisionModel.SetDefaultSuggestedMargin(0.001)
 body_particles = chrono.ChParticleCloud()
 body_particles.SetMass(0.01);
 inertia = 2/5*(pow(0.005,2))*0.01;
-body_particles.SetInertiaXX(chrono.ChVectorD(inertia,inertia,inertia));
+body_particles.SetInertiaXX(chrono.ChVector3d(inertia,inertia,inertia));
 
 # Collision shape (shared by all particle clones) Must be defined BEFORE adding particles
-particle_material = chrono.ChMaterialSurfaceNSC()
+particle_material = chrono.ChContactMaterialNSC()
 
 body_particles_ct_shape = chrono.ChCollisionShapeSphere(particle_material, 0.005)
 body_particles.AddCollisionShape(body_particles_ct_shape)
-body_particles.SetCollide(True)
+body_particles.EnableCollision(True)
 
 # add particles
 for ix in range(0,5):
     for iy in range(0,5):
         for iz in range(0,3):
-            body_particles.AddParticle(chrono.ChCoordsysD(chrono.ChVectorD(ix/100,0.1+iy/100, iz/100)))
+            body_particles.AddParticle(chrono.ChCoordsysd(chrono.ChVector3d(ix/100,0.1+iy/100, iz/100)))
 
 # Visualization shape (shared by all particle clones)
 body_particles_shape = chrono.ChVisualShapeSphere(0.005)
@@ -75,14 +75,14 @@ sys.Add(body_particles)
 # and a visualization shape
 
 body_floor = chrono.ChBody()
-body_floor.SetBodyFixed(True)
+body_floor.SetFixed(True)
 
 # Collision shape
-floor_material = chrono.ChMaterialSurfaceNSC()
+floor_material = chrono.ChContactMaterialNSC()
 
 body_floor_ct_shape = chrono.ChCollisionShapeBox(floor_material, 0.1, 0.02, 0.1)
 body_floor.AddCollisionShape(body_floor_ct_shape)
-body_floor.SetCollide(True)
+body_floor.EnableCollision(True)
 
 # Visualization shape
 body_floor_shape = chrono.ChVisualShapeBox(0.2, 0.04, 0.2)
@@ -97,15 +97,15 @@ sys.Add(body_floor)
 for ix in range(0,2):
     for iz in range(0,4):
         body_brick = chrono.ChBody()
-        body_brick.SetPos(chrono.ChVectorD(0.05+ix*0.021,0.04,0+iz*0.021))
+        body_brick.SetPos(chrono.ChVector3d(0.05+ix*0.021,0.04,0+iz*0.021))
         body_brick.SetMass(0.02);
         inertia = 2/5*(pow(0.01,2))*0.02;
-        body_brick.SetInertiaXX(chrono.ChVectorD(inertia,inertia,inertia));
+        body_brick.SetInertiaXX(chrono.ChVector3d(inertia,inertia,inertia));
 
         # Collision shape
         body_brick_ct_shape = chrono.ChCollisionShapeBox(floor_material, 0.01, 0.01, 0.01)
         body_brick.AddCollisionShape(body_brick_ct_shape)
-        body_brick.SetCollide(True)
+        body_brick.EnableCollision(True)
 
         # Visualization shape
         body_brick_shape = chrono.ChVisualShapeBox(0.02, 0.02, 0.02)
@@ -133,8 +133,8 @@ pov_exporter.SetBasePath("povray2")
 
 
 # Some  settings for the POV rendering:
-pov_exporter.SetCamera(chrono.ChVectorD(0.2,0.3,0.5), chrono.ChVectorD(0,0,0), 35)
-pov_exporter.SetLight(chrono.ChVectorD(-2,2,-1), chrono.ChColor(1,1,1), True)
+pov_exporter.SetCamera(chrono.ChVector3d(0.2,0.3,0.5), chrono.ChVector3d(0,0,0), 35)
+pov_exporter.SetLight(chrono.ChVector3d(-2,2,-1), chrono.ChColor(1,1,1), True)
 pov_exporter.SetPictureSize(640,480)
 pov_exporter.SetAmbientLight(chrono.ChColor(0.8,0.8,0.8))
 
@@ -161,7 +161,7 @@ pov_exporter.SetShowContacts(True,
 pov_exporter.ExportScript()
 
 #sys.SetSolverType(chrono.ChSolver.Type_PMINRES)
-sys.SetSolverMaxIterations(50)
+sys.GetSolver().AsIterative().SetMaxIterations(50)
 
 
  # Perform a short simulation

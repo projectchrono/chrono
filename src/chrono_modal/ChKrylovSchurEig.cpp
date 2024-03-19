@@ -13,7 +13,6 @@
 // =============================================================================
 
 #include "chrono_modal/ChKrylovSchurEig.h"
-#include "chrono/core/ChMathematics.h"
 #include "chrono/solver/ChDirectSolverLS.h"
 #include "chrono/solver/ChDirectSolverLScomplex.h"
 
@@ -60,8 +59,8 @@ callback_Ax_sparse_shiftinvert::~callback_Ax_sparse_shiftinvert() {
 }
 
 void callback_Ax_sparse_shiftinvert::compute(
-    chrono::ChVectorDynamic<std::complex<double>>& A_x,     ///< output: result of A*x
-    const chrono::ChVectorDynamic<std::complex<double>>& x  ///< input:  x in A*x
+    chrono::ChVectorDynamic<std::complex<double>>& A_x,     // output: result of A*x
+    const chrono::ChVectorDynamic<std::complex<double>>& x  // input:  x in A*x
 ) {
     std::complex<double> c1(0, 1.0);
     linear_solver->b() = Bd * x.real();
@@ -78,8 +77,7 @@ callback_Ax_sparse_complexshiftinvert::callback_Ax_sparse_complexshiftinvert(
     const chrono::ChSparseMatrix& mA,
     const chrono::ChSparseMatrix& mB,
     std::complex<double> shift,
-    ChDirectSolverLScomplex*
-        mlinear_solver  ///< optional direct solver/factorization. Default is ChSolverSparseComplexQR
+    ChDirectSolverLScomplex* mlinear_solver  // optional direct solver/factorization. Default is ChSolverSparseComplexQR
     )
     : Bd(mB.cast<std::complex<double>>()), sigma(shift), linear_solver(mlinear_solver) {
     if (!linear_solver) {
@@ -99,8 +97,8 @@ callback_Ax_sparse_complexshiftinvert::~callback_Ax_sparse_complexshiftinvert() 
 }
 
 void callback_Ax_sparse_complexshiftinvert::compute(
-    chrono::ChVectorDynamic<std::complex<double>>& A_x,     ///< output: result of A*x
-    const chrono::ChVectorDynamic<std::complex<double>>& x  ///< input:  x in A*x
+    chrono::ChVectorDynamic<std::complex<double>>& A_x,     // output: result of A*x
+    const chrono::ChVectorDynamic<std::complex<double>>& x  // input:  x in A*x
 ) {
     linear_solver->Solve(Bd * x);
     A_x = linear_solver->x();
@@ -259,7 +257,7 @@ void sortSchur(ChMatrixDynamic<std::complex<double>>& US,
         select(ix[i]) = true;  // select(ix(1:k+isC)) = true;
     US = U;
     TS = T;
-    ordschur(US, TS, select);  // the ordshur() has no equivalent in EIGEN! Use own ordschur()
+    ordschur(US, TS, select);  // the ordschur() has no equivalent in EIGEN! Use own ordschur()
                                // TODO: can US and TS be reordered in-place?
 }
 
@@ -267,11 +265,11 @@ void sortSchur(ChMatrixDynamic<std::complex<double>>& US,
 // The function contructs the sk + 1, sk + 2, ..., ek_th column of Q while Q(sk) is only read;
 // It builds also H(0:ek, sk:ex-1)
 void expandKrylov(
-    ChMatrixDynamic<std::complex<double>>& Q,  ///< orthonormal matrix with dimension [n x k+1] or [n x k+2]
-    ChMatrixDynamic<std::complex<double>>& H,  ///< `Hessenberg' matrix with dimension [k+1 x k] or [k+2 x k+1]
-    callback_Ax* Ax_function,                  /// void (*Ax_function)(ChVectorDynamic<std::complex<double>>& A_x, const
-                               /// ChVectorDynamic<std::complex<double>>& x),  ///< compute the A*x operation, for
-                               /// standard eigenvalue problem A*v=lambda*v.
+    ChMatrixDynamic<std::complex<double>>& Q,  // orthonormal matrix with dimension [n x k+1] or [n x k+2]
+    ChMatrixDynamic<std::complex<double>>& H,  // `Hessenberg' matrix with dimension [k+1 x k] or [k+2 x k+1]
+    callback_Ax* Ax_function,                  // void (*Ax_function)(ChVectorDynamic<std::complex<double>>& A_x, const
+                               // ChVectorDynamic<std::complex<double>>& x),  // compute the A*x operation, for
+                               // standard eigenvalue problem A*v=lambda*v.
     int sk,  // start index
     int ek   // end index
 ) {
@@ -301,21 +299,21 @@ void expandKrylov(
 // matrix A.
 // A * Q(:, 1:k+isC) = Q(:, 1:k+isC) * H(1:k+isC, 1:k+isC)
 void KrylovSchur(
-    ChMatrixDynamic<std::complex<double>>& Q,  ///< orthonormal matrix with dimension [n x k+1] or [n x k+2]
-    ChMatrixDynamic<std::complex<double>>& H,  ///< `Hessenberg' matrix with dimension [k+1 x k] or [k+2 x k+1]
-    bool& isC,                 ///< 0 = k-th eigenvalue is real, 1= k-th and k-th+1 are complex conjugate pairs
-    bool& flag,                ///< 0 = has converged, 1 = hasn't converged
-    int& nc,                   ///< number of converged eigenvalues
-    int& ni,                   ///< number of used iterations
-    callback_Ax* Ax_function,  /// void (*Ax_function)(ChVectorDynamic<std::complex<double>>& A_x, const
-                               /// ChVectorDynamic<std::complex<double>>& x),  ///< compute the A*x operation, for
-                               /// standard eigenvalue problem A*v=lambda*v.
-    const ChVectorDynamic<std::complex<double>>& v1,  ///< initial approx of eigenvector, or random
-    const int n,                                      ///< size of A
-    const int k,                                      ///< number of needed eigenvalues
-    const int m,      ///< Krylov restart threshold (largest dimension of krylov subspace)
-    const int maxIt,  ///< max iteration number
-    const double tol  ///< tolerance
+    ChMatrixDynamic<std::complex<double>>& Q,  // orthonormal matrix with dimension [n x k+1] or [n x k+2]
+    ChMatrixDynamic<std::complex<double>>& H,  // `Hessenberg' matrix with dimension [k+1 x k] or [k+2 x k+1]
+    bool& isC,                 // 0 = k-th eigenvalue is real, 1= k-th and k-th+1 are complex conjugate pairs
+    bool& flag,                // 0 = has converged, 1 = hasn't converged
+    int& nc,                   // number of converged eigenvalues
+    int& ni,                   // number of used iterations
+    callback_Ax* Ax_function,  // void (*Ax_function)(ChVectorDynamic<std::complex<double>>& A_x, const
+                               // ChVectorDynamic<std::complex<double>>& x),  // compute the A*x operation, for
+                               // standard eigenvalue problem A*v=lambda*v.
+    const ChVectorDynamic<std::complex<double>>& v1,  // initial approx of eigenvector, or random
+    const int n,                                      // size of A
+    const int k,                                      // number of needed eigenvalues
+    const int m,                                      // Krylov restart threshold (largest dimension of krylov subspace)
+    const int maxIt,                                  // max iteration number
+    const double tol                                  // tolerance
 ) {
     Q.setZero(n, m + 1);
     H.setZero(m + 1, m);
@@ -383,22 +381,21 @@ void KrylovSchur(
 // calculate (complex) eigenvalues and eigenvectors of matrix A.
 // using the Krylov-Schur algorithm
 ChKrylovSchurEig::ChKrylovSchurEig(
-    ChMatrixDynamic<std::complex<double>>& v,  ///< output matrix with eigenvectors as columns, will be resized
-    ChVectorDynamic<std::complex<double>>&
-        eig,                   ///< output vector with eigenvalues (real part not zero if some damping), will be resized
-    bool& isC,                 ///< 0 = k-th eigenvalue is real, 1= k-th and k-th+1 are complex conjugate pairs
-    bool& flag,                ///< 0 = has converged, 1 = hasn't converged
-    int& nc,                   ///< number of converged eigenvalues
-    int& ni,                   ///< number of used iterations
-    callback_Ax* Ax_function,  /// (*Ax_function)(ChVectorDynamic<std::complex<double>>& A_x, const
-                               /// ChVectorDynamic<std::complex<double>>& x),  ///< compute the A*x operation, for
-                               /// standard eigenvalue problem A*v=lambda*v.
-    ChVectorDynamic<std::complex<double>>& v1,  ///< initial approx of eigenvector, or random
-    const int n,                                ///< size of A
-    const int k,                                ///< number of needed eigenvalues
-    const int m,                                ///< Krylov restart threshold (largest dimension of krylov subspace)
-    const int maxIt,                            ///< max iteration number
-    const double tol                            ///< tolerance
+    ChMatrixDynamic<std::complex<double>>& v,    // output matrix with eigenvectors as columns
+    ChVectorDynamic<std::complex<double>>& eig,  // output vector with eigenvalues (real part not zero if some damping)
+    bool& isC,                 // 0 = k-th eigenvalue is real, 1= k-th and k-th+1 are complex conjugate pairs
+    bool& flag,                // 0 = has converged, 1 = hasn't converged
+    int& nc,                   // number of converged eigenvalues
+    int& ni,                   // number of used iterations
+    callback_Ax* Ax_function,  // (*Ax_function)(ChVectorDynamic<std::complex<double>>& A_x, const
+                               // ChVectorDynamic<std::complex<double>>& x),  // compute the A*x operation, for
+                               // standard eigenvalue problem A*v=lambda*v.
+    ChVectorDynamic<std::complex<double>>& v1,  // initial approx of eigenvector, or random
+    const int n,                                // size of A
+    const int k,                                // number of needed eigenvalues
+    const int m,                                // Krylov restart threshold (largest dimension of krylov subspace)
+    const int maxIt,                            // max iteration number
+    const double tol                            // tolerance
 ) {
     ChMatrixDynamic<std::complex<double>> Q;  // orthonormal matrix with dimension [n x k+1] or [n x k+2]
     ChMatrixDynamic<std::complex<double>> H;  // `Hessenberg' matrix with dimension [k+1 x k] or [k+2 x k+1]

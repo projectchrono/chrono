@@ -38,7 +38,7 @@ inline void ChSolverPardisoProject::SetMatrixSymmetryType(MatrixSymmetryType sym
         engine_symmetry = ChPardisoProjectEngine::parproj_SYM::SYMMETRIC_POSDEF;
         break;
     default:
-        GetLog() << "ChSolverPardisoProject does not support the matrix symmetry set.\n Rolling back to GENERAL\n";
+        std::cerr << "ChSolverPardisoProject does not support the matrix symmetry set." << std::endl << "Rolling back to GENERAL" << std::endl;
         symmetry = MatrixSymmetryType::GENERAL;
         break;
     }
@@ -60,12 +60,12 @@ bool ChSolverPardisoProject::FactorizeMatrix() {
     
     if (verbose){
         if (m_engine.GetLastError() != 0) {
-        printf("\nERROR during symbolic factorization: %d", m_engine.GetLastError());
+            std::cerr << std::endl << "ERROR during symbolic factorization: " << m_engine.GetLastError() << std::endl;
             exit(1);
         }
-        printf("\nReordering completed ... ");
-        printf("\nNumber of nonzeros in factors  = %d", m_engine.GetIPARM(17));
-        printf("\nNumber of factorization MFLOPS = %d", m_engine.GetIPARM(18));
+        std::endl << "Reordering completed ... " << std::endl;
+        std::endl << "Number of nonzeros in factors  = " << m_engine.GetIPARM(17) << std::endl;
+        std::endl << "Number of factorization MFLOPS = " << m_engine.GetIPARM(18) << std::endl;
     }
 
 
@@ -78,14 +78,14 @@ bool ChSolverPardisoProject::SolveSystem() {
     m_engine.PardisoProjectCall(ChPardisoProjectEngine::parproj_PHASE::SOLVE);
    
     if (m_engine.GetLastError() != 0) {
-        printf("\nERROR during solution: %d", m_engine.GetLastError());
+        std::cout << "ERROR during solution: " << m_engine.GetLastError() << std::endl;
         exit(3);
     }
     return true;
 }
 
 void ChSolverPardisoProject::PrintErrorMessage() {
-    printf("\nERROR: %d", m_engine.GetLastError());
+    std::cerr << "ERROR: " << m_engine.GetLastError() << std::endl;
 }
 
 

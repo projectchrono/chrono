@@ -93,7 +93,7 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
 
     if (auto pOptixSensor = std::dynamic_pointer_cast<ChOptixSensor>(sensor)) {
         m_render_sensor.push_back(sensor);
-        //******** give each render group all sensor with same update rate *************//
+        /******** give each render group all sensor with same update rate *************/
         bool found_group = false;
 
         // add the sensor to an engine with sensor of similar update frequencies
@@ -130,8 +130,7 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
                         std::cout << "Couldn't find suitable existing OptiX engine, so adding to first engine\n";
                 }
             }
-        }
-        catch (std::exception& e) {
+        } catch (std::exception& e) {
             std::cerr << "Failed to create a ChOptixEngine, with error:\n" << e.what() << "\n";
             exit(1);
         }

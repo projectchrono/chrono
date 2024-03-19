@@ -106,15 +106,15 @@ class ChApi ChAssembly : public ChPhysicsItem {
     void RemoveAllOtherPhysicsItems();
 
     /// Get the list of bodies.
-    const std::vector<std::shared_ptr<ChBody>>& Get_bodylist() const { return bodylist; }
+    const std::vector<std::shared_ptr<ChBody>>& GetBodies() const { return bodylist; }
     /// Get the list of shafts.
-    const std::vector<std::shared_ptr<ChShaft>>& Get_shaftlist() const { return shaftlist; }
+    const std::vector<std::shared_ptr<ChShaft>>& GetShafts() const { return shaftlist; }
     /// Get the list of links.
-    const std::vector<std::shared_ptr<ChLinkBase>>& Get_linklist() const { return linklist; }
+    const std::vector<std::shared_ptr<ChLinkBase>>& GetLinks() const { return linklist; }
     /// Get the list of meshes.
-    const std::vector<std::shared_ptr<fea::ChMesh>>& Get_meshlist() const { return meshlist; }
+    const std::vector<std::shared_ptr<fea::ChMesh>>& GetMeshes() const { return meshlist; }
     /// Get the list of physics items that are not in the body or link lists.
-    const std::vector<std::shared_ptr<ChPhysicsItem>>& Get_otherphysicslist() const { return otherphysicslist; }
+    const std::vector<std::shared_ptr<ChPhysicsItem>>& GetOtherPhysicsItems() const { return otherphysicslist; }
 
     /// Search a body by its name.
     std::shared_ptr<ChBody> SearchBody(const std::string& name) const;
@@ -139,51 +139,64 @@ class ChApi ChAssembly : public ChPhysicsItem {
     // STATISTICS
     //
 
-    /// Get the number of active bodies (so, excluding those that are sleeping or are fixed to ground).
-    int GetNbodies() const { return nbodies; }
-    /// Get the number of bodies that are in sleeping mode (excluding fixed bodies).
-    int GetNbodiesSleeping() const { return nbodies_sleep; }
-    /// Get the number of bodies that are fixed to ground.
-    int GetNbodiesFixed() const { return nbodies_fixed; }
-    /// Get the total number of bodies added to the assembly, including the grounded and sleeping bodies.
-    int GetNbodiesTotal() const { return nbodies + nbodies_fixed + nbodies_sleep; }
+    /// Get the total number of bodies added to the assembly, including fixed and sleeping bodies.
+    unsigned int GetNumBodies() const { return m_num_bodies_active + m_num_bodies_fixed + m_num_bodies_sleep; }
+
+    /// Get the number of active bodies, excluding sleeping or fixed.
+    unsigned int GetNumBodiesActive() const { return m_num_bodies_active; }
+
+    /// Get the number of sleeping bodies.
+    unsigned int GetNumBodiesSleeping() const { return m_num_bodies_sleep; }
+
+    /// Get the number of bodies fixed to ground.
+    unsigned int GetNumBodiesFixed() const { return m_num_bodies_fixed; }
+
 
     /// Get the number of shafts.
-    int GetNshafts() const { return nshafts; }
-    /// Get the number of shafts that are in sleeping mode (excluding fixed shafts).
-    int GetNshaftsSleeping() const { return nshafts_sleep; }
-    /// Get the number of shafts that are fixed to ground.
-    int GetNshaftsFixed() const { return nshafts_fixed; }
-    /// Get the total number of shafts added to the assembly, including the grounded and sleeping shafts.
-    int GetNshaftsTotal() const { return nshafts + nshafts_fixed + nshafts_sleep; }
+    unsigned int GetNumShafts() const { return m_num_shafts; }
 
-    /// Get the number of links.
-    int GetNlinks() const { return nlinks; }
+    /// Get the number of shafts that are in sleeping mode (excluding fixed shafts).
+    unsigned int GetNumShaftsSleeping() const { return m_num_shafts_sleep; }
+
+    /// Get the number of shafts that are fixed to ground.
+    unsigned int GetNumShaftsFixed() const { return m_num_shafts_fixed; }
+
+    /// Get the total number of shafts added to the assembly, including the grounded and sleeping shafts.
+    unsigned int GetNumShaftsTotal() const { return m_num_shafts + m_num_shafts_fixed + m_num_shafts_sleep; }
+
+
+    /// Get the number of links (including non active).
+    unsigned int GetNumLinks() const { return (unsigned int)linklist.size(); }
+
+    /// Get the number of active links.
+    unsigned int GetNumLinksActive() const { return m_num_links_active; }
+
 
     /// Get the number of meshes.
-    int GetNmeshes() const { return nmeshes; }
+    unsigned int GetNumMeshes() const { return m_num_meshes; }
 
-    /// Get the number of other physics items (other than bodies, links, or meshes).
-    int GetNphysicsItems() const { return nphysicsitems; }
+    /// Get the number of other active physics items (including non active).
+    unsigned int GetNumOtherPhysicsItems() const { return (unsigned int)otherphysicslist.size(); }
 
-    /// Get the number of coordinates (considering 7 coords for rigid bodies because of the 4 dof of quaternions).
-    int GetNcoords() const { return ncoords; }
-    /// Get the number of degrees of freedom of the assembly.
-    int GetNdof() const { return ndof; }
-    /// Get the number of scalar constraints added to the assembly, including constraints on quaternion norms.
-    int GetNdoc() const { return ndoc; }
-    /// Get the number of system variables (coordinates plus the constraint multipliers, in case of quaternions).
-    int GetNsysvars() const { return nsysvars; }
-    /// Get the number of coordinates (considering 6 coords for rigid bodies, 3 transl.+3rot.)
-    int GetNcoords_w() const { return ncoords_w; }
-    /// Get the number of scalar constraints added to the assembly.
-    int GetNdoc_w() const { return ndoc_w; }
-    /// Get the number of scalar constraints added to the assembly (only bilaterals).
-    int GetNdoc_w_C() const { return ndoc_w_C; }
-    /// Get the number of scalar constraints added to the assembly (only unilaterals).
-    int GetNdoc_w_D() const { return ndoc_w_D; }
-    /// Get the number of system variables (coordinates plus the constraint multipliers).
-    int GetNsysvars_w() const { return nsysvars_w; }
+    /// Get the number of other active physics items.
+    unsigned int GetNumOtherPhysicsItemsActive() const { return m_num_otherphysicsitems_active; }
+
+
+    /// Get the number of scalar coordinates at the position level.
+    /// This count includes the 4th dimension of quaternions (if any), thus potentially differing from GetNumCoordsVelLevel().
+    virtual unsigned int GetNumCoordsPosLevel() override { return m_num_coords_pos; }
+
+    /// Get the number of scalar coordinates at the velocity level.
+    virtual unsigned int GetNumCoordsVelLevel() override { return m_num_coords_vel; }
+
+    /// Get the number of scalar constraints in the assembly.
+    virtual unsigned int GetNumConstraints() override { return m_num_constr; }
+
+    /// Get the number of scalar bilateral constraints in the assembly.
+    virtual unsigned int GetNumConstraintsBilateral() override { return m_num_constr_bil; }
+
+    /// Get the number of scalar unilateral constraints in the assembly.
+    virtual unsigned int GetNumConstraintsUnilateral() override { return m_num_constr_uni; }
 
     // PHYSICS ITEM INTERFACE
 
@@ -215,18 +228,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     virtual void Update(bool update_assets = true) override;
 
     /// Set zero speed (and zero accelerations) in state, without changing the position.
-    virtual void SetNoSpeedNoAcceleration() override;
-
-    /// Get the number of scalar coordinates (ex. dim of position vector)
-    virtual int GetDOF() override { return GetNcoords(); }
-    /// Get the number of scalar coordinates of variables derivatives (ex. dim of speed vector)
-    virtual int GetDOF_w() override { return GetNcoords_w(); }
-    /// Get the number of scalar constraints, if any, in this item
-    virtual int GetDOC() override { return GetNdoc_w(); }
-    /// Get the number of scalar constraints, if any, in this item (only bilateral constr.)
-    virtual int GetDOC_c() override { return GetNdoc_w_C(); }
-    /// Get the number of scalar constraints, if any, in this item (only unilateral constr.)
-    virtual int GetDOC_d() override { return GetNdoc_w_D(); }
+    virtual void ForceToRest() override;
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGather(const unsigned int off_x,
@@ -250,10 +252,10 @@ class ChApi ChAssembly : public ChPhysicsItem {
                                    const unsigned int off_v,
                                    const ChStateDelta& Dv) override;
     virtual void IntStateGetIncrement(const unsigned int off_x,
-                                   const ChState& x_new,
-                                   const ChState& x,
-                                   const unsigned int off_v,
-                                   ChStateDelta& Dv) override;
+                                      const ChState& x_new,
+                                      const ChState& x,
+                                      const unsigned int off_v,
+                                      ChStateDelta& Dv) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
@@ -312,13 +314,13 @@ class ChApi ChAssembly : public ChPhysicsItem {
 
     /// Writes the hierarchy of contained bodies, markers, etc. in ASCII
     /// readable form, mostly for debugging purposes. Level is the tab spacing at the left.
-    void ShowHierarchy(ChStreamOutAscii& m_file, int level = 0) const;
+    void ShowHierarchy(std::ostream& outstream, int level = 0) const;
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
     // SWAP FUNCTION
 
@@ -338,25 +340,22 @@ class ChApi ChAssembly : public ChPhysicsItem {
     std::vector<std::shared_ptr<ChPhysicsItem>> batch_to_insert;   ///< list of items to insert at once
 
     // Statistics:
-    int nbodies;        ///< number of bodies (currently active)
-    int nbodies_sleep;  ///< number of bodies that are sleeping
-    int nbodies_fixed;  ///< number of bodies that are fixed
-    int nshafts;        ///< number of shafts (currently active)
-    int nshafts_sleep;  ///< number of shafts that are sleeping
-    int nshafts_fixed;  ///< number of shafts that are fixed
-    int nlinks;         ///< number of links
-    int nmeshes;        ///< number of meshes
-    int nphysicsitems;  ///< number of other physics items
+    int m_num_bodies_active;      ///< number of active bodies
+    int m_num_bodies_sleep;       ///< number of sleeping bodies
+    int m_num_bodies_fixed;       ///< number of fixed bodies
+    int m_num_shafts;             ///< number of active shafts
+    int m_num_shafts_sleep;       ///< number of sleeping shafts
+    int m_num_shafts_fixed;       ///< number of fixed shafts
+    int m_num_links_active;       ///< number of active links
+    int m_num_meshes;             ///< number of meshes
+    int m_num_otherphysicsitems_active;  ///< number of other active physics items
 
-    int ncoords;     ///< number of scalar coordinates (including 4th dimension of quaternions) for all active bodies
-    int ndoc;        ///< number of scalar constraints (including constr. on quaternions)
-    int nsysvars;    ///< number of variables (coords+lagrangian mult.), i.e. = ncoords+ndoc  for all active bodies
-    int ncoords_w;   ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
-    int ndoc_w;      ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
-    int nsysvars_w;  ///< number of variables when using 3 rot. dof. per body; i.e. = ncoords_w+ndoc_w
-    int ndof;        ///< number of degrees of freedom, = ncoords-ndoc =  ncoords_w-ndoc_w ,
-    int ndoc_w_C;    ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
-    int ndoc_w_D;    ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
+    int m_num_coords_pos;  ///< number of scalar coordinates (including 4th dimension of quaternions) for all active
+                           ///< bodies
+    int m_num_coords_vel;  ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
+    int m_num_constr;      ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
+    int m_num_constr_bil;  ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
+    int m_num_constr_uni;  ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
 
     friend class ChSystem;
     friend class ChSystemMulticore;

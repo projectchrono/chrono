@@ -32,19 +32,19 @@ int main(int argc, char* argv[]) {
     auto vis = chrono_types::make_shared<ChVisualSystemVSG>();
     vis->AttachSystem(&sys);
     vis->SetCameraVertical(CameraVerticalDir::Z);
-    vis->SetWindowSize(ChVector2<int>(1200, 900));
-    vis->SetWindowPosition(ChVector2<int>(100, 300));
+    vis->SetWindowSize(ChVector2i(1200, 900));
+    vis->SetWindowPosition(ChVector2i(100, 300));
     vis->SetWindowTitle("Chrono VSG Assets");
     vis->SetUseSkyBox(false);
-    vis->AddCamera(ChVector<>(0.4, -1, 0.5), ChVector<>(0, 0, 0.4));
+    vis->AddCamera(ChVector3d(0.4, -1, 0.5), ChVector3d(0, 0, 0.4));
     vis->SetCameraAngleDeg(40);
     vis->SetLightIntensity(1.0f);
-    vis->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+    vis->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
 
     {
         auto shape = chrono_types::make_shared<ChVisualShapeModelFile>();
         shape->SetFilename(GetChronoDataFile("models/FlightHelmet/FlightHelmet.gltf"));
-        vis->AddVisualModel(shape, ChFrame<>(VNULL, Q_from_AngX(CH_C_PI_2)));
+        vis->AddVisualModel(shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
     }
 
     vis->Initialize();

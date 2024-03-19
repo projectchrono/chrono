@@ -69,7 +69,7 @@ HmmwvDlcTest<EnumClass, TIRE_MODEL>::HmmwvDlcTest() : m_step_veh(2e-3), m_step_t
     m_hmmwv->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_hmmwv->SetContactMethod(ChContactMethod::SMC);
     m_hmmwv->SetChassisFixed(false);
-    m_hmmwv->SetInitPosition(ChCoordsys<>(ChVector<>(-120, 0, 0.7), ChQuaternion<>(1, 0, 0, 0)));
+    m_hmmwv->SetInitPosition(ChCoordsys<>(ChVector3d(-120, 0, 0.7), ChQuaternion<>(1, 0, 0, 0)));
     m_hmmwv->SetEngineType(engine_model);
     m_hmmwv->SetTransmissionType(transmission_model);
     m_hmmwv->SetDriveType(drive_type);
@@ -86,7 +86,7 @@ HmmwvDlcTest<EnumClass, TIRE_MODEL>::HmmwvDlcTest() : m_step_veh(2e-3), m_step_t
 
     // Create the terrain
     m_terrain = new RigidTerrain(m_hmmwv->GetSystem());
-    auto patch_material = chrono_types::make_shared<ChMaterialSurfaceSMC>();
+    auto patch_material = chrono_types::make_shared<ChContactMaterialSMC>();
     patch_material->SetFriction(0.9f);
     patch_material->SetRestitution(0.01f);
     patch_material->SetYoungModulus(2e7f);
@@ -96,7 +96,7 @@ HmmwvDlcTest<EnumClass, TIRE_MODEL>::HmmwvDlcTest() : m_step_veh(2e-3), m_step_t
     m_terrain->Initialize();
 
     // Parameterized NATO double lane change (to right)
-    auto path = DoubleLaneChangePath(ChVector<>(-125, 0, 0.1), 28.93, 3.6105, 25.0, 50.0, false);
+    auto path = DoubleLaneChangePath(ChVector3d(-125, 0, 0.1), 28.93, 3.6105, 25.0, 50.0, false);
     m_driver = new ChPathFollowerDriver(m_hmmwv->GetVehicle(), path, "my_path", 12.0);
     m_driver->GetSteeringController().SetLookAheadDistance(5.0);
     m_driver->GetSteeringController().SetGains(0.8, 0, 0);
@@ -135,7 +135,7 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::SimulateVis() {
     auto vis = chrono_types::make_shared<ChWheeledVehicleVisualSystemIrrlicht>();
     vis->AttachVehicle(&m_hmmwv->GetVehicle());
     vis->SetWindowTitle("HMMWV DLC");
-    vis->SetChaseCamera(ChVector<>(0.0, 0.0, 1.75), 6.0, 0.5);
+    vis->SetChaseCamera(ChVector3d(0.0, 0.0, 1.75), 6.0, 0.5);
     vis->Initialize();
     vis->AddLightDirectional();
     vis->AddSkyBox();
@@ -147,8 +147,8 @@ void HmmwvDlcTest<EnumClass, TIRE_MODEL>::SimulateVis() {
     ballT->getMaterial(0).EmissiveColor = irr::video::SColor(0, 0, 255, 0);
 
     while (vis->Run()) {
-        const ChVector<>& pS = m_driver->GetSteeringController().GetSentinelLocation();
-        const ChVector<>& pT = m_driver->GetSteeringController().GetTargetLocation();
+        const ChVector3d& pS = m_driver->GetSteeringController().GetSentinelLocation();
+        const ChVector3d& pT = m_driver->GetSteeringController().GetTargetLocation();
         ballS->setPosition(irr::core::vector3df((irr::f32)pS.x(), (irr::f32)pS.y(), (irr::f32)pS.z()));
         ballT->setPosition(irr::core::vector3df((irr::f32)pT.x(), (irr::f32)pT.y(), (irr::f32)pT.z()));
 

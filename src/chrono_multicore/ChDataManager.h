@@ -38,9 +38,9 @@
 #include <blaze/math/CompressedMatrix.h>
 #include <blaze/math/DynamicVector.h>
 #if BLAZE_MAJOR_VERSION == 2
-#include <blaze/math/DenseSubvector.h>
+    #include <blaze/math/DenseSubvector.h>
 #elif BLAZE_MAJOR_VERSION == 3
-#include <blaze/math/Subvector.h>
+    #include <blaze/math/Subvector.h>
 #endif
 
 using blaze::CompressedMatrix;
@@ -65,7 +65,7 @@ class ChFluidContainer;
 class ChMPMContainer;
 class ChConstraintRigidRigid;
 class ChConstraintBilateral;
-class ChMaterialCompositionStrategy;
+class ChContactMaterialCompositionStrategy;
 
 #if BLAZE_MAJOR_VERSION == 2
 typedef blaze::SparseSubmatrix<CompressedMatrix<real>> SubMatrixType;
@@ -178,18 +178,18 @@ typedef blaze::Subvector<const DynamicVector<real>> ConstSubVectorType;
 #define _EFFV_ subvector(_E_, _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_, 3 * _num_fluid_)
 
 ////======
-//#define _GAMMAN_ subvector(_gamma_, 0, _num_r_c_)
-//#define _GAMMAT_ submatrix(_gamma_, _num_r_c_, 2 * _num_r_c_)
-//#define _GAMMAS_ submatrix(_gamma_, 3 * _num_r_c_, 3 * _num_r_c_)
+// #define _GAMMAN_ subvector(_gamma_, 0, _num_r_c_)
+// #define _GAMMAT_ submatrix(_gamma_, _num_r_c_, 2 * _num_r_c_)
+// #define _GAMMAS_ submatrix(_gamma_, 3 * _num_r_c_, 3 * _num_r_c_)
 //// Bilateral
-//#define _GAMMAB_ submatrix(_gamma_, _num_uni_,  _num_bil_)
+// #define _GAMMAB_ submatrix(_gamma_, _num_uni_,  _num_bil_)
 //// Rigid Fluid
-//#define _GAMMARFN_ submatrix(_gamma_, _num_uni_ + _num_bil_ _num_rf_c_)
-//#define _GAMMARFT_ submatrix(_gamma_, _num_uni_ + _num_bil_ + _num_rf_c_, 2 * _num_rf_c_)
+// #define _GAMMARFN_ submatrix(_gamma_, _num_uni_ + _num_bil_ _num_rf_c_)
+// #define _GAMMARFT_ submatrix(_gamma_, _num_uni_ + _num_bil_ + _num_rf_c_, 2 * _num_rf_c_)
 //// Density
-//#define _GAMMAFFD_ submatrix(_gamma_,  _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_fluid_)
+// #define _GAMMAFFD_ submatrix(_gamma_,  _num_uni_ + _num_bil_ + 3 * _num_rf_c_, _num_fluid_)
 //// Viscosity
-//#define _GAMMAFFV_ submatrix(_gamma_,  _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_,  3 * _num_fluid_)
+// #define _GAMMAFFV_ submatrix(_gamma_,  _num_uni_ + _num_bil_ + 3 * _num_rf_c_ + _num_fluid_,  3 * _num_fluid_)
 
 // The maximum number of shear history contacts per smaller body (SMC)
 #define max_shear 20
@@ -275,7 +275,7 @@ struct host_container {
     custom_vector<float> cohesion;          ///< constant cohesion forces
 
     /// This matrix, if used will hold D^TxM^-1xD in sparse form.
-    CompressedMatrix<real> Nshur;
+    CompressedMatrix<real> Nschur;
     /// The D Matrix hold the Jacobian for the entire system.
     CompressedMatrix<real> D;
     /// D_T is the transpose of the D matrix, note that D_T is actually computed
@@ -309,7 +309,7 @@ struct host_container {
     ///     n1 n2 ... nN | u1 v1 u2 v2 ... uN vN
     /// \li SPINNING [size(gamma) = 6N]\n
     ///     n1 n2 ... nN | u1 v1 u2 v2 ... uN vN | tn1 tu1 tv1 tn2 tu2 tv2 ... tnN tuN tvN
-    /// 
+    ///
     /// If there are any bilateral constraints, the corresponding impulses are stored at the end of `gamma`.
     DynamicVector<real> gamma;
 
@@ -317,7 +317,7 @@ struct host_container {
     /// Note that E is a diagonal matrix and hence stored in a vector.
     DynamicVector<real> E;
 
-    DynamicVector<real> Fc; ///< Contact forces (NSC)
+    DynamicVector<real> Fc;  ///< Contact forces (NSC)
 };
 
 /// Global data manager for Chrono::Multicore.
@@ -326,7 +326,7 @@ class CH_MULTICORE_API ChMulticoreDataManager {
     ChMulticoreDataManager();
     ~ChMulticoreDataManager();
 
-    host_container host_data;    ///< Structure of data arrays (state, contact, etc)
+    host_container host_data;  ///< Structure of data arrays (state, contact, etc)
 
     /// Used by the bilarerals for computing the Jacobian and other terms.
     std::shared_ptr<ChSystemDescriptor> system_descriptor;
@@ -336,7 +336,7 @@ class CH_MULTICORE_API ChMulticoreDataManager {
     ChConstraintRigidRigid* rigid_rigid;  ///< methods for unilateral constraints
     ChConstraintBilateral* bilateral;     ///< methods for bilateral constraints
 
-    std::shared_ptr<ChCollisionData> cd_data; ///< shared data for the Chrono collision system
+    std::shared_ptr<ChCollisionData> cd_data;  ///< shared data for the Chrono collision system
 
     // These pointers are used to compute the mass matrix instead of filling a temporary data structure
     std::vector<std::shared_ptr<ChBody>>* body_list;                  ///< List of bodies
@@ -344,17 +344,17 @@ class CH_MULTICORE_API ChMulticoreDataManager {
     std::vector<std::shared_ptr<ChPhysicsItem>>* other_physics_list;  ///< List to other items
 
     // Indexing variables
-    uint num_rigid_bodies;             ///< The number of rigid bodies in a system
-    uint num_fluid_bodies;             ///< The number of fluid bodies in the system
-    uint num_shafts;                   ///< The number of shafts in a system
-    uint num_motors;                   ///< The number of motor links with 1 state variable
-    uint num_linmotors;                ///< The number of linear speed motors
-    uint num_rotmotors;                ///< The number of rotation speed motors
-    uint num_dof;                      ///< The number of degrees of freedom in the system
-    uint num_unilaterals;              ///< The number of contact constraints
-    uint num_bilaterals;               ///< The number of bilateral constraints
-    uint num_constraints;              ///< Total number of constraints
-    uint nnz_bilaterals;               ///< The number of non-zero entries in the bilateral Jacobian
+    uint num_rigid_bodies;  ///< The number of rigid bodies in a system
+    uint num_fluid_bodies;  ///< The number of fluid bodies in the system
+    uint num_shafts;        ///< The number of shafts in a system
+    uint num_motors;        ///< The number of motor links with 1 state variable
+    uint num_linmotors;     ///< The number of linear speed motors
+    uint num_rotmotors;     ///< The number of rotation speed motors
+    uint num_dof;           ///< The number of degrees of freedom in the system
+    uint num_unilaterals;   ///< The number of contact constraints
+    uint num_bilaterals;    ///< The number of bilateral constraints
+    uint num_constraints;   ///< Total number of constraints
+    uint nnz_bilaterals;    ///< The number of non-zero entries in the bilateral Jacobian
 
     /// Flag indicating whether or not the contact forces are current (NSC only).
     bool Fc_current;
@@ -366,7 +366,7 @@ class CH_MULTICORE_API ChMulticoreDataManager {
     measures_container measures;
 
     /// Material composition strategy.
-    std::unique_ptr<ChMaterialCompositionStrategy> composition_strategy;
+    std::unique_ptr<ChContactMaterialCompositionStrategy> composition_strategy;
 
     /// User-provided callback for overriding composite material properties.
     std::shared_ptr<ChContactContainer::AddContactCallback> add_contact_callback;

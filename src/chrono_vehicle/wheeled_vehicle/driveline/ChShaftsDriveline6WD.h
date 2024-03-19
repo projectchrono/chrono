@@ -50,13 +50,13 @@ class CH_VEHICLE_API ChShaftsDriveline6WD : public ChDrivelineWV {
     /// This direction is a unit vector, relative to the chassis frame (for the
     /// ISO coordinate system, this is [1, 0, 0] for a longitudinal engine and
     /// [0, 1, 0] for a transversal engine).
-    void SetMotorBlockDirection(const ChVector<>& dir) { m_dir_motor_block = dir; }
+    void SetMotorBlockDirection(const ChVector3d& dir) { m_dir_motor_block = dir; }
 
     /// Set the direction of the wheel axles.
     /// This direction is a unit vector, relative to the chassis frame. It must be
     /// specified for the design configuration (for the ISO vehicle coordinate
     /// system, this is typically [0, 1, 0]).
-    void SetAxleDirection(const ChVector<>& dir) { m_dir_axle = dir; }
+    void SetAxleDirection(const ChVector3d& dir) { m_dir_axle = dir; }
 
     /// Lock/unlock the differential on the specified axle.
     /// By convention, axles are counted front to back, starting with index 0 for the front-most axle.
@@ -72,7 +72,7 @@ class CH_VEHICLE_API ChShaftsDriveline6WD : public ChDrivelineWV {
 
     /// Return the number of driven axles.
     /// A ChShaftsDriveline6WD driveline connects to three axles.
-    virtual int GetNumDrivenAxles() const final override { return 3; }
+    virtual unsigned int GetNumDrivenAxles() const final override { return 3; }
 
     /// Initialize the driveline subsystem.
     /// This function connects this driveline subsystem to the specified axle subsystems.
@@ -97,7 +97,7 @@ class CH_VEHICLE_API ChShaftsDriveline6WD : public ChDrivelineWV {
 
     /// Return the output driveline speed of the driveshaft.
     /// This represents the output from the driveline subsystem that is passed to the transmission subsystem.
-    virtual double GetOutputDriveshaftSpeed() const override { return m_driveshaft->GetPos_dt(); }
+    virtual double GetOutputDriveshaftSpeed() const override { return m_driveshaft->GetPosDt(); }
 
   protected:
     /// Return the inertia of the driveshaft.
@@ -151,8 +151,8 @@ class CH_VEHICLE_API ChShaftsDriveline6WD : public ChDrivelineWV {
     std::shared_ptr<ChShaft> m_rear2_differentialbox;            ///< rear2 differential casing
     std::shared_ptr<ChShaftsClutch> m_rear2_clutch;              ///< clutch for locking rear2 differential
 
-    ChVector<> m_dir_motor_block;
-    ChVector<> m_dir_axle;
+    ChVector3d m_dir_motor_block;
+    ChVector3d m_dir_axle;
 };
 
 /// @} vehicle_wheeled_driveline

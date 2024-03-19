@@ -35,29 +35,7 @@ namespace fea {
 /// by the x axis of a coordinate system floating with a ChBodyFrame.
 /// The parameteric coordinate of the point of the spline that correspond
 /// to the outlet is automatically updated during the sliding motion.
-
 class ChApi ChLinkBeamIGAslider : public ChLinkBase {
-  private:
-    ChVector<> m_react;
-
-    // used as an interface to the solver.
-    // ChConstraintNgeneric constraint1;
-    ChConstraintNgeneric constraint2;
-    ChConstraintNgeneric constraint3;
-
-    std::vector<std::shared_ptr<fea::ChElementBeamIGA>> m_beams;
-    std::shared_ptr<ChBodyFrame> m_body;
-
-    std::vector<std::shared_ptr<ChNodeFEAxyzrot>> m_nodes;
-
-    int order;
-    size_t active_element;
-    double tau;
-
-    // Coordinate system, attached to the body, whose origin is
-    // constrained to coincide with the node's position.
-    ChCoordsys<> m_csys;
-
   public:
     ChLinkBeamIGAslider();
     ChLinkBeamIGAslider(const ChLinkBeamIGAslider& other);
@@ -67,17 +45,72 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
     virtual ChLinkBeamIGAslider* Clone() const override { return new ChLinkBeamIGAslider(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() override { return (int)m_nodes.size() * 3 + 7; }
+    virtual unsigned int GetNumAffectedCoords() override { return (unsigned int)m_nodes.size() * 3 + 7; }
 
     /// Number of scalar constraints.
-    virtual int GetDOC_c() override { return 2; }
+    virtual unsigned int GetNumConstraintsBilateral() override { return 2; }
 
-    /// Reaction force on the body, at the attachment point, expressed in the link coordinate frame.
-    virtual ChVector<> Get_react_force() override { return GetReactionOnBody(); }
+    /// Return the link frame, expressed in absolute coordinates.
+    ChFrame<> GetFrameBodyAbs() const;
 
-    //
+    /// Initialize this constraint, given the node and element(s).
+    /// The attachment position is the actual position of the node (unless
+    /// otherwise defined, using the optional 'pos' parameter).
+    /// Note: the node and body must belong to the same ChSystem.
+    virtual int Initialize(
+        std::vector<std::shared_ptr<fea::ChElementBeamIGA>>& melements,  ///< elements that must slide
+        std::shared_ptr<ChBodyFrame> body,  ///< body (frame) representing the slider outlet
+        ChVector3d* pos = 0                 ///< attachment position in absolute coordinates (X axis is outlet dir)
+    );
+
+    /// Get the connected elements
+    std::vector<std::shared_ptr<ChElementBeamIGA>>& GetConstrainedElements() { return m_beams; }
+
+    /// Get the connected body (frame).
+    std::shared_ptr<ChBodyFrame> GetConstrainedBodyFrame() { return m_body; }
+
+    /// Get the attachment position, in the coordinates of the body.
+    const ChVector3d& GetAttachPosition() const { return m_csys.pos; }
+
+    /// Get the attachment reference, in the coordinates of the body.
+    const ChCoordsys<>& GetAttachReference() const { return m_csys; }
+
+    /// Set the attachment position, expressed in the coordinates of the body.
+    /// This function may be called only after initialization.
+    void SetAttachPositionInBodyCoords(const ChVector3d& pos_loc) { m_csys.pos = pos_loc; }
+
+    /// Set the attachment position, expressed in absolute coordinates.
+    /// This function may be called only after initialization.
+    void SetAttachPositionInAbsoluteCoords(const ChVector3d& pos_abs) {
+        m_csys.pos = m_body->TransformPointParentToLocal(pos_abs);
+    }
+
+    /// Set the attachment reference, expressed in the coordinates of the body.
+    /// This function may be called only after initialization.
+    void SetAttachReferenceInBodyCoords(const ChCoordsys<>& csys_loc) { m_csys = csys_loc; }
+
+    /// Set the attachment position, expressed in absolute coordinates.
+    /// This function may be called only after initialization.
+    void SetAttachReferenceInAbsoluteCoords(const ChCoordsys<>& csys_abs) {
+        m_csys = m_body->GetCoordsys().TransformParentToLocal(csys_abs);
+    }
+
+    /// Get the reaction force on the node, expressed in the link coordinate system.
+    ChVector3d GetReactionOnSpline() const { return m_react; }
+
+    /// Get the reaction force on the body, at the attachment point, expressed in the link coordinate system.
+    ChVector3d GetReactionOnBody() const { return -m_react; }
+
+    /// Update all auxiliary data of the gear transmission at given time.
+    virtual void Update(double mytime, bool update_assets = true) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
     // STATE FUNCTIONS
-    //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
@@ -112,77 +145,40 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
     virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
-    // Other functions
-
-    virtual ChCoordsys<> GetLinkAbsoluteCoords() override;
-
-    /// Initialize this constraint, given the node and element(s).
-    /// The attachment position is the actual position of the node (unless
-    /// otherwise defined, using the optional 'pos' parameter).
-    /// Note: the node and body must belong to the same ChSystem.
-    virtual int Initialize(
-        std::vector<std::shared_ptr<fea::ChElementBeamIGA>>& melements,  ///< elements that must slide
-        std::shared_ptr<ChBodyFrame> body,  ///< body (frame) representing the slider outlet
-        ChVector<>* pos = 0                 ///< attachment position in absolute coordinates (X axis is outlet dir)
-    );
-
-    /// Get the connected elements
-    std::vector<std::shared_ptr<ChElementBeamIGA>>& GetConstrainedElements() { return m_beams; }
-
-    /// Get the connected body (frame).
-    std::shared_ptr<ChBodyFrame> GetConstrainedBodyFrame() { return m_body; }
-
-    /// Get the attachment position, in the coordinates of the body.
-    const ChVector<>& GetAttachPosition() const { return m_csys.pos; }
-
-    /// Get the attachment reference, in the coordinates of the body.
-    const ChCoordsys<>& GetAttachReference() const { return m_csys; }
-
-    /// Set the attachment position, expressed in the coordinates of the body.
-    /// This function may be called only after initialization.
-    void SetAttachPositionInBodyCoords(const ChVector<>& pos_loc) { m_csys.pos = pos_loc; }
-
-    /// Set the attachment position, expressed in absolute coordinates.
-    /// This function may be called only after initialization.
-    void SetAttachPositionInAbsoluteCoords(const ChVector<>& pos_abs) {
-        m_csys.pos = m_body->TransformPointParentToLocal(pos_abs);
-    }
-
-    /// Set the attachment reference, expressed in the coordinates of the body.
-    /// This function may be called only after initialization.
-    void SetAttachReferenceInBodyCoords(const ChCoordsys<>& csys_loc) { m_csys = csys_loc; }
-
-    /// Set the attachment position, expressed in absolute coordinates.
-    /// This function may be called only after initialization.
-    void SetAttachReferenceInAbsoluteCoords(const ChCoordsys<>& csys_abs) {
-        m_csys = m_body->coord.TransformParentToLocal(csys_abs);
-    }
-
-    /// Get the reaction force on the node, expressed in the link coordinate system.
-    ChVector<> GetReactionOnSpline() const { return m_react; }
-
-    /// Get the reaction force on the body, at the attachment point, expressed in the link coordinate system.
-    ChVector<> GetReactionOnBody() const { return -m_react; }
-
-    //
-    // UPDATE FUNCTIONS
-    //
-
-    /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true) override;
-
-    //
-    // STREAMING
-    //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
-
   private:
     virtual void UpdateNodes();
+
+    ChVector3d m_react;
+
+    // used as an interface to the solver.
+    // ChConstraintNgeneric constraint1;
+    ChConstraintNgeneric constraint2;
+    ChConstraintNgeneric constraint3;
+
+    std::vector<std::shared_ptr<fea::ChElementBeamIGA>> m_beams;
+    std::shared_ptr<ChBodyFrame> m_body;
+
+    std::vector<std::shared_ptr<ChNodeFEAxyzrot>> m_nodes;
+
+    int order;
+    size_t active_element;
+    double tau;
+
+    // Coordinate system, attached to the body, whose origin is
+    // constrained to coincide with the node's position.
+    ChCoordsys<> m_csys;
+
+    /// Get the link frame 1, on the beam, expressed in the absolute frame.
+    virtual ChFramed GetFrame1Abs() const override { return ChFramed(); }  //// TODO
+
+    /// Get the link frame 2, on the connected body, expressed in the absolute frame.
+    virtual ChFramed GetFrame2Abs() const override { return GetFrameBodyAbs(); }
+
+    /// Get reaction force and torque on beam, expressed in link frame 1.
+    virtual ChWrenchd GetReaction1() const override { return {GetReactionOnSpline(), VNULL}; }
+
+    /// Get reaction force and torque on body, expressed in link frame 2.
+    virtual ChWrenchd GetReaction2() const override { return {GetReactionOnBody(), VNULL}; }
 };
 
 /// @} fea_constraints

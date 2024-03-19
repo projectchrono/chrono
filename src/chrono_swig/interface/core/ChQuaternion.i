@@ -2,6 +2,7 @@
 
 /* Includes the header in the wrapper code */
 #include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChRotation.h"
 #include <Eigen/Core>
 %}
  
@@ -31,17 +32,18 @@
 
 /* Parse the header file to generate wrappers */
 %include "../../../chrono/core/ChQuaternion.h"  
+%include "../../../chrono/core/ChRotation.h"  
 
 
-%template(ChQuaternionD) chrono::ChQuaternion<double>; 
-%template(ChQuaternionF) chrono::ChQuaternion<float>; 
+%template(ChQuaterniond) chrono::ChQuaternion<double>; 
+%template(ChQuaternionf) chrono::ChQuaternion<float>; 
 
 #ifdef SWIGPYTHON  // --------------------------------------------------------------------- PYTHON
 
 // This is needed because a std::vector<ChQuaternion<double>
 // might be used  somewhere, and we want to use it via python:
-%template(vector_ChQuaternionD) std::vector< chrono::ChQuaternion<double> >;
-%template(vector_ChQuaternionF) std::vector< chrono::ChQuaternion<float> >;
+%template(vector_ChQuaterniond) std::vector< chrono::ChQuaternion<double> >;
+%template(vector_ChQuaternionf) std::vector< chrono::ChQuaternion<float> >;
 
 
 %extend chrono::ChQuaternion<double>{
@@ -70,8 +72,8 @@
 
 %pythoncode %{
 
-	QNULL  = ChQuaternionD(0,0,0,0)
-	QUNIT  = ChQuaternionD(1,0,0,0)
+	QNULL  = ChQuaterniond(0,0,0,0)
+	QUNIT  = ChQuaterniond(1,0,0,0)
 %}
 
 #endif             // --------------------------------------------------------------------- PYTHON

@@ -33,7 +33,7 @@ namespace man {
 const std::string MAN_5t_TMeasyTire::m_meshFile = "MAN_Kat1/meshes/MAN_tire.obj";
 
 const double MAN_5t_TMeasyTire::m_mass = 104.0;
-const ChVector<> MAN_5t_TMeasyTire::m_inertia(17.8651, 31.6623, 17.8651);
+const ChVector3d MAN_5t_TMeasyTire::m_inertia(17.8651, 31.6623, 17.8651);
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

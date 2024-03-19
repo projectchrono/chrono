@@ -46,8 +46,8 @@ const double HMMWV_DoubleWishboneReducedFront::m_spindleRadius = 0.15;
 const double HMMWV_DoubleWishboneReducedFront::m_spindleWidth = 0.06;
 const double HMMWV_DoubleWishboneReducedFront::m_uprightRadius = 0.02;
 
-const ChVector<> HMMWV_DoubleWishboneReducedFront::m_spindleInertia(1, 1, 1);
-const ChVector<> HMMWV_DoubleWishboneReducedFront::m_uprightInertia(5, 5, 5);
+const ChVector3d HMMWV_DoubleWishboneReducedFront::m_spindleInertia(1, 1, 1);
+const ChVector3d HMMWV_DoubleWishboneReducedFront::m_uprightInertia(5, 5, 5);
 
 const double HMMWV_DoubleWishboneReducedFront::m_axleInertia = 0.4;
 
@@ -64,8 +64,8 @@ const double HMMWV_DoubleWishboneReducedRear::m_spindleRadius = 0.15;
 const double HMMWV_DoubleWishboneReducedRear::m_spindleWidth = 0.06;
 const double HMMWV_DoubleWishboneReducedRear::m_uprightRadius = 0.02;
 
-const ChVector<> HMMWV_DoubleWishboneReducedRear::m_spindleInertia(1, 1, 1);
-const ChVector<> HMMWV_DoubleWishboneReducedRear::m_uprightInertia(5, 5, 5);
+const ChVector3d HMMWV_DoubleWishboneReducedRear::m_spindleInertia(1, 1, 1);
+const ChVector3d HMMWV_DoubleWishboneReducedRear::m_uprightInertia(5, 5, 5);
 
 const double HMMWV_DoubleWishboneReducedRear::m_axleInertia = 0.4;
 
@@ -97,65 +97,65 @@ HMMWV_DoubleWishboneReducedRear::~HMMWV_DoubleWishboneReducedRear() {}
 // Implementations of the getLocation() virtual methods.
 // -----------------------------------------------------------------------------
 
-const ChVector<> HMMWV_DoubleWishboneReducedFront::getLocation(PointId which) {
+const ChVector3d HMMWV_DoubleWishboneReducedFront::getLocation(PointId which) {
     switch (which) {
         case SPINDLE:
-            return in2m * ChVector<>(-1.59, 35.815, -1.0350);
+            return in2m * ChVector3d(-1.59, 35.815, -1.0350);
         case UPRIGHT:
-            return in2m * ChVector<>(-1.59, 31.81, -1.0350);
+            return in2m * ChVector3d(-1.59, 31.81, -1.0350);
         case UCA_F:
-            return in2m * ChVector<>(-1.89, 17.55, 9.63);
+            return in2m * ChVector3d(-1.89, 17.55, 9.63);
         case UCA_B:
-            return in2m * ChVector<>(-10.56, 18.81, 7.69);
+            return in2m * ChVector3d(-10.56, 18.81, 7.69);
         case UCA_U:
-            return in2m * ChVector<>(-2.09, 28.16, 8.48);
+            return in2m * ChVector3d(-2.09, 28.16, 8.48);
         case LCA_F:
-            return in2m * ChVector<>(8.79, 12.09, 0);
+            return in2m * ChVector3d(8.79, 12.09, 0);
         case LCA_B:
-            return in2m * ChVector<>(-8.79, 12.09, 0);
+            return in2m * ChVector3d(-8.79, 12.09, 0);
         case LCA_U:
-            return in2m * ChVector<>(-1.40, 30.96, -4.65);
+            return in2m * ChVector3d(-1.40, 30.96, -4.65);
         case SHOCK_C:
-            return in2m * ChVector<>(4.10, 27.86, 12.72);
+            return in2m * ChVector3d(4.10, 27.86, 12.72);
         case SHOCK_U:
-            return in2m * ChVector<>(3.83, 30.96, -1.52);
+            return in2m * ChVector3d(3.83, 30.96, -1.52);
         case TIEROD_C:
-            return in2m * ChVector<>(-9.855, 17.655, 2.135);
+            return in2m * ChVector3d(-9.855, 17.655, 2.135);
         case TIEROD_U:
-            return in2m * ChVector<>(-6.922, 32.327, -0.643);
+            return in2m * ChVector3d(-6.922, 32.327, -0.643);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 
-const ChVector<> HMMWV_DoubleWishboneReducedRear::getLocation(PointId which) {
+const ChVector3d HMMWV_DoubleWishboneReducedRear::getLocation(PointId which) {
     switch (which) {
         case SPINDLE:
-            return in2m * ChVector<>(1.40, 35.815, -1.035);
+            return in2m * ChVector3d(1.40, 35.815, -1.035);
         case UPRIGHT:
-            return in2m * ChVector<>(1.40, 31.81, -1.035);
+            return in2m * ChVector3d(1.40, 31.81, -1.035);
         case UCA_F:
-            return in2m * ChVector<>(13.78, 18.19, 8.88);
+            return in2m * ChVector3d(13.78, 18.19, 8.88);
         case UCA_B:
-            return in2m * ChVector<>(3.07, 18.19, 8.88);
+            return in2m * ChVector3d(3.07, 18.19, 8.88);
         case UCA_U:
-            return in2m * ChVector<>(1.40, 28.16, 8.50);
+            return in2m * ChVector3d(1.40, 28.16, 8.50);
         case LCA_F:
-            return in2m * ChVector<>(8.79, 12.09, 0);
+            return in2m * ChVector3d(8.79, 12.09, 0);
         case LCA_B:
-            return in2m * ChVector<>(-8.79, 12.09, 0);
+            return in2m * ChVector3d(-8.79, 12.09, 0);
         case LCA_U:
-            return in2m * ChVector<>(1.40, 30.96, -4.65);
+            return in2m * ChVector3d(1.40, 30.96, -4.65);
         case SHOCK_C:
-            return in2m * ChVector<>(-4.09, 28.19, 12.72);
+            return in2m * ChVector3d(-4.09, 28.19, 12.72);
         case SHOCK_U:
-            return in2m * ChVector<>(-4.09, 30.96, -1.51);
+            return in2m * ChVector3d(-4.09, 30.96, -1.51);
         case TIEROD_C:
-            return in2m * ChVector<>(8.790, 16.38, 2.310);
+            return in2m * ChVector3d(8.790, 16.38, 2.310);
         case TIEROD_U:
-            return in2m * ChVector<>(6.704, 32.327, -0.365);
+            return in2m * ChVector3d(6.704, 32.327, -0.365);
         default:
-            return ChVector<>(0, 0, 0);
+            return ChVector3d(0, 0, 0);
     }
 }
 

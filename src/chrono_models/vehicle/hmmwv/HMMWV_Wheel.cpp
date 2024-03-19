@@ -30,7 +30,7 @@ namespace hmmwv {
 // Static variables
 
 const double HMMWV_Wheel::m_mass = 18.8;
-const ChVector<> HMMWV_Wheel::m_inertia(0.4634, 0.6243, 0.4634);
+const ChVector3d HMMWV_Wheel::m_inertia(0.4634, 0.6243, 0.4634);
 
 const double HMMWV_Wheel::m_radius = 0.268;
 const double HMMWV_Wheel::m_width = 0.22;
@@ -50,7 +50,7 @@ void HMMWV_Wheel::Initialize(std::shared_ptr<ChChassis> chassis,
     ChContactMaterialData mat_info;
     auto material = mat_info.CreateMaterial(spindle->GetSystem()->GetContactMethod());
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeCylinder>(material, m_radius, m_width);
-    spindle->AddCollisionShape(ct_shape, ChFrame<>(ChVector<>(0, 0, m_offset), Q_from_AngX(CH_C_PI_2)));
+    spindle->AddCollisionShape(ct_shape, ChFrame<>(ChVector3d(0, 0, m_offset), QuatFromAngleX(CH_PI_2)));
 }
 
 }  // end namespace hmmwv

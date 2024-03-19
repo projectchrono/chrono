@@ -109,13 +109,13 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
     ChVehicleCosimWheeledMBSNode();
 
     /// Initialize the underlying MBS
-    virtual void InitializeMBS(const ChVector2<>& terrain_size,  ///< terrain length x width
+    virtual void InitializeMBS(const ChVector2d& terrain_size,  ///< terrain length x width
                                double terrain_height             ///< initial terrain height
                                ) = 0;
 
     /// Apply tire info (after InitializeMBS).
     /// This includes mass, radius, and width for each tire.
-    virtual void ApplyTireInfo(const std::vector<ChVector<>>& tire_info) = 0;
+    virtual void ApplyTireInfo(const std::vector<ChVector3d>& tire_info) = 0;
 
     /// Perform any required operations before advancing the state of the MBS.
     /// This function is called before every integration step.
@@ -135,7 +135,7 @@ class CH_VEHICLE_API ChVehicleCosimWheeledMBSNode : public ChVehicleCosimBaseNod
 
     /// Get the number of spindles/wheels defined by the underlying MBS.
     /// A co-simulation must have a matching number of TIRE nodes.
-    virtual int GetNumSpindles() const = 0;
+    virtual unsigned int GetNumSpindles() const = 0;
 
     /// Get the spindle body to which the i-th wheel/tire is attached.
     virtual std::shared_ptr<ChBody> GetSpindleBody(unsigned int i) const = 0;

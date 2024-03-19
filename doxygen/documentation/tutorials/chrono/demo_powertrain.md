@@ -45,7 +45,7 @@ of a reducer with transmission ratio `t` between two ChShaft objects.
 
  <div class="ce-info">
 Note that a full blown 3D powertrain could be created using a collection of rigid bodies
-of ChBody type that would be connected via ChLinkLockRevolute and ChLinkGear 3D constraints. However,
+of ChBody type that would be connected via ChLinkLockRevolute and ChLinkLockGear 3D constraints. However,
  this would introduce additional complexity to the model which is not always warranted. The 1D items 
  of ChShaft type keep the model much simpler.
  </div> 
@@ -247,8 +247,8 @@ the torque converter. Note that the thermal engine also
 requires shaft D, which is used to transmit the
 reaction torque back to a truss (the motor block).
 
-**Option A**: use a ChShaftsMotor in MOT_MODE_TORQUE mode.
-It works, but most often this is more useful when in MOT_MODE_SPEED.
+**Option A**: use a ChShaftsMotor in TORQUE mode.
+It works, but most often this is more useful when in SPEED.
 
 \skip auto my_motor = chrono_types::make_shared<ChShaftsMotor>();
 \until my_system.Add(my_motor);

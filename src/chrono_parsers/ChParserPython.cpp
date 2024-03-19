@@ -40,7 +40,7 @@ void ChPythonEngine::Run(const char* program) {
 
     if (PyRun_SimpleString(program) != 0) {
         PyErr_Print();
-        throw ChException(smessageError.str());
+        throw std::runtime_error(smessageError.str());
     }
 
     // Set to previous channels!
@@ -239,15 +239,15 @@ void ChPythonEngine::ImportSolidWorksSystem(const std::string& solidworks_py_fil
 
     PyObject* module = PyImport_AddModule("__main__");  // borrowed reference
     if (!module)
-        throw ChException("ERROR. No Python __main__ module?");
+        throw std::runtime_error("ERROR: no Python __main__ module?");
 
     PyObject* dictionary = PyModule_GetDict(module);  // borrowed reference
     if (!dictionary)
-        throw ChException("ERROR. No Python dictionary?");
+        throw std::runtime_error("ERROR: no Python dictionary?");
 
     PyObject* result = PyDict_GetItemString(dictionary, "exported_items");  // borrowed reference
     if (!result)
-        throw ChException("ERROR. Missing Python object 'exported_items' in SolidWorks file");
+        throw std::runtime_error("ERROR: missing Python object 'exported_items' in SolidWorks file");
 
     if (PyList_Check(result)) {
         int nitems = (int)PyList_Size(result);
@@ -263,8 +263,8 @@ void ChPythonEngine::ImportSolidWorksSystem(const std::string& solidworks_py_fil
                     /// Add the ChPhysicsItem to the ChSystem
                     msystem.Add((*pt_to_shp));
                 } else {
-                    throw ChException(
-                        "ERROR. Only shared pointers to ChPhysicsItem subclasses can be inside exported_items.");
+                    throw std::runtime_error(
+                        "ERROR: only shared pointers to ChPhysicsItem subclasses can be inside exported_items.");
                 }
             }
         }
@@ -273,7 +273,7 @@ void ChPythonEngine::ImportSolidWorksSystem(const std::string& solidworks_py_fil
         msystem.Update();
 
     } else {
-        throw ChException("ERROR. exported_items python object is not a list.");
+        throw std::runtime_error("ERROR: exported_items python object is not a list.");
     }
 }
 

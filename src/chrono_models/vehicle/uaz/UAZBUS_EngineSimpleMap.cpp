@@ -25,7 +25,7 @@ namespace chrono {
 namespace vehicle {
 namespace uaz {
 
-const double rpm2rads = CH_C_PI / 30;
+const double rpm2rads = CH_PI / 30;
 
 UAZBUS_EngineSimpleMap::UAZBUS_EngineSimpleMap(const std::string& name) : ChEngineSimpleMap(name) {}
 
@@ -33,7 +33,7 @@ double UAZBUS_EngineSimpleMap::GetMaxEngineSpeed() {
     return 3900 * rpm2rads;
 }
 
-void UAZBUS_EngineSimpleMap::SetEngineTorqueMaps(ChFunction_Recorder& map0, ChFunction_Recorder& mapF) {
+void UAZBUS_EngineSimpleMap::SetEngineTorqueMaps(ChFunctionInterp& map0, ChFunctionInterp& mapF) {
     map0.AddPoint(-10.0, 0.0);
     map0.AddPoint(10.0, 0.0);
     map0.AddPoint(rpm2rads * 7.3654652540894313e+02, -10.0);

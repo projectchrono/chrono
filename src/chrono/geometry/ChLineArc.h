@@ -20,7 +20,9 @@
 #include "chrono/geometry/ChLine.h"
 
 namespace chrono {
-namespace geometry {
+
+/// @addtogroup chrono_geometry
+/// @{
 
 /// Geometric object representing an arc or a circle in 3D space.
 /// By default it is evaluated clockwise from angle1 to angle2.
@@ -35,7 +37,7 @@ class ChApi ChLineArc : public ChLine {
   public:
     ChLineArc(const ChCoordsys<>& morigin = CSYSNULL,
               double mradius = 1,
-              double mangle1 = CH_C_2PI,
+              double mangle1 = CH_2PI,
               double mangle2 = 0,
               bool mcounterclockwise = false);
     ChLineArc(const ChLineArc& source);
@@ -45,12 +47,12 @@ class ChApi ChLineArc : public ChLine {
     virtual ChLineArc* Clone() const override { return new ChLineArc(*this); }
 
     /// Get the class type as an enum.
-    virtual Type GetClassType() const override { return Type::LINE_ARC; }
+    virtual Type GetType() const override { return Type::LINE_ARC; }
 
-    virtual int Get_complexity() const override { return 2; }
+    virtual int GetComplexity() const override { return 2; }
 
     /// Return a point on the line, given parametric coordinate U (in [0,1]).
-    virtual ChVector<> Evaluate(double U) const override;
+    virtual ChVector3d Evaluate(double U) const override;
 
     /// Returns curve length. sampling does not matter
     double Length(int sampling) const override { return fabs(radius * (angle1 - angle2)); }
@@ -59,21 +61,21 @@ class ChApi ChLineArc : public ChLine {
     void SetCounterclockwise(bool mcc) { counterclockwise = mcc; }
 
     // Shortcut for setting angle1 in degrees instead than radians
-    void SetAngle1deg(double a1) { angle1 = a1 * CH_C_DEG_TO_RAD; }
+    void SetAngle1deg(double a1) { angle1 = a1 * CH_DEG_TO_RAD; }
 
     // shortcut for setting angle2 in degrees instead than radians
-    void SetAngle2deg(double a2) { angle2 = a2 * CH_C_DEG_TO_RAD; }
+    void SetAngle2deg(double a2) { angle2 = a2 * CH_DEG_TO_RAD; }
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
-}  // end namespace geometry
+/// @} chrono_geometry
 
-CH_CLASS_VERSION(geometry::ChLineArc, 0)
+CH_CLASS_VERSION(ChLineArc, 0)
 
 }  // end namespace chrono
 

@@ -42,23 +42,23 @@ class CH_VEHICLE_API RigidSuspension : public ChRigidSuspension {
     virtual double getSpindleRadius() const override { return m_spindleRadius; }
     virtual double getSpindleWidth() const override { return m_spindleWidth; }
 
-    virtual const ChVector<>& getSpindleInertia() const override { return m_spindleInertia; }
+    virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
 
     virtual double getAxleInertia() const override { return m_axleInertia; }
 
   private:
-    virtual const ChVector<> getLocation(PointId which) override { return m_points[which]; }
+    virtual const ChVector3d getLocation(PointId which) override { return m_points[which]; }
 
     virtual void Create(const rapidjson::Document& d) override;
 
-    ChVector<> m_points[NUM_POINTS];
+    ChVector3d m_points[NUM_POINTS];
 
     double m_spindleMass;
 
     double m_spindleRadius;
     double m_spindleWidth;
 
-    ChVector<> m_spindleInertia;
+    ChVector3d m_spindleInertia;
 
     double m_axleInertia;
 };

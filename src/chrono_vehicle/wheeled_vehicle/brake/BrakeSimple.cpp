@@ -33,7 +33,7 @@ BrakeSimple::BrakeSimple(const std::string& filename) : ChBrakeSimple("") {
 
     Create(d);
 
-    GetLog() << "Loaded JSON: " << filename.c_str() << "\n";
+    std::cout << "Loaded JSONL " << filename << std::endl;
 }
 
 BrakeSimple::BrakeSimple(const rapidjson::Document& d) : ChBrakeSimple("") {

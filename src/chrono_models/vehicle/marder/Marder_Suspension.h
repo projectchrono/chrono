@@ -41,12 +41,12 @@ class CH_MODELS_API Marder_Suspension : public ChTranslationalDamperSuspension {
 
     /// Return the location of the specified hardpoint.
     /// The returned location must be expressed in the idler subsystem reference frame.
-    virtual const ChVector<> GetLocation(PointId which) override;
+    virtual const ChVector3d GetLocation(PointId which) override;
 
     /// Return the mass of the arm body.
     virtual double GetArmMass() const override { return m_arm_mass; }
     /// Return the moments of inertia of the arm body.
-    virtual const ChVector<>& GetArmInertia() const override { return m_arm_inertia; }
+    virtual const ChVector3d& GetArmInertia() const override { return m_arm_inertia; }
     /// Return a visualization radius for the arm body.
     virtual double GetArmVisRadius() const override { return m_arm_radius; }
 
@@ -66,7 +66,7 @@ class CH_MODELS_API Marder_Suspension : public ChTranslationalDamperSuspension {
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shock_forceCB;
 
     static const double m_arm_mass;
-    static const ChVector<> m_arm_inertia;
+    static const ChVector3d m_arm_inertia;
     static const double m_arm_radius;
 
     static const double m_torsion_a0;

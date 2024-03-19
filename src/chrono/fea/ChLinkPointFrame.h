@@ -32,22 +32,6 @@ namespace fea {
 /// Class for creating a constraint between an FEA node of ChNodeFEAxyz type and a ChBodyFrame (frame) object.
 /// The node position is enforced to coincide to a given position associated with the ChBodyFrame.
 class ChApi ChLinkPointFrame : public ChLinkBase {
-
-  private:
-    ChVector<> m_react;
-
-    // used as an interface to the solver.
-    ChConstraintTwoGeneric constraint1;
-    ChConstraintTwoGeneric constraint2;
-    ChConstraintTwoGeneric constraint3;
-
-    std::shared_ptr<fea::ChNodeFEAxyz> m_node;
-    std::shared_ptr<ChBodyFrame> m_body;
-
-    // Coordinate system, attached to the body, whose origin is
-    // constrained to coincide with the node's position.
-    ChCoordsys<> m_csys;
-
   public:
     ChLinkPointFrame();
     ChLinkPointFrame(const ChLinkPointFrame& other);
@@ -57,20 +41,74 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
     virtual ChLinkPointFrame* Clone() const override { return new ChLinkPointFrame(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() override { return 3 + 7; }
+    virtual unsigned int GetNumAffectedCoords() override { return 3 + 7; }
 
     /// Number of scalar constraints.
-    virtual int GetDOC_c() override { return 3; }
-
-    /// Reaction force on the body, at the attachment point, expressed in the link coordinate frame.
-    virtual ChVector<> Get_react_force() override { return GetReactionOnBody(); }
+    virtual unsigned int GetNumConstraintsBilateral() override { return 3; }
 
     // Get constraint violations
     virtual ChVectorDynamic<> GetConstraintViolation() const override;
 
-    //
+    /// Return the link frame, expressed in absolute coordinates.
+    ChFrame<> GetFrameNodeAbs() const;
+
+    /// Initialize this constraint, given the node and body frame to join.
+    /// The attachment position is the actual position of the node (unless
+    /// otherwise defined, using the optional 'pos' parameter).
+    /// Note: the node and body must belong to the same ChSystem.
+    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///< xyz node (point) to join
+                           std::shared_ptr<ChBodyFrame> body,   ///< body (frame) to join
+                           const ChVector3d* pos = 0            ///< attachment position in absolute coordinates
+    );
+
+    /// Get the connected xyz node (point).
+    std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNode() { return m_node; }
+
+    /// Get the connected body (frame).
+    std::shared_ptr<ChBodyFrame> GetConstrainedBodyFrame() { return m_body; }
+
+    /// Get the attachment position, in the coordinates of the body.
+    const ChVector3d& GetAttachPosition() const { return m_csys.pos; }
+
+    /// Get the attachment reference, in the coordinates of the body.
+    const ChCoordsys<>& GetAttachReference() const { return m_csys; }
+
+    /// Set the attachment position, expressed in the coordinates of the body.
+    /// This function may be called only after initialization.
+    void SetAttachPositionInBodyCoords(const ChVector3d& pos_loc) { m_csys.pos = pos_loc; }
+
+    /// Set the attachment position, expressed in absolute coordinates.
+    /// This function may be called only after initialization.
+    void SetAttachPositionInAbsoluteCoords(const ChVector3d& pos_abs) {
+        m_csys.pos = m_body->TransformPointParentToLocal(pos_abs);
+    }
+
+    /// Set the attachment reference, expressed in the coordinates of the body.
+    /// This function may be called only after initialization.
+    void SetAttachReferenceInBodyCoords(const ChCoordsys<>& csys_loc) { m_csys = csys_loc; }
+
+    /// Set the attachment position, expressed in absolute coordinates.
+    /// This function may be called only after initialization.
+    void SetAttachReferenceInAbsoluteCoords(const ChCoordsys<>& csys_abs) {
+        m_csys = m_body->GetCoordsys().TransformParentToLocal(csys_abs);
+    }
+
+    /// Get the reaction force on the node, expressed in the link coordinate system.
+    ChVector3d GetReactionOnNode() const { return m_react; }
+
+    /// Get the reaction force on the body, at the attachment point, expressed in the link coordinate system.
+    ChVector3d GetReactionOnBody() const { return -m_react; }
+
+    /// Update all auxiliary data of the gear transmission at given time
+    virtual void Update(double mytime, bool update_assets = true) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
     // STATE FUNCTIONS
-    //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
@@ -105,74 +143,32 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
     virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
-    // Other functions
+  private:
+    ChVector3d m_react;
 
-    virtual ChCoordsys<> GetLinkAbsoluteCoords() override;
+    // used as an interface to the solver.
+    ChConstraintTwoGeneric m_constraint1;
+    ChConstraintTwoGeneric m_constraint2;
+    ChConstraintTwoGeneric m_constraint3;
 
+    std::shared_ptr<fea::ChNodeFEAxyz> m_node;
+    std::shared_ptr<ChBodyFrame> m_body;
 
-    /// Initialize this constraint, given the node and body frame to join.
-    /// The attachment position is the actual position of the node (unless
-    /// otherwise defined, using the optional 'pos' parameter).
-    /// Note: the node and body must belong to the same ChSystem.
-    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///< xyz node (point) to join
-                           std::shared_ptr<ChBodyFrame> body,   ///< body (frame) to join
-                           const ChVector<>* pos = 0                  ///< attachment position in absolute coordinates
-                           );
+    // Coordinate system, attached to the body, whose origin is
+    // constrained to coincide with the node's position.
+    ChCoordsys<> m_csys;
 
-    /// Get the connected xyz node (point).
-    std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNode() { return m_node; }
+    /// Get the link frame 1, on the connected node, expressed in the absolute frame.
+    virtual ChFramed GetFrame1Abs() const override { return GetFrameNodeAbs(); }
 
-    /// Get the connected body (frame).
-    std::shared_ptr<ChBodyFrame> GetConstrainedBodyFrame() { return m_body; }
+    /// Get the link frame 2, on the body, expressed in the absolute frame.
+    virtual ChFramed GetFrame2Abs() const override { return ChFramed(); }  //// TODO
 
-    /// Get the attachment position, in the coordinates of the body.
-    const ChVector<>& GetAttachPosition() const { return m_csys.pos; }
+    /// Get reaction force and torque on node, expressed on link frame 1.
+    virtual ChWrenchd GetReaction1() const override { return {GetReactionOnNode(), VNULL}; }
 
-    /// Get the attachment reference, in the coordinates of the body.
-    const ChCoordsys<>& GetAttachReference() const { return m_csys; }
-
-    /// Set the attachment position, expressed in the coordinates of the body.
-    /// This function may be called only after initialization.
-    void SetAttachPositionInBodyCoords(const ChVector<>& pos_loc) { m_csys.pos = pos_loc; }
-
-    /// Set the attachment position, expressed in absolute coordinates.
-    /// This function may be called only after initialization.
-    void SetAttachPositionInAbsoluteCoords(const ChVector<>& pos_abs) {
-        m_csys.pos = m_body->TransformPointParentToLocal(pos_abs);
-    }
-
-    /// Set the attachment reference, expressed in the coordinates of the body.
-    /// This function may be called only after initialization.
-    void SetAttachReferenceInBodyCoords(const ChCoordsys<>& csys_loc) { m_csys = csys_loc; }
-
-    /// Set the attachment position, expressed in absolute coordinates.
-    /// This function may be called only after initialization.
-    void SetAttachReferenceInAbsoluteCoords(const ChCoordsys<>& csys_abs) {
-        m_csys = m_body->coord.TransformParentToLocal(csys_abs);
-    }
-
-    /// Get the reaction force on the node, expressed in the link coordinate system.
-    ChVector<> GetReactionOnNode() const { return m_react; }
-
-    /// Get the reaction force on the body, at the attachment point, expressed in the link coordinate system.
-    ChVector<> GetReactionOnBody() const { return -m_react; }
-
-    //
-    // UPDATE FUNCTIONS
-    //
-
-    /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true) override;
-
-    //
-    // STREAMING
-    //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    /// Get reaction force and torque on frame, expressed on link frame 2.
+    virtual ChWrenchd GetReaction2() const override { return {GetReactionOnBody(), VNULL}; }
 };
 
 /// Class for creating a constraint between an FEA node of ChNodeFEAxyz type and a ChBodyFrame (frame) object.
@@ -182,25 +178,6 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
 /// other options are, for example, that you just enable the X constraint (so the node moves on the flat YZ plane) or
 /// you just enable XY constraints (so the node moves along the Z direction), etc.
 class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
-  private:
-    ChVector<> m_react;
-
-	bool c_x;
-    bool c_y;
-    bool c_z;
-
-    // used as an interface to the solver.
-    ChConstraintTwoGeneric constraint1;
-    ChConstraintTwoGeneric constraint2;
-    ChConstraintTwoGeneric constraint3;
-
-    std::shared_ptr<fea::ChNodeFEAxyz> m_node;
-    std::shared_ptr<ChBodyFrame> m_body;
-
-    // Coordinate system, attached to the body, whose origin is
-    // constrained to coincide with the node's position.
-    ChCoordsys<> m_csys;
-
   public:
     ChLinkPointFrameGeneric(bool mc_x = true, bool mc_y = true, bool mc_z = true);
     ChLinkPointFrameGeneric(const ChLinkPointFrameGeneric& other);
@@ -210,27 +187,91 @@ class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
     virtual ChLinkPointFrameGeneric* Clone() const override { return new ChLinkPointFrameGeneric(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link
-    virtual int GetNumCoords() override { return 3 + 7; }
+    virtual unsigned int GetNumAffectedCoords() override { return 3 + 7; }
 
     /// Number of scalar constraints.
-    virtual int GetDOC_c() override { return ((int)c_x+(int)c_y+(int)c_z); }
-
-    /// Reaction force on the body, at the attachment point, expressed in the link coordinate frame.
-    virtual ChVector<> Get_react_force() override { return GetReactionOnBody(); }
+    virtual unsigned int GetNumConstraintsBilateral() override {
+        return ((unsigned int)c_x + (unsigned int)c_y + (unsigned int)c_z);
+    }
 
     // Get constraint violations
     virtual ChVectorDynamic<> GetConstraintViolation() const override;
 
-	bool IsConstrainedX() { return c_x; }
+    bool IsConstrainedX() { return c_x; }
     bool IsConstrainedY() { return c_y; }
     bool IsConstrainedZ() { return c_z; }
 
-	/// Sets which movements (of frame 1 respect to frame 2) are constrained
+    /// Sets which movements (of frame 1 respect to frame 2) are constrained
     void SetConstrainedCoords(bool mc_x, bool mc_y, bool mc_z);
 
-    //
+    /// Return the link frame, expressed in absolute coordinates.
+    ChFrame<> GetFrameNodeAbs() const;
+
+    /// Initialize this constraint, given the node and body frame to join.
+    /// The attachment position is the actual position of the node (unless
+    /// otherwise defined, using the optional 'pos' parameter).
+    /// Note: the node and body must belong to the same ChSystem.
+    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///< xyz node (point) to join
+                           std::shared_ptr<ChBodyFrame> body,   ///< body (frame) to join
+                           ChVector3d* pos = 0                  ///< attachment position in absolute coordinates
+    );
+
+    /// Initialize this constraint, given the node and body frame to join.
+    /// The constraint frame is a coordinate system passed with the csys parameter,
+    /// where csys is expressed in absolute coordinates
+    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///< xyz node (point) to join
+                           std::shared_ptr<ChBodyFrame> body,   ///< body (frame) to join
+                           chrono::ChCoordsys<> csys_abs        ///< attachment position in absolute coordinates
+    );
+
+    /// Get the connected xyz node (point).
+    std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNode() { return m_node; }
+
+    /// Get the connected body (frame).
+    std::shared_ptr<ChBodyFrame> GetConstrainedBodyFrame() { return m_body; }
+
+    /// Get the attachment position, in the coordinates of the body.
+    const ChVector3d& GetAttachPosition() const { return m_csys.pos; }
+
+    /// Get the attachment reference, in the coordinates of the body.
+    const ChCoordsys<>& GetAttachReference() const { return m_csys; }
+
+    /// Set the attachment position, expressed in the coordinates of the body.
+    /// This function may be called only after initialization.
+    void SetAttachPositionInBodyCoords(const ChVector3d& pos_loc) { m_csys.pos = pos_loc; }
+
+    /// Set the attachment position, expressed in absolute coordinates.
+    /// This function may be called only after initialization.
+    void SetAttachPositionInAbsoluteCoords(const ChVector3d& pos_abs) {
+        m_csys.pos = m_body->TransformPointParentToLocal(pos_abs);
+    }
+
+    /// Set the attachment reference, expressed in the coordinates of the body.
+    /// This function may be called only after initialization.
+    void SetAttachReferenceInBodyCoords(const ChCoordsys<>& csys_loc) { m_csys = csys_loc; }
+
+    /// Set the attachment position, expressed in absolute coordinates.
+    /// This function may be called only after initialization.
+    void SetAttachReferenceInAbsoluteCoords(const ChCoordsys<>& csys_abs) {
+        m_csys = m_body->GetCoordsys().TransformParentToLocal(csys_abs);
+    }
+
+    /// Get the reaction force on the node, expressed in the link coordinate system.
+    ChVector3d GetReactionOnNode() const { return m_react; }
+
+    /// Get the reaction force on the body, at the attachment point, expressed in the link coordinate system.
+    ChVector3d GetReactionOnBody() const { return -m_react; }
+
+    /// Update all auxiliary data of the gear transmission at given time
+    virtual void Update(double mytime, bool update_assets = true) override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
     // STATE FUNCTIONS
-    //
 
     // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
@@ -265,82 +306,36 @@ class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
     virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
-    // Other functions
+  private:
+    ChVector3d m_react;
 
-    virtual ChCoordsys<> GetLinkAbsoluteCoords() override;
+    bool c_x;
+    bool c_y;
+    bool c_z;
 
+    // used as an interface to the solver.
+    ChConstraintTwoGeneric m_constraint1;
+    ChConstraintTwoGeneric m_constraint2;
+    ChConstraintTwoGeneric m_constraint3;
 
-    /// Initialize this constraint, given the node and body frame to join.
-    /// The attachment position is the actual position of the node (unless
-    /// otherwise defined, using the optional 'pos' parameter).
-    /// Note: the node and body must belong to the same ChSystem.
-    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///< xyz node (point) to join
-                           std::shared_ptr<ChBodyFrame> body,   ///< body (frame) to join
-                           ChVector<>* pos = 0                  ///< attachment position in absolute coordinates
-                           );
+    std::shared_ptr<fea::ChNodeFEAxyz> m_node;
+    std::shared_ptr<ChBodyFrame> m_body;
 
-    /// Initialize this constraint, given the node and body frame to join.
-    /// The constraint frame is a coordinate system passed with the csys parameter,
-	/// where csys is expressed in absolute coordinates
-    virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///< xyz node (point) to join
-                           std::shared_ptr<ChBodyFrame> body,   ///< body (frame) to join
-                           chrono::ChCoordsys<>  csys_abs       ///< attachment position in absolute coordinates
-                           );
+    // Coordinate system, attached to the body, whose origin is
+    // constrained to coincide with the node's position.
+    ChCoordsys<> m_csys;
 
-    /// Get the connected xyz node (point).
-    std::shared_ptr<fea::ChNodeFEAxyz> GetConstrainedNode() { return m_node; }
+    /// Get the link frame 1, on the connected node, expressed in the absolute frame.
+    virtual ChFramed GetFrame1Abs() const override { return GetFrameNodeAbs(); }
 
-    /// Get the connected body (frame).
-    std::shared_ptr<ChBodyFrame> GetConstrainedBodyFrame() { return m_body; }
+    /// Get the link frame 2, on the body, expressed in the absolute frame.
+    virtual ChFramed GetFrame2Abs() const override { return ChFramed(); }  //// TODO
 
-    /// Get the attachment position, in the coordinates of the body.
-    const ChVector<>& GetAttachPosition() const { return m_csys.pos; }
+    /// Get reaction force and torque on node, expressed on link frame 1.
+    virtual ChWrenchd GetReaction1() const override { return {GetReactionOnNode(), VNULL}; }
 
-    /// Get the attachment reference, in the coordinates of the body.
-    const ChCoordsys<>& GetAttachReference() const { return m_csys; }
-
-    /// Set the attachment position, expressed in the coordinates of the body.
-    /// This function may be called only after initialization.
-    void SetAttachPositionInBodyCoords(const ChVector<>& pos_loc) { m_csys.pos = pos_loc; }
-
-    /// Set the attachment position, expressed in absolute coordinates.
-    /// This function may be called only after initialization.
-    void SetAttachPositionInAbsoluteCoords(const ChVector<>& pos_abs) {
-        m_csys.pos = m_body->TransformPointParentToLocal(pos_abs);
-    }
-
-    /// Set the attachment reference, expressed in the coordinates of the body.
-    /// This function may be called only after initialization.
-    void SetAttachReferenceInBodyCoords(const ChCoordsys<>& csys_loc) { m_csys = csys_loc; }
-
-    /// Set the attachment position, expressed in absolute coordinates.
-    /// This function may be called only after initialization.
-    void SetAttachReferenceInAbsoluteCoords(const ChCoordsys<>& csys_abs) {
-        m_csys = m_body->coord.TransformParentToLocal(csys_abs);
-    }
-
-    /// Get the reaction force on the node, expressed in the link coordinate system.
-    ChVector<> GetReactionOnNode() const { return m_react; }
-
-    /// Get the reaction force on the body, at the attachment point, expressed in the link coordinate system.
-    ChVector<> GetReactionOnBody() const { return -m_react; }
-
-    //
-    // UPDATE FUNCTIONS
-    //
-
-    /// Update all auxiliary data of the gear transmission at given time
-    virtual void Update(double mytime, bool update_assets = true) override;
-
-    //
-    // STREAMING
-    //
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive) override;
+    /// Get reaction force and torque on frame, expressed on link frame 2.
+    virtual ChWrenchd GetReaction2() const override { return {GetReactionOnBody(), VNULL}; }
 };
 
 /// @} fea_constraints

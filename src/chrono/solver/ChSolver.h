@@ -23,6 +23,9 @@
 
 namespace chrono {
 
+class ChIterativeSolver;
+class ChDirectSolverLS;
+
 /// @addtogroup chrono_solver
 /// @{
 
@@ -34,7 +37,7 @@ class ChApi ChSolver {
     /// Available types of solvers.
     enum class Type {
         // Iterative VI solvers
-        PSOR = 0,         ///< Projected SOR (Successive Over-Relaxation)
+        PSOR,             ///< Projected SOR (Successive Over-Relaxation)
         PSSOR,            ///< Projected symmetric SOR
         PJACOBI,          ///< Projected Jacobi
         PMINRES,          ///< Projected MINRES
@@ -60,6 +63,18 @@ class ChApi ChSolver {
     /// Return type of the solver.
     virtual Type GetType() const { return Type::CUSTOM; }
 
+    /// Return true if iterative solver.
+    virtual bool IsIterative() const = 0;
+
+    /// Return true if direct solver.
+    virtual bool IsDirect() const = 0;
+
+    /// Downcast to ChIterativeSolver.
+    virtual ChIterativeSolver* AsIterative() { return nullptr; }
+
+    /// Downcast to ChDirectSolver.
+    virtual ChDirectSolverLS* AsDirect() { return nullptr; }
+
     /// Indicate whether or not the Solve() phase requires an up-to-date problem matrix.
     /// Typically, direct solvers only need the matrix for the Setup() phase. However, iterative solvers likely require
     /// the matrix to perform the necessary matrix-vector operations.
@@ -84,10 +99,10 @@ class ChApi ChSolver {
     void EnableWrite(bool val, const std::string& frame, const std::string& out_dir = ".");
 
     /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& marchive);
+    virtual void ArchiveOut(ChArchiveOut& archive_out);
 
     /// Method to allow de-serialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& marchive);
+    virtual void ArchiveIn(ChArchiveIn& archive_in);
 
   protected:
     ChSolver() : verbose(false) {}

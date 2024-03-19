@@ -12,29 +12,22 @@
 // Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-//// RADU
-//// Move to core/
-
-#ifndef CHTENSORS_H
-#define CHTENSORS_H
+#ifndef CH_TENSORS_H
+#define CH_TENSORS_H
 
 #include <cstdlib>
 #include <cmath>
 
 #include "chrono/core/ChApiCE.h"
-#include "chrono/core/ChMath.h"
+#include "chrono/core/ChFrame.h"
 
 namespace chrono {
 
-/// Base class for stress and strain tensors, in compact Voight notation
-/// that is with 6 components in a column. This saves some
-/// memory when compared to traditional 3D tensors with three
-/// rows and three columns, that are symmetric.
-
+/// Base class for stress and strain tensors, in compact Voight notation.
+/// This tensor representation uses 6 components in a column.
 template <class Real = double>
 class ChVoightTensor : public ChVectorN<Real, 6> {
   public:
-    /// Constructor (default empty).
     ChVoightTensor() : ChVectorN<Real, 6>() { this->setZero(); }
 
     ~ChVoightTensor() {}
@@ -129,9 +122,7 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
     Real GetInvariant_J1() const { return 0; }
 
     /// Compute the J2 invariant of the deviatoric part.
-    Real GetInvariant_J2() const {
-        return ChMax(0.0, std::pow(GetInvariant_I1(), 2) / 3.0 - GetInvariant_I2());
-    }
+    Real GetInvariant_J2() const { return std::max(0.0, std::pow(GetInvariant_I1(), 2) / 3.0 - GetInvariant_I2()); }
 
     /// Compute the J3 invariant of the deviatoric part.
     Real GetInvariant_J3() const {
@@ -157,17 +148,17 @@ class ChVoightTensor : public ChVectorN<Real, 6> {
                                            (2. * std::pow((I1 * I1 - 3 * I2), (3. / 2.))));
         double k = (2. / 3.) * (std::sqrt(I1 * I1 - 3. * I2));
         e1 = (I1 / 3.) + k * std::cos(phi);
-        e2 = (I1 / 3.) + k * std::cos(phi + (2. / 3.) * chrono::CH_C_PI);
-        e3 = (I1 / 3.) + k * std::cos(phi + (4. / 3.) * chrono::CH_C_PI);
+        e2 = (I1 / 3.) + k * std::cos(phi + (2. / 3.) * chrono::CH_PI);
+        e3 = (I1 / 3.) + k * std::cos(phi + (4. / 3.) * chrono::CH_PI);
     }
 
     /// Compute the eigenvectors and the eigenvalues.
     void ComputeEigenvectors(double& eigval1,
                              double& eigval2,
                              double& eigval3,
-                             ChVector<Real>& eigvector1,
-                             ChVector<Real>& eigvector2,
-                             ChVector<Real>& eigvector3) {
+                             ChVector3<Real>& eigvector1,
+                             ChVector3<Real>& eigvector2,
+                             ChVector3<Real>& eigvector3) {
         ChMatrix33<Real> A;
         this->ConvertToMatrix(A);
 
@@ -229,9 +220,9 @@ class ChStressTensor : public ChVoightTensor<Real> {
     void ComputePrincipalStressesDirections(double& e1,
                                             double& e2,
                                             double& e3,
-                                            ChVector<Real>& dir1,
-                                            ChVector<Real>& dir2,
-                                            ChVector<Real>& dir3) {
+                                            ChVector3<Real>& dir1,
+                                            ChVector3<Real>& dir2,
+                                            ChVector3<Real>& dir3) {
         ChVoightTensor<Real>::ComputeEigenvectors(e1, e2, e3, dir1, dir2, dir3);
     }
 };
@@ -264,9 +255,9 @@ class ChStrainTensor : public ChVoightTensor<Real> {
     void ComputePrincipalStrainsDirections(double& e1,
                                            double& e2,
                                            double& e3,
-                                           ChVector<Real>& dir1,
-                                           ChVector<Real>& dir2,
-                                           ChVector<Real>& dir3) {
+                                           ChVector3<Real>& dir1,
+                                           ChVector3<Real>& dir2,
+                                           ChVector3<Real>& dir3) {
         ChVoightTensor<Real>::ComputeEigenvectors(e1, e2, e3, dir1, dir2, dir3);
     }
 };

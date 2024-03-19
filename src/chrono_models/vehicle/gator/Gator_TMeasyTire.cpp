@@ -31,12 +31,12 @@ namespace gator {
 // -----------------------------------------------------------------------------
 
 const double Gator_TMeasyTire_Front::m_mass = 9.3;
-const ChVector<> Gator_TMeasyTire_Front::m_inertia(0.258, 0.416, 0.258);
+const ChVector3d Gator_TMeasyTire_Front::m_inertia(0.258, 0.416, 0.258);
 const std::string Gator_TMeasyTire_Front::m_meshFile_left = "gator/gator_wheel_FL.obj";
 const std::string Gator_TMeasyTire_Front::m_meshFile_right = "gator/gator_wheel_FR.obj";
 
 const double Gator_TMeasyTire_Rear::m_mass = 9.3;
-const ChVector<> Gator_TMeasyTire_Rear::m_inertia(0.258, 0.416, 0.258);
+const ChVector3d Gator_TMeasyTire_Rear::m_inertia(0.258, 0.416, 0.258);
 const std::string Gator_TMeasyTire_Rear::m_meshFile_left = "gator/gator_wheel_RL.obj";
 const std::string Gator_TMeasyTire_Rear::m_meshFile_right = "gator/gator_wheel_RR.obj";
 

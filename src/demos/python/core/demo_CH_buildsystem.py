@@ -21,7 +21,7 @@ import pychrono as chrono
 my_system = chrono.ChSystemNSC()
 
 # Create a contact material, shared by all collision shapes
-material = chrono.ChMaterialSurfaceNSC()
+material = chrono.ChContactMaterialNSC()
 material.SetFriction(0.3)
 material.SetCompliance(0)
 
@@ -29,23 +29,23 @@ material.SetCompliance(0)
 bodyA = chrono.ChBody()
 bodyA.SetMass(20)
 bodyA.SetName('BodyA')
-bodyA.SetInertiaXX( chrono.ChVectorD(10,10,10) )
+bodyA.SetInertiaXX( chrono.ChVector3d(10,10,10) )
 print (bodyA.GetInertia() )
-bodyA.SetPos(chrono.ChVectorD(1,-1,0))
+bodyA.SetPos(chrono.ChVector3d(1,-1,0))
 bodyA.AddCollisionShape(chrono.ChCollisionShapeBox(material,10,1,10))
-bodyA.SetBodyFixed(True)
-bodyA.SetCollide(True)
+bodyA.SetFixed(True)
+bodyA.EnableCollision(True)
 
 bodyB = chrono.ChBody()
 bodyB.SetName('BodyB')
-bodyB.SetPos(chrono.ChVectorD(0,2,0))
+bodyB.SetPos(chrono.ChVector3d(0,2,0))
 bodyB.AddCollisionShape(chrono.ChCollisionShapeBox(material,1,1,1))
-bodyB.SetCollide(True)
+bodyB.EnableCollision(True)
 
 markerB = chrono.ChMarker()
-my_funct = chrono.ChFunction_Sine(0,0.5,3)
-markerB.SetMotion_X(my_funct)
-markerB.SetPos(chrono.ChVectorD(1,2,3))
+my_funct = chrono.ChFunctionSine(3.0,0.5)
+markerB.SetMotionX(my_funct)
+markerB.SetPos(chrono.ChVector3d(1,2,3))
 bodyB.AddMarker(markerB)
 
 my_system.Add(bodyA)
@@ -82,19 +82,19 @@ print('----------')
 
 # Iterate over added bodies (Python style)
 print ('Positions of all bodies in the system:')
-for abody in my_system.Get_bodylist():
+for abody in my_system.GetBodies():
     print (' ', abody.GetName(), ' pos =', abody.GetPos() )
 
 # Use a body with an auxiliary reference (REF) that does not correspond to the center of gravity (COG)
 bodyC = chrono.ChBodyAuxRef()
 my_system.AddBody(bodyC)
 bodyC.SetName('Parte1-1')
-bodyC.SetPos(chrono.ChVectorD(-0.0445347481124079,0.0676266363930238,-0.0230808979433518))
-bodyC.SetRot(chrono.ChQuaternionD(1,0,0,0))
+bodyC.SetPos(chrono.ChVector3d(-0.0445347481124079,0.0676266363930238,-0.0230808979433518))
+bodyC.SetRot(chrono.ChQuaterniond(1,0,0,0))
 bodyC.SetMass(346.17080777653)
-bodyC.SetInertiaXX(chrono.ChVectorD(48583.2418823358,526927.118351673,490689.966726565))
-bodyC.SetInertiaXY(chrono.ChVectorD(1.70380722975012e-11,1.40840344485366e-11,-2.31869065456271e-12))
-bodyC.SetFrame_COG_to_REF(chrono.ChFrameD(chrono.ChVectorD(68.9923703887577,-60.1266363930238,70.1327223302498),chrono.ChQuaternionD(1,0,0,0)))
+bodyC.SetInertiaXX(chrono.ChVector3d(48583.2418823358,526927.118351673,490689.966726565))
+bodyC.SetInertiaXY(chrono.ChVector3d(1.70380722975012e-11,1.40840344485366e-11,-2.31869065456271e-12))
+bodyC.SetFrameCOMToRef(chrono.ChFramed(chrono.ChVector3d(68.9923703887577,-60.1266363930238,70.1327223302498),chrono.ChQuaterniond(1,0,0,0)))
 myasset = chrono.ChVisualShapeModelFile()
 myasset.SetFilename("shapes/test.obj")
 bodyC.AddVisualShape(myasset)
@@ -102,12 +102,12 @@ bodyC.AddVisualShape(myasset)
 # Add a revolute joint 
 rev = chrono.ChLinkLockRevolute()
 rev.SetName('Revolute')
-rev.Initialize(bodyA, bodyC, chrono.ChCoordsysD(chrono.ChVectorD(1, 2, 3), chrono.ChQuaternionD(1, 0, 0, 0)))
+rev.Initialize(bodyA, bodyC, chrono.ChFramed(chrono.ChVector3d(1, 2, 3), chrono.ChQuaterniond(1, 0, 0, 0)))
 my_system.AddLink(rev)
 
 # Iterate over added links (Python style)
 print ('Names of all links in the system:')
-for alink in my_system.Get_linklist():
+for alink in my_system.GetLinks():
     print ('  link: ', alink.GetName() )
 
 

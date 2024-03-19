@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
 
     float iteration_step = params.step_size;
 
-    ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density, ChVector<float>(Bx, By, Bz));
+    ChSystemGpuMesh gpu_sys(params.sphere_radius, params.sphere_density, ChVector3f(Bx, By, Bz));
 
     gpu_sys.SetKn_SPH2SPH(params.normalStiffS2S);
     gpu_sys.SetKn_SPH2WALL(params.normalStiffS2W);
@@ -105,12 +105,12 @@ int main(int argc, char* argv[]) {
     const float chamber_bottom = -Bz / 2.f;
     const float fill_bottom = chamber_bottom + chamber_height;
 
-    ChVector<float> cyl_center(0, 0, 0);
+    ChVector3f cyl_center(0, 0, 0);
     const float cyl_rad = Bx / 2.f;
     gpu_sys.CreateBCCylinderZ(cyl_center, cyl_rad, false, false);
 
-    utils::HCPSampler<float> sampler(2.1f * params.sphere_radius);
-    std::vector<ChVector<float>> body_points;
+    utils::ChHCPSampler<float> sampler(2.1f * params.sphere_radius);
+    std::vector<ChVector3f> body_points;
 
     const float fill_radius = Bx / 2.f - 2.f * params.sphere_radius;
     const float fill_top = fill_bottom + fill_height;
@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
     std::cout << "Fill bottom " << fill_bottom << std::endl;
     std::cout << "Fill top " << fill_top << std::endl;
 
-    ChVector<float> center(0, 0, fill_bottom);
+    ChVector3f center(0, 0, fill_bottom);
     center.z() += 2 * params.sphere_radius;
     while (center.z() < fill_top - 2 * params.sphere_radius) {
         auto points = sampler.SampleCylinderZ(center, fill_radius, 0);
@@ -128,22 +128,22 @@ int main(int argc, char* argv[]) {
     }
 
     gpu_sys.SetParticles(body_points);
-    gpu_sys.SetGravitationalAcceleration(ChVector<float>(0, 0, -980));
+    gpu_sys.SetGravitationalAcceleration(ChVector3f(0, 0, -980));
 
     // Add the mixer mesh to the GPU system
     float scale_xy = Bx / 2.f;
     float scale_z = chamber_height;
-    ChVector<> scaling(scale_xy, scale_xy, scale_z);
+    ChVector3d scaling(scale_xy, scale_xy, scale_z);
     float mixer_mass = 10;
-    auto mixer_mesh = chrono_types::make_shared<geometry::ChTriangleMeshConnected>();
+    auto mixer_mesh = chrono_types::make_shared<ChTriangleMeshConnected>();
     mixer_mesh->LoadWavefrontMesh(GetChronoDataFile("models/mixer/internal_mixer.obj"), true, false);
-    mixer_mesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(scaling));
+    mixer_mesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(scaling));
     auto mixer_mesh_id = gpu_sys.AddMesh(mixer_mesh, mixer_mass);
 
     float rev_per_sec = 1.f;
-    float ang_vel_Z = rev_per_sec * 2 * (float)CH_C_PI;
-    ChVector<> mesh_lin_vel(0);
-    ChVector<> mesh_ang_vel(0, 0, ang_vel_Z);
+    float ang_vel_Z = rev_per_sec * 2 * (float)CH_PI;
+    ChVector3d mesh_lin_vel(0);
+    ChVector3d mesh_ang_vel(0, 0, ang_vel_Z);
 
     gpu_sys.EnableMeshCollision(true);
     gpu_sys.Initialize();
@@ -159,7 +159,7 @@ int main(int argc, char* argv[]) {
         gpu_vis.AddProxyBody(mixer);
 
         gpu_vis.SetTitle("Chrono::Gpu mixer demo");
-        gpu_vis.AddCamera(ChVector<>(0, -100, 75), ChVector<>(0, 0, 0));
+        gpu_vis.AddCamera(ChVector3d(0, -100, 75), ChVector3d(0, 0, 0));
         gpu_vis.SetCameraMoveScale(1.0f);
         gpu_vis.Initialize();
     }
@@ -173,8 +173,8 @@ int main(int argc, char* argv[]) {
     unsigned int step = 0;
 
     for (float t = 0; t < params.time_end; t += iteration_step, step++) {
-        ChVector<> mesh_pos(0, 0, chamber_bottom + chamber_height / 2.0);
-        ChQuaternion<> mesh_rot = Q_from_AngZ(t * ang_vel_Z);
+        ChVector3d mesh_pos(0, 0, chamber_bottom + chamber_height / 2.0);
+        ChQuaternion<> mesh_rot = QuatFromAngleZ(t * ang_vel_Z);
         gpu_sys.ApplyMeshMotion(mixer_mesh_id, mesh_pos, mesh_rot, mesh_lin_vel, mesh_ang_vel);
 
         if (step % out_steps == 0) {
@@ -186,8 +186,8 @@ int main(int argc, char* argv[]) {
             gpu_sys.WriteParticleFile(std::string(filename));
             gpu_sys.WriteMeshes(std::string(mesh_filename));
 
-            ChVector<> force;
-            ChVector<> torque;
+            ChVector3d force;
+            ChVector3d torque;
             gpu_sys.CollectMeshContactForces(0, force, torque);
             std::cout << "torque: " << torque.x() << ", " << torque.y() << ", " << torque.z() << std::endl;
         }

@@ -22,8 +22,8 @@ void GetSurfaceShapeData(std::shared_ptr<ChVisualShapeSurface> surface,
                          vsg::ref_ptr<vsg::vec3Array>& normals,
                          vsg::ref_ptr<vsg::vec2Array>& texcoords,
                          vsg::ref_ptr<vsg::ushortArray>& indices) {
-    auto sections_u = surface->GetResolutionU() * 4;  //***TEST*** (from irrlicht surface)
-    auto sections_v = surface->GetResolutionV() * 4;  //***TEST***
+    auto sections_u = surface->GetResolutionU() * 4;  //// TEST  (from irrlicht surface)
+    auto sections_v = surface->GetResolutionV() * 4;  //// TEST 
     auto nvertices = (sections_u + 1) * (sections_v + 1);
     auto ntriangles = (sections_u) * (sections_v)*2;
     auto nindices = ntriangles * 3;
@@ -41,10 +41,10 @@ void GetSurfaceShapeData(std::shared_ptr<ChVisualShapeSurface> surface,
         for (auto iu = 0; iu <= sections_u; ++iu) {
             double mU = iu / (double)sections_u;  // u abscissa
 
-            ChVector<> P = surface->GetSurfaceGeometry()->Evaluate(mU, mV);
+            ChVector3d P = surface->GetSurfaceGeometry()->Evaluate(mU, mV);
             ////P = vis->Pos + vis->Rot * P;
 
-            ChVector<> N = surface->GetSurfaceGeometry()->GetNormal(mU, mV);
+            ChVector3d N = surface->GetSurfaceGeometry()->GetNormal(mU, mV);
             ////N = vis->Rot * N;
 
             // create two triangles per uv increment
