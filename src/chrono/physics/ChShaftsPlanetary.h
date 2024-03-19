@@ -122,10 +122,10 @@ class ChApi ChShaftsPlanetary : public ChPhysicsItem {
     void AvoidPhaseDrift(bool avoid) { avoid_phase_drift = avoid; }
 
     /// Get the reaction torque considered as applied to the 1st axis.
-    double GetTorqueReactionOn1() const { return (r1 * torque_react); }
+    double GetReaction1() const { return (r1 * torque_react); }
 
     /// Get the reaction torque considered as applied to the 2nd axis.
-    double GetTorqueReactionOn2() const { return (r2 * torque_react); }
+    double GetReaction2() const { return (r2 * torque_react); }
 
     /// Get the reaction torque considered as applied to the 3rd axis.
     double GetTorqueReactionOn3() const { return (r3 * torque_react); }

@@ -43,7 +43,7 @@ ChEngineShafts::~ChEngineShafts() {
 }
 
 double ChEngineShafts::GetOutputMotorshaftTorque() const {
-    return m_engine->GetTorqueReactionOn1() + m_engine_losses->GetTorqueReactionOn1();
+    return m_engine->GetReaction1() + m_engine_losses->GetReaction1();
 }
 
 // -----------------------------------------------------------------------------

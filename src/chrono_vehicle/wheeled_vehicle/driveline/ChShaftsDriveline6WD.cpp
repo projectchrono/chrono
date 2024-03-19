@@ -315,27 +315,27 @@ double ChShaftsDriveline6WD::GetSpindleTorque(int axle, VehicleSide side) const 
     if (axle == m_driven_axles[0]) {
         switch (side) {
             case LEFT:
-                return -m_front_differential->GetTorqueReactionOn2() - m_front_clutch->GetTorqueReactionOn1();
+                return -m_front_differential->GetReaction2() - m_front_clutch->GetReaction1();
             case RIGHT:
-                return -m_front_differential->GetTorqueReactionOn3() - m_front_clutch->GetTorqueReactionOn2();
+                return -m_front_differential->GetTorqueReactionOn3() - m_front_clutch->GetReaction2();
         }
     }
 
     if (axle == m_driven_axles[1]) {
         switch (side) {
             case LEFT:
-                return -m_rear1_differential->GetTorqueReactionOn2() - m_rear1_clutch->GetTorqueReactionOn1();
+                return -m_rear1_differential->GetReaction2() - m_rear1_clutch->GetReaction1();
             case RIGHT:
-                return -m_rear1_differential->GetTorqueReactionOn3() - m_rear1_clutch->GetTorqueReactionOn2();
+                return -m_rear1_differential->GetTorqueReactionOn3() - m_rear1_clutch->GetReaction2();
         }
     }
 
     if (axle == m_driven_axles[2]) {
         switch (side) {
             case LEFT:
-                return -m_rear2_differential->GetTorqueReactionOn2() - m_rear2_clutch->GetTorqueReactionOn1();
+                return -m_rear2_differential->GetReaction2() - m_rear2_clutch->GetReaction1();
             case RIGHT:
-                return -m_rear2_differential->GetTorqueReactionOn3() - m_rear2_clutch->GetTorqueReactionOn2();
+                return -m_rear2_differential->GetTorqueReactionOn3() - m_rear2_clutch->GetReaction2();
         }
     }
 

@@ -29,12 +29,11 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChShaftsCouple* Clone() const override { return new ChShaftsCouple(*this); }
 
-    /// Get the number of scalar variables affected by constraints in this link
+    /// Get the number of scalar variables affected by constraints in this couple.
     virtual unsigned int GetNumAffectedCoords() { return 2; }
 
-    /// Use this function after gear creation, to initialize it, given two shafts to join.
-    /// Each shaft must belong to the same ChSystem.
-    /// Derived classes might overload this (here, basically it only sets the two pointers)
+    /// Initialize this shafts couple, given two shafts to join.
+    /// Both shafts must belong to the same ChSystem.
     virtual bool Initialize(std::shared_ptr<ChShaft> shaft_1,  ///< first  shaft to join
                             std::shared_ptr<ChShaft> shaft_2   ///< second shaft to join
     ) {
@@ -55,21 +54,22 @@ class ChApi ChShaftsCouple : public ChPhysicsItem {
     /// Get the second (output) shaft.
     ChShaft* GetShaft2() const { return shaft2; }
 
-    /// Get the reaction torque exchanged between the two shafts, considered as applied to the 1st axis.
-    virtual double GetTorqueReactionOn1() const { return 0; }
+    /// Get the reaction (torque or force) exchanged between the two shafts, considered as applied to the 1st axis.
+    virtual double GetReaction1() const { return 0; }
 
-    /// Get the reaction torque exchanged between the two shafts, considered as applied to the 2nd axis.
-    virtual double GetTorqueReactionOn2() const { return 0; }
+    /// Get the reaction (torque or force) exchanged between the two shafts, considered as applied to the 2nd axis.
+    virtual double GetReaction2() const { return 0; }
 
-    /// Get the actual relative angle in terms of phase of shaft 1 respect to 2.
-    double GetRelativeAngle() const { return (shaft1->GetPos() - shaft2->GetPos()); }
+    /// Get the actual relative position (angle or displacement) in terms of phase of shaft 1 with respect to 2.
+    double GetRelativePos() const { return (shaft1->GetPos() - shaft2->GetPos()); }
 
-    /// Get the actual relative speed in terms of speed of shaft 1 respect to 2.
-    double GetRelativeAngleDt() const { return (shaft1->GetPosDt() - shaft2->GetPosDt()); }
+    /// Get the actual relative speed (angle or displacement) of shaft 1 with respect to 2.
+    double GetRelativePosDt() const { return (shaft1->GetPosDt() - shaft2->GetPosDt()); }
 
-    /// Get the actual relative acceleration in terms of speed of shaft 1 respect to 2.
-    double GetRelativeAngleDt2() const { return (shaft1->GetPosDt2() - shaft2->GetPosDt2()); }
+    /// Get the actual relative acceleration (angle or displacement) of shaft 1 with respect to 2.
+    double GetRelativePosDt2() const { return (shaft1->GetPosDt2() - shaft2->GetPosDt2()); }
 
+    /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override {
         // version number
         archive_out.VersionWrite<ChShaftsCouple>();

@@ -30,8 +30,8 @@ ChShaftsTorsionSpring::ChShaftsTorsionSpring(const ChShaftsTorsionSpring& other)
 
 double ChShaftsTorsionSpring::ComputeTorque() {
     // COMPUTE THE TORQUE HERE!
-    return -(GetRelativeAngle() * stiffness     // the torsional spring term
-             + GetRelativeAngleDt() * damping  // the torsional damper term
+    return -(GetRelativePos() * stiffness    // the torsional spring term
+             + GetRelativePosDt() * damping  // the torsional damper term
     );
 }
 

@@ -1103,9 +1103,11 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetSlippage_dt                | rename: GetSlippageDt                            |
 |                                   | GetSlippage_dtdt              | rename: GetSlippageDt2                           |
 | ChShaftsCouple                    |                               |                                                  |
-|                                   | GetRelativeRotation           | rename: GetRelativeAngle                         |
-|                                   | GetRelativeRotation_dt        | rename: GetRelativeAngleDt                       |
-|                                   | GetRelativeRotation_dtdt      | rename: GetRelativeAngleDt2                      |
+|                                   | GetRelativeRotation           | rename: GetRelativePos                           |
+|                                   | GetRelativeRotation_dt        | rename: GetRelativePosDt                         |
+|                                   | GetRelativeRotation_dtdt      | rename: GetRelativePosDt2                        |
+|                                   | GetTorqueReactionOn1          | rename: GetReaction1                             |
+|                                   | GetTorqueReactionOn2          | rename: GetReaction2                             |
 | ChShaftsElasticGear               |                               |                                                  |
 |                                   | GetGearRadiusA                | rename: GetGearRadius1                           |
 |                                   | GetGearRadiusB                | rename: GetGearRadius2                           |

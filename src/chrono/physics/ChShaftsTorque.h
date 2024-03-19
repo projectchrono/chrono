@@ -32,10 +32,10 @@ class ChApi ChShaftsTorque : public ChShaftsCouple {
     virtual unsigned int GetNumConstraintsBilateral() override { return 0; }
 
     /// Get the reaction torque exchanged between the two shafts, considered as applied to the 1st axis.
-    virtual double GetTorqueReactionOn1() const override { return torque; }
+    virtual double GetReaction1() const override { return torque; }
 
     /// Get the reaction torque exchanged between the two shafts, considered as applied to the 2nd axis.
-    virtual double GetTorqueReactionOn2() const override { return -torque; }
+    virtual double GetReaction2() const override { return -torque; }
 
     /// Calculate applied torque.
     /// In most cases, this is the only function a derived class must implement. It will be called at each Update().

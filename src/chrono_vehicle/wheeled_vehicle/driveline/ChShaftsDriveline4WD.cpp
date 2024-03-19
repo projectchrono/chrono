@@ -231,18 +231,18 @@ double ChShaftsDriveline4WD::GetSpindleTorque(int axle, VehicleSide side) const 
     if (axle == m_driven_axles[0]) {
         switch (side) {
             case LEFT:
-                return -m_front_differential->GetTorqueReactionOn2() - m_front_clutch->GetTorqueReactionOn1();
+                return -m_front_differential->GetReaction2() - m_front_clutch->GetReaction1();
             case RIGHT:
-                return -m_front_differential->GetTorqueReactionOn3() - m_front_clutch->GetTorqueReactionOn2();
+                return -m_front_differential->GetTorqueReactionOn3() - m_front_clutch->GetReaction2();
         }
     }
 
     if (axle == m_driven_axles[1]) {
         switch (side) {
             case LEFT:
-                return -m_rear_differential->GetTorqueReactionOn2() - m_rear_clutch->GetTorqueReactionOn1();
+                return -m_rear_differential->GetReaction2() - m_rear_clutch->GetReaction1();
             case RIGHT:
-                return -m_rear_differential->GetTorqueReactionOn3() - m_rear_clutch->GetTorqueReactionOn2();
+                return -m_rear_differential->GetTorqueReactionOn3() - m_rear_clutch->GetReaction2();
         }
     }
 

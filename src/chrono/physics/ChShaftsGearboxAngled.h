@@ -76,10 +76,10 @@ class ChApi ChShaftsGearboxAngled : public ChPhysicsItem {
     const ChVector3d& GetShaftDirection2() const { return shaft_dir2; }
 
     /// Get the reaction torque considered as applied to the 1st axis.
-    double GetTorqueReactionOn1() const { return t0 * torque_react; }
+    double GetReaction1() const { return t0 * torque_react; }
 
     /// Get the reaction torque considered as applied to the 2nd axis.
-    double GetTorqueReactionOn2() const { return (-1.0 * torque_react); }
+    double GetReaction2() const { return (-1.0 * torque_react); }
 
     /// Get the reaction torque considered as applied to the body.
     /// (the truss of the gearbox), expressed in local body coordinates.
