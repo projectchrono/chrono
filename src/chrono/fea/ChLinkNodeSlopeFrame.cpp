@@ -14,26 +14,26 @@
 
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/fea/ChLinkDirFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
 
 namespace chrono {
 namespace fea {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChLinkDirFrame)
+CH_FACTORY_REGISTER(ChLinkNodeSlopeFrame)
 
-ChLinkDirFrame::ChLinkDirFrame() : m_react(VNULL), m_csys(CSYSNORM) {}
+ChLinkNodeSlopeFrame::ChLinkNodeSlopeFrame() : m_react(VNULL), m_csys(CSYSNORM) {}
 
-ChLinkDirFrame::ChLinkDirFrame(const ChLinkDirFrame& other) : ChLinkBase(other) {
+ChLinkNodeSlopeFrame::ChLinkNodeSlopeFrame(const ChLinkNodeSlopeFrame& other) : ChLinkBase(other) {
     m_react = other.m_react;
     m_csys = other.m_csys;
 }
 
-ChFrame<> ChLinkDirFrame::GetFrameNodeAbs() const {
+ChFrame<> ChLinkNodeSlopeFrame::GetFrameNodeAbs() const {
     return ChFrame<>(m_node->GetPos(), m_csys.rot >> m_body->GetRot());
 }
 
-void ChLinkDirFrame::SetDirectionInBodyCoords(const ChVector3d& dir_loc) {
+void ChLinkNodeSlopeFrame::SetDirectionInBodyCoords(const ChVector3d& dir_loc) {
     assert(m_body);
     ChMatrix33<> rot;
     rot.SetFromAxisX(dir_loc);
@@ -41,13 +41,13 @@ void ChLinkDirFrame::SetDirectionInBodyCoords(const ChVector3d& dir_loc) {
     m_csys.pos = VNULL;
 }
 
-void ChLinkDirFrame::SetDirectionInAbsoluteCoords(const ChVector3d& dir_abs) {
+void ChLinkNodeSlopeFrame::SetDirectionInAbsoluteCoords(const ChVector3d& dir_abs) {
     assert(m_body);
     ChVector3d dir_loc = m_body->TransformDirectionParentToLocal(dir_abs);
     SetDirectionInBodyCoords(dir_loc);
 }
 
-int ChLinkDirFrame::Initialize(std::shared_ptr<ChNodeFEAxyzD> node,
+int ChLinkNodeSlopeFrame::Initialize(std::shared_ptr<ChNodeFEAxyzD> node,
                                std::shared_ptr<ChBodyFrame> body,
                                ChVector3d* dir) {
     assert(node && body);
@@ -64,14 +64,14 @@ int ChLinkDirFrame::Initialize(std::shared_ptr<ChNodeFEAxyzD> node,
     return true;
 }
 
-void ChLinkDirFrame::Update(double mytime, bool update_assets) {
+void ChLinkNodeSlopeFrame::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class
     ChPhysicsItem::Update(mytime, update_assets);
 
     // ...
 }
 
-ChVectorDynamic<> ChLinkDirFrame::GetConstraintViolation() const {
+ChVectorDynamic<> ChLinkNodeSlopeFrame::GetConstraintViolation() const {
     ChMatrix33<> Arw = m_csys.rot >> m_body->GetRot();
     ChVector3d res = Arw.transpose() * m_node->GetSlope1();
     ChVectorN<double, 2> C;
@@ -80,7 +80,7 @@ ChVectorDynamic<> ChLinkDirFrame::GetConstraintViolation() const {
     return C;
 }
 
-ChVector3d ChLinkDirFrame::GetReactionOnBody() const {
+ChVector3d ChLinkNodeSlopeFrame::GetReactionOnBody() const {
     // Rotation matrices
     ChMatrix33<> A(m_body->GetRot());
     ChMatrix33<> C(m_csys.rot);
@@ -101,17 +101,17 @@ ChVector3d ChLinkDirFrame::GetReactionOnBody() const {
 
 //// STATE BOOKKEEPING FUNCTIONS
 
-void ChLinkDirFrame::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
+void ChLinkNodeSlopeFrame::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     L(off_L + 0) = m_react.y();
     L(off_L + 1) = m_react.z();
 }
 
-void ChLinkDirFrame::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
+void ChLinkNodeSlopeFrame::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
     m_react.y() = L(off_L + 0);
     m_react.z() = L(off_L + 1);
 }
 
-void ChLinkDirFrame::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
+void ChLinkNodeSlopeFrame::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
                                          ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
                                          const ChVectorDynamic<>& L,  // the L vector
                                          const double c               // a scaling factor
@@ -123,7 +123,7 @@ void ChLinkDirFrame::IntLoadResidual_CqL(const unsigned int off_L,    // offset 
     constraint2.MultiplyTandAdd(R, L(off_L + 1) * c);
 }
 
-void ChLinkDirFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
+void ChLinkNodeSlopeFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
                                          ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
                                          const double c,            // a scaling factor
                                          bool do_clamp,             // apply clamping to c*C?
@@ -144,7 +144,7 @@ void ChLinkDirFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset in
     Qc(off_L + 1) += cres.z();
 }
 
-void ChLinkDirFrame::IntToDescriptor(const unsigned int off_v,
+void ChLinkNodeSlopeFrame::IntToDescriptor(const unsigned int off_v,
                                      const ChStateDelta& v,
                                      const ChVectorDynamic<>& R,
                                      const unsigned int off_L,
@@ -160,7 +160,7 @@ void ChLinkDirFrame::IntToDescriptor(const unsigned int off_v,
     constraint2.Set_b_i(Qc(off_L + 1));
 }
 
-void ChLinkDirFrame::IntFromDescriptor(const unsigned int off_v,
+void ChLinkNodeSlopeFrame::IntFromDescriptor(const unsigned int off_v,
                                        ChStateDelta& v,
                                        const unsigned int off_L,
                                        ChVectorDynamic<>& L) {
@@ -173,7 +173,7 @@ void ChLinkDirFrame::IntFromDescriptor(const unsigned int off_v,
 
 // SOLVER INTERFACES
 
-void ChLinkDirFrame::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkNodeSlopeFrame::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     if (!IsActive())
         return;
 
@@ -181,12 +181,12 @@ void ChLinkDirFrame::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     mdescriptor.InsertConstraint(&constraint2);
 }
 
-void ChLinkDirFrame::ConstraintsBiReset() {
+void ChLinkNodeSlopeFrame::ConstraintsBiReset() {
     constraint1.Set_b_i(0.);
     constraint2.Set_b_i(0.);
 }
 
-void ChLinkDirFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
+void ChLinkNodeSlopeFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
     // if (!IsActive())
     //	return;
 
@@ -197,14 +197,14 @@ void ChLinkDirFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
     constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.z());
 }
 
-void ChLinkDirFrame::ConstraintsBiLoad_Ct(double factor) {
+void ChLinkNodeSlopeFrame::ConstraintsBiLoad_Ct(double factor) {
     // if (!IsActive())
     //	return;
 
     // nothing
 }
 
-void ChLinkDirFrame::ConstraintsLoadJacobians() {
+void ChLinkNodeSlopeFrame::ConstraintsLoadJacobians() {
     // compute jacobians
     ChMatrix33<> Aow(m_body->GetRot());
     ChMatrix33<> Aro(m_csys.rot);
@@ -225,7 +225,7 @@ void ChLinkDirFrame::ConstraintsLoadJacobians() {
     constraint2.Get_Cq_b().segment(3, 3) = Jrb.row(2);
 }
 
-void ChLinkDirFrame::ConstraintsFetch_react(double factor) {
+void ChLinkNodeSlopeFrame::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
     m_react.y() = constraint1.Get_l_i() * factor;
     m_react.z() = constraint2.Get_l_i() * factor;
@@ -233,11 +233,11 @@ void ChLinkDirFrame::ConstraintsFetch_react(double factor) {
 
 // FILE I/O
 
-void ChLinkDirFrame::ArchiveOut(ChArchiveOut& archive_out) {
+void ChLinkNodeSlopeFrame::ArchiveOut(ChArchiveOut& archive_out) {
     //// TODO
 }
 
-void ChLinkDirFrame::ArchiveIn(ChArchiveIn& archive_in) {
+void ChLinkNodeSlopeFrame::ArchiveIn(ChArchiveIn& archive_in) {
     //// TODO
 }
 

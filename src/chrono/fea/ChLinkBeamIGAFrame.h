@@ -31,20 +31,20 @@ namespace fea {
 /// @addtogroup fea_constraints
 /// @{
 
-/// Class for allowin an IGA beam to slide inside a 'outlet' represented
-/// by the x axis of a coordinate system floating with a ChBodyFrame.
-/// The parameteric coordinate of the point of the spline that correspond
-/// to the outlet is automatically updated during the sliding motion.
-class ChApi ChLinkBeamIGAslider : public ChLinkBase {
+/// Constraint that allows an IGA beam to slide relative to a ChBodyFrame.
+/// The beam is allowed to slide inside a 'outlet' represented by the x axis of a coordinate system floating with a
+/// ChBodyFrame. The parameteric coordinate of the point of the spline that correspond to the outlet is automatically
+/// updated during the sliding motion.
+class ChApi ChLinkBeamIGAFrame : public ChLinkBase {
   public:
-    ChLinkBeamIGAslider();
-    ChLinkBeamIGAslider(const ChLinkBeamIGAslider& other);
-    ~ChLinkBeamIGAslider() {}
+    ChLinkBeamIGAFrame();
+    ChLinkBeamIGAFrame(const ChLinkBeamIGAFrame& other);
+    ~ChLinkBeamIGAFrame() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkBeamIGAslider* Clone() const override { return new ChLinkBeamIGAslider(*this); }
+    virtual ChLinkBeamIGAFrame* Clone() const override { return new ChLinkBeamIGAFrame(*this); }
 
-    /// Get the number of scalar variables affected by constraints in this link
+    /// Get the number of scalar variables affected by constraints in this link.
     virtual unsigned int GetNumAffectedCoords() override { return (unsigned int)m_nodes.size() * 3 + 7; }
 
     /// Number of scalar constraints.
@@ -54,16 +54,15 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
     ChFrame<> GetFrameBodyAbs() const;
 
     /// Initialize this constraint, given the node and element(s).
-    /// The attachment position is the actual position of the node (unless
-    /// otherwise defined, using the optional 'pos' parameter).
-    /// Note: the node and body must belong to the same ChSystem.
+    /// The attachment position is the actual position of the node (unless otherwise defined, using the optional 'pos'
+    /// parameter). The node and body must belong to the same ChSystem.
     virtual int Initialize(
         std::vector<std::shared_ptr<fea::ChElementBeamIGA>>& melements,  ///< elements that must slide
         std::shared_ptr<ChBodyFrame> body,  ///< body (frame) representing the slider outlet
         ChVector3d* pos = 0                 ///< attachment position in absolute coordinates (X axis is outlet dir)
     );
 
-    /// Get the connected elements
+    /// Get the connected elements.
     std::vector<std::shared_ptr<ChElementBeamIGA>>& GetConstrainedElements() { return m_beams; }
 
     /// Get the connected body (frame).
@@ -110,9 +109,8 @@ class ChApi ChLinkBeamIGAslider : public ChLinkBase {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-    // STATE FUNCTIONS
+    // Override/implement interfaces for global state vectors, see ChPhysicsItem for comments.
 
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,

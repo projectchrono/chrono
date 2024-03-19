@@ -23,8 +23,8 @@
 #include "chrono/utils/ChUtilsGenerators.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshExporter.h"
 #include "chrono/fea/ChBuilderBeam.h"
@@ -265,11 +265,11 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     );
 
     auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(builder.GetLastBeamNodes().back());
-    auto pos_const = chrono_types::make_shared<ChLinkPointFrame>();
+    auto pos_const = chrono_types::make_shared<ChLinkNodeFrame>();
     pos_const->Initialize(node, ground);
     sysMBS.Add(pos_const);
 
-    auto dir_const = chrono_types::make_shared<ChLinkDirFrame>();
+    auto dir_const = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
     dir_const->Initialize(node, ground);
     dir_const->SetDirectionInAbsoluteCoords(node->GetSlope1());
     sysMBS.Add(dir_const);

@@ -73,7 +73,7 @@ void ChFEATire::CreateRimConnections(std::shared_ptr<ChBody> wheel) {
     m_connections.resize(nodes.size());
 
     for (size_t in = 0; in < nodes.size(); ++in) {
-        m_connections[in] = chrono_types::make_shared<ChLinkPointFrame>();
+        m_connections[in] = chrono_types::make_shared<ChLinkNodeFrame>();
         m_connections[in]->Initialize(std::dynamic_pointer_cast<ChNodeFEAxyz>(nodes[in]), wheel);
         wheel->GetSystem()->Add(m_connections[in]);
     }

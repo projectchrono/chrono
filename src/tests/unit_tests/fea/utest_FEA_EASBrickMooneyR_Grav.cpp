@@ -35,8 +35,8 @@
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementHexaANCF_3813.h"
 #include "chrono/fea/ChElementSpring.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_thirdparty/filesystem/path.h"

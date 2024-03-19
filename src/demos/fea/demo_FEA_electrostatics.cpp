@@ -25,7 +25,7 @@
 #include "chrono/fea/ChElementHexaCorot_8.h"
 #include "chrono/fea/ChElementTetraCorot_10.h"
 #include "chrono/fea/ChElementTetraCorot_4.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChNodeFEAxyzP.h"

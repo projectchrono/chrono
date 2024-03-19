@@ -25,7 +25,7 @@
 #include "chrono/fea/ChElementHexaCorot_8.h"
 #include "chrono/fea/ChElementHexaCorot_20.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 
 using namespace chrono;
 using namespace fea;
@@ -81,7 +81,7 @@ void test_1() {
     sys.Add(truss);
 
     // Create a constraint between a node and the truss
-    auto constraintA = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraintA = chrono_types::make_shared<ChLinkNodeFrame>();
 
     constraintA->Initialize(mnodeA,  // node to connect
                             truss);  // body to be connected to
@@ -167,9 +167,9 @@ void test_2() {
     sys.Add(truss);
 
     // Create a constraint between a node and the truss
-    auto constraint1 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint2 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint3 = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraint1 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint2 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint3 = chrono_types::make_shared<ChLinkNodeFrame>();
 
     constraint1->Initialize(mnode1,  // node
                             truss);  // body to be connected to
@@ -281,9 +281,9 @@ void test_3() {
     truss->SetFixed(true);
 
     // Create a constraint between a node and the truss
-    auto constraint1 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint2 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint3 = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraint1 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint2 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint3 = chrono_types::make_shared<ChLinkNodeFrame>();
 
     constraint1->Initialize(mnode1,  // node
                             truss);  // body to be connected to
@@ -393,10 +393,10 @@ void test_4() {
     truss->SetFixed(true);
 
     // Create a constraint between a node and the truss
-    auto constraint1 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint2 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint3 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint4 = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraint1 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint2 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint3 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint4 = chrono_types::make_shared<ChLinkNodeFrame>();
 
     constraint1->Initialize(mnode1,  // node
                             truss);  // body to be connected to
@@ -546,10 +546,10 @@ void test_5() {
     truss->SetFixed(true);
 
     // Create a constraint between a node and the truss
-    auto constraint1 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint2 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint3 = chrono_types::make_shared<ChLinkPointFrame>();
-    auto constraint4 = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraint1 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint2 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint3 = chrono_types::make_shared<ChLinkNodeFrame>();
+    auto constraint4 = chrono_types::make_shared<ChLinkNodeFrame>();
 
     constraint1->Initialize(mnode1,  // node
                             truss);  // body to be connected to

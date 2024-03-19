@@ -24,7 +24,7 @@
 #include "chrono/timestepper/ChTimestepper.h"
 
 #include "chrono/fea/ChElementShellBST.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"

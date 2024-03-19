@@ -32,7 +32,7 @@
 
 #include "chrono/fea/ChElementShellANCF_3443.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 
 #ifdef CHRONO_IRRLICHT
@@ -240,7 +240,7 @@ ANCFShellTest::ANCFShellTest(int num_elements, SolverType solver_type, int NumTh
 
             // Fix only the first node's position to ground (Spherical Joint constraint)
             if ((i == 0) && (j == 0)) {
-                auto pos_constraint = chrono_types::make_shared<ChLinkPointFrame>();
+                auto pos_constraint = chrono_types::make_shared<ChLinkNodeFrame>();
                 pos_constraint->Initialize(node, grounded);  // body to be connected to
                 m_system->Add(pos_constraint);
             }

@@ -27,7 +27,7 @@
 #include "chrono/fea/ChElementHexaCorot_20.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshFileLoader.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
     for (unsigned int inode = 0; inode < mesh->GetNumNodes(); ++inode) {
         if (auto node = std::dynamic_pointer_cast<ChNodeFEAxyz>(mesh->GetNode(inode))) {
             if (node->GetPos().y() < 0.01) {
-                auto constraint = chrono_types::make_shared<ChLinkPointFrame>();
+                auto constraint = chrono_types::make_shared<ChLinkNodeFrame>();
                 constraint->Initialize(node, truss);
                 sys.Add(constraint);
 

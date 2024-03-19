@@ -150,11 +150,16 @@ Note that this represents a major public API change and we expect most user code
 | ChFx.h                              | remove                                    |
 | ChLimit.h                           | rename: ChLinkLimit.h                     |
 | ChLineBspline.h                     | rename: ChLineBSpline.h                   |
+| ChLinkBeamIGAslider.h               | rename: ChLinkBeamIGAFrame.h              |
 | ChLinkBrake.h                       | rename: ChLinkLockBrake.h                 |
 | ChLinkClearance.h                   | rename: ChLinkLockClearance.h             |
+| ChLinkDirFrame.h                    | rename: ChLinkNodeSlopeFrame.h            |
 | ChLinkGear.h                        | rename: ChLinkLockGear.h                  |
 | ChLinkLinActuator.h                 | rename: ChLinkLockLinActuator.h           |
+| ChLinkPointFrame.h                  | rename: ChLinkNodeFrame.h                 |
+| ChLinkPointPoint.h                  | rename: ChLinkNodeNode.h                  |
 | ChLinkPointSpline.h                 | rename: ChLinkLockPointSpline.h           |
+| ChLinkPointTriface.h                | rename: ChLinkNodeFace.h                  |
 | ChLinkPulley.h                      | rename: ChLinkLockPulley.h                |
 | ChLinkRackpinion.h                  | remove: merged into ChLinkMate.h          |
 | ChLinkScrew.h                       | rename: ChLinkLockScrew.h                 |
@@ -701,8 +706,10 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_react_torque              | remove                                           |
 |                                   |                               | add: GetReaction1 (see Notes)                    |
 |                                   |                               | add: GetReaction2 (see Notes)                    |
+| ChLinkBeamIGAslider               |                               | rename: ChLinkBeamIGAFrame                       |
 | ChLinkBrake                       |                               | rename: ChLinkLockBrake                          |
 | ChLinkClearance                   |                               | rename: ChLinkLockClearance                      |
+| ChLinkDirFrame                    |                               | rename: ChLinkNodeSlopeFrame                     |
 | ChLinkForce                       |                               |                                                  |
 |                                   | GetF                          | rename: GetActuatorForceTorque                   |
 |                                   | GetFcurrent                   | rename: GetCurrentActuatorForceTorque            |
@@ -903,13 +910,14 @@ Note that this represents a major public API change and we expect most user code
 | ChLinkMotorRotationSpeed          |                               |                                                  |
 |                                   | GetAvoidAngleDrift            | remove                                           |
 |                                   | SetAvoidAngleDrift            | rename: AvoidAngleDrift                          |
-| ChLinkPointPoint                  |                               |                                                  |
+| ChLinkPointFrame                  |                               | rename: ChLinkNodeFrame                          |
+| ChLinkPointPoint                  |                               | rename: ChLinkNodeNode                           |
 |                                   | GetConstrainedNodeA           | rename: GetNode1                                 |
 |                                   | GetConstrainedNodeB           | rename: GetNode2                                 |
-| ChLinkPointTriface                |                               |                                                  |
+| ChLinkPointTriface                |                               | rename: ChLinkNodeFace                           |
 |                                   | GetConstrainedNodeA           | rename: GetNode                                  |
 |                                   | GetConstrainedTriangle        | rename: GetTriangle                              |
-| ChLinkPointTrifaceRot             |                               |                                                  |
+| ChLinkPointTrifaceRot             |                               | rename: ChLinkNodeFaceRot                        |
 |                                   | GetConstrainedNodeA           | rename: GetNode                                  |
 |                                   | GetConstrainedTriangle        | rename: GetTriangle                              |
 | ChLinkPointSpline                 |                               | rename: ChLinkLockPointSpline                    |

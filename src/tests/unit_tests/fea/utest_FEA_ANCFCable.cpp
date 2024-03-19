@@ -36,8 +36,8 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 #include "chrono/utils/ChUtilsValidation.h"
 #include "chrono/fea/ChElementCableANCF.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChLoadsBeam.h"
 #include "chrono/fea/ChMesh.h"
 
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     auto mtruss = chrono_types::make_shared<ChBody>();
     mtruss->SetFixed(true);
 
-    auto constraint_hinge = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraint_hinge = chrono_types::make_shared<ChLinkNodeFrame>();
     constraint_hinge->Initialize(hnodeancf1, mtruss);
     sys.Add(constraint_hinge);
 

@@ -29,17 +29,16 @@ namespace fea {
 /// @addtogroup fea_constraints
 /// @{
 
-/// Class for creating a constraint between the direction of a FEA node of ChNodeFEAxyzD class, and a ChBodyFrame
-/// (frame). The D direction of the ChNodeFEAxyzD is enforced to stay parallel to a given direction associated to the
-/// ChBodyFrame.
-class ChApi ChLinkDirFrame : public ChLinkBase {
+/// Constraint between the direction of a FEA node of ChNodeFEAxyzD class, and a ChBodyFrame (frame).
+/// The D direction of the ChNodeFEAxyzD is enforced to stay parallel to a given direction associated to the ChBodyFrame.
+class ChApi ChLinkNodeSlopeFrame : public ChLinkBase {
   public:
-    ChLinkDirFrame();
-    ChLinkDirFrame(const ChLinkDirFrame& other);
-    ~ChLinkDirFrame() {}
+    ChLinkNodeSlopeFrame();
+    ChLinkNodeSlopeFrame(const ChLinkNodeSlopeFrame& other);
+    ~ChLinkNodeSlopeFrame() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkDirFrame* Clone() const override { return new ChLinkDirFrame(*this); }
+    virtual ChLinkNodeSlopeFrame* Clone() const override { return new ChLinkNodeSlopeFrame(*this); }
 
     /// Get the number of scalar variables affected by constraints in this link.
     virtual unsigned int GetNumAffectedCoords() override { return 3 + 4; }
@@ -85,7 +84,7 @@ class ChApi ChLinkDirFrame : public ChLinkBase {
     /// Get the reaction torque on the body, expressed in the link coordinate system.
     ChVector3d GetReactionOnBody() const;
 
-    /// Update all auxiliary data of the gear transmission at given time
+    /// Update all auxiliary data of the gear transmission at given time.
     virtual void Update(double mytime, bool update_assets = true) override;
 
     /// Method to allow serialization of transient data to archives.
@@ -93,8 +92,6 @@ class ChApi ChLinkDirFrame : public ChLinkBase {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
-
-    // STATE FUNCTIONS
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;

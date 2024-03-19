@@ -30,8 +30,8 @@
 #include "chrono/utils/ChUtilsGeometry.h"
 
 #include "chrono/fea/ChElementShellANCF_3423.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/fea/ChMeshExporter.h"
 #include "chrono/fea/ChBuilderBeam.h"
@@ -368,7 +368,7 @@ void Create_MB_FE(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
                 // Fix the edge node on the wheel
                 if (j == 0 || j == m_div_width) {
-                    auto mlink = chrono_types::make_shared<ChLinkPointFrame>();
+                    auto mlink = chrono_types::make_shared<ChLinkNodeFrame>();
                     mlink->Initialize(std::dynamic_pointer_cast<ChNodeFEAxyzD>(node), wheel);
                     sysMBS.Add(mlink);
                 }

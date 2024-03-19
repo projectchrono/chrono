@@ -32,7 +32,7 @@ namespace fea {
 /// @addtogroup fea_constraints
 /// @{
 
-/// Utility class for using the ChLinkPointTriface constraint
+/// Utility class for using the ChLinkNodeFace constraint.
 class ChApi ChTriangleNodesXYZ : public ChVariableTupleCarrier_3vars<3, 3, 3> {
   public:
     std::shared_ptr<fea::ChNodeFEAxyz> node1;
@@ -44,33 +44,30 @@ class ChApi ChTriangleNodesXYZ : public ChVariableTupleCarrier_3vars<3, 3, 3> {
     virtual ChVariables* GetVariables3() override { return &node3->Variables(); }
 };
 
-/// Class for creating a constraint between a xyz FEA node (point)
-/// and a triangular face given by three xyz FEA nodes, with linear
-/// shape function (ex. the face of a tetrahedron or a triangular shell)
-/// The node can be offset respect to the face.
-
-class ChApi ChLinkPointTriface : public ChLinkBase {
+/// Constraint between an xyz FEA node (point) and a triangular face given by three xyz FEA nodes
+/// The triangular face element is assumed to have linear shape function (e.g., the face of a tetrahedron or a
+/// triangular shell). The node can be offset respect to the face.
+class ChApi ChLinkNodeFace : public ChLinkBase {
   public:
-    ChLinkPointTriface();
-    ChLinkPointTriface(const ChLinkPointTriface& other);
-    ~ChLinkPointTriface() {}
+    ChLinkNodeFace();
+    ChLinkNodeFace(const ChLinkNodeFace& other);
+    ~ChLinkNodeFace() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkPointTriface* Clone() const override { return new ChLinkPointTriface(*this); }
+    virtual ChLinkNodeFace* Clone() const override { return new ChLinkNodeFace(*this); }
 
-    /// Get the number of scalar variables affected by constraints in this link
+    /// Get the number of scalar variables affected by constraints in this link.
     virtual unsigned int GetNumAffectedCoords() override { return 3 + 3 + 3 + 3; }
 
-    /// Number of scalar constraints
+    /// Number of scalar constraints.
     virtual unsigned int GetNumConstraintsBilateral() override { return 3; }
 
     /// Return the link frame, expressed in absolute coordinates.
     ChFrame<> GetFrameNodeAbs() const { return ChFrame<>(m_node->GetPos(), QUNIT); }
 
-    /// Use this function after object creation, to initialize it, given
-    /// the node and the triangle to join.
+    /// Initialize this constraint, given the node and the triangle to join.
     /// The attachment position is the actual position of the node.
-    /// Note, nodes must belong to the same ChSystem.
+    /// All nodes must belong to the same ChSystem.
     virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,   ///< xyz node (point) to join
                            std::shared_ptr<ChNodeFEAxyz> anodeB1,  ///< triangle: corner n.1
                            std::shared_ptr<ChNodeFEAxyz> anodeB2,  ///< triangle: corner n.2
@@ -86,8 +83,8 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
         s3 = ms3;
     }
 
-    /// Get the area coordinates, as set respect to B2 and B3
-    ///(the third area coord follows automatically as 1-s2-s3).
+    /// Get the area coordinates, as set with respect to B2 and B3.
+    /// (the third area coord follows automatically as 1-s2-s3).
     virtual void GetAreaCoords(double& ms2, double& ms3) const {
         ms2 = s2;
         ms3 = s3;
@@ -116,7 +113,7 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
     /// Get the reaction force considered as applied to the triangle, in abs coords.
     ChVector3d GetReactionOnTriangle() const { return -react; }
 
-    /// Update all auxiliary data of the gear transmission at given time
+    /// Update all auxiliary data of the gear transmission at given time.
     virtual void Update(double mytime, bool update_assets = true) override;
 
     /// Method to allow serialization of transient data to archives.
@@ -192,12 +189,12 @@ class ChApi ChLinkPointTriface : public ChLinkBase {
     }
 };
 
-////////////////////////////////////////////////////////////////////////////////////
+// ---------------------------------------------------------------------------------
 
 // The following classes might be removed if ChNodeFEAxyzrot were inherited from ChNodeFEAxys.
 // Planned for future
 
-/// Utility class for using the ChLinkPointTriface constraint
+/// Utility class for using the ChLinkNodeFaceRot constraint.
 class ChApi ChTriangleNodesXYZrot : public ChVariableTupleCarrier_3vars<6, 6, 6> {
   public:
     std::shared_ptr<fea::ChNodeFEAxyzrot> node1;
@@ -209,34 +206,30 @@ class ChApi ChTriangleNodesXYZrot : public ChVariableTupleCarrier_3vars<6, 6, 6>
     virtual ChVariables* GetVariables3() { return &node3->Variables(); };
 };
 
-/// Class for creating a constraint between a xyz FEA node (point)
-/// and a triangular face given by three xyzrot FEA nodes, with linear
-/// shape function (ex. the face of a tetrahedron or a triangular shell)
+/// Constraint between an xyz FEA node (point) and a triangular face given by three xyzrot FEA nodes.
+/// The triangular face element is assumed to have linear shape function.
 /// The node can be offset respect to the face.
-class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
+class ChApi ChLinkNodeFaceRot : public ChLinkBase {
   public:
-    ChLinkPointTrifaceRot();
-    ChLinkPointTrifaceRot(const ChLinkPointTrifaceRot& other);
-    ~ChLinkPointTrifaceRot() {}
+    ChLinkNodeFaceRot();
+    ChLinkNodeFaceRot(const ChLinkNodeFaceRot& other);
+    ~ChLinkNodeFaceRot() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkPointTrifaceRot* Clone() const override { return new ChLinkPointTrifaceRot(*this); }
+    virtual ChLinkNodeFaceRot* Clone() const override { return new ChLinkNodeFaceRot(*this); }
 
-    /// Get the number of scalar variables affected by constraints in this link
+    /// Get the number of scalar variables affected by constraints in this link.
     virtual unsigned int GetNumAffectedCoords() override { return 3 + 6 + 6 + 6; }
 
-    /// Number of scalar constraints
+    /// Number of scalar constraints.
     virtual unsigned int GetNumConstraintsBilateral() override { return 3; }
-
-    // Other functions
 
     /// Return the link frame, expressed in absolute coordinates.
     ChFrame<> GetFrameNodeAbs() const { return ChFrame<>(m_node->GetPos(), QUNIT); }
 
-    /// Use this function after object creation, to initialize it, given
-    /// the node and the triangle to join.
+    /// Initialize this constraint, given the node and the triangle to join.
     /// The attachment position is the actual position of the node.
-    /// Note, nodes must belong to the same ChSystem.
+    /// All nodes must belong to the same ChSystem.
     virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> nodeA,      ///< xyz node (point) to join
                            std::shared_ptr<ChNodeFEAxyzrot> nodeB1,  ///< triangle: corner n.1
                            std::shared_ptr<ChNodeFEAxyzrot> nodeB2,  ///< triangle: corner n.2
@@ -252,8 +245,8 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
         s3 = ms3;
     }
 
-    /// Get the area coordinates, as set respect to B2 and B3
-    ///(the third area coord follows automatically as 1-s2-s3).
+    /// Get the area coordinates, as set with respect to B2 and B3.
+    /// (the third area coord follows automatically as 1-s2-s3).
     virtual void GetAreaCoords(double& ms2, double& ms3) const {
         ms2 = s2;
         ms3 = s3;
@@ -264,7 +257,7 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
     /// The Initialize() function initialize this automatically.
     virtual void SetOffset(const double md) { d = md; }
 
-    /// Get the imposed offset of point A respect to triangle
+    /// Get the imposed offset of point A respect to triangle.
     virtual double GetOffset(double md) const { return d; }
 
     /// Get the connected xyz node (point).
@@ -291,9 +284,8 @@ class ChApi ChLinkPointTrifaceRot : public ChLinkBase {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-    // STATE FUNCTIONS
+    // Override/implement interfaces for global state vectors, see ChPhysicsItem for comments.
 
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,

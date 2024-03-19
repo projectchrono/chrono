@@ -28,25 +28,25 @@ namespace fea {
 /// @addtogroup fea_constraints
 /// @{
 
-/// Class for creating a constraint between two xyz FEA nodes (points).
+/// Constraint between two xyz FEA nodes (points).
 /// The two nodes will be joined, as overlapping. Nodes are 3-DOF points that are used in point-based primitives, such
 /// as finite elements.
-class ChApi ChLinkPointPoint : public ChLinkBase {
+class ChApi ChLinkNodeNode : public ChLinkBase {
   public:
-    ChLinkPointPoint();
-    ChLinkPointPoint(const ChLinkPointPoint& other);
-    ~ChLinkPointPoint() {}
+    ChLinkNodeNode();
+    ChLinkNodeNode(const ChLinkNodeNode& other);
+    ~ChLinkNodeNode() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkPointPoint* Clone() const override { return new ChLinkPointPoint(*this); }
+    virtual ChLinkNodeNode* Clone() const override { return new ChLinkNodeNode(*this); }
 
-    /// Get the number of scalar variables affected by constraints in this link
+    /// Get the number of scalar variables affected by constraints in this link.
     virtual unsigned int GetNumAffectedCoords() override { return 3 + 3; }
 
-    /// Number of scalar constraints
+    /// Number of scalar constraints.
     virtual unsigned int GetNumConstraintsBilateral() override { return 3; }
 
-    // Get constraint violations
+    // Get constraint violations.
     virtual ChVectorDynamic<> GetConstraintViolation() const override;
 
     /// Return the link frame at node 1, expressed in absolute coordinates.
@@ -74,7 +74,7 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
     /// Get the reaction force considered as applied to the 2nd node.
     ChVector3d GetReactionOnNode2() const { return -react; }
 
-    /// Update all auxiliary data of the gear transmission at given time
+    /// Update all auxiliary data of the gear transmission at given time.
     virtual void Update(double mytime, bool update_assets = true) override;
 
     /// Method to allow serialization of transient data to archives.
@@ -83,9 +83,8 @@ class ChApi ChLinkPointPoint : public ChLinkBase {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-    // STATE FUNCTIONS
+    // Override/implement interfaces for global state vectors, see ChPhysicsItem for comments.
 
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
