@@ -18,7 +18,7 @@
 
 #include "chrono/core/ChCubicSpline.h"
 #include "chrono/fea/ChElementHexaCorot_8.h"
-#include "chrono/fea/ChLinkPointTriface.h"
+#include "chrono/fea/ChLinkNodeFace.h"
 
 #include "chrono_vehicle/wheeled_vehicle/tire/ReissnerTire.h"
 #include "chrono_vehicle/utils/ChUtilsJSON.h"
@@ -246,7 +246,7 @@ void AttachNodeToShell(std::shared_ptr<ChMesh> m_mesh, std::shared_ptr<ChNodeFEA
             }
         }
     }
-    auto mlink = chrono_types::make_shared<ChLinkPointTrifaceRot>();
+    auto mlink = chrono_types::make_shared<ChLinkNodeFaceRot>();
     mlink->Initialize(m_node, best_fit_n1, best_fit_n2, best_fit_n3);
     m_mesh->GetSystem()->Add(mlink);
 }

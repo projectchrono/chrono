@@ -21,8 +21,8 @@
 #include "chrono/fea/ChBuilderBeam.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
-#include "chrono/fea/ChLinkPointFrame.h"
-#include "chrono/fea/ChLinkDirFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
 
 using namespace chrono;
 using namespace chrono::fea;
@@ -75,11 +75,11 @@ class Model1 {
         body->SetPos(hnodeancf2->GetPos() + ChVector3d(0.05, 0, 0));
         system.Add(body);
 
-        auto constraint_pos = chrono_types::make_shared<ChLinkPointFrame>();
+        auto constraint_pos = chrono_types::make_shared<ChLinkNodeFrame>();
         constraint_pos->Initialize(hnodeancf2, body);
         system.Add(constraint_pos);
 
-        auto constraint_dir = chrono_types::make_shared<ChLinkDirFrame>();
+        auto constraint_dir = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
         constraint_dir->Initialize(hnodeancf2, body);
         constraint_dir->SetDirectionInAbsoluteCoords(ChVector3d(1, 0, 0));
         system.Add(constraint_dir);
@@ -134,7 +134,7 @@ class Model2 {
         auto mtruss = chrono_types::make_shared<ChBody>();
         mtruss->SetFixed(true);
 
-        auto constraint_hinge = chrono_types::make_shared<ChLinkPointFrame>();
+        auto constraint_hinge = chrono_types::make_shared<ChLinkNodeFrame>();
         constraint_hinge->Initialize(builder.GetLastBeamNodes().back(), mtruss);
         system.Add(constraint_hinge);
     }
@@ -169,7 +169,7 @@ class Model3 {
 
             builder.GetLastBeamNodes().back()->SetForce(ChVector3d(0, -0.2, 0));
 
-            auto constraint_hinge = chrono_types::make_shared<ChLinkPointFrame>();
+            auto constraint_hinge = chrono_types::make_shared<ChLinkNodeFrame>();
             constraint_hinge->Initialize(builder.GetLastBeamNodes().front(), mtruss);
             system.Add(constraint_hinge);
 
@@ -181,11 +181,11 @@ class Model3 {
             mbox->SetPos(builder.GetLastBeamNodes().back()->GetPos() + ChVector3d(0.1, 0, 0));
             system.Add(mbox);
 
-            auto constraint_pos = chrono_types::make_shared<ChLinkPointFrame>();
+            auto constraint_pos = chrono_types::make_shared<ChLinkNodeFrame>();
             constraint_pos->Initialize(builder.GetLastBeamNodes().back(), mbox);
             system.Add(constraint_pos);
 
-            auto constraint_dir = chrono_types::make_shared<ChLinkDirFrame>();
+            auto constraint_dir = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
             constraint_dir->Initialize(builder.GetLastBeamNodes().back(), mbox);
             constraint_dir->SetDirectionInAbsoluteCoords(ChVector3d(1, 0, 0));
             system.Add(constraint_dir);
@@ -199,11 +199,11 @@ class Model3 {
                 ChVector3d(mbox->GetPos().x() + 0.1 + 0.1 * (n_chains - j), 0, -0.1 * j)  // point B (end of beam)
             );
 
-            auto constraint_pos2 = chrono_types::make_shared<ChLinkPointFrame>();
+            auto constraint_pos2 = chrono_types::make_shared<ChLinkNodeFrame>();
             constraint_pos2->Initialize(builder.GetLastBeamNodes().front(), mbox);
             system.Add(constraint_pos2);
 
-            auto constraint_dir2 = chrono_types::make_shared<ChLinkDirFrame>();
+            auto constraint_dir2 = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
             constraint_dir2->Initialize(builder.GetLastBeamNodes().front(), mbox);
             constraint_dir2->SetDirectionInAbsoluteCoords(ChVector3d(1, 0, 0));
             system.Add(constraint_dir2);
@@ -213,11 +213,11 @@ class Model3 {
             bodies[j]->SetPos(builder.GetLastBeamNodes().back()->GetPos() + ChVector3d(0.1, 0, 0));
             system.Add(bodies[j]);
 
-            auto constraint_pos3 = chrono_types::make_shared<ChLinkPointFrame>();
+            auto constraint_pos3 = chrono_types::make_shared<ChLinkNodeFrame>();
             constraint_pos3->Initialize(builder.GetLastBeamNodes().back(), bodies[j]);
             system.Add(constraint_pos3);
 
-            auto constraint_dir3 = chrono_types::make_shared<ChLinkDirFrame>();
+            auto constraint_dir3 = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
             constraint_dir3->Initialize(builder.GetLastBeamNodes().back(), bodies[j]);
             constraint_dir3->SetDirectionInAbsoluteCoords(ChVector3d(1, 0, 0));
             system.Add(constraint_dir3);

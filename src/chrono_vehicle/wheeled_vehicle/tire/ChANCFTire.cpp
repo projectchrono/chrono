@@ -68,11 +68,11 @@ void ChANCFTire::CreateRimConnections(std::shared_ptr<ChBody> wheel) {
 
     for (size_t in = 0; in < nodes.size(); ++in) {
         auto node = std::dynamic_pointer_cast<ChNodeFEAxyzD>(nodes[in]);
-        m_connections[in] = chrono_types::make_shared<ChLinkPointFrame>();
+        m_connections[in] = chrono_types::make_shared<ChLinkNodeFrame>();
         m_connections[in]->Initialize(node, wheel);
         wheel->GetSystem()->Add(m_connections[in]);
 
-        m_connectionsD[in] = chrono_types::make_shared<ChLinkDirFrame>();
+        m_connectionsD[in] = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
         m_connectionsD[in]->Initialize(node, wheel);
         m_connectionsD[in]->SetDirectionInAbsoluteCoords(node->GetSlope1());
         wheel->GetSystem()->Add(m_connectionsD[in]);

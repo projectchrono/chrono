@@ -150,11 +150,16 @@ Note that this represents a major public API change and we expect most user code
 | ChFx.h                              | remove                                    |
 | ChLimit.h                           | rename: ChLinkLimit.h                     |
 | ChLineBspline.h                     | rename: ChLineBSpline.h                   |
+| ChLinkBeamIGAslider.h               | rename: ChLinkBeamIGAFrame.h              |
 | ChLinkBrake.h                       | rename: ChLinkLockBrake.h                 |
 | ChLinkClearance.h                   | rename: ChLinkLockClearance.h             |
+| ChLinkDirFrame.h                    | rename: ChLinkNodeSlopeFrame.h            |
 | ChLinkGear.h                        | rename: ChLinkLockGear.h                  |
 | ChLinkLinActuator.h                 | rename: ChLinkLockLinActuator.h           |
+| ChLinkPointFrame.h                  | rename: ChLinkNodeFrame.h                 |
+| ChLinkPointPoint.h                  | rename: ChLinkNodeNode.h                  |
 | ChLinkPointSpline.h                 | rename: ChLinkLockPointSpline.h           |
+| ChLinkPointTriface.h                | rename: ChLinkNodeFace.h                  |
 | ChLinkPulley.h                      | rename: ChLinkLockPulley.h                |
 | ChLinkRackpinion.h                  | remove: merged into ChLinkMate.h          |
 | ChLinkScrew.h                       | rename: ChLinkLockScrew.h                 |
@@ -234,6 +239,11 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNsysvars                   | remove                                           |
 |                                   | GetNsysvars_w                 | remove                                           |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+| ChAssemblyAnalysis                |                               |                                                  |
+|                                   | get_L                         | rename: GetLagrangeMultipliers                   |
+|                                   | get_X                         | rename: GetStatePos                              |
+|                                   | get_V                         | rename: GetStateVel                              |
+|                                   | get_A                         | rename: GetStateAcc                              |
 | ChBasisToolsBspline               |                               | rename: ChBasisToolsBSpline                      |
 | ChBasisToolsBsplineSurfaces       |                               | rename: ChBasisToolsBSplineSurfaces              |
 | ChBeamSectionCable                |                               |                                                  |
@@ -646,6 +656,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNcoords_x                  | rename: GetNumCoordsPosLevel                     |
 |                                   | GetNcoords_v                  | rename: GetNumCoordsVelLevel                     |
 |                                   | GetNcoords_y                  | remove: split in GetNumCoordsPosLevel/Vel        |
+| ChIntegrable1D                    |                               | rename: ChIntegrand1D                            |
+| ChIntegrable2D                    |                               | rename: ChIntegrand2D                            |
+| ChIntegrable3D                    |                               | rename: ChIntegrand3D                            |
 | ChIterativeSolver                 |                               |                                                  |
 |                                   | SaveMatrix                    | rename: WriteMatrices                            |
 | ChKblock                          |                               |                                                  |
@@ -701,8 +714,10 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_react_torque              | remove                                           |
 |                                   |                               | add: GetReaction1 (see Notes)                    |
 |                                   |                               | add: GetReaction2 (see Notes)                    |
+| ChLinkBeamIGAslider               |                               | rename: ChLinkBeamIGAFrame                       |
 | ChLinkBrake                       |                               | rename: ChLinkLockBrake                          |
 | ChLinkClearance                   |                               | rename: ChLinkLockClearance                      |
+| ChLinkDirFrame                    |                               | rename: ChLinkNodeSlopeFrame                     |
 | ChLinkForce                       |                               |                                                  |
 |                                   | GetF                          | rename: GetActuatorForceTorque                   |
 |                                   | GetFcurrent                   | rename: GetCurrentActuatorForceTorque            |
@@ -903,13 +918,14 @@ Note that this represents a major public API change and we expect most user code
 | ChLinkMotorRotationSpeed          |                               |                                                  |
 |                                   | GetAvoidAngleDrift            | remove                                           |
 |                                   | SetAvoidAngleDrift            | rename: AvoidAngleDrift                          |
-| ChLinkPointPoint                  |                               |                                                  |
+| ChLinkPointFrame                  |                               | rename: ChLinkNodeFrame                          |
+| ChLinkPointPoint                  |                               | rename: ChLinkNodeNode                           |
 |                                   | GetConstrainedNodeA           | rename: GetNode1                                 |
 |                                   | GetConstrainedNodeB           | rename: GetNode2                                 |
-| ChLinkPointTriface                |                               |                                                  |
+| ChLinkPointTriface                |                               | rename: ChLinkNodeFace                           |
 |                                   | GetConstrainedNodeA           | rename: GetNode                                  |
 |                                   | GetConstrainedTriangle        | rename: GetTriangle                              |
-| ChLinkPointTrifaceRot             |                               |                                                  |
+| ChLinkPointTrifaceRot             |                               | rename: ChLinkNodeFaceRot                        |
 |                                   | GetConstrainedNodeA           | rename: GetNode                                  |
 |                                   | GetConstrainedTriangle        | rename: GetTriangle                              |
 | ChLinkPointSpline                 |                               | rename: ChLinkLockPointSpline                    |
@@ -992,6 +1008,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | refer to ChAssembly           | like ChAssembly with boundary/internal suffixes  |
 |                                   | DumpSubassemblyMatrices       | rename: WriteSubassemblyMatrices                 |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+| ChMotionlawFilter                 |                               | rename: ChMotionFilter                           |
+| ChMotionlawFilter_SecondOrder     |                               | rename: ChMotionFilterSecondOrder                |
+| ChMotionlawFilter_ThirdOrder      |                               | rename: ChMotionFilterThirdOrder                 |
 | ChNodeBase                        |                               |                                                  |
 |                                   | GetNdofX                      | rename: GetNumCoordsPosLevel                     |
 |                                   | GetNdofX_active               | rename: GetNumCoordsPosLevelActive               |
@@ -1100,9 +1119,11 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetSlippage_dt                | rename: GetSlippageDt                            |
 |                                   | GetSlippage_dtdt              | rename: GetSlippageDt2                           |
 | ChShaftsCouple                    |                               |                                                  |
-|                                   | GetRelativeRotation           | rename: GetRelativeAngle                         |
-|                                   | GetRelativeRotation_dt        | rename: GetRelativeAngleDt                       |
-|                                   | GetRelativeRotation_dtdt      | rename: GetRelativeAngleDt2                      |
+|                                   | GetRelativeRotation           | rename: GetRelativePos                           |
+|                                   | GetRelativeRotation_dt        | rename: GetRelativePosDt                         |
+|                                   | GetRelativeRotation_dtdt      | rename: GetRelativePosDt2                        |
+|                                   | GetTorqueReactionOn1          | rename: GetReaction1                             |
+|                                   | GetTorqueReactionOn2          | rename: GetReaction2                             |
 | ChShaftsElasticGear               |                               |                                                  |
 |                                   | GetGearRadiusA                | rename: GetGearRadius1                           |
 |                                   | GetGearRadiusB                | rename: GetGearRadius2                           |
@@ -1127,6 +1148,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNarmijo                    | rename: GetMaxStepsArmijoLineSearch              |
 |                                   | SetMaxArmijoBacktrace         | rename: SetMaxStepsArmijoBacktrace               |
 |                                   | SetNarmijo                    | rename: SetMaxStepsArmijoLineSearch              |
+| ChStaticAnalysis                  |                               | remove                                           |
+|                                   | GetL                          | rename: GetLagrangeMultipliers                   |
+|                                   | GetX                          | rename: GetStatePos                              |
 | ChStream                          |                               | remove                                           |
 | ChStreamFile                      |                               | remove                                           |
 | ChStreamIn                        |                               | remove                                           |
@@ -1189,6 +1213,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetSolverTolerance            | remove                                           |
 |                                   | GetStepcount                  | rename: GetNumSteps                              |
 |                                   | GetUseSleeping                | rename: IsSleepingAllowed                        |
+|                                   | Integrate_Y                   | rename: AdvanceDynamics                          |
 |                                   | ResetStepcount                | rename: ResetNumSteps                            |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
 |                                   | SetMaxiter                    | remove                                           |
@@ -1207,6 +1232,16 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
 | ChSystemMulticore                 |                               |                                                  |
 |                                   | GetNumBilaterals              | rename: GetNumConstraintsBilateral               |
+|                                   | Integrate_Y                   | rename: AdvanceDynamics                          |
+| ChTimestepper                     |                               |                                                  |
+|                                   | get_L                         | rename: GetLagrangeMultipliers                   |
+| ChTimestepperIorder               |                               |                                                  |
+|                                   | get_Y                         | rename: GetState                                 |
+|                                   | get_dYdt                      | rename: GetStateDt                               |
+| ChTimestepperIIorder              |                               |                                                  |
+|                                   | get_X                         | rename: GetStatePos                              |
+|                                   | get_V                         | rename: GetStateVel                              |
+|                                   | get_A                         | rename: GetStateAcc                              |
 | ChTriangleMesh                    |                               |                                                  |
 |                                   | addTriangle                   | rename: AddTriangle                              |
 |                                   | getNumTriangles               | rename: GetNumTriangles                          |

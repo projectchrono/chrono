@@ -765,9 +765,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// because the sleeping policy changed the totalDOFs and offsets.
     bool ManageSleepingBodies();
 
-    /// Performs a single dynamical simulation step, according to
-    /// current values of:  Y, time, step  (and other minor settings)
-    virtual bool Integrate_Y();
+    /// Performs a single dynamics simulation step, advancing the system state by the current step size.
+    virtual bool AdvanceDynamics();
 
     ChAssembly assembly; ///< underlying mechanical assembly
 

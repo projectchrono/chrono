@@ -395,13 +395,6 @@ typedef ChCoordsys<float> ChCoordsysf;
 ChApi extern const ChCoordsysd CSYSNULL;
 ChApi extern const ChCoordsysd CSYSNORM;
 
-// -----------------------------------------------------------------------------
-// STATIC COORDSYS OPERATIONS
-//
-
-/// Force 3d coordsys to lie on a XY plane (note: no normaliz. on quat)
-ChApi ChCoordsysd Force2Dcsys(const ChCoordsysd& cs);
-
 }  // end namespace chrono
 
 #endif

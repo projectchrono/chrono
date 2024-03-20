@@ -20,8 +20,8 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono/physics/ChSystemSMC.h"
 #include "chrono/fea/ChElementShellANCF_3833.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/solver/ChDirectSolverLS.h"
@@ -159,29 +159,29 @@ int main(int argc, char* argv[]) {
     mesh->AddNode(nodeH);
 
     // Fix the position of the starting nodes to the ground body
-    auto constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
+    auto constraintxyz = chrono_types::make_shared<ChLinkNodeFrame>();
     constraintxyz->Initialize(nodeA, ground);
     sys.Add(constraintxyz);
 
-    constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
+    constraintxyz = chrono_types::make_shared<ChLinkNodeFrame>();
     constraintxyz->Initialize(nodeD, ground);
     sys.Add(constraintxyz);
 
-    constraintxyz = chrono_types::make_shared<ChLinkPointFrame>();
+    constraintxyz = chrono_types::make_shared<ChLinkNodeFrame>();
     constraintxyz->Initialize(nodeH, ground);
     sys.Add(constraintxyz);
 
     // Fix the position vector gradient coordinate set normal to the surface of the shell to remain parallel to the
     // original axis on the ground body (in this case the z axis)
-    auto constraintD = chrono_types::make_shared<ChLinkDirFrame>();
+    auto constraintD = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
     constraintD->Initialize(nodeA, ground);
     sys.Add(constraintD);
 
-    constraintD = chrono_types::make_shared<ChLinkDirFrame>();
+    constraintD = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
     constraintD->Initialize(nodeD, ground);
     sys.Add(constraintD);
 
-    constraintD = chrono_types::make_shared<ChLinkDirFrame>();
+    constraintD = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
     constraintD->Initialize(nodeH, ground);
     sys.Add(constraintD);
 

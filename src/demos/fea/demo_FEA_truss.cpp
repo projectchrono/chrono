@@ -25,7 +25,7 @@
 
 #include "chrono/fea/ChElementSpring.h"
 #include "chrono/fea/ChElementBar.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
                 if (ix == 0) {
                     mnode->SetFixed(true);
                     // Create a constraint between a node and the truss
-                    // auto constraintA = chrono_types::make_shared<ChLinkPointFrame>();
+                    // auto constraintA = chrono_types::make_shared<ChLinkNodeFrame>();
                     // constraintA->Initialize(mnode, ground);  // body to be connected to
                     // sys.Add(constraintA);
                 }

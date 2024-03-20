@@ -12,27 +12,27 @@
 // Authors: Alessandro Tasora
 // =============================================================================
 
-#include "chrono/fea/ChLinkBeamIGAslider.h"
+#include "chrono/fea/ChLinkBeamIGAFrame.h"
 #include "chrono/physics/ChSystem.h"
 
 namespace chrono {
 namespace fea {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChLinkBeamIGAslider)
+CH_FACTORY_REGISTER(ChLinkBeamIGAFrame)
 
-ChLinkBeamIGAslider::ChLinkBeamIGAslider() : m_react(VNULL), m_csys(CSYSNORM) {}
+ChLinkBeamIGAFrame::ChLinkBeamIGAFrame() : m_react(VNULL), m_csys(CSYSNORM) {}
 
-ChLinkBeamIGAslider::ChLinkBeamIGAslider(const ChLinkBeamIGAslider& other) : ChLinkBase(other) {
+ChLinkBeamIGAFrame::ChLinkBeamIGAFrame(const ChLinkBeamIGAFrame& other) : ChLinkBase(other) {
     m_csys = other.m_csys;
     m_react = other.m_react;
 }
 
-ChFrame<> ChLinkBeamIGAslider::GetFrameBodyAbs() const {
+ChFrame<> ChLinkBeamIGAFrame::GetFrameBodyAbs() const {
     return ChFrame<>(m_csys >> *m_body);
 }
 
-void ChLinkBeamIGAslider::UpdateNodes() {
+void ChLinkBeamIGAFrame::UpdateNodes() {
     m_nodes.clear();
 
     this->order = (int)m_beams[0]->GetNodes().size() - 1;
@@ -88,7 +88,7 @@ void ChLinkBeamIGAslider::UpdateNodes() {
     constraint3.SetVariables(mvars);
 }
 
-int ChLinkBeamIGAslider::Initialize(std::vector<std::shared_ptr<fea::ChElementBeamIGA>>& melements,
+int ChLinkBeamIGAFrame::Initialize(std::vector<std::shared_ptr<fea::ChElementBeamIGA>>& melements,
                                     std::shared_ptr<ChBodyFrame> body,
                                     ChVector3d* pos) {
     assert(body);
@@ -104,7 +104,7 @@ int ChLinkBeamIGAslider::Initialize(std::vector<std::shared_ptr<fea::ChElementBe
     return true;
 }
 
-void ChLinkBeamIGAslider::Update(double mytime, bool update_assets) {
+void ChLinkBeamIGAFrame::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class
     ChPhysicsItem::Update(mytime, update_assets);
 
@@ -114,19 +114,19 @@ void ChLinkBeamIGAslider::Update(double mytime, bool update_assets) {
 
 //// STATE BOOKKEEPING FUNCTIONS
 
-void ChLinkBeamIGAslider::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
+void ChLinkBeamIGAFrame::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     // L(off_L + 0) = m_react.x();
     L(off_L + 0) = m_react.y();
     L(off_L + 1) = m_react.z();
 }
 
-void ChLinkBeamIGAslider::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
+void ChLinkBeamIGAFrame::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
     // m_react.x() = L(off_L + 0);
     m_react.y() = L(off_L + 0);
     m_react.z() = L(off_L + 1);
 }
 
-void ChLinkBeamIGAslider::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
+void ChLinkBeamIGAFrame::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
                                               ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
                                               const ChVectorDynamic<>& L,  // the L vector
                                               const double c               // a scaling factor
@@ -139,7 +139,7 @@ void ChLinkBeamIGAslider::IntLoadResidual_CqL(const unsigned int off_L,    // of
     constraint3.MultiplyTandAdd(R, L(off_L + 1) * c);
 }
 
-void ChLinkBeamIGAslider::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
+void ChLinkBeamIGAFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
                                               ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
                                               const double c,            // a scaling factor
                                               bool do_clamp,             // apply clamping to c*C?
@@ -175,7 +175,7 @@ void ChLinkBeamIGAslider::IntLoadConstraint_C(const unsigned int off_L,  // offs
     ////Qc(off_L + 1) += cres.z();
 }
 
-void ChLinkBeamIGAslider::IntToDescriptor(const unsigned int off_v,
+void ChLinkBeamIGAFrame::IntToDescriptor(const unsigned int off_v,
                                           const ChStateDelta& v,
                                           const ChVectorDynamic<>& R,
                                           const unsigned int off_L,
@@ -193,7 +193,7 @@ void ChLinkBeamIGAslider::IntToDescriptor(const unsigned int off_v,
     constraint3.Set_b_i(Qc(off_L + 1));
 }
 
-void ChLinkBeamIGAslider::IntFromDescriptor(const unsigned int off_v,
+void ChLinkBeamIGAFrame::IntFromDescriptor(const unsigned int off_v,
                                             ChStateDelta& v,
                                             const unsigned int off_L,
                                             ChVectorDynamic<>& L) {
@@ -207,7 +207,7 @@ void ChLinkBeamIGAslider::IntFromDescriptor(const unsigned int off_v,
 
 // SOLVER INTERFACES
 
-void ChLinkBeamIGAslider::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkBeamIGAFrame::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // if (!IsActive())
     //	return;
 
@@ -216,13 +216,13 @@ void ChLinkBeamIGAslider::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     mdescriptor.InsertConstraint(&constraint3);
 }
 
-void ChLinkBeamIGAslider::ConstraintsBiReset() {
+void ChLinkBeamIGAFrame::ConstraintsBiReset() {
     // constraint1.Set_b_i(0.);
     constraint2.Set_b_i(0.);
     constraint3.Set_b_i(0.);
 }
 
-void ChLinkBeamIGAslider::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
+void ChLinkBeamIGAFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
     // if (!IsActive())
     //	return;
 
@@ -243,14 +243,14 @@ void ChLinkBeamIGAslider::ConstraintsBiLoad_C(double factor, double recovery_cla
     constraint3.Set_b_i(constraint3.Get_b_i() + factor * res.z());
 }
 
-void ChLinkBeamIGAslider::ConstraintsBiLoad_Ct(double factor) {
+void ChLinkBeamIGAFrame::ConstraintsBiLoad_Ct(double factor) {
     // if (!IsActive())
     //	return;
 
     // nothing
 }
 
-void ChLinkBeamIGAslider::ConstraintsLoadJacobians() {
+void ChLinkBeamIGAFrame::ConstraintsLoadJacobians() {
     // compute jacobians
     ChMatrix33<> Aro(m_csys.rot);
     ChMatrix33<> Aow(m_body->GetRot());
@@ -291,7 +291,7 @@ void ChLinkBeamIGAslider::ConstraintsLoadJacobians() {
     constraint3.Get_Cq_N(this->m_nodes.size()).segment(3, 3) = Jrb.row(2);
 }
 
-void ChLinkBeamIGAslider::ConstraintsFetch_react(double factor) {
+void ChLinkBeamIGAFrame::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
     // m_react.x() = constraint1.Get_l_i() * factor;
     m_react.y() = constraint2.Get_l_i() * factor;
@@ -300,11 +300,11 @@ void ChLinkBeamIGAslider::ConstraintsFetch_react(double factor) {
 
 // FILE I/O
 
-void ChLinkBeamIGAslider::ArchiveOut(ChArchiveOut& archive_out) {
+void ChLinkBeamIGAFrame::ArchiveOut(ChArchiveOut& archive_out) {
     //// TODO
 }
 
-void ChLinkBeamIGAslider::ArchiveIn(ChArchiveIn& archive_in) {
+void ChLinkBeamIGAFrame::ArchiveIn(ChArchiveIn& archive_in) {
     //// TODO
 }
 

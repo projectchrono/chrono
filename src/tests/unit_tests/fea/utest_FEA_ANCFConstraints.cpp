@@ -19,8 +19,8 @@
 // whereas Body_1 is connected to Body_1 through a revolute joint. These two joints
 // are meant to check rigid body to rigid body constraints.
 // Body_1 is connected to node 1 of a mesh of ANCF shell elements. To apply these
-// rigid-body/ANCF shell element constraints, we use the classes ChLinkPointFrame and
-// ChLinkDirFrame, which impose contraints on the position and gradient vector of the
+// rigid-body/ANCF shell element constraints, we use the classes ChLinkNodeFrame and
+// ChLinkNodeSlopeFrame, which impose contraints on the position and gradient vector of the
 // constrained node, respectively.
 //                        _ _ _ _
 //  /|                   |_|_|_|_|
@@ -44,8 +44,8 @@
 #include "chrono/utils/ChUtilsValidation.h"
 
 #include "chrono/fea/ChElementShellANCF_3423.h"
-#include "chrono/fea/ChLinkDirFrame.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeSlopeFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/fea/ChMesh.h"
 
 using namespace chrono;
@@ -73,8 +73,8 @@ std::shared_ptr<ChLinkLockLock> joint_weld;
 std::shared_ptr<ChLinkLockRevolute> joint_revolute;
 
 // Body-mesh constraints
-std::shared_ptr<ChLinkPointFrame> constraint_point;
-std::shared_ptr<ChLinkDirFrame> constraint_dir;
+std::shared_ptr<ChLinkNodeFrame> constraint_point;
+std::shared_ptr<ChLinkNodeSlopeFrame> constraint_dir;
 
 // ========================================================================
 
@@ -196,12 +196,12 @@ void AddConstraints(ChSystemNSC& sys) {
     sys.AddLink(joint_revolute);
 
     // Constraining a node to Body_2
-    constraint_point = chrono_types::make_shared<ChLinkPointFrame>();
+    constraint_point = chrono_types::make_shared<ChLinkNodeFrame>();
     constraint_point->Initialize(Node_1, Body_2);
     sys.Add(constraint_point);
 
     // This contraint means that rz will always be aligned with the node's D vector
-    constraint_dir = chrono_types::make_shared<ChLinkDirFrame>();
+    constraint_dir = chrono_types::make_shared<ChLinkNodeSlopeFrame>();
     constraint_dir->Initialize(Node_1, Body_2);
     constraint_dir->SetDirectionInAbsoluteCoords(ChVector3d(0, 0, 1));
     sys.Add(constraint_dir);

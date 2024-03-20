@@ -458,9 +458,9 @@ void ChVehicleOutputHDF5::WriteCouples(const std::vector<std::shared_ptr<ChShaft
     std::vector<couple_info> info(ncouples);
     for (auto i = 0; i < ncouples; i++) {
         info[i] = {
-            couples[i]->GetIdentifier(),        couples[i]->GetRelativeAngle(),     //
-            couples[i]->GetRelativeAngleDt(),   couples[i]->GetRelativeAngleDt2(),  //
-            couples[i]->GetTorqueReactionOn1(), couples[i]->GetTorqueReactionOn2()  //
+            couples[i]->GetIdentifier(),    couples[i]->GetRelativePos(),     //
+            couples[i]->GetRelativePosDt(), couples[i]->GetRelativePosDt2(),  //
+            couples[i]->GetReaction1(),     couples[i]->GetReaction2()        //
         };
     }
 

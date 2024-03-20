@@ -30,7 +30,7 @@
 #include "chrono/fea/ChContactSurfaceMesh.h"
 #include "chrono/fea/ChContactSurfaceNodeCloud.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -174,7 +174,7 @@ int main(int argc, char* argv[]) {
     // the BC_RIMTIRE nodeset, in the Abaqus INP file, lists the nodes involved
     auto nodeset_sel = "BC_RIMTIRE";
     for (auto i = 0; i < node_sets.at(nodeset_sel).size(); ++i) {
-        auto mlink = chrono_types::make_shared<ChLinkPointFrame>();
+        auto mlink = chrono_types::make_shared<ChLinkNodeFrame>();
         mlink->Initialize(std::dynamic_pointer_cast<ChNodeFEAxyz>(node_sets[nodeset_sel][i]), mwheel_rim);
         sys.Add(mlink);
     }

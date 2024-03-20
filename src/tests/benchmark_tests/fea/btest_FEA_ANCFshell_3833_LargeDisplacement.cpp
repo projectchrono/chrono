@@ -32,7 +32,7 @@
 
 #include "chrono/fea/ChElementShellANCF_3833.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 
 #ifdef CHRONO_IRRLICHT
@@ -239,7 +239,7 @@ ANCFShellTest::ANCFShellTest(int num_elements, SolverType solver_type, int NumTh
                 auto node = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(dx * i, dy * j, 0.0), dir1, Curv1);
                 mesh->AddNode(node);
 
-                auto pos_constraint = chrono_types::make_shared<ChLinkPointFrame>();
+                auto pos_constraint = chrono_types::make_shared<ChLinkNodeFrame>();
                 pos_constraint->Initialize(node, grounded);  // body to be connected to
                 m_system->Add(pos_constraint);
             } else if (((i % 2) == 0) || ((j % 2) == 0)) {

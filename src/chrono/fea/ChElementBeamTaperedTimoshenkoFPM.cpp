@@ -166,7 +166,7 @@ void ChElementBeamTaperedTimoshenkoFPM::ShapeFunctionsTimoshenkoFPM(ShapeFunctio
 
 /// This class defines the calculations for the Guass integrand of
 /// the cross-sectional stiffness/damping/mass matrices
-class BeamTaperedTimoshenkoFPM : public ChIntegrable1D<ChMatrixNM<double, 12, 12>> {
+class BeamTaperedTimoshenkoFPM : public ChIntegrand1D<ChMatrixNM<double, 12, 12>> {
   public:
     BeamTaperedTimoshenkoFPM(ChElementBeamTaperedTimoshenkoFPM* element, const int option)
         : m_element(element), m_choice_KiRiMi(option) {}

@@ -110,7 +110,7 @@ void ChManualTransmissionShafts::Synchronize(double time,
 }
 
 double ChManualTransmissionShafts::GetOutputDriveshaftTorque() const {
-    return m_gears->GetTorqueReactionOn2();
+    return m_gears->GetReaction2();
 }
 
 double ChManualTransmissionShafts::GetOutputMotorshaftSpeed() const {

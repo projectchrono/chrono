@@ -227,9 +227,9 @@ double ChShaftsDriveline8WD::GetSpindleTorque(int axle, VehicleSide side) const 
         if (axle == m_driven_axles[i]) {
             switch (side) {
                 case LEFT:
-                    return -m_AD_differential[i]->GetTorqueReactionOn2() - m_AD_differential[i]->GetTorqueReactionOn1();
+                    return -m_AD_differential[i]->GetReaction2() - m_AD_differential[i]->GetReaction1();
                 case RIGHT:
-                    return -m_AD_differential[i]->GetTorqueReactionOn3() - m_AD_differential[i]->GetTorqueReactionOn2();
+                    return -m_AD_differential[i]->GetTorqueReactionOn3() - m_AD_differential[i]->GetReaction2();
             }       
         }
     }

@@ -179,7 +179,7 @@ void ChElementHexaANCF_3813_9::ShapeFunctionsDerivativeZ(ShapeVector& Nz, double
 // -----------------------------------------------------------------------------
 
 // Private class for quadrature of the mass matrix.
-class Brick9_Mass : public ChIntegrable3D<ChMatrixNM<double, 33, 33>> {
+class Brick9_Mass : public ChIntegrand3D<ChMatrixNM<double, 33, 33>> {
   public:
     Brick9_Mass(ChElementHexaANCF_3813_9* element) : m_element(element) {}
     ~Brick9_Mass() {}
@@ -229,7 +229,7 @@ void ChElementHexaANCF_3813_9::ComputeMassMatrix() {
 // -----------------------------------------------------------------------------
 
 // Private class for quadrature of gravitational forces.
-class Brick9_Gravity : public ChIntegrable3D<ChVectorN<double, 11>> {
+class Brick9_Gravity : public ChIntegrand3D<ChVectorN<double, 11>> {
   public:
     Brick9_Gravity(ChElementHexaANCF_3813_9* element) : m_element(element) {}
     ~Brick9_Gravity() {}
@@ -283,7 +283,7 @@ void ChElementHexaANCF_3813_9::ComputeGravityForces(ChVectorDynamic<>& Fg, const
 // -----------------------------------------------------------------------------
 
 // Private class for quadrature of internal forces
-class Brick9_Force : public ChIntegrable3D<ChVectorN<double, 33>> {
+class Brick9_Force : public ChIntegrand3D<ChVectorN<double, 33>> {
   public:
     Brick9_Force(ChElementHexaANCF_3813_9* element) : m_element(element) {}
     ~Brick9_Force() {}
@@ -1269,7 +1269,7 @@ void ChElementHexaANCF_3813_9::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 // -----------------------------------------------------------------------------
 
 // Private class for quadrature of the Jacobian of internal forces
-class Brick9_Jacobian : public ChIntegrable3D<ChMatrixNM<double, 33, 33>> {
+class Brick9_Jacobian : public ChIntegrand3D<ChMatrixNM<double, 33, 33>> {
   public:
     Brick9_Jacobian(ChElementHexaANCF_3813_9* element,  // Associated element
                     double Kfactor,                     // Scaling coefficient for stiffness component

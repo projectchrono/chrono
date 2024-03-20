@@ -239,7 +239,7 @@ ChStaticNonLinearRheonomicAnalysis::ChStaticNonLinearRheonomicAnalysis()
       m_reltol(1e-4),
       m_abstol(1e-8),
       m_verbose(false),
-      automatic_speed_accel_computation(false) {}
+      m_automatic_deriv_computation(false) {}
 
 void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
     ChIntegrableIIorder* integrable = static_cast<ChIntegrableIIorder*>(m_integrable);
@@ -303,15 +303,15 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
 
         // Update nonzero speeds and accelerations, if any, calling
         // the iteration callback, if any:
-        if (this->callback_iteration_begin) {
-            this->callback_iteration_begin->OnIterationBegin(cfactor, i, this);  // this may modify V and A
-            integrable->StateGather(X, V, T);                                    // state <- system
+        if (m_callback) {
+            m_callback->OnIterationBegin(cfactor, i, this);  // this may modify V and A
+            integrable->StateGather(X, V, T);                // state <- system
             integrable->StateGatherAcceleration(A);
         }
 
         // Otherwise, if enabled, compute them automatically from rheonomic constraints:
         // ***WARNING*** this is ok only for not too much stretched elements at the moment!
-        if (i == 0 && automatic_speed_accel_computation)  // btw. should happen at eeach iteration not only at first
+        if (i == 0 && m_automatic_deriv_computation)  // should happen at eeach iteration not only at first
         {
             // solve
             //      [ - dF/dx    Cq' ] [ V  ] = [ 0  ]
@@ -471,7 +471,7 @@ void ChStaticNonLinearRheonomicAnalysis::StaticAnalysis() {
 
     // Compute speed at the end. ***WARNING*** this is ok only for sligtly stretched elements at the moment!
 
-    if (automatic_speed_accel_computation) {
+    if (m_automatic_deriv_computation) {
         for (int i = 0; i < m_maxiters; ++i) {
             integrable->StateScatter(X, V, T, true);  // state -> system
 
@@ -634,7 +634,7 @@ void ChStaticNonLinearIncremental::StaticAnalysis() {
     // Outer loop: increment the external load(s)
     // by invoking the callback.
 
-    for (int j = 0; j < this->m_incremental_steps; ++j) {
+    for (int j = 0; j < m_incremental_steps; ++j) {
         // The scaling factor for the external load (A simple linear scaling... it could be be improved).
         // Note on formula: have it ending with 1.0. If m_incremental_steps =1, do just one iteration with scaling =1.0.
         double cfactor = ((double)j + 1.0) / m_incremental_steps;
@@ -645,11 +645,11 @@ void ChStaticNonLinearIncremental::StaticAnalysis() {
         // is set in objects. Then, after the callback is executed, as soon as we call
         // integrable->LoadResidual_F(R, 1.0); we'll get that    R = F_in + scaled_F_ext.
 
-        if (!this->load_increment_callback && m_verbose)
+        if (!m_callback && m_verbose)
             std::cerr << "WARNING: Load callback not defined. Create one and use SetLoadIncrementCallback(...)."
                       << std::endl;
 
-        this->load_increment_callback->OnLoadScaling(cfactor, j, this);
+        m_callback->OnLoadScaling(cfactor, j, this);
 
         if (m_verbose) {
             std::cout << "--- Nonlinear statics, outer iteration " << j << ", load scaling: " << cfactor << std::endl;

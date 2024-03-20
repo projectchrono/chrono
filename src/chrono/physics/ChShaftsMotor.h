@@ -47,11 +47,11 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 1st axis.
-    virtual double GetTorqueReactionOn1() const override { return (GetMotorTorque()); }
+    virtual double GetReaction1() const override { return (GetMotorTorque()); }
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 2nd axis.
-    virtual double GetTorqueReactionOn2() const override { return -(GetMotorTorque()); }
+    virtual double GetReaction2() const override { return -(GetMotorTorque()); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

@@ -33,7 +33,7 @@
 
 #include "chrono/fea/ChElementBeamANCF_3333.h"
 #include "chrono/fea/ChMesh.h"
-#include "chrono/fea/ChLinkPointFrame.h"
+#include "chrono/fea/ChLinkNodeFrame.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 
 #ifdef CHRONO_IRRLICHT
@@ -237,7 +237,7 @@ ANCFBeamTest::ANCFBeamTest(int num_elements, SolverType solver_type, int NumThre
     // Create the first node and fix only its position to ground (Spherical Joint constraint)
     auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(0, 0, 0.0), dir1, dir2);
     mesh->AddNode(nodeA);
-    auto pos_constraint = chrono_types::make_shared<ChLinkPointFrame>();
+    auto pos_constraint = chrono_types::make_shared<ChLinkNodeFrame>();
     pos_constraint->Initialize(nodeA, grounded);  // body to be connected to
     m_system->Add(pos_constraint);
 

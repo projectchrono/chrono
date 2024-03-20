@@ -86,11 +86,11 @@ class ChApi ChShaftsFreewheel : public ChShaftsCouple {
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 1st axis.
-    double GetTorqueReactionOn1() const override { return torque_react; }
+    double GetReaction1() const override { return torque_react; }
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 2nd axis.
-    double GetTorqueReactionOn2() const override { return -torque_react; }
+    double GetReaction2() const override { return -torque_react; }
 
     /// Return current constraint violation
     double GetConstraintViolation() const { return violation; }

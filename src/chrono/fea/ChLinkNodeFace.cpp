@@ -14,25 +14,25 @@
 
 #include "chrono/physics/ChIndexedNodes.h"
 #include "chrono/physics/ChSystem.h"
-#include "chrono/fea/ChLinkPointTriface.h"
+#include "chrono/fea/ChLinkNodeFace.h"
 #include "chrono/utils/ChUtilsGeometry.h"
 
 namespace chrono {
 namespace fea {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChLinkPointTriface)
+CH_FACTORY_REGISTER(ChLinkNodeFace)
 
-ChLinkPointTriface::ChLinkPointTriface() : react(VNULL), s2(0), s3(0), d(0) {}
+ChLinkNodeFace::ChLinkNodeFace() : react(VNULL), s2(0), s3(0), d(0) {}
 
-ChLinkPointTriface::ChLinkPointTriface(const ChLinkPointTriface& other) : ChLinkBase(other) {
+ChLinkNodeFace::ChLinkNodeFace(const ChLinkNodeFace& other) : ChLinkBase(other) {
     react = other.react;
     s2 = other.s2;
     s3 = other.s3;
     d = other.d;
 }
 
-int ChLinkPointTriface::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
+int ChLinkNodeFace::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
                                    std::shared_ptr<ChNodeFEAxyz> anodeB1,
                                    std::shared_ptr<ChNodeFEAxyz> anodeB2,
                                    std::shared_ptr<ChNodeFEAxyz> anodeB3) {
@@ -62,7 +62,7 @@ int ChLinkPointTriface::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
     return true;
 }
 
-void ChLinkPointTriface::Update(double mytime, bool update_assets) {
+void ChLinkNodeFace::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class
     ChPhysicsItem::Update(mytime, update_assets);
 
@@ -72,19 +72,19 @@ void ChLinkPointTriface::Update(double mytime, bool update_assets) {
 
 //// STATE BOOKKEEPING FUNCTIONS
 
-void ChLinkPointTriface::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
+void ChLinkNodeFace::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     L(off_L + 0) = react.x();
     L(off_L + 1) = react.y();
     L(off_L + 2) = react.z();
 }
 
-void ChLinkPointTriface::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
+void ChLinkNodeFace::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
     react.x() = L(off_L + 0);
     react.y() = L(off_L + 1);
     react.z() = L(off_L + 2);
 }
 
-void ChLinkPointTriface::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
+void ChLinkNodeFace::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
                                              ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
                                              const ChVectorDynamic<>& L,  // the L vector
                                              const double c               // a scaling factor
@@ -97,7 +97,7 @@ void ChLinkPointTriface::IntLoadResidual_CqL(const unsigned int off_L,    // off
     constraint3.MultiplyTandAdd(R, L(off_L + 2) * c);
 }
 
-void ChLinkPointTriface::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
+void ChLinkNodeFace::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
                                              ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
                                              const double c,            // a scaling factor
                                              bool do_clamp,             // apply clamping to c*C?
@@ -132,7 +132,7 @@ void ChLinkPointTriface::IntLoadConstraint_C(const unsigned int off_L,  // offse
     Qc(off_L + 2) += cres.z();
 }
 
-void ChLinkPointTriface::IntToDescriptor(const unsigned int off_v,
+void ChLinkNodeFace::IntToDescriptor(const unsigned int off_v,
                                          const ChStateDelta& v,
                                          const ChVectorDynamic<>& R,
                                          const unsigned int off_L,
@@ -150,7 +150,7 @@ void ChLinkPointTriface::IntToDescriptor(const unsigned int off_v,
     constraint3.Set_b_i(Qc(off_L + 2));
 }
 
-void ChLinkPointTriface::IntFromDescriptor(const unsigned int off_v,
+void ChLinkNodeFace::IntFromDescriptor(const unsigned int off_v,
                                            ChStateDelta& v,
                                            const unsigned int off_L,
                                            ChVectorDynamic<>& L) {
@@ -164,7 +164,7 @@ void ChLinkPointTriface::IntFromDescriptor(const unsigned int off_v,
 
 // SOLVER INTERFACES
 
-void ChLinkPointTriface::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkNodeFace::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     if (!IsActive())
         return;
 
@@ -173,14 +173,14 @@ void ChLinkPointTriface::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     mdescriptor.InsertConstraint(&constraint3);
 }
 
-void ChLinkPointTriface::ConstraintsBiReset() {
+void ChLinkNodeFace::ConstraintsBiReset() {
     constraint1.Set_b_i(0.);
     constraint2.Set_b_i(0.);
     constraint3.Set_b_i(0.);
 }
 
 //// OBSOLETE will be removed in favor of IntLoadConstraint_C
-void ChLinkPointTriface::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
+void ChLinkNodeFace::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
     // Compute residual of constraint as distance of two points: one is A,
     // other is on triangle at the s2,s3 area coordinates:
     //  C = A - s1*B1 - s2*B2 - s3*B3
@@ -201,7 +201,7 @@ void ChLinkPointTriface::ConstraintsBiLoad_C(double factor, double recovery_clam
 }
 
 //// OBSOLETE will be removed in favor of Int... functions
-void ChLinkPointTriface::ConstraintsBiLoad_Ct(double factor) {
+void ChLinkNodeFace::ConstraintsBiLoad_Ct(double factor) {
     // if (!IsActive())
     //	return;
 
@@ -212,7 +212,7 @@ int mysgn(double val) {
     return (0 < val) - (val < 0);
 }
 
-void ChLinkPointTriface::ConstraintsLoadJacobians() {
+void ChLinkNodeFace::ConstraintsLoadJacobians() {
     double s1 = 1 - s2 - s3;
 
     // compute jacobians
@@ -343,7 +343,7 @@ void ChLinkPointTriface::ConstraintsLoadJacobians() {
 }
 
 //// OBSOLETE will be removed in favor of Int... functions
-void ChLinkPointTriface::ConstraintsFetch_react(double factor) {
+void ChLinkNodeFace::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
     react.x() = constraint1.Get_l_i() * factor;
     react.y() = constraint2.Get_l_i() * factor;
@@ -352,11 +352,11 @@ void ChLinkPointTriface::ConstraintsFetch_react(double factor) {
 
 // FILE I/O
 
-void ChLinkPointTriface::ArchiveOut(ChArchiveOut& archive_out) {
+void ChLinkNodeFace::ArchiveOut(ChArchiveOut& archive_out) {
     //// TODO
 }
 
-void ChLinkPointTriface::ArchiveIn(ChArchiveIn& archive_in) {
+void ChLinkNodeFace::ArchiveIn(ChArchiveIn& archive_in) {
     //// TODO
 }
 
@@ -366,18 +366,18 @@ void ChLinkPointTriface::ArchiveIn(ChArchiveIn& archive_in) {
 // Planned for future
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChLinkPointTrifaceRot)
+CH_FACTORY_REGISTER(ChLinkNodeFaceRot)
 
-ChLinkPointTrifaceRot::ChLinkPointTrifaceRot() : react(VNULL), s2(0), s3(0), d(0) {}
+ChLinkNodeFaceRot::ChLinkNodeFaceRot() : react(VNULL), s2(0), s3(0), d(0) {}
 
-ChLinkPointTrifaceRot::ChLinkPointTrifaceRot(const ChLinkPointTrifaceRot& other) : ChLinkBase(other) {
+ChLinkNodeFaceRot::ChLinkNodeFaceRot(const ChLinkNodeFaceRot& other) : ChLinkBase(other) {
     react = other.react;
     s2 = other.s2;
     s3 = other.s3;
     d = other.d;
 }
 
-int ChLinkPointTrifaceRot::Initialize(std::shared_ptr<ChNodeFEAxyz> nodeA,
+int ChLinkNodeFaceRot::Initialize(std::shared_ptr<ChNodeFEAxyz> nodeA,
                                       std::shared_ptr<ChNodeFEAxyzrot> nodeB1,
                                       std::shared_ptr<ChNodeFEAxyzrot> nodeB2,
                                       std::shared_ptr<ChNodeFEAxyzrot> nodeB3) {
@@ -407,7 +407,7 @@ int ChLinkPointTrifaceRot::Initialize(std::shared_ptr<ChNodeFEAxyz> nodeA,
     return true;
 }
 
-void ChLinkPointTrifaceRot::Update(double mytime, bool update_assets) {
+void ChLinkNodeFaceRot::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class
     ChPhysicsItem::Update(mytime, update_assets);
 
@@ -417,19 +417,19 @@ void ChLinkPointTrifaceRot::Update(double mytime, bool update_assets) {
 
 //// STATE BOOKKEEPING FUNCTIONS
 
-void ChLinkPointTrifaceRot::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
+void ChLinkNodeFaceRot::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
     L(off_L + 0) = react.x();
     L(off_L + 1) = react.y();
     L(off_L + 2) = react.z();
 }
 
-void ChLinkPointTrifaceRot::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
+void ChLinkNodeFaceRot::IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) {
     react.x() = L(off_L + 0);
     react.y() = L(off_L + 1);
     react.z() = L(off_L + 2);
 }
 
-void ChLinkPointTrifaceRot::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
+void ChLinkNodeFaceRot::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
                                                 ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
                                                 const ChVectorDynamic<>& L,  // the L vector
                                                 const double c               // a scaling factor
@@ -442,7 +442,7 @@ void ChLinkPointTrifaceRot::IntLoadResidual_CqL(const unsigned int off_L,    // 
     constraint3.MultiplyTandAdd(R, L(off_L + 2) * c);
 }
 
-void ChLinkPointTrifaceRot::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
+void ChLinkNodeFaceRot::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
                                                 ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
                                                 const double c,            // a scaling factor
                                                 bool do_clamp,             // apply clamping to c*C?
@@ -477,7 +477,7 @@ void ChLinkPointTrifaceRot::IntLoadConstraint_C(const unsigned int off_L,  // of
     Qc(off_L + 2) += cres.z();
 }
 
-void ChLinkPointTrifaceRot::IntToDescriptor(const unsigned int off_v,
+void ChLinkNodeFaceRot::IntToDescriptor(const unsigned int off_v,
                                             const ChStateDelta& v,
                                             const ChVectorDynamic<>& R,
                                             const unsigned int off_L,
@@ -495,7 +495,7 @@ void ChLinkPointTrifaceRot::IntToDescriptor(const unsigned int off_v,
     constraint3.Set_b_i(Qc(off_L + 2));
 }
 
-void ChLinkPointTrifaceRot::IntFromDescriptor(const unsigned int off_v,
+void ChLinkNodeFaceRot::IntFromDescriptor(const unsigned int off_v,
                                               ChStateDelta& v,
                                               const unsigned int off_L,
                                               ChVectorDynamic<>& L) {
@@ -509,7 +509,7 @@ void ChLinkPointTrifaceRot::IntFromDescriptor(const unsigned int off_v,
 
 // SOLVER INTERFACES
 
-void ChLinkPointTrifaceRot::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkNodeFaceRot::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     // if (!IsActive())
     //	return;
 
@@ -518,14 +518,14 @@ void ChLinkPointTrifaceRot::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     mdescriptor.InsertConstraint(&constraint3);
 }
 
-void ChLinkPointTrifaceRot::ConstraintsBiReset() {
+void ChLinkNodeFaceRot::ConstraintsBiReset() {
     constraint1.Set_b_i(0.);
     constraint2.Set_b_i(0.);
     constraint3.Set_b_i(0.);
 }
 
 //// OBSOLETE will be removed in favor of IntLoadConstraint_C
-void ChLinkPointTrifaceRot::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
+void ChLinkNodeFaceRot::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
     // Compute residual of constraint as distance of two points: one is A,
     // other is on triangle at the s2,s3 area coordinates:
     //  C = A - s1*B1 - s2*B2 - s3*B3
@@ -546,14 +546,14 @@ void ChLinkPointTrifaceRot::ConstraintsBiLoad_C(double factor, double recovery_c
 }
 
 //// OBSOLETE will be removed in favor of Int... functions
-void ChLinkPointTrifaceRot::ConstraintsBiLoad_Ct(double factor) {
+void ChLinkNodeFaceRot::ConstraintsBiLoad_Ct(double factor) {
     // if (!IsActive())
     //	return;
 
     // nothing
 }
 
-void ChLinkPointTrifaceRot::ConstraintsLoadJacobians() {
+void ChLinkNodeFaceRot::ConstraintsLoadJacobians() {
     double s1 = 1 - s2 - s3;
 
     // compute jacobians
@@ -684,7 +684,7 @@ void ChLinkPointTrifaceRot::ConstraintsLoadJacobians() {
 }
 
 //// OBSOLETE will be removed in favor of Int... functions
-void ChLinkPointTrifaceRot::ConstraintsFetch_react(double factor) {
+void ChLinkNodeFaceRot::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
     react.x() = constraint1.Get_l_i() * factor;
     react.y() = constraint2.Get_l_i() * factor;
@@ -693,11 +693,11 @@ void ChLinkPointTrifaceRot::ConstraintsFetch_react(double factor) {
 
 // FILE I/O
 
-void ChLinkPointTrifaceRot::ArchiveOut(ChArchiveOut& archive_out) {
+void ChLinkNodeFaceRot::ArchiveOut(ChArchiveOut& archive_out) {
     //// TODO
 }
 
-void ChLinkPointTrifaceRot::ArchiveIn(ChArchiveIn& archive_in) {
+void ChLinkNodeFaceRot::ArchiveIn(ChArchiveIn& archive_in) {
     //// TODO
 }
 

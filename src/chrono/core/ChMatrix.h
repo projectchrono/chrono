@@ -249,15 +249,27 @@ inline void StreamOut(ChMatrixConstRef A, std::ostream& stream) {
     }
 }
 
-/// Serialization of a sparse matrix to an ASCI stream (e.g., a file) in COO sparse matrix format.
-/// By default, uses 0-based indices. If one_index=true, row and column indices start at 1 (as in Matlab).
+/// Serialization of a sparse matrix to an ASCII stream (e.g., a file) in COO sparse matrix format.
+/// By default, uses 0-based indices. If one_indexed=true, row and column indices start at 1 (as in Matlab).
 inline void StreamOut(ChSparseMatrix& mat, std::ostream& stream, bool one_indexed = false) {
     int offset = one_indexed ? 1 : 0;
+
+    bool last_row_visited = false;
+    bool last_col_visited = false;
+
     for (int k = 0; k < mat.outerSize(); ++k)
         for (ChSparseMatrix::InnerIterator it(mat, k); it; ++it) {
             if (it.value())
                 stream << it.row() + offset << " " << it.col() + offset << " " << it.value() << "\n";
+            if (it.row() == mat.rows() - 1)
+                last_row_visited = true;
+            if (it.col() == mat.cols() - 1)
+                last_col_visited = true;
         }
+
+    if (mat.rows() && mat.cols())                    // if the matrix is not empty
+        if (!last_row_visited || !last_col_visited)  // if the last row or last column is not visited
+            stream << mat.rows() - 1 + offset << " " << mat.cols() - 1 + offset << " " << 0. << "\n";
 }
 
 /// @} chrono_linalg

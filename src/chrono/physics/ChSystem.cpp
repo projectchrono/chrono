@@ -1539,8 +1539,8 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
 //  Forward dynamics analysis
 // -----------------------------------------------------------------------------
 
-bool ChSystem::Integrate_Y() {
-    CH_PROFILE("Integrate_Y");
+bool ChSystem::AdvanceDynamics() {
+    CH_PROFILE("AdvanceDynamics");
 
     ResetTimers();
 
@@ -1624,7 +1624,7 @@ int ChSystem::DoStepDynamics(double step_size) {
     applied_forces_current = false;
     step = step_size;
 
-    bool success = Integrate_Y();
+    bool success = AdvanceDynamics();
 
     m_RTF = timer_step() / step;
 
@@ -1647,7 +1647,7 @@ bool ChSystem::DoFrameDynamics(double frame_time, double step_size) {
         if (left_time < 1.3 * step)
             step = left_time;
 
-        if (!Integrate_Y()) {
+        if (!AdvanceDynamics()) {
             success = false;
             break;
         }

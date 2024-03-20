@@ -114,9 +114,9 @@ void ChVehicleOutputASCII::WriteJoints(const std::vector<std::shared_ptr<ChLink>
 void ChVehicleOutputASCII::WriteCouples(const std::vector<std::shared_ptr<ChShaftsCouple>>& couples) {
     for (auto couple : couples) {
         m_stream << "    couple: " << couple->GetIdentifier() << " \"" << couple->GetNameString() << "\" ";
-        m_stream << couple->GetRelativeAngle() << " " << couple->GetRelativeAngleDt() << " "
-                 << couple->GetRelativeAngleDt2() << " ";
-        m_stream << couple->GetTorqueReactionOn1() << " " << couple->GetTorqueReactionOn2() << " ";
+        m_stream << couple->GetRelativePos() << " " << couple->GetRelativePosDt() << " " << couple->GetRelativePosDt2()
+                 << " ";
+        m_stream << couple->GetReaction1() << " " << couple->GetReaction2() << " ";
         m_stream << std::endl;
         //// TODO
     }

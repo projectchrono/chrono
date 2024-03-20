@@ -122,7 +122,7 @@ void ChTrackDrivelineBDS::CombineDriverInputs(const DriverInputs& driver_inputs,
 double ChTrackDrivelineBDS::GetSprocketTorque(VehicleSide side) const {
     switch (side) {
         case LEFT:
-            return -m_differential->GetTorqueReactionOn2();
+            return -m_differential->GetReaction2();
         case RIGHT:
             return -m_differential->GetTorqueReactionOn3();
     }

@@ -180,7 +180,7 @@ void ChElementShellANCF_3423::ComputeMmatrixGlobal(ChMatrixRef M) {
 // -----------------------------------------------------------------------------
 
 /// This class defines the calculations for the integrand of the inertia matrix.
-class ShellANCF_Mass : public ChIntegrable3D<ChMatrixNM<double, 24, 24>> {
+class ShellANCF_Mass : public ChIntegrand3D<ChMatrixNM<double, 24, 24>> {
   public:
     ShellANCF_Mass(ChElementShellANCF_3423* element) : m_element(element) {}
     ~ShellANCF_Mass() {}
@@ -242,7 +242,7 @@ void ChElementShellANCF_3423::ComputeNodalMass() {
 // -----------------------------------------------------------------------------
 
 /// This class defines the calculations for the integrand of the element gravity forces
-class ShellANCF_Gravity : public ChIntegrable3D<ChElementShellANCF_3423::VectorN> {
+class ShellANCF_Gravity : public ChIntegrand3D<ChElementShellANCF_3423::VectorN> {
   public:
     ShellANCF_Gravity(ChElementShellANCF_3423* element) : m_element(element) {}
     ~ShellANCF_Gravity() {}
@@ -314,7 +314,7 @@ void ChElementShellANCF_3423::ComputeGravityForces(ChVectorDynamic<>& Fg, const 
 // shear locking. This implementation also features a composite material implementation
 // that allows for selecting a number of layers over the element thickness; each of which
 // has an independent, user-selected fiber angle (direction for orthotropic constitutive behavior)
-class ShellANCF_Force : public ChIntegrable3D<ChVectorN<double, 54>> {
+class ShellANCF_Force : public ChIntegrand3D<ChVectorN<double, 54>> {
   public:
     ShellANCF_Force(ChElementShellANCF_3423* element,  // Containing element
                     size_t kl,                         // Current layer index
@@ -654,7 +654,7 @@ void ChElementShellANCF_3423::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 //      Kfactor * [K] + Rfactor * [R]
 // where K does not include the EAS contribution.
 // The last 120 entries represent the 5x24 cross-dependency matrix.
-class ShellANCF_Jacobian : public ChIntegrable3D<ChVectorN<double, 696>> {
+class ShellANCF_Jacobian : public ChIntegrand3D<ChVectorN<double, 696>> {
   public:
     ShellANCF_Jacobian(ChElementShellANCF_3423* element,  // Containing element
                        double Kfactor,                    // Scaling coefficient for stiffness component

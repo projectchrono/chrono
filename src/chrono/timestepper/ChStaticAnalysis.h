@@ -19,7 +19,7 @@
 
 namespace chrono {
 
-/// Base class for static analysis
+/// Base class for static analysis.
 class ChApi ChStaticAnalysis {
   public:
     virtual ~ChStaticAnalysis() {}
@@ -28,10 +28,10 @@ class ChApi ChStaticAnalysis {
     ChIntegrable* GetIntegrable() { return m_integrable; }
 
     /// Access the state, position part, at current analysis.
-    const ChState& GetX() const { return X; }
+    const ChState& GetStatePos() const { return X; }
 
     /// Access the Lagrange multipliers, if any.
-    const ChVectorDynamic<>& GetL() const { return L; }
+    const ChVectorDynamic<>& GetLagrangeMultipliers() const { return L; }
 
   protected:
     ChStaticAnalysis();
@@ -49,7 +49,7 @@ class ChApi ChStaticAnalysis {
     friend class ChSystem;
 };
 
-/// Linear static analysis
+/// Linear static analysis.
 class ChApi ChStaticLinearAnalysis : public ChStaticAnalysis {
   public:
     ChStaticLinearAnalysis();
@@ -62,13 +62,13 @@ class ChApi ChStaticLinearAnalysis : public ChStaticAnalysis {
     friend class ChSystem;
 };
 
-/// Nonlinear static analysis
+/// Nonlinear static analysis.
 class ChApi ChStaticNonLinearAnalysis : public ChStaticAnalysis {
   public:
     ChStaticNonLinearAnalysis();
     ~ChStaticNonLinearAnalysis() {}
 
-    /// Enable/disable verbose output (default: false)
+    /// Enable/disable verbose output (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
     /// Set the max number of iterations for the Newton Raphson procedure (default: 10).
@@ -123,7 +123,7 @@ class ChApi ChStaticNonLinearRheonomicAnalysis : public ChStaticAnalysis {
     ChStaticNonLinearRheonomicAnalysis();
     ~ChStaticNonLinearRheonomicAnalysis() {}
 
-    /// Enable/disable verbose output (default: false)
+    /// Enable/disable verbose output (default: false).
     void SetVerbose(bool verbose) { m_verbose = verbose; }
 
     /// Set the max number of iterations for the Newton Raphson procedure (default: 10).
@@ -150,44 +150,41 @@ class ChApi ChStaticNonLinearRheonomicAnalysis : public ChStaticAnalysis {
     /// Set the number of steps that, for the first iterations, make the residual grow linearly.
     int GetIncrementalSteps() const { return m_incremental_steps; }
 
-    /// Class to be used as a callback interface for updating the system at each iteration, for example
-    /// for incrementing the load or for updating the speeds and accelerations of the parts.
+    /// Callback interface for updating the system at each iteration.
+    /// For example, this can be used for incrementing the load or for updating speeds and accelerations.
     class ChApi IterationCallback {
       public:
         virtual ~IterationCallback() {}
 
-        /// Perform updates on the model. This is called before each iteration. Must be implemented by child class.
-        virtual void OnIterationBegin(
-            const double load_scaling,  ///< ranging from 0 to 1, if Newton loop does continuation, could be optionally
-                                        ///< used. Otherwise asssume 1=tot load.
-            const int iteration_n,      ///< actual number of iteration
-            ChStaticNonLinearRheonomicAnalysis* analysis  ///< back-pointer to this analysis
-            ) = 0;
+        /// Perform updates on the model.
+        /// This is called before each iteration. Load scaling must be in [0,1] and is used if the Newton loop uses
+        /// continuation.
+        virtual void OnIterationBegin(const double load_scaling,                    ///< load scaling
+                                      const int iteration_n,                        ///< actual number of iteration
+                                      ChStaticNonLinearRheonomicAnalysis* analysis  ///< back-pointer to this analysis
+                                      ) = 0;
     };
 
     ///  Set the callback to be called at each iteration.
-    void SetCallbackIterationBegin(std::shared_ptr<IterationCallback> my_callback) {
-        this->callback_iteration_begin = my_callback;
-    }
+    void SetCallbackIterationBegin(std::shared_ptr<IterationCallback> callback) { m_callback = callback; }
 
-    /// If enabled, the algorithm automatically computes the speed and accelerations of the system by using
-    /// the rheonomic constraints. ***WARNING!!!*** this is working only for non-stretched finite elements at the
-    /// moment! If not enabled, as by default, you can use an IterationCallback to update the speeds and accelerations
-    /// using your c++ code.
-    void SetAutomaticSpeedAndAccelerationComputation(bool mv) { this->automatic_speed_accel_computation = mv; }
+    /// Enable automatic calculation of system velocities and accelerations from rheonomic constraints (default: false).
+    /// Attention: currently, this is working only for non-stretched finite elements.
+    /// If not enabled, you can use an IterationCallback to update the speeds and accelerations in the caller code.
+    void SetAutomaticSpeedAndAccelerationComputation(bool val) { m_automatic_deriv_computation = val; }
 
   private:
     /// Performs the static analysis, doing a non-linear solve.
     virtual void StaticAnalysis() override;
 
-    bool automatic_speed_accel_computation;
+    bool m_automatic_deriv_computation;
     bool m_verbose;
     int m_maxiters;
     int m_incremental_steps;
     bool m_use_correction_test;
     double m_reltol;
     double m_abstol;
-    std::shared_ptr<IterationCallback> callback_iteration_begin;
+    std::shared_ptr<IterationCallback> m_callback;
 
     friend class ChSystem;
 };
@@ -264,9 +261,7 @@ class ChApi ChStaticNonLinearIncremental : public ChStaticAnalysis {
     };
 
     ///  Set the callback to be called at each iteration.
-    void SetLoadIncrementCallback(std::shared_ptr<LoadIncrementCallback> my_callback) {
-        this->load_increment_callback = my_callback;
-    }
+    void SetLoadIncrementCallback(std::shared_ptr<LoadIncrementCallback> callback) { m_callback = callback; }
 
   private:
     /// Performs the static analysis, doing a non-linear solve.
@@ -282,12 +277,10 @@ class ChApi ChStaticNonLinearIncremental : public ChStaticAnalysis {
     double m_newton_damping_factor;
     double m_reltol;
     double m_abstol;
-    std::shared_ptr<LoadIncrementCallback> load_increment_callback;
+    std::shared_ptr<LoadIncrementCallback> m_callback;
 
     friend class ChSystem;
 };
-
-
 
 /// Nonlinear static analysis for the system including rigid motion DOFs,
 /// for instance, a single pendulum.
@@ -336,8 +329,6 @@ class ChApi ChStaticNonLinearRigidMotion : public ChStaticAnalysis {
 
     friend class ChSystem;
 };
-
-
 
 }  // end namespace chrono
 

@@ -29,33 +29,32 @@ namespace fea {
 /// @addtogroup fea_constraints
 /// @{
 
-/// Class for creating a constraint between an FEA node of ChNodeFEAxyz type and a ChBodyFrame (frame) object.
+/// Constraint between an FEA node of ChNodeFEAxyz type and a ChBodyFrame (frame) object.
 /// The node position is enforced to coincide to a given position associated with the ChBodyFrame.
-class ChApi ChLinkPointFrame : public ChLinkBase {
+class ChApi ChLinkNodeFrame : public ChLinkBase {
   public:
-    ChLinkPointFrame();
-    ChLinkPointFrame(const ChLinkPointFrame& other);
-    ~ChLinkPointFrame() {}
+    ChLinkNodeFrame();
+    ChLinkNodeFrame(const ChLinkNodeFrame& other);
+    ~ChLinkNodeFrame() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkPointFrame* Clone() const override { return new ChLinkPointFrame(*this); }
+    virtual ChLinkNodeFrame* Clone() const override { return new ChLinkNodeFrame(*this); }
 
-    /// Get the number of scalar variables affected by constraints in this link
+    /// Get the number of scalar variables affected by constraints in this link.
     virtual unsigned int GetNumAffectedCoords() override { return 3 + 7; }
 
     /// Number of scalar constraints.
     virtual unsigned int GetNumConstraintsBilateral() override { return 3; }
 
-    // Get constraint violations
+    // Get constraint violations.
     virtual ChVectorDynamic<> GetConstraintViolation() const override;
 
     /// Return the link frame, expressed in absolute coordinates.
     ChFrame<> GetFrameNodeAbs() const;
 
     /// Initialize this constraint, given the node and body frame to join.
-    /// The attachment position is the actual position of the node (unless
-    /// otherwise defined, using the optional 'pos' parameter).
-    /// Note: the node and body must belong to the same ChSystem.
+    /// The attachment position is the actual position of the node (unless otherwise defined, using the optional 'pos'
+    /// parameter). The node and body must belong to the same ChSystem.
     virtual int Initialize(std::shared_ptr<ChNodeFEAxyz> node,  ///< xyz node (point) to join
                            std::shared_ptr<ChBodyFrame> body,   ///< body (frame) to join
                            const ChVector3d* pos = 0            ///< attachment position in absolute coordinates
@@ -108,9 +107,8 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-    // STATE FUNCTIONS
+    // Override/implement interfaces for global state vectors, see ChPhysicsItem for comments.
 
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
@@ -171,22 +169,24 @@ class ChApi ChLinkPointFrame : public ChLinkBase {
     virtual ChWrenchd GetReaction2() const override { return {GetReactionOnBody(), VNULL}; }
 };
 
-/// Class for creating a constraint between an FEA node of ChNodeFEAxyz type and a ChBodyFrame (frame) object.
+// -----------------------------------------------------------------------------
+
+/// Constraint between an FEA node of ChNodeFEAxyz type and a ChBodyFrame (frame) object.
 /// The node position is constrained to a given coordinate system CSYS that moves with the ChBodyFrame. The movements of
 /// the node respect to X, Y, Z  axes of such CSYS can be costrained or not,  depending on three boolean toggles. By
 /// default, XYZ are all constrained and the node follows the center of CSYS,  s it is completely locked to it, but
 /// other options are, for example, that you just enable the X constraint (so the node moves on the flat YZ plane) or
 /// you just enable XY constraints (so the node moves along the Z direction), etc.
-class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
+class ChApi ChLinkNodeFrameGeneric : public ChLinkBase {
   public:
-    ChLinkPointFrameGeneric(bool mc_x = true, bool mc_y = true, bool mc_z = true);
-    ChLinkPointFrameGeneric(const ChLinkPointFrameGeneric& other);
-    ~ChLinkPointFrameGeneric() {}
+    ChLinkNodeFrameGeneric(bool mc_x = true, bool mc_y = true, bool mc_z = true);
+    ChLinkNodeFrameGeneric(const ChLinkNodeFrameGeneric& other);
+    ~ChLinkNodeFrameGeneric() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChLinkPointFrameGeneric* Clone() const override { return new ChLinkPointFrameGeneric(*this); }
+    virtual ChLinkNodeFrameGeneric* Clone() const override { return new ChLinkNodeFrameGeneric(*this); }
 
-    /// Get the number of scalar variables affected by constraints in this link
+    /// Get the number of scalar variables affected by constraints in this link.
     virtual unsigned int GetNumAffectedCoords() override { return 3 + 7; }
 
     /// Number of scalar constraints.
@@ -194,14 +194,14 @@ class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
         return ((unsigned int)c_x + (unsigned int)c_y + (unsigned int)c_z);
     }
 
-    // Get constraint violations
+    // Get constraint violations.
     virtual ChVectorDynamic<> GetConstraintViolation() const override;
 
     bool IsConstrainedX() { return c_x; }
     bool IsConstrainedY() { return c_y; }
     bool IsConstrainedZ() { return c_z; }
 
-    /// Sets which movements (of frame 1 respect to frame 2) are constrained
+    /// Sets which movements (of frame 1 respect to frame 2) are constrained.
     void SetConstrainedCoords(bool mc_x, bool mc_y, bool mc_z);
 
     /// Return the link frame, expressed in absolute coordinates.
@@ -262,7 +262,7 @@ class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
     /// Get the reaction force on the body, at the attachment point, expressed in the link coordinate system.
     ChVector3d GetReactionOnBody() const { return -m_react; }
 
-    /// Update all auxiliary data of the gear transmission at given time
+    /// Update all auxiliary data of the gear transmission at given time.
     virtual void Update(double mytime, bool update_assets = true) override;
 
     /// Method to allow serialization of transient data to archives.
@@ -271,9 +271,8 @@ class ChApi ChLinkPointFrameGeneric : public ChLinkBase {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-    // STATE FUNCTIONS
+    // Override/implement interfaces for global state vectors, see ChPhysicsItem for comments.
 
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_CqL(const unsigned int off_L,
