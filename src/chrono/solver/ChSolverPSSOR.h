@@ -31,8 +31,8 @@ namespace chrono {
 class ChApi
 /// \cond
 CH_DEPRECATED("deprecated. Use ChSolverPSOR, ChSolverBB, or ChSolverAPGD instead.")
-/// \endcond
-ChSolverPSSOR : public ChIterativeSolverVI {
+    /// \endcond
+    ChSolverPSSOR : public ChIterativeSolverVI {
   public:
     ChSolverPSSOR();
 

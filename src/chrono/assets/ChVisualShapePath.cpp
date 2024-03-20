@@ -21,7 +21,8 @@ ChVisualShapePath::ChVisualShapePath() : npoints(200), thickness(10.0) {
     gpath = chrono_types::make_shared<ChLinePath>();
 }
 
-ChVisualShapePath::ChVisualShapePath(std::shared_ptr<ChLinePath>& mpath) : npoints(200), thickness(10.0), gpath(mpath) {}
+ChVisualShapePath::ChVisualShapePath(std::shared_ptr<ChLinePath>& mpath)
+    : npoints(200), thickness(10.0), gpath(mpath) {}
 
 void ChVisualShapePath::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
@@ -36,7 +37,7 @@ void ChVisualShapePath::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChVisualShapePath::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChVisualShapePath>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapePath>();
     // deserialize parent class
     ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:

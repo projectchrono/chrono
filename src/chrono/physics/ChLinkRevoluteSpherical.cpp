@@ -65,7 +65,7 @@ ChFrame<> ChLinkRevoluteSpherical::GetFrame1Rel() const {
     return ChFrame<>(m_pos1, A.GetQuaternion());
 }
 
-ChFrame<> ChLinkRevoluteSpherical::GetFrame2Rel() const { 
+ChFrame<> ChLinkRevoluteSpherical::GetFrame2Rel() const {
     ChVector3d pos1_F2 = m_body2->TransformPointParentToLocal(m_body1->TransformPointLocalToParent(m_pos1));
 
     ChVector3d u = (m_pos2 - pos1_F2).GetNormalized();
@@ -157,7 +157,6 @@ void ChLinkRevoluteSpherical::Initialize(std::shared_ptr<ChBody> body1,
 
     m_cur_dot = Vdot(d12_abs, dir1_abs);
 }
-
 
 // -----------------------------------------------------------------------------
 // Link update function
@@ -283,7 +282,7 @@ void ChLinkRevoluteSpherical::IntLoadResidual_CqL(const unsigned int off_L,    /
                                                   ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
                                                   const ChVectorDynamic<>& L,  ///< the L vector
                                                   const double c               ///< a scaling factor
-                                                  ) {
+) {
     m_cnstr_dist.MultiplyTandAdd(R, L(off_L + 0) * c);
     m_cnstr_dot.MultiplyTandAdd(R, L(off_L + 1) * c);
 }
@@ -293,12 +292,13 @@ void ChLinkRevoluteSpherical::IntLoadConstraint_C(const unsigned int off_L,  ///
                                                   const double c,            ///< a scaling factor
                                                   bool do_clamp,             ///< apply clamping to c*C?
                                                   double recovery_clamp      ///< value for min/max clamping of c*C
-                                                  ) {
+) {
     if (!IsActive())
         return;
 
-    double cnstr_dist_violation =
-        do_clamp ? std::min(std::max(c * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp) : c * (m_cur_dist - m_dist);
+    double cnstr_dist_violation = do_clamp
+                                      ? std::min(std::max(c * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp)
+                                      : c * (m_cur_dist - m_dist);
 
     double cnstr_dot_violation =
         do_clamp ? std::min(std::max(c * m_cur_dot, -recovery_clamp), recovery_clamp) : c * m_cur_dot;
@@ -354,9 +354,9 @@ void ChLinkRevoluteSpherical::ConstraintsBiLoad_C(double factor, double recovery
     if (!IsActive())
         return;
 
-    double cnstr_dist_violation = do_clamp
-                                      ? std::min(std::max(factor * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp)
-                                      : factor * (m_cur_dist - m_dist);
+    double cnstr_dist_violation =
+        do_clamp ? std::min(std::max(factor * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp)
+                 : factor * (m_cur_dist - m_dist);
 
     double cnstr_dot_violation =
         do_clamp ? std::min(std::max(factor * m_cur_dot, -recovery_clamp), recovery_clamp) : factor * m_cur_dot;
@@ -412,7 +412,7 @@ void ChLinkRevoluteSpherical::ArchiveOut(ChArchiveOut& archive_out) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkRevoluteSpherical::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkRevoluteSpherical>();
+    /*int version =*/archive_in.VersionRead<ChLinkRevoluteSpherical>();
 
     // deserialize parent class
     ChLink::ArchiveIn(archive_in);

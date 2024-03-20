@@ -64,7 +64,7 @@ void ChLinkLockLinActuator::UpdateTime(double mytime) {
     // rotate "main" marker2 into tangent position
     marker2->ImposeAbsoluteTransform(ChFrame<>(marker2->GetAbsCoordsys().pos, ma.GetQuaternion()));
     // backup to avoid numerical err.accumulation
-    marker2->SetPos(oldpos);                     
+    marker2->SetPos(oldpos);
 
     // imposed relative positions/speeds
     deltaC.pos = VNULL;

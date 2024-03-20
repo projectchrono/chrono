@@ -79,7 +79,7 @@ void ChFseqNode::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChFseqNode::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChFseqNode>();
+    /*int version =*/archive_in.VersionRead<ChFseqNode>();
 
     // stream in all member data:
     archive_in >> CHNVP(fx);
@@ -106,12 +106,12 @@ ChFunctionSequence::ChFunctionSequence(const ChFunctionSequence& other) {
 }
 
 bool ChFunctionSequence::InsertFunct(std::shared_ptr<ChFunction> myfx,
-                                      double duration,
-                                      double weight,
-                                      bool c0,
-                                      bool c1,
-                                      bool c2,
-                                      int index) {
+                                     double duration,
+                                     double weight,
+                                     bool c0,
+                                     bool c1,
+                                     bool c2,
+                                     int index) {
     ChFseqNode mfxsegment(myfx, duration);
     mfxsegment.y_cont = c0;
     mfxsegment.ydt_cont = c1;
@@ -255,7 +255,8 @@ double ChFunctionSequence::GetVal(double x) const {
     for (auto iter = m_functions.begin(); iter != m_functions.end(); ++iter) {
         if ((x >= iter->t_start) && (x < iter->t_end)) {
             localtime = x - iter->t_start;
-            res = iter->fx->GetVal(localtime) + iter->Iy + iter->Iydt * localtime + iter->Iydtdt * localtime * localtime;
+            res =
+                iter->fx->GetVal(localtime) + iter->Iy + iter->Iydt * localtime + iter->Iydtdt * localtime * localtime;
         }
     }
     return res;
@@ -307,7 +308,7 @@ void ChFunctionSequence::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChFunctionSequence::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChFunctionSequence>();
+    /*int version =*/archive_in.VersionRead<ChFunctionSequence>();
     // deserialize parent class
     ChFunction::ArchiveIn(archive_in);
     // stream in all member data:

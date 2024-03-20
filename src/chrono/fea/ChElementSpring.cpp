@@ -48,7 +48,7 @@ void ChElementSpring::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
 
     // note that stiffness and damping matrices are the same, so join stuff here
     double commonfactor = this->spring_k * Kfactor + this->damper_r * Rfactor;
-	ChMatrix33<> V = dircolumn * dircolumn.transpose();
+    ChMatrix33<> V = dircolumn * dircolumn.transpose();
     ChMatrix33<> keV = commonfactor * V;
 
     H.block(0, 0, 3, 3) = keV;
@@ -56,19 +56,19 @@ void ChElementSpring::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, do
     H.block(0, 3, 3, 3) = -keV;
     H.block(3, 0, 3, 3) = -keV;
 
-	// add geometric stiffness - in future it might become an option to switch off if not needed.
-	// See for ex. http://shodhbhagirathi.iitr.ac.in:8081/jspui/handle/123456789/8433 pag. 14-15
-	if (true) {
-		double L_ref = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
-		double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
-		double internal_Kforce_local = this->spring_k * (L - L_ref);
+    // add geometric stiffness - in future it might become an option to switch off if not needed.
+    // See for ex. http://shodhbhagirathi.iitr.ac.in:8081/jspui/handle/123456789/8433 pag. 14-15
+    if (true) {
+        double L_ref = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
+        double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
+        double internal_Kforce_local = this->spring_k * (L - L_ref);
 
-		ChMatrix33<> kgV = Kfactor * (internal_Kforce_local / L_ref) * (ChMatrix33<>(1) - V);
-		H.block(0, 0, 3, 3) += kgV;
-		H.block(3, 3, 3, 3) += kgV;
-		H.block(0, 3, 3, 3) += -kgV;
-		H.block(3, 0, 3, 3) += -kgV;
-	}
+        ChMatrix33<> kgV = Kfactor * (internal_Kforce_local / L_ref) * (ChMatrix33<>(1) - V);
+        H.block(0, 0, 3, 3) += kgV;
+        H.block(3, 3, 3, 3) += kgV;
+        H.block(0, 3, 3, 3) += -kgV;
+        H.block(3, 0, 3, 3) += -kgV;
+    }
 
     // finally, do nothing about mass matrix because this element is mass-less
 }
@@ -90,13 +90,13 @@ void ChElementSpring::ComputeInternalForces(ChVectorDynamic<>& Fi) {
 }
 
 double ChElementSpring::GetCurrentForce() {
-	ChVector3d dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
-	double L_ref = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
+    ChVector3d dir = (nodes[1]->GetPos() - nodes[0]->GetPos()).GetNormalized();
+    double L_ref = (nodes[1]->GetX0() - nodes[0]->GetX0()).Length();
     double L = (nodes[1]->GetPos() - nodes[0]->GetPos()).Length();
     double L_dt = Vdot((nodes[1]->GetPosDt() - nodes[0]->GetPosDt()), dir);
     double internal_Kforce_local = this->spring_k * (L - L_ref);
     double internal_Rforce_local = this->damper_r * L_dt;
-	return internal_Kforce_local + internal_Rforce_local;
+    return internal_Kforce_local + internal_Rforce_local;
 }
 
 }  // end namespace fea

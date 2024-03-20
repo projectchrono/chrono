@@ -53,7 +53,7 @@ class ChApi ChMesh : public ChIndexedNodes {
 
     /// Add provided node to the mesh.
     void AddNode(std::shared_ptr<ChNodeFEAbase> node);
-    
+
     /// Add provided element to the mesh.
     void AddElement(std::shared_ptr<ChElementBase> elem);
 
@@ -167,12 +167,12 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// Tell if this mesh will add automatically a gravity load to all contained elements.
     bool GetAutomaticGravity() { return automatic_gravity_load; }
 
-    /// Get ChMesh mass properties. The inertia tensor is solved with respect to the absolute frame, 
+    /// Get ChMesh mass properties. The inertia tensor is solved with respect to the absolute frame,
     /// and also aligned with the absolute frame, NOT at the center of mass.
     void ComputeMassProperties(double& mass,          ///< ChMesh object mass
                                ChVector3d& com,       ///< ChMesh center of gravity
                                ChMatrix33<>& inertia  ///< ChMesh inertia tensor
-                               );
+    );
 
     // STATE FUNCTIONS
 
@@ -195,11 +195,11 @@ class ChApi ChMesh : public ChIndexedNodes {
                                    const ChState& x,
                                    const unsigned int off_v,
                                    const ChStateDelta& Dv) override;
-   virtual void IntStateGetIncrement(const unsigned int off_x,
-                                   const ChState& x_new,
-                                   const ChState& x,
-                                   const unsigned int off_v,
-                                   ChStateDelta& Dv) override;
+    virtual void IntStateGetIncrement(const unsigned int off_x,
+                                      const ChState& x_new,
+                                      const ChState& x,
+                                      const unsigned int off_v,
+                                      ChStateDelta& Dv) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void IntLoadResidual_Mv(const unsigned int off,
                                     ChVectorDynamic<>& R,
@@ -296,7 +296,6 @@ class ChApi ChMesh : public ChIndexedNodes {
     ChTimer timer_KRMload;
     unsigned int ncalls_internal_forces;
     unsigned int ncalls_KRMload;
-
 
     friend class chrono::ChSystem;
     friend class chrono::ChAssembly;

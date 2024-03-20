@@ -18,7 +18,6 @@
 
 namespace chrono {
 
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChSphere)
 
@@ -87,6 +86,5 @@ void ChSphere::ArchiveIn(ChArchiveIn& archive_in) {
     // stream in all member data:
     archive_in >> CHNVP(rad);
 }
-
 
 }  // end namespace chrono

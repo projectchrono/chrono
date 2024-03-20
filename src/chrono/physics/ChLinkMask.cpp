@@ -168,10 +168,9 @@ void ChLinkMask::ArchiveOut(ChArchiveOut& archive_out) {
 }
 
 void ChLinkMask::ArchiveIn(ChArchiveIn& archive_in) {
-    /*int version =*/ archive_in.VersionRead<ChLinkMask>();
+    /*int version =*/archive_in.VersionRead<ChLinkMask>();
 
     archive_in >> CHNVP(constraints);
-
 }
 
 // -----------------------------------------------------------------------------
@@ -233,9 +232,8 @@ void ChLinkMaskLF::ArchiveOut(ChArchiveOut& archive_out) {
 }
 
 void ChLinkMaskLF::ArchiveIn(ChArchiveIn& archive_in) {
-    /*int version =*/ archive_in.VersionRead<ChLinkMaskLF>();
+    /*int version =*/archive_in.VersionRead<ChLinkMaskLF>();
     ChLinkMask::ArchiveIn(archive_in);
 }
-
 
 }  // end namespace chrono

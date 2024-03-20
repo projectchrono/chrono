@@ -192,7 +192,7 @@ ChAABB ChCollisionSystemBullet::GetBoundingBox() const {
     bt_broadphase->getBroadphaseAabb(aabbMin, aabbMax);
 
     return ChAABB(ChVector3d((double)aabbMin.x(), (double)aabbMin.y(), (double)aabbMin.z()),
-                            ChVector3d((double)aabbMax.x(), (double)aabbMax.y(), (double)aabbMax.z()));
+                  ChVector3d((double)aabbMax.x(), (double)aabbMax.y(), (double)aabbMax.z()));
 }
 
 void ChCollisionSystemBullet::ResetTimers() {
@@ -384,7 +384,7 @@ bool ChCollisionSystemBullet::RayHit(const ChVector3d& from,
     int hit = -1;
     cbtScalar fraction = 1;
     for (int i = 0; i < rayCallback.m_collisionObjects.size(); ++i) {
-        auto bt_model = static_cast<ChCollisionModelBullet*> (rayCallback.m_collisionObject->getUserPointer());
+        auto bt_model = static_cast<ChCollisionModelBullet*>(rayCallback.m_collisionObject->getUserPointer());
         if (bt_model->model == model && rayCallback.m_hitFractions[i] < fraction) {
             hit = i;
             fraction = rayCallback.m_hitFractions[i];

@@ -160,5 +160,4 @@ void ChOutputASCII::out_ref(ChValue& bVal, bool already_inserted, size_t obj_ID,
     --tablevel;
 }
 
-
 }  // end namespace chrono

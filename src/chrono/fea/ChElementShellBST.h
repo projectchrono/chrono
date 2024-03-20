@@ -9,9 +9,9 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora 
+// Authors: Alessandro Tasora
 // =============================================================================
-// A Kirchhoff triangle thin shell element with 6 node (3 for triangle, 3 for 
+// A Kirchhoff triangle thin shell element with 6 node (3 for triangle, 3 for
 // neighbouring triangles) as in the BST Basic Shell Triangle (Onate et al.)
 // =============================================================================
 
@@ -38,11 +38,11 @@ namespace fea {
 /// purely translational nodes are used from the neighbouring triangles to infer
 /// curvature.
 ///
-/// The node numbering is as in the following scheme, where 0-1-2 are the nodes of the 
+/// The node numbering is as in the following scheme, where 0-1-2 are the nodes of the
 /// triangle, and 3-4-5 are the nodes from neighbouring elements in the mesh:
 /// <pre>
-///         
-///          2     
+///
+///          2
 ///   4 o----o---o 3
 ///      \   |\  |
 ///       \  | \ |
@@ -53,8 +53,7 @@ namespace fea {
 ///             \|
 ///              o 5
 /// </pre>
-class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, public ChLoadableUVW 
-{
+class ChApi ChElementShellBST : public ChElementShell, public ChLoadableUV, public ChLoadableUVW {
   public:
     using ShapeVector = ChMatrixNM<double, 1, 3>;
 
@@ -75,48 +74,47 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
 
       private:
         /// Private constructor (a layer can be created only by adding it to an element)
-        Layer(ChElementShellBST* element,                        ///< containing element
-              double thickness,                                  ///< layer thickness
-              double theta,                                      ///< fiber angle
-              std::shared_ptr<ChMaterialShellKirchhoff> material ///< layer material
-              );
+        Layer(ChElementShellBST* element,                         ///< containing element
+              double thickness,                                   ///< layer thickness
+              double theta,                                       ///< fiber angle
+              std::shared_ptr<ChMaterialShellKirchhoff> material  ///< layer material
+        );
 
         /// Initial setup for this layer
         void SetupInitial();
 
-        ChElementShellBST* m_element;                         ///< containing shell element
-        std::shared_ptr<ChMaterialShellKirchhoff> m_material; ///< layer material
-        double m_thickness;                                   ///< layer thickness
-        double m_theta;                                       ///< fiber angle
+        ChElementShellBST* m_element;                          ///< containing shell element
+        std::shared_ptr<ChMaterialShellKirchhoff> m_material;  ///< layer material
+        double m_thickness;                                    ///< layer thickness
+        double m_theta;                                        ///< fiber angle
 
         friend class ChElementShellBST;
         friend class MyForce;
         friend class MyJacobian;
     };
 
-	
     /// Specify the nodes of this element.
-	/// The node numbering is as in the following scheme, where 0-1-2 are the nodes of the 
-	/// triangle, and 3-4-5 are the nodes from neighbouring elements in the mesh:
-	/// On the boundary, one or more of nodes 3,4,5 might be "nullptr".
-	/// <pre>     
-	///          2     
-	///   4 o----o---o 3
-	///      \   |\  |
-	///       \  | \ |
-	///        \ |  \|
-	///        0 o---o 1
-	///           \  |
-	///            \ |
-	///             \|
-	///              o 5
-	/// </pre>
+    /// The node numbering is as in the following scheme, where 0-1-2 are the nodes of the
+    /// triangle, and 3-4-5 are the nodes from neighbouring elements in the mesh:
+    /// On the boundary, one or more of nodes 3,4,5 might be "nullptr".
+    /// <pre>
+    ///          2
+    ///   4 o----o---o 3
+    ///      \   |\  |
+    ///       \  | \ |
+    ///        \ |  \|
+    ///        0 o---o 1
+    ///           \  |
+    ///            \ |
+    ///             \|
+    ///              o 5
+    /// </pre>
     void SetNodes(std::shared_ptr<ChNodeFEAxyz> node0,
                   std::shared_ptr<ChNodeFEAxyz> node1,
                   std::shared_ptr<ChNodeFEAxyz> node2,
                   std::shared_ptr<ChNodeFEAxyz> node3,
-				  std::shared_ptr<ChNodeFEAxyz> node4,
-			      std::shared_ptr<ChNodeFEAxyz> node5);
+                  std::shared_ptr<ChNodeFEAxyz> node4,
+                  std::shared_ptr<ChNodeFEAxyz> node5);
 
     /// Get the number of nodes used by this element, not considering those marked with "nullptr" ex. if at boundary
     virtual unsigned int GetNumNodes() override { return n_usednodes; }
@@ -127,15 +125,14 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
     /// Get the number of coordinates from the n-th node used by this element.
     virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return 3; }
 
-
     /// Access the n-th node of this element, not considering those marked with "nullptr" ex. if at boundary n=0..5
     virtual std::shared_ptr<ChNodeFEAbase> GetNode(unsigned int n) override { return m_nodes[nodes_used_to_six[n]]; }
 
     /// Get a handle to the n node of this element, among the three of the triangle part, n=0..2
     std::shared_ptr<ChNodeFEAxyz> GetNodeMainTriangle(unsigned int n) const { return m_nodes[n]; }
 
-	/// Get a handle to the n node from the three of the neighbouring triangles, n=0..2.  Even if nullptr.
-    std::shared_ptr<ChNodeFEAxyz> GetNodeNeighbour(unsigned int n) const { return m_nodes[3+n]; }
+    /// Get a handle to the n node from the three of the neighbouring triangles, n=0..2.  Even if nullptr.
+    std::shared_ptr<ChNodeFEAxyz> GetNodeNeighbour(unsigned int n) const { return m_nodes[3 + n]; }
 
     /// Sets the neutral rotations of nodes at once,
     /// assuming the current element position is for zero strain.
@@ -144,10 +141,10 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
     /// Add a layer.
     /// By default, when adding more than one layer, the reference z level of the
     /// shell element is centered along the total thickness.
-    void AddLayer(double thickness,                                  ///< layer thickness
-                  double theta,                                      ///< fiber angle (radians)
+    void AddLayer(double thickness,                                   ///< layer thickness
+                  double theta,                                       ///< fiber angle (radians)
                   std::shared_ptr<ChMaterialShellKirchhoff> material  ///< layer material
-                  );
+    );
 
     /// Impose the reference z level of shell element as centered along the total thickness.
     /// This is the default behavior each time you call AddLayer();
@@ -167,7 +164,6 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
     /// Get the total thickness of the shell element (might be sum of multiple layer thicknesses)
     double GetThickness() { return tot_thickness; }
 
-
     // Shape functions
     // ---------------
 
@@ -178,18 +174,23 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
     void ShapeFunctionsDerivativeU(ShapeVector& Nu, const double u, const double v);
 
     /// Fills the Nv shape function derivative matrix with respect to V. Note, may remove u,v parms cause constant
-	void ShapeFunctionsDerivativeV(ShapeVector& Nv, const double u, const double v);
+    void ShapeFunctionsDerivativeV(ShapeVector& Nv, const double u, const double v);
 
-	/// Fills the Nx shape function derivative matrix with respect to X local element direction. 
-	/// The jacobian Jux = [d{u,v}/d{x,y}] must be provided, often from inverse of Jxu = [d{x,y}/d{u,v}],
-	/// so that [Nx;Ny]=[Jux]*[Nu;Nv].   Note, may remove u,v parms cause constant
-    void ShapeFunctionsDerivativeX(ShapeVector& Nx, const ChMatrixNM<double,2,2>& Jux, const double u, const double v);
+    /// Fills the Nx shape function derivative matrix with respect to X local element direction.
+    /// The jacobian Jux = [d{u,v}/d{x,y}] must be provided, often from inverse of Jxu = [d{x,y}/d{u,v}],
+    /// so that [Nx;Ny]=[Jux]*[Nu;Nv].   Note, may remove u,v parms cause constant
+    void ShapeFunctionsDerivativeX(ShapeVector& Nx,
+                                   const ChMatrixNM<double, 2, 2>& Jux,
+                                   const double u,
+                                   const double v);
 
-    /// Fills the Ny shape function derivative matrix with respect to Y local element direction. 
-	/// The jacobian Jux = [d{u,v}/d{x,y}] must be provided, often from inverse of Jxu = [d{x,y}/d{u,v}],
-	/// so that [Nx;Ny]=[Jux]*[Nu;Nv].   Note, may remove u,v parms cause constant
-	void ShapeFunctionsDerivativeY(ShapeVector& Ny, const ChMatrixNM<double,2,2>& Jux, const double u, const double v);
-
+    /// Fills the Ny shape function derivative matrix with respect to Y local element direction.
+    /// The jacobian Jux = [d{u,v}/d{x,y}] must be provided, often from inverse of Jxu = [d{x,y}/d{u,v}],
+    /// so that [Nx;Ny]=[Jux]*[Nu;Nv].   Note, may remove u,v parms cause constant
+    void ShapeFunctionsDerivativeY(ShapeVector& Ny,
+                                   const ChMatrixNM<double, 2, 2>& Jux,
+                                   const double u,
+                                   const double v);
 
   private:
     /// Initial setup.
@@ -197,11 +198,11 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
     /// such as the local stiffness of each element (if any), the mass, etc.
     virtual void SetupInitial(ChSystem* system) override;
 
-
     //// TEST, to be made private
-	
-	int n_usednodes;  // for optimization. Number of non-nullptr nodes
-	int nodes_used_to_six[6];  // for optimization. Maps [0,n_usednodes) to six nodes index [0..6). Padded with -1 after n_usednodes.
+
+    int n_usednodes;           // for optimization. Number of non-nullptr nodes
+    int nodes_used_to_six[6];  // for optimization. Maps [0,n_usednodes) to six nodes index [0..6). Padded with -1 after
+                               // n_usednodes.
 
   public:
     std::vector<std::shared_ptr<ChNodeFEAxyz> > m_nodes;  ///< element nodes
@@ -255,7 +256,7 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
     /// (E.g. the actual position of nodes is not in relaxed reference position) and set values in the Fi vector.
     virtual void ComputeInternalForces(ChVectorDynamic<>& Fi) override;
 
-	void ComputeInternalForces_impl(
+    void ComputeInternalForces_impl(
         ChVectorDynamic<>& Fi,                 ///< vector of internal forces
         ChState& state_x,                      ///< state position to evaluate Fi
         ChStateDelta& state_w,                 ///< state speed to evaluate Fi
@@ -269,7 +270,6 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
     // through the computation of the M mass matrix via ComputeKRMmatricesGlobal(H,0,0,M).
     void EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& error, const double c) override;
 
-
     // Interface to ChElementShell base class
     // --------------------------------------
 
@@ -278,18 +278,13 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
                                              ChVector3d& u_displ,
                                              ChVector3d& u_rotaz) override;
 
-    virtual void EvaluateSectionFrame(const double u,
-                                      const double v,
-                                      ChVector3d& point,
-                                      ChQuaternion<>& rot) override;
+    virtual void EvaluateSectionFrame(const double u, const double v, ChVector3d& point, ChQuaternion<>& rot) override;
 
-    virtual void EvaluateSectionPoint(const double u,
-                                      const double v,
-                                      ChVector3d& point) override;
+    virtual void EvaluateSectionPoint(const double u, const double v, ChVector3d& point) override;
 
-	virtual void EvaluateSectionVelNorm(double U, double V, ChVector3d& Result) override;
+    virtual void EvaluateSectionVelNorm(double U, double V, ChVector3d& Result) override;
 
-	virtual bool IsTriangleShell() override { return true; }
+    virtual bool IsTriangleShell() override { return true; }
 
     // Internal computations
     // ---------------------
@@ -301,8 +296,6 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
     /// This Jacobian will be further combined with the global mass matrix M and included in the global
     /// stiffness matrix H in the function ComputeKRMmatricesGlobal().
     void ComputeInternalJacobians(double Kfactor, double Rfactor);
-
-
 
     // Functions for ChLoadable interface
     // ----------------------------------
@@ -320,7 +313,11 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
     virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override;
 
     /// Increment all DOFs using a delta.
-    virtual void LoadableStateIncrement(const unsigned int off_x, ChState& x_new, const ChState& x, const unsigned int off_v, const ChStateDelta& Dv) override;
+    virtual void LoadableStateIncrement(const unsigned int off_x,
+                                        ChState& x_new,
+                                        const ChState& x,
+                                        const unsigned int off_v,
+                                        const ChStateDelta& Dv) override;
 
     /// Number of coordinates in the interpolated field, ex=3 for a
     /// tetrahedron finite element or a cable, = 1 for a thermal problem, etc.
@@ -338,7 +335,9 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 3; }
 
     /// Check if the specified sub-block of DOFs is active.
-    virtual bool IsSubBlockActive(unsigned int nblock) const override { return !m_nodes[nodes_used_to_six[nblock]]->IsFixed(); }
+    virtual bool IsSubBlockActive(unsigned int nblock) const override {
+        return !m_nodes[nodes_used_to_six[nblock]]->IsFixed();
+    }
 
     /// Get the pointers to the contained ChVariables, appending to the mvars vector.
     virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override;
@@ -378,10 +377,9 @@ class ChApi ChElementShellBST : public ChElementShell , public ChLoadableUV, pub
     /// Each coordinate ranging in -1..+1.
     virtual ChVector3d ComputeNormal(const double U, const double V) override;
 
-	virtual bool IsTriangleIntegrationNeeded() override { return true; }
+    virtual bool IsTriangleIntegrationNeeded() override { return true; }
 
-	virtual bool IsTrianglePrismIntegrationNeeded() override { return true; }
-
+    virtual bool IsTrianglePrismIntegrationNeeded() override { return true; }
 };
 
 /// @} fea_elements

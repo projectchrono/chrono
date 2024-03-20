@@ -27,7 +27,6 @@ namespace chrono {
 ///  ***OBSOLETE***: consider using a ChLinkMotorRotation and add a ChShaftsClutch between shafts
 class ChApi ChLinkLockBrake : public ChLinkLock {
   public:
-
     enum class Mode { ROTATION, TRANSLATEX };
 
     ChLinkLockBrake();
@@ -42,7 +41,7 @@ class ChApi ChLinkLockBrake : public ChLinkLock {
 
     virtual void SetDisabled(bool mdis) override;
 
-    double GetBrakeTorque() const{ return brake_torque; }
+    double GetBrakeTorque() const { return brake_torque; }
 
     void SetBrakeTorque(double mset) { brake_torque = mset; }
 
@@ -62,7 +61,7 @@ class ChApi ChLinkLockBrake : public ChLinkLock {
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
-protected:
+  protected:
     double brake_torque;  ///< applied torque.
     double stick_ratio;  ///< static sticking torque = stick ratio * brake torque (if <1, sticking effect is turned off)
 

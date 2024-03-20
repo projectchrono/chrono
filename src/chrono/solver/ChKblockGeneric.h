@@ -30,7 +30,6 @@ namespace chrono {
 /// matrices, so to exploit sparsity.
 
 class ChApi ChKblockGeneric : public ChKblock {
-
   private:
     ChMatrixDynamic<double> K;
     std::vector<ChVariables*> variables;

@@ -44,7 +44,7 @@ class ChApi ChShaftsGear : public ChShaftsCouple {
     /// Get the transmission ratio t, as in w2=t*w1, or t=w2/w1.
     double GetTransmissionRatio() const { return ratio; }
 
-    /// Enable phase drift avoidance (default: true). 
+    /// Enable phase drift avoidance (default: true).
     /// If true, phasing is always tracked and the constraint is satisfied also at the position level.
     /// If false, microslipping can accumulate (as in friction wheels).
     void AvoidPhaseDrift(bool avoid) { avoid_phase_drift = avoid; }

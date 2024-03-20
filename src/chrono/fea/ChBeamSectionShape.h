@@ -88,7 +88,9 @@ class ChApi ChBeamSectionShapeCircular : public ChBeamSectionShape {
 
     /// Compute the normals (in the reference of the section) at each point.
     /// Note: mnormals must already have the proper size.
-    virtual void GetNormals(unsigned int i_line, std::vector<ChVector3d>& mnormals) const override { mnormals = normals; }
+    virtual void GetNormals(unsigned int i_line, std::vector<ChVector3d>& mnormals) const override {
+        mnormals = normals;
+    }
 
     //
     // Functions for drawing, optimizations, collisions
@@ -170,7 +172,9 @@ class ChApi ChBeamSectionShapePolyline : public ChBeamSectionShape {
 
     virtual unsigned int GetNumLines() const override { return (unsigned int)this->ml_points.size(); };
 
-    virtual unsigned int GetNumPoints(unsigned int i_line) const override { return (int)this->ml_points[i_line].size(); };
+    virtual unsigned int GetNumPoints(unsigned int i_line) const override {
+        return (int)this->ml_points[i_line].size();
+    };
 
     /// Compute the points (in the reference of the section).
     /// Note: mpoints must already have the proper size.

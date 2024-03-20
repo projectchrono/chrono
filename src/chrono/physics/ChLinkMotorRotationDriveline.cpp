@@ -20,7 +20,6 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkMotorRotationDriveline)
 
 ChLinkMotorRotationDriveline::ChLinkMotorRotationDriveline() {
-
     this->c_rz = false;
     SetupLinkMask();
 
@@ -69,10 +68,10 @@ void ChLinkMotorRotationDriveline::Initialize(std::shared_ptr<ChBodyFrame> mbody
 }
 
 void ChLinkMotorRotationDriveline::Setup() {
-	if (innershaft1->IsActive()) {
+    if (innershaft1->IsActive()) {
         innershaft1->SetOffset_x(this->offset_x + 0);
         innershaft1->SetOffset_w(this->offset_w + 0);
-	}
+    }
     if (innershaft2->IsActive()) {
         innershaft2->SetOffset_x(this->offset_x + 1);
         innershaft2->SetOffset_w(this->offset_w + 1);
@@ -108,10 +107,10 @@ unsigned int ChLinkMotorRotationDriveline::GetNumConstraintsBilateral() {
 }
 
 void ChLinkMotorRotationDriveline::IntStateGather(const unsigned int off_x,
-                                  ChState& x,
-                                  const unsigned int off_v,
-                                  ChStateDelta& v,
-                                  double& T) {
+                                                  ChState& x,
+                                                  const unsigned int off_v,
+                                                  ChStateDelta& v,
+                                                  double& T) {
     // First, inherit to parent class
     ChLinkMotorRotation::IntStateGather(off_x, x, off_v, v, T);
 
@@ -151,10 +150,10 @@ void ChLinkMotorRotationDriveline::IntStateScatterAcceleration(const unsigned in
 }
 
 void ChLinkMotorRotationDriveline::IntStateIncrement(const unsigned int off_x,
-                                     ChState& x_new,
-                                     const ChState& x,
-                                     const unsigned int off_v,
-                                     const ChStateDelta& Dv) {
+                                                     ChState& x_new,
+                                                     const ChState& x,
+                                                     const unsigned int off_v,
+                                                     const ChStateDelta& Dv) {
     // First, inherit to parent class
     ChLinkMotorRotation::IntStateIncrement(off_x, x_new, x, off_v, Dv);
 
@@ -163,10 +162,10 @@ void ChLinkMotorRotationDriveline::IntStateIncrement(const unsigned int off_x,
 }
 
 void ChLinkMotorRotationDriveline::IntStateGetIncrement(const unsigned int off_x,
-                                     const ChState& x_new,
-                                     const ChState& x,
-                                     const unsigned int off_v,
-                                     ChStateDelta& Dv) {
+                                                        const ChState& x_new,
+                                                        const ChState& x,
+                                                        const unsigned int off_v,
+                                                        ChStateDelta& Dv) {
     // First, inherit to parent class
     ChLinkMotorRotation::IntStateGetIncrement(off_x, x_new, x, off_v, Dv);
 
@@ -201,9 +200,9 @@ void ChLinkMotorRotationDriveline::IntLoadResidual_F(const unsigned int off, ChV
 }
 
 void ChLinkMotorRotationDriveline::IntLoadResidual_Mv(const unsigned int off,
-                                      ChVectorDynamic<>& R,
-                                      const ChVectorDynamic<>& w,
-                                      const double c) {
+                                                      ChVectorDynamic<>& R,
+                                                      const ChVectorDynamic<>& w,
+                                                      const double c) {
     // First, inherit to parent class
     ChLinkMotorRotation::IntLoadResidual_Mv(off, R, w, c);
 
@@ -223,9 +222,9 @@ void ChLinkMotorRotationDriveline::IntLoadLumpedMass_Md(const unsigned int off,
 }
 
 void ChLinkMotorRotationDriveline::IntLoadResidual_CqL(const unsigned int off_L,
-                                       ChVectorDynamic<>& R,
-                                       const ChVectorDynamic<>& L,
-                                       const double c) {
+                                                       ChVectorDynamic<>& R,
+                                                       const ChVectorDynamic<>& L,
+                                                       const double c) {
     // First, inherit to parent class
     ChLinkMotorRotation::IntLoadResidual_CqL(off_L, R, L, c);
 
@@ -235,19 +234,19 @@ void ChLinkMotorRotationDriveline::IntLoadResidual_CqL(const unsigned int off_L,
 }
 
 void ChLinkMotorRotationDriveline::IntLoadConstraint_C(const unsigned int off_L,
-                                       ChVectorDynamic<>& Qc,
-                                       const double c,
-                                       bool do_clamp,
-                                       double recovery_clamp) {
+                                                       ChVectorDynamic<>& Qc,
+                                                       const double c,
+                                                       bool do_clamp,
+                                                       double recovery_clamp) {
     // First, inherit to parent class
     ChLinkMotorRotation::IntLoadConstraint_C(off_L, Qc, c, do_clamp, recovery_clamp);
 
     unsigned int nc = mask.GetNumConstraints();
     // the following always set zero C, so skip them ...
-    //innerconstraint1->IntLoadConstraint_C(off_L + nc + 0, Qc, c, do_clamp, recovery_clamp);
-    //innerconstraint2->IntLoadConstraint_C(off_L + nc + 1, Qc, c, do_clamp, recovery_clamp);
+    // innerconstraint1->IntLoadConstraint_C(off_L + nc + 0, Qc, c, do_clamp, recovery_clamp);
+    // innerconstraint2->IntLoadConstraint_C(off_L + nc + 1, Qc, c, do_clamp, recovery_clamp);
     // ...and compute custom violation C:
-    double cnstr_rot_error =  this->GetMotorAngle() - (this->innershaft1->GetPos() - this->innershaft2->GetPos());
+    double cnstr_rot_error = this->GetMotorAngle() - (this->innershaft1->GetPos() - this->innershaft2->GetPos());
 
     double cnstr_violation = c * cnstr_rot_error;
 
@@ -256,10 +255,11 @@ void ChLinkMotorRotationDriveline::IntLoadConstraint_C(const unsigned int off_L,
 
     // lump violation in the 1st shaft-3D-1D constraints:
     Qc(off_L + nc + 0) += cnstr_violation;
-
 }
 
-void ChLinkMotorRotationDriveline::IntLoadConstraint_Ct(const unsigned int off_L, ChVectorDynamic<>& Qc, const double c) {
+void ChLinkMotorRotationDriveline::IntLoadConstraint_Ct(const unsigned int off_L,
+                                                        ChVectorDynamic<>& Qc,
+                                                        const double c) {
     // First, inherit to parent class
     ChLinkMotorRotation::IntLoadConstraint_Ct(off_L, Qc, c);
 
@@ -269,11 +269,11 @@ void ChLinkMotorRotationDriveline::IntLoadConstraint_Ct(const unsigned int off_L
 }
 
 void ChLinkMotorRotationDriveline::IntToDescriptor(const unsigned int off_v,
-                                   const ChStateDelta& v,
-                                   const ChVectorDynamic<>& R,
-                                   const unsigned int off_L,
-                                   const ChVectorDynamic<>& L,
-                                   const ChVectorDynamic<>& Qc) {
+                                                   const ChStateDelta& v,
+                                                   const ChVectorDynamic<>& R,
+                                                   const unsigned int off_L,
+                                                   const ChVectorDynamic<>& L,
+                                                   const ChVectorDynamic<>& Qc) {
     // First, inherit to parent class
     ChLinkMotorRotation::IntToDescriptor(off_v, v, R, off_L, L, Qc);
 
@@ -285,9 +285,9 @@ void ChLinkMotorRotationDriveline::IntToDescriptor(const unsigned int off_v,
 }
 
 void ChLinkMotorRotationDriveline::IntFromDescriptor(const unsigned int off_v,
-                                     ChStateDelta& v,
-                                     const unsigned int off_L,
-                                     ChVectorDynamic<>& L) {
+                                                     ChStateDelta& v,
+                                                     const unsigned int off_L,
+                                                     ChVectorDynamic<>& L) {
     // First, inherit to parent class
     ChLinkMotorRotation::IntFromDescriptor(off_v, v, off_L, L);
 
@@ -313,7 +313,7 @@ void ChLinkMotorRotationDriveline::InjectConstraints(ChSystemDescriptor& mdescri
 void ChLinkMotorRotationDriveline::ConstraintsBiReset() {
     // First, inherit to parent class
     ChLinkMotorRotation::ConstraintsBiReset();
-    
+
     innerconstraint1->ConstraintsBiReset();
     innerconstraint2->ConstraintsBiReset();
 }
@@ -406,9 +406,6 @@ void ChLinkMotorRotationDriveline::VariablesQbIncrementPosition(double step) {
     innershaft2->VariablesQbIncrementPosition(step);
 }
 
-
-
-
 void ChLinkMotorRotationDriveline::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChLinkMotorRotationDriveline>();
@@ -426,7 +423,7 @@ void ChLinkMotorRotationDriveline::ArchiveOut(ChArchiveOut& archive_out) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMotorRotationDriveline::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkMotorRotationDriveline>();
+    /*int version =*/archive_in.VersionRead<ChLinkMotorRotationDriveline>();
 
     // deserialize parent class
     ChLinkMotorRotation::ArchiveIn(archive_in);
@@ -437,8 +434,5 @@ void ChLinkMotorRotationDriveline::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(innerconstraint1);
     archive_in >> CHNVP(innerconstraint2);
 }
-
-
-
 
 }  // end namespace chrono

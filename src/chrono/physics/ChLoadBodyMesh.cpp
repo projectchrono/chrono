@@ -23,8 +23,8 @@ ChLoadBodyMesh::ChLoadBodyMesh(std::shared_ptr<ChBody> cbody, ChTriangleMeshConn
 }
 
 void ChLoadBodyMesh::OutputSimpleMesh(
-    std::vector<ChVector3d>& vert_pos,     // array of vertexes (absolute xyz positions)
-    std::vector<ChVector3d>& vert_vel,     // array of vertexes (absolute xyz velocities, might be useful)
+    std::vector<ChVector3d>& vert_pos,  // array of vertexes (absolute xyz positions)
+    std::vector<ChVector3d>& vert_vel,  // array of vertexes (absolute xyz velocities, might be useful)
     std::vector<ChVector3i>& triangles  // array of triangles (indexes to vertexes, ccw)
 ) {
     vert_pos.resize(contactmesh.m_vertices.size());

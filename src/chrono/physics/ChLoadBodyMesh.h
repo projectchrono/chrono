@@ -43,8 +43,8 @@ class ChApi ChLoadBodyMesh : public ChLoadBase {
     /// indexes are 0-based. These vectors can be later sent to another computing node that computes, say, CFD forces on
     /// the mesh.
     void OutputSimpleMesh(
-        std::vector<ChVector3d>& vert_pos,     ///< array of vertexes (absolute xyz positions)
-        std::vector<ChVector3d>& vert_vel,     ///< array of vertexes (absolute xyz velocities, might be useful)
+        std::vector<ChVector3d>& vert_pos,  ///< array of vertexes (absolute xyz positions)
+        std::vector<ChVector3d>& vert_vel,  ///< array of vertexes (absolute xyz velocities, might be useful)
         std::vector<ChVector3i>& triangles  ///< array of triangles (indexes to vertexes, ccw)
     );
 

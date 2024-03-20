@@ -136,7 +136,7 @@ class ChCollisionPair {
     ChVector3d p2;  ///< max penetration point on geo2, after refining, in abs space
 
     ChVector3f normal;  ///< normal, on surface of master reference (geo1)
-    double norm_dist;        ///< penetration distance (negative if going inside) after refining
+    double norm_dist;   ///< penetration distance (negative if going inside) after refining
 
     bool just_intersection;  ///< if true, only reports that two geometries are intersection, but no info is reliable
     /// about normal, p1 or p2.

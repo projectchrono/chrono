@@ -494,8 +494,8 @@ void ChMeshFileLoader::ANCFShellFromGMFFile(std::shared_ptr<ChMesh> mesh,
     ChMatrixNM<double, 1, 6> BoundingBox;  // (xmin xmax ymin ymax zmin zmax) bounding box of the mesh
     std::vector<ChVector3d> Normals;       // To store the normal vectors
     std::vector<int> num_Normals;
-    ChVector3d pos1, pos2, pos3, pos4;                  // Position of nodes in each element
-    ChVector3d vec1, vec2, vec3;                        // intermediate vectors for calculation of normals
+    ChVector3d pos1, pos2, pos3, pos4;                        // Position of nodes in each element
+    ChVector3d vec1, vec2, vec3;                              // intermediate vectors for calculation of normals
     std::vector<std::shared_ptr<ChNodeFEAxyzD>> nodesVector;  // To store intermediate nodes
     std::vector<std::vector<int>> elementsVector;             // nodes of each element
     std::vector<std::vector<double>> elementsdxdy;            // dx, dy of elements

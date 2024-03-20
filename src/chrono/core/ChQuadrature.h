@@ -106,11 +106,11 @@ class ChApi ChQuadrature {
     /// Integrate the integrand T = f(x) over the 1D interval [xA, xB], with specified order of quadrature.
     /// Best if integrand is polynomial. For order in 1..10, precomputed polynomial coefficients are used.
     template <class T>
-    static void Integrate1D(T& result,                     ///< result is returned here
+    static void Integrate1D(T& result,                    ///< result is returned here
                             ChIntegrand1D<T>& integrand,  ///< this is the integrand
-                            const double x_min,            ///< min limit for x domain
-                            const double x_max,            ///< min limit for x domain
-                            const int order                ///< order of integration
+                            const double x_min,           ///< min limit for x domain
+                            const double x_max,           ///< min limit for x domain
+                            const int order               ///< order of integration
     ) {
         ChQuadratureTables* mtables = 0;
         std::vector<double>* lroots;
@@ -150,13 +150,13 @@ class ChApi ChQuadrature {
     /// Integrate the integrand T = f(x,y) over the 2D interval [xA, xB][yA, yB], with desired order of quadrature.
     /// Best if integrand is polynomial. For order in 1..10, precomputed polynomial coefficients are used.
     template <class T>
-    static void Integrate2D(T& result,                     ///< result is returned here
+    static void Integrate2D(T& result,                    ///< result is returned here
                             ChIntegrand2D<T>& integrand,  ///< this is the integrand
-                            const double x_min,            ///< min limit for x domain
-                            const double x_max,            ///< min limit for x domain
-                            const double y_min,            ///< min limit for y domain
-                            const double y_max,            ///< min limit for y domain
-                            const int order                ///< order of integration
+                            const double x_min,           ///< min limit for x domain
+                            const double x_max,           ///< min limit for x domain
+                            const double y_min,           ///< min limit for y domain
+                            const double y_max,           ///< min limit for y domain
+                            const int order               ///< order of integration
     ) {
         ChQuadratureTables* mtables = 0;
         std::vector<double>* lroots;
@@ -199,15 +199,15 @@ class ChApi ChQuadrature {
     /// Integrate the integrand T = f(x,y,z) over the 3D interval [xA, xB][yA, yB][zA, zB], with desired order of
     /// quadrature. Best if integrand is polynomial. For order in 1..10, precomputed polynomial coefficients are used.
     template <class T>
-    static void Integrate3D(T& result,                     ///< result is returned here
+    static void Integrate3D(T& result,                    ///< result is returned here
                             ChIntegrand3D<T>& integrand,  ///< this is the integrand
-                            const double x_min,            ///< min limit for x domain
-                            const double x_max,            ///< min limit for x domain
-                            const double y_min,            ///< min limit for y domain
-                            const double y_max,            ///< min limit for y domain
-                            const double z_min,            ///< min limit for z domain
-                            const double z_max,            ///< min limit for z domain
-                            const int order                ///< order of integration
+                            const double x_min,           ///< min limit for x domain
+                            const double x_max,           ///< min limit for x domain
+                            const double y_min,           ///< min limit for y domain
+                            const double y_max,           ///< min limit for y domain
+                            const double z_min,           ///< min limit for z domain
+                            const double z_max,           ///< min limit for z domain
+                            const int order               ///< order of integration
     ) {
         ChQuadratureTables* mtables = 0;
         std::vector<double>* lroots;
@@ -255,9 +255,9 @@ class ChApi ChQuadrature {
     /// Best if integrand is polynomial. Two triangle coordinates are assumed to be 'area' coordinates u and v in
     /// [0...1], with the 3rd assumed to be 1-u-v.   For order between 1 and 5, use precomputed polynomial coefficients.
     template <class T>
-    static void Integrate2Dtriangle(T& result,                     ///< result is returned here
+    static void Integrate2Dtriangle(T& result,                    ///< result is returned here
                                     ChIntegrand2D<T>& integrand,  ///< this is the integrand
-                                    const int order                ///< order of integration
+                                    const int order               ///< order of integration
     ) {
         if ((unsigned int)order > GetStaticTablesTriangle()->Weight.size())
             throw std::invalid_argument("Too high order of quadrature for triangle. Use lower order.");
@@ -282,9 +282,9 @@ class ChApi ChQuadrature {
     /// w in [0...1], with the 4th assumed to be1-u-v-w.   For order between 1 and 5 use precomputed polynomial
     /// coefficients.
     template <class T>
-    static void Integrate3Dtetrahedron(T& result,                     ///< result is returned here
+    static void Integrate3Dtetrahedron(T& result,                    ///< result is returned here
                                        ChIntegrand3D<T>& integrand,  ///< this is the integrand
-                                       const int order                ///< order of integration
+                                       const int order               ///< order of integration
     ) {
         if ((unsigned int)order > GetStaticTablesTetrahedron()->Weight.size())
             throw std::invalid_argument("Too high order of quadrature for tetrahedron. Use lower order.");

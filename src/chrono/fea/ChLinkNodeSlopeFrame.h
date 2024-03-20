@@ -30,7 +30,8 @@ namespace fea {
 /// @{
 
 /// Constraint between the direction of a FEA node of ChNodeFEAxyzD class, and a ChBodyFrame (frame).
-/// The D direction of the ChNodeFEAxyzD is enforced to stay parallel to a given direction associated to the ChBodyFrame.
+/// The D direction of the ChNodeFEAxyzD is enforced to stay parallel to a given direction associated to the
+/// ChBodyFrame.
 class ChApi ChLinkNodeSlopeFrame : public ChLinkBase {
   public:
     ChLinkNodeSlopeFrame();

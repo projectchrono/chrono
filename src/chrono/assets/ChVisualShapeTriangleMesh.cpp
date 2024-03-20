@@ -84,7 +84,7 @@ void ChVisualShapeTriangleMesh::SetMesh(std::shared_ptr<ChTriangleMeshConnected>
             }
 
             if (materials[i].specular_texname != "") {
-                mat->SetKsTexture(mtl_base + "/" +  materials[i].specular_texname);
+                mat->SetKsTexture(mtl_base + "/" + materials[i].specular_texname);
                 mat->SetUseSpecularWorkflow(true);
             }
             // set normal map when called "bump_texname"

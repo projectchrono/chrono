@@ -62,9 +62,9 @@ const double ChBezierCurve::m_paramTol = 1e-5;
 // the control polygon vertices so that the resulting curve is a piecewise cubic
 // spline.
 // -----------------------------------------------------------------------------
-ChBezierCurve::ChBezierCurve(const std::vector<ChVector3d >& points,
-                             const std::vector<ChVector3d >& inCV,
-                             const std::vector<ChVector3d >& outCV,
+ChBezierCurve::ChBezierCurve(const std::vector<ChVector3d>& points,
+                             const std::vector<ChVector3d>& inCV,
+                             const std::vector<ChVector3d>& outCV,
                              bool closed)
     : m_points(points), m_inCV(inCV), m_outCV(outCV), m_closed(closed) {
     assert(m_points.size() > 1);
@@ -84,7 +84,7 @@ ChBezierCurve::ChBezierCurve(const std::vector<ChVector3d >& points,
     }
 }
 
-ChBezierCurve::ChBezierCurve(const std::vector<ChVector3d >& points, bool closed) : m_points(points), m_closed(closed) {
+ChBezierCurve::ChBezierCurve(const std::vector<ChVector3d>& points, bool closed) : m_points(points), m_closed(closed) {
     int np = (int)m_points.size();  // number of points
     assert(np > 1);
 
@@ -127,16 +127,16 @@ ChBezierCurve::ChBezierCurve(const std::vector<ChVector3d >& points, bool closed
 
         ChVectorDynamic<> rhs_x(n);
         ChVectorDynamic<> rhs_y(n);
-        ChVectorDynamic<> rhs_z(n);        
+        ChVectorDynamic<> rhs_z(n);
         ChVectorDynamic<> x(n);
         ChVectorDynamic<> y(n);
         ChVectorDynamic<> z(n);
 
         std::vector<T> triplets;
         for (int i = 1; i < n - 1; i++) {
-            triplets.push_back(T(i, i-1, 1.0));
+            triplets.push_back(T(i, i - 1, 1.0));
             triplets.push_back(T(i, i, 4.0));
-            triplets.push_back(T(i, i+1, 1.0));
+            triplets.push_back(T(i, i + 1, 1.0));
             rhs_x[i] = 4 * m_points[i].x() + 2 * m_points[i + 1].x();
             rhs_y[i] = 4 * m_points[i].y() + 2 * m_points[i + 1].y();
             rhs_z[i] = 4 * m_points[i].z() + 2 * m_points[i + 1].z();
@@ -181,7 +181,8 @@ ChBezierCurve::ChBezierCurve(const std::vector<ChVector3d >& points, bool closed
         m_inCV[n] = m_points[n] + m_points[0] - m_outCV[0];
 
         ////std::cout << "slope diff: " << (m_outCV[0] - m_points[0]) - (m_points[n] - m_inCV[n]) << std::endl;
-        ////std::cout << "curv diff: " << (m_inCV[1] - 2.0 * m_outCV[0] + m_points[0]) - (m_points[n] - 2.0 * m_inCV[n] + m_outCV[n-1]) << std::endl;
+        ////std::cout << "curv diff: " << (m_inCV[1] - 2.0 * m_outCV[0] + m_points[0]) - (m_points[n] - 2.0 * m_inCV[n]
+        ///+ m_outCV[n-1]) << std::endl;
 
     } else {
         double* rhs_x = new double[n];
@@ -202,11 +203,11 @@ ChBezierCurve::ChBezierCurve(const std::vector<ChVector3d >& points, bool closed
         rhs_x[0] = m_points[0].x() + 2 * m_points[1].x();
         rhs_y[0] = m_points[0].y() + 2 * m_points[1].y();
         rhs_z[0] = m_points[0].z() + 2 * m_points[1].z();
-        
+
         rhs_x[n - 1] = (8 * m_points[n - 1].x() + m_points[n].x()) / 2;
         rhs_y[n - 1] = (8 * m_points[n - 1].y() + m_points[n].y()) / 2;
         rhs_z[n - 1] = (8 * m_points[n - 1].z() + m_points[n].z()) / 2;
-        
+
         SolveTriDiag(n, rhs_x, x);
         SolveTriDiag(n, rhs_y, y);
         SolveTriDiag(n, rhs_z, z);
@@ -229,9 +230,9 @@ ChBezierCurve::ChBezierCurve(const std::vector<ChVector3d >& points, bool closed
     }
 }
 
-void ChBezierCurve::setPoints(const std::vector<ChVector3d >& points,
-                              const std::vector<ChVector3d >& inCV,
-                              const std::vector<ChVector3d >& outCV) {
+void ChBezierCurve::setPoints(const std::vector<ChVector3d>& points,
+                              const std::vector<ChVector3d>& inCV,
+                              const std::vector<ChVector3d>& outCV) {
     assert(points.size() > 1);
     assert(points.size() == inCV.size());
     assert(points.size() == outCV.size());
@@ -285,7 +286,7 @@ std::shared_ptr<ChBezierCurve> ChBezierCurve::Read(const std::string& filename, 
     try {
         ifile.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
         ifile.open(filename.c_str());
-    } catch (const std::exception &) {
+    } catch (const std::exception&) {
         throw std::invalid_argument("Cannot open input file");
     }
 
@@ -299,7 +300,7 @@ std::shared_ptr<ChBezierCurve> ChBezierCurve::Read(const std::string& filename, 
 
     if (numCols == 3) {
         // Read knots from the following numPoints lines
-        std::vector<ChVector3d > points;
+        std::vector<ChVector3d> points;
 
         for (size_t i = 0; i < numPoints; i++) {
             double x, y, z;
@@ -317,9 +318,9 @@ std::shared_ptr<ChBezierCurve> ChBezierCurve::Read(const std::string& filename, 
 
     if (numCols == 9) {
         // Read knots and control points from the following numPoints lines
-        std::vector<ChVector3d > points;
-        std::vector<ChVector3d > inCV;
-        std::vector<ChVector3d > outCV;
+        std::vector<ChVector3d> points;
+        std::vector<ChVector3d> inCV;
+        std::vector<ChVector3d> outCV;
 
         for (size_t i = 0; i < numPoints; i++) {
             double x, y, z;
@@ -554,8 +555,7 @@ ChVector3d ChBezierCurve::CalcClosestPoint(const ChVector3d& loc, size_t i, doub
 
 // -----------------------------------------------------------------------------
 
-void ChBezierCurve::ArchiveOut(ChArchiveOut& archive_out)
-{
+void ChBezierCurve::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChBezierCurve>();
 
@@ -569,10 +569,9 @@ void ChBezierCurve::ArchiveOut(ChArchiveOut& archive_out)
     archive_out << CHNVP(m_paramTol);
 }
 
-void ChBezierCurve::ArchiveIn(ChArchiveIn& archive_in)
-{
+void ChBezierCurve::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChBezierCurve>();
+    /*int version =*/archive_in.VersionRead<ChBezierCurve>();
 
     // stream in all member data:
     archive_in >> CHNVP(m_points);
@@ -729,10 +728,10 @@ int ChBezierCurveTracker::CalcClosestPoint(const ChVector3d& loc, ChVector3d& po
                 return 0;
 
             // If the search region is at the beginning of the interval check the
-            // previous interval.  Loop to the last interval if the path is a 
+            // previous interval.  Loop to the last interval if the path is a
             // closed loop and is it is currently in the first interval
             if ((m_curInterval == 0) && (m_isClosedPath))
-                m_curInterval = m_path->GetNumPoints() - 2; 
+                m_curInterval = m_path->GetNumPoints() - 2;
             else
                 m_curInterval--;
 
@@ -745,8 +744,8 @@ int ChBezierCurveTracker::CalcClosestPoint(const ChVector3d& loc, ChVector3d& po
             if (lastAtMin)
                 return 0;
 
-            // If the search region is at the end of the interval check the 
-            // next interval.  Loop to the first interval if the path is a 
+            // If the search region is at the end of the interval check the
+            // next interval.  Loop to the first interval if the path is a
             // closed loop and is it is currently in the last interval
             if ((m_curInterval == m_path->GetNumPoints() - 2) && (m_isClosedPath))
                 m_curInterval = 0;
@@ -791,7 +790,6 @@ int ChBezierCurveTracker::CalcClosestPoint(const ChVector3d& loc, ChFrame<>& tnb
 
     tnb.SetRot(A);
     tnb.SetPos(r);
-
 
     // Calculate curvature
     curvature = rp_rpp_norm / (rp_norm * rp_norm * rp_norm);

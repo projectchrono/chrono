@@ -17,7 +17,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-//CH_FACTORY_REGISTER(ChConstraintTwo)  // NO! Abstract class
+// CH_FACTORY_REGISTER(ChConstraintTwo)  // NO! Abstract class
 
 ChConstraintTwo::ChConstraintTwo(const ChConstraintTwo& other) : ChConstraint(other) {
     variables_a = other.variables_a;
@@ -50,7 +50,7 @@ void ChConstraintTwo::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChConstraintTwo::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChConstraintTwo>();
+    /*int version =*/archive_in.VersionRead<ChConstraintTwo>();
 
     // deserialize the parent class data too
     ChConstraint::ArchiveIn(archive_in);

@@ -242,10 +242,10 @@ void ChForce::UpdateState() {
             //   Qfrot= (-[A][u][G])'f
 
             ChStarMatrix33<> Xpos(vrelpoint);
-            ChVector3d VQtemp = Xpos.transpose() * relforce; // = [u]'[A]'F,w
+            ChVector3d VQtemp = Xpos.transpose() * relforce;  // = [u]'[A]'F,w
 
             ChGlMatrix34<> mGl(my_body->GetCoordsys().rot);
-            ChVectorN<double, 4> Qfrot = -mGl.transpose() * VQtemp.eigen(); // Q = - [Gl]'[u]'[A]'F,w
+            ChVectorN<double, 4> Qfrot = -mGl.transpose() * VQtemp.eigen();  // Q = - [Gl]'[u]'[A]'F,w
 
             Qf.segment(3, 4) = Qfrot;
 
@@ -307,7 +307,7 @@ void ChForce::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChForce::ArchiveIn(ChArchiveIn& archive_in) {
     // class version number
-    /*int version =*/ archive_in.VersionRead<ChForce>();
+    /*int version =*/archive_in.VersionRead<ChForce>();
 
     // deserialize parent class too
     ChObj::ArchiveIn(archive_in);

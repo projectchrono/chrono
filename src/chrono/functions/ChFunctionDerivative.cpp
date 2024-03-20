@@ -41,7 +41,7 @@ void ChFunctionDerivative::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChFunctionDerivative::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChFunctionDerivative>();
+    /*int version =*/archive_in.VersionRead<ChFunctionDerivative>();
     // deserialize parent class
     ChFunction::ArchiveIn(archive_in);
     // stream in all member data:

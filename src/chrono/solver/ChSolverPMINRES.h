@@ -34,8 +34,8 @@ namespace chrono {
 class ChApi
 /// \cond
 CH_DEPRECATED("deprecated. Use ChSolverMINRES instead.")
-/// \endcond
-ChSolverPMINRES : public ChIterativeSolverVI {
+    /// \endcond
+    ChSolverPMINRES : public ChIterativeSolverVI {
   public:
     ChSolverPMINRES();
 
@@ -69,7 +69,6 @@ ChSolverPMINRES : public ChIterativeSolverVI {
     void SetRelTolerance(double mrt) { this->rel_tolerance = mrt; }
     double GetRelTolerance() { return this->rel_tolerance; }
 
-    
     /// Return the tolerance error reached during the last solve.
     /// For the PMINRES solver, this is the norm of the projected residual.
     virtual double GetError() const override { return r_proj_resid; }

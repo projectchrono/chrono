@@ -25,7 +25,7 @@ namespace chrono {
 /// Function returnin a constant value.
 class ChApi ChFunctionConst : public ChFunction {
   public:
-    ChFunctionConst() : m_constant(0) { }
+    ChFunctionConst() : m_constant(0) {}
     ChFunctionConst(double y_constant) : m_constant(y_constant) {}
     ChFunctionConst(const ChFunctionConst& other) { m_constant = other.m_constant; }
     virtual ~ChFunctionConst() {}

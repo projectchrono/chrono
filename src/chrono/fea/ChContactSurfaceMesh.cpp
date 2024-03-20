@@ -155,11 +155,11 @@ void ChContactTriangleXYZ::ContactForceLoadResidual_F(const ChVector3d& F,
 }
 
 void ChContactTriangleXYZ::ContactComputeQ(const ChVector3d& F,
-                                             const ChVector3d& T,
-                                             const ChVector3d& point,
-                                             const ChState& state_x,
-                                             ChVectorDynamic<>& Q,
-                                             int offset) {
+                                           const ChVector3d& T,
+                                           const ChVector3d& point,
+                                           const ChState& state_x,
+                                           ChVectorDynamic<>& Q,
+                                           int offset) {
     // Calculate barycentric coordinates
     ChVector3d A1(state_x.segment(0, 3));
     ChVector3d A2(state_x.segment(3, 3));
@@ -174,7 +174,6 @@ void ChContactTriangleXYZ::ContactComputeQ(const ChVector3d& F,
     Q.segment(offset + 3, 3) = F.eigen() * s2;
     Q.segment(offset + 6, 3) = F.eigen() * s3;
     // note: do nothing for torque T
-
 }
 
 void ChContactTriangleXYZ::ComputeJacobianForContactPart(const ChVector3d& abs_point,
@@ -413,21 +412,24 @@ void ChContactTriangleXYZROT::ContactForceLoadResidual_F(const ChVector3d& F,
     R.segment(m_nodes[0]->NodeGetOffsetVelLevel(), 3) += F.eigen() * s1;
     R.segment(m_nodes[1]->NodeGetOffsetVelLevel(), 3) += F.eigen() * s2;
     R.segment(m_nodes[2]->NodeGetOffsetVelLevel(), 3) += F.eigen() * s3;
-    
+
     // in case also torque is used:
     if (!T.IsNull()) {
-        R.segment(m_nodes[0]->NodeGetOffsetVelLevel() + 3, 3) += (m_nodes[0]->TransformDirectionParentToLocal(T * s1)).eigen();
-        R.segment(m_nodes[1]->NodeGetOffsetVelLevel() + 3, 3) += (m_nodes[1]->TransformDirectionParentToLocal(T * s2)).eigen();
-        R.segment(m_nodes[2]->NodeGetOffsetVelLevel() + 3, 3) += (m_nodes[2]->TransformDirectionParentToLocal(T * s3)).eigen();
+        R.segment(m_nodes[0]->NodeGetOffsetVelLevel() + 3, 3) +=
+            (m_nodes[0]->TransformDirectionParentToLocal(T * s1)).eigen();
+        R.segment(m_nodes[1]->NodeGetOffsetVelLevel() + 3, 3) +=
+            (m_nodes[1]->TransformDirectionParentToLocal(T * s2)).eigen();
+        R.segment(m_nodes[2]->NodeGetOffsetVelLevel() + 3, 3) +=
+            (m_nodes[2]->TransformDirectionParentToLocal(T * s3)).eigen();
     }
 }
 
 void ChContactTriangleXYZROT::ContactComputeQ(const ChVector3d& F,
-                                                const ChVector3d& T,
-                                                const ChVector3d& point,
-                                                const ChState& state_x,
-                                                ChVectorDynamic<>& Q,
-                                                int offset) {
+                                              const ChVector3d& T,
+                                              const ChVector3d& point,
+                                              const ChState& state_x,
+                                              ChVectorDynamic<>& Q,
+                                              int offset) {
     // Calculate barycentric coordinates
     ChVector3d A1(state_x.segment(0, 3));
     ChVector3d A2(state_x.segment(7, 3));
@@ -450,7 +452,7 @@ void ChContactTriangleXYZROT::ContactComputeQ(const ChVector3d& F,
         ChCoordsys<> C3(state_x.segment(14, 7));
         Q.segment(offset + 3, 3) = (C1.TransformDirectionParentToLocal(T * s1)).eigen();
         Q.segment(offset + 9, 3) = (C2.TransformDirectionParentToLocal(T * s2)).eigen();
-        Q.segment(offset + 15, 3)= (C3.TransformDirectionParentToLocal(T * s3)).eigen();
+        Q.segment(offset + 15, 3) = (C3.TransformDirectionParentToLocal(T * s3)).eigen();
     }
 }
 
@@ -641,8 +643,7 @@ void ChContactSurfaceMesh::AddFace(std::shared_ptr<ChNodeFEAxyzrot> node1,
     m_faces_rot.push_back(contact_triangle);
 }
 
-void ChContactSurfaceMesh::ConstructFromTrimesh(std::shared_ptr<ChTriangleMeshConnected> trimesh,
-                                                double sphere_swept) {
+void ChContactSurfaceMesh::ConstructFromTrimesh(std::shared_ptr<ChTriangleMeshConnected> trimesh, double sphere_swept) {
     std::vector<std::shared_ptr<fea::ChNodeFEAxyz>> nodes;
     for (const auto& v : trimesh->GetCoordsVertices()) {
         nodes.push_back(chrono_types::make_shared<fea::ChNodeFEAxyz>(v));

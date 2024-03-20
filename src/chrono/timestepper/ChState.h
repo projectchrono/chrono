@@ -37,9 +37,7 @@ class ChState : public ChVectorDynamic<double> {
 
     explicit ChState(Eigen::Index size, ChIntegrable* intgr) : ChVectorDynamic<double>(size) { integrable = intgr; }
 
-    explicit ChState(ChVectorConstRef vec, ChIntegrable* intgr) : ChVectorDynamic<double>(vec) {
-        integrable = intgr;
-    }
+    explicit ChState(ChVectorConstRef vec, ChIntegrable* intgr) : ChVectorDynamic<double>(vec) { integrable = intgr; }
 
     /// Copy constructor
     ChState(const ChState& other) : ChVectorDynamic<double>(other) { integrable = other.integrable; }
@@ -127,7 +125,9 @@ class ChStateDelta : public ChVectorDynamic<double> {
     /// Constructors
     explicit ChStateDelta(ChIntegrable* intgr = 0) : ChVectorDynamic<double>(1) { integrable = intgr; }
 
-    explicit ChStateDelta(Eigen::Index size, ChIntegrable* intgr) : ChVectorDynamic<double>(size) { integrable = intgr; }
+    explicit ChStateDelta(Eigen::Index size, ChIntegrable* intgr) : ChVectorDynamic<double>(size) {
+        integrable = intgr;
+    }
 
     explicit ChStateDelta(ChVectorConstRef vec, ChIntegrable* intgr) : ChVectorDynamic<double>(vec) {
         integrable = intgr;
@@ -174,7 +174,7 @@ class ChStateDelta : public ChVectorDynamic<double> {
     }
 
     /// Scale this state by the given value.
-    ChStateDelta& operator *=(double factor) {
+    ChStateDelta& operator*=(double factor) {
         ChVectorDynamic<>::operator*(factor);
         return *this;
     }

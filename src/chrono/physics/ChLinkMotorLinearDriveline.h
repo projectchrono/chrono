@@ -15,23 +15,22 @@
 #ifndef CHLINKMOTORLINEARDRIVELINE_H
 #define CHLINKMOTORLINEARDRIVELINE_H
 
-
 #include "chrono/physics/ChLinkMotorLinear.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftBodyConstraint.h"
 
 namespace chrono {
 
-
-/// Couples the relative translation of two bodies (along Z direction of the link frames) with the rotation of a 1D shaft.
+/// Couples the relative translation of two bodies (along Z direction of the link frames) with the rotation of a 1D
+/// shaft.
 ///
 /// This link adds three additional ChShaft objects:
 /// - two of them on Body 2, representing a rotational (Shaft2Rot) and a translational (Shfat2Lin) inertia.
 /// - one ChShaft object to Body 1, representing a translational inertia (Shaft1Lin).
 /// Each _translational_ shaft is connected to the Z degree of freedom of its body (through a ChShaftBodyTranslation).
-/// The _rotational_ shaft is connected to Body 2 (through a ChShaftBodyRotation) along a direction (default: Z axis) that can
-/// be later set through SetInnerShaft2RotDirection(). Any action applied to the shafts is then reflected back to the
-/// respective bodies along their given directions.
+/// The _rotational_ shaft is connected to Body 2 (through a ChShaftBodyRotation) along a direction (default: Z axis)
+/// that can be later set through SetInnerShaft2RotDirection(). Any action applied to the shafts is then reflected back
+/// to the respective bodies along their given directions.
 ///
 ///                  [************ ChLinkMotorLinearDriveline ********]
 ///     [ Body2 ]----[----(ChShaftBodyRotation)-------[Shaft2Rot]----]---->
@@ -50,17 +49,16 @@ namespace chrono {
 ///     >-[ChShaftsMotor]----[ChShaft] -----[----[shaft2]                 ]
 ///     >-----------------------------------[----[shaft1]                 ]
 ///     >-----------------------------------[----[shaft3]                 ]
-///     
+///
 
 class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
-
-    std::shared_ptr<ChShaft> innershaft1lin;            
-    std::shared_ptr<ChShaft> innershaft2lin;  
-    std::shared_ptr<ChShaft> innershaft2rot;  
-    std::shared_ptr<ChShaftBodyTranslation> innerconstraint1lin;  
-    std::shared_ptr<ChShaftBodyTranslation> innerconstraint2lin; 
-    std::shared_ptr<ChShaftBodyRotation> innerconstraint2rot; 
-    ChVector3d shaft2_rotation_dir; 
+    std::shared_ptr<ChShaft> innershaft1lin;
+    std::shared_ptr<ChShaft> innershaft2lin;
+    std::shared_ptr<ChShaft> innershaft2rot;
+    std::shared_ptr<ChShaftBodyTranslation> innerconstraint1lin;
+    std::shared_ptr<ChShaftBodyTranslation> innerconstraint2lin;
+    std::shared_ptr<ChShaftBodyRotation> innerconstraint2rot;
+    ChVector3d shaft2_rotation_dir;
 
   public:
     ChLinkMotorLinearDriveline();
@@ -70,12 +68,12 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMotorLinearDriveline* Clone() const override { return new ChLinkMotorLinearDriveline(*this); }
 
-	virtual void SetSystem(ChSystem* m_system) override {
-		ChPhysicsItem::SetSystem(m_system);
-		innershaft1lin->SetSystem(m_system);
-		innershaft2lin->SetSystem(m_system);
-		innershaft2rot->SetSystem(m_system);
-	}
+    virtual void SetSystem(ChSystem* m_system) override {
+        ChPhysicsItem::SetSystem(m_system);
+        innershaft1lin->SetSystem(m_system);
+        innershaft2lin->SetSystem(m_system);
+        innershaft2rot->SetSystem(m_system);
+    }
 
     /// Access the inner 1D shaft connected to the translation of body 1 about dir of linear guide.
     /// The shaft can be connected to other shafts with ChShaftsMotor or similar items.
@@ -91,20 +89,19 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
     /// The shaft can be connected to other shafts with ChShaftsMotor or similar items.
     std::shared_ptr<ChShaft> GetInnerShaft2Rot() const { return innershaft2rot; }
 
-    /// Set the direction of the inner rotation axis for body 2, expressed in link coordinates 
+    /// Set the direction of the inner rotation axis for body 2, expressed in link coordinates
     /// Default is VECT_Z, same dir of guide, i.e. useful when anchoring drives with screw transmission.
     void SetInnerShaft2RotDirection(ChVector3d md) { shaft2_rotation_dir = md; }
 
-    /// Get the direction of the inner rotation axis for body 2, expressed in link coordinates 
+    /// Get the direction of the inner rotation axis for body 2, expressed in link coordinates
     /// Default is VECT_Z, same dir of guide, i.e. useful when anchoring drives with screw transmission.
     ChVector3d GetInnerShaft2RotDirection() const { return shaft2_rotation_dir; }
 
-
-    /// Get the force between body 1 and inner shaft 1 
+    /// Get the force between body 1 and inner shaft 1
     /// Note: coincident with GetMotorForce() of this motor.
     double GetInnerForce1() const { return innerconstraint1lin->GetForceReactionOnShaft(); }
 
-    /// Get the force between body 2 and inner translational shaft 2 
+    /// Get the force between body 2 and inner translational shaft 2
     double GetInnerForce2() const { return innerconstraint2lin->GetForceReactionOnShaft(); }
 
     /// Get the torque between body 2 and inner rotational shaft 2 (ex. might be caused by the
@@ -136,10 +133,10 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                             bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                            const ChVector3d& mpt1,                      ///< origin of slave frame 1 (rel. or abs.)
-                            const ChVector3d& mpt2,                      ///< origin of master frame 2 (rel. or abs.)
-                            const ChVector3d& mnorm1,                    ///< X axis of slave plane 1 (rel. or abs.)
-                            const ChVector3d& mnorm2                     ///< X axis of master plane 2 (rel. or abs.)
+                            const ChVector3d& mpt1,               ///< origin of slave frame 1 (rel. or abs.)
+                            const ChVector3d& mpt2,               ///< origin of master frame 2 (rel. or abs.)
+                            const ChVector3d& mnorm1,             ///< X axis of slave plane 1 (rel. or abs.)
+                            const ChVector3d& mnorm2              ///< X axis of master plane 2 (rel. or abs.)
                             ) override;
 
     /// Compute offsets of sub-objects, offsetting all the contained sub objects (the inner shafts)
@@ -174,10 +171,10 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
                                    const unsigned int off_v,
                                    const ChStateDelta& Dv) override;
     virtual void IntStateGetIncrement(const unsigned int off_x,
-                                   const ChState& x_new,
-                                   const ChState& x,
-                                   const unsigned int off_v,
-                                   ChStateDelta& Dv) override;
+                                      const ChState& x_new,
+                                      const ChState& x,
+                                      const unsigned int off_v,
+                                      ChStateDelta& Dv) override;
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
@@ -233,12 +230,9 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
-
 };
 
-CH_CLASS_VERSION(ChLinkMotorLinearDriveline,0)
-
-
+CH_CLASS_VERSION(ChLinkMotorLinearDriveline, 0)
 
 }  // end namespace chrono
 

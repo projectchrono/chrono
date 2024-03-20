@@ -274,7 +274,7 @@ void ChLinkLockGear::ArchiveOut(ChArchiveOut& archive_out) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkLockGear::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkLockGear>();
+    /*int version =*/archive_in.VersionRead<ChLinkLockGear>();
 
     // deserialize parent class
     ChLinkLock::ArchiveIn(archive_in);
@@ -295,7 +295,6 @@ void ChLinkLockGear::ArchiveIn(ChArchiveIn& archive_in) {
 
     mask.SetTwoBodiesVariables(&m_body1->Variables(), &m_body2->Variables());
     BuildLink();
-
 }
 
 }  // end namespace chrono

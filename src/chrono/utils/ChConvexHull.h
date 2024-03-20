@@ -65,8 +65,8 @@ class ChApi ChConvexHull2D {
     void ComputeGraham(std::vector<ChVector2d>& points, size_t n);
 
     std::vector<ChVector2d> m_hull;  ///< points in convex hull
-    double m_perimeter;               ///< perimeter of convex hull
-    double m_area;                    ///< area enclosed by convex hull
+    double m_perimeter;              ///< perimeter of convex hull
+    double m_area;                   ///< area enclosed by convex hull
 };
 
 /// @} chrono_utils

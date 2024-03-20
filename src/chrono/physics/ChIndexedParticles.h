@@ -57,7 +57,7 @@ class ChApi ChIndexedParticles : public ChPhysicsItem {
     /// Access the N-th particle.
     virtual ChParticleBase& GetParticle(unsigned int n) = 0;
 
-    /// Resize the particle cluster. 
+    /// Resize the particle cluster.
     /// Also clear the state of previously created particles, if any.
     virtual void ResizeNparticles(int newsize) = 0;
 
@@ -85,7 +85,7 @@ class ChApi ChIndexedParticles : public ChPhysicsItem {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
-CH_CLASS_VERSION(ChIndexedParticles,0)
+CH_CLASS_VERSION(ChIndexedParticles, 0)
 
 }  // end namespace chrono
 

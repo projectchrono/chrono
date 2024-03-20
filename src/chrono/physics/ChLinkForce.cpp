@@ -56,7 +56,8 @@ double ChLinkForce::GetCurrentActuatorForceTorque(double x, double x_dt, double 
 double ChLinkForce::GetForceTorque(double x, double x_dt, double t) const {
     if (!m_active)
         return 0;
-    return GetCurrentActuatorForceTorque(x, x_dt, t) - GetCurrentSpringCoefficient(x, x_dt, t) * x - GetCurrentDampingCoefficient(x, x_dt, t) * x_dt;
+    return GetCurrentActuatorForceTorque(x, x_dt, t) - GetCurrentSpringCoefficient(x, x_dt, t) * x -
+           GetCurrentDampingCoefficient(x, x_dt, t) * x_dt;
 }
 
 void ChLinkForce::ArchiveOut(ChArchiveOut& archive_out) {
@@ -75,7 +76,7 @@ void ChLinkForce::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChLinkForce::ArchiveIn(ChArchiveIn& archive_in) {
     // class version number
-    /*int version =*/ archive_in.VersionRead<ChLinkForce>();
+    /*int version =*/archive_in.VersionRead<ChLinkForce>();
 
     // stream in all member data
     archive_in >> CHNVP(m_active);

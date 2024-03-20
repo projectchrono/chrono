@@ -76,7 +76,7 @@ double ChIterativeSolver::CheckSolution(ChSystemDescriptor& sysd, const ChVector
     ChSparseMatrix Z;
     sysd.ConvertToMatrixForm(&Z, nullptr);
     double res_norm1 = (Z * x - b).norm();
-    
+
     ChVectorDynamic<> Zx(x.size());
     sysd.SystemProduct(Zx, x);
     double res_norm2 = (Zx - b).norm();

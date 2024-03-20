@@ -24,7 +24,7 @@
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-//CH_FACTORY_REGISTER(ChObj)  // NO! Abstract class!
+// CH_FACTORY_REGISTER(ChObj)  // NO! Abstract class!
 
 ChObj::ChObj() : ChTime(0) {
     m_identifier = GetUniqueIntID();
@@ -47,7 +47,7 @@ void ChObj::ArchiveOut(ChArchiveOut& archive_out) {
 }
 
 void ChObj::ArchiveIn(ChArchiveIn& archive_in) {
-    /*int version =*/ archive_in.VersionRead<ChObj>();
+    /*int version =*/archive_in.VersionRead<ChObj>();
 
     // stream out all member data
     archive_in >> CHNVP(m_name);

@@ -372,11 +372,10 @@ void ChLinkRevoluteTranslational::IntStateScatterReactions(const unsigned int of
     react_torque.z() = 0;
 }
 
-void ChLinkRevoluteTranslational::IntLoadResidual_CqL(const unsigned int off_L,  
-                                                      ChVectorDynamic<>& R,  
-                                                      const ChVectorDynamic<>& L,  
-                                                      const double c               
-                                                      ) {
+void ChLinkRevoluteTranslational::IntLoadResidual_CqL(const unsigned int off_L,
+                                                      ChVectorDynamic<>& R,
+                                                      const ChVectorDynamic<>& L,
+                                                      const double c) {
     m_cnstr_par1.MultiplyTandAdd(R, L(off_L + 0) * c);
     m_cnstr_par2.MultiplyTandAdd(R, L(off_L + 1) * c);
     m_cnstr_dot.MultiplyTandAdd(R, L(off_L + 2) * c);
@@ -384,11 +383,10 @@ void ChLinkRevoluteTranslational::IntLoadResidual_CqL(const unsigned int off_L,
 }
 
 void ChLinkRevoluteTranslational::IntLoadConstraint_C(const unsigned int off_L,
-                                                      ChVectorDynamic<>& Qc,   
-                                                      const double c,          
-                                                      bool do_clamp,           
-                                                      double recovery_clamp    
-                                                      ) {
+                                                      ChVectorDynamic<>& Qc,
+                                                      const double c,
+                                                      bool do_clamp,
+                                                      double recovery_clamp) {
     if (!IsActive())
         return;
 
@@ -398,8 +396,9 @@ void ChLinkRevoluteTranslational::IntLoadConstraint_C(const unsigned int off_L,
         do_clamp ? std::min(std::max(c * m_cur_par2, -recovery_clamp), recovery_clamp) : c * m_cur_par2;
     double cnstr_dot_violation =
         do_clamp ? std::min(std::max(c * m_cur_dot, -recovery_clamp), recovery_clamp) : c * m_cur_dot;
-    double cnstr_dist_violation =
-        do_clamp ? std::min(std::max(c * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp) : c * (m_cur_dist - m_dist);
+    double cnstr_dist_violation = do_clamp
+                                      ? std::min(std::max(c * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp)
+                                      : c * (m_cur_dist - m_dist);
 
     Qc(off_L + 0) += cnstr_par1_violation;
     Qc(off_L + 1) += cnstr_par2_violation;
@@ -470,9 +469,9 @@ void ChLinkRevoluteTranslational::ConstraintsBiLoad_C(double factor, double reco
         do_clamp ? std::min(std::max(factor * m_cur_par2, -recovery_clamp), recovery_clamp) : factor * m_cur_par2;
     double cnstr_dot_violation =
         do_clamp ? std::min(std::max(factor * m_cur_dot, -recovery_clamp), recovery_clamp) : factor * m_cur_dot;
-    double cnstr_dist_violation = do_clamp
-                                      ? std::min(std::max(factor * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp)
-                                      : factor * (m_cur_dist - m_dist);
+    double cnstr_dist_violation =
+        do_clamp ? std::min(std::max(factor * (m_cur_dist - m_dist), -recovery_clamp), recovery_clamp)
+                 : factor * (m_cur_dist - m_dist);
 
     m_cnstr_par1.Set_b_i(m_cnstr_par1.Get_b_i() + cnstr_par1_violation);
     m_cnstr_par2.Set_b_i(m_cnstr_par2.Get_b_i() + cnstr_par2_violation);
@@ -536,7 +535,7 @@ void ChLinkRevoluteTranslational::ArchiveOut(ChArchiveOut& archive_out) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkRevoluteTranslational::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkRevoluteTranslational>();
+    /*int version =*/archive_in.VersionRead<ChLinkRevoluteTranslational>();
 
     // deserialize parent class
     ChLink::ArchiveIn(archive_in);

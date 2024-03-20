@@ -97,7 +97,7 @@ void ChLinkLockPointSpline::UpdateTime(double time) {
         dh = Vdot(Vsub(ptang2, ptang), vrad);
         mrad = ((ds * ds) / (2 * dh));  // radius of curvature on spline
 
-        //ChMatrix33<> mw(marker2->GetAbsCoordsys().rot);
+        // ChMatrix33<> mw(marker2->GetAbsCoordsys().rot);
 
         deltaC.pos = VNULL;
         deltaC_dt.pos = VNULL;
@@ -126,7 +126,7 @@ void ChLinkLockPointSpline::ArchiveOut(ChArchiveOut& archive_out) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkLockPointSpline::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkLockPointSpline>();
+    /*int version =*/archive_in.VersionRead<ChLinkLockPointSpline>();
 
     // deserialize parent class
     ChLinkLockLock::ArchiveIn(archive_in);

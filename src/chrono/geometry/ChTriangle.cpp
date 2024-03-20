@@ -19,7 +19,6 @@
 
 namespace chrono {
 
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTriangle)
 
@@ -130,6 +129,5 @@ void ChTriangle::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(p2);
     archive_in >> CHNVP(p3);
 }
-
 
 }  // end namespace chrono

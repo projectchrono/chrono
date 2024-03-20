@@ -25,7 +25,6 @@ namespace chrono {
 /// this link constraints only the rotation.
 
 class ChApi ChLinkLockPulley : public ChLinkLockLock {
-
   protected:
     double tau;       ///< transmission coeff.
     double r1;        ///< radius of pulley in body 1
@@ -156,7 +155,7 @@ class ChApi ChLinkLockPulley : public ChLinkLockLock {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
-CH_CLASS_VERSION(ChLinkLockPulley,0)
+CH_CLASS_VERSION(ChLinkLockPulley, 0)
 
 }  // end namespace chrono
 

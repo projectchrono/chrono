@@ -354,7 +354,7 @@ void ShellANCF_Force::Evaluate(ChVectorN<double, 54>& result, const double x, co
 
     // Transformation : Orthogonal transformation (A and J)
     ChVector3d G1xG2;  // Cross product of first and second column of
-    double G1dotG1;          // Dot product of first column of position vector gradient
+    double G1dotG1;    // Dot product of first column of position vector gradient
 
     G1xG2.x() = Nx_d0(1) * Ny_d0(2) - Nx_d0(2) * Ny_d0(1);
     G1xG2.y() = Nx_d0(2) * Ny_d0(0) - Nx_d0(0) * Ny_d0(2);
@@ -695,7 +695,7 @@ void ShellANCF_Jacobian::Evaluate(ChVectorN<double, 696>& result, const double x
 
     // Transformation : Orthogonal transformation (A and J)
     ChVector3d G1xG2;  // Cross product of first and second column of
-    double G1dotG1;          // Dot product of first column of position vector gradient
+    double G1dotG1;    // Dot product of first column of position vector gradient
 
     G1xG2.x() = Nx_d0(1) * Ny_d0(2) - Nx_d0(2) * Ny_d0(1);
     G1xG2.y() = Nx_d0(2) * Ny_d0(0) - Nx_d0(0) * Ny_d0(2);
@@ -1323,7 +1323,7 @@ ChStrainStress3D ChElementShellANCF_3423::EvaluateSectionStrainStress(const ChVe
 
     // Transformation : Orthogonal transformation (A and J)
     ChVector3d G1xG2;  // Cross product of first and second column of
-    double G1dotG1;          // Dot product of first column of position vector gradient
+    double G1dotG1;    // Dot product of first column of position vector gradient
 
     G1xG2.x() = Nx_d0(1) * Ny_d0(2) - Nx_d0(2) * Ny_d0(1);
     G1xG2.y() = Nx_d0(2) * Ny_d0(0) - Nx_d0(0) * Ny_d0(2);
@@ -1773,7 +1773,7 @@ void ChElementShellANCF_3423::Layer::SetupInitial() {
 
     //// Transformation : Orthogonal transformation (A and J) ////
     ChVector3d G1xG2;  // Cross product of first and second column of
-    double G1dotG1;          // Dot product of first column of position vector gradient
+    double G1dotG1;    // Dot product of first column of position vector gradient
 
     G1xG2.x() = Nx_d0(1) * Ny_d0(2) - Nx_d0(2) * Ny_d0(1);
     G1xG2.y() = Nx_d0(2) * Ny_d0(0) - Nx_d0(0) * Ny_d0(2);

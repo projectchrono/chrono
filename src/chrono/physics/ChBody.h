@@ -303,8 +303,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// If local = true, the provided applied force is assumed to be expressed in body coordinates.
     /// If local = false, the provided applied force is assumed to be expressed in absolute coordinates.
     void AccumulateForce(const ChVector3d& force,       ///< applied force
-                          const ChVector3d& appl_point,  ///< application point
-                          bool local                     ///< force and point expressed in body local frame?
+                         const ChVector3d& appl_point,  ///< application point
+                         bool local                     ///< force and point expressed in body local frame?
     );
 
     /// Add an applied torque to the body's accumulator (as an increment).
@@ -312,7 +312,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// If local = true, the provided applied torque is assumed to be expressed in body coordinates.
     /// If local = false, the provided applied torque is assumed to be expressed in absolute coordinates.
     void AccumulateTorque(const ChVector3d& torque,  ///< applied torque
-                           bool local                 ///< torque expressed in body local frame?
+                          bool local                 ///< torque expressed in body local frame?
     );
 
     /// Clear the force and torque accumulators.
@@ -629,12 +629,14 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
 
     bool fixed;    ///< flag indicating whether or not the body is fixed to global frame
     bool collide;  ///< flag indicating whether or not the body participates in collisions
-    
-    bool limit_speed; ///< enable the clamping on body angular and linear speed
-    bool disable_gyrotorque;  ///< disable the gyroscopic (quadratic) term, help the stability of the simulation but reduces the accuracy
+
+    bool limit_speed;         ///< enable the clamping on body angular and linear speed
+    bool disable_gyrotorque;  ///< disable the gyroscopic (quadratic) term, help the stability of the simulation but
+                              ///< reduces the accuracy
     bool is_sleeping;         ///< flag indicating whether or not the body is currently in sleep mode
-    bool allow_sleeping;     ///< flag indicating whether or not the body can go to sleep mode
-    bool candidate_sleeping; ///< flag indicating whether or not the body is a candidate for sleep mode in the current simulation
+    bool allow_sleeping;      ///< flag indicating whether or not the body can go to sleep mode
+    bool candidate_sleeping;  ///< flag indicating whether or not the body is a candidate for sleep mode in the current
+                              ///< simulation
 
     // Friend classes with private access
     friend class ChSystem;

@@ -233,10 +233,10 @@ class ChApi ChImplicitTimestepper {};
 /// a linear system must be solved.
 class ChApi ChImplicitIterativeTimestepper : public ChImplicitTimestepper {
   protected:
-    unsigned int maxiters;    ///< maximum number of iterations
-    double reltol;   ///< relative tolerance
-    double abstolS;  ///< absolute tolerance (states)
-    double abstolL;  ///< absolute tolerance (Lagrange multipliers)
+    unsigned int maxiters;  ///< maximum number of iterations
+    double reltol;          ///< relative tolerance
+    double abstolS;         ///< absolute tolerance (states)
+    double abstolL;         ///< absolute tolerance (Lagrange multipliers)
 
     unsigned int numiters;   ///< number of iterations
     unsigned int numsetups;  ///< number of calls to the solver's Setup function

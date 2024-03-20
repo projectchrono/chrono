@@ -127,7 +127,7 @@ void ChLinkLimit::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChLinkLimit::ArchiveIn(ChArchiveIn& archive_in) {
     // class version number
-    /*int version =*/ archive_in.VersionRead<ChLinkLimit>();
+    /*int version =*/archive_in.VersionRead<ChLinkLimit>();
 
     // stream in all member data
     archive_in >> CHNVP(m_active);

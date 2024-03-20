@@ -64,10 +64,11 @@ class ChApi ChElementBeamTaperedTimoshenkoFPM : public ChElementBeamTaperedTimos
         return this->tapered_section_fpm;
     }
 
-    /// Computes the shape function matrix 'Nx' and strain-displacement relation matrix 'Bx' at dimensionless abscissa 'eta'.
-    /// Note, eta=-1 at node1, eta=+1 at node2.
-    void ShapeFunctionsTimoshenkoFPM(ShapeFunctionGroupFPM& NB,  ///< shape function matrix 'Nx' and strain-displacement relation matrix 'Bx' are stored here.
-                                                    double eta   ///< abscissa 'eta'. eta=-1 at node1, eta=+1 at node2.
+    /// Computes the shape function matrix 'Nx' and strain-displacement relation matrix 'Bx' at dimensionless abscissa
+    /// 'eta'. Note, eta=-1 at node1, eta=+1 at node2.
+    void ShapeFunctionsTimoshenkoFPM(ShapeFunctionGroupFPM& NB,  ///< shape function matrix 'Nx' and strain-displacement
+                                                                 ///< relation matrix 'Bx' are stored here.
+                                     double eta                  ///< abscissa 'eta'. eta=-1 at node1, eta=+1 at node2.
     );
 
     /// Set the order of Gauss quadrature, as default it is four.
@@ -126,7 +127,7 @@ class ChApi ChElementBeamTaperedTimoshenkoFPM : public ChElementBeamTaperedTimos
     /* To be completed: Created to be consistent with base class implementation*/
     // strain_v = Bx * displ
     virtual void EvaluateSectionStrain(const double eta, ChVector3d& StrainV) override {}
-    
+
     /// Gets the strains(traction along x, shear along y, along shear z, torsion about x, bending about y, on bending
     /// about z) at a section along the beam line, at abscissa 'eta'. It's evaluated at the elastic center. Note, eta=-1
     /// at node1, eta=+1 at node2. Results are not corotated, and are expressed in the reference system of beam.

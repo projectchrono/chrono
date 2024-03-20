@@ -63,7 +63,9 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
     virtual void ContactableGetStateBlockPosLevel(ChState& x) override { x.segment(0, 3) = m_node->pos.eigen(); }
 
     /// Get all the DOFs packed in a single vector (speed part).
-    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override { w.segment(0, 3) = m_node->pos_dt.eigen(); }
+    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override {
+        w.segment(0, 3) = m_node->pos_dt.eigen();
+    }
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
@@ -103,11 +105,11 @@ class ChApi ChContactNodeXYZ : public ChContactable_1vars<3> {
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactComputeQ(const ChVector3d& F,
-                                   const ChVector3d& T,
-                                   const ChVector3d& point,
-                                   const ChState& state_x,
-                                   ChVectorDynamic<>& Q,
-                                   int offset) override {
+                                 const ChVector3d& T,
+                                 const ChVector3d& point,
+                                 const ChState& state_x,
+                                 ChVectorDynamic<>& Q,
+                                 int offset) override {
         Q.segment(offset, 3) = F.eigen();
     }
 
@@ -181,7 +183,9 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
     virtual void ContactableGetStateBlockPosLevel(ChState& x) override { x.segment(0, 3) = m_node->GetPos().eigen(); }
 
     /// Get all the DOFs packed in a single vector (speed part).
-    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override { w.segment(0, 3) = m_node->GetPosDt().eigen(); }
+    virtual void ContactableGetStateBlockVelLevel(ChStateDelta& w) override {
+        w.segment(0, 3) = m_node->GetPosDt().eigen();
+    }
 
     /// Increment the provided state of this object by the given state-delta increment.
     /// Compute: x_new = x + dw.
@@ -221,11 +225,11 @@ class ChApi ChContactNodeXYZROT : public ChContactable_1vars<6> {
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactComputeQ(const ChVector3d& F,
-                                   const ChVector3d& T,
-                                   const ChVector3d& point,
-                                   const ChState& state_x,
-                                   ChVectorDynamic<>& Q,
-                                   int offset) override {
+                                 const ChVector3d& T,
+                                 const ChVector3d& point,
+                                 const ChState& state_x,
+                                 ChVectorDynamic<>& Q,
+                                 int offset) override {
         Q.segment(offset, 3) = F.eigen();
     }
 

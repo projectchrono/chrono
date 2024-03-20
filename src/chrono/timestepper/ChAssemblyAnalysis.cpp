@@ -50,18 +50,17 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
             // [M          Cq' ] [ dx  ] = [  0]
             // [ Cq        0   ] [ -l  ] = [ -C]
 
-            integrable->LoadConstraint_C(Qc, 1.0); // sign flipped later in StateSolveCorrection
+            integrable->LoadConstraint_C(Qc, 1.0);  // sign flipped later in StateSolveCorrection
 
-            integrable->StateSolveCorrection(
-                Dx, L, R, Qc,
-                1.0,      // factor for  M
-                0,        // factor for  dF/dv
-                0,        // factor for  dF/dx (the stiffness matrix)
-                X, V, T,  // not needed
-                false,    // do not scatter Xnew Vnew T+dt before computing correction
-                false,    // full update? (not used, since no scatter)
-                true      // force a call to the solver's Setup function
-                );
+            integrable->StateSolveCorrection(Dx, L, R, Qc,
+                                             1.0,      // factor for  M
+                                             0,        // factor for  dF/dv
+                                             0,        // factor for  dF/dx (the stiffness matrix)
+                                             X, V, T,  // not needed
+                                             false,    // do not scatter Xnew Vnew T+dt before computing correction
+                                             false,    // full update? (not used, since no scatter)
+                                             true      // force a call to the solver's Setup function
+            );
 
             X += Dx;
 
@@ -89,18 +88,17 @@ void ChAssemblyAnalysis::AssemblyAnalysis(int action, double dt) {
 
         integrable->LoadResidual_F(R, dt);
         integrable->LoadResidual_Mv(R, V, 1.0);
-        integrable->LoadConstraint_C(Qc, 1.0 / dt, false); // sign later flipped in StateSolveCorrection
-        integrable->LoadConstraint_Ct(Qc, 1.0);  // sign later flipped in StateSolveCorrection
+        integrable->LoadConstraint_C(Qc, 1.0 / dt, false);  // sign later flipped in StateSolveCorrection
+        integrable->LoadConstraint_Ct(Qc, 1.0);             // sign later flipped in StateSolveCorrection
 
-        integrable->StateSolveCorrection(
-            V, L, R, Qc,
-            1.0,           // factor for  M
-            -dt,           // factor for  dF/dv
-            -dt * dt,      // factor for  dF/dx
-            X, V, T + dt,  // not needed
-            false,         // do not scatter Xnew Vnew T+dt before computing correction
-            false,         // full update? (not used, since no scatter)
-            true           // force a call to the solver's Setup() function
+        integrable->StateSolveCorrection(V, L, R, Qc,
+                                         1.0,           // factor for  M
+                                         -dt,           // factor for  dF/dv
+                                         -dt * dt,      // factor for  dF/dx
+                                         X, V, T + dt,  // not needed
+                                         false,         // do not scatter Xnew Vnew T+dt before computing correction
+                                         false,         // full update? (not used, since no scatter)
+                                         true           // force a call to the solver's Setup() function
         );
 
         integrable->StateScatter(X, V, T, true);  // state -> system

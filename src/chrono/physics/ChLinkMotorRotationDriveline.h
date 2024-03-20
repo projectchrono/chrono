@@ -15,37 +15,34 @@
 #ifndef CHLINKMOTORROTATIONDRIVELINE_H
 #define CHLINKMOTORROTATIONDRIVELINE_H
 
-
 #include "chrono/physics/ChLinkMotorRotation.h"
 #include "chrono/physics/ChShaft.h"
 #include "chrono/physics/ChShaftBodyConstraint.h"
 
 namespace chrono {
 
-
 /// Couples the relative rotation of two bodies (along Z direction of the link frames) with the rotation of a 1D shaft.
 ///
 /// This link adds two additional ChShaft rotational objects, one on each body, oriented along the Z axis of the bodies.
-/// The _rotational_ shaft is connected to Body 2 (through a ChShaftBodyRotation) along a direction (default: Z axis) that can
-/// be later set through SetInnerShaft2RotDirection(). Any action applied to the shafts is then reflected back to the
-/// respective bodies along their given directions.
+/// The _rotational_ shaft is connected to Body 2 (through a ChShaftBodyRotation) along a direction (default: Z axis)
+/// that can be later set through SetInnerShaft2RotDirection(). Any action applied to the shafts is then reflected back
+/// to the respective bodies along their given directions.
 ///
 ///                  [**** ChLinkMotorRotationDriveline ****]
 ///     [ Body2 ]----[----(ChShaftBodyRotation)----[Shaft2Rot]----]---->
 ///     [ Body1 ]----[----(ChShaftBodyRotation)----[Shaft1Rot]----]---->
-///     
+///
 ///  Note that it is up to the user to create a driveline where all torques are
-/// balanced action/reactions: in this case, 
-///    GetMotorTorque() = GetInnerTorque1() = - GetInnerTorque2(). 
-/// This is not true for example, for an unbalanced driveline where one of the 
-/// two inner shafts is connected to some external ChShaft. 
+/// balanced action/reactions: in this case,
+///    GetMotorTorque() = GetInnerTorque1() = - GetInnerTorque2().
+/// This is not true for example, for an unbalanced driveline where one of the
+/// two inner shafts is connected to some external ChShaft.
 
 class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
-
-    std::shared_ptr<ChShaft> innershaft1;            
-    std::shared_ptr<ChShaft> innershaft2;            
-    std::shared_ptr<ChShaftBodyRotation> innerconstraint1;  
-    std::shared_ptr<ChShaftBodyRotation> innerconstraint2;  
+    std::shared_ptr<ChShaft> innershaft1;
+    std::shared_ptr<ChShaft> innershaft2;
+    std::shared_ptr<ChShaftBodyRotation> innerconstraint1;
+    std::shared_ptr<ChShaftBodyRotation> innerconstraint2;
 
   public:
     ChLinkMotorRotationDriveline();
@@ -55,12 +52,11 @@ class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMotorRotationDriveline* Clone() const override { return new ChLinkMotorRotationDriveline(*this); }
 
-
-	virtual void SetSystem(ChSystem* m_system) override {
-		ChPhysicsItem::SetSystem(m_system);
-		innershaft1->SetSystem(m_system);
-		innershaft2->SetSystem(m_system);
-	}
+    virtual void SetSystem(ChSystem* m_system) override {
+        ChPhysicsItem::SetSystem(m_system);
+        innershaft1->SetSystem(m_system);
+        innershaft2->SetSystem(m_system);
+    }
 
     /// Access the inner 1D shaft connected to the rotation of body1 about dir of motor shaft.
     /// The shaft can be connected to other shafts with ChShaftsClutch or similar items.
@@ -70,17 +66,17 @@ class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
     /// The shaft can be connected to other shafts with ChShaftsClutch or similar items.
     std::shared_ptr<ChShaft> GetInnerShaft2() const { return innershaft2; }
 
-    /// Get the torque between body 1 and inner shaft 1. 
+    /// Get the torque between body 1 and inner shaft 1.
     /// Note: cohincident with GetMotorTorque() of this motor.
     /// Note: if driveline is not connected to outer 1D shafts, it should be GetInnerTorque2() = - GetInnerTorque1()
     double GetInnerTorque1() const { return innerconstraint1->GetTorqueReactionOnShaft(); }
 
-    /// Get the torque between body 2 and inner shaft 2 
+    /// Get the torque between body 2 and inner shaft 2
     /// Note, if driveline is not connected to outer 1D shafts, it should be GetInnerTorque2() = - GetInnerTorque1()
     double GetInnerTorque2() const { return innerconstraint2->GetTorqueReactionOnShaft(); }
 
     /// Get the current actuator reaction torque [Nm]
-    virtual double GetMotorTorque() const override { return GetInnerTorque1();}
+    virtual double GetMotorTorque() const override { return GetInnerTorque1(); }
 
     /// Initialize the generic mate, given the two bodies to be connected, and the absolute position of
     /// the mate (the two frames to connect on the bodies will be initially coincindent to that frame).
@@ -104,14 +100,14 @@ class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
     virtual void Initialize(std::shared_ptr<ChBodyFrame> mbody1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> mbody2,  ///< second body to link
                             bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                            const ChVector3d& mpt1,                      ///< origin of slave frame 1 (rel. or abs.)
-                            const ChVector3d& mpt2,                      ///< origin of master frame 2 (rel. or abs.)
-                            const ChVector3d& mnorm1,                    ///< X axis of slave plane 1 (rel. or abs.)
-                            const ChVector3d& mnorm2                     ///< X axis of master plane 2 (rel. or abs.)
+                            const ChVector3d& mpt1,               ///< origin of slave frame 1 (rel. or abs.)
+                            const ChVector3d& mpt2,               ///< origin of master frame 2 (rel. or abs.)
+                            const ChVector3d& mnorm1,             ///< X axis of slave plane 1 (rel. or abs.)
+                            const ChVector3d& mnorm2              ///< X axis of master plane 2 (rel. or abs.)
                             ) override;
 
     // Compute offsets of sub-objects, offsetting all the contained sub objects (the inner shafts)
-	virtual void Setup() override;
+    virtual void Setup() override;
 
     // Update this object. Also relinks the innerconstraints.
     virtual void Update(double mytime, bool update_assets = true) override;
@@ -142,10 +138,10 @@ class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
                                    const unsigned int off_v,
                                    const ChStateDelta& Dv) override;
     virtual void IntStateGetIncrement(const unsigned int off_x,
-                                   const ChState& x_new,
-                                   const ChState& x,
-                                   const unsigned int off_v,
-                                   ChStateDelta& Dv) override;
+                                      const ChState& x_new,
+                                      const ChState& x,
+                                      const unsigned int off_v,
+                                      ChStateDelta& Dv) override;
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
@@ -196,20 +192,14 @@ class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
     virtual void VariablesQbSetSpeed(double step = 0) override;
     virtual void VariablesQbIncrementPosition(double step) override;
 
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
-
 };
 
-CH_CLASS_VERSION(ChLinkMotorRotationDriveline,0)
-
-
-
-
+CH_CLASS_VERSION(ChLinkMotorRotationDriveline, 0)
 
 }  // end namespace chrono
 

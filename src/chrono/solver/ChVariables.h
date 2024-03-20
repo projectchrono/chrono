@@ -18,7 +18,6 @@
 #include "chrono/core/ChApiCE.h"
 #include "chrono/core/ChMatrix.h"
 
-
 namespace chrono {
 
 /// Base class for representing objects that introduce 'variables' (also referred as 'v') and their associated mass

@@ -218,7 +218,6 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
 
     ChConstraintVectorX C;  ///< residuals
 
-
     ChMatrix33<> P;  ///< projection matrix from Lagrange multiplier to reaction torque
 
     ChVector3d gamma_f;  ///< translational Lagrange multipliers

@@ -85,8 +85,8 @@ ChVector3d ChParticle::GetContactPoint(const ChVector3d& loc_point, const ChStat
 }
 
 ChVector3d ChParticle::GetContactPointSpeed(const ChVector3d& loc_point,
-                                             const ChState& state_x,
-                                             const ChStateDelta& state_w) {
+                                            const ChState& state_x,
+                                            const ChStateDelta& state_w) {
     ChCoordsys<> csys(state_x.segment(0, 7));
     ChVector3d abs_vel(state_w.segment(0, 3));
     ChVector3d loc_omg(state_w.segment(3, 3));
@@ -101,9 +101,9 @@ ChVector3d ChParticle::GetContactPointSpeed(const ChVector3d& abs_point) {
 }
 
 void ChParticle::ContactForceLoadResidual_F(const ChVector3d& F,
-                                             const ChVector3d& T,
-                                             const ChVector3d& abs_point,
-                                             ChVectorDynamic<>& R) {
+                                            const ChVector3d& T,
+                                            const ChVector3d& abs_point,
+                                            ChVectorDynamic<>& R) {
     ChVector3d m_p1_loc = this->TransformPointParentToLocal(abs_point);
     ChVector3d force1_loc = this->TransformDirectionParentToLocal(F);
     ChVector3d torque1_loc = Vcross(m_p1_loc, force1_loc);
@@ -114,11 +114,11 @@ void ChParticle::ContactForceLoadResidual_F(const ChVector3d& F,
 }
 
 void ChParticle::ContactComputeQ(const ChVector3d& F,
-                                    const ChVector3d& T,
-                                    const ChVector3d& point,
-                                    const ChState& state_x,
-                                    ChVectorDynamic<>& Q,
-                                    int offset) {
+                                 const ChVector3d& T,
+                                 const ChVector3d& point,
+                                 const ChState& state_x,
+                                 ChVectorDynamic<>& Q,
+                                 int offset) {
     ChCoordsys<> csys(state_x.segment(0, 7));
     ChVector3d point_loc = csys.TransformPointParentToLocal(point);
     ChVector3d force_loc = csys.TransformDirectionParentToLocal(F);
@@ -129,13 +129,12 @@ void ChParticle::ContactComputeQ(const ChVector3d& F,
     Q.segment(offset + 3, 3) = torque_loc.eigen();
 }
 
-void ChParticle::ComputeJacobianForContactPart(
-    const ChVector3d& abs_point,
-    ChMatrix33<>& contact_plane,
-    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
-    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
-    ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
-    bool second) {
+void ChParticle::ComputeJacobianForContactPart(const ChVector3d& abs_point,
+                                               ChMatrix33<>& contact_plane,
+                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_N,
+                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_U,
+                                               ChVariableTupleCarrier_1vars<6>::type_constraint_tuple& jacobian_tuple_V,
+                                               bool second) {
     ChVector3d m_p1_loc = this->TransformPointParentToLocal(abs_point);
 
     ChMatrix33<> Jx1 = contact_plane.transpose();
@@ -451,11 +450,7 @@ void ChParticleCloud::IntLoadResidual_Mv(const unsigned int off,      // offset 
         R.segment(off + 6 * j + 3, 3) += Iw.eigen();
     }
 }
-void ChParticleCloud::IntLoadLumpedMass_Md(const unsigned int off,
-                                           ChVectorDynamic<>& Md,
-                                           double& err,
-                                           const double c   
-) {
+void ChParticleCloud::IntLoadLumpedMass_Md(const unsigned int off, ChVectorDynamic<>& Md, double& err, const double c) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         Md(off + 6 * j + 0) += c * particle_mass.GetBodyMass();
         Md(off + 6 * j + 1) += c * particle_mass.GetBodyMass();

@@ -110,10 +110,14 @@ class ChApi ChElementBeamANCF_3333 : public ChElementANCF,
     virtual unsigned int GetNumCoordsPosLevelActive() override { return m_element_dof; }
 
     /// Get the number of coordinates from the n-th node used by this element.
-    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override { return m_nodes[n]->GetNumCoordsPosLevel(); }
+    virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) override {
+        return m_nodes[n]->GetNumCoordsPosLevel();
+    }
 
     /// Get the number of active coordinates from the n-th node used by this element.
-    virtual unsigned int GetNodeNumCoordsPosLevelActive(unsigned int n) override { return m_nodes[n]->GetNumCoordsPosLevelActive(); }
+    virtual unsigned int GetNodeNumCoordsPosLevelActive(unsigned int n) override {
+        return m_nodes[n]->GetNumCoordsPosLevelActive();
+    }
 
     /// Specify the nodes of this element.
     void SetNodes(std::shared_ptr<ChNodeFEAxyzDD> nodeA,
@@ -214,9 +218,7 @@ class ChApi ChElementBeamANCF_3333 : public ChElementANCF,
     virtual void EvaluateSectionStrain(const double, chrono::ChVector3d&) override {}
 
     // Dummy method definition - Does not translate to an ANCF continuum mechanics based beam element
-    virtual void EvaluateSectionForceTorque(const double,
-                                            chrono::ChVector3d&,
-                                            chrono::ChVector3d&) override {}
+    virtual void EvaluateSectionForceTorque(const double, chrono::ChVector3d&, chrono::ChVector3d&) override {}
 
     /// Gets the xyz displacement of a point on the beam line,
     /// and the rotation RxRyRz of section plane, at abscissa '(xi,0,0)'.
@@ -266,7 +268,9 @@ class ChApi ChElementBeamANCF_3333 : public ChElementANCF,
     virtual unsigned int GetNumSubBlocks() override { return 3; }
 
     /// Get the offset of the i-th sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return m_nodes[nblock]->NodeGetOffsetVelLevel(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return m_nodes[nblock]->NodeGetOffsetVelLevel();
+    }
 
     /// Get the size of the i-th sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 9; }

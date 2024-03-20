@@ -74,7 +74,7 @@ void ChConstraintTwoGenericBoxed::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChConstraintTwoGenericBoxed::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChConstraintTwoGenericBoxed>();
+    /*int version =*/archive_in.VersionRead<ChConstraintTwoGenericBoxed>();
 
     // deserialize the parent class data too
     ChConstraintTwoGeneric::ArchiveIn(archive_in);
@@ -83,6 +83,5 @@ void ChConstraintTwoGenericBoxed::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(l_min);
     archive_in >> CHNVP(l_max);
 }
-
 
 }  // end namespace chrono

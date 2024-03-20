@@ -20,7 +20,6 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkMotorLinearPosition)
 
 ChLinkMotorLinearPosition::ChLinkMotorLinearPosition() {
-
     this->c_z = true;
     SetupLinkMask();
 
@@ -79,7 +78,7 @@ void ChLinkMotorLinearPosition::ArchiveOut(ChArchiveOut& archive_out) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMotorLinearPosition::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkMotorLinearPosition>();
+    /*int version =*/archive_in.VersionRead<ChLinkMotorLinearPosition>();
 
     // deserialize parent class
     ChLinkMotorLinear::ArchiveIn(archive_in);

@@ -43,7 +43,6 @@ ChBody::ChBody()
       Xtorque(VNULL),
       Force_acc(VNULL),
       Torque_acc(VNULL) {
-
     marklist.clear();
     forcelist.clear();
 
@@ -66,7 +65,6 @@ ChBody::ChBody(const ChBody& other) : ChPhysicsItem(other), ChBodyFrame(other) {
     is_sleeping = other.is_sleeping;
     allow_sleeping = other.allow_sleeping;
     candidate_sleeping = other.candidate_sleeping;
-
 
     variables = other.variables;
     variables.SetUserData((void*)this);
@@ -413,7 +411,7 @@ bool ChBody::TrySleeping() {
         if ((GetPosDt().LengthInf() < sleep_minspeed) && (2.0 * GetRotDt().LengthInf() < sleep_minwvel)) {
             if ((GetChTime() - sleep_starttime) > sleep_time) {
                 candidate_sleeping = true;
-                return true;                           // could go to sleep!
+                return true;  // could go to sleep!
             }
         } else {
             sleep_starttime = float(GetChTime());

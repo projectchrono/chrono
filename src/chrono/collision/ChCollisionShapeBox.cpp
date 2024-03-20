@@ -20,7 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChCollisionShapeBox)
 CH_UPCASTING(ChCollisionShapeBox, ChCollisionShape)
 
-ChCollisionShapeBox::ChCollisionShapeBox(): ChCollisionShape(Type::BOX) {}
+ChCollisionShapeBox::ChCollisionShapeBox() : ChCollisionShape(Type::BOX) {}
 
 ChCollisionShapeBox::ChCollisionShapeBox(std::shared_ptr<ChContactMaterial> material,
                                          double length_x,

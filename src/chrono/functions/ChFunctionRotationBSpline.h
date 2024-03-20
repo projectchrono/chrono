@@ -28,8 +28,8 @@ namespace chrono {
 /// For higher orders, this operates as in the paper  "A C^2-continuous B-spline quaternion curve interpolating
 /// a given sequence of solid orientations", Myoung-Jun Kim, Myung-Soo Kim. 1995. DOI:10.1109/CA.1995.393545.
 /// Note, except for order 1 (linear) the rotation does not pass through control points,
-/// just like for positions in B-Spline, except for first and last point. Exact interpolation requires the 'inversion' of
-/// the control points (TODO).
+/// just like for positions in B-Spline, except for first and last point. Exact interpolation requires the 'inversion'
+/// of the control points (TODO).
 
 class ChApi ChFunctionRotationBSpline : public ChFunctionRotation {
   public:
@@ -40,7 +40,7 @@ class ChApi ChFunctionRotationBSpline : public ChFunctionRotation {
     /// copied. If the knots are not provided, a uniformly spaced knot vector is made.
     ChFunctionRotationBSpline(
         int morder,  ///< order p: 1= linear, 2=quadratic, etc.
-        const std::vector<ChQuaternion<> >&
+        const std::vector<ChQuaternion<>>&
             mrotations,                ///< control points, size n. Each is a rotation. Required: at least n >= p+1
         ChVectorDynamic<>* mknots = 0  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
     );
@@ -72,8 +72,8 @@ class ChApi ChFunctionRotationBSpline : public ChFunctionRotation {
     /// Initial easy setup from a given array of rotations (quaternion spline control points). Input data is copied.
     /// If the knots are not provided, a uniformly spaced knot vector is made.
     virtual void Setup(
-        int morder,                                      ///< order p: 1= linear, 2=quadratic, etc.
-        const std::vector<ChQuaternion<> >& mrotations,  ///< rotations, size n. Required: at least n >= p+1
+        int morder,                                     ///< order p: 1= linear, 2=quadratic, etc.
+        const std::vector<ChQuaternion<>>& mrotations,  ///< rotations, size n. Required: at least n >= p+1
         ChVectorDynamic<>* mknots = 0  ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
     );
 
@@ -114,7 +114,7 @@ class ChApi ChFunctionRotationBSpline : public ChFunctionRotation {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    std::vector<ChQuaternion<> > rotations;
+    std::vector<ChQuaternion<>> rotations;
     ChVectorDynamic<> knots;
     int p;
     bool closed;

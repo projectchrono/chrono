@@ -50,8 +50,8 @@ void ChVisualShapePointPoint::Update(ChPhysicsItem* updater, const ChFrame<>& fr
 
 // Set line geometry as a segment between two end point
 void ChVisualShapeSegment::UpdateLineGeometry(const ChVector3d& endpoint1, const ChVector3d& endpoint2) {
-    this->SetLineGeometry(std::static_pointer_cast<ChLine>(
-        chrono_types::make_shared<ChLineSegment>(endpoint1, endpoint2)));
+    this->SetLineGeometry(
+        std::static_pointer_cast<ChLine>(chrono_types::make_shared<ChLineSegment>(endpoint1, endpoint2)));
 };
 
 // Set line geometry as a coil between two end point

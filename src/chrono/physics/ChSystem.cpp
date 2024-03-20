@@ -1468,8 +1468,9 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
         constr_map[link->GetOffset_L()] = link;
     }
 
-    std::map<unsigned int, std::array<bool, 6>> constrnewmask_map;  // store the mask of ChLinkMate constraints (only if they are
-                                                           // ChLinkMate!) that have redundant equations
+    std::map<unsigned int, std::array<bool, 6>>
+        constrnewmask_map;  // store the mask of ChLinkMate constraints (only if they are
+                            // ChLinkMate!) that have redundant equations
     for (auto r_sel = 0; r_sel < redundant_constraints_idx.size(); ++r_sel) {
         // pick the constraint with redundant degrees of constraints
         auto constr_pair_mod = constr_map.upper_bound(redundant_constraints_idx[r_sel]);
@@ -1586,9 +1587,9 @@ bool ChSystem::AdvanceDynamics() {
     // Set some settings in timestepper object
     if (timestepper->GetType() == ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED) {
         timestepper->Qc_do_clamp = true;
-        timestepper->Qc_clamping = max_penetration_recovery_speed;      
+        timestepper->Qc_clamping = max_penetration_recovery_speed;
     } else {
-        timestepper->Qc_do_clamp = false;        
+        timestepper->Qc_do_clamp = false;
     }
 
     // Advance system state by one step
@@ -1672,8 +1673,8 @@ bool ChSystem::DoAssembly(int action, int max_num_iterations) {
     Update();
 
     // Overwrite solver parameters (only if iterative)
-    int new_max_iters = 300;     
-    double new_tolerance = 1e-10; 
+    int new_max_iters = 300;
+    double new_tolerance = 1e-10;
     int old_max_iters = 0;
     double old_tolerance = 0.0;
     if (solver->IsIterative()) {

@@ -206,7 +206,7 @@ void ChElementBeamIGA::SetIntegrationPoints(int npoints_s, int npoints_b) {
 
 // This class computes and adds corresponding masses to ElementGeneric member m_TotalMass
 void ChElementBeamIGA::ComputeNodalMass() {
-    for (auto i = 0;i<nodes.size();++i)
+    for (auto i = 0; i < nodes.size(); ++i)
         nodes[i]->m_TotalMass += this->mass / nodes.size();
 }
 
@@ -316,11 +316,13 @@ void ChElementBeamIGA::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor, d
             }
             // corotate the local damping and stiffness matrices (at once, already scaled) into absolute one
             // H.block<3, 3>(stride,   stride  ) += nodes[i]->GetRotMat() * KRi_loc.block<3, 3>(0,0) *
-            // (nodes[i]->GetRotMat().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(0,0) is null by construction
+            // (nodes[i]->GetRotMat().transpose()); // NOTE: not needed as KRi_loc.block<3, 3>(0,0) is null by
+            // construction
             H.block<3, 3>(stride + 3, stride + 3) += KRi_loc.block<3, 3>(3, 3);
             H.block<3, 3>(stride, stride + 3) += nodes[i]->GetRotMat() * KRi_loc.block<3, 3>(0, 3);
             // H.block<3, 3>(stride+3, stride)   +=                    KRi_loc.block<3, 3>(3,0) *
-            // (nodes[i]->GetRotMat().transpose());  // NOTE: not needed as KRi_loc.block<3, 3>(3,0) is null by construction
+            // (nodes[i]->GetRotMat().transpose());  // NOTE: not needed as KRi_loc.block<3, 3>(3,0) is null by
+            // construction
         }
     }
 
@@ -488,7 +490,7 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
         ChMatrixDynamic<> N(2, (int)nodes.size());  // row n.0 contains N, row n.1 contains dN/du
 
         ChBasisToolsBSpline::BasisEvaluateDeriv(this->order, nspan, u, knots,
-                                                          N);  ///< here return N and dN/du
+                                                N);  ///< here return N and dN/du
 
         // interpolate rotation of section at given u, to compute R.
         // Note: this is approximate.
@@ -619,8 +621,8 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
             Fi.segment(3 + i * 6, 3) += Torque_i.eigen();
         }
 
-        // std::cout << "     gp n." << ig <<   "  J=" << this->Jacobian[ig] << "   strain_e= " << strain_e << std::endl;
-        // std::cout << "                    stress_n= " << stress_n << std::endl;
+        // std::cout << "     gp n." << ig <<   "  J=" << this->Jacobian[ig] << "   strain_e= " << strain_e <<
+        // std::endl; std::cout << "                    stress_n= " << stress_n << std::endl;
     }
 
     // Add also inertial quadratic terms: gyroscopic and centrifugal
@@ -653,7 +655,7 @@ void ChElementBeamIGA::ComputeInternalForces_impl(ChVectorDynamic<>& Fi,
 
                 ChMatrixDynamic<> N(1, (int)nodes.size());  // row n.0 contains N, row n.1 contains dN/du
                 ChBasisToolsBSpline::BasisEvaluateDeriv(this->order, nspan, u, knots,
-                                                                  N);  ///< here return N and dN/du
+                                                        N);  ///< here return N and dN/du
 
                 // interpolate rotation of section at given u, to compute R.
                 // Note: this is approximate.
@@ -738,7 +740,7 @@ void ChElementBeamIGA::ComputeNF(const double U,
     ChMatrixDynamic<> N(2, (int)nodes.size());  // row n.0 contains N, row n.1 contains dN/du
 
     ChBasisToolsBSpline::BasisEvaluateDeriv(this->order, nspan, u, knots,
-                                                      N);  ///< h
+                                            N);  ///< h
 
     ChVector3d dr0;
     for (int i = 0; i < nodes.size(); ++i) {
@@ -810,7 +812,7 @@ void ChElementBeamIGA::SetupInitial(ChSystem* system) {
         ChMatrixDynamic<> N(2, (int)nodes.size());  // row n.0 contains N, row n.1 contains dN/du
 
         ChBasisToolsBSpline::BasisEvaluateDeriv(this->order, nspan, u, knots,
-                                                          N);  ///< here return N and dN/du
+                                                N);  ///< here return N and dN/du
 
         // compute reference spline gradient \dot{dr_0} = dr0/du
         ChVector3d dr0;
@@ -844,7 +846,7 @@ void ChElementBeamIGA::SetupInitial(ChSystem* system) {
         ChMatrixDynamic<> N(2, (int)nodes.size());  // row n.0 contains N, row n.1 contains dN/du
 
         ChBasisToolsBSpline::BasisEvaluateDeriv(this->order, nspan, u, knots,
-                                                          N);  ///< here return N and dN/du
+                                                N);  ///< here return N and dN/du
 
         // compute reference spline gradient \dot{dr_0} = dr0/du
         ChVector3d dr0;

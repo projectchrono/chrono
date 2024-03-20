@@ -111,7 +111,7 @@ void ChConvexHull2D::ComputeJarvis(const std::vector<ChVector2d>& points, size_t
     size_t crt = first;
     do {
         // Initialize next candidate.
-        // Attention: important to consider all points, so must start at 0, 
+        // Attention: important to consider all points, so must start at 0,
         //            but skip crt and any other point that was already added.
         size_t next = 0;
         while (next == crt || added[next])

@@ -32,11 +32,11 @@ class ChCoordsys {
 
   public:
     // Default constructor (identity frame).
-    ChCoordsys() : pos(ChVector3<Real>(0, 0, 0)), rot(ChQuaternion<Real>(1, 0, 0, 0)){}
+    ChCoordsys() : pos(ChVector3<Real>(0, 0, 0)), rot(ChQuaternion<Real>(1, 0, 0, 0)) {}
 
     // Construct from position and rotation (as quaternion).
     explicit ChCoordsys(const ChVector3<Real>& v, const ChQuaternion<Real>& q = ChQuaternion<Real>(1, 0, 0, 0))
-        : pos(v), rot(q){}
+        : pos(v), rot(q) {}
 
     // Construct from position v and rotation of angle alpha around unit vector u
     explicit ChCoordsys(const ChVector3<Real>& v, const Real alpha, const ChVector3<Real>& u) : pos(v) {
@@ -179,8 +179,8 @@ class ChCoordsys {
         this->rot = F.rot * this->rot;
     }
 
-    /// Apply a transformation (rotation and translation) represented by another coordinate system F in local coordinate.
-    /// This is equivalent to post-multiply this coordinate system by the other coordinate system F:
+    /// Apply a transformation (rotation and translation) represented by another coordinate system F in local
+    /// coordinate. This is equivalent to post-multiply this coordinate system by the other coordinate system F:
     ///    this'= this * F
     ///  or
     ///    this'= F >> this
@@ -195,17 +195,13 @@ class ChCoordsys {
     ChVector3<Real> TransformPointLocalToParent(const ChVector3<Real>& v) const { return pos + rot.Rotate(v); }
 
     /// Transforms a point from the parent coordinate system to local coordinate system.
-    ChVector3<Real> TransformPointParentToLocal(const ChVector3<Real>& v) const {
-        return rot.RotateBack(v - pos);
-    }
+    ChVector3<Real> TransformPointParentToLocal(const ChVector3<Real>& v) const { return rot.RotateBack(v - pos); }
 
     /// Transform a direction from the parent coordinate system to 'this' local coordinate system.
     ChVector3<Real> TransformDirectionLocalToParent(const ChVector3<Real>& d) const { return rot.Rotate(d); }
 
     /// Transforms a direction from 'this' local coordinate system to parent coordinate system.
-    ChVector3<Real> TransformDirectionParentToLocal(const ChVector3<Real>& d) const {
-        return rot.RotateBack(d);
-    }
+    ChVector3<Real> TransformDirectionParentToLocal(const ChVector3<Real>& d) const { return rot.RotateBack(d); }
 
     /// Transform a wrench from the local coordinate system to the parent coordinate system.
     ChWrench<Real> TransformWrenchLocalToParent(const ChWrench<Real>& w) const {

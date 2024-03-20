@@ -150,7 +150,7 @@ class ChApi ChShaftsGearbox : public ChPhysicsItem {
     virtual void ConstraintsFetch_react(double factor = 1) override;
 };
 
-CH_CLASS_VERSION(ChShaftsGearbox,0)
+CH_CLASS_VERSION(ChShaftsGearbox, 0)
 
 }  // end namespace chrono
 

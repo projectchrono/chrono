@@ -44,7 +44,7 @@ void ChCamera::ArchiveOut(ChArchiveOut& archive) {
 
 void ChCamera::ArchiveIn(ChArchiveIn& archive) {
     // version number
-    /*int version =*/ archive.VersionRead<ChCamera>();
+    /*int version =*/archive.VersionRead<ChCamera>();
     // stream in all member data:
     archive >> CHNVP(position);
     archive >> CHNVP(aimpoint);

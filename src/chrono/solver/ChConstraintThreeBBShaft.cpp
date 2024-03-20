@@ -202,7 +202,7 @@ void ChConstraintThreeBBShaft::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChConstraintThreeBBShaft::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChConstraintThreeBBShaft>();
+    /*int version =*/archive_in.VersionRead<ChConstraintThreeBBShaft>();
 
     // deserialize the parent class data too
     ChConstraintThree::ArchiveIn(archive_in);

@@ -81,9 +81,7 @@ class ChRandomParticlePositionRectangleOutlet : public ChRandomParticlePosition 
 /// scattered over a parametric surface
 class ChRandomParticlePositionOnGeometry : public ChRandomParticlePosition {
   public:
-    ChRandomParticlePositionOnGeometry() {
-        m_geometry = chrono_types::make_shared<ChBox>(ChVector3d(0.1, 0.1, 0.1));
-    }
+    ChRandomParticlePositionOnGeometry() { m_geometry = chrono_types::make_shared<ChBox>(ChVector3d(0.1, 0.1, 0.1)); }
 
     /// Function that creates a random position each
     /// time it is called.

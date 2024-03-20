@@ -20,7 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChCollisionShapeCapsule)
 CH_UPCASTING(ChCollisionShapeCapsule, ChCollisionShape)
 
-ChCollisionShapeCapsule::ChCollisionShapeCapsule(): ChCollisionShape(Type::CAPSULE) {}
+ChCollisionShapeCapsule::ChCollisionShapeCapsule() : ChCollisionShape(Type::CAPSULE) {}
 
 ChCollisionShapeCapsule::ChCollisionShapeCapsule(std::shared_ptr<ChContactMaterial> material,
                                                  double radius,
@@ -30,8 +30,7 @@ ChCollisionShapeCapsule::ChCollisionShapeCapsule(std::shared_ptr<ChContactMateri
     gcapsule.h = height;
 }
 
-ChCollisionShapeCapsule::ChCollisionShapeCapsule(std::shared_ptr<ChContactMaterial> material,
-                                                 const ChCapsule& cap)
+ChCollisionShapeCapsule::ChCollisionShapeCapsule(std::shared_ptr<ChContactMaterial> material, const ChCapsule& cap)
     : ChCollisionShape(Type::CAPSULE, material), gcapsule(cap) {}
 
 void ChCollisionShapeCapsule::ArchiveOut(ChArchiveOut& archive_out) {

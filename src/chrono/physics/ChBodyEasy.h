@@ -110,7 +110,7 @@ class ChApi ChBodyEasyCylinder : public ChBody {
     /// Create a rigid body with optional cylinder visualization and/or collision shape.
     /// The cylinder is created along the specified axis and centered at the center of mass.
     /// Mass and inertia are set automatically depending on density.
-    ChBodyEasyCylinder(ChAxis direction,                            ///< cylinder direction
+    ChBodyEasyCylinder(ChAxis direction,                                      ///< cylinder direction
                        double radius,                                         ///< radius of the cylinder
                        double height,                                         ///< height of the cylinder
                        double density,                                        ///< density of the body
@@ -122,7 +122,7 @@ class ChApi ChBodyEasyCylinder : public ChBody {
     /// Create a rigid body with a cylinder visualization and collision shape.
     /// The cylinder is created along the specified axis and centered at the center of mass.
     /// Mass and inertia are set automatically depending on density.
-    ChBodyEasyCylinder(ChAxis direction,                  ///< cylinder direction
+    ChBodyEasyCylinder(ChAxis direction,                            ///< cylinder direction
                        double radius,                               ///< radius of the cylinder
                        double height,                               ///< height of the cylinder
                        double density,                              ///< density of the body
@@ -299,10 +299,10 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
     /// The mesh is defined with respect to the body reference frame. Mass and inertia are set automatically depending
     /// on density.
     ChBodyEasyMesh(std::shared_ptr<ChTriangleMeshConnected> mesh,  ///< triangular mesh
-                   double density,                                           ///< density of the body
-                   bool compute_mass = true,  ///< automatic evaluation of inertia properties
-                   bool visualize = true,     ///< create visualization asset
-                   bool collide = false,      ///< enable collision
+                   double density,                                 ///< density of the body
+                   bool compute_mass = true,                       ///< automatic evaluation of inertia properties
+                   bool visualize = true,                          ///< create visualization asset
+                   bool collide = false,                           ///< enable collision
                    std::shared_ptr<ChContactMaterial> material = nullptr,  ///< surface contact material
                    double sphere_swept = 0.001  ///< thickness (collision detection robustness)
     );
@@ -320,9 +320,9 @@ class ChApi ChBodyEasyMesh : public ChBodyAuxRef {
     /// The mesh is defined with respect to the body reference frame. Mass and inertia are set automatically depending
     /// on density.
     ChBodyEasyMesh(std::shared_ptr<ChTriangleMeshConnected> mesh,  ///< triangular mesh
-                   double density,                                           ///< density of the body
-                   std::shared_ptr<ChContactMaterial> material,              ///< surface contact material
-                   double sphere_swept  ///< thickness (collision detection robustness)
+                   double density,                                 ///< density of the body
+                   std::shared_ptr<ChContactMaterial> material,    ///< surface contact material
+                   double sphere_swept                             ///< thickness (collision detection robustness)
     );
 
     /// Deserialization for non-default constructor classes.

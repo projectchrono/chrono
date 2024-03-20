@@ -43,7 +43,7 @@ void ChVisualShapeSphere::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChVisualShapeSphere::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChVisualShapeSphere>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapeSphere>();
     // deserialize parent class
     ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:

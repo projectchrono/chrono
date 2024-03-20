@@ -39,7 +39,7 @@ ChLinkLockTrajectory::ChLinkLockTrajectory() : modulo_s(false) {
 }
 
 ChLinkLockTrajectory::ChLinkLockTrajectory(const ChLinkLockTrajectory& other) : ChLinkLockLock(other) {
-    space_fx = std::shared_ptr<ChFunction>(other.space_fx->Clone());            // deep copy
+    space_fx = std::shared_ptr<ChFunction>(other.space_fx->Clone());                     // deep copy
     trajectory_line = std::shared_ptr<ChLine>((ChLine*)other.trajectory_line->Clone());  // deep copy
 }
 
@@ -91,9 +91,9 @@ void ChLinkLockTrajectory::UpdateTime(double time) {
 }
 
 void ChLinkLockTrajectory::Initialize(std::shared_ptr<ChBody> body1,
-                                  std::shared_ptr<ChBody> body2,
-                                  const ChVector3d& pos1,
-                                  std::shared_ptr<ChLine> line) {
+                                      std::shared_ptr<ChBody> body2,
+                                      const ChVector3d& pos1,
+                                      std::shared_ptr<ChLine> line) {
     ChLinkMarkers::Initialize(body1, body2, true, ChFrame<>(pos1), ChFrame<>());
     this->SetTrajectory(line);
 }
@@ -113,7 +113,7 @@ void ChLinkLockTrajectory::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChLinkLockTrajectory::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkLockTrajectory>();
+    /*int version =*/archive_in.VersionRead<ChLinkLockTrajectory>();
 
     // deserialize parent class
     ChLinkLockLock::ArchiveIn(archive_in);

@@ -20,7 +20,6 @@
 
 namespace chrono {
 
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChTriangleMeshSoup)
 
@@ -94,12 +93,11 @@ void ChTriangleMeshSoup::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChTriangleMeshSoup::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChTriangleMeshSoup>();
+    /*int version =*/archive_in.VersionRead<ChTriangleMeshSoup>();
     // deserialize parent class
     ChTriangleMesh::ArchiveIn(archive_in);
     // stream in all member data:
     archive_in >> CHNVP(m_triangles);
 }
-
 
 }  // end namespace chrono

@@ -17,7 +17,6 @@
 
 namespace chrono {
 
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChPropertyScalar)
 CH_FACTORY_REGISTER(ChPropertyColor)
@@ -32,6 +31,5 @@ void ChProperty::ArchiveOut(ChArchiveOut& archive_out) {
 void ChProperty::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(name);
 }
-
 
 }  // end namespace chrono

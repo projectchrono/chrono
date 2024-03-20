@@ -166,7 +166,7 @@ class ChApi ChLinkRevoluteSpherical : public ChLink {
     virtual void ConstraintsFetch_react(double factor = 1) override;
 };
 
-CH_CLASS_VERSION(ChLinkRevoluteSpherical,0)
+CH_CLASS_VERSION(ChLinkRevoluteSpherical, 0)
 
 }  // end namespace chrono
 

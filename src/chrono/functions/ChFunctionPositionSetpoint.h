@@ -27,13 +27,13 @@ namespace chrono {
 /// You must keep the setpoint p updated via multiple
 /// calls to SetSetpoint(), for example calling SetSetpoint()
 /// at each timestep in the simulation loop.
-/// It is assumed that one will later evaluate GetPos(), GetLinVel() etc. in close vicinity of the setpoint (old setpoints
-/// are not saved), preferably ecactly at the same s, but in vicinity of s there will be extrapolation (after last s)
-/// and interpolation (before last s) according to: If in ZERO_ORDER_HOLD mode: value p will persist indefinitely until
-/// next call, derivative p_ds and p_dsds will be zero. If in FIRST_ORDER_HOLD mode: value p will interpolate linearly
-/// from the previous value, derivative p_ds will be constant, p_dsds will be zero. If in SOH mode: value p will
-/// interpolate quadratically, derivative p_ds will be linear, p_dsds will be constant. Default: uses FIRST_ORDER_HOLD
-/// mode. Use SetMode() to change it.
+/// It is assumed that one will later evaluate GetPos(), GetLinVel() etc. in close vicinity of the setpoint (old
+/// setpoints are not saved), preferably ecactly at the same s, but in vicinity of s there will be extrapolation (after
+/// last s) and interpolation (before last s) according to: If in ZERO_ORDER_HOLD mode: value p will persist
+/// indefinitely until next call, derivative p_ds and p_dsds will be zero. If in FIRST_ORDER_HOLD mode: value p will
+/// interpolate linearly from the previous value, derivative p_ds will be constant, p_dsds will be zero. If in SOH mode:
+/// value p will interpolate quadratically, derivative p_ds will be linear, p_dsds will be constant. Default: uses
+/// FIRST_ORDER_HOLD mode. Use SetMode() to change it.
 
 class ChApi ChFunctionPositionSetpoint : public ChFunctionPosition {
   public:

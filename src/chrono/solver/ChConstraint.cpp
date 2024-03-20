@@ -100,7 +100,7 @@ void ChConstraint::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChConstraint::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChConstraint>();
+    /*int version =*/archive_in.VersionRead<ChConstraint>();
 
     // stream in all member data:
     archive_in >> CHNVP(cfm_i);
@@ -111,7 +111,6 @@ void ChConstraint::ArchiveIn(ChArchiveIn& archive_in) {
     eChConstraintMode_mapper typemapper;
     archive_in >> CHNVP(typemapper(this->mode), "mode");
     UpdateActiveFlag();
-
 }
 
 }  // end namespace chrono

@@ -151,7 +151,6 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Get the number of bodies fixed to ground.
     unsigned int GetNumBodiesFixed() const { return m_num_bodies_fixed; }
 
-
     /// Get the number of shafts.
     unsigned int GetNumShafts() const { return m_num_shafts; }
 
@@ -164,13 +163,11 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Get the total number of shafts added to the assembly, including the grounded and sleeping shafts.
     unsigned int GetNumShaftsTotal() const { return m_num_shafts + m_num_shafts_fixed + m_num_shafts_sleep; }
 
-
     /// Get the number of links (including non active).
     unsigned int GetNumLinks() const { return (unsigned int)linklist.size(); }
 
     /// Get the number of active links.
     unsigned int GetNumLinksActive() const { return m_num_links_active; }
-
 
     /// Get the number of meshes.
     unsigned int GetNumMeshes() const { return m_num_meshes; }
@@ -181,9 +178,9 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Get the number of other active physics items.
     unsigned int GetNumOtherPhysicsItemsActive() const { return m_num_otherphysicsitems_active; }
 
-
     /// Get the number of scalar coordinates at the position level.
-    /// This count includes the 4th dimension of quaternions (if any), thus potentially differing from GetNumCoordsVelLevel().
+    /// This count includes the 4th dimension of quaternions (if any), thus potentially differing from
+    /// GetNumCoordsVelLevel().
     virtual unsigned int GetNumCoordsPosLevel() override { return m_num_coords_pos; }
 
     /// Get the number of scalar coordinates at the velocity level.
@@ -340,14 +337,14 @@ class ChApi ChAssembly : public ChPhysicsItem {
     std::vector<std::shared_ptr<ChPhysicsItem>> batch_to_insert;   ///< list of items to insert at once
 
     // Statistics:
-    int m_num_bodies_active;      ///< number of active bodies
-    int m_num_bodies_sleep;       ///< number of sleeping bodies
-    int m_num_bodies_fixed;       ///< number of fixed bodies
-    int m_num_shafts;             ///< number of active shafts
-    int m_num_shafts_sleep;       ///< number of sleeping shafts
-    int m_num_shafts_fixed;       ///< number of fixed shafts
-    int m_num_links_active;       ///< number of active links
-    int m_num_meshes;             ///< number of meshes
+    int m_num_bodies_active;             ///< number of active bodies
+    int m_num_bodies_sleep;              ///< number of sleeping bodies
+    int m_num_bodies_fixed;              ///< number of fixed bodies
+    int m_num_shafts;                    ///< number of active shafts
+    int m_num_shafts_sleep;              ///< number of sleeping shafts
+    int m_num_shafts_fixed;              ///< number of fixed shafts
+    int m_num_links_active;              ///< number of active links
+    int m_num_meshes;                    ///< number of meshes
     int m_num_otherphysicsitems_active;  ///< number of other active physics items
 
     int m_num_coords_pos;  ///< number of scalar coordinates (including 4th dimension of quaternions) for all active

@@ -45,7 +45,8 @@ class ChApi ChFunctionPoly : public ChFunction {
     /// The order of the polynome is equal to the size of the provided vector of coefficients
     void SetCoefficients(const std::vector<double>& coeffs) {
         if (coeffs.size() < 1)
-            throw std::invalid_argument("ChFunctionPoly::SetCoefficients: coefficients vector should have at least one element.");
+            throw std::invalid_argument(
+                "ChFunctionPoly::SetCoefficients: coefficients vector should have at least one element.");
 
         m_coeffs = coeffs;
     }

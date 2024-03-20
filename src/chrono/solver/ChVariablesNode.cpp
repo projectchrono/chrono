@@ -113,7 +113,7 @@ void ChVariablesNode::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChVariablesNode::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChVariablesNode>();
+    /*int version =*/archive_in.VersionRead<ChVariablesNode>();
     // deserialize parent class
     ChVariables::ArchiveIn(archive_in);
     // stream in all member data:

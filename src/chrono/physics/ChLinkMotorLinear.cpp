@@ -47,7 +47,6 @@ void ChLinkMotorLinear::SetGuideConstraint(bool mc_x, bool mc_y, bool mc_rx, boo
     SetupLinkMask();
 
     m_actuated_idx = (int)c_x + (int)c_y;
-
 }
 
 void ChLinkMotorLinear::SetGuideConstraint(const GuideConstraint mconstraint) {
@@ -77,7 +76,6 @@ void ChLinkMotorLinear::SetGuideConstraint(const GuideConstraint mconstraint) {
     }
 
     m_actuated_idx = (int)c_x + (int)c_y;
-
 }
 
 void ChLinkMotorLinear::Update(double mytime, bool update_assets) {
@@ -111,7 +109,7 @@ void ChLinkMotorLinear::ArchiveOut(ChArchiveOut& archive_out) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMotorLinear::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkMotorLinear>();
+    /*int version =*/archive_in.VersionRead<ChLinkMotorLinear>();
 
     // deserialize parent class
     ChLinkMotor::ArchiveIn(archive_in);

@@ -51,13 +51,13 @@ class ChApi ChConstraintTwo : public ChConstraint {
 
     /// Access auxiliary vector (ex: used by iterative solvers).
     virtual ChVectorRef Get_Eq_a() = 0;
-    
+
     /// Access auxiliary vector (ex: used by iterative solvers).
     virtual ChVectorRef Get_Eq_b() = 0;
 
     /// Access the first variable object.
     ChVariables* GetVariables_a() { return variables_a; }
-    
+
     /// Access the second variable object.
     ChVariables* GetVariables_b() { return variables_b; }
 

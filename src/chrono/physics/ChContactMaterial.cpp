@@ -29,11 +29,7 @@ CH_FACTORY_REGISTER(ChContactMaterialCompositionStrategy);
 // -----------------------------------------------------------------------------
 
 ChContactMaterial::ChContactMaterial()
-    : static_friction(0.6f),
-      sliding_friction(0.6f),
-      rolling_friction(0),
-      spinning_friction(0),
-      restitution(0.4f) {}
+    : static_friction(0.6f), sliding_friction(0.6f), rolling_friction(0), spinning_friction(0), restitution(0.4f) {}
 
 ChContactMaterial::ChContactMaterial(const ChContactMaterial& other) {
     static_friction = other.static_friction;
@@ -62,7 +58,7 @@ void ChContactMaterial::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChContactMaterial::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChContactMaterial>();
+    /*int version =*/archive_in.VersionRead<ChContactMaterial>();
 
     // stream in all member data:
     archive_in >> CHNVP(static_friction);
@@ -146,8 +142,6 @@ void ChContactMaterialData::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(gt);
 }
 
-
-
 void ChContactMaterialComposite::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out.VersionWrite<ChContactMaterialComposite>();
 }
@@ -155,7 +149,6 @@ void ChContactMaterialComposite::ArchiveOut(ChArchiveOut& archive_out) {
 void ChContactMaterialComposite::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in.VersionRead<ChContactMaterialComposite>();
 }
-
 
 void ChContactMaterialCompositionStrategy::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out.VersionWrite<ChContactMaterialCompositionStrategy>();

@@ -51,9 +51,9 @@ class ChApi ChLoadContainer : public ChPhysicsItem {
                                    ) override;
 
     virtual void IntLoadResidual_Mv(const unsigned int off,      ///< offset in R residual
-                                   ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
-                                   const ChVectorDynamic<>& w,  ///< the w vector
-                                   const double c               ///< a scaling factor
+                                    ChVectorDynamic<>& R,        ///< result: the R residual, R += c*M*v
+                                    const ChVectorDynamic<>& w,  ///< the w vector
+                                    const double c               ///< a scaling factor
                                     ) override;
     virtual void IntLoadLumpedMass_Md(const unsigned int off,  ///< offset in Md vector
                                       ChVectorDynamic<>& Md,  ///< result: Md vector, diagonal of the lumped mass matrix
@@ -86,7 +86,7 @@ class ChApi ChLoadContainer : public ChPhysicsItem {
     std::vector<std::shared_ptr<ChLoadBase> > loadlist;
 };
 
-CH_CLASS_VERSION(ChLoadContainer,0)
+CH_CLASS_VERSION(ChLoadContainer, 0)
 
 }  // end namespace chrono
 

@@ -147,7 +147,7 @@ void ChConstraintNgeneric::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChConstraintNgeneric::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChConstraintNgeneric>();
+    /*int version =*/archive_in.VersionRead<ChConstraintNgeneric>();
 
     // deserialize the parent class data too
     ChConstraint::ArchiveIn(archive_in);

@@ -20,7 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChCollisionShapeEllipsoid)
 CH_UPCASTING(ChCollisionShapeEllipsoid, ChCollisionShape)
 
-ChCollisionShapeEllipsoid::ChCollisionShapeEllipsoid(): ChCollisionShape(Type::ELLIPSOID) {}
+ChCollisionShapeEllipsoid::ChCollisionShapeEllipsoid() : ChCollisionShape(Type::ELLIPSOID) {}
 
 ChCollisionShapeEllipsoid::ChCollisionShapeEllipsoid(std::shared_ptr<ChContactMaterial> material,
                                                      double axis_x,

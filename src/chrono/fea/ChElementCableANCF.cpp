@@ -426,9 +426,9 @@ void ChElementCableANCF::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfactor,
 // Computes the internal forces and set values in the Fi vector.
 // (e.g. the actual position of nodes is not in relaxed reference position).
 void ChElementCableANCF::ComputeInternalForces(ChVectorDynamic<>& Fi) {
-    ComputeInternalForces_Impl(m_nodes[0]->GetPos(), m_nodes[0]->GetSlope1(), m_nodes[1]->GetPos(), m_nodes[1]->GetSlope1(),
-                               m_nodes[0]->GetPosDt(), m_nodes[0]->GetSlope1Dt(), m_nodes[1]->GetPosDt(),
-                               m_nodes[1]->GetSlope1Dt(), Fi);
+    ComputeInternalForces_Impl(m_nodes[0]->GetPos(), m_nodes[0]->GetSlope1(), m_nodes[1]->GetPos(),
+                               m_nodes[1]->GetSlope1(), m_nodes[0]->GetPosDt(), m_nodes[0]->GetSlope1Dt(),
+                               m_nodes[1]->GetPosDt(), m_nodes[1]->GetSlope1Dt(), Fi);
 }
 
 // Worker function for computing the internal forces.

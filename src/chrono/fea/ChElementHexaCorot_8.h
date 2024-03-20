@@ -80,8 +80,8 @@ class ChApi ChElementHexaCorot_8 : public ChElementHexahedron,
     void ShapeFunctions(ShapeVector& N, double z0, double z1, double z2);
 
     /// Fills the D vector (displacement) with the current field values at the nodes of the element, with proper
-    /// ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized. For corotational elements,
-    /// field is assumed in local reference!
+    /// ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized. For corotational
+    /// elements, field is assumed in local reference!
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
     /// Puts inside 'Jacobian' and 'J1' the Jacobian matrix and the shape functions derivatives matrix of the element.
@@ -176,7 +176,9 @@ class ChApi ChElementHexaCorot_8 : public ChElementHexahedron,
     virtual unsigned int GetNumSubBlocks() override { return 8; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return nodes[nblock]->NodeGetOffsetVelLevel(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return nodes[nblock]->NodeGetOffsetVelLevel();
+    }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 3; }

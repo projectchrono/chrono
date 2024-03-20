@@ -152,7 +152,7 @@ void ChVariablesBodyOwnMass::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChVariablesBodyOwnMass::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChVariablesBodyOwnMass>();
+    /*int version =*/archive_in.VersionRead<ChVariablesBodyOwnMass>();
     // deserialize parent class
     ChVariablesBody::ArchiveIn(archive_in);
     // stream in all member data:

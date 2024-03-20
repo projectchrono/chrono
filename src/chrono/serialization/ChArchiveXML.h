@@ -20,9 +20,7 @@
 #include <fstream>
 #include <stack>
 
-
 #include "chrono_thirdparty/rapidxml/rapidxml.hpp"
-
 
 namespace chrono {
 
@@ -47,7 +45,6 @@ class ChApi ChArchiveOutXML : public ChArchiveOut {
     virtual void out(ChNameValue<char> bVal);
     virtual void out(ChNameValue<const char*> bVal);
     virtual void out(ChNameValue<std::string> bVal);
-
 
     virtual void out_array_pre(ChValue& bVal, size_t msize);
     virtual void out_array_between(ChValue& bVal, size_t msize);

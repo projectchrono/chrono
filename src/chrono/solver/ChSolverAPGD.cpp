@@ -41,7 +41,7 @@ void ChSolverAPGD::SchurBvectorCompute(ChSystemDescriptor& sysd) {
     for (unsigned int iv = 0; iv < sysd.GetVariables().size(); iv++)
         if (sysd.GetVariables()[iv]->IsActive())
             sysd.GetVariables()[iv]->Compute_invMb_v(sysd.GetVariables()[iv]->Get_qb(),
-                                                         sysd.GetVariables()[iv]->Get_fb());  // q = [M]'*fb
+                                                     sysd.GetVariables()[iv]->Get_fb());  // q = [M]'*fb
 
     // ...and now do  b_schur = - D'*q = - D'*(M^-1)*k ..
     r.setZero();

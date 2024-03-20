@@ -43,15 +43,14 @@ class ChApi ChLoadable {
     /// Gets all the DOFs packed in a single vector (speed part)
     virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) = 0;
 
-    /// Increment all DOFs using a delta. Default is sum, but may override if 
+    /// Increment all DOFs using a delta. Default is sum, but may override if
     /// ndof_x is different than ndof_w, for example with rotation quaternions and angular w vel.
     /// This could be invoked, for example, by the BDF differentiation that computes the jacobians.
     virtual void LoadableStateIncrement(const unsigned int off_x,
-                                   ChState& x_new,
-                                   const ChState& x,
-                                   const unsigned int off_v,
-                                   const ChStateDelta& Dv) = 0;
-
+                                        ChState& x_new,
+                                        const ChState& x,
+                                        const unsigned int off_v,
+                                        const ChStateDelta& Dv) = 0;
 
     /// Number of coordinates in the interpolated field (e.g., 3 for a tetrahedron, 1 for a thermal problem, etc.).
     virtual unsigned int GetNumFieldCoords() = 0;
@@ -81,9 +80,9 @@ class ChApi ChLoadableUVW : virtual public ChLoadable {
     virtual ~ChLoadableUVW() {}
 
     /// Evaluate N'*F , where N is some type of shape function
-    /// evaluated at U,V,W coordinates of the volume, each ranging in [-1..+1], except if IsTetrahedronIntegrationNeeded() true or IsTrianglePrismIntegrationNeeded() true.
-    /// F is a load, N'*F is the resulting generalized load
-    /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+    /// evaluated at U,V,W coordinates of the volume, each ranging in [-1..+1], except if
+    /// IsTetrahedronIntegrationNeeded() true or IsTrianglePrismIntegrationNeeded() true. F is a load, N'*F is the
+    /// resulting generalized load Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
     virtual void ComputeNF(const double U,              ///< parametric coordinate in volume
                            const double V,              ///< parametric coordinate in volume
                            const double W,              ///< parametric coordinate in volume
@@ -102,10 +101,10 @@ class ChApi ChLoadableUVW : virtual public ChLoadable {
     /// otherwise use default quadrature over u,v,w in [-1..+1] as box isoparametric coords.
     virtual bool IsTetrahedronIntegrationNeeded() { return false; }
 
-	/// If true, use quadrature over u,v  in [0..1] range as triangle natural coords (with z=1-u-v), and use linear quadrature over w in [-1..+1],
-    /// otherwise use default quadrature over u,v,w in [-1..+1] as box isoparametric coords.
+    /// If true, use quadrature over u,v  in [0..1] range as triangle natural coords (with z=1-u-v), and use linear
+    /// quadrature over w in [-1..+1], otherwise use default quadrature over u,v,w in [-1..+1] as box isoparametric
+    /// coords.
     virtual bool IsTrianglePrismIntegrationNeeded() { return false; }
-
 };
 
 /// Interface for objects that can be subject to area loads,
@@ -117,9 +116,9 @@ class ChApi ChLoadableUV : virtual public ChLoadable {
     virtual ~ChLoadableUV() {}
 
     /// Evaluate N'*F , where N is some type of shape function
-    /// evaluated at U,V coordinates of the surface, each ranging in [-1..+1], except if IsTriangleIntegrationNeeded() true.
-    /// F is a load, N'*F is the resulting generalized load
-    /// Returns also det[J] with J=[dx/du,..], that might be useful in gauss quadrature.
+    /// evaluated at U,V coordinates of the surface, each ranging in [-1..+1], except if IsTriangleIntegrationNeeded()
+    /// true. F is a load, N'*F is the resulting generalized load Returns also det[J] with J=[dx/du,..], that might be
+    /// useful in gauss quadrature.
     virtual void ComputeNF(const double U,              ///< parametric coordinate in surface
                            const double V,              ///< parametric coordinate in surface
                            ChVectorDynamic<>& Qi,       ///< Return result of N'*F  here

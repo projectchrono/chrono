@@ -178,7 +178,7 @@ ChLoadXYZROTnodeXYZROTnodeBushingSpherical::ChLoadXYZROTnodeXYZROTnodeBushingSph
 void ChLoadXYZROTnodeXYZROTnodeBushingSpherical::ComputeForceTorque(const ChFrameMoving<>& rel_AB,
                                                                     ChVector3d& loc_force,
                                                                     ChVector3d& loc_torque) {
-    loc_force = rel_AB.GetPos() * stiffness      // element-wise product!
+    loc_force = rel_AB.GetPos() * stiffness     // element-wise product!
                 + rel_AB.GetPosDt() * damping;  // element-wise product!
     loc_torque = VNULL;
 }
@@ -202,7 +202,7 @@ void ChLoadXYZROTnodeXYZROTnodeBushingPlastic::ComputeForceTorque(const ChFrameM
                                                                   ChVector3d& loc_force,
                                                                   ChVector3d& loc_torque) {
     loc_force = (rel_AB.GetPos() - plastic_def) * stiffness  // element-wise product!
-                + rel_AB.GetPosDt() * damping;              // element-wise product!
+                + rel_AB.GetPosDt() * damping;               // element-wise product!
 
     // A basic plasticity, assumed with box capping, without hardening:
 
@@ -270,7 +270,7 @@ void ChLoadXYZROTnodeXYZROTnodeBushingMate::ComputeForceTorque(const ChFrameMovi
         angle_rot += CH_2PI;
     ChVector3d vect_rot = dir_rot * angle_rot;
 
-    loc_torque = vect_rot * rot_stiffness               // element-wise product!
+    loc_torque = vect_rot * rot_stiffness                   // element-wise product!
                  + rel_AB.GetAngVelParent() * rot_damping;  // element-wise product!
 }
 
@@ -398,7 +398,7 @@ ChLoadXYZROTnodeBodyBushingSpherical::ChLoadXYZROTnodeBodyBushingSpherical(std::
 void ChLoadXYZROTnodeBodyBushingSpherical::ComputeForceTorque(const ChFrameMoving<>& rel_AB,
                                                               ChVector3d& loc_force,
                                                               ChVector3d& loc_torque) {
-    loc_force = rel_AB.GetPos() * stiffness      // element-wise product!
+    loc_force = rel_AB.GetPos() * stiffness     // element-wise product!
                 + rel_AB.GetPosDt() * damping;  // element-wise product!
     loc_torque = VNULL;
 }
@@ -421,7 +421,7 @@ void ChLoadXYZROTnodeBodyBushingPlastic::ComputeForceTorque(const ChFrameMoving<
                                                             ChVector3d& loc_force,
                                                             ChVector3d& loc_torque) {
     loc_force = (rel_AB.GetPos() - plastic_def) * stiffness  // element-wise product!
-                + rel_AB.GetPosDt() * damping;              // element-wise product!
+                + rel_AB.GetPosDt() * damping;               // element-wise product!
 
     // A basic plasticity, assumed with box capping, without hardening:
 
@@ -488,7 +488,7 @@ void ChLoadXYZROTnodeBodyBushingMate::ComputeForceTorque(const ChFrameMoving<>& 
         angle_rot += CH_2PI;
     ChVector3d vect_rot = dir_rot * angle_rot;
 
-    loc_torque = vect_rot * rot_stiffness               // element-wise product!
+    loc_torque = vect_rot * rot_stiffness                   // element-wise product!
                  + rel_AB.GetAngVelParent() * rot_damping;  // element-wise product!
 }
 

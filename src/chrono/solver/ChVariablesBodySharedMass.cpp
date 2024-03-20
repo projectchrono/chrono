@@ -44,7 +44,7 @@ void ChSharedMassBody::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChSharedMassBody::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChSharedMassBody>();
+    /*int version =*/archive_in.VersionRead<ChSharedMassBody>();
 
     // stream in all member data:
     archive_in >> CHNVP(mass);
@@ -180,7 +180,7 @@ void ChVariablesBodySharedMass::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChVariablesBodySharedMass::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChVariablesBodySharedMass>();
+    /*int version =*/archive_in.VersionRead<ChVariablesBodySharedMass>();
     // deserialize parent class
     ChVariablesBody::ArchiveIn(archive_in);
     // stream in all member data:

@@ -687,7 +687,7 @@ inline void ChVector2<Real>::ArchiveOut(ChArchiveOut& archive_out) {
 template <class Real>
 inline void ChVector2<Real>::ArchiveIn(ChArchiveIn& archive_in) {
     // suggested: use versioning
-    /*int version =*/ archive_in.VersionRead<ChVector2<double>>();  // must use specialized template (any)
+    /*int version =*/archive_in.VersionRead<ChVector2<double>>();  // must use specialized template (any)
     // stream in all member m_data
     archive_in >> CHNVP(m_data[0], "x");
     archive_in >> CHNVP(m_data[1], "y");

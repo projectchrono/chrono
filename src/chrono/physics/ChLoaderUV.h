@@ -88,9 +88,12 @@ class ChLoaderUVdistributed : public ChLoaderUV {
         } else {
             // case of triangle: use special 3d quadrature tables (given U,V,W orders, use the U only)
             assert(GetIntegrationPointsU() <= ChQuadrature::GetStaticTablesTriangle()->Weight.size());
-            const std::vector<double>& Ulroots = ChQuadrature::GetStaticTablesTriangle()->LrootsU[GetIntegrationPointsU() - 1];
-            const std::vector<double>& Vlroots = ChQuadrature::GetStaticTablesTriangle()->LrootsV[GetIntegrationPointsU() - 1];
-            const std::vector<double>& weight = ChQuadrature::GetStaticTablesTriangle()->Weight[GetIntegrationPointsU() - 1];
+            const std::vector<double>& Ulroots =
+                ChQuadrature::GetStaticTablesTriangle()->LrootsU[GetIntegrationPointsU() - 1];
+            const std::vector<double>& Vlroots =
+                ChQuadrature::GetStaticTablesTriangle()->LrootsV[GetIntegrationPointsU() - 1];
+            const std::vector<double>& weight =
+                ChQuadrature::GetStaticTablesTriangle()->Weight[GetIntegrationPointsU() - 1];
 
             ChVectorDynamic<> mNF(Q.size());  // temporary value for loop
 
@@ -173,7 +176,8 @@ class ChLoaderForceOnSurface : public ChLoaderUVatomic {
     virtual bool IsStiff() override { return false; }
 };
 
-/// A very usual type of surface loader: the constant pressure load, a 3D per-area force that is aligned to the surface normal.
+/// A very usual type of surface loader: the constant pressure load, a 3D per-area force that is aligned to the surface
+/// normal.
 
 class ChLoaderPressure : public ChLoaderUVdistributed {
   private:

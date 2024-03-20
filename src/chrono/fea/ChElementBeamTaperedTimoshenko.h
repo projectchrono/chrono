@@ -125,14 +125,14 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     /// Please refer to ANSYS theory document for more information.
     void SetUseRs(bool md) { this->use_Rs = md; }
 
-    /// Set this as true to use a simplified correction model for the case of inclined shear axis. 
-    /// By default it is false. This option may affect the bending-twist coupling of Timoshenko 
+    /// Set this as true to use a simplified correction model for the case of inclined shear axis.
+    /// By default it is false. This option may affect the bending-twist coupling of Timoshenko
     /// beam element, especially when the inclined angle of shear center axis is obvious with
     /// respect to the centerline.
     void SetUseSimplifiedCorrectionForInclinedShearAxis(bool md) {
         this->use_simplified_correction_for_inclined_shear_axis = md;
     }
-    
+
     /// Shape functions for Timoshenko beam.
     /// Please refer to the textbook:
     /// J. S. Przemieniecki, Theory of Matrix Structural Analysis-Dover Publications (1985).
@@ -152,14 +152,15 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     virtual void GetStateBlock(ChVectorDynamic<>& mD) override;
 
     /// Fills the Ddt vector with the current time derivatives of field values at the nodes of the element, with proper
-    /// ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized. For corotational elements,
-    /// field is assumed in local reference! Give that this element includes rotations at nodes, this gives:
+    /// ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized. For corotational
+    /// elements, field is assumed in local reference! Give that this element includes rotations at nodes, this gives:
     ///  {v_a v_a v_a wx_a wy_a wz_a v_b v_b v_b wx_b wy_b wz_b}
     void GetFieldDt(ChVectorDynamic<>& mD_dt);
 
     /// Fills the Ddtdt vector with the current time derivatives of field values at the nodes of the element, with
-    /// proper ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized. For corotational
-    /// elements, field is assumed in local reference! Give that this element includes rotations at nodes, this gives:
+    /// proper ordering. If the D vector has not the size of this->GetNumCoordsPosLevel(), it will be resized. For
+    /// corotational elements, field is assumed in local reference! Give that this element includes rotations at nodes,
+    /// this gives:
     ///  {acc_a acc_a acc_a accx_a accy_a accz_a acc_b acc_b acc_b accx_b accy_b accz_b}
     void GetFieldDt2(ChVectorDynamic<>& mD_dtdt);
 
@@ -299,7 +300,9 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     virtual unsigned int GetNumSubBlocks() override { return 2; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return nodes[nblock]->NodeGetOffsetVelLevel(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return nodes[nblock]->NodeGetOffsetVelLevel();
+    }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 6; }
@@ -369,7 +372,8 @@ class ChApi ChElementBeamTaperedTimoshenko : public ChElementBeam,
     bool use_geometric_stiffness;  ///< whether include geometric stiffness matrix
     bool use_Rc;                   ///< whether use the transformation matrix for elastic axis orientation
     bool use_Rs;                   ///< whether use the transformation matrix for shear axis orientation
-    bool use_simplified_correction_for_inclined_shear_axis = false;///< whether use the simplified correction model for shear axis orientation, it's false as default.
+    bool use_simplified_correction_for_inclined_shear_axis =
+        false;  ///< whether use the simplified correction model for shear axis orientation, it's false as default.
 
     // Flag that turns on/off the computation of the [Ri] 'gyroscopic' inertial damping matrix.
     // If false, Ri=0. Can be used for cpu speedup, profiling, tests. Default: true.

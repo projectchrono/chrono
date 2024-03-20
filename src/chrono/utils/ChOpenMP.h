@@ -16,7 +16,7 @@
 #include "chrono/core/ChApiCE.h"
 
 #ifdef _OPENMP
-#include <omp.h>
+    #include <omp.h>
 #endif
 
 namespace chrono {

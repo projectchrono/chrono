@@ -112,7 +112,7 @@ class ChApi ChConstraintTwoTuplesContactN : public ChConstraintTwoTuples<Ta, Tb>
 
         double f_n = this->l_i + this->cohesion;
 
-		// no friction? project to axis of upper cone
+        // no friction? project to axis of upper cone
         if (friction == 0) {
             constraint_U->Set_l_i(0);
             constraint_V->Set_l_i(0);
@@ -142,7 +142,7 @@ class ChApi ChConstraintTwoTuplesContactN : public ChConstraintTwoTuples<Ta, Tb>
 
         // project orthogonally to generator segment of upper cone
         double f_t = sqrt(f_t2);
-		double f_n_proj = (f_t * friction + f_n) / (mu2 + 1);
+        double f_n_proj = (f_t * friction + f_n) / (mu2 + 1);
         double f_t_proj = f_n_proj * friction;
         double tproj_div_t = f_t_proj / f_t;
         double f_u_proj = tproj_div_t * f_u;

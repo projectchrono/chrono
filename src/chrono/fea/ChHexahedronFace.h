@@ -119,7 +119,9 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
     virtual unsigned int GetNumSubBlocks() override { return 4; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return GetNode(nblock)->NodeGetOffsetVelLevel(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return GetNode(nblock)->NodeGetOffsetVelLevel();
+    }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 3; }
@@ -148,10 +150,9 @@ class ChApi ChHexahedronFace : public ChLoadableUV {
         ShapeFunctions(N, U, V);
 
         //// TODO  exact det of jacobian at u,v
-        detJ = ((GetNode(0)->GetPos() - GetNode(1)->GetPos()) - (GetNode(2)->GetPos() - GetNode(3)->GetPos()))
-                   .Length() *
-               ((GetNode(1)->GetPos() - GetNode(2)->GetPos()) - (GetNode(3)->GetPos() - GetNode(0)->GetPos()))
-                   .Length();
+        detJ =
+            ((GetNode(0)->GetPos() - GetNode(1)->GetPos()) - (GetNode(2)->GetPos() - GetNode(3)->GetPos())).Length() *
+            ((GetNode(1)->GetPos() - GetNode(2)->GetPos()) - (GetNode(3)->GetPos() - GetNode(0)->GetPos())).Length();
         // (approximate detJ, ok only for rectangular face)
 
         for (int i = 0; i < 4; i++) {

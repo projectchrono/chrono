@@ -30,8 +30,8 @@ ChShaftBodyRotation::ChShaftBodyRotation(const ChShaftBodyRotation& other) : ChP
 }
 
 bool ChShaftBodyRotation::Initialize(std::shared_ptr<ChShaft> mshaft,
-                              std::shared_ptr<ChBodyFrame> mbody,
-                              const ChVector3d& mdir) {
+                                     std::shared_ptr<ChBodyFrame> mbody,
+                                     const ChVector3d& mdir) {
     ChShaft* mm1 = mshaft.get();
     ChBodyFrame* mm2 = mbody.get();
     assert(mm1 && mm2);
@@ -63,18 +63,18 @@ void ChShaftBodyRotation::IntStateScatterReactions(const unsigned int off_L, con
 }
 
 void ChShaftBodyRotation::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
-                                       ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                       const ChVectorDynamic<>& L,  ///< the L vector
-                                       const double c               ///< a scaling factor
+                                              ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
+                                              const ChVectorDynamic<>& L,  ///< the L vector
+                                              const double c               ///< a scaling factor
 ) {
     constraint.MultiplyTandAdd(R, L(off_L) * c);
 }
 
 void ChShaftBodyRotation::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
-                                       ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
-                                       const double c,            ///< a scaling factor
-                                       bool do_clamp,             ///< apply clamping to c*C?
-                                       double recovery_clamp      ///< value for min/max clamping of c*C
+                                              ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
+                                              const double c,            ///< a scaling factor
+                                              bool do_clamp,             ///< apply clamping to c*C?
+                                              double recovery_clamp      ///< value for min/max clamping of c*C
 ) {
     double res = 0;  // no residual anyway! allow drifting...
 
@@ -88,20 +88,20 @@ void ChShaftBodyRotation::IntLoadConstraint_C(const unsigned int off_L,  ///< of
 }
 
 void ChShaftBodyRotation::IntToDescriptor(const unsigned int off_v,
-                                   const ChStateDelta& v,
-                                   const ChVectorDynamic<>& R,
-                                   const unsigned int off_L,
-                                   const ChVectorDynamic<>& L,
-                                   const ChVectorDynamic<>& Qc) {
+                                          const ChStateDelta& v,
+                                          const ChVectorDynamic<>& R,
+                                          const unsigned int off_L,
+                                          const ChVectorDynamic<>& L,
+                                          const ChVectorDynamic<>& Qc) {
     constraint.Set_l_i(L(off_L));
 
     constraint.Set_b_i(Qc(off_L));
 }
 
 void ChShaftBodyRotation::IntFromDescriptor(const unsigned int off_v,
-                                     ChStateDelta& v,
-                                     const unsigned int off_L,
-                                     ChVectorDynamic<>& L) {
+                                            ChStateDelta& v,
+                                            const unsigned int off_L,
+                                            ChVectorDynamic<>& L) {
     L(off_L) = constraint.Get_l_i();
 }
 
@@ -196,9 +196,9 @@ ChShaftBodyTranslation::ChShaftBodyTranslation(const ChShaftBodyTranslation& oth
 }
 
 bool ChShaftBodyTranslation::Initialize(std::shared_ptr<ChShaft> mshaft,
-                                         std::shared_ptr<ChBodyFrame> mbody,
-                                         const ChVector3d& mdir,
-                                         const ChVector3d& mpos) {
+                                        std::shared_ptr<ChBodyFrame> mbody,
+                                        const ChVector3d& mdir,
+                                        const ChVector3d& mpos) {
     ChShaft* mm1 = mshaft.get();
     ChBodyFrame* mm2 = mbody.get();
     assert(mm1 && mm2);
@@ -231,18 +231,18 @@ void ChShaftBodyTranslation::IntStateScatterReactions(const unsigned int off_L, 
 }
 
 void ChShaftBodyTranslation::IntLoadResidual_CqL(const unsigned int off_L,    ///< offset in L multipliers
-                                                  ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
-                                                  const ChVectorDynamic<>& L,  ///< the L vector
-                                                  const double c               ///< a scaling factor
+                                                 ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
+                                                 const ChVectorDynamic<>& L,  ///< the L vector
+                                                 const double c               ///< a scaling factor
 ) {
     constraint.MultiplyTandAdd(R, L(off_L) * c);
 }
 
 void ChShaftBodyTranslation::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
-                                                  ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
-                                                  const double c,            ///< a scaling factor
-                                                  bool do_clamp,             ///< apply clamping to c*C?
-                                                  double recovery_clamp      ///< value for min/max clamping of c*C
+                                                 ChVectorDynamic<>& Qc,     ///< result: the Qc residual, Qc += c*C
+                                                 const double c,            ///< a scaling factor
+                                                 bool do_clamp,             ///< apply clamping to c*C?
+                                                 double recovery_clamp      ///< value for min/max clamping of c*C
 ) {
     double res = 0;  // no residual anyway! allow drifting...
 
@@ -256,20 +256,20 @@ void ChShaftBodyTranslation::IntLoadConstraint_C(const unsigned int off_L,  ///<
 }
 
 void ChShaftBodyTranslation::IntToDescriptor(const unsigned int off_v,
-                                              const ChStateDelta& v,
-                                              const ChVectorDynamic<>& R,
-                                              const unsigned int off_L,
-                                              const ChVectorDynamic<>& L,
-                                              const ChVectorDynamic<>& Qc) {
+                                             const ChStateDelta& v,
+                                             const ChVectorDynamic<>& R,
+                                             const unsigned int off_L,
+                                             const ChVectorDynamic<>& L,
+                                             const ChVectorDynamic<>& Qc) {
     constraint.Set_l_i(L(off_L));
 
     constraint.Set_b_i(Qc(off_L));
 }
 
 void ChShaftBodyTranslation::IntFromDescriptor(const unsigned int off_v,
-                                                ChStateDelta& v,
-                                                const unsigned int off_L,
-                                                ChVectorDynamic<>& L) {
+                                               ChStateDelta& v,
+                                               const unsigned int off_L,
+                                               ChVectorDynamic<>& L) {
     L(off_L) = constraint.Get_l_i();
 }
 

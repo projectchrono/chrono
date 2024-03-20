@@ -23,8 +23,6 @@ namespace fea {
 /// @addtogroup fea_utils
 /// @{
 
-
-
 /// Simplified geometry for a 'cable' beam section in 3D, that is a beam
 /// without torsional stiffness and with circular section (i.e.same Ixx and Iyy properties).
 /// This material can be shared between multiple beams.

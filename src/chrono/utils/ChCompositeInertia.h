@@ -61,7 +61,7 @@ class ChApi CompositeInertia {
                       double mass,                  ///< mass of sub-component
                       const ChMatrix33<>& inertia,  ///< sub-component inertia tensor w.r.t. its centroidal frame
                       bool is_void = false          ///< indicate if sub-component represents a material void
-                      );
+    );
 
     /// Utility function for calculating an inertia shift matrix from a given vector.
     /// This matrix is used when applying the parallel axis theorem.

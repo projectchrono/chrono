@@ -16,20 +16,19 @@
 
 namespace chrono {
 
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLineNurbs)
 
 ChLineNurbs::ChLineNurbs() {
-    std::vector<ChVector3d > mpoints = {ChVector3d(-1, 0, 0), ChVector3d(1, 0, 0)};
+    std::vector<ChVector3d> mpoints = {ChVector3d(-1, 0, 0), ChVector3d(1, 0, 0)};
     this->Setup(1, mpoints);
 }
 
 ChLineNurbs::ChLineNurbs(
-    int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-    std::vector<ChVector3d >& mpoints,  ///< control points, size n. Required: at least n >= p+1
-    ChVectorDynamic<>* mknots,          ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
-    ChVectorDynamic<>* weights          ///< weights, size w. Required w=n. If not provided, all weights as 1.
+    int morder,                        ///< order p: 1= linear, 2=quadratic, etc.
+    std::vector<ChVector3d>& mpoints,  ///< control points, size n. Required: at least n >= p+1
+    ChVectorDynamic<>* mknots,         ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
+    ChVectorDynamic<>* weights         ///< weights, size w. Required w=n. If not provided, all weights as 1.
 ) {
     this->Setup(morder, mpoints, mknots, weights);
 }
@@ -77,10 +76,10 @@ ChVector3d ChLineNurbs::GetTangent(double parU) const {
 }
 
 void ChLineNurbs::Setup(
-    int morder,                         ///< order p: 1= linear, 2=quadratic, etc.
-    std::vector<ChVector3d >& mpoints,  ///< control points, size n. Required: at least n >= p+1
-    ChVectorDynamic<>* mknots,          ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
-    ChVectorDynamic<>* weights          ///< weights, size w. Required w=n. If not provided, all weights as 1.
+    int morder,                        ///< order p: 1= linear, 2=quadratic, etc.
+    std::vector<ChVector3d>& mpoints,  ///< control points, size n. Required: at least n >= p+1
+    ChVectorDynamic<>* mknots,         ///< knots, size k. Required k=n+p+1. If not provided, initialized to uniform.
+    ChVectorDynamic<>* weights         ///< weights, size w. Required w=n. If not provided, all weights as 1.
 ) {
     if (morder < 1)
         throw std::invalid_argument("ChLineNurbs::Setup requires order >= 1.");
@@ -125,7 +124,7 @@ void ChLineNurbs::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChLineNurbs::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLineNurbs>();
+    /*int version =*/archive_in.VersionRead<ChLineNurbs>();
     // deserialize parent class
     ChLine::ArchiveIn(archive_in);
     // stream in all member data:
@@ -134,6 +133,5 @@ void ChLineNurbs::ArchiveIn(ChArchiveIn& archive_in) {
     ////archive_in >> CHNVP(knots); //**TODO MATRIX DESERIALIZATION
     archive_in >> CHNVP(p);
 }
-
 
 }  // end namespace chrono

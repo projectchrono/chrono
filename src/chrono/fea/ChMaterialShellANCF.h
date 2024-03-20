@@ -52,7 +52,7 @@ class ChApi ChMaterialShellANCF {
     /// Calculate the matrix of elastic coefficients.
     void Calc_E_eps(const ChVector3d& E, const ChVector3d& nu, const ChVector3d& G);
 
-    double m_rho;                      ///< density
+    double m_rho;         ///< density
     ChMatrix66d m_E_eps;  ///< matrix of elastic coefficients
 
     friend class ChElementShellANCF_3833;

@@ -31,7 +31,7 @@ void ChVisualShapeSurface::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChVisualShapeSurface::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChVisualShapeSurface>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapeSurface>();
     // deserialize parent class
     ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:

@@ -171,11 +171,12 @@ CUDA_HOST_DEVICE ChApi Mat33 operator+(const Mat33& M, const Mat33& N);
 CUDA_HOST_DEVICE ChApi Mat33 operator-(const Mat33& M, const Mat33& N);
 
 CUDA_HOST_DEVICE ChApi OPERATOR_EQUALSALT_PROTO(*, real, Mat33)       //
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALSALT_PROTO(*, Mat33, Mat33)  //
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALSALT_PROTO(+, Mat33, Mat33)  //
-CUDA_HOST_DEVICE ChApi OPERATOR_EQUALSALT_PROTO(-, Mat33, Mat33)  //
+    CUDA_HOST_DEVICE ChApi OPERATOR_EQUALSALT_PROTO(*, Mat33, Mat33)  //
+    CUDA_HOST_DEVICE ChApi OPERATOR_EQUALSALT_PROTO(+, Mat33, Mat33)  //
+    CUDA_HOST_DEVICE ChApi OPERATOR_EQUALSALT_PROTO(-, Mat33, Mat33)  //
 
-CUDA_HOST_DEVICE ChApi Mat33 operator-(const Mat33& M);
+    CUDA_HOST_DEVICE ChApi Mat33
+    operator-(const Mat33& M);
 CUDA_HOST_DEVICE ChApi Mat33 operator*(const real s, const Mat33& a);
 
 CUDA_HOST_DEVICE ChApi Mat33 SkewSymmetric(const real3& r);

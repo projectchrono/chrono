@@ -50,9 +50,7 @@ ChLinkRevolute::ChLinkRevolute(const ChLinkRevolute& other) : ChLink(other) {
 // -----------------------------------------------------------------------------
 // Link initialization functions
 // -----------------------------------------------------------------------------
-void ChLinkRevolute::Initialize(std::shared_ptr<ChBody> body1,
-                                std::shared_ptr<ChBody> body2,
-                                const ChFrame<>& frame) {
+void ChLinkRevolute::Initialize(std::shared_ptr<ChBody> body1, std::shared_ptr<ChBody> body2, const ChFrame<>& frame) {
     m_body1 = body1.get();
     m_body2 = body2.get();
 
@@ -283,7 +281,7 @@ void ChLinkRevolute::IntLoadResidual_CqL(const unsigned int off_L,    ///< offse
                                          ChVectorDynamic<>& R,        ///< result: the R residual, R += c*Cq'*L
                                          const ChVectorDynamic<>& L,  ///< the L vector
                                          const double c               ///< a scaling factor
-                                         ) {
+) {
     if (!IsActive())
         return;
 
@@ -299,7 +297,7 @@ void ChLinkRevolute::IntLoadConstraint_C(const unsigned int off_L,  ///< offset 
                                          const double c,            ///< a scaling factor
                                          bool do_clamp,             ///< apply clamping to c*C?
                                          double recovery_clamp      ///< value for min/max clamping of c*C
-                                         ) {
+) {
     if (!IsActive())
         return;
 
@@ -460,7 +458,7 @@ void ChLinkRevolute::ArchiveOut(ChArchiveOut& archive_out) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkRevolute::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkRevolute>();
+    /*int version =*/archive_in.VersionRead<ChLinkRevolute>();
 
     // deserialize parent class
     ChLink::ArchiveIn(archive_in);

@@ -23,7 +23,6 @@ namespace chrono {
 /// link type is able to couple translation and rotation.
 
 class ChApi ChLinkLockScrew : public ChLinkLock {
-
   protected:
     double tau;  ///< transmission coeff.
 
@@ -52,7 +51,7 @@ class ChApi ChLinkLockScrew : public ChLinkLock {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
-CH_CLASS_VERSION(ChLinkLockScrew,0)
+CH_CLASS_VERSION(ChLinkLockScrew, 0)
 
 }  // end namespace chrono
 

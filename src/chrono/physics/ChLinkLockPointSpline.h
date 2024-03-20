@@ -53,7 +53,7 @@ class ChApi ChLinkLockPointSpline : public ChLinkLockLock {
 
   private:
     std::shared_ptr<ChLine> trajectory_line;  ///< line for the trajectory
-    double tolerance;                                   ///< tolerance for nearest point search
+    double tolerance;                         ///< tolerance for nearest point search
 };
 
 CH_CLASS_VERSION(ChLinkLockPointSpline, 0)

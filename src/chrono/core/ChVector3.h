@@ -468,7 +468,6 @@ ChVector3<RealA> VfromPolar(double norm_angle, double pol_angle) {
     return res;
 }
 
-
 /// Insertion of a 3D vector to output stream.
 template <typename Real>
 inline std::ostream& operator<<(std::ostream& out, const ChVector3<Real>& v) {
@@ -887,10 +886,9 @@ inline void ChVector3<Real>::SetLength(Real s) {
 
 template <class Real>
 inline void ChVector3<Real>::GetDirectionAxesAsX(ChVector3<Real>& Vx,
-                                         ChVector3<Real>& Vy,
-                                         ChVector3<Real>& Vz,
-                                         ChVector3<Real> y_sugg) const {
-
+                                                 ChVector3<Real>& Vy,
+                                                 ChVector3<Real>& Vz,
+                                                 ChVector3<Real> y_sugg) const {
     Vx = *this;
     bool success = Vx.Normalize();
     if (!success)
@@ -898,9 +896,9 @@ inline void ChVector3<Real>::GetDirectionAxesAsX(ChVector3<Real>& Vx,
 
     Vz.Cross(Vx, y_sugg);
     success = Vz.Normalize();
-    if (!success){
+    if (!success) {
         char idx = 0;
-        while (!success){
+        while (!success) {
             y_sugg[idx] += 1.0;
             Vz.Cross(Vx, y_sugg);
             success = Vz.Normalize();
@@ -911,12 +909,11 @@ inline void ChVector3<Real>::GetDirectionAxesAsX(ChVector3<Real>& Vx,
     Vy.Cross(Vz, Vx);
 }
 
-
 template <class Real>
 inline void ChVector3<Real>::GetDirectionAxesAsY(ChVector3<Real>& Vx,
-                                         ChVector3<Real>& Vy,
-                                         ChVector3<Real>& Vz,
-                                         ChVector3<Real> z_sugg) const {
+                                                 ChVector3<Real>& Vy,
+                                                 ChVector3<Real>& Vz,
+                                                 ChVector3<Real> z_sugg) const {
     Vy = *this;
     bool success = Vy.Normalize();
     if (!success)
@@ -924,9 +921,9 @@ inline void ChVector3<Real>::GetDirectionAxesAsY(ChVector3<Real>& Vx,
 
     Vx.Cross(Vy, z_sugg);
     success = Vx.Normalize();
-    if (!success){
+    if (!success) {
         char idx = 0;
-        while (!success){
+        while (!success) {
             z_sugg[idx] += 1.0;
             Vx.Cross(Vy, z_sugg);
             success = Vx.Normalize();
@@ -939,9 +936,9 @@ inline void ChVector3<Real>::GetDirectionAxesAsY(ChVector3<Real>& Vx,
 
 template <class Real>
 inline void ChVector3<Real>::GetDirectionAxesAsZ(ChVector3<Real>& Vx,
-                                         ChVector3<Real>& Vy,
-                                         ChVector3<Real>& Vz,
-                                         ChVector3<Real> x_sugg) const {
+                                                 ChVector3<Real>& Vy,
+                                                 ChVector3<Real>& Vz,
+                                                 ChVector3<Real> x_sugg) const {
     Vz = *this;
     bool success = Vz.Normalize();
     if (!success)
@@ -950,16 +947,15 @@ inline void ChVector3<Real>::GetDirectionAxesAsZ(ChVector3<Real>& Vx,
     Vy.Cross(Vz, x_sugg);
     success = Vy.Normalize();
 
-    if (!success){
+    if (!success) {
         char idx = 0;
-        while (!success){
+        while (!success) {
             x_sugg[idx] += 1.0;
             Vy.Cross(Vz, x_sugg);
             success = Vy.Normalize();
             ++idx;
         }
     }
-
 
     Vx.Cross(Vy, Vz);
 }

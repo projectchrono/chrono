@@ -126,5 +126,4 @@ void ChKblockGeneric::Build_K(ChSparseMatrix& storage, bool add) {
     }
 }
 
-
 }  // end namespace chrono

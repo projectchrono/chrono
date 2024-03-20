@@ -36,7 +36,7 @@ void ChFunctionRamp::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChFunctionRamp::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChFunctionRamp>();
+    /*int version =*/archive_in.VersionRead<ChFunctionRamp>();
     // deserialize parent class
     ChFunction::ArchiveIn(archive_in);
     // stream in all member data:

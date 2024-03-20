@@ -115,7 +115,7 @@ void ChLoadCustom::ComputeJacobian(ChState* state_x,       // state position to 
     for (int i = 0; i < mrows_w; ++i) {
         state_delta(i) += Delta;
         LoadStateIncrement(*state_x, state_delta,
-                                 state_x_inc);  // exponential, usually state_x_inc(i) = state_x(i) + Delta;
+                           state_x_inc);  // exponential, usually state_x_inc(i) = state_x(i) + Delta;
         ComputeQ(&state_x_inc, state_w);  // Q1 = Q(x+Dx, v)
         Q1 = load_Q;
         state_delta(i) -= Delta;
@@ -301,7 +301,7 @@ void ChLoadCustomMultiple::ComputeJacobian(ChState* state_x,       // state posi
     for (int i = 0; i < mrows_w; ++i) {
         state_delta(i) += Delta;
         LoadStateIncrement(*state_x, state_delta,
-                                 state_x_inc);  // exponential, usually state_x_inc(i) = state_x(i) + Delta;
+                           state_x_inc);  // exponential, usually state_x_inc(i) = state_x(i) + Delta;
         ComputeQ(&state_x_inc, state_w);  // Q1 = Q(x+Dx, v)
         Q1 = load_Q;
         state_delta(i) -= Delta;
@@ -383,7 +383,7 @@ void ChLoadCustomMultiple::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, doubl
             if (loadables[k]->IsSubBlockActive(i)) {
                 unsigned int moffset = loadables[k]->GetSubBlockOffset(i);
                 for (unsigned int row = 0; row < loadables[k]->GetSubBlockSize(i); ++row) {
-                    Md(row + moffset) += c * this->jacobians->M(rowQ,rowQ);
+                    Md(row + moffset) += c * this->jacobians->M(rowQ, rowQ);
                     ++rowQ;
                 }
             }

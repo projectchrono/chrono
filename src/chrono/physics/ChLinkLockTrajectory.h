@@ -26,11 +26,10 @@ namespace chrono {
 /// (for motion capture, for example).
 
 class ChApi ChLinkLockTrajectory : public ChLinkLockLock {
-
   protected:
-    std::shared_ptr<ChFunction> space_fx;  ///< function providing the time history of the trajectory parameter
+    std::shared_ptr<ChFunction> space_fx;     ///< function providing the time history of the trajectory parameter
     std::shared_ptr<ChLine> trajectory_line;  ///< line for the trajectory.
-    bool modulo_s;                                      ///< modulation
+    bool modulo_s;                            ///< modulation
 
   public:
     ChLinkLockTrajectory();
@@ -80,7 +79,7 @@ class ChApi ChLinkLockTrajectory : public ChLinkLockLock {
     using ChLinkMarkers::Initialize;
 };
 
-CH_CLASS_VERSION(ChLinkLockTrajectory,0)
+CH_CLASS_VERSION(ChLinkLockTrajectory, 0)
 
 }  // end namespace chrono
 

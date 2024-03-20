@@ -46,8 +46,8 @@ class ChApi ChElementBase {
     virtual unsigned int GetNumCoordsPosLevel() = 0;
 
     /// Get the actual number of active degrees of freedom.
-    /// The default implementation returns the full number of coordinates for this element, but some elements may have nodes
-    /// with fixed variables.
+    /// The default implementation returns the full number of coordinates for this element, but some elements may have
+    /// nodes with fixed variables.
     virtual unsigned int GetNumCoordsPosLevelActive() { return GetNumCoordsPosLevel(); }
 
     /// Get the number of coordinates from the specified node that are used by this element.
@@ -55,8 +55,8 @@ class ChApi ChElementBase {
     virtual unsigned int GetNodeNumCoordsPosLevel(unsigned int n) = 0;
 
     /// Get the actual number of active coordinates from the specified node that are used by this element.
-    /// The default implementation returns the full number of coordinates for this element, but some elements may have nodes
-    /// with fixed variables.
+    /// The default implementation returns the full number of coordinates for this element, but some elements may have
+    /// nodes with fixed variables.
     virtual unsigned int GetNodeNumCoordsPosLevelActive(unsigned int n) { return GetNodeNumCoordsPosLevel(n); }
 
     /// Access the nth node.

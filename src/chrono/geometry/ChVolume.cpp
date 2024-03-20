@@ -23,7 +23,6 @@
 
 namespace chrono {
 
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChVolume)  // NO! abstract class!
 
@@ -38,12 +37,11 @@ void ChVolume::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChVolume::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChVolume>();
+    /*int version =*/archive_in.VersionRead<ChVolume>();
     // deserialize parent class
     ChGeometry::ArchiveIn(archive_in);
     // stream in all member data:
     // archive_in >> CHNVP(closed);
 }
-
 
 }  // end namespace chrono

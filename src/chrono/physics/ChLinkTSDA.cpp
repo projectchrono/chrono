@@ -281,10 +281,11 @@ void ChLinkTSDA::Update(double time, bool update_assets) {
 
     // Update assets
     ChPhysicsItem::Update(ChTime, update_assets);
-    
+
     // TODO: DARIOM double check if correct
     ChVector3d dir = (m_aloc1 - m_aloc2).GetNormalized();
-    react_force = -m_force * dir;;
+    react_force = -m_force * dir;
+    ;
     react_torque = VNULL;
 }
 

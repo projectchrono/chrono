@@ -809,9 +809,8 @@ void ChElementBeamANCF_3243::PrecomputeInternalForceMatricesWeightsContInt() {
                 double zeta = GQTable->Lroots[GQ_idx_eta_zeta][it_zeta];
                 auto index = it_zeta + it_eta * GQTable->Lroots[GQ_idx_eta_zeta].size() +
                              it_xi * GQTable->Lroots[GQ_idx_eta_zeta].size() * GQTable->Lroots[GQ_idx_eta_zeta].size();
-                ChMatrix33d
-                    J_0xi;         // Element Jacobian between the reference configuration and normalized configuration
-                MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
+                ChMatrix33d J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
+                MatrixNx3c Sxi_D;   // Matrix of normalized shape function derivatives
 
                 Calc_Sxi_D(Sxi_D, xi, eta, zeta);
                 J_0xi.noalias() = m_ebar0 * Sxi_D;
@@ -840,7 +839,7 @@ void ChElementBeamANCF_3243::PrecomputeInternalForceMatricesWeightsContInt() {
         double eta = 0;
         double zeta = 0;
         ChMatrix33d J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
-        MatrixNx3c Sxi_D;          // Matrix of normalized shape function derivatives
+        MatrixNx3c Sxi_D;   // Matrix of normalized shape function derivatives
 
         Calc_Sxi_D(Sxi_D, xi, eta, zeta);
         J_0xi.noalias() = m_ebar0 * Sxi_D;
@@ -909,9 +908,8 @@ void ChElementBeamANCF_3243::PrecomputeInternalForceMatricesWeightsPreInt() {
                 double eta = GQTable->Lroots[GQ_idx_eta_zeta][it_eta];
                 double zeta = GQTable->Lroots[GQ_idx_eta_zeta][it_zeta];
 
-                ChMatrix33d
-                    J_0xi;         // Element Jacobian between the reference configuration and normalized configuration
-                MatrixNx3c Sxi_D;  // Matrix of normalized shape function derivatives
+                ChMatrix33d J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
+                MatrixNx3c Sxi_D;   // Matrix of normalized shape function derivatives
 
                 Calc_Sxi_D(Sxi_D, xi, eta, zeta);
                 J_0xi.noalias() = m_ebar0 * Sxi_D;
@@ -1021,7 +1019,7 @@ void ChElementBeamANCF_3243::PrecomputeInternalForceMatricesWeightsPreInt() {
         double zeta = 0;
 
         ChMatrix33d J_0xi;  // Element Jacobian between the reference configuration and normalized configuration
-        MatrixNx3c Sxi_D;          // Matrix of normalized shape function derivatives
+        MatrixNx3c Sxi_D;   // Matrix of normalized shape function derivatives
 
         Calc_Sxi_D(Sxi_D, xi, eta, zeta);
         J_0xi.noalias() = m_ebar0 * Sxi_D;
@@ -1908,7 +1906,7 @@ void ChElementBeamANCF_3243::ComputeInternalJacobianContIntDamping(ChMatrixRef& 
     // =============================================================================
 
     ChMatrixNM_col<double, 3 * NIP, 3> FCscaled = (Kfactor + m_Alpha * Rfactor) * FC.template block<3 * NIP, 3>(0, 0) +
-                                               (m_Alpha * Kfactor) * FC.template block<3 * NIP, 3>(0, 3);
+                                                  (m_Alpha * Kfactor) * FC.template block<3 * NIP, 3>(0, 3);
 
     for (auto i = 0; i < 3; i++) {
         FCscaled.template block<NIP_D0, 1>(0, i).array() *= m_kGQ_D0.array();

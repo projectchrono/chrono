@@ -33,8 +33,7 @@ ChVisualMaterial::ChVisualMaterial()
       metallic(0),
       use_specular_workflow(true),
       class_id(0),
-      instance_id(0)
-      {}
+      instance_id(0) {}
 
 void ChVisualMaterial::SetKdTexture(const std::string& filename) {
     kd_texture.SetFilename(filename);
@@ -60,10 +59,10 @@ void ChVisualMaterial::SetOpacityTexture(const std::string& filename) {
 void ChVisualMaterial::SetWeightTexture(const std::string& filename) {
     weight_texture.SetFilename(filename);
 }
-void ChVisualMaterial::SetDisplacementTexture(const std::string &filename) {
+void ChVisualMaterial::SetDisplacementTexture(const std::string& filename) {
     disp_texture.SetFilename(filename);
 }
-void ChVisualMaterial::SetAmbientOcclusionTexture(const std::string &filename) {
+void ChVisualMaterial::SetAmbientOcclusionTexture(const std::string& filename) {
     ao_texture.SetFilename(filename);
 }
 
@@ -174,7 +173,6 @@ void ChVisualMaterial::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(weight_texture);
     archive_out << CHNVP(disp_texture);
     archive_out << CHNVP(ao_texture);
-
 }
 
 void ChVisualMaterial::ArchiveIn(ChArchiveIn& archive_in) {

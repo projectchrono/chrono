@@ -107,11 +107,11 @@ class ChApi ChParticle : public ChParticleBase, public ChContactable_1vars<6> {
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactComputeQ(const ChVector3d& F,
-                                   const ChVector3d& T,
-                                   const ChVector3d& point,
-                                   const ChState& state_x,
-                                   ChVectorDynamic<>& Q,
-                                   int offset) override;
+                                 const ChVector3d& T,
+                                 const ChVector3d& point,
+                                 const ChState& state_x,
+                                 ChVectorDynamic<>& Q,
+                                 int offset) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item. For example,
     /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
@@ -375,7 +375,7 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
 
   private:
     std::vector<ChParticle*> particles;  ///< the particles
-    ChSharedMassBody particle_mass;       ///< shared mass of particles
+    ChSharedMassBody particle_mass;      ///< shared mass of particles
 
     std::shared_ptr<ColorCallback> m_color_fun;  ///< callback for dynamic coloring
 

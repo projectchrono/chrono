@@ -709,7 +709,7 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
     double hthick = thickness / 2;
 
     // Add circumference pieces
-    double box_side = radius * 2.0 * tan(CH_PI / numBoxes);                                   // side length of cyl
+    double box_side = radius * 2.0 * tan(CH_PI / numBoxes);                                     // side length of cyl
     ChVector3d plate_size = ChVector3d((box_side + thickness / 2), thickness, height + o_lap);  // size of plates
     double delta_angle = CH_2PI / numBoxes;
 

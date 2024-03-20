@@ -29,7 +29,6 @@ namespace chrono {
 /// these constraints model the cross in a physical universal joint.
 
 class ChApi ChLinkUniversal : public ChLink {
-
   public:
     ChLinkUniversal();
     ChLinkUniversal(const ChLinkUniversal& other);
@@ -151,8 +150,7 @@ class ChApi ChLinkUniversal : public ChLink {
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-CH_CLASS_VERSION(ChLinkUniversal,0)
-
+CH_CLASS_VERSION(ChLinkUniversal, 0)
 
 }  // end namespace chrono
 

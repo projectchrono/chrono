@@ -120,11 +120,11 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactComputeQ(const ChVector3d& F,
-                                   const ChVector3d& T,
-                                   const ChVector3d& point,
-                                   const ChState& state_x,
-                                   ChVectorDynamic<>& Q,
-                                   int offset) override;
+                                 const ChVector3d& T,
+                                 const ChVector3d& point,
+                                 const ChState& state_x,
+                                 ChVectorDynamic<>& Q,
+                                 int offset) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item. For example,
     /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
@@ -300,7 +300,7 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
 
     /// Apply the force & torque, expressed in absolute reference, applied in pos, to the
     /// coordinates of the variables. Force for example could come from a penalty model.
-    virtual void ContactForceLoadResidual_F(const ChVector3d& F, 
+    virtual void ContactForceLoadResidual_F(const ChVector3d& F,
                                             const ChVector3d& T,
                                             const ChVector3d& abs_point,
                                             ChVectorDynamic<>& R) override;
@@ -311,11 +311,11 @@ class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, publi
     /// Each object must set the entries in Q corresponding to its variables, starting at the specified offset.
     /// If needed, the object states must be extracted from the provided state position.
     virtual void ContactComputeQ(const ChVector3d& F,
-                                   const ChVector3d& T,
-                                   const ChVector3d& point,
-                                   const ChState& state_x,
-                                   ChVectorDynamic<>& Q,
-                                   int offset) override;
+                                 const ChVector3d& T,
+                                 const ChVector3d& point,
+                                 const ChState& state_x,
+                                 ChVectorDynamic<>& Q,
+                                 int offset) override;
 
     /// Compute the jacobian(s) part(s) for this contactable item. For example,
     /// if the contactable is a ChBody, this should update the corresponding 1x6 jacobian.
@@ -525,9 +525,9 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     /// The mesh is specified as a set of 3D vertex points (with associated velocities) and a set of faces (indices into
     /// the vertex array). In addition, ownership of nodes and edges among the consitutent triangles is returned in
     /// 'owns_node' and 'owns_edge'.
-    void OutputSimpleMesh(std::vector<ChVector3d>& vert_pos,       ///< mesh vertices (absolute xyz positions)
-                          std::vector<ChVector3d>& vert_vel,       ///< vertex velocities (absolute xyz velocities)
-                          std::vector<ChVector3i>& triangles,   ///< triangle faces (indices in vertex array)
+    void OutputSimpleMesh(std::vector<ChVector3d>& vert_pos,   ///< mesh vertices (absolute xyz positions)
+                          std::vector<ChVector3d>& vert_vel,   ///< vertex velocities (absolute xyz velocities)
+                          std::vector<ChVector3i>& triangles,  ///< triangle faces (indices in vertex array)
                           std::vector<ChVector3b>& owns_node,  ///< node ownership for each triangular face
                           std::vector<ChVector3b>& owns_edge   ///< edge ownership for each triangular face
     ) const;

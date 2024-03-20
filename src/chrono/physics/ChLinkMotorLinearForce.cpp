@@ -20,7 +20,7 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkMotorLinearForce)
 
 ChLinkMotorLinearForce::ChLinkMotorLinearForce() {
-    this->c_z = false; // no actual constraint is set on the actuated axis
+    this->c_z = false;  // no actual constraint is set on the actuated axis
     SetupLinkMask();
     m_func = chrono_types::make_shared<ChFunctionConst>(0.0);
 }
@@ -44,7 +44,7 @@ void ChLinkMotorLinearForce::IntLoadResidual_F(const unsigned int off, ChVectorD
     ChVector3d m_abs_force = aframe2.GetRotMat() * ChVector3d(0, 0, mF);
 
     if (m_body2->Variables().IsActive()) {
-        auto w2_abs = m_body2->AppliedForceParentToWrenchParent(m_abs_force, aframe1.GetPos());  
+        auto w2_abs = m_body2->AppliedForceParentToWrenchParent(m_abs_force, aframe1.GetPos());
         R.segment(m_body2->Variables().GetOffset() + 0, 3) -= c * w2_abs.force.eigen();
         R.segment(m_body2->Variables().GetOffset() + 3, 3) -=
             c * m_body2->TransformDirectionParentToLocal(w2_abs.torque).eigen();
@@ -68,13 +68,15 @@ void ChLinkMotorLinearForce::ConstraintsFbLoadForces(double factor) {
     // application point is always marker1
     ChVector3d m_abs_force = aframe2.GetRotMat() * ChVector3d(0, 0, mF);
 
-    auto w2_abs = m_body2->AppliedForceParentToWrenchParent(m_abs_force, aframe1.GetPos());  
+    auto w2_abs = m_body2->AppliedForceParentToWrenchParent(m_abs_force, aframe1.GetPos());
     m_body2->Variables().Get_fb().segment(0, 3) -= factor * w2_abs.force.eigen();
-    m_body2->Variables().Get_fb().segment(3, 3) -= factor * m_body2->TransformDirectionParentToLocal(w2_abs.torque).eigen();
+    m_body2->Variables().Get_fb().segment(3, 3) -=
+        factor * m_body2->TransformDirectionParentToLocal(w2_abs.torque).eigen();
 
     auto w1_abs = m_body1->AppliedForceParentToWrenchParent(m_abs_force, aframe1.GetPos());
     m_body1->Variables().Get_fb().segment(0, 3) += factor * w1_abs.force.eigen();
-    m_body1->Variables().Get_fb().segment(3, 3) += factor * m_body1->TransformDirectionParentToLocal(w1_abs.torque).eigen();
+    m_body1->Variables().Get_fb().segment(3, 3) +=
+        factor * m_body1->TransformDirectionParentToLocal(w1_abs.torque).eigen();
 }
 
 void ChLinkMotorLinearForce::ArchiveOut(ChArchiveOut& archive_out) {
@@ -90,7 +92,7 @@ void ChLinkMotorLinearForce::ArchiveOut(ChArchiveOut& archive_out) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMotorLinearForce::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkMotorLinearForce>();
+    /*int version =*/archive_in.VersionRead<ChLinkMotorLinearForce>();
 
     // deserialize parent class
     ChLinkMotorLinear::ArchiveIn(archive_in);

@@ -19,7 +19,6 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChCollisionShape)
 
-
 class ChCollisionShape_Type_enum_mapper : public ChCollisionShape {
   public:
     CH_ENUM_MAPPER_BEGIN(Type);
@@ -59,7 +58,6 @@ void ChCollisionShape::ArchiveOut(ChArchiveOut& archive_out) {
     ChCollisionShape_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
     archive_out << CHNVP(typemapper(type), "ChCollisionShape__Type");
-
 }
 
 void ChCollisionShape::ArchiveIn(ChArchiveIn& archive_in) {
@@ -71,7 +69,6 @@ void ChCollisionShape::ArchiveIn(ChArchiveIn& archive_in) {
     ChCollisionShape_Type_enum_mapper::Type_mapper typemapper;
     Type type = GetType();
     archive_in >> CHNVP(typemapper(type), "ChCollisionShape__Type");
-
 }
 
 }  // namespace chrono

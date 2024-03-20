@@ -73,7 +73,7 @@ void ChFunctionPoly23::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChFunctionPoly23::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChFunctionPoly23>();
+    /*int version =*/archive_in.VersionRead<ChFunctionPoly23>();
     // deserialize parent class
     ChFunction::ArchiveIn(archive_in);
     // stream in all member data:
@@ -82,4 +82,4 @@ void ChFunctionPoly23::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(m_x_end);
 }
 
-}  // m_x_end namespace chrono
+}  // namespace chrono

@@ -23,7 +23,6 @@
 
 namespace chrono {
 
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChLine)  // NO! Abstract class!
 
@@ -260,7 +259,6 @@ double ChLine::Length(int sampling) const {
     return mres;
 }
 
-
 void ChLine::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChLine>();
@@ -273,13 +271,12 @@ void ChLine::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChLine::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLine>();
+    /*int version =*/archive_in.VersionRead<ChLine>();
     // deserialize parent class
     ChGeometry::ArchiveIn(archive_in);
     // stream in all member data:
     archive_in >> CHNVP(closed);
     archive_in >> CHNVP(complexityU);
 }
-
 
 }  // end namespace chrono

@@ -298,7 +298,6 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Get the number of bodies fixed to ground.
     virtual unsigned int GetNumBodiesFixed() const { return assembly.GetNumBodiesFixed(); }
 
-
     /// Get the number of shafts.
     virtual unsigned int GetNumShafts() const { return assembly.GetNumShafts(); }
 
@@ -311,24 +310,20 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Get the total number of shafts added to the assembly, including the grounded and sleeping shafts.
     virtual unsigned int GetNumShaftsTotal() const { return assembly.GetNumShaftsTotal(); }
 
-
     /// Get the number of links (including non active).
     virtual unsigned int GetNumLinks() const { return assembly.GetNumLinks(); }
 
     /// Get the number of active links.
     virtual unsigned int GetNumLinksActive() const { return assembly.GetNumLinksActive(); }
 
-
     /// Get the number of meshes.
     virtual unsigned int GetNumMeshes() const { return assembly.GetNumMeshes(); }
-
 
     /// Get the number of other physics items (including non active).
     virtual unsigned int GetNumOtherPhysicsItems() const { return assembly.GetNumOtherPhysicsItems(); }
 
     /// Get the number of other active physics items.
     virtual unsigned int GetNumOtherPhysicsItemsActive() const { return assembly.GetNumOtherPhysicsItemsActive(); }
-
 
     /// Write the hierarchy of contained bodies, markers, etc. in ASCII
     /// readable form, mostly for debugging purposes. Level is the tab spacing at the left.
@@ -623,7 +618,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
     /// Return the number of calls to the solver's Setup() function.
     /// This counter is reset at each timestep.
-    unsigned int  GetSolverSetupCount() const { return setupcount; }
+    unsigned int GetSolverSetupCount() const { return setupcount; }
 
     /// Set this to "true" to enable automatic saving of solver matrices at each time
     /// step, for debugging purposes. Note that matrices will be saved in the
@@ -768,7 +763,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Performs a single dynamics simulation step, advancing the system state by the current step size.
     virtual bool AdvanceDynamics();
 
-    ChAssembly assembly; ///< underlying mechanical assembly
+    ChAssembly assembly;  ///< underlying mechanical assembly
 
     std::shared_ptr<ChContactContainer> contact_container;  ///< the container of contacts
 

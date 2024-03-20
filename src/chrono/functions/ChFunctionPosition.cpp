@@ -20,7 +20,7 @@
 
 namespace chrono {
 
-static const double FD_STEP = 1e-4; // forward differentiation stepsize
+static const double FD_STEP = 1e-4;  // forward differentiation stepsize
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChFunctionPosition) // NO! this is an abstract class, rather use for children concrete classes.

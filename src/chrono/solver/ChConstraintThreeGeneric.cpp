@@ -211,7 +211,7 @@ void ChConstraintThreeGeneric::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChConstraintThreeGeneric::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChConstraintThreeGeneric>();
+    /*int version =*/archive_in.VersionRead<ChConstraintThreeGeneric>();
 
     // deserialize the parent class data too
     ChConstraintThree::ArchiveIn(archive_in);

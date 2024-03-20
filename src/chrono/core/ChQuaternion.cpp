@@ -23,12 +23,12 @@ namespace chrono {
 const ChQuaterniond QNULL(0., 0., 0., 0.);
 const ChQuaterniond QUNIT(1., 0., 0., 0.);
 
-const ChQuaterniond Q_ROTATE_Y_TO_X(1/CH_SQRT_2, 0, 0, -1/CH_SQRT_2);
-const ChQuaterniond Q_ROTATE_Y_TO_Z(1/CH_SQRT_2, 1/CH_SQRT_2, 0, 0);
-const ChQuaterniond Q_ROTATE_X_TO_Y(1/CH_SQRT_2, 0, 0, 1/CH_SQRT_2);
-const ChQuaterniond Q_ROTATE_X_TO_Z(1/CH_SQRT_2, 0, -1/CH_SQRT_2, 0);
-const ChQuaterniond Q_ROTATE_Z_TO_Y(1/CH_SQRT_2, -1/CH_SQRT_2, 0, 0);
-const ChQuaterniond Q_ROTATE_Z_TO_X(1/CH_SQRT_2, 0, 1/CH_SQRT_2, 0);
+const ChQuaterniond Q_ROTATE_Y_TO_X(1 / CH_SQRT_2, 0, 0, -1 / CH_SQRT_2);
+const ChQuaterniond Q_ROTATE_Y_TO_Z(1 / CH_SQRT_2, 1 / CH_SQRT_2, 0, 0);
+const ChQuaterniond Q_ROTATE_X_TO_Y(1 / CH_SQRT_2, 0, 0, 1 / CH_SQRT_2);
+const ChQuaterniond Q_ROTATE_X_TO_Z(1 / CH_SQRT_2, 0, -1 / CH_SQRT_2, 0);
+const ChQuaterniond Q_ROTATE_Z_TO_Y(1 / CH_SQRT_2, -1 / CH_SQRT_2, 0, 0);
+const ChQuaterniond Q_ROTATE_Z_TO_X(1 / CH_SQRT_2, 0, 1 / CH_SQRT_2, 0);
 
 const ChQuaterniond Q_FLIP_AROUND_X(0., 1., 0., 0.);
 const ChQuaterniond Q_FLIP_AROUND_Y(0., 0., 1., 0.);

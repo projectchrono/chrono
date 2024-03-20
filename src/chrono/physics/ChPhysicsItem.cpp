@@ -133,8 +133,6 @@ void ChPhysicsItem::ArchiveIn(ChArchiveIn& archive_in) {
     // archive_in >> CHNVP(offset_x);
     // archive_in >> CHNVP(offset_w);
     // archive_in >> CHNVP(offset_L);
-
-
 }
 
 }  // end namespace chrono

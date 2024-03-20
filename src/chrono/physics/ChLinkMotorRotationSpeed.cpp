@@ -263,8 +263,7 @@ void ChLinkMotorRotationSpeed::IntLoadResidual_Mv(const unsigned int off,      /
 void ChLinkMotorRotationSpeed::IntLoadLumpedMass_Md(const unsigned int off,
                                                     ChVectorDynamic<>& Md,
                                                     double& err,
-                                                    const double c   
-) {
+                                                    const double c) {
     Md(off) += c * 1.0;
 }
 
@@ -338,7 +337,7 @@ void ChLinkMotorRotationSpeed::ArchiveOut(ChArchiveOut& archive_out) {
 /// Method to allow de serialization of transient data from archives.
 void ChLinkMotorRotationSpeed::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLinkMotorRotationSpeed>();
+    /*int version =*/archive_in.VersionRead<ChLinkMotorRotationSpeed>();
 
     // deserialize parent class
     ChLinkMotorRotation::ArchiveIn(archive_in);

@@ -40,15 +40,15 @@ class ChApi ChLinkDistance : public ChLink {
 
     /// Initialize this constraint, given the two bodies to be connected, the positions of the two anchor endpoints of
     /// the distance (each expressed in body or abs. coordinates) and the imposed distance.
-    int Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first frame to link
-                   std::shared_ptr<ChBodyFrame> body2,  ///< second frame to link
-                   bool pos_are_relative,                ///< true: following pos. are relative to bodies
-                   ChVector3d pos1,  ///< pos. of distance endpoint, for 1st body (rel. or abs., see flag above)
-                   ChVector3d pos2,  ///< pos. of distance endpoint, for 2nd body (rel. or abs., see flag above)
-                   bool auto_distance =
-                       true,  ///< if true, initializes the imposed distance as the distance between pos1 and pos2
-                   double mdistance = 0,        ///< imposed distance (no need to define, if auto_distance=true.)
-                   Mode mode = Mode::BILATERAL  ///< set distance constraining mode
+    int Initialize(
+        std::shared_ptr<ChBodyFrame> body1,  ///< first frame to link
+        std::shared_ptr<ChBodyFrame> body2,  ///< second frame to link
+        bool pos_are_relative,               ///< true: following pos. are relative to bodies
+        ChVector3d pos1,                     ///< pos. of distance endpoint, for 1st body (rel. or abs., see flag above)
+        ChVector3d pos2,                     ///< pos. of distance endpoint, for 2nd body (rel. or abs., see flag above)
+        bool auto_distance = true,  ///< if true, initializes the imposed distance as the distance between pos1 and pos2
+        double mdistance = 0,       ///< imposed distance (no need to define, if auto_distance=true.)
+        Mode mode = Mode::BILATERAL  ///< set distance constraining mode
     );
 
     /// Get the number of (bilateral) constraints introduced by this link.
@@ -147,8 +147,8 @@ class ChApi ChLinkDistance : public ChLink {
     double mode_sign;          ///< current mode
     double distance;           ///< imposed distance
     double curr_dist;          ///< current distance
-    ChVector3d m_pos1;           ///< first endpoint, in body rel. coords
-    ChVector3d m_pos2;           ///< second endpoint, in body rel. coords
+    ChVector3d m_pos1;         ///< first endpoint, in body rel. coords
+    ChVector3d m_pos2;         ///< second endpoint, in body rel. coords
     ChConstraintTwoBodies Cx;  ///< the constraint object
     ChVectorN<double, 1> C;    ///< constraint violation
 };

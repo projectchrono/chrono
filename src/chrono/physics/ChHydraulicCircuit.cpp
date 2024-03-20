@@ -116,7 +116,7 @@ Vec2 ChHydraulicDirectionalValve4x3::ComputeVolumeFlows(double U, const Vec2& p,
     //    2. Compute the actual flow as a factor of the flow at the limit.
     //       Sign of Delta_p defines sign of the volume flow.
     // In the turbulent regime:
-    //    1. Use quadratic characteristic. 
+    //    1. Use quadratic characteristic.
     //       Sign of Delta_p defines sign of the volume flow.
 
     if (U >= dead_zone) {

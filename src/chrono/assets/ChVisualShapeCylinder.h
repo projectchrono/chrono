@@ -30,7 +30,7 @@ class ChApi ChVisualShapeCylinder : public ChVisualShape {
     ChVisualShapeCylinder(double radius, double height);
     ChVisualShapeCylinder(const ChCylinder& cyl);
 
-    ~ChVisualShapeCylinder(){}
+    ~ChVisualShapeCylinder() {}
 
     // Access the cylinder geometry.
     ChCylinder& GetGeometry() { return gcylinder; }

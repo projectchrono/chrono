@@ -22,7 +22,7 @@ namespace chrono {
 
 /// @addtogroup chrono_solver
 /// @{
-    
+
 /** \class ChIterativeSolverVI
 \brief Base class for iterative solvers aimed at solving complementarity problems arising from QP optimization problems.
 

@@ -39,7 +39,7 @@ ChVector3f ChColor::RGB2HSV(const ChColor& rgb) {
     if (V > 0)
         S = C / V;
     else
-        return ChVector3f(-1, 0, 0); // undefined H
+        return ChVector3f(-1, 0, 0);  // undefined H
 
     if (C > 0) {
         if (R == V)

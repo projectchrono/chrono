@@ -40,7 +40,7 @@ class ChApi ChFunctionRotationSQUAD : public ChFunctionRotation {
     /// Constructor from a given array of control points; each control point is a rotation to interpolate. Input data is
     /// copied. If the knots are not provided, a uniformly spaced knot vector is made.
     ChFunctionRotationSQUAD(
-        const std::vector<ChQuaternion<> >& mrotations,  ///< rotations, to interpolate. Required: at least n = 2.
+        const std::vector<ChQuaternion<>>& mrotations,  ///< rotations, to interpolate. Required: at least n = 2.
         ChVectorDynamic<>* mknots = 0  ///< knots, as many as control points. If not provided, initialized to uniform.
     );
 
@@ -71,7 +71,7 @@ class ChApi ChFunctionRotationSQUAD : public ChFunctionRotation {
     /// Initial easy setup from a given array of rotations (quaternion control points). Input data is copied.
     /// If the knots are not provided, a uniformly spaced knot vector is made.
     virtual void Setup(
-        const std::vector<ChQuaternion<> >& mrotations,  ///< rotations, to interpolate. Required: at least n = 2.
+        const std::vector<ChQuaternion<>>& mrotations,  ///< rotations, to interpolate. Required: at least n = 2.
         ChVectorDynamic<>* mknots = 0  ///< knots, as many as control points. If not provided, initialized to uniform.
     );
 
@@ -112,7 +112,7 @@ class ChApi ChFunctionRotationSQUAD : public ChFunctionRotation {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    std::vector<ChQuaternion<> > rotations;
+    std::vector<ChQuaternion<>> rotations;
     ChVectorDynamic<> knots;
     int p;
     bool closed;

@@ -71,7 +71,7 @@ void ChElementGeneric::EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& er
     ComputeMmatrixGlobal(Mi);
 
     ChVectorDynamic<> dMi = c * Mi.diagonal();
-    
+
     error = Mi.sum() - Mi.diagonal().sum();
 
     unsigned int stride = 0;
@@ -82,7 +82,6 @@ void ChElementGeneric::EleIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& er
         stride += GetNodeNumCoordsPosLevel(in);
     }
 }
-
 
 void ChElementGeneric::EleIntLoadResidual_F_gravity(ChVectorDynamic<>& R, const ChVector3d& G_acc, const double c) {
     ChVectorDynamic<> Fg(GetNumCoordsPosLevel());

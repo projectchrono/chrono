@@ -89,8 +89,8 @@ void ChLinkBeamIGAFrame::UpdateNodes() {
 }
 
 int ChLinkBeamIGAFrame::Initialize(std::vector<std::shared_ptr<fea::ChElementBeamIGA>>& melements,
-                                    std::shared_ptr<ChBodyFrame> body,
-                                    ChVector3d* pos) {
+                                   std::shared_ptr<ChBodyFrame> body,
+                                   ChVector3d* pos) {
     assert(body);
 
     m_beams = melements;
@@ -127,9 +127,9 @@ void ChLinkBeamIGAFrame::IntStateScatterReactions(const unsigned int off_L, cons
 }
 
 void ChLinkBeamIGAFrame::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
-                                              ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
-                                              const ChVectorDynamic<>& L,  // the L vector
-                                              const double c               // a scaling factor
+                                             ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
+                                             const ChVectorDynamic<>& L,  // the L vector
+                                             const double c               // a scaling factor
 ) {
     if (!IsActive())
         return;
@@ -140,10 +140,10 @@ void ChLinkBeamIGAFrame::IntLoadResidual_CqL(const unsigned int off_L,    // off
 }
 
 void ChLinkBeamIGAFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
-                                              ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
-                                              const double c,            // a scaling factor
-                                              bool do_clamp,             // apply clamping to c*C?
-                                              double recovery_clamp      // value for min/max clamping of c*C
+                                             ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
+                                             const double c,            // a scaling factor
+                                             bool do_clamp,             // apply clamping to c*C?
+                                             double recovery_clamp      // value for min/max clamping of c*C
 ) {
     if (!IsActive())
         return;
@@ -176,11 +176,11 @@ void ChLinkBeamIGAFrame::IntLoadConstraint_C(const unsigned int off_L,  // offse
 }
 
 void ChLinkBeamIGAFrame::IntToDescriptor(const unsigned int off_v,
-                                          const ChStateDelta& v,
-                                          const ChVectorDynamic<>& R,
-                                          const unsigned int off_L,
-                                          const ChVectorDynamic<>& L,
-                                          const ChVectorDynamic<>& Qc) {
+                                         const ChStateDelta& v,
+                                         const ChVectorDynamic<>& R,
+                                         const unsigned int off_L,
+                                         const ChVectorDynamic<>& L,
+                                         const ChVectorDynamic<>& Qc) {
     if (!IsActive())
         return;
 
@@ -194,9 +194,9 @@ void ChLinkBeamIGAFrame::IntToDescriptor(const unsigned int off_v,
 }
 
 void ChLinkBeamIGAFrame::IntFromDescriptor(const unsigned int off_v,
-                                            ChStateDelta& v,
-                                            const unsigned int off_L,
-                                            ChVectorDynamic<>& L) {
+                                           ChStateDelta& v,
+                                           const unsigned int off_L,
+                                           ChVectorDynamic<>& L) {
     if (!IsActive())
         return;
 
@@ -273,8 +273,8 @@ void ChLinkBeamIGAFrame::ConstraintsLoadJacobians() {
 
     ChVectorDynamic<> N((int)this->m_nodes.size());
     ChBasisToolsBSpline::BasisEvaluate(this->order, nspan, this->tau,
-                                                 this->m_beams[this->active_element]->GetKnotSequence(),
-                                                 N);  ///< here return  in N
+                                       this->m_beams[this->active_element]->GetKnotSequence(),
+                                       N);  ///< here return  in N
 
     ChMatrix33<> ArwT_N;
     for (int i = 0; i < this->m_nodes.size(); ++i) {

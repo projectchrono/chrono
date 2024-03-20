@@ -391,14 +391,15 @@ void ChLinkLock::UpdateState() {
     ChMatrix33<> CqxT = marker2->GetRotMat().transpose() * m_body2->GetRotMat().transpose();  // [CqxT]=[Aq]'[Ao2]'
     ChStarMatrix33<> tmpStar(m_body2->GetRotMat().transpose() * PQw);
 
-    Cq1_temp.topLeftCorner<3, 3>() = CqxT;                                            // *- -- Cq1_temp(1-3) =  [Aqo2]
-    Cq2_temp.topLeftCorner<3, 3>() = -CqxT;                                           // -- *- Cq2_temp(1-3) = -[Aqo2]
+    Cq1_temp.topLeftCorner<3, 3>() = CqxT;                                              // *- -- Cq1_temp(1-3) =  [Aqo2]
+    Cq2_temp.topLeftCorner<3, 3>() = -CqxT;                                             // -- *- Cq2_temp(1-3) = -[Aqo2]
     Cq1_temp.topRightCorner<3, 4>() = -CqxT * m_body1->GetRotMat() * P1star * body1Gl;  // -* -- Cq1_temp(4-7)
     Cq2_temp.topRightCorner<3, 4>() = CqxT * m_body2->GetRotMat() * Q2star * body2Gl +  //
                                       marker2->GetRotMat().transpose() * tmpStar * body2Gl;  // -- -* Cq2_temp(4-7)
 
     {
-        ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCoordsys().rot), Qconjugate(m_body2->GetCoordsys().rot)));
+        ChStarMatrix44<> stempQ1(
+            Qcross(Qconjugate(marker2->GetCoordsys().rot), Qconjugate(m_body2->GetCoordsys().rot)));
         ChStarMatrix44<> stempQ2(marker1->GetCoordsys().rot);
         stempQ2.semiTranspose();
         Cq1_temp.bottomRightCorner<4, 4>() = stempQ1 * stempQ2;  // =* == Cq1_temp(col 4-7, row 4-7) ... CqrR
@@ -1414,10 +1415,11 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
         if (mask.GetConstraint(i).IsActive()) {
             if (do_clamp) {
                 if (mask.GetConstraint(i).IsUnilateral())
-                    mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() + std::max(factor * C(cnt), -recovery_clamp));
+                    mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() +
+                                                  std::max(factor * C(cnt), -recovery_clamp));
                 else
                     mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() +
-                                             std::min(std::max(factor * C(cnt), -recovery_clamp), recovery_clamp));
+                                                  std::min(std::max(factor * C(cnt), -recovery_clamp), recovery_clamp));
             } else
                 mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() + factor * C(cnt));
 
@@ -2241,14 +2243,15 @@ void ChLinkLockLock::UpdateState() {
     ChMatrix33<> CqxT = marker2->GetRotMat().transpose() * m_body2->GetRotMat().transpose();  // [CqxT]=[Aq]'[Ao2]'
     ChStarMatrix33<> tmpStar(m_body2->GetRotMat().transpose() * PQw);
 
-    Cq1_temp.topLeftCorner<3, 3>() = CqxT;                                            // *- -- Cq1_temp(1-3)  =[Aqo2]
-    Cq2_temp.topLeftCorner<3, 3>() = -CqxT;                                           // -- *- Cq2_temp(1-3)  =-[Aqo2]
+    Cq1_temp.topLeftCorner<3, 3>() = CqxT;                                              // *- -- Cq1_temp(1-3)  =[Aqo2]
+    Cq2_temp.topLeftCorner<3, 3>() = -CqxT;                                             // -- *- Cq2_temp(1-3)  =-[Aqo2]
     Cq1_temp.topRightCorner<3, 4>() = -CqxT * m_body1->GetRotMat() * P1star * body1Gl;  // -* -- Cq1_temp(4-7)
     Cq2_temp.topRightCorner<3, 4>() = CqxT * m_body2->GetRotMat() * Q2star * body2Gl +  //
                                       marker2->GetRotMat().transpose() * tmpStar * body2Gl;  // -- -* Cq2_temp(4-7)
 
     {
-        ChStarMatrix44<> stempQ1(Qcross(Qconjugate(marker2->GetCoordsys().rot), Qconjugate(m_body2->GetCoordsys().rot)));
+        ChStarMatrix44<> stempQ1(
+            Qcross(Qconjugate(marker2->GetCoordsys().rot), Qconjugate(m_body2->GetCoordsys().rot)));
         ChStarMatrix44<> stempQ2(marker1->GetCoordsys().rot);
         ChStarMatrix44<> stempDC(Qconjugate(deltaC.rot));
         stempQ2.semiTranspose();

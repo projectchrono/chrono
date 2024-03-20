@@ -103,7 +103,9 @@ class ChApi ChTetrahedronFace : public ChLoadableUV {
     virtual unsigned int GetNumSubBlocks() override { return 3; }
 
     /// Get the offset of the specified sub-block of DOFs in global vector.
-    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return GetNode(nblock)->NodeGetOffsetVelLevel(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override {
+        return GetNode(nblock)->NodeGetOffsetVelLevel();
+    }
 
     /// Get the size of the specified sub-block of DOFs in global vector.
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 3; }

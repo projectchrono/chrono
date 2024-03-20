@@ -31,9 +31,7 @@ class ChApi ChContinuumPoisson3D : public ChContinuumMaterial {
     ChMatrixDynamic<> ConstitutiveMatrix;  // constitutive matrix
 
   public:
-    ChContinuumPoisson3D() {
-        ConstitutiveMatrix.setIdentity(3,3);
-    }
+    ChContinuumPoisson3D() { ConstitutiveMatrix.setIdentity(3, 3); }
     ChContinuumPoisson3D(const ChContinuumPoisson3D& other) : ChContinuumMaterial(other) {
         ConstitutiveMatrix = other.ConstitutiveMatrix;
     }

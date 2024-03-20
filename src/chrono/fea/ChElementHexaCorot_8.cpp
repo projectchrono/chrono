@@ -318,7 +318,8 @@ void ChElementHexaCorot_8::ComputeKRMmatricesGlobal(ChMatrixRef H, double Kfacto
     // warp the local stiffness matrix K in order to obtain global
     // tangent stiffness CKCt:
     ChMatrixDynamic<> CK(GetNumCoordsPosLevel(), GetNumCoordsPosLevel());
-    ChMatrixDynamic<> CKCt(GetNumCoordsPosLevel(), GetNumCoordsPosLevel());  // the global, corotated, K matrix, for 8 nodes
+    ChMatrixDynamic<> CKCt(GetNumCoordsPosLevel(),
+                           GetNumCoordsPosLevel());  // the global, corotated, K matrix, for 8 nodes
     ChMatrixCorotation::ComputeCK(StiffnessMatrix, this->A, 8, CK);
     ChMatrixCorotation::ComputeKCt(CK, this->A, 8, CKCt);
 

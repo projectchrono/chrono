@@ -20,7 +20,6 @@ namespace chrono {
 CH_FACTORY_REGISTER(ChLinkMotorRotationTorque)
 
 ChLinkMotorRotationTorque::ChLinkMotorRotationTorque() {
-
     this->c_rz = false;
     SetupLinkMask();
 
@@ -63,8 +62,10 @@ void ChLinkMotorRotationTorque::ConstraintsFbLoadForces(double factor) {
     ChFrame<> aframe2 = this->frame2 >> (*this->m_body2);
     ChVector3d m_abs_torque = aframe2.GetRotMat() * ChVector3d(0, 0, mT);
 
-    m_body2->Variables().Get_fb().segment(3, 3) -= factor * m_body2->TransformDirectionParentToLocal(m_abs_torque).eigen();
-    m_body1->Variables().Get_fb().segment(3, 3) += factor * m_body1->TransformDirectionParentToLocal(m_abs_torque).eigen();
+    m_body2->Variables().Get_fb().segment(3, 3) -=
+        factor * m_body2->TransformDirectionParentToLocal(m_abs_torque).eigen();
+    m_body1->Variables().Get_fb().segment(3, 3) +=
+        factor * m_body1->TransformDirectionParentToLocal(m_abs_torque).eigen();
 }
 
 void ChLinkMotorRotationTorque::ArchiveOut(ChArchiveOut& archive_out) {

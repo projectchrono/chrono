@@ -106,12 +106,11 @@ class ChApi ChFunctionBSpline : public ChFunction {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    int m_p;                      ///< B-Spline order
-    ChVectorDynamic<> m_cpoints;  ///< B-Spline control points
-    ChVectorDynamic<> m_knots;    ///< B-Spline knots
-    int m_n;                      ///< number of knots
-    std::shared_ptr<ChBasisToolsBSpline>
-        m_basis_tool;  ///< internal tool to evaluate B-Spline basis functions
+    int m_p;                                            ///< B-Spline order
+    ChVectorDynamic<> m_cpoints;                        ///< B-Spline control points
+    ChVectorDynamic<> m_knots;                          ///< B-Spline knots
+    int m_n;                                            ///< number of knots
+    std::shared_ptr<ChBasisToolsBSpline> m_basis_tool;  ///< internal tool to evaluate B-Spline basis functions
 };
 
 /// @} chrono_functions

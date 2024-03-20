@@ -16,7 +16,6 @@
 
 namespace chrono {
 
-
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChLineSegment)
 
@@ -49,13 +48,12 @@ void ChLineSegment::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChLineSegment::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChLineSegment>();
+    /*int version =*/archive_in.VersionRead<ChLineSegment>();
     // deserialize parent class
     ChLine::ArchiveIn(archive_in);
     // stream in all member data:
     archive_in >> CHNVP(pA);
     archive_in >> CHNVP(pB);
 }
-
 
 }  // end namespace chrono

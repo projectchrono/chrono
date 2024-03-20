@@ -52,29 +52,29 @@ class ChApi ChLinkMotionImposed : public ChLinkMateGeneric {
     /// "Virtual" copy constructor (covariant return type).
     virtual ChLinkMotionImposed* Clone() const override { return new ChLinkMotionImposed(*this); }
 
-	/// Set the position function for a generic 3D rotation, as p=p(t) vector function.
-	/// Use an object from one of the ChFunctionPosition inherited classes to this end.
+    /// Set the position function for a generic 3D rotation, as p=p(t) vector function.
+    /// Use an object from one of the ChFunctionPosition inherited classes to this end.
     /// This function should be C0 continuous and, to prevent acceleration spikes,
     /// it should ideally be C1 continuous.
-	/// The position is imposed to frame1 respect to frame2, in frame2 coordinate system.
+    /// The position is imposed to frame1 respect to frame2, in frame2 coordinate system.
     void SetPositionFunction(std::shared_ptr<ChFunctionPosition> mf) { position_function = mf; }
 
-	/// Get the position function q=q(t).
+    /// Get the position function q=q(t).
     std::shared_ptr<ChFunctionPosition> GetPositionFunction() const { return position_function; }
 
     /// Set the rotation function for a generic 3D rotation, as  q=q(t) quaternion rotation function.
-	/// Use an object from one of the ChFunctionRotation inherited classes to this end.
+    /// Use an object from one of the ChFunctionRotation inherited classes to this end.
     /// This function should be C0 continuous and, to prevent acceleration spikes,
     /// it should ideally be C1 continuous.
-	/// The position is imposed to frame1 respect to frame2, in frame2 coordinate system.
+    /// The position is imposed to frame1 respect to frame2, in frame2 coordinate system.
     void SetRotationFunction(std::shared_ptr<ChFunctionRotation> mf) { rotation_function = mf; }
 
     /// Get the rotation function q=q(t).
     std::shared_ptr<ChFunctionRotation> GetRotationFunction() const { return rotation_function; }
 
-	/// For plotting etc: get the last computed value of imposed rotation and position,
-	/// expressed as the "moving" ChFrame M respect to frame2.
-	ChFrame<>& GetFrameM2() { return frameM2; }
+    /// For plotting etc: get the last computed value of imposed rotation and position,
+    /// expressed as the "moving" ChFrame M respect to frame2.
+    ChFrame<>& GetFrameM2() { return frameM2; }
 
     /// Get the link frame 2, relative to body 2.
     virtual ChFramed GetFrame2Rel() const override { return frameMb2; };
@@ -102,12 +102,11 @@ class ChApi ChLinkMotionImposed : public ChLinkMateGeneric {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-
-	std::shared_ptr<ChFunctionPosition> position_function;
-	std::shared_ptr<ChFunctionRotation> rotation_function;
-	ChFrame<> frameM2; // last updated value of the moving frame M respect to frame 2 (the frame connected to body 2)
-	ChFrame<> frameMb2; // last updated value of the moving frame M respect to body 2 
-}; 
+    std::shared_ptr<ChFunctionPosition> position_function;
+    std::shared_ptr<ChFunctionRotation> rotation_function;
+    ChFrame<> frameM2;   // last updated value of the moving frame M respect to frame 2 (the frame connected to body 2)
+    ChFrame<> frameMb2;  // last updated value of the moving frame M respect to body 2
+};
 
 CH_CLASS_VERSION(ChLinkMotionImposed, 0)
 

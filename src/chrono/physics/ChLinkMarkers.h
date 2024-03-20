@@ -46,8 +46,8 @@ class ChApi ChLinkMarkers : public ChLink {
     double dist;            ///< the distance between the two origins of markers,
     double dist_dt;         ///< the speed between the two  origins of markers
 
-    ChVector3d C_force;     ///< internal force  applied by springs/dampers/actuators
-    ChVector3d C_torque;    ///< internal torque applied by springs/dampers/actuators
+    ChVector3d C_force;   ///< internal force  applied by springs/dampers/actuators
+    ChVector3d C_torque;  ///< internal torque applied by springs/dampers/actuators
 
     // Cached intermediate variables.
     // These are calculated in UpdateRelMarkerCoords and may be reused in UpdateState.
@@ -73,7 +73,7 @@ class ChApi ChLinkMarkers : public ChLink {
 
     /// Get the link frame 1, relative to body 1.
     /// For this class link frame 1 is actually marker 1.
-    virtual ChFrame<> GetFrame1Rel() const override {return *marker1; }
+    virtual ChFrame<> GetFrame1Rel() const override { return *marker1; }
 
     /// Get the link frame 2, relative to body 2.
     /// For this class link frame 2 is actually marker 2.
@@ -92,21 +92,21 @@ class ChApi ChLinkMarkers : public ChLink {
 
     /// Relative rotation angle of marker 1 respect to marker 2.
     double GetRelAngle() const { return relAngle; }
-    
+
     /// Relative finite rotation axis of marker 1 respect to marker 2.
     const ChVector3d& GetRelAxis() const { return relAxis; }
-    
+
     const ChVector3d& GetRelAngleAxis() const { return relRotaxis; }
-    
+
     /// Relative angular speed of marker 1 respect to marker 2.
     const ChVector3d& GetRelativeAngVel() const { return relWvel; }
-    
+
     /// Relative angular acceleration of marker 1 respect to marker 2.
     const ChVector3d& GetRelativeAngAcc() const { return relWacc; }
-    
+
     /// Relative 'polar' distance of marker 1 respect to marker 2.
     double GetDistance() const { return dist; }
-    
+
     /// Relative speed of marker 1 respect to marker 2, along the polar distance vector.
     double GetDistanceDt() const { return dist_dt; }
 

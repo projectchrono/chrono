@@ -37,7 +37,7 @@ class ChInertiaUtils {
     /// Note: we assume that body masses are not overlapping
     /// Note: we assume that all local inertias are expressed in body local coords
     /// Note: we assume that all local inertias are expressed relative to body barycenter
-    static void InertiaFromCluster(const std::vector<ChVector3d >& positions,
+    static void InertiaFromCluster(const std::vector<ChVector3d>& positions,
                                    const std::vector<ChMatrix33<> >& rotations,
                                    const std::vector<ChMatrix33<> >& Jlocal,
                                    const std::vector<double>& masses,

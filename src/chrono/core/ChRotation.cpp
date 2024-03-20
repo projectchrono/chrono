@@ -175,9 +175,9 @@ ChQuaterniond QuatDtFromAngleAxis(const ChQuaterniond& quat, double angle_dt, co
 }
 
 ChQuaterniond QuatDt2FromAngleAxis(double angle_dtdt,
-                                    const ChVector3d& axis,
-                                    const ChQuaterniond& q,
-                                    const ChQuaterniond& q_dt) {
+                                   const ChVector3d& axis,
+                                   const ChQuaterniond& q,
+                                   const ChQuaterniond& q_dt) {
     ChVector3d Acc;
 
     Acc = Vmul(axis, angle_dtdt);

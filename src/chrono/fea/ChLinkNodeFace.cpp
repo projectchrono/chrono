@@ -33,9 +33,9 @@ ChLinkNodeFace::ChLinkNodeFace(const ChLinkNodeFace& other) : ChLinkBase(other) 
 }
 
 int ChLinkNodeFace::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
-                                   std::shared_ptr<ChNodeFEAxyz> anodeB1,
-                                   std::shared_ptr<ChNodeFEAxyz> anodeB2,
-                                   std::shared_ptr<ChNodeFEAxyz> anodeB3) {
+                               std::shared_ptr<ChNodeFEAxyz> anodeB1,
+                               std::shared_ptr<ChNodeFEAxyz> anodeB2,
+                               std::shared_ptr<ChNodeFEAxyz> anodeB3) {
     assert(anodeA && anodeB1 && anodeB2 && anodeB3);
 
     m_node = anodeA;
@@ -55,7 +55,7 @@ int ChLinkNodeFace::Initialize(std::shared_ptr<ChNodeFEAxyz> anodeA,
     bool is_into;
     ChVector3d p_projected;
     this->d = utils::PointTriangleDistance(m_node->pos, m_triangle.node1->pos, m_triangle.node2->pos,
-                                                      m_triangle.node3->pos, s2, s3, is_into, p_projected);
+                                           m_triangle.node3->pos, s2, s3, is_into, p_projected);
 
     // double s1 = 1 - s2 - s3;
 
@@ -85,9 +85,9 @@ void ChLinkNodeFace::IntStateScatterReactions(const unsigned int off_L, const Ch
 }
 
 void ChLinkNodeFace::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
-                                             ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
-                                             const ChVectorDynamic<>& L,  // the L vector
-                                             const double c               // a scaling factor
+                                         ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
+                                         const ChVectorDynamic<>& L,  // the L vector
+                                         const double c               // a scaling factor
 ) {
     if (!IsActive())
         return;
@@ -98,10 +98,10 @@ void ChLinkNodeFace::IntLoadResidual_CqL(const unsigned int off_L,    // offset 
 }
 
 void ChLinkNodeFace::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
-                                             ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
-                                             const double c,            // a scaling factor
-                                             bool do_clamp,             // apply clamping to c*C?
-                                             double recovery_clamp      // value for min/max clamping of c*C
+                                         ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
+                                         const double c,            // a scaling factor
+                                         bool do_clamp,             // apply clamping to c*C?
+                                         double recovery_clamp      // value for min/max clamping of c*C
 ) {
     if (!IsActive())
         return;
@@ -112,13 +112,12 @@ void ChLinkNodeFace::IntLoadConstraint_C(const unsigned int off_L,  // offset in
     // If an offset d is desired, along normal N, this becomes:
     //  C = A - s1*B1 - s2*B2 - s3*B3 - d*N
 
-    ChVector3d N =
-        Vcross(m_triangle.node2->pos - m_triangle.node1->pos, m_triangle.node3->pos - m_triangle.node1->pos);
+    ChVector3d N = Vcross(m_triangle.node2->pos - m_triangle.node1->pos, m_triangle.node3->pos - m_triangle.node1->pos);
     N.Normalize();
     double s1 = 1 - s2 - s3;
 
-    ChVector3d res = m_node->GetPos() - s1 * m_triangle.node1->pos - s2 * m_triangle.node2->pos -
-                     s3 * m_triangle.node3->pos - N * d;
+    ChVector3d res =
+        m_node->GetPos() - s1 * m_triangle.node1->pos - s2 * m_triangle.node2->pos - s3 * m_triangle.node3->pos - N * d;
 
     ChVector3d cres = res * c;
 
@@ -133,11 +132,11 @@ void ChLinkNodeFace::IntLoadConstraint_C(const unsigned int off_L,  // offset in
 }
 
 void ChLinkNodeFace::IntToDescriptor(const unsigned int off_v,
-                                         const ChStateDelta& v,
-                                         const ChVectorDynamic<>& R,
-                                         const unsigned int off_L,
-                                         const ChVectorDynamic<>& L,
-                                         const ChVectorDynamic<>& Qc) {
+                                     const ChStateDelta& v,
+                                     const ChVectorDynamic<>& R,
+                                     const unsigned int off_L,
+                                     const ChVectorDynamic<>& L,
+                                     const ChVectorDynamic<>& Qc) {
     if (!IsActive())
         return;
 
@@ -151,9 +150,9 @@ void ChLinkNodeFace::IntToDescriptor(const unsigned int off_v,
 }
 
 void ChLinkNodeFace::IntFromDescriptor(const unsigned int off_v,
-                                           ChStateDelta& v,
-                                           const unsigned int off_L,
-                                           ChVectorDynamic<>& L) {
+                                       ChStateDelta& v,
+                                       const unsigned int off_L,
+                                       ChVectorDynamic<>& L) {
     if (!IsActive())
         return;
 
@@ -187,13 +186,12 @@ void ChLinkNodeFace::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
     // If an offset d is desired, along normal N, this becomes:
     //  C = A - s1*B1 - s2*B2 - s3*B3 - d*N
 
-    ChVector3d N =
-        Vcross(m_triangle.node2->pos - m_triangle.node1->pos, m_triangle.node3->pos - m_triangle.node1->pos);
+    ChVector3d N = Vcross(m_triangle.node2->pos - m_triangle.node1->pos, m_triangle.node3->pos - m_triangle.node1->pos);
     N.Normalize();
     double s1 = 1 - s2 - s3;
 
-    ChVector3d res = m_node->GetPos() - s1 * m_triangle.node1->pos - s2 * m_triangle.node2->pos -
-                     s3 * m_triangle.node3->pos - N * d;
+    ChVector3d res =
+        m_node->GetPos() - s1 * m_triangle.node1->pos - s2 * m_triangle.node2->pos - s3 * m_triangle.node3->pos - N * d;
 
     constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
     constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y());
@@ -378,9 +376,9 @@ ChLinkNodeFaceRot::ChLinkNodeFaceRot(const ChLinkNodeFaceRot& other) : ChLinkBas
 }
 
 int ChLinkNodeFaceRot::Initialize(std::shared_ptr<ChNodeFEAxyz> nodeA,
-                                      std::shared_ptr<ChNodeFEAxyzrot> nodeB1,
-                                      std::shared_ptr<ChNodeFEAxyzrot> nodeB2,
-                                      std::shared_ptr<ChNodeFEAxyzrot> nodeB3) {
+                                  std::shared_ptr<ChNodeFEAxyzrot> nodeB1,
+                                  std::shared_ptr<ChNodeFEAxyzrot> nodeB2,
+                                  std::shared_ptr<ChNodeFEAxyzrot> nodeB3) {
     assert(nodeA && nodeB1 && nodeB2 && nodeB3);
 
     m_node = nodeA;
@@ -430,9 +428,9 @@ void ChLinkNodeFaceRot::IntStateScatterReactions(const unsigned int off_L, const
 }
 
 void ChLinkNodeFaceRot::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L multipliers
-                                                ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
-                                                const ChVectorDynamic<>& L,  // the L vector
-                                                const double c               // a scaling factor
+                                            ChVectorDynamic<>& R,        // result: the R residual, R += c*Cq'*L
+                                            const ChVectorDynamic<>& L,  // the L vector
+                                            const double c               // a scaling factor
 ) {
     if (!IsActive())
         return;
@@ -443,10 +441,10 @@ void ChLinkNodeFaceRot::IntLoadResidual_CqL(const unsigned int off_L,    // offs
 }
 
 void ChLinkNodeFaceRot::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
-                                                ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
-                                                const double c,            // a scaling factor
-                                                bool do_clamp,             // apply clamping to c*C?
-                                                double recovery_clamp      // value for min/max clamping of c*C
+                                            ChVectorDynamic<>& Qc,     // result: the Qc residual, Qc += c*C
+                                            const double c,            // a scaling factor
+                                            bool do_clamp,             // apply clamping to c*C?
+                                            double recovery_clamp      // value for min/max clamping of c*C
 ) {
     if (!IsActive())
         return;
@@ -478,11 +476,11 @@ void ChLinkNodeFaceRot::IntLoadConstraint_C(const unsigned int off_L,  // offset
 }
 
 void ChLinkNodeFaceRot::IntToDescriptor(const unsigned int off_v,
-                                            const ChStateDelta& v,
-                                            const ChVectorDynamic<>& R,
-                                            const unsigned int off_L,
-                                            const ChVectorDynamic<>& L,
-                                            const ChVectorDynamic<>& Qc) {
+                                        const ChStateDelta& v,
+                                        const ChVectorDynamic<>& R,
+                                        const unsigned int off_L,
+                                        const ChVectorDynamic<>& L,
+                                        const ChVectorDynamic<>& Qc) {
     if (!IsActive())
         return;
 
@@ -496,9 +494,9 @@ void ChLinkNodeFaceRot::IntToDescriptor(const unsigned int off_v,
 }
 
 void ChLinkNodeFaceRot::IntFromDescriptor(const unsigned int off_v,
-                                              ChStateDelta& v,
-                                              const unsigned int off_L,
-                                              ChVectorDynamic<>& L) {
+                                          ChStateDelta& v,
+                                          const unsigned int off_L,
+                                          ChVectorDynamic<>& L) {
     if (!IsActive())
         return;
 

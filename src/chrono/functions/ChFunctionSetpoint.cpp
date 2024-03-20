@@ -44,7 +44,7 @@ void ChFunctionSetpoint::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChFunctionSetpoint::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChFunctionSetpoint>();
+    /*int version =*/archive_in.VersionRead<ChFunctionSetpoint>();
     // deserialize parent class
     ChFunction::ArchiveIn(archive_in);
     // stream in all member data:

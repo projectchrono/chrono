@@ -33,7 +33,7 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     ChNodeFEAcurv(const ChVector3d& rxx = VNULL,  ///< initial value of xx 2nd derivative of position vector
                   const ChVector3d& ryy = VNULL,  ///< initial value of yy 2nd derivative of position vector
                   const ChVector3d& rzz = VNULL   ///< initial value of zz 2nd derivative of position vector
-                  );
+    );
     ChNodeFEAcurv(const ChNodeFEAcurv& other);
     virtual ~ChNodeFEAcurv();
 
@@ -153,7 +153,7 @@ class ChApi ChNodeFEAcurv : public ChNodeFEAbase {
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbIncrementPosition(double step) override;
 
-    protected:
+  protected:
     ChVariablesGenericDiagonalMass* m_variables;
 
     ChVector3d m_rxx;

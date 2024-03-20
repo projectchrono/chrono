@@ -44,25 +44,19 @@ class ChApi ChElementBeam : public ChElementGeneric {
     /// Gets the xyz displacement of a point on the beam line,
     /// and the rotation RxRyRz of section plane, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
-    virtual void EvaluateSectionDisplacement(const double eta,
-                                             ChVector3d& u_displ,
-                                             ChVector3d& u_rotaz) = 0;
+    virtual void EvaluateSectionDisplacement(const double eta, ChVector3d& u_displ, ChVector3d& u_rotaz) = 0;
 
     /// Gets the absolute xyz position of a point on the beam line,
     /// and the absolute rotation of section plane, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
-    virtual void EvaluateSectionFrame(const double eta,
-                                      ChVector3d& point,
-                                      ChQuaternion<>& rot) = 0;
+    virtual void EvaluateSectionFrame(const double eta, ChVector3d& point, ChQuaternion<>& rot) = 0;
 
     /// Gets the force (traction x, shear y, shear z) and the
     /// torque (torsion on x, bending on y, on bending on z) at a section along
     /// the beam line, at abscissa 'eta'.
     /// Note, eta=-1 at node1, eta=+1 at node2.
     /// Results are not corotated, and are expressed in the reference system of beam.
-    virtual void EvaluateSectionForceTorque(const double eta,
-                                            ChVector3d& Fforce,
-                                            ChVector3d& Mtorque) = 0;
+    virtual void EvaluateSectionForceTorque(const double eta, ChVector3d& Fforce, ChVector3d& Mtorque) = 0;
 
     /// Gets the axial and bending strain of the ANCF "cable" element
     virtual void EvaluateSectionStrain(const double eta, ChVector3d& StrainV) = 0;

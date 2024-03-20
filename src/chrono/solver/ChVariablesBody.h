@@ -25,7 +25,6 @@ namespace chrono {
 /// ChVariablesBodyOwnMass and ChVariablesBodySharedMass.
 
 class ChApi ChVariablesBody : public ChVariables {
-
   private:
     void* user_data;
 

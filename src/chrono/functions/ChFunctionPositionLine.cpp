@@ -33,8 +33,7 @@ ChFunctionPositionLine::ChFunctionPositionLine() {
 
 ChFunctionPositionLine::ChFunctionPositionLine(const ChFunctionPositionLine& other) {
     // m_trajectory_line = other.m_trajectory_line;
-    m_trajectory_line =
-        std::shared_ptr<ChLine>((ChLine*)other.m_trajectory_line->Clone());  // deep copy
+    m_trajectory_line = std::shared_ptr<ChLine>((ChLine*)other.m_trajectory_line->Clone());  // deep copy
 
     // m_space_fun = other.m_space_fun;
     m_space_fun = std::shared_ptr<ChFunction>(other.m_space_fun->Clone());  // deep copy

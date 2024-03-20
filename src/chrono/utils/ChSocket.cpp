@@ -520,7 +520,6 @@ void ChSocket::detectErrorGetSocketOption(int* errCode, std::string& errMsg) {
 
     errMsg.append("Error " + std::to_string(*errCode) + ": ");
 
-
     if (*errCode == WSANOTINITIALISED)
         errMsg.append("A successful WSAStartup must occur before using this function.");
     else if (*errCode == WSAENETDOWN)

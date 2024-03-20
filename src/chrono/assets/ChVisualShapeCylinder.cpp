@@ -44,7 +44,7 @@ void ChVisualShapeCylinder::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChVisualShapeCylinder::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChVisualShapeCylinder>();
+    /*int version =*/archive_in.VersionRead<ChVisualShapeCylinder>();
     // deserialize parent class
     ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:

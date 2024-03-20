@@ -119,14 +119,16 @@ void ChCollisionModelBullet::Populate() {
                 cbtVector3 spos(0, 0, 0);
                 auto bt_shape = chrono_types::make_shared<cbtMultiSphereShape>(&spos, &rad, 1);
                 bt_shape->setLocalScaling(bt_axes);
-                bt_shape->setMargin((cbtScalar)std::min((double)full_margin, 0.9 * std::min(std::min(haxes.x(), haxes.y()), haxes.z())));
+                bt_shape->setMargin((cbtScalar)std::min((double)full_margin,
+                                                        0.9 * std::min(std::min(haxes.x(), haxes.y()), haxes.z())));
                 injectShape(shape, bt_shape, frame);
                 break;
             }
             case ChCollisionShape::Type::BOX: {
                 auto shape_box = std::static_pointer_cast<ChCollisionShapeBox>(shape);
                 auto len = shape_box->GetLengths();
-                model->SetSafeMargin(std::min((double)safe_margin, 0.1 * std::min(std::min(len.x(), len.y()), len.z())));
+                model->SetSafeMargin(
+                    std::min((double)safe_margin, 0.1 * std::min(std::min(len.x(), len.y()), len.z())));
                 auto bt_shape = chrono_types::make_shared<cbtBoxShape>(cbtVector3CH(len / 2 + envelope));
                 bt_shape->setMargin((cbtScalar)full_margin);
                 injectShape(shape, bt_shape, frame);
@@ -308,7 +310,8 @@ void ChCollisionModelBullet::injectPath2D(std::shared_ptr<ChCollisionShapePath2D
             bt_shape->setMargin((cbtScalar)full_margin);
             injectShape(shape_arc, bt_shape, frame);
         } else {
-            throw std::invalid_argument("Error! injectPath2D: ChLinePath must contain only ChLineArc and/or ChLineSegment.");
+            throw std::invalid_argument(
+                "Error! injectPath2D: ChLinePath must contain only ChLineArc and/or ChLineSegment.");
         }
 
         size_t i_prev = i;
@@ -654,7 +657,7 @@ ChAABB ChCollisionModelBullet::GetBoundingBox() const {
         cbtVector3 btmax;
         bt_collision_object->getCollisionShape()->getAabb(bt_collision_object->getWorldTransform(), btmin, btmax);
         return ChAABB(ChVector3d((double)btmin.x(), (double)btmin.y(), (double)btmin.z()),
-                                ChVector3d((double)btmax.x(), (double)btmax.y(), (double)btmax.z()));
+                      ChVector3d((double)btmax.x(), (double)btmax.y(), (double)btmax.z()));
     }
 
     return ChAABB();

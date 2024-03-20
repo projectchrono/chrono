@@ -96,7 +96,7 @@ class ChApi ChVariablesShaft : public ChVariables {
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override {
         // version number
-        /*int version =*/ archive_in.VersionRead<ChVariablesShaft>();
+        /*int version =*/archive_in.VersionRead<ChVariablesShaft>();
         // deserialize parent class
         ChVariables::ArchiveIn(archive_in);
         // stream in all member data:

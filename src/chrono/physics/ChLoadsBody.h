@@ -151,15 +151,18 @@ class ChApi ChLoadBodyTorque : public ChLoadCustom {
 /// tensor, however for speed optimization reasons the ChBody mass is limited to zero offset of center of mass,
 /// moreover it does not generate a gyroscopical damping matrix. Therefore, you can use this load if you need:
 ///   - an offset between the body and its center of mass
-///   - a gyroscopic damping matrix (and inertial stiffness matrix), ex. it may affect for advanced aeroelastic modal analysis.
+///   - a gyroscopic damping matrix (and inertial stiffness matrix), ex. it may affect for advanced aeroelastic modal
+///   analysis.
 /// Note that you must use the solvers for finite elements in order to exploit this feature.
 class ChApi ChLoadBodyInertia : public ChLoadCustom {
   public:
-      ChLoadBodyInertia(std::shared_ptr<ChBody> body,  ///< object to apply additional inertia to
-          const ChVector3d& m_offset,     ///< offset of the center of mass, in body coordinate system
-          const double m_mass,            ///< added mass [kg]
-          const ChVector3d& m_IXX=VNULL,  ///< added diag. inertia values Ixx, Iyy, Izz (in body coordinate system, centered in body)
-          const ChVector3d& m_IXY=VNULL   ///< added off.diag. inertia values Ixy, Ixz, Iyz including the "-"sign (in body coordinate system, centered in body)
+    ChLoadBodyInertia(std::shared_ptr<ChBody> body,     ///< object to apply additional inertia to
+                      const ChVector3d& m_offset,       ///< offset of the center of mass, in body coordinate system
+                      const double m_mass,              ///< added mass [kg]
+                      const ChVector3d& m_IXX = VNULL,  ///< added diag. inertia values Ixx, Iyy, Izz (in body
+                                                        ///< coordinate system, centered in body)
+                      const ChVector3d& m_IXY = VNULL   ///< added off.diag. inertia values Ixy, Ixz, Iyz including the
+                                                        ///< "-"sign (in body coordinate system, centered in body)
     );
 
     /// "Virtual" copy constructor (covariant return type).
@@ -167,7 +170,7 @@ class ChApi ChLoadBodyInertia : public ChLoadCustom {
 
     /// Set the inertia tensor of the body, assumed in the body reference basis, with body reference as center.
     /// The provided 3x3 matrix should be symmetric and contain the inertia tensor as:
-    /// system: 
+    /// system:
     /// <pre>
     ///               [ int{y^2+z^2}dm    -int{xy}dm    -int{xz}dm    ]
     /// newXInertia = [                  int{x^2+z^2}   -int{yz}dm    ]
@@ -184,14 +187,13 @@ class ChApi ChLoadBodyInertia : public ChLoadCustom {
     /// </pre>
     const ChMatrix33<>& GetInertia() const { return this->I; }
 
-    /// Set the diagonal part of the inertia tensor (Ixx, Iyy, Izz values). 
-    /// The vector should contain these moments of inertia, assumed in the body reference basis, with body reference as center:
-    /// <pre>
-    /// iner = [  int{y^2+z^2}dm   int{x^2+z^2}   int{x^2+y^2}dm ]
+    /// Set the diagonal part of the inertia tensor (Ixx, Iyy, Izz values).
+    /// The vector should contain these moments of inertia, assumed in the body reference basis, with body reference as
+    /// center: <pre> iner = [  int{y^2+z^2}dm   int{x^2+z^2}   int{x^2+y^2}dm ]
     /// </pre>
     void SetInertiaXX(const ChVector3d& iner);
 
-    /// Get the diagonal part of the inertia tensor (Ixx, Iyy, Izz values). 
+    /// Get the diagonal part of the inertia tensor (Ixx, Iyy, Izz values).
     /// The vector contains these values, assumed in the body reference basis, with body reference as center:
     /// <pre>
     /// [  int{y^2+z^2}dm   int{x^2+z^2}   int{x^2+y^2}dm ]
@@ -212,8 +214,8 @@ class ChApi ChLoadBodyInertia : public ChLoadCustom {
     /// </pre>
     ChVector3d GetInertiaXY() const;
 
-    /// Compute Q, the generalized load. 
-    /// In this case, it computes the quadratic (centrifugal, gyroscopic) terms. 
+    /// Compute Q, the generalized load.
+    /// In this case, it computes the quadratic (centrifugal, gyroscopic) terms.
     /// Signs are negative as Q assumed at right hand side, so Q= -Fgyro -Fcentrifugal
     /// Called automatically at each Update().
     /// The M*a term is not added: to this end one could use LoadIntLoadResidual_Mv afterward.
@@ -222,7 +224,7 @@ class ChApi ChLoadBodyInertia : public ChLoadCustom {
                           ) override;
 
     /// For efficiency reasons, do not let the parent class do automatic differentiation
-    /// to compute the R, K matrices. Use analytic expressions instead. For example, R is 
+    /// to compute the R, K matrices. Use analytic expressions instead. For example, R is
     /// the well known gyroscopic damping matrix. Also, compute the M matrix.
     virtual void ComputeJacobian(ChState* state_x,       ///< state position to evaluate jacobians
                                  ChStateDelta* state_w,  ///< state speed to evaluate jacobians
@@ -244,12 +246,10 @@ class ChApi ChLoadBodyInertia : public ChLoadCustom {
 
     virtual bool IsStiff() override { return true; }  // this to force the use of the inertial M, R and K matrices
 
-    static bool use_inertial_damping_matrix_R;  // default true. Can be disabled globally, for testing or optimization
-    static bool use_inertial_stiffness_matrix_K;// default true. Can be disabled globally, for testing or optimization
-    static bool use_gyroscopic_torque;          // default true. Can be disabled globally, for testing or optimization
+    static bool use_inertial_damping_matrix_R;    // default true. Can be disabled globally, for testing or optimization
+    static bool use_inertial_stiffness_matrix_K;  // default true. Can be disabled globally, for testing or optimization
+    static bool use_gyroscopic_torque;            // default true. Can be disabled globally, for testing or optimization
 };
-
-
 
 //------------------------------------------------------------------------------------------------
 
