@@ -379,7 +379,7 @@ int main(int argc, char* argv[]) {
             }
 
             vis->EndScene();
-        }    
+        }
     }
 
     double ride_limit = 2.0;

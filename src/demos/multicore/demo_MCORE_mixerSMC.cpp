@@ -36,7 +36,7 @@
 #include "chrono/utils/ChUtilsInputOutput.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChVisualSystemOpenGL.h"
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 using namespace chrono;

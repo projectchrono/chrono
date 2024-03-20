@@ -165,7 +165,8 @@ int main(int argc, char* argv[]) {
             vis_shape->SetColor(ChColor(0.3f, 0.3f, 0.3f));
             wheel->AddVisualShape(vis_shape);
 
-            auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, trimesh, false, false, 0.01);
+            auto ct_shape =
+                chrono_types::make_shared<ChCollisionShapeTriangleMesh>(material, trimesh, false, false, 0.01);
             wheel->AddCollisionShape(ct_shape, ChFrame<>(VNULL, ChMatrix33<>(1)));
             break;
         }
@@ -210,7 +211,8 @@ int main(int argc, char* argv[]) {
     mterrain.Initialize(width, length, mesh_resolution);
 
     // Or use a height map:
-    ////mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), width, length, 0, 0.5, mesh_resolution);
+    ////mterrain.Initialize(vehicle::GetDataFile("terrain/height_maps/test64.bmp"), width, length, 0, 0.5,
+    ///mesh_resolution);
 
     // Or use a mesh:
     ////mterrain.Initialize(vehicle::GetDataFile("terrain/meshes/test_terrain_irregular.obj"), mesh_resolution);
@@ -321,7 +323,7 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    // Create the Blender exporter
+        // Create the Blender exporter
 #ifdef CHRONO_POSTPROCESS
     postprocess::ChBlender blender_exporter(&sys);
     if (blender_output) {

@@ -825,7 +825,7 @@ void example5(const std::string& out_dir) {
         log_file5e << mystepper7.GetTime()
                    << ", "
                    //<< mystepper7.GetStatePos()(0) << ", " << mystepper7.GetStatePos()(1) << ", " <<
-                   //mystepper7.GetStateVel()(0) << ", "
+                   // mystepper7.GetStateVel()(0) << ", "
                    //<< mystepper7.GetStateVel()(1) << ", "
                    << mystepper7.GetState()(0) << ", " << mystepper7.GetState()(1) << ", " << mystepper7.GetState()(2)
                    << ", " << mystepper7.GetState()(3) << ", " << std::endl;

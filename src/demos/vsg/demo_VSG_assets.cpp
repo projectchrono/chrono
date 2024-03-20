@@ -388,8 +388,7 @@ int main(int argc, char* argv[]) {
         vis->UpdateVisualModel(teapotId1, ChFrame<>(ChVector3d(0, 3.5 + 0.5 * sin(CH_PI * time / 10), 3), Zup));
         vis->UpdateVisualModel(teapotId2, ChFrame<>(ChVector3d(-5, 3.5, 3), Zup * QuatFromAngleY(time / 20)));
         vis->UpdateVisualModel(boxId, ChFrame<>(ChVector3d(0, 0.01 * time, 0), QUNIT));
-        vis->UpdateVisualModel(ellId, ChFrame<>(ellPos, Zup * QuatFromAngleY(0.2 * time) *
-                                                            QuatFromAngleZ(0.1 * time)));
+        vis->UpdateVisualModel(ellId, ChFrame<>(ellPos, Zup * QuatFromAngleY(0.2 * time) * QuatFromAngleZ(0.1 * time)));
 
         if (time < 10.0)
             vis->UpdateVisualModel(sphereId, ChFrame<>(ChVector3d(6, 2, 6), QUNIT));

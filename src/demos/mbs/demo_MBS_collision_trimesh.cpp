@@ -66,9 +66,10 @@ int main(int argc, char* argv[]) {
     //	  true,			                                        // enable the collision detection
     //    mat,                                                  // surface contact material
     //	  0.005			                                        // radius of 'inflating' of mesh (for more robust
-    //collision detection)
+    // collision detection)
     //	  );
-    // falling->SetFrameRefToAbs(ChFrame<>(ChVector3d(-0.9 + ChRandom::Get() * 1.4, 0.4 + j * 0.12, -0.9 + ChRandom::Get()
+    // falling->SetFrameRefToAbs(ChFrame<>(ChVector3d(-0.9 + ChRandom::Get() * 1.4, 0.4 + j * 0.12, -0.9 +
+    // ChRandom::Get()
     // * 1.4))); sys.Add(falling);
     //
     // but here we want to show a more low-level control of this process, for
@@ -150,7 +151,7 @@ int main(int argc, char* argv[]) {
     vis->AddCamera(ChVector3d(0, 1, -1));
     vis->AddTypicalLights();
     vis->AddLightWithShadow(ChVector3d(1.5, 5.5, -2.5), ChVector3d(0, 0, 0), 3, 2.2, 7.2, 40, 512,
-                           ChColor(0.8f, 0.8f, 1.0f));
+                            ChColor(0.8f, 0.8f, 1.0f));
     vis->EnableShadows();
 
     ////application.SetContactsDrawMode(ContactsDrawMode::CONTACT_DISTANCES);

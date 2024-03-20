@@ -90,8 +90,7 @@ int main(int argc, char* argv[]) {
     ellipse->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(ellipse);
 
-    auto mesh =
-        chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/cube.obj"), 100.0, mat, 0.05);
+    auto mesh = chrono_types::make_shared<ChBodyEasyMesh>(GetChronoDataFile("models/cube.obj"), 100.0, mat, 0.05);
     mesh->SetPos(ChVector3d(2.0, 3.5, -2.0));
     mesh->GetVisualShape(0)->SetColor(ChColor(0.2f, 0.3f, 0.6f));
     sys.AddBody(mesh);

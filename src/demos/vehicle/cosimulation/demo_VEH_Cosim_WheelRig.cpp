@@ -45,7 +45,6 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-
 using std::cout;
 using std::cin;
 using std::endl;

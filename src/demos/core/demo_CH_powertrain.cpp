@@ -278,8 +278,7 @@ int main(int argc, char* argv[]) {
                       << "  accel: " << my_shaftA->GetPosDt2() << std::endl
                       << "  shaft B  rot: " << my_shaftB->GetPos() << "  speed: " << my_shaftB->GetPosDt()
                       << "  accel: " << my_shaftB->GetPosDt2() << std::endl
-                      << "  epicycloidal react torques on shafts - on A: "
-                      << my_shaft_planetaryBAC->GetReaction2()
+                      << "  epicycloidal react torques on shafts - on A: " << my_shaft_planetaryBAC->GetReaction2()
                       << " ,   on B: " << my_shaft_planetaryBAC->GetReaction1()
                       << " ,   on C: " << my_shaft_planetaryBAC->GetTorqueReactionOn3() << std::endl;
         }
@@ -585,8 +584,7 @@ int main(int argc, char* argv[]) {
                       << "  shaft C rot: " << my_shaftC->GetPos() << "  speed: " << my_shaftC->GetPosDt()
                       << "  accel: " << my_shaftC->GetPosDt2() << std::endl
                       << "  Torque: Tmotor=" << my_motor->GetReaction1()
-                      << "  Tfreewheel=" << my_freewheel->GetReaction1()
-                      << "  Tclutch=" << my_clutch->GetReaction1()
+                      << "  Tfreewheel=" << my_freewheel->GetReaction1() << "  Tclutch=" << my_clutch->GetReaction1()
                       << "  ratchet vane=" << my_freewheel->GetCurrentTeethVane() << std::endl;
             file_results << sys.GetChTime() << ", " << my_shaftB->GetPos() << ", " << my_shaftC->GetPos() << ", "
                          << my_shaftC->GetPosDt() << ", " << my_clutch->GetReaction1() << ", "

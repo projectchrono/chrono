@@ -268,7 +268,8 @@ int main(int argc, char* argv[]) {
     chrono::ChVector3d omega = chrono::ChVector3d(2.3, 0, 0);
     rot_frame.SetAngVelLocal(omega);
     rot_frame.SetAngAccLocal(VNULL);
-    std::cout << "Frame w_loc =" << rot_frame.GetAngVelLocal() << "   w_abs =" << rot_frame.GetAngVelParent() << std::endl;
+    std::cout << "Frame w_loc =" << rot_frame.GetAngVelLocal() << "   w_abs =" << rot_frame.GetAngVelParent()
+              << std::endl;
 
     // solve the velocites and accelerations of point P due to the rotation of rot_frame
     auto TestCase = [&](const chrono::ChFrameMoving<double> m_rot_frame, const chrono::ChVector3d& m_dpos_rel) {

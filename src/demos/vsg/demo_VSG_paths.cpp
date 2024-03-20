@@ -75,9 +75,9 @@ int main(int argc, char* argv[]) {
 
     // Define which parts are connected (the trajectory is considered in the 2nd body).
     trajectory->Initialize(pendulum,               // body1 that follows the trajectory
-            floor,                  // body2 that 'owns' the trajectory
-            ChVector3d(0, 0.5, 0),  // point on body1 that will follow the trajectory
-            path                    // the trajectory (reuse the one already added to body2 as asset)
+                           floor,                  // body2 that 'owns' the trajectory
+                           ChVector3d(0, 0.5, 0),  // point on body1 that will follow the trajectory
+                           path                    // the trajectory (reuse the one already added to body2 as asset)
     );
 
     // Optionally, set a function that gets the curvilinear
@@ -151,8 +151,8 @@ int main(int argc, char* argv[]) {
     vis->Initialize();
 
     // This means that contactforces will be shown in Irrlicht application
-    //vis->SetSymbolScale(0.2);
-    //vis->EnableContactDrawing(ContactsDrawMode::CONTACT_NORMALS);
+    // vis->SetSymbolScale(0.2);
+    // vis->EnableContactDrawing(ContactsDrawMode::CONTACT_NORMALS);
 
     // Simulation loop
     double timestep = 0.01;

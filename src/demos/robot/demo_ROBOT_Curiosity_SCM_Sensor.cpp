@@ -202,8 +202,8 @@ int main(int argc, char* argv[]) {
 
         rock1_Body->SetFixed(false);
 
-        auto rock1_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_1_mmesh, false,
-                                                                                false, 0.005);
+        auto rock1_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_1_mmesh,
+                                                                                      false, false, 0.005);
         rock1_Body->AddCollisionShape(rock1_ct_shape);
         rock1_Body->EnableCollision(true);
 
@@ -471,8 +471,8 @@ int main(int argc, char* argv[]) {
     auto lidar = chrono_types::make_shared<ChLidarSensor>(rover.GetChassis()->GetBody(),  // body lidar is attached to
                                                           25,                             // scanning rate in Hz
                                                           offset_pose,                    // offset pose
-                                                          480,                   // number of horizontal samples
-                                                          300,                   // number of vertical channels
+                                                          480,                 // number of horizontal samples
+                                                          300,                 // number of vertical channels
                                                           (float)(2 * CH_PI),  // horizontal field of view
                                                           (float)CH_PI / 12, (float)-CH_PI / 6,
                                                           120.0f  // vertical field of view

@@ -27,7 +27,7 @@
 
 #ifdef CHRONO_IRRLICHT
     #include "chrono_vehicle/wheeled_vehicle/ChWheeledVehicleVisualSystemIrrlicht.h"
-    ////#define USE_IRRLICHT
+////#define USE_IRRLICHT
 #endif
 
 #include "chrono_models/vehicle/hmmwv/HMMWV.h"
@@ -340,14 +340,13 @@ int main(int argc, char* argv[]) {
     terrain.Initialize();
 
     if (patch->GetGroundBody()->GetVisualModel()) {
-        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
-            GetChronoDataFile("models/trees/Tree.obj"), true, true);
+        auto trimesh =
+            ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/trees/Tree.obj"), true, true);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName("Trees");
         trimesh_shape->SetMutable(false);
-        patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape,
-                                                           ChFrame<>(VNULL, QuatFromAngleZ(CH_PI_2)));
+        patch->GetGroundBody()->GetVisualModel()->AddShape(trimesh_shape, ChFrame<>(VNULL, QuatFromAngleZ(CH_PI_2)));
     }
 
     // ------------------------
@@ -394,7 +393,7 @@ int main(int argc, char* argv[]) {
                                                          offset_pose,             // offset pose
                                                          280,                     // image width
                                                          120,                     // image height
-                                                         CH_PI / 4);            // camera's horizontal field of view
+                                                         CH_PI / 4);              // camera's horizontal field of view
     cam->SetName("Camera Sensor");
     if (CAMERA_VIS)
         cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720, "Third Person View"));
@@ -523,7 +522,7 @@ int main(int argc, char* argv[]) {
         // Debug logging
         if (debug_output && sim_frame % debug_steps == 0) {
             std::cout << "driver acceleration:  " << acc_driver.x() << "  " << acc_driver.y() << "  " << acc_driver.z()
-                     << "\n";
+                      << "\n";
             std::cout << "CG acceleration:      " << acc_CG.x() << "  " << acc_CG.y() << "  " << acc_CG.z() << "\n";
             std::cout << "\n";
         }

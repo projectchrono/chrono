@@ -75,8 +75,8 @@ int main(int argc, char* argv[]) {
 
     ChVector3f fill_center(0.f, 0.f, (fill_bottom + fill_top) / 2.f);
     ChVector3f fill_hdims(params.box_X / 2.f - boundary_padding - 2.f * params.sphere_radius,
-                               params.box_Y / 2.f - boundary_padding - 2.f * params.sphere_radius,
-                               (fill_top - fill_bottom) / 2.f);
+                          params.box_Y / 2.f - boundary_padding - 2.f * params.sphere_radius,
+                          (fill_top - fill_bottom) / 2.f);
     std::vector<ChVector3f> material_points =
         utils::ChPDLayerSamplerBox<float>(fill_center, fill_hdims, 2.f * params.sphere_radius);
 

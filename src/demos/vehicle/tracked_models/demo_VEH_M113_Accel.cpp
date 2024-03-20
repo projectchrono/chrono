@@ -37,7 +37,7 @@
 #include "chrono_models/vehicle/m113/M113.h"
 
 #ifdef CHRONO_POSTPROCESS
-#include "chrono_postprocess/ChGnuPlot.h"
+    #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
 using namespace chrono;
@@ -64,7 +64,9 @@ double step_size = 5e-4;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2017 projectchrono.org" << std::endl << "Chrono version: " << CHRONO_VERSION << std::endl  << std::endl;
+    std::cout << "Copyright (c) 2017 projectchrono.org" << std::endl
+              << "Chrono version: " << CHRONO_VERSION << std::endl
+              << std::endl;
 
     // --------------
     // Create systems

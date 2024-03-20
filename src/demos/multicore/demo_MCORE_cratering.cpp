@@ -102,7 +102,9 @@ static inline void TimingOutput(chrono::ChSystem* mSys, std::ostream* ofile = NU
 // Callback class for contact reporting
 class ContactReporter : public ChContactContainer::ReportContactCallback {
   public:
-    ContactReporter(ChSystemMulticore* system) : sys(system) { csv << sys->GetChTime() << sys->GetNumContacts() << endl; }
+    ContactReporter(ChSystemMulticore* system) : sys(system) {
+        csv << sys->GetChTime() << sys->GetNumContacts() << endl;
+    }
 
     void write(const std::string& filename) { csv.WriteToFile(filename); }
 

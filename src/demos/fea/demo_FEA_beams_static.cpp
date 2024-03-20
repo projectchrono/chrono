@@ -102,7 +102,7 @@ int main(int argc, char* argv[]) {
                 ChVector3d(beam_L, nload * y_spacing, i * z_spacing),  // the 'B' point in space (end of beam)
                 ChVector3d(0, 1, 0)
                 // ChVector3d(0, cos(rot_rad), sin(rot_rad))
-                );  // the 'Y' up direction of the section for the beam
+            );  // the 'Y' up direction of the section for the beam
 
             // After having used BuildBeam(), you can retrieve the nodes used for the beam,
             // For example say you want to fix the A end and apply a force to the B end:
@@ -179,7 +179,8 @@ int main(int argc, char* argv[]) {
         double node_z = endnodes[0][i]->GetPos().z() - i * z_spacing;
         double node_a =
             atan2(endnodes[0][i]->GetRotMat().GetAxisY().y(), endnodes[0][i]->GetRotMat().GetAxisY().z()) - CH_PI_2;
-        std::cout << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]" << std::endl;
+        std::cout << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]"
+                  << std::endl;
         file_out1 << node_y << " " << node_z << " " << node_a << std::endl;
     }
 
@@ -189,7 +190,8 @@ int main(int argc, char* argv[]) {
         double node_z = endnodes[1][i]->GetPos().z() - i * z_spacing;
         double node_a =
             atan2(endnodes[1][i]->GetRotMat().GetAxisY().y(), endnodes[1][i]->GetRotMat().GetAxisY().z()) - CH_PI_2;
-        std::cout << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]" << std::endl;
+        std::cout << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]"
+                  << std::endl;
         file_out2 << node_y << " " << node_z << " " << node_a << std::endl;
     }
 
@@ -199,7 +201,8 @@ int main(int argc, char* argv[]) {
         double node_z = endnodes[2][i]->GetPos().z() - i * z_spacing;
         double node_a =
             atan2(endnodes[2][i]->GetRotMat().GetAxisY().y(), endnodes[2][i]->GetRotMat().GetAxisY().z()) - CH_PI_2;
-        std::cout << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]" << std::endl;
+        std::cout << " Node " << i << " DY=" << node_y << " DZ=" << node_z << "  angle=" << node_a << " [rad]"
+                  << std::endl;
         file_out3 << node_y << " " << node_z << " " << node_a << std::endl;
     }
 

@@ -52,15 +52,15 @@ int main(int argc, char* argv[]) {
 
     // Convert terrain parameters
     double slope_g = slope * CH_DEG_TO_RAD;  // Slope (rad)
-    double r_g = radius / 1000;                // Particle radius (m)
-    double rho_g = rho;                        // Granular material density (kg/m3)
-    double mu_g = mu;                          // Coefficient of friction
+    double r_g = radius / 1000;              // Particle radius (m)
+    double rho_g = rho;                      // Granular material density (kg/m3)
+    double mu_g = mu;                        // Coefficient of friction
     double area = CH_PI * r_g * r_g;         // Particle cross-area (m2)
-    double coh_force = area * (coh * 1e3);     // Cohesion force (N)
-    double coh_g = coh_force * time_step;      // Cohesion impulse (Ns)
+    double coh_force = area * (coh * 1e3);   // Cohesion force (N)
+    double coh_g = coh_force * time_step;    // Cohesion impulse (Ns)
 
     // Tire parameters
-    double tire_rad = 0.8;           // Radius (m)
+    double tire_rad = 0.8;         // Radius (m)
     double tire_ang_vel = CH_2PI;  // Tire angular velocity (rad/s)
 
     // Collision envelope (10% of particle radius)
@@ -143,8 +143,8 @@ int main(int argc, char* argv[]) {
     body->SetRot(QuatFromAngleZ(CH_PI_2));
     sys->AddBody(body);
 
-    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
-        GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
+    auto trimesh =
+        ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("models/tractor_wheel/tractor_wheel.obj"));
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);

@@ -241,8 +241,8 @@ int main(int argc, char** argv) {
             cout << "[Vehicle node] output directory: " << vehicle->GetOutDirName() << endl;
 
         node = vehicle;
-    } 
-    
+    }
+
     // TERRAIN node
     if (rank == TERRAIN_NODE_RANK) {
         if (verbose)

@@ -407,7 +407,7 @@ int main(int argc, char* argv[]) {
         ref_X.AddPoint(1.00, 1 - 1.71);
     }
 
-    //Visualization of the FEM mesh.
+    // Visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh
     // asset that is internally managed) by setting  proper
     // coordinates and vertex colors as in the FEM elements.

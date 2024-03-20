@@ -18,7 +18,7 @@
 // =============================================================================
 
 #ifdef __EMSCRIPTEN__
-#include <emscripten.h>
+    #include <emscripten.h>
 #endif
 
 #include "chrono/physics/ChBodyEasy.h"
@@ -153,7 +153,8 @@ int main(int argc, char* argv[]) {
 
     class MyContactCallback : public ChContactContainer::AddContactCallback {
       public:
-        virtual void OnAddContact(const ChCollisionInfo& contactinfo, ChContactMaterialComposite* const material) override {
+        virtual void OnAddContact(const ChCollisionInfo& contactinfo,
+                                  ChContactMaterialComposite* const material) override {
             // Downcast to appropriate composite material type
             auto mat = static_cast<ChContactMaterialCompositeNSC* const>(material);
 
@@ -184,7 +185,7 @@ int main(int argc, char* argv[]) {
     };
 
     auto mycontact_callback = chrono_types::make_shared<MyContactCallback>();  // create the callback object
-    mycontact_callback->msystem = &sys;                            // will be used by callback
+    mycontact_callback->msystem = &sys;                                        // will be used by callback
 
     // Use the above callback to process each contact as it is created.
     sys.GetContactContainer()->RegisterAddContactCallback(mycontact_callback);

@@ -180,7 +180,7 @@ int main(int argc, char* argv[]) {
     utils::AddBoxContainer(ground, ground_mat,                     //
                            ChFrame<>(ChVector3d(0, 1, 0), QUNIT),  //
                            ChVector3d(10, 2, 10), 0.2,             //
-                           ChVector3i(2, -1, 2),                //
+                           ChVector3i(2, -1, 2),                   //
                            true, ground_mat_vis);
 
     obstacle.AddVisualization(ground);

@@ -209,7 +209,7 @@ int main(int argc, char* argv[]) {
         chrono::ChMatrix44<> A44;
         A44.setRandom();
         chrono::ChQuaternion<> q2 = A44 * q;
-        std::cout << "Random 4x4 * q:\n" << q2 << std::endl; 
+        std::cout << "Random 4x4 * q:\n" << q2 << std::endl;
 
         chrono::ChStarMatrix44<> X(chrono::ChQuaternion<>(1, 2, 3, 4));
         std::cout << "4x4 star matrix X:\n" << X << std::endl;
@@ -226,7 +226,7 @@ int main(int argc, char* argv[]) {
         chrono::ChQuaternion<> q(1, 3, 4, 5);  // rotation of coord system (quaternion)
         q.Normalize();                         // as unit quaternion, must be normalized
         chrono::ChMatrix33<> R;                // rotation of coord system (rotation matrix)
-        R.SetFromQuaternion(q);                 // set from quaternion
+        R.SetFromQuaternion(q);                // set from quaternion
         chrono::ChCoordsysd csys(t, q);        // coordinate system representing translation + rotation
 
         // Perform the transformation: v = t + [R] * v'

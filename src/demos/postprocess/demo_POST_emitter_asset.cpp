@@ -124,8 +124,8 @@ int main(int argc, char* argv[]) {
         // ---Initialize the randomizer for positions
         double xpos = (ie - 0.5 * num_emitters) * 2.2;
         auto emitter_positions = chrono_types::make_shared<ChRandomParticlePositionRectangleOutlet>();
-        emitter_positions->Outlet() = ChCoordsys<>(
-            ChVector3d(xpos, -4, 0), QuatFromAngleX(CH_PI_2));  // center and alignment of the outlet
+        emitter_positions->Outlet() =
+            ChCoordsys<>(ChVector3d(xpos, -4, 0), QuatFromAngleX(CH_PI_2));  // center and alignment of the outlet
         emitter_positions->OutletWidth() = 1.2;
         emitter_positions->OutletHeight() = 1.2;
         emitters[ie].SetParticlePositioner(emitter_positions);

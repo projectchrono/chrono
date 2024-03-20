@@ -54,12 +54,12 @@ int main(int argc, char* argv[]) {
 
     // Convert terrain parameters
     double slope_g = slope * CH_DEG_TO_RAD;  // Slope (rad)
-    double r_g = radius / 1000;                // Particle radius (m)
-    double rho_g = rho;                        // Granular material density (kg/m3)
-    double mu_g = mu;                          // Coefficient of friction
+    double r_g = radius / 1000;              // Particle radius (m)
+    double rho_g = rho;                      // Granular material density (kg/m3)
+    double mu_g = mu;                        // Coefficient of friction
     double area = CH_PI * r_g * r_g;         // Particle cross-area (m2)
-    double coh_force = area * (coh * 1e3);     // Cohesion force (N)
-    double coh_g = coh_force * time_step;      // Cohesion impulse (Ns)
+    double coh_force = area * (coh * 1e3);   // Cohesion force (N)
+    double coh_g = coh_force * time_step;    // Cohesion impulse (Ns)
 
     // Tracked body parameters
     double kmh_to_ms = 1000.0 / 3600;

@@ -160,7 +160,7 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     for (int iseg = 0; iseg < 15; iseg++) {
         ChQuaternion<> rot = QuatFromAngleY(iseg * 24 * CH_DEG_TO_RAD);
         for (int ihull = 0; ihull < num_hulls; ihull++) {
-            std::vector<ChVector3d > convexhull;
+            std::vector<ChVector3d> convexhull;
             lugged_convex.GetConvexHullResult(ihull, convexhull);
             auto shape = chrono_types::make_shared<ChCollisionShapeConvexHull>(wheel_material, convexhull);
             wheel_body->AddCollisionShape(shape, ChFrame<>(VNULL, rot));
@@ -172,8 +172,8 @@ void CreateLuggedGeometry(std::shared_ptr<ChBody> wheel_body, std::shared_ptr<Ch
     wheel_body->AddCollisionShape(cyl_shape, ChFrame<>(VNULL, QuatFromAngleX(CH_PI_2)));
 
     // Visualization
-    auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(
-        vehicle::GetDataFile("hmmwv/lugged_wheel.obj"), false, false);
+    auto trimesh =
+        ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile("hmmwv/lugged_wheel.obj"), false, false);
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(trimesh);

@@ -42,7 +42,7 @@ const std::string out_dir = GetChronoOutputPath() + "BEAM_BUCKLING";
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
     /*
-    //// TEST 
+    //// TEST
         ChVector3d mFi, mTi;
         ChVector3d mWvel = (1, 2, 3);
         ChVector3d mWacc =  (0.3, -0.2, 0.4);
@@ -288,14 +288,15 @@ int main(int argc, char* argv[]) {
         vis->BeginScene();
         vis->Render();
 
-        tools::drawGrid(vis.get(), 0.05, 0.05, 20, 20, ChCoordsys<>(VNULL, CH_PI_2, VECT_Z),
-                        ChColor(0.4f, 0.4f, 0.4f), true);
+        tools::drawGrid(vis.get(), 0.05, 0.05, 20, 20, ChCoordsys<>(VNULL, CH_PI_2, VECT_Z), ChColor(0.4f, 0.4f, 0.4f),
+                        true);
 
         sys.DoStepDynamics(0.001);
 
         // Save output for the first 0.4 seconds
         if (sys.GetChTime() <= 0.4) {
-            file_out1 << sys.GetChTime() << " " << node_mid->GetPos().z() << " " << node_mid->GetAngVelParent().x() << std::endl;
+            file_out1 << sys.GetChTime() << " " << node_mid->GetPos().z() << " " << node_mid->GetAngVelParent().x()
+                      << std::endl;
         }
 
         vis->EndScene();

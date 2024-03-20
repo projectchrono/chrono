@@ -404,8 +404,8 @@ int main(int argc, char* argv[]) {
     auto motor1 = chrono_types::make_shared<ChLinkMotorLinearPosition>();
 
     // Connect the guide and the slider and add the motor to the system:
-    motor1->Initialize(slider1,               // body A (slave)
-                       guide1,                // body B (master)
+    motor1->Initialize(slider1,                                // body A (slave)
+                       guide1,                                 // body B (master)
                        ChFrame<>(positionB1, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor1);
@@ -443,8 +443,8 @@ int main(int argc, char* argv[]) {
     auto motor2 = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
 
     // Connect the guide and the slider and add the motor to the system:
-    motor2->Initialize(slider2,               // body A (slave)
-                       guide2,                // body B (master)
+    motor2->Initialize(slider2,                                // body A (slave)
+                       guide2,                                 // body B (master)
                        ChFrame<>(positionB2, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor2);
@@ -496,8 +496,8 @@ int main(int argc, char* argv[]) {
     auto motor3 = chrono_types::make_shared<ChLinkMotorLinearForce>();
 
     // Connect the guide and the slider and add the motor to the system:
-    motor3->Initialize(slider3,               // body A (slave)
-                       guide3,                // body B (master)
+    motor3->Initialize(slider3,                                // body A (slave)
+                       guide3,                                 // body B (master)
                        ChFrame<>(positionB3, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor3);
@@ -528,8 +528,8 @@ int main(int argc, char* argv[]) {
     auto motor4 = chrono_types::make_shared<ChLinkMotorLinearForce>();
 
     // Connect the guide and the slider and add the motor to the system:
-    motor4->Initialize(slider4,               // body A (slave)
-                       guide4,                // body B (master)
+    motor4->Initialize(slider4,                                // body A (slave)
+                       guide4,                                 // body B (master)
                        ChFrame<>(positionB4, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor4);
@@ -616,7 +616,6 @@ int main(int argc, char* argv[]) {
     // drive+screw; you will anchor the drive to part 2 using this rotational shaft; so
     // reaction torques arising because of inner flywheel accelerations can be transmitted to this shaft.
 
-
     //               [************ motor5 ********]
     //  [ guide5  ]----[----(ChShaftBodyRotation)---------------[Shaft2Rot]----]--->
     //  [ guide5  ]----[----(ChShaftBodyTranslation)----[Shaft2Lin]----]--->
@@ -636,8 +635,8 @@ int main(int argc, char* argv[]) {
     auto motor5 = chrono_types::make_shared<ChLinkMotorLinearDriveline>();
 
     // Connect the rotor and the stator and add the motor to the system:
-    motor5->Initialize(slider5,               // body A (slave)
-                       guide5,                // body B (master)
+    motor5->Initialize(slider5,                                // body A (slave)
+                       guide5,                                 // body B (master)
                        ChFrame<>(positionB5, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor5);
@@ -732,8 +731,8 @@ int main(int argc, char* argv[]) {
     auto motor6 = chrono_types::make_shared<ChLinkMotorLinearPosition>();
 
     // Connect the guide and the slider and add the motor to the system:
-    motor6->Initialize(slider6,               // body A (slave)
-                       guide6,                // body B (master)
+    motor6->Initialize(slider6,                                // body A (slave)
+                       guide6,                                 // body B (master)
                        ChFrame<>(positionB6, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor6);

@@ -73,10 +73,10 @@ int main(int argc, char* argv[]) {
     sphere_mat->SetFriction(0.2f);
 
     auto sphereBody = chrono_types::make_shared<ChBodyEasySphere>(2.1,          // radius size
-                                                                   1800,         // density
-                                                                   true,         // visualization?
-                                                                   true,         // collision?
-                                                                   sphere_mat);  // contact material
+                                                                  1800,         // density
+                                                                  true,         // visualization?
+                                                                  true,         // collision?
+                                                                  sphere_mat);  // contact material
     sphereBody->SetPos(ChVector3d(1, 1, 0));
     sphereBody->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
     sys.Add(sphereBody);
@@ -128,7 +128,7 @@ int main(int argc, char* argv[]) {
 
     // ---Initialize the randomizer for CREATED SHAPES, with statistical distribution
 
-    /*    
+    /*
     // Create a ChRandomShapeCreator object (ex. here for sphere particles)
     auto mcreator_spheres = chrono_types::make_shared<ChRandomShapeCreatorSpheres>();
     mcreator_spheres->SetDiameterDistribution(chrono_types::make_shared<ChZhangDistribution>(0.6, 0.23));

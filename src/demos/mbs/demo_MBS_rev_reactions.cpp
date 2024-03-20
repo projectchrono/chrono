@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
     pend->EnableCollision(false);
     pend->SetMass(1);
     pend->SetInertiaXX(ChVector3d(1, 1, 1));
-    //pend->SetPos(ChVector3d(0, 0, -1));
+    // pend->SetPos(ChVector3d(0, 0, -1));
     pend->SetPos(ChVector3d(1, 0, 0));
     pend->SetRot(QuatFromAngleY(-CH_PI_2));
 
@@ -109,7 +109,6 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
 
         sys.DoStepDynamics(0.001);
-
     }
 
     return 0;

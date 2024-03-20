@@ -94,7 +94,9 @@ bool vis = true;
 const std::string out_dir = "SENSOR_OUTPUT/NN_DEMO/";
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2019 projectchrono.org" << std::endl << "Chrono version: " << CHRONO_VERSION << std::endl << std::endl;
+    std::cout << "Copyright (c) 2019 projectchrono.org" << std::endl
+              << "Chrono version: " << CHRONO_VERSION << std::endl
+              << std::endl;
 
     // -----------------
     // Create the system
@@ -115,7 +117,7 @@ int main(int argc, char* argv[]) {
 
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({0, 0, 0});
-    mesh_body->AddVisualShape(trimesh_shape,ChFrame<>());
+    mesh_body->AddVisualShape(trimesh_shape, ChFrame<>());
     mesh_body->SetFixed(true);
     mphysicalSystem.Add(mesh_body);
 

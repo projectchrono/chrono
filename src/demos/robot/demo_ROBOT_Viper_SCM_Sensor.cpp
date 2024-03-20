@@ -271,7 +271,7 @@ int main(int argc, char* argv[]) {
         rock_Body->SetFixed(false);
 
         auto rock_ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(rockSufaceMaterial, rock_mmesh,
-                                                                                      false, false, 0.005);
+                                                                                     false, false, 0.005);
         rock_Body->AddCollisionShape(rock_ct_shape);
         rock_Body->EnableCollision(true);
 
@@ -410,8 +410,8 @@ int main(int argc, char* argv[]) {
     auto lidar = chrono_types::make_shared<ChLidarSensor>(viper.GetChassis()->GetBody(),  // body lidar is attached to
                                                           50,                             // scanning rate in Hz
                                                           offset_pose,                    // offset pose
-                                                          480,                   // number of horizontal samples
-                                                          300,                   // number of vertical channels
+                                                          480,                 // number of horizontal samples
+                                                          300,                 // number of vertical channels
                                                           (float)(2 * CH_PI),  // horizontal field of view
                                                           (float)CH_PI / 12, (float)-CH_PI / 3,
                                                           140.0f  // vertical field of view

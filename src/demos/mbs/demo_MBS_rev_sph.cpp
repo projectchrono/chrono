@@ -98,7 +98,7 @@ int main(int argc, char* argv[]) {
     vis->EnableLinkFrameDrawing(true);
 
     // Cache for point trajectory plot
-    std::vector<ChVector3d > trajectory;
+    std::vector<ChVector3d> trajectory;
 
     // Simulation loop
     while (vis->Run()) {

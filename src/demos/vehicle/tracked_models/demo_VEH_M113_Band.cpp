@@ -629,14 +629,13 @@ void WriteVehicleVTK(int frame, ChTrackedVehicle& vehicle) {
         csv << gearL->GetPos() << gearL->GetRot() << gearL->GetPosDt() << gearL->GetAngVelLocal() << endl;
         csv << gearR->GetPos() << gearR->GetRot() << gearR->GetPosDt() << gearR->GetAngVelLocal() << endl;
         csv.WriteToFile(vtk_dir + "/sprockets." + std::to_string(frame) + ".vtk",
-                          "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
+                        "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
     }
 
     {
         chrono::utils::ChWriterCSV csv(",");
         auto chassis = vehicle.GetChassisBody();
         csv << chassis->GetPos() << chassis->GetRot() << chassis->GetPosDt() << chassis->GetAngVelLocal() << endl;
-        csv.WriteToFile(vtk_dir + "/chassis." + std::to_string(frame) + ".vtk",
-                          "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
+        csv.WriteToFile(vtk_dir + "/chassis." + std::to_string(frame) + ".vtk", "x,y,z,e0,e1,e2,e3,vx,vy,vz,ox,oy,oz");
     }
 }

@@ -28,7 +28,9 @@ using namespace chrono;
 using namespace fea;
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2017 projectchrono.org" << std::endl << "Chrono version: " << CHRONO_VERSION << std::endl << std::endl;
+    std::cout << "Copyright (c) 2017 projectchrono.org" << std::endl
+              << "Chrono version: " << CHRONO_VERSION << std::endl
+              << std::endl;
 
     // Create a Chrono::Engine physical system
     ChSystemSMC sys;
@@ -64,7 +66,6 @@ int main(int argc, char* argv[]) {
     mvisualizebeamC->SetSymbolsScale(0.01);
     mvisualizebeamC->SetZbufferHide(false);
     my_mesh->AddVisualShapeFEA(mvisualizebeamC);
-
 
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();

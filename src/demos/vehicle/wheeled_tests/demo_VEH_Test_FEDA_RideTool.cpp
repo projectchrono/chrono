@@ -275,7 +275,6 @@ void RunTest(double speed,
         }
     }
 
-
     if (vis) {
         auto sentinel = chrono_types::make_shared<ChVisualShapeSphere>(0.1);
         auto target = chrono_types::make_shared<ChVisualShapeSphere>(0.1);

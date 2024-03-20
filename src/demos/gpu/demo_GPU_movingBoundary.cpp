@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
 
     // The box to fill with particles
     ChVector3f hdims((float)(params.box_X / 2.0 - 1.2), (float)(params.box_Y / 2.0 - 1.2),
-                          (float)(params.box_Z / 10.0 - 1.2));
+                     (float)(params.box_Z / 10.0 - 1.2));
     ChVector3f center((float)(params.box_X / 2), (float)(params.box_Y / 2), (float)(params.box_Z / 10.0));
 
     // Fill box with bodies

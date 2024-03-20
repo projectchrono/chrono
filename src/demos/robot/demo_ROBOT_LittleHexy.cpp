@@ -160,7 +160,7 @@ int main(int argc, char* argv[]) {
 
     while (vis->Run()) {
         ChVector3f pos = myhexy.GetChassis()->GetPos();
-        vis->UpdateCamera(pos + ChVector3d(1,-1,1), pos);
+        vis->UpdateCamera(pos + ChVector3d(1, -1, 1), pos);
 
         vis->BeginScene();
         vis->Render();

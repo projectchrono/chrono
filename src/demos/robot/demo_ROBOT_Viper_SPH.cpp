@@ -241,7 +241,6 @@ int main(int argc, char* argv[]) {
     render = false;
 #endif
 
-
     std::shared_ptr<ChFsiVisualization> visFSI;
     if (render) {
         switch (vis_type) {
@@ -258,9 +257,8 @@ int main(int argc, char* argv[]) {
             }
         }
 
-
         visFSI->SetTitle("Viper on CRM terrain");
-        visFSI->SetSize(1280, 720);        
+        visFSI->SetSize(1280, 720);
         visFSI->AddCamera(ChVector3d(0, -3 * byDim, bzDim), ChVector3d(0, 0, 0));
         visFSI->SetCameraMoveScale(1.0f);
         visFSI->EnableBoundaryMarkers(true);

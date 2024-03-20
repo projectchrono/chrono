@@ -268,7 +268,7 @@ int main(int argc, char* argv[]) {
     // Change (SMC) contact force model
     ////if (contact_method == ChContactMethod::SMC) {
     ////
-    ///static_cast<ChSystemSMC*>(m113.GetSystem())->SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
+    /// static_cast<ChSystemSMC*>(m113.GetSystem())->SetContactForceModel(ChSystemSMC::ContactForceModel::PlainCoulomb);
     ////}
 
     // --------------------------------------------------

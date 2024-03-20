@@ -238,8 +238,8 @@ int main(int argc, char* argv[]) {
                                        const int iteration_n,                  // actual number of load step
                                        ChStaticNonLinearIncremental* analysis  // back-pointer to this analysis
             ) {
-                // Scale the external loads. In our example, just two forces. 
-                // Note: if gravity is used, consider scaling also gravity effect, e.g: 
+                // Scale the external loads. In our example, just two forces.
+                // Note: if gravity is used, consider scaling also gravity effect, e.g:
                 //    sys.SetGravitationalAcceleration(load_scaling * ChVector3d(0,-9.8,0))
                 cb_loaded_node_1->SetForce(load_scaling * cb_F_node_1);
                 cb_loaded_node_2->SetForce(load_scaling * cb_F_node_2);
@@ -284,18 +284,19 @@ int main(int argc, char* argv[]) {
     for (double eta = -1; eta <= 1; eta += 0.4) {
         belement1->EvaluateSectionForceTorque(eta, F, M);
         std::cout << "  b1_at " << eta << " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x()
-                 << " Ty=" << F.y() << " Tz=" << F.z() << std::endl;
+                  << " Ty=" << F.y() << " Tz=" << F.z() << std::endl;
     }
     std::cout << std::endl;
     belement2->GetStateBlock(displ);
     for (double eta = -1; eta <= 1; eta += 0.4) {
         belement2->EvaluateSectionForceTorque(eta, F, M);
         std::cout << "  b2_at " << eta << " Mx=" << M.x() << " My=" << M.y() << " Mz=" << M.z() << " Tx=" << F.x()
-                 << " Ty=" << F.y() << " Tz=" << F.z() << std::endl;
+                  << " Ty=" << F.y() << " Tz=" << F.z() << std::endl;
     }
 
     std::cout << "Node 3 coordinate x= " << hnode3->Frame().GetPos().x() << "    y=" << hnode3->Frame().GetPos().y()
-             << "    z=" << hnode3->Frame().GetPos().z() << std::endl << std::endl;
+              << "    z=" << hnode3->Frame().GetPos().z() << std::endl
+              << std::endl;
 
     while (vis->Run()) {
         vis->BeginScene();

@@ -161,17 +161,17 @@ int main(int argc, char* argv[]) {
         case NORMAL_DRIFT:
             // Set the imu noise model to a gaussian model
             acc_noise_model =
-                chrono_types::make_shared<ChNoiseNormalDrift>(imu_update_rate,                          //
+                chrono_types::make_shared<ChNoiseNormalDrift>(imu_update_rate,                    //
                                                               ChVector3d({0., 0., 0.}),           // mean,
                                                               ChVector3d({0.001, 0.001, 0.001}),  // stdev,
-                                                              .0001,                                    // bias_drift,
-                                                              .1);                                      // tau_drift,
+                                                              .0001,                              // bias_drift,
+                                                              .1);                                // tau_drift,
             gyro_noise_model =
-                chrono_types::make_shared<ChNoiseNormalDrift>(imu_update_rate,                 // float updateRate,
-                                                              ChVector3d({0., 0., 0.}),  // float mean,
+                chrono_types::make_shared<ChNoiseNormalDrift>(imu_update_rate,                    // float updateRate,
+                                                              ChVector3d({0., 0., 0.}),           // float mean,
                                                               ChVector3d({0.001, 0.001, 0.001}),  // float
-                                                              .001,  // double bias_drift,
-                                                              .1);   // double tau_drift,
+                                                              .001,                               // double bias_drift,
+                                                              .1);                                // double tau_drift,
             mag_noise_model =
                 chrono_types::make_shared<ChNoiseNormal>(ChVector3d({0., 0., 0.}),            // float mean,
                                                          ChVector3d({0.001, 0.001, 0.001}));  // float stdev,
@@ -225,10 +225,9 @@ int main(int argc, char* argv[]) {
     switch (gps_noise_type) {
         case NORMAL:
             // Set the gps noise model to a gaussian model
-            gps_noise_model =
-                chrono_types::make_shared<ChNoiseNormal>(ChVector3d(1.f, 1.f, 1.f),  // Mean
-                                                         ChVector3d(2.f, 3.f, 1.f)   // Standard Deviation
-                );
+            gps_noise_model = chrono_types::make_shared<ChNoiseNormal>(ChVector3d(1.f, 1.f, 1.f),  // Mean
+                                                                       ChVector3d(2.f, 3.f, 1.f)   // Standard Deviation
+            );
             break;
         case GPS_NONE:
             // Set the gps noise model to none (does not affect the data)

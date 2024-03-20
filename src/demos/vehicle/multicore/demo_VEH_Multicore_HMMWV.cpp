@@ -45,7 +45,7 @@
 #include "chrono_multicore/solver/ChIterativeSolverMulticore.h"
 
 #ifdef CHRONO_OPENGL
-#include "chrono_opengl/ChVisualSystemOpenGL.h"
+    #include "chrono_opengl/ChVisualSystemOpenGL.h"
 #endif
 
 #include "chrono_thirdparty/filesystem/path.h"
@@ -248,7 +248,8 @@ void TimingOutput(chrono::ChSystem* mSys, std::ostream* ofile = NULL);
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    std::cout << "Copyright (c) 2017 projectchrono.org\n"<< "Chrono version: " << CHRONO_VERSION << std::endl;
+    std::cout << "Copyright (c) 2017 projectchrono.org\n"
+              << "Chrono version: " << CHRONO_VERSION << std::endl;
 
     // ------------------------
     // Convert input parameters

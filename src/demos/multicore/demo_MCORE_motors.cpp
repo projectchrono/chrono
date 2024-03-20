@@ -280,8 +280,8 @@ void ExampleB1(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     auto motor1 = chrono_types::make_shared<ChLinkMotorLinearPosition>();
 
     // Connect the guide and the slider and add the motor to the system:
-    motor1->Initialize(slider1,               // body A (slave)
-                       guide1,                // body B (master)
+    motor1->Initialize(slider1,                                // body A (slave)
+                       guide1,                                 // body B (master)
                        ChFrame<>(positionB1, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor1);
@@ -321,8 +321,8 @@ void ExampleB2(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     auto motor2 = chrono_types::make_shared<ChLinkMotorLinearSpeed>();
 
     // Connect the guide and the slider and add the motor to the system:
-    motor2->Initialize(slider2,               // body A (slave)
-                       guide2,                // body B (master)
+    motor2->Initialize(slider2,                                // body A (slave)
+                       guide2,                                 // body B (master)
                        ChFrame<>(positionB2, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor2);
@@ -376,8 +376,8 @@ void ExampleB3(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     auto motor3 = chrono_types::make_shared<ChLinkMotorLinearForce>();
 
     // Connect the guide and the slider and add the motor to the system:
-    motor3->Initialize(slider3,               // body A (slave)
-                       guide3,                // body B (master)
+    motor3->Initialize(slider3,                                // body A (slave)
+                       guide3,                                 // body B (master)
                        ChFrame<>(positionB3, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor3);
@@ -411,8 +411,8 @@ void ExampleB4(ChSystem& sys, std::shared_ptr<ChContactMaterial> material) {
     auto motor4 = chrono_types::make_shared<ChLinkMotorLinearForce>();
 
     // Connect the guide and the slider and add the motor to the system:
-    motor4->Initialize(slider4,               // body A (slave)
-                       guide4,                // body B (master)
+    motor4->Initialize(slider4,                                // body A (slave)
+                       guide4,                                 // body B (master)
                        ChFrame<>(positionB4, Q_ROTATE_Z_TO_X)  // motor frame, in abs. coords
     );
     sys.Add(motor4);
