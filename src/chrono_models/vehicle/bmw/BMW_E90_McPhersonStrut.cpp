@@ -67,8 +67,7 @@ BMW_E90_MacPhersonStrut::BMW_E90_MacPhersonStrut(const std::string& name) : ChMa
     ptr->set_stops(2.0 * m_springCoefficient, 2.0 * m_springCoefficient);
     // m_shockForceCB = chrono_types::make_shared<LinearDamperForce>(m_dampingCoefficient);
     m_shockForceCB =
-        chrono_types::make_shared<DegressiveDamperForce>(m_dampingCoefficient, 1.3,
-                                                         m_dampingCoefficient, 1.3);
+        chrono_types::make_shared<DegressiveDamperForce>(m_dampingCoefficient, 1.3, m_dampingCoefficient, 1.3);
 }
 
 BMW_E90_MacPhersonStrut::~BMW_E90_MacPhersonStrut() {}

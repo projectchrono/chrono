@@ -37,7 +37,6 @@ class CH_MODELS_API G500_RearAxle : public ChRigidPanhardAxle {
     G500_RearAxle(const std::string& name);
     ~G500_RearAxle();
 
-  
   protected:
     virtual const ChVector3d getLocation(PointId which) override;
 
@@ -58,7 +57,7 @@ class CH_MODELS_API G500_RearAxle : public ChRigidPanhardAxle {
     virtual double getPanhardRodRadius() const override { return m_panhardRodRadius; }
     virtual double getARBRadius() const override { return m_arbRadius; }
 
-    virtual const ChVector3d getAxleTubeCOM() const override { return ChVector3d(0,0,0); }
+    virtual const ChVector3d getAxleTubeCOM() const override { return ChVector3d(0, 0, 0); }
 
     virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
     virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
@@ -66,7 +65,7 @@ class CH_MODELS_API G500_RearAxle : public ChRigidPanhardAxle {
     virtual const ChVector3d& getARBInertia() const override { return m_arbInertia; }
 
     virtual double getAxleInertia() const override { return m_axleShaftInertia; }
-    
+
     virtual double getSpringRestLength() const override { return m_springRestLength; }
     /// Return the functor object for spring force.
     virtual std::shared_ptr<ChLinkTSDA::ForceFunctor> getSpringForceFunctor() const override { return m_springForceCB; }
@@ -78,12 +77,12 @@ class CH_MODELS_API G500_RearAxle : public ChRigidPanhardAxle {
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
     static const double m_axleShaftInertia;
-    
+
     static const double m_axleTubeMass;
     static const double m_spindleMass;
     static const double m_panhardRodMass;
     static const double m_arbMass;
- 
+
     static const double m_axleTubeRadius;
     static const double m_spindleRadius;
     static const double m_spindleWidth;
@@ -104,7 +103,7 @@ class CH_MODELS_API G500_RearAxle : public ChRigidPanhardAxle {
     static const double m_damperCoefficient;
     static const double m_damperDegressivityExpansion;
     static const double m_damperDegressivityCompression;
-    
+
     static const double m_arb_stiffness;
     static const double m_arb_damping;
 };

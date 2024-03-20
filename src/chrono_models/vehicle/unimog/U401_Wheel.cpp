@@ -42,7 +42,6 @@ U401_Wheel::U401_Wheel(const std::string& name) : ChWheel(name) {
     m_vis_mesh_file = "unimog/U401_Wheel.obj";
 }
 
-}  // end namespace hmmwv
+}  // namespace unimog
 }  // end namespace vehicle
 }  // end namespace chrono
-

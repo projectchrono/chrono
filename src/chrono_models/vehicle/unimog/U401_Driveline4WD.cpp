@@ -49,6 +49,6 @@ U401_Driveline4WD::U401_Driveline4WD(const std::string& name) : ChShaftsDrivelin
     SetAxleDirection(ChVector3d(0, 1, 0));
 }
 
-}  // end namespace uaz
+}  // namespace unimog
 }  // end namespace vehicle
 }  // end namespace chrono

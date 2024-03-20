@@ -219,7 +219,7 @@ void ViperPart::Construct(ChSystem* system) {
         auto vis_mesh_file = GetChronoDataFile("robot/viper/obj/" + m_mesh_name + ".obj");
         auto trimesh_vis = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, true);
         trimesh_vis->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetRotMat());  // translate/rotate/scale mesh
-        trimesh_vis->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
+        trimesh_vis->RepairDuplicateVertexes(1e-9);                               // if meshes are not watertight
 
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh_vis);
@@ -233,7 +233,7 @@ void ViperPart::Construct(ChSystem* system) {
         auto col_mesh_file = GetChronoDataFile("robot/viper/col/" + m_mesh_name + ".obj");
         auto trimesh_col = ChTriangleMeshConnected::CreateFromWavefrontFile(col_mesh_file, false, false);
         trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetRotMat());  // translate/rotate/scale mesh
-        trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
+        trimesh_col->RepairDuplicateVertexes(1e-9);                               // if meshes are not watertight
 
         auto shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_mat, trimesh_col, false, false, 0.005);
         m_body->AddCollisionShape(shape);
@@ -247,7 +247,7 @@ void ViperPart::CalcMassProperties(double density) {
     auto mesh_filename = GetChronoDataFile("robot/viper/col/" + m_mesh_name + ".obj");
     auto trimesh_col = ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_filename, false, false);
     trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetRotMat());  // translate/rotate/scale mesh
-    trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
+    trimesh_col->RepairDuplicateVertexes(1e-9);                               // if meshes are not watertight
 
     double vol;
     ChVector3d cog_pos;
@@ -517,8 +517,8 @@ void Viper::Initialize(const ChFrame<>& pos) {
     // A positive steering input results in positive (left) front wheel steering and negative (right) rear wheel
     // steering.
     ChQuaternion<> sm_rot[] = {
-        QUNIT,                    // LF
-        QUNIT,                    // RF
+        QUNIT,                  // LF
+        QUNIT,                  // RF
         QuatFromAngleX(CH_PI),  // LB
         QuatFromAngleX(CH_PI)   // RB
     };
@@ -526,9 +526,9 @@ void Viper::Initialize(const ChFrame<>& pos) {
     // Orientation of lift motors.
     // A positive lifting input results in rasing the chassis relative to the wheels.
     ChQuaternion<> lm_rot[] = {
-        QUNIT,                    // LF
+        QUNIT,                  // LF
         QuatFromAngleX(CH_PI),  // RF
-        QUNIT,                    // LB
+        QUNIT,                  // LB
         QuatFromAngleX(CH_PI)   // RB
     };
 

@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora, Jayne Henry 
+// Authors: Alessandro Tasora, Jayne Henry
 // =============================================================================
 //
 // ARTcar simple brake models (front and rear).

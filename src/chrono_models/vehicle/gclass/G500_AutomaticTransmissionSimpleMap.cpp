@@ -51,7 +51,6 @@ void G500_AutomaticTransmissionSimpleMap::SetShiftPoints(std::vector<std::pair<d
     shift_bands.push_back(std::pair<double, double>(1200 * rpm2rads, 5700 * rpm2rads));
 }
 
-}  // namespace uaz
+}  // namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono
-

@@ -60,7 +60,6 @@ void Sedan_Pac02Tire::RemoveVisualizationAssets() {
     ChPac02Tire::RemoveVisualizationAssets();
 }
 
-}  // namespace hmmwv
+}  // namespace sedan
 }  // end namespace vehicle
 }  // end namespace chrono
-

@@ -94,57 +94,60 @@ void BMW_E90::Initialize() {
 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {
-/*
-        case TireModelType::RIGID_MESH:
-        case TireModelType::RIGID: {
-            bool use_mesh = (m_tireType == TireModelType::RIGID_MESH);
+            /*
+                    case TireModelType::RIGID_MESH:
+                    case TireModelType::RIGID: {
+                        bool use_mesh = (m_tireType == TireModelType::RIGID_MESH);
 
-            auto tire_FL = chrono_types::make_shared<BMW_E90_RigidTire>("FL", use_mesh);
-            auto tire_FR = chrono_types::make_shared<BMW_E90_RigidTire>("FR", use_mesh);
-            auto tire_RL = chrono_types::make_shared<BMW_E90_RigidTire>("RL", use_mesh);
-            auto tire_RR = chrono_types::make_shared<BMW_E90_RigidTire>("RR", use_mesh);
+                        auto tire_FL = chrono_types::make_shared<BMW_E90_RigidTire>("FL", use_mesh);
+                        auto tire_FR = chrono_types::make_shared<BMW_E90_RigidTire>("FR", use_mesh);
+                        auto tire_RL = chrono_types::make_shared<BMW_E90_RigidTire>("RL", use_mesh);
+                        auto tire_RR = chrono_types::make_shared<BMW_E90_RigidTire>("RR", use_mesh);
 
-            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+                        m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT],
+               VisualizationType::NONE); m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT],
+               VisualizationType::NONE); m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT],
+               VisualizationType::NONE); m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT],
+               VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->GetMass();
+                        m_tire_mass = tire_FL->GetMass();
 
-            break;
-        }
+                        break;
+                    }
 
-        case TireModelType::PAC02: {
-            auto tire_FL = chrono_types::make_shared<BMW_E90_Pac02Tire>("FL");
-            auto tire_FR = chrono_types::make_shared<BMW_E90_Pac02Tire>("FR");
-            auto tire_RL = chrono_types::make_shared<BMW_E90_Pac02Tire>("RL");
-            auto tire_RR = chrono_types::make_shared<BMW_E90_Pac02Tire>("RR");
+                    case TireModelType::PAC02: {
+                        auto tire_FL = chrono_types::make_shared<BMW_E90_Pac02Tire>("FL");
+                        auto tire_FR = chrono_types::make_shared<BMW_E90_Pac02Tire>("FR");
+                        auto tire_RL = chrono_types::make_shared<BMW_E90_Pac02Tire>("RL");
+                        auto tire_RR = chrono_types::make_shared<BMW_E90_Pac02Tire>("RR");
 
-            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+                        m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT],
+               VisualizationType::NONE); m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT],
+               VisualizationType::NONE); m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT],
+               VisualizationType::NONE); m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT],
+               VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->GetMass();
+                        m_tire_mass = tire_FL->GetMass();
 
-            break;
-        }
-        case TireModelType::TMEASY: {
-            auto tire_FL = chrono_types::make_shared<BMW_E90_TMeasyTire>("FL");
-            auto tire_FR = chrono_types::make_shared<BMW_E90_TMeasyTire>("FR");
-            auto tire_RL = chrono_types::make_shared<BMW_E90_TMeasyTire>("RL");
-            auto tire_RR = chrono_types::make_shared<BMW_E90_TMeasyTire>("RR");
+                        break;
+                    }
+                    case TireModelType::TMEASY: {
+                        auto tire_FL = chrono_types::make_shared<BMW_E90_TMeasyTire>("FL");
+                        auto tire_FR = chrono_types::make_shared<BMW_E90_TMeasyTire>("FR");
+                        auto tire_RL = chrono_types::make_shared<BMW_E90_TMeasyTire>("RL");
+                        auto tire_RR = chrono_types::make_shared<BMW_E90_TMeasyTire>("RR");
 
-            m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT], VisualizationType::NONE);
-            m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT], VisualizationType::NONE);
+                        m_vehicle->InitializeTire(tire_FL, m_vehicle->GetAxle(0)->m_wheels[LEFT],
+               VisualizationType::NONE); m_vehicle->InitializeTire(tire_FR, m_vehicle->GetAxle(0)->m_wheels[RIGHT],
+               VisualizationType::NONE); m_vehicle->InitializeTire(tire_RL, m_vehicle->GetAxle(1)->m_wheels[LEFT],
+               VisualizationType::NONE); m_vehicle->InitializeTire(tire_RR, m_vehicle->GetAxle(1)->m_wheels[RIGHT],
+               VisualizationType::NONE);
 
-            m_tire_mass = tire_FL->GetMass();
+                        m_tire_mass = tire_FL->GetMass();
 
-            break;
-        }
-*/
+                        break;
+                    }
+            */
         default:
             std::cout << "Unsupported Tire Model Type! Switching to TMeasy.\n";
         case TireModelType::TMSIMPLE: {
@@ -187,6 +190,6 @@ void BMW_E90::Advance(double step) {
     m_vehicle->Advance(step);
 }
 
-}  // end namespace BMW_E90
+}  // namespace bmw
 }  // end namespace vehicle
 }  // end namespace chrono

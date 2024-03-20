@@ -31,9 +31,7 @@ namespace chrono {
 namespace vehicle {
 namespace artcar {
 
-ARTcar_Vehicle::ARTcar_Vehicle(const bool fixed,
-                             ChContactMethod contact_method,
-                             CollisionType chassis_collision_type)
+ARTcar_Vehicle::ARTcar_Vehicle(const bool fixed, ChContactMethod contact_method, CollisionType chassis_collision_type)
     : ChWheeledVehicle("ARTcar", contact_method), m_omega({0, 0, 0, 0}) {
     Create(fixed, chassis_collision_type);
 }
@@ -92,8 +90,8 @@ void ARTcar_Vehicle::Initialize(const ChCoordsys<>& chassisPos, double chassisFw
     // Initialize the axle subsystems.
     m_axles[0]->Initialize(m_chassis, nullptr, m_steerings[0], ChVector3d(0), ChVector3d(0), 0.0, m_omega[0],
                            m_omega[1]);
-    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(0, 0, 0), ChVector3d(0), 0.0,
-                           m_omega[2], m_omega[3]);
+    m_axles[1]->Initialize(m_chassis, nullptr, nullptr, ChVector3d(0, 0, 0), ChVector3d(0), 0.0, m_omega[2],
+                           m_omega[3]);
 
     // Initialize the driveline subsystem (4WD)
     std::vector<int> driven_susp_indexes = {0, 1};
@@ -154,21 +152,21 @@ void ARTcar_Vehicle::DebugLog(int what) {
     if (what & OUT_SPRINGS) {
         std::cout << "\n---- Spring (front-left, front-right, rear-left, rear-right)\n";
         std::cout << "Length [m]       " << GetSpringLength(0, LEFT) << "  " << GetSpringLength(0, RIGHT) << "  "
-                 << GetSpringLength(1, LEFT) << "  " << GetSpringLength(1, RIGHT) << "\n";
+                  << GetSpringLength(1, LEFT) << "  " << GetSpringLength(1, RIGHT) << "\n";
         std::cout << "Deformation [m]  " << GetSpringDeformation(0, LEFT) << "  " << GetSpringDeformation(0, RIGHT)
-                 << "  " << GetSpringDeformation(1, LEFT) << "  " << GetSpringDeformation(1, RIGHT) << "\n";
+                  << "  " << GetSpringDeformation(1, LEFT) << "  " << GetSpringDeformation(1, RIGHT) << "\n";
         std::cout << "Force [N]         " << GetSpringForce(0, LEFT) << "  " << GetSpringForce(0, RIGHT) << "  "
-                 << GetSpringForce(1, LEFT) << "  " << GetSpringForce(1, RIGHT) << "\n";
+                  << GetSpringForce(1, LEFT) << "  " << GetSpringForce(1, RIGHT) << "\n";
     }
 
     if (what & OUT_SHOCKS) {
         std::cout << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
         std::cout << "Length [m]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
-                 << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << "\n";
+                  << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << "\n";
         std::cout << "Velocity [m/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
-                 << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << "\n";
+                  << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << "\n";
         std::cout << "Force [N]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
-                 << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << "\n";
+                  << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << "\n";
     }
 
     if (what & OUT_CONSTRAINTS) {

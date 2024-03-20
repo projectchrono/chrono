@@ -85,4 +85,3 @@ U401_Chassis::U401_Chassis(const std::string& name, bool fixed, CollisionType ch
 }  // namespace unimog
 }  // end namespace vehicle
 }  // end namespace chrono
-

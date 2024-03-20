@@ -153,8 +153,7 @@ void Marder::Initialize() {
 
 // -----------------------------------------------------------------------------
 
-void Marder::Synchronize(double time,
-                         const DriverInputs& driver_inputs) {
+void Marder::Synchronize(double time, const DriverInputs& driver_inputs) {
     m_vehicle->Synchronize(time, driver_inputs);
 }
 

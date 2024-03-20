@@ -40,8 +40,8 @@ namespace artcar {
 class CH_MODELS_API ARTcar_Chassis : public chrono::vehicle::ChRigidChassis {
   public:
     ARTcar_Chassis(const std::string& name,
-                  bool fixed = false,
-                  CollisionType chassis_collision_type = CollisionType::NONE);
+                   bool fixed = false,
+                   CollisionType chassis_collision_type = CollisionType::NONE);
     ~ARTcar_Chassis() {}
 
     /// Get the local driver position and orientation.

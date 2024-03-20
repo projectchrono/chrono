@@ -1056,8 +1056,8 @@ RS_Sled::RS_Sled(const std::string& name, std::shared_ptr<ChContactMaterial> mat
 
 void RS_Sled::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector3d& xyz, const ChVector3d& rpy) {
     const ChFrame<>& X_GP = chassis->GetFrameRefToAbs();  // global -> parent
-    ChFrame<> X_PC(xyz, rpy2quat(rpy));                      // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
+    ChFrame<> X_PC(xyz, rpy2quat(rpy));                   // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                         // global -> child
     m_body->SetFrameRefToAbs(X_GC);
 
     AddCollisionShapes();
@@ -1111,8 +1111,8 @@ RS_WheelDD::RS_WheelDD(const std::string& name, int id, std::shared_ptr<ChContac
 
 void RS_WheelDD::Initialize(std::shared_ptr<ChBodyAuxRef> chassis, const ChVector3d& xyz, const ChVector3d& rpy) {
     const ChFrame<>& X_GP = chassis->GetFrameRefToAbs();  // global -> parent
-    ChFrame<> X_PC(xyz, rpy2quat(rpy));                      // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                            // global -> child
+    ChFrame<> X_PC(xyz, rpy2quat(rpy));                   // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                         // global -> child
     m_body->SetFrameRefToAbs(X_GC);
 
     AddCollisionShapes();
@@ -1185,7 +1185,7 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Set absolute position of link0
     auto parent_body = chassis;                               // parent body
     auto child_body = m_links.find("link0")->second->m_body;  // child body
-    ChFrame<> X_GP = parent_body->GetFrameRefToAbs();      // global -> parent
+    ChFrame<> X_GP = parent_body->GetFrameRefToAbs();         // global -> parent
     ChFrame<> X_PC(xyz, rpy2quat(rpy));                       // parent -> child
     ChFrame<> X_GC = X_GP * X_PC;                             // global -> child
     child_body->SetFrameRefToAbs(X_GC);
@@ -1199,7 +1199,7 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         auto child = m_links.find(joints[i].linkB)->second;        // child part
         parent_body = parent->m_body;                              // parent body
         child_body = child->m_body;                                // child body
-        X_GP = parent_body->GetFrameRefToAbs();                 // global -> parent
+        X_GP = parent_body->GetFrameRefToAbs();                    // global -> parent
         X_PC = ChFrame<>(joints[i].xyz, rpy2quat(joints[i].rpy));  // parent -> child
         X_GC = X_GP * X_PC;                                        // global -> child
         child_body->SetFrameRefToAbs(X_GC);

@@ -69,6 +69,6 @@ void G500_RigidTire::RemoveVisualizationAssets() {
     ChRigidTire::RemoveVisualizationAssets();
 }
 
-}  // end namespace uaz
+}  // namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono

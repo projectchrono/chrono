@@ -46,7 +46,7 @@ class CH_MODELS_API ARTcar_BrakeShafts : public ChBrakeShafts {
 
 /// @} vehicle_models_artcar
 
-}  // end namespace gator
+}  // namespace artcar
 }  // end namespace vehicle
 }  // end namespace chrono
 

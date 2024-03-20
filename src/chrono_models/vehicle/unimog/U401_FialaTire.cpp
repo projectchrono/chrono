@@ -114,4 +114,3 @@ void U401_FialaTire::RemoveVisualizationAssets() {
 }  // end namespace unimog
 }  // end namespace vehicle
 }  // end namespace chrono
-

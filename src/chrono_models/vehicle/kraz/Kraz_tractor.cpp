@@ -211,27 +211,27 @@ void Kraz_tractor::DebugLog(int what) {
     if (what & OUT_SPRINGS) {
         std::cout << "\n---- Spring (front-left, front-right, rear1-left, rear1-right, rear2-left, rear2-right)\n";
         std::cout << "Length [inch]       " << GetSpringLength(0, LEFT) << "  " << GetSpringLength(0, RIGHT) << "  "
-                 << GetSpringLength(1, LEFT) << "  " << GetSpringLength(1, RIGHT) << GetSpringLength(2, LEFT) << "  "
-                 << GetSpringLength(2, RIGHT) << "\n";
+                  << GetSpringLength(1, LEFT) << "  " << GetSpringLength(1, RIGHT) << GetSpringLength(2, LEFT) << "  "
+                  << GetSpringLength(2, RIGHT) << "\n";
         std::cout << "Deformation [inch]  " << GetSpringDeformation(0, LEFT) << "  " << GetSpringDeformation(0, RIGHT)
-                 << "  " << GetSpringDeformation(1, LEFT) << "  " << GetSpringDeformation(1, RIGHT) << "  "
-                 << GetSpringDeformation(2, LEFT) << "  " << GetSpringDeformation(2, RIGHT) << "\n";
+                  << "  " << GetSpringDeformation(1, LEFT) << "  " << GetSpringDeformation(1, RIGHT) << "  "
+                  << GetSpringDeformation(2, LEFT) << "  " << GetSpringDeformation(2, RIGHT) << "\n";
         std::cout << "Force [lbf]         " << GetSpringForce(0, LEFT) << "  " << GetSpringForce(0, RIGHT) << "  "
-                 << GetSpringForce(1, LEFT) << "  " << GetSpringForce(1, RIGHT) << GetSpringForce(2, LEFT) << "  "
-                 << GetSpringForce(2, RIGHT) << "\n";
+                  << GetSpringForce(1, LEFT) << "  " << GetSpringForce(1, RIGHT) << GetSpringForce(2, LEFT) << "  "
+                  << GetSpringForce(2, RIGHT) << "\n";
     }
 
     if (what & OUT_SHOCKS) {
         std::cout << "\n---- Shock (front-left, front-right, rear1-left, rear1-right, rear2-left, rear2-right)\n";
         std::cout << "Length [inch]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
-                 << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << GetShockLength(2, LEFT) << "  "
-                 << GetShockLength(2, RIGHT) << "\n";
+                  << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << GetShockLength(2, LEFT) << "  "
+                  << GetShockLength(2, RIGHT) << "\n";
         std::cout << "Velocity [inch/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
-                 << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << GetShockVelocity(2, LEFT) << "  "
-                 << GetShockVelocity(2, RIGHT) << "\n";
+                  << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << GetShockVelocity(2, LEFT)
+                  << "  " << GetShockVelocity(2, RIGHT) << "\n";
         std::cout << "Force [lbf]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
-                 << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << GetShockForce(2, LEFT) << "  "
-                 << GetShockForce(2, RIGHT) << "\n";
+                  << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << GetShockForce(2, LEFT) << "  "
+                  << GetShockForce(2, RIGHT) << "\n";
     }
 
     if (what & OUT_CONSTRAINTS) {

@@ -63,4 +63,3 @@ class CH_MODELS_API Sedan_TMsimpleTire : public ChTMsimpleTire {
 }  // end namespace chrono
 
 #endif
-

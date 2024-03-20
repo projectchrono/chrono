@@ -45,9 +45,9 @@ G500_RotaryArm::G500_RotaryArm(const std::string& name) : ChRotaryArm(name) {}
 const ChVector3d G500_RotaryArm::getLocation(PointId which) {
     switch (which) {
         case ARM_L:
-            return ChVector3d(0.6, 0.7325-0.2, 0.2);
+            return ChVector3d(0.6, 0.7325 - 0.2, 0.2);
         case ARM_C:
-            return ChVector3d(0.6, 0.7325-0.2, 0.4);
+            return ChVector3d(0.6, 0.7325 - 0.2, 0.4);
         default:
             return ChVector3d(0, 0, 0);
     }
@@ -62,6 +62,6 @@ const ChVector3d G500_RotaryArm::getDirection(DirectionId which) {
     }
 }
 
-}  // end namespace chrono
+}  // namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono

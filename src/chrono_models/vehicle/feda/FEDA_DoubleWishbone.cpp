@@ -341,7 +341,7 @@ FEDA_DoubleWishboneFront::FEDA_DoubleWishboneFront(const std::string& name, int 
     : ChDoubleWishbone(name), m_damper_mode(damperMode), m_use_tierod_bodies(true) {
     m_ride_height_mode = ChClamp(ride_height_mode, 0, 2);
     std::cout << "Ride Height Front = " << m_ride_height_mode << " (Pressure = " << m_air_pressure[m_ride_height_mode]
-             << " Pas)\n";
+              << " Pas)\n";
     m_springForceCB = chrono_types::make_shared<AirCoilSpringBistopForce>(
         m_springCoefficient, m_springRestLength - m_bumpstop_clearance, m_springRestLength + m_reboundstop_clearance,
         m_springF0, m_air_pressure[m_ride_height_mode]);
@@ -378,7 +378,7 @@ FEDA_DoubleWishboneRear::FEDA_DoubleWishboneRear(const std::string& name, int ri
     : ChDoubleWishbone(name), m_damper_mode(damperMode), m_use_tierod_bodies(true) {
     m_ride_height_mode = ChClamp(ride_height_mode, 0, 2);
     std::cout << "Ride Height Rear = " << m_ride_height_mode << " (Pressure = " << m_air_pressure[m_ride_height_mode]
-             << " Pas)\n";
+              << " Pas)\n";
     m_springForceCB = chrono_types::make_shared<AirCoilSpringBistopForce>(
         m_springCoefficient, m_springRestLength - m_bumpstop_clearance, m_springRestLength + m_reboundstop_clearance,
         m_springF0, m_air_pressure[m_ride_height_mode]);

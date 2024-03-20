@@ -32,9 +32,9 @@ FEDA_AutomaticTransmissionSimpleMap::FEDA_AutomaticTransmissionSimpleMap(const s
 void FEDA_AutomaticTransmissionSimpleMap::SetGearRatios(std::vector<double>& fwd, double& rev) {
     double correction = 0.7;
 
-    rev = -0.5*correction / 3.81;
+    rev = -0.5 * correction / 3.81;
 
-    fwd.push_back(0.5*correction / 3.74);
+    fwd.push_back(0.5 * correction / 3.74);
     fwd.push_back(correction / 3.74);
     fwd.push_back(correction / 2.003);
     fwd.push_back(correction / 1.343);

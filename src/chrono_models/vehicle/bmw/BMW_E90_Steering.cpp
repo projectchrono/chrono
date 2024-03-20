@@ -21,27 +21,27 @@
 #include "chrono_models/vehicle/bmw/BMW_E90_Steering.h"
 
 namespace chrono {
-    namespace vehicle {
-        namespace bmw {
+namespace vehicle {
+namespace bmw {
 
 // -----------------------------------------------------------------------------
 // Static variables
 // -----------------------------------------------------------------------------
 
-            const double BMW_E90_Steering::m_steeringLinkMass = 9.072;
-            const ChVector3d BMW_E90_Steering::m_steeringLinkInertia(1, 1, 1);
-            const double BMW_E90_Steering::m_steeringLinkCOM = 0;
-            const double BMW_E90_Steering::m_steeringLinkLength = 0.6858;
-            const double BMW_E90_Steering::m_steeringLinkRadius = 0.015;
+const double BMW_E90_Steering::m_steeringLinkMass = 9.072;
+const ChVector3d BMW_E90_Steering::m_steeringLinkInertia(1, 1, 1);
+const double BMW_E90_Steering::m_steeringLinkCOM = 0;
+const double BMW_E90_Steering::m_steeringLinkLength = 0.6858;
+const double BMW_E90_Steering::m_steeringLinkRadius = 0.015;
 
-            const double BMW_E90_Steering::m_pinionRadius = 0.1;
+const double BMW_E90_Steering::m_pinionRadius = 0.1;
 
-            const double BMW_E90_Steering::m_maxAngle = 28 * (CH_PI / 180); // ~ 11.0 m turn radius RWD
+const double BMW_E90_Steering::m_maxAngle = 28 * (CH_PI / 180);  // ~ 11.0 m turn radius RWD
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-            BMW_E90_Steering::BMW_E90_Steering(const std::string &name) : ChRackPinion(name) {}
+BMW_E90_Steering::BMW_E90_Steering(const std::string& name) : ChRackPinion(name) {}
 
-        }  // end namespace hmmwv
-    }  // end namespace vehicle
+}  // namespace bmw
+}  // end namespace vehicle
 }  // end namespace chrono

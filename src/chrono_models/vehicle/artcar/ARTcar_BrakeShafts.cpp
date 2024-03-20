@@ -26,13 +26,13 @@ namespace artcar {
 // Static variables
 // -----------------------------------------------------------------------------
 
-const double ARTcar_BrakeShafts::m_maxtorque = 1; // todo
-const double ARTcar_BrakeShafts::m_shaft_inertia = 0.04; // todo
+const double ARTcar_BrakeShafts::m_maxtorque = 1;         // todo
+const double ARTcar_BrakeShafts::m_shaft_inertia = 0.04;  // todo
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 ARTcar_BrakeShafts::ARTcar_BrakeShafts(const std::string& name) : ChBrakeShafts(name) {}
 
-}  // end namespace gator
+}  // namespace artcar
 }  // end namespace vehicle
 }  // end namespace chrono

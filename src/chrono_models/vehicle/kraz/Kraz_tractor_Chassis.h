@@ -17,11 +17,11 @@
 // =============================================================================
 
 #ifndef KRAZ_TRACTOR_CHASSIS_H
-#define KRAZ_TRACTOR_CHASSIS_H
+    #define KRAZ_TRACTOR_CHASSIS_H
 
-#include "chrono_vehicle/chassis/ChRigidChassis.h"
+    #include "chrono_vehicle/chassis/ChRigidChassis.h"
 
-#include "chrono_models/ChApiModels.h"
+    #include "chrono_models/ChApiModels.h"
 
 namespace chrono {
 namespace vehicle {

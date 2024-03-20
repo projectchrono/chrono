@@ -37,8 +37,8 @@ namespace uaz {
 class CH_MODELS_API UAZBUS_Chassis : public ChRigidChassis {
   public:
     UAZBUS_Chassis(const std::string& name,
-                  bool fixed = false,
-                  CollisionType chassis_collision_type = CollisionType::NONE);
+                   bool fixed = false,
+                   CollisionType chassis_collision_type = CollisionType::NONE);
     ~UAZBUS_Chassis() {}
 
     /// Get the location (in the local frame of this chassis) of the connection to a rear chassis.

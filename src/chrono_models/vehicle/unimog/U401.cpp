@@ -34,8 +34,8 @@ U401::U401()
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
-m_engineType(EngineModelType::SIMPLE_MAP),
-m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
+      m_engineType(EngineModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::RIGID),
@@ -52,8 +52,8 @@ U401::U401(ChSystem* system)
       m_contactMethod(ChContactMethod::NSC),
       m_chassisCollisionType(CollisionType::NONE),
       m_fixed(false),
-m_engineType(EngineModelType::SIMPLE_MAP),
-m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
+      m_engineType(EngineModelType::SIMPLE_MAP),
+      m_transmissionType(TransmissionModelType::AUTOMATIC_SIMPLE_MAP),
       m_brake_locking(false),
       m_brake_type(BrakeType::SIMPLE),
       m_tireType(TireModelType::RIGID),
@@ -97,13 +97,13 @@ void U401::Initialize() {
     std::shared_ptr<ChTransmission> transmission;
     switch (m_engineType) {
         case EngineModelType::SHAFTS:
-            //engine = chrono_types::make_shared<U401_EngineShafts>("Engine");
+            // engine = chrono_types::make_shared<U401_EngineShafts>("Engine");
             break;
         case EngineModelType::SIMPLE_MAP:
             engine = chrono_types::make_shared<U401_EngineSimpleMap>("Engine");
             break;
         case EngineModelType::SIMPLE:
-            //engine = chrono_types::make_shared<U401_EngineSimple>("Engine");
+            // engine = chrono_types::make_shared<U401_EngineSimple>("Engine");
             break;
     }
 
@@ -122,7 +122,6 @@ void U401::Initialize() {
         auto powertrain = chrono_types::make_shared<ChPowertrainAssembly>(engine, transmission);
         m_vehicle->InitializePowertrain(powertrain);
     }
-
 
     // Create the tires and set parameters depending on type.
     switch (m_tireType) {

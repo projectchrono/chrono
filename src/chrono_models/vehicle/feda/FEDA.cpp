@@ -225,7 +225,7 @@ void FEDA::Initialize() {
             m_tire_mass = tire_FL->GetMass();
 
             break;
-        } 
+        }
     }
 
     for (auto& axle : m_vehicle->GetAxles()) {

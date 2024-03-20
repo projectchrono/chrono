@@ -42,6 +42,6 @@ G500_Wheel::G500_Wheel(const std::string& name) : ChWheel(name) {
     m_vis_mesh_file = "gclass/gd250_rim.obj";
 }
 
-}  // end namespace uaz
+}  // namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono

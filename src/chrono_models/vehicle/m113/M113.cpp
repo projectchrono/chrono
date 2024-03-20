@@ -150,7 +150,7 @@ void M113::Initialize() {
             break;
     }
 
-    if(!transmission) {
+    if (!transmission) {
         switch (m_transmissionType) {
             case TransmissionModelType::AUTOMATIC_SHAFTS:
                 transmission = chrono_types::make_shared<M113_AutomaticTransmissionShafts>("Transmission");
@@ -172,8 +172,7 @@ void M113::Initialize() {
     m_vehicle->InitializeInertiaProperties();
 }
 
-void M113::Synchronize(double time,
-                       const DriverInputs& driver_inputs) {
+void M113::Synchronize(double time, const DriverInputs& driver_inputs) {
     m_vehicle->Synchronize(time, driver_inputs);
 }
 

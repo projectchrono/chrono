@@ -173,11 +173,11 @@ void Gator_Vehicle::DebugLog(int what) {
     if (what & OUT_SHOCKS) {
         std::cout << "\n---- Shock (front-left, front-right, rear-left, rear-right)\n";
         std::cout << "Length [m]       " << GetShockLength(0, LEFT) << "  " << GetShockLength(0, RIGHT) << "  "
-                 << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << "\n";
+                  << GetShockLength(1, LEFT) << "  " << GetShockLength(1, RIGHT) << "\n";
         std::cout << "Velocity [m/s]   " << GetShockVelocity(0, LEFT) << "  " << GetShockVelocity(0, RIGHT) << "  "
-                 << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << "\n";
+                  << GetShockVelocity(1, LEFT) << "  " << GetShockVelocity(1, RIGHT) << "\n";
         std::cout << "Force [N]         " << GetShockForce(0, LEFT) << "  " << GetShockForce(0, RIGHT) << "  "
-                 << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << "\n";
+                  << GetShockForce(1, LEFT) << "  " << GetShockForce(1, RIGHT) << "\n";
     }
 
     if (what & OUT_CONSTRAINTS) {

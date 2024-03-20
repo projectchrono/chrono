@@ -38,6 +38,6 @@ G500_BrakeShaftsFront::G500_BrakeShaftsFront(const std::string& name) : ChBrakeS
 
 G500_BrakeShaftsRear::G500_BrakeShaftsRear(const std::string& name) : ChBrakeShafts(name) {}
 
-}  // end namespace uaz
+}  // namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono

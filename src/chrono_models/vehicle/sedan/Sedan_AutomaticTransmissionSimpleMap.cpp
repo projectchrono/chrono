@@ -20,7 +20,8 @@ namespace sedan {
 
 const double rpm2rads = CH_PI / 30;
 
-Sedan_AutomaticTransmissionSimpleMap::Sedan_AutomaticTransmissionSimpleMap(const std::string& name) : ChAutomaticTransmissionSimpleMap(name) {}
+Sedan_AutomaticTransmissionSimpleMap::Sedan_AutomaticTransmissionSimpleMap(const std::string& name)
+    : ChAutomaticTransmissionSimpleMap(name) {}
 
 void Sedan_AutomaticTransmissionSimpleMap::SetGearRatios(std::vector<double>& fwd, double& rev) {
     rev = -1.0 / 3.333;

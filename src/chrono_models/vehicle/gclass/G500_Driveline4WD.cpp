@@ -48,6 +48,6 @@ G500_Driveline4WD::G500_Driveline4WD(const std::string& name) : ChShaftsDrivelin
     SetAxleDirection(ChVector3d(0, 1, 0));
 }
 
-}  // end namespace uaz
+}  // namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono

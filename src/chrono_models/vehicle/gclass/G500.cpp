@@ -80,9 +80,9 @@ void G500::SetAerodynamicDrag(double Cd, double area, double air_density) {
 // -----------------------------------------------------------------------------
 void G500::Initialize() {
     // Create and initialize the GCLASS_Long vehicle
-    m_vehicle =
-        m_system ? new G500_Vehicle(m_system, m_fixed, m_brake_type, m_steeringType, m_chassisCollisionType)
-                 : new G500_Vehicle(m_fixed, m_brake_type, m_steeringType, m_contactMethod, m_chassisCollisionType);
+    m_vehicle = m_system
+                    ? new G500_Vehicle(m_system, m_fixed, m_brake_type, m_steeringType, m_chassisCollisionType)
+                    : new G500_Vehicle(m_fixed, m_brake_type, m_steeringType, m_contactMethod, m_chassisCollisionType);
 
     m_vehicle->SetInitWheelAngVel(m_initOmega);
     m_vehicle->Initialize(m_initPos, m_initFwdVel);
@@ -185,6 +185,6 @@ void G500::Advance(double step) {
     m_vehicle->Advance(step);
 }
 
-}  // end namespace uaz
+}  // namespace gclass
 }  // end namespace vehicle
 }  // end namespace chrono

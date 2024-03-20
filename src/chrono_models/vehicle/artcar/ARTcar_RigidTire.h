@@ -57,7 +57,7 @@ class CH_MODELS_API ARTcar_RigidTire : public chrono::vehicle::ChRigidTire {
     static const ChVector3d m_inertia;
 
     static const std::string m_meshName;
-    //static const std::string m_meshFile;
+    // static const std::string m_meshFile;
     static const std::string m_meshFile_left;
     static const std::string m_meshFile_right;
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;

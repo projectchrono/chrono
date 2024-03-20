@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Radu Serban, Jayne Henry 
+// Authors: Radu Serban, Jayne Henry
 // =============================================================================
 //
 // ARTcar Pitman arm steering model.

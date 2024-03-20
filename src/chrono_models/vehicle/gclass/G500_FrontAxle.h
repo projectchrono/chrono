@@ -36,7 +36,6 @@ class CH_MODELS_API G500_FrontAxle : public ChToeBarRigidPanhardAxle {
     G500_FrontAxle(const std::string& name);
     ~G500_FrontAxle();
 
-  
   protected:
     virtual const ChVector3d getLocation(PointId which) override;
 
@@ -60,7 +59,7 @@ class CH_MODELS_API G500_FrontAxle : public ChToeBarRigidPanhardAxle {
     virtual double getPanhardRodRadius() const override { return m_panhardRodRadius; }
     virtual double getARBRadius() const override { return m_arbRadius; }
 
-    virtual const ChVector3d getAxleTubeCOM() const override { return ChVector3d(0,0,0); }
+    virtual const ChVector3d getAxleTubeCOM() const override { return ChVector3d(0, 0, 0); }
 
     virtual const ChVector3d& getAxleTubeInertia() const override { return m_axleTubeInertia; }
     virtual const ChVector3d& getSpindleInertia() const override { return m_spindleInertia; }
@@ -86,7 +85,7 @@ class CH_MODELS_API G500_FrontAxle : public ChToeBarRigidPanhardAxle {
     std::shared_ptr<ChLinkTSDA::ForceFunctor> m_shockForceCB;
 
     static const double m_axleShaftInertia;
-    
+
     static const double m_axleTubeMass;
     static const double m_spindleMass;
     static const double m_knuckleMass;

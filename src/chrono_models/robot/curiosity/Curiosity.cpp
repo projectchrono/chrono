@@ -120,8 +120,8 @@ std::shared_ptr<ChLinkLockRevolute> AddRevoluteJoint(std::shared_ptr<ChBodyAuxRe
                                                      const ChVector3d& rel_joint_pos,
                                                      const ChQuaternion<>& rel_joint_rot) {
     const ChFrame<>& X_GP = chassis->GetBody()->GetFrameRefToAbs();  // global -> parent
-    ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);                       // parent -> child
-    ChFrame<> X_GC = X_GP * X_PC;                                       // global -> child
+    ChFrame<> X_PC(rel_joint_pos, rel_joint_rot);                    // parent -> child
+    ChFrame<> X_GC = X_GP * X_PC;                                    // global -> child
 
     auto joint = chrono_types::make_shared<ChLinkLockRevolute>();
     joint->Initialize(body_1, body_2, ChFrame<>(X_GC.GetCoordsys().pos, X_GC.GetCoordsys().rot));
@@ -205,7 +205,7 @@ void CuriosityPart::Construct(ChSystem* system) {
         auto vis_mesh_file = GetChronoDataFile("robot/curiosity/obj/" + m_mesh_name + ".obj");
         auto trimesh_vis = ChTriangleMeshConnected::CreateFromWavefrontFile(vis_mesh_file, true, true);
         trimesh_vis->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetRotMat());  // translate/rotate/scale mesh
-        trimesh_vis->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
+        trimesh_vis->RepairDuplicateVertexes(1e-9);                               // if meshes are not watertight
 
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh_vis);
@@ -220,10 +220,9 @@ void CuriosityPart::Construct(ChSystem* system) {
         auto col_mesh_file = GetChronoDataFile("robot/curiosity/col/" + m_mesh_name + ".obj");
         auto trimesh_col = ChTriangleMeshConnected::CreateFromWavefrontFile(col_mesh_file, false, false);
         trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetRotMat());  // translate/rotate/scale mesh
-        trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
+        trimesh_col->RepairDuplicateVertexes(1e-9);                               // if meshes are not watertight
 
-        auto shape =
-            chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_mat, trimesh_col, false, false, 0.005);
+        auto shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(m_mat, trimesh_col, false, false, 0.005);
         m_body->AddCollisionShape(shape);
 
         m_body->EnableCollision(m_collide);
@@ -236,7 +235,7 @@ void CuriosityPart::CalcMassProperties(double density) {
     auto mesh_filename = GetChronoDataFile("robot/curiosity/col/" + m_mesh_name + ".obj");
     auto trimesh_col = ChTriangleMeshConnected::CreateFromWavefrontFile(mesh_filename, false, false);
     trimesh_col->Transform(m_mesh_xform.GetPos(), m_mesh_xform.GetRotMat());  // translate/rotate/scale mesh
-    trimesh_col->RepairDuplicateVertexes(1e-9);                          // if meshes are not watertight
+    trimesh_col->RepairDuplicateVertexes(1e-9);                               // if meshes are not watertight
 
     double vol;
     ChVector3d cog_pos;
@@ -707,8 +706,7 @@ void CuriosityDriver::SetSteering(double angle, CuriosityWheelID id) {
 // -----------------------------------------------------------------------------
 
 CuriosityDCMotorControl::CuriosityDCMotorControl()
-    : m_stall_torque({300, 300, 300, 300, 300, 300}),
-      m_no_load_speed({CH_PI, CH_PI, CH_PI, CH_PI, CH_PI, CH_PI}) {}
+    : m_stall_torque({300, 300, 300, 300, 300, 300}), m_no_load_speed({CH_PI, CH_PI, CH_PI, CH_PI, CH_PI, CH_PI}) {}
 
 void CuriosityDCMotorControl::Update(double time) {
     double speed_reading;

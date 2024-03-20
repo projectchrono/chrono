@@ -86,9 +86,6 @@ void MAN_5t_TMsimpleTire::RemoveVisualizationAssets() {
     ChTMsimpleTire::RemoveVisualizationAssets();
 }
 
-}  // namespace unimog
+}  // namespace man
 }  // end namespace vehicle
 }  // end namespace chrono
-
-
-

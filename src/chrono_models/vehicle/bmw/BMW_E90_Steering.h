@@ -26,49 +26,49 @@
 #include "chrono_models/ChApiModels.h"
 
 namespace chrono {
-    namespace vehicle {
-        namespace bmw {
+namespace vehicle {
+namespace bmw {
 
 /// @addtogroup vehicle_models_bmw
 /// @{
 
 /// Rack-pinion steering subsystem for the BMW E90 vehicle.
-            class CH_MODELS_API BMW_E90_Steering : public ChRackPinion {
-            public:
-                BMW_E90_Steering(const std::string &name);
+class CH_MODELS_API BMW_E90_Steering : public ChRackPinion {
+  public:
+    BMW_E90_Steering(const std::string& name);
 
-                ~BMW_E90_Steering() {}
+    ~BMW_E90_Steering() {}
 
-                virtual double GetSteeringLinkMass() const override { return m_steeringLinkMass; }
+    virtual double GetSteeringLinkMass() const override { return m_steeringLinkMass; }
 
-                virtual ChVector3d GetSteeringLinkInertia() const override { return m_steeringLinkInertia; }
+    virtual ChVector3d GetSteeringLinkInertia() const override { return m_steeringLinkInertia; }
 
-                virtual double GetSteeringLinkCOM() const override { return m_steeringLinkCOM; }
+    virtual double GetSteeringLinkCOM() const override { return m_steeringLinkCOM; }
 
-                virtual double GetSteeringLinkRadius() const override { return m_steeringLinkRadius; }
+    virtual double GetSteeringLinkRadius() const override { return m_steeringLinkRadius; }
 
-                virtual double GetSteeringLinkLength() const override { return m_steeringLinkLength; }
+    virtual double GetSteeringLinkLength() const override { return m_steeringLinkLength; }
 
-                virtual double GetPinionRadius() const override { return m_pinionRadius; }
+    virtual double GetPinionRadius() const override { return m_pinionRadius; }
 
-                virtual double GetMaxAngle() const override { return m_maxAngle; }
+    virtual double GetMaxAngle() const override { return m_maxAngle; }
 
-            private:
-                static const double m_steeringLinkMass;
-                static const ChVector3d m_steeringLinkInertia;
-                static const double m_steeringLinkCOM;
-                static const double m_steeringLinkRadius;
-                static const double m_steeringLinkLength;
+  private:
+    static const double m_steeringLinkMass;
+    static const ChVector3d m_steeringLinkInertia;
+    static const double m_steeringLinkCOM;
+    static const double m_steeringLinkRadius;
+    static const double m_steeringLinkLength;
 
-                static const double m_pinionRadius;
+    static const double m_pinionRadius;
 
-                static const double m_maxAngle;
-            };
+    static const double m_maxAngle;
+};
 
 /// @} vehicle_models_hmmwv
 
-        }  // end namespace hmmwv
-    }  // end namespace vehicle
+}  // namespace bmw
+}  // end namespace vehicle
 }  // end namespace chrono
 
 #endif

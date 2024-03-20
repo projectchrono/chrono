@@ -124,7 +124,7 @@ void MAN_5t::Initialize() {
             case TransmissionModelType::AUTOMATIC_SIMPLE_MAP:
                 transmission = chrono_types::make_shared<MAN_5t_AutomaticTransmissionSimpleMap>("Transmission");
                 break;
-              default:
+            default:
                 break;
         }
     }

@@ -100,4 +100,3 @@ double MTV_ShockForceRear::evaluate(double time,
 }  // namespace fmtv
 }  // end namespace vehicle
 }  // end namespace chrono
-
