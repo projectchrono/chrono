@@ -39,11 +39,11 @@
 #endif
 
 #ifdef CHRONO_PARDISO_MKL
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 #ifdef CHRONO_MUMPS
-#include "chrono_mumps/ChSolverMumps.h"
+    #include "chrono_mumps/ChSolverMumps.h"
 #endif
 
 using namespace chrono;
@@ -114,7 +114,7 @@ FEAcontactTest::FEAcontactTest(SolverType solver_type) {
             solver->EnableDiagonalPreconditioner(true);
             solver->SetVerbose(false);
             solver->SetTolerance(1e-12);
-            
+
             m_system->SetTimestepperType(ChTimestepper::Type::EULER_IMPLICIT_LINEARIZED);
         }
         case SolverType::MKL: {

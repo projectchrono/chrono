@@ -20,7 +20,7 @@ using namespace chrono;
 
 // Benchmarking fixture: create system and add bodies
 class SystemFixture : public ::benchmark::Fixture {
-public:
+  public:
     void SetUp(const ::benchmark::State& st) override {
         const int num_bodies = 100000;
         current_time = 1;
@@ -33,9 +33,7 @@ public:
         }
     }
 
-    void TearDown(const ::benchmark::State&) override {
-        delete sys;
-    }
+    void TearDown(const ::benchmark::State&) override { delete sys; }
 
     ChSystemNSC* sys;
     double current_time;
@@ -43,37 +41,37 @@ public:
 };
 
 // Utility macros for benchmarking body operations with different signatures
-#define BM_BODY_OP_TIME(OP)                                                 \
-    BENCHMARK_DEFINE_F(SystemFixture, OP)(benchmark::State & st) {          \
-        for (auto _ : st) {                                                 \
+#define BM_BODY_OP_TIME(OP)                                              \
+    BENCHMARK_DEFINE_F(SystemFixture, OP)(benchmark::State & st) {       \
+        for (auto _ : st) {                                              \
             for (auto body : sys->GetBodies()) {                         \
-                body->OP(current_time);                                     \
-            }                                                               \
-        }                                                                   \
+                body->OP(current_time);                                  \
+            }                                                            \
+        }                                                                \
         st.SetItemsProcessed(st.iterations() * sys->GetBodies().size()); \
-    }                                                                       \
+    }                                                                    \
     BENCHMARK_REGISTER_F(SystemFixture, OP)->Unit(benchmark::kMicrosecond);
 
-#define BM_BODY_OP_VOID(OP)                                                 \
-    BENCHMARK_DEFINE_F(SystemFixture, OP)(benchmark::State & st) {          \
-        for (auto _ : st) {                                                 \
+#define BM_BODY_OP_VOID(OP)                                              \
+    BENCHMARK_DEFINE_F(SystemFixture, OP)(benchmark::State & st) {       \
+        for (auto _ : st) {                                              \
             for (auto body : sys->GetBodies()) {                         \
-                body->OP();                                                 \
-            }                                                               \
-        }                                                                   \
+                body->OP();                                              \
+            }                                                            \
+        }                                                                \
         st.SetItemsProcessed(st.iterations() * sys->GetBodies().size()); \
-    }                                                                       \
+    }                                                                    \
     BENCHMARK_REGISTER_F(SystemFixture, OP)->Unit(benchmark::kMicrosecond);
 
-#define BM_BODY_OP_STEP(OP)                                                 \
-    BENCHMARK_DEFINE_F(SystemFixture, OP)(benchmark::State & st) {          \
-        for (auto _ : st) {                                                 \
+#define BM_BODY_OP_STEP(OP)                                              \
+    BENCHMARK_DEFINE_F(SystemFixture, OP)(benchmark::State & st) {       \
+        for (auto _ : st) {                                              \
             for (auto body : sys->GetBodies()) {                         \
-                body->OP(time_step);                                        \
-            }                                                               \
-        }                                                                   \
+                body->OP(time_step);                                     \
+            }                                                            \
+        }                                                                \
         st.SetItemsProcessed(st.iterations() * sys->GetBodies().size()); \
-    }                                                                       \
+    }                                                                    \
     BENCHMARK_REGISTER_F(SystemFixture, OP)->Unit(benchmark::kMicrosecond);
 
 // Benchmark individual operations

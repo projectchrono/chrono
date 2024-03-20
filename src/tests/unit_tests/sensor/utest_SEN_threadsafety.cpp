@@ -51,12 +51,12 @@ TEST(ChFilterAccess, data_access_safety) {
     manager->scene->AddPointLight({100, 100, 100}, {1, 1, 1}, 500);
 
     auto cam = chrono_types::make_shared<ChCameraSensor>(
-        box,                                                                // body camera is attached to
-        50.0f,                                                              // update rate in Hz
+        box,                                                                   // body camera is attached to
+        50.0f,                                                                 // update rate in Hz
         chrono::ChFrame<double>({-8, 0, 1}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
-        1,                                                                  // image width
-        1,                                                                  // image height
-        (float)CH_PI / 3                                                  // FOV
+        1,                                                                     // image width
+        1,                                                                     // image height
+        (float)CH_PI / 3                                                       // FOV
     );
     cam->SetName("Camera Sensor");
     cam->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());

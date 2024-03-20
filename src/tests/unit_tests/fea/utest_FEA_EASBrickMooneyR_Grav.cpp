@@ -254,7 +254,7 @@ int main(int argc, char* argv[]) {
             Iterations += mystepper->GetNumIterations();
             out << sys.GetChTime() << nodetip->GetPos().z() << std::endl;
             std::cout << "time = " << sys.GetChTime() << "\t" << nodetip->GetPos().z() << "\t"
-                     << nodetip->GetForce().z() << "\t" << Iterations << "\n";
+                      << nodetip->GetForce().z() << "\t" << Iterations << "\n";
         }
         // Write results to output file.
         out.WriteToFile("../TEST_Brick/UT_EASBrickMR_Grav.txt");

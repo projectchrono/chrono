@@ -75,7 +75,6 @@ int main(int argc, char* argv[]) {
     sys.Add(ball);
     ball->GetVisualModel()->GetShapes()[0].first->AddMaterial(red_color);
 
-
     auto cam_body = chrono_types::make_shared<ChBodyEasyBox>(.01, .01, .01, 1000, false, false);
     cam_body->SetFixed(true);
     sys.Add(cam_body);
@@ -94,12 +93,12 @@ int main(int argc, char* argv[]) {
     // Create a camera and add it to the sensor manager
     // ------------------------------------------------
     auto cam = std::make_shared<ChCameraSensor>(
-        cam_body,                                                            // body camera is attached to
-        50.0f,                                                               // update rate in Hz
+        cam_body,                                                               // body camera is attached to
+        50.0f,                                                                  // update rate in Hz
         chrono::ChFrame<double>({-10, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
-        1920,                                                                // image width
-        1080,                                                                // image height
-        (float)CH_PI / 1.2f                                                // FOV
+        1920,                                                                   // image width
+        1080,                                                                   // image height
+        (float)CH_PI / 1.2f                                                     // FOV
     );
     cam->SetName("Camera Sensor");
     cam->PushFilter(std::make_shared<ChFilterVisualize>(1920, 1080));

@@ -267,13 +267,13 @@ TEST_P(ChShaftTest, shaft_body) {
     ////          << "  shaft A rot: " << shaftA->GetPos() << "  speed: " << shaftA->GetPosDt()
     ////          << "  accel: " << shaftA->GetPosDt2() << "\n"
     ////          << "  body B angular speed on z: " << bodyB->GetAngVelLocal().z() << "  accel on z: " <<
-    ///bodyB->GetAngAccLocal().z() /          << "\n" /          << "  AC spring, torque on A side: " <<
-    ///shaft_torsionAC->GetReaction1() /          << "  torque on C side: " <<
-    ///shaft_torsionAC->GetReaction2() << "\n" /          << "  torque on shaft A: " <<
-    ///shaftbody_connection->GetTorqueReactionOnShaft() << "\n" /          << "  torque on body B: " <<
-    ///shaftbody_connection->GetTorqueReactionOnBody().x() << " " /          <<
-    ///shaftbody_connection->GetTorqueReactionOnBody().y() << " " /          <<
-    ///shaftbody_connection->GetTorqueReactionOnBody().z() << " " /          << "\n\n\n";
+    /// bodyB->GetAngAccLocal().z() /          << "\n" /          << "  AC spring, torque on A side: " <<
+    /// shaft_torsionAC->GetReaction1() /          << "  torque on C side: " <<
+    /// shaft_torsionAC->GetReaction2() << "\n" /          << "  torque on shaft A: " <<
+    /// shaftbody_connection->GetTorqueReactionOnShaft() << "\n" /          << "  torque on body B: " <<
+    /// shaftbody_connection->GetTorqueReactionOnBody().x() << " " /          <<
+    /// shaftbody_connection->GetTorqueReactionOnBody().y() << " " /          <<
+    /// shaftbody_connection->GetTorqueReactionOnBody().z() << " " /          << "\n\n\n";
 }
 
 // -----------------------------------------------------------------------------

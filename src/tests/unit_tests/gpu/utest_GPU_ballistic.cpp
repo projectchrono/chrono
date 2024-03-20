@@ -32,8 +32,8 @@ TEST(gpuBallistic, check) {
     ChSystemGpuMesh gpu_sys(radius, density, ChVector3f(20.0f, 20.0f, 10.0f));
 
     // Load in the mesh
-    gpu_sys.AddMesh(GetChronoDataPath() + "testing/gpu/one_facet.obj", ChVector3f(0),
-                    ChMatrix33<float>(ChVector3f(1)), 100.0f);
+    gpu_sys.AddMesh(GetChronoDataPath() + "testing/gpu/one_facet.obj", ChVector3f(0), ChMatrix33<float>(ChVector3f(1)),
+                    100.0f);
     gpu_sys.EnableMeshCollision(true);
 
     // Initialize sphere, with high initial velocity

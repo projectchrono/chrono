@@ -59,23 +59,23 @@ class LinkLockBM : public ::benchmark::Fixture {
 #define BM_LINK_OP_TIME(TEST_NAME, AS_TYPE, OP)                                    \
     BENCHMARK_DEFINE_F(LinkLockBM, TEST_NAME)(benchmark::State & st) {             \
         for (auto _ : st) {                                                        \
-            for (auto link : sys->GetLinks()) {                                \
+            for (auto link : sys->GetLinks()) {                                    \
                 std::static_pointer_cast<ChLinkLock>(link)->AS_TYPE::OP(crt_time); \
             }                                                                      \
         }                                                                          \
-        st.SetItemsProcessed(st.iterations() * sys->GetLinks().size());        \
+        st.SetItemsProcessed(st.iterations() * sys->GetLinks().size());            \
     }                                                                              \
     BENCHMARK_REGISTER_F(LinkLockBM, TEST_NAME)->Unit(benchmark::kMicrosecond);
 
-#define BM_LINK_OP_VOID(TEST_NAME, AS_TYPE, OP)                             \
-    BENCHMARK_DEFINE_F(LinkLockBM, TEST_NAME)(benchmark::State & st) {      \
-        for (auto _ : st) {                                                 \
-            for (auto link : sys->GetLinks()) {                         \
-                std::static_pointer_cast<ChLinkLock>(link)->AS_TYPE::OP();  \
-            }                                                               \
-        }                                                                   \
-        st.SetItemsProcessed(st.iterations() * sys->GetLinks().size()); \
-    }                                                                       \
+#define BM_LINK_OP_VOID(TEST_NAME, AS_TYPE, OP)                            \
+    BENCHMARK_DEFINE_F(LinkLockBM, TEST_NAME)(benchmark::State & st) {     \
+        for (auto _ : st) {                                                \
+            for (auto link : sys->GetLinks()) {                            \
+                std::static_pointer_cast<ChLinkLock>(link)->AS_TYPE::OP(); \
+            }                                                              \
+        }                                                                  \
+        st.SetItemsProcessed(st.iterations() * sys->GetLinks().size());    \
+    }                                                                      \
     BENCHMARK_REGISTER_F(LinkLockBM, TEST_NAME)->Unit(benchmark::kMicrosecond);
 
 // Benchmark individual operations

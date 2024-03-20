@@ -14,7 +14,7 @@
 #include "chrono/core/ChGlobal.h"
 
 #if defined(__APPLE__) && !defined(__GNUC__)
-#include <stdatomic.h>
+    #include <stdatomic.h>
 #endif
 #include <iostream>
 
@@ -29,7 +29,7 @@ int main() {
     for (int j = 0; j < 100; j++) {
         for (int i = 0; i < 1000000; i++) {
             static volatile _Atomic(int) id = first;
-            //OSAtomicIncrement32Barrier(&id); // DEPRECATED in macOS Sierra
+            // OSAtomicIncrement32Barrier(&id); // DEPRECATED in macOS Sierra
             atomic_fetch_add(&id, 1);
         }
     }

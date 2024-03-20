@@ -48,19 +48,15 @@ std::vector<chrono::ChVector3<T>> loadPositionCheckpoint(std::string infile) {
         std::vector<float> line_data;
         tokenizeCSVLine(ptFile, line_data);
 
-        if (line_data.size() != 0){
-            chrono::ChVector3d curr_pos(line_data.at(0), line_data.at(1),line_data.at(2));
+        if (line_data.size() != 0) {
+            chrono::ChVector3d curr_pos(line_data.at(0), line_data.at(1), line_data.at(2));
             sphere_positions.push_back(curr_pos);
         }
-
-    
     }
 
     return sphere_positions;
 }
 // load sphere positions from a checkpoint file
-
-
 
 // // load a custom column from a checkpoint file
 std::vector<float> loadColumnCheckpoint(std::string infile, int i) {
@@ -74,19 +70,15 @@ std::vector<float> loadColumnCheckpoint(std::string infile, int i) {
         std::vector<float> line_data;
         tokenizeCSVLine(ptFile, line_data);
 
-        if (line_data.size() != 0 && line_data.size()>i){
+        if (line_data.size() != 0 && line_data.size() > i) {
             float curr_pos(line_data.at(i));
             sphere_positions.push_back(curr_pos);
         }
-
-    
     }
 
     return sphere_positions;
 }
 // load a custom column from a checkpoint file
-
-
 
 // // load sphere velocities from a checkpoint file
 template <typename T>
@@ -101,12 +93,10 @@ std::vector<chrono::ChVector3<T>> loadVelocityCheckpoint(std::string infile) {
         std::vector<float> line_data;
         tokenizeCSVLine(ptFile, line_data);
 
-        if (line_data.size() != 0){
-            chrono::ChVector3d curr_vel(line_data.at(3), line_data.at(4),line_data.at(5));
+        if (line_data.size() != 0) {
+            chrono::ChVector3d curr_vel(line_data.at(3), line_data.at(4), line_data.at(5));
             sphere_velocities.push_back(curr_vel);
         }
-
-    
     }
 
     return sphere_velocities;

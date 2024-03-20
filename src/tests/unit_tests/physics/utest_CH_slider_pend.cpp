@@ -327,8 +327,8 @@ bool test_EULER(double step, int num_steps, const utils::Data& ref_data, double 
     // Validate states (x and y for pendulum body).
     utils::DataVector norms_state;
     bool check_state = utils::Validate(model.GetData(), ref_data, utils::RMS_NORM, tol_state, norms_state);
-    std::cout << "  validate states: " << (check_state ? "Passed" : "Failed") << "  (tolerance = " << tol_state
-        << ")" << std::endl;
+    std::cout << "  validate states: " << (check_state ? "Passed" : "Failed") << "  (tolerance = " << tol_state << ")"
+              << std::endl;
     for (size_t col = 0; col < norms_state.size(); col++)
         std::cout << "    " << norms_state[col] << std::endl;
 
@@ -336,7 +336,7 @@ bool test_EULER(double step, int num_steps, const utils::Data& ref_data, double 
     utils::DataVector norms_cnstr;
     bool check_cnstr = utils::Validate(model.GetCnstrData(), utils::RMS_NORM, tol_cnstr, norms_cnstr);
     std::cout << "  validate constraints: " << (check_cnstr ? "Passed" : "Failed") << "  (tolerance = " << tol_cnstr
-        << ")" << std::endl;
+              << ")" << std::endl;
     for (size_t col = 0; col < norms_cnstr.size(); col++)
         std::cout << "    " << norms_cnstr[col] << std::endl;
 
@@ -369,8 +369,8 @@ bool test_HHT(double step, int num_steps, const utils::Data& ref_data, double to
     // Validate states (x and y for pendulum body).
     utils::DataVector norms_state;
     bool check_state = utils::Validate(model.GetData(), ref_data, utils::RMS_NORM, tol_state, norms_state);
-    std::cout << "  validate states: " << (check_state ? "Passed" : "Failed") << "  (tolerance = " << tol_state
-              << ")" << std::endl;
+    std::cout << "  validate states: " << (check_state ? "Passed" : "Failed") << "  (tolerance = " << tol_state << ")"
+              << std::endl;
     for (size_t col = 0; col < norms_state.size(); col++)
         std::cout << "    " << norms_state[col] << std::endl;
 

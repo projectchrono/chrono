@@ -64,8 +64,7 @@ bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
     // Fill the bottom half with material
     chrono::utils::HCPSampler<float> sampler(2.1f * sphereRadius);  // Add epsilon
     ChVector3f center(0.f, 0.f, -0.25f * box_size_Z);
-    ChVector3f hdims(box_size_X / 2.f - sphereRadius, box_size_X / 2.f - sphereRadius,
-                          box_size_Z / 4.f - sphereRadius);
+    ChVector3f hdims(box_size_X / 2.f - sphereRadius, box_size_X / 2.f - sphereRadius, box_size_Z / 4.f - sphereRadius);
     std::vector<ChVector3f> body_points = sampler.SampleBox(center, hdims);
 
     gpu_sys.SetParticles(body_points);
@@ -113,8 +112,8 @@ bool run_test(float box_size_X, float box_size_Y, float box_size_Z) {
            F_CGS_TO_SI * reaction_force.x(), F_CGS_TO_SI * reaction_force.y(), F_CGS_TO_SI * reaction_force.z());
 
     float computed_bottom_force = reaction_force.z();
-    float expected_bottom_force = (float)body_points.size() * (4.f / 3.f) * (float)CH_PI * sphereRadius *
-                                  sphereRadius * sphereRadius * sphereDensity * grav_acceleration;
+    float expected_bottom_force = (float)body_points.size() * (4.f / 3.f) * (float)CH_PI * sphereRadius * sphereRadius *
+                                  sphereRadius * sphereDensity * grav_acceleration;
 
     // 1% error allowed, max
     float percent_error = 0.01f;

@@ -51,9 +51,9 @@
 using namespace chrono;
 using namespace chrono::fea;
 
-#define TIP_FORCE 10.0   // N
+#define TIP_FORCE 10.0  // N
 #define TIP_MOMENT 10.0  // Nm
-#define Jac_Error 0.33   // Maximum allowed Jacobian percent error as decimal
+#define Jac_Error 0.33  // Maximum allowed Jacobian percent error as decimal
 
 // =============================================================================
 
@@ -1385,8 +1385,7 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
     double Percent_Error = (Displacement_Model - Displacement_Theory) / Displacement_Theory * 100;
 
     bool passed_displacement = abs(Percent_Error) < 2.0;
-    bool passed_angles = (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.01) &&
-                         (abs(Tip_Angles.y() * CH_RAD_TO_DEG) < 0.01) &&
+    bool passed_angles = (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.y() * CH_RAD_TO_DEG) < 0.01) &&
                          (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.01);
     bool passed_tests = passed_displacement && passed_angles;
 
@@ -1395,8 +1394,7 @@ bool ANCFBrickTest::AxialDisplacementCheck(int msglvl) {
         std::cout << "Axial Pull Test - ANCF Tip Displacement: " << Displacement_Model << "m" << std::endl;
         std::cout << "Axial Pull Test - Analytical Tip Displacement: " << Displacement_Theory << "m" << std::endl;
         std::cout << "Axial Pull Test - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
-                  << std::endl;
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg" << std::endl;
     }
     if (msglvl >= 1) {
         std::cout << "Axial Pull Test - Tip Displacement Check (Percent Error less than 2%) = " << Percent_Error << "%";
@@ -1584,8 +1582,7 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
 
     bool passed_displacement = abs(Percent_Error) < 5.0;
     // check the off-axis angles which should be zeros
-    bool passed_angles =
-        (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.01);
+    bool passed_angles = (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.01) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.01);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -1594,8 +1591,7 @@ bool ANCFBrickTest::CantileverTipLoadCheck(int msglvl) {
         std::cout << "Cantilever Beam (Tip Load) - Analytical Tip Displacement: " << Displacement_Theory << "m"
                   << std::endl;
         std::cout << "Cantilever Beam (Tip Load) - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
-                  << std::endl;
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg" << std::endl;
     }
     if (msglvl >= 1) {
         std::cout << "Cantilever Beam (Tip Load) - Tip Displacement Check (Percent Error less than 5%) = "
@@ -1740,8 +1736,7 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
 
     bool passed_displacement = abs(Percent_Error) < 5.0;
     // check the off-axis angles which should be zeros
-    bool passed_angles =
-        (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.001);
+    bool passed_angles = (abs(Tip_Angles.x() * CH_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.001);
     bool passed_tests = passed_displacement && passed_angles;
 
     if (msglvl >= 2) {
@@ -1751,8 +1746,7 @@ bool ANCFBrickTest::CantileverGravityCheck(int msglvl) {
         std::cout << "Cantilever Beam (Gravity Load) - Analytical Tip Displacement: " << Displacement_Theory << "m"
                   << std::endl;
         std::cout << "Cantilever Beam (Gravity Load) - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
-                  << std::endl;
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg" << std::endl;
     }
     if (msglvl >= 1) {
         std::cout << "Cantilever Beam (Gravity Load) - Tip Displacement Check (Percent Error less than 5%) = "
@@ -1942,8 +1936,7 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
 
     bool passed_twist = abs(Percent_Error) < 2.0;
     // check the off-axis angles which should be zeros
-    bool passed_angles =
-        (abs(Tip_Angles.y() * CH_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.001);
+    bool passed_angles = (abs(Tip_Angles.y() * CH_RAD_TO_DEG) < 0.001) && (abs(Tip_Angles.z() * CH_RAD_TO_DEG) < 0.001);
     bool passed_tests = passed_twist && passed_angles;
 
     if (msglvl >= 2) {
@@ -1952,8 +1945,7 @@ bool ANCFBrickTest::AxialTwistCheck(int msglvl) {
                   << std::endl;
         std::cout << "Axial Twist - Analytical Twist Angle: " << Angle_Theory * CH_RAD_TO_DEG << "deg" << std::endl;
         std::cout << "Axial Twist - ANCF Tip Angles: (" << Tip_Angles.x() * CH_RAD_TO_DEG << ", "
-                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg"
-                  << std::endl;
+                  << Tip_Angles.y() * CH_RAD_TO_DEG << ", " << Tip_Angles.z() * CH_RAD_TO_DEG << ")deg" << std::endl;
     }
     if (msglvl >= 1) {
         std::cout << "Axial Twist - Twist Angle Check (Percent Error less than 2%) = " << Percent_Error << "%";

@@ -21,35 +21,21 @@
 using namespace std;
 using namespace chrono;
 
-int main( void ) 
-{
+int main(void) {
     ChPardisoProjectEngine ppengine(ChPardisoProjectEngine::parproj_SYM::UNSYMMETRIC);
-    
+
     /* Matrix data. */
-    int    n = 8;
-    int    ia[ 9] = { 0, 4, 7, 9, 11, 12, 15, 17, 20 };
-    int    ja[20] = { 0,    2,         5,  6, 
-                         1, 2,     4,
-                            2,             7,
-                               3,       6,
-                         1,
-                            2,       5,    7,
-                         1,             6,
-                            2,          6, 7 };
-    double  a[20] = { 7.0,      1.0,           2.0, 7.0, 
-                     -4.0, 8.0,      2.0,
-                           1.0,                     5.0,
-                                7.0,           9.0,
-                     -4.0,
-                        7.0,           3.0,      8.0,
-                    1.0,                    11.0,
-                        -3.0,                2.0, 5.0 };
+    int n = 8;
+    int ia[9] = {0, 4, 7, 9, 11, 12, 15, 17, 20};
+    int ja[20] = {0, 2, 5, 6, 1, 2, 4, 2, 7, 3, 6, 1, 2, 5, 7, 1, 6, 2, 6, 7};
+    double a[20] = {7.0, 1.0,  2.0, 7.0, -4.0, 8.0, 2.0,  1.0,  5.0, 7.0,
+                    9.0, -4.0, 7.0, 3.0, 8.0,  1.0, 11.0, -3.0, 2.0, 5.0};
 
     ChSparseMatrix mmat;
     mmat.resize(8, 8);
     mmat.reserve(20);
-    for (int row_sel = 0; row_sel<n; ++row_sel){
-        for (int col_pt = ia[row_sel]; col_pt<ia[row_sel+1]; ++col_pt){
+    for (int row_sel = 0; row_sel < n; ++row_sel) {
+        for (int col_pt = ia[row_sel]; col_pt < ia[row_sel + 1]; ++col_pt) {
             mmat.insert(row_sel, ja[col_pt]) = a[col_pt];
         }
     }
@@ -71,7 +57,7 @@ int main( void )
     /*     Checks the consistency of the given matrix.                      */
     /*     Use this functionality only for debugging purposes               */
     /* -------------------------------------------------------------------- */
-    
+
     ppengine.CheckMatrix();
 
     /* -------------------------------------------------------------------- */
@@ -90,7 +76,7 @@ int main( void )
     /* -------------------------------------------------------------------- */
 
     ppengine.CheckMatrixStats();
-    
+
     /* -------------------------------------------------------------------- */
     /* ..  Reordering and Symbolic Factorization. This step also allocates  */
     /*     all memory that is necessary for the factorization.              */
@@ -98,7 +84,7 @@ int main( void )
     /* -------------------------------------------------------------------- */
 
     ppengine.PardisoProjectCall(ChPardisoProjectEngine::parproj_PHASE::ANALYZE);
-    
+
     if (ppengine.GetLastError() != 0) {
         printf("\nERROR during symbolic factorization: %d", ppengine.GetLastError());
         exit(1);
@@ -106,11 +92,11 @@ int main( void )
     printf("\nReordering completed ... ");
     printf("\nNumber of nonzeros in factors  = %d", ppengine.GetIPARM(17));
     printf("\nNumber of factorization MFLOPS = %d", ppengine.GetIPARM(18));
-   
+
     /* -------------------------------------------------------------------- */
     /* ..  Numerical factorization.                                         */
     /* -------------------------------------------------------------------- */
-    
+
     ppengine.SetIPARM(32, 1);
     ppengine.PardisoProjectCall(ChPardisoProjectEngine::parproj_PHASE::FACTORIZE);
 
@@ -127,7 +113,6 @@ int main( void )
 
     ppengine.PardisoProjectCall(ChPardisoProjectEngine::parproj_PHASE::SOLVE);
 
-   
     if (ppengine.GetLastError() != 0) {
         printf("\nERROR during solution: %d", ppengine.GetLastError());
         exit(3);
@@ -145,4 +130,4 @@ int main( void )
     ppengine.PardisoProjectCall(ChPardisoProjectEngine::parproj_PHASE::END);
 
     return 0;
-} 
+}

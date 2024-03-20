@@ -113,8 +113,8 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
     m_hmmwv->SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
     m_hmmwv->SetContactMethod(ChContactMethod::SMC);
     m_hmmwv->SetChassisFixed(false);
-    m_hmmwv->SetInitPosition(ChCoordsys<>(ChVector3d(5.0 - patch_size / 2, 5.0 - patch_size / 2, 0.7),
-                                          QuatFromAngleZ(CH_PI / 4)));
+    m_hmmwv->SetInitPosition(
+        ChCoordsys<>(ChVector3d(5.0 - patch_size / 2, 5.0 - patch_size / 2, 0.7), QuatFromAngleZ(CH_PI / 4)));
     m_hmmwv->SetEngineType(engine_model);
     m_hmmwv->SetTransmissionType(transmission_model);
     m_hmmwv->SetDriveType(drive_type);
@@ -170,8 +170,8 @@ HmmwvScmTest<TIRE_TYPE, OBJECTS>::HmmwvScmTest() : m_step(2e-3) {
                                                                       true,      // visualization?
                                                                       true,      // collision?
                                                                       sph_mat);  // contact material
-            sphere->SetPos(
-                ChVector3d((2 * ChRandom::Get() - 1) * 0.45 * patch_size, (2 * ChRandom::Get() - 1) * 0.45 * patch_size, 1.0));
+            sphere->SetPos(ChVector3d((2 * ChRandom::Get() - 1) * 0.45 * patch_size,
+                                      (2 * ChRandom::Get() - 1) * 0.45 * patch_size, 1.0));
             m_hmmwv->GetSystem()->Add(sphere);
 
             m_terrain->AddMovingPatch(sphere, ChVector3d(0, 0, 0), ChVector3d(0.6, 0.6, 0.6));

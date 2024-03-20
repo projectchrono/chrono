@@ -57,9 +57,8 @@ TEST(SensorInterface, sensors) {
     auto lidar = chrono_types::make_shared<ChLidarSensor>(box, 100, chrono::ChFrame<double>(), 1, 1, 1, 1, -1, 100);
     lidar->SetLag(0.f);
     manager->AddSensor(lidar);
-//    auto radar = chrono_types::make_shared<ChRadarSensor>(box, 100, chrono::ChFrame<double>(), 1, 1, 1, 1, -1, 100, RadarReturnMode::RadarReturn);
-//    radar->SetLag(0.f);
-//    manager->AddSensor(radar);
+    //    auto radar = chrono_types::make_shared<ChRadarSensor>(box, 100, chrono::ChFrame<double>(), 1, 1, 1, 1, -1,
+    //    100, RadarReturnMode::RadarReturn); radar->SetLag(0.f); manager->AddSensor(radar);
     auto noise = chrono_types::make_shared<ChNoiseNone>();
     auto gps = chrono_types::make_shared<ChGPSSensor>(box, 100, chrono::ChFrame<double>(), ChVector3d(0, 0, 0), noise);
     gps->SetLag(0.f);
@@ -78,7 +77,7 @@ TEST(SensorInterface, sensors) {
     // check doubly adding sensors
     manager->AddSensor(camera);
     manager->AddSensor(lidar);
-//    manager->AddSensor(radar);
+    //    manager->AddSensor(radar);
     manager->AddSensor(gps);
     manager->AddSensor(acc);
     manager->AddSensor(gyro);
@@ -95,7 +94,7 @@ TEST(SensorInterface, sensors) {
 
     ASSERT_EQ(camera->GetNumLaunches(), 10);
     ASSERT_EQ(lidar->GetNumLaunches(), 10);
-//    ASSERT_EQ(radar->GetNumLaunches(), 10);
+    //    ASSERT_EQ(radar->GetNumLaunches(), 10);
     ASSERT_EQ(gps->GetNumLaunches(), 10);
     ASSERT_EQ(acc->GetNumLaunches(), 10);
     ASSERT_EQ(gyro->GetNumLaunches(), 10);
@@ -209,7 +208,7 @@ TEST(SensorInterface, mesh_channels) {
 
     auto tri_body = chrono_types::make_shared<ChBodyAuxRef>();
     tri_body->SetFrameRefToAbs(ChFrame<>());
-    tri_body->AddVisualShape(triangle_shape,ChFrame<>());
+    tri_body->AddVisualShape(triangle_shape, ChFrame<>());
     tri_body->SetFixed(true);
     sys.Add(tri_body);
 

@@ -63,8 +63,7 @@ MixerTestNSC<N>::MixerTestNSC() : m_system(new ChSystemNSC()), m_step(0.02) {
         boxBody->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         m_system->Add(boxBody);
 
-        auto cylBody =
-            chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.8, 1.0, 1000, true, true, mat);
+        auto cylBody = chrono_types::make_shared<ChBodyEasyCylinder>(ChAxis::Y, 0.8, 1.0, 1000, true, true, mat);
         cylBody->SetPos(ChVector3d(-5 + ChRandom::Get() * 10, 4 + bi * 0.05, -5 + ChRandom::Get() * 10));
         m_system->Add(cylBody);
     }
@@ -131,10 +130,10 @@ void MixerTestNSC<N>::SimulateVis() {
 // =============================================================================
 
 #define NUM_SKIP_STEPS 2000  // number of steps for hot start
-#define NUM_SIM_STEPS 1000   // number of simulation steps for each benchmark
+#define NUM_SIM_STEPS 1000  // number of simulation steps for each benchmark
 
-CH_BM_SIMULATION_LOOP(MixerNSC032, MixerTestNSC<32>,  NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
-CH_BM_SIMULATION_LOOP(MixerNSC064, MixerTestNSC<64>,  NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+CH_BM_SIMULATION_LOOP(MixerNSC032, MixerTestNSC<32>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
+CH_BM_SIMULATION_LOOP(MixerNSC064, MixerTestNSC<64>, NUM_SKIP_STEPS, NUM_SIM_STEPS, 10);
 
 // =============================================================================
 

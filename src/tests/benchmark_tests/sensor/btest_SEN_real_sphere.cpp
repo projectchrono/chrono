@@ -92,8 +92,6 @@ int main(int argc, char* argv[]) {
     sphere3->SetFixed(true);
     sphere3->GetVisualModel()->GetShapes()[0].first->AddMaterial(color3);
 
-    
-
     sys.Add(sphere1);
     sys.Add(sphere2);
     sys.Add(sphere3);
@@ -115,12 +113,12 @@ int main(int argc, char* argv[]) {
     // Create a camera and add it to the sensor manager
     // ------------------------------------------------
     auto cam = std::make_shared<ChCameraSensor>(
-        sphere2,                                                            // body camera is attached to
-        20.0f,                                                              // update rate in Hz
+        sphere2,                                                               // body camera is attached to
+        20.0f,                                                                 // update rate in Hz
         chrono::ChFrame<double>({-4, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
-        800,                                                                // image width
-        800,                                                                // image height
-        (float)CH_PI / 4                                                  // FOV
+        800,                                                                   // image width
+        800,                                                                   // image height
+        (float)CH_PI / 4                                                       // FOV
     );
     cam->SetName("Camera Sensor");
     cam->PushFilter(std::make_shared<ChFilterVisualize>(800, 800));

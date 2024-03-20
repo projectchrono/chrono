@@ -92,13 +92,13 @@ int main(int argc, char* argv[]) {
     // ------------------------------------------------
 
     auto lidar1 = std::make_shared<ChLidarSensor>(
-        cart,                                                              // body lidar is attached to
-        1.0f,                                                              // scanning rate in Hz
+        cart,                                                                 // body lidar is attached to
+        1.0f,                                                                 // scanning rate in Hz
         chrono::ChFrame<double>({0, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
-        1000,                                                              // number of horizontal samples
-        10,                                                                // number of vertical channels
-        2 * (float)CH_PI,                                                // horizontal field of view
-        0.1f, -0.1f, 100.0f, LidarBeamShape::RECTANGULAR                   // vertical field of view
+        1000,                                                                 // number of horizontal samples
+        10,                                                                   // number of vertical channels
+        2 * (float)CH_PI,                                                     // horizontal field of view
+        0.1f, -0.1f, 100.0f, LidarBeamShape::RECTANGULAR                      // vertical field of view
     );
     lidar1->SetName("Lidar Sensor");
     lidar1->SetLag(1);
@@ -108,12 +108,12 @@ int main(int argc, char* argv[]) {
     manager->AddSensor(lidar1);
 
     auto camera = std::make_shared<ChCameraSensor>(
-        cart,                                                              // body lidar is attached to
-        10.0f,                                                             // scanning rate in Hz
+        cart,                                                                 // body lidar is attached to
+        10.0f,                                                                // scanning rate in Hz
         chrono::ChFrame<double>({0, 0, 0}, QuatFromAngleAxis(0, {0, 1, 0})),  // offset pose
-        1280,                                                              // number of horizontal samples
-        720,                                                               // number of vertical channels
-        (float)CH_PI / 4                                                 // horizontal field of view
+        1280,                                                                 // number of horizontal samples
+        720,                                                                  // number of vertical channels
+        (float)CH_PI / 4                                                      // horizontal field of view
     );
     camera->SetName("Camera Sensor");
     camera->SetLag(0);

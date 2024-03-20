@@ -47,8 +47,8 @@ TEST(FullAssembly, Assemble) {
     ChVector3d inertiaXX(0.04, 0.1, 0.1);  // mass moments of inertia of pendulum (centroidal frame)
     double g = 9.80665;                    // gravitational acceleration
 
-    ChVector3d jointLoc(1, 2, 3);                                    // absolute location of revolute joint
-    double jointAngle = -CH_PI_4;                                  // joint rotation angle (about global X axis)
+    ChVector3d jointLoc(1, 2, 3);                          // absolute location of revolute joint
+    double jointAngle = -CH_PI_4;                          // joint rotation angle (about global X axis)
     ChQuaternion<> jointRot = QuatFromAngleX(jointAngle);  // orientation of revolute joint
 
     // Create the mechanical system

@@ -29,10 +29,7 @@
 
 using namespace chrono;
 
-enum class eChLinkFormulation {
-    Lock,
-    Mate
-};
+enum class eChLinkFormulation { Lock, Mate };
 
 // =============================================================================
 // Local variables
@@ -50,7 +47,10 @@ bool TestCylindrical(const ChVector3d& jointLoc,
                      double simTimeStep,
                      double outTimeStep,
                      const std::string& testName);
-bool ValidateReference(const std::string& testName, const std::string& refTestName, const std::string& what, double tolerance);
+bool ValidateReference(const std::string& testName,
+                       const std::string& refTestName,
+                       const std::string& what,
+                       double tolerance);
 bool ValidateConstraints(const std::string& testName, double tolerance);
 bool ValidateEnergy(const std::string& testName, double tolerance);
 utils::ChWriterCSV OutStream();
@@ -116,7 +116,8 @@ int main(int argc, char* argv[]) {
     ref_test_name = "Cylindrical_Case02";
 
     chrono_test_name = "Lock" + ref_test_name;
-    TestCylindrical(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_PI_2), eChLinkFormulation::Lock, sim_step, out_step, chrono_test_name);
+    TestCylindrical(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_PI_2), eChLinkFormulation::Lock, sim_step, out_step,
+                    chrono_test_name);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Pos", 1e-2);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Acc", 2e-2);
@@ -129,7 +130,8 @@ int main(int argc, char* argv[]) {
     test_passed &= ValidateConstraints(chrono_test_name, 1e-5);
 
     chrono_test_name = "Mate" + ref_test_name;
-    TestCylindrical(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_PI_2), eChLinkFormulation::Mate, sim_step, out_step, chrono_test_name);
+    TestCylindrical(ChVector3d(0, 0, 0), QuatFromAngleX(-CH_PI_2), eChLinkFormulation::Mate, sim_step, out_step,
+                    chrono_test_name);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Pos", 1e-2);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Acc", 2e-2);
@@ -147,9 +149,10 @@ int main(int argc, char* argv[]) {
     // z-axis.
 
     ref_test_name = "Cylindrical_Case03";
-    
+
     chrono_test_name = "Lock" + ref_test_name;
-    TestCylindrical(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_PI_4), eChLinkFormulation::Lock, sim_step, out_step, chrono_test_name);
+    TestCylindrical(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_PI_4), eChLinkFormulation::Lock, sim_step, out_step,
+                    chrono_test_name);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Pos", 1e-2);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Acc", 2e-2);
@@ -162,7 +165,8 @@ int main(int argc, char* argv[]) {
     test_passed &= ValidateConstraints(chrono_test_name, 1e-5);
 
     chrono_test_name = "Mate" + ref_test_name;
-    TestCylindrical(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_PI_4), eChLinkFormulation::Mate, sim_step, out_step, chrono_test_name);
+    TestCylindrical(ChVector3d(1, 2, 3), QuatFromAngleX(-CH_PI_4), eChLinkFormulation::Mate, sim_step, out_step,
+                    chrono_test_name);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Pos", 1e-2);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Vel", 1e-4);
     test_passed &= ValidateReference(chrono_test_name, ref_test_name, "Acc", 2e-2);
@@ -242,20 +246,21 @@ bool TestCylindrical(const ChVector3d& jointLoc,      // absolute location of jo
     // will be the Z axis of the specified rotation matrix.
 
     std::shared_ptr<ChLink> cylindricalJoint;
-    switch (formulation)
-    {
-    case eChLinkFormulation::Lock:
-        cylindricalJoint = chrono_types::make_shared<ChLinkLockCylindrical>();
-        std::dynamic_pointer_cast<ChLinkLockCylindrical>(cylindricalJoint)->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
-        sys.AddLink(cylindricalJoint);
-        break;
-    case eChLinkFormulation::Mate:
-        cylindricalJoint = chrono_types::make_shared<ChLinkMateCylindrical>();
-        std::dynamic_pointer_cast<ChLinkMateCylindrical>(cylindricalJoint)->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
-        sys.AddLink(cylindricalJoint);
-        break;
-    default:
-        break;
+    switch (formulation) {
+        case eChLinkFormulation::Lock:
+            cylindricalJoint = chrono_types::make_shared<ChLinkLockCylindrical>();
+            std::dynamic_pointer_cast<ChLinkLockCylindrical>(cylindricalJoint)
+                ->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
+            sys.AddLink(cylindricalJoint);
+            break;
+        case eChLinkFormulation::Mate:
+            cylindricalJoint = chrono_types::make_shared<ChLinkMateCylindrical>();
+            std::dynamic_pointer_cast<ChLinkMateCylindrical>(cylindricalJoint)
+                ->Initialize(pendulum, ground, ChFrame<>(jointLoc, jointRot));
+            sys.AddLink(cylindricalJoint);
+            break;
+        default:
+            break;
     }
 
     // Perform the simulation (record results option)
@@ -423,9 +428,9 @@ bool TestCylindrical(const ChVector3d& jointLoc,      // absolute location of jo
 // reference file.
 //
 bool ValidateReference(const std::string& chronoTestName,  // name of the Chrono test
-                       const std::string& refTestName,  // name the reference test
-                       const std::string& what,      // identifier for test quantity
-                       double tolerance)             // validation tolerance
+                       const std::string& refTestName,     // name the reference test
+                       const std::string& what,            // identifier for test quantity
+                       double tolerance)                   // validation tolerance
 {
     std::string sim_file = out_dir + chronoTestName + "_CHRONO_" + what + ".txt";
     std::string ref_file = ref_dir + refTestName + "_ADAMS_" + what + ".txt";
@@ -443,7 +448,7 @@ bool ValidateReference(const std::string& chronoTestName,  // name of the Chrono
 // Wrapper function for checking constraint violations.
 //
 bool ValidateConstraints(const std::string& chronoTestName,  // name of the Chrono test
-                         double tolerance)             // validation tolerance
+                         double tolerance)                   // validation tolerance
 {
     std::string sim_file = out_dir + chronoTestName + "_CHRONO_Constraints.txt";
     utils::DataVector norms;
@@ -460,7 +465,7 @@ bool ValidateConstraints(const std::string& chronoTestName,  // name of the Chro
 // wrapper function for checking energy conservation.
 //
 bool ValidateEnergy(const std::string& chronoTestName,  // name of the Chrono test
-                    double tolerance)             // validation tolerance
+                    double tolerance)                   // validation tolerance
 {
     std::string sim_file = out_dir + chronoTestName + "_CHRONO_Energy.txt";
     utils::DataVector norms;

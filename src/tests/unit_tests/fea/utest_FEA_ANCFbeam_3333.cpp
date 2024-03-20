@@ -30,7 +30,7 @@
 #include "chrono/fea/ChMesh.h"
 
 #ifdef CHRONO_PARDISO_MKL
-#include "chrono_pardisomkl/ChSolverPardisoMKL.h"
+    #include "chrono_pardisomkl/ChSolverPardisoMKL.h"
 #endif
 
 bool use_mkl = true;
@@ -63,25 +63,26 @@ int main(int argc, char* argv[]) {
     auto m_beamMaterial = chrono_types::make_shared<ChMaterialBeamANCF>(rho, E_mod, nu_rat, k1, k2);
 
     // Create the end nodes
-    auto hnodeancf1 = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(0, 0, 0.0), ChVector3d(0, 1, 0), ChVector3d(0, 0, 1));
-    auto hnodeancf2 =
-        chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(beam_l / 4, 0, 0), ChVector3d(0, 1, 0), ChVector3d(0, 0, 1));
-    auto hnodeancf3 =
-        chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(beam_l / 2, 0, 0), ChVector3d(0, 1, 0), ChVector3d(0, 0, 1));
-    auto hnodeancf4 =
-        chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(3.0 * beam_l / 4, 0, 0), ChVector3d(0, 1, 0), ChVector3d(0, 0, 1));
+    auto hnodeancf1 =
+        chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(0, 0, 0.0), ChVector3d(0, 1, 0), ChVector3d(0, 0, 1));
+    auto hnodeancf2 = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(beam_l / 4, 0, 0), ChVector3d(0, 1, 0),
+                                                                ChVector3d(0, 0, 1));
+    auto hnodeancf3 = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(beam_l / 2, 0, 0), ChVector3d(0, 1, 0),
+                                                                ChVector3d(0, 0, 1));
+    auto hnodeancf4 = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(3.0 * beam_l / 4, 0, 0), ChVector3d(0, 1, 0),
+                                                                ChVector3d(0, 0, 1));
     auto hnodeancf5 =
         chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(beam_l, 0, 0), ChVector3d(0, 1, 0), ChVector3d(0, 0, 1));
 
     // Create the middle nodes
-    auto hnodeancfm1 =
-        chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(beam_l / 8, 0, 0.0), ChVector3d(0, 1, 0), ChVector3d(0, 0, 1));
-    auto hnodeancfm2 =
-        chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(3 * beam_l / 8, 0, 0), ChVector3d(0, 1, 0), ChVector3d(0, 0, 1));
-    auto hnodeancfm3 =
-        chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(5 * beam_l / 8, 0, 0), ChVector3d(0, 1, 0), ChVector3d(0, 0, 1));
-    auto hnodeancfm4 =
-        chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(7 * beam_l / 8, 0, 0), ChVector3d(0, 1, 0), ChVector3d(0, 0, 1));
+    auto hnodeancfm1 = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(beam_l / 8, 0, 0.0), ChVector3d(0, 1, 0),
+                                                                 ChVector3d(0, 0, 1));
+    auto hnodeancfm2 = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(3 * beam_l / 8, 0, 0), ChVector3d(0, 1, 0),
+                                                                 ChVector3d(0, 0, 1));
+    auto hnodeancfm3 = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(5 * beam_l / 8, 0, 0), ChVector3d(0, 1, 0),
+                                                                 ChVector3d(0, 0, 1));
+    auto hnodeancfm4 = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(7 * beam_l / 8, 0, 0), ChVector3d(0, 1, 0),
+                                                                 ChVector3d(0, 0, 1));
 
     hnodeancf1->SetFixed(true);  // Fix ALL coordinates of first (clamped) node
 
@@ -163,14 +164,14 @@ int main(int argc, char* argv[]) {
     mystepper->SetVerbose(true);
     mystepper->SetModifiedNewton(false);
 
-	// Simulation loop
+    // Simulation loop
     unsigned int num_steps = 50;
     double time_Step = 0.01;
     std::cout << std::fixed << std::setprecision(12);
     for (unsigned int it = 0; it < num_steps; it++) {
-         //std::cout << "Position of the tip: " << hnodeancf5->GetPos().y() << " m. \n";
-         //std::cout << "Long. Position of the tip: " << hnodeancf5->GetPos().x() << " m. \n";
-         //std::cout << "Lat. Position of the tip: " << hnodeancf5->GetPos().z() << " m. \n";
+        // std::cout << "Position of the tip: " << hnodeancf5->GetPos().y() << " m. \n";
+        // std::cout << "Long. Position of the tip: " << hnodeancf5->GetPos().x() << " m. \n";
+        // std::cout << "Lat. Position of the tip: " << hnodeancf5->GetPos().z() << " m. \n";
 
         hnodeancf5->SetForce(ChVector3d(0, -5e5 * std::pow(0.5, 3), 0));
         sys.DoStepDynamics(time_Step);
