@@ -55,7 +55,7 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     ChSystemMulticore(const ChSystemMulticore& other);
     virtual ~ChSystemMulticore();
 
-    virtual bool Integrate_Y() override;
+    virtual bool AdvanceDynamics() override;
     virtual void AddBody(std::shared_ptr<ChBody> body) override;
     virtual void AddShaft(std::shared_ptr<ChShaft> shaft) override;
     virtual void AddLink(std::shared_ptr<ChLinkBase> link) override;

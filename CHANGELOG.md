@@ -1205,6 +1205,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetSolverTolerance            | remove                                           |
 |                                   | GetStepcount                  | rename: GetNumSteps                              |
 |                                   | GetUseSleeping                | rename: IsSleepingAllowed                        |
+|                                   | Integrate_Y                   | rename: AdvanceDynamics                          |
 |                                   | ResetStepcount                | rename: ResetNumSteps                            |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
 |                                   | SetMaxiter                    | remove                                           |
@@ -1223,6 +1224,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
 | ChSystemMulticore                 |                               |                                                  |
 |                                   | GetNumBilaterals              | rename: GetNumConstraintsBilateral               |
+|                                   | Integrate_Y                   | rename: AdvanceDynamics                          |
 | ChTriangleMesh                    |                               |                                                  |
 |                                   | addTriangle                   | rename: AddTriangle                              |
 |                                   | getNumTriangles               | rename: GetNumTriangles                          |

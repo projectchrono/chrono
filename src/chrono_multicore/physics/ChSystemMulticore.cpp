@@ -74,7 +74,7 @@ ChSystemMulticore::~ChSystemMulticore() {
     delete data_manager;
 }
 
-bool ChSystemMulticore::Integrate_Y() {
+bool ChSystemMulticore::AdvanceDynamics() {
     ResetTimers();
     timer_step.start();  // time elapsed for step (for RTF calculation)
 
