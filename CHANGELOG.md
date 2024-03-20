@@ -239,6 +239,11 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNsysvars                   | remove                                           |
 |                                   | GetNsysvars_w                 | remove                                           |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+| ChAssemblyAnalysis                |                               |                                                  |
+|                                   | get_L                         | rename: GetLagrangeMultipliers                   |
+|                                   | get_X                         | rename: GetStatePos                              |
+|                                   | get_V                         | rename: GetStateVel                              |
+|                                   | get_A                         | rename: GetStateAcc                              |
 | ChBasisToolsBspline               |                               | rename: ChBasisToolsBSpline                      |
 | ChBasisToolsBsplineSurfaces       |                               | rename: ChBasisToolsBSplineSurfaces              |
 | ChBeamSectionCable                |                               |                                                  |
@@ -1143,6 +1148,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNarmijo                    | rename: GetMaxStepsArmijoLineSearch              |
 |                                   | SetMaxArmijoBacktrace         | rename: SetMaxStepsArmijoBacktrace               |
 |                                   | SetNarmijo                    | rename: SetMaxStepsArmijoLineSearch              |
+| ChStaticAnalysis                  |                               | remove                                           |
+|                                   | GetL                          | rename: GetLagrangeMultipliers                   |
+|                                   | GetX                          | rename: GetStatePos                              |
 | ChStream                          |                               | remove                                           |
 | ChStreamFile                      |                               | remove                                           |
 | ChStreamIn                        |                               | remove                                           |
@@ -1225,6 +1233,15 @@ Note that this represents a major public API change and we expect most user code
 | ChSystemMulticore                 |                               |                                                  |
 |                                   | GetNumBilaterals              | rename: GetNumConstraintsBilateral               |
 |                                   | Integrate_Y                   | rename: AdvanceDynamics                          |
+| ChTimestepper                     |                               |                                                  |
+|                                   | get_L                         | rename: GetLagrangeMultipliers                   |
+| ChTimestepperIorder               |                               |                                                  |
+|                                   | get_Y                         | rename: GetState                                 |
+|                                   | get_dYdt                      | rename: GetStateDt                               |
+| ChTimestepperIIorder              |                               |                                                  |
+|                                   | get_X                         | rename: GetStatePos                              |
+|                                   | get_V                         | rename: GetStateVel                              |
+|                                   | get_A                         | rename: GetStateAcc                              |
 | ChTriangleMesh                    |                               |                                                  |
 |                                   | addTriangle                   | rename: AddTriangle                              |
 |                                   | getNumTriangles               | rename: GetNumTriangles                          |
