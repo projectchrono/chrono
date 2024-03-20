@@ -996,6 +996,8 @@ Note that this represents a major public API change and we expect most user code
 | ChMaterialCompositeNSC            |                               | rename: ChContactMaterialCompositeNSC            |
 | ChMaterialCompositeSMC            |                               | rename: ChContactMaterialCompositeSMC            |
 | ChMaterialCompositionStrategy     |                               | rename: ChContactMaterialCompositionStrategy     |
+| ChMatrix33                        |                               |                                                  |
+|                                   | Set_A_Xdir                    | rename: SetFromAxisX                             |
 | ChMesh                            |                               |                                                  |
 |                                   | GetNcontactSurfaces           | rename: GetNumContactSurfaces                    |
 |                                   | GetNelements                  | rename: GetNumElements                           |
@@ -1093,11 +1095,11 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Q_from_AngZ                   | rename: SetFromAngleZ                            |
 |                                   | Q_from_Euler123               | rename: SetFromCardanAnglesXYZ                   |
 |                                   | Q_from_NasaAngles             | rename: SetFromCardanAnglesZYX                   |
-|                                   | Q_from_rotvec                 | rename: SetFromRotVec                            |
+|                                   | Q_from_Rotv                   | rename: SetFromRotVec                            |
 |                                   | Q_to_AngAxis                  | rename: GetAngleAxis                             |
 |                                   | Q_to_Euler123                 | rename: GetCardanAnglesXYZ                       |
 |                                   | Q_to_NasaAngles               | rename: GetCardanAnglesZYX                       |
-|                                   | Q_to_rotvec                   | rename: GetRotVec                                |
+|                                   | Q_to_Rotv                     | rename: GetRotVec                                |
 |                                   | Qdt_from_AngAxis              | rename: SetDtFromAngleAxis                       |
 |                                   | Qdt_from_Wabs                 | rename: SetDtFromAngVelAbs                       |
 |                                   | Qdt_to_Wabs                   | rename: GetAngVelAbs                             |
