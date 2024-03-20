@@ -46,7 +46,7 @@ void ChWheeledVehicle::InitializeTire(std::shared_ptr<ChTire> tire,
     tire->SetVisualizationType(tire_vis);
     tire->SetCollisionType(tire_coll);
 
-    // Recalculate vehicle mass to include the mass of the tire. 
+    // Recalculate vehicle mass to include the mass of the tire.
     InitializeInertiaProperties();
 }
 
@@ -445,7 +445,7 @@ std::string ChWheeledVehicle::ExportComponentList() const {
     std::string template_name = GetTemplateName();
     jsonDocument.AddMember("name", rapidjson::StringRef(m_name.c_str()), jsonDocument.GetAllocator());
     jsonDocument.AddMember("template", rapidjson::Value(template_name.c_str(), jsonDocument.GetAllocator()).Move(),
-        jsonDocument.GetAllocator());
+                           jsonDocument.GetAllocator());
 
     {
         rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
@@ -461,7 +461,7 @@ std::string ChWheeledVehicle::ExportComponentList() const {
         rapidjson::Document jsonSubDocument(&jsonDocument.GetAllocator());
         jsonSubDocument.SetObject();
         subchassis->ExportComponentList(jsonSubDocument);
-        subchassisArray.PushBack(jsonSubDocument, jsonDocument.GetAllocator());    
+        subchassisArray.PushBack(jsonSubDocument, jsonDocument.GetAllocator());
     }
     jsonDocument.AddMember("subchassis", subchassisArray, jsonDocument.GetAllocator());
 

@@ -97,7 +97,7 @@ void ANCFToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSid
             // Element dimensions
             double dx =
                 0.5 * ((node1->GetPos() - node0->GetPos()).Length() + (node3->GetPos() - node2->GetPos()).Length());
-            double dy = 
+            double dy =
                 0.5 * ((node2->GetPos() - node1->GetPos()).Length() + (node3->GetPos() - node0->GetPos()).Length());
 
             // Set element dimensions

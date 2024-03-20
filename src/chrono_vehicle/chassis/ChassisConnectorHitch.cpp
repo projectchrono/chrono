@@ -26,7 +26,8 @@ namespace chrono {
 namespace vehicle {
 
 ChassisConnectorHitch::ChassisConnectorHitch(const std::string& filename) : ChChassisConnectorHitch("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

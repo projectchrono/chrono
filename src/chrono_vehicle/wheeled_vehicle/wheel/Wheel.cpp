@@ -31,7 +31,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 Wheel::Wheel(const std::string& filename) : ChWheel(""), m_radius(0), m_width(0) {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

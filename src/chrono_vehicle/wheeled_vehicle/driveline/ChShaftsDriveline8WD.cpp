@@ -171,7 +171,7 @@ void ChShaftsDriveline8WD::Initialize(std::shared_ptr<ChChassis> chassis,
 
     double omega_GD_inshaft[2];
     for (int i = 0; i < 2; i++) {
-        omega_GD_inshaft[i] = 0.5 * (omega_AD_inshaft[2 *i] + omega_AD_inshaft[2*i+1]);
+        omega_GD_inshaft[i] = 0.5 * (omega_AD_inshaft[2 * i] + omega_AD_inshaft[2 * i + 1]);
         m_GD_inshaft[i]->SetPosDt(omega_GD_inshaft[i]);
     }
 
@@ -230,7 +230,7 @@ double ChShaftsDriveline8WD::GetSpindleTorque(int axle, VehicleSide side) const 
                     return -m_AD_differential[i]->GetReaction2() - m_AD_differential[i]->GetReaction1();
                 case RIGHT:
                     return -m_AD_differential[i]->GetTorqueReactionOn3() - m_AD_differential[i]->GetReaction2();
-            }       
+            }
         }
     }
 

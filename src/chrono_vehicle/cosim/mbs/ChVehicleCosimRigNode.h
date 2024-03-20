@@ -41,7 +41,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimWheeledMBSNode
     ~ChVehicleCosimRigNode();
 
     /// Set total rig system mass (default: 100).
-    /// This represents the equivalent load on the soil from all rig bodies. 
+    /// This represents the equivalent load on the soil from all rig bodies.
     /// Note that the total mass must be at least 2 kg; otherwise, it will be overwritten.
     void SetTotalMass(double mass) { m_total_mass = mass; }
 
@@ -55,7 +55,7 @@ class CH_VEHICLE_API ChVehicleCosimRigNode : public ChVehicleCosimWheeledMBSNode
   private:
     /// Initialize the vehicle MBS and any associated subsystems.
     virtual void InitializeMBS(const ChVector2d& terrain_size,  ///< terrain length x width
-                               double terrain_height             ///< initial terrain height
+                               double terrain_height            ///< initial terrain height
                                ) override;
 
     /// Apply tire info (mass, radius, width).

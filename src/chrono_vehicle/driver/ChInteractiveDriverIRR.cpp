@@ -270,7 +270,7 @@ bool ChInteractiveDriverIRR::ProcessKeyboardEvents(const SEvent& event) {
                     return true;
                 default:
                     break;
-            }       
+            }
         }
     } else {
         switch (event.KeyInput.Key) {
@@ -504,7 +504,8 @@ void ChJoystickButtonIRR::Read(rapidjson::Document& d, const std::string& elemen
         name = d[element]["name"].GetString();
         button = d[element]["button"].GetInt();
     } else if (dbg_print) {
-        std::cerr << "Expected a joystick button definition for " << elementName << " but did not find one." << std::endl;
+        std::cerr << "Expected a joystick button definition for " << elementName << " but did not find one."
+                  << std::endl;
     }
 }
 

@@ -91,7 +91,7 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
 
     /// Get a handle to the specified spring element.
     std::shared_ptr<ChLinkTSDA> GetSpring(VehicleSide side) const { return m_spring[side]; }
- 
+
     /// Get a handle to the specified shock (damper) element.
     std::shared_ptr<ChLinkTSDA> GetShock(VehicleSide side) const { return m_shock[side]; }
 
@@ -161,7 +161,7 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     ChDoubleWishbone(
         const std::string& name,            ///< [in] name of the subsystem
         bool vehicle_frame_inertia = false  ///< [in] inertia specified in vehicle-aligned centroidal frames?
-        );
+    );
 
     /// Indicate whether or not inertia matrices are specified with respect to a
     /// vehicle-aligned centroidal frame (flag=true) or with respect to the body
@@ -263,9 +263,9 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     std::shared_ptr<ChVehicleJoint> m_revoluteLCA[2];   ///< chassis-LCA revolute joints (left/right)
     std::shared_ptr<ChVehicleJoint> m_sphericalLCA[2];  ///< upright-LCA spherical joints (left/right)
 
-    std::shared_ptr<ChLinkDistance> m_distTierod[2];        ///< tierod distance constraints (left/right)
-    std::shared_ptr<ChVehicleJoint> m_sphericalTierod[2];   ///< tierod-upright spherical joints (left/right)
-    std::shared_ptr<ChVehicleJoint> m_universalTierod[2];   ///< tierod-chassis universal joints (left/right)
+    std::shared_ptr<ChLinkDistance> m_distTierod[2];       ///< tierod distance constraints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_sphericalTierod[2];  ///< tierod-upright spherical joints (left/right)
+    std::shared_ptr<ChVehicleJoint> m_universalTierod[2];  ///< tierod-chassis universal joints (left/right)
 
     std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< spring links (left/right)
     std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< shock links (left/right)
@@ -282,7 +282,7 @@ class CH_VEHICLE_API ChDoubleWishbone : public ChSuspension {
     void InitializeSide(VehicleSide side,
                         std::shared_ptr<ChChassis> chassis,
                         std::shared_ptr<ChBody> tierod_body,
-                        const std::vector<ChVector3d >& points,
+                        const std::vector<ChVector3d>& points,
                         double ang_vel);
 
     static void AddVisualizationControlArm(std::shared_ptr<ChBody> arm,

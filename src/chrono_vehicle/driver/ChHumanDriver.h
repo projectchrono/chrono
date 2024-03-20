@@ -15,10 +15,10 @@
 // A driver model that combines a path steering controller and a speed controller.
 // The controller adjusts the steering input to follow the prescribed path.
 // The output also adjusts throttle and braking inputs in order to maintain a
-// varying speed that depends on the curvature of the road. 
+// varying speed that depends on the curvature of the road.
 //
 // This implementation is based on the following paper:
-// BEST, M.C., 2012. A simple realistic driver model. 
+// BEST, M.C., 2012. A simple realistic driver model.
 // Presented at: AVEC `12, The 11th International Symposium on Advanced Vehicle Control,
 // 9th-12th September 2012, Seoul, Korea.
 //
@@ -129,11 +129,11 @@ class CH_VEHICLE_API ChHumanDriver : public ChDriver {
     size_t m_idx_curr;
     size_t m_i_curr;
     size_t m_j_curr;
-    std::vector<ChVector3d > m_S_l;   ///< course definition points
-    std::vector<ChVector3d > m_R_l;   ///< direction vector: S_l[i+1] = S_l[i] + R_l[i]
-    std::vector<ChVector3d > m_R_lu;  ///< R_l with unit length, precalculated to avoid redundant calculations
-    std::vector<ChVector3d > m_Li;    ///< left road border
-    std::vector<ChVector3d > m_Rj;    ///< right road border
+    std::vector<ChVector3d> m_S_l;   ///< course definition points
+    std::vector<ChVector3d> m_R_l;   ///< direction vector: S_l[i+1] = S_l[i] + R_l[i]
+    std::vector<ChVector3d> m_R_lu;  ///< R_l with unit length, precalculated to avoid redundant calculations
+    std::vector<ChVector3d> m_Li;    ///< left road border
+    std::vector<ChVector3d> m_Rj;    ///< right road border
     double m_delta;
     double m_delta_max;
     double m_L;

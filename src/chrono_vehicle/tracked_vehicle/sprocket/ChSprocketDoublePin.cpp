@@ -25,7 +25,6 @@
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeDoublePin.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
-
 namespace chrono {
 namespace vehicle {
 
@@ -117,7 +116,7 @@ class SprocketDoublePinContactCB : public ChSystem::CustomCollisionCallback {
                             double cr,                                         // circle radius
                             const ChVector3d& p1,                              // segment end point 1
                             const ChVector3d& p2                               // segment end point 2
-                            );
+    );
 
     // Test collision of a shoe guiding pin with the sprocket gear.
     // This may introduce one contact.
@@ -129,11 +128,11 @@ class SprocketDoublePinContactCB : public ChSystem::CustomCollisionCallback {
     ChTrackAssembly* m_track;         // pointer to containing track assembly
     ChSprocketDoublePin* m_sprocket;  // pointer to the sprocket
 
-    int m_gear_nteeth;    // sprocket gear, number of teeth
-    double m_gear_RT;     // sprocket gear, outer tooth radius (radius of addendum circle)
-    double m_gear_R;      // sprocket gear, arc radius
-    double m_gear_C;      // sprocket gear, arc center height
-    double m_gear_W;      // sprocket gear, arc center offset
+    int m_gear_nteeth;  // sprocket gear, number of teeth
+    double m_gear_RT;   // sprocket gear, outer tooth radius (radius of addendum circle)
+    double m_gear_R;    // sprocket gear, arc radius
+    double m_gear_C;    // sprocket gear, arc center height
+    double m_gear_W;    // sprocket gear, arc center offset
 
     double m_gear_D;   // tooth width (D = W - R)
     double m_gear_RC;  // radius of arc centers circle (RC^2 = C^2 + W^2)
@@ -162,7 +161,8 @@ void SprocketDoublePinContactCB::OnCustomCollision(ChSystem* system) {
     // Return now if collision disabled on sprocket or track shoes.
     if (m_track->GetNumTrackShoes() == 0)
         return;
-    if (!m_sprocket->GetGearBody()->IsCollisionEnabled() || !m_track->GetTrackShoe(0)->GetShoeBody()->IsCollisionEnabled())
+    if (!m_sprocket->GetGearBody()->IsCollisionEnabled() ||
+        !m_track->GetTrackShoe(0)->GetShoeBody()->IsCollisionEnabled())
         return;
 
     // Sprocket gear center location, expressed in global frame

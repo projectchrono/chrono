@@ -140,8 +140,8 @@ class CH_VEHICLE_API ChTrackShoeBand : public ChTrackShoe {
     int ProfilePoints(std::vector<ChVector2d>& points, std::vector<ChVector2d>& normals);
     std::shared_ptr<ChVisualShapeTriangleMesh> ToothMesh(double y);
 
-    ChVector2d m_center_p;       ///< center of (+x) arc, in tread body x-z plane
-    ChVector2d m_center_m;       ///< center of (-x) arc, in tread body x-z plane
+    ChVector2d m_center_p;        ///< center of (+x) arc, in tread body x-z plane
+    ChVector2d m_center_m;        ///< center of (-x) arc, in tread body x-z plane
     double m_center_p_arc_start;  ///< starting angle of the (+x) arc, in tread body x-z plane
     double m_center_p_arc_end;    ///< ending angle of the (+x) arc, in tread body x-z plane
     double m_center_m_arc_start;  ///< starting angle of the (-x) arc, in tread body x-z plane

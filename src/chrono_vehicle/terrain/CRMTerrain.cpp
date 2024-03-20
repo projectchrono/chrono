@@ -32,17 +32,11 @@
 using std::cout;
 using std::endl;
 
-
 namespace chrono {
 namespace vehicle {
 
 CRMTerrain::CRMTerrain(ChSystem& sys, double spacing)
-    : m_sys(sys),
-      m_spacing(spacing),
-      m_initialized(false),
-      m_offset(VNULL),
-      m_angle(0.0),
-      m_verbose(false) {
+    : m_sys(sys), m_spacing(spacing), m_initialized(false), m_offset(VNULL), m_angle(0.0), m_verbose(false) {
     // Create ground body
     m_ground = chrono_types::make_shared<ChBody>();
     m_ground->SetFixed(true);
@@ -128,7 +122,7 @@ void CRMTerrain::AddRigidObstacle(const std::string& obj_file,
     m_sys.AddBody(o.body);
 
     m_obstacles.push_back(o);
-    
+
     if (m_verbose) {
         cout << "  Num. BCE markers: " << o.point_cloud.size() << endl;
     }
@@ -384,8 +378,8 @@ void CRMTerrain::CompleteConstruct() {
 
         for (auto& o : m_obstacles)
             ProcessObstacleMesh(o);
-        
-        if (m_verbose)            
+
+        if (m_verbose)
             cout << "Num. SPH particles: " << m_sph.size() << endl;
     }
 
@@ -443,8 +437,8 @@ void CRMTerrain::Initialize() {
 
 ChVector3i Snap2Grid(const ChVector3d point, double spacing) {
     return ChVector3i((int)std::round(point.x() / spacing),  //
-                         (int)std::round(point.y() / spacing),  //
-                         (int)std::round(point.z() / spacing));
+                      (int)std::round(point.y() / spacing),  //
+                      (int)std::round(point.z() / spacing));
 }
 
 // Offsets for the 6 neighbors of an integer grid node

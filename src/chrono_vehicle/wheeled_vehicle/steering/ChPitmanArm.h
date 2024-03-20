@@ -70,7 +70,7 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
     /// Update the state of this steering subsystem at the current time.
     /// The steering subsystem is provided the current steering driver input (a value between -1 and +1).  Positive
     /// steering input indicates steering to the left. This function is called during the vehicle update.
-    virtual void Synchronize(double time,                           ///< [in] current time
+    virtual void Synchronize(double time,                       ///< [in] current time
                              const DriverInputs& driver_inputs  ///< [in] current driver inputs
                              ) override;
 
@@ -103,7 +103,7 @@ class CH_VEHICLE_API ChPitmanArm : public ChSteering {
     /// Protected constructor.
     ChPitmanArm(const std::string& name,            ///< [in] name of the subsystem
                 bool vehicle_frame_inertia = false  ///< [in] inertia specified in vehicle-aligned centroidal frames?
-                );
+    );
 
     /// Indicate whether or not inertia matrices are specified with respect to a
     /// vehicle-aligned centroidal frame (flag=true) or with respect to the body

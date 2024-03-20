@@ -40,7 +40,6 @@
 
 #include "chrono_thirdparty/stb/stb.h"
 
-
 namespace chrono {
 namespace vehicle {
 
@@ -1245,11 +1244,11 @@ void SCMLoader::ComputeInternalForces() {
 
     // Collect hit vertices assigned to each contact patch.
     struct ContactPatchRecord {
-        std::vector<ChVector2d> points;    // points in contact patch (in reference plane)
-        std::vector<ChVector2i> nodes;  // grid nodes in the contact patch
-        double area;                        // contact patch area
-        double perimeter;                   // contact patch perimeter
-        double oob;                         // approximate value of 1/b
+        std::vector<ChVector2d> points;  // points in contact patch (in reference plane)
+        std::vector<ChVector2i> nodes;   // grid nodes in the contact patch
+        double area;                     // contact patch area
+        double perimeter;                // contact patch perimeter
+        double oob;                      // approximate value of 1/b
     };
     std::vector<ContactPatchRecord> contact_patches;
 
@@ -1525,12 +1524,12 @@ void SCMLoader::ComputeInternalForces() {
 
             // Calculate the displaced material from all touched nodes and identify boundary
             double tot_step_flow = 0;
-            for (const auto& ij : p.nodes) {                     // for each node in contact patch
-                const auto& nr = m_grid_map.at(ij);              //   get node record
-                if (nr.sigma <= 0)                               //   if node not touched
-                    continue;                                    //     skip (not in effective patch)
-                tot_step_flow += nr.step_plastic_flow;           //   accumulate displaced material
-                for (int k = 0; k < 4; k++) {                    //   check each node neighbor
+            for (const auto& ij : p.nodes) {                 // for each node in contact patch
+                const auto& nr = m_grid_map.at(ij);          //   get node record
+                if (nr.sigma <= 0)                           //   if node not touched
+                    continue;                                //     skip (not in effective patch)
+                tot_step_flow += nr.step_plastic_flow;       //   accumulate displaced material
+                for (int k = 0; k < 4; k++) {                //   check each node neighbor
                     ChVector2i nbr_ij = ij + neighbors4[k];  //     neighbor node coordinates
                     ////if (!CheckMeshBounds(nbr_ij))                     //     if neighbor out of bounds
                     ////    continue;                                     //       skip neighbor
@@ -1572,9 +1571,9 @@ void SCMLoader::ComputeInternalForces() {
         NodeSet erosion_domain = boundary;
         NodeSet erosion_front = boundary;  // initialize erosion front to boundary nodes
         for (int i = 0; i < m_erosion_propagations; i++) {
-            NodeSet front;                                       // new erosion front
-            for (const auto& ij : erosion_front) {               // for each node in current erosion front
-                for (int k = 0; k < 4; k++) {                    // check each of its neighbors
+            NodeSet front;                                   // new erosion front
+            for (const auto& ij : erosion_front) {           // for each node in current erosion front
+                for (int k = 0; k < 4; k++) {                // check each of its neighbors
                     ChVector2i nbr_ij = ij + neighbors4[k];  //   neighbor node coordinates
                     ////if (!CheckMeshBounds(nbr_ij))                       //   if out of bounds
                     ////    continue;                                       //     ignore neighbor

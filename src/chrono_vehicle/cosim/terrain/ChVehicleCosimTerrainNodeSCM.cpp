@@ -217,8 +217,8 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
     // Add all rigid obstacles
     for (auto& b : m_obstacles) {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
-        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(b.m_mesh_filename),
-                                                                                  true, true);
+        auto trimesh =
+            ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(b.m_mesh_filename), true, true);
         double mass;
         ChVector3d baricenter;
         ChMatrix33<> inertia;
@@ -232,8 +232,7 @@ void ChVehicleCosimTerrainNodeSCM::Construct() {
         body->SetFixed(false);
 
         body->EnableCollision(true);
-        auto ct_shape =
-            chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_p);
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_p);
         body->AddCollisionShape(ct_shape);
         body->GetCollisionModel()->SetFamily(2);
 
@@ -448,7 +447,7 @@ void ChVehicleCosimTerrainNodeSCM::GetForceMeshProxy(unsigned int i, MeshContact
 // Collect resultant contact force and torque on rigid proxy body.
 void ChVehicleCosimTerrainNodeSCM::GetForceRigidProxy(unsigned int i, TerrainForce& rigid_contact) {
     auto proxy = std::static_pointer_cast<ProxyBodySet>(m_proxies[i]);
-    
+
     ChVector3d force;
     ChVector3d torque;
     m_terrain->GetContactForceBody(proxy->bodies[0], force, torque);

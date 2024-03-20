@@ -42,7 +42,7 @@
 #include "chrono_thirdparty/rapidjson/stringbuffer.h"
 
 #ifdef CHRONO_POSTPROCESS
-#include "chrono_postprocess/ChGnuPlot.h"
+    #include "chrono_postprocess/ChGnuPlot.h"
 #endif
 
 using namespace rapidjson;
@@ -86,7 +86,8 @@ ChTrackTestRig::ChTrackTestRig(const std::string& filename,
       m_next_plot_output_time(0),
       m_csv(nullptr) {
     // Open and parse the input file (track assembly JSON specification file)
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -223,9 +224,11 @@ void ChTrackTestRig::Initialize() {
     m_track->SetTrackShoeVisualizationType(m_vis_shoe);
 
     // Set collisions
-    m_track->GetIdlerWheel()->EnableCollision((m_collide_flags & static_cast<int>(TrackedCollisionFlag::IDLER_LEFT)) != 0);
+    m_track->GetIdlerWheel()->EnableCollision((m_collide_flags & static_cast<int>(TrackedCollisionFlag::IDLER_LEFT)) !=
+                                              0);
 
-    m_track->GetSprocket()->EnableCollision((m_collide_flags & static_cast<int>(TrackedCollisionFlag::SPROCKET_LEFT)) != 0);
+    m_track->GetSprocket()->EnableCollision((m_collide_flags & static_cast<int>(TrackedCollisionFlag::SPROCKET_LEFT)) !=
+                                            0);
 
     bool collide_wheels = (m_collide_flags & static_cast<int>(TrackedCollisionFlag::WHEELS_LEFT)) != 0;
     for (size_t i = 0; i < m_track->GetNumTrackSuspensions(); ++i)
@@ -379,7 +382,7 @@ void ChTrackTestRig::AddPostVisualization(std::shared_ptr<ChBody> post,
 
     // Piston (on post body)
     ChVehicleGeometry::AddVisualizationCylinder(post,                                   //
-                                                ChVector3d(0, 0, -m_post_height),        //
+                                                ChVector3d(0, 0, -m_post_height),       //
                                                 ChVector3d(0, 0, -15 * m_post_height),  //
                                                 m_post_radius / 6.0,                    //
                                                 mat);

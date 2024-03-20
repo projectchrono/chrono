@@ -28,7 +28,7 @@ namespace vehicle {
 /// @{
 
 /// Tire template for tires based on Reissner shells.
-/// This tire is modeled as a mesh composed of Reissner-Mindlin 4 nodes shell elements. 
+/// This tire is modeled as a mesh composed of Reissner-Mindlin 4 nodes shell elements.
 class CH_VEHICLE_API ChReissnerTire : public ChDeformableTire {
   public:
     ChReissnerTire(const std::string& name);

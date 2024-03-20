@@ -150,11 +150,11 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     /// Create the SMC contact material.
     virtual void CreateContactMaterial() = 0;
 
-    std::shared_ptr<fea::ChMesh> m_mesh;                                ///< tire mesh
-    std::shared_ptr<ChLoadContainer> m_load_container;                  ///< load container (for pressure load)
-    std::vector<std::shared_ptr<fea::ChLinkNodeFrame>> m_connections;  ///< tire-wheel point connections
-    std::vector<std::shared_ptr<fea::ChLinkNodeSlopeFrame>> m_connectionsD;   ///< tire-wheel direction connections
-    std::vector<std::shared_ptr<ChLinkMateFix>> m_connectionsF;         ///< tire-wheel fix connection (point+rotation)
+    std::shared_ptr<fea::ChMesh> m_mesh;                                     ///< tire mesh
+    std::shared_ptr<ChLoadContainer> m_load_container;                       ///< load container (for pressure load)
+    std::vector<std::shared_ptr<fea::ChLinkNodeFrame>> m_connections;        ///< tire-wheel point connections
+    std::vector<std::shared_ptr<fea::ChLinkNodeSlopeFrame>> m_connectionsD;  ///< tire-wheel direction connections
+    std::vector<std::shared_ptr<ChLinkMateFix>> m_connectionsF;  ///< tire-wheel fix connection (point+rotation)
 
     bool m_connection_enabled;  ///< enable tire connections to rim
     bool m_pressure_enabled;    ///< enable internal tire pressure
@@ -172,7 +172,7 @@ class CH_VEHICLE_API ChDeformableTire : public ChTire {
     virtual double GetAddedMass() const override final { return 0; }
     virtual ChVector3d GetAddedInertia() const override final { return ChVector3d(0, 0, 0); }
 
-     /// Return the tire mass.
+    /// Return the tire mass.
     virtual void InitializeInertiaProperties() override final;
 
     /// Return the tire moments of inertia (in the tire centroidal frame).

@@ -31,14 +31,14 @@ CH_VEHICLE_API std::shared_ptr<ChBezierCurve> StraightLinePath(
     const ChVector3d& start,           ///< start point
     const ChVector3d end,              ///< end point
     unsigned int num_intermediate = 0  ///< number of intermediate points
-    );
+);
 
 /// Circular path with an initial straight-line run in the X direction.
 /// The generated curve loops around the circle for a specified number of times.
-/// 
+///
 /// <pre>
 /// Example: left circle path
-/// 
+///
 ///                     __<__         Y
 ///                   /       \       ^
 ///                  /         \      |
@@ -53,7 +53,7 @@ CH_VEHICLE_API std::shared_ptr<ChBezierCurve> CirclePath(
     double run,               ///< length of initial straight line
     bool left_turn = true,    ///< left turn (true), right turn (false)
     int num_turns = 1         ///< number of turns around circle
-    );
+);
 
 /// Double lane change path with initial and final runs in the X direction.
 ///
@@ -64,7 +64,7 @@ CH_VEHICLE_API std::shared_ptr<ChBezierCurve> CirclePath(
 ///                                          ^
 ///                   ______>______          |
 ///                  /             \         +---> X
-///                /                 \       | 
+///                /                 \       |
 /// _____>______ /                     \ ______>_______
 ///     run       ramp   length    ramp      run
 /// </pre>
@@ -75,7 +75,7 @@ CH_VEHICLE_API std::shared_ptr<ChBezierCurve> DoubleLaneChangePath(
     double length,            ///< distance in lane
     double run,               ///< length of initial and final straight lines
     bool left_turn = true     ///< left turn (true), right turn (false)
-    );
+);
 
 }  // end namespace vehicle
 }  // end namespace chrono

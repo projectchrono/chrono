@@ -28,7 +28,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 
 RigidChassis::RigidChassis(const std::string& filename) : ChRigidChassis("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -88,7 +89,8 @@ void RigidChassis::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 
 RigidChassisRear::RigidChassisRear(const std::string& filename) : ChRigidChassisRear("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

@@ -27,7 +27,8 @@
 namespace chrono {
 namespace vehicle {
 
-ChVehicleOutputASCII::ChVehicleOutputASCII(const std::string& filename) : m_file_stream(filename), m_stream(m_file_stream) {}
+ChVehicleOutputASCII::ChVehicleOutputASCII(const std::string& filename)
+    : m_file_stream(filename), m_stream(m_file_stream) {}
 
 ChVehicleOutputASCII::ChVehicleOutputASCII(std::ostream& stream) : m_file_stream(), m_stream(stream) {}
 

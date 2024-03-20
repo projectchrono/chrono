@@ -256,7 +256,7 @@ void ChPart::ExportJointList(rapidjson::Document& jsonDocument, std::vector<std:
     rapidjson::Value jsonArray(rapidjson::kArrayType);
     for (auto joint : joints) {
         ChFrame<> A_X_J = ChFrame<>(joint->GetFrame2Abs());  // transform from joint to absolute
-        ChFrame<> P_X_J = P_X_A * A_X_J;                              // transform from joint to parent
+        ChFrame<> P_X_J = P_X_A * A_X_J;                     // transform from joint to parent
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();
         obj.AddMember("name", rapidjson::StringRef(joint->GetName()), allocator);
@@ -356,7 +356,7 @@ void ChPart::ExportRotSpringList(rapidjson::Document& jsonDocument,
 
     rapidjson::Value jsonArray(rapidjson::kArrayType);
     for (auto spring : springs) {
-        auto pos = spring->GetVisualModelFrame().GetPos();               // position in absolute frame
+        auto pos = spring->GetVisualModelFrame().GetPos();                 // position in absolute frame
         auto axis = spring->GetVisualModelFrame().GetRotMat().GetAxisZ();  // axis in absolute frame
         rapidjson::Value obj(rapidjson::kObjectType);
         obj.SetObject();

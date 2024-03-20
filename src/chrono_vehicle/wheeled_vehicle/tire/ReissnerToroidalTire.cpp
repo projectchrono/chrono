@@ -40,14 +40,14 @@ ReissnerToroidalTire::ReissnerToroidalTire(const std::string& name)
 
 void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, VehicleSide side) {
     // Create an isotropic material (shared by all elements)
-	auto melasticity = chrono_types::make_shared<ChElasticityReissnerIsothropic>(9.0e7, 0.3, 1.0, 0.01);
-	auto mdamping    = chrono_types::make_shared<ChDampingReissnerRayleigh>(melasticity, m_alpha);
-	auto mat = chrono_types::make_shared<ChMaterialShellReissner>(melasticity, nullptr, mdamping);
-	mat->SetDensity(500);
+    auto melasticity = chrono_types::make_shared<ChElasticityReissnerIsothropic>(9.0e7, 0.3, 1.0, 0.01);
+    auto mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(melasticity, m_alpha);
+    auto mat = chrono_types::make_shared<ChMaterialShellReissner>(melasticity, nullptr, mdamping);
+    mat->SetDensity(500);
 
-		// In case you need also damping it would add...
-		//auto mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(melasticity,0.01);
-		//auto mat = chrono_types::make_shared<ChMaterialShellReissner>(melasticity, nullptr, mdamping);
+    // In case you need also damping it would add...
+    // auto mdamping = chrono_types::make_shared<ChDampingReissnerRayleigh>(melasticity,0.01);
+    // auto mat = chrono_types::make_shared<ChMaterialShellReissner>(melasticity, nullptr, mdamping);
 
     // Create the mesh nodes.
     // The nodes are first created in the wheel local frame, assuming Y as the tire axis,
@@ -67,9 +67,10 @@ void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, Vehicl
             double ny = sin(theta);
             double nz = cos(theta) * sin(phi);
             ChVector3d dir = wheel_frame.TransformDirectionLocalToParent(ChVector3d(nx, ny, nz));
-            ChMatrix33<> mrot; mrot.SetFromAxisX(dir,VECT_Y);
+            ChMatrix33<> mrot;
+            mrot.SetFromAxisX(dir, VECT_Y);
 
-            auto node = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));         
+            auto node = chrono_types::make_shared<ChNodeFEAxyzrot>(ChFrame<>(loc, mrot));
 
             m_mesh->AddNode(node);
         }
@@ -90,8 +91,7 @@ void ReissnerToroidalTire::CreateMesh(const ChFrameMoving<>& wheel_frame, Vehicl
             if (i == m_div_circumference - 1) {
                 inode0 = j;
                 inode3 = j + 1;
-            }
-            else {
+            } else {
                 inode0 = j + (i + 1) * (m_div_width + 1);
                 inode3 = j + 1 + (i + 1) * (m_div_width + 1);
             }

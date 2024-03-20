@@ -238,8 +238,8 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     int id = body_id_obstacles;
     for (auto& b : m_obstacles) {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
-        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(b.m_mesh_filename),
-                                                                                  true, true);
+        auto trimesh =
+            ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile(b.m_mesh_filename), true, true);
         double mass;
         ChVector3d baricenter;
         ChMatrix33<> inertia;
@@ -255,8 +255,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
         body->SetFixed(false);
 
         body->EnableCollision(true);
-        auto ct_shape =
-            chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_p);
+        auto ct_shape = chrono_types::make_shared<ChCollisionShapeTriangleMesh>(mat, trimesh, false, false, m_radius_p);
         body->AddCollisionShape(ct_shape);
         body->GetCollisionModel()->SetFamily(2);
 

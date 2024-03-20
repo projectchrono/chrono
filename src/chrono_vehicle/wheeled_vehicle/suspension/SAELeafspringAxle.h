@@ -97,9 +97,13 @@ class CH_VEHICLE_API SAELeafspringAxle : public ChSAELeafspringAxle {
         return m_vertRotSpringCBB;
     }
 
-    virtual std::shared_ptr<ChVehicleBushingData> getShackleBushingData() const override { return m_shackleBushingData; }
+    virtual std::shared_ptr<ChVehicleBushingData> getShackleBushingData() const override {
+        return m_shackleBushingData;
+    }
     virtual std::shared_ptr<ChVehicleBushingData> getClampBushingData() const override { return m_clampBushingData; }
-    virtual std::shared_ptr<ChVehicleBushingData> getLeafspringBushingData() const override { return m_leafspringBushingData; }
+    virtual std::shared_ptr<ChVehicleBushingData> getLeafspringBushingData() const override {
+        return m_leafspringBushingData;
+    }
 
   private:
     virtual const ChVector3d getLocation(PointId which) override { return m_points[which]; }

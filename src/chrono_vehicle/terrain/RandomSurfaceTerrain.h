@@ -202,8 +202,8 @@ class CH_VEHICLE_API RandomSurfaceTerrain : public ChTerrain {
     double m_rms;                      ///< (detrended) root mean square of the uneven tracks
     double m_iri;                      ///< International Roughness Index estimated from unevenness and waviness
     std::shared_ptr<ChBody> m_ground;  ///< ground body
-    std::shared_ptr<ChBezierCurve> m_road_left;                 ///< curve for left road boundary
-    std::shared_ptr<ChBezierCurve> m_road_right;                ///< curve for right road boundary
+    std::shared_ptr<ChBezierCurve> m_road_left;       ///< curve for left road boundary
+    std::shared_ptr<ChBezierCurve> m_road_right;      ///< curve for right road boundary
     std::shared_ptr<ChTriangleMeshConnected> m_mesh;  ///< mesh for visualization/export
 
     std::string m_curve_left_name;

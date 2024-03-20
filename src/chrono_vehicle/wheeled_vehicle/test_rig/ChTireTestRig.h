@@ -133,8 +133,8 @@ class CH_VEHICLE_API ChTireTestRig {
     /// Get suggested collision settings.
     /// These values are meaningful only when using granular terrain and Chrono::Multicore.
     void GetSuggestedCollisionSettings(
-        double& collision_envelope,    ///< suggested envelope based on particle radius
-        ChVector3i& collision_bins  ///< suggested number of bins for broad-pahse collision detection
+        double& collision_envelope,  ///< suggested envelope based on particle radius
+        ChVector3i& collision_bins   ///< suggested number of bins for broad-pahse collision detection
     ) const;
 
     /// Advance system state by the specified time step.

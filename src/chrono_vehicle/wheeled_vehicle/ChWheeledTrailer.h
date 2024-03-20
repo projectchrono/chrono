@@ -91,11 +91,10 @@ class CH_VEHICLE_API ChWheeledTrailer {
     /// Initialize the given tire and attach it to the specified wheel.
     /// Optionally, specify tire visualization mode and tire-terrain collision detection method.
     /// This function should be called only after trailer initialization.
-    void InitializeTire(
-        std::shared_ptr<ChTire> tire,
-        std::shared_ptr<ChWheel> wheel,
-        VisualizationType tire_vis = VisualizationType::PRIMITIVES,
-        ChTire::CollisionType tire_coll = ChTire::CollisionType::SINGLE_POINT);
+    void InitializeTire(std::shared_ptr<ChTire> tire,
+                        std::shared_ptr<ChWheel> wheel,
+                        VisualizationType tire_vis = VisualizationType::PRIMITIVES,
+                        ChTire::CollisionType tire_coll = ChTire::CollisionType::SINGLE_POINT);
 
     /// Update the state of this trailer at the current time.
     /// The trailer system is provided the current driver inputs and a reference to the terrain system.

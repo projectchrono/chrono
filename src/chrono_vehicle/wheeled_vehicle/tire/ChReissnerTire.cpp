@@ -77,7 +77,6 @@ void ChReissnerTire::CreateRimConnections(std::shared_ptr<ChBody> wheel) {
         m_connectionsF[in]->Initialize(node, wheel);
         wheel->GetSystem()->Add(m_connectionsF[in]);
     }
-
 }
 
 }  // end namespace vehicle

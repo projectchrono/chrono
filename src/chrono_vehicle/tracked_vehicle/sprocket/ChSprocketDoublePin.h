@@ -36,7 +36,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChSprocketDoublePin : public ChSprocket {
   public:
     ChSprocketDoublePin(const std::string& name  ///< [in] name of the subsystem
-                        );
+    );
 
     virtual ~ChSprocketDoublePin() {}
 

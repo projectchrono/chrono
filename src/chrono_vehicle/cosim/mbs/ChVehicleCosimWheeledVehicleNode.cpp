@@ -242,7 +242,7 @@ void ChVehicleCosimWheeledVehicleNode::PostAdvance(double step_size) {
     if (m_driver)
         m_driver->Advance(step_size);
     if (m_vsys)
-      m_vsys->Advance(step_size);
+        m_vsys->Advance(step_size);
 }
 
 void ChVehicleCosimWheeledVehicleNode::ApplySpindleForce(unsigned int i, const TerrainForce& spindle_force) {
@@ -255,7 +255,7 @@ void ChVehicleCosimWheeledVehicleNode::ApplySpindleForce(unsigned int i, const T
 
 void ChVehicleCosimWheeledVehicleNode::OnRender() {
     if (!m_vsys)
-      return;
+        return;
     if (!m_vsys->Run())
         MPI_Abort(MPI_COMM_WORLD, 1);
     m_vsys->BeginScene();

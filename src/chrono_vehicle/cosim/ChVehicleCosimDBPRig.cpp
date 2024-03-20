@@ -103,9 +103,7 @@ ChVehicleCosimDBPRig::ChVehicleCosimDBPRig()
       m_verbose(false),
       m_delay_time(0) {}
 
-void ChVehicleCosimDBPRig::Initialize(std::shared_ptr<ChBody> chassis,
-                                      double wheel_radius,
-                                      double step_size) {
+void ChVehicleCosimDBPRig::Initialize(std::shared_ptr<ChBody> chassis, double wheel_radius, double step_size) {
     // Initialize filters
     int nw_dbp = static_cast<int>(std::round(m_dbp_filter_window / step_size));
     m_dbp_filter = chrono_types::make_unique<utils::ChRunningAverage>(nw_dbp);

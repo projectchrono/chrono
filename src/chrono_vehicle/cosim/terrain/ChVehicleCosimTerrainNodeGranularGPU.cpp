@@ -505,8 +505,8 @@ void ChVehicleCosimTerrainNodeGranularGPU::Settle() {
         }
     }
 
-        cout << endl;
-        cout << "[Terrain node] settling time = " << m_cum_sim_time << endl;
+    cout << endl;
+    cout << "[Terrain node] settling time = " << m_cum_sim_time << endl;
 
     // Find "height" of granular material after settling
     m_init_height = m_systemGPU->GetMaxParticleZ() + m_radius_g;

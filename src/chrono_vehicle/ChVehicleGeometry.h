@@ -75,8 +75,8 @@ class CH_VEHICLE_API ChVehicleGeometry {
     /// Line shape for visualization.
     struct CH_VEHICLE_API LineShape {
         LineShape(const ChVector3d& pos, const ChQuaternion<>& rot, std::shared_ptr<ChLine> line);
-        ChVector3d m_pos;                          ///< position relative to body
-        ChQuaternion<> m_rot;                      ///< orientation relative to body
+        ChVector3d m_pos;                ///< position relative to body
+        ChQuaternion<> m_rot;            ///< orientation relative to body
         std::shared_ptr<ChLine> m_line;  ///< line data
     };
 
@@ -95,9 +95,9 @@ class CH_VEHICLE_API ChVehicleGeometry {
                      double radius,
                      int matID = -1);
         std::shared_ptr<ChTriangleMeshConnected> m_trimesh;  ///< triangular mesh
-        double m_radius;                                               ///< radius of sweeping sphere
-        ChVector3d m_pos;                                              ///< position relative to body
-        int m_matID;                                                   ///< index in contact material list
+        double m_radius;                                     ///< radius of sweeping sphere
+        ChVector3d m_pos;                                    ///< position relative to body
+        int m_matID;                                         ///< index in contact material list
     };
 
     bool m_has_collision;                            ///< true if body has a collision model

@@ -69,12 +69,12 @@ float FEATerrain::GetCoefficientFriction(const ChVector3d& loc) const {
 
 // Set properties of the FEA soil model
 void FEATerrain::SetSoilParametersFEA(double rho,              ///< Soil density
-                                                double Emod,             ///< Soil modulus of elasticity
-                                                double nu,               ///< Soil Poisson ratio
-                                                double yield_stress,     ///< Soil yield stress, for plasticity
-                                                double hardening_slope,  ///< Soil hardening slope, for plasticity
-                                                double friction_angle,   ///< Soil internal friction angle
-                                                double dilatancy_angle   ///< Soil dilatancy angle
+                                      double Emod,             ///< Soil modulus of elasticity
+                                      double nu,               ///< Soil Poisson ratio
+                                      double yield_stress,     ///< Soil yield stress, for plasticity
+                                      double hardening_slope,  ///< Soil hardening slope, for plasticity
+                                      double friction_angle,   ///< Soil internal friction angle
+                                      double dilatancy_angle   ///< Soil dilatancy angle
 ) {
     m_rho = rho;
     m_E = Emod;
@@ -87,8 +87,8 @@ void FEATerrain::SetSoilParametersFEA(double rho,              ///< Soil density
 
 // Initialize the terrain as a box of 9-node brick elements of given dimensions.
 void FEATerrain::Initialize(const ChVector3d& start_point,
-                                      const ChVector3d& terrain_dimension,
-                                      const ChVector3i& terrain_discretization) {
+                            const ChVector3d& terrain_dimension,
+                            const ChVector3i& terrain_discretization) {
     // Specification of the mesh (40,20,6)
     int numDiv_x = terrain_discretization.x();
     int numDiv_y = terrain_discretization.y();

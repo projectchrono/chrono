@@ -143,7 +143,7 @@ ChHumanDriver::ChHumanDriver(const std::string& filename,
         }
     } else {
         std::cout << "Caution: I am using the default values for U0 = " << m_u0 << " m/s  and  Umax = " << m_umax
-                 << " m/s\n";
+                  << " m/s\n";
     }
 
     if (d.HasMember("Lateral Gains")) {
@@ -161,7 +161,7 @@ ChHumanDriver::ChHumanDriver(const std::string& filename,
         }
     } else {
         std::cout << "Caution: I am using the default values for Klat= " << m_Klat << "  and  Kug = " << m_Kug
-                 << " deg/g\n";
+                  << " deg/g\n";
     }
 
     if (d.HasMember("Longitudinal Gains")) {
@@ -185,7 +185,7 @@ ChHumanDriver::ChHumanDriver(const std::string& filename,
         }
     } else {
         std::cout << "Caution: I am using the default values for Klong= " << m_Klong << "  ,  Kplus = " << m_Kplus
-                 << "  ,  Kminus = " << m_Kminus << " \n";
+                  << "  ,  Kminus = " << m_Kminus << " \n";
     }
 
     std::cout << "Loaded JSONL " << filename << std::endl;
@@ -219,8 +219,8 @@ void ChHumanDriver::Advance(double step) {  // distance in front of the vehicle.
     }
 
     auto& chassis_frame = m_vehicle.GetChassisBody()->GetFrameRefToAbs();  // chassis ref-to-world frame
-    auto& chassis_rot = chassis_frame.GetRot();                               // chassis ref-to-world rotation
-    double u = m_vehicle.GetSpeed();                                          // vehicle speed
+    auto& chassis_rot = chassis_frame.GetRot();                            // chassis ref-to-world rotation
+    double u = m_vehicle.GetSpeed();                                       // vehicle speed
 
     m_distance = m_UIntegrator.Filter(u);
     m_travel_time += step;

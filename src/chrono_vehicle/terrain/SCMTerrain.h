@@ -265,7 +265,7 @@ class CH_VEHICLE_API SCMTerrain : public ChTerrain {
     /// is set to the height of the closest point on the mesh).  A visualization mesh is created from the original mesh
     /// resampled at the grid node points.
     void Initialize(const ChTriangleMeshConnected& trimesh,  ///< [in] surface triangular mesh
-                    double delta                                       ///< [in] grid spacing
+                    double delta                             ///< [in] grid spacing
     );
 
     /// Node height level at a given grid location.
@@ -373,7 +373,7 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
     /// Initialize the terrain system (mesh).
     /// The initial undeformed terrain profile is provided via the specified triangular mesh.
     void Initialize(const ChTriangleMeshConnected& trimesh,  ///< [in] surface triangular mesh
-                    double delta                                       ///< [in] grid spacing
+                    double delta                             ///< [in] grid spacing
     );
 
   private:
@@ -386,11 +386,11 @@ class CH_VEHICLE_API SCMLoader : public ChLoadContainer {
 
     // Moving patch parameters
     struct MovingPatchInfo {
-        std::shared_ptr<ChBody> m_body;       // tracked body
-        ChVector3d m_center;                  // OOBB center, relative to body
-        ChVector3d m_hdims;                   // OOBB half-dimensions
+        std::shared_ptr<ChBody> m_body;   // tracked body
+        ChVector3d m_center;              // OOBB center, relative to body
+        ChVector3d m_hdims;               // OOBB half-dimensions
         std::vector<ChVector2i> m_range;  // current grid nodes covered by the patch
-        ChVector3d m_ooN;                     // current inverse of SCM normal in body frame
+        ChVector3d m_ooN;                 // current inverse of SCM normal in body frame
     };
 
     // Information at contacted node

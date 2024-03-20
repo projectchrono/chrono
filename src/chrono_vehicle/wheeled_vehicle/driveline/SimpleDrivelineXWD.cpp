@@ -27,7 +27,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 SimpleDrivelineXWD::SimpleDrivelineXWD(const std::string& filename) : ChSimpleDrivelineXWD("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

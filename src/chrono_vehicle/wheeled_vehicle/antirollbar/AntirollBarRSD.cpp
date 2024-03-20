@@ -27,7 +27,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 AntirollBarRSD::AntirollBarRSD(const std::string& filename) : ChAntirollBarRSD("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

@@ -45,7 +45,7 @@ void ChVehicleCosimTireNodeRigid::InitializeTire(std::shared_ptr<ChWheel> wheel,
     assert(m_tire_rgd->UseContactMesh());
 
     m_spindle->SetPos(init_loc);
-    wheel->SetTire(m_tire);                                       
+    wheel->SetTire(m_tire);
     m_tire->Initialize(wheel);
 
     m_tire_rgd->SetVisualizationType(VisualizationType::MESH);

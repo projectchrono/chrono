@@ -33,7 +33,8 @@ namespace vehicle {
 // Constructors for ReissnerTire
 // -----------------------------------------------------------------------------
 ReissnerTire::ReissnerTire(const std::string& filename) : ChReissnerTire("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -215,13 +216,14 @@ void AttachNodeToShell(std::shared_ptr<ChMesh> m_mesh, std::shared_ptr<ChNodeFEA
             bool is_into;
             ChVector3d p_projected;
 
-            val = utils::PointTriangleDistance(
-                m_node->pos, mshell->GetNodeA()->GetCoordsys().pos, mshell->GetNodeB()->GetCoordsys().pos,
-                mshell->GetNodeC()->GetCoordsys().pos, u, v, is_into, p_projected);
+            val = utils::PointTriangleDistance(m_node->pos, mshell->GetNodeA()->GetCoordsys().pos,
+                                               mshell->GetNodeB()->GetCoordsys().pos,
+                                               mshell->GetNodeC()->GetCoordsys().pos, u, v, is_into, p_projected);
             val = fabs(val);
             w = 1 - u - v;
             if (!is_into)
-                // val += std::max(std::max(0.0,u-1.0),-std::min(0.0,u)) + std::max(std::max(0.0,v-1.0),-std::min(0.0,v));
+                // val += std::max(std::max(0.0,u-1.0),-std::min(0.0,u)) +
+                // std::max(std::max(0.0,v-1.0),-std::min(0.0,v));
                 val += std::max(0.0, -u) + std::max(0.0, -v) + std::max(0.0, -w);
             if (val < best_fit_val) {
                 best_fit_val = val;
@@ -230,13 +232,14 @@ void AttachNodeToShell(std::shared_ptr<ChMesh> m_mesh, std::shared_ptr<ChNodeFEA
                 best_fit_n3 = mshell->GetNodeC();
             }
 
-            val = utils::PointTriangleDistance(
-                m_node->pos, mshell->GetNodeC()->GetCoordsys().pos, mshell->GetNodeD()->GetCoordsys().pos,
-                mshell->GetNodeA()->GetCoordsys().pos, u, v, is_into, p_projected);
+            val = utils::PointTriangleDistance(m_node->pos, mshell->GetNodeC()->GetCoordsys().pos,
+                                               mshell->GetNodeD()->GetCoordsys().pos,
+                                               mshell->GetNodeA()->GetCoordsys().pos, u, v, is_into, p_projected);
             val = fabs(val);
             w = 1 - u - v;
             if (!is_into)
-                // val += std::max(std::max(0.0,u-1.0),-std::min(0.0,u)) + std::max(std::max(0.0,v-1.0),-std::min(0.0,v));
+                // val += std::max(std::max(0.0,u-1.0),-std::min(0.0,u)) +
+                // std::max(std::max(0.0,v-1.0),-std::min(0.0,v));
                 val += std::max(0.0, -u) + std::max(0.0, -v) + std::max(0.0, -w);
             if (val < best_fit_val) {
                 best_fit_val = val;

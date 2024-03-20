@@ -54,7 +54,7 @@ void ChTranslationalIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     idler_to_abs.ConcatenatePreTransformation(chassis->GetBody()->GetFrameRefToAbs());
 
     // Transform all points and directions to absolute frame.
-    std::vector<ChVector3d > points(NUM_POINTS);
+    std::vector<ChVector3d> points(NUM_POINTS);
 
     for (int i = 0; i < NUM_POINTS; i++) {
         ChVector3d rel_pos = GetLocation(static_cast<PointId>(i));
@@ -80,9 +80,9 @@ void ChTranslationalIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     // of the idler reference frame.
     m_prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     m_prismatic->SetNameString(m_name + "_prismatic");
-    m_prismatic->Initialize(chassis->GetBody(), m_carrier,
-                            ChFrame<>(points[CARRIER_CHASSIS],
-                                      idler_to_abs.GetRot() * QuatFromAngleY(CH_PI_2 + GetPrismaticPitchAngle())));
+    m_prismatic->Initialize(
+        chassis->GetBody(), m_carrier,
+        ChFrame<>(points[CARRIER_CHASSIS], idler_to_abs.GetRot() * QuatFromAngleY(CH_PI_2 + GetPrismaticPitchAngle())));
     chassis->GetSystem()->AddLink(m_prismatic);
 
     // Create and initialize the tensioner force element.

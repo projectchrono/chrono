@@ -30,12 +30,11 @@ namespace chrono {
 namespace vehicle {
 
 ChDriver::ChDriver(ChVehicle& vehicle)
-    : m_vehicle(vehicle), m_throttle(0), m_steering(0), m_braking(0), m_clutch(0), m_log_filename("") {
-}
+    : m_vehicle(vehicle), m_throttle(0), m_steering(0), m_braking(0), m_clutch(0), m_log_filename("") {}
 
 // Get current driver inputs
 DriverInputs ChDriver::GetInputs() const {
-    return { m_steering, m_throttle, m_braking, m_clutch };
+    return {m_steering, m_throttle, m_braking, m_clutch};
 }
 
 // Initialize output file for recording deriver inputs.
@@ -78,7 +77,6 @@ void ChDriver::SetBraking(double braking) {
 void ChDriver::SetClutch(double clutch) {
     m_clutch = ChClamp(clutch, 0.0, 1.0);
 }
-
 
 }  // end namespace vehicle
 }  // end namespace chrono

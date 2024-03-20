@@ -87,8 +87,8 @@ class CH_VEHICLE_API ChForceElementTire : public ChTire {
     /// Remove visualization assets for the rigid tire subsystem.
     virtual void RemoveVisualizationAssets() override;
 
-    ContactData m_data;             ///< tire-terrain collision information
-    TerrainForce m_tireforce;       ///< tire forces (in tire contact frame)
+    ContactData m_data;          ///< tire-terrain collision information
+    TerrainForce m_tireforce;    ///< tire forces (in tire contact frame)
     ChFunctionInterp m_areaDep;  ///< lookup table for estimation of penetration depth from intersection area
 
     std::shared_ptr<ChVisualShape> m_cyl_shape;  ///< visualization cylinder asset

@@ -95,8 +95,8 @@ void ChSimpleTrackDriveline::Synchronize(double time, const DriverInputs& driver
     double torque_left;
     double torque_right;
 
-    differentialSplit(driveshaft_torque, GetDifferentialMaxBias(), m_shaft_left->GetPosDt(),
-                      m_shaft_right->GetPosDt(), torque_left, torque_right);
+    differentialSplit(driveshaft_torque, GetDifferentialMaxBias(), m_shaft_left->GetPosDt(), m_shaft_right->GetPosDt(),
+                      torque_left, torque_right);
 
     // Include steering.
     double steering = driver_inputs.m_steering;

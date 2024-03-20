@@ -75,14 +75,13 @@ void ChRackPinion::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the prismatic joint between chassis and link.
     m_prismatic = chrono_types::make_shared<ChLinkLockPrismatic>();
     m_prismatic->SetNameString(m_name + "_prismatic");
-    m_prismatic->Initialize(chassisBody, m_link,
-                            ChFrame<>(link_pos, link_rot * QuatFromAngleX(CH_PI_2)));
+    m_prismatic->Initialize(chassisBody, m_link, ChFrame<>(link_pos, link_rot * QuatFromAngleX(CH_PI_2)));
     sys->AddLink(m_prismatic);
 
     // Create and initialize the linear actuator.
     // The offset value here must be larger than any possible displacement of the steering link body (the rack) so that
-    // we do not reach the singular configuration of the ChLinkLockLinActuator (when the distance between the two markers
-    // becomes zero).
+    // we do not reach the singular configuration of the ChLinkLockLinActuator (when the distance between the two
+    // markers becomes zero).
     double offset = 2;
     ChVector3d pt1 = link_pos;
     ChVector3d pt2 = link_pos - offset * link_rot.GetAxisY();

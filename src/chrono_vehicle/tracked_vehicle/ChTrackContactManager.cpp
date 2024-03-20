@@ -22,7 +22,6 @@
 #include "chrono_vehicle/tracked_vehicle/ChTrackedVehicle.h"
 #include "chrono_vehicle/tracked_vehicle/test_rig/ChTrackTestRig.h"
 
-
 namespace chrono {
 namespace vehicle {
 
@@ -110,7 +109,7 @@ void ChTrackContactManager::Process(ChTrackedVehicle* vehicle) {
             }
 
             for (const auto& c : m_sprocket_L_contacts) {
-                m_csv << m_sprocket_L->GetGearBody()->TransformPointParentToLocal(c.m_point);            
+                m_csv << m_sprocket_L->GetGearBody()->TransformPointParentToLocal(c.m_point);
             }
 
             // Right sprocket contact points
@@ -165,7 +164,7 @@ void ChTrackContactManager::Process(ChTrackTestRig* rig) {
             if (rig->GetTrackAssembly()->GetNumTrackShoes() > m_shoe_index_R) {
                 m_shoe_R = rig->GetTrackAssembly()->GetTrackShoe(m_shoe_index_R);
             }
-            m_idler_R = rig->GetTrackAssembly()->GetIdler();        
+            m_idler_R = rig->GetTrackAssembly()->GetIdler();
         }
 
         m_initialized = true;
@@ -186,7 +185,7 @@ void ChTrackContactManager::Process(ChTrackTestRig* rig) {
         // Clear any flags related to the left side
         m_flags = m_flags & (~TrackedCollisionFlag::SPROCKET_LEFT) & (~TrackedCollisionFlag::IDLER_LEFT) &
                   (~TrackedCollisionFlag::WHEELS_LEFT) & (~TrackedCollisionFlag::SHOES_LEFT) &
-                  (~TrackedCollisionFlag::ROLLERS_LEFT);    
+                  (~TrackedCollisionFlag::ROLLERS_LEFT);
     }
 
     // Clear lists
@@ -514,28 +513,28 @@ bool ChTrackCollisionManager::OnNarrowphase(ChCollisionInfo& contactinfo) {
 
     // Body A is a track shoe body
     if (bodyA->GetIdentifier() == BodyID::SHOE_BODY) {
-        auto nrm = bodyB->TransformDirectionParentToLocal(contactinfo.vN); // Express collision normal in body B frame
+        auto nrm = bodyB->TransformDirectionParentToLocal(contactinfo.vN);  // Express collision normal in body B frame
         auto id = bodyB->GetIdentifier();                                   // body A identifier
 
         // Identify "lateral" contacts (assumed to be with a guiding pin) and let Chrono generate contacts
         if (std::abs(nrm.y()) > nrm_threshold) {
             return true;
         }
- 
+
         // Intercept and cache collisions between wheels and shoe or ground and shoe.
         // (note that no collisions with sprocket are generated anyway)
         // Do not generate Chrono contact for such collisions.
         if (m_idler_shoe && id == BodyID::IDLER_BODY) {
-                auto contactinfoS = contactinfo;
-                contactinfoS.SwapModels();
-                m_collisions_idler.push_back(contactinfoS);
-                return false;
+            auto contactinfoS = contactinfo;
+            contactinfoS.SwapModels();
+            m_collisions_idler.push_back(contactinfoS);
+            return false;
         }
         if (m_wheel_shoe && id == BodyID::WHEEL_BODY) {
-                auto contactinfoS = contactinfo;
-                contactinfoS.SwapModels();
-                m_collisions_wheel.push_back(contactinfoS);
-                return false;
+            auto contactinfoS = contactinfo;
+            contactinfoS.SwapModels();
+            m_collisions_wheel.push_back(contactinfoS);
+            return false;
         }
         if (m_ground_shoe && id != BodyID::IDLER_BODY && id != BodyID::WHEEL_BODY) {
             auto contactinfoS = contactinfo;
@@ -545,7 +544,7 @@ bool ChTrackCollisionManager::OnNarrowphase(ChCollisionInfo& contactinfo) {
         }
     }
 
-    // Let Chrono generate contact for any other collision 
+    // Let Chrono generate contact for any other collision
     return true;
 }
 
@@ -555,7 +554,7 @@ void ChTrackCustomContact::Setup() {
     // Calculate contact forces for all current wheel-shoe collisions, calling the user-supplied callback
     ApplyForces();
 
-    // Perform a full update of the load container 
+    // Perform a full update of the load container
     ChLoadContainer::Update(ChTime, false);
 }
 

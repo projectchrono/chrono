@@ -65,7 +65,7 @@ class CH_VEHICLE_API ChAxle {
     );
 
     /// Synchronize this suspension subsystem.
-    void Synchronize(double time,                           ///< [in] current time
+    void Synchronize(double time,                       ///< [in] current time
                      const DriverInputs& driver_inputs  ///< [in] current driver inputs
     );
 

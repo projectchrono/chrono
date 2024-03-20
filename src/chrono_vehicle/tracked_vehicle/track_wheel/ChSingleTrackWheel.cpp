@@ -25,7 +25,6 @@
 #include "chrono_vehicle/tracked_vehicle/track_wheel/ChSingleTrackWheel.h"
 #include "chrono_vehicle/tracked_vehicle/ChTrackAssembly.h"
 
-
 namespace chrono {
 namespace vehicle {
 

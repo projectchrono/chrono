@@ -54,7 +54,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
   public:
     ChSolidAxle(const std::string& name  ///< [in] name of the subsystem
-                );
+    );
 
     virtual ~ChSolidAxle();
 
@@ -127,25 +127,25 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
   protected:
     /// Identifiers for the various hardpoints.
     enum PointId {
-        SHOCK_A,            ///< shock, axle
-        SHOCK_C,            ///< shock, chassis
-        KNUCKLE_L,          ///< lower knuckle point
-        KNUCKLE_U,          ///< upper knuckle point
-        LL_A,               ///< lower link, axle
-        LL_C,               ///< lower link, chassis
-        UL_A,               ///< upper link, axle
-        UL_C,               ///< upper link, chassis
-        SPRING_A,           ///< spring, axle
-        SPRING_C,           ///< spring, chassis
-        TIEROD_K,           ///< tierod, knuckle
-        SPINDLE,            ///< spindle location
-        KNUCKLE_CM,         ///< knuckle, center of mass
-        LL_CM,              ///< lower link, center of mass
-        UL_CM,              ///< upper link, center of mass
-        BELLCRANK_TIEROD,   ///< bell crank to tierod
-        BELLCRANK_AXLE,     ///< bell crank to axle
-        BELLCRANK_DRAGLINK, ///< bell crank to draglink'
-        DRAGLINK_C,         ///< draglink, chassis
+        SHOCK_A,             ///< shock, axle
+        SHOCK_C,             ///< shock, chassis
+        KNUCKLE_L,           ///< lower knuckle point
+        KNUCKLE_U,           ///< upper knuckle point
+        LL_A,                ///< lower link, axle
+        LL_C,                ///< lower link, chassis
+        UL_A,                ///< upper link, axle
+        UL_C,                ///< upper link, chassis
+        SPRING_A,            ///< spring, axle
+        SPRING_C,            ///< spring, chassis
+        TIEROD_K,            ///< tierod, knuckle
+        SPINDLE,             ///< spindle location
+        KNUCKLE_CM,          ///< knuckle, center of mass
+        LL_CM,               ///< lower link, center of mass
+        UL_CM,               ///< upper link, center of mass
+        BELLCRANK_TIEROD,    ///< bell crank to tierod
+        BELLCRANK_AXLE,      ///< bell crank to axle
+        BELLCRANK_DRAGLINK,  ///< bell crank to draglink'
+        DRAGLINK_C,          ///< draglink, chassis
         NUM_POINTS
     };
 
@@ -275,11 +275,11 @@ class CH_VEHICLE_API ChSolidAxle : public ChSuspension {
                                      double radius,
                                      const ChColor& color);
     static void AddVisualizationBellCrank(std::shared_ptr<ChBody> body,
-                                    const ChVector3d pt_D,
-                                    const ChVector3d pt_A,
-                                    const ChVector3d pt_T,
-                                    double radius,
-                                    const ChColor& color);
+                                          const ChVector3d pt_D,
+                                          const ChVector3d pt_A,
+                                          const ChVector3d pt_T,
+                                          double radius,
+                                          const ChColor& color);
     static void AddVisualizationKnuckle(std::shared_ptr<ChBody> knuckle,
                                         const ChVector3d pt_U,
                                         const ChVector3d pt_L,

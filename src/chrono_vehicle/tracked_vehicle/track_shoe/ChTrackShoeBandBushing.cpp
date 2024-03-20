@@ -25,7 +25,6 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBandBushing.h"
 
-
 namespace chrono {
 namespace vehicle {
 

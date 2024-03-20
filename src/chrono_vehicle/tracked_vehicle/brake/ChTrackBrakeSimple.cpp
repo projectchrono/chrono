@@ -45,8 +45,8 @@ void ChTrackBrakeSimple::Initialize(std::shared_ptr<ChChassis> chassis, std::sha
     // Note that we wrap raw pointers in local shared_ptr.  For this, we must provide
     // custom empty deleters (to prevent deleting the objects when the local shared_ptr
     // go out of scope).
-    std::shared_ptr<ChBodyFrame> mbf1(hub->GetBody1(), [](ChBodyFrame*){});
-    std::shared_ptr<ChBodyFrame> mbf2(hub->GetBody2(), [](ChBodyFrame*){});
+    std::shared_ptr<ChBodyFrame> mbf1(hub->GetBody1(), [](ChBodyFrame*) {});
+    std::shared_ptr<ChBodyFrame> mbf2(hub->GetBody2(), [](ChBodyFrame*) {});
 
     // Downcast to ChBody shared_ptr
     auto mb1 = std::dynamic_pointer_cast<ChBody>(mbf1);

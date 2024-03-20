@@ -96,9 +96,8 @@ void ChVehicleCosimRigNode::InitializeMBS(const ChVector2d& terrain_size, double
     m_rev_motor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
     m_rev_motor->SetMotorFunction(chrono_types::make_shared<ChFunctionConst>(0));
     m_rev_motor->SetName("motor");
-    m_rev_motor->Initialize(
-        m_chassis, m_spindle,
-        ChFrame<>(origin, QuatFromAngleZ(m_toe_angle) * QuatFromAngleX(CH_PI_2)));
+    m_rev_motor->Initialize(m_chassis, m_spindle,
+                            ChFrame<>(origin, QuatFromAngleZ(m_toe_angle) * QuatFromAngleX(CH_PI_2)));
     m_system->AddLink(m_rev_motor);
 
     // Create ChLoad objects to apply terrain forces on spindle
@@ -149,7 +148,7 @@ BodyState ChVehicleCosimRigNode::GetSpindleState(unsigned int i) const {
     state.rot = m_spindle->GetRot();
     state.lin_vel = m_spindle->GetPosDt();
     state.ang_vel = m_spindle->GetAngVelParent();
-    
+
     return state;
 }
 

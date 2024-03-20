@@ -28,7 +28,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 TrackBrakeShafts::TrackBrakeShafts(const std::string& filename) : ChTrackBrakeShafts("") {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

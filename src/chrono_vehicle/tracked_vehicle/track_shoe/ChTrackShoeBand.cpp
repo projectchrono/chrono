@@ -27,7 +27,6 @@
 #include "chrono_vehicle/ChSubsysDefs.h"
 #include "chrono_vehicle/tracked_vehicle/track_shoe/ChTrackShoeBand.h"
 
-
 namespace chrono {
 namespace vehicle {
 
@@ -166,7 +165,8 @@ void ChTrackShoeBand::AddShoeVisualization() {
 
     // Main box
     ChVector3d b_loc(0, 0, 0);
-    auto box_main = chrono_types::make_shared<ChVisualShapeBox>(GetToothBaseLength(), GetBeltWidth(), GetWebThickness());
+    auto box_main =
+        chrono_types::make_shared<ChVisualShapeBox>(GetToothBaseLength(), GetBeltWidth(), GetWebThickness());
     m_shoe->AddVisualShape(box_main, ChFrame<>(b_loc));
 
     // Pad box

@@ -31,7 +31,8 @@ namespace vehicle {
 
 // -----------------------------------------------------------------------------
 TrackShoeBandANCF::TrackShoeBandANCF(const std::string& filename) : ChTrackShoeBandANCF(""), m_has_mesh(false) {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 
@@ -108,8 +109,7 @@ void TrackShoeBandANCF::Create(const rapidjson::Document& d) {
 // -----------------------------------------------------------------------------
 void TrackShoeBandANCF::AddVisualizationAssets(VisualizationType vis) {
     if (vis == VisualizationType::MESH && m_has_mesh) {
-        auto trimesh =
-            ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_meshFile), true, true);
+        auto trimesh = ChTriangleMeshConnected::CreateFromWavefrontFile(vehicle::GetDataFile(m_meshFile), true, true);
         auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
         trimesh_shape->SetMesh(trimesh);
         trimesh_shape->SetName(filesystem::path(m_meshFile).stem());

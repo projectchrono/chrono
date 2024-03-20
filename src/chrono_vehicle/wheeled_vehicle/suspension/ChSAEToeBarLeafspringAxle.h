@@ -316,11 +316,11 @@ class CH_VEHICLE_API ChSAEToeBarLeafspringAxle : public ChSuspension {
     std::shared_ptr<ChBody> m_draglink;    ///< draglink body
     std::shared_ptr<ChBody> m_knuckle[2];  ///< knuckle bodies (L/R)
 
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalTierod;        ///< knuckle-tierod spherical joint (left)
-    std::shared_ptr<ChLinkLockSpherical> m_sphericalDraglink;      ///< draglink-chassis spherical joint (left)
-    std::shared_ptr<ChLinkUniversal> m_universalDraglink;          ///< draglink-bellCrank universal joint (left)
-    std::shared_ptr<ChLinkUniversal> m_universalTierod;            ///< knuckle-tierod universal joint (right)
-    std::shared_ptr<ChLinkLockRevolute> m_revoluteKingpin[2];      ///< knuckle-axle tube revolute joints (L/R)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalTierod;    ///< knuckle-tierod spherical joint (left)
+    std::shared_ptr<ChLinkLockSpherical> m_sphericalDraglink;  ///< draglink-chassis spherical joint (left)
+    std::shared_ptr<ChLinkUniversal> m_universalDraglink;      ///< draglink-bellCrank universal joint (left)
+    std::shared_ptr<ChLinkUniversal> m_universalTierod;        ///< knuckle-tierod universal joint (right)
+    std::shared_ptr<ChLinkLockRevolute> m_revoluteKingpin[2];  ///< knuckle-axle tube revolute joints (L/R)
 
     std::shared_ptr<ChLinkTSDA> m_shock[2];   ///< spring links (L/R)
     std::shared_ptr<ChLinkTSDA> m_spring[2];  ///< shock links (L/R)

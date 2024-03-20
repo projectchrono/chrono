@@ -38,7 +38,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChTrackShoeSinglePin : public ChTrackShoeSegmented {
   public:
     ChTrackShoeSinglePin(const std::string& name  ///< [in] name of the subsystem
-                         );
+    );
 
     virtual ~ChTrackShoeSinglePin();
 

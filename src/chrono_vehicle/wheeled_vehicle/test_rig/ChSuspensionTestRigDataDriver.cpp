@@ -61,7 +61,8 @@ static bool compare(const DataEntrySTR& a, const DataEntrySTR& b) {
 }
 
 // -----------------------------------------------------------------------------
-ChSuspensionTestRigDataDriver::ChSuspensionTestRigDataDriver(const std::string& filename) : m_filename(filename), m_ended(false) {}
+ChSuspensionTestRigDataDriver::ChSuspensionTestRigDataDriver(const std::string& filename)
+    : m_filename(filename), m_ended(false) {}
 
 void ChSuspensionTestRigDataDriver::Initialize(int naxles) {
     // Invoke base method

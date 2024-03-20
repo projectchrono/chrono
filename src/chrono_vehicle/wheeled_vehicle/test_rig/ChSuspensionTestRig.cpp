@@ -844,8 +844,7 @@ void ChSuspensionTestRigPushrod::InitializeRig() {
         linact_L->SetMotionFunction(func_L);
         ////linact_L->Initialize(suspension->GetSpindle(LEFT), m_vehicle->GetChassisBody(),
         ////                     ChFrame<>(pos_spindleL, QuatFromAngleY(CH_PI_2)));
-        linact_L->Initialize(suspension->GetSpindle(LEFT), m_vehicle->GetChassisBody(),
-                             ChFrame<>(pos_spindleL, QUNIT));
+        linact_L->Initialize(suspension->GetSpindle(LEFT), m_vehicle->GetChassisBody(), ChFrame<>(pos_spindleL, QUNIT));
         sys->AddLink(linact_L);
 
         auto linact_R = chrono_types::make_shared<ChLinkMotorLinearPosition>();

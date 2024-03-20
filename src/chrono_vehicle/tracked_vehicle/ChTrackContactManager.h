@@ -139,9 +139,9 @@ class CH_VEHICLE_API ChTrackCollisionManager : public ChCollisionSystem::Narrowp
     /// Return true to generate a contact for this pair of overlapping bodies.
     virtual bool OnNarrowphase(ChCollisionInfo& contactinfo) override;
 
-    bool m_idler_shoe;                                            ///< process collisions with idler bodies
-    bool m_wheel_shoe;                                            ///< process collisions with road-wheel bodies
-    bool m_ground_shoe;                                           ///< process collisions with ground bodies
+    bool m_idler_shoe;                                 ///< process collisions with idler bodies
+    bool m_wheel_shoe;                                 ///< process collisions with road-wheel bodies
+    bool m_ground_shoe;                                ///< process collisions with ground bodies
     std::vector<ChCollisionInfo> m_collisions_idler;   ///< current list of idler-track shoe collisions
     std::vector<ChCollisionInfo> m_collisions_wheel;   ///< current list of wheel-track shoe collisions
     std::vector<ChCollisionInfo> m_collisions_ground;  ///< current list of ground-track shoe collisions
@@ -171,10 +171,10 @@ class CH_VEHICLE_API ChTrackCustomContact : public ChLoadContainer {
     /// contact point. The first contactable in 'cinfo' is the idler body and the second contactable is the track shoe
     /// body. The return force is assumed to be expressed in the absolute reference frame.
     virtual void ComputeIdlerContactForce(
-        const ChCollisionInfo& cinfo,  ///< [in] geometric information for the collision pair
-        std::shared_ptr<ChBody> idlerBody,        ///< [in] idler body in collision
-        std::shared_ptr<ChBody> shoeBody,         ///< [in] track shoe body in collision
-        ChVector3d& forceShoe                     ///< [out] force on track shoe at contact point, in abs. frame
+        const ChCollisionInfo& cinfo,       ///< [in] geometric information for the collision pair
+        std::shared_ptr<ChBody> idlerBody,  ///< [in] idler body in collision
+        std::shared_ptr<ChBody> shoeBody,   ///< [in] track shoe body in collision
+        ChVector3d& forceShoe               ///< [out] force on track shoe at contact point, in abs. frame
     ) {
         std::cout << "ERROR: Idler-shoe custom contact force calculation not implemented!" << std::endl;
         throw std::runtime_error("Idler-shoe custom contact force calculation not implemented.");
@@ -184,10 +184,10 @@ class CH_VEHICLE_API ChTrackCustomContact : public ChLoadContainer {
     /// the contact point. The first contactable in 'cinfo' is the road-wheel body and the second contactable is the
     /// track shoe body. The return force is assumed to be expressed in the absolute reference frame.
     virtual void ComputeWheelContactForce(
-        const ChCollisionInfo& cinfo,  ///< [in] geometric information for the collision pair
-        std::shared_ptr<ChBody> wheelBody,        ///< [in] road-wheel body in collision
-        std::shared_ptr<ChBody> shoeBody,         ///< [in] track shoe body in collision
-        ChVector3d& forceShoe                     ///< [out] force on track shoe at contact point, in abs. frame
+        const ChCollisionInfo& cinfo,       ///< [in] geometric information for the collision pair
+        std::shared_ptr<ChBody> wheelBody,  ///< [in] road-wheel body in collision
+        std::shared_ptr<ChBody> shoeBody,   ///< [in] track shoe body in collision
+        ChVector3d& forceShoe               ///< [out] force on track shoe at contact point, in abs. frame
     ) {
         std::cout << "ERROR: Wheel-shoe custom contact force calculation not implemented!" << std::endl;
         throw std::runtime_error("Wheel-shoe custom contact force calculation not implemented.");
@@ -197,10 +197,10 @@ class CH_VEHICLE_API ChTrackCustomContact : public ChLoadContainer {
     /// the contact point. The first contactable in 'cinfo' is the ground body and the second contactable is the
     /// track shoe body. The return force is assumed to be expressed in the absolute reference frame.
     virtual void ComputeGroundContactForce(
-        const ChCollisionInfo& cinfo,  ///< [in] geometric information for the collision pair
-        std::shared_ptr<ChBody> groundBody,       ///< [in] ground body in collision
-        std::shared_ptr<ChBody> shoeBody,         ///< [in] track shoe body in collision
-        ChVector3d& forceShoe                     ///< [out] force on track shoe at contact point, in abs. frame
+        const ChCollisionInfo& cinfo,        ///< [in] geometric information for the collision pair
+        std::shared_ptr<ChBody> groundBody,  ///< [in] ground body in collision
+        std::shared_ptr<ChBody> shoeBody,    ///< [in] track shoe body in collision
+        ChVector3d& forceShoe                ///< [out] force on track shoe at contact point, in abs. frame
     ) {
         std::cout << "ERROR: Ground-shoe custom contact force calculation not implemented!" << std::endl;
         throw std::runtime_error("Ground-shoe custom contact force calculation not implemented.");

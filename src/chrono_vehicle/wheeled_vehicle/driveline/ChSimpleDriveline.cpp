@@ -110,8 +110,8 @@ void ChSimpleDriveline::Synchronize(double time, const DriverInputs& driver_inpu
     double torque_left;
     double torque_right;
 
-    differentialSplit(torque_front, GetFrontDifferentialMaxBias(), m_front_left->GetPosDt(),
-                      m_front_right->GetPosDt(), torque_left, torque_right);
+    differentialSplit(torque_front, GetFrontDifferentialMaxBias(), m_front_left->GetPosDt(), m_front_right->GetPosDt(),
+                      torque_left, torque_right);
     m_front_left->SetAppliedTorque(-torque_left);
     m_front_right->SetAppliedTorque(-torque_right);
 

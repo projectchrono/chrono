@@ -242,7 +242,8 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
 
     // Create bodies.
     // Rig bodies are constructed with mass and inertia commensurate with those of the wheel-tire system.
-    // The spindle body is constructed with zero mass and inertia (these will be increased by at least the wheel mass and inertia).
+    // The spindle body is constructed with zero mass and inertia (these will be increased by at least the wheel mass
+    // and inertia).
     const double dim = 0.1;
     const double mass = m_wheel->GetWheelMass() + m_tire->GetTireMass();
     const ChVector3d inertia = m_wheel->GetWheelInertia() + m_tire->GetTireInertia();

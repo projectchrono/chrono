@@ -50,7 +50,7 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     /// Construct a default GranularTerrain.
     /// The user is responsible for calling various Set methods before Initialize.
     GranularTerrain(ChSystem* system  ///< [in] pointer to the containing multibody system
-                    );
+    );
 
     ~GranularTerrain();
 
@@ -77,14 +77,14 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
     /// Enable creation of particles fixed to bottom container.
     void EnableRoughSurface(int num_spheres_x,  ///< number of fixed spheres in X direction
                             int num_spheres_y   ///< number of fixed spheres in Y direction
-                            );
+    );
 
     /// Enable moving patch and set parameters.
     void EnableMovingPatch(std::shared_ptr<ChBody> body,              ///< monitored body
                            double buffer_distance,                    ///< look-ahead distance
                            double shift_distance,                     ///< chunk size of relocated particles
                            const ChVector3d& init_vel = ChVector3d()  ///< initial particle velocity
-                           );
+    );
 
     /// Set start value for body identifiers of generated particles (default: 1000000).
     /// It is assumed that all bodies with a larger identifier are granular material particles.
@@ -110,7 +110,7 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
                     double radius,                             ///< [in] particle radius
                     double density,                            ///< [in] particle density
                     const ChVector3d& init_vel = ChVector3d()  ///< [in] particle initial velocity
-                    );
+    );
 
     /// Update the state of the terrain system at the specified time.
     virtual void Synchronize(double time) override;

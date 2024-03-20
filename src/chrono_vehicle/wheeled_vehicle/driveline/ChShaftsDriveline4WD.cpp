@@ -178,7 +178,7 @@ void ChShaftsDriveline4WD::Initialize(std::shared_ptr<ChChassis> chassis,
     double omega_axle_RL = axles[m_driven_axles[1]]->m_suspension->GetAxleSpeed(LEFT);
     double omega_axle_RR = axles[m_driven_axles[1]]->m_suspension->GetAxleSpeed(RIGHT);
 
-    // Front differential 
+    // Front differential
     double omega_front_differentialbox = 0.5 * (omega_axle_FL + omega_axle_FR);
     m_front_differentialbox->SetPosDt(omega_front_differentialbox);
 

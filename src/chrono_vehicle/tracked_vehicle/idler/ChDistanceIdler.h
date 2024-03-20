@@ -70,7 +70,7 @@ class CH_VEHICLE_API ChDistanceIdler : public ChIdler {
     virtual void Initialize(std::shared_ptr<ChChassis> chassis,  ///< [in] associated chassis
                             const ChVector3d& location,          ///< [in] location relative to the chassis frame
                             ChTrackAssembly* track               ///< [in] containing track assembly
-    ) override;
+                            ) override;
 
     /// Add visualization assets for the idler subsystem.
     /// This default implementation adds assets to the carrier body.
@@ -118,8 +118,8 @@ class CH_VEHICLE_API ChDistanceIdler : public ChIdler {
 
     virtual void Output(ChVehicleOutput& database) const override;
 
-    std::shared_ptr<ChBody> m_carrier;               ///< carrier body
-    std::shared_ptr<ChLinkLockRevolute> m_revolute;  ///< carrier-chassis revolute joint
+    std::shared_ptr<ChBody> m_carrier;                   ///< carrier body
+    std::shared_ptr<ChLinkLockRevolute> m_revolute;      ///< carrier-chassis revolute joint
     std::shared_ptr<ChLinkLockLinActuator> m_tensioner;  ///< linear motor tensioner element
 
   private:

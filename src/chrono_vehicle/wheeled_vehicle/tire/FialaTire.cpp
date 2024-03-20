@@ -30,7 +30,8 @@ namespace vehicle {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 FialaTire::FialaTire(const std::string& filename) : ChFialaTire(""), m_has_vert_table(false), m_has_mesh(false) {
-    Document d; ReadFileJSON(filename, d);
+    Document d;
+    ReadFileJSON(filename, d);
     if (d.IsNull())
         return;
 

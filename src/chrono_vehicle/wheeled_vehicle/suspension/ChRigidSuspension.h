@@ -54,7 +54,7 @@ namespace vehicle {
 class CH_VEHICLE_API ChRigidSuspension : public ChSuspension {
   public:
     ChRigidSuspension(const std::string& name  ///< [in] name of the subsystem
-                      );
+    );
 
     virtual ~ChRigidSuspension() {}
 

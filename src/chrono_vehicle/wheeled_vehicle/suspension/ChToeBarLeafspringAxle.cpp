@@ -126,8 +126,7 @@ void ChToeBarLeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     m_axleTubeGuide = chrono_types::make_shared<ChLinkLockRevolutePrismatic>();
     m_axleTubeGuide->SetNameString(m_name + "_revolutePrismaticAxleTube");
     const ChQuaternion<>& guideRot = chassis->GetBody()->GetFrameRefToAbs().GetRot();
-    m_axleTubeGuide->Initialize(chassis->GetBody(), m_axleTube,
-                                ChFrame<>(axleCOM, guideRot * QuatFromAngleY(CH_PI_2)));
+    m_axleTubeGuide->Initialize(chassis->GetBody(), m_axleTube, ChFrame<>(axleCOM, guideRot * QuatFromAngleY(CH_PI_2)));
     chassis->GetBody()->GetSystem()->AddLink(m_axleTubeGuide);
 
     // Calculate end points on the tierod body, expressed in the absolute frame

@@ -69,7 +69,7 @@ class CH_VEHICLE_API ChRotaryArm : public ChSteering {
     /// Update the state of this steering subsystem at the current time.
     /// The steering subsystem is provided the current steering driver input (a value between -1 and +1).  Positive
     /// steering input indicates steering to the left. This function is called during the vehicle update.
-    virtual void Synchronize(double time,                           ///< [in] current time
+    virtual void Synchronize(double time,                       ///< [in] current time
                              const DriverInputs& driver_inputs  ///< [in] current driver inputs
                              ) override;
 
