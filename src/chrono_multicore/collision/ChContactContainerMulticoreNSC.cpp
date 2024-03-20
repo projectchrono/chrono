@@ -83,8 +83,8 @@ void ChContactContainerMulticoreNSC::AddContact(const ChCollisionInfo& cinfo,
 
         // Composite material for added contact
         ChContactMaterialCompositeNSC cmat(data_manager->composition_strategy.get(),
-                                    std::static_pointer_cast<ChContactMaterialNSC>(mat1),
-                                    std::static_pointer_cast<ChContactMaterialNSC>(mat2));
+                                           std::static_pointer_cast<ChContactMaterialNSC>(mat1),
+                                           std::static_pointer_cast<ChContactMaterialNSC>(mat2));
 
         // Load composite material properties in global data structure
         data_manager->host_data.fric_rigid_rigid.push_back(

@@ -704,10 +704,7 @@ void ChOptixGeometry::UpdateBodyTransformsEnd(float t_end) {
     m_start_time = ChClamp(m_start_time, 0.f, m_end_time);
 }
 
-void ChOptixGeometry::GetT3x4FromSRT(const ChVector3d& s,
-                                     const ChMatrix33<double>& a,
-                                     const ChVector3d& b,
-                                     float* t) {
+void ChOptixGeometry::GetT3x4FromSRT(const ChVector3d& s, const ChMatrix33<double>& a, const ChVector3d& b, float* t) {
     t[0] = (float)(s.x() * a(0));
     t[1] = (float)(s.y() * a(1));
     t[2] = (float)(s.z() * a(2));

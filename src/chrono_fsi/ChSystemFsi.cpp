@@ -1075,12 +1075,10 @@ void ChSystemFsi::AddBoxContainerBCE(std::shared_ptr<ChBody> body,
 
     // Y- wall
     if (faces.y() == -1 || faces.y() == 2)
-        AddWallBCE(body, frame * ChFrame<>(yn, QuatFromAngleX(-CH_PI_2)),
-                   {size.x() + buffer, size.z() + buffer});
+        AddWallBCE(body, frame * ChFrame<>(yn, QuatFromAngleX(-CH_PI_2)), {size.x() + buffer, size.z() + buffer});
     // Y+ wall
     if (faces.y() == +1 || faces.y() == 2)
-        AddWallBCE(body, frame * ChFrame<>(yp, QuatFromAngleX(+CH_PI_2)),
-                   {size.x() + buffer, size.z() + buffer});
+        AddWallBCE(body, frame * ChFrame<>(yp, QuatFromAngleX(+CH_PI_2)), {size.x() + buffer, size.z() + buffer});
 }
 
 size_t ChSystemFsi::AddBoxBCE(std::shared_ptr<ChBody> body,
@@ -1975,9 +1973,7 @@ void ChSystemFsi::AddBCE_shell(const thrust::host_vector<Real4>& posRadBCE,
 
 //--------------------------------------------------------------------------------------------------------------------------------
 
-void ChSystemFsi::CreateMeshPoints(ChTriangleMeshConnected& mesh,
-                                   double delta,
-                                   std::vector<ChVector3d>& point_cloud) {
+void ChSystemFsi::CreateMeshPoints(ChTriangleMeshConnected& mesh, double delta, std::vector<ChVector3d>& point_cloud) {
     mesh.RepairDuplicateVertexes(1e-9);  // if meshes are not watertight
     auto bbox = mesh.GetBoundingBox();
 

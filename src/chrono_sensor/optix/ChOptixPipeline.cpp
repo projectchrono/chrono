@@ -458,7 +458,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             raygen_record->data.specific.lidar.frame_buffer = {};                         // default value
             raygen_record->data.specific.lidar.max_vert_angle = 1.f;                      // default value
             raygen_record->data.specific.lidar.min_vert_angle = -1.f;                     // default value
-            raygen_record->data.specific.lidar.hFOV = (float)CH_2PI;                    // default value
+            raygen_record->data.specific.lidar.hFOV = (float)CH_2PI;                      // default value
             raygen_record->data.specific.lidar.beam_shape = LidarBeamShape::RECTANGULAR;  // default value
             raygen_record->data.specific.lidar.sample_radius = 1;                         // default value
             raygen_record->data.specific.lidar.horiz_div_angle = 0.f;                     // default value
@@ -474,7 +474,7 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
             raygen_record->data.specific.lidar.frame_buffer = {};                         // default value
             raygen_record->data.specific.lidar.max_vert_angle = 1.f;                      // default value
             raygen_record->data.specific.lidar.min_vert_angle = -1.f;                     // default value
-            raygen_record->data.specific.lidar.hFOV = (float)CH_2PI;                    // default value
+            raygen_record->data.specific.lidar.hFOV = (float)CH_2PI;                      // default value
             raygen_record->data.specific.lidar.beam_shape = LidarBeamShape::RECTANGULAR;  // default value
             raygen_record->data.specific.lidar.sample_radius = 1;                         // default value
             raygen_record->data.specific.lidar.horiz_div_angle = 0.f;                     // default value
@@ -487,11 +487,11 @@ void ChOptixPipeline::SpawnPipeline(PipelineType type) {
         case PipelineType::RADAR: {
             program_groups.push_back(m_radar_raygen_group);
             OPTIX_ERROR_CHECK(optixSbtRecordPackHeader(m_radar_raygen_group, raygen_record.get()));
-            raygen_record->data.specific.radar.frame_buffer = {};      // default value
-            raygen_record->data.specific.radar.vFOV = (float)CH_PI;  // default value
-            raygen_record->data.specific.radar.hFOV = (float)CH_PI;  // default value
-            raygen_record->data.specific.radar.max_distance = 200.f;   // default value
-            raygen_record->data.specific.radar.clip_near = 0.f;        // default value
+            raygen_record->data.specific.radar.frame_buffer = {};     // default value
+            raygen_record->data.specific.radar.vFOV = (float)CH_PI;   // default value
+            raygen_record->data.specific.radar.hFOV = (float)CH_PI;   // default value
+            raygen_record->data.specific.radar.max_distance = 200.f;  // default value
+            raygen_record->data.specific.radar.clip_near = 0.f;       // default value
             break;
         }
         default:
@@ -1039,9 +1039,8 @@ void ChOptixPipeline::UpdateDeformableMeshes() {
 
 void ChOptixPipeline::UpdateObjectVelocity() {
     for (int i = 0; i < m_bodies.size(); i++) {
-        m_material_records[i].data.translational_velocity = {(float)m_bodies[i]->GetPosDt().x(),
-                                                             (float)m_bodies[i]->GetPosDt().y(),
-                                                             (float)m_bodies[i]->GetPosDt().z()};
+        m_material_records[i].data.translational_velocity = {
+            (float)m_bodies[i]->GetPosDt().x(), (float)m_bodies[i]->GetPosDt().y(), (float)m_bodies[i]->GetPosDt().z()};
         m_material_records[i].data.angular_velocity = {(float)m_bodies[i]->GetAngVelParent().x(),
                                                        (float)m_bodies[i]->GetAngVelParent().y(),
                                                        (float)m_bodies[i]->GetAngVelParent().z()};

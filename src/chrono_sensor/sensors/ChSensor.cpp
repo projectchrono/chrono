@@ -121,8 +121,7 @@ CH_SENSOR_API UserRadarBufferPtr ChSensor::GetMostRecentBuffer() {
 template <>
 CH_SENSOR_API UserRadarXYZBufferPtr ChSensor::GetMostRecentBuffer() {
     // call the templated helper function
-    return GetMostRecentBufferHelper<UserRadarXYZBufferPtr, ChFilterRadarXYZAccess,
-                                     ChFilterRadarXYZAccessName>();
+    return GetMostRecentBufferHelper<UserRadarXYZBufferPtr, ChFilterRadarXYZAccess, ChFilterRadarXYZAccessName>();
 }
 
 template <>
@@ -160,7 +159,6 @@ CH_SENSOR_API UserTachometerBufferPtr ChSensor::GetMostRecentBuffer() {
     // call the templated helper function
     return GetMostRecentBufferHelper<UserTachometerBufferPtr, ChFilterTachometerAccess, ChFilterTachometerAccessName>();
 }
-
 
 // -----------------------------------------------------------------------------
 // Helper function for retrieving the last buffer of given type

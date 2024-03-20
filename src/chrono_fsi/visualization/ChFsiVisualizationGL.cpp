@@ -57,7 +57,8 @@ class FSIStatsGL : public opengl::ChOpenGLStats {
 
 // -----------------------------------------------------------------------------
 
-ChFsiVisualizationGL::ChFsiVisualizationGL(ChSystemFsi* sysFSI, bool verbose) : ChFsiVisualization(sysFSI), m_bce_start_index(0) {
+ChFsiVisualizationGL::ChFsiVisualizationGL(ChSystemFsi* sysFSI, bool verbose)
+    : ChFsiVisualization(sysFSI), m_bce_start_index(0) {
     m_vsys = new opengl::ChVisualSystemOpenGL();
     m_vsys->SetVerbose(verbose);
     m_vsys->AttachSystem(m_system);
@@ -68,7 +69,7 @@ ChFsiVisualizationGL::ChFsiVisualizationGL(ChSystemFsi* sysFSI, bool verbose) : 
     m_vsys->SetParticleRenderMode(opengl::SOLID, (float)sysFSI->GetInitialSpacing() / 2);
     m_vsys->AddCamera(ChVector3d(0, -3, 0), ChVector3d(0, 0, 0));
     m_vsys->SetCameraVertical(ChVector3d(0, 0, 1));
-} 
+}
 
 ChFsiVisualizationGL::~ChFsiVisualizationGL() {
     delete m_vsys;

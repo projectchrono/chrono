@@ -56,7 +56,7 @@ SynPose::SynPose(const SynFlatBuffers::Pose* pose) {
     m_frame.GetRotDt() = {pose->rot_dt()->e0(), pose->rot_dt()->e1(), pose->rot_dt()->e2(), pose->rot_dt()->e3()};
     m_frame.GetPosDt2() = {pose->pos_dtdt()->x(), pose->pos_dtdt()->y(), pose->pos_dtdt()->z()};
     m_frame.GetRotDt2() = {pose->rot_dtdt()->e0(), pose->rot_dtdt()->e1(), pose->rot_dtdt()->e2(),
-                             pose->rot_dtdt()->e3()};
+                           pose->rot_dtdt()->e3()};
 }
 
 flatbuffers::Offset<SynFlatBuffers::Pose> SynPose::ToFlatBuffers(flatbuffers::FlatBufferBuilder& builder) const {
@@ -68,15 +68,15 @@ flatbuffers::Offset<SynFlatBuffers::Pose> SynPose::ToFlatBuffers(flatbuffers::Fl
                                                    m_frame.GetRot().e2(),   //
                                                    m_frame.GetRot().e3());  //
 
-    auto fb_pos_dt = SynFlatBuffers::CreateVector(builder, m_frame.GetPosDt().x(), m_frame.GetPosDt().y(),
-                                                  m_frame.GetPosDt().z());
+    auto fb_pos_dt =
+        SynFlatBuffers::CreateVector(builder, m_frame.GetPosDt().x(), m_frame.GetPosDt().y(), m_frame.GetPosDt().z());
     auto fb_rot_dt = SynFlatBuffers::CreateQuaternion(builder,
                                                       m_frame.GetRotDt().e0(),   //
                                                       m_frame.GetRotDt().e1(),   //
                                                       m_frame.GetRotDt().e2(),   //
                                                       m_frame.GetRotDt().e3());  //
 
-    auto fb_pos_dtdt = SynFlatBuffers::CreateVector(builder,                     //
+    auto fb_pos_dtdt = SynFlatBuffers::CreateVector(builder,                   //
                                                     m_frame.GetPosDt2().x(),   //
                                                     m_frame.GetPosDt2().y(),   //
                                                     m_frame.GetPosDt2().z());  //

@@ -34,7 +34,6 @@ CH_SENSOR_API ChFilterVisualize::~ChFilterVisualize() {
 }
 
 CH_SENSOR_API void ChFilterVisualize::Apply() {
-
 #ifdef USE_SENSOR_GLFW
     if (!m_window && !m_window_disabled) {
         CreateGlfwWindow(Name());

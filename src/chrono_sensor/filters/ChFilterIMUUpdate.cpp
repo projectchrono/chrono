@@ -133,7 +133,7 @@ CH_SENSOR_API void ChFilterMagnetometerUpdate::Apply() {
     Cartesian2GPS(pos, m_gps_reference);
     double phi = pos.x() * CH_DEG_TO_RAD;    // longitude
     double theta = pos.y() * CH_DEG_TO_RAD;  // latitude
-    double h = pos.z();                        // altitude
+    double h = pos.z();                      // altitude
 
     double cos_theta_m = cos(theta) * cos(theta_0) + sin(theta) * sin(theta_0) * cos(phi - phi_0);
     double sin_theta_m = sin(acos(cos_theta_m));

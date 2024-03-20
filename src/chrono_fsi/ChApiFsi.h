@@ -22,9 +22,9 @@
 #include "chrono/core/ChPlatform.h"
 
 #if defined(CH_API_COMPILE_FSI)
-#define CH_FSI_API ChApiEXPORT
+    #define CH_FSI_API ChApiEXPORT
 #else
-#define CH_FSI_API ChApiIMPORT
+    #define CH_FSI_API ChApiIMPORT
 #endif
 
 /**
@@ -44,8 +44,8 @@
 
     @{
         @defgroup fsi_physics Physics objects
-        @brief Physics objects for the Chrono::FSI module. Including the 
-        fluid dynamics system, force system, interface with Chrono core 
+        @brief Physics objects for the Chrono::FSI module. Including the
+        fluid dynamics system, force system, interface with Chrono core
         module, simulation parameters, and data structures.
 
         @defgroup fsi_collision Collision objects
@@ -57,11 +57,11 @@
         Only works when I2SPH or IISPH is set to solve the fluid dynamics.
 
         @defgroup fsi_utils Modeling utilities
-        @brief Handles utilities including creating BCE particles, setting 
+        @brief Handles utilities including creating BCE particles, setting
         parameters via a JSON file, and output data into files with specified format
 
         @defgroup fsi_math Math utilities
-        @brief Math utilities for the Chrono::FSI module. These functions 
+        @brief Math utilities for the Chrono::FSI module. These functions
         can be invoked either on the CPU (host) or on the GPU (device)
     @}
 */

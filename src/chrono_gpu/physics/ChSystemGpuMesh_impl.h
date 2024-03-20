@@ -58,7 +58,7 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
 
         /// effective sphere-to-mesh shear modulus, expressed in SU
         float G_eff_s2m_SU;
-    
+
         /// effective sphere-to-mesh coefficient of restitution, expressed in SU
         float COR_s2m_SU;
 
@@ -126,7 +126,6 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     /// combine material properties of two types to get effective ones
     void combineMaterialSurface();
 
-
     /// Apply rigid body motion to specified mesh.
     void ApplyMeshMotion(unsigned int mesh_id,
                          const double* pos,
@@ -172,13 +171,13 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
 
     /// flag for using material based property
     bool use_mat_based = false;
-    
+
     /// youngs modulus of mesh
     double YoungsModulus_mesh_UU;
 
     /// Poisson ratio of mesh
     double PoissonRatio_mesh_UU;
-    
+
     /// coefficient of restitution of mesh
     double COR_mesh_UU;
 
@@ -198,7 +197,7 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     std::vector<unsigned int, cudallocator<unsigned int>> SD_trianglesInEachSD_composite;
 
     /// the count of triangles touching each SD; size of vector should be # of SDs
-    std::vector<unsigned int, cudallocator<unsigned int>> SD_numTrianglesTouching; 
+    std::vector<unsigned int, cudallocator<unsigned int>> SD_numTrianglesTouching;
 
     /// offsets in the composite array for each SD; i.e., offset where each SD starts storing its triangles.
     /// Size of vector should be # of SDs.
@@ -216,7 +215,7 @@ class ChSystemGpuMesh_impl : public ChSystemGpu_impl {
     /// 199; triangle 0 touchs SDs 23, 33, 109; triangle 2 touches SDs 991; triangle 3 touches 43, 23, etc.
     /// Nonessential array, only needed to carry out broadphase for mesh
     std::vector<unsigned int, cudallocator<unsigned int>> SDsTouchedByEachTriangle_composite_out;
- 
+
     /// TriangleIDS_ByMultiplicity_out is mirroring the SDsTouchedByEachTriangle_composite_out vector. Its entries is
     /// the list of triangle IDs, with the right multiplicity. It's used for a sort by key operation needed to figure
     /// out what triangles are stored in each SD. Thus, for the example above, the entries would be

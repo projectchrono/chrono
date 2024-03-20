@@ -63,7 +63,6 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
     /// @return The vertical field of view the radar sensor
     float GetVFOV() const { return m_vFOV; }
 
-
     /// Returns the maximum range of the radar
     /// @return The maximum distance for the radar
     float GetMaxDistance() const { return m_max_distance; }
@@ -81,10 +80,10 @@ class CH_SENSOR_API ChRadarSensor : public ChOptixSensor {
     ChVector3d GetAngularVelocity() { return m_parent->GetAngVelLocal(); }
 
   private:
-    float m_hFOV;            ///< the horizontal field of view of the radar
-    float m_vFOV;            ///< vertical field of view of the radar
-    float m_max_distance;    ///< max distance for radar
-    float m_clip_near;       ///< near clipping distance so that radar sensor housings can be transparent to self
+    float m_hFOV;          ///< the horizontal field of view of the radar
+    float m_vFOV;          ///< vertical field of view of the radar
+    float m_max_distance;  ///< max distance for radar
+    float m_clip_near;     ///< near clipping distance so that radar sensor housings can be transparent to self
 };
 
 /// @} sensor_sensors

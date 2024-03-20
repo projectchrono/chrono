@@ -42,4 +42,4 @@ struct MPM_Settings {
 
 /// @} multicore_physics
 
-} // end namespace chrono
+}  // end namespace chrono

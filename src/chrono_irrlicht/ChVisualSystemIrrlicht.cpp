@@ -518,7 +518,6 @@ void ChVisualSystemIrrlicht::EnableContactDrawing(ContactsDrawMode mode) {
         m_gui->SetContactsDrawMode(mode);
 }
 
-
 void ChVisualSystemIrrlicht::EnableLinkDrawing(LinkDrawMode mode) {
     if (m_gui->initialized)
         m_gui->SetLinksDrawMode(mode);
@@ -1024,7 +1023,8 @@ void ChVisualSystemIrrlicht::PopulateIrrNode(ISceneNode* node,
 
             ////mchildnode->setMaterialFlag(video::EMF_WIREFRAME,  mytrimesh->IsWireframe() );
             ////mchildnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, mytrimesh->IsBackfaceCull() );
-        } else if (std::dynamic_pointer_cast<ChVisualShapePath>(shape) || std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
+        } else if (std::dynamic_pointer_cast<ChVisualShapePath>(shape) ||
+                   std::dynamic_pointer_cast<ChVisualShapeLine>(shape)) {
             CDynamicMeshBuffer* buffer = new CDynamicMeshBuffer(video::EVT_STANDARD, video::EIT_32BIT);
             SMesh* newmesh = new SMesh;
             newmesh->addMeshBuffer(buffer);

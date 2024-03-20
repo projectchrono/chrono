@@ -17,10 +17,10 @@
 using namespace chrono;
 
 real ChSolverMulticoreAPGDREF::Res4(ChSchurProduct& SchurProduct,
-                                   ChProjectConstraints& Project,
-                                   DynamicVector<real>& gamma,
-                                   const DynamicVector<real>& r,
-                                   DynamicVector<real>& tmp) {
+                                    ChProjectConstraints& Project,
+                                    DynamicVector<real>& gamma,
+                                    const DynamicVector<real>& r,
+                                    DynamicVector<real>& tmp) {
     real gdiff = 1.0 / pow(data_manager->num_constraints, 2.0);
     SchurProduct(gamma, tmp);
     tmp = tmp - r;
@@ -32,11 +32,11 @@ real ChSolverMulticoreAPGDREF::Res4(ChSchurProduct& SchurProduct,
 }
 
 uint ChSolverMulticoreAPGDREF::Solve(ChSchurProduct& SchurProduct,
-                                    ChProjectConstraints& Project,
-                                    const uint max_iter,
-                                    const uint size,
-                                    const DynamicVector<real>& r,
-                                    DynamicVector<real>& gamma) {
+                                     ChProjectConstraints& Project,
+                                     const uint max_iter,
+                                     const uint size,
+                                     const DynamicVector<real>& r,
+                                     DynamicVector<real>& gamma) {
     if (size == 0) {
         return 0;
     }
@@ -168,7 +168,7 @@ uint ChSolverMulticoreAPGDREF::Solve(ChSchurProduct& SchurProduct,
             std::cout << "Residual: " << residual << ", Iter: " << current_iteration << std::endl;
 
         DynamicVector<real> Nl(gammaNew.size());
-        SchurProduct(gammaNew, Nl);         // 1)  g_tmp = N*l_candidate
+        SchurProduct(gammaNew, Nl);        // 1)  g_tmp = N*l_candidate
         Nl = 0.5 * Nl - r;                 // 2) 0.5*N*l_candidate-b_schur
         objective_value = (gammaNew, Nl);  // 3)  mf_p  = l_candidate'*(0.5*N*l_candidate-b_schur)
 

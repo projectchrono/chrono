@@ -24,9 +24,9 @@
 // link the library to your code, and the symbols will be imported.
 
 #if defined(CH_API_COMPILE_POSTPROCESS)
-#define ChApiPostProcess ChApiEXPORT
+    #define ChApiPostProcess ChApiEXPORT
 #else
-#define ChApiPostProcess ChApiIMPORT
+    #define ChApiPostProcess ChApiIMPORT
 #endif
 
 /**
@@ -54,6 +54,6 @@ namespace chrono {
 namespace postprocess {}
 
 /// @}
-}
+}  // namespace chrono
 
 #endif

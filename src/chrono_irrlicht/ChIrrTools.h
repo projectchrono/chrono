@@ -170,7 +170,7 @@ ChApiIrr void drawSegment(ChVisualSystemIrrlicht* vis,
 
 /// Draw a polyline in 3D space, given the array of points.
 ChApiIrr void drawPolyline(ChVisualSystemIrrlicht* vis,
-                           std::vector<ChVector3d >& points,
+                           std::vector<ChVector3d>& points,
                            ChColor col = ChColor(1, 1, 1),
                            bool use_Zbuffer = false);
 

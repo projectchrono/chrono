@@ -24,14 +24,14 @@
 // link the library to your code, and the symbols will be imported.
 
 #if defined(CH_API_COMPILE_COSIMULATION)
-#define ChApiCosimulation ChApiEXPORT
+    #define ChApiCosimulation ChApiEXPORT
 #else
-#define ChApiCosimulation ChApiIMPORT
+    #define ChApiCosimulation ChApiIMPORT
 #endif
 
 /**
     @defgroup cosimulation_module COSIMULATION module
-    @brief Tools for cosimulation. 
+    @brief Tools for cosimulation.
 
     This module allows cosimulation between Chrono::Engine and
     a third party software, using the TCP/IP socket system.
@@ -40,8 +40,6 @@
     - the [installation guide](@ref module_cosimulation_installation)
     - the [tutorials](@ref tutorial_root)
 */
-
-
 
 namespace chrono {
 
@@ -53,6 +51,6 @@ namespace cosimul {}
 
 /// @}
 
-}
+}  // namespace chrono
 
 #endif  // END of header

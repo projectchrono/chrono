@@ -306,7 +306,8 @@ void ChPovRay::ExportScript(const std::string& filename) {
 
     mfile << "light_source {\n"
           << " <" << def_light_location.x() << "," << def_light_location.y() << "," << def_light_location.z() << ">\n"
-          << " color rgb<" << def_light_color.R << "," << def_light_color.G << "," << def_light_color.B << "> " << std::endl;
+          << " color rgb<" << def_light_color.R << "," << def_light_color.G << "," << def_light_color.B << "> "
+          << std::endl;
     if (!def_light_cast_shadows)
         mfile << " shadowless " << std::endl;
     mfile << "}\n\n" << std::endl;
@@ -380,7 +381,8 @@ void ChPovRay::ExportScript(const std::string& filename) {
 					#read (MyContactsFile, apx, apy, apz, anx, any, anz,  afx, afy, afz ) \n\
 					make_contact(apx, apy, apz, anx, any, anz,  afx, afy, afz) \n\
 				#end  \n\
-			} " << std::endl;
+			} "
+              << std::endl;
     }
 
     // If using a single-file asset, update it (because maybe that during the
@@ -400,8 +402,7 @@ void ChPovRay::ExportAssets(std::ofstream& assets_file) {
     }
 }
 
-void ApplyMaterials(std::ofstream& assets_file,
-                    const std::vector<std::shared_ptr<ChVisualMaterial>>& materials) {
+void ApplyMaterials(std::ofstream& assets_file, const std::vector<std::shared_ptr<ChVisualMaterial>>& materials) {
     for (const auto& mat : materials) {
         assets_file << "mt_" << (size_t)mat.get() << "()" << std::endl;
     }
@@ -511,8 +512,8 @@ void ChPovRay::ExportShapes(std::ofstream& assets_file, std::shared_ptr<ChPhysic
                     assets_file << (int)mesh->m_face_uv_indices.size() << "," << std::endl;
                     for (unsigned int it = 0; it < mesh->m_face_uv_indices.size(); it++)
                         assets_file << "  <" << mesh->m_face_uv_indices[it].x() << ","
-                                    << mesh->m_face_uv_indices[it].y() << "," << mesh->m_face_uv_indices[it].z()
-                                    << ">," << std::endl;
+                                    << mesh->m_face_uv_indices[it].y() << "," << mesh->m_face_uv_indices[it].z() << ">,"
+                                    << std::endl;
                     assets_file << " }" << std::endl;
                 }
 
@@ -583,8 +584,10 @@ void ChPovRay::ExportShapes(std::ofstream& assets_file, std::shared_ptr<ChPhysic
             auto axis = shape_frame.GetRotMat().GetAxisZ();
             auto hlen = cylinder->GetHeight() / 2;
 
-            assets_file << " <" << -hlen * axis.x() << "," << -hlen * axis.y() << "," << -hlen * axis.z() << ">," << std::endl;
-            assets_file << " <" << +hlen * axis.x() << "," << +hlen * axis.y() << "," << +hlen * axis.z() << ">," << std::endl;
+            assets_file << " <" << -hlen * axis.x() << "," << -hlen * axis.y() << "," << -hlen * axis.z() << ">,"
+                        << std::endl;
+            assets_file << " <" << +hlen * axis.x() << "," << +hlen * axis.y() << "," << +hlen * axis.z() << ">,"
+                        << std::endl;
             assets_file << " " << cylinder->GetRadius() << "" << std::endl;
 
             ApplyMaterials(assets_file, shape->GetMaterials());
@@ -693,8 +696,10 @@ void ChPovRay::ExportObjData(std::ofstream& pov_file,
 
         // Process only "known" shapes (i.e., shapes that were included in the assets file)
         if (std::dynamic_pointer_cast<ChVisualShapeModelFile>(shape) ||
-            std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape) || std::dynamic_pointer_cast<ChVisualShapeSphere>(shape) ||
-            std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape) || std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape) ||
+            std::dynamic_pointer_cast<ChVisualShapeTriangleMesh>(shape) ||
+            std::dynamic_pointer_cast<ChVisualShapeSphere>(shape) ||
+            std::dynamic_pointer_cast<ChVisualShapeEllipsoid>(shape) ||
+            std::dynamic_pointer_cast<ChVisualShapeCylinder>(shape) ||
             std::dynamic_pointer_cast<ChVisualShapeBox>(shape)) {
             pov_file << "sh_" << (size_t)shape.get() << "()" << std::endl;
         }

@@ -67,8 +67,8 @@ class CH_SENSOR_API ChFilterAccess : public ChFilter {
         if (auto pBuf = std::dynamic_pointer_cast<BufferType>(bufferInOut)) {
             m_bufferIn = pBuf;  // save handle to the incoming buffer
         } else {
-            std::cout<<typeid(pBuf).name()<<std::endl;
-            std::cout<<typeid(bufferInOut).name()<<std::endl;
+            std::cout << typeid(pBuf).name() << std::endl;
+            std::cout << typeid(bufferInOut).name() << std::endl;
             InvalidFilterGraphBufferTypeMismatch(pSensor);
         }
 

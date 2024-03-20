@@ -154,8 +154,8 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
                          double colormap_end);
 
     /// Set thickness for wireframe mode of meshes.
-    /// If a ChVisualShapeTriangleMesh asset was set as SetWireframe(true), it will be rendered in POVray as a cage of thin
-    /// cylinders. This setting sets how thick the tubes.
+    /// If a ChVisualShapeTriangleMesh asset was set as SetWireframe(true), it will be rendered in POVray as a cage of
+    /// thin cylinders. This setting sets how thick the tubes.
     void SetWireframeThickness(const double wft) { wireframe_thickness = wft; }
     double GetWireframeThickness() const { return wireframe_thickness; }
 
@@ -206,11 +206,8 @@ class ChApiPostProcess ChPovRay : public ChPostProcessBase {
     void UpdateRenderList();
     void ExportAssets(std::ofstream& assets_file);
     void ExportShapes(std::ofstream& assets_file, std::shared_ptr<ChPhysicsItem> item);
-    void ExportMaterials(std::ofstream& assets_file,
-                         const std::vector<std::shared_ptr<ChVisualMaterial>>& materials);
-    void ExportObjData(std::ofstream& pov_file,
-                       std::shared_ptr<ChPhysicsItem> item,
-                       const ChFrame<>& parentframe);
+    void ExportMaterials(std::ofstream& assets_file, const std::vector<std::shared_ptr<ChVisualMaterial>>& materials);
+    void ExportObjData(std::ofstream& pov_file, std::shared_ptr<ChPhysicsItem> item, const ChFrame<>& parentframe);
 
     /// List of physics items in the rendering list.
     std::unordered_set<std::shared_ptr<ChPhysicsItem>> m_items;

@@ -68,7 +68,8 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     CameraLensModelType GetLensModelType() const { return m_lens_model_type; }
 
     /// returns the lens model parameters
-    /// @return LensParams struct of lens parameters. Will default to zeros for any terms not used. These are coverted for the inverse model
+    /// @return LensParams struct of lens parameters. Will default to zeros for any terms not used. These are coverted
+    /// for the inverse model
     LensParams GetLensParameters() const { return m_lens_parameters; }
 
     /// Sets the parameters for a radial lens distortion model
@@ -105,7 +106,7 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     bool m_use_gi;                          ///< to hold reference to whether user what to use GI or not
     float m_gamma;                          ///< holds the camera's gamma value
     bool m_use_fog;                         ///< holds whether the camera follows the scene fog model
-    LensParams m_lens_parameters;      ///< lens parameters when applicable
+    LensParams m_lens_parameters;           ///< lens parameters when applicable
 };
 
 /// @} sensor_sensors

@@ -58,8 +58,7 @@ void ChFsiInterface::Copy_FsiBodies_ChSystem_to_FsiSystem(std::shared_ptr<FsiBod
     for (size_t i = 0; i < num_fsiBodies_Rigids; i++) {
         std::shared_ptr<ChBody> bodyPtr = m_fsi_bodies[i];
         m_sysFSI.fsiBodiesH->posRigid_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetPos());
-        m_sysFSI.fsiBodiesH->velMassRigid_fsiBodies_H[i] =
-            utils::ToReal4(bodyPtr->GetPosDt(), bodyPtr->GetMass());
+        m_sysFSI.fsiBodiesH->velMassRigid_fsiBodies_H[i] = utils::ToReal4(bodyPtr->GetPosDt(), bodyPtr->GetMass());
         m_sysFSI.fsiBodiesH->accRigid_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetPosDt2());
         m_sysFSI.fsiBodiesH->q_fsiBodies_H[i] = utils::ToReal4(bodyPtr->GetRot());
         m_sysFSI.fsiBodiesH->omegaVelLRF_fsiBodies_H[i] = utils::ToReal3(bodyPtr->GetAngVelLocal());
@@ -126,7 +125,7 @@ void ChFsiInterface::ResizeChronoCablesData(const std::vector<std::vector<int>>&
         m_sysFSI.fsiGeneralData->CableElementsNodesH[i].y = CableElementsNodesSTDVector[i][1];
     }
 }
- 
+
 void ChFsiInterface::ResizeChronoShellsData(const std::vector<std::vector<int>>& ShellElementsNodesSTDVector) {
     if (ShellElementsNodesSTDVector.empty())
         return;

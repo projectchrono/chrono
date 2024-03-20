@@ -18,8 +18,8 @@
 #define CHFILTERVISUALIZE_H
 
 #ifdef USE_SENSOR_GLFW
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
+    #include <GL/glew.h>
+    #include <GLFW/glfw3.h>
 #endif
 
 #include "chrono_sensor/filters/ChFilter.h"
@@ -90,7 +90,7 @@ class CH_SENSOR_API ChFilterVisualize : public ChFilter {
 #ifdef USE_SENSOR_GLFW
     std::unique_ptr<GLFWwindow, DestroyglfwWin> m_window;  ///< pointer to the window
 #endif
-    unsigned int m_gl_tex_id = 0;                          ///< reference data for the GL context and texture
+    unsigned int m_gl_tex_id = 0;  ///< reference data for the GL context and texture
 
     /// Helper function for when new window is created
     static void OnNewWindow();

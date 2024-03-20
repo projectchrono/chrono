@@ -258,7 +258,6 @@ const std::string ChBlender::unique_bl_id(size_t mpointer) const {
         return std::to_string(this->rank) + "_" + std::to_string(mpointer);
 }
 
-
 void ChBlender::ExportScript(const std::string& filename) {
     // Regenerate the list of objects that need Blender rendering
     UpdateRenderList();
@@ -289,8 +288,8 @@ void ChBlender::ExportScript(const std::string& filename) {
     std::string assets_filename = out_script_filename + ".assets.py";
     {
         std::ofstream assets_file(base_path + assets_filename);
-        assets_file
-            << "# File containing meshes and objects for rendering Blender scenes, shared through all frames." << std::endl;
+        assets_file << "# File containing meshes and objects for rendering Blender scenes, shared through all frames."
+                    << std::endl;
         assets_file << "# This file must be imported in Blender using File/Import/chrono import menu, " << std::endl;
         assets_file << "# that is available in Blender if you installed the chrono_import.py add-on.\n" << std::endl;
 
@@ -315,7 +314,8 @@ void ChBlender::ExportScript(const std::string& filename) {
         assets_file << "bpy.context.scene.render.filepath = '" << abspath_pic_output << "'\n"
                     << "bpy.context.scene.render.resolution_x = " << this->picture_width << "\n"
                     << "bpy.context.scene.render.resolution_y = " << this->picture_height << "\n"
-                    << "\n" << std::endl;
+                    << "\n"
+                    << std::endl;
 
         // write default camera, if defined
         if (camera_add_default) {
@@ -335,7 +335,8 @@ void ChBlender::ExportScript(const std::string& filename) {
                 assets_file << "new_object.data.angle=" << camera_angle * chrono::CH_DEG_TO_RAD << "" << std::endl;
             }
             assets_file << "chrono_cameras.objects.link(new_object)\n"
-                        << "bpy.context.scene.collection.objects.unlink(new_object)\n" << std::endl;
+                        << "bpy.context.scene.collection.objects.unlink(new_object)\n"
+                        << std::endl;
             ChVector3d cdirzm = camera_aim - camera_location;
             ChVector3d cdirx = Vcross(cdirzm, VECT_Y);
             ChVector3d cdiry = Vcross(cdirx, cdirzm);
@@ -418,7 +419,8 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                    << "new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons))\n"
                    << "new_object.data.materials.append(None)\n"
                    << collection << ".objects.link(new_object)\n"
-                   << "bpy.context.scene.collection.objects.unlink(new_object)\n" << std::endl;
+                   << "bpy.context.scene.collection.objects.unlink(new_object)\n"
+                   << std::endl;
             // radius will be set later in ExportItemState to avoid having n meshes per each radius
             m_shapes->insert({(size_t)shape.get(), shape});
         }
@@ -430,7 +432,8 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                    << "new_object.data.polygons.foreach_set('use_smooth', [True] * len(new_object.data.polygons))\n"
                    << "new_object.data.materials.append(None)\n"
                    << collection << ".objects.link(new_object)\n"
-                   << "bpy.context.scene.collection.objects.unlink(new_object)\n" << std::endl;
+                   << "bpy.context.scene.collection.objects.unlink(new_object)\n"
+                   << std::endl;
             // radii will be set later in ExportItemState to avoid having n meshes per each radius
             m_shapes->insert({(size_t)shape.get(), shape});
         }
@@ -443,21 +446,22 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                    << collection << ".objects.link(new_object)\n"
                    << "bpy.context.scene.collection.objects.unlink(new_object)\n"
                    << "with bpy.context.temp_override(selected_editable_objects=[new_object]):\n"
-                   << "    bpy.ops.object.shade_smooth(use_auto_smooth=True)\n" << std::endl;
+                   << "    bpy.ops.object.shade_smooth(use_auto_smooth=True)\n"
+                   << std::endl;
             // radius and height will be set later in ExportItemState to avoid having n meshes per each radius
             m_shapes->insert({(size_t)shape.get(), shape});
         }
 
         if (auto cone = std::dynamic_pointer_cast<ChVisualShapeCone>(shape)) {
-            *mfile
-                << "bpy.ops.mesh.primitive_cone_add(vertices=32, radius1=1.0, radius2=0, depth=1.0, calc_uvs=True)\n"
-                << "new_object = bpy.context.object\n"
-                << "new_object.name = '" << shapename << "'\n"
-                << "new_object.data.materials.append(None)\n"
-                << collection << ".objects.link(new_object)\n"
-                << "bpy.context.scene.collection.objects.unlink(new_object)\n"
-                << "with bpy.context.temp_override(selected_editable_objects=[new_object]):\n"
-                << "    bpy.ops.object.shade_smooth(use_auto_smooth=True)\n" << std::endl;
+            *mfile << "bpy.ops.mesh.primitive_cone_add(vertices=32, radius1=1.0, radius2=0, depth=1.0, calc_uvs=True)\n"
+                   << "new_object = bpy.context.object\n"
+                   << "new_object.name = '" << shapename << "'\n"
+                   << "new_object.data.materials.append(None)\n"
+                   << collection << ".objects.link(new_object)\n"
+                   << "bpy.context.scene.collection.objects.unlink(new_object)\n"
+                   << "with bpy.context.temp_override(selected_editable_objects=[new_object]):\n"
+                   << "    bpy.ops.object.shade_smooth(use_auto_smooth=True)\n"
+                   << std::endl;
             // radius etc will be set later in ExportItemState to avoid having n meshes per each radius
             m_shapes->insert({(size_t)shape.get(), shape});
         }
@@ -468,7 +472,8 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                    << "new_object.name = '" << shapename << "'\n"
                    << "new_object.data.materials.append(None)\n"
                    << collection << ".objects.link(new_object)\n"
-                   << "bpy.context.scene.collection.objects.unlink(new_object)\n" << std::endl;
+                   << "bpy.context.scene.collection.objects.unlink(new_object)\n"
+                   << std::endl;
             // xyz sizes will be set later in ExportItemState to avoid having n meshes
             m_shapes->insert({(size_t)shape.get(), shape});
         }
@@ -486,7 +491,8 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                    << "    " << collection << ".objects.link(new_object)\n"
                    << "    bpy.context.scene.collection.objects.unlink(new_object)\n"
                    << "except:\n"
-                   << "    print('Cannot load .OBJ file: ', file_loc)\n" << std::endl;
+                   << "    print('Cannot load .OBJ file: ', file_loc)\n"
+                   << std::endl;
             // if it fails to load (ex.: missing file, bad obj, etc) it prints error to console
             m_shapes->insert({(size_t)shape.get(), shape});
         }
@@ -586,7 +592,8 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
 
                 *mfile << "property = setup_property_color(meshsetting, 'chrono_color', matname='mat_"
                        << unique_bl_id((size_t)shape.get()).c_str() << "_col')" << std::endl;
-                *mfile << "mat = update_meshsetting_color_material(new_object,meshsetting, 'chrono_color')" << std::endl;
+                *mfile << "mat = update_meshsetting_color_material(new_object,meshsetting, 'chrono_color')"
+                       << std::endl;
             }
 
             for (auto mprop : mesh->GetPropertiesPerVertex()) {
@@ -601,8 +608,8 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
 
                     *mfile << "property = setup_property_scalar(meshsetting, '" << mprop_scalar->name.c_str()
                            << "',min=" << mprop_scalar->min << ", max=" << mprop_scalar->max << ", matname='mat_"
-                           << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str()
-                           << "')" << std::endl;
+                           << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str() << "')"
+                           << std::endl;
                     *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '"
                            << mprop_scalar->name.c_str() << "')" << std::endl;
                 }
@@ -618,8 +625,8 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
 
                     *mfile << "property = setup_property_vector(meshsetting, '" << mprop_vectors->name.c_str()
                            << "',min=" << mprop_vectors->min << ", max=" << mprop_vectors->max << ", matname='mat_"
-                           << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str()
-                           << "')" << std::endl;
+                           << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str() << "')"
+                           << std::endl;
                     *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '"
                            << mprop_vectors->name.c_str() << "')" << std::endl;
                 }
@@ -636,8 +643,8 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
 
                     *mfile << "property = setup_property_scalar(meshsetting, '" << mprop_scalar->name.c_str()
                            << "',min=" << mprop_scalar->min << ", max=" << mprop_scalar->max << ", matname='mat_"
-                           << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str()
-                           << "')" << std::endl;
+                           << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_scalar->name.c_str() << "')"
+                           << std::endl;
                     *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '"
                            << mprop_scalar->name.c_str() << "')" << std::endl;
                 }
@@ -653,8 +660,8 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
 
                     *mfile << "property = setup_property_vector(meshsetting, '" << mprop_vectors->name.c_str()
                            << "',min=" << mprop_vectors->min << ", max=" << mprop_vectors->max << ", matname='mat_"
-                           << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str()
-                           << "')" << std::endl;
+                           << unique_bl_id((size_t)shape.get()).c_str() << "_" << mprop_vectors->name.c_str() << "')"
+                           << std::endl;
                     *mfile << "mat = update_meshsetting_falsecolor_material(new_object,meshsetting, '"
                            << mprop_vectors->name.c_str() << "')" << std::endl;
                 }
@@ -674,8 +681,8 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
 
             state_file << "glyphsetting = setup_glyph_setting('" << shapename << "'," << std::endl;
             if (glyph_shape->glyph_width_type == ChGlyphs::eCh_GlyphWidth::CONSTANT) {
-                state_file << "\twidth_type='CONST', width_scale=" << glyph_shape->glyph_scalewidth
-                           << ", " << std::endl;  // constant width
+                state_file << "\twidth_type='CONST', width_scale=" << glyph_shape->glyph_scalewidth << ", "
+                           << std::endl;  // constant width
             }
             if (glyph_shape->glyph_width_type == ChGlyphs::eCh_GlyphWidth::PROPERTY) {
                 auto mprop = std::find_if(std::begin(glyph_shape->m_properties), std::end(glyph_shape->m_properties),
@@ -683,13 +690,13 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                 int myprop_id =
                     (mprop != glyph_shape->m_properties.end()) ? mprop - glyph_shape->m_properties.begin() : 0;
                 state_file << "\twidth_type='PROPERTY', property_index_width=" << myprop_id
-                           << ", width_scale=" << glyph_shape->glyph_scalewidth
-                           << "," << std::endl;  // will use 1st property, the 'F', for width
+                           << ", width_scale=" << glyph_shape->glyph_scalewidth << ","
+                           << std::endl;  // will use 1st property, the 'F', for width
             }
             if (glyph_shape->glyph_color_type == ChGlyphs::eCh_GlyphColor::CONSTANT) {
                 state_file << "\tcolor_type='CONST', const_color=(" << glyph_shape->glyph_color_constant.R << ","
-                           << glyph_shape->glyph_color_constant.G << "," << glyph_shape->glyph_color_constant.B
-                           << "), " << std::endl;  // constant color
+                           << glyph_shape->glyph_color_constant.G << "," << glyph_shape->glyph_color_constant.B << "), "
+                           << std::endl;  // constant color
             }
             if (glyph_shape->glyph_color_type == ChGlyphs::eCh_GlyphColor::PROPERTY) {
                 auto mprop = std::find_if(std::begin(glyph_shape->m_properties), std::end(glyph_shape->m_properties),
@@ -706,8 +713,8 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                 state_file << "\tdir_type='PROPERTY', property_index_dir=0, " << std::endl;
                 state_file << "\tproperty_index_basis=0, " << std::endl;
                 if (glyph_shape->glyph_length_type == ChGlyphs::eCh_GlyphLength::CONSTANT) {
-                    state_file << "\tlength_type='CONST', length_scale=" << glyph_shape->glyph_scalelenght
-                               << ", " << std::endl;  // constant length
+                    state_file << "\tlength_type='CONST', length_scale=" << glyph_shape->glyph_scalelenght << ", "
+                               << std::endl;  // constant length
                 }
                 if (glyph_shape->glyph_length_type == ChGlyphs::eCh_GlyphLength::PROPERTY) {
                     auto mprop =
@@ -768,7 +775,8 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                                      [&](auto const& p) { return p->name == glyph_shape->glyph_eigenvalues_prop; });
                     int myprop_id =
                         (mprop != glyph_shape->m_properties.end()) ? mprop - glyph_shape->m_properties.begin() : 0;
-                    state_file << "\teigenvalues_type='PROPERTY', property_index_eigenvalues=" << myprop_id << "," << std::endl;
+                    state_file << "\teigenvalues_type='PROPERTY', property_index_eigenvalues=" << myprop_id << ","
+                               << std::endl;
                 }
             }
             state_file << "\t)" << std::endl;
@@ -908,10 +916,12 @@ void ChBlender::ExportShapes(std::ofstream& assets_file,
                    << "" << std::endl;
         } else {
             *mfile << "new_object.data.type='PERSP'" << std::endl;
-            *mfile << "new_object.data.angle=" << camera_instance->GetAngle() * chrono::CH_DEG_TO_RAD << "" << std::endl;
+            *mfile << "new_object.data.angle=" << camera_instance->GetAngle() * chrono::CH_DEG_TO_RAD << ""
+                   << std::endl;
         }
         *mfile << "chrono_cameras.objects.link(new_object)\n"
-               << "bpy.context.scene.collection.objects.unlink(new_object)\n" << std::endl;
+               << "bpy.context.scene.collection.objects.unlink(new_object)\n"
+               << std::endl;
 
         m_blender_cameras.insert({(size_t)camera_instance.get(), camera_instance});
     }
@@ -1221,7 +1231,6 @@ void ChBlender::ExportData(const std::string& filename) {
         // #) saving contacts ?
         if (this->mSystem->GetNumContacts() &&
             (this->contacts_show == ContactSymbolType::VECTOR || this->contacts_show == ContactSymbolType::SPHERE)) {
-
             class _reporter_class : public ChContactContainer::ReportContactCallback {
               public:
                 virtual bool OnReportContact(
@@ -1275,36 +1284,39 @@ void ChBlender::ExportData(const std::string& filename) {
 
             state_file << "\tif len(contacts):" << std::endl;
             state_file << "\t\tglyphsetting = setup_glyph_setting('contacts', glyph_type ='VECTOR LOCAL'," << std::endl;
-            state_file << "\t\t\tdir_type='PROPERTY', property_index_dir=0, " << std::endl;  // will use 1st property, the 'F', for
-                                                                                  // direction of force vector, in local
-                                                                                  // frame of contact plane
-            state_file << "\t\t\tproperty_index_basis=1, " << std::endl;  // will use 2nd property, the 'loc_rot', for local
-                                                               // rotation of contact plane
+            state_file << "\t\t\tdir_type='PROPERTY', property_index_dir=0, "
+                       << std::endl;                                      // will use 1st property, the 'F', for
+                                                                          // direction of force vector, in local
+                                                                          // frame of contact plane
+            state_file << "\t\t\tproperty_index_basis=1, " << std::endl;  // will use 2nd property, the 'loc_rot', for
+                                                                          // local rotation of contact plane
             if (this->contacts_vector_length_type == ContactSymbolVectorLength::CONSTANT) {
-                state_file << "\t\t\tlength_type='CONST', length_scale=" << this->contacts_vector_scalelenght
-                           << ", " << std::endl;  // constant length
+                state_file << "\t\t\tlength_type='CONST', length_scale=" << this->contacts_vector_scalelenght << ", "
+                           << std::endl;  // constant length
             }
             if (this->contacts_vector_length_type == ContactSymbolVectorLength::PROPERTY) {
                 state_file << "\t\t\tlength_type='PROPERTY', property_index_length=0, length_scale="
-                           << this->contacts_vector_scalelenght << "," << std::endl;  // will use 1st property, the 'F', for length
+                           << this->contacts_vector_scalelenght << ","
+                           << std::endl;  // will use 1st property, the 'F', for length
             }
             if (this->contacts_vector_width_type == ContactSymbolVectorWidth::CONSTANT) {
-                state_file << "\t\t\twidth_type='CONST', width_scale=" << this->contacts_vector_scalewidth
-                           << ", " << std::endl;  // constant width
+                state_file << "\t\t\twidth_type='CONST', width_scale=" << this->contacts_vector_scalewidth << ", "
+                           << std::endl;  // constant width
             }
             if (this->contacts_vector_width_type == ContactSymbolVectorWidth::PROPERTY) {
                 state_file << "\t\t\twidth_type='PROPERTY', property_index_width=0, width_scale="
-                           << this->contacts_vector_scalewidth << "," << std::endl;  // will use 1st property, the 'F', for width
+                           << this->contacts_vector_scalewidth << ","
+                           << std::endl;  // will use 1st property, the 'F', for width
             }
             if (this->contacts_color_type == ContactSymbolColor::CONSTANT) {
                 state_file << "\t\t\tcolor_type='CONST', const_color=(" << contacts_color_constant.R << ","
-                           << contacts_color_constant.G << "," << contacts_color_constant.B
-                           << "), " << std::endl;  // constant color
+                           << contacts_color_constant.G << "," << contacts_color_constant.B << "), "
+                           << std::endl;  // constant color
             }
             if (this->contacts_color_type == ContactSymbolColor::PROPERTY) {
-                state_file
-                    << "\t\t\tcolor_type='PROPERTY', property_index_color=0, " << std::endl;  // will use 1st property, the 'F',
-                                                                                   // for color falsecolor scale
+                state_file << "\t\t\tcolor_type='PROPERTY', property_index_color=0, "
+                           << std::endl;  // will use 1st property, the 'F',
+                                          // for color falsecolor scale
             }
             if (this->contacts_vector_tip)
                 state_file << "\t\t\tdo_tip=True," << std::endl;
@@ -1319,7 +1331,8 @@ void ChBlender::ExportData(const std::string& filename) {
             state_file << "per_instance = True) " << std::endl;
 
             state_file << "\t\tproperty = setup_property_quaternion(glyphsetting, 'loc_rot', "
-                          "matname='contacts_color_rot', per_instance=True)" << std::endl;
+                          "matname='contacts_color_rot', per_instance=True)"
+                       << std::endl;
 
             state_file << "\t\tnew_objects = update_make_glyphs(glyphsetting, 'contacts',";
             state_file << "(" << blender_frame.GetPos().x() << "," << blender_frame.GetPos().y() << ","

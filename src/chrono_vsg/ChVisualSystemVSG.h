@@ -269,13 +269,13 @@ class CH_VSG_API ChVisualSystemVSG : virtual public ChVisualSystem {
     /// Data related to deformable meshes (FEA and SCM).
     struct DeformableMesh {
         std::shared_ptr<ChTriangleMeshConnected> trimesh;  ///< reference to the Chrono triangle mesh
-        vsg::ref_ptr<vsg::vec3Array> vertices;                       ///< mesh vertices
-        vsg::ref_ptr<vsg::vec3Array> normals;                        ///< mesh normals
-        vsg::ref_ptr<vsg::vec4Array> colors;                         ///< mesh vertex colors
-        bool mesh_soup;                                              ///< true if using separate triangles
-        bool dynamic_vertices;                                       ///< mesh vertices change
-        bool dynamic_normals;                                        ///< mesh normals change
-        bool dynamic_colors;                                         ///< mesh vertex colors change
+        vsg::ref_ptr<vsg::vec3Array> vertices;             ///< mesh vertices
+        vsg::ref_ptr<vsg::vec3Array> normals;              ///< mesh normals
+        vsg::ref_ptr<vsg::vec4Array> colors;               ///< mesh vertex colors
+        bool mesh_soup;                                    ///< true if using separate triangles
+        bool dynamic_vertices;                             ///< mesh vertices change
+        bool dynamic_normals;                              ///< mesh normals change
+        bool dynamic_colors;                               ///< mesh vertex colors change
     };
     std::vector<DeformableMesh> m_def_meshes;
 

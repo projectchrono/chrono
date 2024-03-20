@@ -4,7 +4,6 @@
 #include "chrono_synchrono/SynApi.h"
 #include <ostream>
 
-
 /// @addtogroup synchrono_utils
 /// @{
 

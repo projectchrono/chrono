@@ -69,19 +69,15 @@ class CH_SENSOR_API ChNoiseNormal : public ChNoiseModel {
 
   private:
     std::minstd_rand m_generator;  ///< random number generator
-    ChVector3d m_mean;       ///< mean of the normal distribution
-    ChVector3d m_stdev;      ///< standard deviation of the normal distribution
+    ChVector3d m_mean;             ///< mean of the normal distribution
+    ChVector3d m_stdev;            ///< standard deviation of the normal distribution
 };
 
 /// IMU Noise model: gaussian drifting noise with noncorrelated equal distributions
 class CH_SENSOR_API ChNoiseNormalDrift : public ChNoiseModel {
   public:
     /// Class constructor
-    ChNoiseNormalDrift(double updateRate,
-                       ChVector3d mean,
-                       ChVector3d stdev,
-                       double drift_bias,
-                       double tau_drift);
+    ChNoiseNormalDrift(double updateRate, ChVector3d mean, ChVector3d stdev, double drift_bias, double tau_drift);
     // ChNoiseNormalDrift();
     /// Class destructor
     ~ChNoiseNormalDrift() {}
@@ -94,11 +90,11 @@ class CH_SENSOR_API ChNoiseNormalDrift : public ChNoiseModel {
     std::minstd_rand m_generator;  ///< random number generator
     ChVector3d m_bias_prev;
 
-    double m_updateRate;       ///< holding the sensor update rate for use in drift
-    ChVector3d m_mean;   ///< mean of normal distribution for gyroscope
-    ChVector3d m_stdev;  ///< standard deviation of normal distribution for gyroscope
-    double m_drift_bias;       ///< bias component of gyroscope drift
-    double m_tau_drift;        ///< time constant for gyroscope drift
+    double m_updateRate;  ///< holding the sensor update rate for use in drift
+    ChVector3d m_mean;    ///< mean of normal distribution for gyroscope
+    ChVector3d m_stdev;   ///< standard deviation of normal distribution for gyroscope
+    double m_drift_bias;  ///< bias component of gyroscope drift
+    double m_tau_drift;   ///< time constant for gyroscope drift
 };
 
 /// @} sensor_sensors

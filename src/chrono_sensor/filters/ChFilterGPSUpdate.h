@@ -54,7 +54,7 @@ class CH_SENSOR_API ChFilterGPSUpdate : public ChFilter {
     std::shared_ptr<SensorHostGPSBuffer> m_bufferOut;  ///< buffer that will be used for passing to the next filter
     std::shared_ptr<ChGPSSensor> m_GPSSensor;
     std::shared_ptr<ChNoiseModel> m_noise_model;  ///< pointer to the noise model for augmenting GPS data
-    ChVector3d m_ref;                       ///< for holding the reference location
+    ChVector3d m_ref;                             ///< for holding the reference location
 };
 
 /// @}

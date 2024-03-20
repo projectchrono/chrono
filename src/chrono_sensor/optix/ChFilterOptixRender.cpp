@@ -94,7 +94,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
         m_raygen_record->data.specific.camera.use_fog = cam->GetUseFog();
         m_raygen_record->data.specific.camera.lens_model = cam->GetLensModelType();
         m_raygen_record->data.specific.camera.lens_parameters = cam->GetLensParameters();
-            // make_float3(cam->GetLensParameters().x(), cam->GetLensParameters().y()], cam->GetLensParameters().z());
+        // make_float3(cam->GetLensParameters().x(), cam->GetLensParameters().y()], cam->GetLensParameters().z());
         m_bufferOut = bufferOut;
 
         if (cam->GetUseGI() || cam->GetCollectionWindow() > 0.f) {
@@ -130,7 +130,7 @@ CH_SENSOR_API void ChFilterOptixRender::Initialize(std::shared_ptr<ChSensor> pSe
         m_raygen_record->data.specific.segmentation.frame_buffer = reinterpret_cast<ushort2*>(bufferOut->Buffer.get());
         m_raygen_record->data.specific.segmentation.lens_model = segmenter->GetLensModelType();
         m_raygen_record->data.specific.camera.lens_parameters = segmenter->GetLensParameters();
-            // make_float3(cam->GetLensParameters().x(), cam->GetLensParameters().y()], cam->GetLensParameters().z());
+        // make_float3(cam->GetLensParameters().x(), cam->GetLensParameters().y()], cam->GetLensParameters().z());
 
         if (segmenter->GetCollectionWindow() > 0.f) {
             // initialize rng buffer for ray bounces or motion blur
@@ -279,27 +279,27 @@ CH_SENSOR_API void ChOptixDenoiser::Initialize(unsigned int w,
 
 CH_SENSOR_API void ChOptixDenoiser::Execute() {
     // will not compute intensity since we are assuming we don't have HDR images
-    OptixDenoiserLayer inLayer = {}; 
+    OptixDenoiserLayer inLayer = {};
     inLayer.input = *(md_inputs.data());
-    inLayer.previousOutput = md_output; //only in temporal mode
+    inLayer.previousOutput = md_output;  // only in temporal mode
     inLayer.output = md_output;
 
-    OptixDenoiserGuideLayer guideLayer =    {};
+    OptixDenoiserGuideLayer guideLayer = {};
     guideLayer.albedo = md_inputs[1];
     guideLayer.normal = md_inputs[2];
-    
-    OPTIX_ERROR_CHECK(optixDenoiserInvoke(m_denoiser, //denoiser OK 
-                                          m_cuda_stream, //CUstream stream OK
-                                          &m_params,  ///OptixDenoiserParams* params OK
-                                          md_state, // denoiserState OK
-                                          m_state_size, //denoiserStateSizeInBytes OK
-                                          &guideLayer, //OptixDenoiserGuideLayer* guidelayer
-                                          &inLayer, //OptixeDenoiserLayer* layer
-                                          1, //uint num layers
-                                          0, //uint inputOffsetX
-                                          0,  //uint inputOffsetY
-                                          md_scratch, //CUdeviceptr scratch
-                                          m_scratch_size //scratchSizeInBytes
+
+    OPTIX_ERROR_CHECK(optixDenoiserInvoke(m_denoiser,     // denoiser OK
+                                          m_cuda_stream,  // CUstream stream OK
+                                          &m_params,      /// OptixDenoiserParams* params OK
+                                          md_state,       // denoiserState OK
+                                          m_state_size,   // denoiserStateSizeInBytes OK
+                                          &guideLayer,    // OptixDenoiserGuideLayer* guidelayer
+                                          &inLayer,       // OptixeDenoiserLayer* layer
+                                          1,              // uint num layers
+                                          0,              // uint inputOffsetX
+                                          0,              // uint inputOffsetY
+                                          md_scratch,     // CUdeviceptr scratch
+                                          m_scratch_size  // scratchSizeInBytes
                                           ));
 }
 

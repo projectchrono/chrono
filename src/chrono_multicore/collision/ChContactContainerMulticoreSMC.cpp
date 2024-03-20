@@ -75,8 +75,8 @@ void ChContactContainerMulticoreSMC::AddContact(const ChCollisionInfo& cinfo,
 
         // Composite material for added contact
         ChContactMaterialCompositeSMC cmat(data_manager->composition_strategy.get(),
-                                    std::static_pointer_cast<ChContactMaterialSMC>(mat1),
-                                    std::static_pointer_cast<ChContactMaterialSMC>(mat2));
+                                           std::static_pointer_cast<ChContactMaterialSMC>(mat1),
+                                           std::static_pointer_cast<ChContactMaterialSMC>(mat2));
 
         // Load composite material properties in global data structure
         data_manager->host_data.fric_rigid_rigid.push_back(real3(cmat.mu_eff, cmat.muRoll_eff, cmat.muSpin_eff));

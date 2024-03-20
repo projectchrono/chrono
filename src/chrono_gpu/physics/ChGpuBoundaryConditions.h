@@ -20,7 +20,7 @@
 namespace chrono {
 namespace gpu {
 
-/// Sphere 
+/// Sphere
 template <typename T, typename T3>
 struct Sphere_BC_params_t {
     T3 sphere_center;

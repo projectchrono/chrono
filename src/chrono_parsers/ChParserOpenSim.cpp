@@ -606,9 +606,8 @@ void ChParserOpenSim::initFunctionTable() {
                       << "," << newBody->GetFrameRefToAbs().GetPos().y() << ","
                       << newBody->GetFrameRefToAbs().GetPos().z() << std::endl;
             std::cout << "Orientation is " << newBody->GetFrameRefToAbs().GetRot().e0() << ","
-                      << newBody->GetFrameRefToAbs().GetRot().e1() << ","
-                      << newBody->GetFrameRefToAbs().GetRot().e2() << ","
-                      << newBody->GetFrameRefToAbs().GetRot().e3() << std::endl;
+                      << newBody->GetFrameRefToAbs().GetRot().e1() << "," << newBody->GetFrameRefToAbs().GetRot().e2()
+                      << "," << newBody->GetFrameRefToAbs().GetRot().e3() << std::endl;
         }
 
         // This is slightly cleaner than before, but still gross

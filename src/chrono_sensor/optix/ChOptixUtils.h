@@ -20,9 +20,9 @@
 #define CHOPTIXUTILS_H
 
 #ifdef _WIN32
-#ifndef NOMINMAX
-#define NOMINMAX
-#endif
+    #ifndef NOMINMAX
+        #define NOMINMAX
+    #endif
 #endif
 
 #include <optix.h>
@@ -45,40 +45,42 @@ namespace sensor {
 /// @addtogroup sensor_optix
 /// @{
 
-
 /// Checks the output of an optix call for any error, will throw a runtime error if not success
-#define OPTIX_ERROR_CHECK(result) { \
-    if (result != OPTIX_SUCCESS) { \
-        std::string error_name = std::string(optixGetErrorName(result)); \
-        std::string error_string = std::string(optixGetErrorString(result)); \
-        std::string file = std::string(__FILE__); \
-        std::string line = std::to_string(__LINE__); \
-        throw std::runtime_error(error_name + ": " + error_string + " at " + file + ":" + line); \
-    } \
-} \
+#define OPTIX_ERROR_CHECK(result)                                                                    \
+    {                                                                                                \
+        if (result != OPTIX_SUCCESS) {                                                               \
+            std::string error_name = std::string(optixGetErrorName(result));                         \
+            std::string error_string = std::string(optixGetErrorString(result));                     \
+            std::string file = std::string(__FILE__);                                                \
+            std::string line = std::to_string(__LINE__);                                             \
+            throw std::runtime_error(error_name + ": " + error_string + " at " + file + ":" + line); \
+        }                                                                                            \
+    }
 
 /// Checks the output of a cuda call for any error, will throw a runtime error if not success
-#define CUDA_ERROR_CHECK(result) { \
-    if (result != cudaSuccess) { \
-        std::string error_name = std::string(cudaGetErrorName(result));\
-        std::string error_string = std::string(cudaGetErrorString(result));\
-        std::string file = std::string(__FILE__);\
-        std::string line = std::to_string(__LINE__);\
-        throw std::runtime_error(error_name + ": " + error_string + " at " + file + ":" + line);\
-    }\
-}
+#define CUDA_ERROR_CHECK(result)                                                                     \
+    {                                                                                                \
+        if (result != cudaSuccess) {                                                                 \
+            std::string error_name = std::string(cudaGetErrorName(result));                          \
+            std::string error_string = std::string(cudaGetErrorString(result));                      \
+            std::string file = std::string(__FILE__);                                                \
+            std::string line = std::to_string(__LINE__);                                             \
+            throw std::runtime_error(error_name + ": " + error_string + " at " + file + ":" + line); \
+        }                                                                                            \
+    }
 
 #ifdef USE_CUDA_NVRTC
-/// Checks the output of a cuda call for any error, will throw a runtime error if not success
-#define NVRTC_ERROR_CHECK(result) { \
-    if (result != NVRTC_SUCCESS) { \
-        std::string error_name = "NVRTC ERROR"; \
-        std::string error_string = std::string(nvrtcGetErrorString(result)); \
-        std::string file = std::string(__FILE__); \
-        std::string line = std::to_string(__LINE__); \
-        throw std::runtime_error(error_name + ": " + error_string + " at " + file + ":" + line); \
-    } \
-}
+    /// Checks the output of a cuda call for any error, will throw a runtime error if not success
+    #define NVRTC_ERROR_CHECK(result)                                                                    \
+        {                                                                                                \
+            if (result != NVRTC_SUCCESS) {                                                               \
+                std::string error_name = "NVRTC ERROR";                                                  \
+                std::string error_string = std::string(nvrtcGetErrorString(result));                     \
+                std::string file = std::string(__FILE__);                                                \
+                std::string line = std::to_string(__LINE__);                                             \
+                throw std::runtime_error(error_name + ": " + error_string + " at " + file + ":" + line); \
+            }                                                                                            \
+        }
 #endif
 
 /// holds string values for ptx file and ray generation program

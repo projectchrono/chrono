@@ -22,8 +22,6 @@
 #include "chrono_multicore/ChDataManager.h"
 #include "chrono_multicore/physics/Ch3DOFContainer.h"
 
-
-
 using namespace chrono;
 
 ChMulticoreDataManager::ChMulticoreDataManager()
@@ -44,8 +42,7 @@ ChMulticoreDataManager::ChMulticoreDataManager()
     node_container->data_manager = this;
 }
 
-ChMulticoreDataManager::~ChMulticoreDataManager() {
-}
+ChMulticoreDataManager::~ChMulticoreDataManager() {}
 
 int ChMulticoreDataManager::OutputBlazeVector(DynamicVector<real> src, std::string filename) {
     std::ofstream stream(filename);

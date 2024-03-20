@@ -21,7 +21,7 @@
 #include "chrono_irrlicht/ChIrrTools.h"
 
 #ifdef CHRONO_POSTPROCESS
-#include "chrono_postprocess/ChBlender.h"
+    #include "chrono_postprocess/ChBlender.h"
 #endif
 
 namespace chrono {
@@ -53,7 +53,7 @@ class ChApiIrr ChIrrGUI {
     /// Perform operations before closing the Irrlicht scene for the current frame.
     void EndScene();
 
- #ifdef CHRONO_POSTPROCESS
+#ifdef CHRONO_POSTPROCESS
 
     /// If set to true, each frame of the animation will be saved on the disk
     /// as a sequence of scripts to be rendered via Blender. Only if solution build with ENABLE_MODULE_POSTPROCESS.

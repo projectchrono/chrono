@@ -73,7 +73,7 @@ void ChSolverMatlab::ArchiveOut(ChArchiveOut& archive_out) {
 
 void ChSolverMatlab::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/ archive_in.VersionRead<ChSolverMatlab>();
+    /*int version =*/archive_in.VersionRead<ChSolverMatlab>();
     // deserialize parent class
     ChSolver::ArchiveIn(archive_in);
     // stream in all member data:

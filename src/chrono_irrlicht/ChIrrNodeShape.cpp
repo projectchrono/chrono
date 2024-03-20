@@ -147,10 +147,10 @@ void ChIrrNodeShape::UpdateTriangleMesh_col(std::shared_ptr<ChVisualShapeTriangl
     irr_vertices.set_used(nvertexes);
 
     // Set the Irrlicht vertex and index buffers for the mesh buffer
-    ChVector3d t[3];    // positions of trianlge vertices
-    ChVector3d n[3];    // normals at the triangle vertices
+    ChVector3d t[3];   // positions of trianlge vertices
+    ChVector3d n[3];   // normals at the triangle vertices
     ChVector2d uv[3];  // UV coordinates at the triangle vertices
-    ChColor col[3];     // color coordinates at the triangle vertices
+    ChColor col[3];    // color coordinates at the triangle vertices
 
     auto default_color = trianglemesh->GetColor();
 
@@ -270,8 +270,8 @@ void ChIrrNodeShape::UpdateTriangleMesh_mat(std::shared_ptr<ChVisualShapeTriangl
         core::map<video::S3DVertex, int> vertex_map;
 
         // Set the Irrlicht vertex and index buffers for this mesh buffer
-        ChVector3d t[3];    // positions of trianlge vertices
-        ChVector3d n[3];    // normals at the triangle vertices
+        ChVector3d t[3];   // positions of trianlge vertices
+        ChVector3d n[3];   // normals at the triangle vertices
         ChVector2d uv[3];  // UV coordinates at the triangle vertices
         unsigned int num_added_tri = 0;
         for (unsigned int itri = 0; itri < ntriangles_all; itri++) {
@@ -665,8 +665,8 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface
     scene::CDynamicMeshBuffer* irrmesh = (scene::CDynamicMeshBuffer*)amesh->getMeshBuffer(0);
 
     if (!surface->IsWireframe()) {
-        auto sections_u = surface->GetResolutionU() * 4;  //// TEST 
-        auto sections_v = surface->GetResolutionV() * 4;  //// TEST 
+        auto sections_u = surface->GetResolutionU() * 4;  //// TEST
+        auto sections_v = surface->GetResolutionV() * 4;  //// TEST
         auto nvertexes = (sections_u + 1) * (sections_v + 1);
         auto ntriangles = (sections_u) * (sections_v)*2;
 
@@ -722,8 +722,8 @@ void ChIrrNodeShape::UpdateSurface(std::shared_ptr<ChVisualShapeSurface> surface
         meshnode->setMaterialFlag(video::EMF_BACK_FACE_CULLING, false);
         meshnode->setMaterialFlag(video::EMF_COLOR_MATERIAL, true);
     } else {                  // if wirewrame u v isolines
-        auto isolines_u = 4;  //// TEST 
-        auto isolines_v = 3;  //// TEST 
+        auto isolines_u = 4;  //// TEST
+        auto isolines_v = 3;  //// TEST
         auto sections_u = surface->GetResolutionU() * isolines_u;
         auto sections_v = surface->GetResolutionV() * isolines_v;
 

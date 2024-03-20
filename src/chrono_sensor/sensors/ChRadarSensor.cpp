@@ -35,7 +35,7 @@ CH_SENSOR_API ChRadarSensor::ChRadarSensor(std::shared_ptr<chrono::ChBody> paren
       m_max_distance(max_distance),
       m_clip_near(clip_near),
       ChOptixSensor(parent, updateRate, offsetPose, w, h) {
-      m_pipeline_type = PipelineType::RADAR;
+    m_pipeline_type = PipelineType::RADAR;
 
     SetCollectionWindow(0);
     SetLag(1 / updateRate);

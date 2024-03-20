@@ -60,20 +60,14 @@ class CH_SENSOR_API ChOptixGeometry {
     /// @param asset_frame the Chrono frame that specifies how the asset is attached to the body
     /// @param scale the scale of the sphere
     /// @param mat_id the material id associated with the sphere
-    void AddSphere(std::shared_ptr<ChBody> body,
-                   ChFrame<double> asset_frame,
-                   ChVector3d scale,
-                   unsigned int mat_id);
+    void AddSphere(std::shared_ptr<ChBody> body, ChFrame<double> asset_frame, ChVector3d scale, unsigned int mat_id);
 
     /// Add a cylinder geometry to the optix scene
     /// @param body the Chrono Body that drives the cylinder
     /// @param asset_frame the Chrono frame that specifies how the asset is attached to the body
     /// @param scale the scale of the cylinder
     /// @param mat_id the material id associated with the cylinder
-    void AddCylinder(std::shared_ptr<ChBody> body,
-                     ChFrame<double> asset_frame,
-                     ChVector3d scale,
-                     unsigned int mat_id);
+    void AddCylinder(std::shared_ptr<ChBody> body, ChFrame<double> asset_frame, ChVector3d scale, unsigned int mat_id);
 
     /// Add a rigid mesh to the optix scene
     /// @param d_vertices a device pointer to the vertices of the mesh
@@ -161,20 +155,14 @@ class CH_SENSOR_API ChOptixGeometry {
     /// @param[in] a the rotation matrix
     /// @param[in] b the translation vector
     /// @param[out] t a pointer to where the inverse transform matrix should be placed
-    static void GetT3x4FromSRT(const ChVector3d& s,
-                               const ChMatrix33<double>& a,
-                               const ChVector3d& b,
-                               float* t);
+    static void GetT3x4FromSRT(const ChVector3d& s, const ChMatrix33<double>& a, const ChVector3d& b, float* t);
 
     /// Function to convert scale, rotation, translation to top 3 rows of inverse transform matrix
     /// @param[in] s the scale vector
     /// @param[in] a the rotation matrix
     /// @param[in] b the translation vector
     /// @param[out] t a pointer to where the inverse transform matrix should be placed
-    static void GetInvT3x4FromSRT(const ChVector3d& s,
-                                  const ChMatrix33<double>& a,
-                                  const ChVector3d& b,
-                                  float* t);
+    static void GetInvT3x4FromSRT(const ChVector3d& s, const ChMatrix33<double>& a, const ChVector3d& b, float* t);
 
     OptixDeviceContext m_context;  ///< handle to the device context -> we do not own, so will not clean up
 

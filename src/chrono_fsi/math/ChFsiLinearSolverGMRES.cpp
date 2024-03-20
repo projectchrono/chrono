@@ -75,7 +75,7 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
                                    Real* x,
                                    Real* b) {
 #ifndef CUDART_VERSION
-#error CUDART_VERSION Undefined!
+    #error CUDART_VERSION Undefined!
 #elif (CUDART_VERSION == 11000)
 
     restart = 10;
@@ -84,11 +84,11 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
     cusparseDnVecDescr_t vecX, vecW, vecV0;
     cusparseSpMatDescr_t descrA;
     size_t bufferSize = 0;
-    void *bufferX = NULL;
-    void *bufferW = NULL;
-    const cusparseOperation_t trans_A  = CUSPARSE_OPERATION_NON_TRANSPOSE;
-    cusparseCreateCsr(&descrA, SIZE, SIZE, NNZ, (int*)ArowIdx, (int*)AcolIdx, A,
-                      CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I, CUSPARSE_INDEX_BASE_ZERO, CUDA_R_64F);
+    void* bufferX = NULL;
+    void* bufferW = NULL;
+    const cusparseOperation_t trans_A = CUSPARSE_OPERATION_NON_TRANSPOSE;
+    cusparseCreateCsr(&descrA, SIZE, SIZE, NNZ, (int*)ArowIdx, (int*)AcolIdx, A, CUSPARSE_INDEX_32I, CUSPARSE_INDEX_32I,
+                      CUSPARSE_INDEX_BASE_ZERO, CUDA_R_64F);
 
     Real *w, *v0, *V, *sDev, *H, *s, *cs, *sn;
 
@@ -115,7 +115,7 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
     memset(H, 0, sizeof(Real) * (restart + 1) * restart);
     memset(s, 0, sizeof(Real) * (restart + 1));
     memset(cs, 0, sizeof(Real) * restart);
-    memset(sn,0, sizeof(Real) * restart);
+    memset(sn, 0, sizeof(Real) * restart);
 
     cudaDeviceSynchronize();
 
@@ -143,14 +143,14 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
         // w = A * x
         cusparseCreateDnVec(&vecX, SIZE, x, CUDA_R_64F);
         cusparseCreateDnVec(&vecW, SIZE, w, CUDA_R_64F);
-        cusparseStatus = cusparseSpMV_bufferSize(cusparseHandle, trans_A, &one, descrA, vecX, &zero, vecW,
-                     CUDA_R_64F, CUSPARSE_MV_ALG_DEFAULT, &bufferSize);
+        cusparseStatus = cusparseSpMV_bufferSize(cusparseHandle, trans_A, &one, descrA, vecX, &zero, vecW, CUDA_R_64F,
+                                                 CUSPARSE_MV_ALG_DEFAULT, &bufferSize);
         cudaMalloc((void**)&bufferX, bufferSize);
-        cusparseStatus = cusparseSpMV(cusparseHandle, trans_A, &one, descrA, vecX, &zero, vecW, 
-                     CUDA_R_64F, CUSPARSE_MV_ALG_DEFAULT, bufferX);
+        cusparseStatus = cusparseSpMV(cusparseHandle, trans_A, &one, descrA, vecX, &zero, vecW, CUDA_R_64F,
+                                      CUSPARSE_MV_ALG_DEFAULT, bufferX);
 
         cublasDaxpy(cublasHandle, SIZE, &mone, b, 1, w, 1);  // w=w-b
-        cublasDnrm2(cublasHandle, SIZE, w, 1, &beta);  // beta=norm(w,2)
+        cublasDnrm2(cublasHandle, SIZE, w, 1, &beta);        // beta=norm(w,2)
         nrmr = beta;
         if (Iterations == 0)
             nrmr0 = beta;
@@ -167,10 +167,10 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
             // v0=A*w
             cusparseCreateDnVec(&vecV0, SIZE, v0, CUDA_R_64F);
             cusparseStatus = cusparseSpMV_bufferSize(cusparseHandle, trans_A, &one, descrA, vecW, &zero, vecV0,
-                     CUDA_R_64F, CUSPARSE_MV_ALG_DEFAULT, &bufferSize);
+                                                     CUDA_R_64F, CUSPARSE_MV_ALG_DEFAULT, &bufferSize);
             cudaMalloc((void**)&bufferW, bufferSize);
-            cusparseStatus = cusparseSpMV(cusparseHandle, trans_A, &one, descrA, vecW, &zero, vecV0, 
-                     CUDA_R_64F, CUSPARSE_MV_ALG_DEFAULT, bufferW);
+            cusparseStatus = cusparseSpMV(cusparseHandle, trans_A, &one, descrA, vecW, &zero, vecV0, CUDA_R_64F,
+                                          CUSPARSE_MV_ALG_DEFAULT, bufferW);
 
             cudaMemcpy(w, v0, SIZE * sizeof(Real), cudaMemcpyDeviceToDevice);
             cublasDnrm2(cublasHandle, SIZE, w, 1, &temp);
@@ -244,8 +244,8 @@ void ChFsiLinearSolverGMRES::Solve(int SIZE,
         residual = nrmr;
     }
 
-    //cusparseDestroySolveAnalysisInfo(info_l);
-    //cusparseDestroySolveAnalysisInfo(info_u);
+    // cusparseDestroySolveAnalysisInfo(info_l);
+    // cusparseDestroySolveAnalysisInfo(info_u);
     cudaFree(w);
     cudaFree(v0);
     cudaFree(V);

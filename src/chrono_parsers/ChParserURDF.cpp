@@ -39,7 +39,6 @@
 
 #include "chrono_thirdparty/filesystem/path.h"
 
-
 namespace chrono {
 namespace parsers {
 
@@ -349,7 +348,8 @@ void ChParserURDF::attachCollision(std::shared_ptr<ChBody> body,
                         trimesh = ChTriangleMeshConnected::CreateFromSTLFile(mesh_filename, true);
 
                     if (!trimesh) {
-                        cout << "Warning: Unsupported format for collision mesh file <" << mesh_filename << ">." << endl;
+                        cout << "Warning: Unsupported format for collision mesh file <" << mesh_filename << ">."
+                             << endl;
                         cout << "Warning: No collision shape was generated for body <" << link_name << ">.\n" << endl;
                         break;
                     }

@@ -55,7 +55,6 @@ CH_SENSOR_API void ChFilterGPSUpdate::Apply() {
     m_bufferOut->Buffer[0].Time = ch_time;
     m_bufferOut->LaunchedCount = m_GPSSensor->GetNumLaunches();
     m_bufferOut->TimeStamp = last_ch_time;
-
 }
 
 CH_SENSOR_API void ChFilterGPSUpdate::Initialize(std::shared_ptr<ChSensor> pSensor,

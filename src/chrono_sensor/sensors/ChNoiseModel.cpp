@@ -19,8 +19,7 @@
 namespace chrono {
 namespace sensor {
 
-ChNoiseNormal::ChNoiseNormal(ChVector3d mean, ChVector3d stdev)
-    : m_mean(mean), m_stdev(stdev), ChNoiseModel() {
+ChNoiseNormal::ChNoiseNormal(ChVector3d mean, ChVector3d stdev) : m_mean(mean), m_stdev(stdev), ChNoiseModel() {
     m_generator =
         std::minstd_rand((unsigned int)(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
 }

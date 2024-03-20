@@ -284,4 +284,4 @@ void BuildRigidFluidBoundary(const real contact_mu,
 
 /// @} multicore_constraint
 
-} // end namespace chrono
+}  // end namespace chrono

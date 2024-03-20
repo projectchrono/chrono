@@ -31,10 +31,10 @@
 #include "chrono_synchrono/agent/SynAgent.h"
 
 #ifdef CHRONO_SENSOR
-#include "chrono_sensor/sensors/ChGPSSensor.h"
+    #include "chrono_sensor/sensors/ChGPSSensor.h"
 #else
-#define EARTH_RADIUS 6371000.0  // [meters]
-#endif                          // SENSOR
+    #define EARTH_RADIUS 6371000.0  // [meters]
+#endif                              // SENSOR
 
 namespace chrono {
 namespace synchrono {

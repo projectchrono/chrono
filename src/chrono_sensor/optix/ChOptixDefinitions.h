@@ -77,7 +77,7 @@ struct MissParameters {
 };
 
 /// Inverse lens param for modeling polynomial forward model
-struct LensParams{
+struct LensParams {
     float a0;
     float a1;
     float a2;
@@ -93,7 +93,7 @@ struct LensParams{
 struct CameraParameters {
     float hFOV;                        ///< horizontal field of view
     CameraLensModelType lens_model;    ///< lens model to use
-    LensParams lens_parameters;            ///< lens fitting parameters (if applicable)
+    LensParams lens_parameters;        ///< lens fitting parameters (if applicable)
     unsigned int super_sample_factor;  ///< number of samples per pixel in each dimension
     float gamma;                       ///< camera's gamma value
     bool use_gi;                       ///< whether to use global illumination
@@ -109,7 +109,7 @@ struct CameraParameters {
 struct SemanticCameraParameters {
     float hFOV;                      ///< horizontal field of view
     CameraLensModelType lens_model;  ///< lens model to use
-    LensParams lens_parameters;          ///< lens fitting parameters (if applicable)
+    LensParams lens_parameters;      ///< lens fitting parameters (if applicable)
     ushort2* frame_buffer;           ///< buffer of class and instance ids
     curandState_t* rng_buffer;       ///< only initialized if using global illumination
 };

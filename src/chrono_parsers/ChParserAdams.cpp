@@ -357,7 +357,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
         }
         // set up information cached from adams
         newBody->SetFrameRefToAbs(ChFrame<>(ChVector3d(part.loc[0], part.loc[1], part.loc[2]),
-                                               Q_from_313_angles(part.rot[0], part.rot[1], part.rot[2])));
+                                            Q_from_313_angles(part.rot[0], part.rot[1], part.rot[2])));
         // newBody->SetRot(Q_from_313_angles(part.rot[0], part.rot[1], part.rot[2]));
         // std::cout << "Inertia is " << part.inertia[0] << "," << part.inertia[1] << "," << part.inertia[2] << ","
         // << part.inertia[3] << "," << part.inertia[4] << "," << part.inertia[5] <<std::endl;
@@ -397,8 +397,8 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
         // Convert to aux frame instead of COG frame
         ChCoordsys<> markerCoord = (parentFrame * ChFrame<>(loc, rot)).GetCoordsys();
         // Make new marker attached to body, without any initial motion
-        auto ch_marker = chrono_types::make_shared<ChMarker>(marker_pair.first, parentBody.get(), markerCoord, ChCoordsys<>(),
-                                                    ChCoordsys<>());
+        auto ch_marker = chrono_types::make_shared<ChMarker>(marker_pair.first, parentBody.get(), markerCoord,
+                                                             ChCoordsys<>(), ChCoordsys<>());
         parentBody->AddMarker(ch_marker);
         // std::cout << "marker " << marker_pair.first << " is at " << loc.x() << "," << loc.y() << "," << loc.z()
         // <<std::endl;
@@ -469,8 +469,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             // std::cout << "adding revolute joint " << joint_pair.first <<std::endl;
             auto ch_joint = chrono_types::make_shared<ChLinkUniversal>();
             ch_joint->Initialize(sys.SearchBody(body_I->GetName()), sys.SearchBody(body_J->GetName()), true,
-                                 body_I->GetFrameRefToAbs() * (*marker_I),
-                                 body_J->GetFrameRefToAbs() * (*marker_J));
+                                 body_I->GetFrameRefToAbs() * (*marker_I), body_J->GetFrameRefToAbs() * (*marker_J));
             new_joint = ch_joint;
         } else if (joint.type == std::string("TRANSLATIONAL")) {
             // Make spherical
@@ -483,8 +482,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             // std::cout << "adding prismatic joint " << joint_pair.first <<std::endl;
             auto ch_joint = chrono_types::make_shared<ChLinkLockPrismatic>();
             ch_joint->Initialize(sys.SearchBody(body_I->GetName()), sys.SearchBody(body_J->GetName()), true,
-                                 body_I->GetFrameRefToAbs() * (*marker_I),
-                                 body_J->GetFrameRefToAbs() * (*marker_J));
+                                 body_I->GetFrameRefToAbs() * (*marker_I), body_J->GetFrameRefToAbs() * (*marker_J));
             new_joint = ch_joint;
         } else if (joint.type == std::string("CYLINDRICAL")) {
             // Make spherical
@@ -497,8 +495,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             // std::cout << "adding cylindrical joint " << joint_pair.first <<std::endl;
             auto ch_joint = chrono_types::make_shared<ChLinkLockCylindrical>();
             ch_joint->Initialize(sys.SearchBody(body_I->GetName()), sys.SearchBody(body_J->GetName()), true,
-                                 body_I->GetFrameRefToAbs() * (*marker_I),
-                                 body_J->GetFrameRefToAbs() * (*marker_J));
+                                 body_I->GetFrameRefToAbs() * (*marker_I), body_J->GetFrameRefToAbs() * (*marker_J));
             new_joint = ch_joint;
         } else if (joint.type == std::string("RACKPIN")) {
             // Make spherical
@@ -576,9 +573,8 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                         // Put ellipsoid at marker, orientation might be wrong
                         // adams says the orientation is marker-specific but I'm guessing Chrono says it's global or
                         // body-specific
-                        auto ell_pos =
-                            (parentBody->GetFrameCOMToRef() * (*cm_marker))
-                                .TransformPointLocalToParent(ChVector3d(0, 0, 0));
+                        auto ell_pos = (parentBody->GetFrameCOMToRef() * (*cm_marker))
+                                           .TransformPointLocalToParent(ChVector3d(0, 0, 0));
                         parentBody->AddVisualShape(ellipsoid, ChFrame<>(ell_pos, QUNIT));
                     } else if (iter->second == std::string("XSCALE") || iter->second == std::string("XS")) {
                         iter++;  // get length
@@ -617,7 +613,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
                         assert(parentBody != nullptr);
                         // Put box at marker
                         auto box_pos = (parentBody->GetFrameCOMToRef() * (*cm_marker))
-                                                        .TransformPointLocalToParent(ChVector3d(0, 0, 0));
+                                           .TransformPointLocalToParent(ChVector3d(0, 0, 0));
 
                         auto box_rot = (parentBody->GetFrameCOMToRef() * (*cm_marker)).GetRotMat();
                         parentBody->AddVisualShape(box, ChFrame<>(box_pos, box_rot));

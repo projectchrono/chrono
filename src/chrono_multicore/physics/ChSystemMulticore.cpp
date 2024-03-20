@@ -206,7 +206,7 @@ bool ChSystemMulticore::AdvanceDynamics() {
 }
 
 // Add the specified body to the system.
-// A unique identifier is assigned to each body for indexing purposes. 
+// A unique identifier is assigned to each body for indexing purposes.
 // Space is allocated in system-wide vectors for data corresponding to the body.
 void ChSystemMulticore::AddBody(std::shared_ptr<ChBody> body) {
     // This is only need because bilaterals need to know what bodies to
@@ -583,7 +583,7 @@ void ChSystemMulticore::Setup() {
                             data_manager->num_fluid_bodies * 3;
 
     // Set variables that are stored in the ChSystem class
-    assembly.m_num_bodies_active = data_manager->num_rigid_bodies; 
+    assembly.m_num_bodies_active = data_manager->num_rigid_bodies;
     assembly.m_num_links_active = 0;
     assembly.m_num_otherphysicsitems_active = 0;
     m_num_coords_pos = 0;
@@ -667,7 +667,6 @@ double ChSystemMulticore::CalculateConstraintViolation(std::vector<double>& cvec
 void ChSystemMulticore::PrintStepStats() {
     data_manager->system_timer.PrintReport();
 }
-
 
 unsigned int ChSystemMulticore::GetNumContacts() {
     if (!data_manager->cd_data)

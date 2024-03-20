@@ -58,7 +58,7 @@ class CH_SENSOR_API ChFilterAccelerometerUpdate : public ChFilter {
   private:
     std::shared_ptr<ChAccelerometerSensor> m_accSensor;
     std::shared_ptr<SensorHostAccelBuffer> m_bufferOut;  ///< For holding generated IMU data
-    std::shared_ptr<ChNoiseModel> m_noise_model;      ///< The noise model for augmenting data
+    std::shared_ptr<ChNoiseModel> m_noise_model;         ///< The noise model for augmenting data
 };
 
 /// Class for generating IMU data
@@ -81,7 +81,7 @@ class CH_SENSOR_API ChFilterGyroscopeUpdate : public ChFilter {
   private:
     std::shared_ptr<ChGyroscopeSensor> m_gyroSensor;
     std::shared_ptr<SensorHostGyroBuffer> m_bufferOut;  ///< For holding generated IMU data
-    std::shared_ptr<ChNoiseModel> m_noise_model;     ///< The noise model for augmenting data
+    std::shared_ptr<ChNoiseModel> m_noise_model;        ///< The noise model for augmenting data
 };
 
 /// Class for generating IMU data
@@ -106,11 +106,11 @@ class CH_SENSOR_API ChFilterMagnetometerUpdate : public ChFilter {
     std::shared_ptr<ChMagnetometerSensor> m_magSensor;
     std::shared_ptr<SensorHostMagnetBuffer> m_bufferOut;  ///< For holding generated IMU data
     std::shared_ptr<ChNoiseModel> m_noise_model;          ///< The noise model for augmenting data
-    ChVector3d m_gps_reference;                     ///< gps reference location
+    ChVector3d m_gps_reference;                           ///< gps reference location
 
     const double theta_0 = 80.65 * CH_DEG_TO_RAD;  // latitude of magnetic pole
     const double phi_0 = -72.68 * CH_DEG_TO_RAD;   // longitude of magnetic pole
-    const double B_0 = 0.305;                        // mean magnetic field at magnetic equator (in Gauss)
+    const double B_0 = 0.305;                      // mean magnetic field at magnetic equator (in Gauss)
 };
 
 /// @}

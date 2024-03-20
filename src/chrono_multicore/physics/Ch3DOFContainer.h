@@ -258,4 +258,4 @@ class CH_MULTICORE_API ChParticleContainer : public Ch3DOFContainer {
 
 /// @} multicore_physics
 
-} // end namespace chrono
+}  // end namespace chrono

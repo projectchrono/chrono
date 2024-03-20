@@ -188,8 +188,8 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     );
 
     /// Set thickness for wireframe mode of meshes.
-    /// If a ChVisualShapeTriangleMesh asset was set as SetWireframe(true), it will be rendered in Blender as a cage of thin
-    /// cylinders. This setting sets how thick the tubes.
+    /// If a ChVisualShapeTriangleMesh asset was set as SetWireframe(true), it will be rendered in Blender as a cage of
+    /// thin cylinders. This setting sets how thick the tubes.
     void SetWireframeThickness(const double wft) { wireframe_thickness = wft; }
     double GetWireframeThickness() const { return wireframe_thickness; }
 
@@ -238,28 +238,22 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     /// Se the rank of this process. This is useful when doing parallel simulations on multiple computing
     /// nodes, each with its own ChBlender exporter, each generating .py files in different directories, and later
     /// you want to load all them in a single Blender project: this is possible tanks to the "Merge" mode
-    /// in the Blender plugin, but there is the risk that identifiers such as "shape_149372748349" may 
-    /// be duplicated in different processes, causing conflicts after loading in Blender. To fix this, 
-    /// for example, you set rank as 1 and 2 on two processes, so the IDs will become shape_1_149372748349 shape_2_149372748349,
-    /// avoiding potential conflicts. Setting to -1 will disable the .._n_... prefix (default)
-    void SetRank(int mrank) {
-        this->rank = mrank;
-    }
+    /// in the Blender plugin, but there is the risk that identifiers such as "shape_149372748349" may
+    /// be duplicated in different processes, causing conflicts after loading in Blender. To fix this,
+    /// for example, you set rank as 1 and 2 on two processes, so the IDs will become shape_1_149372748349
+    /// shape_2_149372748349, avoiding potential conflicts. Setting to -1 will disable the .._n_... prefix (default)
+    void SetRank(int mrank) { this->rank = mrank; }
 
   private:
     void UpdateRenderList();
     void ExportAssets(std::ofstream& assets_file, std::ofstream& state_file);
-    void ExportShapes(std::ofstream& assets_file,
-                      std::ofstream& state_file,
-                      std::shared_ptr<ChPhysicsItem> item);
+    void ExportShapes(std::ofstream& assets_file, std::ofstream& state_file, std::shared_ptr<ChPhysicsItem> item);
     void ExportMaterials(std::ofstream& mfile,
                          std::unordered_map<size_t, std::shared_ptr<ChVisualMaterial>>& m_materials,
                          const std::vector<std::shared_ptr<ChVisualMaterial>>& materials,
                          bool per_frame,
                          std::shared_ptr<ChVisualShape> mshape);
-    void ExportItemState(std::ofstream& state_file,
-                         std::shared_ptr<ChPhysicsItem> item,
-                         const ChFrame<>& parentframe);
+    void ExportItemState(std::ofstream& state_file, std::shared_ptr<ChPhysicsItem> item, const ChFrame<>& parentframe);
 
     const std::string unique_bl_id(size_t mpointer) const;
 

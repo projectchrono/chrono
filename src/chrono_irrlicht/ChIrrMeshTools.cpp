@@ -566,7 +566,6 @@ IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 t
     return mesh;
 }
 
-
 /*
 IMesh* createTruncatedConeMesh(f32 radius_top, f32 radius_low, f32 length, u32 tesselation) {
     irr::video::SColor color(255, 255, 255, 255);
