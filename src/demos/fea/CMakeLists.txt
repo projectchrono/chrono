@@ -51,7 +51,7 @@ set(FEA_DEMOS ${FEA_DEMOS}
     demo_FEA_contactsANCF_SMC
     demo_FEA_hexaANCF_3813_9
     demo_FEA_beamsIGA
-    demo_FEA_beamsANCF_3333
+    demo_FEA_beamsANCF
 )
 endif()
 

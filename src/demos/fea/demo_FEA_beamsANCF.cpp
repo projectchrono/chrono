@@ -21,15 +21,14 @@
 //
 // =============================================================================
 
-#include "chrono/ChConfig.h"
-
 #include "chrono/physics/ChSystemSMC.h"
 
+#include "chrono/fea/ChElementBeamANCF_3243.h"
 #include "chrono/fea/ChElementBeamANCF_3333.h"
 #include "chrono/fea/ChMesh.h"
 #include "chrono/assets/ChVisualShapeFEA.h"
 #include "chrono/physics/ChLoadContainer.h"
-#include "chrono/fea/ChLoadsBeam.h"
+#include "chrono/utils/ChUtils.h"
 
 #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 
@@ -39,9 +38,102 @@ using namespace chrono;
 using namespace chrono::fea;
 using namespace chrono::irrlicht;
 
+std::shared_ptr<ChLoadableU> PopulateMesh_beamANCF_3333(std::shared_ptr<ChMesh> mesh,
+                                                        std::shared_ptr<ChMaterialBeamANCF> material,
+                                                        const ChVector3d& dimensions) {
+    // Extract beam dimensions
+    auto length = dimensions.x();
+    auto thickness = dimensions.y();
+    auto width = dimensions.z();
+
+    // Populate the mesh container with the nodes and elements for the meshed beam
+    int num_elements = 8;
+    int num_nodes = (2 * num_elements) + 1;
+    double dx = length / (num_nodes - 1);
+
+    // Setup beam cross section gradients to initially align with the global y and z directions
+    ChVector3d dir1(0, 1, 0);
+    ChVector3d dir2(0, 0, 1);
+
+    // Create the first node and fix it completely to ground (Cantilever constraint)
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(0, 0, 0.0), dir1, dir2);
+    nodeA->SetFixed(true);
+    mesh->AddNode(nodeA);
+
+    auto last_element = chrono_types::make_shared<ChElementBeamANCF_3333>();
+
+    for (int i = 1; i <= num_elements; i++) {
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(dx * (2 * i), 0, 0), dir1, dir2);
+        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(dx * (2 * i - 1), 0, 0), dir1, dir2);
+        mesh->AddNode(nodeB);
+        mesh->AddNode(nodeC);
+
+        auto element = chrono_types::make_shared<ChElementBeamANCF_3333>();
+        element->SetNodes(nodeA, nodeB, nodeC);
+        element->SetDimensions(2 * dx, thickness, width);
+        element->SetMaterial(material);
+        element->SetAlphaDamp(0.0);
+        mesh->AddElement(element);
+
+        nodeA = nodeB;
+        last_element = element;
+    }
+
+    return last_element;
+}
+
+std::shared_ptr<ChLoadableU> PopulateMesh_beamANCF_3243(std::shared_ptr<ChMesh> mesh,
+                                                        std::shared_ptr<ChMaterialBeamANCF> material,
+                                                        const ChVector3d& dimensions) {
+    // Extract beam dimensions
+    auto length = dimensions.x();
+    auto thickness = dimensions.y();
+    auto width = dimensions.z();
+
+    // Populate the mesh container with the nodes and elements for the meshed beam
+    int num_elements = 8;
+    int num_nodes = num_elements + 1;
+    double dx = length / (num_nodes - 1);
+
+    // Create the first node and fix it completely to ground (Cantilever constraint)
+    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(0, 0, 0.0));
+    nodeA->SetFixed(true);
+    mesh->AddNode(nodeA);
+
+    auto last_element = chrono_types::make_shared<ChElementBeamANCF_3243>();
+
+    for (int i = 1; i <= num_elements; i++) {
+        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDDD>(ChVector3d(dx * i, 0, 0));
+        mesh->AddNode(nodeB);
+
+        auto element = chrono_types::make_shared<ChElementBeamANCF_3243>();
+        element->SetNodes(nodeA, nodeB);
+        element->SetDimensions(dx, thickness, width);
+        element->SetMaterial(material);
+        element->SetAlphaDamp(0.0);
+        mesh->AddElement(element);
+
+        nodeA = nodeB;
+        last_element = element;
+    }
+
+    return last_element;
+}
 int main(int argc, char* argv[]) {
     std::cout << "Copyright (c) 2017 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl;
 
+    // Select element type
+    std::cout << "Options:" << std::endl;
+    std::cout << "1  : ElementBeamANCF_3243" << std::endl;
+    std::cout << "2  : ElementBeamANCF_3333" << std::endl;
+    std::cout << "\nSelect option (1 or 2): ";
+
+    int element_type = 1;
+    std::cin >> element_type;
+    std::cout << std::endl;
+    ChClampValue(element_type, 1, 2);
+
+    // Create containing system
     ChSystemSMC sys;
     sys.SetGravitationalAcceleration(ChVector3d(0, 0, -9.8));
 
@@ -78,40 +170,20 @@ int main(int argc, char* argv[]) {
     auto mesh = chrono_types::make_shared<ChMesh>();
     sys.Add(mesh);
 
-    // Populate the mesh container with a the nodes and elements for the meshed beam
-    int num_elements = 8;
-    int num_nodes = (2 * num_elements) + 1;
-    double dx = length / (num_nodes - 1);
+    // Populate mesh with beam elements of specified type
+    std::shared_ptr<ChLoadableU> last_element;
+    std::string element_name;
 
-    // Setup beam cross section gradients to initially align with the global y and z directions
-    ChVector3d dir1(0, 1, 0);
-    ChVector3d dir2(0, 0, 1);
-
-    // Create the first node and fix it completely to ground (Cantilever constraint)
-    auto nodeA = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(0, 0, 0.0), dir1, dir2);
-    nodeA->SetFixed(true);
-    mesh->AddNode(nodeA);
-
-    auto last_element = chrono_types::make_shared<ChElementBeamANCF_3333>();
-
-    for (int i = 1; i <= num_elements; i++) {
-        auto nodeB = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(dx * (2 * i), 0, 0), dir1, dir2);
-        auto nodeC = chrono_types::make_shared<ChNodeFEAxyzDD>(ChVector3d(dx * (2 * i - 1), 0, 0), dir1, dir2);
-        mesh->AddNode(nodeB);
-        mesh->AddNode(nodeC);
-
-        auto element = chrono_types::make_shared<ChElementBeamANCF_3333>();
-        element->SetNodes(nodeA, nodeB, nodeC);
-        element->SetDimensions(2 * dx, thickness, width);
-        element->SetMaterial(material);
-        element->SetAlphaDamp(0.0);
-        mesh->AddElement(element);
-
-        nodeA = nodeB;
-        last_element = element;
+    switch (element_type) {
+        case 1:
+            element_name = "ANCF_3243";
+            last_element = PopulateMesh_beamANCF_3243(mesh, material, ChVector3d(length, thickness, width));
+            break;
+        case 2:
+            element_name = "ANCF_3333";
+            last_element = PopulateMesh_beamANCF_3333(mesh, material, ChVector3d(length, thickness, width));
+            break;
     }
-
-    auto end_point = nodeA;
 
     mesh->SetAutomaticGravity(false);
 
@@ -171,7 +243,7 @@ int main(int argc, char* argv[]) {
     // Create the Irrlicht visualization system
     auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
     vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("ANCF beam");
+    vis->SetWindowTitle("ANCF beam " + element_name);
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
@@ -181,8 +253,6 @@ int main(int argc, char* argv[]) {
 
     // Simulation loop
     while (vis->Run()) {
-        // std::cout << "t (s): " << sys.GetChTime() << "  Tip (m): " << end_point->GetPos() << std::endl;
-
         vis->BeginScene();
         vis->Render();
         irrlicht::tools::drawSegment(vis.get(), ChVector3d(0), ChVector3d(1, 0, 0), ChColor(1, 0, 0));
