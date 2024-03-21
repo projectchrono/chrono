@@ -168,6 +168,7 @@ int main(int argc, char* argv[]) {
 
     // Create mesh container
     auto mesh = chrono_types::make_shared<ChMesh>();
+    mesh->SetAutomaticGravity(false);
     sys.Add(mesh);
 
     // Populate mesh with beam elements of specified type
@@ -184,8 +185,6 @@ int main(int argc, char* argv[]) {
             last_element = PopulateMesh_beamANCF_3333(mesh, material, ChVector3d(length, thickness, width));
             break;
     }
-
-    mesh->SetAutomaticGravity(false);
 
     // Define a custom point load with a time-dependent force
     class MyLoaderTimeDependentTipLoad : public ChLoaderUatomic {

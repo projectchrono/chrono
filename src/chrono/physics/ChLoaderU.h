@@ -17,8 +17,7 @@
 
 namespace chrono {
 
-/// Class of loaders for ChLoadableU objects (which support line loads).
-
+/// Loaders for ChLoadableU objects (which support line loads).
 class ChLoaderU : public ChLoader {
   public:
     typedef ChLoadableU type_loadable;
@@ -41,9 +40,8 @@ class ChLoaderU : public ChLoader {
     std::shared_ptr<ChLoadableU> GetLoadableU() { return loadable; }
 };
 
-/// Class of loaders for ChLoadableU objects (which support line loads), for loads of distributed type,
-/// so these loads will undergo Gauss quadrature to integrate them in the surface.
-
+/// Loaders for ChLoadableU objects (which support line loads), for loads of distributed type.
+/// These loads will undergo Gauss quadrature to integrate them on the line.
 class ChLoaderUdistributed : public ChLoaderU {
   public:
     ChLoaderUdistributed(std::shared_ptr<ChLoadableU> mloadable) : ChLoaderU(mloadable) {}
@@ -80,14 +78,13 @@ class ChLoaderUdistributed : public ChLoaderU {
     }
 };
 
-/// Class of loaders for ChLoadableU objects (which support line loads) of atomic type,
-/// that is, with a concentrated load in a point Pu.
-
+/// Loaders for ChLoadableU objects (which support line loads), for concentrated loads.
 class ChLoaderUatomic : public ChLoaderU {
   public:
     double Pu;
 
     ChLoaderUatomic(std::shared_ptr<ChLoadableU> mloadable) : ChLoaderU(mloadable), Pu(0) {}
+    virtual ~ChLoaderUatomic() {}
 
     /// Computes Q = N'*F
     virtual void ComputeQ(ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate Q

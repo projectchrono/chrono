@@ -17,8 +17,7 @@
 
 namespace chrono {
 
-/// Class of loaders for ChLoadableUVW objects (which support volume loads).
-
+/// Loaders for ChLoadableUVW objects (which support volume loads).
 class ChLoaderUVW : public ChLoader {
   public:
     typedef ChLoadableUVW type_loadable;
@@ -43,9 +42,8 @@ class ChLoaderUVW : public ChLoader {
     std::shared_ptr<ChLoadableUVW> GetLoadableUVW() { return loadable; }
 };
 
-/// Class of loaders for ChLoadableUVW objects (which support volume loads), for loads of distributed type,
-/// so these loads will undergo Gauss quadrature to integrate them in the volume.
-
+/// Loaders for ChLoadableUVW objects (which support volume loads), for loads of distributed type.
+/// These loads will undergo Gauss quadrature to integrate them in the volume.
 class ChLoaderUVWdistributed : public ChLoaderUVW {
   public:
     ChLoaderUVWdistributed(std::shared_ptr<ChLoadableUVW> mloadable) : ChLoaderUVW(mloadable) {}
@@ -152,9 +150,7 @@ class ChLoaderUVWdistributed : public ChLoaderUVW {
     }
 };
 
-/// Class of loaders for ChLoadableUVW objects (which support volume loads) of atomic type,
-/// that is, with a concentrated load in a point Pu,Pv,Pz.
-
+/// Loaders for ChLoadableUVW objects (which support volume loads), for concentrated loads.
 class ChLoaderUVWatomic : public ChLoaderUVW {
   public:
     double Pu;
@@ -194,13 +190,8 @@ class ChLoaderUVWatomic : public ChLoaderUVW {
 //
 // Some ready-to use basic loaders
 
-/// A very usual type of volume loader: the constant gravitational load on Y
-
+/// Commonly used volume loader: constant gravitational load.
 class ChLoaderGravity : public ChLoaderUVWdistributed {
-  private:
-    ChVector3d G_acc;
-    int num_int_points;
-
   public:
     ChLoaderGravity(std::shared_ptr<ChLoadableUVW> mloadable)
         : ChLoaderUVWdistributed(mloadable), G_acc(0, -9.8, 0), num_int_points(1){};
@@ -231,6 +222,10 @@ class ChLoaderGravity : public ChLoaderUVWdistributed {
     virtual int GetIntegrationPointsU() override { return num_int_points; }
     virtual int GetIntegrationPointsV() override { return num_int_points; }
     virtual int GetIntegrationPointsW() override { return num_int_points; }
+
+  private:
+    ChVector3d G_acc;
+    int num_int_points;
 };
 
 }  // end namespace chrono

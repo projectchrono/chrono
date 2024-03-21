@@ -62,6 +62,7 @@
 #include "chrono/fea/ChElementSpring.h"
 #include "chrono/fea/ChElementBar.h"
 #include "chrono/fea/ChElementBeam.h"
+#include "chrono/fea/ChMaterialBeamANCF.h"
 #include "chrono/fea/ChElementBeamEuler.h"
 #include "chrono/fea/ChElementBeamANCF_3243.h"
 #include "chrono/fea/ChElementBeamANCF_3333.h"
@@ -74,7 +75,6 @@
 #include "chrono/fea/ChElementHexaANCF_3813_9.h"
 #include "chrono/fea/ChElementShell.h"
 #include "chrono/fea/ChMaterialShellReissner.h"
-#include "chrono/fea/ChMaterialBeamANCF.h"
 #include "chrono/fea/ChMaterialShellANCF.h"
 #include "chrono/fea/ChMaterialShellKirchhoff.h"
 #include "chrono/fea/ChElementShellReissner4.h"
@@ -149,7 +149,7 @@ using namespace chrono::fea;
 %template(vector_ChElementBeamEuler)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamEuler> >;
 %template(vector_ChElementBeamIGA)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamIGA> >;
 %template(vector_ChElementCableANCF)    std::vector< std::shared_ptr<chrono::fea::ChElementCableANCF> >;
-%template(vector_ChElementBeamANCF_3333)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamANCF_3243> >;
+%template(vector_ChElementBeamANCF_3243)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamANCF_3243> >;
 %template(vector_ChElementBeamANCF_3333)    std::vector< std::shared_ptr<chrono::fea::ChElementBeamANCF_3333> >;
 
 //
@@ -412,6 +412,7 @@ using namespace chrono::fea;
 %include "../../../chrono/fea/ChBeamSectionCosserat.h"
 %include "../../../chrono/fea/ChBeamSectionEuler.h"
 %include "../../../chrono/fea/ChBeamSectionCable.h"
+%include "../../../chrono/fea/ChMaterialBeamANCF.h"
 %include "../../../chrono/fea/ChElementBeam.h"
 %include "../../../chrono/fea/ChElementBeamEuler.h"
 %include "../../../chrono/fea/ChElementBeamANCF_3243.h"
@@ -428,7 +429,6 @@ using namespace chrono::fea;
 %include "../../../chrono/fea/ChElementHexaCorot_20.h"
 %include "../../../chrono/fea/ChElementHexaANCF_3813.h"
 %include "../../../chrono/fea/ChElementHexaANCF_3813_9.h"
-%include "../../../chrono/fea/ChMaterialBeamANCF.h"
 %include "../../../chrono/fea/ChMaterialShellANCF.h"
 // TODO: if eigen::ref can be wrapped, unignore these,
 %ignore chrono::fea::ChElasticityReissner::ComputeStiffnessMatrix;

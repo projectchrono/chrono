@@ -17,8 +17,7 @@
 
 namespace chrono {
 
-/// Class of loaders for ChLoadableUV objects (which support surface loads).
-
+/// Loaders for ChLoadableUV objects (which support surface loads).
 class ChLoaderUV : public ChLoader {
   public:
     typedef ChLoadableUV type_loadable;
@@ -42,9 +41,8 @@ class ChLoaderUV : public ChLoader {
     std::shared_ptr<ChLoadableUV> GetLoadableUV() { return loadable; }
 };
 
-/// Class of loaders for ChLoadableUV objects (which support surface loads), for loads of distributed type,
-/// so these loads will undergo Gauss quadrature to integrate them in the surface.
-
+/// Loaders for ChLoadableUV objects (which support surface loads), for loads of distributed type.
+/// These loads will undergo Gauss quadrature to integrate them on the surface.
 class ChLoaderUVdistributed : public ChLoaderUV {
   public:
     ChLoaderUVdistributed(std::shared_ptr<ChLoadableUV> mloadable) : ChLoaderUV(mloadable){};
@@ -112,9 +110,7 @@ class ChLoaderUVdistributed : public ChLoaderUV {
     }
 };
 
-/// Class of loaders for ChLoadableUV objects (which support surface loads) of atomic type,
-/// that is, with a concentrated load in a point Pu,Pv.
-
+/// Loaders for ChLoadableUV objects (which support surface loads), for concentrated loads.
 class ChLoaderUVatomic : public ChLoaderUV {
   public:
     double Pu;
@@ -151,12 +147,8 @@ class ChLoaderUVatomic : public ChLoaderUV {
 //
 // Some ready-to use basic loaders
 
-/// A very simple surface loader: a constant force vector, applied to a point on a u,v surface
-
+/// Simple surface loader: a constant force vector, applied to a point on a u,v surface.
 class ChLoaderForceOnSurface : public ChLoaderUVatomic {
-  private:
-    ChVector3d force;
-
   public:
     ChLoaderForceOnSurface(std::shared_ptr<ChLoadableUV> mloadable) : ChLoaderUVatomic(mloadable) {}
 
@@ -174,17 +166,13 @@ class ChLoaderForceOnSurface : public ChLoaderUVatomic {
     ChVector3d GetForce() { return force; }
 
     virtual bool IsStiff() override { return false; }
+
+  private:
+    ChVector3d force;
 };
 
-/// A very usual type of surface loader: the constant pressure load, a 3D per-area force that is aligned to the surface
-/// normal.
-
+/// Commonly used surface loader: constant pressure load, a 3D per-area force aligned with the surface normal.
 class ChLoaderPressure : public ChLoaderUVdistributed {
-  private:
-    double pressure;
-    bool is_stiff;
-    int num_integration_points;
-
   public:
     ChLoaderPressure(std::shared_ptr<ChLoadableUV> mloadable)
         : ChLoaderUVdistributed(mloadable), is_stiff(false), num_integration_points(1) {}
@@ -208,6 +196,11 @@ class ChLoaderPressure : public ChLoaderUVdistributed {
 
     void SetStiff(bool val) { is_stiff = val; }
     virtual bool IsStiff() override { return is_stiff; }
+
+  private:
+    double pressure;
+    bool is_stiff;
+    int num_integration_points;
 };
 
 }  // end namespace chrono
