@@ -56,22 +56,20 @@ class ChApi ChVariablesNode : public ChVariables {
     virtual void Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const override;
 
     /// Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by
-    /// c_a, and add to 'result'.
+    /// ca, and add to 'result'.
     /// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the
     /// system; the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in
     /// result and vect.
-    virtual void MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const override;
+    virtual void MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double ca) const override;
 
-    /// Add the diagonal of the mass matrix scaled by c_a, to 'result'.
+    /// Add the diagonal of the mass matrix scaled by ca, to 'result'.
     /// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
     /// constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
-    virtual void DiagonalAdd(ChVectorRef result, const double c_a) const override;
+    virtual void DiagonalAdd(ChVectorRef result, const double ca) const override;
 
-    /// Build the mass matrix (for these variables) scaled by c_a, storing
-    /// it in 'storage' sparse matrix, at given column/row offset.
-    /// Note, most iterative solvers don't need to know mass matrix explicitly.
-    /// Optimized: doesn't fill unneeded elements except mass.
-    virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) override;
+    /// Write the mass submatrix for these variables into the specified global matrix at the offsets of each variable.
+    /// The masses must be scaled by the given factor 'ca').
+    virtual void PasteMassInto(ChSparseMatrix& storage, int insrow, int inscol, const double ca) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

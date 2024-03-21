@@ -30,7 +30,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
 
     // If stiffness blocks are used, the Schur complement cannot be esily
     // used, so fall back to the Solve_SupportingStiffness method, that operates on KKT.
-    if (sysd.GetKblocks().size() > 0)
+    if (sysd.GetKRMBlocks().size() > 0)
         return this->Solve_SupportingStiffness(sysd);
 
     // Allocate auxiliary vectors;

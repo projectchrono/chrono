@@ -66,7 +66,7 @@ class ChApi ChKRMBlock {
     void DiagonalAdd(ChVectorRef result);
 
     /// Write the KRM matrix into the specified global matrix at the offsets of the referenced ChVariable objects.
-    /// Assmebling the system-level sparse matrix is required only if using a direct sparse solver or for
+    /// Assembling the system-level sparse matrix is required only if using a direct sparse solver or for
     /// debugging/reporting purposes.
     void PasteInto(ChSparseMatrix& storage, bool add);
 

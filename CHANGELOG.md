@@ -1282,6 +1282,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | getTriangle                   | rename: GetTriangle                              |
 | ChTriangleOfXYZnodes              |                               | rename: ChTriangleNodesXYZ                       |
 | ChTriangleOfXYZROTnodes           |                               | rename: ChTriangleNodesXYZrot                    |
+| ChVariables                       |                               |                                                  |
+|                                   | Build_M                       | rename: PasteMassInto                            |
 | ChVector                          |                               |                                                  |
 |                                   | DirToDxDyDz                   | rename: GetDirectionAxesAsX                      |
 | ChVolume                          |                               |                                                  |

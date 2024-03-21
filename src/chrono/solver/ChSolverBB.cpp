@@ -25,7 +25,7 @@ double ChSolverBB::Solve(ChSystemDescriptor& sysd) {
     std::vector<ChConstraint*>& mconstraints = sysd.GetConstraints();
     std::vector<ChVariables*>& mvariables = sysd.GetVariables();
 
-    if (sysd.GetKblocks().size() > 0) {
+    if (sysd.GetKRMBlocks().size() > 0) {
         std::cerr << "\n\nChSolverBB: Can NOT use Barzilai-Borwein solver if there are stiffness matrices."
                   << std::endl;
         throw std::runtime_error("ChSolverBB: Do NOT use Barzilai-Borwein solver if there are stiffness matrices.");

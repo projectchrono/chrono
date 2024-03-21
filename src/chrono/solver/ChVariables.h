@@ -99,28 +99,28 @@ class ChApi ChVariables {
     /// Computes the product of the mass matrix by a vector, and increment result: result = [Mb]*vect
     virtual void Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const = 0;
 
-    /// Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by
-    /// c_a, and add to 'result'.
+    /// Compute the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by
+    /// ca, and add to 'result'.
     /// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the
     /// system; the procedure will use the ChVariable offset (that must be already updated) to know the indexes in
     /// result and vect.
-    virtual void MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const = 0;
+    virtual void MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double ca) const = 0;
 
-    /// Add the diagonal of the mass matrix scaled by c_a, to 'result', as a vector.
+    /// Add the diagonal of the mass matrix scaled by ca, to 'result', as a vector.
     /// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
     /// constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
-    virtual void DiagonalAdd(ChVectorRef result, const double c_a) const = 0;
+    virtual void DiagonalAdd(ChVectorRef result, const double ca) const = 0;
 
-    /// Build the mass submatrix (for these variables) multiplied by c_a, storing
-    /// it in 'storage' sparse matrix, at given column/row offset.
-    /// Most iterative solvers don't need to know this matrix explicitly.
-    /// *** This function MUST BE OVERRIDDEN by specialized
-    /// inherited classes
-    virtual void Build_M(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) = 0;
+    /// Write the mass submatrix for these variables into the specified global matrix at the offsets of each variable.
+    /// The masses must be scaled by the given factor 'ca').
+    /// Assembling the system-level sparse matrix is required only if using a direct sparse solver or for
+    /// debugging/reporting purposes.
+    virtual void PasteMassInto(ChSparseMatrix& storage, int insrow, int inscol, const double ca) = 0;
 
-    /// Set offset in global q vector (set automatically by ChSystemDescriptor)
+    /// Set offset in global q vector (set automatically by ChSystemDescriptor).
     void SetOffset(int moff) { offset = moff; }
-    /// Get offset in global q vector
+
+    /// Get offset in global q vector.
     int GetOffset() const { return offset; }
 
     virtual void ArchiveOut(ChArchiveOut& archive_out);

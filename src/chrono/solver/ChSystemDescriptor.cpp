@@ -150,7 +150,7 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
     for (size_t iv = 0; iv < vv_size; iv++) {
         if (m_variables[iv]->IsActive()) {
             if (H)
-                m_variables[iv]->Build_M(*H, s_q, s_q, c_a);  // .. fills  H  (often H=M , the mass)
+                m_variables[iv]->PasteMassInto(*H, s_q, s_q, c_a);  // .. fills  H  (often H=M , the mass)
             if (Fvector)
                 Fvector->segment(s_q, m_variables[iv]->Get_ndof()) = m_variables[iv]->Get_fb();  // .. fills  'f'
             s_q += m_variables[iv]->Get_ndof();
@@ -216,7 +216,7 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<
         for (size_t iv = 0; iv < vv_size; iv++) {
             if (m_variables[iv]->IsActive()) {
                 // Masses and inertias in upper-left block of Z
-                m_variables[iv]->Build_M(*Z, s_q, s_q, c_a);
+                m_variables[iv]->PasteMassInto(*Z, s_q, s_q, c_a);
                 s_q += m_variables[iv]->Get_ndof();
             }
         }
