@@ -19,7 +19,7 @@
 #include "chrono/solver/ChVariablesBodyOwnMass.h"
 #include "chrono/solver/ChConstraintTwoGeneric.h"
 #include "chrono/solver/ChConstraintTwoBodies.h"
-#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChKRMBlock.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/solver/ChSolverPSOR.h"
 #include "chrono/solver/ChIterativeSolverLS.h"
@@ -347,7 +347,7 @@ void test_3(const std::string& out_dir) {
 
     // Create two C++ objects representing 'stiffness' between variables:
 
-    ChKblockGeneric mKa;
+    ChKRMBlock mKa;
     // set the affected variables (so this K is a 12x12 matrix, relative to 4 6x6 blocks)
     std::vector<ChVariables*> mvarsa;
     mvarsa.push_back(&mvarA);
@@ -355,21 +355,21 @@ void test_3(const std::string& out_dir) {
     mKa.SetVariables(mvarsa);
 
     // just fill K with random values (but symmetric, by making a product of matr*matrtransposed)
-    ChMatrixDynamic<> mtempA = mKa.Get_K();
+    ChMatrixDynamic<> mtempA = mKa.GetMatrix();
     mtempA.fillRandom(-0.3, 0.3);
     ChMatrixDynamic<> mtempB(mtempA);
-    mKa.Get_K() = -mtempA * mtempB;
+    mKa.GetMatrix() = -mtempA * mtempB;
 
     mdescriptor.InsertKblock(&mKa);
 
-    ChKblockGeneric mKb;
+    ChKRMBlock mKb;
     // set the affected variables (so this K is a 12x12 matrix, relative to 4 6x6 blocks)
     std::vector<ChVariables*> mvarsb;
     mvarsb.push_back(&mvarB);
     mvarsb.push_back(&mvarC);
     mKb.SetVariables(mvarsb);
 
-    mKb.Get_K() = mKa.Get_K();
+    mKb.GetMatrix() = mKa.GetMatrix();
 
     mdescriptor.InsertKblock(&mKb);
 

@@ -71,7 +71,7 @@ class ChApi ChLinkMotorRotationAngle : public ChLinkMotorRotation {
     //
     virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
 
-    /// Add the current stiffness K matrix in encapsulated ChKblock item(s), if any.
+    /// Add the current stiffness K matrix in encapsulated ChKRMBlock item(s), if any.
     /// The K matrix is loaded with scaling value Kfactor.
     virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 

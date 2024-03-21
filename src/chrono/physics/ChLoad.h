@@ -20,7 +20,7 @@
 #include "chrono/physics/ChLoaderUV.h"
 #include "chrono/physics/ChLoaderUVW.h"
 #include "chrono/physics/ChObject.h"
-#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChKRMBlock.h"
 #include "chrono/solver/ChSystemDescriptor.h"
 #include "chrono/timestepper/ChState.h"
 
@@ -32,7 +32,7 @@ namespace chrono {
 
 class ChApi ChLoadJacobians {
   public:
-    ChKblockGeneric KRM;        ///< sum of K,R,M, with pointers to sparse variables
+    ChKRMBlock KRM;        ///< sum of K,R,M, with pointers to sparse variables
     ChMatrixDynamic<double> K;  ///< dQ/dx
     ChMatrixDynamic<double> R;  ///< dQ/dv
     ChMatrixDynamic<double> M;  ///< dQ/da
@@ -143,10 +143,10 @@ class ChApi ChLoadBase : public ChObj {
         const double c          ///< a scaling factor
         ) = 0;
 
-    /// Register with the given system descriptor any ChKRMblock objects associated with this item.
+    /// Register with the given system descriptor any ChKRMBlock objects associated with this item.
     virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor);
 
-    /// Compute and load current stiffnes (K), damping (R), and mass (M) matrices in encapsulated ChKRMblock objects.
+    /// Compute and load current stiffnes (K), damping (R), and mass (M) matrices in encapsulated ChKRMBlock objects.
     /// The resulting KRM blocks represent linear combinations of the K, R, and M matrices, with the specified
     /// coefficients Kfactor, Rfactor,and Mfactor, respectively.
     virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor);

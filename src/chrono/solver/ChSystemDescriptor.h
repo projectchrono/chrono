@@ -18,13 +18,13 @@
 #include <vector>
 
 #include "chrono/solver/ChConstraint.h"
-#include "chrono/solver/ChKblock.h"
+#include "chrono/solver/ChKRMBlock.h"
 #include "chrono/solver/ChVariables.h"
 
 namespace chrono {
 
 /// Base class for collecting objects inherited from ChConstraint,
-/// ChVariables and optionally ChKblock. These objects
+/// ChVariables and optionally ChKRMBlock. These objects
 /// can be used to define a sparse representation of the system.
 /// This collector is important because it contains all the required
 /// information that is sent to a solver (usually a VI/CCP solver, or
@@ -55,13 +55,13 @@ namespace chrono {
 /// 3. when using Anitescu default stepper, 'q' represents the 'delta speed',
 /// 4. when using Anitescu default stepper, 'b' represents the dt/phi stabilization term.
 /// 5. usually, H = M, the mass matrix, but in some cases, ex. when using
-///         implicit integrators, objects inherited from ChKblock can be added
-///         too, hence H could be H=a*M+b*K+c*R (but not all solvers handle ChKblock!)
+///         implicit integrators, objects inherited from ChKRMBlock can be added
+///         too, hence H could be H=a*M+b*K+c*R (but not all solvers handle ChKRMBlock!)
 ///
 /// All solvers require that the description of the system
 /// is passed by means of a ChSystemDescriptor object
 /// that holds a list of all the constraints, variables, masses, known terms
-///	(ex.forces) under the form of ChVariables, ChConstraints and ChKblock.
+///	(ex.forces) under the form of ChVariables, ChConstraints and ChKRMBlock.
 ///
 /// In this default implementation, the ChSystemDescriptor
 /// simply holds a vector of pointers to ChVariables
@@ -70,91 +70,70 @@ namespace chrono {
 /// and variables structures with other, more efficient data schemes.
 
 class ChApi ChSystemDescriptor {
-  protected:
-    std::vector<ChConstraint*> vconstraints;  ///< list of pointers to all the ChConstraint in the current Chrono system
-    std::vector<ChVariables*> vvariables;     ///< list of pointers to all the ChVariables in the current Chrono system
-    std::vector<ChKblock*> vstiffness;        ///< list of pointers to all the ChKblock in the current Chrono system
-
-    double c_a;  // coefficient form M mass matrices in vvariables
-
-  private:
-    int n_q;            ///< number of active variables
-    int n_c;            ///< number of active constraints
-    bool freeze_count;  ///< for optimization: avoid to re-count the number of active variables and constraints
-
   public:
-    /// Constructor
     ChSystemDescriptor();
-
-    /// Destructor
     virtual ~ChSystemDescriptor();
 
-    // DATA MANAGEMENT FUNCTIONS
+    /// Access the vector of constraints.
+    std::vector<ChConstraint*>& GetConstraints() { return m_constraints; }
 
-    /// Access the vector of constraints
-    std::vector<ChConstraint*>& GetConstraints() { return vconstraints; }
+    /// Access the vector of variables.
+    std::vector<ChVariables*>& GetVariables() { return m_variables; }
 
-    /// Access the vector of variables
-    std::vector<ChVariables*>& GetVariables() { return vvariables; }
-
-    /// Access the vector of stiffness matrix blocks
-    std::vector<ChKblock*>& GetKblocks() { return vstiffness; }
+    /// Access the vector of KRM matrix blocks.
+    std::vector<ChKRMBlock*>& GetKRMBlocks() { return m_KRMblocks; }
 
     /// Begin insertion of items
     virtual void BeginInsertion() {
-        vconstraints.clear();
-        vvariables.clear();
-        vstiffness.clear();
+        m_constraints.clear();
+        m_variables.clear();
+        m_KRMblocks.clear();
     }
 
-    /// Insert reference to a ChConstraint object
-    virtual void InsertConstraint(ChConstraint* mc) { vconstraints.push_back(mc); }
+    /// Insert reference to a ChConstraint object.
+    virtual void InsertConstraint(ChConstraint* mc) { m_constraints.push_back(mc); }
 
-    /// Insert reference to a ChVariables object
-    virtual void InsertVariables(ChVariables* mv) { vvariables.push_back(mv); }
+    /// Insert reference to a ChVariables object.
+    virtual void InsertVariables(ChVariables* mv) { m_variables.push_back(mv); }
 
-    /// Insert reference to a ChKblock object (a piece of matrix)
-    virtual void InsertKblock(ChKblock* mk) { vstiffness.push_back(mk); }
+    /// Insert reference to a ChKRMBlock object (a piece of matrix).
+    virtual void InsertKblock(ChKRMBlock* mk) { m_KRMblocks.push_back(mk); }
 
     /// End insertion of items.
     /// A derived class should always call UpdateCountsAndOffsets.
     virtual void EndInsertion() { UpdateCountsAndOffsets(); }
 
-    /// Count & returns the scalar variables in the system (excluding ChVariable objects
-    /// that have  IsActive() as false). Note: the number of scalar variables is not necessarily
-    /// the number of inserted ChVariable objects, some could be inactive.
-    /// Note: this function also updates the offsets of all variables
-    /// in 'q' global vector (see GetOffset() in ChVariables).
+    /// Count & returns the scalar variables in the system.
+    /// This excludes ChVariable object that are set as inactive.
+    /// Notes:
+    /// - the number of scalar variables is not necessarily the number of inserted ChVariable objects, some could be
+    /// inactive.
+    /// - also updates the offsets of all variables in 'q' global vector (see GetOffset() in ChVariables).
     virtual int CountActiveVariables();
 
-    /// Count & returns the scalar constraints in the system (excluding ChConstraint objects
-    /// that have  IsActive() as false).
-    /// Note: this function also updates the offsets of all constraints
-    /// in 'l' global vector (see GetOffset() in ChConstraint).
+    /// Count & returns the scalar constraints in the system
+    /// This excludes ChVariable object that are set as inactive.
+    /// Notes:
+    /// - also updates the offsets of all constraints in 'l' global vector (see GetOffset() in ChConstraint).
     virtual int CountActiveConstraints();
 
-    /// Updates counts of scalar variables and scalar constraints,
-    /// if you added/removed some item or if you switched some active state,
-    /// otherwise CountActiveVariables() and CountActiveConstraints() might fail.
+    /// Update counts of scalar variables and scalar constraints.
     virtual void UpdateCountsAndOffsets();
 
-    /// Sets the c_a coefficient (default=1) used for scaling the M masses of the vvariables
-    /// when performing SchurComplementProduct(), SystemProduct(), ConvertToMatrixForm(),
+    /// Set the c_a coefficient (default=1) used for scaling the M masses of the m_variables.
+    /// Used when performing SchurComplementProduct(), SystemProduct(), ConvertToMatrixForm().
     virtual void SetMassFactor(const double mc_a) { c_a = mc_a; }
 
-    /// Gets the c_a coefficient (default=1) used for scaling the M masses of the vvariables
-    /// when performing SchurComplementProduct(), SystemProduct(), ConvertToMatrixForm(),
+    /// Get the c_a coefficient (default=1) used for scaling the M masses of the m_variables.
     virtual double GetMassFactor() { return c_a; }
 
-    // DATA <-> MATH.VECTORS FUNCTIONS
-
-    /// Get a vector with all the 'fb' known terms ('forces'etc.) associated to all variables,
-    /// ordered into a column vector. The column vector must be passed as a ChMatrix<>
-    /// object, which will be automatically reset and resized to the proper length if necessary.
+    /// Get a vector with all the 'fb' known terms associated to all variables, ordered into a column vector.
+    /// The column vector must be passed as a ChMatrix<> object, which will be automatically reset and resized to the
+    /// proper length if necessary.
     virtual int BuildFbVector(ChVectorDynamic<>& Fvector  ///< system-level vector 'f'
     );
 
-    /// Get a vector with all the 'bi' known terms ('constraint residuals' etc.) associated to all constraints,
+    /// Get a vector with all the 'bi' known terms ('constraint residuals') associated to all constraints,
     /// ordered into a column vector. The column vector must be passed as a ChMatrix<>
     /// object, which will be automatically reset and resized to the proper length if necessary.
     virtual int BuildBiVector(ChVectorDynamic<>& Bvector  ///< system-level vector 'b'
@@ -252,7 +231,7 @@ class ChApi ChSystemDescriptor {
     /// length of the l_i reactions vector; constraints with enabled=false are not handled.
     /// NOTE! the 'q' data in the ChVariables of the system descriptor is changed by this
     /// operation, so it may happen that you need to backup them via FromVariablesToVector()
-    /// NOTE! currently this function does NOT support the cases that use also ChKblock
+    /// NOTE! currently this function does NOT support the cases that use also ChKRMBlock
     /// objects, because it would need to invert the global M+K, that is not diagonal,
     /// for doing = [N]*l = [ [Cq][(M+K)^(-1)][Cq'] - [E] ] * l
     virtual void SchurComplementProduct(
@@ -367,6 +346,18 @@ class ChApi ChSystemDescriptor {
         // deserialize parent class
         // stream in all member data:
     }
+
+  protected:
+    std::vector<ChConstraint*> m_constraints;  ///< list of all constraintc in the current Chrono system
+    std::vector<ChVariables*> m_variables;     ///< list of all variables in the current Chrono system
+    std::vector<ChKRMBlock*> m_KRMblocks;      ///< list of all KRM blocks in the current Chrono system
+
+    double c_a;  ///< coefficient form M mass matrices in m_variables
+
+  private:
+    int n_q;            ///< number of active variables
+    int n_c;            ///< number of active constraints
+    bool freeze_count;  ///< cache the number of active variables and constraints
 };
 
 CH_CLASS_VERSION(ChSystemDescriptor, 0)

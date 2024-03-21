@@ -135,7 +135,7 @@ void ChElementGeneric::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
 }
 
 void ChElementGeneric::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
-    ComputeKRMmatricesGlobal(Kmatr.Get_K(), Kfactor, Rfactor, Mfactor);
+    ComputeKRMmatricesGlobal(Kmatr.GetMatrix(), Kfactor, Rfactor, Mfactor);
 }
 
 void ChElementGeneric::VariablesFbLoadInternalForces(double factor) {

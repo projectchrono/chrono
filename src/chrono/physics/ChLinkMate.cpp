@@ -286,9 +286,9 @@ void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> body1,
 
 void ChLinkMateGeneric::SetUseTangentStiffness(bool useKc) {
     if (useKc && this->Kmatr == nullptr) {
-        this->Kmatr = chrono_types::make_unique<ChKblockGeneric>(&m_body1->Variables(), &m_body2->Variables());
-        this->Kmatr->Get_K().resize(12, 12);
-        this->Kmatr->Get_K().setZero();
+        this->Kmatr = chrono_types::make_unique<ChKRMBlock>(&m_body1->Variables(), &m_body2->Variables());
+        this->Kmatr->GetMatrix().resize(12, 12);
+        this->Kmatr->GetMatrix().setZero();
 
     } else if (!useKc && this->Kmatr != nullptr) {
         this->Kmatr.reset();
@@ -337,37 +337,37 @@ void ChLinkMateGeneric::LoadKRMMatrices(double Kfactor, double Rfactor, double M
         ChMatrix33<> R_F2_W_cross_gamma_f_times_R_B2_F2 = R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W;
 
         // Populate Kc
-        this->Kmatr->Get_K().block<3, 3>(0, 9) = -R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W;
+        this->Kmatr->GetMatrix().block<3, 3>(0, 9) = -R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W;
 
-        this->Kmatr->Get_K().block<3, 3>(3, 3) =
+        this->Kmatr->GetMatrix().block<3, 3>(3, 3) =
             rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W_cross_gamma_f * R_W_F2 * R_B1_W +
             R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(this->P * gamma_m) * R_W_F2 * R_B1_W
             // stabilization part
             + R_B1_W.transpose() * R_F2_W_times_G_times_R_W_F1 * R_B1_W;
 
-        this->Kmatr->Get_K().block<3, 3>(3, 9) =
+        this->Kmatr->GetMatrix().block<3, 3>(3, 9) =
             -rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W -
             R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(this->P * gamma_m) * R_W_F2 * R_B2_W
             // stabilization part
             - R_B1_W.transpose() * R_F2_W_times_G_times_R_W_F1 * R_B2_W;
 
-        this->Kmatr->Get_K().block<3, 3>(6, 9) = R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W;
+        this->Kmatr->GetMatrix().block<3, 3>(6, 9) = R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W;
 
-        this->Kmatr->Get_K().block<3, 3>(9, 0) = R_F2_W_cross_gamma_f_times_R_B2_F2;
+        this->Kmatr->GetMatrix().block<3, 3>(9, 0) = R_F2_W_cross_gamma_f_times_R_B2_F2;
 
-        this->Kmatr->Get_K().block<3, 3>(9, 3) = -R_F2_W_cross_gamma_f_times_R_B2_F2 * R_B1_W * rtilde_F1_B1
+        this->Kmatr->GetMatrix().block<3, 3>(9, 3) = -R_F2_W_cross_gamma_f_times_R_B2_F2 * R_B1_W * rtilde_F1_B1
                                                  // stabilization part
                                                  - R_B2_W.transpose() * R_F2_W_times_G_times_R_W_F1 * R_B1_W;
 
-        this->Kmatr->Get_K().block<3, 3>(9, 6) = -R_F2_W_cross_gamma_f_times_R_B2_F2;
+        this->Kmatr->GetMatrix().block<3, 3>(9, 6) = -R_F2_W_cross_gamma_f_times_R_B2_F2;
 
-        this->Kmatr->Get_K().block<3, 3>(9, 9) =
+        this->Kmatr->GetMatrix().block<3, 3>(9, 9) =
             R_F2_W_cross_gamma_f_times_R_B2_F2 * R_B2_W * ChStarMatrix33<>(r12_B2 + r_F2_B2)
             // stabilization part
             + R_B2_W.transpose() * R_F2_W_times_G_times_R_W_F1 * R_B2_W;
 
         // The complete tangent stiffness matrix
-        this->Kmatr->Get_K() *= Kfactor;
+        this->Kmatr->GetMatrix() *= Kfactor;
     }
 }
 

@@ -18,7 +18,7 @@ namespace chrono {
 
 void ChLoadJacobians::SetVariables(std::vector<ChVariables*> mvariables) {
     KRM.SetVariables(mvariables);
-    auto nscalar_coords = KRM.Get_K().cols();
+    auto nscalar_coords = KRM.GetMatrix().cols();
     K.setZero(nscalar_coords, nscalar_coords);
     R.setZero(nscalar_coords, nscalar_coords);
     M.setZero(nscalar_coords, nscalar_coords);
@@ -56,10 +56,10 @@ void ChLoadBase::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
 
 void ChLoadBase::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (jacobians) {
-        jacobians->KRM.Get_K().setZero();
-        jacobians->KRM.Get_K() += jacobians->K * Kfactor;
-        jacobians->KRM.Get_K() += jacobians->R * Rfactor;
-        jacobians->KRM.Get_K() += jacobians->M * Mfactor;
+        jacobians->KRM.GetMatrix().setZero();
+        jacobians->KRM.GetMatrix() += jacobians->K * Kfactor;
+        jacobians->KRM.GetMatrix() += jacobians->R * Rfactor;
+        jacobians->KRM.GetMatrix() += jacobians->M * Mfactor;
     }
 }
 

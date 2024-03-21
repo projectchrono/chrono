@@ -581,7 +581,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     // This force will be eventually transformed to the modal forces and applied on the reduced modal assembly.
     ChVectorDynamic<> full_forces_internal;
 
-    ChKblockGeneric modal_Hblock;
+    ChKRMBlock modal_Hblock;
     ChMatrixDynamic<> modal_M;   // corresponding to boundary and modal accelerations
     ChMatrixDynamic<> modal_K;   // corresponding to boundary and modal coordinates
     ChMatrixDynamic<> modal_R;   // corresponding to boundary and modal velocites

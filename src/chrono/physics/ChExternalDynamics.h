@@ -21,7 +21,7 @@
 
 #include "chrono/physics/ChPhysicsItem.h"
 #include "chrono/solver/ChVariablesGenericDiagonalMass.h"
-#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChKRMBlock.h"
 
 namespace chrono {
 
@@ -143,7 +143,7 @@ class ChApi ChExternalDynamics : public ChPhysicsItem {
     ChVectorDynamic<> m_rhs;  ///< generalized forcing terms (ODE RHS)
     ChMatrixDynamic<> m_jac;  ///< Jacobian of ODE right-hand side w.r.t. ODE states
 
-    ChKblockGeneric m_KRM;  ///< linear combination of K, R, M for the variables associated with item
+    ChKRMBlock m_KRM;  ///< linear combination of K, R, M for the variables associated with item
 
     static const double m_FD_delta;  ///< perturbation for finite-difference Jacobian approximation
 };

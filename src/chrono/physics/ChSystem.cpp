@@ -1039,7 +1039,7 @@ bool ChSystem::StateSolveCorrection(
         if (c_a || c_v || c_x)
             LoadKRMMatrices(-c_x, -c_v, c_a);
 
-        // For ChVariable objects without a ChKblock, just use the 'a' coefficient
+        // For ChVariable objects without a ChKRMBlock, just use the 'a' coefficient
         descriptor->SetMassFactor(c_a);
 
         timer_jacobian.stop();
@@ -1318,7 +1318,7 @@ void ChSystem::GetMassMatrix(ChSparseMatrix& M) {
 
     // Load all KRM matrices with the M part only
     LoadKRMMatrices(0, 0, 1.0);
-    // For ChVariable objects without a ChKblock, but still with a mass:
+    // For ChVariable objects without a ChKRMBlock, but still with a mass:
     descriptor->SetMassFactor(1.0);
 
     // Fill system-level M matrix
@@ -1331,7 +1331,7 @@ void ChSystem::GetStiffnessMatrix(ChSparseMatrix& K) {
 
     // Load all KRM matrices with the K part only
     this->LoadKRMMatrices(1.0, 0, 0);
-    // For ChVariable objects without a ChKblock, but still with a mass:
+    // For ChVariable objects without a ChKRMBlock, but still with a mass:
     descriptor->SetMassFactor(0.0);
 
     // Fill system-level K matrix
@@ -1344,7 +1344,7 @@ void ChSystem::GetDampingMatrix(ChSparseMatrix& R) {
 
     // Load all KRM matrices with the R part only
     this->LoadKRMMatrices(0, 1.0, 0);
-    // For ChVariable objects without a ChKblock, but still with a mass:
+    // For ChVariable objects without a ChKRMBlock, but still with a mass:
     descriptor->SetMassFactor(0.0);
 
     // Fill system-level R matrix

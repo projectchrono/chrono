@@ -410,10 +410,10 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Compute and load current Jacobians in encapsulated ChConstraint objects.
     void LoadConstraintJacobians();
 
-    /// Register with the given system descriptor any ChKRMblock objects associated with items in the system.
+    /// Register with the given system descriptor any ChKRMBlock objects associated with items in the system.
     void InjectKRMMatrices(ChSystemDescriptor& sys_descriptor);
     
-    /// Compute and load current stiffnes (K), damping (R), and mass (M) matrices in encapsulated ChKRMblock objects.
+    /// Compute and load current stiffnes (K), damping (R), and mass (M) matrices in encapsulated ChKRMBlock objects.
     /// The resulting KRM blocks represent linear combinations of the K, R, and M matrices, with the specified
     /// coefficients Kfactor, Rfactor,and Mfactor, respectively.
     void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor);

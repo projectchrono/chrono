@@ -17,7 +17,7 @@
 
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChLinkMask.h"
-#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChKRMBlock.h"
 
 namespace chrono {
 
@@ -180,10 +180,10 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     virtual void LoadConstraintJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
-    /// Register with the given system descriptor any ChKRMblock objects associated with this item.
+    /// Register with the given system descriptor any ChKRMBlock objects associated with this item.
     virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
 
-    /// Add the current stiffness K matrix in encapsulated ChKblock item(s), if any.
+    /// Add the current stiffness K matrix in encapsulated ChKRMBlock item(s), if any.
     /// The K matrix is loaded with scaling value Kfactor.
     virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
@@ -222,7 +222,7 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     ChVector3d gamma_f;  ///< translational Lagrange multipliers
     ChVector3d gamma_m;  ///< rotational Lagrange multipliers
 
-    std::unique_ptr<ChKblockGeneric> Kmatr = nullptr;  ///< the tangent stiffness matrix of constraint
+    std::unique_ptr<ChKRMBlock> Kmatr = nullptr;  ///< the tangent stiffness matrix of constraint
 };
 
 CH_CLASS_VERSION(ChLinkMateGeneric, 0)

@@ -148,6 +148,8 @@ Note that this represents a major public API change and we expect most user code
 | ChFunctionRotation_spline.h         | rename: ChFunctionRotationBSpline.h       |
 | ChFunctionRotation_SQUAD.h          | rename: ChFunctionRotationSQUAD.h         |
 | ChFx.h                              | remove                                    |
+| ChKblock.h                          | remove                                    |
+| ChKblockGeneric.h                   | rename: ChKRMBlock.h                      |
 | ChLimit.h                           | rename: ChLinkLimit.h                     |
 | ChLineBspline.h                     | rename: ChLineBSpline.h                   |
 | ChLinkBeamIGAslider.h               | rename: ChLinkBeamIGAFrame.h              |
@@ -663,9 +665,10 @@ Note that this represents a major public API change and we expect most user code
 | ChIntegrable3D                    |                               | rename: ChIntegrand3D                            |
 | ChIterativeSolver                 |                               |                                                  |
 |                                   | SaveMatrix                    | rename: WriteMatrices                            |
-| ChKblock                          |                               |                                                  |
-|                                   | GetNvars                      | rename: GetNumVariables                          |
-| ChKblockGeneric                   |                               |                                                  |
+| ChKblock                          |                               | remove                                           |
+| ChKblockGeneric                   |                               | rename: ChKRMBlock                               |
+|                                   | Build_K                       | rename: PasteInto                                |
+|                                   | Get_K                         | rename: GetMatrix                                |
 |                                   | GetVariableN                  | rename: GetVariable                              |
 | ChLine                            |                               |                                                  |
 |                                   | Get_closed                    | rename: IsClosed                                 |

@@ -433,7 +433,7 @@ void ChLinkTSDA::IntFromDescriptor(const unsigned int off_v,  // offset in v
 void ChLinkTSDA::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (m_jacobians) {
         // Recall to flip sign to load K = -dQ/dx and R = -dQ/dv
-        m_jacobians->m_KRM.Get_K() = -Kfactor * m_jacobians->m_K - Rfactor * m_jacobians->m_R;
+        m_jacobians->m_KRM.GetMatrix() = -Kfactor * m_jacobians->m_K - Rfactor * m_jacobians->m_R;
     }
 }
 

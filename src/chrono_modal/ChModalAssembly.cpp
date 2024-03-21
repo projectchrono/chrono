@@ -1156,7 +1156,7 @@ void ChModalAssembly::SetupModalData(int nmodes_reduction) {
         modal_variables->GetMassDiagonal()
             .setZero();  // diag. mass not needed, the mass will be defined via this->modal_Hblock
 
-        // Initialize the modal_Hblock, which is a ChKblockGeneric referencing all ChVariable items:
+        // Initialize the modal_Hblock, which is a ChKRMBlock referencing all ChVariable items:
         std::vector<ChVariables*> mvars;
         // - for BOUNDARY variables: trick to collect all ChVariable references..
         ChSystemDescriptor temporary_descriptor;
@@ -1173,8 +1173,8 @@ void ChModalAssembly::SetupModalData(int nmodes_reduction) {
         mvars.push_back(this->modal_variables);
 
         // NOTE! Purge the not active variables, so that there is a  1-to-1 mapping
-        // between the assembly's matrices this->modal_M, modal_K, modal_R and the modal_Hblock->Get_K() block.
-        // In fact the ChKblockGeneric modal_Hblock could also handle the not active vars, but the modal_M, K etc
+        // between the assembly's matrices this->modal_M, modal_K, modal_R and the modal_Hblock->GetMatrix() block.
+        // In fact the ChKRMBlock modal_Hblock could also handle the not active vars, but the modal_M, K etc
         // are computed for the active-only variables for simplicity in the HERTING transformation.
         std::vector<ChVariables*> mvars_active;
         for (auto mvar : mvars) {
@@ -1630,7 +1630,7 @@ void ChModalAssembly::GetSubassemblyMassMatrix(ChSparseMatrix* M) {
 
     // Load all KRM matrices with the M part only
     LoadKRMMatrices(0, 0, 1.0);
-    // For ChVariable objects without a ChKblock, but still with a mass:
+    // For ChVariable objects without a ChKRMBlock, but still with a mass:
     temp_descriptor.SetMassFactor(1.0);
 
     // Fill system-level M matrix
@@ -1651,7 +1651,7 @@ void ChModalAssembly::GetSubassemblyStiffnessMatrix(ChSparseMatrix* K) {
 
     // Load all KRM matrices with the K part only
     this->LoadKRMMatrices(1.0, 0, 0);
-    // For ChVariable objects without a ChKblock, but still with a mass:
+    // For ChVariable objects without a ChKRMBlock, but still with a mass:
     temp_descriptor.SetMassFactor(0.0);
 
     // Fill system-level K matrix
@@ -1672,7 +1672,7 @@ void ChModalAssembly::GetSubassemblyDampingMatrix(ChSparseMatrix* R) {
 
     // Load all KRM matrices with the R part only
     this->LoadKRMMatrices(0, 1.0, 0);
-    // For ChVariable objects without a ChKblock, but still with a mass:
+    // For ChVariable objects without a ChKRMBlock, but still with a mass:
     temp_descriptor.SetMassFactor(0.0);
 
     // Fill system-level R matrix
@@ -2832,7 +2832,7 @@ void ChModalAssembly::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfa
     } else {
         ComputeModalKRMmatrix();
 
-        this->modal_Hblock.Get_K() = this->modal_K * Kfactor + this->modal_R * Rfactor + this->modal_M * Mfactor;
+        this->modal_Hblock.GetMatrix() = this->modal_K * Kfactor + this->modal_R * Rfactor + this->modal_M * Mfactor;
     }
 }
 

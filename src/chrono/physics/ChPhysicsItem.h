@@ -344,10 +344,10 @@ class ChApi ChPhysicsItem : public ChObj {
     /// Compute and load current Jacobians in encapsulated ChConstraint objects.
     virtual void LoadConstraintJacobians() {}
 
-    /// Register with the given system descriptor any ChKRMblock objects associated with this item.
+    /// Register with the given system descriptor any ChKRMBlock objects associated with this item.
     virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) {}
 
-    /// Compute and load current stiffnes (K), damping (R), and mass (M) matrices in encapsulated ChKRMblock objects.
+    /// Compute and load current stiffnes (K), damping (R), and mass (M) matrices in encapsulated ChKRMBlock objects.
     /// The resulting KRM blocks represent linear combinations of the K, R, and M matrices, with the specified
     /// coefficients Kfactor, Rfactor,and Mfactor, respectively.
     /// Note: signs are flipped from the term dF/dx in the integrator: K = -dF/dq and R = -dF/dv.
