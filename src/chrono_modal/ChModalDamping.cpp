@@ -39,7 +39,7 @@ void ChModalDampingFactorRmm::ComputeR(ChModalAssembly& assembly,
     unsigned int n_mod_coords = assembly.GetNumCoordinatesModal();
     unsigned int n_bou_coords = assembly.GetNumCoordinatesVelBoundary();
 
-    ChVectorDynamic<> omegas = CH_2PI * assembly.Get_modes_frequencies();
+    ChVectorDynamic<> omegas = CH_2PI * assembly.GetModalReductionFrequencyUndamped();
     ChVectorDynamic<> zetas;
     zetas.setZero(n_mod_coords);
 

@@ -27,7 +27,7 @@ class ChModalAssembly;
 
 /// Base class for damping models of modal reduced assemblies.
 /// Children classes provide specialized damping models.
-/// These classes are used as arguments in ChModalAssembly::SwitchModalReductionON(...) to define
+/// These classes are used as arguments in ChModalAssembly::DoModalReduction(...) to define
 /// which approach is used in order to build the damping matrix for the modal-reduced assembly.
 class ChApiModal ChModalDamping {
   public:
