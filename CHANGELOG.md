@@ -4,13 +4,9 @@
 Change Log
 ==========
 
+- [Change Log](#change-log)
 - [Unreleased (development branch)](#unreleased-development-branch)
   - [\[Changed\] Refactoring of class and function names](#changed-refactoring-of-class-and-function-names)
-  - [\[Changed\] Updated Chrono::VSG module](#changed-updated-chronovsg-module)
-  - [\[Added\] New motion functions and filters](#added-new-motion-functions-and-filters)
-  - [\[Changed\] Updated ChBlender exporter to Blender4.0](#changed-updated-chblender-exporter-to-blender4.0)
-  - [\[Added\] Unilateral distance constraint](#added-unilateral-distance-constraint)
-  - [\[Changed\] Collision detection refactoring](#changed-collision-detection-refactoring)
   - [\[Changed\] Application of terrain forces to vehicle systems](#changed-application-of-terrain-forces-to-vehicle-systems)
   - [\[Changed\] Modifications to the HHT integrator](#changed-modifications-to-the-hht-integrator)
   - [\[Added\] Modeling hydraulic circuit elements and hydraulic actuators](#added-modeling-hydraulic-circuit-elements-and-hydraulic-actuators)
@@ -1013,8 +1009,24 @@ Note that this represents a major public API change and we expect most user code
 | ChMinMaxDistribution              |                               | rename: ChUniformDistribution                    |
 | ChModalAssembly                   |                               |                                                  |
 |                                   | refer to ChAssembly           | like ChAssembly with boundary/internal suffixes  |
+|                                   | DoModalReduction_CraigBamption | rename: ApplyModalReductionTransformation_CraigBampton           |
+|                                   | DoModalReduction_HERTING      | rename: ApplyModalReductionTransformation_Herting                  |
 |                                   | DumpSubassemblyMatrices       | rename: WriteSubassemblyMatrices                 |
+|                                   | Get_full_assembly_x_old       | rename: GetDeformedFullState                     |
+|                                   | Get_modal_K                   | rename: GetModalStiffnessMatrix                  |
+|                                   | Get_modal_M                   | rename: GetModalMassMatrix                       |
+|                                   | Get_modal_Psi                 | rename: GetModalReductionMatrix                  |
+|                                   | Get_modal_q                   | rename: GetModalCoordinatesPosLevel              |
+|                                   | Get_modal_q_dt                | rename: GetModalCoordinatesVelLevel              |
+|                                   | Get_modal_q_dtdt              | rename: GetModalCoordinatesAccLevel              |
+|                                   | Get_modal_R                   | rename: GetModalDampingMatrix                    |
+|                                   | Get_modes_assembly_x0         | rename: GetInitialFullState                      |
+|                                   | Get_modes_damping_ratios      | rename: GetModalReductionDampingRatios           |
+|                                   | Get_modes_eig                 | rename: GetModalReductionEigenVals               |
+|                                   | Get_modes_frequencies         | rename: GetModalReductionFrequencyUndamped       |
+|                                   | Get_modes_V                   | rename: GetModalReductionEigenVect               |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+|                                   | SwitchModalReductionON        | rename: DoModalReduction                   |
 | ChMotionlawFilter                 |                               | rename: ChMotionFilter                           |
 | ChMotionlawFilter_SecondOrder     |                               | rename: ChMotionFilterSecondOrder                |
 | ChMotionlawFilter_ThirdOrder      |                               | rename: ChMotionFilterThirdOrder                 |

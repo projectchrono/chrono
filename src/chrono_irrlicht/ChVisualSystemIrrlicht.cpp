@@ -592,9 +592,9 @@ void ChVisualSystemIrrlicht::BeginScene(bool backBuffer, bool zBuffer, ChColor c
                     modalassembly->SetFullStateWithModeOverlay(m_gui->modal_mode_n, m_gui->modal_phi,
                                                                m_gui->modal_amplitude);
                     // fetch Hz of this mode
-                    m_gui->modal_current_freq = modalassembly->Get_modes_frequencies()(m_gui->modal_mode_n);
+                    m_gui->modal_current_freq = modalassembly->GetModalReductionFrequencyUndamped()(m_gui->modal_mode_n);
                     // fetch damping factor
-                    m_gui->modal_current_dampingfactor = modalassembly->Get_modes_damping_ratios()(m_gui->modal_mode_n);
+                    m_gui->modal_current_dampingfactor = modalassembly->GetModalReductionDampingRatios()(m_gui->modal_mode_n);
                     // Force an update of the visual system
                     OnUpdate(m_systems[0]);
                 } catch (...) {

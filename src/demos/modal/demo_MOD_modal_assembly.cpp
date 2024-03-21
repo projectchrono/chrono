@@ -247,13 +247,13 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     if (do_modal_reduction) {
         // HERE PERFORM THE MODAL REDUCTION!
 
-        assembly->SwitchModalReductionON(
+        assembly->DoModalReduction(
             6,  // The number of modes to retain from modal reduction, or a ChModalSolveUndamped with more settings
             ChModalDampingRayleigh(0.001,
                                    0.005)  // The damping model - Optional parameter: default is ChModalDampingNone().
         );
 
-        // Other types of damping that you can try, in SwitchModalReductionON:
+        // Other types of damping that you can try, in DoModalReduction:
         //    ChModalDampingNone()                    // no damping (also default)
         //    ChModalDampingReductionR(*assembly)  // transforms the original damping matrix of the full subassembly
         //    ChModalDampingReductionR(full_R_ext)    // transforms an externally-provided damping matrix of the full
@@ -278,9 +278,9 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         // Finally, log damped eigenvalue analysis to see the effect of the modal damping (0= search ALL damped modes)
         assembly->ComputeModesDamped(0);
 
-        for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i)
-            std::cout << " Damped mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i)
-                     << "   damping factor z: " << assembly->Get_modes_damping_ratios()(i) << std::endl;
+        for (int i = 0; i < assembly->GetModalReductionFrequencyUndamped().rows(); ++i)
+            std::cout << " Damped mode n." << i << "  frequency [Hz]: " << assembly->GetModalReductionFrequencyUndamped()(i)
+                     << "   damping factor z: " << assembly->GetModalReductionDampingRatios()(i) << std::endl;
 
         // Finally, check if we approximately have the same eigenmodes of the original not reduced assembly:
         assembly->ComputeModes(12);
@@ -297,8 +297,8 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         );
         */
 
-        for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i)
-            std::cout << " Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i) << std::endl;
+        for (int i = 0; i < assembly->GetModalReductionFrequencyUndamped().rows(); ++i)
+            std::cout << " Mode n." << i << "  frequency [Hz]: " << assembly->GetModalReductionFrequencyUndamped()(i) << std::endl;
 
     } else {
         // Otherwise we perform a conventional modal analysis on the full ChModalAssembly.
@@ -315,8 +315,8 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
         );
         */
 
-        for (int i = 0; i < assembly->Get_modes_frequencies().rows(); ++i)
-            std::cout << " Mode n." << i << "  frequency [Hz]: " << assembly->Get_modes_frequencies()(i) << std::endl;
+        for (int i = 0; i < assembly->GetModalReductionFrequencyUndamped().rows(); ++i)
+            std::cout << " Mode n." << i << "  frequency [Hz]: " << assembly->GetModalReductionFrequencyUndamped()(i) << std::endl;
     }
 
     // VISUALIZATION ASSETS:
