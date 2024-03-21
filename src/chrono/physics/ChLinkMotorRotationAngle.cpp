@@ -106,7 +106,7 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
     }
 }
 
-void ChLinkMotorRotationAngle::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChLinkMotorRotationAngle::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (!this->IsActive())
         return;
 

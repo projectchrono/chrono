@@ -123,11 +123,11 @@ void ChShaftsGearbox::IntFromDescriptor(const unsigned int off_v,
     L(off_L) = constraint.Get_l_i();
 }
 
-void ChShaftsGearbox::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChShaftsGearbox::InjectConstraints(ChSystemDescriptor& descriptor) {
     // if (!IsActive())
     //	return;
 
-    mdescriptor.InsertConstraint(&constraint);
+    descriptor.InsertConstraint(&constraint);
 }
 
 void ChShaftsGearbox::ConstraintsBiReset() {
@@ -143,7 +143,7 @@ void ChShaftsGearbox::ConstraintsBiLoad_C(double factor, double recovery_clamp, 
     constraint.Set_b_i(constraint.Get_b_i() + factor * res);
 }
 
-void ChShaftsGearbox::ConstraintsLoadJacobians() {
+void ChShaftsGearbox::LoadConstraintJacobians() {
     // compute jacobians
     constraint.Get_Cq_a()(0) = r1;
     constraint.Get_Cq_b()(0) = r2;

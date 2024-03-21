@@ -232,18 +232,18 @@ void ChLinkNodeFrameGeneric::IntFromDescriptor(const unsigned int off_v,
 
 // SOLVER INTERFACES
 
-void ChLinkNodeFrameGeneric::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkNodeFrameGeneric::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!IsActive())
         return;
 
     if (c_x && this->m_constraint1.IsActive())
-        mdescriptor.InsertConstraint(&m_constraint1);
+        descriptor.InsertConstraint(&m_constraint1);
 
     if (c_y && this->m_constraint2.IsActive())
-        mdescriptor.InsertConstraint(&m_constraint2);
+        descriptor.InsertConstraint(&m_constraint2);
 
     if (c_z && this->m_constraint3.IsActive())
-        mdescriptor.InsertConstraint(&m_constraint3);
+        descriptor.InsertConstraint(&m_constraint3);
 }
 
 void ChLinkNodeFrameGeneric::ConstraintsBiReset() {
@@ -281,7 +281,7 @@ void ChLinkNodeFrameGeneric::ConstraintsBiLoad_Ct(double factor) {
     // nothing
 }
 
-void ChLinkNodeFrameGeneric::ConstraintsLoadJacobians() {
+void ChLinkNodeFrameGeneric::LoadConstraintJacobians() {
     // compute jacobians
     ChMatrix33<> Aro(m_csys.rot);
     ChMatrix33<> Aow(m_body->GetRot());
@@ -462,13 +462,13 @@ void ChLinkNodeFrame::IntFromDescriptor(const unsigned int off_v,
 
 // SOLVER INTERFACES
 
-void ChLinkNodeFrame::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkNodeFrame::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!IsActive())
         return;
 
-    mdescriptor.InsertConstraint(&m_constraint1);
-    mdescriptor.InsertConstraint(&m_constraint2);
-    mdescriptor.InsertConstraint(&m_constraint3);
+    descriptor.InsertConstraint(&m_constraint1);
+    descriptor.InsertConstraint(&m_constraint2);
+    descriptor.InsertConstraint(&m_constraint3);
 }
 
 void ChLinkNodeFrame::ConstraintsBiReset() {
@@ -500,7 +500,7 @@ void ChLinkNodeFrame::ConstraintsBiLoad_Ct(double factor) {
     // nothing
 }
 
-void ChLinkNodeFrame::ConstraintsLoadJacobians() {
+void ChLinkNodeFrame::LoadConstraintJacobians() {
     // compute jacobians
     ChMatrix33<> Aro(m_csys.rot);
     ChMatrix33<> Aow(m_body->GetRot());

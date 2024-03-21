@@ -108,8 +108,8 @@ void ChShaftsMotorAngle::IntFromDescriptor(const unsigned int off_v,  // offset 
     L(off_L) = constraint.Get_l_i();
 }
 
-void ChShaftsMotorAngle::InjectConstraints(ChSystemDescriptor& mdescriptor) {
-    mdescriptor.InsertConstraint(&constraint);
+void ChShaftsMotorAngle::InjectConstraints(ChSystemDescriptor& descriptor) {
+    descriptor.InsertConstraint(&constraint);
 }
 
 void ChShaftsMotorAngle::ConstraintsBiReset() {
@@ -127,7 +127,7 @@ void ChShaftsMotorAngle::ConstraintsBiLoad_Ct(double factor) {
     constraint.Set_b_i(constraint.Get_b_i() + factor * ct);
 }
 
-void ChShaftsMotorAngle::ConstraintsLoadJacobians() {
+void ChShaftsMotorAngle::LoadConstraintJacobians() {
     constraint.Get_Cq_a()(0) = 1;
     constraint.Get_Cq_b()(0) = -1;
 }

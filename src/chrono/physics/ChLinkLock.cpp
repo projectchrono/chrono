@@ -1283,73 +1283,73 @@ void ChLinkLock::IntFromDescriptor(const unsigned int off_v,
     }
 }
 
-void ChLinkLock::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkLock::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!this->IsActive())
         return;
 
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive())
-            mdescriptor.InsertConstraint(&mask.GetConstraint(i));
+            descriptor.InsertConstraint(&mask.GetConstraint(i));
     }
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
             limit_X->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
-            mdescriptor.InsertConstraint(&limit_X->constr_lower);
+            descriptor.InsertConstraint(&limit_X->constr_lower);
         }
         if (limit_X->constr_upper.IsActive()) {
             limit_X->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
-            mdescriptor.InsertConstraint(&limit_X->constr_upper);
+            descriptor.InsertConstraint(&limit_X->constr_upper);
         }
     }
     if (limit_Y && limit_Y->IsActive()) {
         if (limit_Y->constr_lower.IsActive()) {
             limit_Y->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
-            mdescriptor.InsertConstraint(&limit_Y->constr_lower);
+            descriptor.InsertConstraint(&limit_Y->constr_lower);
         }
         if (limit_Y->constr_upper.IsActive()) {
             limit_Y->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
-            mdescriptor.InsertConstraint(&limit_Y->constr_upper);
+            descriptor.InsertConstraint(&limit_Y->constr_upper);
         }
     }
     if (limit_Z && limit_Z->IsActive()) {
         if (limit_Z->constr_lower.IsActive()) {
             limit_Z->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
-            mdescriptor.InsertConstraint(&limit_Z->constr_lower);
+            descriptor.InsertConstraint(&limit_Z->constr_lower);
         }
         if (limit_Z->constr_upper.IsActive()) {
             limit_Z->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
-            mdescriptor.InsertConstraint(&limit_Z->constr_upper);
+            descriptor.InsertConstraint(&limit_Z->constr_upper);
         }
     }
     if (limit_Rx && limit_Rx->IsActive()) {
         if (limit_Rx->constr_lower.IsActive()) {
             limit_Rx->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
-            mdescriptor.InsertConstraint(&limit_Rx->constr_lower);
+            descriptor.InsertConstraint(&limit_Rx->constr_lower);
         }
         if (limit_Rx->constr_upper.IsActive()) {
             limit_Rx->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
-            mdescriptor.InsertConstraint(&limit_Rx->constr_upper);
+            descriptor.InsertConstraint(&limit_Rx->constr_upper);
         }
     }
     if (limit_Ry && limit_Ry->IsActive()) {
         if (limit_Ry->constr_lower.IsActive()) {
             limit_Ry->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
-            mdescriptor.InsertConstraint(&limit_Ry->constr_lower);
+            descriptor.InsertConstraint(&limit_Ry->constr_lower);
         }
         if (limit_Ry->constr_upper.IsActive()) {
             limit_Ry->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
-            mdescriptor.InsertConstraint(&limit_Ry->constr_upper);
+            descriptor.InsertConstraint(&limit_Ry->constr_upper);
         }
     }
     if (limit_Rz && limit_Rz->IsActive()) {
         if (limit_Rz->constr_lower.IsActive()) {
             limit_Rz->constr_lower.SetVariables(&m_body1->Variables(), &m_body2->Variables());
-            mdescriptor.InsertConstraint(&limit_Rz->constr_lower);
+            descriptor.InsertConstraint(&limit_Rz->constr_lower);
         }
         if (limit_Rz->constr_upper.IsActive()) {
             limit_Rz->constr_upper.SetVariables(&m_body1->Variables(), &m_body2->Variables());
-            mdescriptor.InsertConstraint(&limit_Rz->constr_upper);
+            descriptor.InsertConstraint(&limit_Rz->constr_upper);
         }
     }
 }
@@ -1595,7 +1595,7 @@ void Transform_Cq_to_Cqw_row(const ChMatrixNM<double, 7, BODY_QDOF>& mCq,
     ////mCqw.block<1, 3>(qwrow, 3) = 0.25 * mCq.block<1, 4>(qrow, 3) * Gl.transpose();
 }
 
-void ChLinkLock::ConstraintsLoadJacobians() {
+void ChLinkLock::LoadConstraintJacobians() {
     if (m_num_constr == 0)
         return;
 

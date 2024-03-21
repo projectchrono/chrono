@@ -199,8 +199,8 @@ void ChNodeFEAcurv::NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAcurv::InjectVariables(ChSystemDescriptor& mdescriptor) {
-    mdescriptor.InsertVariables(m_variables);
+void ChNodeFEAcurv::InjectVariables(ChSystemDescriptor& descriptor) {
+    descriptor.InsertVariables(m_variables);
 }
 
 void ChNodeFEAcurv::VariablesFbReset() {

@@ -205,18 +205,18 @@ void ChLoadContactSurfaceMesh::LoadIntLoadResidual_F(ChVectorDynamic<>& R, const
         f->LoadIntLoadResidual_F(R, c);
 }
 
-void ChLoadContactSurfaceMesh::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
+void ChLoadContactSurfaceMesh::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     for (const auto& f : m_forces)
-        f->InjectKRMmatrices(mdescriptor);
+        f->InjectKRMMatrices(descriptor);
     for (const auto& f : m_forces_rot)
-        f->InjectKRMmatrices(mdescriptor);
+        f->InjectKRMMatrices(descriptor);
 }
 
-void ChLoadContactSurfaceMesh::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChLoadContactSurfaceMesh::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     for (const auto& f : m_forces)
-        f->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+        f->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
     for (const auto& f : m_forces_rot)
-        f->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+        f->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
 }
 
 }  // end namespace fea

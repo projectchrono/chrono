@@ -173,20 +173,19 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
 
     // SOLVER INTERFACE
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
     virtual void ConstraintsBiReset() override;
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
     virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
-    virtual void ConstraintsLoadJacobians() override;
+    virtual void LoadConstraintJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
-    /// Tell to a system descriptor that there are item(s) of type
-    /// ChKblock in this object (for further passing it to a solver)
-    virtual void InjectKRMmatrices(ChSystemDescriptor& descriptor) override;
+    /// Register with the given system descriptor any ChKRMblock objects associated with this item.
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
 
     /// Add the current stiffness K matrix in encapsulated ChKblock item(s), if any.
-    /// The K matrices are load with scaling values Kfactor.
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+    /// The K matrix is loaded with scaling value Kfactor.
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     // SERIALIZATION
 

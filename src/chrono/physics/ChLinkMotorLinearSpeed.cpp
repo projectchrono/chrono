@@ -157,10 +157,10 @@ void ChLinkMotorLinearSpeed::IntFromDescriptor(const unsigned int off_v,  // off
 }
 
 ////
-void ChLinkMotorLinearSpeed::InjectVariables(ChSystemDescriptor& mdescriptor) {
+void ChLinkMotorLinearSpeed::InjectVariables(ChSystemDescriptor& descriptor) {
     variable.SetDisabled(!IsActive());
 
-    mdescriptor.InsertVariables(&variable);
+    descriptor.InsertVariables(&variable);
 }
 
 void ChLinkMotorLinearSpeed::VariablesFbReset() {

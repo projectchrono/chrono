@@ -404,7 +404,7 @@ void ChLinkRevolute::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
     m_cnstr_vw.Set_b_i(m_cnstr_vw.Get_b_i() + cnstr_vw_violation);
 }
 
-void ChLinkRevolute::ConstraintsLoadJacobians() {
+void ChLinkRevolute::LoadConstraintJacobians() {
     // Nothing to do here. Jacobians were loaded in Update().
 }
 

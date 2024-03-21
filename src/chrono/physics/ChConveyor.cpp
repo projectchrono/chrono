@@ -188,9 +188,9 @@ void ChConveyor::IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>&
 
 // SOLVER INTERFACE
 
-void ChConveyor::InjectVariables(ChSystemDescriptor& mdescriptor) {
-    conveyor_truss->InjectVariables(mdescriptor);
-    conveyor_plate->InjectVariables(mdescriptor);
+void ChConveyor::InjectVariables(ChSystemDescriptor& descriptor) {
+    conveyor_truss->InjectVariables(descriptor);
+    conveyor_plate->InjectVariables(descriptor);
 }
 
 void ChConveyor::VariablesFbReset() {
@@ -223,8 +223,8 @@ void ChConveyor::VariablesQbIncrementPosition(double dt_step) {
     conveyor_plate->VariablesQbIncrementPosition(dt_step);
 }
 
-void ChConveyor::InjectConstraints(ChSystemDescriptor& mdescriptor) {
-    internal_link->InjectConstraints(mdescriptor);
+void ChConveyor::InjectConstraints(ChSystemDescriptor& descriptor) {
+    internal_link->InjectConstraints(descriptor);
 }
 
 void ChConveyor::ConstraintsBiReset() {
@@ -243,8 +243,8 @@ void ChConveyor::ConstraintsBiLoad_Qc(double factor) {
     internal_link->ConstraintsBiLoad_Qc(factor);
 }
 
-void ChConveyor::ConstraintsLoadJacobians() {
-    internal_link->ConstraintsLoadJacobians();
+void ChConveyor::LoadConstraintJacobians() {
+    internal_link->LoadConstraintJacobians();
 }
 
 void ChConveyor::ConstraintsFetch_react(double factor) {

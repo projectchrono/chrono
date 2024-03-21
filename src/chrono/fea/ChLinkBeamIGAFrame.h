@@ -136,11 +136,11 @@ class ChApi ChLinkBeamIGAFrame : public ChLinkBase {
     // Override/implement system functions of ChPhysicsItem
     // (to assemble/manage data for system solver)
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
     virtual void ConstraintsBiReset() override;
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
     virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
-    virtual void ConstraintsLoadJacobians() override;
+    virtual void LoadConstraintJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
   private:

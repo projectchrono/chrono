@@ -485,10 +485,10 @@ void ChParticleCloud::IntFromDescriptor(const unsigned int off_v,  // offset in 
     }
 }
 
-void ChParticleCloud::InjectVariables(ChSystemDescriptor& mdescriptor) {
+void ChParticleCloud::InjectVariables(ChSystemDescriptor& descriptor) {
     for (unsigned int j = 0; j < particles.size(); j++) {
         particles[j]->variables.SetDisabled(!IsActive());
-        mdescriptor.InsertVariables(&(particles[j]->variables));
+        descriptor.InsertVariables(&(particles[j]->variables));
     }
 }
 

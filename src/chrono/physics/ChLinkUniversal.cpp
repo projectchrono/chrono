@@ -365,7 +365,7 @@ void ChLinkUniversal::ConstraintsBiLoad_C(double factor, double recovery_clamp, 
     m_cnstr_dot.Set_b_i(m_cnstr_dot.Get_b_i() + cnstr_dot_violation);
 }
 
-void ChLinkUniversal::ConstraintsLoadJacobians() {
+void ChLinkUniversal::LoadConstraintJacobians() {
     // Nothing to do here. Jacobians were loaded in Update().
 }
 

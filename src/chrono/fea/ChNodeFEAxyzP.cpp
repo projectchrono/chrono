@@ -118,8 +118,8 @@ void ChNodeFEAxyzP::NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAxyzP::InjectVariables(ChSystemDescriptor& mdescriptor) {
-    mdescriptor.InsertVariables(&variables);
+void ChNodeFEAxyzP::InjectVariables(ChSystemDescriptor& descriptor) {
+    descriptor.InsertVariables(&variables);
 }
 
 void ChNodeFEAxyzP::VariablesFbReset() {

@@ -48,13 +48,13 @@ void ChLoadBase::Update(double time) {
     }
 };
 
-void ChLoadBase::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
+void ChLoadBase::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     if (jacobians) {
-        mdescriptor.InsertKblock(&jacobians->KRM);
+        descriptor.InsertKblock(&jacobians->KRM);
     }
 }
 
-void ChLoadBase::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChLoadBase::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (jacobians) {
         jacobians->KRM.Get_K().setZero();
         jacobians->KRM.Get_K() += jacobians->K * Kfactor;

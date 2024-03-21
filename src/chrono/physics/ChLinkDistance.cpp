@@ -203,11 +203,11 @@ void ChLinkDistance::IntFromDescriptor(const unsigned int off_v,
 
 // SOLVER INTERFACES
 
-void ChLinkDistance::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkDistance::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!IsActive())
         return;
 
-    mdescriptor.InsertConstraint(&Cx);
+    descriptor.InsertConstraint(&Cx);
 }
 
 void ChLinkDistance::ConstraintsBiReset() {
@@ -224,7 +224,7 @@ void ChLinkDistance::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
         Cx.Set_b_i(Cx.Get_b_i() + factor * C[0]);
 }
 
-void ChLinkDistance::ConstraintsLoadJacobians() {
+void ChLinkDistance::LoadConstraintJacobians() {
     // already loaded when doing Update (which used the matrices of the scalar constraint objects)
 }
 

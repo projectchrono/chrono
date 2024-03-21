@@ -467,18 +467,18 @@ void ChMesh::IntFromDescriptor(const unsigned int off_v,
 
 //// SOLVER FUNCTIONS
 
-void ChMesh::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
+void ChMesh::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     for (unsigned int ie = 0; ie < velements.size(); ie++)
-        velements[ie]->InjectKRMmatrices(mdescriptor);
+        velements[ie]->InjectKRMMatrices(descriptor);
 }
 
-void ChMesh::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChMesh::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     int nthreads = GetSystem()->nthreads_chrono;
 
     timer_KRMload.start();
 #pragma omp parallel for num_threads(nthreads)
     for (int ie = 0; ie < velements.size(); ie++)
-        velements[ie]->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+        velements[ie]->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
     timer_KRMload.stop();
     ncalls_KRMload++;
 }
@@ -523,9 +523,9 @@ void ChMesh::VariablesQbIncrementPosition(double step) {
         vnodes[ie]->VariablesQbIncrementPosition(step);
 }
 
-void ChMesh::InjectVariables(ChSystemDescriptor& mdescriptor) {
+void ChMesh::InjectVariables(ChSystemDescriptor& descriptor) {
     for (unsigned int ie = 0; ie < vnodes.size(); ie++)
-        vnodes[ie]->InjectVariables(mdescriptor);
+        vnodes[ie]->InjectVariables(descriptor);
 }
 
 }  // end namespace fea

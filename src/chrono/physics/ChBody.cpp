@@ -231,10 +231,10 @@ void ChBody::IntFromDescriptor(const unsigned int off_v,  // offset in v
 
 ////
 
-void ChBody::InjectVariables(ChSystemDescriptor& mdescriptor) {
+void ChBody::InjectVariables(ChSystemDescriptor& descriptor) {
     variables.SetDisabled(!IsActive());
 
-    mdescriptor.InsertVariables(&variables);
+    descriptor.InsertVariables(&variables);
 }
 
 void ChBody::VariablesFbReset() {

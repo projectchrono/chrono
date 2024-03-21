@@ -105,11 +105,11 @@ void ChShaftBodyRotation::IntFromDescriptor(const unsigned int off_v,
     L(off_L) = constraint.Get_l_i();
 }
 
-void ChShaftBodyRotation::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChShaftBodyRotation::InjectConstraints(ChSystemDescriptor& descriptor) {
     // if (!IsActive())
     //	return;
 
-    mdescriptor.InsertConstraint(&constraint);
+    descriptor.InsertConstraint(&constraint);
 }
 
 void ChShaftBodyRotation::ConstraintsBiReset() {
@@ -132,7 +132,7 @@ void ChShaftBodyRotation::ConstraintsBiLoad_Ct(double factor) {
     // nothing
 }
 
-void ChShaftBodyRotation::ConstraintsLoadJacobians() {
+void ChShaftBodyRotation::LoadConstraintJacobians() {
     // compute jacobians
     // ChVector3d jacw = body->TransformDirectionParentToLocal(shaft_dir);
     ChVector3d jacw = shaft_dir;
@@ -273,11 +273,11 @@ void ChShaftBodyTranslation::IntFromDescriptor(const unsigned int off_v,
     L(off_L) = constraint.Get_l_i();
 }
 
-void ChShaftBodyTranslation::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChShaftBodyTranslation::InjectConstraints(ChSystemDescriptor& descriptor) {
     // if (!IsActive())
     //	return;
 
-    mdescriptor.InsertConstraint(&constraint);
+    descriptor.InsertConstraint(&constraint);
 }
 
 void ChShaftBodyTranslation::ConstraintsBiReset() {
@@ -300,7 +300,7 @@ void ChShaftBodyTranslation::ConstraintsBiLoad_Ct(double factor) {
     // nothing
 }
 
-void ChShaftBodyTranslation::ConstraintsLoadJacobians() {
+void ChShaftBodyTranslation::LoadConstraintJacobians() {
     // compute jacobians
     ChVector3d jacx = body->TransformDirectionLocalToParent(shaft_dir);
     ChVector3d jacw = Vcross(shaft_pos, shaft_dir);

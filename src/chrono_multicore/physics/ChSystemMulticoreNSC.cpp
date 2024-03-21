@@ -196,7 +196,7 @@ void ChSystemMulticoreNSC::AssembleSystem() {
         link->ConstraintsBiLoad_Ct(Ct_factor);
         link->VariablesQbLoadSpeed();
         link->VariablesFbIncrementMq();
-        link->ConstraintsLoadJacobians();
+        link->LoadConstraintJacobians();
         link->ConstraintsFbLoadForces(F_factor);
     }
 
@@ -214,14 +214,14 @@ void ChSystemMulticoreNSC::AssembleSystem() {
         item->VariablesFbIncrementMq();
         item->ConstraintsBiLoad_C(C_factor, max_penetration_recovery_speed, true);
         item->ConstraintsBiLoad_Ct(Ct_factor);
-        item->ConstraintsLoadJacobians();
-        item->KRMmatricesLoad(K_factor, R_factor, M_factor);
+        item->LoadConstraintJacobians();
+        item->LoadKRMMatrices(K_factor, R_factor, M_factor);
         item->ConstraintsFbLoadForces(F_factor);
     }
 
     contact_container->ConstraintsBiLoad_C(C_factor, max_penetration_recovery_speed, true);
     contact_container->ConstraintsFbLoadForces(F_factor);
-    contact_container->ConstraintsLoadJacobians();
+    contact_container->LoadConstraintJacobians();
 
     // Inject all variables and constraints into the system descriptor.
     descriptor->BeginInsertion();

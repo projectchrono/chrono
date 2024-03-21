@@ -115,13 +115,11 @@ class ChApi ChLoadBase : public ChObj {
     /// Jacobian structures are automatically allocated if needed.
     virtual void Update(double time);
 
-    /// Report if this is load is stiff. If so, InjectKRMmatrices will provide
-    /// the jacobians of the load.
+    /// Report if this is load is stiff. 
+    /// If so, InjectKRMMatrices will provide the Jacobians of the load.
     virtual bool IsStiff() = 0;
 
-    //
     // Functions for interfacing to the state bookkeeping and solver
-    //
 
     /// Adds the internal loads Q (pasted at global nodes offsets) into
     /// a global vector R, multiplied by a scaling factor c, as
@@ -145,14 +143,13 @@ class ChApi ChLoadBase : public ChObj {
         const double c          ///< a scaling factor
         ) = 0;
 
-    /// Tell to a system descriptor that there are item(s) of type
-    /// ChKblock in this object (for further passing it to a solver)
-    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor);
+    /// Register with the given system descriptor any ChKRMblock objects associated with this item.
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor);
 
-    /// Adds the current stiffness K and damping R and mass M matrices in encapsulated
-    /// ChKblock item(s), if any. The K, R, M matrices are added with scaling
-    /// values Kfactor, Rfactor, Mfactor.
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor);
+    /// Compute and load current stiffnes (K), damping (R), and mass (M) matrices in encapsulated ChKRMblock objects.
+    /// The resulting KRM blocks represent linear combinations of the K, R, and M matrices, with the specified
+    /// coefficients Kfactor, Rfactor,and Mfactor, respectively.
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor);
 };
 
 // -----------------------------------------------------------------------------

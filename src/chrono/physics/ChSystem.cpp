@@ -599,14 +599,14 @@ bool ChSystem::ManageSleepingBodies() {
 //  DESCRIPTOR BOOKKEEPING
 // -----------------------------------------------------------------------------
 
-void ChSystem::DescriptorPrepareInject(ChSystemDescriptor& mdescriptor) {
-    mdescriptor.BeginInsertion();  // This resets the vectors of constr. and var. pointers.
+void ChSystem::DescriptorPrepareInject(ChSystemDescriptor& sys_descriptor) {
+    sys_descriptor.BeginInsertion();  // This resets the vectors of constr. and var. pointers.
 
-    InjectConstraints(mdescriptor);
-    InjectVariables(mdescriptor);
-    InjectKRMmatrices(mdescriptor);
+    InjectConstraints(sys_descriptor);
+    InjectVariables(sys_descriptor);
+    InjectKRMMatrices(sys_descriptor);
 
-    mdescriptor.EndInsertion();
+    sys_descriptor.EndInsertion();
 }
 
 // -----------------------------------------------------------------------------
@@ -753,12 +753,12 @@ void ChSystem::IntFromDescriptor(const unsigned int off_v,
 
 // -----------------------------------------------------------------------------
 
-void ChSystem::InjectVariables(ChSystemDescriptor& mdescriptor) {
+void ChSystem::InjectVariables(ChSystemDescriptor& sys_descriptor) {
     // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.InjectVariables(mdescriptor);
+    assembly.InjectVariables(sys_descriptor);
 
     // Use also on contact container:
-    contact_container->InjectVariables(mdescriptor);
+    contact_container->InjectVariables(sys_descriptor);
 }
 
 void ChSystem::VariablesFbReset() {
@@ -809,12 +809,12 @@ void ChSystem::VariablesQbIncrementPosition(double dt_step) {
     contact_container->VariablesQbIncrementPosition(dt_step);
 }
 
-void ChSystem::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChSystem::InjectConstraints(ChSystemDescriptor& sys_descriptor) {
     // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.InjectConstraints(mdescriptor);
+    assembly.InjectConstraints(sys_descriptor);
 
     // Use also on contact container:
-    contact_container->InjectConstraints(mdescriptor);
+    contact_container->InjectConstraints(sys_descriptor);
 }
 
 void ChSystem::ConstraintsBiReset() {
@@ -857,12 +857,12 @@ void ChSystem::ConstraintsFbLoadForces(double factor) {
     contact_container->ConstraintsFbLoadForces(factor);
 }
 
-void ChSystem::ConstraintsLoadJacobians() {
+void ChSystem::LoadConstraintJacobians() {
     // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.ConstraintsLoadJacobians();
+    assembly.LoadConstraintJacobians();
 
     // Use also on contact container:
-    contact_container->ConstraintsLoadJacobians();
+    contact_container->LoadConstraintJacobians();
 }
 
 void ChSystem::ConstraintsFetch_react(double factor) {
@@ -873,20 +873,20 @@ void ChSystem::ConstraintsFetch_react(double factor) {
     contact_container->ConstraintsFetch_react(factor);
 }
 
-void ChSystem::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
+void ChSystem::InjectKRMMatrices(ChSystemDescriptor& sys_descriptor) {
     // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.InjectKRMmatrices(mdescriptor);
+    assembly.InjectKRMMatrices(sys_descriptor);
 
     // Use also on contact container:
-    contact_container->InjectKRMmatrices(mdescriptor);
+    contact_container->InjectKRMMatrices(sys_descriptor);
 }
 
-void ChSystem::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChSystem::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     // Operate on assembly sub-objects (bodies, links, etc.)
-    assembly.KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+    assembly.LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
 
     // Use also on contact container:
-    contact_container->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+    contact_container->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
 }
 
 // -----------------------------------------------------------------------------
@@ -1033,11 +1033,11 @@ bool ChSystem::StateSolveCorrection(
         timer_jacobian.start();
 
         // Cq  matrix
-        ConstraintsLoadJacobians();
+        LoadConstraintJacobians();
 
         // G matrix: M, K, R components
         if (c_a || c_v || c_x)
-            KRMmatricesLoad(-c_x, -c_v, c_a);
+            LoadKRMMatrices(-c_x, -c_v, c_a);
 
         // For ChVariable objects without a ChKblock, just use the 'a' coefficient
         descriptor->SetMassFactor(c_a);
@@ -1314,10 +1314,10 @@ void ChSystem::ResetTimers() {
 
 void ChSystem::GetMassMatrix(ChSparseMatrix& M) {
     // IntToDescriptor(0, Dv, R, 0, L, Qc);
-    // ConstraintsLoadJacobians();
+    // LoadConstraintJacobians();
 
     // Load all KRM matrices with the M part only
-    KRMmatricesLoad(0, 0, 1.0);
+    LoadKRMMatrices(0, 0, 1.0);
     // For ChVariable objects without a ChKblock, but still with a mass:
     descriptor->SetMassFactor(1.0);
 
@@ -1327,10 +1327,10 @@ void ChSystem::GetMassMatrix(ChSparseMatrix& M) {
 
 void ChSystem::GetStiffnessMatrix(ChSparseMatrix& K) {
     // IntToDescriptor(0, Dv, R, 0, L, Qc);
-    // ConstraintsLoadJacobians();
+    // LoadConstraintJacobians();
 
     // Load all KRM matrices with the K part only
-    this->KRMmatricesLoad(1.0, 0, 0);
+    this->LoadKRMMatrices(1.0, 0, 0);
     // For ChVariable objects without a ChKblock, but still with a mass:
     descriptor->SetMassFactor(0.0);
 
@@ -1340,10 +1340,10 @@ void ChSystem::GetStiffnessMatrix(ChSparseMatrix& K) {
 
 void ChSystem::GetDampingMatrix(ChSparseMatrix& R) {
     // IntToDescriptor(0, Dv, R, 0, L, Qc);
-    // ConstraintsLoadJacobians();
+    // LoadConstraintJacobians();
 
     // Load all KRM matrices with the R part only
-    this->KRMmatricesLoad(0, 1.0, 0);
+    this->LoadKRMMatrices(0, 1.0, 0);
     // For ChVariable objects without a ChKblock, but still with a mass:
     descriptor->SetMassFactor(0.0);
 
@@ -1355,7 +1355,7 @@ void ChSystem::GetConstraintJacobianMatrix(ChSparseMatrix& Cq) {
     // IntToDescriptor(0, Dv, R, 0, L, Qc);
 
     // Load all jacobian matrices
-    this->ConstraintsLoadJacobians();
+    this->LoadConstraintJacobians();
 
     // Fill system-level R matrix
     this->GetSystemDescriptor()->ConvertToMatrixForm(&Cq, nullptr, nullptr, nullptr, nullptr, nullptr, false, false);

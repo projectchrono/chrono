@@ -298,16 +298,14 @@ void ChLinkMotorRotationDriveline::IntFromDescriptor(const unsigned int off_v,
     innerconstraint2->IntFromDescriptor(off_v, v, off_L + nc + 1, L);
 }
 
-//
 //  SOLVER functions
-//
 
-void ChLinkMotorRotationDriveline::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkMotorRotationDriveline::InjectConstraints(ChSystemDescriptor& descriptor) {
     // First, inherit to parent class
-    ChLinkMotorRotation::InjectConstraints(mdescriptor);
+    ChLinkMotorRotation::InjectConstraints(descriptor);
 
-    innerconstraint1->InjectConstraints(mdescriptor);
-    innerconstraint2->InjectConstraints(mdescriptor);
+    innerconstraint1->InjectConstraints(descriptor);
+    innerconstraint2->InjectConstraints(descriptor);
 }
 
 void ChLinkMotorRotationDriveline::ConstraintsBiReset() {
@@ -334,12 +332,12 @@ void ChLinkMotorRotationDriveline::ConstraintsBiLoad_Ct(double factor) {
     innerconstraint2->ConstraintsBiLoad_Ct(factor);
 }
 
-void ChLinkMotorRotationDriveline::ConstraintsLoadJacobians() {
+void ChLinkMotorRotationDriveline::LoadConstraintJacobians() {
     // First, inherit to parent class
-    ChLinkMotorRotation::ConstraintsLoadJacobians();
+    ChLinkMotorRotation::LoadConstraintJacobians();
 
-    innerconstraint1->ConstraintsLoadJacobians();
-    innerconstraint2->ConstraintsLoadJacobians();
+    innerconstraint1->LoadConstraintJacobians();
+    innerconstraint2->LoadConstraintJacobians();
 }
 
 void ChLinkMotorRotationDriveline::ConstraintsFetch_react(double factor) {
@@ -350,12 +348,12 @@ void ChLinkMotorRotationDriveline::ConstraintsFetch_react(double factor) {
     innerconstraint2->ConstraintsFetch_react(factor);
 }
 
-void ChLinkMotorRotationDriveline::InjectVariables(ChSystemDescriptor& mdescriptor) {
+void ChLinkMotorRotationDriveline::InjectVariables(ChSystemDescriptor& descriptor) {
     // First, inherit to parent class
-    ChLinkMotorRotation::InjectVariables(mdescriptor);
+    ChLinkMotorRotation::InjectVariables(descriptor);
 
-    innershaft1->InjectVariables(mdescriptor);
-    innershaft2->InjectVariables(mdescriptor);
+    innershaft1->InjectVariables(descriptor);
+    innershaft2->InjectVariables(descriptor);
 }
 
 void ChLinkMotorRotationDriveline::VariablesFbReset() {

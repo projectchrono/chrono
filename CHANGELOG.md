@@ -441,6 +441,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNodeNdofs                  | rename: GetNodeNumCoordsPosLevel                 |
 |                                   | GetNodeNdofs_active           | rename: GetNodeNumCoordsPosLevelActive           |
 |                                   | GetNnodes                     | rename: GetNumNodes                              |
+|                                   | InjectKRMmatrices             | rename: InjectKRMMatrices                        |
+|                                   | KRMmatricesLoad               | rename: LoadKRMMatrices                          |
 | ChElementBeamEuler                |                               |                                                  |
 |                                   | GetField_dt                   | rename: GetFieldDt                               |
 |                                   | GetField_dtdt                 | rename: GetFieldDt2                              |
@@ -1074,11 +1076,14 @@ Note that this represents a major public API change and we expect most user code
 | ChParticleCloud                   |                               |                                                  |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 | ChPhysicsItem                     |                               |                                                  |
+|                                   | ConstraintsLoadJacobian       | rename: LoadConstraintJacobians                  |
 |                                   | GetDOC                        | rename: GetNumConstraints                        |
 |                                   | GetDOC_c                      | rename: GetNumConstraintsBilateral               |
 |                                   | GetDOC_d                      | rename: GetNumConstraintsUnilateral              |
 |                                   | GetDOF                        | rename: GetNumCoordsPosLevel                     |
 |                                   | GetDOF_w                      | rename: GetNumCoordsVelLevel                     |
+|                                   | InjectKRMmatrices             | rename: InjectKRMMatrices                        |
+|                                   | KRMmatricesLoad               | rename: LoadKRMMatrices                          |
 |                                   | SetNoSpeedNoAcceleration      | rename: SetZeroVelocityZeroAcceleration          |
 | ChQuaternion                      |                               |                                                  |
 |                                   | free functions                | rename and move to ChRotation.h (see Notes)      |
@@ -1169,6 +1174,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_closed_U                  | rename: IsClosedU                                |
 |                                   | Get_closed_V                  | rename: IsClosedV                                |
 | ChSystem                          |                               |                                                  |
+|                                   | ConstraintsLoadJacobian       | rename: LoadConstraintJacobians                  |
 |                                   | DoEntireDynamics              | remove                                           |
 |                                   | DoEntireKinematics            | remove                                           |
 |                                   | DoEntireUniformDynamics       | remove                                           |
@@ -1215,7 +1221,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetSolverTolerance            | remove                                           |
 |                                   | GetStepcount                  | rename: GetNumSteps                              |
 |                                   | GetUseSleeping                | rename: IsSleepingAllowed                        |
+|                                   | InjectKRMmatrices             | rename: InjectKRMMatrices                        |
 |                                   | Integrate_Y                   | rename: AdvanceDynamics                          |
+|                                   | KRMmatricesLoad               | rename: LoadKRMMatrices                          |
 |                                   | ResetStepcount                | rename: ResetNumSteps                            |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
 |                                   | SetMaxiter                    | remove                                           |

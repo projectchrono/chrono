@@ -137,10 +137,10 @@ void ChShaft::IntFromDescriptor(const unsigned int off_v,  // offset in v
     v(off_v) = variables.Get_qb()(0, 0);
 }
 
-void ChShaft::InjectVariables(ChSystemDescriptor& mdescriptor) {
+void ChShaft::InjectVariables(ChSystemDescriptor& descriptor) {
     variables.SetDisabled(!IsActive());
 
-    mdescriptor.InsertVariables(&variables);
+    descriptor.InsertVariables(&variables);
 }
 
 void ChShaft::VariablesFbReset() {

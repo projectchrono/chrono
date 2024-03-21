@@ -295,7 +295,7 @@ void ChLinkMateGeneric::SetUseTangentStiffness(bool useKc) {
     }
 }
 
-void ChLinkMateGeneric::InjectKRMmatrices(ChSystemDescriptor& descriptor) {
+void ChLinkMateGeneric::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     if (!this->IsActive())
         return;
 
@@ -303,7 +303,7 @@ void ChLinkMateGeneric::InjectKRMmatrices(ChSystemDescriptor& descriptor) {
         descriptor.InsertKblock(Kmatr.get());
 }
 
-void ChLinkMateGeneric::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChLinkMateGeneric::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (!this->IsActive())
         return;
 
@@ -539,13 +539,13 @@ void ChLinkMateGeneric::IntFromDescriptor(const unsigned int off_v,
 
 // SOLVER INTERFACES
 
-void ChLinkMateGeneric::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkMateGeneric::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!this->IsActive())
         return;
 
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive())
-            mdescriptor.InsertConstraint(&mask.GetConstraint(i));
+            descriptor.InsertConstraint(&mask.GetConstraint(i));
     }
 }
 
@@ -598,7 +598,7 @@ void ChLinkMateGeneric::ConstraintsBiLoad_Ct(double factor) {
     // NOT NEEDED BECAUSE NO RHEONOMIC TERM
 }
 
-void ChLinkMateGeneric::ConstraintsLoadJacobians() {
+void ChLinkMateGeneric::LoadConstraintJacobians() {
     // already loaded when doing Update (which used the matrices of the scalar constraint objects)
 }
 

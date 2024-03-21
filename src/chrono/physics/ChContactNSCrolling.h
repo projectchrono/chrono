@@ -165,7 +165,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         // If rolling and spinning compliance, set the cfm terms
         double h = this->container->GetSystem()->GetStep();
 
-        //// TODO  move to KRMmatricesLoad() the following, and only for !bounced case
+        //// TODO  move to LoadKRMMatrices() the following, and only for !bounced case
         double alpha = this->dampingf;              // [R]=alpha*[K]
         double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 
@@ -202,13 +202,13 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         L(off_L + 5) = Rv.Get_l_i();
     }
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override {
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override {
         // base behaviour too
-        ChContactNSC<Ta, Tb>::InjectConstraints(mdescriptor);
+        ChContactNSC<Ta, Tb>::InjectConstraints(descriptor);
 
-        mdescriptor.InsertConstraint(&Rx);
-        mdescriptor.InsertConstraint(&Ru);
-        mdescriptor.InsertConstraint(&Rv);
+        descriptor.InsertConstraint(&Rx);
+        descriptor.InsertConstraint(&Ru);
+        descriptor.InsertConstraint(&Rv);
     }
 
     virtual void ConstraintsBiReset() override {
@@ -227,7 +227,7 @@ class ChContactNSCrolling : public ChContactNSC<Ta, Tb> {
         // If rolling and spinning compliance, set the cfm terms
         double h = this->container->GetSystem()->GetStep();
 
-        //// TODO  move to KRMmatricesLoad() the following, and only for !bounced case
+        //// TODO  move to LoadKRMMatrices() the following, and only for !bounced case
         double alpha = this->dampingf;              // [R]=alpha*[K]
         double inv_hhpa = 1.0 / (h * (h + alpha));  // 1/(h*(h+a))
 

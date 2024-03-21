@@ -1625,11 +1625,11 @@ void ChModalAssembly::GetSubassemblyMassMatrix(ChSparseMatrix* M) {
     ChSystemDescriptor temp_descriptor;
 
     this->InjectVariables(temp_descriptor);
-    this->InjectKRMmatrices(temp_descriptor);
+    this->InjectKRMMatrices(temp_descriptor);
     this->InjectConstraints(temp_descriptor);
 
     // Load all KRM matrices with the M part only
-    KRMmatricesLoad(0, 0, 1.0);
+    LoadKRMMatrices(0, 0, 1.0);
     // For ChVariable objects without a ChKblock, but still with a mass:
     temp_descriptor.SetMassFactor(1.0);
 
@@ -1646,11 +1646,11 @@ void ChModalAssembly::GetSubassemblyStiffnessMatrix(ChSparseMatrix* K) {
     ChSystemDescriptor temp_descriptor;
 
     this->InjectVariables(temp_descriptor);
-    this->InjectKRMmatrices(temp_descriptor);
+    this->InjectKRMMatrices(temp_descriptor);
     this->InjectConstraints(temp_descriptor);
 
     // Load all KRM matrices with the K part only
-    this->KRMmatricesLoad(1.0, 0, 0);
+    this->LoadKRMMatrices(1.0, 0, 0);
     // For ChVariable objects without a ChKblock, but still with a mass:
     temp_descriptor.SetMassFactor(0.0);
 
@@ -1667,11 +1667,11 @@ void ChModalAssembly::GetSubassemblyDampingMatrix(ChSparseMatrix* R) {
     ChSystemDescriptor temp_descriptor;
 
     this->InjectVariables(temp_descriptor);
-    this->InjectKRMmatrices(temp_descriptor);
+    this->InjectKRMMatrices(temp_descriptor);
     this->InjectConstraints(temp_descriptor);
 
     // Load all KRM matrices with the R part only
-    this->KRMmatricesLoad(0, 1.0, 0);
+    this->LoadKRMMatrices(0, 1.0, 0);
     // For ChVariable objects without a ChKblock, but still with a mass:
     temp_descriptor.SetMassFactor(0.0);
 
@@ -1688,11 +1688,11 @@ void ChModalAssembly::GetSubassemblyConstraintJacobianMatrix(ChSparseMatrix* Cq)
     ChSystemDescriptor temp_descriptor;
 
     this->InjectVariables(temp_descriptor);
-    this->InjectKRMmatrices(temp_descriptor);
+    this->InjectKRMMatrices(temp_descriptor);
     this->InjectConstraints(temp_descriptor);
 
     // Load all jacobian matrices
-    this->ConstraintsLoadJacobians();
+    this->LoadConstraintJacobians();
 
     // Fill system-level R matrix
     temp_descriptor.ConvertToMatrixForm(Cq, nullptr, nullptr, nullptr, nullptr, nullptr, false, false);
@@ -2770,21 +2770,21 @@ void ChModalAssembly::InjectConstraints(ChSystemDescriptor& mdescriptor) {
     }
 }
 
-void ChModalAssembly::ConstraintsLoadJacobians() {
-    ChAssembly::ConstraintsLoadJacobians();  // parent
+void ChModalAssembly::LoadConstraintJacobians() {
+    ChAssembly::LoadConstraintJacobians();  // parent
 
     if (is_modal == false) {
         for (auto& body : internal_bodylist) {
-            body->ConstraintsLoadJacobians();
+            body->LoadConstraintJacobians();
         }
         for (auto& link : internal_linklist) {
-            link->ConstraintsLoadJacobians();
+            link->LoadConstraintJacobians();
         }
         for (auto& mesh : internal_meshlist) {
-            mesh->ConstraintsLoadJacobians();
+            mesh->LoadConstraintJacobians();
         }
         for (auto& item : internal_otherphysicslist) {
-            item->ConstraintsLoadJacobians();
+            item->LoadConstraintJacobians();
         }
     } else {
         // todo:
@@ -2792,42 +2792,42 @@ void ChModalAssembly::ConstraintsLoadJacobians() {
     }
 }
 
-void ChModalAssembly::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
+void ChModalAssembly::InjectKRMMatrices(ChSystemDescriptor& mdescriptor) {
     if (is_modal == false) {
-        ChAssembly::InjectKRMmatrices(mdescriptor);  // parent
+        ChAssembly::InjectKRMMatrices(mdescriptor);  // parent
 
         for (auto& body : internal_bodylist) {
-            body->InjectKRMmatrices(mdescriptor);
+            body->InjectKRMMatrices(mdescriptor);
         }
         for (auto& link : internal_linklist) {
-            link->InjectKRMmatrices(mdescriptor);
+            link->InjectKRMMatrices(mdescriptor);
         }
         for (auto& mesh : internal_meshlist) {
-            mesh->InjectKRMmatrices(mdescriptor);
+            mesh->InjectKRMMatrices(mdescriptor);
         }
         for (auto& item : internal_otherphysicslist) {
-            item->InjectKRMmatrices(mdescriptor);
+            item->InjectKRMMatrices(mdescriptor);
         }
     } else {
         mdescriptor.InsertKblock(&this->modal_Hblock);
     }
 }
 
-void ChModalAssembly::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChModalAssembly::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (is_modal == false) {
-        ChAssembly::KRMmatricesLoad(Kfactor, Rfactor, Mfactor);  // parent
+        ChAssembly::LoadKRMMatrices(Kfactor, Rfactor, Mfactor);  // parent
 
         for (auto& body : internal_bodylist) {
-            body->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+            body->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
         }
         for (auto& link : internal_linklist) {
-            link->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+            link->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
         }
         for (auto& mesh : internal_meshlist) {
-            mesh->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+            mesh->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
         }
         for (auto& item : internal_otherphysicslist) {
-            item->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+            item->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
         }
     } else {
         ComputeModalKRMmatrix();

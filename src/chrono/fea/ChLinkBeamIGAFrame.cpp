@@ -207,13 +207,13 @@ void ChLinkBeamIGAFrame::IntFromDescriptor(const unsigned int off_v,
 
 // SOLVER INTERFACES
 
-void ChLinkBeamIGAFrame::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkBeamIGAFrame::InjectConstraints(ChSystemDescriptor& descriptor) {
     // if (!IsActive())
     //	return;
 
-    // mdescriptor.InsertConstraint(&constraint1);
-    mdescriptor.InsertConstraint(&constraint2);
-    mdescriptor.InsertConstraint(&constraint3);
+    // descriptor.InsertConstraint(&constraint1);
+    descriptor.InsertConstraint(&constraint2);
+    descriptor.InsertConstraint(&constraint3);
 }
 
 void ChLinkBeamIGAFrame::ConstraintsBiReset() {
@@ -250,7 +250,7 @@ void ChLinkBeamIGAFrame::ConstraintsBiLoad_Ct(double factor) {
     // nothing
 }
 
-void ChLinkBeamIGAFrame::ConstraintsLoadJacobians() {
+void ChLinkBeamIGAFrame::LoadConstraintJacobians() {
     // compute jacobians
     ChMatrix33<> Aro(m_csys.rot);
     ChMatrix33<> Aow(m_body->GetRot());

@@ -207,17 +207,15 @@ class ChApi ChLinkMotorLinearDriveline : public ChLinkMotorLinear {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    //
     // SOLVER INTERFACE (old)
-    //
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
     virtual void ConstraintsBiReset() override;
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
     virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
-    virtual void ConstraintsLoadJacobians() override;
+    virtual void LoadConstraintJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
     virtual void VariablesFbReset() override;
     virtual void VariablesFbLoadForces(double factor = 1) override;
     virtual void VariablesQbLoadSpeed() override;

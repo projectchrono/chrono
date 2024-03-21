@@ -365,7 +365,7 @@ void ChLinkRevoluteSpherical::ConstraintsBiLoad_C(double factor, double recovery
     m_cnstr_dot.Set_b_i(m_cnstr_dot.Get_b_i() + cnstr_dot_violation);
 }
 
-void ChLinkRevoluteSpherical::ConstraintsLoadJacobians() {
+void ChLinkRevoluteSpherical::LoadConstraintJacobians() {
     // Nothing to do here. Jacobians were loaded in Update().
 }
 

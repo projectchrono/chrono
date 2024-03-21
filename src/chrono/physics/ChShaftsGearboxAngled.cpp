@@ -120,11 +120,11 @@ void ChShaftsGearboxAngled::IntStateScatterReactions(const unsigned int off_L, c
     torque_react = L(off_L);
 }
 
-void ChShaftsGearboxAngled::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChShaftsGearboxAngled::InjectConstraints(ChSystemDescriptor& descriptor) {
     // if (!IsActive())
     //	return;
 
-    mdescriptor.InsertConstraint(&constraint);
+    descriptor.InsertConstraint(&constraint);
 }
 
 void ChShaftsGearboxAngled::ConstraintsBiReset() {
@@ -147,7 +147,7 @@ void ChShaftsGearboxAngled::ConstraintsBiLoad_Ct(double factor) {
     // nothing
 }
 
-void ChShaftsGearboxAngled::ConstraintsLoadJacobians() {
+void ChShaftsGearboxAngled::LoadConstraintJacobians() {
     // compute jacobians
     constraint.Get_Cq_a()(0) = t0;
     constraint.Get_Cq_b()(0) = -1.0;

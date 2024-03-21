@@ -191,12 +191,12 @@ void ChShaftsMotorSpeed::IntFromDescriptor(const unsigned int off_v,  // offset 
     v(off_v) = this->variable.Get_qb()(0, 0);
 }
 
-void ChShaftsMotorSpeed::InjectConstraints(ChSystemDescriptor& mdescriptor) {
-    mdescriptor.InsertConstraint(&constraint);
+void ChShaftsMotorSpeed::InjectConstraints(ChSystemDescriptor& descriptor) {
+    descriptor.InsertConstraint(&constraint);
 }
 
-void ChShaftsMotorSpeed::InjectVariables(ChSystemDescriptor& mdescriptor) {
-    mdescriptor.InsertVariables(&variable);
+void ChShaftsMotorSpeed::InjectVariables(ChSystemDescriptor& descriptor) {
+    descriptor.InsertVariables(&variable);
 }
 
 void ChShaftsMotorSpeed::VariablesFbReset() {
@@ -249,7 +249,7 @@ void ChShaftsMotorSpeed::ConstraintsBiLoad_Ct(double factor) {
     constraint.Set_b_i(constraint.Get_b_i() + factor * ct);
 }
 
-void ChShaftsMotorSpeed::ConstraintsLoadJacobians() {
+void ChShaftsMotorSpeed::LoadConstraintJacobians() {
     constraint.Get_Cq_a()(0) = 1;
     constraint.Get_Cq_b()(0) = -1;
 }

@@ -479,7 +479,7 @@ void ChLinkRevoluteTranslational::ConstraintsBiLoad_C(double factor, double reco
     m_cnstr_dist.Set_b_i(m_cnstr_dist.Get_b_i() + cnstr_dist_violation);
 }
 
-void ChLinkRevoluteTranslational::ConstraintsLoadJacobians() {
+void ChLinkRevoluteTranslational::LoadConstraintJacobians() {
     // Nothing to do here. Jacobians were loaded in Update().
 }
 

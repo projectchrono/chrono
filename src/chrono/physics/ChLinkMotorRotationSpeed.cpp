@@ -123,7 +123,7 @@ void ChLinkMotorRotationSpeed::Update(double mytime, bool update_assets) {
     }
 }
 
-void ChLinkMotorRotationSpeed::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChLinkMotorRotationSpeed::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (!this->IsActive())
         return;
 
@@ -291,10 +291,10 @@ void ChLinkMotorRotationSpeed::IntFromDescriptor(const unsigned int off_v,  // o
 }
 
 ////
-void ChLinkMotorRotationSpeed::InjectVariables(ChSystemDescriptor& mdescriptor) {
+void ChLinkMotorRotationSpeed::InjectVariables(ChSystemDescriptor& descriptor) {
     variable.SetDisabled(!IsActive());
 
-    mdescriptor.InsertVariables(&variable);
+    descriptor.InsertVariables(&variable);
 }
 
 void ChLinkMotorRotationSpeed::VariablesFbReset() {

@@ -97,7 +97,7 @@ void ChExternalDynamics::InjectVariables(ChSystemDescriptor& descriptor) {
     descriptor.InsertVariables(m_variables);
 }
 
-void ChExternalDynamics::InjectKRMmatrices(ChSystemDescriptor& descriptor) {
+void ChExternalDynamics::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     if (IsStiff()) {
         descriptor.InsertKblock(&m_KRM);
     }
@@ -201,7 +201,7 @@ void ChExternalDynamics::IntFromDescriptor(const unsigned int off_v,  // offset 
 
 // -----------------------------------------------------------------------------
 
-void ChExternalDynamics::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChExternalDynamics::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (IsStiff()) {
         // Recall to flip sign to load R = -dQ/dv (K is zero here)
         m_KRM.Get_K() = Mfactor * ChMatrixDynamic<>::Identity(m_nstates, m_nstates) - Rfactor * m_jac;

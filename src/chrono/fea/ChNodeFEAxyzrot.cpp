@@ -179,8 +179,8 @@ void ChNodeFEAxyzrot::NodeIntFromDescriptor(const unsigned int off_v, ChStateDel
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAxyzrot::InjectVariables(ChSystemDescriptor& mdescriptor) {
-    mdescriptor.InsertVariables(&variables);
+void ChNodeFEAxyzrot::InjectVariables(ChSystemDescriptor& descriptor) {
+    descriptor.InsertVariables(&variables);
 }
 
 void ChNodeFEAxyzrot::VariablesFbReset() {

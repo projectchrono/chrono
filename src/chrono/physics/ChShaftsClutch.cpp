@@ -125,11 +125,11 @@ void ChShaftsClutch::IntFromDescriptor(const unsigned int off_v,  // offset in v
     L(off_L) = constraint.Get_l_i();
 }
 
-void ChShaftsClutch::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChShaftsClutch::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!active)
         return;
 
-    mdescriptor.InsertConstraint(&constraint);
+    descriptor.InsertConstraint(&constraint);
 }
 
 void ChShaftsClutch::ConstraintsBiReset() {
@@ -158,7 +158,7 @@ void ChShaftsClutch::ConstraintsFbLoadForces(double factor) {
     constraint.SetBoxedMinMax(m_dt * minT * modulation, m_dt * maxT * modulation);
 }
 
-void ChShaftsClutch::ConstraintsLoadJacobians() {
+void ChShaftsClutch::LoadConstraintJacobians() {
     constraint.Get_Cq_a()(0) = 1.0;
     constraint.Get_Cq_b()(0) = -1.0;
 }

@@ -141,13 +141,13 @@ void ChLinkNodeNode::IntFromDescriptor(const unsigned int off_v,
 
 // SOLVER INTERFACES
 
-void ChLinkNodeNode::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkNodeNode::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!IsActive())
         return;
 
-    mdescriptor.InsertConstraint(&m_constraint1);
-    mdescriptor.InsertConstraint(&m_constraint2);
-    mdescriptor.InsertConstraint(&m_constraint3);
+    descriptor.InsertConstraint(&m_constraint1);
+    descriptor.InsertConstraint(&m_constraint2);
+    descriptor.InsertConstraint(&m_constraint3);
 }
 
 void ChLinkNodeNode::ConstraintsBiReset() {
@@ -171,7 +171,7 @@ void ChLinkNodeNode::ConstraintsBiLoad_Ct(double factor) {
     // nothing
 }
 
-void ChLinkNodeNode::ConstraintsLoadJacobians() {
+void ChLinkNodeNode::LoadConstraintJacobians() {
     // compute jacobians
     ChMatrix33<> Jxa(1.0);
 

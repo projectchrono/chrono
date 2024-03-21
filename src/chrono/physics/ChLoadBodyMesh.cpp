@@ -145,15 +145,15 @@ void ChLoadBodyMesh::LoadIntLoadResidual_F(ChVectorDynamic<>& R, const double c)
     }
 };
 
-void ChLoadBodyMesh::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
+void ChLoadBodyMesh::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     for (int i = 0; i < forces.size(); ++i) {
-        forces[i]->InjectKRMmatrices(mdescriptor);
+        forces[i]->InjectKRMMatrices(descriptor);
     }
 }
 
-void ChLoadBodyMesh::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChLoadBodyMesh::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     for (int i = 0; i < forces.size(); ++i) {
-        forces[i]->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+        forces[i]->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
     }
 }
 

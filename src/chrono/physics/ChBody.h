@@ -514,9 +514,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Does not automatically update markers & forces.
     virtual void VariablesQbIncrementPosition(double step) override;
 
-    /// Tell to a system descriptor that there are variables of type
-    /// ChVariables in this object (for further passing it to a solver)
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
+    /// Register with the given system descriptor any ChVariable objects associated with this item.
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
 
     // INTERFACE TO ChContactable
 

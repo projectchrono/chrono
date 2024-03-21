@@ -401,13 +401,22 @@ class ChApi ChSystem : public ChIntegrableIIorder {
                          const ChVectorDynamic<>& Qc);
     void IntFromDescriptor(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
 
-    void InjectVariables(ChSystemDescriptor& mdescriptor);
+    /// Register with the given system descriptor all ChVariable objects associated with items in the system.
+    void InjectVariables(ChSystemDescriptor& sys_descriptor);
 
-    void InjectConstraints(ChSystemDescriptor& mdescriptor);
-    void ConstraintsLoadJacobians();
+    /// Register with the given system descriptor any ChConstraint objects associated with items in the system.
+    void InjectConstraints(ChSystemDescriptor& sys_descriptor);
 
-    void InjectKRMmatrices(ChSystemDescriptor& mdescriptor);
-    void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor);
+    /// Compute and load current Jacobians in encapsulated ChConstraint objects.
+    void LoadConstraintJacobians();
+
+    /// Register with the given system descriptor any ChKRMblock objects associated with items in the system.
+    void InjectKRMMatrices(ChSystemDescriptor& sys_descriptor);
+    
+    /// Compute and load current stiffnes (K), damping (R), and mass (M) matrices in encapsulated ChKRMblock objects.
+    /// The resulting KRM blocks represent linear combinations of the K, R, and M matrices, with the specified
+    /// coefficients Kfactor, Rfactor,and Mfactor, respectively.
+    void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor);
 
     // Old bookkeeping system
     void VariablesFbReset();
@@ -733,7 +742,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
   protected:
     /// Pushes all ChConstraints and ChVariables contained in links, bodies, etc. into the system descriptor.
-    virtual void DescriptorPrepareInject(ChSystemDescriptor& mdescriptor);
+    virtual void DescriptorPrepareInject(ChSystemDescriptor& sys_descriptor);
 
     /// Initial system setup before analysis.
     /// This function performs an initial system setup, once system construction is completed and before an analysis.

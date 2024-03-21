@@ -130,11 +130,11 @@ void ChElementGeneric::ComputeMmatrixGlobal(ChMatrixRef M) {
     ComputeKRMmatricesGlobal(M, 0, 0, 1.0);
 }
 
-void ChElementGeneric::InjectKRMmatrices(ChSystemDescriptor& descriptor) {
+void ChElementGeneric::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     descriptor.InsertKblock(&Kmatr);
 }
 
-void ChElementGeneric::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChElementGeneric::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     ComputeKRMmatricesGlobal(Kmatr.Get_K(), Kfactor, Rfactor, Mfactor);
 }
 

@@ -460,7 +460,7 @@ void ChSystemMulticore::UpdateLinks() {
         link->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
         link->ConstraintsBiLoad_Ct(1);
         link->ConstraintsFbLoadForces(GetStep());
-        link->ConstraintsLoadJacobians();
+        link->LoadConstraintJacobians();
 
         link->InjectConstraints(*descriptor);
 
@@ -517,7 +517,7 @@ void ChSystemMulticore::UpdateOtherPhysics() {
         item->ConstraintsBiLoad_C(oostep, clamp_speed, clamp);
         item->ConstraintsBiLoad_Ct(1);
         item->ConstraintsFbLoadForces(GetStep());
-        item->ConstraintsLoadJacobians();
+        item->LoadConstraintJacobians();
         item->VariablesFbLoadForces(GetStep());
         item->VariablesQbLoadSpeed();
 

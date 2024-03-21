@@ -204,7 +204,7 @@ class ChApi ChLinkTSDA : public ChLink {
     // Interface to solver
     ChVariables& Variables() { return *m_variables; }
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
-    virtual void InjectKRMmatrices(ChSystemDescriptor& descriptor) override;
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
 
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
@@ -239,7 +239,7 @@ class ChApi ChLinkTSDA : public ChLink {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     // Interface to the solver (old style)
     virtual void VariablesFbReset() override;

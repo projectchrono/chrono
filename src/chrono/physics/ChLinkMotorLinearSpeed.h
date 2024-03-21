@@ -116,7 +116,7 @@ class ChApi ChLinkMotorLinearSpeed : public ChLinkMotorLinear {
     virtual void VariablesQbLoadSpeed() override;
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbSetSpeed(double step = 0) override;
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
 
     virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
 

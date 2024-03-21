@@ -510,10 +510,10 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
 
     virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
-    virtual void ConstraintsLoadJacobians() override;
+    virtual void LoadConstraintJacobians() override;
 
-    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+    virtual void InjectKRMMatrices(ChSystemDescriptor& mdescriptor) override;
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     // Old bookkeeping system
     /*

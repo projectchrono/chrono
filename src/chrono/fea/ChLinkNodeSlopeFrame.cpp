@@ -173,12 +173,12 @@ void ChLinkNodeSlopeFrame::IntFromDescriptor(const unsigned int off_v,
 
 // SOLVER INTERFACES
 
-void ChLinkNodeSlopeFrame::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkNodeSlopeFrame::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!IsActive())
         return;
 
-    mdescriptor.InsertConstraint(&constraint1);
-    mdescriptor.InsertConstraint(&constraint2);
+    descriptor.InsertConstraint(&constraint1);
+    descriptor.InsertConstraint(&constraint2);
 }
 
 void ChLinkNodeSlopeFrame::ConstraintsBiReset() {
@@ -204,7 +204,7 @@ void ChLinkNodeSlopeFrame::ConstraintsBiLoad_Ct(double factor) {
     // nothing
 }
 
-void ChLinkNodeSlopeFrame::ConstraintsLoadJacobians() {
+void ChLinkNodeSlopeFrame::LoadConstraintJacobians() {
     // compute jacobians
     ChMatrix33<> Aow(m_body->GetRot());
     ChMatrix33<> Aro(m_csys.rot);

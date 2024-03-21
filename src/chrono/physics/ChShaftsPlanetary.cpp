@@ -150,11 +150,11 @@ void ChShaftsPlanetary::IntStateScatterReactions(const unsigned int off_L, const
     torque_react = L(off_L);
 }
 
-void ChShaftsPlanetary::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChShaftsPlanetary::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!active)
         return;
 
-    mdescriptor.InsertConstraint(&constraint);
+    descriptor.InsertConstraint(&constraint);
 }
 
 void ChShaftsPlanetary::ConstraintsBiReset() {
@@ -174,7 +174,7 @@ void ChShaftsPlanetary::ConstraintsBiLoad_Ct(double factor) {
     // nothing
 }
 
-void ChShaftsPlanetary::ConstraintsLoadJacobians() {
+void ChShaftsPlanetary::LoadConstraintJacobians() {
     // compute jacobians
     constraint.Get_Cq_a()(0) = r1;
     constraint.Get_Cq_b()(0) = r2;

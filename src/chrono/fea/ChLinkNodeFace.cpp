@@ -163,13 +163,13 @@ void ChLinkNodeFace::IntFromDescriptor(const unsigned int off_v,
 
 // SOLVER INTERFACES
 
-void ChLinkNodeFace::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkNodeFace::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!IsActive())
         return;
 
-    mdescriptor.InsertConstraint(&constraint1);
-    mdescriptor.InsertConstraint(&constraint2);
-    mdescriptor.InsertConstraint(&constraint3);
+    descriptor.InsertConstraint(&constraint1);
+    descriptor.InsertConstraint(&constraint2);
+    descriptor.InsertConstraint(&constraint3);
 }
 
 void ChLinkNodeFace::ConstraintsBiReset() {
@@ -210,7 +210,7 @@ int mysgn(double val) {
     return (0 < val) - (val < 0);
 }
 
-void ChLinkNodeFace::ConstraintsLoadJacobians() {
+void ChLinkNodeFace::LoadConstraintJacobians() {
     double s1 = 1 - s2 - s3;
 
     // compute jacobians
@@ -507,13 +507,13 @@ void ChLinkNodeFaceRot::IntFromDescriptor(const unsigned int off_v,
 
 // SOLVER INTERFACES
 
-void ChLinkNodeFaceRot::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkNodeFaceRot::InjectConstraints(ChSystemDescriptor& descriptor) {
     // if (!IsActive())
     //	return;
 
-    mdescriptor.InsertConstraint(&constraint1);
-    mdescriptor.InsertConstraint(&constraint2);
-    mdescriptor.InsertConstraint(&constraint3);
+    descriptor.InsertConstraint(&constraint1);
+    descriptor.InsertConstraint(&constraint2);
+    descriptor.InsertConstraint(&constraint3);
 }
 
 void ChLinkNodeFaceRot::ConstraintsBiReset() {
@@ -551,7 +551,7 @@ void ChLinkNodeFaceRot::ConstraintsBiLoad_Ct(double factor) {
     // nothing
 }
 
-void ChLinkNodeFaceRot::ConstraintsLoadJacobians() {
+void ChLinkNodeFaceRot::LoadConstraintJacobians() {
     double s1 = 1 - s2 - s3;
 
     // compute jacobians

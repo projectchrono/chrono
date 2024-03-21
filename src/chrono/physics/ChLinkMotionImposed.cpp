@@ -130,7 +130,7 @@ void ChLinkMotionImposed::Update(double mytime, bool update_assets) {
     }
 }
 
-void ChLinkMotionImposed::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChLinkMotionImposed::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (!this->IsActive())
         return;
 

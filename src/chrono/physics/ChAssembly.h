@@ -283,13 +283,13 @@ class ChApi ChAssembly : public ChPhysicsItem {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
-    virtual void ConstraintsLoadJacobians() override;
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
+    virtual void LoadConstraintJacobians() override;
 
-    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     // Old bookkeeping system - to be removed soon
     virtual void VariablesFbReset() override;
