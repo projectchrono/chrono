@@ -273,14 +273,14 @@ class ChApi ChConstraint {
     virtual double Violation(double mc_i);
 
     /// Paste the jacobian into a global matrix.
-    virtual void Build_Cq(
+    virtual void PasteJacobianInto(
         ChSparseMatrix& storage,  ///< matrix to fill
         int insrow,               ///< starting row of the global matrix from which the jacobian will be pasted
         int col_offset            ///< column offset that will be _added_ to the position provided by the constraint
         ) = 0;
 
     /// Paste the _transposed_ jacobian into a global matrix.
-    virtual void Build_CqT(
+    virtual void PasteJacobianTransposedInto(
         ChSparseMatrix& storage,  ///< matrix to fill
         int row_offset,           ///< row offset that will be _added_ to the position provided by the constraint
         int inscol  ///< starting column of the global matrix from which the transposed jacobian will be pasted

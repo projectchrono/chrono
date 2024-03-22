@@ -300,7 +300,7 @@ void ChLinkMateGeneric::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
         return;
 
     if (this->Kmatr)
-        descriptor.InsertKblock(Kmatr.get());
+        descriptor.InsertKRMBlock(Kmatr.get());
 }
 
 void ChLinkMateGeneric::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {

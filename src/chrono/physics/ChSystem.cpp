@@ -1322,7 +1322,9 @@ void ChSystem::GetMassMatrix(ChSparseMatrix& M) {
     descriptor->SetMassFactor(1.0);
 
     // Fill system-level M matrix
-    this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, &M, nullptr, nullptr, nullptr, nullptr, false, false);
+    M.resize(descriptor->CountActiveVariables(), descriptor->CountActiveVariables());
+    M.setZeroValues();
+    descriptor->PasteMassKRMMatrixInto(M);
 }
 
 void ChSystem::GetStiffnessMatrix(ChSparseMatrix& K) {
@@ -1335,7 +1337,9 @@ void ChSystem::GetStiffnessMatrix(ChSparseMatrix& K) {
     descriptor->SetMassFactor(0.0);
 
     // Fill system-level K matrix
-    this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, &K, nullptr, nullptr, nullptr, nullptr, false, false);
+    K.resize(descriptor->CountActiveVariables(), descriptor->CountActiveVariables());
+    K.setZeroValues();
+    descriptor->PasteMassKRMMatrixInto(K);
 }
 
 void ChSystem::GetDampingMatrix(ChSparseMatrix& R) {
@@ -1348,7 +1352,9 @@ void ChSystem::GetDampingMatrix(ChSparseMatrix& R) {
     descriptor->SetMassFactor(0.0);
 
     // Fill system-level R matrix
-    this->GetSystemDescriptor()->ConvertToMatrixForm(nullptr, &R, nullptr, nullptr, nullptr, nullptr, false, false);
+    R.resize(descriptor->CountActiveVariables(), descriptor->CountActiveVariables());
+    R.setZeroValues();
+    descriptor->PasteMassKRMMatrixInto(R);
 }
 
 void ChSystem::GetConstraintJacobianMatrix(ChSparseMatrix& Cq) {
@@ -1358,7 +1364,9 @@ void ChSystem::GetConstraintJacobianMatrix(ChSparseMatrix& Cq) {
     this->LoadConstraintJacobians();
 
     // Fill system-level R matrix
-    this->GetSystemDescriptor()->ConvertToMatrixForm(&Cq, nullptr, nullptr, nullptr, nullptr, nullptr, false, false);
+    Cq.resize(descriptor->CountActiveConstraints(), descriptor->CountActiveVariables());
+    Cq.setZeroValues();
+    descriptor->PasteConstraintsJacobianMatrixInto(Cq);
 }
 
 void ChSystem::WriteSystemMatrices(bool save_M,
@@ -1408,7 +1416,9 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     DescriptorPrepareInject(*descriptor);
 
     ChSparseMatrix Cq;
-    GetSystemDescriptor()->ConvertToMatrixForm(&Cq, nullptr, nullptr, nullptr, nullptr, nullptr, true, true);
+    Cq.resize(descriptor->CountActiveConstraints(), descriptor->CountActiveVariables());
+    Cq.setZeroValues();
+    descriptor->PasteConstraintsJacobianMatrixInto(Cq, 0, 0, true);
     unsigned int Cq_rows = Cq.rows();
 
     ChSparseMatrix CqT = Cq.transpose();

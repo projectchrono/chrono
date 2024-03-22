@@ -507,7 +507,7 @@ class ChContactSMC : public ChContactTuple<Ta, Tb> {
     /// (for further passing it to a solver)
     virtual void ContInjectKRMmatrices(ChSystemDescriptor& mdescriptor) override {
         if (m_Jac)
-            mdescriptor.InsertKblock(&m_Jac->m_KRM);
+            mdescriptor.InsertKRMBlock(&m_Jac->m_KRM);
     }
 
     /// Compute Jacobian of contact forces.

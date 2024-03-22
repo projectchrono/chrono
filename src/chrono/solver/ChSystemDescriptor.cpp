@@ -62,7 +62,7 @@ void ChSystemDescriptor::ComputeFeasabilityViolation(double& resulting_maxviolat
     }
 }
 
-int ChSystemDescriptor::CountActiveVariables() {
+unsigned int ChSystemDescriptor::CountActiveVariables() {
     if (freeze_count)  // optimization, avoid list count all times
         return n_q;
 
@@ -78,7 +78,7 @@ int ChSystemDescriptor::CountActiveVariables() {
     return n_q;
 }
 
-int ChSystemDescriptor::CountActiveConstraints() {
+unsigned int ChSystemDescriptor::CountActiveConstraints() {
     if (freeze_count)  // optimization, avoid list count all times
         return n_c;
 
@@ -101,94 +101,66 @@ void ChSystemDescriptor::UpdateCountsAndOffsets() {
     freeze_count = true;
 }
 
-void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
-                                             ChSparseMatrix* H,
-                                             ChSparseMatrix* E,
-                                             ChVectorDynamic<>* Fvector,
-                                             ChVectorDynamic<>* Bvector,
-                                             ChVectorDynamic<>* Frict,
-                                             bool only_bilaterals,
-                                             bool skip_contacts_uv) {
-    auto vv_size = m_variables.size();
-    auto vc_size = m_constraints.size();
-    auto vk_size = m_KRMblocks.size();
-
-    // Count bilateral and other constraints.. (if wanted, bilaterals only)
-
-    int mn_c = 0;
-    for (size_t ic = 0; ic < vc_size; ic++) {
-        if (m_constraints[ic]->IsActive())
-            if (!((m_constraints[ic]->GetMode() == CONSTRAINT_FRIC) && only_bilaterals))
-                if (!((dynamic_cast<ChConstraintTwoTuplesFrictionTall*>(m_constraints[ic])) && skip_contacts_uv)) {
-                    mn_c++;
-                }
+void ChSystemDescriptor::PasteMassKRMMatrixInto(ChSparseMatrix& Z, int row_offset, int col_offset) {
+    bool overwrite = true;
+    // Contribution of mass or rigid bodies and node-concentrated masses
+    if (c_a != 0) {
+        int s_q = 0;
+        for (size_t iv = 0; iv < m_variables.size(); iv++) {
+            if (m_variables[iv]->IsActive()) {
+                m_variables[iv]->PasteMassInto(Z, s_q + row_offset, s_q + col_offset, c_a);
+                s_q += m_variables[iv]->Get_ndof();
+            }
+        }
+        overwrite = false;
     }
 
-    // Count active variables, by scanning through all variable blocks,
-    // and set offsets
+    // Contribution of stiffness, damping and mass matrices
+    for (auto& KRMBlock : m_KRMblocks) {
+        KRMBlock->PasteInto(Z, row_offset, col_offset, overwrite);
+    }
+}
 
-    n_q = CountActiveVariables();
-
-    // Reset and resize (if needed) auxiliary vectors
-
-    if (Cq)
-        Cq->resize(mn_c, n_q);
-    if (H)
-        H->resize(n_q, n_q);
-    if (E)
-        E->resize(mn_c, mn_c);
-    if (Fvector)
-        Fvector->setZero(n_q);
-    if (Bvector)
-        Bvector->setZero(mn_c);
-    if (Frict)
-        Frict->setZero(mn_c);
-
-    // Fills H submasses and 'f' vector,
-    // by looping on variables
-    int s_q = 0;
-    for (size_t iv = 0; iv < vv_size; iv++) {
-        if (m_variables[iv]->IsActive()) {
-            if (H)
-                m_variables[iv]->PasteMassInto(*H, s_q, s_q, c_a);  // .. fills  H  (often H=M , the mass)
-            if (Fvector)
-                Fvector->segment(s_q, m_variables[iv]->Get_ndof()) = m_variables[iv]->Get_fb();  // .. fills  'f'
-            s_q += m_variables[iv]->Get_ndof();
+unsigned int ChSystemDescriptor::PasteConstraintsJacobianMatrixInto(ChSparseMatrix& Z,
+                                                                    int row_offset,
+                                                                    int col_offset,
+                                                                    bool only_bilateral) {
+    unsigned int s_c = 0;
+    for (size_t ic = 0; ic < m_constraints.size(); ic++) {
+        if (m_constraints[ic]->IsActive() && !(only_bilateral && !m_constraints[ic]->GetMode() == CONSTRAINT_LOCK)) {
+            m_constraints[ic]->PasteJacobianInto(Z, s_c + row_offset, col_offset);
+            s_c++;
         }
     }
 
-    // If some stiffness / hessian matrix has been added to H ,
-    // also add it to the sparse H
-    if (H) {
-        for (size_t ik = 0; ik < vk_size; ik++) {
-            m_KRMblocks[ik]->PasteInto(*H, 0, 0, false);
+    return s_c;
+}
+
+unsigned int ChSystemDescriptor::PasteConstraintsJacobianMatrixTransposedInto(ChSparseMatrix& Z,
+                                                                              int row_offset,
+                                                                              int col_offset,
+                                                                              bool only_bilateral) {
+    unsigned int s_c = 0;
+    for (auto& constr : m_constraints) {
+        if (constr->IsActive() && !(only_bilateral && !constr->GetMode() == CONSTRAINT_LOCK)) {
+            constr->PasteJacobianTransposedInto(Z, row_offset, s_c + col_offset);
+            s_c++;
         }
     }
 
-    // Fills Cq jacobian, E 'compliance' matrix , the 'b' vector and friction coeff.vector,
-    // by looping on constraints
+    return s_c;
+}
+
+void ChSystemDescriptor::PasteComplianceMatrixInto(ChSparseMatrix& Z,
+                                                   int row_offset,
+                                                   int col_offset,
+                                                   bool only_bilateral) {
     int s_c = 0;
-    for (size_t ic = 0; ic < vc_size; ic++) {
-        if (m_constraints[ic]->IsActive())
-            if (!((m_constraints[ic]->GetMode() == CONSTRAINT_FRIC) && only_bilaterals))
-                if (!((dynamic_cast<ChConstraintTwoTuplesFrictionTall*>(m_constraints[ic])) && skip_contacts_uv)) {
-                    if (Cq)
-                        m_constraints[ic]->Build_Cq(*Cq, s_c, 0);  // .. fills Cq
-                    if (E)
-                        E->SetElement(s_c, s_c, m_constraints[ic]->Get_cfm_i());  // .. fills E ( = cfm )
-                    if (Bvector)
-                        (*Bvector)(s_c) = m_constraints[ic]->Get_b_i();  // .. fills 'b'
-                    if (Frict)                                           // .. fills vector of friction coefficients
-                    {
-                        (*Frict)(s_c) = -2;  // mark with -2 flag for bilaterals (default)
-                        if (auto mcon = dynamic_cast<ChConstraintTwoTuplesContactNall*>(m_constraints[ic]))
-                            (*Frict)(s_c) =
-                                mcon->GetFrictionCoefficient();  // friction coeff only in row of normal component
-                        if (dynamic_cast<ChConstraintTwoTuplesFrictionTall*>(m_constraints[ic]))
-                            (*Frict)(s_c) = -1;  // mark with -1 flag for rows of tangential components
-                    }
-                    s_c++;
-                }
+    for (auto& constr : m_constraints) {
+        if (constr->IsActive() && !(only_bilateral && !constr->GetMode() == CONSTRAINT_LOCK)) {
+            Z.SetElement(row_offset + s_c, col_offset + s_c, constr->Get_cfm_i());
+            s_c++;
+        }
     }
 }
 
@@ -231,9 +203,9 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<
         for (size_t ic = 0; ic < vc_size; ic++) {
             if (m_constraints[ic]->IsActive()) {
                 // Constraint Jacobian in lower-left block of Z
-                m_constraints[ic]->Build_Cq(*Z, n_q + s_c, 0);
+                m_constraints[ic]->PasteJacobianInto(*Z, n_q + s_c, 0);
                 // Transposed constraint Jacobian in upper-right block of Z
-                m_constraints[ic]->Build_CqT(*Z, 0, n_q + s_c);
+                m_constraints[ic]->PasteJacobianTransposedInto(*Z, 0, n_q + s_c);
                 // E ( = cfm ) in lower-right block of Z
                 Z->SetElement(n_q + s_c, n_q + s_c, m_constraints[ic]->Get_cfm_i());
                 s_c++;
@@ -266,7 +238,7 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<
     }
 }
 
-int ChSystemDescriptor::BuildFbVector(ChVectorDynamic<>& Fvector) {
+int ChSystemDescriptor::BuildFbVector(ChVectorDynamic<>& Fvector, unsigned int row_offset) {
     n_q = CountActiveVariables();
     Fvector.setZero(n_q);
 
@@ -275,13 +247,14 @@ int ChSystemDescriptor::BuildFbVector(ChVectorDynamic<>& Fvector) {
     // Fills the 'f' vector
     for (size_t iv = 0; iv < vv_size; iv++) {
         if (m_variables[iv]->IsActive()) {
-            Fvector.segment(m_variables[iv]->GetOffset(), m_variables[iv]->Get_ndof()) = m_variables[iv]->Get_fb();
+            Fvector.segment(row_offset + m_variables[iv]->GetOffset(), m_variables[iv]->Get_ndof()) =
+                m_variables[iv]->Get_fb();
         }
     }
     return n_q;
 }
 
-int ChSystemDescriptor::BuildBiVector(ChVectorDynamic<>& Bvector) {
+int ChSystemDescriptor::BuildBiVector(ChVectorDynamic<>& Bvector, unsigned int row_offset) {
     n_c = CountActiveConstraints();
     Bvector.setZero(n_c);
 
@@ -290,7 +263,7 @@ int ChSystemDescriptor::BuildBiVector(ChVectorDynamic<>& Bvector) {
     // Fill the 'b' vector
     for (size_t ic = 0; ic < vc_size; ic++) {
         if (m_constraints[ic]->IsActive()) {
-            Bvector(m_constraints[ic]->GetOffset()) = m_constraints[ic]->Get_b_i();
+            Bvector(row_offset + m_constraints[ic]->GetOffset()) = m_constraints[ic]->Get_b_i();
         }
     }
 
@@ -625,37 +598,42 @@ void ChSystemDescriptor::UnknownsProject(ChVectorDynamic<>& mx) {
 // -----------------------------------------------------------------------------
 
 void ChSystemDescriptor::WriteMatrixBlocks(const std::string& path, const std::string& prefix, bool one_indexed) {
-    ChSparseMatrix mdM;
-    ChSparseMatrix mdCq;
-    ChSparseMatrix mdE;
-    ChVectorDynamic<double> mdf;
-    ChVectorDynamic<double> mdb;
-    ChVectorDynamic<double> mdfric;
-    ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
+    ChSparseMatrix mass_matrix(CountActiveVariables(), CountActiveVariables());
+    ChSparseMatrix jacob_matrix(CountActiveConstraints(), CountActiveVariables());
+    ChSparseMatrix compl_matrix(CountActiveConstraints(), CountActiveConstraints());
+    ChVectorDynamic<double> f;
+    ChVectorDynamic<double> b;
+
+    mass_matrix.setZeroValues();
+    jacob_matrix.setZeroValues();
+    f.setZero(CountActiveVariables());
+    b.setZero(CountActiveConstraints());
+
+    PasteMassKRMMatrixInto(mass_matrix);
+    PasteConstraintsJacobianMatrixInto(jacob_matrix);
+    PasteComplianceMatrixInto(compl_matrix);
+    BuildFbVector(f);
+    BuildBiVector(b);
 
     std::ofstream file_M(path + "/" + prefix + "_M.dat");
     file_M << std::setprecision(12) << std::scientific;
-    StreamOut(mdM, file_M, one_indexed);
+    StreamOut(mass_matrix, file_M, one_indexed);
 
     std::ofstream file_Cq(path + "/" + prefix + "_Cq.dat");
     file_Cq << std::setprecision(12) << std::scientific;
-    StreamOut(mdCq, file_Cq, one_indexed);
+    StreamOut(jacob_matrix, file_Cq, one_indexed);
 
     std::ofstream file_E(path + "/" + prefix + "_E.dat");
     file_E << std::setprecision(12) << std::scientific;
-    StreamOut(mdE, file_E, one_indexed);
+    StreamOut(compl_matrix, file_E, one_indexed);
 
     std::ofstream file_f(path + "/" + prefix + "_f.dat");
     file_f << std::setprecision(12) << std::scientific;
-    StreamOut(mdf, file_f);
+    StreamOut(f, file_f);
 
     std::ofstream file_b(path + "/" + prefix + "_b.dat");
     file_b << std::setprecision(12) << std::scientific;
-    StreamOut(mdb, file_b);
-
-    std::ofstream file_fric(path + "/" + prefix + "_fric.dat");
-    file_fric << std::setprecision(12) << std::scientific;
-    StreamOut(mdfric, file_fric);
+    StreamOut(b, file_b);
 }
 
 void ChSystemDescriptor::WriteMatrix(const std::string& path, const std::string& prefix, bool one_indexed) {

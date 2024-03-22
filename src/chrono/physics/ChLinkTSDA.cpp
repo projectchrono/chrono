@@ -303,7 +303,7 @@ void ChLinkTSDA::InjectVariables(ChSystemDescriptor& descriptor) {
 
 void ChLinkTSDA::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     if (m_jacobians) {
-        descriptor.InsertKblock(&m_jacobians->m_KRM);
+        descriptor.InsertKRMBlock(&m_jacobians->m_KRM);
     }
 }
 

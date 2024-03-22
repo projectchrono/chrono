@@ -51,8 +51,8 @@ void ChLoadBase::Update(double time) {
 };
 
 void ChLoadBase::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
-    if (m_jacobians) {
-        descriptor.InsertKblock(&m_jacobians->KRM);
+    if (jacobians) {
+        descriptor.InsertKRMBlock(&jacobians->KRM);
     }
 }
 

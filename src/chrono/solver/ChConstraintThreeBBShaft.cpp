@@ -167,7 +167,7 @@ void ChConstraintThreeBBShaft::MultiplyTandAdd(ChVectorDynamic<double>& result, 
     }
 }
 
-void ChConstraintThreeBBShaft::Build_Cq(ChSparseMatrix& storage, int insrow, int col_offset) {
+void ChConstraintThreeBBShaft::PasteJacobianInto(ChSparseMatrix& storage, int insrow, int col_offset) {
     if (variables_a->IsActive())
         PasteMatrix(storage, Cq_a, insrow, variables_a->GetOffset() + col_offset);
     if (variables_b->IsActive())
@@ -176,7 +176,7 @@ void ChConstraintThreeBBShaft::Build_Cq(ChSparseMatrix& storage, int insrow, int
         PasteMatrix(storage, Cq_c, insrow, variables_c->GetOffset() + col_offset);
 }
 
-void ChConstraintThreeBBShaft::Build_CqT(ChSparseMatrix& storage, int row_offset, int inscol) {
+void ChConstraintThreeBBShaft::PasteJacobianTransposedInto(ChSparseMatrix& storage, int row_offset, int inscol) {
     if (variables_a->IsActive())
         PasteMatrix(storage, Cq_a.transpose(), variables_a->GetOffset() + row_offset, inscol);
     if (variables_b->IsActive())

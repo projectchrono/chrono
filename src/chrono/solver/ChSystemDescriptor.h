@@ -97,7 +97,7 @@ class ChApi ChSystemDescriptor {
     virtual void InsertVariables(ChVariables* mv) { m_variables.push_back(mv); }
 
     /// Insert reference to a ChKRMBlock object (a piece of matrix).
-    virtual void InsertKblock(ChKRMBlock* mk) { m_KRMblocks.push_back(mk); }
+    virtual void InsertKRMBlock(ChKRMBlock* mk) { m_KRMblocks.push_back(mk); }
 
     /// End insertion of items.
     /// A derived class should always call UpdateCountsAndOffsets.
@@ -109,13 +109,13 @@ class ChApi ChSystemDescriptor {
     /// - the number of scalar variables is not necessarily the number of inserted ChVariable objects, some could be
     /// inactive.
     /// - also updates the offsets of all variables in 'q' global vector (see GetOffset() in ChVariables).
-    virtual int CountActiveVariables();
+    virtual unsigned int CountActiveVariables();
 
     /// Count & returns the scalar constraints in the system
-    /// This excludes ChVariable object that are set as inactive.
+    /// This excludes ChConstraint object that are set as inactive.
     /// Notes:
     /// - also updates the offsets of all constraints in 'l' global vector (see GetOffset() in ChConstraint).
-    virtual int CountActiveConstraints();
+    virtual unsigned int CountActiveConstraints();
 
     /// Update counts of scalar variables and scalar constraints.
     virtual void UpdateCountsAndOffsets();
@@ -130,13 +130,15 @@ class ChApi ChSystemDescriptor {
     /// Get a vector with all the 'fb' known terms associated to all variables, ordered into a column vector.
     /// The column vector must be passed as a ChMatrix<> object, which will be automatically reset and resized to the
     /// proper length if necessary.
-    virtual int BuildFbVector(ChVectorDynamic<>& Fvector  ///< system-level vector 'f'
+    virtual int BuildFbVector(ChVectorDynamic<>& Fvector,  ///< system-level vector 'f'
+                              unsigned int row_offset = 0  ///< offset in global 'f' vector
     );
 
     /// Get a vector with all the 'bi' known terms ('constraint residuals') associated to all constraints,
     /// ordered into a column vector. The column vector must be passed as a ChMatrix<>
     /// object, which will be automatically reset and resized to the proper length if necessary.
-    virtual int BuildBiVector(ChVectorDynamic<>& Bvector  ///< system-level vector 'b'
+    virtual int BuildBiVector(ChVectorDynamic<>& Bvector,  ///< system-level vector 'b'
+                              unsigned int row_offset = 0  ///< offset in global 'b' vector
     );
 
     /// Get the d vector = {f; -b} with all the 'fb' and 'bi' known terms, as in  Z*y-d
@@ -277,27 +279,42 @@ class ChApi ChSystemDescriptor {
 
     // LOGGING/OUTPUT/ETC.
 
-    /// The following function may be used to create the Jacobian and the
-    /// mass matrix of the variational problem in matrix form, by assembling all
-    /// the jacobians of all the constraints/contacts, all the mass matrices, all vectors,
-    /// as they are _currently_ stored in the sparse data of all ChConstraint and ChVariables
-    /// contained in this ChSystemDescriptor.
-    ///
-    /// This can be useful for debugging, data dumping, and similar purposes (most solvers avoid
-    /// using these matrices, for performance), for example you will load these matrices in Matlab.
-    /// Optionally, tangential (u,v) contact jacobians may be skipped, or only bilaterals can be considered
-    /// The matrices and vectors are automatically resized if needed.
-    virtual void ConvertToMatrixForm(
-        ChSparseMatrix* Cq,            ///< fill this system jacobian matrix, if not null
-        ChSparseMatrix* H,             ///< fill this system H (mass+stiffness+damp) matrix, if not null
-        ChSparseMatrix* E,             ///< fill this system 'compliance' matrix , if not null
-        ChVectorDynamic<>* Fvector,    ///< fill this vector as the known term 'f', if not null
-        ChVectorDynamic<>* Bvector,    ///< fill this vector as the known term 'b', if not null
-        ChVectorDynamic<>* Frict,      ///< fill as a vector with friction coefficients (=-1 for tangent comp.; =-2 for
-                                       ///< bilaterals), if not null
-        bool only_bilaterals = false,  ///< skip unilateral constraints
-        bool skip_contacts_uv = false  ///< skip the tangential reaction constraints
-    );
+    /// Paste the stiffness, damping or mass matrix of the system into a sparse matrix.
+    /// Before calling this function the user needs to:
+    /// - resize Z (and potentially call SetZeroValues if the case)
+    /// - call LoadKRMMatrices with the desired factors
+    /// - call SetMassFactor() with the appropriate value
+    void PasteMassKRMMatrixInto(ChSparseMatrix& Z, int row_offset = 0, int col_offset = 0);
+
+    /// Paste the constraints jacobian of the system into a sparse matrix.
+    /// Before calling this function the user needs to:
+    /// - resize Z (and potentially call SetZeroValues if the case)
+    /// - call LoadConstraintJacobians
+    /// Returns the number of pasted constraints.
+    unsigned int PasteConstraintsJacobianMatrixInto(ChSparseMatrix& Z,
+                                                    int row_offset = 0,
+                                                    int col_offset = 0,
+                                                    bool only_bilateral = false);
+
+    /// Paste the _transposed_ constraints jacobian of the system into a sparse matrix.
+    /// Before calling this function the user needs to:
+    /// - resize Z (and potentially call SetZeroValues if the case)
+    /// - call LoadConstraintJacobians
+    /// Returns the number of pasted constraints.
+    unsigned int PasteConstraintsJacobianMatrixTransposedInto(ChSparseMatrix& Z,
+                                                              int row_offset = 0,
+                                                              int col_offset = 0,
+                                                              bool only_bilateral = false);
+
+    /// Paste the compliance matrix of the system into a sparse matrix.
+    /// Before calling this function the user needs to:
+    /// - resize Z (and potentially call SetZeroValues if the case)
+    /// - call LoadKRMMatrices with the desired factors
+    /// - call SetMassFactor() with the appropriate value
+    void PasteComplianceMatrixInto(ChSparseMatrix& Z,
+                                   int row_offset = 0,
+                                   int col_offset = 0,
+                                   bool only_bilateral = false);
 
     /// Create and return the assembled system matrix and RHS vector.
     virtual void ConvertToMatrixForm(ChSparseMatrix* Z,      ///< [out] assembled system matrix
@@ -348,15 +365,15 @@ class ChApi ChSystemDescriptor {
     }
 
   protected:
-    std::vector<ChConstraint*> m_constraints;  ///< list of all constraintc in the current Chrono system
+    std::vector<ChConstraint*> m_constraints;  ///< list of all constraints in the current Chrono system
     std::vector<ChVariables*> m_variables;     ///< list of all variables in the current Chrono system
     std::vector<ChKRMBlock*> m_KRMblocks;      ///< list of all KRM blocks in the current Chrono system
 
     double c_a;  ///< coefficient form M mass matrices in m_variables
 
   private:
-    int n_q;            ///< number of active variables
-    int n_c;            ///< number of active constraints
+    unsigned int n_q;   ///< number of active variables
+    unsigned int n_c;   ///< number of active constraints
     bool freeze_count;  ///< cache the number of active variables and constraints
 };
 

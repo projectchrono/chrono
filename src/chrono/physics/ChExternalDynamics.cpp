@@ -99,7 +99,7 @@ void ChExternalDynamics::InjectVariables(ChSystemDescriptor& descriptor) {
 
 void ChExternalDynamics::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     if (IsStiff()) {
-        descriptor.InsertKblock(&m_KRM);
+        descriptor.InsertKRMBlock(&m_KRM);
     }
 }
 

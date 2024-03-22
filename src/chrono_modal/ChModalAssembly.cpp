@@ -1662,7 +1662,9 @@ void ChModalAssembly::GetSubassemblyMassMatrix(ChSparseMatrix* M) {
     temp_descriptor.SetMassFactor(1.0);
 
     // Fill system-level M matrix
-    temp_descriptor.ConvertToMatrixForm(nullptr, M, nullptr, nullptr, nullptr, nullptr, false, false);
+    M->resize(temp_descriptor.CountActiveVariables(), temp_descriptor.CountActiveVariables());
+    M->setZeroValues();
+    temp_descriptor.PasteMassKRMMatrixInto(*M);
     // M->makeCompressed();
 }
 
@@ -1683,7 +1685,9 @@ void ChModalAssembly::GetSubassemblyStiffnessMatrix(ChSparseMatrix* K) {
     temp_descriptor.SetMassFactor(0.0);
 
     // Fill system-level K matrix
-    temp_descriptor.ConvertToMatrixForm(nullptr, K, nullptr, nullptr, nullptr, nullptr, false, false);
+    K->resize(temp_descriptor.CountActiveVariables(), temp_descriptor.CountActiveVariables());
+    K->setZeroValues();
+    temp_descriptor.PasteMassKRMMatrixInto(*K);
     // K->makeCompressed();
 }
 
@@ -1704,7 +1708,9 @@ void ChModalAssembly::GetSubassemblyDampingMatrix(ChSparseMatrix* R) {
     temp_descriptor.SetMassFactor(0.0);
 
     // Fill system-level R matrix
-    temp_descriptor.ConvertToMatrixForm(nullptr, R, nullptr, nullptr, nullptr, nullptr, false, false);
+    R->resize(temp_descriptor.CountActiveVariables(), temp_descriptor.CountActiveVariables());
+    R->setZeroValues();
+    temp_descriptor.PasteMassKRMMatrixInto(*R);
     // R->makeCompressed();
 }
 
@@ -1723,7 +1729,9 @@ void ChModalAssembly::GetSubassemblyConstraintJacobianMatrix(ChSparseMatrix* Cq)
     this->LoadConstraintJacobians();
 
     // Fill system-level R matrix
-    temp_descriptor.ConvertToMatrixForm(Cq, nullptr, nullptr, nullptr, nullptr, nullptr, false, false);
+    Cq->resize(temp_descriptor.CountActiveConstraints(), temp_descriptor.CountActiveVariables());
+    Cq->setZeroValues();
+    temp_descriptor.PasteConstraintsJacobianMatrixInto(*Cq);
     // Cq->makeCompressed();
 }
 
@@ -2812,7 +2820,7 @@ void ChModalAssembly::InjectKRMMatrices(ChSystemDescriptor& mdescriptor) {
             item->InjectKRMMatrices(mdescriptor);
         }
     } else {
-        mdescriptor.InsertKblock(&this->modal_Hblock);
+        mdescriptor.InsertKRMBlock(&this->modal_Hblock);
     }
 }
 

@@ -114,13 +114,13 @@ class ChConstraintTwoTuples : public ChConstraint {
     /// where both portions of the jacobian are shifted in order to match the
     /// offset of the corresponding ChVariable.The same is done
     /// on the 'insrow' column, so that the sparse matrix is kept symmetric.
-    virtual void Build_Cq(ChSparseMatrix& storage, int insrow, int col_offset) override {
-        tuple_a.Build_Cq(storage, insrow, col_offset);
-        tuple_b.Build_Cq(storage, insrow, col_offset);
+    virtual void PasteJacobianInto(ChSparseMatrix& storage, int insrow, int col_offset) override {
+        tuple_a.PasteJacobianInto(storage, insrow, col_offset);
+        tuple_b.PasteJacobianInto(storage, insrow, col_offset);
     }
-    virtual void Build_CqT(ChSparseMatrix& storage, int row_offset, int inscol) override {
-        tuple_a.Build_CqT(storage, row_offset, inscol);
-        tuple_b.Build_CqT(storage, row_offset, inscol);
+    virtual void PasteJacobianTransposedInto(ChSparseMatrix& storage, int row_offset, int inscol) override {
+        tuple_a.PasteJacobianTransposedInto(storage, row_offset, inscol);
+        tuple_b.PasteJacobianTransposedInto(storage, row_offset, inscol);
     }
 };
 

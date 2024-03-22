@@ -136,19 +136,14 @@ void test_1(const std::string& out_dir) {
 
     // If needed, dump the full system M and Cq matrices
     // on disk, in Matlab sparse format:
-    ChSparseMatrix matrM;
-    ChSparseMatrix matrCq;
+    ChSparseMatrix matrM(mdescriptor.CountActiveVariables(), mdescriptor.CountActiveVariables());
+    ChSparseMatrix matrCq(mdescriptor.CountActiveConstraints(), mdescriptor.CountActiveVariables());
 
-    mdescriptor.ConvertToMatrixForm(&matrCq, &matrM, 0, 0, 0, 0, false, false);
+    matrM.setZeroValues();
+    matrCq.setZeroValues();
 
-    try {
-        std::ofstream fileM(out_dir + "/dump_M_1.dat");
-        std::ofstream fileCq(out_dir + "/dump_Cq_1.dat");
-        StreamOut(matrM, fileM, true);
-        StreamOut(matrCq, fileCq, true);
-    } catch (const std::exception& myex) {
-        std::cerr << "FILE ERROR: " << myex.what();
-    }
+    mdescriptor.PasteMassKRMMatrixInto(matrM);
+    mdescriptor.PasteConstraintsJacobianMatrixInto(matrCq);
 
     std::cout << "Matrix M (" << matrM.rows() << "x" << matrM.cols() << ")" << std::endl;
     StreamOut(matrM, std::cout, true);
@@ -210,36 +205,6 @@ void test_2(const std::string& out_dir) {
     vars[0]->SetDisabled(true);
 
     mdescriptor.EndInsertion();  // ----- system description is finished
-
-    try {
-        ChSparseMatrix mdM;
-        ChSparseMatrix mdCq;
-        ChSparseMatrix mdE;
-        ChVectorDynamic<double> mdf;
-        ChVectorDynamic<double> mdb;
-        ChVectorDynamic<double> mdfric;
-        mdescriptor.ConvertToMatrixForm(&mdCq, &mdM, &mdE, &mdf, &mdb, &mdfric);
-
-        std::ofstream file_M(out_dir + "/dump_M_2.dat");
-        StreamOut(mdM, file_M, true);
-
-        std::ofstream file_Cq(out_dir + "/dump_Cq_2.dat");
-        StreamOut(mdCq, file_Cq, true);
-
-        std::ofstream file_E(out_dir + "/dump_E_2.dat");
-        StreamOut(mdE, file_E, true);
-
-        std::ofstream file_f(out_dir + "/dump_f_2.dat");
-        StreamOut(mdf, file_f);
-
-        std::ofstream file_b(out_dir + "/dump_b_2.dat");
-        StreamOut(mdb, file_b);
-
-        std::ofstream file_fric(out_dir + "/dump_fric_2.dat");
-        StreamOut(mdfric, file_fric);
-    } catch (const std::exception& myexc) {
-        std::cerr << myexc.what();
-    }
 
     // Create the solver...
     ChSolverMINRES solver;
@@ -360,7 +325,7 @@ void test_3(const std::string& out_dir) {
     ChMatrixDynamic<> mtempB(mtempA);
     mKa.GetMatrix() = -mtempA * mtempB;
 
-    mdescriptor.InsertKblock(&mKa);
+    mdescriptor.InsertKRMBlock(&mKa);
 
     ChKRMBlock mKb;
     // set the affected variables (so this K is a 12x12 matrix, relative to 4 6x6 blocks)
@@ -371,7 +336,7 @@ void test_3(const std::string& out_dir) {
 
     mKb.GetMatrix() = mKa.GetMatrix();
 
-    mdescriptor.InsertKblock(&mKb);
+    mdescriptor.InsertKRMBlock(&mKb);
 
     mdescriptor.EndInsertion();  // ----- system description ends here
 
@@ -489,9 +454,13 @@ void test_4(const std::string& out_dir) {
     double max_res, max_LCPerr;
     mdescriptor.ComputeFeasabilityViolation(max_res, max_LCPerr);
 
-    ChSparseMatrix matrM;
-    ChSparseMatrix matrCq;
-    mdescriptor.ConvertToMatrixForm(&matrCq, &matrM, 0, 0, 0, 0, false, false);
+    ChSparseMatrix matrM(mdescriptor.CountActiveVariables(), mdescriptor.CountActiveVariables());
+    ChSparseMatrix matrCq(mdescriptor.CountActiveConstraints(), mdescriptor.CountActiveVariables());
+    matrM.setZeroValues();
+    matrCq.setZeroValues();
+
+    mdescriptor.PasteMassKRMMatrixInto(matrM);
+    mdescriptor.PasteConstraintsJacobianMatrixInto(matrCq);
 
     std::cout << "Matrix M (" << matrM.rows() << "x" << matrM.cols() << ")" << std::endl;
     StreamOut(matrM, std::cout, true);

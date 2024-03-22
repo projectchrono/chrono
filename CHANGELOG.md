@@ -335,6 +335,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetFamilyMaskDoesCollisionWithFamily | rename: CollidesWith                      |
 |                                   | SetFamilyMaskDoCollisionWithFamily   | rename: AllowCollisionsWith               | 
 |                                   | SetFamilyMaskNoCollisionWithFamily   | rename: DisallowCollisionsWith            |
+| ChConstraint                      |                               |                                                  |
+|                                   | Build_Cq                      | rename: PasteJacobianInto                        |
+|                                   | Build_CqT                     | rename: PasteJacobianTransposedInto              |
 | ChContactable                     |                               |                                                  |
 |                                   | ContactableGet_ndof_x         | rename: GetContactableNumCoordsPosLevel          |
 |                                   | ContactableGet_ndof_w         | rename: GetContactableNumCoordsVelLevel          |
@@ -1250,8 +1253,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetUseSleeping                | rename: SetSleepingAllowed                       |
 | ChSystemDescriptor                |                               |                                                  |
 |                                   | GetConstraintsList            | rename: GetConstraints                           |
-|                                   | GetKblocksList                | rename: GetKblocks                               |
+|                                   | GetKblocksList                | rename: GetKRMBlocks                             |
 |                                   | GetVariablesList              | rename: GetVariables                             |
+|                                   | InsertKblock                  | rename: InsertKRMBlock                           |
 | ChSystemFsi                       |                               |                                                  |
 |                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |

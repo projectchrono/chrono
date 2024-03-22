@@ -81,8 +81,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         // much faster to fill brand new sparse matrices??!!
 
         ChSparsityPatternLearner sparsity_pattern(nv, nv);
-        sysd.ConvertToMatrixForm(&sparsity_pattern, 0);
-        sysd.ConvertToMatrixForm(&sparsity_pattern, 0);
+        sysd.ConvertToMatrixForm(&sparsity_pattern, nullptr);
         sparsity_pattern.Apply(H);
         sysd.ConvertToMatrixForm(&H, &k);
         LS_solver->A() = H;
@@ -104,9 +103,13 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
     }
 
     ChSparseMatrix Cq(nc, nv);
+    Cq.setZeroValues();
     ChSparseMatrix E(nc, nc);
+    E.setZeroValues();
     ChVectorDynamic<> k(nv);
+    k.setZero(nv);
     ChVectorDynamic<> b(nc);
+    b.setZero(nc);
 
     ChSparseMatrix A(nv + nc, nv + nc);
     ChVectorDynamic<> B(nv + nc);
@@ -120,7 +123,10 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
     ChVectorDynamic<> z_old(nc);
     ChVectorDynamic<> y_old(nc);
 
-    sysd.ConvertToMatrixForm(&Cq, 0, &E, &k, &b, 0);
+    sysd.PasteConstraintsJacobianMatrixInto(Cq);
+    sysd.PasteComplianceMatrixInto(E);
+    sysd.BuildFbVector(k);
+    sysd.BuildBiVector(b);
     Cq.makeCompressed();
     E.makeCompressed();
 
@@ -506,9 +512,13 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
     }
 
     ChSparseMatrix Cq(nc, nv);
+    Cq.setZeroValues();
     ChSparseMatrix E(nc, nc);
+    E.setZeroValues();
     ChVectorDynamic<> k(nv);
+    k.setZero(nv);
     ChVectorDynamic<> b(nc);
+    b.setZero(nc);
 
     ChSparseMatrix A(nv + nc, nv + nc);
     ChVectorDynamic<> B(nv + nc);
@@ -522,7 +532,10 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
     ChVectorDynamic<> y_old(nc);
     ChVectorDynamic<> v_old(nv);
 
-    sysd.ConvertToMatrixForm(&Cq, 0, &E, &k, &b, 0);
+    sysd.PasteConstraintsJacobianMatrixInto(Cq);
+    sysd.PasteComplianceMatrixInto(E);
+    sysd.BuildFbVector(k);
+    sysd.BuildBiVector(b);
     Cq.makeCompressed();
     E.makeCompressed();
 
