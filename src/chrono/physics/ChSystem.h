@@ -159,7 +159,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     void SetChTime(double time) { ch_time = time; }
 
     /// Remove redundant constraints present in ChSystem through QR decomposition of constraints Jacobian matrix.
-    int RemoveRedundantConstraints(
+    unsigned int RemoveRedundantConstraints(
         bool remove_zero_constr = false,  ///< false: DEACTIVATE redundant links; true: REMOVE redundant links
         double qr_tol = 1e-6,             ///< tolerance in QR decomposition to identify linearly dependent constraint
         bool verbose = false              ///< set verbose output from method
@@ -781,11 +781,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     bool is_initialized;  ///< if false, an initial setup is required (i.e. a call to Initialize)
     bool is_updated;      ///< if false, a new update is required (i.e. a call to Update)
 
-    int m_num_coords_pos;  ///< number of scalar coordinates (including quaternions) for all active bodies
-    int m_num_coords_vel;  ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
-    int m_num_constr;      ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
-    int m_num_constr_bil;  ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
-    int m_num_constr_uni;  ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
+    unsigned int m_num_coords_pos;  ///< number of scalar coordinates (including quaternions) for all active bodies
+    unsigned int m_num_coords_vel;  ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
+    unsigned int m_num_constr;      ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
+    unsigned int m_num_constr_bil;  ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
+    unsigned int m_num_constr_uni;  ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
 
     double ch_time;  ///< simulation time of the system
     double step;     ///< time step
@@ -805,7 +805,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     bool write_matrix;       ///< write current system matrix to file(s); for debugging
     std::string output_dir;  ///< output directory for writing system matrices
 
-    int ncontacts;  ///< total number of contacts
+    unsigned int ncontacts;  ///< total number of contacts
 
     std::shared_ptr<ChCollisionSystem> collision_system;                         ///< collision engine
     std::vector<std::shared_ptr<CustomCollisionCallback>> collision_callbacks;   ///< user-defined collision callbacks

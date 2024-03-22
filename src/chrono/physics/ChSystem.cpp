@@ -667,16 +667,16 @@ void ChSystem::Setup() {
         StateGather(test_x, test_v, test_T);
         StateGatherAcceleration(test_a);
         StateGatherReactions(test_L);
-        for (int i = 0; i < test_x.size(); ++i)
+        for (unsigned int i = 0; i < test_x.size(); ++i)
             assert(test_x(i) != poison_x);  // if your debugger breaks here, some ChPhysicsItem has a wrong
                                             // implementation of offsets or DOFs for positions
-        for (int i = 0; i < test_v.size(); ++i)
+        for (unsigned int i = 0; i < test_v.size(); ++i)
             assert(test_v(i) != poison_v);  // if your debugger breaks here, some ChPhysicsItem has a wrong
                                             // implementation of offsets or DOFs for velocities
-        for (int i = 0; i < test_a.size(); ++i)
+        for (unsigned int i = 0; i < test_a.size(); ++i)
             assert(test_a(i) != poison_a);  // if your debugger breaks here, some ChPhysicsItem has a wrong
                                             // implementation of offsets or DOFs for accelerations
-        for (int i = 0; i < test_L.size(); ++i)
+        for (unsigned int i = 0; i < test_L.size(); ++i)
             assert(test_L(i) != poison_L);  // if your debugger breaks here, some ChPhysicsItem has a wrong
                                             // implementation of offsets or DOFs for reaction forces
     }
@@ -1409,7 +1409,7 @@ void ChSystem::WriteSystemMatrices(bool save_M,
 }
 
 /// Remove redundant constraints present in ChSystem through QR decomposition of constraints Jacobian matrix.
-int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol, bool verbose) {
+unsigned int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol, bool verbose) {
     // Setup system descriptor
     Setup();
     Update();
@@ -1533,7 +1533,7 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
 
     // Actually REMOVE links now having DoC = 0 from system link list
     if (remove_zero_constr) {
-        int i = 0;
+        unsigned int i = 0;
         while (i < GetLinks().size()) {
             if (GetLinks()[i]->GetNumConstraints() == 0)
                 RemoveLink(GetLinks()[i]);
@@ -1543,7 +1543,7 @@ int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol,
     }
 
     // Return number of deactivated constraints
-    return static_cast<int>(redundant_constraints_idx.size());
+    return static_cast<unsigned int>(redundant_constraints_idx.size());
 }
 
 // -----------------------------------------------------------------------------
@@ -1566,7 +1566,7 @@ bool ChSystem::AdvanceDynamics() {
         visual_system->OnSetup(this);
 
     // Compute contacts and create contact constraints
-    int ncontacts_old = ncontacts;
+    unsigned int ncontacts_old = ncontacts;
     if (collision_system)
         ComputeCollisions();
 

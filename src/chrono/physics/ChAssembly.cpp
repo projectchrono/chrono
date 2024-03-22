@@ -500,20 +500,20 @@ void ChAssembly::SyncCollisionModels() {
 // UPDATING ROUTINES
 
 void ChAssembly::SetupInitial() {
-    for (int ip = 0; ip < bodylist.size(); ++ip) {
-        bodylist[ip]->SetupInitial();
+    for (auto& body : bodylist) {
+        body->SetupInitial();
     }
-    for (int ip = 0; ip < shaftlist.size(); ++ip) {
-        shaftlist[ip]->SetupInitial();
+    for (auto& shaft : shaftlist) {
+        shaft->SetupInitial();
     }
-    for (int ip = 0; ip < linklist.size(); ++ip) {
-        linklist[ip]->SetupInitial();
+    for (auto& link : linklist) {
+        link->SetupInitial();
     }
-    for (int ip = 0; ip < meshlist.size(); ++ip) {
-        meshlist[ip]->SetupInitial();
+    for (auto& mesh : meshlist) {
+        mesh->SetupInitial();
     }
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
-        otherphysicslist[ip]->SetupInitial();
+    for (auto& otherphysics : otherphysicslist) {
+        otherphysics->SetupInitial();
     }
 }
 
@@ -649,22 +649,22 @@ void ChAssembly::Update(double mytime, bool update_assets) {
 // Updates all markers (automatic, as children of bodies).
 void ChAssembly::Update(bool update_assets) {
     //// NOTE: do not switch these to range for loops (may want to use OMP for)
-    for (int ip = 0; ip < (int)bodylist.size(); ++ip) {
-        bodylist[ip]->Update(ChTime, update_assets);
+    for (auto& body : bodylist) {
+        body->Update(ChTime, update_assets);
     }
-    for (int ip = 0; ip < (int)shaftlist.size(); ++ip) {
-        shaftlist[ip]->Update(ChTime, update_assets);
+    for (auto& shaft : shaftlist) {
+        shaft->Update(ChTime, update_assets);
     }
-    for (int ip = 0; ip < (int)meshlist.size(); ++ip) {
-        meshlist[ip]->Update(ChTime, update_assets);
+    for (auto& mesh : meshlist) {
+        mesh->Update(ChTime, update_assets);
     }
-    for (int ip = 0; ip < (int)otherphysicslist.size(); ++ip) {
-        otherphysicslist[ip]->Update(ChTime, update_assets);
+    for (auto& otherphysics : otherphysicslist) {
+        otherphysics->Update(ChTime, update_assets);
     }
     // The state of links depends on the bodylist,shaftlist,meshlist,otherphysicslist,
     // thus the update of linklist must be at the end.
-    for (int ip = 0; ip < (int)linklist.size(); ++ip) {
-        linklist[ip]->Update(ChTime, update_assets);
+    for (auto& link : linklist) {
+        link->Update(ChTime, update_assets);
     }
 }
 

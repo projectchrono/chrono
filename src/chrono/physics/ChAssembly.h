@@ -337,22 +337,22 @@ class ChApi ChAssembly : public ChPhysicsItem {
     std::vector<std::shared_ptr<ChPhysicsItem>> batch_to_insert;   ///< list of items to insert at once
 
     // Statistics:
-    int m_num_bodies_active;             ///< number of active bodies
-    int m_num_bodies_sleep;              ///< number of sleeping bodies
-    int m_num_bodies_fixed;              ///< number of fixed bodies
-    int m_num_shafts;                    ///< number of active shafts
-    int m_num_shafts_sleep;              ///< number of sleeping shafts
-    int m_num_shafts_fixed;              ///< number of fixed shafts
-    int m_num_links_active;              ///< number of active links
-    int m_num_meshes;                    ///< number of meshes
-    int m_num_otherphysicsitems_active;  ///< number of other active physics items
+    unsigned int m_num_bodies_active;             ///< number of active bodies
+    unsigned int m_num_bodies_sleep;              ///< number of sleeping bodies
+    unsigned int m_num_bodies_fixed;              ///< number of fixed bodies
+    unsigned int m_num_shafts;                    ///< number of active shafts
+    unsigned int m_num_shafts_sleep;              ///< number of sleeping shafts
+    unsigned int m_num_shafts_fixed;              ///< number of fixed shafts
+    unsigned int m_num_links_active;              ///< number of active links
+    unsigned int m_num_meshes;                    ///< number of meshes
+    unsigned int m_num_otherphysicsitems_active;  ///< number of other active physics items
 
-    int m_num_coords_pos;  ///< number of scalar coordinates (including 4th dimension of quaternions) for all active
+    unsigned int m_num_coords_pos;  ///< number of scalar coordinates (including 4th dimension of quaternions) for all active
                            ///< bodies
-    int m_num_coords_vel;  ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
-    int m_num_constr;      ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
-    int m_num_constr_bil;  ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
-    int m_num_constr_uni;  ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
+    unsigned int m_num_coords_vel;  ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
+    unsigned int m_num_constr;      ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
+    unsigned int m_num_constr_bil;  ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
+    unsigned int m_num_constr_uni;  ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
 
     friend class ChSystem;
     friend class ChSystemMulticore;
