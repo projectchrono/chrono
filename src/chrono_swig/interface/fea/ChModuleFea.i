@@ -105,6 +105,7 @@
 #include "chrono/fea/ChLinkNodeNode.h"
 #include "chrono/fea/ChMeshFileLoader.h"
 #include "chrono/fea/ChLoadsXYZROTnode.h"
+#include "chrono/fea/ChLoadsBeam.h"
 #include "Eigen/src/Core/util/Memory.h"
 
 using namespace chrono;
@@ -179,10 +180,6 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChNodeXYZ) 
 
 %shared_ptr(chrono::ChCollisionModel)
-
-%shared_ptr(chrono::ChLoad< chrono::fea::ChLoaderBeamWrench>)
-%shared_ptr(chrono::ChLoad< chrono::fea::ChLoaderBeamWrenchDistributed>)
-
 
 //from this module:
 %shared_ptr(chrono::fea::ChContinuumMaterial)
@@ -365,19 +362,12 @@ using namespace chrono::fea;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactMaterial.i"
 %import(module = "pychrono.core")  "../../../chrono/physics/ChPhysicsItem.h"
 %import(module = "pychrono.core")  "../../../chrono/physics/ChIndexedNodes.h"
-%feature("director") chrono::ChLoadable;
-%feature("director") chrono::ChLoadableU;
-%feature("director") chrono::ChLoadableUV;
-%feature("director") chrono::ChLoadableUVW;
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLoadable.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLoader.i"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChLoad.i"
 %import(module = "pychrono.core")  "../../../chrono/physics/ChNodeBase.h"
 %import(module = "pychrono.core")  "../../../chrono/physics/ChNodeXYZ.h"
 %import(module = "pychrono.core")  "chrono_swig/interface/core/ChContactContainer.i"
-
-%template(LoadLoaderBeamWrench) chrono::ChLoad< chrono::fea::ChLoaderBeamWrench>;
-%template(LoadLoaderBeamWrenchDistributed) chrono::ChLoad< chrono::fea::ChLoaderBeamWrenchDistributed>;
 
 //  core/  classes
 %include "../../../chrono/physics/ChPhysicsItem.h"
@@ -415,6 +405,7 @@ using namespace chrono::fea;
 %include "../../../chrono/fea/ChMaterialBeamANCF.h"
 %include "../../../chrono/fea/ChElementBeam.h"
 %include "../../../chrono/fea/ChElementBeamEuler.h"
+%feature("notabstract") chrono::fea::ChElementBeamANCF_3243;
 %include "../../../chrono/fea/ChElementBeamANCF_3243.h"
 %include "../../../chrono/fea/ChElementBeamANCF_3333.h"
 %include "../../../chrono/fea/ChElementBeamIGA.h"
@@ -465,10 +456,10 @@ using namespace chrono::fea;
 %include "../../../chrono/fea/ChLinkNodeFrame.h"
 %include "../../../chrono/fea/ChLinkNodeNode.h"
 %include "../../../chrono/fea/ChLoadsBeam.h"
-//%template(LoadLoaderBeamWrench) chrono::ChLoad< chrono::fea::ChLoaderBeamWrench >;
 %include "../../../chrono/fea/ChBuilderBeam.h"
 %include "../../../chrono/fea/ChMeshFileLoader.h"
 %include "../../../chrono/fea/ChLoadsXYZROTnode.h"
+%include "../../../chrono/fea/ChLoadsBeam.h"
 
 //
 // C- DOWNCASTING OF SHARED POINTERS
