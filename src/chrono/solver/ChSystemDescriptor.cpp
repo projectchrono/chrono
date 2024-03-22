@@ -95,21 +95,20 @@ void ChSystemDescriptor::UpdateCountsAndOffsets() {
     freeze_count = true;
 }
 
-void ChSystemDescriptor::PasteMassKRMMatrixInto(ChSparseMatrix& Z, unsigned int row_offset, unsigned int col_offset) const {
-    bool overwrite = true;
-    // Contribution of mass or rigid bodies and node-concentrated masses
-    if (c_a != 0) {
-        for (const auto& var : m_variables) {
-            if (var->IsActive()) {
-                var->PasteMassInto(Z, row_offset, col_offset, c_a);
-            }
+void ChSystemDescriptor::PasteMassKRMMatrixInto(ChSparseMatrix& Z,
+                                                unsigned int row_offset,
+                                                unsigned int col_offset) const {
+
+    //// Contribution of mass or rigid bodies and node-concentrated masses
+    for (const auto& var : m_variables) {
+        if (var->IsActive()) {
+            var->PasteMassInto(Z, row_offset, col_offset, c_a);
         }
-        overwrite = false;
     }
 
     // Contribution of stiffness, damping and mass matrices
     for (const auto& KRMBlock : m_KRMblocks) {
-        KRMBlock->PasteInto(Z, row_offset, col_offset, overwrite);
+        KRMBlock->PasteInto(Z, row_offset, col_offset, false);
     }
 }
 
