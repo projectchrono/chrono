@@ -79,7 +79,7 @@ class ChApi ChVariablesShaft : public ChVariables {
 
     /// Write the mass submatrix for these variables into the specified global matrix at the offsets of each variable.
     /// The masses must be scaled by the given factor 'ca').
-    virtual void PasteMassInto(ChSparseMatrix& storage, int insrow, int inscol, const double ca) override;
+    virtual void PasteMassInto(ChSparseMatrix& storage, int row_offset, int col_offset, const double ca) override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override {

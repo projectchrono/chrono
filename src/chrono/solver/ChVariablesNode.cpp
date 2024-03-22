@@ -95,11 +95,11 @@ void ChVariablesNode::DiagonalAdd(ChVectorRef result, const double c_a) const {
 // it in 'storage' sparse matrix, at given column/row offset.
 // Note, most iterative solvers don't need to know mass matrix explicitly.
 // Optimized: doesn't fill unneeded elements except mass.
-void ChVariablesNode::PasteMassInto(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) {
+void ChVariablesNode::PasteMassInto(ChSparseMatrix& storage, int row_offset, int col_offset, const double c_a) {
     double scaledmass = c_a * mass;
-    storage.SetElement(insrow + 0, inscol + 0, scaledmass);
-    storage.SetElement(insrow + 1, inscol + 1, scaledmass);
-    storage.SetElement(insrow + 2, inscol + 2, scaledmass);
+    storage.SetElement(offset + row_offset + 0, offset + col_offset + 0, scaledmass);
+    storage.SetElement(offset + row_offset + 1, offset + col_offset + 1, scaledmass);
+    storage.SetElement(offset + row_offset + 2, offset + col_offset + 2, scaledmass);
 }
 
 void ChVariablesNode::ArchiveOut(ChArchiveOut& archive_out) {

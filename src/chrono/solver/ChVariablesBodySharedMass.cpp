@@ -161,12 +161,12 @@ void ChVariablesBodySharedMass::DiagonalAdd(ChVectorRef result, const double c_a
 // it in 'storage' sparse matrix, at given column/row offset.
 // Note, most iterative solvers don't need to know mass matrix explicitly.
 // Optimized: doesn't fill unneeded elements except mass and 3x3 inertia.
-void ChVariablesBodySharedMass::PasteMassInto(ChSparseMatrix& storage, int insrow, int inscol, const double c_a) {
-    storage.SetElement(insrow + 0, inscol + 0, c_a * sharedmass->mass);
-    storage.SetElement(insrow + 1, inscol + 1, c_a * sharedmass->mass);
-    storage.SetElement(insrow + 2, inscol + 2, c_a * sharedmass->mass);
+void ChVariablesBodySharedMass::PasteMassInto(ChSparseMatrix& storage, int row_offset, int col_offset, const double c_a) {
+    storage.SetElement(offset + row_offset + 0, offset + col_offset + 0, c_a * sharedmass->mass);
+    storage.SetElement(offset + row_offset + 1, offset + col_offset + 1, c_a * sharedmass->mass);
+    storage.SetElement(offset + row_offset + 2, offset + col_offset + 2, c_a * sharedmass->mass);
     ChMatrix33<> scaledJ = sharedmass->inertia * c_a;
-    PasteMatrix(storage, scaledJ, insrow + 3, inscol + 3);
+    PasteMatrix(storage, scaledJ, offset + row_offset + 3, offset + col_offset + 3);
 }
 
 void ChVariablesBodySharedMass::ArchiveOut(ChArchiveOut& archive_out) {

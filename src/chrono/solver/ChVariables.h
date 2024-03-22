@@ -115,7 +115,7 @@ class ChApi ChVariables {
     /// The masses must be scaled by the given factor 'ca').
     /// Assembling the system-level sparse matrix is required only if using a direct sparse solver or for
     /// debugging/reporting purposes.
-    virtual void PasteMassInto(ChSparseMatrix& storage, int insrow, int inscol, const double ca) = 0;
+    virtual void PasteMassInto(ChSparseMatrix& storage, int row_offset, int col_offset, const double ca) = 0;
 
     /// Set offset in global q vector (set automatically by ChSystemDescriptor).
     void SetOffset(int moff) { offset = moff; }

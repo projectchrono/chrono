@@ -105,11 +105,9 @@ void ChSystemDescriptor::PasteMassKRMMatrixInto(ChSparseMatrix& Z, int row_offse
     bool overwrite = true;
     // Contribution of mass or rigid bodies and node-concentrated masses
     if (c_a != 0) {
-        int s_q = 0;
         for (size_t iv = 0; iv < m_variables.size(); iv++) {
             if (m_variables[iv]->IsActive()) {
-                m_variables[iv]->PasteMassInto(Z, s_q + row_offset, s_q + col_offset, c_a);
-                s_q += m_variables[iv]->Get_ndof();
+                m_variables[iv]->PasteMassInto(Z, row_offset, col_offset, c_a);
             }
         }
         overwrite = false;
