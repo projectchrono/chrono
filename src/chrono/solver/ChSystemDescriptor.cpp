@@ -165,76 +165,31 @@ void ChSystemDescriptor::PasteComplianceMatrixInto(ChSparseMatrix& Z,
 }
 
 void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<>* rhs) {
-    auto vv_size = m_variables.size();
-    auto vc_size = m_constraints.size();
-    auto vk_size = m_KRMblocks.size();
 
-    // Count constraints.
-    int mn_c = 0;
-    for (size_t ic = 0; ic < vc_size; ic++) {
-        if (m_constraints[ic]->IsActive())
-            mn_c++;
-    }
-
-    // Count active variables, by scanning through all variable blocks, and set offsets.
     n_q = CountActiveVariables();
 
+    n_c = CountActiveConstraints();
+
     if (Z) {
-        Z->conservativeResize(n_q + mn_c, n_q + mn_c);
+        Z->conservativeResize(n_q + n_c, n_q + n_c);
+
         Z->setZeroValues();
 
-        // Fill Z with masses and inertias.
-        int s_q = 0;
-        for (size_t iv = 0; iv < vv_size; iv++) {
-            if (m_variables[iv]->IsActive()) {
-                // Masses and inertias in upper-left block of Z
-                m_variables[iv]->PasteMassInto(*Z, s_q, s_q, c_a);
-                s_q += m_variables[iv]->Get_ndof();
-            }
-        }
+        PasteMassKRMMatrixInto(*Z, 0, 0);
 
-        // If present, add stiffness matrix K to upper-left block of Z.
-        for (size_t ik = 0; ik < vk_size; ik++) {
-            m_KRMblocks[ik]->PasteInto(*Z, 0, 0, false);
-        }
+        PasteConstraintsJacobianMatrixInto(*Z, n_q, 0);
 
-        // Fill Z by looping over constraints.
-        int s_c = 0;
-        for (size_t ic = 0; ic < vc_size; ic++) {
-            if (m_constraints[ic]->IsActive()) {
-                // Constraint Jacobian in lower-left block of Z
-                m_constraints[ic]->PasteJacobianInto(*Z, n_q + s_c, 0);
-                // Transposed constraint Jacobian in upper-right block of Z
-                m_constraints[ic]->PasteJacobianTransposedInto(*Z, 0, n_q + s_c);
-                // E ( = cfm ) in lower-right block of Z
-                Z->SetElement(n_q + s_c, n_q + s_c, m_constraints[ic]->Get_cfm_i());
-                s_c++;
-            }
-        }
+        PasteConstraintsJacobianMatrixTransposedInto(*Z, 0, n_q);
+
+        PasteComplianceMatrixInto(*Z, n_q, n_q);
+
     }
 
     if (rhs) {
-        rhs->setZero(n_q + mn_c, 1);
+        rhs->setZero(n_q + n_c, 1);
 
-        // Fill rhs with forces.
-        int s_q = 0;
-        for (size_t iv = 0; iv < vv_size; iv++) {
-            if (m_variables[iv]->IsActive()) {
-                // Forces in upper section of rhs
-                rhs->segment(s_q, m_variables[iv]->Get_ndof()) = m_variables[iv]->Get_fb();
-                s_q += m_variables[iv]->Get_ndof();
-            }
-        }
+        BuildDiVector(*rhs);
 
-        // Fill rhs by looping over constraints.
-        int s_c = 0;
-        for (size_t ic = 0; ic < vc_size; ic++) {
-            if (m_constraints[ic]->IsActive()) {
-                // -b term in lower section of rhs
-                (*rhs)(n_q + s_c) = -(m_constraints[ic]->Get_b_i());
-                s_c++;
-            }
-        }
     }
 }
 
