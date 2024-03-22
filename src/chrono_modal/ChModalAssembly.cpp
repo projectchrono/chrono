@@ -2796,7 +2796,7 @@ void ChModalAssembly::LoadConstraintJacobians() {
 }
 
 void ChModalAssembly::InjectKRMMatrices(ChSystemDescriptor& mdescriptor) {
-    if (is_modal == false) {
+    if (m_is_model_reduced == false) {
         ChAssembly::InjectKRMMatrices(mdescriptor);  // parent
 
         for (auto& body : internal_bodylist) {
@@ -2817,7 +2817,7 @@ void ChModalAssembly::InjectKRMMatrices(ChSystemDescriptor& mdescriptor) {
 }
 
 void ChModalAssembly::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
-    if (is_modal == false) {
+    if (m_is_model_reduced == false) {
         ChAssembly::LoadKRMMatrices(Kfactor, Rfactor, Mfactor);  // parent
 
         for (auto& body : internal_bodylist) {

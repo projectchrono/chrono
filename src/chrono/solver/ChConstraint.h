@@ -272,13 +272,19 @@ class ChApi ChConstraint {
     ///   For boxed constraints or such, inherited class MAY OVERRIDE THIS!
     virtual double Violation(double mc_i);
 
-    /// Puts the jacobian portions into the 'insrow' row of a sparse matrix,
-    /// where each portion of jacobian is shifted in order to match the
-    /// offset of the corresponding ChVariable.
-    virtual void Build_Cq(ChSparseMatrix& storage, int insrow) = 0;
+    /// Paste the jacobian into a global matrix.
+    virtual void Build_Cq(
+        ChSparseMatrix& storage,  ///< matrix to fill
+        int insrow,               ///< starting row of the global matrix from which the jacobian will be pasted
+        int col_offset            ///< column offset that will be _added_ to the position provided by the constraint
+        ) = 0;
 
-    /// Same as Build_Cq, but puts the _transposed_ jacobian row as a column.
-    virtual void Build_CqT(ChSparseMatrix& storage, int inscol) = 0;
+    /// Paste the _transposed_ jacobian into a global matrix.
+    virtual void Build_CqT(
+        ChSparseMatrix& storage,  ///< matrix to fill
+        int row_offset,           ///< row offset that will be _added_ to the position provided by the constraint
+        int inscol  ///< starting column of the global matrix from which the transposed jacobian will be pasted
+        ) = 0;
 
     /// Set offset in global q vector (set automatically by ChSystemDescriptor)
     void SetOffset(int moff) { offset = moff; }

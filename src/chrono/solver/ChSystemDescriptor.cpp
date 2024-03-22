@@ -161,7 +161,7 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
     // also add it to the sparse H
     if (H) {
         for (size_t ik = 0; ik < vk_size; ik++) {
-            m_KRMblocks[ik]->PasteInto(*H, true);
+            m_KRMblocks[ik]->PasteInto(*H, 0, 0, false);
         }
     }
 
@@ -173,7 +173,7 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Cq,
             if (!((m_constraints[ic]->GetMode() == CONSTRAINT_FRIC) && only_bilaterals))
                 if (!((dynamic_cast<ChConstraintTwoTuplesFrictionTall*>(m_constraints[ic])) && skip_contacts_uv)) {
                     if (Cq)
-                        m_constraints[ic]->Build_Cq(*Cq, s_c);  // .. fills Cq
+                        m_constraints[ic]->Build_Cq(*Cq, s_c, 0);  // .. fills Cq
                     if (E)
                         E->SetElement(s_c, s_c, m_constraints[ic]->Get_cfm_i());  // .. fills E ( = cfm )
                     if (Bvector)
@@ -223,7 +223,7 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<
 
         // If present, add stiffness matrix K to upper-left block of Z.
         for (size_t ik = 0; ik < vk_size; ik++) {
-            m_KRMblocks[ik]->PasteInto(*Z, true);
+            m_KRMblocks[ik]->PasteInto(*Z, 0, 0, false);
         }
 
         // Fill Z by looping over constraints.
@@ -231,9 +231,9 @@ void ChSystemDescriptor::ConvertToMatrixForm(ChSparseMatrix* Z, ChVectorDynamic<
         for (size_t ic = 0; ic < vc_size; ic++) {
             if (m_constraints[ic]->IsActive()) {
                 // Constraint Jacobian in lower-left block of Z
-                m_constraints[ic]->Build_Cq(*Z, n_q + s_c);
+                m_constraints[ic]->Build_Cq(*Z, n_q + s_c, 0);
                 // Transposed constraint Jacobian in upper-right block of Z
-                m_constraints[ic]->Build_CqT(*Z, n_q + s_c);
+                m_constraints[ic]->Build_CqT(*Z, 0, n_q + s_c);
                 // E ( = cfm ) in lower-right block of Z
                 Z->SetElement(n_q + s_c, n_q + s_c, m_constraints[ic]->Get_cfm_i());
                 s_c++;

@@ -1009,8 +1009,8 @@ Note that this represents a major public API change and we expect most user code
 | ChMinMaxDistribution              |                               | rename: ChUniformDistribution                    |
 | ChModalAssembly                   |                               |                                                  |
 |                                   | refer to ChAssembly           | like ChAssembly with boundary/internal suffixes  |
-|                                   | DoModalReduction_CraigBamption | rename: ApplyModalReductionTransformation_CraigBampton           |
-|                                   | DoModalReduction_HERTING      | rename: ApplyModalReductionTransformation_Herting                  |
+|                                   | DoModalReduction_CraigBamption | rename: ApplyModalReductionTransformation_CraigBampton |
+|                                   | DoModalReduction_HERTING      | rename: ApplyModalReductionTransformation_Herting |
 |                                   | DumpSubassemblyMatrices       | rename: WriteSubassemblyMatrices                 |
 |                                   | Get_full_assembly_x_old       | rename: GetDeformedFullState                     |
 |                                   | Get_modal_K                   | rename: GetModalStiffnessMatrix                  |
@@ -1026,7 +1026,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_modes_frequencies         | rename: GetModalReductionFrequencyUndamped       |
 |                                   | Get_modes_V                   | rename: GetModalReductionEigenVect               |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
-|                                   | SwitchModalReductionON        | rename: DoModalReduction                   |
+|                                   | SwitchModalReductionON        | rename: DoModalReduction                         |
 | ChMotionlawFilter                 |                               | rename: ChMotionFilter                           |
 | ChMotionlawFilter_SecondOrder     |                               | rename: ChMotionFilterSecondOrder                |
 | ChMotionlawFilter_ThirdOrder      |                               | rename: ChMotionFilterThirdOrder                 |
@@ -1469,7 +1469,7 @@ Note that this represents a major public API change and we expect most user code
 + We removed the option of setting an integration step size for the types of analyses that require it. Instead, the desired step size value is always explicitly passed as an argument to the `ChSystem` function that initiates that analysis (e.g., `DoStepDynamics`).
   The current value of the step size (which may be adjusted internally in certain situations) is cached and can still be queried with `ChSystem::GetStep`. This is typically needed only internally but can also be used in user code that requires it.
 
-  Similarly, we removed the function `ChSystem::SetMaxiter` which allowed setting the maximum number of iterations for the system assembly analysis. This quantitiy can now be passed through an optional argument to `ChSystem::DoAssembly` (default value: 6).
+  Similarly, we removed the function `ChSystem::SetMaxiter` which allowed setting the maximum number of iterations for the system assembly analysis. This quantity can now be passed through an optional argument to `ChSystem::DoAssembly` (default value: 6).
 
 ## [Changed] Updated Chrono::VSG module
 

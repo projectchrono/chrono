@@ -96,7 +96,7 @@ void ChKRMBlock::DiagonalAdd(ChVectorRef result) {
     }
 }
 
-void ChKRMBlock::PasteInto(ChSparseMatrix& storage, bool add) {
+void ChKRMBlock::PasteInto(ChSparseMatrix& storage, int row_offset, int col_offset, bool overwrite) {
     if (KRM.rows() == 0)
         return;
 
@@ -112,10 +112,7 @@ void ChKRMBlock::PasteInto(ChSparseMatrix& storage, bool add) {
                 int jn = GetVariable(jv)->Get_ndof();
 
                 if (GetVariable(jv)->IsActive()) {
-                    if (add)
-                        PasteMatrix(storage, KRM.block(kio, kjo, in, jn), io, jo, false);
-                    else
-                        PasteMatrix(storage, KRM.block(kio, kjo, in, jn), io, jo, true);
+                    PasteMatrix(storage, KRM.block(kio, kjo, in, jn), io + row_offset, jo + col_offset, overwrite);
                 }
 
                 kjo += jn;

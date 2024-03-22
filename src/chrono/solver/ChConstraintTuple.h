@@ -113,14 +113,14 @@ class ChConstraintTuple_1vars {
         }
     }
 
-    void Build_Cq(ChSparseMatrix& storage, int insrow) {
+    void Build_Cq(ChSparseMatrix& storage, int insrow, int col_offset) {
         if (variables->IsActive())
-            PasteMatrix(storage, Cq, insrow, variables->GetOffset());
+            PasteMatrix(storage, Cq, insrow, variables->GetOffset() + col_offset);
     }
 
-    void Build_CqT(ChSparseMatrix& storage, int inscol) {
+    void Build_CqT(ChSparseMatrix& storage, int row_offset, int inscol) {
         if (variables->IsActive())
-            PasteMatrix(storage, Cq.transpose(), variables->GetOffset(), inscol);
+            PasteMatrix(storage, Cq.transpose(), variables->GetOffset() + row_offset, inscol);
     }
 };
 
@@ -250,18 +250,18 @@ class ChConstraintTuple_2vars {
         }
     }
 
-    void Build_Cq(ChSparseMatrix& storage, int insrow) {
+    void Build_Cq(ChSparseMatrix& storage, int insrow, int col_offset) {
         if (variables_1->IsActive())
-            PasteMatrix(storage, Cq_1, insrow, variables_1->GetOffset());
+            PasteMatrix(storage, Cq_1, insrow, variables_1->GetOffset() + col_offset);
         if (variables_2->IsActive())
-            PasteMatrix(storage, Cq_2, insrow, variables_2->GetOffset());
+            PasteMatrix(storage, Cq_2, insrow, variables_2->GetOffset() + col_offset);
     }
 
-    void Build_CqT(ChSparseMatrix& storage, int inscol) {
+    void Build_CqT(ChSparseMatrix& storage, int row_offset, int inscol) {
         if (variables_1->IsActive())
-            PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset(), inscol);
+            PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset() + row_offset, inscol);
         if (variables_2->IsActive())
-            PasteMatrix(storage, Cq_2.transpose(), variables_2->GetOffset(), inscol);
+            PasteMatrix(storage, Cq_2.transpose(), variables_2->GetOffset() + row_offset, inscol);
     }
 };
 
@@ -427,22 +427,22 @@ class ChConstraintTuple_3vars {
         }
     }
 
-    void Build_Cq(ChSparseMatrix& storage, int insrow) {
+    void Build_Cq(ChSparseMatrix& storage, int insrow, int col_offset) {
         if (variables_1->IsActive())
-            PasteMatrix(storage, Cq_1, insrow, variables_1->GetOffset());
+            PasteMatrix(storage, Cq_1, insrow, variables_1->GetOffset() + col_offset);
         if (variables_2->IsActive())
-            PasteMatrix(storage, Cq_2, insrow, variables_2->GetOffset());
+            PasteMatrix(storage, Cq_2, insrow, variables_2->GetOffset() + col_offset);
         if (variables_3->IsActive())
-            PasteMatrix(storage, Cq_3, insrow, variables_3->GetOffset());
+            PasteMatrix(storage, Cq_3, insrow, variables_3->GetOffset() + col_offset);
     }
 
-    void Build_CqT(ChSparseMatrix& storage, int inscol) {
+    void Build_CqT(ChSparseMatrix& storage, int row_offset, int inscol) {
         if (variables_1->IsActive())
-            PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset(), inscol);
+            PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset() + row_offset, inscol);
         if (variables_2->IsActive())
-            PasteMatrix(storage, Cq_2.transpose(), variables_2->GetOffset(), inscol);
+            PasteMatrix(storage, Cq_2.transpose(), variables_2->GetOffset() + row_offset, inscol);
         if (variables_3->IsActive())
-            PasteMatrix(storage, Cq_3.transpose(), variables_3->GetOffset(), inscol);
+            PasteMatrix(storage, Cq_3.transpose(), variables_3->GetOffset() + row_offset, inscol);
     }
 };
 
@@ -645,7 +645,7 @@ class ChConstraintTuple_4vars {
         }
     }
 
-    void Build_Cq(ChSparseMatrix& storage, int insrow) {
+    void Build_Cq(ChSparseMatrix& storage, int insrow, int col_offset) {
         if (variables_1->IsActive())
             PasteMatrix(storage, Cq_1, insrow, variables_1->GetOffset());
         if (variables_2->IsActive())
@@ -656,15 +656,15 @@ class ChConstraintTuple_4vars {
             PasteMatrix(storage, Cq_4, insrow, variables_4->GetOffset());
     }
 
-    void Build_CqT(ChSparseMatrix& storage, int inscol) {
+    void Build_CqT(ChSparseMatrix& storage, int row_offset, int inscol) {
         if (variables_1->IsActive())
-            PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset(), inscol);
+            PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset() + row_offset, inscol);
         if (variables_2->IsActive())
-            PasteMatrix(storage, Cq_2.transpose(), variables_2->GetOffset(), inscol);
+            PasteMatrix(storage, Cq_2.transpose(), variables_2->GetOffset() + row_offset, inscol);
         if (variables_3->IsActive())
-            PasteMatrix(storage, Cq_3.transpose(), variables_3->GetOffset(), inscol);
+            PasteMatrix(storage, Cq_3.transpose(), variables_3->GetOffset() + row_offset, inscol);
         if (variables_4->IsActive())
-            PasteMatrix(storage, Cq_4.transpose(), variables_4->GetOffset(), inscol);
+            PasteMatrix(storage, Cq_4.transpose(), variables_4->GetOffset() + row_offset, inscol);
     }
 };
 
