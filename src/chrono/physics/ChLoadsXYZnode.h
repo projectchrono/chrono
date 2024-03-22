@@ -68,6 +68,7 @@ class ChLoadXYZnode : public ChLoad {
         loader->SetForce(force);
         SetLoader(loader);
     }
+    virtual ChLoadXYZnode* Clone() const override { return new ChLoadXYZnode(*this); }
 };
 
 // -----------------------------------------------------------------------------

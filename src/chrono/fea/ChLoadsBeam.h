@@ -82,7 +82,7 @@ class ChLoadBeamWrench : public ChLoad {
     ChLoadBeamWrench(std::shared_ptr<ChLoadableU> loadable) {
         SetLoader(chrono_types::make_shared<ChLoaderBeamWrench>(loadable));
     }
-
+    virtual ChLoadBeamWrench* Clone() const override { return new ChLoadBeamWrench(*this); }
     std::shared_ptr<ChLoaderBeamWrench> GetLoader() const {
         return std::static_pointer_cast<ChLoaderBeamWrench>(loader);
     }
@@ -141,7 +141,7 @@ class ChLoadBeamWrenchDistributed : public ChLoad {
     ChLoadBeamWrenchDistributed(std::shared_ptr<ChLoadableU> loadable) {
         SetLoader(chrono_types::make_shared<ChLoaderBeamWrenchDistributed>(loadable));
     }
-
+    virtual ChLoadBeamWrenchDistributed* Clone() const override { return new ChLoadBeamWrenchDistributed(*this); }
     std::shared_ptr<ChLoaderBeamWrenchDistributed> GetLoader() const {
         return std::static_pointer_cast<ChLoaderBeamWrenchDistributed>(loader);
     }

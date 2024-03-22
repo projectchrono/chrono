@@ -67,35 +67,35 @@ void ChLoadBase::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor)
 
 // -----------------------------------------------------------------------------
 
-inline int ChLoad::LoadGetNumCoordsPosLevel() {
+int ChLoad::LoadGetNumCoordsPosLevel() {
     return loader->GetLoadable()->GetLoadableNumCoordsPosLevel();
 }
 
-inline int ChLoad::LoadGetNumCoordsVelLevel() {
+int ChLoad::LoadGetNumCoordsVelLevel() {
     return loader->GetLoadable()->GetLoadableNumCoordsVelLevel();
 }
 
-inline void ChLoad::LoadGetStateBlock_x(ChState& mD) {
+void ChLoad::LoadGetStateBlock_x(ChState& mD) {
     loader->GetLoadable()->LoadableGetStateBlockPosLevel(0, mD);
 }
 
-inline void ChLoad::LoadGetStateBlock_w(ChStateDelta& mD) {
+void ChLoad::LoadGetStateBlock_w(ChStateDelta& mD) {
     loader->GetLoadable()->LoadableGetStateBlockVelLevel(0, mD);
 }
 
-inline void ChLoad::LoadStateIncrement(const ChState& x, const ChStateDelta& dw, ChState& x_new) {
+void ChLoad::LoadStateIncrement(const ChState& x, const ChStateDelta& dw, ChState& x_new) {
     loader->GetLoadable()->LoadableStateIncrement(0, x_new, x, 0, dw);
 }
 
-inline int ChLoad::LoadGetNumFieldCoords() {
+int ChLoad::LoadGetNumFieldCoords() {
     return loader->GetLoadable()->GetNumFieldCoords();
 }
 
-inline void ChLoad::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
+void ChLoad::ComputeQ(ChState* state_x, ChStateDelta* state_w) {
     loader->ComputeQ(state_x, state_w);
 }
 
-inline void ChLoad::ComputeJacobian(ChState* state_x, ChStateDelta* state_w) {
+void ChLoad::ComputeJacobian(ChState* state_x, ChStateDelta* state_w) {
     double Delta = 1e-8;
 
     int mrows_w = LoadGetNumCoordsVelLevel();
@@ -137,7 +137,7 @@ inline void ChLoad::ComputeJacobian(ChState* state_x, ChStateDelta* state_w) {
     }
 }
 
-inline void ChLoad::LoadIntLoadResidual_F(ChVectorDynamic<>& R, double c) {
+void ChLoad::LoadIntLoadResidual_F(ChVectorDynamic<>& R, double c) {
     unsigned int rowQ = 0;
     for (unsigned int i = 0; i < loader->GetLoadable()->GetNumSubBlocks(); ++i) {
         if (loader->GetLoadable()->IsSubBlockActive(i)) {
@@ -150,7 +150,7 @@ inline void ChLoad::LoadIntLoadResidual_F(ChVectorDynamic<>& R, double c) {
     }
 }
 
-inline void ChLoad::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, double c) {
+void ChLoad::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, double c) {
     if (!m_jacobians)
         return;
     // fetch w as a contiguous vector
@@ -180,7 +180,7 @@ inline void ChLoad::LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorD
     }
 }
 
-inline void ChLoad::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& err, double c) {
+void ChLoad::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& err, double c) {
     if (!m_jacobians)
         return;
     // do computation Md=c*diag(M)
@@ -197,7 +197,7 @@ inline void ChLoad::LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& err,
     err = m_jacobians->M.sum() - m_jacobians->M.diagonal().sum();
 }
 
-inline void ChLoad::CreateJacobianMatrices() {
+void ChLoad::CreateJacobianMatrices() {
     if (!m_jacobians) {
         // create jacobian structure
         m_jacobians = new ChLoadJacobians;
