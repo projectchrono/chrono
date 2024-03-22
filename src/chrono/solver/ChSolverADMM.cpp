@@ -76,20 +76,20 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
         m_timer_convert.start();
 
-        // sysd.ConvertToMatrixForm(0, &LS_solver->A(), 0, &LS_solver->b(), 0, 0, 0);
-        // sysd.ConvertToMatrixForm(0, &LS_solver->A(), 0, &LS_solver->b(), 0, 0, 0);
+        // sysd.BuildSystemMatrix(0, &LS_solver->A(), 0, &LS_solver->b(), 0, 0, 0);
+        // sysd.BuildSystemMatrix(0, &LS_solver->A(), 0, &LS_solver->b(), 0, 0, 0);
         // much faster to fill brand new sparse matrices??!!
 
         ChSparsityPatternLearner sparsity_pattern(nv, nv);
-        sysd.ConvertToMatrixForm(&sparsity_pattern, nullptr);
+        sysd.BuildSystemMatrix(&sparsity_pattern, nullptr);
         sparsity_pattern.Apply(H);
-        sysd.ConvertToMatrixForm(&H, &k);
+        sysd.BuildSystemMatrix(&H, &k);
         LS_solver->A() = H;
         LS_solver->b() = k;
 
         m_timer_convert.stop();
         if (verbose)
-            std::cout << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
+            std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
                       << std::endl;
 
         // v = H\k
@@ -236,15 +236,15 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
     m_timer_convert.start();
 
-    LS_solver->A().resize(nv + nc, nv + nc);  // otherwise conservativeResize in ConvertToMatrixForm() causes error
+    LS_solver->A().resize(nv + nc, nv + nc);  // otherwise conservativeResize in BuildSystemMatrix() causes error
 
-    // sysd.ConvertToMatrixForm(&LS_solver->A(),&LS_solver->b());  // A = [M, Cq'; Cq, E ];
+    // sysd.BuildSystemMatrix(&LS_solver->A(),&LS_solver->b());  // A = [M, Cq'; Cq, E ];
     // much faster to fill brand new sparse matrices??!!
     ChSparsityPatternLearner sparsity_pattern(nv + nc, nv + nc);
-    sysd.ConvertToMatrixForm(&sparsity_pattern, nullptr);
+    sysd.BuildSystemMatrix(&sparsity_pattern, nullptr);
     sparsity_pattern.Apply(A);
 
-    sysd.ConvertToMatrixForm(&A, &B);  // A = [M, Cq'; Cq, E ];
+    sysd.BuildSystemMatrix(&A, &B);  // A = [M, Cq'; Cq, E ];
 
     if (this->precond) {
         // the following is equivalent to having scaled
@@ -264,7 +264,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
     m_timer_convert.stop();
     if (verbose)
-        std::cout << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
+        std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
                   << std::endl;
 
     m_timer_factorize.start();
@@ -490,15 +490,15 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         m_timer_convert.start();
 
         ChSparsityPatternLearner sparsity_pattern(nv, nv);
-        sysd.ConvertToMatrixForm(&sparsity_pattern, 0);
+        sysd.BuildSystemMatrix(&sparsity_pattern, 0);
         sparsity_pattern.Apply(H);
-        sysd.ConvertToMatrixForm(&H, &k);
+        sysd.BuildSystemMatrix(&H, &k);
         LS_solver->A() = H;
         LS_solver->b() = k;
 
         m_timer_convert.stop();
         if (verbose)
-            std::cout << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
+            std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
                       << std::endl;
 
         // v = H\k
@@ -647,15 +647,15 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
     m_timer_convert.start();
 
-    LS_solver->A().resize(nv + nc, nv + nc);  // otherwise conservativeResize in ConvertToMatrixForm() causes error
+    LS_solver->A().resize(nv + nc, nv + nc);  // otherwise conservativeResize in BuildSystemMatrix() causes error
 
-    // sysd.ConvertToMatrixForm(&LS_solver->A(),&LS_solver->b());  // A = [M, Cq'; Cq, E ];
+    // sysd.BuildSystemMatrix(&LS_solver->A(),&LS_solver->b());  // A = [M, Cq'; Cq, E ];
     // much faster to fill brand new sparse matrices??!!
     ChSparsityPatternLearner sparsity_pattern(nv + nc, nv + nc);
-    sysd.ConvertToMatrixForm(&sparsity_pattern, nullptr);
+    sysd.BuildSystemMatrix(&sparsity_pattern, nullptr);
     sparsity_pattern.Apply(A);
 
-    sysd.ConvertToMatrixForm(&A, &B);  // A = [M, Cq'; Cq, E ];
+    sysd.BuildSystemMatrix(&A, &B);  // A = [M, Cq'; Cq, E ];
 
     if (this->precond) {
         // the following is equivalent to having scaled
@@ -675,7 +675,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
     m_timer_convert.stop();
     if (verbose)
-        std::cout << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
+        std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
                   << std::endl;
 
     m_timer_factorize.start();

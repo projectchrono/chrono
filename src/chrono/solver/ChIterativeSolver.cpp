@@ -23,7 +23,7 @@ ChIterativeSolver::ChIterativeSolver(int max_iterations, double tolerance, bool 
 void ChIterativeSolver::WriteMatrices(ChSystemDescriptor& sysd, bool one_indexed) {
     // Assemble sparse matrix
     ChSparseMatrix Z1;
-    sysd.ConvertToMatrixForm(&Z1, nullptr);
+    sysd.BuildSystemMatrix(&Z1, nullptr);
 
     // Create sparse matrix with SPMV
     ChMatrixDynamic<> Z2(Z1.rows(), Z1.cols());
@@ -50,7 +50,7 @@ void ChIterativeSolver::WriteMatrices(ChSystemDescriptor& sysd, bool one_indexed
 
     // Assemble RHS
     ChVectorDynamic<> rhs1;
-    sysd.ConvertToMatrixForm(nullptr, &rhs1);
+    sysd.BuildSystemMatrix(nullptr, &rhs1);
 
     // RHS using d vector
     ChVectorDynamic<> rhs2;
@@ -71,10 +71,10 @@ void ChIterativeSolver::WriteMatrices(ChSystemDescriptor& sysd, bool one_indexed
 
 double ChIterativeSolver::CheckSolution(ChSystemDescriptor& sysd, const ChVectorDynamic<>& x) {
     ChVectorDynamic<> b;
-    sysd.ConvertToMatrixForm(nullptr, &b);
+    sysd.BuildSystemMatrix(nullptr, &b);
 
     ChSparseMatrix Z;
-    sysd.ConvertToMatrixForm(&Z, nullptr);
+    sysd.BuildSystemMatrix(&Z, nullptr);
     double res_norm1 = (Z * x - b).norm();
 
     ChVectorDynamic<> Zx(x.size());

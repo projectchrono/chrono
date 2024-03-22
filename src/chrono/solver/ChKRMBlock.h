@@ -71,7 +71,7 @@ class ChApi ChKRMBlock {
     /// otherwise the values are summed.
     /// Assembling the system-level sparse matrix is required only if using a direct sparse solver or for
     /// debugging/reporting purposes.
-    void PasteInto(ChSparseMatrix& storage, int row_offset, int col_offset, bool overwrite);
+    void PasteInto(ChSparseMatrix& storage, unsigned int row_offset, unsigned int col_offset, bool overwrite) const;
 
   private:
     ChMatrixDynamic<double> KRM;

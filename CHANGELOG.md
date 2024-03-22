@@ -1252,6 +1252,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetStep                       | remove                                           |
 |                                   | SetUseSleeping                | rename: SetSleepingAllowed                       |
 | ChSystemDescriptor                |                               |                                                  |
+|                                   | ConvertToMatrixForm           | rename: BuildSystemMatrix                        |
 |                                   | GetConstraintsList            | rename: GetConstraints                           |
 |                                   | GetKblocksList                | rename: GetKRMBlocks                             |
 |                                   | GetVariablesList              | rename: GetVariables                             |

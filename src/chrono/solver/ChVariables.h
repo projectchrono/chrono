@@ -40,11 +40,11 @@ class ChApi ChVariables {
   private:
     ChVectorDynamic<double> qb;  ///< variables (accelerations, speeds, etc. depending on the problem)
     ChVectorDynamic<double> fb;  ///< known vector (forces, or impulses, etc. depending on the problem)
-    int ndof;                    ///< number of degrees of freedom (number of contained scalar variables)
+    unsigned int ndof;           ///< number of degrees of freedom (number of contained scalar variables)
     bool disabled;               ///< user activation/deactivation of variables
 
   protected:
-    int offset;  ///< offset in global q state vector (needed by some solvers)
+    unsigned int offset;  ///< offset in global q state vector (needed by some solvers)
 
   public:
     ChVariables();
@@ -66,7 +66,7 @@ class ChApi ChVariables {
 
     /// The number of scalar variables in the vector qb (dof=degrees of freedom)
     /// *** This function MUST BE OVERRIDDEN by specialized inherited classes.
-    virtual int Get_ndof() const { return ndof; }
+    virtual unsigned int Get_ndof() const { return ndof; }
 
     /// Returns reference to qb, body-relative part of degrees of freedom q in system:
     /// <pre>
@@ -115,13 +115,16 @@ class ChApi ChVariables {
     /// The masses must be scaled by the given factor 'ca').
     /// Assembling the system-level sparse matrix is required only if using a direct sparse solver or for
     /// debugging/reporting purposes.
-    virtual void PasteMassInto(ChSparseMatrix& storage, int row_offset, int col_offset, const double ca) = 0;
+    virtual void PasteMassInto(ChSparseMatrix& storage,
+                               unsigned int row_offset,
+                               unsigned int col_offset,
+                               const double ca) const = 0;
 
     /// Set offset in global q vector (set automatically by ChSystemDescriptor).
-    void SetOffset(int moff) { offset = moff; }
+    void SetOffset(unsigned int moff) { offset = moff; }
 
     /// Get offset in global q vector.
-    int GetOffset() const { return offset; }
+    unsigned int GetOffset() const { return offset; }
 
     virtual void ArchiveOut(ChArchiveOut& archive_out);
     virtual void ArchiveIn(ChArchiveIn& archive_in);

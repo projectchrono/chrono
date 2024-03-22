@@ -19,7 +19,8 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 CH_FACTORY_REGISTER(ChVariablesGenericDiagonalMass)
 
-ChVariablesGenericDiagonalMass::ChVariablesGenericDiagonalMass(int m_ndof) : ChVariables(m_ndof), ndof(m_ndof) {
+ChVariablesGenericDiagonalMass::ChVariablesGenericDiagonalMass(unsigned int m_ndof)
+    : ChVariables(m_ndof), ndof(m_ndof) {
     MmassDiag.setConstant(ndof, 1.0);
 }
 
@@ -71,7 +72,10 @@ void ChVariablesGenericDiagonalMass::DiagonalAdd(ChVectorRef result, const doubl
     result.segment(this->offset, ndof) += c_a * MmassDiag;
 }
 
-void ChVariablesGenericDiagonalMass::PasteMassInto(ChSparseMatrix& storage, int row_offset, int col_offset, const double c_a) {
+void ChVariablesGenericDiagonalMass::PasteMassInto(ChSparseMatrix& storage,
+                                                   unsigned int row_offset,
+                                                   unsigned int col_offset,
+                                                   const double c_a) const {
     for (int i = 0; i < MmassDiag.size(); ++i) {
         storage.SetElement(offset + row_offset + i, offset + col_offset + i, c_a * MmassDiag(i));
     }

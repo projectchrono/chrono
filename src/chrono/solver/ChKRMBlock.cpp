@@ -45,7 +45,7 @@ void ChKRMBlock::SetVariables(std::vector<ChVariables*> mvariables) {
 
     variables = mvariables;
 
-    int msize = 0;
+    unsigned int msize = 0;
     for (unsigned int iv = 0; iv < variables.size(); iv++)
         msize += variables[iv]->Get_ndof();
 
@@ -53,19 +53,19 @@ void ChKRMBlock::SetVariables(std::vector<ChVariables*> mvariables) {
 }
 
 void ChKRMBlock::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect) const {
-    int kio = 0;
+    unsigned int kio = 0;
     for (unsigned int iv = 0; iv < GetNumVariables(); iv++) {
-        int io = GetVariable(iv)->GetOffset();
-        int in = GetVariable(iv)->Get_ndof();
+        unsigned int io = GetVariable(iv)->GetOffset();
+        unsigned int in = GetVariable(iv)->Get_ndof();
         if (GetVariable(iv)->IsActive()) {
-            int kjo = 0;
+            unsigned int kjo = 0;
             for (unsigned int jv = 0; jv < GetNumVariables(); jv++) {
-                int jo = GetVariable(jv)->GetOffset();
-                int jn = GetVariable(jv)->Get_ndof();
+                unsigned int jo = GetVariable(jv)->GetOffset();
+                unsigned int jn = GetVariable(jv)->Get_ndof();
                 if (GetVariable(jv)->IsActive()) {
-                    for (int r = 0; r < in; r++) {
+                    for (unsigned int r = 0; r < in; r++) {
                         double tot = 0;
-                        for (int c = 0; c < jn; c++) {
+                        for (unsigned int c = 0; c < jn; c++) {
                             tot += KRM(kio + r, kjo + c) * vect(jo + c);
                         }
                         result(io + r) += tot;
@@ -81,12 +81,12 @@ void ChKRMBlock::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect) const
 }
 
 void ChKRMBlock::DiagonalAdd(ChVectorRef result) {
-    int kio = 0;
+    unsigned int kio = 0;
     for (unsigned int iv = 0; iv < GetNumVariables(); iv++) {
-        int io = GetVariable(iv)->GetOffset();
-        int in = GetVariable(iv)->Get_ndof();
+        unsigned int io = GetVariable(iv)->GetOffset();
+        unsigned int in = GetVariable(iv)->Get_ndof();
         if (GetVariable(iv)->IsActive()) {
-            for (int r = 0; r < in; r++) {
+            for (unsigned int r = 0; r < in; r++) {
                 result(io + r) += KRM(kio + r, kio + r);
             }
             //// RADU: using Eigen as below leads to *noticeable* performance drop!
@@ -96,20 +96,20 @@ void ChKRMBlock::DiagonalAdd(ChVectorRef result) {
     }
 }
 
-void ChKRMBlock::PasteInto(ChSparseMatrix& storage, int row_offset, int col_offset, bool overwrite) {
+void ChKRMBlock::PasteInto(ChSparseMatrix& storage, unsigned int row_offset, unsigned int col_offset, bool overwrite) const {
     if (KRM.rows() == 0)
         return;
 
-    int kio = 0;
+    unsigned int kio = 0;
     for (unsigned int iv = 0; iv < GetNumVariables(); iv++) {
-        int io = GetVariable(iv)->GetOffset();
-        int in = GetVariable(iv)->Get_ndof();
+        unsigned int io = GetVariable(iv)->GetOffset();
+        unsigned int in = GetVariable(iv)->Get_ndof();
 
         if (GetVariable(iv)->IsActive()) {
-            int kjo = 0;
+            unsigned int kjo = 0;
             for (unsigned int jv = 0; jv < GetNumVariables(); jv++) {
-                int jo = GetVariable(jv)->GetOffset();
-                int jn = GetVariable(jv)->Get_ndof();
+                unsigned int jo = GetVariable(jv)->GetOffset();
+                unsigned int jn = GetVariable(jv)->Get_ndof();
 
                 if (GetVariable(jv)->IsActive()) {
                     PasteMatrix(storage, KRM.block(kio, kjo, in, jn), io + row_offset, jo + col_offset, overwrite);

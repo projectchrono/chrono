@@ -32,7 +32,7 @@ double ChSolverMatlab::Solve(ChSystemDescriptor& sysd) {
 
     ChSparseMatrix Z;
     ChVectorDynamic<double> rhs;
-    sysd.ConvertToMatrixForm(&Z, &rhs);
+    sysd.BuildSystemMatrix(&Z, &rhs);
 
     mengine->PutSparseMatrix(Z, "Z");
     mengine->PutVariable(rhs, "rhs");

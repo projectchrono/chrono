@@ -73,7 +73,10 @@ void ChVariablesGeneric::DiagonalAdd(ChVectorRef result, const double c_a) const
     result.segment(this->offset, ndof) += c_a * Mmass.diagonal();
 }
 
-void ChVariablesGeneric::PasteMassInto(ChSparseMatrix& storage, int row_offset, int col_offset, const double c_a) {
+void ChVariablesGeneric::PasteMassInto(ChSparseMatrix& storage,
+                                       unsigned int row_offset,
+                                       unsigned int col_offset,
+                                       const double c_a) const {
     for (int row = 0; row < Mmass.rows(); ++row)
         for (int col = 0; col < Mmass.cols(); ++col)
             storage.SetElement(offset + row_offset + row, offset + col_offset + col, c_a * Mmass(row, col));

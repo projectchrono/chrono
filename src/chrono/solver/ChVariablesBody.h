@@ -47,7 +47,7 @@ class ChApi ChVariablesBody : public ChVariables {
     virtual const ChMatrix33<>& GetBodyInvInertia() const = 0;
 
     /// The number of scalar variables in the vector qb (dof=degrees of freedom)
-    virtual int Get_ndof() const override { return 6; }
+    virtual unsigned int Get_ndof() const override { return 6; }
 
     void* GetUserData() { return this->user_data; }
     void SetUserData(void* mdata) { this->user_data = mdata; }

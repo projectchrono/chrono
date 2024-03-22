@@ -77,9 +77,9 @@ void ChVariablesNode::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect
 void ChVariablesNode::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const {
     // optimized unrolled operations
     double scaledmass = c_a * mass;
-    result(this->offset) += scaledmass * vect(this->offset);
-    result(this->offset + 1) += scaledmass * vect(this->offset + 1);
-    result(this->offset + 2) += scaledmass * vect(this->offset + 2);
+    result(offset) += scaledmass * vect(offset);
+    result(offset + 1) += scaledmass * vect(offset + 1);
+    result(offset + 2) += scaledmass * vect(offset + 2);
 }
 
 // Add the diagonal of the mass matrix scaled by c_a, to 'result'.
@@ -95,7 +95,10 @@ void ChVariablesNode::DiagonalAdd(ChVectorRef result, const double c_a) const {
 // it in 'storage' sparse matrix, at given column/row offset.
 // Note, most iterative solvers don't need to know mass matrix explicitly.
 // Optimized: doesn't fill unneeded elements except mass.
-void ChVariablesNode::PasteMassInto(ChSparseMatrix& storage, int row_offset, int col_offset, const double c_a) {
+void ChVariablesNode::PasteMassInto(ChSparseMatrix& storage,
+                                    unsigned int row_offset,
+                                    unsigned int col_offset,
+                                    const double c_a) const {
     double scaledmass = c_a * mass;
     storage.SetElement(offset + row_offset + 0, offset + col_offset + 0, scaledmass);
     storage.SetElement(offset + row_offset + 1, offset + col_offset + 1, scaledmass);

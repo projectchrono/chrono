@@ -46,7 +46,7 @@ class ChApi ChVariablesGeneric : public ChVariables {
     ChMatrixDynamic<>& GetInvMass() { return inv_Mmass; }
 
     /// The number of scalar variables in the vector qb (dof=degrees of freedom)
-    virtual int Get_ndof() const override { return this->ndof; }
+    virtual unsigned int Get_ndof() const override { return this->ndof; }
 
     /// Computes the product of the inverse mass matrix by a vector, and add to result: result = [invMb]*vect
     virtual void Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const override;
@@ -71,7 +71,10 @@ class ChApi ChVariablesGeneric : public ChVariables {
 
     /// Write the mass submatrix for these variables into the specified global matrix at the offsets of each variable.
     /// The masses must be scaled by the given factor 'ca').
-    virtual void PasteMassInto(ChSparseMatrix& storage, int row_offset, int col_offset, const double ca) override;
+    virtual void PasteMassInto(ChSparseMatrix& storage,
+                               unsigned int row_offset,
+                               unsigned int col_offset,
+                               const double ca) const override;
 };
 
 }  // end namespace chrono

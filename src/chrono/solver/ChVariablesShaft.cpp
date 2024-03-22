@@ -85,7 +85,10 @@ void ChVariablesShaft::DiagonalAdd(ChVectorRef result, const double c_a) const {
 // it in 'storage' sparse matrix, at given column/row offset.
 // Note, most iterative solvers don't need to know mass matrix explicitly.
 // Optimized: doesn't fill unneeded elements except mass.
-void ChVariablesShaft::PasteMassInto(ChSparseMatrix& storage, int row_offset, int col_offset, const double c_a) {
+void ChVariablesShaft::PasteMassInto(ChSparseMatrix& storage,
+                                     unsigned int row_offset,
+                                     unsigned int col_offset,
+                                     const double c_a) const {
     storage.SetElement(offset + row_offset + 0, offset + col_offset + 0, c_a * m_inertia);
 }
 
