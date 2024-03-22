@@ -30,7 +30,7 @@ class ChApi ChVariablesGeneric : public ChVariables {
   private:
     ChMatrixDynamic<double> Mmass;
     ChMatrixDynamic<double> inv_Mmass;
-    int ndof;
+    unsigned int ndof;
 
   public:
     ChVariablesGeneric(int m_ndof = 1);

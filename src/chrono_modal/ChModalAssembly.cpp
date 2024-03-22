@@ -94,18 +94,18 @@ void util_sparse_assembly_2x2symm(
     const ChSparseMatrix& H,                                 ///< square sparse H matrix, n_v x n_v
     const ChSparseMatrix& Cq)                                ///< rectangular  sparse Cq  n_c x n_v
 {
-    int n_v = H.rows();
-    int n_c = Cq.rows();
+    unsigned int n_v = H.rows();
+    unsigned int n_c = Cq.rows();
     HCQ.resize(n_v + n_c, n_v + n_c);
     HCQ.reserve(H.nonZeros() + 2 * Cq.nonZeros());
     HCQ.setZero();
 
-    for (int k = 0; k < H.outerSize(); ++k)
+    for (unsigned int k = 0; k < H.outerSize(); ++k)
         for (ChSparseMatrix::InnerIterator it(H, k); it; ++it) {
             HCQ.insert(it.row(), it.col()) = it.value();
         }
 
-    for (int k = 0; k < Cq.outerSize(); ++k)
+    for (unsigned int k = 0; k < Cq.outerSize(); ++k)
         for (ChSparseMatrix::InnerIterator it(Cq, k); it; ++it) {
             HCQ.insert(it.row() + n_v, it.col()) = it.value();  // insert Cq
             HCQ.insert(it.col(), it.row() + n_v) = it.value();  // insert Cq'
@@ -120,8 +120,8 @@ void util_sparse_assembly_2x2symm(
     // it repairs it.
     // TODO avoid this bad hack and find the cause of the release/debug difference.
     /*
-    for (int k = 0; k < HCQ.rows(); ++k) {
-        for (int j = 0; j < HCQ.cols(); ++j) {
+    for (unsigned int k = 0; k < HCQ.rows(); ++k) {
+        for (unsigned int j = 0; j < HCQ.cols(); ++j) {
             auto foo = HCQ.coeffRef(k, j);
             //std::cout << HCQ.coeffRef(k,j) << " ";
         }
@@ -162,7 +162,7 @@ void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
 
     if (this->m_modal_reduction_type == ReductionType::HERTING) {
         // 1) compute eigenvalue and eigenvectors
-        int expected_eigs = 0;
+        unsigned int expected_eigs = 0;
         for (auto freq_span : n_modes_settings.freq_spans)
             expected_eigs += freq_span.nmodes;
 
@@ -180,7 +180,7 @@ void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
 
         if (this->m_verbose) {
             std::cout << "*** HERTING reduction is used.\n";
-            for (int i = 0; i < this->m_modal_eigvals.size(); ++i)
+            for (unsigned int i = 0; i < this->m_modal_eigvals.size(); ++i)
                 std::cout << " Damped mode n." << i << "  frequency [Hz]: " << this->m_modal_freq(i) << "\n";
         }
 
@@ -207,7 +207,7 @@ void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
 
         if (this->m_verbose) {
             std::cout << "*** Craig Bampton reduction is used.\n";
-            for (int i = 0; i < this->m_modal_eigvals.size(); ++i)
+            for (unsigned int i = 0; i < this->m_modal_eigvals.size(); ++i)
                 std::cout << " Damped mode n." << i << "  frequency [Hz]: " << this->m_modal_freq(i) << "\n";
         }
 
@@ -392,7 +392,7 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
         // update the configuration of the floating frame F using Newton-Raphson iteration
         // to satisfy the constraint equation: C_F = U^T * M * e_loc = 0.
 
-        int bou_mod_coords_w = m_num_coords_vel_boundary + this->m_num_coords_modal;
+        unsigned int bou_mod_coords_w = m_num_coords_vel_boundary + this->m_num_coords_modal;
 
         auto ComputeResidual_ConstrF = [&](ChVectorDynamic<>& mConstr_F) {
             this->UpdateTransformationMatrix();
@@ -407,8 +407,8 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
             mConstr_F = this->U_locred_0.transpose() * this->M_red * e_locred;  // of size 6*1, expected to be zero
         };
 
-        int ite_count = 0;
-        int NR_limit = 10;
+        unsigned int ite_count = 0;
+        unsigned int NR_limit = 10;
         double tol = 1.e-6 * this->M_red.norm();
         bool converged_flag_F = false;
 
@@ -467,8 +467,8 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
 }
 
 void ChModalAssembly::UpdateTransformationMatrix() {
-    int bou_mod_coords = this->m_num_coords_pos_boundary + this->m_num_coords_modal;
-    int bou_mod_coords_w = m_num_coords_vel_boundary + this->m_num_coords_modal;
+    unsigned int bou_mod_coords = this->m_num_coords_pos_boundary + this->m_num_coords_modal;
+    unsigned int bou_mod_coords_w = m_num_coords_vel_boundary + this->m_num_coords_modal;
 
     // fetch the state snapshot (modal reduced)
     double fooT;
@@ -479,17 +479,17 @@ void ChModalAssembly::UpdateTransformationMatrix() {
     this->IntStateGather(0, x_mod, 0, v_mod, fooT);
 
     L_B.setIdentity(m_num_coords_vel_boundary, m_num_coords_vel_boundary);
-    for (int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
+    for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
         L_B.block(6 * i_bou, 6 * i_bou, 3, 3) = floating_frame_F.GetRotMat();
     }
     L_I.setIdentity(m_num_coords_vel_internal, m_num_coords_vel_internal);
-    for (int i_int = 0; i_int < m_num_coords_vel_internal / 6; i_int++) {
+    for (unsigned int i_int = 0; i_int < m_num_coords_vel_internal / 6; i_int++) {
         L_I.block(6 * i_int, 6 * i_int, 3, 3) = floating_frame_F.GetRotMat();
     }
 
     //  rigid body modes of boudnary bodies and nodes
     Uloc_B.setZero(m_num_coords_vel_boundary, 6);
-    for (int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
+    for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
         Uloc_B.block(6 * i_bou, 0, 3, 3) = ChMatrix33<>(1.0);
         ChVector3d X_B =
             floating_frame_F.GetRot().RotateBack(ChVector3d(x_mod.segment(7 * i_bou, 3)) - floating_frame_F.GetPos());
@@ -501,7 +501,7 @@ void ChModalAssembly::UpdateTransformationMatrix() {
     //  rigid body modes of internal bodies and nodes
     if (internal_nodes_update) {
         Uloc_I.setZero(m_num_coords_vel_internal, 6);
-        for (int i_int = 0; i_int < m_num_coords_vel_internal / 6; i_int++) {
+        for (unsigned int i_int = 0; i_int < m_num_coords_vel_internal / 6; i_int++) {
             Uloc_I.block(6 * i_int, 0, 3, 3) = ChMatrix33<>(1.0);
             ChVector3d X_I = floating_frame_F.GetRot().RotateBack(
                 ChVector3d(m_full_state_x.segment(m_num_coords_pos_boundary + 7 * i_int, 3)) -
@@ -514,7 +514,7 @@ void ChModalAssembly::UpdateTransformationMatrix() {
     }
 
     P_W.setIdentity(bou_mod_coords_w, bou_mod_coords_w);
-    for (int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
+    for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
         P_W.block(6 * i_bou, 6 * i_bou, 3, 3) = floating_frame_F.GetRotMat();
     }
 
@@ -523,7 +523,7 @@ void ChModalAssembly::UpdateTransformationMatrix() {
 }
 
 void ChModalAssembly::ComputeProjectionMatrix() {
-    int bou_mod_coords_w = m_num_coords_vel_boundary + this->m_num_coords_modal;
+    unsigned int bou_mod_coords_w = m_num_coords_vel_boundary + this->m_num_coords_modal;
 
     if (!is_projection_initialized) {
         U_locred.setZero(bou_mod_coords_w, 6);
@@ -566,10 +566,10 @@ void ChModalAssembly::ComputeLocalFullKMCqMatrix(ChSparseMatrix& full_M,
     ChMatrixDynamic<> P_BI;
     P_BI.setIdentity(m_num_coords_vel_boundary + m_num_coords_vel_internal,
                      m_num_coords_vel_boundary + m_num_coords_vel_internal);
-    for (int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
+    for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
         P_BI.block(6 * i_bou, 6 * i_bou, 3, 3) = floating_frame_F.GetRotMat();
     }
-    for (int i_int = 0; i_int < m_num_coords_vel_internal / 6; i_int++) {
+    for (unsigned int i_int = 0; i_int < m_num_coords_vel_internal / 6; i_int++) {
         P_BI.block(m_num_coords_vel_boundary + 6 * i_int, m_num_coords_vel_boundary + 6 * i_int, 3, 3) =
             floating_frame_F.GetRotMat();
     }
@@ -630,7 +630,7 @@ void ChModalAssembly::ApplyModalReductionTransformation_Herting(const ChModalDam
     solver.factorize(K_IIc_loc);
     ChSparseMatrix K_IB_loc =
         full_K_loc.block(m_num_coords_vel_boundary, 0, m_num_coords_vel_internal, m_num_coords_vel_boundary);
-    for (int i = 0; i < m_num_coords_vel_boundary; ++i) {
+    for (unsigned int i = 0; i < m_num_coords_vel_boundary; ++i) {
         ChVectorDynamic<> rhs(m_num_coords_vel_internal + m_num_constr_internal);
         if (m_num_constr_internal)
             rhs << K_IB_loc.col(i).toDense(), Cq_IB_loc.col(i).toDense();
@@ -648,13 +648,13 @@ void ChModalAssembly::ApplyModalReductionTransformation_Herting(const ChModalDam
     ChVectorDynamic<> c_modes(this->m_modal_eigvect.cols());
     c_modes.setOnes();
 
-    for (int i_try = 0; i_try < 2; i_try++) {
+    for (unsigned int i_try = 0; i_try < 2; i_try++) {
         // The modal shapes of the first six rigid-body modes solved from the eigensolver might be not accurate,
         // leanding to potential numerical instability. Thus, we construct the rigid-body modal shapes directly.
         this->m_modal_eigvect.block(0, 0, m_num_coords_vel_boundary, 6) = Uloc_B;
         this->m_modal_eigvect.block(m_num_coords_vel_boundary, 0, m_num_coords_vel_internal, 6) = Uloc_I;
 
-        for (int i_mode = 0; i_mode < this->m_modal_eigvect.cols(); ++i_mode) {
+        for (unsigned int i_mode = 0; i_mode < this->m_modal_eigvect.cols(); ++i_mode) {
             if (c_modes(i_mode))
                 // Normalize m_modal_eigvect to improve the condition of M_red.
                 // When i_try==0, c_modes==1, it doesnot change m_modal_eigvect, but tries to obtain M_red and then find the
@@ -686,7 +686,7 @@ void ChModalAssembly::ApplyModalReductionTransformation_Herting(const ChModalDam
         ChSparseMatrix M_IB_loc =
             full_M_loc.block(m_num_coords_vel_boundary, 0, m_num_coords_vel_internal, m_num_coords_vel_boundary);
         ChMatrixDynamic<> rhs_top = M_IB_loc * V_B + M_II_loc * V_I;
-        for (int i = 0; i < this->m_num_coords_modal; ++i) {
+        for (unsigned int i = 0; i < this->m_num_coords_modal; ++i) {
             ChVectorDynamic<> rhs(m_num_coords_vel_internal + m_num_constr_internal);
             if (m_num_constr_internal)
                 rhs << rhs_top.col(i), Eigen::VectorXd::Zero(m_num_constr_internal);
@@ -739,7 +739,7 @@ void ChModalAssembly::ApplyModalReductionTransformation_Herting(const ChModalDam
         // Find the suitable coefficients 'c_modes' to normalize 'm_modal_eigvect' to improve the condition number of 'M_red'.
         if (i_try < 1) {
             double expected_mass = this->M_red.diagonal().head(m_num_coords_vel_boundary).mean();
-            for (int i_mode = 0; i_mode < this->m_modal_eigvect.cols(); ++i_mode)
+            for (unsigned int i_mode = 0; i_mode < this->m_modal_eigvect.cols(); ++i_mode)
                 c_modes(i_mode) = pow(
                     expected_mass / this->M_red(m_num_coords_vel_boundary + i_mode, m_num_coords_vel_boundary + i_mode),
                     0.5);
@@ -812,7 +812,7 @@ void ChModalAssembly::ApplyModalReductionTransformation_CraigBampton(const ChMod
     solver.factorize(K_IIc_loc);
     ChSparseMatrix K_IB_loc =
         full_K_loc.block(m_num_coords_vel_boundary, 0, m_num_coords_vel_internal, m_num_coords_vel_boundary);
-    for (int i = 0; i < m_num_coords_vel_boundary; ++i) {
+    for (unsigned int i = 0; i < m_num_coords_vel_boundary; ++i) {
         ChVectorDynamic<> rhs(m_num_coords_vel_internal + m_num_constr_internal);
         if (m_num_constr_internal)
             rhs << K_IB_loc.col(i).toDense(), Cq_IB_loc.col(i).toDense();
@@ -830,8 +830,8 @@ void ChModalAssembly::ApplyModalReductionTransformation_CraigBampton(const ChMod
     ChVectorDynamic<> c_modes(this->m_modal_eigvect.cols());
     c_modes.setOnes();
 
-    for (int i_try = 0; i_try < 2; i_try++) {
-        for (int i_mode = 0; i_mode < this->m_modal_eigvect.cols(); ++i_mode) {
+    for (unsigned int i_try = 0; i_try < 2; i_try++) {
+        for (unsigned int i_mode = 0; i_mode < this->m_modal_eigvect.cols(); ++i_mode) {
             if (c_modes(i_mode))
                 // Normalize m_modal_eigvect to improve the condition of M_red.
                 // When i_try==0, c_modes==1, it doesnot change m_modal_eigvect, but tries to obtain M_red and then find the
@@ -858,7 +858,7 @@ void ChModalAssembly::ApplyModalReductionTransformation_CraigBampton(const ChMod
         ChSparseMatrix M_II_loc = full_M_loc.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary,
                                                    m_num_coords_vel_internal, m_num_coords_vel_internal);
         ChMatrixDynamic<> rhs_top = M_II_loc * V_I;
-        for (int i = 0; i < this->m_num_coords_modal; ++i) {
+        for (unsigned int i = 0; i < this->m_num_coords_modal; ++i) {
             ChVectorDynamic<> rhs(m_num_coords_vel_internal + m_num_constr_internal);
             if (m_num_constr_internal)
                 rhs << rhs_top.col(i), Eigen::VectorXd::Zero(m_num_constr_internal);
@@ -909,7 +909,7 @@ void ChModalAssembly::ApplyModalReductionTransformation_CraigBampton(const ChMod
         // Find the suitable coefficients 'c_modes' to normalize 'm_modal_eigvect' to improve the condition number of 'M_red'.
         if (i_try < 1) {
             double expected_mass = this->M_red.diagonal().head(m_num_coords_vel_boundary).mean();
-            for (int i_mode = 0; i_mode < this->m_modal_eigvect.cols(); ++i_mode)
+            for (unsigned int i_mode = 0; i_mode < this->m_modal_eigvect.cols(); ++i_mode)
                 c_modes(i_mode) = pow(
                     expected_mass / this->M_red(m_num_coords_vel_boundary + i_mode, m_num_coords_vel_boundary + i_mode),
                     0.5);
@@ -953,10 +953,10 @@ void ChModalAssembly::ComputeInertialKRMmatrix() {
     this->M_sup.setZero();
     M_sup = P_W * M_red * P_W.transpose();
 
-    int bou_mod_coords_w = m_num_coords_vel_boundary + this->m_num_coords_modal;
+    unsigned int bou_mod_coords_w = m_num_coords_vel_boundary + this->m_num_coords_modal;
     ChMatrixDynamic<> O_F;
     O_F.setZero(bou_mod_coords_w, bou_mod_coords_w);
-    for (int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++)
+    for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++)
         O_F.block(6 * i_bou, 6 * i_bou, 3, 3) = ChStarMatrix33<>(floating_frame_F.GetAngVelLocal());
 
     // Inertial damping matrix, also called as gyroscopic damping matrix
@@ -967,7 +967,7 @@ void ChModalAssembly::ComputeInertialKRMmatrix() {
     this->Ki_sup.setZero();
 
     if (!m_use_linear_inertial_term) {
-        int bou_mod_coords = this->m_num_coords_pos_boundary + this->m_num_coords_modal;
+        unsigned int bou_mod_coords = this->m_num_coords_pos_boundary + this->m_num_coords_modal;
 
         // fetch the state snapshot (modal reduced)
         double fooT;
@@ -983,7 +983,7 @@ void ChModalAssembly::ComputeInertialKRMmatrix() {
 
         ChMatrixDynamic<> V;
         V.setZero(bou_mod_coords_w, 6);
-        for (int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
+        for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
             V.block(6 * i_bou, 3, 3, 3) =
                 ChStarMatrix33<>(floating_frame_F.GetRot().RotateBack(v_mod.segment(6 * i_bou, 3)));
         }
@@ -991,7 +991,7 @@ void ChModalAssembly::ComputeInertialKRMmatrix() {
         ChMatrixDynamic<> V_rmom;
         V_rmom.setZero(bou_mod_coords_w, 6);
         ChVectorDynamic<> momen = M_red * (P_W.transpose() * v_mod);
-        for (int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
+        for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
             V_rmom.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(momen.segment(6 * i_bou, 3));
         }
         ChMatrixDynamic<> MVPFQ = M_red * V * P_F * Q_0;
@@ -1004,12 +1004,12 @@ void ChModalAssembly::ComputeInertialKRMmatrix() {
         //// leading to divergence. NOT use it.
         // ChMatrixDynamic<> O_B;
         // O_B.setZero(bou_mod_coords_w, bou_mod_coords_w);
-        // for (int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
+        // for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
         //     O_B.block(6 * i_bou + 3, 6 * i_bou + 3, 3, 3) = ChStarMatrix33<>(v_mod.segment(6 * i_bou + 3, 3));
         // }
         // ChMatrixDynamic<> O_thetamom;
         // O_thetamom.setZero(bou_mod_coords_w, bou_mod_coords_w);
-        // for (int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
+        // for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
         //     O_thetamom.block(6 * i_bou + 3, 6 * i_bou + 3, 3, 3) = ChStarMatrix33<>(momen.segment(6 * i_bou + 3, 3));
         // }
         // Ri_sup += -O_thetamom + O_B * M_red * P_W.transpose();
@@ -1022,7 +1022,7 @@ void ChModalAssembly::ComputeInertialKRMmatrix() {
         // ChMatrixDynamic<> V_acc;
         // V_iner.setZero(bou_mod_coords_w, 6);
         // V_acc.setZero(bou_mod_coords_w, 6);
-        // for (int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
+        // for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
         //     V_iner.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(f_loc_C.segment(6 * i_bou, 3));
         //     V_acc.block(6 * i_bou, 3, 3, 3) =
         //         ChStarMatrix33<>(floating_frame_F.GetRot().RotateBack(a_mod.segment(6 * i_bou, 3)));
@@ -1060,8 +1060,8 @@ void ChModalAssembly::ComputeStiffnessMatrix() {
     Km_sup = P_W * PTKP * P_W.transpose();
 
     {  // geometric stiffness matrix of reduced modal assembly
-        int bou_mod_coords = this->m_num_coords_pos_boundary + this->m_num_coords_modal;
-        int bou_mod_coords_w = m_num_coords_vel_boundary + this->m_num_coords_modal;
+        unsigned int bou_mod_coords = this->m_num_coords_pos_boundary + this->m_num_coords_modal;
+        unsigned int bou_mod_coords_w = m_num_coords_vel_boundary + this->m_num_coords_modal;
 
         double fooT;
         ChState x_mod;       // =[qB; eta]
@@ -1082,7 +1082,7 @@ void ChModalAssembly::ComputeStiffnessMatrix() {
         V_F1.setZero(bou_mod_coords_w, 6);
         ChMatrixDynamic<> V_F2;
         V_F2.setZero(bou_mod_coords_w, 6);
-        for (int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
+        for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
             V_F1.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(g_loc_alpha.segment(6 * i_bou, 3));
             V_F2.block(6 * i_bou, 3, 3, 3) = ChStarMatrix33<>(u_locred.segment(6 * i_bou, 3));
         }
@@ -1121,7 +1121,7 @@ void ChModalAssembly::ComputeModalKRMmatrix() {
     this->modal_Cq = Cq_red * P_W.transpose();
 }
 
-void ChModalAssembly::SetupModalData(int nmodes_reduction) {
+void ChModalAssembly::SetupModalData(unsigned int nmodes_reduction) {
     this->m_num_coords_modal = nmodes_reduction;
     this->Setup();
 
@@ -1224,7 +1224,7 @@ bool ChModalAssembly::ComputeModesExternalData(ChSparseMatrix& full_M,
     m_timer_setup.start();
 
     // cannot use more modes than n. of tot coords, if so, clamp
-    // int nmodes_clamped = ChMin(nmodes, m_num_coords_vel);
+    // unsigned int nmodes_clamped = ChMin(nmodes, m_num_coords_vel);
 
     // assert(full_M.rows() == m_num_coords_vel);
     // assert(full_K.rows() == m_num_coords_vel);
@@ -1288,7 +1288,7 @@ bool ChModalAssembly::ComputeModesDamped(const ChModalSolveDamped& n_modes_setti
     return true;
 }
 
-void ChModalAssembly::SetFullStateWithModeOverlay(int n_mode, double phase, double amplitude) {
+void ChModalAssembly::SetFullStateWithModeOverlay(unsigned int n_mode, double phase, double amplitude) {
     if (n_mode >= m_modal_eigvect.cols()) {
         Update();
         throw std::runtime_error("Error: mode " + std::to_string(n_mode) + " is beyond the " +
@@ -1336,7 +1336,7 @@ void ChModalAssembly::SetFullStateWithModeOverlay(int n_mode, double phase, doub
 
     // transform the above local increment in F to the original mixed basis,
     // then it can be accumulated to m_full_state_x0 to update the position.
-    for (int i = 0; i < m_num_coords_vel / 6; ++i) {
+    for (unsigned int i = 0; i < m_num_coords_vel / 6; ++i) {
         assembly_Dx.segment(6 * i, 3) =
             floating_frame_F.GetRotMat() * assembly_Dx_loc.segment(6 * i, 3);       // translation
         assembly_Dx.segment(6 * i + 3, 3) = assembly_Dx_loc.segment(6 * i + 3, 3);  // rotation
@@ -1358,10 +1358,10 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
     if (!this->m_is_model_reduced)
         return;
 
-    int bou_int_coords = this->m_num_coords_pos_boundary + this->m_num_coords_pos_internal;
-    int bou_int_coords_w = m_num_coords_vel_boundary + m_num_coords_vel_internal;
-    int bou_mod_coords = this->m_num_coords_pos_boundary + this->m_num_coords_modal;
-    int bou_mod_coords_w = m_num_coords_vel_boundary + this->m_num_coords_modal;
+    unsigned int bou_int_coords = this->m_num_coords_pos_boundary + this->m_num_coords_pos_internal;
+    unsigned int bou_int_coords_w = m_num_coords_vel_boundary + m_num_coords_vel_internal;
+    unsigned int bou_mod_coords = this->m_num_coords_pos_boundary + this->m_num_coords_modal;
+    unsigned int bou_mod_coords_w = m_num_coords_vel_boundary + this->m_num_coords_modal;
 
     if (this->Psi.rows() != bou_int_coords_w || this->Psi.cols() != bou_mod_coords_w)
         return;
@@ -1390,8 +1390,8 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
     assembly_x_new.setZero(bou_int_coords, nullptr);
     assembly_x_new.head(m_num_coords_pos_boundary) = x_mod.head(m_num_coords_pos_boundary);
 
-    for (int i_int = 0; i_int < m_num_coords_vel_internal / 6; i_int++) {
-        int offset_x = m_num_coords_pos_boundary + 7 * i_int;
+    for (unsigned int i_int = 0; i_int < m_num_coords_vel_internal / 6; i_int++) {
+        unsigned int offset_x = m_num_coords_pos_boundary + 7 * i_int;
         ChVector3d r_IF0 = floating_frame_F0.GetRotMat().transpose() *
                            (m_full_state_x0.segment(offset_x, 3) - floating_frame_F0.GetPos().eigen());
         ChVector3d r_I =
@@ -1813,16 +1813,16 @@ void ChModalAssembly::SyncCollisionModels() {
 void ChModalAssembly::SetupInitial() {
     ChAssembly::SetupInitial();  // parent
 
-    for (int ip = 0; ip < internal_bodylist.size(); ++ip) {
+    for (unsigned int ip = 0; ip < internal_bodylist.size(); ++ip) {
         internal_bodylist[ip]->SetupInitial();
     }
-    for (int ip = 0; ip < internal_linklist.size(); ++ip) {
+    for (unsigned int ip = 0; ip < internal_linklist.size(); ++ip) {
         internal_linklist[ip]->SetupInitial();
     }
-    for (int ip = 0; ip < internal_meshlist.size(); ++ip) {
+    for (unsigned int ip = 0; ip < internal_meshlist.size(); ++ip) {
         internal_meshlist[ip]->SetupInitial();
     }
-    for (int ip = 0; ip < internal_otherphysicslist.size(); ++ip) {
+    for (unsigned int ip = 0; ip < internal_otherphysicslist.size(); ++ip) {
         internal_otherphysicslist[ip]->SetupInitial();
     }
 }
@@ -1965,16 +1965,16 @@ void ChModalAssembly::Update(bool update_assets) {
 
     if (m_is_model_reduced == false) {
         //// NOTE: do not switch these to range for loops (may want to use OMP for)
-        for (int ip = 0; ip < (int)internal_bodylist.size(); ++ip) {
+        for (unsigned int ip = 0; ip < internal_bodylist.size(); ++ip) {
             internal_bodylist[ip]->Update(ChTime, update_assets);
         }
-        for (int ip = 0; ip < (int)internal_meshlist.size(); ++ip) {
+        for (unsigned int ip = 0; ip < internal_meshlist.size(); ++ip) {
             internal_meshlist[ip]->Update(ChTime, update_assets);
         }
-        for (int ip = 0; ip < (int)internal_otherphysicslist.size(); ++ip) {
+        for (unsigned int ip = 0; ip < internal_otherphysicslist.size(); ++ip) {
             internal_otherphysicslist[ip]->Update(ChTime, update_assets);
         }
-        for (int ip = 0; ip < (int)internal_linklist.size(); ++ip) {
+        for (unsigned int ip = 0; ip < internal_linklist.size(); ++ip) {
             internal_linklist[ip]->Update(ChTime, update_assets);
         }
 
@@ -1994,14 +1994,14 @@ void ChModalAssembly::Update(bool update_assets) {
 
         // Update the external forces imposed on the internal nodes.
         // Note: the below code requires that the internal bodies and internal nodes are inserted in sequence.
-        int offset_loc = 0;
-        for (int ip = 0; ip < (int)internal_bodylist.size(); ++ip) {
+        unsigned int offset_loc = 0;
+        for (unsigned int ip = 0; ip < internal_bodylist.size(); ++ip) {
             this->full_forces_internal.segment(offset_loc, 3) = internal_bodylist[ip]->GetAccumulatedForce().eigen();
             this->full_forces_internal.segment(offset_loc + 3, 3) =
                 internal_bodylist[ip]->GetAccumulatedTorque().eigen();
             offset_loc += internal_bodylist[ip]->GetNumCoordsVelLevel();
         }
-        for (int ip = 0; ip < (int)internal_meshlist.size(); ++ip) {
+        for (unsigned int ip = 0; ip < internal_meshlist.size(); ++ip) {
             for (auto& node : internal_meshlist[ip]->GetNodes()) {
                 if (auto xyz = std::dynamic_pointer_cast<ChNodeFEAxyz>(node)) {
                     this->full_forces_internal.segment(offset_loc, xyz->GetNumCoordsVelLevel()) =
@@ -2050,8 +2050,8 @@ void ChModalAssembly::GetStateLocal(ChStateDelta& u_locred,
         // to do? not useful for the moment.
         return;
     } else {
-        int bou_mod_coords = this->m_num_coords_pos_boundary + this->m_num_coords_modal;
-        int bou_mod_coords_w = m_num_coords_vel_boundary + this->m_num_coords_modal;
+        unsigned int bou_mod_coords = this->m_num_coords_pos_boundary + this->m_num_coords_modal;
+        unsigned int bou_mod_coords_w = m_num_coords_vel_boundary + this->m_num_coords_modal;
 
         u_locred.setZero(bou_mod_coords_w, nullptr);    // =u_locred =P_W^T*[\delta qB; \delta eta]
         e_locred.setZero(bou_mod_coords_w, nullptr);    // =e_locred =[qB^bar; eta]
@@ -2066,7 +2066,7 @@ void ChModalAssembly::GetStateLocal(ChStateDelta& u_locred,
         this->IntStateGather(0, x_mod, 0, v_mod, fooT);
 
         u_locred.tail(m_num_coords_modal) = modal_q;
-        for (int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
+        for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
             // Computed with respect to the initial configuration
             u_locred.segment(6 * i_bou, 3) =
                 floating_frame_F.GetRot().RotateBack(x_mod.segment(7 * i_bou, 3)).eigen() -
@@ -2086,7 +2086,7 @@ void ChModalAssembly::GetStateLocal(ChStateDelta& u_locred,
 
         // local elastic displacement
         e_locred.tail(m_num_coords_modal) = x_mod.segment(m_num_coords_pos_boundary, m_num_coords_modal);
-        for (int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
+        for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
             ChVector3d r_B = x_mod.segment(7 * i_bou, 3);
             ChVector3d r_BF_0 = floating_frame_F0.GetRot().RotateBack(
                 (m_full_state_x0.segment(7 * i_bou, 3) - floating_frame_F0.GetPos().eigen()));
@@ -2109,7 +2109,7 @@ void ChModalAssembly::GetStateLocal(ChStateDelta& u_locred,
 
         // local elastic velocity
         edt_locred.tail(m_num_coords_modal) = v_mod.segment(m_num_coords_vel_boundary, m_num_coords_modal);
-        for (int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
+        for (unsigned int i_bou = 0; i_bou < m_num_coords_vel_boundary / 6; i_bou++) {
             ChVector3d r_B = x_mod.segment(7 * i_bou, 3);
             ChVector3d v_B = v_mod.segment(6 * i_bou, 3);
             ChVector3d r_BF_loc = floating_frame_F.GetRot().RotateBack(r_B - floating_frame_F.GetPos());
@@ -2429,8 +2429,8 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
         // R.segment(off, m_num_coords_vel_boundary + m_num_coords_vel_internal) += c * this->custom_F_full;
         //}
     } else {
-        int bou_mod_coords = this->m_num_coords_pos_boundary + this->m_num_coords_modal;
-        int bou_mod_coords_w = m_num_coords_vel_boundary + this->m_num_coords_modal;
+        unsigned int bou_mod_coords = this->m_num_coords_pos_boundary + this->m_num_coords_modal;
+        unsigned int bou_mod_coords_w = m_num_coords_vel_boundary + this->m_num_coords_modal;
 
         // 1-
         // Add elastic forces from current modal deformations
@@ -2453,7 +2453,7 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
 
             ChMatrixDynamic<> O_F;
             O_F.setZero(bou_mod_coords_w, bou_mod_coords_w);
-            for (int i_bou = 0; i_bou < (int)(m_num_coords_vel_boundary / 6.); i_bou++)
+            for (unsigned int i_bou = 0; i_bou < (m_num_coords_vel_boundary / 6.); i_bou++)
                 O_F.block(6 * i_bou, 6 * i_bou, 3, 3) = ChStarMatrix33<>(floating_frame_F.GetAngVelLocal());
 
             ChMatrixDynamic<> mat_OF = P_W * O_F * M_red * P_W.transpose();
@@ -2463,7 +2463,7 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
             if (!m_use_linear_inertial_term) {
                 ChMatrixDynamic<> V;
                 V.setZero(bou_mod_coords_w, 6);
-                for (int i_bou = 0; i_bou < (int)(m_num_coords_vel_boundary / 6.); i_bou++) {
+                for (unsigned int i_bou = 0; i_bou < (m_num_coords_vel_boundary / 6.); i_bou++) {
                     V.block(6 * i_bou, 3, 3, 3) =
                         ChStarMatrix33<>(floating_frame_F.GetRot().RotateBack(v_mod.segment(6 * i_bou, 3)));
                 }
@@ -2473,7 +2473,7 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
                 //// leading to divergence. NOT use it.
                 // ChMatrixDynamic<> O_B;
                 // O_B.setZero(bou_mod_coords_w, bou_mod_coords_w);
-                // for (int i_bou = 0; i_bou < (int)(m_num_coords_vel_boundary / 6.); i_bou++) {
+                // for (unsigned int i_bou = 0; i_bou < (m_num_coords_vel_boundary / 6.); i_bou++) {
                 //     O_B.block(6 * i_bou + 3, 6 * i_bou + 3, 3, 3) = ChStarMatrix33<>(v_mod.segment(6 * i_bou + 3,
                 //     3));
                 // }

@@ -666,7 +666,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SaveMatrix                    | rename: WriteMatrices                            |
 | ChKblock                          |                               | remove                                           |
 | ChKblockGeneric                   |                               | rename: ChKRMBlock                               |
-|                                   | Build_K                       | rename: PasteInto                                |
+|                                   | Build_K                       | rename: PasteInto (see Notes)                    |
 |                                   | Get_K                         | rename: GetMatrix                                |
 |                                   | GetVariableN                  | rename: GetVariable                              |
 | ChLine                            |                               |                                                  |
@@ -1300,7 +1300,7 @@ Note that this represents a major public API change and we expect most user code
 | ChTriangleOfXYZnodes              |                               | rename: ChTriangleNodesXYZ                       |
 | ChTriangleOfXYZROTnodes           |                               | rename: ChTriangleNodesXYZrot                    |
 | ChVariables                       |                               |                                                  |
-|                                   | Build_M                       | rename: PasteMassInto                            |
+|                                   | Build_M                       | rename: PasteMassInto  (see Notes)               |
 |                                   | Get_ndof                      | rename: GetDOF                                   |
 | ChVector                          |                               |                                                  |
 |                                   | DirToDxDyDz                   | rename: GetDirectionAxesAsX                      |
@@ -1476,6 +1476,9 @@ Note that this represents a major public API change and we expect most user code
   The current value of the step size (which may be adjusted internally in certain situations) is cached and can still be queried with `ChSystem::GetStep`. This is typically needed only internally but can also be used in user code that requires it.
 
   Similarly, we removed the function `ChSystem::SetMaxiter` which allowed setting the maximum number of iterations for the system assembly analysis. This quantity can now be passed through an optional argument to `ChSystem::DoAssembly` (default value: 6).
+
++ `ChKblock::Build_K` (now `ChKRMBlock::PasteInto`) reversed the meaning of the last argument (was `add`, now `overwrite`) in accordance to the signature of `PasteMatrix`;
+  Also `ChVariable::Build_M` (now `PasteMassInto`) is not taking the position in which the mass should be placed but the offset with respect to the `ChVariable::offset`
 
 ## [Changed] Updated Chrono::VSG module
 

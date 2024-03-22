@@ -118,7 +118,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// oscillating on the screen.
     /// It works also if in IsReducedModelEnabled(). The mode shape is added to the state snapshot that was taken when doing the
     /// last ComputeModes() or ComputeModesDamped().
-    void SetFullStateWithModeOverlay(int n_mode, double phase, double amplitude);
+    void SetFullStateWithModeOverlay(unsigned int n_mode, double phase, double amplitude);
 
     /// For displaying the deformation using internal nodes, you can use the following function. Works only if
     /// IsReducedModelEnabled(). It sets the state of the internal nodes of this subassembly using the current state of the modal
@@ -523,7 +523,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Resize modal matrices and hook up the variables to the  M K R block for the solver. To be used all times
     /// the n. of modes of modal reduction (m_num_coords_modal) is changed.
-    void SetupModalData(int nmodes_reduction);
+    void SetupModalData(unsigned int nmodes_reduction);
 
     // list of BOUNDARY items: [no data, just use the bodylist. linklist etc. in parent ChAssembly class.]
 
