@@ -66,7 +66,7 @@ class ChApi ChVariables {
 
     /// The number of scalar variables in the vector qb (dof=degrees of freedom)
     /// *** This function MUST BE OVERRIDDEN by specialized inherited classes.
-    virtual unsigned int Get_ndof() const { return ndof; }
+    virtual unsigned int GetDOF() const { return ndof; }
 
     /// Returns reference to qb, body-relative part of degrees of freedom q in system:
     /// <pre>

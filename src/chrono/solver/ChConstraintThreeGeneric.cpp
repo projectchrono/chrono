@@ -66,21 +66,21 @@ void ChConstraintThreeGeneric::SetVariables(ChVariables* mvariables_a,
     variables_b = mvariables_b;
     variables_c = mvariables_c;
 
-    if (variables_a->Get_ndof() > 0) {
-        Cq_a.resize(variables_a->Get_ndof());
-        Eq_a.resize(variables_a->Get_ndof());
+    if (variables_a->GetDOF() > 0) {
+        Cq_a.resize(variables_a->GetDOF());
+        Eq_a.resize(variables_a->GetDOF());
         Cq_a.setZero();
     }
 
-    if (variables_b->Get_ndof() > 0) {
-        Cq_b.resize(variables_b->Get_ndof());
-        Eq_b.resize(variables_b->Get_ndof());
+    if (variables_b->GetDOF() > 0) {
+        Cq_b.resize(variables_b->GetDOF());
+        Eq_b.resize(variables_b->GetDOF());
         Cq_b.setZero();
     }
 
-    if (variables_c->Get_ndof() > 0) {
-        Cq_c.resize(variables_c->Get_ndof());
-        Eq_c.resize(variables_c->Get_ndof());
+    if (variables_c->GetDOF() > 0) {
+        Cq_c.resize(variables_c->GetDOF());
+        Eq_c.resize(variables_c->GetDOF());
         Cq_c.setZero();
     }
 }
@@ -88,26 +88,26 @@ void ChConstraintThreeGeneric::SetVariables(ChVariables* mvariables_a,
 void ChConstraintThreeGeneric::Update_auxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
-    if (variables_a->IsActive() && variables_a->Get_ndof() > 0) {
+    if (variables_a->IsActive() && variables_a->GetDOF() > 0) {
         variables_a->Compute_invMb_v(Eq_a, Cq_a.transpose());
     }
-    if (variables_b->IsActive() && variables_b->Get_ndof() > 0) {
+    if (variables_b->IsActive() && variables_b->GetDOF() > 0) {
         variables_b->Compute_invMb_v(Eq_b, Cq_b.transpose());
     }
-    if (variables_c->IsActive() && variables_c->Get_ndof() > 0) {
+    if (variables_c->IsActive() && variables_c->GetDOF() > 0) {
         variables_c->Compute_invMb_v(Eq_c, Cq_c.transpose());
     }
 
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
     ChMatrixDynamic<double> res(1, 1);
     g_i = 0;
-    if (variables_a->IsActive() && variables_a->Get_ndof() > 0) {
+    if (variables_a->IsActive() && variables_a->GetDOF() > 0) {
         g_i += Cq_a * Eq_a;
     }
-    if (variables_b->IsActive() && variables_b->Get_ndof() > 0) {
+    if (variables_b->IsActive() && variables_b->GetDOF() > 0) {
         g_i += Cq_b * Eq_b;
     }
-    if (variables_c->IsActive() && variables_c->Get_ndof() > 0) {
+    if (variables_c->IsActive() && variables_c->GetDOF() > 0) {
         g_i += Cq_c * Eq_c;
     }
 

@@ -68,7 +68,7 @@ unsigned int ChSystemDescriptor::CountActiveVariables() const {
     for (auto& var : m_variables) {
         if (var->IsActive()) {
             var->SetOffset(n_q);  // also store offsets in state and MC matrix
-            n_q += var->Get_ndof();
+            n_q += var->GetDOF();
         }
     }
     return n_q;
@@ -188,7 +188,7 @@ unsigned int ChSystemDescriptor::BuildFbVector(ChVectorDynamic<>& Fvector, unsig
     // Fills the 'f' vector
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            Fvector.segment(row_offset + var->GetOffset(), var->Get_ndof()) = var->Get_fb();
+            Fvector.segment(row_offset + var->GetOffset(), var->GetDOF()) = var->Get_fb();
         }
     }
     return n_q;
@@ -216,7 +216,7 @@ unsigned int ChSystemDescriptor::BuildDiVector(ChVectorDynamic<>& Dvector) const
     // Fills the 'f' vector part
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            Dvector.segment(var->GetOffset(), var->Get_ndof()) = var->Get_fb();
+            Dvector.segment(var->GetOffset(), var->GetDOF()) = var->Get_fb();
         }
     }
 
@@ -268,7 +268,7 @@ unsigned int ChSystemDescriptor::FromVariablesToVector(ChVectorDynamic<>& mvecto
     // Fill the vector
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            mvector.segment(var->GetOffset(), var->Get_ndof()) = var->Get_qb();
+            mvector.segment(var->GetOffset(), var->GetDOF()) = var->Get_qb();
         }
     }
 
@@ -281,7 +281,7 @@ unsigned int ChSystemDescriptor::FromVectorToVariables(const ChVectorDynamic<>& 
     // fetch from the vector
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            var->Get_qb() = mvector.segment(var->GetOffset(), var->Get_ndof());
+            var->Get_qb() = mvector.segment(var->GetOffset(), var->GetDOF());
         }
     }
 
@@ -332,7 +332,7 @@ unsigned int ChSystemDescriptor::FromUnknownsToVector(ChVectorDynamic<>& mvector
     // Fill the first part of vector, x.q ,with variables q
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            mvector.segment(var->GetOffset(), var->Get_ndof()) = var->Get_qb();
+            mvector.segment(var->GetOffset(), var->GetDOF()) = var->Get_qb();
         }
     }
 
@@ -355,7 +355,7 @@ unsigned int ChSystemDescriptor::FromVectorToUnknowns(const ChVectorDynamic<>& m
     // Fetch from the first part of vector (x.q = q)
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            var->Get_qb() = mvector.segment(var->GetOffset(), var->Get_ndof());
+            var->Get_qb() = mvector.segment(var->GetOffset(), var->GetDOF());
         }
     }
 

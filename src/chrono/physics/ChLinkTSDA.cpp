@@ -47,7 +47,7 @@ ChLinkTSDA::ChLinkTSDA(const ChLinkTSDA& other) : ChLink(other) {
     m_nstates = other.m_nstates;
     m_states = other.m_states;
     if (other.m_variables) {
-        m_variables = new ChVariablesGenericDiagonalMass(other.m_variables->Get_ndof());
+        m_variables = new ChVariablesGenericDiagonalMass(other.m_variables->GetDOF());
         (*m_variables) = (*other.m_variables);
     }
 }

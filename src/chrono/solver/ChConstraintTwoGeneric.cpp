@@ -55,15 +55,15 @@ void ChConstraintTwoGeneric::SetVariables(ChVariables* mvariables_a, ChVariables
     variables_a = mvariables_a;
     variables_b = mvariables_b;
 
-    if (variables_a->Get_ndof() > 0) {
-        Cq_a.resize(variables_a->Get_ndof());
-        Eq_a.resize(variables_a->Get_ndof());
+    if (variables_a->GetDOF() > 0) {
+        Cq_a.resize(variables_a->GetDOF());
+        Eq_a.resize(variables_a->GetDOF());
         Cq_a.setZero();
     }
 
-    if (variables_b->Get_ndof() > 0) {
-        Cq_b.resize(variables_b->Get_ndof());
-        Eq_b.resize(variables_b->Get_ndof());
+    if (variables_b->GetDOF() > 0) {
+        Cq_b.resize(variables_b->GetDOF());
+        Eq_b.resize(variables_b->GetDOF());
         Cq_b.setZero();
     }
 }
@@ -71,19 +71,19 @@ void ChConstraintTwoGeneric::SetVariables(ChVariables* mvariables_a, ChVariables
 void ChConstraintTwoGeneric::Update_auxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
-    if (variables_a->IsActive() && variables_a->Get_ndof() > 0) {
+    if (variables_a->IsActive() && variables_a->GetDOF() > 0) {
         variables_a->Compute_invMb_v(Eq_a, Cq_a.transpose());
     }
-    if (variables_b->IsActive() && variables_b->Get_ndof() > 0) {
+    if (variables_b->IsActive() && variables_b->GetDOF() > 0) {
         variables_b->Compute_invMb_v(Eq_b, Cq_b.transpose());
     }
 
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
     g_i = 0;
-    if (variables_a->IsActive() && variables_a->Get_ndof() > 0) {
+    if (variables_a->IsActive() && variables_a->GetDOF() > 0) {
         g_i += Cq_a * Eq_a;
     }
-    if (variables_b->IsActive() && variables_b->Get_ndof() > 0) {
+    if (variables_b->IsActive() && variables_b->GetDOF() > 0) {
         g_i += Cq_b * Eq_b;
     }
 

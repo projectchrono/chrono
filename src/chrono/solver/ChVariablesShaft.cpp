@@ -42,8 +42,8 @@ void ChVariablesShaft::SetInertia(double inertia) {
 // Computes the product of the inverse mass matrix by a
 // vector, and set in result: result = [invMb]*vect
 void ChVariablesShaft::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(vect.size() == Get_ndof());
-    assert(result.size() == Get_ndof());
+    assert(vect.size() == GetDOF());
+    assert(result.size() == GetDOF());
 
     result(0) = m_inv_inertia * vect(0);
 }
@@ -51,8 +51,8 @@ void ChVariablesShaft::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect
 // Computes the product of the inverse mass matrix by a
 // vector, and increment result: result += [invMb]*vect
 void ChVariablesShaft::Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(vect.size() == Get_ndof());
-    assert(result.size() == Get_ndof());
+    assert(vect.size() == GetDOF());
+    assert(result.size() == GetDOF());
 
     result(0) += m_inv_inertia * vect(0);
 }
@@ -60,8 +60,8 @@ void ChVariablesShaft::Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef 
 // Computes the product of the mass matrix by a
 // vector, and set in result: result = [Mb]*vect
 void ChVariablesShaft::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(result.size() == Get_ndof());
-    assert(vect.size() == Get_ndof());
+    assert(result.size() == GetDOF());
+    assert(vect.size() == GetDOF());
 
     result(0) += m_inertia * vect(0);
 }

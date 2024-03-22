@@ -46,7 +46,7 @@ class ChApi ChVariablesGeneric : public ChVariables {
     ChMatrixDynamic<>& GetInvMass() { return inv_Mmass; }
 
     /// The number of scalar variables in the vector qb (dof=degrees of freedom)
-    virtual unsigned int Get_ndof() const override { return this->ndof; }
+    virtual unsigned int GetDOF() const override { return this->ndof; }
 
     /// Computes the product of the inverse mass matrix by a vector, and add to result: result = [invMb]*vect
     virtual void Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const override;

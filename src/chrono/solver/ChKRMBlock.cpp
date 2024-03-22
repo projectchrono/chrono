@@ -47,7 +47,7 @@ void ChKRMBlock::SetVariables(std::vector<ChVariables*> mvariables) {
 
     unsigned int msize = 0;
     for (unsigned int iv = 0; iv < variables.size(); iv++)
-        msize += variables[iv]->Get_ndof();
+        msize += variables[iv]->GetDOF();
 
     KRM.resize(msize, msize);
 }
@@ -56,12 +56,12 @@ void ChKRMBlock::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect) const
     unsigned int kio = 0;
     for (unsigned int iv = 0; iv < GetNumVariables(); iv++) {
         unsigned int io = GetVariable(iv)->GetOffset();
-        unsigned int in = GetVariable(iv)->Get_ndof();
+        unsigned int in = GetVariable(iv)->GetDOF();
         if (GetVariable(iv)->IsActive()) {
             unsigned int kjo = 0;
             for (unsigned int jv = 0; jv < GetNumVariables(); jv++) {
                 unsigned int jo = GetVariable(jv)->GetOffset();
-                unsigned int jn = GetVariable(jv)->Get_ndof();
+                unsigned int jn = GetVariable(jv)->GetDOF();
                 if (GetVariable(jv)->IsActive()) {
                     for (unsigned int r = 0; r < in; r++) {
                         double tot = 0;
@@ -84,7 +84,7 @@ void ChKRMBlock::DiagonalAdd(ChVectorRef result) {
     unsigned int kio = 0;
     for (unsigned int iv = 0; iv < GetNumVariables(); iv++) {
         unsigned int io = GetVariable(iv)->GetOffset();
-        unsigned int in = GetVariable(iv)->Get_ndof();
+        unsigned int in = GetVariable(iv)->GetDOF();
         if (GetVariable(iv)->IsActive()) {
             for (unsigned int r = 0; r < in; r++) {
                 result(io + r) += KRM(kio + r, kio + r);
@@ -103,13 +103,13 @@ void ChKRMBlock::PasteInto(ChSparseMatrix& storage, unsigned int row_offset, uns
     unsigned int kio = 0;
     for (unsigned int iv = 0; iv < GetNumVariables(); iv++) {
         unsigned int io = GetVariable(iv)->GetOffset();
-        unsigned int in = GetVariable(iv)->Get_ndof();
+        unsigned int in = GetVariable(iv)->GetDOF();
 
         if (GetVariable(iv)->IsActive()) {
             unsigned int kjo = 0;
             for (unsigned int jv = 0; jv < GetNumVariables(); jv++) {
                 unsigned int jo = GetVariable(jv)->GetOffset();
-                unsigned int jn = GetVariable(jv)->Get_ndof();
+                unsigned int jn = GetVariable(jv)->GetDOF();
 
                 if (GetVariable(jv)->IsActive()) {
                     PasteMatrix(storage, KRM.block(kio, kjo, in, jn), io + row_offset, jo + col_offset, overwrite);

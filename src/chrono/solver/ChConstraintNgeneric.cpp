@@ -53,8 +53,8 @@ void ChConstraintNgeneric::SetVariables(std::vector<ChVariables*> mvars) {
             return;
         }
 
-        Cq.push_back(ChRowVectorDynamic<double>(variables[i]->Get_ndof()));
-        Eq.push_back(ChRowVectorDynamic<double>(variables[i]->Get_ndof()));
+        Cq.push_back(ChRowVectorDynamic<double>(variables[i]->GetDOF()));
+        Eq.push_back(ChRowVectorDynamic<double>(variables[i]->GetDOF()));
 
         Cq.back().setZero();
     }
@@ -66,7 +66,7 @@ void ChConstraintNgeneric::Update_auxiliary() {
 
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive())
-            if (variables[i]->Get_ndof()) {
+            if (variables[i]->GetDOF()) {
                 variables[i]->Compute_invMb_v(Eq[i], Cq[i].transpose());
             }
     }
@@ -74,7 +74,7 @@ void ChConstraintNgeneric::Update_auxiliary() {
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
     g_i = 0;
     for (size_t i = 0; i < variables.size(); ++i) {
-        if (variables[i]->IsActive() && variables[i]->Get_ndof() > 0) {
+        if (variables[i]->IsActive() && variables[i]->GetDOF() > 0) {
             g_i += Cq[i] * Eq[i];
         }
     }

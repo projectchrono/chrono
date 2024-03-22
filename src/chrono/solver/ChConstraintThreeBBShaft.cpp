@@ -22,7 +22,7 @@ CH_FACTORY_REGISTER(ChConstraintThreeBBShaft)
 ChConstraintThreeBBShaft::ChConstraintThreeBBShaft(ChVariablesBody* mvariables_a,
                                                    ChVariablesBody* mvariables_b,
                                                    ChVariables* mvariables_c) {
-    assert(mvariables_c->Get_ndof() == 1);
+    assert(mvariables_c->GetDOF() == 1);
     SetVariables(mvariables_a, mvariables_b, mvariables_c);
 }
 

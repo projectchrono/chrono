@@ -55,8 +55,8 @@ void ChVariablesBodyOwnMass::SetBodyMass(const double mmass) {
 
 // Computes the product of the inverse mass matrix by a vector, and set in result: result = [invMb]*vect
 void ChVariablesBodyOwnMass::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(vect.size() == Get_ndof());
-    assert(result.size() == Get_ndof());
+    assert(vect.size() == GetDOF());
+    assert(result.size() == GetDOF());
 
     // optimized unrolled operations
     result(0) = inv_mass * vect(0);
@@ -69,8 +69,8 @@ void ChVariablesBodyOwnMass::Compute_invMb_v(ChVectorRef result, ChVectorConstRe
 
 // Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
 void ChVariablesBodyOwnMass::Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(vect.size() == Get_ndof());
-    assert(result.size() == Get_ndof());
+    assert(vect.size() == GetDOF());
+    assert(result.size() == GetDOF());
 
     // optimized unrolled operations
     result(0) += inv_mass * vect(0);
@@ -83,8 +83,8 @@ void ChVariablesBodyOwnMass::Compute_inc_invMb_v(ChVectorRef result, ChVectorCon
 
 // Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
 void ChVariablesBodyOwnMass::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(result.size() == Get_ndof());
-    assert(vect.size() == Get_ndof());
+    assert(result.size() == GetDOF());
+    assert(vect.size() == GetDOF());
 
     // optimized unrolled operations
     result(0) += mass * vect(0);

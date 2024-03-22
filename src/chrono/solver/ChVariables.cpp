@@ -23,8 +23,8 @@ ChVariables::ChVariables() : disabled(false), ndof(0), offset(0) {}
 
 ChVariables::ChVariables(int m_ndof) : disabled(false), ndof(m_ndof), offset(0) {
     if (ndof > 0) {
-        qb.setZero(Get_ndof());
-        fb.setZero(Get_ndof());
+        qb.setZero(GetDOF());
+        fb.setZero(GetDOF());
     }
 }
 

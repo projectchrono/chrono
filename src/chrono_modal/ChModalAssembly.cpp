@@ -1153,7 +1153,7 @@ void ChModalAssembly::SetupModalData(int nmodes_reduction) {
     Ri_sup.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
     Ki_sup.setZero(m_num_coords_vel_boundary + m_num_coords_modal, m_num_coords_vel_boundary + m_num_coords_modal);
 
-    if (!modal_variables || (modal_variables->Get_ndof() != this->m_num_coords_modal)) {
+    if (!modal_variables || (modal_variables->GetDOF() != this->m_num_coords_modal)) {
         // Initialize ChVariable object used for modal variables
         if (modal_variables)
             delete modal_variables;

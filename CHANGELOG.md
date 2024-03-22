@@ -1301,6 +1301,7 @@ Note that this represents a major public API change and we expect most user code
 | ChTriangleOfXYZROTnodes           |                               | rename: ChTriangleNodesXYZrot                    |
 | ChVariables                       |                               |                                                  |
 |                                   | Build_M                       | rename: PasteMassInto                            |
+|                                   | Get_ndof                      | rename: GetDOF                                   |
 | ChVector                          |                               |                                                  |
 |                                   | DirToDxDyDz                   | rename: GetDirectionAxesAsX                      |
 | ChVolume                          |                               |                                                  |
