@@ -91,10 +91,6 @@ void ChVariablesNode::DiagonalAdd(ChVectorRef result, const double c_a) const {
     result(this->offset + 2) += c_a * mass;
 }
 
-// Build the mass matrix (for these variables) scaled by c_a, storing
-// it in 'storage' sparse matrix, at given column/row offset.
-// Note, most iterative solvers don't need to know mass matrix explicitly.
-// Optimized: doesn't fill unneeded elements except mass.
 void ChVariablesNode::PasteMassInto(ChSparseMatrix& storage,
                                     unsigned int row_offset,
                                     unsigned int col_offset,

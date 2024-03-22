@@ -157,10 +157,6 @@ void ChVariablesBodySharedMass::DiagonalAdd(ChVectorRef result, const double c_a
     result(this->offset + 5) += c_a * sharedmass->inertia(2, 2);
 }
 
-// Build the mass matrix (for these variables) scaled by c_a, storing
-// it in 'storage' sparse matrix, at given column/row offset.
-// Note, most iterative solvers don't need to know mass matrix explicitly.
-// Optimized: doesn't fill unneeded elements except mass and 3x3 inertia.
 void ChVariablesBodySharedMass::PasteMassInto(ChSparseMatrix& storage,
                                               unsigned int row_offset,
                                               unsigned int col_offset,

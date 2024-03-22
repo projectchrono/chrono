@@ -61,7 +61,7 @@ class ChApi ChVariablesGenericDiagonalMass : public ChVariables {
     virtual void DiagonalAdd(ChVectorRef result, const double ca) const override;
 
     /// Write the mass submatrix for these variables into the specified global matrix at the offsets of each variable.
-    /// The masses must be scaled by the given factor 'ca').
+    /// The masses must be scaled by the given factor 'ca'.
     virtual void PasteMassInto(ChSparseMatrix& storage,
                                unsigned int row_offset,
                                unsigned int col_offset,

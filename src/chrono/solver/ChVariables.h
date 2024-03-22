@@ -112,9 +112,10 @@ class ChApi ChVariables {
     virtual void DiagonalAdd(ChVectorRef result, const double ca) const = 0;
 
     /// Write the mass submatrix for these variables into the specified global matrix at the offsets of each variable.
-    /// The masses must be scaled by the given factor 'ca').
+    /// The masses will be scaled by the given factor 'ca'.
     /// Assembling the system-level sparse matrix is required only if using a direct sparse solver or for
     /// debugging/reporting purposes.
+    /// Additional offsets can be provided.
     virtual void PasteMassInto(ChSparseMatrix& storage,
                                unsigned int row_offset,
                                unsigned int col_offset,
