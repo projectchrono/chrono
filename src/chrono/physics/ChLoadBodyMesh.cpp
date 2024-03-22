@@ -36,7 +36,7 @@ void ChLoadBodyMesh::OutputSimpleMesh(std::vector<ChVector3d>& vert_pos,
 
 void ChLoadBodyMesh::InputSimpleForces(const std::vector<ChVector3d> vert_forces, const std::vector<int> vert_indices) {
     // check the vert_forces and vert_ind arrays must have same size
-    assert(vert_forces.size() == vert_ind.size());
+    assert(vert_forces.size() == vert_indices.size());
 
     // reset the previously applied forces if any
     forces.clear();
