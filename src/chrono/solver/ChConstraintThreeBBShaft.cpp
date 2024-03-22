@@ -153,7 +153,7 @@ void ChConstraintThreeBBShaft::MultiplyAndAdd(double& result, const ChVectorDyna
     }
 }
 
-void ChConstraintThreeBBShaft::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+void ChConstraintThreeBBShaft::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const {
     if (variables_a->IsActive()) {
         result.segment(variables_a->GetOffset(), 6) += Cq_a.transpose() * l;
     }

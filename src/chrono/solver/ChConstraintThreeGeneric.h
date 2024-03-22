@@ -113,7 +113,7 @@ class ChApi ChConstraintThreeGeneric : public ChConstraintThree {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) override;
+    virtual void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const override;
 
     /// Puts the three jacobian parts into the 'insrow' row of a sparse matrix,
     /// where both portions of the jacobian are shifted in order to match the

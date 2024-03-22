@@ -80,7 +80,7 @@ void ChKRMBlock::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect) const
     }
 }
 
-void ChKRMBlock::DiagonalAdd(ChVectorRef result) {
+void ChKRMBlock::DiagonalAdd(ChVectorRef result) const {
     unsigned int kio = 0;
     for (unsigned int iv = 0; iv < GetNumVariables(); iv++) {
         unsigned int io = GetVariable(iv)->GetOffset();

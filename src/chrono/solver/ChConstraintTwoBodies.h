@@ -95,7 +95,7 @@ class ChApi ChConstraintTwoBodies : public ChConstraintTwo {
     /// matrix C_q') by 'l', and add to 'result'. NOTE: the 'result' vector must already have the size of the total
     /// variables&constraints in the system; the procedure will use the ChVariable offsets (that must be already
     /// updated) to know the indexes in result and vect;
-    virtual void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) override;
+    virtual void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const override;
 
     /// Puts the two jacobian parts into the 'insrow' row of a sparse matrix, where both portions of the jacobian are
     /// shifted in order to match the offset of the corresponding ChVariable.The same is done on the 'insrow' column, so

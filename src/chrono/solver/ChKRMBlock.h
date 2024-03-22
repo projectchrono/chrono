@@ -63,7 +63,7 @@ class ChApi ChKRMBlock {
     /// Add the diagonal of the stiffness matrix block(s) as a column vector to 'result'.
     /// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
     /// constraints in the system; the procedure will use the ChVariable offsets (that must be already updated).
-    void DiagonalAdd(ChVectorRef result);
+    void DiagonalAdd(ChVectorRef result) const;
 
     /// Write the KRM matrix into the specified global matrix at the offsets of the referenced ChVariable objects.
     /// Additional offsets can be specified to place the submatrix into a different position of the global matrix.

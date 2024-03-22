@@ -105,7 +105,7 @@ class ChConstraintTwoTuples : public ChConstraint {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) override {
+    virtual void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const override {
         tuple_a.MultiplyTandAdd(result, l);
         tuple_b.MultiplyTandAdd(result, l);
     }

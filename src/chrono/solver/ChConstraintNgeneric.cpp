@@ -112,7 +112,7 @@ void ChConstraintNgeneric::MultiplyAndAdd(double& result, const ChVectorDynamic<
     }
 }
 
-void ChConstraintNgeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+void ChConstraintNgeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive()) {
             result.segment(variables[i]->GetOffset(), Cq[i].size()) += Cq[i].transpose() * l;

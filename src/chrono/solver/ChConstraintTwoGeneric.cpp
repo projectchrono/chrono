@@ -126,7 +126,7 @@ void ChConstraintTwoGeneric::MultiplyAndAdd(double& result, const ChVectorDynami
     }
 }
 
-void ChConstraintTwoGeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+void ChConstraintTwoGeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const {
     if (variables_a->IsActive()) {
         result.segment(variables_a->GetOffset(), Cq_a.size()) += Cq_a.transpose() * l;
     }

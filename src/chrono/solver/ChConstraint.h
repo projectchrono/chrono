@@ -253,7 +253,7 @@ class ChApi ChConstraint {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) = 0;
+    virtual void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const = 0;
 
     /// For iterative solvers: project the value of a possible
     /// 'l_i' value of constraint reaction onto admissible orthant/set.

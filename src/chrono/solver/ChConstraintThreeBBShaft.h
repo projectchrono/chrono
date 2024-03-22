@@ -104,13 +104,13 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
     /// the size of the total variables&constraints in the system; the procedure
     /// will use the ChVariable offsets (that must be already updated) to know the
     /// indexes in result and vect;
-    virtual void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) override;
+    virtual void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const override;
 
     /// Puts the jacobian parts into the 'insrow' row of a sparse matrix,
     /// where both portions of the jacobian are shifted in order to match the
     /// offset of the corresponding ChVariable.
     virtual void PasteJacobianInto(ChSparseMatrix& storage, unsigned int insrow, unsigned int col_offset) const override;
-    virtual void PasteJacobianTransposedInto(ChSparseMatrix& storage, unsigned int row_offset, unsigned int inscol) override;
+    virtual void PasteJacobianTransposedInto(ChSparseMatrix& storage, unsigned int row_offset, unsigned int inscol) const override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

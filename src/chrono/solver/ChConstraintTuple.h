@@ -107,7 +107,7 @@ class ChConstraintTuple_1vars {
         }
     }
 
-    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const {
         if (variables->IsActive()) {
             result.segment(variables->GetOffset(), T::nvars1) += Cq.transpose() * l;
         }
@@ -240,7 +240,7 @@ class ChConstraintTuple_2vars {
         }
     }
 
-    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const {
         if (variables_1->IsActive()) {
             result.segment(variables_1->GetOffset(), T::nvars1) += Cq_1.transpose() * l;
         }
@@ -413,7 +413,7 @@ class ChConstraintTuple_3vars {
         }
     }
 
-    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const {
         if (variables_1->IsActive()) {
             result.segment(variables_1->GetOffset(), T::nvars1) += Cq_1.transpose() * l;
         }
@@ -627,7 +627,7 @@ class ChConstraintTuple_4vars {
         }
     }
 
-    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const {
         if (variables_1->IsActive()) {
             result.segment(variables_1->GetOffset(), T::nvars1) += Cq_1.transpose() * l;
         }
