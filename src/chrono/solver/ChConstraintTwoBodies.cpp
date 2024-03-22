@@ -141,14 +141,14 @@ void ChConstraintTwoBodies::MultiplyTandAdd(ChVectorDynamic<double>& result, dou
     }
 }
 
-void ChConstraintTwoBodies::PasteJacobianInto(ChSparseMatrix& storage, int insrow, int col_offset) {
+void ChConstraintTwoBodies::PasteJacobianInto(ChSparseMatrix& storage, unsigned int insrow, unsigned int col_offset) const {
     if (variables_a->IsActive())
         PasteMatrix(storage, Cq_a, insrow, variables_a->GetOffset() + col_offset);
     if (variables_b->IsActive())
         PasteMatrix(storage, Cq_b, insrow, variables_b->GetOffset() + col_offset);
 }
 
-void ChConstraintTwoBodies::PasteJacobianTransposedInto(ChSparseMatrix& storage, int row_offset, int inscol) {
+void ChConstraintTwoBodies::PasteJacobianTransposedInto(ChSparseMatrix& storage, unsigned int row_offset, unsigned int inscol) const {
     if (variables_a->IsActive())
         PasteMatrix(storage, Cq_a.transpose(), variables_a->GetOffset() + row_offset, inscol);
     if (variables_b->IsActive())

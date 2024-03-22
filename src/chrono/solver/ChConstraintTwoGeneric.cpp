@@ -136,14 +136,14 @@ void ChConstraintTwoGeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, do
     }
 }
 
-void ChConstraintTwoGeneric::PasteJacobianInto(ChSparseMatrix& storage, int insrow, int col_offset) {
+void ChConstraintTwoGeneric::PasteJacobianInto(ChSparseMatrix& storage, unsigned int insrow, unsigned int col_offset) const {
     if (variables_a->IsActive())
         PasteMatrix(storage, Cq_a, insrow, variables_a->GetOffset() + col_offset);
     if (variables_b->IsActive())
         PasteMatrix(storage, Cq_b, insrow, variables_b->GetOffset() + col_offset);
 }
 
-void ChConstraintTwoGeneric::PasteJacobianTransposedInto(ChSparseMatrix& storage, int row_offset, int inscol) {
+void ChConstraintTwoGeneric::PasteJacobianTransposedInto(ChSparseMatrix& storage, unsigned int row_offset, unsigned int inscol) const {
     // Recall that Cq_a and Cq_b are column vectors.
     if (variables_a->IsActive())
         PasteMatrix(storage, Cq_a.transpose(), variables_a->GetOffset() + row_offset, inscol);

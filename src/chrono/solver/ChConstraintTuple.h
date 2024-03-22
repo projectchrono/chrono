@@ -113,12 +113,12 @@ class ChConstraintTuple_1vars {
         }
     }
 
-    void PasteJacobianInto(ChSparseMatrix& storage, int insrow, int col_offset) {
+    void PasteJacobianInto(ChSparseMatrix& storage, unsigned int insrow, unsigned int col_offset) const {
         if (variables->IsActive())
             PasteMatrix(storage, Cq, insrow, variables->GetOffset() + col_offset);
     }
 
-    void PasteJacobianTransposedInto(ChSparseMatrix& storage, int row_offset, int inscol) {
+    void PasteJacobianTransposedInto(ChSparseMatrix& storage, unsigned int row_offset, unsigned int inscol) const {
         if (variables->IsActive())
             PasteMatrix(storage, Cq.transpose(), variables->GetOffset() + row_offset, inscol);
     }
@@ -250,14 +250,14 @@ class ChConstraintTuple_2vars {
         }
     }
 
-    void PasteJacobianInto(ChSparseMatrix& storage, int insrow, int col_offset) {
+    void PasteJacobianInto(ChSparseMatrix& storage, unsigned int insrow, unsigned int col_offset) const {
         if (variables_1->IsActive())
             PasteMatrix(storage, Cq_1, insrow, variables_1->GetOffset() + col_offset);
         if (variables_2->IsActive())
             PasteMatrix(storage, Cq_2, insrow, variables_2->GetOffset() + col_offset);
     }
 
-    void PasteJacobianTransposedInto(ChSparseMatrix& storage, int row_offset, int inscol) {
+    void PasteJacobianTransposedInto(ChSparseMatrix& storage, unsigned int row_offset, unsigned int inscol) const {
         if (variables_1->IsActive())
             PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset() + row_offset, inscol);
         if (variables_2->IsActive())
@@ -427,7 +427,7 @@ class ChConstraintTuple_3vars {
         }
     }
 
-    void PasteJacobianInto(ChSparseMatrix& storage, int insrow, int col_offset) {
+    void PasteJacobianInto(ChSparseMatrix& storage, unsigned int insrow, unsigned int col_offset) const {
         if (variables_1->IsActive())
             PasteMatrix(storage, Cq_1, insrow, variables_1->GetOffset() + col_offset);
         if (variables_2->IsActive())
@@ -436,7 +436,7 @@ class ChConstraintTuple_3vars {
             PasteMatrix(storage, Cq_3, insrow, variables_3->GetOffset() + col_offset);
     }
 
-    void PasteJacobianTransposedInto(ChSparseMatrix& storage, int row_offset, int inscol) {
+    void PasteJacobianTransposedInto(ChSparseMatrix& storage, unsigned int row_offset, int inscol) const {
         if (variables_1->IsActive())
             PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset() + row_offset, inscol);
         if (variables_2->IsActive())
@@ -645,7 +645,7 @@ class ChConstraintTuple_4vars {
         }
     }
 
-    void PasteJacobianInto(ChSparseMatrix& storage, int insrow, int col_offset) {
+    void PasteJacobianInto(ChSparseMatrix& storage, unsigned int insrow, unsigned int col_offset) const {
         if (variables_1->IsActive())
             PasteMatrix(storage, Cq_1, insrow, variables_1->GetOffset() + col_offset);
         if (variables_2->IsActive())
@@ -656,7 +656,7 @@ class ChConstraintTuple_4vars {
             PasteMatrix(storage, Cq_4, insrow, variables_4->GetOffset() + col_offset);
     }
 
-    void PasteJacobianTransposedInto(ChSparseMatrix& storage, int row_offset, int inscol) {
+    void PasteJacobianTransposedInto(ChSparseMatrix& storage, unsigned int row_offset, unsigned int inscol) const {
         if (variables_1->IsActive())
             PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset() + row_offset, inscol);
         if (variables_2->IsActive())

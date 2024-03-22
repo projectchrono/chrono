@@ -74,7 +74,7 @@ class ChApi ChConstraint {
   protected:
     eChConstraintMode mode;  ///< mode of the constraint: free / lock / complementar
     double g_i;              ///<  'g_i' product [Cq_i]*[invM_i]*[Cq_i]' (+cfm)
-    int offset;              ///< offset in global "l" state vector (needed by some solvers)
+    unsigned int offset;     ///< offset in global "l" state vector (needed by some solvers)
 
   public:
     /// Default constructor
@@ -275,22 +275,22 @@ class ChApi ChConstraint {
     /// Paste the jacobian into a global matrix.
     virtual void PasteJacobianInto(
         ChSparseMatrix& storage,  ///< matrix to fill
-        int insrow,               ///< starting row of the global matrix from which the jacobian will be pasted
-        int col_offset            ///< column offset that will be _added_ to the position provided by the constraint
-        ) = 0;
+        unsigned int insrow,      ///< starting row of the global matrix from which the jacobian will be pasted
+        unsigned int col_offset   ///< column offset that will be _added_ to the position provided by the constraint
+    ) const = 0;
 
     /// Paste the _transposed_ jacobian into a global matrix.
     virtual void PasteJacobianTransposedInto(
         ChSparseMatrix& storage,  ///< matrix to fill
-        int row_offset,           ///< row offset that will be _added_ to the position provided by the constraint
-        int inscol  ///< starting column of the global matrix from which the transposed jacobian will be pasted
-        ) = 0;
+        unsigned int row_offset,  ///< row offset that will be _added_ to the position provided by the constraint
+        unsigned int inscol  ///< starting column of the global matrix from which the transposed jacobian will be pasted
+    ) const = 0;
 
     /// Set offset in global q vector (set automatically by ChSystemDescriptor)
-    void SetOffset(int moff) { offset = moff; }
+    void SetOffset(unsigned int moff) { offset = moff; }
 
     /// Get offset in global q vector
-    int GetOffset() const { return offset; }
+    unsigned int GetOffset() const { return offset; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out);
