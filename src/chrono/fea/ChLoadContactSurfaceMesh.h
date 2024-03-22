@@ -82,18 +82,15 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     // simple.. field is x y z, hardcoded return val:
     virtual int LoadGetNumFieldCoords() override { return 3; }
 
-    /// Compute Q, the generalized load.
+    /// Compute the generalized load(s).
     virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                           ChStateDelta* state_w  ///< state speed to evaluate Q
                           ) override;
 
-    /// Compute jacobians.
-    /// Not needed when forces are constant, btw.
-    virtual void ComputeJacobian(ChState* state_x,       ///< state position to evaluate jacobians
-                                 ChStateDelta* state_w,  ///< state speed to evaluate jacobians
-                                 ChMatrixRef mK,         ///< result dQ/dx
-                                 ChMatrixRef mR,         ///< result dQ/dv
-                                 ChMatrixRef mM          ///< result dQ/da
+    /// Compute the K=-dQ/dx, R=-dQ/dv, M=-dQ/da Jacobians.
+    /// Load the Jacobian matrices K, R, M in the structure 'm_jacobians'.
+    virtual void ComputeJacobian(ChState* state_x,      ///< state position to evaluate jacobians
+                                 ChStateDelta* state_w  ///< state speed to evaluate jacobians
                                  ) override;
 
     virtual bool IsStiff() override { return false; }

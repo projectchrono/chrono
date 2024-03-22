@@ -1466,10 +1466,11 @@ void SCMLoader::ComputeInternalForces() {
             if (!m_cosim_mode) {
                 // [](){} Trick: no deletion for this shared ptr
                 std::shared_ptr<ChLoadableUV> ssurf(surf, [](ChLoadableUV*) {});
-                std::shared_ptr<ChLoad<ChLoaderForceOnSurface>> mload(new ChLoad<ChLoaderForceOnSurface>(ssurf));
-                mload->loader.SetForce(Fn + Ft);
-                mload->loader.SetApplication(0.5, 0.5);  //// TODO set UV, now just in middle
-                this->Add(mload);
+                auto loader = chrono_types::make_shared<ChLoaderForceOnSurface>(ssurf);
+                loader->SetForce(Fn + Ft);
+                loader->SetApplication(0.5, 0.5);  //// TODO set UV, now just in middle
+                auto load = chrono_types::make_shared<ChLoad>(loader);
+                this->Add(load);
             }
 
             // Accumulate contact forces for this surface.

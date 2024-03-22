@@ -946,7 +946,7 @@ Note that this represents a major public API change and we expect most user code
 | ChLinkScrew                       |                               | rename: ChLinkLockScrew                          |
 | ChLinkTrajectory                  |                               | rename: ChLinkLockTrajectory                     |
 | ChList                            |                               | remove                                           |
-| ChLoad                            |                               |                                                  |
+| ChLoad                            |                               | replaced with non-templated class (see Notes)    |
 |                                   | LoadGet_ndof_x                | rename: LoadGetNumCoordsPosLevel                 |
 |                                   | LoadGet_ndof_w                | rename: LoadGetNumCoordsVelLevel                 |
 | ChLoadable                        |                               |                                                  |
@@ -958,7 +958,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | LoadableGetStateBlock_w       | rename: LoadableGetStateBlockVelLevel            |
 | ChLoadBase                        |                               |                                                  |
 |                                   | LoadGet_field_ncoords         | rename: LoadGetNumFieldCoords                    |
-| ChLoaderUW                        |                               |                                                  |
+| ChLoaderGravity                   |                               |                                                  |
 |                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
 | ChLoadsBody                       |                               |                                                  |
@@ -1187,8 +1187,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
 |                                   | Get_linklist                  | rename: GetLinks                                 |
 |                                   | Get_meshlist                  | rename: GetMeshes                                |
-|                                   | Get_otherphysicslist          | rename: GetShafts                                |
-|                                   | Get_shaftslist                | rename: GetOtherPhysicsItems                     |
+|                                   | Get_otherphysicslist          | rename: GetOtherPhysicsItems                     |
+|                                   | Get_shaftslist                | rename: GetShafts                                |
 |                                   | GetDOC                        | remove                                           |
 |                                   | GetDOC_c                      | remove                                           |
 |                                   | GetDOC_d                      | remove                                           |
@@ -1402,6 +1402,29 @@ Note that this represents a major public API change and we expect most user code
 + The signature of all ChLink `Initialize()` functions were changed to consistently use `ChFrame` objects to specify link position and alignment (where previously some of them used `ChCoordsys`).
   A corresponding change was done for the constructor of `vehicle::ChVehicleJoint`.
 
++ The `ChLoad` class (loads on physics items via `ChLoader` objects) was changed to a non-templated class.  Instead of specifying the ChLoader as a template parameter, a shared pointer to a ChLoader is now passed as a constructor argument. 
+  This streamlines the code and allows proper SWIG wrapping for use in Python or C# codes. 
+  All pre-defined ChLoader classes (e.g., `ChLoaderPressure`, `ChLoaderGravity`, `ChLoaderBeamWrench`, etc.) were updated accordingly.
+  An example of a user-provided loader class (derived from some `ChLoader`) is as follows:
+  ```cpp
+  class MyLoader : public ChLoaderUatomic {
+    public:
+      MyLoader(std::shared_ptr<ChLoadableU> loadable) : ChLoaderUatomic(loadable) {}
+
+      virtual void ComputeF(const double U,              // normalized line position
+                            ChVectorDynamic<>& F,        // load at U (set to zero on entry)
+                            ChVectorDynamic<>* state_x,  // if non-null, first update position to this
+                            ChVectorDynamic<>* state_w   // if non-null, first update velocities to this
+                            ) override {
+          // Compute F = F(U)...
+      }
+  };
+
+  auto loader = chrono_types::make_shared<MyLoader>(object);
+  auto load = chrono_types::make_shared<ChLoad>(loader);
+  load_container->Add(load);
+  ```
+
 + `ChStream` classes were simple wrappers around C++ output streams. The entire code has been now refactored to operate on STL streams directly, in order to simplify the API and to allow the user a more familiar interaction with streams in Chrono.
   - the `operator<<` associated to `ChStreamOutAscii` has been removed: this means that it is not possible to stream custom classes through this operator;
   this option has been replaced by appropriate overloads of STL streams (clearly limited to data members publicly accessible) or by the direct usage of `ChOutputASCII`.
@@ -1413,8 +1436,8 @@ Note that this represents a major public API change and we expect most user code
     + `ChArchiveXML[In/Out]`
     + `ChArchiveBinary[In/Out]`
   - auxiliary classes which, while still leveraging the `ChArchive` features, allow only export but not loading back objects were renamed:
-    + `ChArchiveAsciiDump` --> `ChOutputASCII`
-    + `ChArchiveExplorer` --> `ChObjectExplorer`
+    + `ChArchiveAsciiDump` &#8594; `ChOutputASCII`
+    + `ChArchiveExplorer` &#8594; `ChObjectExplorer`
 
 + Solver access through `ChSystem` was removed. The functions `SetSolverMaxIterations`, `SetSolverTolerance`, and `SetSolverForceTolerance` were controlling only a subset of solver parameters and only for iterative solvers.
   Instead, the user must set solver parameters directly on the solver object. This is straightforward for the case where the user explicitly creates a solver object and attaches it to the system with `ChSystem::SetSolver`.
@@ -1427,7 +1450,7 @@ Note that this represents a major public API change and we expect most user code
   }
   ```
   or
-+ ```cpp
+  ```cpp
   my_system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
   my_system.GetSolver()->AsIterative()->SetMaxIterations(20);
   ```

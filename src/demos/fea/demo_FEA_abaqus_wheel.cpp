@@ -193,16 +193,12 @@ int main(int argc, char* argv[]) {
     auto mloadcontainer = chrono_types::make_shared<ChLoadContainer>();
     sys.Add(mloadcontainer);
 
-    for (auto i = 0; i < mmeshsurf->GetFaces().size(); ++i) {
-        auto aface = std::shared_ptr<ChLoadableUV>(mmeshsurf->GetFaces()[i]);
-        auto faceload = chrono_types::make_shared<ChLoad<ChLoaderPressure>>(aface);
-        faceload->loader.SetPressure(10000);  // low pressure... the tire has no ply!
-        mloadcontainer->Add(faceload);
+    for (const auto& face : mmeshsurf->GetFaces()) {
+        auto face_loader = chrono_types::make_shared<ChLoaderPressure>(face);
+        face_loader->SetPressure(10000);  // low pressure... the tire has no ply!
+        auto face_load = chrono_types::make_shared<ChLoad>(face_loader);
+        mloadcontainer->Add(face_load);
     }
-
-    //
-    // Optional...  visualization
-    //
 
     // Visualization of the FEM mesh.
     // This will automatically update a triangle mesh (a ChVisualShapeTriangleMesh

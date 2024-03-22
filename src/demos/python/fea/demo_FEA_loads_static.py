@@ -73,32 +73,29 @@ sys.Add(load_container)
 
 # Add a vertical load to the end of the beam element:
 wrench_load = fea.ChLoadBeamWrench(elementA)
-wrench_load.loader.SetApplication(1.0)  # in -1..+1 range, -1: end A, 0: mid, +1: end B
-wrench_load.loader.SetForce(chrono.ChVector3d(0, -0.2, 0))
+wrench_load.GetLoader().SetApplication(1.0)  # in -1..+1 range, -1: end A, 0: mid, +1: end B
+wrench_load.GetLoader().SetForce(chrono.ChVector3d(0, -0.2, 0))
 load_container.Add(wrench_load)  # do not forget to add the load to the load container.
 
 # Example 2:
 
 # Add a distributed load along the beam element:
 distr_wrench_load = fea.ChLoadBeamWrenchDistributed(elementA)
-distr_wrench_load.loader.SetForcePerUnit(chrono.ChVector3d(0, -0.1, 0))  # load per unit length
+distr_wrench_load.GetLoader().SetForcePerUnit(chrono.ChVector3d(0, -0.1, 0))  # load per unit length
 load_container.Add(distr_wrench_load)
 
 # Example 3:
 
 # Add gravity (constant volumetric load)
-gravity_load = chrono.LoadLoaderGravity(elementA)
+gravity_loader = chrono.ChLoaderGravity(elementA)
+gravity_load = chrono.ChLoad(gravity_loader)
 load_container.Add(gravity_load)
 
 # note that by default all solid elements in the mesh will already
 # get gravitational force, if you want to bypass this automatic gravity, do:
 mesh.SetAutomaticGravity(False)
 
-"""
-CANNOT INSTANTIATE TEMPLATE 
-Example 4 and 5 in C++ equivalent demo require respectively ChLoad<MyLoaderTriangular> and ChLoad<MyLoaderPointStiff>(nodeC)
-
-"""
+### TODO  Examples 4 & 5 in corresponding C++ demo
 
 # Example 6:
 

@@ -276,11 +276,14 @@ source_group(physics\\links FILES
     ${ChronoEngine_physics_links_HEADERS})
 
 set(ChronoEngine_physics_loads_SOURCES
-    physics/ChLoadContainer.cpp
+    physics/ChLoaderU.cpp
+    physics/ChLoaderUV.cpp
+    physics/ChLoaderUVW.cpp
     physics/ChLoad.cpp
     physics/ChLoadsBody.cpp
     physics/ChLoadsXYZnode.cpp
     physics/ChLoadBodyMesh.cpp
+    physics/ChLoadContainer.cpp
 )
 
 set(ChronoEngine_physics_loads_HEADERS
