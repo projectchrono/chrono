@@ -45,7 +45,7 @@ void ChSystemDescriptor::ComputeFeasabilityViolation(double& resulting_maxviolat
 
     for (const auto& constr : m_constraints) {
         // the the residual of the constraint..
-        double mres_i = constr->Compute_c_i();
+        double mres_i = constr->ComputeResidual();
 
         double candidate_violation = fabs(constr->Violation(mres_i));
 
@@ -53,7 +53,7 @@ void ChSystemDescriptor::ComputeFeasabilityViolation(double& resulting_maxviolat
             resulting_maxviolation = candidate_violation;
 
         if (constr->IsUnilateral()) {
-            double candidate_feas = fabs(mres_i * constr->Get_l_i());  // =|c*l|
+            double candidate_feas = fabs(mres_i * constr->GetLagrangeMultiplier());  // =|c*l|
             if (candidate_feas > resulting_feasability)
                 resulting_feasability = candidate_feas;
         }
@@ -149,7 +149,7 @@ void ChSystemDescriptor::PasteComplianceMatrixInto(ChSparseMatrix& Z,
     int s_c = 0;
     for (const auto& constr : m_constraints) {
         if (constr->IsActive() && !(only_bilateral && !constr->GetMode() == CONSTRAINT_LOCK)) {
-            Z.SetElement(row_offset + s_c, col_offset + s_c, constr->Get_cfm_i());
+            Z.SetElement(row_offset + s_c, col_offset + s_c, constr->GetComplianceTerm());
             s_c++;
         }
     }
@@ -201,7 +201,7 @@ unsigned int ChSystemDescriptor::BuildBiVector(ChVectorDynamic<>& Bvector, unsig
     // Fill the 'b' vector
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            Bvector(row_offset + constr->GetOffset()) = constr->Get_b_i();
+            Bvector(row_offset + constr->GetOffset()) = constr->GetRightHandSide();
         }
     }
 
@@ -223,7 +223,7 @@ unsigned int ChSystemDescriptor::BuildDiVector(ChVectorDynamic<>& Dvector) const
     // Fill the '-b' vector (with flipped sign!)
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            Dvector(constr->GetOffset() + n_q) = -constr->Get_b_i();
+            Dvector(constr->GetOffset() + n_q) = -constr->GetRightHandSide();
         }
     }
 
@@ -251,7 +251,7 @@ unsigned int ChSystemDescriptor::BuildDiagonalVector(ChVectorDynamic<>& Diagonal
     // Get the 'E' diagonal terms (E_i = cfm_i )
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            Diagonal_vect(constr->GetOffset() + n_q) = constr->Get_cfm_i();
+            Diagonal_vect(constr->GetOffset() + n_q) = constr->GetComplianceTerm();
         }
     }
 
@@ -298,7 +298,7 @@ unsigned int ChSystemDescriptor::FromConstraintsToVector(ChVectorDynamic<>& mvec
     // Fill the vector
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            mvector(constr->GetOffset()) = constr->Get_l_i();
+            mvector(constr->GetOffset()) = constr->GetLagrangeMultiplier();
         }
     }
 
@@ -313,7 +313,7 @@ unsigned int ChSystemDescriptor::FromVectorToConstraints(const ChVectorDynamic<>
     // Fill the vector
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            constr->Set_l_i(mvector(constr->GetOffset()));
+            constr->SetLagrangeMultiplier(mvector(constr->GetOffset()));
         }
     }
 
@@ -339,7 +339,7 @@ unsigned int ChSystemDescriptor::FromUnknownsToVector(ChVectorDynamic<>& mvector
     // Fill the second part of vector, x.l, with constraint multipliers -l (with flipped sign!)
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            mvector(constr->GetOffset() + n_q) = -constr->Get_l_i();
+            mvector(constr->GetOffset() + n_q) = -constr->GetLagrangeMultiplier();
         }
     }
 
@@ -362,7 +362,7 @@ unsigned int ChSystemDescriptor::FromVectorToUnknowns(const ChVectorDynamic<>& m
     // Fetch from the second part of vector (x.l = -l), with flipped sign!
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            constr->Set_l_i(-mvector(constr->GetOffset() + n_q));
+            constr->SetLagrangeMultiplier(-mvector(constr->GetOffset() + n_q));
         }
     }
 
@@ -405,10 +405,10 @@ void ChSystemDescriptor::SchurComplementProduct(ChVectorDynamic<>& result,
 
                 // Compute qb += [M^(-1)][Cq']*l_i
                 //  NOTE! concurrent update to same q data, risk of collision if parallel.
-                constr->Increment_q(li);  // computationally intensive
+                constr->IncrementState(li);  // computationally intensive
 
                 // Add constraint force mixing term  result = cfm * l_i = [E]*l_i
-                result(s_c) = constr->Get_cfm_i() * li;
+                result(s_c) = constr->GetComplianceTerm() * li;
             }
         }
     }
@@ -421,7 +421,7 @@ void ChSystemDescriptor::SchurComplementProduct(ChVectorDynamic<>& result,
             bool process = (!enabled) || (*enabled)[constr->GetOffset()];
 
             if (process)
-                result(constr->GetOffset()) += constr->Compute_Cq_q();  // computationally intensive
+                result(constr->GetOffset()) += constr->ComputeJacobianTimesState();  // computationally intensive
             else
                 result(constr->GetOffset()) = 0;  // not enabled constraints, just set to 0 result
         }
@@ -451,7 +451,7 @@ void ChSystemDescriptor::SystemProduct(ChVectorDynamic<>& result, const ChVector
     // 1.3)  add also [Cq]'*x.l  (NON straight parallelizable - risk of concurrency in writing)
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            constr->MultiplyTandAdd(result, x(constr->GetOffset() + n_q));
+            constr->AddJacobianTransposedTimesScalarInto(result, x(constr->GetOffset() + n_q));
         }
     }
 
@@ -459,8 +459,8 @@ void ChSystemDescriptor::SystemProduct(ChVectorDynamic<>& result, const ChVector
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
             int s_c = constr->GetOffset() + n_q;
-            constr->MultiplyAndAdd(result(s_c), x);       // result.l_i += [C_q_i]*x.q
-            result(s_c) += constr->Get_cfm_i() * x(s_c);  // result.l_i += [E]*x.l_i
+            constr->AddJacobianTimesVectorInto(result(s_c), x);  // result.l_i += [C_q_i]*x.q
+            result(s_c) += constr->GetComplianceTerm() * x(s_c);         // result.l_i += [E]*x.l_i
         }
     }
 }
@@ -483,7 +483,7 @@ void ChSystemDescriptor::UnknownsProject(ChVectorDynamic<>& mx) {
     // Fetch from the second part of vector (x.l = -l), with flipped sign!
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            constr->Set_l_i(-mx(constr->GetOffset() + n_q));
+            constr->SetLagrangeMultiplier(-mx(constr->GetOffset() + n_q));
         }
     }
 
@@ -497,7 +497,7 @@ void ChSystemDescriptor::UnknownsProject(ChVectorDynamic<>& mx) {
     // Fill the second part of vector, x.l, with constraint multipliers -l (with flipped sign!)
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            mx(constr->GetOffset() + n_q) = -constr->Get_l_i();
+            mx(constr->GetOffset() + n_q) = -constr->GetLagrangeMultiplier();
         }
     }
 }

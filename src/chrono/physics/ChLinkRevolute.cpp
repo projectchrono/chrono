@@ -285,11 +285,11 @@ void ChLinkRevolute::IntLoadResidual_CqL(const unsigned int off_L,    ///< offse
     if (!IsActive())
         return;
 
-    m_cnstr_x.MultiplyTandAdd(R, L(off_L + 0) * c);
-    m_cnstr_y.MultiplyTandAdd(R, L(off_L + 1) * c);
-    m_cnstr_z.MultiplyTandAdd(R, L(off_L + 2) * c);
-    m_cnstr_uw.MultiplyTandAdd(R, L(off_L + 3) * c);
-    m_cnstr_vw.MultiplyTandAdd(R, L(off_L + 4) * c);
+    m_cnstr_x.AddJacobianTransposedTimesScalarInto(R, L(off_L + 0) * c);
+    m_cnstr_y.AddJacobianTransposedTimesScalarInto(R, L(off_L + 1) * c);
+    m_cnstr_z.AddJacobianTransposedTimesScalarInto(R, L(off_L + 2) * c);
+    m_cnstr_uw.AddJacobianTransposedTimesScalarInto(R, L(off_L + 3) * c);
+    m_cnstr_vw.AddJacobianTransposedTimesScalarInto(R, L(off_L + 4) * c);
 }
 
 void ChLinkRevolute::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
@@ -330,17 +330,17 @@ void ChLinkRevolute::IntToDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    m_cnstr_x.Set_l_i(L(off_L + 0));
-    m_cnstr_y.Set_l_i(L(off_L + 1));
-    m_cnstr_z.Set_l_i(L(off_L + 2));
-    m_cnstr_uw.Set_l_i(L(off_L + 3));
-    m_cnstr_vw.Set_l_i(L(off_L + 4));
+    m_cnstr_x.SetLagrangeMultiplier(L(off_L + 0));
+    m_cnstr_y.SetLagrangeMultiplier(L(off_L + 1));
+    m_cnstr_z.SetLagrangeMultiplier(L(off_L + 2));
+    m_cnstr_uw.SetLagrangeMultiplier(L(off_L + 3));
+    m_cnstr_vw.SetLagrangeMultiplier(L(off_L + 4));
 
-    m_cnstr_x.Set_b_i(Qc(off_L + 0));
-    m_cnstr_y.Set_b_i(Qc(off_L + 1));
-    m_cnstr_z.Set_b_i(Qc(off_L + 2));
-    m_cnstr_uw.Set_b_i(Qc(off_L + 3));
-    m_cnstr_vw.Set_b_i(Qc(off_L + 4));
+    m_cnstr_x.SetRightHandSide(Qc(off_L + 0));
+    m_cnstr_y.SetRightHandSide(Qc(off_L + 1));
+    m_cnstr_z.SetRightHandSide(Qc(off_L + 2));
+    m_cnstr_uw.SetRightHandSide(Qc(off_L + 3));
+    m_cnstr_vw.SetRightHandSide(Qc(off_L + 4));
 }
 
 void ChLinkRevolute::IntFromDescriptor(const unsigned int off_v,
@@ -350,11 +350,11 @@ void ChLinkRevolute::IntFromDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    L(off_L + 0) = m_cnstr_x.Get_l_i();
-    L(off_L + 1) = m_cnstr_y.Get_l_i();
-    L(off_L + 2) = m_cnstr_z.Get_l_i();
-    L(off_L + 3) = m_cnstr_uw.Get_l_i();
-    L(off_L + 4) = m_cnstr_vw.Get_l_i();
+    L(off_L + 0) = m_cnstr_x.GetLagrangeMultiplier();
+    L(off_L + 1) = m_cnstr_y.GetLagrangeMultiplier();
+    L(off_L + 2) = m_cnstr_z.GetLagrangeMultiplier();
+    L(off_L + 3) = m_cnstr_uw.GetLagrangeMultiplier();
+    L(off_L + 4) = m_cnstr_vw.GetLagrangeMultiplier();
 }
 
 // -----------------------------------------------------------------------------
@@ -372,11 +372,11 @@ void ChLinkRevolute::InjectConstraints(ChSystemDescriptor& descriptor) {
 }
 
 void ChLinkRevolute::ConstraintsBiReset() {
-    m_cnstr_x.Set_b_i(0.0);
-    m_cnstr_y.Set_b_i(0.0);
-    m_cnstr_z.Set_b_i(0.0);
-    m_cnstr_uw.Set_b_i(0.0);
-    m_cnstr_vw.Set_b_i(0.0);
+    m_cnstr_x.SetRightHandSide(0.0);
+    m_cnstr_y.SetRightHandSide(0.0);
+    m_cnstr_z.SetRightHandSide(0.0);
+    m_cnstr_uw.SetRightHandSide(0.0);
+    m_cnstr_vw.SetRightHandSide(0.0);
 }
 
 void ChLinkRevolute::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -397,11 +397,11 @@ void ChLinkRevolute::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
         cnstr_vw_violation = std::min(std::max(cnstr_vw_violation, -recovery_clamp), recovery_clamp);
     }
 
-    m_cnstr_x.Set_b_i(m_cnstr_x.Get_b_i() + cnstr_x_violation);
-    m_cnstr_y.Set_b_i(m_cnstr_y.Get_b_i() + cnstr_y_violation);
-    m_cnstr_z.Set_b_i(m_cnstr_z.Get_b_i() + cnstr_z_violation);
-    m_cnstr_uw.Set_b_i(m_cnstr_uw.Get_b_i() + cnstr_uw_violation);
-    m_cnstr_vw.Set_b_i(m_cnstr_vw.Get_b_i() + cnstr_vw_violation);
+    m_cnstr_x.SetRightHandSide(m_cnstr_x.GetRightHandSide() + cnstr_x_violation);
+    m_cnstr_y.SetRightHandSide(m_cnstr_y.GetRightHandSide() + cnstr_y_violation);
+    m_cnstr_z.SetRightHandSide(m_cnstr_z.GetRightHandSide() + cnstr_z_violation);
+    m_cnstr_uw.SetRightHandSide(m_cnstr_uw.GetRightHandSide() + cnstr_uw_violation);
+    m_cnstr_vw.SetRightHandSide(m_cnstr_vw.GetRightHandSide() + cnstr_vw_violation);
 }
 
 void ChLinkRevolute::LoadConstraintJacobians() {
@@ -411,9 +411,9 @@ void ChLinkRevolute::LoadConstraintJacobians() {
 void ChLinkRevolute::ConstraintsFetch_react(double factor) {
     // Extract the Lagrange multipliers for the 3 spherical constraints and for
     // the 2 dot constraint.
-    ChVector3d lam_sph(m_cnstr_x.Get_l_i(), m_cnstr_y.Get_l_i(), m_cnstr_z.Get_l_i());
-    double lam_uw = m_cnstr_uw.Get_l_i();
-    double lam_vw = m_cnstr_vw.Get_l_i();
+    ChVector3d lam_sph(m_cnstr_x.GetLagrangeMultiplier(), m_cnstr_y.GetLagrangeMultiplier(), m_cnstr_z.GetLagrangeMultiplier());
+    double lam_uw = m_cnstr_uw.GetLagrangeMultiplier();
+    double lam_vw = m_cnstr_vw.GetLagrangeMultiplier();
 
     // Note that the Lagrange multipliers must be multiplied by 'factor' to
     // convert from reaction impulses to reaction forces.

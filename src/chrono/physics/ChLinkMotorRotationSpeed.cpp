@@ -206,7 +206,7 @@ void ChLinkMotorRotationSpeed::ConstraintsBiLoad_Ct(double factor) {
     double mCt = -0.5 * m_func->GetVal(this->GetChTime());
     unsigned int ncrz = mask.GetNumConstraints() - 1;
     if (mask.GetConstraint(ncrz).IsActive()) {
-        mask.GetConstraint(ncrz).Set_b_i(mask.GetConstraint(ncrz).Get_b_i() + factor * mCt);
+        mask.GetConstraint(ncrz).SetRightHandSide(mask.GetConstraint(ncrz).GetRightHandSide() + factor * mCt);
     }
 }
 

@@ -60,7 +60,7 @@ void ChLinkMotorLinearPosition::ConstraintsBiLoad_Ct(double factor) {
 
     double mCt = -m_func->GetDer(this->GetChTime());
     if (mask.GetConstraint(m_actuated_idx).IsActive()) {
-        mask.GetConstraint(m_actuated_idx).Set_b_i(mask.GetConstraint(m_actuated_idx).Get_b_i() + factor * mCt);
+        mask.GetConstraint(m_actuated_idx).SetRightHandSide(mask.GetConstraint(m_actuated_idx).GetRightHandSide() + factor * mCt);
     }
 }
 

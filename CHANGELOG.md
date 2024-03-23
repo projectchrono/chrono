@@ -338,6 +338,21 @@ Note that this represents a major public API change and we expect most user code
 | ChConstraint                      |                               |                                                  |
 |                                   | Build_Cq                      | rename: PasteJacobianInto                        |
 |                                   | Build_CqT                     | rename: PasteJacobianTransposedInto              |
+|                                   | Compute_c_i                   | rename: ComputeResidual                          |
+|                                   | Compute_Cq_q                  | rename: ComputeJacobianTimesState                |
+|                                   | Get_b_i                       | rename: GetRightHandSide                         |
+|                                   | Get_c_i                       | rename: GetResidual                              |
+|                                   | Get_cfm_i                     | rename: GetComplianceTerm                        |
+|                                   | Get_g_i                       | rename: GetSchurComplement                       |
+|                                   | Get_l_i                       | rename: GetLagrangeMultiplier                    |
+|                                   | Set_b_i                       | rename: SetRightHandSide                         |
+|                                   | Set_c_i                       | rename: SetResidual                              |
+|                                   | Set_cfm_i                     | rename: SetComplianceTerm                        |
+|                                   | Set_g_i                       | rename: SetSchurComplement                       |
+|                                   | Set_l_i                       | rename: SetLagrangeMultiplier                    |
+|                                   | Increment_q                   | rename: IncrementState                           |
+|                                   | MultiplyAndAdd                | rename: AddJacobianTimesVectorInto               |
+|                                   | MultiplyTandAdd               | rename: AddJacobianTransposedTimesScalarInto     |
 | ChContactable                     |                               |                                                  |
 |                                   | ContactableGet_ndof_x         | rename: GetContactableNumCoordsPosLevel          |
 |                                   | ContactableGet_ndof_w         | rename: GetContactableNumCoordsVelLevel          |

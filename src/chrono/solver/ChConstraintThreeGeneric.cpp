@@ -116,7 +116,7 @@ void ChConstraintThreeGeneric::Update_auxiliary() {
         g_i += cfm_i;
 }
 
-double ChConstraintThreeGeneric::Compute_Cq_q() {
+double ChConstraintThreeGeneric::ComputeJacobianTimesState() {
     double ret = 0;
 
     if (variables_a->IsActive()) {
@@ -134,7 +134,7 @@ double ChConstraintThreeGeneric::Compute_Cq_q() {
     return ret;
 }
 
-void ChConstraintThreeGeneric::Increment_q(const double deltal) {
+void ChConstraintThreeGeneric::IncrementState(double deltal) {
     if (variables_a->IsActive()) {
         variables_a->State() += Eq_a * deltal;
     }
@@ -148,7 +148,7 @@ void ChConstraintThreeGeneric::Increment_q(const double deltal) {
     }
 }
 
-void ChConstraintThreeGeneric::MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+void ChConstraintThreeGeneric::AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const {
     if (variables_a->IsActive()) {
         result += Cq_a * vect.segment(variables_a->GetOffset(), Cq_a.size());
     }
@@ -162,7 +162,7 @@ void ChConstraintThreeGeneric::MultiplyAndAdd(double& result, const ChVectorDyna
     }
 }
 
-void ChConstraintThreeGeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const {
+void ChConstraintThreeGeneric::AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const {
     if (variables_a->IsActive()) {
         result.segment(variables_a->GetOffset(), Cq_a.size()) += Cq_a.transpose() * l;
     }

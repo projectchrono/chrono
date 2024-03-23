@@ -85,7 +85,7 @@ class ChConstraintTuple_1vars {
         }
     }
 
-    double Compute_Cq_q() {
+    double ComputeJacobianTimesState() {
         double ret = 0;
 
         if (variables->IsActive()) {
@@ -95,19 +95,19 @@ class ChConstraintTuple_1vars {
         return ret;
     }
 
-    void Increment_q(const double deltal) {
+    void IncrementState(double deltal) {
         if (variables->IsActive()) {
             variables->State() += Eq * deltal;
         }
     }
 
-    void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+    void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const {
         if (variables->IsActive()) {
             result += Cq * vect.segment(variables->GetOffset(), T::nvars1);
         }
     }
 
-    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const {
+    void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const {
         if (variables->IsActive()) {
             result.segment(variables->GetOffset(), T::nvars1) += Cq.transpose() * l;
         }
@@ -206,7 +206,7 @@ class ChConstraintTuple_2vars {
         }
     }
 
-    double Compute_Cq_q() {
+    double ComputeJacobianTimesState() {
         double ret = 0;
 
         if (variables_1->IsActive()) {
@@ -220,7 +220,7 @@ class ChConstraintTuple_2vars {
         return ret;
     }
 
-    void Increment_q(const double deltal) {
+    void IncrementState(double deltal) {
         if (variables_1->IsActive()) {
             variables_1->State() += Eq_1 * deltal;
         }
@@ -230,7 +230,7 @@ class ChConstraintTuple_2vars {
         }
     }
 
-    void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+    void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const {
         if (variables_1->IsActive()) {
             result += Cq_1 * vect.segment(variables_1->GetOffset(), T::nvars1);
         }
@@ -240,7 +240,7 @@ class ChConstraintTuple_2vars {
         }
     }
 
-    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const {
+    void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const {
         if (variables_1->IsActive()) {
             result.segment(variables_1->GetOffset(), T::nvars1) += Cq_1.transpose() * l;
         }
@@ -367,7 +367,7 @@ class ChConstraintTuple_3vars {
         }
     }
 
-    double Compute_Cq_q() {
+    double ComputeJacobianTimesState() {
         double ret = 0;
 
         if (variables_1->IsActive()) {
@@ -385,7 +385,7 @@ class ChConstraintTuple_3vars {
         return ret;
     }
 
-    void Increment_q(const double deltal) {
+    void IncrementState(double deltal) {
         if (variables_1->IsActive()) {
             variables_1->State() += Eq_1 * deltal;
         }
@@ -399,7 +399,7 @@ class ChConstraintTuple_3vars {
         }
     }
 
-    void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+    void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const {
         if (variables_1->IsActive()) {
             result += Cq_1 * vect.segment(variables_1->GetOffset(), T::nvars1);
         }
@@ -413,7 +413,7 @@ class ChConstraintTuple_3vars {
         }
     }
 
-    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const {
+    void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const {
         if (variables_1->IsActive()) {
             result.segment(variables_1->GetOffset(), T::nvars1) += Cq_1.transpose() * l;
         }
@@ -569,7 +569,7 @@ class ChConstraintTuple_4vars {
         }
     }
 
-    double Compute_Cq_q() {
+    double ComputeJacobianTimesState() {
         double ret = 0;
 
         if (variables_1->IsActive()) {
@@ -591,7 +591,7 @@ class ChConstraintTuple_4vars {
         return ret;
     }
 
-    void Increment_q(const double deltal) {
+    void IncrementState(double deltal) {
         if (variables_1->IsActive()) {
             variables_1->State() += Eq_1 * deltal;
         }
@@ -609,7 +609,7 @@ class ChConstraintTuple_4vars {
         }
     }
 
-    void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+    void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const {
         if (variables_1->IsActive()) {
             result += Cq_1 * vect.segment(variables_1->GetOffset(), T::nvars1);
         }
@@ -627,7 +627,7 @@ class ChConstraintTuple_4vars {
         }
     }
 
-    void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const {
+    void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const {
         if (variables_1->IsActive()) {
             result.segment(variables_1->GetOffset(), T::nvars1) += Cq_1.transpose() * l;
         }

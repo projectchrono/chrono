@@ -86,7 +86,7 @@ void ChShaftsGearbox::IntLoadResidual_CqL(const unsigned int off_L,
                                           ChVectorDynamic<>& R,
                                           const ChVectorDynamic<>& L,
                                           const double c) {
-    constraint.MultiplyTandAdd(R, L(off_L) * c);
+    constraint.AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
 }
 
 void ChShaftsGearbox::IntLoadConstraint_C(const unsigned int off_L,
@@ -111,16 +111,16 @@ void ChShaftsGearbox::IntToDescriptor(const unsigned int off_v,
                                       const unsigned int off_L,
                                       const ChVectorDynamic<>& L,
                                       const ChVectorDynamic<>& Qc) {
-    constraint.Set_l_i(L(off_L));
+    constraint.SetLagrangeMultiplier(L(off_L));
 
-    constraint.Set_b_i(Qc(off_L));
+    constraint.SetRightHandSide(Qc(off_L));
 }
 
 void ChShaftsGearbox::IntFromDescriptor(const unsigned int off_v,
                                         ChStateDelta& v,
                                         const unsigned int off_L,
                                         ChVectorDynamic<>& L) {
-    L(off_L) = constraint.Get_l_i();
+    L(off_L) = constraint.GetLagrangeMultiplier();
 }
 
 void ChShaftsGearbox::InjectConstraints(ChSystemDescriptor& descriptor) {
@@ -131,7 +131,7 @@ void ChShaftsGearbox::InjectConstraints(ChSystemDescriptor& descriptor) {
 }
 
 void ChShaftsGearbox::ConstraintsBiReset() {
-    constraint.Set_b_i(0.);
+    constraint.SetRightHandSide(0.);
 }
 
 void ChShaftsGearbox::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -140,7 +140,7 @@ void ChShaftsGearbox::ConstraintsBiLoad_C(double factor, double recovery_clamp, 
 
     double res = 0;  // no residual
 
-    constraint.Set_b_i(constraint.Get_b_i() + factor * res);
+    constraint.SetRightHandSide(constraint.GetRightHandSide() + factor * res);
 }
 
 void ChShaftsGearbox::LoadConstraintJacobians() {
@@ -161,7 +161,7 @@ void ChShaftsGearbox::LoadConstraintJacobians() {
 
 void ChShaftsGearbox::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    torque_react = constraint.Get_l_i() * factor;
+    torque_react = constraint.GetLagrangeMultiplier() * factor;
 }
 
 void ChShaftsGearbox::ArchiveOut(ChArchiveOut& archive_out) {

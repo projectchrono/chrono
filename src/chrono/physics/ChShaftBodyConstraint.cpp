@@ -67,7 +67,7 @@ void ChShaftBodyRotation::IntLoadResidual_CqL(const unsigned int off_L,    ///< 
                                               const ChVectorDynamic<>& L,  ///< the L vector
                                               const double c               ///< a scaling factor
 ) {
-    constraint.MultiplyTandAdd(R, L(off_L) * c);
+    constraint.AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
 }
 
 void ChShaftBodyRotation::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
@@ -93,16 +93,16 @@ void ChShaftBodyRotation::IntToDescriptor(const unsigned int off_v,
                                           const unsigned int off_L,
                                           const ChVectorDynamic<>& L,
                                           const ChVectorDynamic<>& Qc) {
-    constraint.Set_l_i(L(off_L));
+    constraint.SetLagrangeMultiplier(L(off_L));
 
-    constraint.Set_b_i(Qc(off_L));
+    constraint.SetRightHandSide(Qc(off_L));
 }
 
 void ChShaftBodyRotation::IntFromDescriptor(const unsigned int off_v,
                                             ChStateDelta& v,
                                             const unsigned int off_L,
                                             ChVectorDynamic<>& L) {
-    L(off_L) = constraint.Get_l_i();
+    L(off_L) = constraint.GetLagrangeMultiplier();
 }
 
 void ChShaftBodyRotation::InjectConstraints(ChSystemDescriptor& descriptor) {
@@ -113,7 +113,7 @@ void ChShaftBodyRotation::InjectConstraints(ChSystemDescriptor& descriptor) {
 }
 
 void ChShaftBodyRotation::ConstraintsBiReset() {
-    constraint.Set_b_i(0.);
+    constraint.SetRightHandSide(0.);
 }
 
 void ChShaftBodyRotation::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -122,7 +122,7 @@ void ChShaftBodyRotation::ConstraintsBiLoad_C(double factor, double recovery_cla
 
     double res = 0;  // no residual
 
-    constraint.Set_b_i(constraint.Get_b_i() + factor * res);
+    constraint.SetRightHandSide(constraint.GetRightHandSide() + factor * res);
 }
 
 void ChShaftBodyRotation::ConstraintsBiLoad_Ct(double factor) {
@@ -149,7 +149,7 @@ void ChShaftBodyRotation::LoadConstraintJacobians() {
 
 void ChShaftBodyRotation::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    torque_react = -constraint.Get_l_i() * factor;
+    torque_react = -constraint.GetLagrangeMultiplier() * factor;
 }
 
 void ChShaftBodyRotation::ArchiveOut(ChArchiveOut& archive_out) {
@@ -235,7 +235,7 @@ void ChShaftBodyTranslation::IntLoadResidual_CqL(const unsigned int off_L,    //
                                                  const ChVectorDynamic<>& L,  ///< the L vector
                                                  const double c               ///< a scaling factor
 ) {
-    constraint.MultiplyTandAdd(R, L(off_L) * c);
+    constraint.AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
 }
 
 void ChShaftBodyTranslation::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
@@ -261,16 +261,16 @@ void ChShaftBodyTranslation::IntToDescriptor(const unsigned int off_v,
                                              const unsigned int off_L,
                                              const ChVectorDynamic<>& L,
                                              const ChVectorDynamic<>& Qc) {
-    constraint.Set_l_i(L(off_L));
+    constraint.SetLagrangeMultiplier(L(off_L));
 
-    constraint.Set_b_i(Qc(off_L));
+    constraint.SetRightHandSide(Qc(off_L));
 }
 
 void ChShaftBodyTranslation::IntFromDescriptor(const unsigned int off_v,
                                                ChStateDelta& v,
                                                const unsigned int off_L,
                                                ChVectorDynamic<>& L) {
-    L(off_L) = constraint.Get_l_i();
+    L(off_L) = constraint.GetLagrangeMultiplier();
 }
 
 void ChShaftBodyTranslation::InjectConstraints(ChSystemDescriptor& descriptor) {
@@ -281,7 +281,7 @@ void ChShaftBodyTranslation::InjectConstraints(ChSystemDescriptor& descriptor) {
 }
 
 void ChShaftBodyTranslation::ConstraintsBiReset() {
-    constraint.Set_b_i(0.);
+    constraint.SetRightHandSide(0.);
 }
 
 void ChShaftBodyTranslation::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -290,7 +290,7 @@ void ChShaftBodyTranslation::ConstraintsBiLoad_C(double factor, double recovery_
 
     double res = 0;  // no residual
 
-    constraint.Set_b_i(constraint.Get_b_i() + factor * res);
+    constraint.SetRightHandSide(constraint.GetRightHandSide() + factor * res);
 }
 
 void ChShaftBodyTranslation::ConstraintsBiLoad_Ct(double factor) {
@@ -317,7 +317,7 @@ void ChShaftBodyTranslation::LoadConstraintJacobians() {
 
 void ChShaftBodyTranslation::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    force_react = -constraint.Get_l_i() * factor;
+    force_react = -constraint.GetLagrangeMultiplier() * factor;
 }
 
 void ChShaftBodyTranslation::ArchiveOut(ChArchiveOut& archive_out) {

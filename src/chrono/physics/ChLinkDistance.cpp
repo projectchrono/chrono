@@ -156,7 +156,7 @@ void ChLinkDistance::IntLoadResidual_CqL(const unsigned int off_L,    ///< offse
     if (!IsActive())
         return;
 
-    Cx.MultiplyTandAdd(R, L(off_L) * c);
+    Cx.AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
 }
 
 void ChLinkDistance::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
@@ -186,9 +186,9 @@ void ChLinkDistance::IntToDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    Cx.Set_l_i(L(off_L));
+    Cx.SetLagrangeMultiplier(L(off_L));
 
-    Cx.Set_b_i(Qc(off_L));
+    Cx.SetRightHandSide(Qc(off_L));
 }
 
 void ChLinkDistance::IntFromDescriptor(const unsigned int off_v,
@@ -198,7 +198,7 @@ void ChLinkDistance::IntFromDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    L(off_L) = Cx.Get_l_i();
+    L(off_L) = Cx.GetLagrangeMultiplier();
 }
 
 // SOLVER INTERFACES
@@ -211,7 +211,7 @@ void ChLinkDistance::InjectConstraints(ChSystemDescriptor& descriptor) {
 }
 
 void ChLinkDistance::ConstraintsBiReset() {
-    Cx.Set_b_i(0.);
+    Cx.SetRightHandSide(0.);
 }
 
 void ChLinkDistance::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -219,9 +219,9 @@ void ChLinkDistance::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
         return;
 
     if (do_clamp)
-        Cx.Set_b_i(Cx.Get_b_i() + std::min(std::max(factor * C[0], -recovery_clamp), recovery_clamp));
+        Cx.SetRightHandSide(Cx.GetRightHandSide() + std::min(std::max(factor * C[0], -recovery_clamp), recovery_clamp));
     else
-        Cx.Set_b_i(Cx.Get_b_i() + factor * C[0]);
+        Cx.SetRightHandSide(Cx.GetRightHandSide() + factor * C[0]);
 }
 
 void ChLinkDistance::LoadConstraintJacobians() {
@@ -230,7 +230,7 @@ void ChLinkDistance::LoadConstraintJacobians() {
 
 void ChLinkDistance::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    react_force.x() = -Cx.Get_l_i() * factor;
+    react_force.x() = -Cx.GetLagrangeMultiplier() * factor;
     react_force.y() = 0;
     react_force.z() = 0;
 

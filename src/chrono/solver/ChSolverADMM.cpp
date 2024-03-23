@@ -173,13 +173,13 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         double gi_values[3];
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
             if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) {
-                gi_values[j_friction_comp] = mconstraints[ic]->Get_g_i();
+                gi_values[j_friction_comp] = mconstraints[ic]->GetSchurComplement();
                 j_friction_comp++;
                 if (j_friction_comp == 3) {
                     double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) / 3.0;
-                    mconstraints[ic - 2]->Set_g_i(average_g_i);
-                    mconstraints[ic - 1]->Set_g_i(average_g_i);
-                    mconstraints[ic - 0]->Set_g_i(average_g_i);
+                    mconstraints[ic - 2]->SetSchurComplement(average_g_i);
+                    mconstraints[ic - 1]->SetSchurComplement(average_g_i);
+                    mconstraints[ic - 0]->SetSchurComplement(average_g_i);
                     j_friction_comp = 0;
                 }
             }
@@ -189,7 +189,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         int d_i = 0;
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
             if (mconstraints[ic]->IsActive()) {
-                S(d_i, 0) = sqrt(mconstraints[ic]->Get_g_i());  // square root of diagonal of N, just mass matrices
+                S(d_i, 0) = sqrt(mconstraints[ic]->GetSchurComplement());  // square root of diagonal of N, just mass matrices
                                                                 // considered, no stiffness matrices anyway
                 ++d_i;
             }
@@ -584,13 +584,13 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         double gi_values[3];
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
             if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) {
-                gi_values[j_friction_comp] = mconstraints[ic]->Get_g_i();
+                gi_values[j_friction_comp] = mconstraints[ic]->GetSchurComplement();
                 j_friction_comp++;
                 if (j_friction_comp == 3) {
                     double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) / 3.0;
-                    mconstraints[ic - 2]->Set_g_i(average_g_i);
-                    mconstraints[ic - 1]->Set_g_i(average_g_i);
-                    mconstraints[ic - 0]->Set_g_i(average_g_i);
+                    mconstraints[ic - 2]->SetSchurComplement(average_g_i);
+                    mconstraints[ic - 1]->SetSchurComplement(average_g_i);
+                    mconstraints[ic - 0]->SetSchurComplement(average_g_i);
                     j_friction_comp = 0;
                 }
             }
@@ -600,7 +600,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         int d_i = 0;
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
             if (mconstraints[ic]->IsActive()) {
-                S(d_i, 0) = sqrt(mconstraints[ic]->Get_g_i());  // square root of diagonal of N, just mass matrices
+                S(d_i, 0) = sqrt(mconstraints[ic]->GetSchurComplement());  // square root of diagonal of N, just mass matrices
                                                                 // considered, no stiffness matrices anyway
                 ++d_i;
             }

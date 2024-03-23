@@ -48,7 +48,7 @@ void ChSolverAPGD::SchurBvectorCompute(ChSystemDescriptor& sysd) {
     int s_i = 0;
     for (unsigned int ic = 0; ic < sysd.GetConstraints().size(); ic++)
         if (sysd.GetConstraints()[ic]->IsActive()) {
-            r(s_i, 0) = sysd.GetConstraints()[ic]->Compute_Cq_q();
+            r(s_i, 0) = sysd.GetConstraints()[ic]->ComputeJacobianTimesState();
             ++s_i;
         }
 
@@ -122,10 +122,10 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     if (m_warm_start) {
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
             if (mconstraints[ic]->IsActive())
-                mconstraints[ic]->Increment_q(mconstraints[ic]->Get_l_i());
+                mconstraints[ic]->IncrementState(mconstraints[ic]->GetLagrangeMultiplier());
     } else {
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
-            mconstraints[ic]->Set_l_i(0.);
+            mconstraints[ic]->SetLagrangeMultiplier(0.);
     }
     sysd.FromConstraintsToVector(gamma);
 
@@ -243,7 +243,7 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     // ... + (M^-1)*D*l     (this increment and also stores 'qb' in the ChVariable items)
     for (size_t ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive())
-            mconstraints[ic]->Increment_q(mconstraints[ic]->Get_l_i());
+            mconstraints[ic]->IncrementState(mconstraints[ic]->GetLagrangeMultiplier());
     }
 
     return residual;

@@ -97,7 +97,7 @@ void ChConstraintTwoBodies::Update_auxiliary() {
         g_i += cfm_i;
 }
 
-double ChConstraintTwoBodies::Compute_Cq_q() {
+double ChConstraintTwoBodies::ComputeJacobianTimesState() {
     double ret = 0;
 
     if (variables_a->IsActive()) {
@@ -111,7 +111,7 @@ double ChConstraintTwoBodies::Compute_Cq_q() {
     return ret;
 }
 
-void ChConstraintTwoBodies::Increment_q(const double deltal) {
+void ChConstraintTwoBodies::IncrementState(double deltal) {
     if (variables_a->IsActive()) {
         variables_a->State() += Eq_a * deltal;
     }
@@ -121,7 +121,7 @@ void ChConstraintTwoBodies::Increment_q(const double deltal) {
     }
 }
 
-void ChConstraintTwoBodies::MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+void ChConstraintTwoBodies::AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const {
     if (variables_a->IsActive()) {
         result += Cq_a * vect.segment(variables_a->GetOffset(), 6);
     }
@@ -131,7 +131,7 @@ void ChConstraintTwoBodies::MultiplyAndAdd(double& result, const ChVectorDynamic
     }
 }
 
-void ChConstraintTwoBodies::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const {
+void ChConstraintTwoBodies::AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const {
     if (variables_a->IsActive()) {
         result.segment(variables_a->GetOffset(), 6) += Cq_a.transpose() * l;
     }

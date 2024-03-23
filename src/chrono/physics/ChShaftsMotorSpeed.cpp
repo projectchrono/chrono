@@ -135,7 +135,7 @@ void ChShaftsMotorSpeed::IntLoadResidual_CqL(const unsigned int off_L,    // off
                                              const ChVectorDynamic<>& L,  // the L vector
                                              const double c               // a scaling factor
 ) {
-    constraint.MultiplyTandAdd(R, L(off_L) * c);
+    constraint.AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
 }
 
 void ChShaftsMotorSpeed::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
@@ -175,8 +175,8 @@ void ChShaftsMotorSpeed::IntToDescriptor(const unsigned int off_v,  // offset in
                                          const unsigned int off_L,  // offset in L, Qc
                                          const ChVectorDynamic<>& L,
                                          const ChVectorDynamic<>& Qc) {
-    constraint.Set_l_i(L(off_L));
-    constraint.Set_b_i(Qc(off_L));
+    constraint.SetLagrangeMultiplier(L(off_L));
+    constraint.SetRightHandSide(Qc(off_L));
 
     this->variable.State()(0, 0) = v(off_v);
     this->variable.Force()(0, 0) = R(off_v);
@@ -186,7 +186,7 @@ void ChShaftsMotorSpeed::IntFromDescriptor(const unsigned int off_v,  // offset 
                                            ChStateDelta& v,
                                            const unsigned int off_L,  // offset in L
                                            ChVectorDynamic<>& L) {
-    L(off_L) = constraint.Get_l_i();
+    L(off_L) = constraint.GetLagrangeMultiplier();
 
     v(off_v) = this->variable.State()(0, 0);
 }
@@ -225,7 +225,7 @@ void ChShaftsMotorSpeed::VariablesQbSetSpeed(double step) {
 }
 
 void ChShaftsMotorSpeed::ConstraintsBiReset() {
-    constraint.Set_b_i(0.);
+    constraint.SetRightHandSide(0.);
 }
 
 void ChShaftsMotorSpeed::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -241,12 +241,12 @@ void ChShaftsMotorSpeed::ConstraintsBiLoad_C(double factor, double recovery_clam
         res = std::min(std::max(res, -recovery_clamp), recovery_clamp);
     }
 
-    constraint.Set_b_i(constraint.Get_b_i() + res);
+    constraint.SetRightHandSide(constraint.GetRightHandSide() + res);
 }
 
 void ChShaftsMotorSpeed::ConstraintsBiLoad_Ct(double factor) {
     double ct = -this->f_speed->GetVal(this->GetChTime());
-    constraint.Set_b_i(constraint.Get_b_i() + factor * ct);
+    constraint.SetRightHandSide(constraint.GetRightHandSide() + factor * ct);
 }
 
 void ChShaftsMotorSpeed::LoadConstraintJacobians() {
@@ -255,7 +255,7 @@ void ChShaftsMotorSpeed::LoadConstraintJacobians() {
 }
 
 void ChShaftsMotorSpeed::ConstraintsFetch_react(double factor) {
-    motor_torque = -constraint.Get_l_i() * factor;
+    motor_torque = -constraint.GetLagrangeMultiplier() * factor;
 }
 
 void ChShaftsMotorSpeed::ArchiveOut(ChArchiveOut& archive_out) {

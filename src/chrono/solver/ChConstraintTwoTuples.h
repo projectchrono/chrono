@@ -36,27 +36,24 @@ class ChConstraintTwoTuples : public ChConstraint {
     type_constraint_tuple_b tuple_b;
 
   public:
-    /// Default constructor
     ChConstraintTwoTuples() {}
-
-    /// Copy constructor
     ChConstraintTwoTuples(const ChConstraintTwoTuples& other) : tuple_a(other.tuple_a), tuple_b(other.tuple_b) {}
-
     virtual ~ChConstraintTwoTuples() {}
 
     /// "Virtual" copy constructor (covariant return type).
     virtual ChConstraintTwoTuples* Clone() const override { return new ChConstraintTwoTuples(*this); }
 
-    /// Assignment operator: copy from other object
+    /// Assignment operator: copy from other object.
     ChConstraintTwoTuples& operator=(const ChConstraintTwoTuples& other) {
         tuple_a = other.tuple_a;
         tuple_b = other.tuple_b;
         return *this;
     }
 
-    /// Access tuple a
+    /// Access tuple a.
     type_constraint_tuple_a& Get_tuple_a() { return tuple_a; }
-    /// Access tuple b
+
+    /// Access tuple b.
     type_constraint_tuple_b& Get_tuple_b() { return tuple_b; }
 
     virtual void Update_auxiliary() override {
@@ -68,57 +65,57 @@ class ChConstraintTwoTuples : public ChConstraint {
             g_i += cfm_i;
     }
 
-    /// This function must computes the product between
-    /// the row-jacobian of this constraint '[Cq_i]' and the
-    /// vector of variables, 'v'. that is    CV=[Cq_i]*v
-    /// This is used for some iterative solvers.
-    virtual double Compute_Cq_q() override {
+    /// Compute the product between the Jacobian of this constraint, [Cq_i], and the vector of variables.
+    /// In other words, perform the operation:
+    /// <pre>
+    ///   CV = [Cq_i] * v
+    /// </pre>
+    virtual double ComputeJacobianTimesState() override {
         double ret = 0;
-        ret += tuple_a.Compute_Cq_q();
-        ret += tuple_b.Compute_Cq_q();
+        ret += tuple_a.ComputeJacobianTimesState();
+        ret += tuple_b.ComputeJacobianTimesState();
         return ret;
     }
 
-    ///  This function must increment the vector of variables
-    /// 'v' with the quantity [invM]*[Cq_i]'*deltal,that is
-    ///  v+=[invM]*[Cq_i]'*deltal  or better: v+=[Eq_i]*deltal
-    ///  This is used for some iterative solvers.
-    virtual void Increment_q(const double deltal) override {
-        tuple_a.Increment_q(deltal);
-        tuple_b.Increment_q(deltal);
+    /// Increment the vector of variables with the quantity [invM]*[Cq_i]'*deltal.
+    /// In other words, perform the operation:
+    /// <pre>
+    ///    v += [invM] * [Cq_i]' * deltal
+    /// or else
+    ///    v+=[Eq_i] * deltal
+    /// </pre>
+    virtual void IncrementState(double deltal) override {
+        tuple_a.IncrementState(deltal);
+        tuple_b.IncrementState(deltal);
     }
 
-    /// Computes the product of the corresponding block in the
-    /// system matrix by 'vect', and add to 'result'.
-    /// NOTE: the 'vect' vector must already have
-    /// the size of the total variables&constraints in the system; the procedure
-    /// will use the ChVariable offsets (that must be already updated) to know the
-    /// indexes in result and vect;
-    virtual void MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const override {
-        tuple_a.MultiplyAndAdd(result, vect);
-        tuple_b.MultiplyAndAdd(result, vect);
+    /// Add the product of the corresponding block in the system matrix by 'vect' and add to result.
+    /// Note: 'vect' is assumed to be of proper size; the procedure uses the ChVariable offsets to index in 'vect'.
+    virtual void AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const override {
+        tuple_a.AddJacobianTimesVectorInto(result, vect);
+        tuple_b.AddJacobianTimesVectorInto(result, vect);
     }
 
-    /// Computes the product of the corresponding transposed blocks in the
-    /// system matrix (ie. the TRANSPOSED jacobian matrix C_q') by 'l', and add to 'result'.
-    /// NOTE: the 'result' vector must already have
-    /// the size of the total variables&constraints in the system; the procedure
-    /// will use the ChVariable offsets (that must be already updated) to know the
-    /// indexes in result and vect;
-    virtual void MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const override {
-        tuple_a.MultiplyTandAdd(result, l);
-        tuple_b.MultiplyTandAdd(result, l);
+    /// Add the product of the corresponding transposed block in the system matrix by 'l' and add to result.
+    /// Note: 'result' is assumed to be of proper size; the procedure uses the ChVariable offsets to index in 'result'.
+    virtual void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const override {
+        tuple_a.AddJacobianTransposedTimesScalarInto(result, l);
+        tuple_b.AddJacobianTransposedTimesScalarInto(result, l);
     }
 
-    /// Puts the two jacobian parts into the 'insrow' row of a sparse matrix,
-    /// where both portions of the jacobian are shifted in order to match the
-    /// offset of the corresponding ChVariable.The same is done
-    /// on the 'insrow' column, so that the sparse matrix is kept symmetric.
-    virtual void PasteJacobianInto(ChSparseMatrix& storage, unsigned int insrow, unsigned int col_offset) const override {
+    /// Write the constraint Jacobian into the specified global matrix at the offsets of the associated variables.
+    /// The (row_offset, col_offset) pair specifies the top-left corner of the system-level constraint JAcobian in the
+    /// provided storage matrix.
+    virtual void PasteJacobianInto(ChSparseMatrix& storage,
+                                   unsigned int insrow,
+                                   unsigned int col_offset) const override {
         tuple_a.PasteJacobianInto(storage, insrow, col_offset);
         tuple_b.PasteJacobianInto(storage, insrow, col_offset);
     }
-    virtual void PasteJacobianTransposedInto(ChSparseMatrix& storage, unsigned int row_offset, unsigned int inscol) const override {
+
+    virtual void PasteJacobianTransposedInto(ChSparseMatrix& storage,
+                                             unsigned int row_offset,
+                                             unsigned int inscol) const override {
         tuple_a.PasteJacobianTransposedInto(storage, row_offset, inscol);
         tuple_b.PasteJacobianTransposedInto(storage, row_offset, inscol);
     }

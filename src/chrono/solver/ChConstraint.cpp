@@ -72,6 +72,10 @@ double ChConstraint::Violation(double mc_i) {
     return mc_i;
 }
 
+void ChConstraint::UpdateActiveFlag() {
+    this->active = (valid && !disabled && !redundant && !broken && mode != (CONSTRAINT_FREE));
+}
+
 // Trick to avoid putting the following mapper macro inside the class definition in .h file:
 // enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
 // class my_enum_mappers : public ChConstraint {

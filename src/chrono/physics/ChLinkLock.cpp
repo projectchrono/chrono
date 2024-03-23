@@ -945,7 +945,7 @@ void ChLinkLock::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L
     int cnt = 0;
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive()) {
-            mask.GetConstraint(i).MultiplyTandAdd(R, L(off_L + cnt) * c);
+            mask.GetConstraint(i).AddJacobianTransposedTimesScalarInto(R, L(off_L + cnt) * c);
             cnt++;
         }
     }
@@ -954,61 +954,61 @@ void ChLinkLock::IntLoadResidual_CqL(const unsigned int off_L,    // offset in L
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
-            limit_X->constr_lower.MultiplyTandAdd(R, L(off_L + local_offset) * c);
+            limit_X->constr_lower.AddJacobianTransposedTimesScalarInto(R, L(off_L + local_offset) * c);
             ++local_offset;
         }
         if (limit_X->constr_upper.IsActive()) {
-            limit_X->constr_upper.MultiplyTandAdd(R, L(off_L + local_offset) * c);
+            limit_X->constr_upper.AddJacobianTransposedTimesScalarInto(R, L(off_L + local_offset) * c);
             ++local_offset;
         }
     }
     if (limit_Y && limit_Y->IsActive()) {
         if (limit_Y->constr_lower.IsActive()) {
-            limit_Y->constr_lower.MultiplyTandAdd(R, L(off_L + local_offset) * c);
+            limit_Y->constr_lower.AddJacobianTransposedTimesScalarInto(R, L(off_L + local_offset) * c);
             ++local_offset;
         }
         if (limit_Y->constr_upper.IsActive()) {
-            limit_Y->constr_upper.MultiplyTandAdd(R, L(off_L + local_offset) * c);
+            limit_Y->constr_upper.AddJacobianTransposedTimesScalarInto(R, L(off_L + local_offset) * c);
             ++local_offset;
         }
     }
     if (limit_Z && limit_Z->IsActive()) {
         if (limit_Z->constr_lower.IsActive()) {
-            limit_Z->constr_lower.MultiplyTandAdd(R, L(off_L + local_offset) * c);
+            limit_Z->constr_lower.AddJacobianTransposedTimesScalarInto(R, L(off_L + local_offset) * c);
             ++local_offset;
         }
         if (limit_Z->constr_upper.IsActive()) {
-            limit_Z->constr_upper.MultiplyTandAdd(R, L(off_L + local_offset) * c);
+            limit_Z->constr_upper.AddJacobianTransposedTimesScalarInto(R, L(off_L + local_offset) * c);
             ++local_offset;
         }
     }
     if (limit_Rx && limit_Rx->IsActive()) {
         if (limit_Rx->constr_lower.IsActive()) {
-            limit_Rx->constr_lower.MultiplyTandAdd(R, L(off_L + local_offset) * c);
+            limit_Rx->constr_lower.AddJacobianTransposedTimesScalarInto(R, L(off_L + local_offset) * c);
             ++local_offset;
         }
         if (limit_Rx->constr_upper.IsActive()) {
-            limit_Rx->constr_upper.MultiplyTandAdd(R, L(off_L + local_offset) * c);
+            limit_Rx->constr_upper.AddJacobianTransposedTimesScalarInto(R, L(off_L + local_offset) * c);
             ++local_offset;
         }
     }
     if (limit_Ry && limit_Ry->IsActive()) {
         if (limit_Ry->constr_lower.IsActive()) {
-            limit_Ry->constr_lower.MultiplyTandAdd(R, L(off_L + local_offset) * c);
+            limit_Ry->constr_lower.AddJacobianTransposedTimesScalarInto(R, L(off_L + local_offset) * c);
             ++local_offset;
         }
         if (limit_Ry->constr_upper.IsActive()) {
-            limit_Ry->constr_upper.MultiplyTandAdd(R, L(off_L + local_offset) * c);
+            limit_Ry->constr_upper.AddJacobianTransposedTimesScalarInto(R, L(off_L + local_offset) * c);
             ++local_offset;
         }
     }
     if (limit_Rz && limit_Rz->IsActive()) {
         if (limit_Rz->constr_lower.IsActive()) {
-            limit_Rz->constr_lower.MultiplyTandAdd(R, L(off_L + local_offset) * c);
+            limit_Rz->constr_lower.AddJacobianTransposedTimesScalarInto(R, L(off_L + local_offset) * c);
             ++local_offset;
         }
         if (limit_Rz->constr_upper.IsActive()) {
-            limit_Rz->constr_upper.MultiplyTandAdd(R, L(off_L + local_offset) * c);
+            limit_Rz->constr_upper.AddJacobianTransposedTimesScalarInto(R, L(off_L + local_offset) * c);
             ++local_offset;
         }
     }
@@ -1125,8 +1125,8 @@ void ChLinkLock::IntToDescriptor(const unsigned int off_v,
     unsigned int cnt = 0;
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive()) {
-            mask.GetConstraint(i).Set_l_i(L(off_L + cnt));
-            mask.GetConstraint(i).Set_b_i(Qc(off_L + cnt));
+            mask.GetConstraint(i).SetLagrangeMultiplier(L(off_L + cnt));
+            mask.GetConstraint(i).SetRightHandSide(Qc(off_L + cnt));
             cnt++;
         }
     }
@@ -1135,73 +1135,73 @@ void ChLinkLock::IntToDescriptor(const unsigned int off_v,
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
-            limit_X->constr_lower.Set_l_i(L(off_L + local_offset));
-            limit_X->constr_lower.Set_b_i(Qc(off_L + local_offset));
+            limit_X->constr_lower.SetLagrangeMultiplier(L(off_L + local_offset));
+            limit_X->constr_lower.SetRightHandSide(Qc(off_L + local_offset));
             ++local_offset;
         }
         if (limit_X->constr_upper.IsActive()) {
-            limit_X->constr_upper.Set_l_i(L(off_L + local_offset));
-            limit_X->constr_upper.Set_b_i(Qc(off_L + local_offset));
+            limit_X->constr_upper.SetLagrangeMultiplier(L(off_L + local_offset));
+            limit_X->constr_upper.SetRightHandSide(Qc(off_L + local_offset));
             ++local_offset;
         }
     }
     if (limit_Y && limit_Y->IsActive()) {
         if (limit_Y->constr_lower.IsActive()) {
-            limit_Y->constr_lower.Set_l_i(L(off_L + local_offset));
-            limit_Y->constr_lower.Set_b_i(Qc(off_L + local_offset));
+            limit_Y->constr_lower.SetLagrangeMultiplier(L(off_L + local_offset));
+            limit_Y->constr_lower.SetRightHandSide(Qc(off_L + local_offset));
             ++local_offset;
         }
         if (limit_Y->constr_upper.IsActive()) {
-            limit_Y->constr_upper.Set_l_i(L(off_L + local_offset));
-            limit_Y->constr_upper.Set_b_i(Qc(off_L + local_offset));
+            limit_Y->constr_upper.SetLagrangeMultiplier(L(off_L + local_offset));
+            limit_Y->constr_upper.SetRightHandSide(Qc(off_L + local_offset));
             ++local_offset;
         }
     }
     if (limit_Z && limit_Z->IsActive()) {
         if (limit_Z->constr_lower.IsActive()) {
-            limit_Z->constr_lower.Set_l_i(L(off_L + local_offset));
-            limit_Z->constr_lower.Set_b_i(Qc(off_L + local_offset));
+            limit_Z->constr_lower.SetLagrangeMultiplier(L(off_L + local_offset));
+            limit_Z->constr_lower.SetRightHandSide(Qc(off_L + local_offset));
             ++local_offset;
         }
         if (limit_Z->constr_upper.IsActive()) {
-            limit_Z->constr_upper.Set_l_i(L(off_L + local_offset));
-            limit_Z->constr_upper.Set_b_i(Qc(off_L + local_offset));
+            limit_Z->constr_upper.SetLagrangeMultiplier(L(off_L + local_offset));
+            limit_Z->constr_upper.SetRightHandSide(Qc(off_L + local_offset));
             ++local_offset;
         }
     }
     if (limit_Rx && limit_Rx->IsActive()) {
         if (limit_Rx->constr_lower.IsActive()) {
-            limit_Rx->constr_lower.Set_l_i(L(off_L + local_offset));
-            limit_Rx->constr_lower.Set_b_i(Qc(off_L + local_offset));
+            limit_Rx->constr_lower.SetLagrangeMultiplier(L(off_L + local_offset));
+            limit_Rx->constr_lower.SetRightHandSide(Qc(off_L + local_offset));
             ++local_offset;
         }
         if (limit_Rx->constr_upper.IsActive()) {
-            limit_Rx->constr_upper.Set_l_i(L(off_L + local_offset));
-            limit_Rx->constr_upper.Set_b_i(Qc(off_L + local_offset));
+            limit_Rx->constr_upper.SetLagrangeMultiplier(L(off_L + local_offset));
+            limit_Rx->constr_upper.SetRightHandSide(Qc(off_L + local_offset));
             ++local_offset;
         }
     }
     if (limit_Ry && limit_Ry->IsActive()) {
         if (limit_Ry->constr_lower.IsActive()) {
-            limit_Ry->constr_lower.Set_l_i(L(off_L + local_offset));
-            limit_Ry->constr_lower.Set_b_i(Qc(off_L + local_offset));
+            limit_Ry->constr_lower.SetLagrangeMultiplier(L(off_L + local_offset));
+            limit_Ry->constr_lower.SetRightHandSide(Qc(off_L + local_offset));
             ++local_offset;
         }
         if (limit_Ry->constr_upper.IsActive()) {
-            limit_Ry->constr_upper.Set_l_i(L(off_L + local_offset));
-            limit_Ry->constr_upper.Set_b_i(Qc(off_L + local_offset));
+            limit_Ry->constr_upper.SetLagrangeMultiplier(L(off_L + local_offset));
+            limit_Ry->constr_upper.SetRightHandSide(Qc(off_L + local_offset));
             ++local_offset;
         }
     }
     if (limit_Rz && limit_Rz->IsActive()) {
         if (limit_Rz->constr_lower.IsActive()) {
-            limit_Rz->constr_lower.Set_l_i(L(off_L + local_offset));
-            limit_Rz->constr_lower.Set_b_i(Qc(off_L + local_offset));
+            limit_Rz->constr_lower.SetLagrangeMultiplier(L(off_L + local_offset));
+            limit_Rz->constr_lower.SetRightHandSide(Qc(off_L + local_offset));
             ++local_offset;
         }
         if (limit_Rz->constr_upper.IsActive()) {
-            limit_Rz->constr_upper.Set_l_i(L(off_L + local_offset));
-            limit_Rz->constr_upper.Set_b_i(Qc(off_L + local_offset));
+            limit_Rz->constr_upper.SetLagrangeMultiplier(L(off_L + local_offset));
+            limit_Rz->constr_upper.SetRightHandSide(Qc(off_L + local_offset));
             ++local_offset;
         }
     }
@@ -1214,7 +1214,7 @@ void ChLinkLock::IntFromDescriptor(const unsigned int off_v,
     unsigned int cnt = 0;
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive()) {
-            L(off_L + cnt) = mask.GetConstraint(i).Get_l_i();
+            L(off_L + cnt) = mask.GetConstraint(i).GetLagrangeMultiplier();
             cnt++;
         }
     }
@@ -1223,61 +1223,61 @@ void ChLinkLock::IntFromDescriptor(const unsigned int off_v,
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
-            L(off_L + local_offset) = limit_X->constr_lower.Get_l_i();
+            L(off_L + local_offset) = limit_X->constr_lower.GetLagrangeMultiplier();
             ++local_offset;
         }
         if (limit_X->constr_upper.IsActive()) {
-            L(off_L + local_offset) = limit_X->constr_upper.Get_l_i();
+            L(off_L + local_offset) = limit_X->constr_upper.GetLagrangeMultiplier();
             ++local_offset;
         }
     }
     if (limit_Y && limit_Y->IsActive()) {
         if (limit_Y->constr_lower.IsActive()) {
-            L(off_L + local_offset) = limit_Y->constr_lower.Get_l_i();
+            L(off_L + local_offset) = limit_Y->constr_lower.GetLagrangeMultiplier();
             ++local_offset;
         }
         if (limit_Y->constr_upper.IsActive()) {
-            L(off_L + local_offset) = limit_Y->constr_upper.Get_l_i();
+            L(off_L + local_offset) = limit_Y->constr_upper.GetLagrangeMultiplier();
             ++local_offset;
         }
     }
     if (limit_Z && limit_Z->IsActive()) {
         if (limit_Z->constr_lower.IsActive()) {
-            L(off_L + local_offset) = limit_Z->constr_lower.Get_l_i();
+            L(off_L + local_offset) = limit_Z->constr_lower.GetLagrangeMultiplier();
             ++local_offset;
         }
         if (limit_Z->constr_upper.IsActive()) {
-            L(off_L + local_offset) = limit_Z->constr_upper.Get_l_i();
+            L(off_L + local_offset) = limit_Z->constr_upper.GetLagrangeMultiplier();
             ++local_offset;
         }
     }
     if (limit_Rx && limit_Rx->IsActive()) {
         if (limit_Rx->constr_lower.IsActive()) {
-            L(off_L + local_offset) = limit_Rx->constr_lower.Get_l_i();
+            L(off_L + local_offset) = limit_Rx->constr_lower.GetLagrangeMultiplier();
             ++local_offset;
         }
         if (limit_Rx->constr_upper.IsActive()) {
-            L(off_L + local_offset) = limit_Rx->constr_upper.Get_l_i();
+            L(off_L + local_offset) = limit_Rx->constr_upper.GetLagrangeMultiplier();
             ++local_offset;
         }
     }
     if (limit_Ry && limit_Ry->IsActive()) {
         if (limit_Ry->constr_lower.IsActive()) {
-            L(off_L + local_offset) = limit_Ry->constr_lower.Get_l_i();
+            L(off_L + local_offset) = limit_Ry->constr_lower.GetLagrangeMultiplier();
             ++local_offset;
         }
         if (limit_Ry->constr_upper.IsActive()) {
-            L(off_L + local_offset) = limit_Ry->constr_upper.Get_l_i();
+            L(off_L + local_offset) = limit_Ry->constr_upper.GetLagrangeMultiplier();
             ++local_offset;
         }
     }
     if (limit_Rz && limit_Rz->IsActive()) {
         if (limit_Rz->constr_lower.IsActive()) {
-            L(off_L + local_offset) = limit_Rz->constr_lower.Get_l_i();
+            L(off_L + local_offset) = limit_Rz->constr_lower.GetLagrangeMultiplier();
             ++local_offset;
         }
         if (limit_Rz->constr_upper.IsActive()) {
-            L(off_L + local_offset) = limit_Rz->constr_upper.Get_l_i();
+            L(off_L + local_offset) = limit_Rz->constr_upper.GetLagrangeMultiplier();
             ++local_offset;
         }
     }
@@ -1356,55 +1356,55 @@ void ChLinkLock::InjectConstraints(ChSystemDescriptor& descriptor) {
 
 void ChLinkLock::ConstraintsBiReset() {
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
-        mask.GetConstraint(i).Set_b_i(0.);
+        mask.GetConstraint(i).SetRightHandSide(0.);
     }
 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
-            limit_X->constr_lower.Set_b_i(0.);
+            limit_X->constr_lower.SetRightHandSide(0.);
         }
         if (limit_X->constr_upper.IsActive()) {
-            limit_X->constr_upper.Set_b_i(0.);
+            limit_X->constr_upper.SetRightHandSide(0.);
         }
     }
     if (limit_Y && limit_Y->IsActive()) {
         if (limit_Y->constr_lower.IsActive()) {
-            limit_Y->constr_lower.Set_b_i(0.);
+            limit_Y->constr_lower.SetRightHandSide(0.);
         }
         if (limit_Y->constr_upper.IsActive()) {
-            limit_Y->constr_upper.Set_b_i(0.);
+            limit_Y->constr_upper.SetRightHandSide(0.);
         }
     }
     if (limit_Z && limit_Z->IsActive()) {
         if (limit_Z->constr_lower.IsActive()) {
-            limit_Z->constr_lower.Set_b_i(0.);
+            limit_Z->constr_lower.SetRightHandSide(0.);
         }
         if (limit_Z->constr_upper.IsActive()) {
-            limit_Z->constr_upper.Set_b_i(0.);
+            limit_Z->constr_upper.SetRightHandSide(0.);
         }
     }
     if (limit_Rx && limit_Rx->IsActive()) {
         if (limit_Rx->constr_lower.IsActive()) {
-            limit_Rx->constr_lower.Set_b_i(0.);
+            limit_Rx->constr_lower.SetRightHandSide(0.);
         }
         if (limit_Rx->constr_upper.IsActive()) {
-            limit_Rx->constr_upper.Set_b_i(0.);
+            limit_Rx->constr_upper.SetRightHandSide(0.);
         }
     }
     if (limit_Ry && limit_Ry->IsActive()) {
         if (limit_Ry->constr_lower.IsActive()) {
-            limit_Ry->constr_lower.Set_b_i(0.);
+            limit_Ry->constr_lower.SetRightHandSide(0.);
         }
         if (limit_Ry->constr_upper.IsActive()) {
-            limit_Ry->constr_upper.Set_b_i(0.);
+            limit_Ry->constr_upper.SetRightHandSide(0.);
         }
     }
     if (limit_Rz && limit_Rz->IsActive()) {
         if (limit_Rz->constr_lower.IsActive()) {
-            limit_Rz->constr_lower.Set_b_i(0.);
+            limit_Rz->constr_lower.SetRightHandSide(0.);
         }
         if (limit_Rz->constr_upper.IsActive()) {
-            limit_Rz->constr_upper.Set_b_i(0.);
+            limit_Rz->constr_upper.SetRightHandSide(0.);
         }
     }
 }
@@ -1415,13 +1415,13 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
         if (mask.GetConstraint(i).IsActive()) {
             if (do_clamp) {
                 if (mask.GetConstraint(i).IsUnilateral())
-                    mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() +
+                    mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() +
                                                   std::max(factor * C(cnt), -recovery_clamp));
                 else
-                    mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() +
+                    mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() +
                                                   std::min(std::max(factor * C(cnt), -recovery_clamp), recovery_clamp));
             } else
-                mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() + factor * C(cnt));
+                mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() + factor * C(cnt));
 
             cnt++;
         }
@@ -1430,19 +1430,19 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
             if (!do_clamp) {
-                limit_X->constr_lower.Set_b_i(limit_X->constr_lower.Get_b_i() +
+                limit_X->constr_lower.SetRightHandSide(limit_X->constr_lower.GetRightHandSide() +
                                               factor * (-limit_X->GetMin() + relM.pos.x()));
             } else {
-                limit_X->constr_lower.Set_b_i(limit_X->constr_lower.Get_b_i() +
+                limit_X->constr_lower.SetRightHandSide(limit_X->constr_lower.GetRightHandSide() +
                                               std::max(factor * (-limit_X->GetMin() + relM.pos.x()), -recovery_clamp));
             }
         }
         if (limit_X->constr_upper.IsActive()) {
             if (!do_clamp) {
-                limit_X->constr_upper.Set_b_i(limit_X->constr_upper.Get_b_i() +
+                limit_X->constr_upper.SetRightHandSide(limit_X->constr_upper.GetRightHandSide() +
                                               factor * (limit_X->GetMax() - relM.pos.x()));
             } else {
-                limit_X->constr_upper.Set_b_i(limit_X->constr_upper.Get_b_i() +
+                limit_X->constr_upper.SetRightHandSide(limit_X->constr_upper.GetRightHandSide() +
                                               std::max(factor * (limit_X->GetMax() - relM.pos.x()), -recovery_clamp));
             }
         }
@@ -1450,19 +1450,19 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
     if (limit_Y && limit_Y->IsActive()) {
         if (limit_Y->constr_lower.IsActive()) {
             if (!do_clamp) {
-                limit_Y->constr_lower.Set_b_i(limit_Y->constr_lower.Get_b_i() +
+                limit_Y->constr_lower.SetRightHandSide(limit_Y->constr_lower.GetRightHandSide() +
                                               factor * (-limit_Y->GetMin() + relM.pos.y()));
             } else {
-                limit_Y->constr_lower.Set_b_i(limit_Y->constr_lower.Get_b_i() +
+                limit_Y->constr_lower.SetRightHandSide(limit_Y->constr_lower.GetRightHandSide() +
                                               std::max(factor * (-limit_Y->GetMin() + relM.pos.y()), -recovery_clamp));
             }
         }
         if (limit_Y->constr_upper.IsActive()) {
             if (!do_clamp) {
-                limit_Y->constr_upper.Set_b_i(limit_Y->constr_upper.Get_b_i() +
+                limit_Y->constr_upper.SetRightHandSide(limit_Y->constr_upper.GetRightHandSide() +
                                               factor * (limit_Y->GetMax() - relM.pos.y()));
             } else {
-                limit_Y->constr_upper.Set_b_i(limit_Y->constr_upper.Get_b_i() +
+                limit_Y->constr_upper.SetRightHandSide(limit_Y->constr_upper.GetRightHandSide() +
                                               std::max(factor * (limit_Y->GetMax() - relM.pos.y()), -recovery_clamp));
             }
         }
@@ -1470,19 +1470,19 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
     if (limit_Z && limit_Z->IsActive()) {
         if (limit_Z->constr_lower.IsActive()) {
             if (!do_clamp) {
-                limit_Z->constr_lower.Set_b_i(limit_Z->constr_lower.Get_b_i() +
+                limit_Z->constr_lower.SetRightHandSide(limit_Z->constr_lower.GetRightHandSide() +
                                               factor * (-limit_Z->GetMin() + relM.pos.z()));
             } else {
-                limit_Z->constr_lower.Set_b_i(limit_Z->constr_lower.Get_b_i() +
+                limit_Z->constr_lower.SetRightHandSide(limit_Z->constr_lower.GetRightHandSide() +
                                               std::max(factor * (-limit_Z->GetMin() + relM.pos.z()), -recovery_clamp));
             }
         }
         if (limit_Z->constr_upper.IsActive()) {
             if (!do_clamp) {
-                limit_Z->constr_upper.Set_b_i(limit_Z->constr_upper.Get_b_i() +
+                limit_Z->constr_upper.SetRightHandSide(limit_Z->constr_upper.GetRightHandSide() +
                                               factor * (limit_Z->GetMax() - relM.pos.z()));
             } else {
-                limit_Z->constr_upper.Set_b_i(limit_Z->constr_upper.Get_b_i() +
+                limit_Z->constr_upper.SetRightHandSide(limit_Z->constr_upper.GetRightHandSide() +
                                               std::max(factor * (limit_Z->GetMax() - relM.pos.z()), -recovery_clamp));
             }
         }
@@ -1490,21 +1490,21 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
     if (limit_Rx && limit_Rx->IsActive()) {
         if (limit_Rx->constr_lower.IsActive()) {
             if (!do_clamp) {
-                limit_Rx->constr_lower.Set_b_i(limit_Rx->constr_lower.Get_b_i() +
+                limit_Rx->constr_lower.SetRightHandSide(limit_Rx->constr_lower.GetRightHandSide() +
                                                factor * (-sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()));
             } else {
-                limit_Rx->constr_lower.Set_b_i(
-                    limit_Rx->constr_lower.Get_b_i() +
+                limit_Rx->constr_lower.SetRightHandSide(
+                    limit_Rx->constr_lower.GetRightHandSide() +
                     std::max(factor * (-sin(0.5 * limit_Rx->GetMin()) + relM.rot.e1()), -recovery_clamp));
             }
         }
         if (limit_Rx->constr_upper.IsActive()) {
             if (!do_clamp) {
-                limit_Rx->constr_upper.Set_b_i(limit_Rx->constr_upper.Get_b_i() +
+                limit_Rx->constr_upper.SetRightHandSide(limit_Rx->constr_upper.GetRightHandSide() +
                                                factor * (sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()));
             } else {
-                limit_Rx->constr_upper.Set_b_i(
-                    limit_Rx->constr_upper.Get_b_i() +
+                limit_Rx->constr_upper.SetRightHandSide(
+                    limit_Rx->constr_upper.GetRightHandSide() +
                     std::max(factor * (sin(0.5 * limit_Rx->GetMax()) - relM.rot.e1()), -recovery_clamp));
             }
         }
@@ -1512,21 +1512,21 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
     if (limit_Ry && limit_Ry->IsActive()) {
         if (limit_Ry->constr_lower.IsActive()) {
             if (!do_clamp) {
-                limit_Ry->constr_lower.Set_b_i(limit_Ry->constr_lower.Get_b_i() +
+                limit_Ry->constr_lower.SetRightHandSide(limit_Ry->constr_lower.GetRightHandSide() +
                                                factor * (-sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()));
             } else {
-                limit_Ry->constr_lower.Set_b_i(
-                    limit_Ry->constr_lower.Get_b_i() +
+                limit_Ry->constr_lower.SetRightHandSide(
+                    limit_Ry->constr_lower.GetRightHandSide() +
                     std::max(factor * (-sin(0.5 * limit_Ry->GetMin()) + relM.rot.e2()), -recovery_clamp));
             }
         }
         if (limit_Ry->constr_upper.IsActive()) {
             if (!do_clamp) {
-                limit_Ry->constr_upper.Set_b_i(limit_Ry->constr_upper.Get_b_i() +
+                limit_Ry->constr_upper.SetRightHandSide(limit_Ry->constr_upper.GetRightHandSide() +
                                                factor * (sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()));
             } else {
-                limit_Ry->constr_upper.Set_b_i(
-                    limit_Ry->constr_upper.Get_b_i() +
+                limit_Ry->constr_upper.SetRightHandSide(
+                    limit_Ry->constr_upper.GetRightHandSide() +
                     std::max(factor * (sin(0.5 * limit_Ry->GetMax()) - relM.rot.e2()), -recovery_clamp));
             }
         }
@@ -1534,21 +1534,21 @@ void ChLinkLock::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool 
     if (limit_Rz && limit_Rz->IsActive()) {
         if (limit_Rz->constr_lower.IsActive()) {
             if (!do_clamp) {
-                limit_Rz->constr_lower.Set_b_i(limit_Rz->constr_lower.Get_b_i() +
+                limit_Rz->constr_lower.SetRightHandSide(limit_Rz->constr_lower.GetRightHandSide() +
                                                factor * (-sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()));
             } else {
-                limit_Rz->constr_lower.Set_b_i(
-                    limit_Rz->constr_lower.Get_b_i() +
+                limit_Rz->constr_lower.SetRightHandSide(
+                    limit_Rz->constr_lower.GetRightHandSide() +
                     std::max(factor * (-sin(0.5 * limit_Rz->GetMin()) + relM.rot.e3()), -recovery_clamp));
             }
         }
         if (limit_Rz->constr_upper.IsActive()) {
             if (!do_clamp) {
-                limit_Rz->constr_upper.Set_b_i(limit_Rz->constr_upper.Get_b_i() +
+                limit_Rz->constr_upper.SetRightHandSide(limit_Rz->constr_upper.GetRightHandSide() +
                                                factor * (sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()));
             } else {
-                limit_Rz->constr_upper.Set_b_i(
-                    limit_Rz->constr_upper.Get_b_i() +
+                limit_Rz->constr_upper.SetRightHandSide(
+                    limit_Rz->constr_upper.GetRightHandSide() +
                     std::max(factor * (sin(0.5 * limit_Rz->GetMax()) - relM.rot.e3()), -recovery_clamp));
             }
         }
@@ -1559,7 +1559,7 @@ void ChLinkLock::ConstraintsBiLoad_Ct(double factor) {
     int cnt = 0;
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive()) {
-            mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() + factor * Ct(cnt));
+            mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() + factor * Ct(cnt));
             cnt++;
         }
     }
@@ -1569,7 +1569,7 @@ void ChLinkLock::ConstraintsBiLoad_Qc(double factor) {
     int cnt = 0;
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive()) {
-            mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() + factor * Qc(cnt));
+            mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() + factor * Qc(cnt));
             cnt++;
         }
     }
@@ -1607,7 +1607,7 @@ void ChLinkLock::LoadConstraintJacobians() {
             cnt++;
 
             // sets also the CFM term
-            // mask->GetConstraint(i).Set_cfm_i(this->attractor);
+            // mask->GetConstraint(i).SetComplianceTerm(this->attractor);
         }
     }
 
@@ -1708,7 +1708,7 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
     int cnt = 0;
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive()) {
-            react(cnt) = mask.GetConstraint(i).Get_l_i() * factor;
+            react(cnt) = mask.GetConstraint(i).GetLagrangeMultiplier() * factor;
             cnt++;
         }
     }
@@ -1770,50 +1770,50 @@ void ChLinkLock::ConstraintsFetch_react(double factor) {
     // react_torque.
     if (limit_X && limit_X->IsActive()) {
         if (limit_X->constr_lower.IsActive()) {
-            react_force.x() -= factor * limit_X->constr_lower.Get_l_i();
+            react_force.x() -= factor * limit_X->constr_lower.GetLagrangeMultiplier();
         }
         if (limit_X->constr_upper.IsActive()) {
-            react_force.x() += factor * limit_X->constr_upper.Get_l_i();
+            react_force.x() += factor * limit_X->constr_upper.GetLagrangeMultiplier();
         }
     }
     if (limit_Y && limit_Y->IsActive()) {
         if (limit_Y->constr_lower.IsActive()) {
-            react_force.y() -= factor * limit_Y->constr_lower.Get_l_i();
+            react_force.y() -= factor * limit_Y->constr_lower.GetLagrangeMultiplier();
         }
         if (limit_Y->constr_upper.IsActive()) {
-            react_force.y() += factor * limit_Y->constr_upper.Get_l_i();
+            react_force.y() += factor * limit_Y->constr_upper.GetLagrangeMultiplier();
         }
     }
     if (limit_Z && limit_Z->IsActive()) {
         if (limit_Z->constr_lower.IsActive()) {
-            react_force.z() -= factor * limit_Z->constr_lower.Get_l_i();
+            react_force.z() -= factor * limit_Z->constr_lower.GetLagrangeMultiplier();
         }
         if (limit_Z->constr_upper.IsActive()) {
-            react_force.z() += factor * limit_Z->constr_upper.Get_l_i();
+            react_force.z() += factor * limit_Z->constr_upper.GetLagrangeMultiplier();
         }
     }
     if (limit_Rx && limit_Rx->IsActive()) {
         if (limit_Rx->constr_lower.IsActive()) {
-            react_torque.x() -= 0.5 * factor * limit_Rx->constr_lower.Get_l_i();
+            react_torque.x() -= 0.5 * factor * limit_Rx->constr_lower.GetLagrangeMultiplier();
         }
         if (limit_Rx->constr_upper.IsActive()) {
-            react_torque.x() += 0.5 * factor * limit_Rx->constr_upper.Get_l_i();
+            react_torque.x() += 0.5 * factor * limit_Rx->constr_upper.GetLagrangeMultiplier();
         }
     }
     if (limit_Ry && limit_Ry->IsActive()) {
         if (limit_Ry->constr_lower.IsActive()) {
-            react_torque.y() -= 0.5 * factor * limit_Ry->constr_lower.Get_l_i();
+            react_torque.y() -= 0.5 * factor * limit_Ry->constr_lower.GetLagrangeMultiplier();
         }
         if (limit_Ry->constr_upper.IsActive()) {
-            react_torque.y() += 0.5 * factor * limit_Ry->constr_upper.Get_l_i();
+            react_torque.y() += 0.5 * factor * limit_Ry->constr_upper.GetLagrangeMultiplier();
         }
     }
     if (limit_Rz && limit_Rz->IsActive()) {
         if (limit_Rz->constr_lower.IsActive()) {
-            react_torque.z() -= 0.5 * factor * limit_Rz->constr_lower.Get_l_i();
+            react_torque.z() -= 0.5 * factor * limit_Rz->constr_lower.GetLagrangeMultiplier();
         }
         if (limit_Rz->constr_upper.IsActive()) {
-            react_torque.z() += 0.5 * factor * limit_Rz->constr_upper.Get_l_i();
+            react_torque.z() += 0.5 * factor * limit_Rz->constr_upper.GetLagrangeMultiplier();
         }
     }
 

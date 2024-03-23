@@ -84,7 +84,7 @@ void ChConstraintNgeneric::Update_auxiliary() {
         g_i += cfm_i;
 }
 
-double ChConstraintNgeneric::Compute_Cq_q() {
+double ChConstraintNgeneric::ComputeJacobianTimesState() {
     double ret = 0;
 
     for (size_t i = 0; i < variables.size(); ++i) {
@@ -96,7 +96,7 @@ double ChConstraintNgeneric::Compute_Cq_q() {
     return ret;
 }
 
-void ChConstraintNgeneric::Increment_q(const double deltal) {
+void ChConstraintNgeneric::IncrementState(double deltal) {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive()) {
             variables[i]->State() += Eq[i] * deltal;
@@ -104,7 +104,7 @@ void ChConstraintNgeneric::Increment_q(const double deltal) {
     }
 }
 
-void ChConstraintNgeneric::MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+void ChConstraintNgeneric::AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive()) {
             result += Cq[i] * vect.segment(variables[i]->GetOffset(), Cq[i].size());
@@ -112,7 +112,7 @@ void ChConstraintNgeneric::MultiplyAndAdd(double& result, const ChVectorDynamic<
     }
 }
 
-void ChConstraintNgeneric::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) const {
+void ChConstraintNgeneric::AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive()) {
             result.segment(variables[i]->GetOffset(), Cq[i].size()) += Cq[i].transpose() * l;

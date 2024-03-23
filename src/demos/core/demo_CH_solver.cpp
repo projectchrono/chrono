@@ -83,7 +83,7 @@ void test_1(const std::string& out_dir) {
     // create C++ objects representing 'constraints' between variables:
 
     ChConstraintTwoGeneric mca(&mvarA, &mvarB);
-    mca.Set_b_i(-5);
+    mca.SetRightHandSide(-5);
     mca.Get_Cq_a()(0) = 1;
     mca.Get_Cq_a()(1) = 2;
     mca.Get_Cq_a()(2) = -1;
@@ -92,7 +92,7 @@ void test_1(const std::string& out_dir) {
     mca.Get_Cq_b()(2) = 0;
 
     ChConstraintTwoGeneric mcb(&mvarA, &mvarB);
-    mcb.Set_b_i(1);
+    mcb.SetRightHandSide(1);
     mcb.Get_Cq_a()(0) = 0;
     mcb.Get_Cq_a()(1) = 1;
     mcb.Get_Cq_a()(2) = 0;
@@ -156,11 +156,11 @@ void test_1(const std::string& out_dir) {
     std::cout << mvarA.State() << std::endl;
     std::cout << mvarB.State() << "  " << std::endl;
     std::cout << "multipliers l_1 and l_2 ------------\n" << std::endl;
-    std::cout << mca.Get_l_i() << " " << std::endl;
-    std::cout << mcb.Get_l_i() << " \n" << std::endl;
+    std::cout << mca.GetLagrangeMultiplier() << " " << std::endl;
+    std::cout << mcb.GetLagrangeMultiplier() << " \n" << std::endl;
     std::cout << "constraint residuals c_1 and c_2 ---" << std::endl;
-    std::cout << mca.Get_c_i() << " " << std::endl;
-    std::cout << mcb.Get_c_i() << " \n" << std::endl;
+    std::cout << mca.GetResidual() << " " << std::endl;
+    std::cout << mcb.GetResidual() << " \n" << std::endl;
 
     // reset variables
     mvarA.State().setZero();
@@ -194,7 +194,7 @@ void test_2(const std::string& out_dir) {
         mdescriptor.InsertVariables(vars[im]);
         if (im > 0) {
             constraints.push_back(new ChConstraintTwoGeneric(vars[im], vars[im - 1]));
-            constraints[im - 1]->Set_b_i(0);
+            constraints[im - 1]->SetRightHandSide(0);
             constraints[im - 1]->Get_Cq_a()(0) = 1;
             constraints[im - 1]->Get_Cq_b()(0) = -1;
             mdescriptor.InsertConstraint(constraints[im - 1]);
@@ -234,7 +234,7 @@ void test_2(const std::string& out_dir) {
 
     std::cout << "CONSTRAINTS: " << std::endl;
     for (int ic = 0; ic < constraints.size(); ic++)
-        std::cout << "   " << constraints[ic]->Get_l_i() << std::endl;
+        std::cout << "   " << constraints[ic]->GetLagrangeMultiplier() << std::endl;
 }
 
 // Test 3
@@ -296,16 +296,16 @@ void test_3(const std::string& out_dir) {
     // Also set cfm term (E diagonal = -cfm)
 
     ChConstraintTwoBodies mca(&mvarA, &mvarB);
-    mca.Set_b_i(3);
+    mca.SetRightHandSide(3);
     mca.Get_Cq_a().fillRandom(-1, 1);
     mca.Get_Cq_b().fillRandom(-1, 1);
-    mca.Set_cfm_i(0.2);
+    mca.SetComplianceTerm(0.2);
 
     ChConstraintTwoBodies mcb(&mvarA, &mvarB);
-    mcb.Set_b_i(5);
+    mcb.SetRightHandSide(5);
     mcb.Get_Cq_a().fillRandom(-1, 1);
     mcb.Get_Cq_b().fillRandom(-1, 1);
-    mcb.Set_cfm_i(0.1);
+    mcb.SetComplianceTerm(0.1);
 
     mdescriptor.InsertConstraint(&mca);
     mdescriptor.InsertConstraint(&mcb);
@@ -377,7 +377,7 @@ void test_3(const std::string& out_dir) {
         std::cout << "   " << mdescriptor.GetVariables()[im]->State()(0) << std::endl;
 
     for (int ic = 0; ic < mdescriptor.GetConstraints().size(); ic++)
-        std::cout << "   " << mdescriptor.GetConstraints()[ic]->Get_l_i() << std::endl;
+        std::cout << "   " << mdescriptor.GetConstraints()[ic]->GetLagrangeMultiplier() << std::endl;
     */
 }
 
@@ -407,7 +407,7 @@ void test_4(const std::string& out_dir) {
     mdescriptor.InsertVariables(&mvarB);
 
     ChConstraintTwoGeneric mca(&mvarA, &mvarB);
-    mca.Set_b_i(-5);
+    mca.SetRightHandSide(-5);
     mca.Get_Cq_a()(0) = 1;
     mca.Get_Cq_a()(1) = 2;
     mca.Get_Cq_a()(2) = -1;
@@ -416,7 +416,7 @@ void test_4(const std::string& out_dir) {
     mca.Get_Cq_b()(2) = 0;
 
     ChConstraintTwoGeneric mcb(&mvarA, &mvarB);
-    mcb.Set_b_i(1);
+    mcb.SetRightHandSide(1);
     mcb.Get_Cq_a()(0) = 0;
     mcb.Get_Cq_a()(1) = 1;
     mcb.Get_Cq_a()(2) = 0;
@@ -473,11 +473,11 @@ void test_4(const std::string& out_dir) {
     std::cout << mvarA.State() << std::endl;
     std::cout << mvarB.State() << "  " << std::endl;
     std::cout << "multipliers l_1 and l_2 ------------\n" << std::endl;
-    std::cout << mca.Get_l_i() << " " << std::endl;
-    std::cout << mcb.Get_l_i() << " \n" << std::endl;
+    std::cout << mca.GetLagrangeMultiplier() << " " << std::endl;
+    std::cout << mcb.GetLagrangeMultiplier() << " \n" << std::endl;
     std::cout << "constraint residuals c_1 and c_2 ---" << std::endl;
-    std::cout << mca.Get_c_i() << " " << std::endl;
-    std::cout << mcb.Get_c_i() << " \n" << std::endl;
+    std::cout << mca.GetResidual() << " " << std::endl;
+    std::cout << mcb.GetResidual() << " \n" << std::endl;
 
     // reset variables
     mvarA.State().setZero();

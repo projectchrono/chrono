@@ -109,7 +109,7 @@ void ChShaftsFreewheel::IntLoadResidual_CqL(const unsigned int off_L,    // offs
                                             const ChVectorDynamic<>& L,  // the L vector
                                             const double c               // a scaling factor
 ) {
-    constraint.MultiplyTandAdd(R, L(off_L) * c);
+    constraint.AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
 }
 
 void ChShaftsFreewheel::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
@@ -148,16 +148,16 @@ void ChShaftsFreewheel::IntToDescriptor(const unsigned int off_v,  // offset in 
                                         const unsigned int off_L,  // offset in L, Qc
                                         const ChVectorDynamic<>& L,
                                         const ChVectorDynamic<>& Qc) {
-    constraint.Set_l_i(L(off_L));
+    constraint.SetLagrangeMultiplier(L(off_L));
 
-    constraint.Set_b_i(Qc(off_L));
+    constraint.SetRightHandSide(Qc(off_L));
 }
 
 void ChShaftsFreewheel::IntFromDescriptor(const unsigned int off_v,  // offset in v
                                           ChStateDelta& v,
                                           const unsigned int off_L,  // offset in L
                                           ChVectorDynamic<>& L) {
-    L(off_L) = constraint.Get_l_i();
+    L(off_L) = constraint.GetLagrangeMultiplier();
 }
 
 void ChShaftsFreewheel::InjectConstraints(ChSystemDescriptor& descriptor) {
@@ -168,7 +168,7 @@ void ChShaftsFreewheel::InjectConstraints(ChSystemDescriptor& descriptor) {
 }
 
 void ChShaftsFreewheel::ConstraintsBiReset() {
-    constraint.Set_b_i(0.);
+    constraint.SetRightHandSide(0.);
 }
 
 void ChShaftsFreewheel::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -177,7 +177,7 @@ void ChShaftsFreewheel::ConstraintsBiLoad_C(double factor, double recovery_clamp
 
     double res = 0;  // no residual
 
-    constraint.Set_b_i(constraint.Get_b_i() + factor * res);
+    constraint.SetRightHandSide(constraint.GetRightHandSide() + factor * res);
 }
 
 void ChShaftsFreewheel::LoadConstraintJacobians() {
@@ -188,7 +188,7 @@ void ChShaftsFreewheel::LoadConstraintJacobians() {
 
 void ChShaftsFreewheel::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    torque_react = constraint.Get_l_i() * factor;
+    torque_react = constraint.GetLagrangeMultiplier() * factor;
 }
 
 void ChShaftsFreewheel::ArchiveOut(ChArchiveOut& archive_out) {

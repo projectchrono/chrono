@@ -116,7 +116,7 @@ bool ChSystemMulticore::AdvanceDynamics() {
     std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraints();
     for (int index = 0; index < (signed)data_manager->num_bilaterals; index++) {
         int cntr = data_manager->host_data.bilateral_mapping[index];
-        mconstraints[cntr]->Set_l_i(data_manager->host_data.gamma[data_manager->num_unilaterals + index]);
+        mconstraints[cntr]->SetLagrangeMultiplier(data_manager->host_data.gamma[data_manager->num_unilaterals + index]);
     }
 
     // Update the constraint reactions.
@@ -655,7 +655,7 @@ double ChSystemMulticore::CalculateConstraintViolation(std::vector<double>& cvec
 
     for (int index = 0; index < (signed)data_manager->num_bilaterals; index++) {
         int cntr = data_manager->host_data.bilateral_mapping[index];
-        cvec[index] = mconstraints[cntr]->Compute_c_i();
+        cvec[index] = mconstraints[cntr]->ComputeResidual();
         double abs_c = std::abs(cvec[index]);
         if (abs_c > max_c)
             max_c = abs_c;

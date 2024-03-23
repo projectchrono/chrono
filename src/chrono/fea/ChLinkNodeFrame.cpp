@@ -133,15 +133,15 @@ void ChLinkNodeFrameGeneric::IntLoadResidual_CqL(const unsigned int off_L,    //
 
     int cnt = 0;
     if (c_x && this->m_constraint1.IsActive()) {
-        m_constraint1.MultiplyTandAdd(R, L(off_L + cnt) * c);
+        m_constraint1.AddJacobianTransposedTimesScalarInto(R, L(off_L + cnt) * c);
         cnt++;
     }
     if (c_y && this->m_constraint2.IsActive()) {
-        m_constraint1.MultiplyTandAdd(R, L(off_L + cnt) * c);
+        m_constraint1.AddJacobianTransposedTimesScalarInto(R, L(off_L + cnt) * c);
         cnt++;
     }
     if (c_y && this->m_constraint3.IsActive()) {
-        m_constraint1.MultiplyTandAdd(R, L(off_L + cnt) * c);
+        m_constraint1.AddJacobianTransposedTimesScalarInto(R, L(off_L + cnt) * c);
         // cnt++;
     }
 }
@@ -192,18 +192,18 @@ void ChLinkNodeFrameGeneric::IntToDescriptor(const unsigned int off_v,
 
     int cnt = 0;
     if (c_x && this->m_constraint1.IsActive()) {
-        m_constraint1.Set_l_i(L(off_L + cnt));
-        m_constraint1.Set_b_i(Qc(off_L + cnt));
+        m_constraint1.SetLagrangeMultiplier(L(off_L + cnt));
+        m_constraint1.SetRightHandSide(Qc(off_L + cnt));
         cnt++;
     }
     if (c_y && this->m_constraint2.IsActive()) {
-        m_constraint2.Set_l_i(L(off_L + cnt));
-        m_constraint2.Set_b_i(Qc(off_L + cnt));
+        m_constraint2.SetLagrangeMultiplier(L(off_L + cnt));
+        m_constraint2.SetRightHandSide(Qc(off_L + cnt));
         cnt++;
     }
     if (c_z && this->m_constraint3.IsActive()) {
-        m_constraint3.Set_l_i(L(off_L + cnt));
-        m_constraint3.Set_b_i(Qc(off_L + cnt));
+        m_constraint3.SetLagrangeMultiplier(L(off_L + cnt));
+        m_constraint3.SetRightHandSide(Qc(off_L + cnt));
         // cnt++;
     }
 }
@@ -217,15 +217,15 @@ void ChLinkNodeFrameGeneric::IntFromDescriptor(const unsigned int off_v,
 
     int cnt = 0;
     if (c_x && this->m_constraint1.IsActive()) {
-        L(off_L + cnt) = m_constraint1.Get_l_i();
+        L(off_L + cnt) = m_constraint1.GetLagrangeMultiplier();
         cnt++;
     }
     if (c_y && this->m_constraint2.IsActive()) {
-        L(off_L + cnt) = m_constraint2.Get_l_i();
+        L(off_L + cnt) = m_constraint2.GetLagrangeMultiplier();
         cnt++;
     }
     if (c_z && this->m_constraint3.IsActive()) {
-        L(off_L + cnt) = m_constraint3.Get_l_i();
+        L(off_L + cnt) = m_constraint3.GetLagrangeMultiplier();
         // cnt++;
     }
 }
@@ -247,9 +247,9 @@ void ChLinkNodeFrameGeneric::InjectConstraints(ChSystemDescriptor& descriptor) {
 }
 
 void ChLinkNodeFrameGeneric::ConstraintsBiReset() {
-    m_constraint1.Set_b_i(0.);
-    m_constraint2.Set_b_i(0.);
-    m_constraint3.Set_b_i(0.);
+    m_constraint1.SetRightHandSide(0.);
+    m_constraint2.SetRightHandSide(0.);
+    m_constraint3.SetRightHandSide(0.);
 }
 
 void ChLinkNodeFrameGeneric::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -264,13 +264,13 @@ void ChLinkNodeFrameGeneric::ConstraintsBiLoad_C(double factor, double recovery_
     ChVector3d res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
 
     if (c_x && this->m_constraint1.IsActive()) {
-        m_constraint1.Set_b_i(m_constraint1.Get_b_i() + factor * res.x());
+        m_constraint1.SetRightHandSide(m_constraint1.GetRightHandSide() + factor * res.x());
     }
     if (c_y && this->m_constraint2.IsActive()) {
-        m_constraint2.Set_b_i(m_constraint2.Get_b_i() + factor * res.y());
+        m_constraint2.SetRightHandSide(m_constraint2.GetRightHandSide() + factor * res.y());
     }
     if (c_z && this->m_constraint3.IsActive()) {
-        m_constraint3.Set_b_i(m_constraint3.Get_b_i() + factor * res.z());
+        m_constraint3.SetRightHandSide(m_constraint3.GetRightHandSide() + factor * res.z());
     }
 }
 
@@ -314,9 +314,9 @@ void ChLinkNodeFrameGeneric::LoadConstraintJacobians() {
 
 void ChLinkNodeFrameGeneric::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    m_react.x() = m_constraint1.Get_l_i() * factor;
-    m_react.y() = m_constraint2.Get_l_i() * factor;
-    m_react.z() = m_constraint3.Get_l_i() * factor;
+    m_react.x() = m_constraint1.GetLagrangeMultiplier() * factor;
+    m_react.y() = m_constraint2.GetLagrangeMultiplier() * factor;
+    m_react.z() = m_constraint3.GetLagrangeMultiplier() * factor;
 }
 
 // FILE I/O
@@ -401,9 +401,9 @@ void ChLinkNodeFrame::IntLoadResidual_CqL(const unsigned int off_L,    // offset
     if (!IsActive())
         return;
 
-    m_constraint1.MultiplyTandAdd(R, L(off_L + 0) * c);
-    m_constraint2.MultiplyTandAdd(R, L(off_L + 1) * c);
-    m_constraint3.MultiplyTandAdd(R, L(off_L + 2) * c);
+    m_constraint1.AddJacobianTransposedTimesScalarInto(R, L(off_L + 0) * c);
+    m_constraint2.AddJacobianTransposedTimesScalarInto(R, L(off_L + 1) * c);
+    m_constraint3.AddJacobianTransposedTimesScalarInto(R, L(off_L + 2) * c);
 }
 
 void ChLinkNodeFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
@@ -439,13 +439,13 @@ void ChLinkNodeFrame::IntToDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    m_constraint1.Set_l_i(L(off_L + 0));
-    m_constraint2.Set_l_i(L(off_L + 1));
-    m_constraint3.Set_l_i(L(off_L + 2));
+    m_constraint1.SetLagrangeMultiplier(L(off_L + 0));
+    m_constraint2.SetLagrangeMultiplier(L(off_L + 1));
+    m_constraint3.SetLagrangeMultiplier(L(off_L + 2));
 
-    m_constraint1.Set_b_i(Qc(off_L + 0));
-    m_constraint2.Set_b_i(Qc(off_L + 1));
-    m_constraint3.Set_b_i(Qc(off_L + 2));
+    m_constraint1.SetRightHandSide(Qc(off_L + 0));
+    m_constraint2.SetRightHandSide(Qc(off_L + 1));
+    m_constraint3.SetRightHandSide(Qc(off_L + 2));
 }
 
 void ChLinkNodeFrame::IntFromDescriptor(const unsigned int off_v,
@@ -455,9 +455,9 @@ void ChLinkNodeFrame::IntFromDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    L(off_L + 0) = m_constraint1.Get_l_i();
-    L(off_L + 1) = m_constraint2.Get_l_i();
-    L(off_L + 2) = m_constraint3.Get_l_i();
+    L(off_L + 0) = m_constraint1.GetLagrangeMultiplier();
+    L(off_L + 1) = m_constraint2.GetLagrangeMultiplier();
+    L(off_L + 2) = m_constraint3.GetLagrangeMultiplier();
 }
 
 // SOLVER INTERFACES
@@ -472,9 +472,9 @@ void ChLinkNodeFrame::InjectConstraints(ChSystemDescriptor& descriptor) {
 }
 
 void ChLinkNodeFrame::ConstraintsBiReset() {
-    m_constraint1.Set_b_i(0.);
-    m_constraint2.Set_b_i(0.);
-    m_constraint3.Set_b_i(0.);
+    m_constraint1.SetRightHandSide(0.);
+    m_constraint2.SetRightHandSide(0.);
+    m_constraint3.SetRightHandSide(0.);
 }
 
 void ChLinkNodeFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -488,9 +488,9 @@ void ChLinkNodeFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, 
 
     ChVector3d res = Arw.transpose() * (m_node->GetPos() - m_body->TransformPointLocalToParent(m_csys.pos));
 
-    m_constraint1.Set_b_i(m_constraint1.Get_b_i() + factor * res.x());
-    m_constraint2.Set_b_i(m_constraint2.Get_b_i() + factor * res.y());
-    m_constraint3.Set_b_i(m_constraint3.Get_b_i() + factor * res.z());
+    m_constraint1.SetRightHandSide(m_constraint1.GetRightHandSide() + factor * res.x());
+    m_constraint2.SetRightHandSide(m_constraint2.GetRightHandSide() + factor * res.y());
+    m_constraint3.SetRightHandSide(m_constraint3.GetRightHandSide() + factor * res.z());
 }
 
 void ChLinkNodeFrame::ConstraintsBiLoad_Ct(double factor) {
@@ -528,9 +528,9 @@ void ChLinkNodeFrame::LoadConstraintJacobians() {
 
 void ChLinkNodeFrame::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    m_react.x() = m_constraint1.Get_l_i() * factor;
-    m_react.y() = m_constraint2.Get_l_i() * factor;
-    m_react.z() = m_constraint3.Get_l_i() * factor;
+    m_react.x() = m_constraint1.GetLagrangeMultiplier() * factor;
+    m_react.y() = m_constraint2.GetLagrangeMultiplier() * factor;
+    m_react.z() = m_constraint3.GetLagrangeMultiplier() * factor;
 }
 
 // FILE I/O

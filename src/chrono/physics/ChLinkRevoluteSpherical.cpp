@@ -283,8 +283,8 @@ void ChLinkRevoluteSpherical::IntLoadResidual_CqL(const unsigned int off_L,    /
                                                   const ChVectorDynamic<>& L,  ///< the L vector
                                                   const double c               ///< a scaling factor
 ) {
-    m_cnstr_dist.MultiplyTandAdd(R, L(off_L + 0) * c);
-    m_cnstr_dot.MultiplyTandAdd(R, L(off_L + 1) * c);
+    m_cnstr_dist.AddJacobianTransposedTimesScalarInto(R, L(off_L + 0) * c);
+    m_cnstr_dot.AddJacobianTransposedTimesScalarInto(R, L(off_L + 1) * c);
 }
 
 void ChLinkRevoluteSpherical::IntLoadConstraint_C(const unsigned int off_L,  ///< offset in Qc residual
@@ -316,11 +316,11 @@ void ChLinkRevoluteSpherical::IntToDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    m_cnstr_dist.Set_l_i(L(off_L + 0));
-    m_cnstr_dot.Set_l_i(L(off_L + 1));
+    m_cnstr_dist.SetLagrangeMultiplier(L(off_L + 0));
+    m_cnstr_dot.SetLagrangeMultiplier(L(off_L + 1));
 
-    m_cnstr_dist.Set_b_i(Qc(off_L + 0));
-    m_cnstr_dot.Set_b_i(Qc(off_L + 1));
+    m_cnstr_dist.SetRightHandSide(Qc(off_L + 0));
+    m_cnstr_dot.SetRightHandSide(Qc(off_L + 1));
 }
 
 void ChLinkRevoluteSpherical::IntFromDescriptor(const unsigned int off_v,
@@ -330,8 +330,8 @@ void ChLinkRevoluteSpherical::IntFromDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    L(off_L + 0) = m_cnstr_dist.Get_l_i();
-    L(off_L + 1) = m_cnstr_dot.Get_l_i();
+    L(off_L + 0) = m_cnstr_dist.GetLagrangeMultiplier();
+    L(off_L + 1) = m_cnstr_dot.GetLagrangeMultiplier();
 }
 
 // -----------------------------------------------------------------------------
@@ -346,8 +346,8 @@ void ChLinkRevoluteSpherical::InjectConstraints(ChSystemDescriptor& descriptor) 
 }
 
 void ChLinkRevoluteSpherical::ConstraintsBiReset() {
-    m_cnstr_dist.Set_b_i(0.0);
-    m_cnstr_dot.Set_b_i(0.0);
+    m_cnstr_dist.SetRightHandSide(0.0);
+    m_cnstr_dot.SetRightHandSide(0.0);
 }
 
 void ChLinkRevoluteSpherical::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -361,8 +361,8 @@ void ChLinkRevoluteSpherical::ConstraintsBiLoad_C(double factor, double recovery
     double cnstr_dot_violation =
         do_clamp ? std::min(std::max(factor * m_cur_dot, -recovery_clamp), recovery_clamp) : factor * m_cur_dot;
 
-    m_cnstr_dist.Set_b_i(m_cnstr_dist.Get_b_i() + cnstr_dist_violation);
-    m_cnstr_dot.Set_b_i(m_cnstr_dot.Get_b_i() + cnstr_dot_violation);
+    m_cnstr_dist.SetRightHandSide(m_cnstr_dist.GetRightHandSide() + cnstr_dist_violation);
+    m_cnstr_dot.SetRightHandSide(m_cnstr_dot.GetRightHandSide() + cnstr_dot_violation);
 }
 
 void ChLinkRevoluteSpherical::LoadConstraintJacobians() {
@@ -372,8 +372,8 @@ void ChLinkRevoluteSpherical::LoadConstraintJacobians() {
 void ChLinkRevoluteSpherical::ConstraintsFetch_react(double factor) {
     // Extract the Lagrange multipliers for the distance and for
     // the dot constraint.
-    double lam_dist = m_cnstr_dist.Get_l_i();  // ||pos2_abs - pos1_abs|| - dist = 0
-    double lam_dot = m_cnstr_dot.Get_l_i();    // dot(dir1_abs, pos2_abs - pos1_abs) = 0
+    double lam_dist = m_cnstr_dist.GetLagrangeMultiplier();  // ||pos2_abs - pos1_abs|| - dist = 0
+    double lam_dot = m_cnstr_dot.GetLagrangeMultiplier();    // dot(dir1_abs, pos2_abs - pos1_abs) = 0
 
     // Note that the Lagrange multipliers must be multiplied by 'factor' to
     // convert from reaction impulses to reaction forces.

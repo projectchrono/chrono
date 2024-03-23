@@ -478,7 +478,7 @@ void ChLinkMateGeneric::IntLoadResidual_CqL(const unsigned int off_L,
     int cnt = 0;
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive()) {
-            mask.GetConstraint(i).MultiplyTandAdd(R, L(off_L + cnt) * c);
+            mask.GetConstraint(i).AddJacobianTransposedTimesScalarInto(R, L(off_L + cnt) * c);
             cnt++;
         }
     }
@@ -517,8 +517,8 @@ void ChLinkMateGeneric::IntToDescriptor(const unsigned int off_v,
     int cnt = 0;
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive()) {
-            mask.GetConstraint(i).Set_l_i(L(off_L + cnt));
-            mask.GetConstraint(i).Set_b_i(Qc(off_L + cnt));
+            mask.GetConstraint(i).SetLagrangeMultiplier(L(off_L + cnt));
+            mask.GetConstraint(i).SetRightHandSide(Qc(off_L + cnt));
             cnt++;
         }
     }
@@ -531,7 +531,7 @@ void ChLinkMateGeneric::IntFromDescriptor(const unsigned int off_v,
     int cnt = 0;
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive()) {
-            L(off_L + cnt) = mask.GetConstraint(i).Get_l_i();
+            L(off_L + cnt) = mask.GetConstraint(i).GetLagrangeMultiplier();
             cnt++;
         }
     }
@@ -554,7 +554,7 @@ void ChLinkMateGeneric::ConstraintsBiReset() {
         return;
 
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
-        mask.GetConstraint(i).Set_b_i(0.);
+        mask.GetConstraint(i).SetRightHandSide(0.);
     }
 }
 
@@ -578,13 +578,13 @@ void ChLinkMateGeneric::ConstraintsBiLoad_C(double factor, double recovery_clamp
         if (mask.GetConstraint(i).IsActive()) {
             if (do_clamp) {
                 if (mask.GetConstraint(i).IsUnilateral())
-                    mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() +
+                    mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() +
                                                   std::max(factor * C(cnt), -recovery_clamp));
                 else
-                    mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() +
+                    mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() +
                                                   std::min(std::max(factor * C(cnt), -recovery_clamp), recovery_clamp));
             } else
-                mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() + factor * C(cnt));
+                mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() + factor * C(cnt));
 
             cnt++;
         }
@@ -614,32 +614,32 @@ void ChLinkMateGeneric::ConstraintsFetch_react(double factor) {
     int nc = 0;
     if (c_x) {
         if (mask.GetConstraint(nc).IsActive())
-            gamma_f.x() = -mask.GetConstraint(nc).Get_l_i() * factor;
+            gamma_f.x() = -mask.GetConstraint(nc).GetLagrangeMultiplier() * factor;
         nc++;
     }
     if (c_y) {
         if (mask.GetConstraint(nc).IsActive())
-            gamma_f.y() = -mask.GetConstraint(nc).Get_l_i() * factor;
+            gamma_f.y() = -mask.GetConstraint(nc).GetLagrangeMultiplier() * factor;
         nc++;
     }
     if (c_z) {
         if (mask.GetConstraint(nc).IsActive())
-            gamma_f.z() = -mask.GetConstraint(nc).Get_l_i() * factor;
+            gamma_f.z() = -mask.GetConstraint(nc).GetLagrangeMultiplier() * factor;
         nc++;
     }
     if (c_rx) {
         if (mask.GetConstraint(nc).IsActive())
-            gamma_m.x() = -mask.GetConstraint(nc).Get_l_i() * factor;
+            gamma_m.x() = -mask.GetConstraint(nc).GetLagrangeMultiplier() * factor;
         nc++;
     }
     if (c_ry) {
         if (mask.GetConstraint(nc).IsActive())
-            gamma_m.y() = -mask.GetConstraint(nc).Get_l_i() * factor;
+            gamma_m.y() = -mask.GetConstraint(nc).GetLagrangeMultiplier() * factor;
         nc++;
     }
     if (c_rz) {
         if (mask.GetConstraint(nc).IsActive())
-            gamma_m.z() = -mask.GetConstraint(nc).Get_l_i() * factor;
+            gamma_m.z() = -mask.GetConstraint(nc).GetLagrangeMultiplier() * factor;
         nc++;
     }
 

@@ -243,22 +243,22 @@ void ChLinkMotionImposed::ConstraintsBiLoad_Ct(double factor) {
     ChVector3d mv_rot = rotation_function->GetQuat(T).RotateBack(mv);  // need velocity in local rotated system
 
     if (mask.GetConstraint(0).IsActive()) {
-        mask.GetConstraint(0).Set_b_i(mask.GetConstraint(0).Get_b_i() + factor * mv_rot.x());
+        mask.GetConstraint(0).SetRightHandSide(mask.GetConstraint(0).GetRightHandSide() + factor * mv_rot.x());
     }
     if (mask.GetConstraint(1).IsActive()) {
-        mask.GetConstraint(1).Set_b_i(mask.GetConstraint(1).Get_b_i() + factor * mv_rot.y());
+        mask.GetConstraint(1).SetRightHandSide(mask.GetConstraint(1).GetRightHandSide() + factor * mv_rot.y());
     }
     if (mask.GetConstraint(2).IsActive()) {
-        mask.GetConstraint(2).Set_b_i(mask.GetConstraint(2).Get_b_i() + factor * mv_rot.z());
+        mask.GetConstraint(2).SetRightHandSide(mask.GetConstraint(2).GetRightHandSide() + factor * mv_rot.z());
     }
     if (mask.GetConstraint(3).IsActive()) {
-        mask.GetConstraint(3).Set_b_i(mask.GetConstraint(3).Get_b_i() + factor * 0.5 * mw_loc.x());
+        mask.GetConstraint(3).SetRightHandSide(mask.GetConstraint(3).GetRightHandSide() + factor * 0.5 * mw_loc.x());
     }
     if (mask.GetConstraint(4).IsActive()) {
-        mask.GetConstraint(4).Set_b_i(mask.GetConstraint(4).Get_b_i() + factor * 0.5 * mw_loc.y());
+        mask.GetConstraint(4).SetRightHandSide(mask.GetConstraint(4).GetRightHandSide() + factor * 0.5 * mw_loc.y());
     }
     if (mask.GetConstraint(5).IsActive()) {
-        mask.GetConstraint(5).Set_b_i(mask.GetConstraint(5).Get_b_i() + factor * 0.5 * mw_loc.z());
+        mask.GetConstraint(5).SetRightHandSide(mask.GetConstraint(5).GetRightHandSide() + factor * 0.5 * mw_loc.z());
     }
 }
 
