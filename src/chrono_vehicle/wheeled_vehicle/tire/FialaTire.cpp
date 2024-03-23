@@ -80,11 +80,6 @@ void FialaTire::Create(const rapidjson::Document& d) {
     m_c_alpha = d["Fiala Parameters"]["CALPHA"].GetDouble();
     m_u_min = d["Fiala Parameters"]["UMIN"].GetDouble();
     m_u_max = d["Fiala Parameters"]["UMAX"].GetDouble();
-    m_relax_length_x = d["Fiala Parameters"]["X Relaxation Length"].GetDouble();
-    m_relax_length_y = d["Fiala Parameters"]["Y Relaxation Length"].GetDouble();
-    if (m_relax_length_x <= 0.0 || m_relax_length_y <= 0.0) {
-        m_dynamic_mode = false;
-    }
 
     m_visualization_width = ChFialaTire::GetVisualizationWidth();
 
