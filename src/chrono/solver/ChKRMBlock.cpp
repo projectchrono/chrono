@@ -52,7 +52,7 @@ void ChKRMBlock::SetVariables(std::vector<ChVariables*> mvariables) {
     KRM.resize(msize, msize);
 }
 
-void ChKRMBlock::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect) const {
+void ChKRMBlock::AddMatrixTimesVectorInto(ChVectorRef result, ChVectorConstRef vect) const {
     unsigned int kio = 0;
     for (unsigned int iv = 0; iv < GetNumVariables(); iv++) {
         unsigned int io = GetVariable(iv)->GetOffset();
@@ -96,7 +96,10 @@ void ChKRMBlock::DiagonalAdd(ChVectorRef result) const {
     }
 }
 
-void ChKRMBlock::PasteInto(ChSparseMatrix& storage, unsigned int row_offset, unsigned int col_offset, bool overwrite) const {
+void ChKRMBlock::PasteMatrixInto(ChSparseMatrix& storage,
+                                 unsigned int row_offset,
+                                 unsigned int col_offset,
+                                 bool overwrite) const {
     if (KRM.rows() == 0)
         return;
 

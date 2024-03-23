@@ -108,7 +108,7 @@ void ChSystemDescriptor::PasteMassKRMMatrixInto(ChSparseMatrix& Z,
 
     // Contribution of stiffness, damping and mass matrices
     for (const auto& KRMBlock : m_KRMblocks) {
-        KRMBlock->PasteInto(Z, row_offset, col_offset, false);
+        KRMBlock->PasteMatrixInto(Z, row_offset, col_offset, false);
     }
 }
 
@@ -445,7 +445,7 @@ void ChSystemDescriptor::SystemProduct(ChVectorDynamic<>& result, const ChVector
 
     // 1.2)  add also K*x.q  (NON straight parallelizable - risk of concurrency in writing)
     for (const auto& krm_block : m_KRMblocks) {
-        krm_block->MultiplyAndAdd(result, x);
+        krm_block->AddMatrixTimesVectorInto(result, x);
     }
 
     // 1.3)  add also [Cq]'*x.l  (NON straight parallelizable - risk of concurrency in writing)

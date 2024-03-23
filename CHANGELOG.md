@@ -666,9 +666,10 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SaveMatrix                    | rename: WriteMatrices                            |
 | ChKblock                          |                               | remove                                           |
 | ChKblockGeneric                   |                               | rename: ChKRMBlock                               |
-|                                   | Build_K                       | rename: PasteInto (see Notes)                    |
+|                                   | Build_K                       | rename: PasteMatrixInto (see Notes)              |
 |                                   | Get_K                         | rename: GetMatrix                                |
 |                                   | GetVariableN                  | rename: GetVariable                              |
+|                                   | MultiplyAndAdd                | rename: AddMatrixTimesVectorInto                 |
 | ChLine                            |                               |                                                  |
 |                                   | Get_closed                    | rename: IsClosed                                 |
 |                                   | Get_complexity                | rename: GetComplexity                            |

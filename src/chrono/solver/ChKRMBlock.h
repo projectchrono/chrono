@@ -53,12 +53,10 @@ class ChApi ChKRMBlock {
     /// Access the KRM matrix as a single block, corresponding to the referenced ChVariable objects.
     ChMatrixRef GetMatrix() { return KRM; }
 
-    /// Computes the product of the corresponding blocks in the system matrix (ie. the K matrix blocks) by 'vect', and
-    /// add to 'result'.
-    /// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables & constraints in the
-    /// system; the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in
-    /// result and vect.
-    void MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect) const;
+    /// Add the product of the block matrix by a given vector and add to result.
+    /// Note: 'result' and 'vect' are system-level vectors of appropriate size. This function must index into these
+    /// vectors using the offsets of the associated variables variable.
+    void AddMatrixTimesVectorInto(ChVectorRef result, ChVectorConstRef vect) const;
 
     /// Add the diagonal of the stiffness matrix block(s) as a column vector to 'result'.
     /// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
@@ -71,7 +69,10 @@ class ChApi ChKRMBlock {
     /// otherwise the values are summed.
     /// Assembling the system-level sparse matrix is required only if using a direct sparse solver or for
     /// debugging/reporting purposes.
-    void PasteInto(ChSparseMatrix& storage, unsigned int row_offset, unsigned int col_offset, bool overwrite) const;
+    void PasteMatrixInto(ChSparseMatrix& storage,
+                         unsigned int row_offset,
+                         unsigned int col_offset,
+                         bool overwrite) const;
 
   private:
     ChMatrixDynamic<double> KRM;
