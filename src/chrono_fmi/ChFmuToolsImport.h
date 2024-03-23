@@ -133,8 +133,8 @@ class FmuChronoUnit : public FmuUnit {
             return status_rot_dt;
 
         frame = ChFrameMoving<>(csys);
-        frame.SetPosDer(pos_dt);
-        frame.SetRotDer(rot_dt);
+        frame.SetPosDt(pos_dt);
+        frame.SetRotDt(rot_dt);
 
         return fmi2OK;
     }
@@ -148,10 +148,10 @@ class FmuChronoUnit : public FmuUnit {
         auto status_csys = SetCoordsysVariable(name, frame.GetCoordsys());
         if (status_csys != fmi2OK)
             return status_csys;
-        auto status_pos_dt = SetVecVariable(name + ".pos_dt", frame.GetPosDer());
+        auto status_pos_dt = SetVecVariable(name + ".pos_dt", frame.GetPosDt());
         if (status_pos_dt != fmi2OK)
             return status_pos_dt;
-        auto status_rot_dt = SetQuatVariable(name + ".rot_dt", frame.GetRotDer());
+        auto status_rot_dt = SetQuatVariable(name + ".rot_dt", frame.GetRotDt());
         if (status_rot_dt != fmi2OK)
             return status_rot_dt;
 
