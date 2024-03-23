@@ -35,10 +35,9 @@ ChVariablesNode& ChVariablesNode::operator=(const ChVariablesNode& other) {
     return *this;
 }
 
-// Computes the product of the inverse mass matrix by a vector, and set in result: result = [invMb]*vect
-void ChVariablesNode::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(vect.size() == GetDOF());
-    assert(result.size() == GetDOF());
+void ChVariablesNode::ComputeMassInverseTimesVector(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(vect.size() == ndof);
+    assert(result.size() == ndof);
 
     // optimized unrolled operations
     double inv_mass = 1.0 / mass;
@@ -47,22 +46,9 @@ void ChVariablesNode::Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect)
     result(2) = inv_mass * vect(2);
 }
 
-// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
-void ChVariablesNode::Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(vect.size() == GetDOF());
-    assert(result.size() == GetDOF());
-
-    // optimized unrolled operations
-    double inv_mass = 1.0 / mass;
-    result(0) += inv_mass * vect(0);
-    result(1) += inv_mass * vect(1);
-    result(2) += inv_mass * vect(2);
-}
-
-// Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
-void ChVariablesNode::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const {
-    assert(result.size() == GetDOF());
-    assert(vect.size() == GetDOF());
+void ChVariablesNode::AddMassTimesVector(ChVectorRef result, ChVectorConstRef vect) const {
+    assert(result.size() == ndof);
+    assert(vect.size() == ndof);
 
     // optimized unrolled operations
     result(0) += mass * vect(0);
@@ -70,32 +56,25 @@ void ChVariablesNode::Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect
     result(2) += mass * vect(2);
 }
 
-// Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by c_a,
-// and add to 'result'.
-// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the system;
-// the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in result and vect.
-void ChVariablesNode::MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double c_a) const {
+void ChVariablesNode::AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, const double ca) const {
     // optimized unrolled operations
-    double scaledmass = c_a * mass;
-    result(offset) += scaledmass * vect(offset);
+    double scaledmass = ca * mass;
+    result(offset + 0) += scaledmass * vect(offset);
     result(offset + 1) += scaledmass * vect(offset + 1);
     result(offset + 2) += scaledmass * vect(offset + 2);
 }
 
-// Add the diagonal of the mass matrix scaled by c_a, to 'result'.
-// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
-// constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
-void ChVariablesNode::DiagonalAdd(ChVectorRef result, const double c_a) const {
-    result(this->offset) += c_a * mass;
-    result(this->offset + 1) += c_a * mass;
-    result(this->offset + 2) += c_a * mass;
+void ChVariablesNode::AddMassDiagonalInto(ChVectorRef result, const double ca) const {
+    result(offset + 0) += ca * mass;
+    result(offset + 1) += ca * mass;
+    result(offset + 2) += ca * mass;
 }
 
 void ChVariablesNode::PasteMassInto(ChSparseMatrix& storage,
                                     unsigned int row_offset,
                                     unsigned int col_offset,
-                                    const double c_a) const {
-    double scaledmass = c_a * mass;
+                                    const double ca) const {
+    double scaledmass = ca * mass;
     storage.SetElement(offset + row_offset + 0, offset + col_offset + 0, scaledmass);
     storage.SetElement(offset + row_offset + 1, offset + col_offset + 1, scaledmass);
     storage.SetElement(offset + row_offset + 2, offset + col_offset + 2, scaledmass);

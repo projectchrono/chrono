@@ -98,7 +98,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     // Put (M^-1)*k    in  q  sparse vector of each variable..
     for (unsigned int iv = 0; iv < mvariables.size(); iv++)
         if (mvariables[iv]->IsActive())
-            mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());  // q = [M]'*fb
+            mvariables[iv]->ComputeMassInverseTimesVector(mvariables[iv]->State(), mvariables[iv]->Force());  // q = [M]'*fb
 
     // ...and now do  b_schur = - D' * q  ..
     mb.setZero();

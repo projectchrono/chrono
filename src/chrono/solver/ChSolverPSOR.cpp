@@ -60,7 +60,7 @@ double ChSolverPSOR::Solve(ChSystemDescriptor& sysd) {
 
     for (unsigned int iv = 0; iv < mvariables.size(); iv++) {
         if (mvariables[iv]->IsActive())
-            mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());  // q = [M]'*fb
+            mvariables[iv]->ComputeMassInverseTimesVector(mvariables[iv]->State(), mvariables[iv]->Force());  // q = [M]'*fb
     }
 
     // 3)  For all items with variables, add the effect of initial (guessed)

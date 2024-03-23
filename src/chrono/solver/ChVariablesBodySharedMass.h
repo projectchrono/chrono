@@ -19,33 +19,26 @@
 
 namespace chrono {
 
-/// Used by ChVariablesBodySharedMass objects to reference a single mass property.
-
+/// Reference to a single mass property shared by multiple ChVariablesBodySharedMass objects.
 class ChApi ChSharedMassBody {
-  public:
-    ChMatrix33<double> inertia;      ///< 3x3 inertia matrix
-    double mass;                     ///< mass value
-    ChMatrix33<double> inv_inertia;  ///< inverse of inertia matrix
-    double inv_mass;                 ///< inverse of mass value
-
   public:
     ChSharedMassBody();
 
-    /// Set the inertia matrix
+    /// Set the inertia matrix.
     void SetBodyInertia(const ChMatrix33<>& minertia);
 
-    /// Set the mass associated with translation of body
+    /// Set the mass associated with translation of body.
     void SetBodyMass(const double mmass);
 
-    /// Access the 3x3 inertia matrix
+    /// Access the 3x3 inertia matrix.
     ChMatrix33<>& GetBodyInertia() { return inertia; }
     const ChMatrix33<>& GetBodyInertia() const { return inertia; }
 
-    /// Access the 3x3 inertia matrix inverted
+    /// Access the 3x3 inertia matrix inverted.
     ChMatrix33<>& GetBodyInvInertia() { return inv_inertia; }
     const ChMatrix33<>& GetBodyInvInertia() const { return inv_inertia; }
 
-    /// Get the mass associated with translation of body
+    /// Get the mass associated with translation of body.
     double GetBodyMass() const { return mass; }
 
     /// Method to allow serialization of transient data to archives.
@@ -53,18 +46,19 @@ class ChApi ChSharedMassBody {
 
     /// Method to allow de-serialization of transient data from archives.
     void ArchiveIn(ChArchiveIn& archive_in);
+
+  public:
+    ChMatrix33<double> inertia;      ///< 3x3 inertia matrix
+    double mass;                     ///< mass value
+    ChMatrix33<double> inv_inertia;  ///< inverse of inertia matrix
+    double inv_mass;                 ///< inverse of mass value
 };
 
-/// Specialized class for representing a 6-DOF item for a  system, that is a 3D rigid body, with mass matrix and
-/// associate variables (a 6 element vector, ex.speed)  Differently from the 'naive' implementation ChVariablesGeneric,
-/// here a full 6x6 mass matrix is not built, since only the 3x3  inertia matrix and the mass value are enough.  This is
-/// very similar to ChVariablesBodyOwnMass, but the  mass and inertia values are shared, that can be useful for problems
-/// with thousands of equally-shaped objects.
-
+/// Specialized class for representing a 6-DOF 3D rigid body, with mass matrix and associated variables.
+/// Differently from the generic ChVariablesGeneric, here a full 6x6 mass matrix is not built, since only the 3x3
+/// inertia matrix and the mass value are enough.  This is very similar to ChVariablesBodyOwnMass, but the  mass and
+/// inertia values are shared to be be used in problems with many identical objects.
 class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
-  private:
-    ChSharedMassBody* sharedmass;  ///< shared inertia properties
-
   public:
     ChVariablesBodySharedMass();
 
@@ -90,26 +84,23 @@ class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
     virtual ChMatrix33<>& GetBodyInvInertia() override { return sharedmass->GetBodyInvInertia(); }
     virtual const ChMatrix33<>& GetBodyInvInertia() const override { return sharedmass->GetBodyInvInertia(); }
 
-    /// Computes the product of the inverse mass matrix by a vector, and set in result: result = [invMb]*vect
-    virtual void Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const override;
+    /// Compute the product of the inverse mass matrix by a given vector and store in result.
+    /// This function must calculate `result = M^(-1) * vect` for a vector of same size as the variables state.
+    virtual void ComputeMassInverseTimesVector(ChVectorRef result, ChVectorConstRef vect) const override;
 
-    /// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
-    virtual void Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const override;
+    /// Compute the product of the mass matrix by a given vector and increment result.
+    /// This function must perform the operation `result += M * vect` for a vector of same size as the variables state.
+    virtual void AddMassTimesVector(ChVectorRef result, ChVectorConstRef vect) const override;
 
-    /// Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
-    virtual void Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const override;
+    /// Add the product of the mass submatrix by a given vector, scaled by ca, to result.
+    /// Note: 'result' and 'vect' are system-level vectors of appropriate size. This function must index into these
+    /// vectors using the offsets of each variable.
+    virtual void AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, const double ca) const override;
 
-    /// Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by
-    /// ca, and add to 'result'.
-    /// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the
-    /// system; the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in
-    /// result and vect.
-    virtual void MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double ca) const override;
-
-    /// Add the diagonal of the mass matrix scaled by ca, to 'result'.
-    /// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
-    /// constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
-    virtual void DiagonalAdd(ChVectorRef result, const double ca) const override;
+    /// Add the diagonal of the mass matrix, as a vector scaled by ca, to result.
+    /// Note: 'result' is a system-level vector of appropriate size. This function must index into this vector using the
+    /// offsets of each variable.
+    virtual void AddMassDiagonalInto(ChVectorRef result, const double ca) const override;
 
     /// Write the mass submatrix for these variables into the specified global matrix at the offsets of each variable.
     /// The masses must be scaled by the given factor 'ca'.
@@ -123,6 +114,9 @@ class ChApi ChVariablesBodySharedMass : public ChVariablesBody {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    ChSharedMassBody* sharedmass;  ///< shared inertia properties
 };
 
 }  // end namespace chrono

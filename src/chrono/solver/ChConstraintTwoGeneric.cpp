@@ -72,10 +72,10 @@ void ChConstraintTwoGeneric::Update_auxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
     if (variables_a->IsActive() && variables_a->GetDOF() > 0) {
-        variables_a->Compute_invMb_v(Eq_a, Cq_a.transpose());
+        variables_a->ComputeMassInverseTimesVector(Eq_a, Cq_a.transpose());
     }
     if (variables_b->IsActive() && variables_b->GetDOF() > 0) {
-        variables_b->Compute_invMb_v(Eq_b, Cq_b.transpose());
+        variables_b->ComputeMassInverseTimesVector(Eq_b, Cq_b.transpose());
     }
 
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
@@ -96,11 +96,11 @@ double ChConstraintTwoGeneric::Compute_Cq_q() {
     double ret = 0;
 
     if (variables_a->IsActive()) {
-        ret += Cq_a * variables_a->Get_qb();
+        ret += Cq_a * variables_a->State();
     }
 
     if (variables_b->IsActive()) {
-        ret += Cq_b * variables_b->Get_qb();
+        ret += Cq_b * variables_b->State();
     }
 
     return ret;
@@ -108,11 +108,11 @@ double ChConstraintTwoGeneric::Compute_Cq_q() {
 
 void ChConstraintTwoGeneric::Increment_q(const double deltal) {
     if (variables_a->IsActive()) {
-        variables_a->Get_qb() += Eq_a * deltal;
+        variables_a->State() += Eq_a * deltal;
     }
 
     if (variables_b->IsActive()) {
-        variables_b->Get_qb() += Eq_b * deltal;
+        variables_b->State() += Eq_b * deltal;
     }
 }
 

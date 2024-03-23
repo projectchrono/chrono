@@ -76,7 +76,7 @@ class ChConstraintTuple_1vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq]=[invM]*[Cq]' and [Eq]
         if (variables->IsActive()) {
-            variables->Compute_invMb_v(Eq, Cq.transpose());
+            variables->ComputeMassInverseTimesVector(Eq, Cq.transpose());
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
@@ -89,7 +89,7 @@ class ChConstraintTuple_1vars {
         double ret = 0;
 
         if (variables->IsActive()) {
-            ret += Cq * variables->Get_qb();
+            ret += Cq * variables->State();
         }
 
         return ret;
@@ -97,7 +97,7 @@ class ChConstraintTuple_1vars {
 
     void Increment_q(const double deltal) {
         if (variables->IsActive()) {
-            variables->Get_qb() += Eq * deltal;
+            variables->State() += Eq * deltal;
         }
     }
 
@@ -191,10 +191,10 @@ class ChConstraintTuple_2vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
         if (variables_1->IsActive()) {
-            variables_1->Compute_invMb_v(Eq_1, Cq_1.transpose());
+            variables_1->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
         }
         if (variables_2->IsActive()) {
-            variables_2->Compute_invMb_v(Eq_2, Cq_2.transpose());
+            variables_2->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
@@ -210,11 +210,11 @@ class ChConstraintTuple_2vars {
         double ret = 0;
 
         if (variables_1->IsActive()) {
-            ret += Cq_1 * variables_1->Get_qb();
+            ret += Cq_1 * variables_1->State();
         }
 
         if (variables_2->IsActive()) {
-            ret += Cq_2 * variables_2->Get_qb();
+            ret += Cq_2 * variables_2->State();
         }
 
         return ret;
@@ -222,11 +222,11 @@ class ChConstraintTuple_2vars {
 
     void Increment_q(const double deltal) {
         if (variables_1->IsActive()) {
-            variables_1->Get_qb() += Eq_1 * deltal;
+            variables_1->State() += Eq_1 * deltal;
         }
 
         if (variables_2->IsActive()) {
-            variables_2->Get_qb() += Eq_2 * deltal;
+            variables_2->State() += Eq_2 * deltal;
         }
     }
 
@@ -346,13 +346,13 @@ class ChConstraintTuple_3vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
         if (variables_1->IsActive()) {
-            variables_1->Compute_invMb_v(Eq_1, Cq_1.transpose());
+            variables_1->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
         }
         if (variables_2->IsActive()) {
-            variables_2->Compute_invMb_v(Eq_2, Cq_2.transpose());
+            variables_2->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
         }
         if (variables_3->IsActive()) {
-            variables_3->Compute_invMb_v(Eq_3, Cq_3.transpose());
+            variables_3->ComputeMassInverseTimesVector(Eq_3, Cq_3.transpose());
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
@@ -371,15 +371,15 @@ class ChConstraintTuple_3vars {
         double ret = 0;
 
         if (variables_1->IsActive()) {
-            ret += Cq_1 * variables_1->Get_qb();
+            ret += Cq_1 * variables_1->State();
         }
 
         if (variables_2->IsActive()) {
-            ret += Cq_2 * variables_2->Get_qb();
+            ret += Cq_2 * variables_2->State();
         }
 
         if (variables_3->IsActive()) {
-            ret += Cq_3 * variables_3->Get_qb();
+            ret += Cq_3 * variables_3->State();
         }
 
         return ret;
@@ -387,15 +387,15 @@ class ChConstraintTuple_3vars {
 
     void Increment_q(const double deltal) {
         if (variables_1->IsActive()) {
-            variables_1->Get_qb() += Eq_1 * deltal;
+            variables_1->State() += Eq_1 * deltal;
         }
 
         if (variables_2->IsActive()) {
-            variables_2->Get_qb() += Eq_2 * deltal;
+            variables_2->State() += Eq_2 * deltal;
         }
 
         if (variables_3->IsActive()) {
-            variables_3->Get_qb() += Eq_3 * deltal;
+            variables_3->State() += Eq_3 * deltal;
         }
     }
 
@@ -542,16 +542,16 @@ class ChConstraintTuple_4vars {
         // 1- Assuming jacobians are already computed, now compute
         //   the matrices [Eq_a]=[invM_a]*[Cq_a]' and [Eq_b]
         if (variables_1->IsActive()) {
-            variables_1->Compute_invMb_v(Eq_1, Cq_1.transpose());
+            variables_1->ComputeMassInverseTimesVector(Eq_1, Cq_1.transpose());
         }
         if (variables_2->IsActive()) {
-            variables_2->Compute_invMb_v(Eq_2, Cq_2.transpose());
+            variables_2->ComputeMassInverseTimesVector(Eq_2, Cq_2.transpose());
         }
         if (variables_3->IsActive()) {
-            variables_3->Compute_invMb_v(Eq_3, Cq_3.transpose());
+            variables_3->ComputeMassInverseTimesVector(Eq_3, Cq_3.transpose());
         }
         if (variables_4->IsActive()) {
-            variables_4->Compute_invMb_v(Eq_4, Cq_4.transpose());
+            variables_4->ComputeMassInverseTimesVector(Eq_4, Cq_4.transpose());
         }
 
         // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
@@ -573,19 +573,19 @@ class ChConstraintTuple_4vars {
         double ret = 0;
 
         if (variables_1->IsActive()) {
-            ret += Cq_1 * variables_1->Get_qb();
+            ret += Cq_1 * variables_1->State();
         }
 
         if (variables_2->IsActive()) {
-            ret += Cq_2 * variables_2->Get_qb();
+            ret += Cq_2 * variables_2->State();
         }
 
         if (variables_3->IsActive()) {
-            ret += Cq_3 * variables_3->Get_qb();
+            ret += Cq_3 * variables_3->State();
         }
 
         if (variables_4->IsActive()) {
-            ret += Cq_4 * variables_4->Get_qb();
+            ret += Cq_4 * variables_4->State();
         }
 
         return ret;
@@ -593,19 +593,19 @@ class ChConstraintTuple_4vars {
 
     void Increment_q(const double deltal) {
         if (variables_1->IsActive()) {
-            variables_1->Get_qb() += Eq_1 * deltal;
+            variables_1->State() += Eq_1 * deltal;
         }
 
         if (variables_2->IsActive()) {
-            variables_2->Get_qb() += Eq_2 * deltal;
+            variables_2->State() += Eq_2 * deltal;
         }
 
         if (variables_3->IsActive()) {
-            variables_3->Get_qb() += Eq_3 * deltal;
+            variables_3->State() += Eq_3 * deltal;
         }
 
         if (variables_4->IsActive()) {
-            variables_4->Get_qb() += Eq_4 * deltal;
+            variables_4->State() += Eq_4 * deltal;
         }
     }
 

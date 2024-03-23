@@ -126,15 +126,15 @@ void ChShaft::IntToDescriptor(const unsigned int off_v,  // offset in v, R
                               const unsigned int off_L,  // offset in L, Qc
                               const ChVectorDynamic<>& L,
                               const ChVectorDynamic<>& Qc) {
-    variables.Get_qb()(0, 0) = v(off_v);
-    variables.Get_fb()(0, 0) = R(off_v);
+    variables.State()(0, 0) = v(off_v);
+    variables.Force()(0, 0) = R(off_v);
 }
 
 void ChShaft::IntFromDescriptor(const unsigned int off_v,  // offset in v
                                 ChStateDelta& v,
                                 const unsigned int off_L,  // offset in L
                                 ChVectorDynamic<>& L) {
-    v(off_v) = variables.Get_qb()(0, 0);
+    v(off_v) = variables.State()(0, 0);
 }
 
 void ChShaft::InjectVariables(ChSystemDescriptor& descriptor) {
@@ -144,28 +144,28 @@ void ChShaft::InjectVariables(ChSystemDescriptor& descriptor) {
 }
 
 void ChShaft::VariablesFbReset() {
-    variables.Get_fb().setZero();
+    variables.Force().setZero();
 }
 
 void ChShaft::VariablesFbLoadForces(double factor) {
     // add applied torques to 'fb' vector
-    variables.Get_fb()(0) += torque * factor;
+    variables.Force()(0) += torque * factor;
 }
 
 void ChShaft::VariablesFbIncrementMq() {
-    variables.Compute_inc_Mb_v(variables.Get_fb(), variables.Get_qb());
+    variables.AddMassTimesVector(variables.Force(), variables.State());
 }
 
 void ChShaft::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    variables.Get_qb()(0) = pos_dt;
+    variables.State()(0) = pos_dt;
 }
 
 void ChShaft::VariablesQbSetSpeed(double step) {
     double old_dt = pos_dt;
 
     // from 'qb' vector, sets body speed, and updates auxiliary data
-    pos_dt = variables.Get_qb()(0);
+    pos_dt = variables.State()(0);
 
     // apply limits (if in speed clamping mode) to speeds.
     ClampSpeed();
@@ -183,7 +183,7 @@ void ChShaft::VariablesQbIncrementPosition(double dt_step) {
     // Updates position with incremental action of speed contained in the
     // 'qb' vector:  pos' = pos + dt * speed   , like in an Euler step.
 
-    double newspeed = variables.Get_qb()(0);
+    double newspeed = variables.State()(0);
 
     // ADVANCE POSITION: pos' = pos + dt * vel
     pos = pos + newspeed * dt_step;

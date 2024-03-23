@@ -188,7 +188,7 @@ unsigned int ChSystemDescriptor::BuildFbVector(ChVectorDynamic<>& Fvector, unsig
     // Fills the 'f' vector
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            Fvector.segment(row_offset + var->GetOffset(), var->GetDOF()) = var->Get_fb();
+            Fvector.segment(row_offset + var->GetOffset(), var->GetDOF()) = var->Force();
         }
     }
     return n_q;
@@ -216,7 +216,7 @@ unsigned int ChSystemDescriptor::BuildDiVector(ChVectorDynamic<>& Dvector) const
     // Fills the 'f' vector part
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            Dvector.segment(var->GetOffset(), var->GetDOF()) = var->Get_fb();
+            Dvector.segment(var->GetOffset(), var->GetDOF()) = var->Force();
         }
     }
 
@@ -244,7 +244,7 @@ unsigned int ChSystemDescriptor::BuildDiagonalVector(ChVectorDynamic<>& Diagonal
     // Get the 'M' diagonal terms given by ChVariables objects
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            var->DiagonalAdd(Diagonal_vect, c_a);
+            var->AddMassDiagonalInto(Diagonal_vect, c_a);
         }
     }
 
@@ -268,7 +268,7 @@ unsigned int ChSystemDescriptor::FromVariablesToVector(ChVectorDynamic<>& mvecto
     // Fill the vector
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            mvector.segment(var->GetOffset(), var->GetDOF()) = var->Get_qb();
+            mvector.segment(var->GetOffset(), var->GetDOF()) = var->State();
         }
     }
 
@@ -281,7 +281,7 @@ unsigned int ChSystemDescriptor::FromVectorToVariables(const ChVectorDynamic<>& 
     // fetch from the vector
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            var->Get_qb() = mvector.segment(var->GetOffset(), var->GetDOF());
+            var->State() = mvector.segment(var->GetOffset(), var->GetDOF());
         }
     }
 
@@ -332,7 +332,7 @@ unsigned int ChSystemDescriptor::FromUnknownsToVector(ChVectorDynamic<>& mvector
     // Fill the first part of vector, x.q ,with variables q
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            mvector.segment(var->GetOffset(), var->GetDOF()) = var->Get_qb();
+            mvector.segment(var->GetOffset(), var->GetDOF()) = var->State();
         }
     }
 
@@ -355,7 +355,7 @@ unsigned int ChSystemDescriptor::FromVectorToUnknowns(const ChVectorDynamic<>& m
     // Fetch from the first part of vector (x.q = q)
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            var->Get_qb() = mvector.segment(var->GetOffset(), var->GetDOF());
+            var->State() = mvector.segment(var->GetOffset(), var->GetDOF());
         }
     }
 
@@ -385,7 +385,7 @@ void ChSystemDescriptor::SchurComplementProduct(ChVectorDynamic<>& result,
 
     for (const auto& var : m_variables) {
         if (var->IsActive())
-            var->Get_qb().setZero();
+            var->State().setZero();
     }
 
     // 2 - performs    qb=[M^(-1)][Cq']*l  by
@@ -439,7 +439,7 @@ void ChSystemDescriptor::SystemProduct(ChVectorDynamic<>& result, const ChVector
     // 1.1)  do  M*x.q
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            var->MultiplyAndAdd(result, x, c_a);
+            var->AddMassTimesVectorInto(result, x, c_a);
         }
     }
 

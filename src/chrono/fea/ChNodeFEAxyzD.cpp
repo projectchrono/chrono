@@ -186,15 +186,15 @@ void ChNodeFEAxyzD::NodeIntLoadLumpedMass_Md(const unsigned int off,
 void ChNodeFEAxyzD::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
     ChNodeFEAxyz::NodeIntToDescriptor(off_v, v, R);
     if (!IsSlope1Fixed()) {
-        variables_D->Get_qb().segment(0, 3) = v.segment(off_v + 3, 3);
-        variables_D->Get_fb().segment(0, 3) = R.segment(off_v + 3, 3);
+        variables_D->State().segment(0, 3) = v.segment(off_v + 3, 3);
+        variables_D->Force().segment(0, 3) = R.segment(off_v + 3, 3);
     }
 }
 
 void ChNodeFEAxyzD::NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {
     ChNodeFEAxyz::NodeIntFromDescriptor(off_v, v);
     if (!IsSlope1Fixed()) {
-        v.segment(off_v + 3, 3) = variables_D->Get_qb().segment(0, 3);
+        v.segment(off_v + 3, 3) = variables_D->State().segment(0, 3);
     }
 }
 
@@ -210,21 +210,21 @@ void ChNodeFEAxyzD::InjectVariables(ChSystemDescriptor& descriptor) {
 void ChNodeFEAxyzD::VariablesFbReset() {
     ChNodeFEAxyz::VariablesFbReset();
     if (!IsSlope1Fixed()) {
-        variables_D->Get_fb().setZero();
+        variables_D->Force().setZero();
     }
 }
 
 void ChNodeFEAxyzD::VariablesFbLoadForces(double factor) {
     ChNodeFEAxyz::VariablesFbLoadForces(factor);
     ////if (!IsSlope1Fixed()) {
-    ////    variables_D->Get_fb().segment(3, 3) += VNULL.eigen();  // TODO something related to inertia?
+    ////    variables_D->Force().segment(3, 3) += VNULL.eigen();  // TODO something related to inertia?
     ////}
 }
 
 void ChNodeFEAxyzD::VariablesQbLoadSpeed() {
     ChNodeFEAxyz::VariablesQbLoadSpeed();
     if (!IsSlope1Fixed()) {
-        variables_D->Get_qb().segment(0, 3) = D_dt.eigen();
+        variables_D->State().segment(0, 3) = D_dt.eigen();
     }
 }
 
@@ -232,7 +232,7 @@ void ChNodeFEAxyzD::VariablesQbSetSpeed(double step) {
     ChNodeFEAxyz::VariablesQbSetSpeed(step);
     if (!IsSlope1Fixed()) {
         ChVector3d oldD_dt = D_dt;
-        SetSlope1Dt(variables_D->Get_qb().segment(0, 3));
+        SetSlope1Dt(variables_D->State().segment(0, 3));
         if (step) {
             SetSlope1Dt2((D_dt - oldD_dt) / step);
         }
@@ -242,7 +242,7 @@ void ChNodeFEAxyzD::VariablesQbSetSpeed(double step) {
 void ChNodeFEAxyzD::VariablesFbIncrementMq() {
     ChNodeFEAxyz::VariablesFbIncrementMq();
     if (!IsSlope1Fixed()) {
-        variables_D->Compute_inc_Mb_v(variables_D->Get_fb(), variables_D->Get_qb());
+        variables_D->AddMassTimesVector(variables_D->Force(), variables_D->State());
     }
 }
 
@@ -250,7 +250,7 @@ void ChNodeFEAxyzD::VariablesQbIncrementPosition(double step) {
     ChNodeFEAxyz::VariablesQbIncrementPosition(step);
     if (!IsSlope1Fixed()) {
         // ADVANCE POSITION: pos' = pos + dt * vel
-        ChVector3d newspeed_D(variables_D->Get_qb().segment(0, 3));
+        ChVector3d newspeed_D(variables_D->State().segment(0, 3));
         SetSlope1(GetSlope1() + newspeed_D * step);
     }
 }

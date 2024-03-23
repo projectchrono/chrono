@@ -178,8 +178,8 @@ void ChShaftsMotorSpeed::IntToDescriptor(const unsigned int off_v,  // offset in
     constraint.Set_l_i(L(off_L));
     constraint.Set_b_i(Qc(off_L));
 
-    this->variable.Get_qb()(0, 0) = v(off_v);
-    this->variable.Get_fb()(0, 0) = R(off_v);
+    this->variable.State()(0, 0) = v(off_v);
+    this->variable.Force()(0, 0) = R(off_v);
 }
 
 void ChShaftsMotorSpeed::IntFromDescriptor(const unsigned int off_v,  // offset in v
@@ -188,7 +188,7 @@ void ChShaftsMotorSpeed::IntFromDescriptor(const unsigned int off_v,  // offset 
                                            ChVectorDynamic<>& L) {
     L(off_L) = constraint.Get_l_i();
 
-    v(off_v) = this->variable.Get_qb()(0, 0);
+    v(off_v) = this->variable.State()(0, 0);
 }
 
 void ChShaftsMotorSpeed::InjectConstraints(ChSystemDescriptor& descriptor) {
@@ -200,26 +200,26 @@ void ChShaftsMotorSpeed::InjectVariables(ChSystemDescriptor& descriptor) {
 }
 
 void ChShaftsMotorSpeed::VariablesFbReset() {
-    variable.Get_fb().setZero();
+    variable.Force().setZero();
 }
 
 void ChShaftsMotorSpeed::VariablesFbLoadForces(double factor) {
     double imposed_speed = this->f_speed->GetVal(this->GetChTime());
-    variable.Get_fb()(0) += imposed_speed * factor;
+    variable.Force()(0) += imposed_speed * factor;
 }
 
 void ChShaftsMotorSpeed::VariablesFbIncrementMq() {
-    variable.Compute_inc_Mb_v(variable.Get_fb(), variable.Get_qb());
+    variable.AddMassTimesVector(variable.Force(), variable.State());
 }
 
 void ChShaftsMotorSpeed::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    variable.Get_qb()(0) = aux_dt;
+    variable.State()(0) = aux_dt;
 }
 
 void ChShaftsMotorSpeed::VariablesQbSetSpeed(double step) {
     // from 'qb' vector, sets body speed, and updates auxiliary data
-    aux_dt = variable.Get_qb()(0);
+    aux_dt = variable.State()(0);
 
     // Compute accel. by BDF (approximate by differentiation); not needed
 }

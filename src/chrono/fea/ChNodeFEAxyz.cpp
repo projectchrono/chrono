@@ -132,12 +132,12 @@ void ChNodeFEAxyz::NodeIntLoadLumpedMass_Md(const unsigned int off,
 }
 
 void ChNodeFEAxyz::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
-    variables.Get_qb() = v.segment(off_v, 3);
-    variables.Get_fb() = R.segment(off_v, 3);
+    variables.State() = v.segment(off_v, 3);
+    variables.Force() = R.segment(off_v, 3);
 }
 
 void ChNodeFEAxyz::NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {
-    v.segment(off_v, 3) = variables.Get_qb();
+    v.segment(off_v, 3) = variables.State();
 }
 
 // -----------------------------------------------------------------------------
@@ -147,31 +147,31 @@ void ChNodeFEAxyz::InjectVariables(ChSystemDescriptor& descriptor) {
 }
 
 void ChNodeFEAxyz::VariablesFbReset() {
-    variables.Get_fb().setZero();
+    variables.Force().setZero();
 }
 
 void ChNodeFEAxyz::VariablesFbLoadForces(double factor) {
-    variables.Get_fb() += factor * Force.eigen();
+    variables.Force() += factor * Force.eigen();
 }
 
 void ChNodeFEAxyz::VariablesQbLoadSpeed() {
-    variables.Get_qb() = pos_dt.eigen();
+    variables.State() = pos_dt.eigen();
 }
 
 void ChNodeFEAxyz::VariablesQbSetSpeed(double step) {
     ChVector3d old_dt = pos_dt;
-    SetPosDt(variables.Get_qb().segment(0, 3));
+    SetPosDt(variables.State().segment(0, 3));
     if (step) {
         SetPosDt2((pos_dt - old_dt) / step);
     }
 }
 
 void ChNodeFEAxyz::VariablesFbIncrementMq() {
-    variables.Compute_inc_Mb_v(variables.Get_fb(), variables.Get_qb());
+    variables.AddMassTimesVector(variables.Force(), variables.State());
 }
 
 void ChNodeFEAxyz::VariablesQbIncrementPosition(double step) {
-    ChVector3d newspeed = variables.Get_qb().segment(0, 3);
+    ChVector3d newspeed = variables.State().segment(0, 3);
 
     // ADVANCE POSITION: pos' = pos + dt * vel
     SetPos(GetPos() + newspeed * step);

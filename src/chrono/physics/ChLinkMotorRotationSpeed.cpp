@@ -276,8 +276,8 @@ void ChLinkMotorRotationSpeed::IntToDescriptor(const unsigned int off_v,  // off
     // inherit parent
     ChLinkMotorRotation::IntToDescriptor(off_v, v, R, off_L, L, Qc);
 
-    this->variable.Get_qb()(0, 0) = v(off_v);
-    this->variable.Get_fb()(0, 0) = R(off_v);
+    this->variable.State()(0, 0) = v(off_v);
+    this->variable.Force()(0, 0) = R(off_v);
 }
 
 void ChLinkMotorRotationSpeed::IntFromDescriptor(const unsigned int off_v,  // offset in v
@@ -287,7 +287,7 @@ void ChLinkMotorRotationSpeed::IntFromDescriptor(const unsigned int off_v,  // o
     // inherit parent
     ChLinkMotorRotation::IntFromDescriptor(off_v, v, off_L, L);
 
-    v(off_v) = this->variable.Get_qb()(0, 0);
+    v(off_v) = this->variable.State()(0, 0);
 }
 
 ////
@@ -298,26 +298,26 @@ void ChLinkMotorRotationSpeed::InjectVariables(ChSystemDescriptor& descriptor) {
 }
 
 void ChLinkMotorRotationSpeed::VariablesFbReset() {
-    variable.Get_fb().setZero();
+    variable.Force().setZero();
 }
 
 void ChLinkMotorRotationSpeed::VariablesFbLoadForces(double factor) {
     double imposed_speed = m_func->GetVal(this->GetChTime());
-    variable.Get_fb()(0) += imposed_speed * factor;
+    variable.Force()(0) += imposed_speed * factor;
 }
 
 void ChLinkMotorRotationSpeed::VariablesFbIncrementMq() {
-    variable.Compute_inc_Mb_v(variable.Get_fb(), variable.Get_qb());
+    variable.AddMassTimesVector(variable.Force(), variable.State());
 }
 
 void ChLinkMotorRotationSpeed::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    variable.Get_qb()(0) = aux_dt;
+    variable.State()(0) = aux_dt;
 }
 
 void ChLinkMotorRotationSpeed::VariablesQbSetSpeed(double step) {
     // from 'qb' vector, sets body speed, and updates auxiliary data
-    aux_dt = variable.Get_qb()(0);
+    aux_dt = variable.State()(0);
 
     // Compute accel. by BDF (approximate by differentiation); not needed
 }

@@ -23,10 +23,6 @@ namespace chrono {
 /// associate variables (a 3 element vector, ex.speed)
 
 class ChApi ChVariablesNode : public ChVariables {
-  private:
-    void* user_data;  ///< user-specified data
-    double mass;      ///< mass value
-
   public:
     ChVariablesNode();
     virtual ~ChVariablesNode() {}
@@ -40,32 +36,26 @@ class ChApi ChVariablesNode : public ChVariables {
     /// Set the mass associated with translation of node
     void SetNodeMass(const double mmass) { mass = mmass; }
 
-    /// The number of scalar variables in the vector qb (dof=degrees of freedom)
-    virtual unsigned int GetDOF() const override { return 3; }
-
     void* GetUserData() { return this->user_data; }
     void SetUserData(void* mdata) { this->user_data = mdata; }
 
-    /// Computes the product of the inverse mass matrix by a vector, and set in result: result = [invMb]*vect
-    virtual void Compute_invMb_v(ChVectorRef result, ChVectorConstRef vect) const override;
+    /// Compute the product of the inverse mass matrix by a given vector and store in result.
+    /// This function must calculate `result = M^(-1) * vect` for a vector of same size as the variables state.
+    virtual void ComputeMassInverseTimesVector(ChVectorRef result, ChVectorConstRef vect) const override;
 
-    /// Computes the product of the inverse mass matrix by a vector, and increment result: result += [invMb]*vect
-    virtual void Compute_inc_invMb_v(ChVectorRef result, ChVectorConstRef vect) const override;
+    /// Compute the product of the mass matrix by a given vector and increment result.
+    /// This function must perform the operation `result += M * vect` for a vector of same size as the variables state.
+    virtual void AddMassTimesVector(ChVectorRef result, ChVectorConstRef vect) const override;
 
-    /// Computes the product of the mass matrix by a vector, and set in result: result = [Mb]*vect
-    virtual void Compute_inc_Mb_v(ChVectorRef result, ChVectorConstRef vect) const override;
+    /// Add the product of the mass submatrix by a given vector, scaled by ca, to result.
+    /// Note: 'result' and 'vect' are system-level vectors of appropriate size. This function must index into these
+    /// vectors using the offsets of each variable.
+    virtual void AddMassTimesVectorInto(ChVectorRef result, ChVectorConstRef vect, const double ca) const override;
 
-    /// Computes the product of the corresponding block in the system matrix (ie. the mass matrix) by 'vect', scale by
-    /// ca, and add to 'result'.
-    /// NOTE: the 'vect' and 'result' vectors must already have the size of the total variables&constraints in the
-    /// system; the procedure will use the ChVariable offsets (that must be already updated) to know the indexes in
-    /// result and vect.
-    virtual void MultiplyAndAdd(ChVectorRef result, ChVectorConstRef vect, const double ca) const override;
-
-    /// Add the diagonal of the mass matrix scaled by ca, to 'result'.
-    /// NOTE: the 'result' vector must already have the size of system unknowns, ie the size of the total variables &
-    /// constraints in the system; the procedure will use the ChVariable offset (that must be already updated) as index.
-    virtual void DiagonalAdd(ChVectorRef result, const double ca) const override;
+    /// Add the diagonal of the mass matrix, as a vector scaled by ca, to result.
+    /// Note: 'result' is a system-level vector of appropriate size. This function must index into this vector using the
+    /// offsets of each variable.
+    virtual void AddMassDiagonalInto(ChVectorRef result, const double ca) const override;
 
     /// Write the mass submatrix for these variables into the specified global matrix at the offsets of each variable.
     /// The masses must be scaled by the given factor 'ca'.
@@ -79,6 +69,10 @@ class ChApi ChVariablesNode : public ChVariables {
 
     /// Method to allow de-serialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    void* user_data;  ///< user-specified data
+    double mass;      ///< mass value
 };
 
 }  // end namespace chrono

@@ -67,7 +67,7 @@ void ChConstraintNgeneric::Update_auxiliary() {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive())
             if (variables[i]->GetDOF()) {
-                variables[i]->Compute_invMb_v(Eq[i], Cq[i].transpose());
+                variables[i]->ComputeMassInverseTimesVector(Eq[i], Cq[i].transpose());
             }
     }
 
@@ -89,7 +89,7 @@ double ChConstraintNgeneric::Compute_Cq_q() {
 
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive()) {
-            ret += Cq[i] * variables[i]->Get_qb();
+            ret += Cq[i] * variables[i]->State();
         }
     }
 
@@ -99,7 +99,7 @@ double ChConstraintNgeneric::Compute_Cq_q() {
 void ChConstraintNgeneric::Increment_q(const double deltal) {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive()) {
-            variables[i]->Get_qb() += Eq[i] * deltal;
+            variables[i]->State() += Eq[i] * deltal;
         }
     }
 }

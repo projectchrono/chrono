@@ -58,7 +58,7 @@ double ChSolverPSSOR::Solve(ChSystemDescriptor& sysd) {
     //     still unconstrained system:
     for (unsigned int iv = 0; iv < nVars; iv++)
         if (mvariables[iv]->IsActive())
-            mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());  // q = [M]'*fb
+            mvariables[iv]->ComputeMassInverseTimesVector(mvariables[iv]->State(), mvariables[iv]->Force());  // q = [M]'*fb
 
     // 3)  For all items with variables, add the effect of initial (guessed)
     //     lagrangian reactions of constraints, if a warm start is desired.

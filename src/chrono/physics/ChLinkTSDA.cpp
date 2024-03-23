@@ -411,8 +411,8 @@ void ChLinkTSDA::IntToDescriptor(const unsigned int off_v,  // offset in v, R
         return;
 
     if (m_variables) {
-        m_variables->Get_qb() = v.segment(off_v, m_nstates);
-        m_variables->Get_fb() = R.segment(off_v, m_nstates);
+        m_variables->State() = v.segment(off_v, m_nstates);
+        m_variables->Force() = R.segment(off_v, m_nstates);
     }
 }
 
@@ -424,7 +424,7 @@ void ChLinkTSDA::IntFromDescriptor(const unsigned int off_v,  // offset in v
         return;
 
     if (m_variables) {
-        v.segment(off_v, m_nstates) = m_variables->Get_qb();
+        v.segment(off_v, m_nstates) = m_variables->State();
     }
 }
 
@@ -441,31 +441,31 @@ void ChLinkTSDA::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor)
 
 void ChLinkTSDA::VariablesFbReset() {
     if (m_variables) {
-        m_variables->Get_fb().setZero();
+        m_variables->Force().setZero();
     }
 }
 
 void ChLinkTSDA::VariablesFbLoadForces(double factor) {
     if (m_variables) {
-        m_variables->Get_fb() = m_Qforce.segment(12, m_nstates);
+        m_variables->Force() = m_Qforce.segment(12, m_nstates);
     }
 }
 
 void ChLinkTSDA::VariablesQbLoadSpeed() {
     if (m_variables) {
-        m_variables->Get_qb() = m_states;
+        m_variables->State() = m_states;
     }
 }
 
 void ChLinkTSDA::VariablesQbSetSpeed(double step) {
     if (m_variables) {
-        m_states = m_variables->Get_qb();
+        m_states = m_variables->State();
     }
 }
 
 void ChLinkTSDA::VariablesFbIncrementMq() {
     if (m_variables) {
-        m_variables->Compute_inc_Mb_v(m_variables->Get_fb(), m_variables->Get_qb());
+        m_variables->AddMassTimesVector(m_variables->Force(), m_variables->State());
     }
 }
 
@@ -479,11 +479,11 @@ void ChLinkTSDA::ConstraintsFbLoadForces(double factor) {
         return;
 
     // Add forces to connected bodies (from the current vector of forcing terms)
-    m_body1->Variables().Get_fb().segment(0, 3) += factor * m_Qforce.segment(0, 3);
-    m_body1->Variables().Get_fb().segment(3, 3) += factor * m_Qforce.segment(3, 3);
+    m_body1->Variables().Force().segment(0, 3) += factor * m_Qforce.segment(0, 3);
+    m_body1->Variables().Force().segment(3, 3) += factor * m_Qforce.segment(3, 3);
 
-    m_body2->Variables().Get_fb().segment(0, 3) += factor * m_Qforce.segment(6, 3);
-    m_body2->Variables().Get_fb().segment(3, 3) += factor * m_Qforce.segment(9, 3);
+    m_body2->Variables().Force().segment(0, 3) += factor * m_Qforce.segment(6, 3);
+    m_body2->Variables().Force().segment(3, 3) += factor * m_Qforce.segment(9, 3);
 }
 
 // -----------------------------------------------------------------------------

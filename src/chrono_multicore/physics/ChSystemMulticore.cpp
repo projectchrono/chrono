@@ -139,12 +139,12 @@ bool ChSystemMulticore::AdvanceDynamics() {
     for (int i = 0; i < assembly.bodylist.size(); i++) {
         if (data_manager->host_data.active_rigid[i] != 0) {
             auto& body = assembly.bodylist[i];
-            body->Variables().Get_qb()(0) = velocities[i * 6 + 0];
-            body->Variables().Get_qb()(1) = velocities[i * 6 + 1];
-            body->Variables().Get_qb()(2) = velocities[i * 6 + 2];
-            body->Variables().Get_qb()(3) = velocities[i * 6 + 3];
-            body->Variables().Get_qb()(4) = velocities[i * 6 + 4];
-            body->Variables().Get_qb()(5) = velocities[i * 6 + 5];
+            body->Variables().State()(0) = velocities[i * 6 + 0];
+            body->Variables().State()(1) = velocities[i * 6 + 1];
+            body->Variables().State()(2) = velocities[i * 6 + 2];
+            body->Variables().State()(3) = velocities[i * 6 + 3];
+            body->Variables().State()(4) = velocities[i * 6 + 4];
+            body->Variables().State()(5) = velocities[i * 6 + 5];
 
             body->VariablesQbIncrementPosition(this->GetStep());
             body->VariablesQbSetSpeed(this->GetStep());
@@ -163,7 +163,7 @@ bool ChSystemMulticore::AdvanceDynamics() {
     for (int i = 0; i < (signed)data_manager->num_shafts; i++) {
         if (data_manager->host_data.shaft_active[i] != 0) {
             auto& shaft = assembly.shaftlist[i];
-            shaft->Variables().Get_qb()(0) = velocities[offset + i];
+            shaft->Variables().State()(0) = velocities[offset + i];
             shaft->VariablesQbIncrementPosition(GetStep());
             shaft->VariablesQbSetSpeed(GetStep());
             shaft->Update(ch_time);
@@ -172,7 +172,7 @@ bool ChSystemMulticore::AdvanceDynamics() {
 
     offset += data_manager->num_shafts;
     for (int i = 0; i < (signed)data_manager->num_linmotors; i++) {
-        linmotorlist[i]->Variables().Get_qb()(0) = velocities[offset + i];
+        linmotorlist[i]->Variables().State()(0) = velocities[offset + i];
         linmotorlist[i]->VariablesQbIncrementPosition(GetStep());
         linmotorlist[i]->VariablesQbSetSpeed(GetStep());
         linmotorlist[i]->Update(ch_time, true);
@@ -180,7 +180,7 @@ bool ChSystemMulticore::AdvanceDynamics() {
 
     offset += data_manager->num_linmotors;
     for (int i = 0; i < (signed)data_manager->num_rotmotors; i++) {
-        rotmotorlist[i]->Variables().Get_qb()(0) = velocities[offset + i];
+        rotmotorlist[i]->Variables().State()(0) = velocities[offset + i];
         rotmotorlist[i]->VariablesQbIncrementPosition(GetStep());
         rotmotorlist[i]->VariablesQbSetSpeed(GetStep());
         rotmotorlist[i]->Update(ch_time, true);
@@ -352,8 +352,8 @@ void ChSystemMulticore::UpdateRigidBodies() {
         body->VariablesFbLoadForces(GetStep());
         body->VariablesQbLoadSpeed();
 
-        ChVectorRef body_qb = body->Variables().Get_qb();
-        ChVectorRef body_fb = body->Variables().Get_fb();
+        ChVectorRef body_qb = body->Variables().State();
+        ChVectorRef body_fb = body->Variables().Force();
         ChVector3d& body_pos = body->GetPos();
         ChQuaternion<>& body_rot = body->GetRot();
 
@@ -408,8 +408,8 @@ void ChSystemMulticore::UpdateShafts() {
         shaft_inr[i] = shaft->Variables().GetInvInertia();
         shaft_active[i] = shaft->IsActive();
 
-        data_manager->host_data.v[offset + i] = shaft->Variables().Get_qb()(0);
-        data_manager->host_data.hf[offset + i] = shaft->Variables().Get_fb()(0);
+        data_manager->host_data.v[offset + i] = shaft->Variables().State()(0);
+        data_manager->host_data.hf[offset + i] = shaft->Variables().Force()(0);
     }
 }
 
@@ -423,16 +423,16 @@ void ChSystemMulticore::UpdateMotorLinks() {
         linmotorlist[i]->Update(ch_time, false);
         linmotorlist[i]->VariablesFbLoadForces(GetStep());
         linmotorlist[i]->VariablesQbLoadSpeed();
-        data_manager->host_data.v[offset + i] = linmotorlist[i]->Variables().Get_qb()(0);
-        data_manager->host_data.hf[offset + i] = linmotorlist[i]->Variables().Get_fb()(0);
+        data_manager->host_data.v[offset + i] = linmotorlist[i]->Variables().State()(0);
+        data_manager->host_data.hf[offset + i] = linmotorlist[i]->Variables().Force()(0);
     }
     offset += data_manager->num_linmotors;
     for (uint i = 0; i < data_manager->num_rotmotors; i++) {
         rotmotorlist[i]->Update(ch_time, false);
         rotmotorlist[i]->VariablesFbLoadForces(GetStep());
         rotmotorlist[i]->VariablesQbLoadSpeed();
-        data_manager->host_data.v[offset + i] = rotmotorlist[i]->Variables().Get_qb()(0);
-        data_manager->host_data.hf[offset + i] = rotmotorlist[i]->Variables().Get_fb()(0);
+        data_manager->host_data.v[offset + i] = rotmotorlist[i]->Variables().State()(0);
+        data_manager->host_data.hf[offset + i] = rotmotorlist[i]->Variables().Force()(0);
     }
 }
 

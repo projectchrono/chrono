@@ -1301,7 +1301,15 @@ Note that this represents a major public API change and we expect most user code
 | ChTriangleOfXYZROTnodes           |                               | rename: ChTriangleNodesXYZrot                    |
 | ChVariables                       |                               |                                                  |
 |                                   | Build_M                       | rename: PasteMassInto  (see Notes)               |
+|                                   | Compute_fb                    | remove                                           |
+|                                   | Compute_invMb_v               | rename: ComputeMassInverseTimesVector            |
+|                                   | Compute_inc_invMb_v           | remove                                           |
+|                                   | Compute_inc_Mb_v              | rename: AddMassTimesVector                       |
+|                                   | DiagonalAdd                   | rename: AddMassDiagonalInto                      |
 |                                   | Get_ndof                      | rename: GetDOF                                   |
+|                                   | Get_qb                        | rename: State                                    |
+|                                   | Get_fb                        | rename: Force                                    |
+|                                   | MultiplyAndAdd                | rename: AddMassTimesVectorInto                   |
 | ChVector                          |                               |                                                  |
 |                                   | DirToDxDyDz                   | rename: GetDirectionAxesAsX                      |
 | ChVolume                          |                               |                                                  |

@@ -21,10 +21,10 @@ namespace chrono {
 
 ChVariables::ChVariables() : disabled(false), ndof(0), offset(0) {}
 
-ChVariables::ChVariables(int m_ndof) : disabled(false), ndof(m_ndof), offset(0) {
+ChVariables::ChVariables(unsigned int dof) : disabled(false), ndof(dof), offset(0) {
     if (ndof > 0) {
-        qb.setZero(GetDOF());
-        fb.setZero(GetDOF());
+        qb.setZero(ndof);
+        fb.setZero(ndof);
     }
 }
 
@@ -32,13 +32,13 @@ ChVariables& ChVariables::operator=(const ChVariables& other) {
     if (&other == this)
         return *this;
 
-    this->disabled = other.disabled;
+    disabled = other.disabled;
 
-    this->qb = other.qb;
-    this->fb = other.fb;
+    qb = other.qb;
+    fb = other.fb;
 
-    this->ndof = other.ndof;
-    this->offset = other.offset;
+    ndof = other.ndof;
+    offset = other.offset;
 
     return *this;
 }

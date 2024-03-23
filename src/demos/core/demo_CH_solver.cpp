@@ -69,8 +69,8 @@ void test_1(const std::string& out_dir) {
     mvarA.GetMass().setIdentity();
     mvarA.GetMass() *= 10;
     mvarA.GetInvMass() = mvarA.GetMass().inverse();
-    mvarA.Get_fb()(0) = 1;
-    mvarA.Get_fb()(1) = 2;
+    mvarA.Force()(0) = 1;
+    mvarA.Force()(1) = 2;
 
     ChVariablesGeneric mvarB(3);
     mvarB.GetMass().setIdentity();
@@ -153,8 +153,8 @@ void test_1(const std::string& out_dir) {
     std::cout << "**** Using ChSolverPSOR  **********\n" << std::endl;
     std::cout << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "\n" << std::endl;
     std::cout << "vars q_a and q_b -------------------" << std::endl;
-    std::cout << mvarA.Get_qb() << std::endl;
-    std::cout << mvarB.Get_qb() << "  " << std::endl;
+    std::cout << mvarA.State() << std::endl;
+    std::cout << mvarB.State() << "  " << std::endl;
     std::cout << "multipliers l_1 and l_2 ------------\n" << std::endl;
     std::cout << mca.Get_l_i() << " " << std::endl;
     std::cout << mcb.Get_l_i() << " \n" << std::endl;
@@ -163,8 +163,8 @@ void test_1(const std::string& out_dir) {
     std::cout << mcb.Get_c_i() << " \n" << std::endl;
 
     // reset variables
-    mvarA.Get_qb().setZero();
-    mvarB.Get_qb().setZero();
+    mvarA.State().setZero();
+    mvarB.State().setZero();
 }
 
 // Test 2
@@ -189,8 +189,8 @@ void test_2(const std::string& out_dir) {
         vars.push_back(new ChVariablesGeneric(1));
         vars[im]->GetMass()(0) = 10;
         vars[im]->GetInvMass()(0) = 1. / vars[im]->GetMass()(0);
-        vars[im]->Get_fb()(0) = -9.8 * vars[im]->GetMass()(0) * 0.01;
-        // if (im==5) vars[im]->Get_fb()(0)= 50;
+        vars[im]->Force()(0) = -9.8 * vars[im]->GetMass()(0) * 0.01;
+        // if (im==5) vars[im]->Force()(0)= 50;
         mdescriptor.InsertVariables(vars[im]);
         if (im > 0) {
             constraints.push_back(new ChConstraintTwoGeneric(vars[im], vars[im - 1]));
@@ -230,7 +230,7 @@ void test_2(const std::string& out_dir) {
     // Output values
     std::cout << "VARIABLES: " << std::endl;
     for (int im = 0; im < vars.size(); im++)
-        std::cout << "   " << vars[im]->Get_qb()(0) << std::endl;
+        std::cout << "   " << vars[im]->State()(0) << std::endl;
 
     std::cout << "CONSTRAINTS: " << std::endl;
     for (int ic = 0; ic < constraints.size(); ic++)
@@ -270,17 +270,17 @@ void test_3(const std::string& out_dir) {
     ChVariablesBodyOwnMass mvarA;
     mvarA.SetBodyMass(5);
     mvarA.SetBodyInertia(minertia);
-    mvarA.Get_fb().fillRandom(-3, 5);
+    mvarA.Force().fillRandom(-3, 5);
 
     ChVariablesBodyOwnMass mvarB;
     mvarB.SetBodyMass(4);
     mvarB.SetBodyInertia(minertia);
-    mvarB.Get_fb().fillRandom(1, 3);
+    mvarB.Force().fillRandom(1, 3);
 
     ChVariablesBodyOwnMass mvarC;
     mvarC.SetBodyMass(5.5);
     mvarC.SetBodyInertia(minertia);
-    mvarC.Get_fb().fillRandom(-8, 3);
+    mvarC.Force().fillRandom(-8, 3);
 
     ////ChMatrixDynamic<> foo(3, 4);
     ////foo.fillRandom(0, 10);
@@ -374,7 +374,7 @@ void test_3(const std::string& out_dir) {
     // over the constraints (l values), as already shown in previous examples:
 
     for (int im = 0; im < mdescriptor.GetVariables().size(); im++)
-        std::cout << "   " << mdescriptor.GetVariables()[im]->Get_qb()(0) << std::endl;
+        std::cout << "   " << mdescriptor.GetVariables()[im]->State()(0) << std::endl;
 
     for (int ic = 0; ic < mdescriptor.GetConstraints().size(); ic++)
         std::cout << "   " << mdescriptor.GetConstraints()[ic]->Get_l_i() << std::endl;
@@ -395,8 +395,8 @@ void test_4(const std::string& out_dir) {
     mvarA.GetMass().setIdentity();
     mvarA.GetMass() *= 10;
     mvarA.GetInvMass() = mvarA.GetMass().inverse();
-    mvarA.Get_fb()(0) = 1;
-    mvarA.Get_fb()(1) = 2;
+    mvarA.Force()(0) = 1;
+    mvarA.Force()(1) = 2;
 
     ChVariablesGeneric mvarB(3);
     mvarB.GetMass().setIdentity();
@@ -470,8 +470,8 @@ void test_4(const std::string& out_dir) {
     std::cout << "**** Using ChSolverSparseQR  **********\n" << std::endl;
     std::cout << "METRICS: max residual: " << max_res << "  max LCP error: " << max_LCPerr << "\n" << std::endl;
     std::cout << "vars q_a and q_b -------------------" << std::endl;
-    std::cout << mvarA.Get_qb() << std::endl;
-    std::cout << mvarB.Get_qb() << "  " << std::endl;
+    std::cout << mvarA.State() << std::endl;
+    std::cout << mvarB.State() << "  " << std::endl;
     std::cout << "multipliers l_1 and l_2 ------------\n" << std::endl;
     std::cout << mca.Get_l_i() << " " << std::endl;
     std::cout << mcb.Get_l_i() << " \n" << std::endl;
@@ -480,8 +480,8 @@ void test_4(const std::string& out_dir) {
     std::cout << mcb.Get_c_i() << " \n" << std::endl;
 
     // reset variables
-    mvarA.Get_qb().setZero();
-    mvarB.Get_qb().setZero();
+    mvarA.State().setZero();
+    mvarB.State().setZero();
 }
 
 // Do some tests in a single run, inside the main() function.

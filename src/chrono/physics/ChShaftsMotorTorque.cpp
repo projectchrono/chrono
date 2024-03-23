@@ -49,8 +49,8 @@ void ChShaftsMotorTorque::IntLoadResidual_F(const unsigned int off,  // offset i
 
 void ChShaftsMotorTorque::VariablesFbLoadForces(double factor) {
     double imposed_torque = this->f_torque->GetVal(this->GetChTime());
-    shaft1->Variables().Get_fb()(0) += imposed_torque * factor;
-    shaft2->Variables().Get_fb()(0) += -imposed_torque * factor;
+    shaft1->Variables().Force()(0) += imposed_torque * factor;
+    shaft2->Variables().Force()(0) += -imposed_torque * factor;
 }
 
 void ChShaftsMotorTorque::ArchiveOut(ChArchiveOut& archive_out) {

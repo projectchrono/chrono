@@ -2698,8 +2698,8 @@ void ChModalAssembly::IntToDescriptor(const unsigned int off_v,
                 item->IntToDescriptor(displ_v + item->GetOffset_w(), v, R, displ_L + item->GetOffset_L(), L, Qc);
         }
     } else {
-        this->modal_variables->Get_qb() = v.segment(off_v + m_num_coords_vel_boundary, this->m_num_coords_modal);
-        this->modal_variables->Get_fb() = R.segment(off_v + m_num_coords_vel_boundary, this->m_num_coords_modal);
+        this->modal_variables->State() = v.segment(off_v + m_num_coords_vel_boundary, this->m_num_coords_modal);
+        this->modal_variables->Force() = R.segment(off_v + m_num_coords_vel_boundary, this->m_num_coords_modal);
     }
 }
 
@@ -2732,7 +2732,7 @@ void ChModalAssembly::IntFromDescriptor(const unsigned int off_v,
                 item->IntFromDescriptor(displ_v + item->GetOffset_w(), v, displ_L + item->GetOffset_L(), L);
         }
     } else {
-        v.segment(off_v + m_num_coords_vel_boundary, this->m_num_coords_modal) = this->modal_variables->Get_qb();
+        v.segment(off_v + m_num_coords_vel_boundary, this->m_num_coords_modal) = this->modal_variables->State();
     }
 }
 
