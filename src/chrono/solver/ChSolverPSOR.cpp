@@ -42,7 +42,7 @@ double ChSolverPSOR::Solve(ChSystemDescriptor& sysd) {
     int j_friction_comp = 0;
     double gi_values[3];
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-        if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) {
+        if (mconstraints[ic]->GetMode() == ChConstraint::Mode::FRICTION) {
             gi_values[j_friction_comp] = mconstraints[ic]->GetSchurComplement();
             j_friction_comp++;
             if (j_friction_comp == 3) {
@@ -99,7 +99,7 @@ double ChSolverPSOR::Solve(ChSystemDescriptor& sysd) {
                 // compute:  delta_lambda = -(omega/g_i) * ([Cq_i]*q + b_i + cfm_i*l_i )
                 double deltal = (m_omega / mconstraints[ic]->GetSchurComplement()) * (-mresidual);
 
-                if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) {
+                if (mconstraints[ic]->GetMode() == ChConstraint::Mode::FRICTION) {
                     candidate_violation = 0;
 
                     // update:   lambda += delta_lambda;
@@ -138,7 +138,7 @@ double ChSolverPSOR::Solve(ChSystemDescriptor& sysd) {
                         }
                         i_friction_comp = 0;
                     }
-                } else if (mconstraints[ic]->GetMode() == CONSTRAINT_UNILATERAL) {
+                } else if (mconstraints[ic]->GetMode() == ChConstraint::Mode::UNILATERAL) {
                     // update:   lambda += delta_lambda;
                     old_lambda_friction[0] = mconstraints[ic]->GetLagrangeMultiplier();
                     mconstraints[ic]->SetLagrangeMultiplier(old_lambda_friction[0] + deltal);

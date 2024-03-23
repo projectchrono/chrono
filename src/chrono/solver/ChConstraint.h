@@ -21,16 +21,6 @@
 
 namespace chrono {
 
-/// Modes for constraint
-enum eChConstraintMode {
-    CONSTRAINT_FREE = 0,        ///< the constraint does not enforce anything
-    CONSTRAINT_LOCK = 1,        ///< the constraint enforces c_i=0;
-    CONSTRAINT_UNILATERAL = 2,  ///< the constraint enforces linear complementarity
-                                /// c_i>=0, l_i>=0, l_1*c_i=0;
-    CONSTRAINT_FRIC = 3,        ///< the constraint is one of three reactions in friction
-                                ///(cone complementarity problem)
-};
-
 /// Base class for representing constraints (bilateral or unilateral).
 /// These constraints are used with variational inequality or DAE solvers for problems including equalities,
 /// inequalities, nonlinearities, etc.
@@ -50,29 +40,22 @@ enum eChConstraintMode {
 /// called by the solver.
 class ChApi ChConstraint {
   public:
-    /// Default constructor
-    ChConstraint()
-        : c_i(0),
-          l_i(0),
-          b_i(0),
-          cfm_i(0),
-          valid(false),
-          disabled(false),
-          redundant(false),
-          broken(false),
-          active(true),
-          mode(CONSTRAINT_LOCK),
-          g_i(0) {}
+    /// Constraint mode.
+    enum class Mode {
+        FREE,        ///< does not enforce anything
+        LOCK,        ///< enforces c_i=0 (bilateral)
+        UNILATERAL,  ///< enforces linear complementarity c_i>=0, l_i>=0, l_i*c_i=0
+        FRICTION,    ///< one of three reactions in friction (cone complementarity problem)
+    };
 
-    /// Copy constructor
+    ChConstraint();
     ChConstraint(const ChConstraint& other);
-
     virtual ~ChConstraint() {}
 
     /// "Virtual" copy constructor.
     virtual ChConstraint* Clone() const = 0;
 
-    /// Assignment operator: copy from other object
+    /// Assignment operator: copy from other object.
     ChConstraint& operator=(const ChConstraint& other);
 
     /// Comparison (compares only flags, not the Jacobians).
@@ -116,17 +99,17 @@ class ChApi ChConstraint {
     }
 
     /// Indicate if the constraint is unilateral (typical complementarity constraint).
-    virtual bool IsUnilateral() const { return mode == CONSTRAINT_UNILATERAL; }
+    virtual bool IsUnilateral() const { return mode == Mode::UNILATERAL; }
 
     /// Indicate if the constraint is linear.
     virtual bool IsLinear() const { return true; }
 
-    /// Get the mode of the constraint: free / lock / complementary.
-    /// A typical constraint has 'lock = true' by default.
-    eChConstraintMode GetMode() const { return mode; }
+    /// Get the mode of the constraint.
+    /// A typical constraint has LOCK mode (bilateral) by default.
+    Mode GetMode() const { return mode; }
 
-    /// Set the mode of the constraint: free / lock / complementary.
-    void SetMode(eChConstraintMode mmode) {
+    /// Set the mode of the constraint.
+    void SetMode(Mode mmode) {
         mode = mmode;
         UpdateActiveFlag();
     }
@@ -270,9 +253,9 @@ class ChApi ChConstraint {
     /// Usually set to 0.
     double cfm_i;
 
-    eChConstraintMode mode;  ///< mode of the constraint: free / lock / complementar
-    double g_i;              ///< product [Cq_i]*[invM_i]*[Cq_i]' (+cfm)
-    unsigned int offset;     ///< offset in global "l" state vector (needed by some solvers)
+    Mode mode;            ///< mode of the constraint
+    double g_i;           ///< product [Cq_i]*[invM_i]*[Cq_i]' (+cfm)
+    unsigned int offset;  ///< offset in global "l" state vector (needed by some solvers)
 
   private:
     void UpdateActiveFlag();

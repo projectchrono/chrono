@@ -172,7 +172,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         int j_friction_comp = 0;
         double gi_values[3];
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-            if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) {
+            if (mconstraints[ic]->GetMode() == ChConstraint::Mode::FRICTION) {
                 gi_values[j_friction_comp] = mconstraints[ic]->GetSchurComplement();
                 j_friction_comp++;
                 if (j_friction_comp == 3) {
@@ -224,7 +224,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
     int s_c = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive()) {
-            if (mconstraints[ic]->GetMode() == eChConstraintMode::CONSTRAINT_LOCK)
+            if (mconstraints[ic]->GetMode() == ChConstraint::Mode::LOCK)
                 vrho(s_c) = rho_b;
             s_c++;
         }
@@ -420,7 +420,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
                 s_c = 0;
                 for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
                     if (mconstraints[ic]->IsActive()) {
-                        if (mconstraints[ic]->GetMode() == eChConstraintMode::CONSTRAINT_LOCK)
+                        if (mconstraints[ic]->GetMode() == ChConstraint::Mode::LOCK)
                             vrho(s_c) = rho_b;
                         s_c++;
                     }
@@ -583,7 +583,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         int j_friction_comp = 0;
         double gi_values[3];
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-            if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) {
+            if (mconstraints[ic]->GetMode() == ChConstraint::Mode::FRICTION) {
                 gi_values[j_friction_comp] = mconstraints[ic]->GetSchurComplement();
                 j_friction_comp++;
                 if (j_friction_comp == 3) {
@@ -635,7 +635,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
     int s_c = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive()) {
-            if (mconstraints[ic]->GetMode() == eChConstraintMode::CONSTRAINT_LOCK)
+            if (mconstraints[ic]->GetMode() == ChConstraint::Mode::LOCK)
                 vrho(s_c) = rho_b;
             s_c++;
         }
@@ -849,7 +849,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
                 s_c = 0;
                 for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
                     if (mconstraints[ic]->IsActive()) {
-                        if (mconstraints[ic]->GetMode() == eChConstraintMode::CONSTRAINT_LOCK)
+                        if (mconstraints[ic]->GetMode() == ChConstraint::Mode::LOCK)
                             vrho(s_c) = rho_b;
                         s_c++;
                     }

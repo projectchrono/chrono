@@ -19,14 +19,16 @@ namespace chrono {
 
 class ChApi ChConstraintTwoTuplesContactNall {
   public:
-    /// Get the friction coefficient
+    /// Get the friction coefficient.
     double GetFrictionCoefficient() const { return friction; }
-    /// Set the friction coefficient
+
+    /// Set the friction coefficient.
     void SetFrictionCoefficient(double mcoeff) { friction = mcoeff; }
 
-    /// Get the cohesion
+    /// Get the cohesion.
     double GetCohesion() const { return cohesion; }
-    /// Set the cohesion
+
+    /// Set the cohesion.
     void SetCohesion(double mcoh) { cohesion = mcoh; }
 
   protected:
@@ -34,19 +36,16 @@ class ChApi ChConstraintTwoTuplesContactNall {
     double cohesion;  ///< cohesion 'c', non-negative, for sqrt(Tx^2+Ty^2)<f*(Nz+c)
 };
 
-/// This class is inherited from the ChConstraintTwoTuples,
-/// It is used to represent the normal reaction between two objects,
-/// each represented by a tuple of ChVariables objects,
-/// ONLY when also two ChConstraintTwoTuplesFrictionT objects are
-/// used to represent friction. (If these two tangent constraint
-/// are not used, for frictionless case, please use a simple ChConstraintTwo
-/// with the CONSTRAINT_UNILATERAL mode.)
-/// Differently from an unilateral constraint, this does not enforce
-/// projection on positive constraint, since it will be up to the 'companion'
-/// ChConstraintTwoTuplesFrictionT objects to call a projection on the cone, by
-/// modifying all the three components (normal, u, v) at once.
+/// Normal reaction between two objects, each represented by a tuple of ChVariables objects.
+/// Used ONLY when also two ChConstraintTwoTuplesFrictionT objects are used to represent friction. If these two tangent
+/// constraint are not used, for frictionless case, use a simple ChConstraintTwo with the ChConstraint::Mode::UNILATERAL
+/// mode.
+///
+/// Differently from an unilateral constraint, this does not enforce projection on positive constraint, since it will be
+/// up to the 'companion' ChConstraintTwoTuplesFrictionT objects to call a projection on the cone, by modifying all the
+/// three components (normal, u, v) at once.
+///
 /// Templates Ta and Tb are of ChVariableTupleCarrier_Nvars classes
-
 template <class Ta, class Tb>
 class ChApi ChConstraintTwoTuplesContactN : public ChConstraintTwoTuples<Ta, Tb>,
                                             public ChConstraintTwoTuplesContactNall {
@@ -55,15 +54,13 @@ class ChApi ChConstraintTwoTuplesContactN : public ChConstraintTwoTuples<Ta, Tb>
     ChConstraintTwoTuplesFrictionT<Ta, Tb>* constraint_V;  ///< V tangential component
 
   public:
-    /// Default constructor
     ChConstraintTwoTuplesContactN() {
-        this->mode = CONSTRAINT_FRIC;
+        this->mode = ChConstraint::Mode::FRICTION;
         friction = 0.0;
         cohesion = 0.0;
         constraint_U = constraint_V = 0;
     }
 
-    /// Copy constructor
     ChConstraintTwoTuplesContactN(const ChConstraintTwoTuplesContactN& other) : ChConstraintTwoTuples<Ta, Tb>(other) {
         friction = other.friction;
         cohesion = other.cohesion;

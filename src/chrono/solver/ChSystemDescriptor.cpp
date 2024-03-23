@@ -118,7 +118,7 @@ unsigned int ChSystemDescriptor::PasteConstraintsJacobianMatrixInto(ChSparseMatr
                                                                     bool only_bilateral) const {
     unsigned int s_c = 0;
     for (const auto& constr : m_constraints) {
-        if (constr->IsActive() && !(only_bilateral && !constr->GetMode() == CONSTRAINT_LOCK)) {
+        if (constr->IsActive() && !(only_bilateral && constr->GetMode() != ChConstraint::Mode::LOCK)) {
             constr->PasteJacobianInto(Z, s_c + row_offset, col_offset);
             s_c++;
         }
@@ -133,7 +133,7 @@ unsigned int ChSystemDescriptor::PasteConstraintsJacobianMatrixTransposedInto(Ch
                                                                               bool only_bilateral) const {
     unsigned int s_c = 0;
     for (const auto& constr : m_constraints) {
-        if (constr->IsActive() && !(only_bilateral && !constr->GetMode() == CONSTRAINT_LOCK)) {
+        if (constr->IsActive() && !(only_bilateral && constr->GetMode() != ChConstraint::Mode::LOCK)) {
             constr->PasteJacobianTransposedInto(Z, row_offset, s_c + col_offset);
             s_c++;
         }
@@ -148,7 +148,7 @@ void ChSystemDescriptor::PasteComplianceMatrixInto(ChSparseMatrix& Z,
                                                    bool only_bilateral) const {
     int s_c = 0;
     for (const auto& constr : m_constraints) {
-        if (constr->IsActive() && !(only_bilateral && !constr->GetMode() == CONSTRAINT_LOCK)) {
+        if (constr->IsActive() && !(only_bilateral && constr->GetMode() != ChConstraint::Mode::LOCK)) {
             Z.SetElement(row_offset + s_c, col_offset + s_c, constr->GetComplianceTerm());
             s_c++;
         }

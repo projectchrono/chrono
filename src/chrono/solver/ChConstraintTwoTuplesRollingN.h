@@ -24,19 +24,16 @@ namespace chrono {
 /// from ChConstraintTwoTuplesRollingN
 class ChApi ChConstraintTwoTuplesRollingNall {};
 
-/// This class is inherited from ChConstraintTwoTuples,
-/// It is used to represent the normal reaction between two objects,
-/// each represented by a tuple of ChVariables objects,
-/// ONLY when also two ChConstraintTwoTuplesFrictionT objects are
-/// used to represent friction. (If these two tangent constraint
-/// are not used, for frictionless case, please use a simple ChConstraintTwo
-/// with the CONSTRAINT_UNILATERAL mode.)
-/// Differently from an unilateral constraint, this does not enforce
-/// projection on positive constraint, since it will be up to the 'companion'
-/// ChConstraintTwoTuplesFrictionT objects to call a projection on the cone, by
-/// modifying all the three components (normal, u, v) at once.
-/// Templates Ta and Tb are of ChVariableTupleCarrier_Nvars classes
-
+/// Normal reaction between two objects, each represented by a tuple of ChVariables objects.
+/// Used ONLY when also two ChConstraintTwoTuplesFrictionT objects are used to represent friction. If these two tangent
+/// constraint are not used, for frictionless case, use a simple ChConstraintTwo with the ChConstraint::Mode::UNILATERAL
+/// mode.
+///
+/// Differently from an unilateral constraint, this does not enforce projection on positive constraint, since it will be
+/// up to the 'companion' ChConstraintTwoTuplesFrictionT objects to call a projection on the cone, by modifying all the
+/// three components (normal, u, v) at once.
+///
+/// Templates Ta and Tb are of ChVariableTupleCarrier_Nvars classes.
 template <class Ta, class Tb>
 class ChApi ChConstraintTwoTuplesRollingN : public ChConstraintTwoTuples<Ta, Tb>,
                                             public ChConstraintTwoTuplesRollingNall {
@@ -49,13 +46,11 @@ class ChApi ChConstraintTwoTuplesRollingN : public ChConstraintTwoTuples<Ta, Tb>
     ChConstraintTwoTuplesContactN<Ta, Tb>* constraint_N;  ///< the pointer to N  component
 
   public:
-    /// Default constructor
     ChConstraintTwoTuplesRollingN()
         : rollingfriction(0), spinningfriction(0), constraint_U(NULL), constraint_V(NULL), constraint_N(NULL) {
-        this->mode = CONSTRAINT_FRIC;
+        this->mode = ChConstraint::Mode::FRICTION;
     }
 
-    /// Copy constructor
     ChConstraintTwoTuplesRollingN(const ChConstraintTwoTuplesRollingN& other) : ChConstraintTwoTuples<Ta, Tb>(other) {
         rollingfriction = other.rollingfriction;
         spinningfriction = other.spinningfriction;

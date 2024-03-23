@@ -94,8 +94,7 @@ inline ChFramed ChLinkDistance::GetFrame2Rel() const {
 void ChLinkDistance::SetMode(Mode mode) {
     this->mode = mode;
     mode_sign = (this->mode == Mode::UNILATERAL_MAXDISTANCE ? -1.0 : +1.0);
-    Cx.SetMode(this->mode == Mode::BILATERAL ? eChConstraintMode::CONSTRAINT_LOCK
-                                             : eChConstraintMode::CONSTRAINT_UNILATERAL);
+    Cx.SetMode(this->mode == Mode::BILATERAL ? ChConstraint::Mode::LOCK : ChConstraint::Mode::UNILATERAL);
 }
 
 void ChLinkDistance::Update(double mytime, bool update_assets) {
