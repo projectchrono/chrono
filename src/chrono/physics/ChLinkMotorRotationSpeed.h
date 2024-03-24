@@ -127,6 +127,8 @@ class ChApi ChLinkMotorRotationSpeed : public ChLinkMotorRotation {
     /// Add the current stiffness K matrix in encapsulated ChKRMBlock item(s), if any.
     /// The K matrix is loaded with scaling value Kfactor.
     virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
+
+    friend class ChSystemMulticore;
 };
 
 CH_CLASS_VERSION(ChLinkMotorRotationSpeed, 0)

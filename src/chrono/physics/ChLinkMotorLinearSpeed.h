@@ -126,6 +126,8 @@ class ChApi ChLinkMotorLinearSpeed : public ChLinkMotorLinear {
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
 
     virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
+
+    friend class ChSystemMulticore;
 };
 
 CH_CLASS_VERSION(ChLinkMotorLinearSpeed, 0)

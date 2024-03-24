@@ -276,9 +276,7 @@ void ChSystemMulticore::AddOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> newit
     ////}
 }
 
-//
 // Reset forces for all variables
-//
 void ChSystemMulticore::ClearForceVariables() {
 #pragma omp parallel for
     for (int i = 0; i < (signed)data_manager->num_rigid_bodies; i++) {
@@ -299,7 +297,6 @@ void ChSystemMulticore::ClearForceVariables() {
     }
 }
 
-//
 // Update all items in the system. The following order of operations is important:
 // 1. Clear the force vectors by calling VariablesFbReset for all objects
 // 2. Compute link constraint forces
@@ -309,7 +306,6 @@ void ChSystemMulticore::ClearForceVariables() {
 // 6. Update motor links with states (these introduce state variables)
 // 7. Update 3DOF onjects (these introduce state variables)
 // 8. Process bilateral constraints
-//
 void ChSystemMulticore::Update() {
     // Clear the forces for all variables
     ClearForceVariables();
@@ -334,10 +330,8 @@ void ChSystemMulticore::Update() {
     UpdateBilaterals();
 }
 
-//
 // Update all bodies in the system and populate system-wide state and force
 // vectors. Note that visualization assets are not updated.
-//
 void ChSystemMulticore::UpdateRigidBodies() {
     custom_vector<real3>& position = data_manager->host_data.pos_rigid;
     custom_vector<quaternion>& rotation = data_manager->host_data.rot_rigid;
@@ -386,10 +380,8 @@ void ChSystemMulticore::UpdateRigidBodies() {
     }
 }
 
-//
 // Update all shaft elements in the system and populate system-wide state and
 // force vectors. Note that visualization assets are not updated.
-//
 void ChSystemMulticore::UpdateShafts() {
     real* shaft_rot = data_manager->host_data.shaft_rot.data();
     real* shaft_inr = data_manager->host_data.shaft_inr.data();
@@ -413,10 +405,8 @@ void ChSystemMulticore::UpdateShafts() {
     }
 }
 
-//
 // Update all motor links that introduce *exactly* one variable.
 // TODO: extend this to links with more than one variable.
-//
 void ChSystemMulticore::UpdateMotorLinks() {
     uint offset = data_manager->num_rigid_bodies * 6 + data_manager->num_shafts;
     for (uint i = 0; i < data_manager->num_linmotors; i++) {
@@ -436,17 +426,13 @@ void ChSystemMulticore::UpdateMotorLinks() {
     }
 }
 
-//
 // Update all fluid nodes
-//
 void ChSystemMulticore::Update3DOFBodies() {
     data_manager->node_container->Update3DOF(ch_time);
 }
 
-//
 // Update all links in the system and set the type of the associated constraints
 // to BODY_BODY. Note that visualization assets are not updated.
-//
 void ChSystemMulticore::UpdateLinks() {
     double oostep = 1 / GetStep();
     real clamp_speed = data_manager->settings.solver.bilateral_clamp_speed;
@@ -469,11 +455,9 @@ void ChSystemMulticore::UpdateLinks() {
     }
 }
 
-//
 // This utility function returns the type of constraints associated with the
 // specified physics item. Return UNKNOWN if the item has no associated
 // bilateral constraints or if it is unsupported.
-//
 BilateralType GetBilateralType(ChPhysicsItem* item) {
     if (item->GetNumConstraintsBilateral() == 0)
         return BilateralType::UNKNOWN;
@@ -503,7 +487,6 @@ BilateralType GetBilateralType(ChPhysicsItem* item) {
 // - no support for any items that introduce additional state variables
 // - only include constraints from items of supported type (see GetBilateralType above)
 // - visualization assets are not updated
-//
 void ChSystemMulticore::UpdateOtherPhysics() {
     double oostep = 1 / GetStep();
     real clamp_speed = data_manager->settings.solver.bilateral_clamp_speed;
@@ -533,10 +516,8 @@ void ChSystemMulticore::UpdateOtherPhysics() {
     }
 }
 
-//
 // Collect indexes of all active bilateral constraints and calculate number of
 // non-zero entries in the constraint Jacobian.
-//
 void ChSystemMulticore::UpdateBilaterals() {
     data_manager->nnz_bilaterals = 0;
     std::vector<ChConstraint*>& mconstraints = descriptor->GetConstraints();
