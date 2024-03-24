@@ -52,6 +52,9 @@ class ChApi ChSharedMassBody {
     double mass;                     ///< mass value
     ChMatrix33<double> inv_inertia;  ///< inverse of inertia matrix
     double inv_mass;                 ///< inverse of mass value
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 /// Specialized class for representing a 6-DOF 3D rigid body, with mass matrix and associated variables.

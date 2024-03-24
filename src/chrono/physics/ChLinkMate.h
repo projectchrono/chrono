@@ -212,6 +212,8 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     /// The K matrix is loaded with scaling value Kfactor.
     virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 CH_CLASS_VERSION(ChLinkMateGeneric, 0)
