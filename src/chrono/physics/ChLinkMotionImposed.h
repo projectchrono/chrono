@@ -21,28 +21,29 @@
 
 namespace chrono {
 
-/// A joint that enforces position and rotation between two frames on two bodies, using six
-/// rheonomic constraints.
-/// That is, position and rotation of Body 1 are precisely enforced respect to Body 2 by using
-/// functions of time, where functions are defined via ChFunctionRotation and ChFunctionPosition objects.
-/// A typical usage scenario is where Body 2 is a fixed body, representing the absolute reference,
-/// so you move/rotate Body 1 in space according to the provided functions; this is the case for example where
-/// you have some data coming from a motion capture hardware following the motion, say, of a human head,
-/// and you want to replicate the motion of that head in 3D space.
-/// This joint imposes all the 6 DOFs of a body, including rotations, differently from the ChLinkLockTrajectory
-/// that imposes only the position but leaves rotation free.
-/// Note that if you are interested in simply imposing a straight motion, just use  ChLinkMotorLinearPosition,
-/// and if you just need to impose a rotation on a shaft, just use the ChLinkMotorRotationAngle.
-/// Note: no compliance is allowed, so if the imposed motion hits an undeformable obstacle it mets a pathological
-/// situation and the solver result can be unstable/unpredictable.
-/// Think at it as a 6DOF servo drive with "infinitely stiff" control.
-/// By default it is initialized with no motion / no rotation, so by default is just like welding the two bodies,
-/// so it is up to the user to provide proper ChFunctionRotation and a proper ChFunctionPosition.
-/// Note: differently from most other ChLinkMate -inherited links, that assume the frame2 as link coodrinate system,
-/// in this case we use the "moving" auxiliary frame M whose motion is concatenated to frame2 (in absolute coordinates,
-/// such moving frame will be cohincident with frame1 if the constraint is well assembled - in fact this makes
-/// constraint forces more intuitive, as one will get reaction forces and torques as applied to the frame1 of moving
-/// body 1).
+/// A joint to enforce position and rotation between two frames on two bodies, using six rheonomic constraints.
+///
+/// That is, position and rotation of Body 1 are precisely enforced respect to Body 2 by using functions of time, where
+/// functions are defined via ChFunctionRotation and ChFunctionPosition objects. A typical usage scenario is where Body
+/// 2 is a fixed body, representing the absolute reference, so you move/rotate Body 1 in space according to the provided
+/// functions; this is the case for example where you have some data coming from a motion capture hardware following the
+/// motion, say, of a human head, and you want to replicate the motion of that head in 3D space. This joint imposes all
+/// the 6 DOFs of a body, including rotations, differently from the ChLinkLockTrajectory that imposes only the position
+/// but leaves rotation free.
+///
+/// Notes
+/// - if you are interested in simply imposing a straight motion, just use  ChLinkMotorLinearPosition, and if you just
+/// need to impose a rotation on a shaft, just use the ChLinkMotorRotationAngle.
+/// - no compliance is allowed, so if the imposed motion hits an undeformable obstacle it mets a pathological situation
+/// and the solver result can be unstable/unpredictable. Think at it as a 6DOF servo drive with "infinitely stiff"
+/// control.
+///
+/// By default it is initialized with no motion / no rotation, so by default is just like welding the two bodies, so it
+/// is up to the user to provide proper ChFunctionRotation and a proper ChFunctionPosition. Note: differently from most
+/// other ChLinkMate-inherited links, that assume the frame2 as link coodrinate system, in this case we use the "moving"
+/// auxiliary frame M whose motion is concatenated to frame2 (in absolute coordinates, such moving frame will be
+/// coincident with frame1 if the constraint is well assembled - in fact this makes constraint forces more intuitive,
+/// as one will get reaction forces and torques as applied to the frame1 of moving body 1).
 class ChApi ChLinkMotionImposed : public ChLinkMateGeneric {
   public:
     ChLinkMotionImposed();
@@ -79,18 +80,6 @@ class ChApi ChLinkMotionImposed : public ChLinkMateGeneric {
     /// Get the link frame 2, relative to body 2.
     virtual ChFramed GetFrame2Rel() const override { return frameMb2; };
 
-    void Update(double mytime, bool update_assets) override;
-
-    //
-    // STATE FUNCTIONS
-    //
-    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
-
-    //
-    // SOLVER INTERFACE (OLD)
-    //
-    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
-
     /// Add the current stiffness K matrix in encapsulated ChKRMBlock item(s), if any.
     /// The K matrix is loaded with scaling value Kfactor.
     virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
@@ -104,8 +93,12 @@ class ChApi ChLinkMotionImposed : public ChLinkMateGeneric {
   private:
     std::shared_ptr<ChFunctionPosition> position_function;
     std::shared_ptr<ChFunctionRotation> rotation_function;
-    ChFrame<> frameM2;   // last updated value of the moving frame M respect to frame 2 (the frame connected to body 2)
-    ChFrame<> frameMb2;  // last updated value of the moving frame M respect to body 2
+    ChFrame<> frameM2;   ///< last updated value of the moving frame M respect to frame 2
+    ChFrame<> frameMb2;  ///< last updated value of the moving frame M respect to body 2
+
+    virtual void Update(double mytime, bool update_assets) override;
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
 };
 
 CH_CLASS_VERSION(ChLinkMotionImposed, 0)
