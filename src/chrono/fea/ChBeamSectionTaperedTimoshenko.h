@@ -406,7 +406,7 @@ class ChApi ChBeamSectionTaperedTimoshenkoAdvancedGeneric {
 
   public:
     // If fixed-size matrix of EIGEN3 library is used, we need to add this macro
-    // to reduce the possibility of alignment problems
+    // to address the possibility of alignment problems
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 

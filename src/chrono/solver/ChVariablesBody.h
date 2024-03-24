@@ -20,10 +20,8 @@
 
 namespace chrono {
 
-/// Specialized class for representing a 6-DOF item for a system, that is a 3D rigid body, with mass matrix and
-/// associate variables (a 6 element vector, ex.speed) This is an abstract class, specialized for example in
-/// ChVariablesBodyOwnMass and ChVariablesBodySharedMass.
-
+/// Specialized class for representing a 6-DOF 3D rigid body, with mass matrix and associated variables.
+/// This is an abstract class, specialized for example in ChVariablesBodyOwnMass and ChVariablesBodySharedMass.
 class ChApi ChVariablesBody : public ChVariables {
   public:
     ChVariablesBody() : ChVariables(6), user_data(NULL) {}

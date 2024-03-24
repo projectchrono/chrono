@@ -25,8 +25,7 @@ namespace chrono {
 
 /// Class for assemblies of items, for example ChBody, ChLink, ChMesh, etc.
 /// Note that an assembly can be added to another assembly, to create a tree-like hierarchy.
-/// All positions of rigid bodies, FEA nodes, etc. are assumed with respect to the absolute frame.
-
+/// All positions of rigid bodies, FEA nodes, etc. are assumed to be with respect to the absolute frame.
 class ChApi ChAssembly : public ChPhysicsItem {
   public:
     ChAssembly();
@@ -39,9 +38,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Assignment operator for ChAssembly.
     ChAssembly& operator=(ChAssembly other);
 
-    //
     // CONTAINER FUNCTIONS
-    //
 
     /// Removes all inserted items: bodies, links, etc.
     void Clear();
@@ -135,9 +132,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     /// Search an item (body, link or other ChPhysics items) by name.
     std::shared_ptr<ChPhysicsItem> Search(const std::string& name) const;
 
-    //
     // STATISTICS
-    //
 
     /// Get the total number of bodies added to the assembly, including fixed and sleeping bodies.
     unsigned int GetNumBodies() const { return m_num_bodies_active + m_num_bodies_fixed + m_num_bodies_sleep; }
@@ -305,9 +300,7 @@ class ChApi ChAssembly : public ChPhysicsItem {
     virtual void ConstraintsFbLoadForces(double factor = 1) override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
-    //
     // SERIALIZATION
-    //
 
     /// Writes the hierarchy of contained bodies, markers, etc. in ASCII
     /// readable form, mostly for debugging purposes. Level is the tab spacing at the left.
@@ -347,12 +340,11 @@ class ChApi ChAssembly : public ChPhysicsItem {
     unsigned int m_num_meshes;                    ///< number of meshes
     unsigned int m_num_otherphysicsitems_active;  ///< number of other active physics items
 
-    unsigned int m_num_coords_pos;  ///< number of scalar coordinates (including 4th dimension of quaternions) for all active
-                           ///< bodies
-    unsigned int m_num_coords_vel;  ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
-    unsigned int m_num_constr;      ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
-    unsigned int m_num_constr_bil;  ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
-    unsigned int m_num_constr_uni;  ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
+    unsigned int m_num_coords_pos;  ///< number of scalar position-level coordinates for all active bodies
+    unsigned int m_num_coords_vel;  ///< number of scalar velocity-level coordinates for all active bodies
+    unsigned int m_num_constr;      ///< number of scalar constraints
+    unsigned int m_num_constr_bil;  ///< number of scalar bilateral constraints
+    unsigned int m_num_constr_uni;  ///< number of scalar unilateral constraints
 
     friend class ChSystem;
     friend class ChSystemMulticore;
