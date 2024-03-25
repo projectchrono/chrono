@@ -1482,44 +1482,46 @@ void ChAssembly::ShowHierarchy(std::ostream& outstream, int level) const {
 
     outstream << "\n" << mtabs << "List of the " << (int)bodylist.size() << " added rigid bodies:" << std::endl;
     for (auto& body : bodylist) {
-        outstream << mtabs << "  BODY:       " << body->GetName() << std::endl;
+        outstream << mtabs << "  BODY:       " << body->GetIdentifier() << " " << body->GetName() << std::endl;
 
         for (auto& marker : body->GetMarkers()) {
-            outstream << mtabs << "    MARKER:  " << marker->GetName() << std::endl;
+            outstream << mtabs << "    MARKER:   " << marker->GetIdentifier() << " " << marker->GetName() << std::endl;
         }
 
         for (auto& force : body->GetForces()) {
-            outstream << mtabs << "    FORCE:  " << force->GetName() << std::endl;
+            outstream << mtabs << "    FORCE:    " << force->GetIdentifier() << " " << force->GetName() << std::endl;
         }
     }
 
     outstream << "\n" << mtabs << "List of the " << (int)shaftlist.size() << " added shafts:" << std::endl;
     for (auto& shaft : shaftlist) {
-        outstream << mtabs << "  SHAFT:      " << shaft->GetName() << std::endl;
+        outstream << mtabs << "  SHAFT:      " << shaft->GetIdentifier() << " " << shaft->GetName() << std::endl;
     }
 
     outstream << "\n" << mtabs << "List of the " << (int)linklist.size() << " added links:" << std::endl;
     for (auto& link : linklist) {
-        outstream << mtabs << "  LINK:       " << link->GetName() << " [" << typeid(link.get()).name() << "]"
-                  << std::endl;
+        outstream << mtabs << "  LINK:       " << link->GetIdentifier() << " " << link->GetName() << " ["
+                  << typeid(*link.get()).name() << "]" << std::endl;
         if (auto malink = std::dynamic_pointer_cast<ChLinkMarkers>(link)) {
             if (malink->GetMarker1())
-                outstream << mtabs << "    marker1:  " << malink->GetMarker1()->GetName() << std::endl;
+                outstream << mtabs << "    marker1:  " << malink->GetMarker1()->GetIdentifier() << " "
+                          << malink->GetMarker1()->GetName() << std::endl;
             if (malink->GetMarker2())
-                outstream << mtabs << "    marker2:  " << malink->GetMarker2()->GetName() << std::endl;
+                outstream << mtabs << "    marker2:  " << malink->GetMarker2()->GetIdentifier() << " "
+                          << malink->GetMarker2()->GetName() << std::endl;
         }
     }
 
     outstream << "\n" << mtabs << "List of the " << (int)meshlist.size() << " added meshes:" << std::endl;
     for (auto& mesh : meshlist) {
-        outstream << mtabs << "  MESH :      " << mesh->GetName() << std::endl;
+        outstream << mtabs << "  MESH :      " << mesh->GetIdentifier() << " " << mesh->GetName() << std::endl;
     }
 
     outstream << "\n"
               << mtabs << "List of other " << (int)otherphysicslist.size() << " added physic items:" << std::endl;
     for (auto& item : otherphysicslist) {
-        outstream << mtabs << "  PHYSIC ITEM: " << item->GetName() << " [" << typeid(item.get()).name() << "]"
-                  << std::endl;
+        outstream << mtabs << "  PHYSICS ITEM: " << item->GetIdentifier() << " " << item->GetName() << " ["
+                  << typeid(item.get()).name() << "]" << std::endl;
 
         // recursion:
         if (auto assem = std::dynamic_pointer_cast<ChAssembly>(item))
