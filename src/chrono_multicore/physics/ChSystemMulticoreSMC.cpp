@@ -71,8 +71,8 @@ void ChSystemMulticoreSMC::SetContactContainer(std::shared_ptr<ChContactContaine
         ChSystem::SetContactContainer(container);
 }
 
-real3 ChSystemMulticoreSMC::GetBodyContactForce(uint body_id) const {
-    int index = data_manager->host_data.ct_body_map[body_id];
+real3 ChSystemMulticoreSMC::GetBodyContactForce(std::shared_ptr<ChBody> body) const {
+    int index = data_manager->host_data.ct_body_map[body->GetIndex()];
 
     if (index == -1)
         return real3(0);
@@ -80,8 +80,8 @@ real3 ChSystemMulticoreSMC::GetBodyContactForce(uint body_id) const {
     return data_manager->host_data.ct_body_force[index];
 }
 
-real3 ChSystemMulticoreSMC::GetBodyContactTorque(uint body_id) const {
-    int index = data_manager->host_data.ct_body_map[body_id];
+real3 ChSystemMulticoreSMC::GetBodyContactTorque(std::shared_ptr<ChBody> body) const {
+    int index = data_manager->host_data.ct_body_map[body->GetIndex()];
 
     if (index == -1)
         return real3(0);

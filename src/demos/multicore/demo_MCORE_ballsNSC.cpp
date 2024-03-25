@@ -50,7 +50,7 @@ int count_Y = 2;
 // -----------------------------------------------------------------------------
 // Create a bin consisting of five boxes attached to the ground.
 // -----------------------------------------------------------------------------
-void AddContainer(ChSystemMulticoreNSC* sys) {
+std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
     // Create a common material
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.4f);
@@ -69,6 +69,8 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
                            ChVector3i(2, 2, -1));
 
     sys->AddBody(bin);
+
+    return bin;
 }
 
 // -----------------------------------------------------------------------------
@@ -148,7 +150,7 @@ int main(int argc, char* argv[]) {
     // Create the fixed and moving bodies
     // ----------------------------------
 
-    AddContainer(&sys);
+    auto container = AddContainer(&sys);
     AddFallingBalls(&sys);
 
     // Perform the simulation
@@ -169,7 +171,7 @@ int main(int argc, char* argv[]) {
             sys.DoStepDynamics(time_step);
             vis.Render();
             ////  sys.CalculateContactForces();
-            ////  real3 frc = sys.GetBodyContactForce(0);
+            ////  real3 frc = sys.GetBodyContactForce(container);
             ////  std::cout << frc.x << "  " << frc.y << "  " << frc.z << std::endl;
         } else {
             break;

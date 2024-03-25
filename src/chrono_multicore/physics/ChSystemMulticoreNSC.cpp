@@ -112,14 +112,16 @@ void ChSystemMulticoreNSC::CalculateContactForces() {
     Fc = D_u * gamma_u / data_manager->settings.step_size;
 }
 
-real3 ChSystemMulticoreNSC::GetBodyContactForce(uint body_id) const {
+real3 ChSystemMulticoreNSC::GetBodyContactForce(std::shared_ptr<ChBody> body) const {
     assert(data_manager->Fc_current);
+    auto body_id = body->GetIndex();
     return real3(data_manager->host_data.Fc[body_id * 6 + 0], data_manager->host_data.Fc[body_id * 6 + 1],
                  data_manager->host_data.Fc[body_id * 6 + 2]);
 }
 
-real3 ChSystemMulticoreNSC::GetBodyContactTorque(uint body_id) const {
+real3 ChSystemMulticoreNSC::GetBodyContactTorque(std::shared_ptr<ChBody> body) const {
     assert(data_manager->Fc_current);
+    auto body_id = body->GetIndex();
     return real3(data_manager->host_data.Fc[body_id * 6 + 3], data_manager->host_data.Fc[body_id * 6 + 4],
                  data_manager->host_data.Fc[body_id * 6 + 5]);
 }

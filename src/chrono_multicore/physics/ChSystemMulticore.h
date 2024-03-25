@@ -154,25 +154,15 @@ class CH_MULTICORE_API ChSystemMulticore : public ChSystem {
     /// using the NSC formulation, but are included when using the SMC formulation.
     virtual ChVector3d GetBodyAppliedTorque(ChBody* body) override;
 
-    /// Get the contact force on the body with specified id.
-    /// Note that ComputeContactForces must be called prior to calling this function
-    /// at any time where reporting of contact forces is desired.
-    virtual real3 GetBodyContactForce(uint body_id) const = 0;
-
-    /// Get the contact torque on the body with specified id.
-    /// Note that ComputeContactForces must be called prior to calling this function
-    /// at any time where reporting of contact torques is desired.
-    virtual real3 GetBodyContactTorque(uint body_id) const = 0;
-
     /// Get the contact force on the specified body.
     /// Note that ComputeContactForces must be called prior to calling this function
     /// at any time where reporting of contact forces is desired.
-    real3 GetBodyContactForce(std::shared_ptr<ChBody> body) const { return GetBodyContactForce(body->GetIndex()); }
+    virtual real3 GetBodyContactForce(std::shared_ptr<ChBody> body) const = 0;
 
     /// Get the contact torque on the specified body.
     /// Note that ComputeContactForces must be called prior to calling this function
     /// at any time where reporting of contact torques is desired.
-    real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) const { return GetBodyContactTorque(body->GetIndex()); }
+    virtual real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) const = 0;
 
     settings_container* GetSettings();
 
@@ -239,13 +229,9 @@ class CH_MULTICORE_API ChSystemMulticoreNSC : public ChSystemMulticore {
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container) override;
 
     void CalculateContactForces() override;
-    real CalculateKineticEnergy();
-    real CalculateDualObjective();
 
-    virtual real3 GetBodyContactForce(uint body_id) const override;
-    virtual real3 GetBodyContactTorque(uint body_id) const override;
-    using ChSystemMulticore::GetBodyContactForce;
-    using ChSystemMulticore::GetBodyContactTorque;
+    virtual real3 GetBodyContactForce(std::shared_ptr<ChBody> body) const override;
+    virtual real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) const override;
 
     virtual void AssembleSystem();
     virtual void SolveSystem();
@@ -270,10 +256,8 @@ class CH_MULTICORE_API ChSystemMulticoreSMC : public ChSystemMulticore {
     virtual void SetCollisionSystemType(ChCollisionSystem::Type type) override;
     virtual void SetContactContainer(std::shared_ptr<ChContactContainer> container) override;
 
-    virtual real3 GetBodyContactForce(uint body_id) const override;
-    virtual real3 GetBodyContactTorque(uint body_id) const override;
-    using ChSystemMulticore::GetBodyContactForce;
-    using ChSystemMulticore::GetBodyContactTorque;
+    virtual real3 GetBodyContactForce(std::shared_ptr<ChBody> body) const override;
+    virtual real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) const override;
 
     virtual void PrintStepStats() override;
 

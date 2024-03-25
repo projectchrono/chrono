@@ -55,7 +55,7 @@ float cr = 0.4f;
 // -----------------------------------------------------------------------------
 // Create a bin consisting of five boxes attached to the ground.
 // -----------------------------------------------------------------------------
-void AddContainer(ChSystemMulticoreSMC* sys) {
+std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreSMC* sys) {
     // Create a common material
     auto mat = chrono_types::make_shared<ChContactMaterialSMC>();
     mat->SetYoungModulus(Y);
@@ -76,6 +76,8 @@ void AddContainer(ChSystemMulticoreSMC* sys) {
                            ChVector3i(2, 2, -1));
 
     sys->AddBody(bin);
+
+    return bin;
 }
 
 // -----------------------------------------------------------------------------
@@ -154,7 +156,7 @@ int main(int argc, char* argv[]) {
 
     // Create the fixed and moving bodies
     // ----------------------------------
-    AddContainer(&sys);
+    auto container = AddContainer(&sys);
     AddFallingBalls(&sys);
 
     // Perform the simulation
@@ -175,7 +177,7 @@ int main(int argc, char* argv[]) {
             sys.DoStepDynamics(time_step);
             vis.Render();
             // Print cumulative contact force on container bin.
-            real3 frc = sys.GetBodyContactForce(0);
+            real3 frc = sys.GetBodyContactForce(container);
             std::cout << frc.x << "  " << frc.y << "  " << frc.z << std::endl;
         } else {
             break;

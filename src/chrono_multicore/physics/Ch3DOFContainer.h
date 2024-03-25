@@ -83,8 +83,8 @@ class CH_MULTICORE_API Ch3DOFContainer : public ChPhysicsItem {
     virtual unsigned int GetNumConstraints() { return 0; }
     virtual unsigned int GetNumNonZeros() { return 0; }
     virtual void CalculateContactForces() {}
-    virtual real3 GetBodyContactForce(uint body_id) { return real3(0); }
-    virtual real3 GetBodyContactTorque(uint body_id) { return real3(0); }
+    virtual real3 GetBodyContactForce(std::shared_ptr<ChBody> body) { return real3(0); }
+    virtual real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) { return real3(0); }
     // Integrate happens after the solve
     // void Integrate(double ChTime);
     // Position of the node - in absolute csys.
@@ -156,8 +156,8 @@ class CH_MULTICORE_API ChFluidContainer : public Ch3DOFContainer {
     virtual void ComputeMass(int offset) override;
     virtual void PostSolve() override;
     virtual void CalculateContactForces() override;
-    virtual real3 GetBodyContactForce(uint body_id) override;
-    virtual real3 GetBodyContactTorque(uint body_id) override;
+    virtual real3 GetBodyContactForce(std::shared_ptr<ChBody> body) override;
+    virtual real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) override;
     void GetFluidDensity(custom_vector<real>& dens);
     void GetFluidPressure(custom_vector<real>& pres);
     void GetFluidForce(custom_vector<real3>& forc);
@@ -223,8 +223,8 @@ class CH_MULTICORE_API ChParticleContainer : public Ch3DOFContainer {
     virtual void ComputeMass(int offset) override;
     virtual void PostSolve() override;
     virtual void CalculateContactForces() override;
-    virtual real3 GetBodyContactForce(uint body_id) override;
-    virtual real3 GetBodyContactTorque(uint body_id) override;
+    virtual real3 GetBodyContactForce(std::shared_ptr<ChBody> body) override;
+    virtual real3 GetBodyContactTorque(std::shared_ptr<ChBody> body) override;
     void GetFluidForce(custom_vector<real3>& forc);
 
     uint start_boundary;
