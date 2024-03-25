@@ -23,11 +23,11 @@ import pychrono.parsers as parsers
 def main():
     # Create a Chrono system
     system = chrono.ChSystemSMC()
-    system.Set_G_acc(chrono.ChVectorD(0, 0, -9.81))
+    system.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, -9.81))
 
     # Create a ground body
     ground = chrono.ChBody()
-    ground.SetBodyFixed(True)
+    ground.SetFixed(True)
     ground_box = chrono.ChVisualShapeBox(3, 2, 0.1)
     ground_box.SetTexture(chrono.GetChronoDataFile("textures/checker2.png"))
     ground.AddVisualShape(ground_box)
@@ -38,7 +38,7 @@ def main():
     parser = parsers.ChParserURDF(chrono.GetChronoDataFile(filename))
 
     # Set root body pose
-    parser.SetRootInitPose(chrono.ChFrameD(chrono.ChVectorD(0, 0, 1.5), chrono.QUNIT))
+    parser.SetRootInitPose(chrono.ChFramed(chrono.ChVector3d(0, 0, 1.5), chrono.QUNIT))
 
     # Make all eligible joints as actuated
     parser.SetAllJointsActuationType(parsers.ChParserURDF.ActuationType_POSITION);
@@ -64,10 +64,10 @@ def main():
     root_loc = parser.GetRootChBody().GetPos()
 
     # Fix root body
-    parser.GetRootChBody().SetBodyFixed(True)
+    parser.GetRootChBody().SetFixed(True)
 
     # Example: Change actuation function for a particular joint
-    sfun = chrono.ChFunction_Sine(0, 0.2, 1.0)
+    sfun = chrono.ChFunctionSine(0, 0.2, 1.0)
     parser.SetMotorFunction("head_swivel", sfun)  # hardcoded for R2D2 model
 
     # Create the irrlicht visualization
@@ -79,7 +79,7 @@ def main():
     vis.Initialize()
     vis.AddLogo(chrono.GetChronoDataFile("logo_pychrono_alpha.png"))
     vis.AddSkyBox()
-    vis.AddCamera(root_loc + chrono.ChVectorD(3, 3, 0), root_loc)
+    vis.AddCamera(root_loc + chrono.ChVector3d(3, 3, 0), root_loc)
     vis.AddTypicalLights()
 
     # Simulation loop
