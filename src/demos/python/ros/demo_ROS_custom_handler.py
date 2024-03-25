@@ -45,13 +45,13 @@ class MyCustomHandler(chros.ChROSHandler):
         msg = Int64()
         msg.data = self.ticker
         self.publisher.publish(msg)
-        self.ticekr += 1
+        self.ticker += 1
 
 
 def main():
     # Create system
     sys = ch.ChSystemNSC()
-    sys.Set_G_acc(ch.ChVector3d(0, 0, -9.81))
+    sys.SetGravitationalAcceleration(ch.ChVector3d(0, 0, -9.81))
 
     # add a floor, box and sphere to the scene
     phys_mat = ch.ChContactMaterialNSC()
@@ -59,7 +59,7 @@ def main():
 
     floor = ch.ChBodyEasyBox(10, 10, 1, 1000, True, True, phys_mat)
     floor.SetPos(ch.ChVector3d(0, 0, -1))
-    floor.SetBodyFixed(True)
+    floor.SetFixed(True)
     floor.SetName("base_link")
     sys.Add(floor)
 

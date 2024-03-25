@@ -35,9 +35,9 @@ def create_terrain(
     ground_mat.SetRestitution(0.0)
     ch.CastToChContactMaterialSMC(ground_mat).SetYoungModulus(1e7)
 
-    ground.SetBodyFixed(True)
+    ground.SetFixed(True)
     ground.SetPos(ch.ChVector3d(offset, 0, height - 0.1))
-    ground.SetCollide(True)
+    ground.EnableCollision(True)
 
     ct_shape = ch.ChCollisionShapeBox(ground_mat, length, width, 0.2)
     ground.AddCollisionShape(ct_shape)
@@ -52,9 +52,8 @@ def main():
     # Create Chrono system
     system = ch.ChSystemSMC()
     system.SetCollisionSystemType(ch.ChCollisionSystem.Type_BULLET)
-    system.SetSolverMaxIterations(200)
     system.SetSolverType(ch.ChSolver.Type_BARZILAIBORWEIN)
-    system.Set_G_acc(ch.ChVector3d(0, 0, -9.8))
+    system.SetGravitationalAcceleration(ch.ChVector3d(0, 0, -9.8))
 
     ground_body = ch.ChBody()
     ground_body.SetName("floor")
@@ -65,7 +64,7 @@ def main():
     robot = parsers.ChParserURDF(robot_urdf)
 
     # Set root body pose
-    robot.SetRootInitPose(ch.ChFrameD(ch.ChVector3d(0, 0, 1.5), ch.QUNIT))
+    robot.SetRootInitPose(ch.ChFramed(ch.ChVector3d(0, 0, 1.5), ch.QUNIT))
 
     # Make all eligible joints as actuated (POSITION type) and overwrite wheel
     # motors with SPEED actuation.
@@ -93,11 +92,11 @@ def main():
     limb4_wheel = robot.GetChBody("limb4_link8")
 
     # Enable collision and set contact material for selected bodies of the robot
-    sled.SetCollide(True)
-    limb1_wheel.SetCollide(True)
-    limb2_wheel.SetCollide(True)
-    limb3_wheel.SetCollide(True)
-    limb4_wheel.SetCollide(True)
+    sled.EnableCollision(True)
+    limb1_wheel.EnableCollision(True)
+    limb2_wheel.EnableCollision(True)
+    limb3_wheel.EnableCollision(True)
+    limb4_wheel.EnableCollision(True)
 
     # Update the contact material properties
     mat = ch.ChContactMaterialData()
@@ -112,7 +111,7 @@ def main():
     limb4_wheel.GetCollisionModel().SetAllShapesMaterial(cmat)
 
     # Fix root body
-    robot.GetRootChBody().SetBodyFixed(True)
+    robot.GetRootChBody().SetFixed(True)
 
     motors = []
     with open(ch.GetChronoDataFile("robot/robosimian/actuation/motor_names.txt"), "r") as f:
@@ -150,7 +149,7 @@ def main():
     # Create a robot model handler that will publish the URDF file as a string for rviz to load
     # The QoS of this publisher is set to transient local, meaning we can publish once and late subscribers will still
     # receive the message. We do this by setting the update rate to infinity.
-    robot_model_handler = chros.ChROSRobotModelHandler(float("inf"), robot)
+    robot_model_handler = chros.ChROSRobotModelHandler(robot)
     ros_manager.RegisterHandler(robot_model_handler)
 
     # Finally, initialize the ROS manager
@@ -201,7 +200,7 @@ def main():
             vis.BindItem(ground_body)
 
             # release the robot
-            robot.GetRootChBody().SetBodyFixed(False)
+            robot.GetRootChBody().SetFixed(False)
 
             terrain_created = True
 

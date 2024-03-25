@@ -24,7 +24,7 @@
 
 TEST(ChROSInterface, simple_publisher_subscriber) {
     // Create the ROS interface
-    auto interface = chrono::ros::ChROSInterface();
+    auto interface = chrono::ros::ChROSInterface("chrono_ros_node");
 
     // Initialize the ROS interface
     interface.Initialize();

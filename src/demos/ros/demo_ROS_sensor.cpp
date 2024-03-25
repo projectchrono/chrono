@@ -1,4 +1,4 @@
-// =============================================================================
+Sensor // =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2023 projectchrono.org
@@ -73,19 +73,19 @@ int main(int argc, char* argv[]) {
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({0, 0, 0});
     mesh_body->AddVisualShape(trimesh_shape, ChFrame<>(ChVector3d(0, 0, 0)));
-    mesh_body->SetBodyFixed(true);
+    mesh_body->SetFixed(true);
     sys.Add(mesh_body);
 
     // This is the body we'll attach the sensors to
     auto ground_body = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, false, false);
     ground_body->SetPos({0, 0, 0});
-    ground_body->SetBodyFixed(false);
+    ground_body->SetFixed(false);
     ground_body->SetMass(0);
     sys.Add(ground_body);
 
     // -----------------------
     auto noise_none = chrono_types::make_shared<ChNoiseNone>();
-    chrono::ChFrame<double> offset_pose({-8, 0, 2}, Q_from_AngAxis(.2, {0, 1, 0}));
+    chrono::ChFrame<double> offset_pose({-8, 0, 2}, QuatFromAngleAxis(.2, {0, 1, 0}));
 
     // Create the sensor system
     auto sensor_manager = chrono_types::make_shared<ChSensorManager>(&sys);
@@ -99,14 +99,14 @@ int main(int argc, char* argv[]) {
     sensor_manager->scene->SetBackground(b);
 
     // Create a camera that's placed on the hood
-    auto cam = chrono_types::make_shared<ChCameraSensor>(ground_body, 30, offset_pose, 1280, 720, CH_C_PI / 3.);
+    auto cam = chrono_types::make_shared<ChCameraSensor>(ground_body, 30, offset_pose, 1280, 720, CH_PI / 3.);
     cam->PushFilter(chrono_types::make_shared<ChFilterRGBA8Access>());
     cam->PushFilter(chrono_types::make_shared<ChFilterVisualize>(1280, 720));
     sensor_manager->AddSensor(cam);
 
     // Create a lidar and add it to the sensor manager
-    auto lidar = chrono_types::make_shared<ChLidarSensor>(ground_body, 5.f, offset_pose, 900, 30, 2 * CH_C_PI,
-                                                          CH_C_PI / 12, -CH_C_PI / 6, 100.0f);
+    auto lidar = chrono_types::make_shared<ChLidarSensor>(ground_body, 5.f, offset_pose, 900, 30, 2 * CH_PI,
+                                                          CH_PI / 12, -CH_PI / 6, 100.0f);
     lidar->PushFilter(chrono_types::make_shared<ChFilterDIAccess>());
     lidar->PushFilter(chrono_types::make_shared<ChFilterPCfromDepth>());
     lidar->PushFilter(chrono_types::make_shared<ChFilterXYZIAccess>());
@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
 
     // Create a 2d lidar and add it to the sensor manager
     auto lidar_2d =
-        chrono_types::make_shared<ChLidarSensor>(ground_body, 5.f, offset_pose, 480, 1, 2 * CH_C_PI, 0.0, 0.0, 100.0f);
+        chrono_types::make_shared<ChLidarSensor>(ground_body, 5.f, offset_pose, 480, 1, 2 * CH_PI, 0.0, 0.0, 100.0f);
     lidar_2d->PushFilter(chrono_types::make_shared<ChFilterDIAccess>());
     lidar_2d->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640, 480, "2D Lidar"));
     sensor_manager->AddSensor(lidar_2d);
@@ -225,7 +225,7 @@ int main(int argc, char* argv[]) {
 
     // Give the ground body some rotational velocity so that the sensors attached to it appear to be moving
     // Note how the gyroscopes angular velocity in ROS will read 0.1 on the z-axis
-    ground_body->SetWvel_par({0, 0, 0.1});
+    ground_body->SetAngVelParent({0, 0, 0.1});
 
     // Simulation loop
     while (time < time_end) {

@@ -125,7 +125,7 @@ void ChROSTFHandler::Tick(double time) {
         std::string child_frame_id;
         if (std::holds_alternative<std::shared_ptr<chrono::ChBody>>(child)) {
             auto child_body = std::get<std::shared_ptr<chrono::ChBody>>(child);
-            child_to_parent = parent->GetFrame_REF_to_abs().GetInverse() * child_body->GetFrame_REF_to_abs();
+            child_to_parent = parent->GetFrameRefToAbs().GetInverse() * child_body->GetFrameRefToAbs();
             child_frame_id = child_body->GetName();
         } else {
             auto frame_pair = std::get<ChFrameTransform>(child);

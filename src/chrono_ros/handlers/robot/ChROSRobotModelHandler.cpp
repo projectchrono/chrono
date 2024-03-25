@@ -27,10 +27,8 @@
 namespace chrono {
 namespace ros {
 
-ChROSRobotModelHandler::ChROSRobotModelHandler(double update_rate,
-                                               const std::string& robot_model,
-                                               const std::string& topic_name)
-    : ChROSHandler(update_rate), m_robot_model(robot_model), m_topic_name(topic_name) {}
+ChROSRobotModelHandler::ChROSRobotModelHandler(const std::string& robot_model, const std::string& topic_name)
+    : ChROSHandler(std::numeric_limits<double>::max()), m_robot_model(robot_model), m_topic_name(topic_name) {}
 
 #ifdef CHRONO_PARSERS_URDF
 class CustomProcessorFilenameResolver : public chrono::parsers::ChParserURDF::CustomProcessor {
@@ -117,10 +115,8 @@ class CustomProcessorFilenameResolver : public chrono::parsers::ChParserURDF::Cu
     const std::string m_filepath;
 };
 
-ChROSRobotModelHandler::ChROSRobotModelHandler(double update_rate,
-                                               chrono::parsers::ChParserURDF& parser,
-                                               const std::string& topic_name)
-    : ChROSHandler(update_rate), m_topic_name(topic_name) {
+ChROSRobotModelHandler::ChROSRobotModelHandler(chrono::parsers::ChParserURDF& parser, const std::string& topic_name)
+    : ChROSHandler(std::numeric_limits<double>::max()), m_topic_name(topic_name) {
     auto filename = parser.GetFilename();
     auto xml = parser.CustomProcess("link", std::make_shared<CustomProcessorFilenameResolver>(filename));
     if (!xml) {

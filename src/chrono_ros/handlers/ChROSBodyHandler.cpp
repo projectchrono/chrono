@@ -68,7 +68,7 @@ void ChROSBodyHandler::PublishPose(double time) {
 }
 
 void ChROSBodyHandler::PublishTwist(double time) {
-    auto lin_vel = m_body->GetPosDer();
+    auto lin_vel = m_body->GetPosDt();
     auto ang_vel = m_body->GetAngVelLocal();
 
     m_twist_msg.header.stamp = ChROSHandlerUtilities::GetROSTimestamp(time);
@@ -85,7 +85,7 @@ void ChROSBodyHandler::PublishTwist(double time) {
 }
 
 void ChROSBodyHandler::PublishAccel(double time) {
-    auto lin_acc = m_body->GetPosDer2();
+    auto lin_acc = m_body->GetPosDt2();
     auto ang_acc = m_body->GetAngAccLocal();
 
     m_accel_msg.header.stamp = ChROSHandlerUtilities::GetROSTimestamp(time);

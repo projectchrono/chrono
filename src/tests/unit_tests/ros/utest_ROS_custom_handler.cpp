@@ -70,7 +70,7 @@ class CustomSubscriberHandler : public chrono::ros::ChROSHandler {
 
 TEST(ChROSHandler, custom_handler) {
     // Create the ROS interface
-    auto interface = std::make_shared<chrono::ros::ChROSInterface>();
+    auto interface = std::make_shared<chrono::ros::ChROSInterface>("chrono_ros_node");
 
     // Create the custom handlers
     auto publisher_handler = CustomPublisherHandler("test_topic", 42);

@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
 
     // Create the system
     ChSystemNSC sys;
-    sys.Set_G_acc({0, 0, -9.81});
+    sys.SetGravitationalAcceleration({0, 0, -9.81});
 
     // Add a mesh object to make the scene interesting
     auto phys_mat = chrono_types::make_shared<ChContactMaterialNSC>();
@@ -78,7 +78,7 @@ int main(int argc, char* argv[]) {
 
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(20, 20, 1, 1000, true, true, phys_mat);
     floor->SetPos({0, 0, -1});
-    floor->SetBodyFixed(true);
+    floor->SetFixed(true);
     floor->SetName("floor");
     sys.AddBody(floor);
 

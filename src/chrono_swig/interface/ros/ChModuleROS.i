@@ -21,7 +21,7 @@ try:
       from . import _ros
   else:
       import _ros
-except Exception as e:
+except ImportError as e:
   import os
   if "ROS_DISTRO" not in os.environ or "AMENT_PREFIX_PATH" not in os.environ:
     raise Exception("Cannot import ros. It appears like you haven't sourced your ROS installation.")

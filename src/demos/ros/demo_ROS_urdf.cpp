@@ -69,11 +69,14 @@ void CreateTerrain(ChSystem& sys,
     auto ground_mat = ChContactMaterial::DefaultMaterial(sys.GetContactMethod());
     ground_mat->SetFriction(0.8f);
     ground_mat->SetRestitution(0.0f);
-    std::static_pointer_cast<ChContactMaterialSMC>(ground_mat)->SetYoungModulus(1e7f);
 
-    ground->SetBodyFixed(true);
+    if (sys.GetContactMethod() == ChContactMethod::SMC) {
+        std::static_pointer_cast<ChContactMaterialSMC>(ground_mat)->SetYoungModulus(1e7f);
+    }
+
+    ground->SetFixed(true);
     ground->SetPos(ChVector3d(offset, 0, height - 0.1));
-    ground->SetCollide(true);
+    ground->EnableCollision(true);
 
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, length, width, 0.2);
     ground->AddCollisionShape(ct_shape);
@@ -91,11 +94,12 @@ int main(int argc, char* argv[]) {
 
     // Create the system
     ChSystemSMC sys;
-    sys.Set_G_acc({0, 0, -9.81});
-    sys.SetSolverMaxIterations(200);
-    sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    sys.SetGravitationalAcceleration({0, 0, -9.81});
     sys.SetCollisionSystemType(ChCollisionSystem::Type::BULLET);
+    sys.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
+    sys.GetSolver()->AsIterative()->SetMaxIterations(200);
 
+    // Create a "floor" body
     auto floor = chrono_types::make_shared<ChBody>();
     floor->SetName("floor");
     sys.AddBody(floor);
@@ -137,11 +141,11 @@ int main(int argc, char* argv[]) {
     auto limb4_wheel = robot.GetChBody("limb4_link8");
 
     // Enable collsion and set contact material for selected bodies of the robot
-    sled->SetCollide(true);
-    limb1_wheel->SetCollide(true);
-    limb2_wheel->SetCollide(true);
-    limb3_wheel->SetCollide(true);
-    limb4_wheel->SetCollide(true);
+    sled->EnableCollision(true);
+    limb1_wheel->EnableCollision(true);
+    limb2_wheel->EnableCollision(true);
+    limb3_wheel->EnableCollision(true);
+    limb4_wheel->EnableCollision(true);
 
     ChContactMaterialData mat;
     mat.mu = 0.8f;
@@ -155,7 +159,7 @@ int main(int argc, char* argv[]) {
     limb4_wheel->GetCollisionModel()->SetAllShapesMaterial(cmat);
 
     // Fix root body
-    robot.GetRootChBody()->SetBodyFixed(true);
+    robot.GetRootChBody()->SetFixed(true);
 
     // Read the list of actuated motors and set their actuation function
     std::ifstream ifs(GetChronoDataFile("robot/robosimian/actuation/motor_names.txt"));
@@ -201,9 +205,9 @@ int main(int argc, char* argv[]) {
 
     // Create a robot model handler that will publish the URDF file as a string for rviz to load
     // The QoS of this publisher is set to transient local, meaning we can publish once and late subscribers will still
-    // receive the message. We do this by setting the update rate to infinity.
-    auto robot_model_handler =
-        chrono_types::make_shared<ChROSRobotModelHandler>(std::numeric_limits<double>::max(), robot);
+    // receive the message. This is done by setting the update rate to infinity implicitly in the ChROSRobotModelHandler
+    // class.
+    auto robot_model_handler = chrono_types::make_shared<ChROSRobotModelHandler>(robot);
     ros_manager->RegisterHandler(robot_model_handler);
 
     // Finally, initialize the ros manager
@@ -256,7 +260,7 @@ int main(int argc, char* argv[]) {
             vis_vsg->SetUseSkyBox(false);
             vis_vsg->SetCameraAngleDeg(40.0);
             vis_vsg->SetLightIntensity(1.0f);
-            vis_vsg->SetLightDirection(1.5 * CH_C_PI_2, CH_C_PI_4);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
             vis_vsg->SetWireFrameMode(false);
             vis_vsg->Initialize();
 
@@ -271,10 +275,6 @@ int main(int argc, char* argv[]) {
     double step_size = 5e-4;
     double time_end = 1000;
 
-    int step_number = 0;
-    double render_step_size = 1.0 / 60;  // FPS = 60
-    int render_steps = (int)std::ceil(render_step_size / step_size);
-
     bool terrain_created = false;
 
     // Simulation loop
@@ -284,11 +284,9 @@ int main(int argc, char* argv[]) {
             if (!vis->Run())
                 break;
 
-            if (step_number++ % render_steps == 0) {
-                vis->BeginScene();
-                vis->Render();
-                vis->EndScene();
-            }
+            vis->BeginScene();
+            vis->Render();
+            vis->EndScene();
         }
 
         time = sys.GetChTime();
@@ -304,7 +302,7 @@ int main(int argc, char* argv[]) {
                 vis->BindItem(floor);
 
             // Release robot
-            robot.GetRootChBody()->SetBodyFixed(false);
+            torso->SetFixed(false);
 
             terrain_created = true;
         }
@@ -320,7 +318,6 @@ int main(int argc, char* argv[]) {
             break;
 
         sys.DoStepDynamics(step_size);
-
         realtime_timer.Spin(step_size);
     }
 

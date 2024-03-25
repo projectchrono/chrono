@@ -23,7 +23,7 @@ import pychrono.ros as chros
 def main():
     # Create Chrono system
     system = ch.ChSystemNSC()
-    system.Set_G_acc(ch.ChVector3d(0, 0, -9.81))
+    system.SetGravitationalAcceleration(ch.ChVector3d(0, 0, -9.81))
     ch.ChCollisionModel.SetDefaultSuggestedEnvelope(0.0025)
     ch.ChCollisionModel.SetDefaultSuggestedMargin(0.0025)
 
@@ -31,7 +31,7 @@ def main():
     ground_mat = ch.ChContactMaterialNSC()
     ground = ch.ChBodyEasyBox(20, 20, 1, 1000, True, True, ground_mat)
     ground.SetPos(ch.ChVector3d(0, 0, -1))
-    ground.SetBodyFixed(True)
+    ground.SetFixed(True)
     ground.GetVisualShape(0).SetTexture(ch.GetChronoDataFile("textures/concrete.jpg"))
     system.Add(ground)
 
@@ -39,7 +39,7 @@ def main():
     driver = robot.ViperDCMotorControl()
     rover = robot.Viper(system)
     rover.SetDriver(driver)
-    rover.Initialize(ch.ChFrameD(ch.ChVector3d(0, -0.2, 0), ch.ChQuaternionD(1, 0, 0, 0)))
+    rover.Initialize(ch.ChFramed(ch.ChVector3d(0, -0.2, 0), ch.ChQuaterniond(1, 0, 0, 0)))
 
     # Create ROS manager
     ros_manager = chros.ChROSPythonManager()

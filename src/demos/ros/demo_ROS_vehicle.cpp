@@ -81,7 +81,7 @@ std::string rigidterrain_file("terrain/RigidPlane.json");
 
 // Initial vehicle position and orientation
 ChVector3d initLoc(0, 0, 0.5);
-double initYaw = 20 * CH_C_DEG_TO_RAD;
+double initYaw = 20 * CH_DEG_TO_RAD;
 
 // Simulation step size
 double step_size = 2e-3;

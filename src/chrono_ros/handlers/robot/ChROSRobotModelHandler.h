@@ -35,24 +35,21 @@ namespace ros {
 /// @{
 
 /// This handler is responsible for publishing a robot model to be visualized in RViz
-/// RViz expects a string containing the robot model. We don't really need to publish this at a high rate, so it's
-/// recommended to set updated_rate to a very large value. We'll be setting the QoS to be local transient, meaning late
-/// joiners will still receive the message even if it's already been published.
+/// RViz expects a string containing the robot model. We don't really need to publish this at a high rate, so the
+/// update rate is set implicitly to a very large value. This effectively means it will only be published once. This is
+/// okay since we'll also set the QoS to be local transient, meaning late joiners will still receive the message even if
+/// it's already been published.
 class ChROSRobotModelHandler : public ChROSHandler {
   public:
     /// Constructor.
     /// The topic name defaults to "/robot_description".
-    ChROSRobotModelHandler(double update_rate,
-                           const std::string& robot_model,
-                           const std::string& topic_name = "/robot_description");
+    ChROSRobotModelHandler(const std::string& robot_model, const std::string& topic_name = "/robot_description");
 
 #ifdef CHRONO_PARSERS_URDF
     /// Constructor.
     /// This constructor takes a ChParserURDF object. A ChParserURDF::CustomProcessor will be created to parse the file
     /// to resolve relative filenames to be a URI.
-    ChROSRobotModelHandler(double update_rate,
-                           chrono::parsers::ChParserURDF& parser,
-                           const std::string& topic_name = "/robot_description");
+    ChROSRobotModelHandler(chrono::parsers::ChParserURDF& parser, const std::string& topic_name = "/robot_description");
 #endif
 
     /// Initializes the handler. This creates the publisher for the robot model topic.

@@ -12,7 +12,7 @@
 # Authors: Aaron Young
 # =============================================================================
 #
-# Demo to show the use of Chrono::Vehicle with ROS in python
+# Demo to show the use of Chrono::Sensor with ROS in python
 #
 # =============================================================================
 
@@ -29,7 +29,7 @@ def main():
     mmesh = ch.ChTriangleMeshConnected()
     mmesh.LoadWavefrontMesh(ch.GetChronoDataFile(
         "vehicle/hmmwv/hmmwv_chassis.obj"), False, True)
-    mmesh.Transform(ch.ChVector3d(0, 0, 0), ch.ChMatrix33D(1))
+    mmesh.Transform(ch.ChVector3d(0, 0, 0), ch.ChMatrix33d(1))
 
     trimesh_shape = ch.ChVisualShapeTriangleMesh()
     trimesh_shape.SetMesh(mmesh)
@@ -39,14 +39,14 @@ def main():
     mesh_body = ch.ChBody()
     mesh_body.SetPos(ch.ChVector3d(0, 0, 0))
     mesh_body.AddVisualShape(trimesh_shape)
-    mesh_body.SetBodyFixed(False)
+    mesh_body.SetFixed(False)
     mesh_body.SetMass(0)
     sys.Add(mesh_body)
 
     # This is the body we'll attach the sensors to
     ground_body = ch.ChBodyEasyBox(1, 1, 1, 1000, False, False)
     ground_body.SetPos(ch.ChVector3d(0, 0, 0))
-    ground_body.SetBodyFixed(False)
+    ground_body.SetFixed(False)
     ground_body.SetMass(0)
     sys.Add(ground_body)
 
@@ -63,8 +63,8 @@ def main():
     sens_manager.scene.AddPointLight(ch.ChVectorF(23, 2.5, 100), ch.ChColor(
         intensity, intensity, intensity), 500.0)
 
-    offset_pose = ch.ChFrameD(ch.ChVector3d(-8, 0, 2),
-                              ch.Q_from_AngAxis(.2, ch.ChVector3d(0, 1, 0)))
+    offset_pose = ch.ChFramed(ch.ChVector3d(-8, 0, 2),
+                              ch.QuatFromAngleAxis(.2, ch.ChVector3d(0, 1, 0)))
 
     cam = sens.ChCameraSensor(ground_body, 30, offset_pose, 1280,  720, 1.408)
     cam.PushFilter(sens.ChFilterVisualize(1280, 720))
@@ -73,7 +73,7 @@ def main():
     sens_manager.AddSensor(cam)
 
     lidar = sens.ChLidarSensor(ground_body, 5., offset_pose, 90, 300,
-                               2*ch.CH_C_PI, ch.CH_C_PI / 12, -ch.CH_C_PI / 6, 100., 0)
+                               2*ch.CH_PI, ch.CH_PI / 12, -ch.CH_PI / 6, 100., 0)
     lidar.PushFilter(sens.ChFilterDIAccess())
     lidar.PushFilter(sens.ChFilterPCfromDepth())
     lidar.PushFilter(sens.ChFilterXYZIAccess())

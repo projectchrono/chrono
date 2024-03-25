@@ -23,6 +23,7 @@
 
 #include <vector>
 #include <memory>
+#include <string>
 
 namespace chrono {
 namespace ros {
