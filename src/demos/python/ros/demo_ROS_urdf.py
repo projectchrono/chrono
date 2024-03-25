@@ -30,13 +30,13 @@ def create_terrain(
     height: int,
     offset: int,
 ):
-    ground_mat = ch.ChMaterialSurface_DefaultMaterial(system.GetContactMethod())
+    ground_mat = ch.ChContactMaterial_DefaultMaterial(system.GetContactMethod())
     ground_mat.SetFriction(0.8)
     ground_mat.SetRestitution(0.0)
-    ch.CastToChMaterialSurfaceSMC(ground_mat).SetYoungModulus(1e7)
+    ch.CastToChContactMaterialSMC(ground_mat).SetYoungModulus(1e7)
 
     ground.SetBodyFixed(True)
-    ground.SetPos(ch.ChVectorD(offset, 0, height - 0.1))
+    ground.SetPos(ch.ChVector3d(offset, 0, height - 0.1))
     ground.SetCollide(True)
 
     ct_shape = ch.ChCollisionShapeBox(ground_mat, length, width, 0.2)
@@ -54,7 +54,7 @@ def main():
     system.SetCollisionSystemType(ch.ChCollisionSystem.Type_BULLET)
     system.SetSolverMaxIterations(200)
     system.SetSolverType(ch.ChSolver.Type_BARZILAIBORWEIN)
-    system.Set_G_acc(ch.ChVectorD(0, 0, -9.8))
+    system.Set_G_acc(ch.ChVector3d(0, 0, -9.8))
 
     ground_body = ch.ChBody()
     ground_body.SetName("floor")
@@ -65,7 +65,7 @@ def main():
     robot = parsers.ChParserURDF(robot_urdf)
 
     # Set root body pose
-    robot.SetRootInitPose(ch.ChFrameD(ch.ChVectorD(0, 0, 1.5), ch.QUNIT))
+    robot.SetRootInitPose(ch.ChFrameD(ch.ChVector3d(0, 0, 1.5), ch.QUNIT))
 
     # Make all eligible joints as actuated (POSITION type) and overwrite wheel
     # motors with SPEED actuation.
@@ -119,7 +119,7 @@ def main():
         for line in f:
             motor_name = line.strip()
             motor = robot.GetChMotor(motor_name)
-            motor.SetMotorFunction(ch.ChFunction_Setpoint())
+            motor.SetMotorFunction(ch.ChFunctionSetpoint())
             motors.append(motor)
 
     # Create the robot motor actuation object
@@ -170,7 +170,7 @@ def main():
     vis.AddTypicalLights()
 
     camera_lookat = robot.GetChBody("torso").GetPos()
-    camera_loc = camera_lookat + ch.ChVectorD(3, 3, 0)
+    camera_loc = camera_lookat + ch.ChVector3d(3, 3, 0)
     vis.AddCamera(camera_loc, camera_lookat)
 
     # Simulation loop
@@ -214,7 +214,7 @@ def main():
         actuator.Update(time)
         actuations = actuator.GetActuation()
         for i, motor in enumerate(motors):
-            ch.CastToChFunction_Setpoint(motor.GetMotorFunction()).SetSetpoint(-actuations[i], time)
+            ch.CastToChFunctionSetpoint(motor.GetMotorFunction()).SetSetpoint(-actuations[i], time)
 
         if not ros_manager.Update(time, time_step):
             break

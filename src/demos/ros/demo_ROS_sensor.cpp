@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
     // Add a mesh object to make the scene interesting
     auto mmesh = ChTriangleMeshConnected::CreateFromWavefrontFile(GetChronoDataFile("vehicle/audi/audi_chassis.obj"),
                                                                   false, true);
-    mmesh->Transform(ChVector<>(0, 0, 0), ChMatrix33<>(1));
+    mmesh->Transform(ChVector3d(0, 0, 0), ChMatrix33<>(1));
 
     auto trimesh_shape = chrono_types::make_shared<ChVisualShapeTriangleMesh>();
     trimesh_shape->SetMesh(mmesh);
@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 
     auto mesh_body = chrono_types::make_shared<ChBody>();
     mesh_body->SetPos({0, 0, 0});
-    mesh_body->AddVisualShape(trimesh_shape, ChFrame<>(ChVector<>(0, 0, 0)));
+    mesh_body->AddVisualShape(trimesh_shape, ChFrame<>(ChVector3d(0, 0, 0)));
     mesh_body->SetBodyFixed(true);
     sys.Add(mesh_body);
 
@@ -121,7 +121,7 @@ int main(int argc, char* argv[]) {
     sensor_manager->AddSensor(lidar_2d);
 
     // add an accelerometer, gyroscope, and magnetometer
-    ChVector<> gps_reference(-89.400, 43.070, 260.0);
+    ChVector3d gps_reference(-89.400, 43.070, 260.0);
     auto acc = chrono_types::make_shared<ChAccelerometerSensor>(ground_body, 100.f, offset_pose, noise_none);
     acc->PushFilter(chrono_types::make_shared<ChFilterAccelAccess>());
     sensor_manager->AddSensor(acc);

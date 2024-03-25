@@ -21,13 +21,12 @@
 #include "chrono_ros/ChROSInterface.h"
 #include "chrono_ros/ChROSHandler.h"
 
-#include "chrono/core/ChLog.h"
 #include "chrono/core/ChTypes.h"
 
 namespace chrono {
 namespace ros {
 
-ChROSManager::ChROSManager() : m_interface(chrono_types::make_shared<ChROSInterface>()) {}
+ChROSManager::ChROSManager(const std::string& node_name) : m_interface(chrono_types::make_shared<ChROSInterface>(node_name)) {}
 
 void ChROSManager::Initialize() {
     // Calls rclcpp::init()
@@ -37,7 +36,7 @@ void ChROSManager::Initialize() {
     for (auto itr = m_handlers.begin(); itr != m_handlers.end();) {
         auto handler = *itr;
         if (!handler->Initialize(m_interface)) {
-            GetLog() << "Failed to initialize ROS handler. Will remove handler and continue.\n";
+            std::cerr << "Failed to initialize ROS handler. Will remove handler and continue." << std::endl;
             itr = m_handlers.erase(itr);
         } else {
             itr++;

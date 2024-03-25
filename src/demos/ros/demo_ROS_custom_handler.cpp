@@ -36,7 +36,6 @@
 
 using namespace chrono;
 using namespace chrono::ros;
-using namespace chrono::geometry;
 
 // =============================================================================
 
@@ -67,14 +66,14 @@ class MyCustomHandler : public ChROSHandler {
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl << std::endl;
 
     // Create the system
     ChSystemNSC sys;
     sys.Set_G_acc({0, 0, -9.81});
 
     // Add a mesh object to make the scene interesting
-    auto phys_mat = chrono_types::make_shared<ChMaterialSurfaceNSC>();
+    auto phys_mat = chrono_types::make_shared<ChContactMaterialNSC>();
     phys_mat->SetFriction(0.5f);
 
     auto floor = chrono_types::make_shared<ChBodyEasyBox>(20, 20, 1, 1000, true, true, phys_mat);
@@ -85,7 +84,7 @@ int main(int argc, char* argv[]) {
 
     auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, true, phys_mat);
     box->SetPos({0, 0, 5});
-    box->SetRot(Q_from_AngAxis(0.2, {1, 0, 0}));
+    box->SetRot(QuatFromAngleAxis(0.2, {1, 0, 0}));
     box->SetName("box");
     sys.AddBody(box);
 

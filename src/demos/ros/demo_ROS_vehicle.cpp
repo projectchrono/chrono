@@ -80,7 +80,7 @@ std::string rigidterrain_file("terrain/RigidPlane.json");
 ////std::string rigidterrain_file("terrain/RigidSlope20.json");
 
 // Initial vehicle position and orientation
-ChVector<> initLoc(0, 0, 0.5);
+ChVector3d initLoc(0, 0, 0.5);
 double initYaw = 20 * CH_C_DEG_TO_RAD;
 
 // Simulation step size
@@ -89,11 +89,11 @@ double step_size = 2e-3;
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl << std::endl;
 
     // Create the vehicle system
     WheeledVehicle vehicle(vehicle::GetDataFile(vehicle_model.VehicleJSON()), vehicle_model.ContactMethod());
-    vehicle.Initialize(ChCoordsys<>(initLoc, Q_from_AngZ(initYaw)));
+    vehicle.Initialize(ChCoordsys<>(initLoc, QuatFromAngleZ(initYaw)));
     vehicle.GetChassis()->SetFixed(false);
     vehicle.SetChassisVisualizationType(VisualizationType::MESH);
     vehicle.SetChassisRearVisualizationType(VisualizationType::PRIMITIVES);

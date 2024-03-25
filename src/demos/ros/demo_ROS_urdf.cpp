@@ -66,13 +66,13 @@ void CreateTerrain(ChSystem& sys,
                    double width,
                    double height,
                    double offset) {
-    auto ground_mat = ChMaterialSurface::DefaultMaterial(sys.GetContactMethod());
+    auto ground_mat = ChContactMaterial::DefaultMaterial(sys.GetContactMethod());
     ground_mat->SetFriction(0.8f);
     ground_mat->SetRestitution(0.0f);
-    std::static_pointer_cast<ChMaterialSurfaceSMC>(ground_mat)->SetYoungModulus(1e7f);
+    std::static_pointer_cast<ChContactMaterialSMC>(ground_mat)->SetYoungModulus(1e7f);
 
     ground->SetBodyFixed(true);
-    ground->SetPos(ChVector<>(offset, 0, height - 0.1));
+    ground->SetPos(ChVector3d(offset, 0, height - 0.1));
     ground->SetCollide(true);
 
     auto ct_shape = chrono_types::make_shared<ChCollisionShapeBox>(ground_mat, length, width, 0.2);
@@ -87,7 +87,7 @@ void CreateTerrain(ChSystem& sys,
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl << std::endl;
 
     // Create the system
     ChSystemSMC sys;
@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
     ChParserURDF robot(robot_urdf);
 
     // Set root body pose
-    robot.SetRootInitPose(ChFrame<>(ChVector<>(0, 0, 1.5), QUNIT));
+    robot.SetRootInitPose(ChFrame<>(ChVector3d(0, 0, 1.5), QUNIT));
 
     // Make all eligible joints as actuated (POSITION type) and
     // overwrite wheel motors with SPEED actuation.
@@ -163,7 +163,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::string> motor_names;
     while (std::getline(ifs, name)) {
         auto motor = robot.GetChMotor(name);
-        motor->SetMotorFunction(chrono_types::make_shared<ChFunction_Setpoint>());
+        motor->SetMotorFunction(chrono_types::make_shared<ChFunctionSetpoint>());
         motor_names.push_back(name);
     }
 
@@ -214,7 +214,7 @@ int main(int argc, char* argv[]) {
     // Create the visualization window
     std::shared_ptr<ChVisualSystem> vis;
     auto camera_lookat = torso->GetPos();
-    auto camera_loc = camera_lookat + ChVector<>(3, 3, 0);
+    auto camera_loc = camera_lookat + ChVector3d(3, 3, 0);
 #ifndef CHRONO_IRRLICHT
     if (vis_type == ChVisualSystem::Type::IRRLICHT)
         vis_type = ChVisualSystem::Type::VSG;
@@ -313,8 +313,7 @@ int main(int argc, char* argv[]) {
         auto actuations = actuator.GetActuation();
         for (int i = 0; i < actuations.size(); i++) {
             auto motor = robot.GetChMotor(motor_names[i]);
-            std::dynamic_pointer_cast<ChFunction_Setpoint>(motor->GetMotorFunction())
-                ->SetSetpoint(-actuations[i], time);
+            std::dynamic_pointer_cast<ChFunctionSetpoint>(motor->GetMotorFunction())->SetSetpoint(-actuations[i], time);
         }
 
         if (!ros_manager->Update(time, step_size))

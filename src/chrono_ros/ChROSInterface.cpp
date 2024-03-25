@@ -19,7 +19,6 @@
 #include "chrono_ros/ChROSInterface.h"
 
 #include "chrono/core/ChTypes.h"
-#include "chrono/core/ChLog.h"
 
 namespace chrono {
 namespace ros {
@@ -30,7 +29,7 @@ void ChROSInterface::Initialize(rclcpp::NodeOptions options) {
     // Initialize only once
     // TODO: Is there any use case for argc and argv as parameters to rclcpp::init?
     if (!rclcpp::ok()) {
-        GetLog() << "Initializing rclcpp. \n";
+        std::cout << "Initializing rclcpp." << std::endl;
         rclcpp::init(0, 0);
     }
 
@@ -41,7 +40,7 @@ void ChROSInterface::Initialize(rclcpp::NodeOptions options) {
     m_node = std::make_shared<rclcpp::Node>(m_node_name, options);
     m_executor->add_node(m_node);
 
-    GetLog() << "Initialized ChROSInterface: " << m_node_name.c_str() << ". \n";
+    std::cout << "Initialized ChROSInterface: " << m_node_name << "." << std::endl;
 }
 
 void ChROSInterface::SpinSome(std::chrono::nanoseconds max_duration) {

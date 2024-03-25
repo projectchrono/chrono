@@ -18,8 +18,6 @@
 
 #include "chrono_ros/handlers/ChROSHandlerUtilities.h"
 
-#include "chrono/core/ChLog.h"
-
 namespace chrono {
 namespace ros {
 
@@ -40,7 +38,7 @@ bool ChROSHandlerUtilities::CheckROSTopicName(std::shared_ptr<ChROSInterface> in
         std::string full_topic_name = rclcpp::expand_topic_or_service_name(topic_name, interface->GetNode()->get_name(),
                                                                            interface->GetNode()->get_namespace());
     } catch (rclcpp::exceptions::InvalidTopicNameError& e) {
-        GetLog() << "ERROR: Topic '" << topic_name.c_str() << "' is not a valid ROS topic name: " << e.what() << "\n";
+        std::cerr << "ERROR: Topic '" << topic_name << "' is not a valid ROS topic name: " << e.what() << std::endl;
         return false;
     }
 

@@ -51,21 +51,21 @@ class MyCustomHandler(chros.ChROSHandler):
 def main():
     # Create system
     sys = ch.ChSystemNSC()
-    sys.Set_G_acc(ch.ChVectorD(0, 0, -9.81))
+    sys.Set_G_acc(ch.ChVector3d(0, 0, -9.81))
 
     # add a floor, box and sphere to the scene
-    phys_mat = ch.ChMaterialSurfaceNSC()
+    phys_mat = ch.ChContactMaterialNSC()
     phys_mat.SetFriction(0.5)
 
     floor = ch.ChBodyEasyBox(10, 10, 1, 1000, True, True, phys_mat)
-    floor.SetPos(ch.ChVectorD(0, 0, -1))
+    floor.SetPos(ch.ChVector3d(0, 0, -1))
     floor.SetBodyFixed(True)
     floor.SetName("base_link")
     sys.Add(floor)
 
     box = ch.ChBodyEasyBox(1, 1, 1, 1000, True, True, phys_mat)
-    box.SetPos(ch.ChVectorD(0, 0, 5))
-    box.SetRot(ch.Q_from_AngAxis(.2, ch.ChVectorD(1, 0, 0)))
+    box.SetPos(ch.ChVector3d(0, 0, 5))
+    box.SetRot(ch.QuatFromAngleAxis(.2, ch.ChVector3d(1, 0, 0)))
     box.SetName("box")
     sys.Add(box)
 
