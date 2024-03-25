@@ -1307,7 +1307,7 @@ void ChModalAssembly::SetFullStateWithModeOverlay(unsigned int n_mode, double ph
 
     // transform the above local increment in F to the original mixed basis,
     // then it can be accumulated to m_full_state_x0 to update the position.
-    for (unsigned int i = 0; i < (unsigned int)((double)m_num_coords_vel / 6.); ++i) {
+    for (unsigned int i = 0; i < (unsigned int)(m_num_coords_vel / 6.); ++i) {
         assembly_Dx.segment(6 * i, 3) =
             floating_frame_F.GetRotMat() * assembly_Dx_loc.segment(6 * i, 3);       // translation
         assembly_Dx.segment(6 * i + 3, 3) = assembly_Dx_loc.segment(6 * i + 3, 3);  // rotation

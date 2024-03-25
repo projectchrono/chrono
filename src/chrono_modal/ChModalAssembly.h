@@ -659,7 +659,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     unsigned int m_num_constr_uni_boundary;  ///< number of unilateral scalar constraints (velocity level) at boundary
 
     // MODES: represent the motion of the modal assembly (internal, boundary nodes)
-    int m_num_coords_modal;  // number of scalar coordinates at modal level (position and velocity level are the same)
+    unsigned int m_num_coords_modal;  // number of scalar coordinates at modal level (position and velocity level are the same)
 
     bool m_is_model_reduced;  ///< flag to indicate whether in the modal "reduced" state.
 

@@ -112,7 +112,7 @@ bool ChCosimulation::ReceiveData(double& mtime, ChVectorRef in_data) {
     }
 
     // retrieve variables:
-    for (size_t i = 0; i < in_data.size(); ++i) {
+    for (size_t i = 0; i < (size_t)in_data.size(); ++i) {
         for (size_t ds = 0; ds < sizeof(double); ++ds) {
             reinterpret_cast<char*>(&(in_data.data()[i]))[ds] = rbuffer[(i + 1) * sizeof(double) + ds];
         }
