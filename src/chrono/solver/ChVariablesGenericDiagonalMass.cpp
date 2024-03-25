@@ -57,12 +57,12 @@ void ChVariablesGenericDiagonalMass::AddMassDiagonalInto(ChVectorRef result, con
     result.segment(offset, ndof) += ca * MmassDiag;
 }
 
-void ChVariablesGenericDiagonalMass::PasteMassInto(ChSparseMatrix& storage,
-                                                   unsigned int row_offset,
-                                                   unsigned int col_offset,
+void ChVariablesGenericDiagonalMass::PasteMassInto(ChSparseMatrix& mat,
+                                                   unsigned int start_row,
+                                                   unsigned int start_col,
                                                    const double ca) const {
     for (int i = 0; i < MmassDiag.size(); ++i) {
-        storage.SetElement(offset + row_offset + i, offset + col_offset + i, ca * MmassDiag(i));
+        mat.SetElement(offset + start_row + i, offset + start_col + i, ca * MmassDiag(i));
     }
 }
 

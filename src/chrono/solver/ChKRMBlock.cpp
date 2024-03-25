@@ -96,9 +96,9 @@ void ChKRMBlock::DiagonalAdd(ChVectorRef result) const {
     }
 }
 
-void ChKRMBlock::PasteMatrixInto(ChSparseMatrix& storage,
-                                 unsigned int row_offset,
-                                 unsigned int col_offset,
+void ChKRMBlock::PasteMatrixInto(ChSparseMatrix& mat,
+                                 unsigned int start_row,
+                                 unsigned int start_col,
                                  bool overwrite) const {
     if (KRM.rows() == 0)
         return;
@@ -115,7 +115,7 @@ void ChKRMBlock::PasteMatrixInto(ChSparseMatrix& storage,
                 unsigned int jn = GetVariable(jv)->GetDOF();
 
                 if (GetVariable(jv)->IsActive()) {
-                    PasteMatrix(storage, KRM.block(kio, kjo, in, jn), io + row_offset, jo + col_offset, overwrite);
+                    PasteMatrix(mat, KRM.block(kio, kjo, in, jn), io + start_row, jo + start_col, overwrite);
                 }
 
                 kjo += jn;

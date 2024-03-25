@@ -70,14 +70,14 @@ void ChVariablesNode::AddMassDiagonalInto(ChVectorRef result, const double ca) c
     result(offset + 2) += ca * mass;
 }
 
-void ChVariablesNode::PasteMassInto(ChSparseMatrix& storage,
-                                    unsigned int row_offset,
-                                    unsigned int col_offset,
+void ChVariablesNode::PasteMassInto(ChSparseMatrix& mat,
+                                    unsigned int start_row,
+                                    unsigned int start_col,
                                     const double ca) const {
     double scaledmass = ca * mass;
-    storage.SetElement(offset + row_offset + 0, offset + col_offset + 0, scaledmass);
-    storage.SetElement(offset + row_offset + 1, offset + col_offset + 1, scaledmass);
-    storage.SetElement(offset + row_offset + 2, offset + col_offset + 2, scaledmass);
+    mat.SetElement(offset + start_row + 0, offset + start_col + 0, scaledmass);
+    mat.SetElement(offset + start_row + 1, offset + start_col + 1, scaledmass);
+    mat.SetElement(offset + start_row + 2, offset + start_col + 2, scaledmass);
 }
 
 void ChVariablesNode::ArchiveOut(ChArchiveOut& archive_out) {

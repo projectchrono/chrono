@@ -215,23 +215,19 @@ class ChApi ChConstraint {
     virtual double Violation(double mc_i);
 
     /// Write the constraint Jacobian into the specified global matrix at the offsets of the associated variables.
-    /// The (row_offset, col_offset) pair specifies the top-left corner of the system-level constraint JAcobian in the
-    /// provided storage matrix.
-    virtual void PasteJacobianInto(
-        ChSparseMatrix& storage,  ///< matrix to fill
-        unsigned int insrow,      ///< start row in global matrix from which the Jacobian will be pasted
-        unsigned int col_offset   ///< column offset  added to the position provided by the constraint
-    ) const = 0;
+    /// The (start_row, start_col) pair specifies the top-left corner of the system-level constraint Jacobian in the
+    /// provided matrix.
+    virtual void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const = 0;
 
-    /// Write the transposed Jacobian into the specified global matrix at the offsets of the associated variables.
-    virtual void PasteJacobianTransposedInto(
-        ChSparseMatrix& storage,  ///< matrix to fill
-        unsigned int row_offset,  ///< row offset added to the position provided by the constraint
-        unsigned int inscol       ///< start column in global matrix from which the transposed Jacobian will be pasted
-    ) const = 0;
+    /// Write the transposed constraint Jacobian into the specified global matrix at the offsets of the associated
+    /// variables. The (start_row, start_col) pair specifies the top-left corner of the system-level constraint Jacobian
+    /// in the provided matrix.
+    virtual void PasteJacobianTransposedInto(ChSparseMatrix& mat,
+                                             unsigned int start_row,
+                                             unsigned int start_col) const = 0;
 
     /// Set offset in global q vector (set automatically by ChSystemDescriptor)
-    void SetOffset(unsigned int moff) { offset = moff; }
+    void SetOffset(unsigned int off) { offset = off; }
 
     /// Get offset in global q vector
     unsigned int GetOffset() const { return offset; }

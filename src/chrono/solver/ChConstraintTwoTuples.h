@@ -104,20 +104,21 @@ class ChConstraintTwoTuples : public ChConstraint {
     }
 
     /// Write the constraint Jacobian into the specified global matrix at the offsets of the associated variables.
-    /// The (row_offset, col_offset) pair specifies the top-left corner of the system-level constraint JAcobian in the
-    /// provided storage matrix.
-    virtual void PasteJacobianInto(ChSparseMatrix& storage,
-                                   unsigned int insrow,
-                                   unsigned int col_offset) const override {
-        tuple_a.PasteJacobianInto(storage, insrow, col_offset);
-        tuple_b.PasteJacobianInto(storage, insrow, col_offset);
+    /// The (start_row, start_col) pair specifies the top-left corner of the system-level constraint Jacobian in the
+    /// provided matrix.
+    virtual void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const override {
+        tuple_a.PasteJacobianInto(mat, start_row, start_col);
+        tuple_b.PasteJacobianInto(mat, start_row, start_col);
     }
 
-    virtual void PasteJacobianTransposedInto(ChSparseMatrix& storage,
-                                             unsigned int row_offset,
-                                             unsigned int inscol) const override {
-        tuple_a.PasteJacobianTransposedInto(storage, row_offset, inscol);
-        tuple_b.PasteJacobianTransposedInto(storage, row_offset, inscol);
+    /// Write the transposed constraint Jacobian into the specified global matrix at the offsets of the associated
+    /// variables. The (start_row, start_col) pair specifies the top-left corner of the system-level constraint Jacobian
+    /// in the provided matrix.
+    virtual void PasteJacobianTransposedInto(ChSparseMatrix& mat,
+                                             unsigned int start_row,
+                                             unsigned int start_col) const override {
+        tuple_a.PasteJacobianTransposedInto(mat, start_row, start_col);
+        tuple_b.PasteJacobianTransposedInto(mat, start_row, start_col);
     }
 };
 

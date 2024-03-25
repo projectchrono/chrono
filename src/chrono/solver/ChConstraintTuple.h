@@ -113,14 +113,14 @@ class ChConstraintTuple_1vars {
         }
     }
 
-    void PasteJacobianInto(ChSparseMatrix& storage, unsigned int insrow, unsigned int col_offset) const {
+    void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
         if (variables->IsActive())
-            PasteMatrix(storage, Cq, insrow, variables->GetOffset() + col_offset);
+            PasteMatrix(mat, Cq, start_row, variables->GetOffset() + start_col);
     }
 
-    void PasteJacobianTransposedInto(ChSparseMatrix& storage, unsigned int row_offset, unsigned int inscol) const {
+    void PasteJacobianTransposedInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
         if (variables->IsActive())
-            PasteMatrix(storage, Cq.transpose(), variables->GetOffset() + row_offset, inscol);
+            PasteMatrix(mat, Cq.transpose(), variables->GetOffset() + start_row, start_col);
     }
 };
 
@@ -250,18 +250,18 @@ class ChConstraintTuple_2vars {
         }
     }
 
-    void PasteJacobianInto(ChSparseMatrix& storage, unsigned int insrow, unsigned int col_offset) const {
+    void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
         if (variables_1->IsActive())
-            PasteMatrix(storage, Cq_1, insrow, variables_1->GetOffset() + col_offset);
+            PasteMatrix(storage, Cq_1, start_row, variables_1->GetOffset() + start_col);
         if (variables_2->IsActive())
-            PasteMatrix(storage, Cq_2, insrow, variables_2->GetOffset() + col_offset);
+            PasteMatrix(storage, Cq_2, start_row, variables_2->GetOffset() + start_col);
     }
 
-    void PasteJacobianTransposedInto(ChSparseMatrix& storage, unsigned int row_offset, unsigned int inscol) const {
+    void PasteJacobianTransposedInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
         if (variables_1->IsActive())
-            PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset() + row_offset, inscol);
+            PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset() + start_row, start_col);
         if (variables_2->IsActive())
-            PasteMatrix(storage, Cq_2.transpose(), variables_2->GetOffset() + row_offset, inscol);
+            PasteMatrix(storage, Cq_2.transpose(), variables_2->GetOffset() + start_row, start_col);
     }
 };
 
@@ -427,22 +427,22 @@ class ChConstraintTuple_3vars {
         }
     }
 
-    void PasteJacobianInto(ChSparseMatrix& storage, unsigned int insrow, unsigned int col_offset) const {
+    void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
         if (variables_1->IsActive())
-            PasteMatrix(storage, Cq_1, insrow, variables_1->GetOffset() + col_offset);
+            PasteMatrix(mat, Cq_1, start_row, variables_1->GetOffset() + start_col);
         if (variables_2->IsActive())
-            PasteMatrix(storage, Cq_2, insrow, variables_2->GetOffset() + col_offset);
+            PasteMatrix(mat, Cq_2, start_row, variables_2->GetOffset() + start_col);
         if (variables_3->IsActive())
-            PasteMatrix(storage, Cq_3, insrow, variables_3->GetOffset() + col_offset);
+            PasteMatrix(mat, Cq_3, start_row, variables_3->GetOffset() + start_col);
     }
 
-    void PasteJacobianTransposedInto(ChSparseMatrix& storage, unsigned int row_offset, int inscol) const {
+    void PasteJacobianTransposedInto(ChSparseMatrix& mat, unsigned int start_row, int start_col) const {
         if (variables_1->IsActive())
-            PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset() + row_offset, inscol);
+            PasteMatrix(mat, Cq_1.transpose(), variables_1->GetOffset() + start_row, start_col);
         if (variables_2->IsActive())
-            PasteMatrix(storage, Cq_2.transpose(), variables_2->GetOffset() + row_offset, inscol);
+            PasteMatrix(mat, Cq_2.transpose(), variables_2->GetOffset() + start_row, start_col);
         if (variables_3->IsActive())
-            PasteMatrix(storage, Cq_3.transpose(), variables_3->GetOffset() + row_offset, inscol);
+            PasteMatrix(mat, Cq_3.transpose(), variables_3->GetOffset() + start_row, start_col);
     }
 };
 
@@ -645,26 +645,26 @@ class ChConstraintTuple_4vars {
         }
     }
 
-    void PasteJacobianInto(ChSparseMatrix& storage, unsigned int insrow, unsigned int col_offset) const {
+    void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
         if (variables_1->IsActive())
-            PasteMatrix(storage, Cq_1, insrow, variables_1->GetOffset() + col_offset);
+            PasteMatrix(mat, Cq_1, start_row, variables_1->GetOffset() + start_col);
         if (variables_2->IsActive())
-            PasteMatrix(storage, Cq_2, insrow, variables_2->GetOffset() + col_offset);
+            PasteMatrix(mat, Cq_2, start_row, variables_2->GetOffset() + start_col);
         if (variables_3->IsActive())
-            PasteMatrix(storage, Cq_3, insrow, variables_3->GetOffset() + col_offset);
+            PasteMatrix(mat, Cq_3, start_row, variables_3->GetOffset() + start_col);
         if (variables_4->IsActive())
-            PasteMatrix(storage, Cq_4, insrow, variables_4->GetOffset() + col_offset);
+            PasteMatrix(mat, Cq_4, start_row, variables_4->GetOffset() + start_col);
     }
 
-    void PasteJacobianTransposedInto(ChSparseMatrix& storage, unsigned int row_offset, unsigned int inscol) const {
+    void PasteJacobianTransposedInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
         if (variables_1->IsActive())
-            PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset() + row_offset, inscol);
+            PasteMatrix(mat, Cq_1.transpose(), variables_1->GetOffset() + start_row, start_col);
         if (variables_2->IsActive())
-            PasteMatrix(storage, Cq_2.transpose(), variables_2->GetOffset() + row_offset, inscol);
+            PasteMatrix(mat, Cq_2.transpose(), variables_2->GetOffset() + start_row, start_col);
         if (variables_3->IsActive())
-            PasteMatrix(storage, Cq_3.transpose(), variables_3->GetOffset() + row_offset, inscol);
+            PasteMatrix(mat, Cq_3.transpose(), variables_3->GetOffset() + start_row, start_col);
         if (variables_4->IsActive())
-            PasteMatrix(storage, Cq_4.transpose(), variables_4->GetOffset() + row_offset, inscol);
+            PasteMatrix(mat, Cq_4.transpose(), variables_4->GetOffset() + start_row, start_col);
     }
 };
 

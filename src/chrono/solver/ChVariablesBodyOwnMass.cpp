@@ -103,16 +103,15 @@ void ChVariablesBodyOwnMass::AddMassDiagonalInto(ChVectorRef result, const doubl
     result(offset + 5) += ca * inertia(2, 2);
 }
 
-// Optimized: doesn't fill unneeded elements except mass and 3x3 inertia.
-void ChVariablesBodyOwnMass::PasteMassInto(ChSparseMatrix& storage,
-                                           unsigned int row_offset,
-                                           unsigned int col_offset,
+void ChVariablesBodyOwnMass::PasteMassInto(ChSparseMatrix& mat,
+                                           unsigned int start_row,
+                                           unsigned int start_col,
                                            const double ca) const {
-    storage.SetElement(offset + row_offset + 0, offset + col_offset + 0, ca * mass);
-    storage.SetElement(offset + row_offset + 1, offset + col_offset + 1, ca * mass);
-    storage.SetElement(offset + row_offset + 2, offset + col_offset + 2, ca * mass);
+    mat.SetElement(offset + start_row + 0, offset + start_col + 0, ca * mass);
+    mat.SetElement(offset + start_row + 1, offset + start_col + 1, ca * mass);
+    mat.SetElement(offset + start_row + 2, offset + start_col + 2, ca * mass);
     ChMatrix33<> scaledJ = inertia * ca;
-    PasteMatrix(storage, scaledJ, offset + row_offset + 3, offset + col_offset + 3);
+    PasteMatrix(mat, scaledJ, offset + start_row + 3, offset + start_col + 3);
 }
 
 void ChVariablesBodyOwnMass::ArchiveOut(ChArchiveOut& archive_out) {

@@ -60,11 +60,11 @@ void ChVariablesShaft::AddMassDiagonalInto(ChVectorRef result, const double ca) 
     result(offset) += ca * m_inertia;
 }
 
-void ChVariablesShaft::PasteMassInto(ChSparseMatrix& storage,
-                                     unsigned int row_offset,
-                                     unsigned int col_offset,
+void ChVariablesShaft::PasteMassInto(ChSparseMatrix& mat,
+                                     unsigned int start_row,
+                                     unsigned int start_col,
                                      const double ca) const {
-    storage.SetElement(offset + row_offset + 0, offset + col_offset + 0, ca * m_inertia);
+    mat.SetElement(offset + start_row + 0, offset + start_col + 0, ca * m_inertia);
 }
 
 }  // end namespace chrono

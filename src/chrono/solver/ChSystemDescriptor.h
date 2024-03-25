@@ -131,14 +131,14 @@ class ChApi ChSystemDescriptor {
     /// The column vector must be passed as a ChMatrix<> object, which will be automatically reset and resized to the
     /// proper length if necessary.
     virtual unsigned int BuildFbVector(ChVectorDynamic<>& Fvector,  ///< system-level vector 'f'
-                              unsigned int row_offset = 0  ///< offset in global 'f' vector
+                                       unsigned int start_row = 0  ///< offset in global 'f' vector
     ) const;
 
     /// Get a vector with all the 'bi' known terms ('constraint residuals') associated to all constraints,
     /// ordered into a column vector. The column vector must be passed as a ChMatrix<>
     /// object, which will be automatically reset and resized to the proper length if necessary.
     virtual unsigned int BuildBiVector(ChVectorDynamic<>& Bvector,  ///< system-level vector 'b'
-                              unsigned int row_offset = 0  ///< offset in global 'b' vector
+                                       unsigned int start_row = 0  ///< offset in global 'b' vector
     ) const;
 
     /// Get the d vector = {f; -b} with all the 'fb' and 'bi' known terms, as in  Z*y-d
@@ -161,7 +161,7 @@ class ChApi ChSystemDescriptor {
     /// the performance a bit by setting resize_vector as false).
     /// \return  the number of scalar variables (i.e. the rows of the column vector).
     virtual unsigned int FromVariablesToVector(ChVectorDynamic<>& mvector,  ///< system-level vector 'q'
-                                      bool resize_vector = true    ///< if true, resize vector as necessary
+                                               bool resize_vector = true    ///< if true, resize vector as necessary
     ) const;
 
     /// Using this function, one may go in the opposite direction of the FromVariablesToVector()
@@ -184,7 +184,7 @@ class ChApi ChSystemDescriptor {
     /// length of the l_i reactions vector; constraints with enabled=false are not handled.
     /// \return  the number of scalar constr.multipliers (i.e. the rows of the column vector).
     virtual unsigned int FromConstraintsToVector(ChVectorDynamic<>& mvector,  ///< system-level vector 'l_i'
-                                        bool resize_vector = true    ///< if true, resize vector as necessary
+                                                 bool resize_vector = true    ///< if true, resize vector as necessary
     ) const;
 
     /// Using this function, one may go in the opposite direction of the FromConstraintsToVector()
@@ -207,7 +207,7 @@ class ChApi ChSystemDescriptor {
     /// the performance a bit by setting resize_vector as false).
     /// \return  the number of scalar unknowns
     virtual unsigned int FromUnknownsToVector(ChVectorDynamic<>& mvector,  ///< system-level vector x={q,l}
-                                     bool resize_vector = true    ///< if true, resize vector as necessary
+                                              bool resize_vector = true    ///< if true, resize vector as necessary
     ) const;
 
     /// Using this function, one may go in the opposite direction of the FromUnknownsToVector()
@@ -284,41 +284,41 @@ class ChApi ChSystemDescriptor {
     /// - resize Z (and potentially call SetZeroValues if the case)
     /// - call LoadKRMMatrices with the desired factors
     /// - call SetMassFactor() with the appropriate value
-    void PasteMassKRMMatrixInto(ChSparseMatrix& Z, unsigned int row_offset = 0, unsigned int col_offset = 0) const;
+    void PasteMassKRMMatrixInto(ChSparseMatrix& Z, unsigned int start_row = 0, unsigned int start_col = 0) const;
 
-    /// Paste the constraints jacobian of the system into a sparse matrix.
+    /// Paste the constraints jacobian of the system into a sparse matrix at a given position.
     /// Before calling this function the user needs to:
     /// - resize Z (and potentially call SetZeroValues if the case)
     /// - call LoadConstraintJacobians
     /// Returns the number of pasted constraints.
     unsigned int PasteConstraintsJacobianMatrixInto(ChSparseMatrix& Z,
-                                                    unsigned int row_offset = 0,
-                                                    unsigned int col_offset = 0,
+                                                    unsigned int start_row = 0,
+                                                    unsigned int start_col = 0,
                                                     bool only_bilateral = false) const;
 
-    /// Paste the _transposed_ constraints jacobian of the system into a sparse matrix.
+    /// Paste the _transposed_ constraints jacobian of the system into a sparse matrix at a given position.
     /// Before calling this function the user needs to:
     /// - resize Z (and potentially call SetZeroValues if the case)
     /// - call LoadConstraintJacobians
     /// Returns the number of pasted constraints.
     unsigned int PasteConstraintsJacobianMatrixTransposedInto(ChSparseMatrix& Z,
-                                                              unsigned int row_offset = 0,
-                                                              unsigned int col_offset = 0,
+                                                              unsigned int start_row = 0,
+                                                              unsigned int start_col = 0,
                                                               bool only_bilateral = false) const;
 
-    /// Paste the compliance matrix of the system into a sparse matrix.
+    /// Paste the compliance matrix of the system into a sparse matrix at a given position.
     /// Before calling this function the user needs to:
     /// - resize Z (and potentially call SetZeroValues if the case)
     /// - call LoadKRMMatrices with the desired factors
     /// - call SetMassFactor() with the appropriate value
     void PasteComplianceMatrixInto(ChSparseMatrix& Z,
-                                   unsigned int row_offset = 0,
-                                   unsigned int col_offset = 0,
+                                   unsigned int start_row = 0,
+                                   unsigned int start_col = 0,
                                    bool only_bilateral = false) const;
 
-    /// Create and return the assembled system matrix and RHS vector.
+    /// Create and return the assembled system matrix and RHS vector at a given position.
     virtual void BuildSystemMatrix(ChSparseMatrix* Z,      ///< [out] assembled system matrix
-                                     ChVectorDynamic<>* rhs  ///< [out] assembled RHS vector
+                                   ChVectorDynamic<>* rhs  ///< [out] assembled RHS vector
     ) const;
 
     /// Write the current system matrix blocks and right-hand side components.
@@ -372,9 +372,9 @@ class ChApi ChSystemDescriptor {
     double c_a;  ///< coefficient form M mass matrices in m_variables
 
   private:
-    mutable unsigned int n_q;   ///< number of active variables
-    mutable unsigned int n_c;   ///< number of active constraints
-    bool freeze_count;  ///< cache the number of active variables and constraints
+    mutable unsigned int n_q;  ///< number of active variables
+    mutable unsigned int n_c;  ///< number of active constraints
+    bool freeze_count;         ///< cache the number of active variables and constraints
 };
 
 CH_CLASS_VERSION(ChSystemDescriptor, 0)

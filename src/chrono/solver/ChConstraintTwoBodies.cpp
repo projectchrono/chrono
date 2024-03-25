@@ -141,18 +141,18 @@ void ChConstraintTwoBodies::AddJacobianTransposedTimesScalarInto(ChVectorRef res
     }
 }
 
-void ChConstraintTwoBodies::PasteJacobianInto(ChSparseMatrix& storage, unsigned int insrow, unsigned int col_offset) const {
+void ChConstraintTwoBodies::PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
     if (variables_a->IsActive())
-        PasteMatrix(storage, Cq_a, insrow, variables_a->GetOffset() + col_offset);
+        PasteMatrix(mat, Cq_a, start_row, variables_a->GetOffset() + start_col);
     if (variables_b->IsActive())
-        PasteMatrix(storage, Cq_b, insrow, variables_b->GetOffset() + col_offset);
+        PasteMatrix(mat, Cq_b, start_row, variables_b->GetOffset() + start_col);
 }
 
-void ChConstraintTwoBodies::PasteJacobianTransposedInto(ChSparseMatrix& storage, unsigned int row_offset, unsigned int inscol) const {
+void ChConstraintTwoBodies::PasteJacobianTransposedInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
     if (variables_a->IsActive())
-        PasteMatrix(storage, Cq_a.transpose(), variables_a->GetOffset() + row_offset, inscol);
+        PasteMatrix(mat, Cq_a.transpose(), variables_a->GetOffset() + start_row, start_col);
     if (variables_b->IsActive())
-        PasteMatrix(storage, Cq_b.transpose(), variables_b->GetOffset() + row_offset, inscol);
+        PasteMatrix(mat, Cq_b.transpose(), variables_b->GetOffset() + start_row, start_col);
 }
 
 void ChConstraintTwoBodies::ArchiveOut(ChArchiveOut& archive_out) {

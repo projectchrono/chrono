@@ -83,16 +83,18 @@ class ChApi ChConstraintThreeBBShaft : public ChConstraintThree {
     virtual void AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const override;
 
     /// Write the constraint Jacobian into the specified global matrix at the offsets of the associated variables.
-    /// The (row_offset, col_offset) pair specifies the top-left corner of the system-level constraint JAcobian in the
-    /// provided storage matrix.
-    virtual void PasteJacobianInto(ChSparseMatrix& storage,
-                                   unsigned int insrow,
-                                   unsigned int col_offset) const override;
+    /// The (start_row, start_col) pair specifies the top-left corner of the system-level constraint Jacobian in the
+    /// provided matrix.
+    virtual void PasteJacobianInto(ChSparseMatrix& mat,
+                                   unsigned int start_row,
+                                   unsigned int start_col) const override;
 
-    /// Write the transposed Jacobian into the specified global matrix at the offsets of the associated variables.
-    virtual void PasteJacobianTransposedInto(ChSparseMatrix& storage,
-                                             unsigned int row_offset,
-                                             unsigned int inscol) const override;
+    /// Write the transposed constraint Jacobian into the specified global matrix at the offsets of the associated
+    /// variables. The (start_row, start_col) pair specifies the top-left corner of the system-level constraint Jacobian
+    /// in the provided matrix.
+    virtual void PasteJacobianTransposedInto(ChSparseMatrix& mat,
+                                             unsigned int start_row,
+                                             unsigned int start_col) const override;
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

@@ -120,21 +120,21 @@ void ChConstraintNgeneric::AddJacobianTransposedTimesScalarInto(ChVectorRef resu
     }
 }
 
-void ChConstraintNgeneric::PasteJacobianInto(ChSparseMatrix& storage,
-                                             unsigned int insrow,
-                                             unsigned int col_offset) const {
+void ChConstraintNgeneric::PasteJacobianInto(ChSparseMatrix& mat,
+                                             unsigned int start_row,
+                                             unsigned int start_col) const {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive())
-            PasteMatrix(storage, Cq[i], insrow, variables[i]->GetOffset() + col_offset);
+            PasteMatrix(mat, Cq[i], start_row, variables[i]->GetOffset() + start_col);
     }
 }
 
-void ChConstraintNgeneric::PasteJacobianTransposedInto(ChSparseMatrix& storage,
-                                                       unsigned int row_offset,
-                                                       unsigned int inscol) const {
+void ChConstraintNgeneric::PasteJacobianTransposedInto(ChSparseMatrix& mat,
+                                                       unsigned int start_row,
+                                                       unsigned int start_col) const {
     for (size_t i = 0; i < variables.size(); ++i) {
         if (variables[i]->IsActive())
-            PasteMatrix(storage, Cq[i].transpose(), variables[i]->GetOffset() + row_offset, inscol);
+            PasteMatrix(mat, Cq[i].transpose(), variables[i]->GetOffset() + start_row, start_col);
     }
 }
 

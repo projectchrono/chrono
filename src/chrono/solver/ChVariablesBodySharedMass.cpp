@@ -133,15 +133,15 @@ void ChVariablesBodySharedMass::AddMassDiagonalInto(ChVectorRef result, const do
     result(offset + 5) += ca * sharedmass->inertia(2, 2);
 }
 
-void ChVariablesBodySharedMass::PasteMassInto(ChSparseMatrix& storage,
-                                              unsigned int row_offset,
-                                              unsigned int col_offset,
+void ChVariablesBodySharedMass::PasteMassInto(ChSparseMatrix& mat,
+                                              unsigned int start_row,
+                                              unsigned int start_col,
                                               const double ca) const {
-    storage.SetElement(offset + row_offset + 0, offset + col_offset + 0, ca * sharedmass->mass);
-    storage.SetElement(offset + row_offset + 1, offset + col_offset + 1, ca * sharedmass->mass);
-    storage.SetElement(offset + row_offset + 2, offset + col_offset + 2, ca * sharedmass->mass);
+    mat.SetElement(offset + start_row + 0, offset + start_col + 0, ca * sharedmass->mass);
+    mat.SetElement(offset + start_row + 1, offset + start_col + 1, ca * sharedmass->mass);
+    mat.SetElement(offset + start_row + 2, offset + start_col + 2, ca * sharedmass->mass);
     ChMatrix33<> scaledJ = sharedmass->inertia * ca;
-    PasteMatrix(storage, scaledJ, offset + row_offset + 3, offset + col_offset + 3);
+    PasteMatrix(mat, scaledJ, offset + start_row + 3, offset + start_col + 3);
 }
 
 void ChVariablesBodySharedMass::ArchiveOut(ChArchiveOut& archive_out) {

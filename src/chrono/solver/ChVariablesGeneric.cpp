@@ -57,13 +57,13 @@ void ChVariablesGeneric::AddMassDiagonalInto(ChVectorRef result, const double ca
     result.segment(offset, ndof) += ca * Mmass.diagonal();
 }
 
-void ChVariablesGeneric::PasteMassInto(ChSparseMatrix& storage,
-                                       unsigned int row_offset,
-                                       unsigned int col_offset,
+void ChVariablesGeneric::PasteMassInto(ChSparseMatrix& mat,
+                                       unsigned int start_row,
+                                       unsigned int start_col,
                                        const double ca) const {
     for (int row = 0; row < Mmass.rows(); ++row)
         for (int col = 0; col < Mmass.cols(); ++col)
-            storage.SetElement(offset + row_offset + row, offset + col_offset + col, ca * Mmass(row, col));
+            mat.SetElement(offset + start_row + row, offset + start_col + col, ca * Mmass(row, col));
 }
 
 }  // end namespace chrono

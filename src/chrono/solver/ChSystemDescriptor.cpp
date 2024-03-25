@@ -96,30 +96,30 @@ void ChSystemDescriptor::UpdateCountsAndOffsets() {
 }
 
 void ChSystemDescriptor::PasteMassKRMMatrixInto(ChSparseMatrix& Z,
-                                                unsigned int row_offset,
-                                                unsigned int col_offset) const {
+                                                unsigned int start_row,
+                                                unsigned int start_col) const {
 
     //// Contribution of mass or rigid bodies and node-concentrated masses
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            var->PasteMassInto(Z, row_offset, col_offset, c_a);
+            var->PasteMassInto(Z, start_row, start_col, c_a);
         }
     }
 
     // Contribution of stiffness, damping and mass matrices
     for (const auto& KRMBlock : m_KRMblocks) {
-        KRMBlock->PasteMatrixInto(Z, row_offset, col_offset, false);
+        KRMBlock->PasteMatrixInto(Z, start_row, start_col, false);
     }
 }
 
 unsigned int ChSystemDescriptor::PasteConstraintsJacobianMatrixInto(ChSparseMatrix& Z,
-                                                                    unsigned int row_offset,
-                                                                    unsigned int col_offset,
+                                                                    unsigned int start_row,
+                                                                    unsigned int start_col,
                                                                     bool only_bilateral) const {
     unsigned int s_c = 0;
     for (const auto& constr : m_constraints) {
         if (constr->IsActive() && !(only_bilateral && constr->GetMode() != ChConstraint::Mode::LOCK)) {
-            constr->PasteJacobianInto(Z, s_c + row_offset, col_offset);
+            constr->PasteJacobianInto(Z, s_c + start_row, start_col);
             s_c++;
         }
     }
@@ -128,13 +128,13 @@ unsigned int ChSystemDescriptor::PasteConstraintsJacobianMatrixInto(ChSparseMatr
 }
 
 unsigned int ChSystemDescriptor::PasteConstraintsJacobianMatrixTransposedInto(ChSparseMatrix& Z,
-                                                                              unsigned int row_offset,
-                                                                              unsigned int col_offset,
+                                                                              unsigned int start_row,
+                                                                              unsigned int start_col,
                                                                               bool only_bilateral) const {
     unsigned int s_c = 0;
     for (const auto& constr : m_constraints) {
         if (constr->IsActive() && !(only_bilateral && constr->GetMode() != ChConstraint::Mode::LOCK)) {
-            constr->PasteJacobianTransposedInto(Z, row_offset, s_c + col_offset);
+            constr->PasteJacobianTransposedInto(Z, start_row, s_c + start_col);
             s_c++;
         }
     }
@@ -143,13 +143,13 @@ unsigned int ChSystemDescriptor::PasteConstraintsJacobianMatrixTransposedInto(Ch
 }
 
 void ChSystemDescriptor::PasteComplianceMatrixInto(ChSparseMatrix& Z,
-                                                   unsigned int row_offset,
-                                                   unsigned int col_offset,
+                                                   unsigned int start_row,
+                                                   unsigned int start_col,
                                                    bool only_bilateral) const {
     int s_c = 0;
     for (const auto& constr : m_constraints) {
         if (constr->IsActive() && !(only_bilateral && constr->GetMode() != ChConstraint::Mode::LOCK)) {
-            Z.SetElement(row_offset + s_c, col_offset + s_c, constr->GetComplianceTerm());
+            Z.SetElement(start_row + s_c, start_col + s_c, constr->GetComplianceTerm());
             s_c++;
         }
     }
@@ -181,27 +181,27 @@ void ChSystemDescriptor::BuildSystemMatrix(ChSparseMatrix* Z, ChVectorDynamic<>*
     }
 }
 
-unsigned int ChSystemDescriptor::BuildFbVector(ChVectorDynamic<>& Fvector, unsigned int row_offset) const {
+unsigned int ChSystemDescriptor::BuildFbVector(ChVectorDynamic<>& Fvector, unsigned int start_row) const {
     n_q = CountActiveVariables();
     Fvector.setZero(n_q);
 
     // Fills the 'f' vector
     for (const auto& var : m_variables) {
         if (var->IsActive()) {
-            Fvector.segment(row_offset + var->GetOffset(), var->GetDOF()) = var->Force();
+            Fvector.segment(start_row + var->GetOffset(), var->GetDOF()) = var->Force();
         }
     }
     return n_q;
 }
 
-unsigned int ChSystemDescriptor::BuildBiVector(ChVectorDynamic<>& Bvector, unsigned int row_offset) const {
+unsigned int ChSystemDescriptor::BuildBiVector(ChVectorDynamic<>& Bvector, unsigned int start_row) const {
     n_c = CountActiveConstraints();
     Bvector.setZero(n_c);
 
     // Fill the 'b' vector
     for (const auto& constr : m_constraints) {
         if (constr->IsActive()) {
-            Bvector(row_offset + constr->GetOffset()) = constr->GetRightHandSide();
+            Bvector(start_row + constr->GetOffset()) = constr->GetRightHandSide();
         }
     }
 

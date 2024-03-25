@@ -194,29 +194,29 @@ using ChSparseMatrix = Eigen::SparseMatrix<double, Eigen::RowMajor, int>;
 
 // -----------------------------------------------------------------------------
 
-/// Paste a given matrix into a sparse matrix at position (\a insrow, \a inscol).
-/// The matrix \a matrFrom will be copied into \a matrTo[insrow : insrow + \a matrFrom.GetRows()][inscol : inscol +
+/// Paste a given matrix into a sparse matrix at position (\a start_row, \a start_col).
+/// The matrix \a matrFrom will be copied into \a matrTo[start_row : start_row + \a matrFrom.GetRows()][start_col : start_col +
 /// matrFrom.GetColumns()]
 /// \param[out] matrTo The output sparse matrix
 /// \param[in] matrFrom The source matrix that will be copied
-/// \param[in] insrow The row index where the first element will be copied
-/// \param[in] inscol The column index where the first element will be copied
+/// \param[in] start_row The row index where the first element will be copied
+/// \param[in] start_col The column index where the first element will be copied
 /// \param[in] overwrite Indicate if the copied elements will overwrite existing elements or be summed to them
 inline void PasteMatrix(ChSparseMatrix& matrTo,
                         ChMatrixConstRef matrFrom,
-                        int insrow,
-                        int inscol,
+                        int start_row,
+                        int start_col,
                         bool overwrite = true) {
     if (overwrite) {
         for (auto i = 0; i < matrFrom.rows(); i++) {
             for (auto j = 0; j < matrFrom.cols(); j++) {
-                matrTo.SetElement(insrow + i, inscol + j, matrFrom(i, j), true);
+                matrTo.SetElement(start_row + i, start_col + j, matrFrom(i, j), true);
             }
         }
     } else {
         for (auto i = 0; i < matrFrom.rows(); i++) {
             for (auto j = 0; j < matrFrom.cols(); j++) {
-                matrTo.SetElement(insrow + i, inscol + j, matrFrom(i, j), false);
+                matrTo.SetElement(start_row + i, start_col + j, matrFrom(i, j), false);
             }
         }
     }

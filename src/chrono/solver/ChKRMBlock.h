@@ -69,9 +69,9 @@ class ChApi ChKRMBlock {
     /// otherwise the values are summed.
     /// Assembling the system-level sparse matrix is required only if using a direct sparse solver or for
     /// debugging/reporting purposes.
-    void PasteMatrixInto(ChSparseMatrix& storage,
-                         unsigned int row_offset,
-                         unsigned int col_offset,
+    void PasteMatrixInto(ChSparseMatrix& mat,
+                         unsigned int start_row,
+                         unsigned int start_col,
                          bool overwrite) const;
 
   private:
