@@ -956,7 +956,7 @@ void ChModalAssembly::ComputeInertialKRMmatrix() {
     // Inertial stiffness matrix, is zero
     this->Ki_sup.setZero();
 
-    if (!m_m_use_linear_inertial_term) {// The below block of code might cause numerical instabilities in current test
+    if (!m_use_linear_inertial_term) {// The below block of code might cause numerical instabilities in current test
         unsigned int num_coords_pos_bou_mod = this->m_num_coords_pos_boundary + this->m_num_coords_modal;
 
         // fetch the state snapshot (modal reduced)
@@ -1307,7 +1307,7 @@ void ChModalAssembly::SetFullStateWithModeOverlay(unsigned int n_mode, double ph
 
     // transform the above local increment in F to the original mixed basis,
     // then it can be accumulated to m_full_state_x0 to update the position.
-    for (unsigned int i = 0; i < m_num_coords_vel / 6; ++i) {
+    for (unsigned int i = 0; i < (unsigned int)((double)m_num_coords_vel / 6.); ++i) {
         assembly_Dx.segment(6 * i, 3) =
             floating_frame_F.GetRotMat() * assembly_Dx_loc.segment(6 * i, 3);       // translation
         assembly_Dx.segment(6 * i + 3, 3) = assembly_Dx_loc.segment(6 * i + 3, 3);  // rotation
@@ -1320,7 +1320,6 @@ void ChModalAssembly::SetFullStateWithModeOverlay(unsigned int n_mode, double ph
 
     this->Update();
 
-    m_is_model_reduced = is_model_reduced_bkp;
 }
 
 void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
@@ -2757,9 +2756,9 @@ void ChModalAssembly::LoadConstraintJacobians() {
     }
 }
 
-void ChModalAssembly::InjectKRMMatrices(ChSystemDescriptor& mdescriptor) {
+void ChModalAssembly::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     if (!m_is_model_reduced) {
-        ChAssembly::InjectKRMMatrices(mdescriptor);  // parent
+        ChAssembly::InjectKRMMatrices(descriptor);  // parent
 
         for (auto& body : internal_bodylist) {
             body->InjectKRMMatrices(descriptor);

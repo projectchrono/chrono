@@ -92,7 +92,6 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// - in Chrono, run this function passing such M and K matrices: a modal analysis will be done on K and M
     /// Note that the size of M (and K) must be at least > m_num_coords_vel_boundary.
     void DoModalReduction(
-    void DoModalReduction(
         ChSparseMatrix& full_M,
         ChSparseMatrix& full_K,
         ChSparseMatrix& full_Cq,
@@ -123,7 +122,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// If you increment the phase during an animation, you will see the n-th mode oscillating on the screen.
     /// The modal shapes are animated based on the initial full state of the modal assembly.
     /// It works only in full state.
-    void SetFullStateWithModeOverlay(int n_mode, double phase, double amplitude);
+    void SetFullStateWithModeOverlay(unsigned int n_mode, double phase, double amplitude);
 
     /// For displaying the deformation using internal nodes, you can use the following function. Works only if
     /// IsReducedModelEnabled(). It sets the state of the internal nodes of this modal assembly using the current state
@@ -176,8 +175,6 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     const ChVectorDynamic<double>& GetModalReductionFrequencyUndamped() const { return this->m_modal_freq; }
 
     /// Get a vector of modal damping ratios = damping/critical_damping, if previously computed.
-    /// Use one of the ComputeModes() functions to set it.
-    const ChVectorDynamic<double>& GetModalReductionDampingRatios() const { return this->m_modal_damping_ratios; }
     /// Use one of the ComputeModes() functions to set it.
     const ChVectorDynamic<double>& GetModalReductionDampingRatios() const { return this->m_modal_damping_ratios; }
 
@@ -308,9 +305,6 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Get the number of boundary scalar constraints (only unilaterals).
     unsigned int GetNumConstraintsUnilateralBoundary() const { return m_num_constr_uni_boundary; }
-
-    /// Get the number of modal coordinates. Use DoModalReduction() to change it.
-    int GetNumCoordinatesModal() { return m_num_coords_modal; }
 
     /// Get the number of modal coordinates. Use DoModalReduction() to change it.
     int GetNumCoordinatesModal() { return m_num_coords_modal; }
@@ -446,10 +440,10 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
 
     virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
-    virtual void ConstraintsLoadJacobians() override;
+    virtual void LoadConstraintJacobians() override;
 
-    virtual void InjectKRMmatrices(ChSystemDescriptor& descriptor) override;
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     // Old bookkeeping system
     /*
@@ -536,7 +530,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Resize modal matrices and hook up the variables to the M K R block for the solver. To be used all times
     /// the n. of modes of modal reduction (m_num_coords_modal) is changed.
-    void SetupModalData(int nmodes_reduction);
+    void SetupModalData(unsigned int nmodes_reduction);
 
     // list of BOUNDARY items: [no data, just use the bodylist. linklist etc. in parent ChAssembly class.]
 
@@ -566,8 +560,6 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChMatrixDynamic<> Psi_S;  // static mode transformation matrix in the mode acceleration method
     ChMatrixDynamic<> Psi_D;  // dynamic mode transformation matrix in the mode acceleration method
 
-    ChFrameMoving<> floating_frame_F0;  ///< floating frame of reference F at the initial undeformed configuration
-    ChFrameMoving<> floating_frame_F;   ///< floating frame of reference F at the deformed configuration
     ChFrameMoving<> floating_frame_F0;  ///< floating frame of reference F at the initial undeformed configuration
     ChFrameMoving<> floating_frame_F;   ///< floating frame of reference F at the deformed configuration
     // ChFrameMoving<> floating_frame_F_old;
@@ -616,7 +608,6 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChMatrixDynamic<> Kg_sup;  ///< nonlinear geometrical stiffness matrix of the reduced superelement due to the
                                ///< internal forces at boundary nodes B
 
-    ChMatrixDynamic<> Rm_sup;  ///< linear material damping matrix of the reduced superelement
     ChMatrixDynamic<> Rm_sup;  ///< linear material damping matrix of the reduced superelement
 
     // linearzed inertial system matrices of the reduced superelement
