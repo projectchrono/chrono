@@ -112,7 +112,7 @@ class EigenSolver {
         else {
             std::cout << "The eigenvalues of the system are:" << std::endl;
             for (int i = 0; i < all_eigen_vectors_and_values.size(); i++) {
-                std::cout << "Eigenvalue " << std::to_string(i + 1).c_str()
+                std::cout << "Eigenvalue " << std::to_string(i + 1)
                           << ":\tReal: " << all_eigen_vectors_and_values.at(i).eigen_val.real()
                           << "\tImag: " << all_eigen_vectors_and_values.at(i).eigen_val.imag() << std::endl;
             }

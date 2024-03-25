@@ -429,7 +429,7 @@ int main(int argc, char* argv[]) {
     ChFunctionInterp powRec;
 
     std::string datafile = out_dir + "/test_gnuplot_data.dat";
-    std::ofstream mdatafile(datafile.c_str());
+    std::ofstream mdatafile(datafile);
 
     bool power_limit_reached = false;
 

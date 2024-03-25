@@ -218,7 +218,7 @@ double ChValidation::INFnorm(const DataVector& v) {
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 size_t ChValidation::ReadDataFile(const std::string& filename, char delim, Headers& headers, Data& data) {
-    std::ifstream ifile(filename.c_str());
+    std::ifstream ifile(filename);
     std::string line;
 
     // Count the number of lines in the file then rewind the input file stream.

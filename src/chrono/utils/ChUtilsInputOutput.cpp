@@ -203,7 +203,7 @@ bool WriteCheckpoint(ChSystem* system, const std::string& filename) {
 // -----------------------------------------------------------------------------
 void ReadCheckpoint(ChSystem* system, const std::string& filename) {
     // Open input file stream
-    std::ifstream ifile(filename.c_str());
+    std::ifstream ifile(filename);
     std::string line;
 
     // Read the contact method type
@@ -612,7 +612,7 @@ void WriteMeshPovray(ChTriangleMeshConnected& trimesh,
 
     // Open output file.
     std::string pov_filename = out_dir + "/" + mesh_name + ".inc";
-    std::ofstream ofile(pov_filename.c_str());
+    std::ofstream ofile(pov_filename);
 
     ofile << "#declare " << mesh_name << "_mesh = mesh2 {" << std::endl;
 
@@ -694,7 +694,7 @@ void WriteCurvePovray(const ChBezierCurve& curve,
 
     // Open output file.
     std::string pov_filename = out_dir + "/" + curve_name + ".inc";
-    std::ofstream ofile(pov_filename.c_str());
+    std::ofstream ofile(pov_filename);
 
     ofile << "#declare " << curve_name << " = object {" << std::endl;
     ofile << "  sphere_sweep {" << std::endl;

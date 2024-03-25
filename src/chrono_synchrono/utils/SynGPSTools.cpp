@@ -66,7 +66,7 @@ std::shared_ptr<ChBezierCurve> SynGPSTools::CurveFromGPS(const std::string& file
     std::string line;
     try {
         ifile.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
-        ifile.open(filename.c_str());
+        ifile.open(filename);
     } catch (std::exception&) {
         throw std::invalid_argument("Cannot open input file");
     }

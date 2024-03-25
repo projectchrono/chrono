@@ -702,17 +702,17 @@ RS_Driver::RS_Driver(const std::string& filename_start,
                      bool repeat)
     : m_repeat(repeat), m_time_pose(0), m_time_hold(0), m_offset(0), m_phase(POSE), m_callback(nullptr) {
     assert(!filename_cycle.empty());
-    m_ifs_cycle.open(filename_cycle.c_str());
+    m_ifs_cycle.open(filename_cycle);
 
     if (!filename_start.empty()) {
-        m_ifs_start.open(filename_start.c_str());
+        m_ifs_start.open(filename_start);
         m_ifs = &m_ifs_start;
     } else {
         m_ifs = &m_ifs_cycle;
     }
 
     if (!filename_stop.empty()) {
-        m_ifs_stop.open(filename_stop.c_str());
+        m_ifs_stop.open(filename_stop);
     }
 
     LoadDataLine(m_time_1, m_actuations_1);

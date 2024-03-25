@@ -502,7 +502,7 @@ int main(int argc, char* argv[]) {
     // Outputs results in a GNUPLOT plot:
 
     std::string gplfilename = out_dir + "/shell_benchmark.gpl";
-    ChGnuPlot mplot(gplfilename.c_str());
+    ChGnuPlot mplot(gplfilename);
     mplot.SetGrid(false, 1, ChColor(0.8f, 0.8f, 0.8f));
     mplot.SetLabelX("Torque T/T0");
     mplot.SetLabelY("Tip displacement [m]");

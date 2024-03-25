@@ -44,12 +44,12 @@ ChRobotActuation::ChRobotActuation(int num_motors,
       m_callback(nullptr) {
     // Open the cycle file (required)
     assert(!filename_cycle.empty());
-    m_ifs_cycle.open(filename_cycle.c_str());
+    m_ifs_cycle.open(filename_cycle);
 
     // If a start data file is provided, open it and set as current stream.
     // Otherwise, set the cycle file as current stream
     if (!filename_start.empty()) {
-        m_ifs_start.open(filename_start.c_str());
+        m_ifs_start.open(filename_start);
         m_ifs = &m_ifs_start;
     } else {
         m_ifs = &m_ifs_cycle;
@@ -57,7 +57,7 @@ ChRobotActuation::ChRobotActuation(int num_motors,
 
     // If a stop file is provided, open it
     if (!filename_stop.empty()) {
-        m_ifs_stop.open(filename_stop.c_str());
+        m_ifs_stop.open(filename_stop);
     }
 
     // Resize actuation buffers

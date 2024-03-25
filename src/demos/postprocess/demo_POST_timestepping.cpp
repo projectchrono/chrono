@@ -89,13 +89,13 @@ void example1(const std::string& out_dir) {
 
     // Plot results
     std::string gplfile = out_dir + "/tmp_timestepping_1.gpl";
-    ChGnuPlot mplot(gplfile.c_str());
+    ChGnuPlot mplot(gplfile);
     mplot.SetGrid();
     mplot.SetTitle("Integrate dx/dt=e^t ");
     mplot.SetLabelX("t");
     mplot.SetLabelY("x");
-    mplot.Plot(logfile.c_str(), 1, 2, "Euler explicit", " with lines lt -1 lw 2");
-    mplot.Plot(logfile.c_str(), 1, 3, "Exact, analytical", " with lines lt 2 lw 2");
+    mplot.Plot(logfile, 1, 2, "Euler explicit", " with lines lt -1 lw 2");
+    mplot.Plot(logfile, 1, 3, "Exact, analytical", " with lines lt 2 lw 2");
 }
 
 void example2(const std::string& out_dir) {
@@ -200,15 +200,15 @@ void example2(const std::string& out_dir) {
 
     // Plot results
     std::string gplfile = out_dir + "/tmp_timestepping_2.gpl";
-    ChGnuPlot mplot(gplfile.c_str());
+    ChGnuPlot mplot(gplfile);
     mplot.SetGrid();
     mplot.SetTitle("Integrate 2nd order oscillator with 1st order timestepper");
     mplot.SetLabelX("t");
     mplot.SetLabelY("x, v");
-    mplot.Plot(logfile.c_str(), 1, 2, "Euler exp. x", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 3, "Euler exp. v", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 4, "RungeKutta x", " with lines");
-    mplot.Plot(logfile.c_str(), 1, 5, "RungeKutta v", " with lines");
+    mplot.Plot(logfile, 1, 2, "Euler exp. x", " with lines");
+    mplot.Plot(logfile, 1, 3, "Euler exp. v", " with lines");
+    mplot.Plot(logfile, 1, 4, "RungeKutta x", " with lines");
+    mplot.Plot(logfile, 1, 5, "RungeKutta v", " with lines");
 }
 
 void example3(const std::string& out_dir) {
@@ -315,7 +315,7 @@ void example3(const std::string& out_dir) {
 
     // Plot results
     std::string gplfile = out_dir + "/tmp_timestepping_3.gpl";
-    ChGnuPlot mplot(gplfile.c_str());
+    ChGnuPlot mplot(gplfile);
     mplot.SetGrid();
     mplot.SetTitle("Integrate 2nd order oscillator with 2nd order timestepper");
     mplot.SetLabelX("t");
@@ -519,7 +519,7 @@ void example4(const std::string& out_dir) {
 
     // Plot results
     std::string gplfile = out_dir + "/tmp_timestepping_4.gpl";
-    ChGnuPlot mplot(gplfile.c_str());
+    ChGnuPlot mplot(gplfile);
     mplot.SetGrid();
     mplot.SetTitle("Test: oscillator with implicit integrators");
     mplot.SetLabelX("t");
@@ -833,7 +833,7 @@ void example5(const std::string& out_dir) {
     }
 
     std::string gplfile = out_dir + "/tmp_timestepping_5.gpl";
-    ChGnuPlot mplot(gplfile.c_str());
+    ChGnuPlot mplot(gplfile);
     mplot.OutputWindow(0);
     mplot.SetGrid();
     mplot.SetTitle("Test: DAE, constrained pendulum");

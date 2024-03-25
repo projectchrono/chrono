@@ -378,7 +378,7 @@ int main(int argc, char* argv[]) {
             plotx(i) = nodes[i]->GetPos().y();
             ploty(i) = nodes[i]->GetPos().z();
         }
-        ChGnuPlot mplot_flap_displ((out_dir + "/flapwise_displ.dat").c_str());
+        ChGnuPlot mplot_flap_displ(out_dir + "/flapwise_displ.dat");
         mplot_flap_displ.SetGrid();
         mplot_flap_displ.Plot(plotx, ploty, "Flapwise displacement", " with lines lt -1 lc rgb'#00AAEE'");
 
@@ -387,7 +387,7 @@ int main(int argc, char* argv[]) {
             ploty(i) = nodes[i]->GetPosDt().x();
             ploty_analytic(i) = -nodes[i]->GetPos().y() * rad_s;
         }
-        ChGnuPlot mplot_edge_speed((out_dir + "/flapwise_speed.dat").c_str());
+        ChGnuPlot mplot_edge_speed(out_dir + "/flapwise_speed.dat");
         mplot_edge_speed.SetGrid();
         mplot_edge_speed.Plot(plotx, ploty, "Edgewise speed", " with lines lt -1 lc rgb'#00AAEE'");
         mplot_edge_speed.Plot(plotx, ploty_analytic, "Expected analytic edgewise speed",
@@ -397,7 +397,7 @@ int main(int argc, char* argv[]) {
             ploty(i) = nodes[i]->GetPosDt2().y();
             ploty_analytic(i) = -nodes[i]->GetPos().y() * rad_s * rad_s;
         }
-        ChGnuPlot mplot_centeripetal_accel((out_dir + "/centripetal_acc.dat").c_str());
+        ChGnuPlot mplot_centeripetal_accel(out_dir + "/centripetal_acc.dat");
         mplot_centeripetal_accel.SetGrid();
         mplot_centeripetal_accel.Plot(plotx, ploty, "Centripetal acceleration", " with lines lt -1 lc rgb'#00AAEE'");
         mplot_centeripetal_accel.Plot(plotx, ploty_analytic, "Expected centripetal acceleration",
@@ -443,11 +443,11 @@ int main(int argc, char* argv[]) {
         vis->EndScene();
     }
 
-    ChGnuPlot mplot_tip_edge_d((out_dir + "/tip_edge_d.dat").c_str());
+    ChGnuPlot mplot_tip_edge_d(out_dir + "/tip_edge_d.dat");
     mplot_tip_edge_d.SetGrid();
     mplot_tip_edge_d.Plot(rec_t, rec_tip_edge_d, "Edgewise displacement (t)", " with lines lt -1 lc rgb'#00AAEE'");
 
-    ChGnuPlot mplot_tip_flap_d((out_dir + "/tip_flap_d.dat").c_str());
+    ChGnuPlot mplot_tip_flap_d(out_dir + "/tip_flap_d.dat");
     mplot_tip_flap_d.SetGrid();
     mplot_tip_flap_d.Plot(rec_t, rec_tip_flap_d, "Flapwise displacement (t)", " with lines lt -1 lc rgb'#00AAEE'");
 

@@ -374,7 +374,7 @@ int main(int argc, char* argv[]) {
                 MPI_Gather(&rtf, 1, MPI_DOUBLE, all_rtf, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
                 if (node_id == 0) {
                     std::string fname = "stats_" + std::to_string(num_nodes) + "_" + std::to_string(nthreads) + ".out";
-                    std::ofstream ofile(fname.c_str(), std::ios_base::app);
+                    std::ofstream ofile(fname, std::ios_base::app);
                     for (int i = 0; i < num_nodes; i++)
                         ofile << all_rtf[i] << "  ";
                     ofile << endl;

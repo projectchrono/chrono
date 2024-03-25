@@ -519,7 +519,7 @@ int main(int argc, char* argv[]) {
     }
 
     std::string gplfilename = out_dir + "/beam_loads.gpl";
-    postprocess::ChGnuPlot gnu_plot(gplfilename.c_str());
+    postprocess::ChGnuPlot gnu_plot(gplfilename);
     gnu_plot.SetGrid(false, 1, ChColor(0.8f, 0.8f, 0.8f));
     gnu_plot.SetLabelX("X");
     gnu_plot.SetLabelY("Y");

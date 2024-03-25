@@ -249,7 +249,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
     // Just for later reference, dump  M,R,K,Cq matrices. Ex. for comparison with Matlab eigs()
     sys.Setup();
     sys.Update();
-    modal_assembly->WriteSubassemblyMatrices(true, true, true, true, (out_dir + "/dump").c_str());
+    modal_assembly->WriteSubassemblyMatrices(true, true, true, true, out_dir + "/dump");
 
     if (do_modal_reduction) {
         // HERE PERFORM THE MODAL REDUCTION!

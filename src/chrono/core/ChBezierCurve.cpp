@@ -285,7 +285,7 @@ std::shared_ptr<ChBezierCurve> ChBezierCurve::Read(const std::string& filename, 
     std::string line;
     try {
         ifile.exceptions(std::ios::failbit | std::ios::badbit | std::ios::eofbit);
-        ifile.open(filename.c_str());
+        ifile.open(filename);
     } catch (const std::exception&) {
         throw std::invalid_argument("Cannot open input file");
     }
@@ -354,7 +354,7 @@ std::shared_ptr<ChBezierCurve> ChBezierCurve::Read(const std::string& filename, 
 // -----------------------------------------------------------------------------
 void ChBezierCurve::Write(const std::string& filename) {
     // Open output file stream
-    std::ofstream ofile(filename.c_str());
+    std::ofstream ofile(filename);
 
     // Write number of points. Note that we always write the control points.
     size_t numPoints = m_points.size();

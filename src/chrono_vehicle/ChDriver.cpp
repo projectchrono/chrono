@@ -41,7 +41,7 @@ DriverInputs ChDriver::GetInputs() const {
 bool ChDriver::LogInit(const std::string& filename) {
     m_log_filename = filename;
 
-    std::ofstream ofile(filename.c_str(), std::ios::out);
+    std::ofstream ofile(filename, std::ios::out);
     if (!ofile)
         return false;
 
@@ -55,7 +55,7 @@ bool ChDriver::Log(double time) {
     if (m_log_filename.empty())
         return false;
 
-    std::ofstream ofile(m_log_filename.c_str(), std::ios::app);
+    std::ofstream ofile(m_log_filename, std::ios::app);
     if (!ofile)
         return false;
 

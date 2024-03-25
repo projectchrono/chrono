@@ -59,7 +59,7 @@ void GetShaderFromFile(OptixDeviceContext context,
 
     std::string cuda_file = SensorConfig::SENSOR_SHADER_DIR + file_name + ".cu";
     std::string str;
-    std::ifstream f(cuda_file.c_str());
+    std::ifstream f(cuda_file);
     if (f.good()) {
         std::stringstream source_buffer;
         source_buffer << f.rdbuf();
@@ -123,7 +123,7 @@ void GetShaderFromFile(OptixDeviceContext context,
 #else
     std::string ptx_file = SensorConfig::SENSOR_SHADER_DIR + SensorConfig::ptx_pre + file_name + SensorConfig::ptx_suff;
     std::string ptx;
-    std::ifstream f(ptx_file.c_str());
+    std::ifstream f(ptx_file);
     if (f.good()) {
         std::stringstream source_buffer;
         source_buffer << f.rdbuf();

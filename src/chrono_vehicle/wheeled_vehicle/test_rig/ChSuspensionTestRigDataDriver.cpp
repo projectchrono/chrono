@@ -71,7 +71,7 @@ void ChSuspensionTestRigDataDriver::Initialize(int naxles) {
     // Read data from file
     std::vector<DataEntrySTR> data;  // data table (for sorting)
 
-    std::ifstream ifile(m_filename.c_str());
+    std::ifstream ifile(m_filename);
     std::string line;
     while (std::getline(ifile, line)) {
         std::istringstream iss(line);

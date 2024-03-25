@@ -245,7 +245,7 @@ void ChFialaTire::WritePlots(const std::string& plFileName, const std::string& p
         plot << alpha[i] << "\t" << Fy1[i] << std::endl;
     }
     plot << "EOD" << std::endl;
-    plot << "set title '" << titleName.c_str() << "'" << std::endl;
+    plot << "set title '" << titleName << "'" << std::endl;
     plot << "set xlabel 'Longitudinal Slip Kappa []'" << std::endl;
     plot << "set ylabel 'Longitudinal Friction Coefficient Mux []'" << std::endl;
     plot << "set xrange [0:1]" << std::endl;
@@ -253,7 +253,7 @@ void ChFialaTire::WritePlots(const std::string& plFileName, const std::string& p
 
     plot << "pause -1" << std::endl;
 
-    plot << "set title '" << titleName.c_str() << "'" << std::endl;
+    plot << "set title '" << titleName << "'" << std::endl;
     plot << "set xlabel 'Slip Angle Alpha [rad]'" << std::endl;
     plot << "set ylabel 'Lateral Friction Coefficient Muy []'" << std::endl;
     plot << "set xrange [0:1]" << std::endl;
