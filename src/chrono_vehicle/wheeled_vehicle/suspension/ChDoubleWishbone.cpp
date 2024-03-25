@@ -131,7 +131,7 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
 
     // Create and initialize spindle body
     m_spindle[side] = chrono_types::make_shared<ChBody>();
-    m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
+    m_spindle[side]->SetName(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
     m_spindle[side]->SetAngVelLocal(ChVector3d(0, ang_vel, 0));
@@ -141,7 +141,7 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
 
     // Create and initialize upright body (same orientation as the chassis)
     m_upright[side] = chrono_types::make_shared<ChBody>();
-    m_upright[side]->SetNameString(m_name + "_upright" + suffix);
+    m_upright[side]->SetName(m_name + "_upright" + suffix);
     m_upright[side]->SetPos(points[UPRIGHT]);
     m_upright[side]->SetRot(chassisRot);
     m_upright[side]->SetMass(getUprightMass());
@@ -166,7 +166,7 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     rot.SetFromDirectionAxes(u, v, w);
 
     m_UCA[side] = chrono_types::make_shared<ChBody>();
-    m_UCA[side]->SetNameString(m_name + "_UCA" + suffix);
+    m_UCA[side]->SetName(m_name + "_UCA" + suffix);
     m_UCA[side]->SetPos(points[UCA_CM]);
     m_UCA[side]->SetRot(rot);
     m_UCA[side]->SetMass(getUCAMass());
@@ -190,7 +190,7 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     rot.SetFromDirectionAxes(u, v, w);
 
     m_LCA[side] = chrono_types::make_shared<ChBody>();
-    m_LCA[side]->SetNameString(m_name + "_LCA" + suffix);
+    m_LCA[side]->SetName(m_name + "_LCA" + suffix);
     m_LCA[side]->SetPos(points[LCA_CM]);
     m_LCA[side]->SetRot(rot);
     m_LCA[side]->SetMass(getLCAMass());
@@ -205,7 +205,7 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
 
     // Create and initialize the revolute joint between upright and spindle.
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
+    m_revolute[side]->SetName(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_upright[side],
                                  ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
@@ -264,7 +264,7 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
 
         // Create the tierod body
         m_tierod[side] = chrono_types::make_shared<ChBody>();
-        m_tierod[side]->SetNameString(m_name + "_tierodBody" + suffix);
+        m_tierod[side]->SetName(m_name + "_tierodBody" + suffix);
         m_tierod[side]->SetPos((points[TIEROD_U] + points[TIEROD_C]) / 2);
         m_tierod[side]->SetRot(rot.GetQuaternion());
         m_tierod[side]->SetMass(getTierodMass());
@@ -283,21 +283,21 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     } else {
         // Create and initialize the tierod distance constraint between chassis and upright.
         m_distTierod[side] = chrono_types::make_shared<ChLinkDistance>();
-        m_distTierod[side]->SetNameString(m_name + "_distTierod" + suffix);
+        m_distTierod[side]->SetName(m_name + "_distTierod" + suffix);
         m_distTierod[side]->Initialize(tierod_body, m_upright[side], false, points[TIEROD_C], points[TIEROD_U]);
         chassis->GetSystem()->AddLink(m_distTierod[side]);
     }
 
     // Create and initialize the spring/damper
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
-    m_shock[side]->SetNameString(m_name + "_shock" + suffix);
+    m_shock[side]->SetName(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis->GetBody(), m_LCA[side], false, points[SHOCK_C], points[SHOCK_A]);
     m_shock[side]->SetRestLength(getShockRestLength());
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
     chassis->GetSystem()->AddLink(m_shock[side]);
 
     m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
-    m_spring[side]->SetNameString(m_name + "_spring" + suffix);
+    m_spring[side]->SetName(m_name + "_spring" + suffix);
     m_spring[side]->Initialize(chassis->GetBody(), m_LCA[side], false, points[SPRING_C], points[SPRING_A]);
     m_spring[side]->SetRestLength(getSpringRestLength());
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
@@ -306,13 +306,13 @@ void ChDoubleWishbone::InitializeSide(VehicleSide side,
     // Create and initialize the axle shaft and its connection to the spindle. Note that the
     // spindle rotates about the Y axis.
     m_axle[side] = chrono_types::make_shared<ChShaft>();
-    m_axle[side]->SetNameString(m_name + "_axle" + suffix);
+    m_axle[side]->SetName(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);
 
     m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftBodyRotation>();
-    m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
+    m_axle_to_spindle[side]->SetName(m_name + "_axle_to_spindle" + suffix);
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }

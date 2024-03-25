@@ -45,13 +45,13 @@ void ChChassisConnectorTorsion::Initialize(std::shared_ptr<ChChassis> front, std
 
     // Create the revolute joint connection
     m_joint = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_joint->SetNameString(m_name + " joint");
+    m_joint->SetName(m_name + " joint");
     m_joint->Initialize(front->GetBody(), rear->GetBody(), rev_frame);
     rear->GetBody()->GetSystem()->AddLink(m_joint);
 
     // Create the rotational spring-damper (as a model of chassis torsional stiffness)
     m_spring = chrono_types::make_shared<ChLinkRSDA>();
-    m_spring->SetNameString(m_name + " torsionSpring");
+    m_spring->SetName(m_name + " torsionSpring");
     m_spring->Initialize(front->GetBody(), rear->GetBody(), rev_frame);
     double K = GetTorsionStiffness();
     double C = K / 100;  // damping should not be zero

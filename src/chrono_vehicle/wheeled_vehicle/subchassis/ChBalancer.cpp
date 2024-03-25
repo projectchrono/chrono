@@ -90,7 +90,7 @@ void ChBalancer::InitializeSide(VehicleSide side,
 
     // Create beam body
     m_beam[side] = chrono_types::make_shared<ChBody>();
-    m_beam[side]->SetNameString(m_name + "_balancer" + suffix);
+    m_beam[side]->SetName(m_name + "_balancer" + suffix);
     m_beam[side]->SetPos(points[BEAM]);
     m_beam[side]->SetRot(chassisRot);
     m_beam[side]->SetMass(GetBalancerBeamMass());

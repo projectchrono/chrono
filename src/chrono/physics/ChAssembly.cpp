@@ -349,7 +349,7 @@ void ChAssembly::RemoveAllOtherPhysicsItems() {
 
 std::shared_ptr<ChBody> ChAssembly::SearchBody(const std::string& name) const {
     auto body = std::find_if(std::begin(bodylist), std::end(bodylist),
-                             [name](std::shared_ptr<ChBody> body) { return body->GetNameString() == name; });
+                             [name](std::shared_ptr<ChBody> body) { return body->GetName() == name; });
     return (body != std::end(bodylist)) ? *body : nullptr;
 }
 
@@ -361,25 +361,25 @@ std::shared_ptr<ChBody> ChAssembly::SearchBodyID(int id) const {
 
 std::shared_ptr<ChShaft> ChAssembly::SearchShaft(const std::string& name) const {
     auto shaft = std::find_if(std::begin(shaftlist), std::end(shaftlist),
-                              [name](std::shared_ptr<ChShaft> shaft) { return shaft->GetNameString() == name; });
+                              [name](std::shared_ptr<ChShaft> shaft) { return shaft->GetName() == name; });
     return (shaft != std::end(shaftlist)) ? *shaft : nullptr;
 }
 
 std::shared_ptr<ChLinkBase> ChAssembly::SearchLink(const std::string& name) const {
     auto link = std::find_if(std::begin(linklist), std::end(linklist),
-                             [name](std::shared_ptr<ChLinkBase> link) { return link->GetNameString() == name; });
+                             [name](std::shared_ptr<ChLinkBase> link) { return link->GetName() == name; });
     return (link != std::end(linklist)) ? *link : nullptr;
 }
 
 std::shared_ptr<fea::ChMesh> ChAssembly::SearchMesh(const std::string& name) const {
     auto mesh = std::find_if(std::begin(meshlist), std::end(meshlist),
-                             [name](std::shared_ptr<fea::ChMesh> mesh) { return mesh->GetNameString() == name; });
+                             [name](std::shared_ptr<fea::ChMesh> mesh) { return mesh->GetName() == name; });
     return (mesh != std::end(meshlist)) ? *mesh : nullptr;
 }
 
 std::shared_ptr<ChPhysicsItem> ChAssembly::SearchOtherPhysicsItem(const std::string& name) const {
     auto item = std::find_if(std::begin(otherphysicslist), std::end(otherphysicslist),
-                             [name](std::shared_ptr<ChPhysicsItem> item) { return item->GetNameString() == name; });
+                             [name](std::shared_ptr<ChPhysicsItem> item) { return item->GetName() == name; });
     return (item != std::end(otherphysicslist)) ? *item : nullptr;
 }
 

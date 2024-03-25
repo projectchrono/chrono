@@ -31,10 +31,10 @@ ChVehicleJoint::ChVehicleJoint(Type type,
                                std::shared_ptr<ChVehicleBushingData> bushing_data) {
     if (bushing_data == nullptr) {
         CreateLink(type, body1, body2, joint_frame);
-        mpark::get<Link>(m_joint)->SetNameString(name);
+        mpark::get<Link>(m_joint)->SetName(name);
     } else {
         CreateBushing(type, body1, body2, joint_frame, bushing_data);
-        mpark::get<Bushing>(m_joint)->SetNameString(name);
+        mpark::get<Bushing>(m_joint)->SetName(name);
     }
 }
 

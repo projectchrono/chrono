@@ -72,7 +72,7 @@ void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chas
     rot.SetFromDirectionAxes(u, v, w);
 
     m_arm = chrono_types::make_shared<ChBody>();
-    m_arm->SetNameString(m_name + "_arm");
+    m_arm->SetName(m_name + "_arm");
     m_arm->SetPos(points[ARM]);
     m_arm->SetRot(rot);
     m_arm->SetMass(GetArmMass());
@@ -107,7 +107,7 @@ void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chas
     // Create and initialize the rotational spring torque element.
     // The reference RSDA frame is aligned with the chassis frame.
     m_spring = chrono_types::make_shared<ChLinkRSDA>();
-    m_spring->SetNameString(m_name + "_spring");
+    m_spring->SetName(m_name + "_spring");
     m_spring->Initialize(chassis->GetBody(), m_arm, ChFrame<>(points[ARM_CHASSIS], z2y));
     m_spring->SetRestAngle(GetSpringRestAngle());
     m_spring->RegisterTorqueFunctor(GetSpringTorqueFunctor());
@@ -117,7 +117,7 @@ void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chas
     // The reference RSDA frame is aligned with the chassis frame.
     if (GetDamperTorqueFunctor()) {
         m_damper = chrono_types::make_shared<ChLinkRSDA>();
-        m_damper->SetNameString(m_name + "_damper");
+        m_damper->SetName(m_name + "_damper");
         m_damper->Initialize(chassis->GetBody(), m_arm, ChFrame<>(points[ARM_CHASSIS], z2y));
         m_damper->RegisterTorqueFunctor(GetDamperTorqueFunctor());
         chassis->GetSystem()->AddLink(m_damper);
@@ -126,7 +126,7 @@ void ChTranslationalDamperSuspension::Initialize(std::shared_ptr<ChChassis> chas
     // Create and initialize the translational shock force element.
     if (m_has_shock) {
         m_shock = chrono_types::make_shared<ChLinkTSDA>();
-        m_shock->SetNameString(m_name + "_shock");
+        m_shock->SetName(m_name + "_shock");
         m_shock->Initialize(chassis->GetBody(), m_arm, false, points[SHOCK_C], points[SHOCK_A]);
         m_shock->RegisterForceFunctor(GetShockForceFunctor());
         chassis->GetSystem()->AddLink(m_shock);

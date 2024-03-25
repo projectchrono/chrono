@@ -57,7 +57,7 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d
 
     // Create and initialize the gear body (same orientation as the chassis).
     m_gear = chrono_types::make_shared<ChBody>();
-    m_gear->SetNameString(m_name + "_gear");
+    m_gear->SetName(m_name + "_gear");
     m_gear->SetTag(TrackedVehicleBodyTag::SPROCKET_BODY);
     m_gear->SetPos(loc);
     m_gear->SetRot(chassisRot);
@@ -71,19 +71,19 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d
     // Create and initialize the revolute joint between chassis and gear.
     ChFrame<> rev_frame(loc, chassisRot * y2z);
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute->SetNameString(m_name + "_revolute");
+    m_revolute->SetName(m_name + "_revolute");
     m_revolute->Initialize(chassis->GetBody(), m_gear, rev_frame);
     chassis->GetSystem()->AddLink(m_revolute);
 
     // Create and initialize the axle shaft and its connection to the gear. Note that the
     // gear rotates about the Y axis.
     m_axle = chrono_types::make_shared<ChShaft>();
-    m_axle->SetNameString(m_name + "_axle");
+    m_axle->SetName(m_name + "_axle");
     m_axle->SetInertia(GetAxleInertia());
     chassis->GetSystem()->AddShaft(m_axle);
 
     m_axle_to_spindle = chrono_types::make_shared<ChShaftBodyRotation>();
-    m_axle_to_spindle->SetNameString(m_name + "_axle_to_spindle");
+    m_axle_to_spindle->SetName(m_name + "_axle_to_spindle");
     m_axle_to_spindle->Initialize(m_axle, m_gear, ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle);
 

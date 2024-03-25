@@ -55,7 +55,7 @@ void ChTrackShoeSinglePin::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector3d loc = chassis->TransformPointLocalToParent(location);
     ChQuaternion<> rot = chassis->GetRot() * rotation;
     m_shoe = chrono_types::make_shared<ChBody>();
-    m_shoe->SetNameString(m_name + "_shoe");
+    m_shoe->SetName(m_name + "_shoe");
     m_shoe->SetTag(TrackedVehicleBodyTag::SHOE_BODY);
     m_shoe->SetPos(loc);
     m_shoe->SetRot(rot);
@@ -122,7 +122,7 @@ void ChTrackShoeSinglePin::Connect(std::shared_ptr<ChTrackShoe> next,
         ChQuaternion<> z2y = QuatFromAngleX(-CH_PI_2);
 
         m_rsda = chrono_types::make_shared<ChLinkRSDA>();
-        m_rsda->SetNameString(m_name + "_rsda");
+        m_rsda->SetName(m_name + "_rsda");
         m_rsda->Initialize(m_shoe, next->GetShoeBody(), true, ChFrame<>(p_shoe, z2y), ChFrame<>(p_next, z2y));
         m_rsda->RegisterTorqueFunctor(track->GetTorqueFunctor());
         system->AddLink(m_rsda);

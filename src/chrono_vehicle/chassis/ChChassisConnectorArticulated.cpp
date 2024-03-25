@@ -41,7 +41,7 @@ void ChChassisConnectorArticulated::Initialize(std::shared_ptr<ChChassis> front,
 
     // Create the connection
     m_motor = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-    m_motor->SetNameString(m_name + " motor");
+    m_motor->SetName(m_name + " motor");
     m_motor->SetAngleFunction(chrono_types::make_shared<ChFunctionConst>());
     m_motor->Initialize(rear->GetBody(), front->GetBody(), to_abs);
     rear->GetBody()->GetSystem()->AddLink(m_motor);

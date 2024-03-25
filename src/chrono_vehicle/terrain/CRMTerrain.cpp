@@ -95,7 +95,7 @@ void CRMTerrain::AddRigidObstacle(const std::string& obj_file,
 
     // Create the obstacle body
     o.body = chrono_types::make_shared<ChBody>();
-    o.body->SetNameString("obstacle_" + o_name);
+    o.body->SetName("obstacle_" + o_name);
     o.body->SetPos(pos.GetPos());
     o.body->SetRot(pos.GetRot());
     o.body->SetMass(mass * density);

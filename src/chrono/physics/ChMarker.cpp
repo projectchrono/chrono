@@ -44,7 +44,7 @@ ChMarker::ChMarker(const std::string& name,
                    const ChCoordsys<>& rel_csys,
                    const ChCoordsys<>& rel_csys_dt,
                    const ChCoordsys<>& rel_csys_dtdt) {
-    SetNameString(name);
+    SetName(name);
     m_body = body;
 
     m_motion_X = chrono_types::make_shared<ChFunctionConst>(0);  // default: no motion

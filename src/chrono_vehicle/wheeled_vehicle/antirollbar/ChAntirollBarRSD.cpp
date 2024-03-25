@@ -81,7 +81,7 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create an initialize the arm_left body
     m_arm_left = chrono_types::make_shared<ChBody>();
-    m_arm_left->SetNameString(m_name + "_arm_left");
+    m_arm_left->SetName(m_name + "_arm_left");
     m_arm_left->SetPos(P_arm_left);
     m_arm_left->SetRot(subsystem_to_abs.GetRot());
     m_arm_left->SetMass(getArmMass());
@@ -92,7 +92,7 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create an initialize the arm_right body
     m_arm_right = chrono_types::make_shared<ChBody>();
-    m_arm_right->SetNameString(m_name + "_arm_right");
+    m_arm_right->SetName(m_name + "_arm_right");
     m_arm_right->SetPos(P_arm_right);
     m_arm_right->SetRot(subsystem_to_abs.GetRot());
     m_arm_right->SetMass(getArmMass());
@@ -104,14 +104,14 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the revolute joint between left arm and chassis.
     ChFrame<> rev_ch_frame(P_arm_left, chassisRot * QuatFromAngleX(CH_PI_2));
     m_revolute_ch = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute_ch->SetNameString(m_name + "_revolute_ch");
+    m_revolute_ch->SetName(m_name + "_revolute_ch");
     m_revolute_ch->Initialize(m_arm_left, chassisBody, rev_ch_frame);
     sys->AddLink(m_revolute_ch);
 
     // Create and initialize the revolute joint between left and right arms.
     ChFrame<> rev_frame(P_center, chassisRot * QuatFromAngleX(CH_PI_2));
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute->SetNameString(m_name + "_revolute");
+    m_revolute->SetName(m_name + "_revolute");
     m_revolute->Initialize(m_arm_left, m_arm_right, rev_frame);
     sys->AddLink(m_revolute);
 
@@ -121,13 +121,13 @@ void ChAntirollBarRSD::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create distance constraint to model left droplink.
     m_link_left = chrono_types::make_shared<ChLinkDistance>();
-    m_link_left->SetNameString(m_name + "_droplink_left");
+    m_link_left->SetName(m_name + "_droplink_left");
     m_link_left->Initialize(m_arm_left, suspension->GetAntirollBody(LEFT), false, P_drop_arm_left, P_drop_susp_left);
     sys->AddLink(m_link_left);
 
     // Create distance constraint to model right droplink.
     m_link_right = chrono_types::make_shared<ChLinkDistance>();
-    m_link_right->SetNameString(m_name + "_droplink_right");
+    m_link_right->SetName(m_name + "_droplink_right");
     m_link_right->Initialize(m_arm_right, suspension->GetAntirollBody(RIGHT), false, P_drop_arm_right,
                              P_drop_susp_right);
     sys->AddLink(m_link_right);

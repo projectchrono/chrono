@@ -110,7 +110,7 @@ class MyContactReporter : public ChContactContainer::ReportContactCallback {
         auto faceB = dynamic_cast<fea::ChContactTriangleXYZ*>(modB);
 
         if (bodyA && bodyB) {
-            cout << "  Body-Body:  " << bodyA->GetNameString() << "  " << bodyB->GetNameString() << endl;
+            cout << "  Body-Body:  " << bodyA->GetName() << "  " << bodyB->GetName() << endl;
             m_num_contacts_bb++;
             return true;
         } else if (vertexA && vertexB) {

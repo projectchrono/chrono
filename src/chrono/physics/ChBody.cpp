@@ -500,7 +500,7 @@ void ChBody::RemoveAllMarkers() {
 
 std::shared_ptr<ChMarker> ChBody::SearchMarker(const std::string& name) const {
     auto marker = std::find_if(std::begin(marklist), std::end(marklist),
-                               [name](std::shared_ptr<ChMarker> marker) { return marker->GetNameString() == name; });
+                               [name](std::shared_ptr<ChMarker> marker) { return marker->GetName() == name; });
     return (marker != std::end(marklist)) ? *marker : nullptr;
 }
 
@@ -512,7 +512,7 @@ std::shared_ptr<ChMarker> ChBody::SearchMarker(int id) const {
 
 std::shared_ptr<ChForce> ChBody::SearchForce(const std::string& name) const {
     auto force = std::find_if(std::begin(forcelist), std::end(forcelist),
-                              [name](std::shared_ptr<ChForce> force) { return force->GetNameString() == name; });
+                              [name](std::shared_ptr<ChForce> force) { return force->GetName() == name; });
     return (force != std::end(forcelist)) ? *force : nullptr;
 }
 

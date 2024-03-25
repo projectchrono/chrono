@@ -116,7 +116,7 @@ void ChChassis::Initialize(ChSystem* system,
 
     m_body = chrono_types::make_shared<ChBodyAuxRef>();
     m_body->SetTag(0);
-    m_body->SetNameString(m_name + " body");
+    m_body->SetName(m_name + " body");
     m_body->SetMass(GetBodyMass());
     m_body->SetFrameCOMToRef(GetBodyCOMFrame());
     m_body->SetInertia(GetBodyInertia());
@@ -151,7 +151,7 @@ void ChChassis::AddMarker(const std::string& name, const ChFrame<>& frame) {
 
     // Create the marker, attach it to the chassis body, add it to the list
     auto marker = chrono_types::make_shared<ChMarker>();
-    marker->SetNameString(m_name + " " + name);
+    marker->SetName(m_name + " " + name);
     marker->ImposeRelativeTransform(frame_com);
     m_body->AddMarker(marker);
     m_markers.push_back(marker);
@@ -161,11 +161,11 @@ void ChChassis::AddExternalForceTorque(std::shared_ptr<ExternalForceTorque> load
     m_external_loads.push_back(load);
 
     auto force_load = chrono_types::make_shared<ChLoadBodyForce>(m_body, ChVector3d(0), true, ChVector3d(0), true);
-    force_load->SetNameString(load->m_name + "_force");
+    force_load->SetName(load->m_name + "_force");
     m_container_external->Add(force_load);
 
     auto torque_load = chrono_types::make_shared<ChLoadBodyTorque>(m_body, ChVector3d(0), true);
-    torque_load->SetNameString(load->m_name + "_torque");
+    torque_load->SetName(load->m_name + "_torque");
     m_container_external->Add(torque_load);
 }
 
@@ -273,7 +273,7 @@ void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision
 
     m_body = chrono_types::make_shared<ChBodyAuxRef>();
     m_body->SetTag(0);
-    m_body->SetNameString(m_name + " body");
+    m_body->SetName(m_name + " body");
     m_body->SetMass(GetBodyMass());
     m_body->SetFrameCOMToRef(GetBodyCOMFrame());
     m_body->SetInertia(GetBodyInertia());

@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     sys.AddBody(my_ground);
     my_ground->SetFixed(true);
     my_ground->SetPos(ChVector3d(0, -2.9, 0));
-    my_ground->SetNameString(std::string("ground"));
+    my_ground->SetName(std::string("ground"));
     my_ground->GetVisualShape(0)->SetTexture(GetChronoDataFile("textures/concrete.jpg"));
 
     // Create the Irrlicht visualization system

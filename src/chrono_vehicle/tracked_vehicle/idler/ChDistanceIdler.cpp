@@ -85,7 +85,7 @@ void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create and initialize the carrier body
     m_carrier = chrono_types::make_shared<ChBody>();
-    m_carrier->SetNameString(m_name + "_carrier");
+    m_carrier->SetName(m_name + "_carrier");
     m_carrier->SetPos(m_points[CARRIER]);
     m_carrier->SetRot(idler_to_abs.GetRot());
     m_carrier->SetMass(GetCarrierMass());
@@ -94,7 +94,7 @@ void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create and initialize the revolute joint between carrier and chassis
     m_revolute = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute->SetNameString(m_name + "_carrier_pin");
+    m_revolute->SetName(m_name + "_carrier_pin");
     m_revolute->Initialize(chassis->GetBody(), m_carrier,
                            ChFrame<>(m_points[CARRIER_CHASSIS], idler_to_abs.GetRot() * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute);
@@ -110,7 +110,7 @@ void ChDistanceIdler::Initialize(std::shared_ptr<ChChassis> chassis,
     // Attach a ramp function to extend the tensioner to desired distance.
     auto arm = track->GetTrackSuspensions().back()->GetCarrierBody();
     m_tensioner = chrono_types::make_shared<ChLinkLockLinActuator>();
-    m_tensioner->SetNameString(m_name + "_tensioner");
+    m_tensioner->SetName(m_name + "_tensioner");
     m_tensioner->SetActuatorFunction(motfun);
     m_tensioner->Initialize(arm, m_carrier, false, ChFrame<>(m_points[MOTOR_ARM]), ChFrame<>(m_points[MOTOR_CARRIER]));
     chassis->GetSystem()->AddLink(m_tensioner);

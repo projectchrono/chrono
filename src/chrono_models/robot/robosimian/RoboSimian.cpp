@@ -325,7 +325,7 @@ bool ContactManager::OnReportContact(const ChVector3d& pA,
     if (!a && !b)
         return true;
 
-    std::cout << "   " << (a ? bodyA->GetNameString() : "other") << " - " << (b ? bodyB->GetNameString() : "other")
+    std::cout << "   " << (a ? bodyA->GetName() : "other") << " - " << (b ? bodyB->GetName() : "other")
               << std::endl;
 
     m_num_contacts++;
@@ -862,7 +862,7 @@ void RS_DriverCallback::OnPhaseChange(RS_Driver::Phase old_phase, RS_Driver::Pha
 RS_Part::RS_Part(const std::string& name, std::shared_ptr<ChContactMaterial> mat, ChSystem* system)
     : m_name(name), m_mat(mat) {
     m_body = chrono_types::make_shared<ChBodyAuxRef>();
-    m_body->SetNameString(name + "_body");
+    m_body->SetName(name + "_body");
 }
 
 void RS_Part::SetVisualizationType(VisualizationType vis) {
@@ -1228,7 +1228,7 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         // Weld joints
         if (joints[i].fixed) {
             auto joint = chrono_types::make_shared<ChLinkLockLock>();
-            joint->SetNameString(m_name + "_" + joints[i].name);
+            joint->SetName(m_name + "_" + joints[i].name);
             joint->Initialize(parent_body, child_body, calcJointFrame(X_GC, joints[i].axis));
             chassis->GetSystem()->AddLink(joint);
             m_joints.insert(std::make_pair(joints[i].name, joint));
@@ -1239,7 +1239,7 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         if (joints[i].name.compare("joint8") != 0) {
             auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
             auto joint = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-            joint->SetNameString(m_name + "_" + joints[i].name);
+            joint->SetName(m_name + "_" + joints[i].name);
             joint->Initialize(parent_body, child_body, ChFrame<>(calcJointFrame(X_GC, joints[i].axis)));
             joint->SetAngleFunction(motor_fun);
             chassis->GetSystem()->AddLink(joint);
@@ -1252,7 +1252,7 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         if (wheel_mode == ActuationMode::SPEED) {
             auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
             auto joint = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
-            joint->SetNameString(m_name + "_" + joints[i].name);
+            joint->SetName(m_name + "_" + joints[i].name);
             joint->Initialize(parent_body, child_body, ChFrame<>(calcJointFrame(X_GC, joints[i].axis)));
             joint->SetSpeedFunction(motor_fun);
             chassis->GetSystem()->AddLink(joint);
@@ -1262,7 +1262,7 @@ void RS_Limb::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
         } else {
             auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
             auto joint = chrono_types::make_shared<ChLinkMotorRotationAngle>();
-            joint->SetNameString(m_name + "_" + joints[i].name);
+            joint->SetName(m_name + "_" + joints[i].name);
             joint->Initialize(parent_body, child_body, ChFrame<>(calcJointFrame(X_GC, joints[i].axis)));
             joint->SetAngleFunction(motor_fun);
             chassis->GetSystem()->AddLink(joint);

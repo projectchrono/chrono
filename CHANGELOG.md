@@ -1112,6 +1112,10 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 | ChObj                             |                               |                                                  |
 |                                   | SetIdentifier                 | remove (see Notes)                               |
+|                                   | GetName                       | remove                                           |
+|                                   | GetNameString                 | rename: GetName                                  |
+|                                   | SetName                       | remove                                           |
+|                                   | SetNameString                 | rename: SetName                                  |
 | ChParticleCloud                   |                               |                                                  |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 | ChPhysicsItem                     |                               |                                                  |

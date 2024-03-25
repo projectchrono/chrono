@@ -149,7 +149,7 @@ void ChSAELeafspringAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create and initialize the axle body.
     m_axleTube = chrono_types::make_shared<ChBody>();
-    m_axleTube->SetNameString(m_name + "_axleTube");
+    m_axleTube->SetName(m_name + "_axleTube");
     m_axleTube->SetPos(axleCOM);
     m_axleTube->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_axleTube->SetMass(getAxleTubeMass());
@@ -193,7 +193,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
 
     // Create and initialize spindle body (same orientation as the chassis)
     m_spindle[side] = chrono_types::make_shared<ChBody>();
-    m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
+    m_spindle[side]->SetName(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
     m_spindle[side]->SetAngVelLocal(ChVector3d(0, ang_vel, 0));
@@ -203,21 +203,21 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
 
     // Create and initialize the revolute joint between axle tube and spindle.
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
+    m_revolute[side]->SetName(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_axleTube,
                                  ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the spring/damper
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
-    m_shock[side]->SetNameString(m_name + "_shock" + suffix);
+    m_shock[side]->SetName(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis->GetBody(), m_axleTube, false, points[SHOCK_C], points[SHOCK_A]);
     m_shock[side]->SetRestLength(getShockRestLength());
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
     chassis->GetSystem()->AddLink(m_shock[side]);
 
     m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
-    m_spring[side]->SetNameString(m_name + "_spring" + suffix);
+    m_spring[side]->SetName(m_name + "_spring" + suffix);
     m_spring[side]->Initialize(chassis->GetBody(), m_axleTube, false, points[SPRING_C], points[SPRING_A]);
     m_spring[side]->SetRestLength(getSpringRestLength());
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
@@ -226,20 +226,20 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     // Create and initialize the axle shaft and its connection to the spindle. Note that the
     // spindle rotates about the Y axis.
     m_axle[side] = chrono_types::make_shared<ChShaft>();
-    m_axle[side]->SetNameString(m_name + "_axle" + suffix);
+    m_axle[side]->SetName(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);
 
     m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftBodyRotation>();
-    m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
+    m_axle_to_spindle[side]->SetName(m_name + "_axle_to_spindle" + suffix);
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 
     // Leafspring related elements
     // Create and initialize the shackle body.
     m_shackle[side] = chrono_types::make_shared<ChBody>();
-    m_shackle[side]->SetNameString(m_name + "_shackle" + suffix);
+    m_shackle[side]->SetName(m_name + "_shackle" + suffix);
     m_shackle[side]->SetPos((points[REAR_HANGER] + points[SHACKLE]) / 2.0);
     m_shackle[side]->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_shackle[side]->SetMass(getShackleMass());
@@ -254,7 +254,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
 
     // Create and initialize the frontleaf body.
     m_frontleaf[side] = chrono_types::make_shared<ChBody>();
-    m_frontleaf[side]->SetNameString(m_name + "_frontleaf" + suffix);
+    m_frontleaf[side]->SetName(m_name + "_frontleaf" + suffix);
     m_frontleaf[side]->SetPos((points[FRONT_HANGER] + points[CLAMP_A]) / 2.0);
     m_frontleaf[side]->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_frontleaf[side]->SetMass(getFrontLeafMass());
@@ -263,13 +263,13 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
 
     // Create and initialize the spherical joint between frontleaf and chassis
     m_frontleafSph[side] = chrono_types::make_shared<ChLinkLockSpherical>();
-    m_frontleafSph[side]->SetNameString(m_name + "_frontleafSpherical" + suffix);
+    m_frontleafSph[side]->SetName(m_name + "_frontleafSpherical" + suffix);
     m_frontleafSph[side]->Initialize(m_frontleaf[side], chassis->GetBody(), ChFrame<>(points[FRONT_HANGER], QUNIT));
     chassis->GetSystem()->AddLink(m_frontleafSph[side]);
 
     // Create and initialize the rearleaf body.
     m_rearleaf[side] = chrono_types::make_shared<ChBody>();
-    m_rearleaf[side]->SetNameString(m_name + "_rearleaf" + suffix);
+    m_rearleaf[side]->SetName(m_name + "_rearleaf" + suffix);
     m_rearleaf[side]->SetPos((points[SHACKLE] + points[CLAMP_B]) / 2.0);
     m_rearleaf[side]->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_rearleaf[side]->SetMass(getRearLeafMass());
@@ -278,14 +278,14 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
 
     // Create and initialize the spherical joint between rearleaf and shackle
     m_rearleafSph[side] = chrono_types::make_shared<ChLinkLockSpherical>();
-    m_rearleafSph[side]->SetNameString(m_name + "_rearleafSpherical" + suffix);
+    m_rearleafSph[side]->SetName(m_name + "_rearleafSpherical" + suffix);
     m_rearleafSph[side]->Initialize(m_rearleaf[side], m_shackle[side], ChFrame<>(points[SHACKLE], QUNIT));
     chassis->GetSystem()->AddLink(m_rearleafSph[side]);
 
     // Create and initialize the clampA body.
     ChVector3d mid = (points[CLAMP_A] + points[CLAMP_B]) / 2.0;
     m_clampA[side] = chrono_types::make_shared<ChBody>();
-    m_clampA[side]->SetNameString(m_name + "_clampA" + suffix);
+    m_clampA[side]->SetName(m_name + "_clampA" + suffix);
     m_clampA[side]->SetPos((points[CLAMP_A] + mid) / 2.0);
     m_clampA[side]->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_clampA[side]->SetMass(getClampMass());
@@ -307,7 +307,7 @@ void ChSAELeafspringAxle::InitializeSide(VehicleSide side,
     // Create and initialize the clampB body.
     // mid = (points[CLAMP_A] + points[CLAMP_B]) / 2.0;
     m_clampB[side] = chrono_types::make_shared<ChBody>();
-    m_clampB[side]->SetNameString(m_name + "_clampB" + suffix);
+    m_clampB[side]->SetName(m_name + "_clampB" + suffix);
     m_clampB[side]->SetPos((points[CLAMP_B] + mid) / 2.0);
     m_clampB[side]->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_clampB[side]->SetMass(getClampMass());

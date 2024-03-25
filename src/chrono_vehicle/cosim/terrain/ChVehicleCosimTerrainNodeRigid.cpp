@@ -202,7 +202,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     auto container = chrono_types::make_shared<ChBody>();
     m_system->AddBody(container);
     container->SetTag(tag_obstacles);
-    container->SetNameString("container");
+    container->SetName("container");
     container->SetMass(1);
     container->SetFixed(true);
     container->EnableCollision(true);
@@ -221,7 +221,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
         container->SetFixed(false);
 
         auto ground = chrono_types::make_shared<ChBody>();
-        ground->SetNameString("ground");
+        ground->SetName("ground");
         ground->SetFixed(true);
         ground->EnableCollision(false);
         m_system->AddBody(ground);
@@ -242,7 +242,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
         trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
 
         auto body = chrono_types::make_shared<ChBody>();
-        body->SetNameString("obstacle");
+        body->SetName("obstacle");
         body->SetTag(tag_obstacles);
         body->SetPos(b.m_init_pos);
         body->SetRot(b.m_init_rot);
@@ -350,7 +350,7 @@ void ChVehicleCosimTerrainNodeRigid::CreateRigidProxy(unsigned int i) {
 
     // Create wheel proxy body
     auto body = chrono_types::make_shared<ChBody>();
-    body->SetNameString("proxy_" + std::to_string(i));
+    body->SetName("proxy_" + std::to_string(i));
     body->SetMass(m_load_mass[i]);
     ////body->SetInertiaXX();   //// TODO
     body->SetFixed(m_fixed_proxies);

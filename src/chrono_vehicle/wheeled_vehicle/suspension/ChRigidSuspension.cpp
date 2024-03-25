@@ -82,7 +82,7 @@ void ChRigidSuspension::InitializeSide(VehicleSide side,
 
     // Create and initialize spindle body (same orientation as the chassis)
     m_spindle[side] = chrono_types::make_shared<ChBody>();
-    m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
+    m_spindle[side]->SetName(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(chassisRot);
     m_spindle[side]->SetAngVelLocal(ChVector3d(0, ang_vel, 0));
@@ -92,7 +92,7 @@ void ChRigidSuspension::InitializeSide(VehicleSide side,
 
     // Create and initialize joints
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
+    m_revolute[side]->SetName(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(chassis, m_spindle[side],
                                  ChFrame<>(points[SPINDLE], chassisRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
@@ -100,13 +100,13 @@ void ChRigidSuspension::InitializeSide(VehicleSide side,
     // Create and initialize the axle shaft and its connection to the spindle.
     // Note that the spindle rotates about the Y axis.
     m_axle[side] = chrono_types::make_shared<ChShaft>();
-    m_axle[side]->SetNameString(m_name + "_axle" + suffix);
+    m_axle[side]->SetName(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);
 
     m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftBodyRotation>();
-    m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
+    m_axle_to_spindle[side]->SetName(m_name + "_axle_to_spindle" + suffix);
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 }

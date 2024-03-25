@@ -176,7 +176,7 @@ void test_pendulum() {
     my_root->SetCoordsys(VNULL, QUNIT);
     my_root->SetMass(1e6);
     my_root->SetInertiaXX(ChVector3d(1, 1, 1));
-    my_root->SetNameString("base");
+    my_root->SetName("base");
     my_root->SetFixed(true);
     my_root->EnableCollision(false);
     sys.AddBody(my_root);
@@ -197,7 +197,7 @@ void test_pendulum() {
     my_mass->SetCoordsys(mass_pos, mass_rot);
     my_mass->SetMass(tip_mass);
     my_mass->SetInertiaXX(ChVector3d(0, 0, 0));
-    my_mass->SetNameString("mass");
+    my_mass->SetName("mass");
     my_mass->EnableCollision(false);
     sys.AddBody(my_mass);
 
@@ -215,7 +215,7 @@ void test_pendulum() {
     auto my_joint = chrono_types::make_shared<ChLinkMateGeneric>();
     // RotY is free
     my_joint->SetConstrainedCoords(true, true, true, true, false, true);
-    my_joint->SetNameString("revolute_joint");
+    my_joint->SetName("revolute_joint");
     my_joint->Initialize(my_mass, my_root, my_root->GetFrameCOMToAbs());
     my_joint->SetUseTangentStiffness(use_Kc);
     sys.Add(my_joint);
@@ -341,14 +341,14 @@ void test_anchorchain() {
     box->SetColor(ChColor(1, 0, 0));
 
     auto wallA = chrono_types::make_shared<ChBody>();
-    wallA->SetNameString("wallA");
+    wallA->SetName("wallA");
     wallA->SetPos({xA, 0, 0});
     wallA->SetFixed(true);
     wallA->AddVisualShape(box);
     sys.AddBody(wallA);
 
     auto anchorA = chrono_types::make_shared<ChBody>();
-    anchorA->SetNameString("anchorA");
+    anchorA->SetName("anchorA");
     anchorA->SetPos({xA, 0, 0});
     anchorA->SetRot(QuatFromAngleY(CH_PI_4));
     anchorA->SetMass(mass);
@@ -362,14 +362,14 @@ void test_anchorchain() {
     sys.AddLink(jointA);
 
     auto wallB = chrono_types::make_shared<ChBody>();
-    wallB->SetNameString("wallB");
+    wallB->SetName("wallB");
     wallB->SetPos({xB, 0, 0});
     wallB->SetFixed(true);
     wallB->AddVisualShape(box);
     sys.AddBody(wallB);
 
     auto anchorB = chrono_types::make_shared<ChBody>();
-    anchorB->SetNameString("anchorB");
+    anchorB->SetName("anchorB");
     anchorB->SetPos({xB, 0, 0});
     anchorB->SetRot(QuatFromAngleY(-CH_PI_4));
     anchorB->SetMass(mass);
@@ -383,7 +383,7 @@ void test_anchorchain() {
     sys.AddLink(jointB);
 
     auto anchorC = chrono_types::make_shared<ChBody>();
-    anchorC->SetNameString("anchorC");
+    anchorC->SetName("anchorC");
     anchorC->SetPos({xC, 0.0, zC});
     anchorC->SetMass(mass);
     anchorC->SetInertiaXX({Jxx, Jyy, Jzz});

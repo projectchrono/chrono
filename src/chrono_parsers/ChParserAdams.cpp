@@ -365,7 +365,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
         newBody->SetInertiaXY(ChVector3d(part.inertia[3], part.inertia[4], part.inertia[5]));
         newBody->EnableCollision(false);
         // Hacky way to allow lookups for markers later
-        newBody->SetNameString(part_pair.first);
+        newBody->SetName(part_pair.first);
 
         // Add to report
         m_report.bodies.insert(std::make_pair(part_pair.first, newBody));
@@ -516,7 +516,7 @@ void ChParserAdams::Parse(ChSystem& sys, const std::string& filename) {
             std::cerr << "unknown joint type " << joint.type << "!" << std::endl;
         }
         if (!joint_not_parsed) {
-            new_joint->SetNameString(joint_pair.first);
+            new_joint->SetName(joint_pair.first);
             sys.AddLink(new_joint);
             m_report.joints.insert(std::make_pair(joint_pair.first, Report::JointInfo{joint.type, new_joint}));
         }

@@ -55,7 +55,7 @@ void ChTrackShoeBandBushing::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     ChVector3d seg_loc = loc + (0.5 * GetToothBaseLength()) * xdir;
     for (unsigned int is = 0; is < GetNumWebSegments(); is++) {
         m_web_segments.push_back(chrono_types::make_shared<ChBody>());
-        m_web_segments[is]->SetNameString(m_name + "_web_" + std::to_string(is));
+        m_web_segments[is]->SetName(m_name + "_web_" + std::to_string(is));
         m_web_segments[is]->SetPos(seg_loc + ((2 * is + 1) * m_seg_length / 2) * xdir);
         m_web_segments[is]->SetRot(rot);
         m_web_segments[is]->SetMass(m_seg_mass);

@@ -293,7 +293,7 @@ class MySimpleTank {
             // coll.shapes)
             auto firstBodyShoe = chrono_types::make_shared<ChBody>();
             sys.Add(firstBodyShoe);
-            firstBodyShoe->SetNameString(prefix + "shoe_0");
+            firstBodyShoe->SetName(prefix + "shoe_0");
             firstBodyShoe->SetMass(shoemass);
             firstBodyShoe->SetPos(position);
             firstBodyShoe->SetRot(rotation);
@@ -330,7 +330,7 @@ class MySimpleTank {
                 auto rigidBodyShoe =
                     MakeShoe(previous_rigidBodyShoe, firstBodyShoe, position, rotation, sys, joint_displacement);
 
-                rigidBodyShoe->SetNameString(prefix + "shoe_" + std::to_string(shoe_index++));
+                rigidBodyShoe->SetName(prefix + "shoe_" + std::to_string(shoe_index++));
 
                 rigidBodyShoe->AddVisualShape(shoe_mesh, ChFrame<>(-mesh_displacement, ChMatrix33<>(1)));
                 rigidBodyShoe->AddVisualShape(shoe_coll_mesh, ChFrame<>(-mesh_displacement, ChMatrix33<>(1)));
@@ -347,7 +347,7 @@ class MySimpleTank {
                 auto rigidBodyShoe =
                     MakeShoe(previous_rigidBodyShoe, firstBodyShoe, position, rotation, sys, joint_displacement);
 
-                rigidBodyShoe->SetNameString(prefix + "shoe_" + std::to_string(shoe_index++));
+                rigidBodyShoe->SetName(prefix + "shoe_" + std::to_string(shoe_index++));
 
                 rigidBodyShoe->AddVisualShape(shoe_mesh, ChFrame<>(-mesh_displacement, ChMatrix33<>(1)));
                 rigidBodyShoe->AddVisualShape(shoe_coll_mesh, ChFrame<>(-mesh_displacement, ChMatrix33<>(1)));
@@ -360,7 +360,7 @@ class MySimpleTank {
                 auto rigidBodyShoe =
                     MakeShoe(previous_rigidBodyShoe, firstBodyShoe, position, rotation, sys, joint_displacement);
 
-                rigidBodyShoe->SetNameString(prefix + "shoe_" + std::to_string(shoe_index++));
+                rigidBodyShoe->SetName(prefix + "shoe_" + std::to_string(shoe_index++));
 
                 rigidBodyShoe->AddVisualShape(shoe_mesh, ChFrame<>(-mesh_displacement, ChMatrix33<>(1)));
                 rigidBodyShoe->AddVisualShape(shoe_coll_mesh, ChFrame<>(-mesh_displacement, ChMatrix33<>(1)));
@@ -379,7 +379,7 @@ class MySimpleTank {
                 auto rigidBodyShoe =
                     MakeShoe(previous_rigidBodyShoe, firstBodyShoe, position, rotation, sys, joint_displacement);
 
-                rigidBodyShoe->SetNameString(prefix + "shoe_" + std::to_string(shoe_index++));
+                rigidBodyShoe->SetName(prefix + "shoe_" + std::to_string(shoe_index++));
 
                 rigidBodyShoe->AddVisualShape(shoe_mesh, ChFrame<>(-mesh_displacement, ChMatrix33<>(1)));
                 rigidBodyShoe->AddVisualShape(shoe_coll_mesh, ChFrame<>(-mesh_displacement, ChMatrix33<>(1)));

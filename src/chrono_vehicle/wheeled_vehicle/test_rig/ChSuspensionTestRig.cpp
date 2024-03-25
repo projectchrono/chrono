@@ -709,14 +709,14 @@ void ChSuspensionTestRigPlatform::InitializeRig() {
         auto func_R = chrono_types::make_shared<ChFunctionSetpoint>();
 
         auto linact_L = chrono_types::make_shared<ChLinkMotorLinearPosition>();
-        linact_L->SetNameString("L_post_linActuator");
+        linact_L->SetName("L_post_linActuator");
         linact_L->SetMotionFunction(func_L);
         ////linact_L->Initialize(post_L, m_vehicle->GetChassisBody(), ChFrame<>(pos_postL, QuatFromAngleY(CH_PI_2)));
         linact_L->Initialize(post_L, m_vehicle->GetChassisBody(), ChFrame<>(pos_postL, QUNIT));
         sys->AddLink(linact_L);
 
         auto linact_R = chrono_types::make_shared<ChLinkMotorLinearPosition>();
-        linact_R->SetNameString("R_post_linActuator");
+        linact_R->SetName("R_post_linActuator");
         linact_R->SetMotionFunction(func_R);
         ////linact_R->Initialize(post_R, m_vehicle->GetChassisBody(), ChFrame<>(pos_postR, QuatFromAngleY(CH_PI_2)));
         linact_R->Initialize(post_R, m_vehicle->GetChassisBody(), ChFrame<>(pos_postR, QUNIT));
@@ -840,7 +840,7 @@ void ChSuspensionTestRigPushrod::InitializeRig() {
 
         auto linact_L = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         linact_L->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::FREE);
-        linact_L->SetNameString("L_rod_linActuator");
+        linact_L->SetName("L_rod_linActuator");
         linact_L->SetMotionFunction(func_L);
         ////linact_L->Initialize(suspension->GetSpindle(LEFT), m_vehicle->GetChassisBody(),
         ////                     ChFrame<>(pos_spindleL, QuatFromAngleY(CH_PI_2)));
@@ -849,7 +849,7 @@ void ChSuspensionTestRigPushrod::InitializeRig() {
 
         auto linact_R = chrono_types::make_shared<ChLinkMotorLinearPosition>();
         linact_R->SetGuideConstraint(ChLinkMotorLinear::GuideConstraint::FREE);
-        linact_R->SetNameString("R_rod_linActuator");
+        linact_R->SetName("R_rod_linActuator");
         linact_R->SetMotionFunction(func_R);
         ////linact_R->Initialize(suspension->GetSpindle(RIGHT), m_vehicle->GetChassisBody(),
         ////                     ChFrame<>(pos_spindleR, QuatFromAngleY(CH_PI_2)));

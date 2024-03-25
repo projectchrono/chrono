@@ -309,7 +309,7 @@ bool ChParserOpenSim::parseBody(xml_node<>* bodyNode, ChSystem& system) {
     // Create a new body, consistent with the type of the containing system
     auto name = std::string(bodyNode->first_attribute("name")->value());
     auto newBody = chrono_types::make_shared<ChBodyAuxRef>();
-    newBody->SetNameString(name);
+    newBody->SetName(name);
     system.AddBody(newBody);
 
     newBody->EnableCollision(m_collide);
@@ -642,7 +642,7 @@ void ChParserOpenSim::initFunctionTable() {
             joint = customJoint;
         }
 
-        joint->SetNameString(name);
+        joint->SetName(name);
         system->AddLink(joint);
 
         m_jointList.push_back(joint);

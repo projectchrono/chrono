@@ -521,7 +521,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
 
         auto body = chrono_types::make_shared<ChBody>();
-        body->SetNameString("obstacle");
+        body->SetName("obstacle");
         body->SetTag(tag_obstacles);
         body->SetPos(b.m_init_pos);
         body->SetRot(b.m_init_rot);

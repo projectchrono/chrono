@@ -103,8 +103,8 @@ void ChTrackAssembly::Initialize(std::shared_ptr<ChChassis> chassis, const ChVec
         this_shoe->Connect(next_shoe, this, chassis.get(), ccw);
         auto fload = chrono_types::make_shared<ChLoadBodyForce>(this_shoe->GetShoeBody(), VNULL, false, VNULL, false);
         auto tload = chrono_types::make_shared<ChLoadBodyTorque>(this_shoe->GetShoeBody(), VNULL, false);
-        fload->SetNameString(this_shoe->m_name + "_terrain_force");
-        tload->SetNameString(this_shoe->m_name + "_terrain_torque");
+        fload->SetName(this_shoe->m_name + "_terrain_force");
+        tload->SetName(this_shoe->m_name + "_terrain_torque");
         m_shoe_terrain_forces.push_back(fload);
         m_shoe_terrain_torques.push_back(tload);
         chassis->AddTerrainLoad(fload);

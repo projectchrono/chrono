@@ -114,7 +114,7 @@ void ChRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Create and initialize the axle body.
     m_axleTubeBody = chrono_types::make_shared<ChBody>();
-    m_axleTubeBody->SetNameString(m_name + "_axleTube");
+    m_axleTubeBody->SetName(m_name + "_axleTube");
     m_axleTubeBody->SetPos(axleCOM);
     m_axleTubeBody->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_axleTubeBody->SetMass(getAxleTubeMass());
@@ -123,7 +123,7 @@ void ChRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // Fix the axle body to the chassis
     m_axleTubeGuide = chrono_types::make_shared<ChLinkLockPlanar>();
-    m_axleTubeGuide->SetNameString(m_name + "_planePlaneAxleTube");
+    m_axleTubeGuide->SetName(m_name + "_planePlaneAxleTube");
     const ChQuaternion<>& guideRot = chassis->GetBody()->GetFrameRefToAbs().GetRot();
     m_axleTubeGuide->Initialize(chassis->GetBody(), m_axleTubeBody,
                                 ChFrame<>(axleCOM, guideRot * QuatFromAngleY(CH_PI_2)));
@@ -132,7 +132,7 @@ void ChRigidPanhardAxle::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the Panhard body.
     ChVector3d ptPanhardCom = 0.5 * (m_panrodOuterA + m_panrodOuterC);
     m_panhardRodBody = chrono_types::make_shared<ChBody>();
-    m_panhardRodBody->SetNameString(m_name + "_panhardRod");
+    m_panhardRodBody->SetName(m_name + "_panhardRod");
     m_panhardRodBody->SetPos(ptPanhardCom);
     m_panhardRodBody->SetRot(chassis->GetBody()->GetFrameRefToAbs().GetRot());
     m_panhardRodBody->SetMass(getPanhardRodMass());
@@ -193,7 +193,7 @@ void ChRigidPanhardAxle::InitializeSide(VehicleSide side,
 
     // Create and initialize spindle body (same orientation as the chassis)
     m_spindle[side] = chrono_types::make_shared<ChBody>();
-    m_spindle[side]->SetNameString(m_name + "_spindle" + suffix);
+    m_spindle[side]->SetName(m_name + "_spindle" + suffix);
     m_spindle[side]->SetPos(points[SPINDLE]);
     m_spindle[side]->SetRot(spindleRot);
     m_spindle[side]->SetAngVelLocal(ChVector3d(0, ang_vel, 0));
@@ -203,14 +203,14 @@ void ChRigidPanhardAxle::InitializeSide(VehicleSide side,
 
     // Create and initialize the revolute joint between axle tube and spindle.
     m_revolute[side] = chrono_types::make_shared<ChLinkLockRevolute>();
-    m_revolute[side]->SetNameString(m_name + "_revolute" + suffix);
+    m_revolute[side]->SetName(m_name + "_revolute" + suffix);
     m_revolute[side]->Initialize(m_spindle[side], m_axleTubeBody,
                                  ChFrame<>(points[SPINDLE], spindleRot * QuatFromAngleX(CH_PI_2)));
     chassis->GetSystem()->AddLink(m_revolute[side]);
 
     // Create and initialize the shock damper
     m_shock[side] = chrono_types::make_shared<ChLinkTSDA>();
-    m_shock[side]->SetNameString(m_name + "_shock" + suffix);
+    m_shock[side]->SetName(m_name + "_shock" + suffix);
     m_shock[side]->Initialize(chassis->GetBody(), m_axleTubeBody, false, points[SHOCK_C], points[SHOCK_A]);
     m_shock[side]->SetRestLength(getShockRestLength());
     m_shock[side]->RegisterForceFunctor(getShockForceFunctor());
@@ -218,7 +218,7 @@ void ChRigidPanhardAxle::InitializeSide(VehicleSide side,
 
     // Create and initialize the spring
     m_spring[side] = chrono_types::make_shared<ChLinkTSDA>();
-    m_spring[side]->SetNameString(m_name + "_spring" + suffix);
+    m_spring[side]->SetName(m_name + "_spring" + suffix);
     m_spring[side]->Initialize(scbeam, m_axleTubeBody, false, points[SPRING_C], points[SPRING_A]);
     m_spring[side]->SetRestLength(getSpringRestLength());
     m_spring[side]->RegisterForceFunctor(getSpringForceFunctor());
@@ -227,18 +227,18 @@ void ChRigidPanhardAxle::InitializeSide(VehicleSide side,
     // Create and initialize the axle shaft and its connection to the spindle. Note that the
     // spindle rotates about the Y axis.
     m_axle[side] = chrono_types::make_shared<ChShaft>();
-    m_axle[side]->SetNameString(m_name + "_axle" + suffix);
+    m_axle[side]->SetName(m_name + "_axle" + suffix);
     m_axle[side]->SetInertia(getAxleInertia());
     m_axle[side]->SetPosDt(-ang_vel);
     chassis->GetSystem()->AddShaft(m_axle[side]);
 
     m_axle_to_spindle[side] = chrono_types::make_shared<ChShaftBodyRotation>();
-    m_axle_to_spindle[side]->SetNameString(m_name + "_axle_to_spindle" + suffix);
+    m_axle_to_spindle[side]->SetName(m_name + "_axle_to_spindle" + suffix);
     m_axle_to_spindle[side]->Initialize(m_axle[side], m_spindle[side], ChVector3d(0, -1, 0));
     chassis->GetSystem()->Add(m_axle_to_spindle[side]);
 
     m_arb[side] = chrono_types::make_shared<ChBody>();
-    m_arb[side]->SetNameString(m_name + "_arb" + suffix);
+    m_arb[side]->SetName(m_name + "_arb" + suffix);
     m_arb[side]->SetPos(0.5 * (points[ANTIROLL_C] + m_ptARBCenter));
     m_arb[side]->SetRot(chassisRot);
     m_arb[side]->SetMass(getARBMass());
@@ -252,7 +252,7 @@ void ChRigidPanhardAxle::InitializeSide(VehicleSide side,
         chassis->AddJoint(m_revARBChassis);
     } else {
         m_revARBLeftRight = chrono_types::make_shared<ChLinkLockRevolute>();
-        m_revARBLeftRight->SetNameString(m_name + "_revARBleftRight");
+        m_revARBLeftRight->SetName(m_name + "_revARBleftRight");
         m_revARBLeftRight->Initialize(m_arb[LEFT], m_arb[RIGHT],
                                       ChFrame<>(m_ptARBCenter, chassisRot * QuatFromAngleX(CH_PI_2)));
         chassis->GetSystem()->AddLink(m_revARBLeftRight);

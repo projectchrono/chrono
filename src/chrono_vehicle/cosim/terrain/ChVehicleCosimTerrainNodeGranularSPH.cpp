@@ -208,7 +208,7 @@ void ChVehicleCosimTerrainNodeGranularSPH::Construct() {
         trimesh->ComputeMassProperties(true, mass, baricenter, inertia);
 
         auto body = std::shared_ptr<ChBody>(m_system->NewBody());
-        body->SetNameString("obstacle");
+        body->SetName("obstacle");
         body->SetTag(tag_obstacles);
         body->SetPos(b.m_init_pos);
         body->SetRot(b.m_init_rot);

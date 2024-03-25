@@ -209,7 +209,7 @@ ViperPart::ViperPart(const std::string& name,
 
 void ViperPart::Construct(ChSystem* system) {
     m_body = chrono_types::make_shared<ChBodyAuxRef>();
-    m_body->SetNameString(m_name + "_body");
+    m_body->SetName(m_name + "_body");
     m_body->SetMass(m_mass);
     m_body->SetInertiaXX(m_inertia);
     m_body->SetFrameCOMToRef(m_cog);

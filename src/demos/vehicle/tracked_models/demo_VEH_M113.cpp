@@ -161,7 +161,7 @@ void ReportConstraintViolation(ChSystem& sys, double threshold = 1e-3) {
         if (cmax > vmax) {
             vmax = cmax;
             imax = cimax;
-            nmax = joint->GetNameString();
+            nmax = joint->GetName();
         }
     }
     if (vmax > threshold)
