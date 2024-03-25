@@ -50,36 +50,38 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     };
 
     /// Set the type of modal reduction to be used.
-    void SetReductionType(ReductionType type) { m_modal_reduction_type = type; }
+    void SetReductionType(ReductionType type) { this->m_modal_reduction_type = type; }
 
     /// Get the type of modal reduction used.
-    ReductionType GetReductionType() const { return m_modal_reduction_type; }
-
+    ReductionType GetReductionType() const { return this->m_modal_reduction_type; }
 
     /// Compute the undamped modes for the current assembly.
     /// Later you can fetch results via GetModalReductionEigenVect(), GetModalReductionFrequencyUndamped() etc.
-    /// Usually done for the assembly in full mode, but can be done also DoModalReduction()
+    /// Usually done for the assembly in full state, not available in reduced state.
     bool ComputeModes(const ChModalSolveUndamped& n_modes_settings);
 
-    /// Compute the undamped modes from M and K matrices. Later you can fetch results via GetModalReductionEigenVect() etc.
-    bool ComputeModesExternalData(ChSparseMatrix& mM,
-                                  ChSparseMatrix& mK,
+    /// Compute the undamped modes from M and K matrices. Later you can fetch results via GetModalReductionEigenVect()
+    /// etc.
+    bool ComputeModesExternalData(ChSparseMatrix& full_M,
+                                  ChSparseMatrix& full_K,
                                   ChSparseMatrix& full_Cq,
                                   const ChModalSolveUndamped& n_modes_settings);
 
-    /// Compute the damped modes for the entire assembly.
+    /// Compute the damped modes for the entire modal assembly.
     /// Expect complex eigenvalues/eigenvectors if damping is used.
-    /// Later you can fetch results via GetModalReductionEigenVect(), GetModalReductionFrequencyUndamped(), GetModalReductionDampingRatios() etc.
-    /// Usually done for the assembly in full mode, but can be done also after DoModalReduction()
+    /// Later you can fetch results via GetModalReductionEigenVect(), GetModalReductionFrequencyUndamped(),
+    /// GetModalReductionDampingRatios() etc. Usually done for the assembly in full state, not available in reduced
+    /// state.
     bool ComputeModesDamped(const ChModalSolveDamped& n_modes_settings);
 
-    /// Perform modal reduction on this assembly, from the current "full" ("boundary"+"internal") assembly.
-    /// - An undamped modal analysis will be done on the full assembly with  nodes.
+    /// Perform modal reduction on this modal assembly, from the current "full" ("boundary"+"internal") assembly.
+    /// - An undamped modal analysis will be done on the full assembly, followed by a modal reduction transformation.
+    /// - The "boundary" nodes will be retained.
     /// - The "internal" nodes will be replaced by n_modes modal coordinates.
     void DoModalReduction(const ChModalSolveUndamped& n_modes_settings,
-                                const ChModalDamping& damping_model = ChModalDampingNone());
+                          const ChModalDamping& damping_model = ChModalDampingNone());
 
-    /// Perform modal reduction on this assembly that contains only the "boundary" nodes, whereas
+    /// Perform modal reduction on this modal assembly that contains only the "boundary" nodes, whereas
     /// the "internal" nodes have been modeled only in an external FEA software with the
     /// full ("boundary"+"internal") modes.
     /// - with an external FEA software, the full assembly is modeled with "boundary"+"internal" nodes.
@@ -97,158 +99,150 @@ class ChApiModal ChModalAssembly : public ChAssembly {
             n_modes_settings,  ///< int as the n. of lower modes to keep, or a full ChModalSolveUndamped
         const ChModalDamping& damping_model = ChModalDampingNone());  ///< a damping model to use for the reduced model
 
+    /// Get the floating frame F of the reduced modal assembly.
     ChFrameMoving<> GetFloatingFrameOfReference() { return this->floating_frame_F; }
 
-    /// Get the residual of constraint equation on the floating frame F.
-    const ChVectorDynamic<>& GetConstraintsResidualF() { return res_CF; }
+    /// Get the residual of constraint equations on the floating frame F.
+    /// The configuration of the floating frame F is determined by the six constraint equations using a Newton-Raphson
+    /// iteration. The residual of constraint equations is an indicator to check the convergence of the modal method.
+    const ChVectorDynamic<>& GetConstraintsResidualF() { return this->res_CF; }
 
     /// Set verbose output.
-    void SetVerbose(bool verbose) { m_verbose = verbose; }
-
+    void SetVerbose(bool verbose) { this->m_verbose = verbose; }
 
     /// A rigorous mathematical manipulation can be employed to derive the inertial forces and the consequent inertial
     /// damping matrix, or a linear assumption is applied to obtain quite concise expressions.
     /// True: default option, the linear assumption is used.
     /// False: rigorous deviation is used, only for internal test.
-    void SetUseLinearInertialTerm(bool flag) { m_use_linear_inertial_term = flag; }
+    void SetUseLinearInertialTerm(bool flag) { this->m_use_linear_inertial_term = flag; }
 
-    /// For displaying modes, you can use the following function. It sets the state of this subassembly
-    /// (both boundary and inner items) using the n-th eigenvector multiplied by a "amplitude" factor * sin(phase).
-    /// If you increment the phase during an animation, you will see the n-ht mode
-    /// oscillating on the screen.
-    /// It works also if in IsReducedModelEnabled(). The mode shape is added to the state snapshot that was taken when doing the
-    /// last ComputeModes() or ComputeModesDamped().
+    /// For displaying modes, you can use the following function. It sets the state of this modal assembly
+    /// (both boundary and internal items) using the n-th eigenvector multiplied by an "amplitude" factor * sin(phase).
+    /// If you increment the phase during an animation, you will see the n-th mode oscillating on the screen.
+    /// The modal shapes are animated based on the initial full state of the modal assembly.
+    /// It works only in full state.
     void SetFullStateWithModeOverlay(int n_mode, double phase, double amplitude);
 
     /// For displaying the deformation using internal nodes, you can use the following function. Works only if
-    /// IsReducedModelEnabled(). It sets the state of the internal nodes of this subassembly using the current state of the modal
-    /// coordinates q given the computed eigenvalues: x=V*q , then it overlays s to the state snapshot x0 stored last
-    /// time one called a modal analysis. This is not necessary, but useful during animations, in fact the internal
-    /// nodes would be completely neglected if IsReducedModelEnabled() ; but calling this function one can update their changing
-    /// positions for visualization, stress recovery, etc.
+    /// IsReducedModelEnabled(). It sets the state of the internal nodes of this modal assembly using the current state
+    /// of the modal coordinates q given the computed eigenvectors: s = V * q , then it overlays s to the state snapshot
+    /// x0 stored last time one called a modal reduction. This is not necessary, but useful during animations, in fact
+    /// the internal nodes would be completely neglected if IsReducedModelEnabled() ; but calling this function one can
+    /// update their changing positions for visualization, stress recovery, etc.
     void SetInternalStateWithModes(bool full_update);
 
-    /// Resets the state of this subassembly (both boundary and inner items) to the state snapshot that
-    /// was taken when doing the last ComputeModes() or ComputeModesDamped().
+    /// Resets the state of this modal assembly (both boundary and internal items) to the state snapshot in the initial
+    /// configuration.
     void SetFullStateReset();
 
-    /// Computes the increment of the subassembly (the increment of the current configuration respect
-    /// to the initial undeformed configuration), and also gets the current speed.
-    /// u_locred = P_W^T*[\delta qB; \delta eta]: corotated local displacement.
-    /// e_locred = [qB^bar; eta]: local elastic displacement vector.
-    /// edt_locred = [qB^bar_dt; eta_dt]: local elastic velocity vector.
-    /// u_locred, e_locred and edt_locred are all expressed in the local frame of reference F.
-    void GetStateLocal(ChStateDelta& u_locred,
-                       ChStateDelta& e_locred,
-                       ChStateDelta& edt_locred);
-
     /// Optimization flag. Default true: when in modal reduced mode, during simulations the internal (discarded)
-    /// nodes are updated anyway by superposition of modal shapes etc., for visualization or postprocessing reasons.
-    /// In sake of high CPU performance, if no interest in visualization/postprocessing, one can disable this setting to
-    /// false.
-    void SetInternalNodesUpdate(bool mflag);
+    /// nodes are updated anyway by superposition of modal shapes etc., for visualization or postprocessing purposes.
+    /// In sake of high CPU performance, if no interest in visualization/postprocessing, one can disable this by setting
+    /// to false.
+    void SetInternalNodesUpdate(bool flag);
 
     /// Get the modal mass matrix.
-    const ChMatrixDynamic<>& GetModalMassMatrix() const { return modal_M; }
+    const ChMatrixDynamic<>& GetModalMassMatrix() const { return this->modal_M; }
 
     /// Get the modal stiffness matrix.
-    const ChMatrixDynamic<>& GetModalStiffnessMatrix() const { return modal_K; }
+    const ChMatrixDynamic<>& GetModalStiffnessMatrix() const { return this->modal_K; }
 
     /// Get the modal damping matrix.
-    const ChMatrixDynamic<>& GetModalDampingMatrix() const { return modal_R; }
+    const ChMatrixDynamic<>& GetModalDampingMatrix() const { return this->modal_R; }
 
-    /// Get the modal reduction matrix 'Psi'.
+    /// Get the modal reduction transformation matrix 'Psi'.
     /// 'Psi' as in v_full = Psi * v_reduced,
     /// also {v_boundary; v_internal} = Psi * {v_boundary; v_modes}
     /// Hence Psi contains the "static modes" and the selected "dynamic modes",
-    /// as in Psi = [I, 0; Psi_s, Psi_d] where Psi_d is the matrix of the selected eigenvectors after DoModalReduction().
-    const ChMatrixDynamic<>& GetModalReductionMatrix() const { return Psi; }
+    /// as in Psi = [I, 0; Psi_s, Psi_d] where Psi_d is the matrix of the selected eigenvectors after
+    /// DoModalReduction().
+    const ChMatrixDynamic<>& GetModalReductionMatrix() const { return this->Psi; }
 
     /// Get the modal eigenvectors, if previously computed.
-    /// These are the eigenvectors of the original assembly with applied boundary conditions, depending on reduction type.
-    /// Use one of the ComputeModes() functions to set it.
-    const ChMatrixDynamic<std::complex<double>>& GetModalReductionEigenVect() const { return m_modal_eigvect; }
+    /// These are the eigenvectors of the original assembly with applied boundary conditions, depending on reduction
+    /// type. Use one of the ComputeModes() functions to set it.
+    const ChMatrixDynamic<std::complex<double>>& GetModalReductionEigenVect() const { return this->m_modal_eigvect; }
 
     /// Get the modal eigenvalues, if previously computed.
-    /// These are the eigenvalues of the original assembly with applied boundary conditions, depending on reduction type.
-    /// Use one of the ComputeModes() functions to set it.
-    const ChVectorDynamic<std::complex<double>>& GetModalReductionEigenVals() const { return m_modal_eigvals; }
+    /// These are the eigenvalues of the original assembly with applied boundary conditions, depending on reduction
+    /// type. Use one of the ComputeModes() functions to set it.
+    const ChVectorDynamic<std::complex<double>>& GetModalReductionEigenVals() const { return this->m_modal_eigvals; }
 
     /// Get a vector of (undamped) modal natural frequencies [Hz], if previously computed.
-    /// These are the frequencies of the original assembly with applied boundary conditions, depending on reduction type.
-    /// Use one of the ComputeModes() functions to set it.
+    /// These are the frequencies of the original assembly with applied boundary conditions, depending on reduction
+    /// type. Use one of the ComputeModes() functions to set it.
     const ChVectorDynamic<double>& GetModalReductionFrequencyUndamped() const { return this->m_modal_freq; }
 
     /// Get a vector of modal damping ratios = damping/critical_damping, if previously computed.
     /// Use one of the ComputeModes() functions to set it.
     const ChVectorDynamic<double>& GetModalReductionDampingRatios() const { return this->m_modal_damping_ratios; }
 
-    /// Get the deformed configuration of the full assembly.
-    const ChVectorDynamic<>& GetDeformedFullState() const { return m_full_state_x; }
+    /// Get the deformed configuration of the full modal assembly.
+    const ChVectorDynamic<>& GetDeformedFullState() const { return this->m_full_state_x; }
 
-    /// Get the initial full state of the assembly before the modal reduction.
-    const ChVectorDynamic<>& GetInitialFullState() const { return m_full_state_x0; }
+    /// Get the initial full state of the modal assembly before the modal reduction.
+    const ChVectorDynamic<>& GetInitialFullState() const { return this->m_full_state_x0; }
 
-    /// Get the vector of modal coordinates.
-    ChVectorDynamic<>& GetModalCoordinatesPosLevel() { return modal_q; }
+    /// Get the vector of modal coordinates (positions).
+    ChVectorDynamic<>& GetModalCoordinatesPosLevel() { return this->modal_q; }
 
-    /// Get the vector of time derivative of modal coordinates (speeds).
-    ChVectorDynamic<>& GetModalCoordinatesVelLevel() { return modal_q_dt; }
+    /// Get the vector of time derivative of modal coordinates (velocities).
+    ChVectorDynamic<>& GetModalCoordinatesVelLevel() { return this->modal_q_dt; }
 
     /// Get the vector of 2nd time derivative of modal coordinates (accelerations).
-    ChVectorDynamic<>& GetModalCoordinatesAccLevel() { return modal_q_dtdt; }
+    ChVectorDynamic<>& GetModalCoordinatesAccLevel() { return this->modal_q_dtdt; }
 
     // CONTAINER FUNCTIONS
 
     /// Removes all inserted items: bodies, links, etc., both boundary and internal.
     void Clear();
 
-    /// Attach an internal body to this assembly.
+    /// Attach an internal body to this modal assembly.
     void AddInternalBody(std::shared_ptr<ChBody> body);
 
-    /// Attach an internal link to this assembly.
+    /// Attach an internal link to this modal assembly.
     void AddInternalLink(std::shared_ptr<ChLinkBase> link);
 
-    /// Attach an internal mesh to this assembly.
+    /// Attach an internal mesh to this modal assembly.
     void AddInternalMesh(std::shared_ptr<fea::ChMesh> mesh);
 
     /// Attach an internal ChPhysicsItem object that is not a body, link, or mesh.
     void AddInternalOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item);
 
-    /// Attach an arbitrary internal ChPhysicsItem (e.g. ChBody, ChParticles, ChLink, etc.) to the assembly.
+    /// Attach an arbitrary internal ChPhysicsItem (e.g. ChBody, ChParticles, ChLink, etc.) to the modal assembly.
     /// It will take care of adding it to the proper list of internal bodies, links, meshes, or generic
     /// physic item.
     void AddInternal(std::shared_ptr<ChPhysicsItem> item);
 
-    /// Remove an internal body from this assembly.
+    /// Remove an internal body from this modal assembly.
     void RemoveInternalBody(std::shared_ptr<ChBody> body);
-    /// Remove an internal link from this assembly.
+    /// Remove an internal link from this modal assembly.
     void RemoveInternalLink(std::shared_ptr<ChLinkBase> link);
-    /// Remove an internal mesh from the assembly.
+    /// Remove an internal mesh from this modal assembly.
     void RemoveInternalMesh(std::shared_ptr<fea::ChMesh> mesh);
     /// Remove an internal ChPhysicsItem object that is not a body or a link
     void RemoveInternalOtherPhysicsItem(std::shared_ptr<ChPhysicsItem> item);
     /// Remove an internal arbitrary ChPhysicsItem that was.
     void RemoveInternal(std::shared_ptr<ChPhysicsItem> item);
 
-    /// Remove all internal bodies from this assembly.
+    /// Remove all internal bodies from this modal assembly.
     void RemoveAllInternalBodies();
-    /// Remove all internal links from this assembly.
+    /// Remove all internal links from this modal assembly.
     void RemoveAllInternalLinks();
-    /// Remove all meshes from this assembly.
+    /// Remove all meshes from this modal assembly.
     void RemoveAllInternalMeshes();
     /// Remove all physics items  not in the body, link, or mesh lists.
     void RemoveAllInternalOtherPhysicsItems();
 
     /// Get the list of internal bodies.
-    const std::vector<std::shared_ptr<ChBody>>& GetBodiesInternal() const { return internal_bodylist; }
+    const std::vector<std::shared_ptr<ChBody>>& GetBodiesInternal() const { return this->internal_bodylist; }
     /// Get the list of internal links.
-    const std::vector<std::shared_ptr<ChLinkBase>>& GetLinksInternal() const { return internal_linklist; }
+    const std::vector<std::shared_ptr<ChLinkBase>>& GetLinksInternal() const { return this->internal_linklist; }
     /// Get the list of internal meshes.
-    const std::vector<std::shared_ptr<fea::ChMesh>>& GetMeshesInternal() const { return internal_meshlist; }
+    const std::vector<std::shared_ptr<fea::ChMesh>>& GetMeshesInternal() const { return this->internal_meshlist; }
     /// Get the list of internal physics items that are not in the body or link lists.
     const std::vector<std::shared_ptr<ChPhysicsItem>>& GetOtherPhysicsItemsInternal() const {
-        return internal_otherphysicslist;
+        return this->internal_otherphysicslist;
     }
 
     // STATISTICS
@@ -317,10 +311,10 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     // OTHER FUNCTIONS
 
     /// Write the mass (M), damping (K), damping (R), and constraint Jacobian (C) matrices at current configuration.
-    /// Assumes the rows/columns of the matrices are ordered as the ChVariable objects used in this assembly, first all
-    /// the "boundary" variables then all the "inner" variables (or modal variables if switched to modal assembly).
-    /// The sparse matrices are saved in COO format in [path]_M.dat [path]_K.dat [path]_R.dat, and [path]_Cq.dat.
-    /// By default, uses 1-based indices (as in Matlab).
+    /// Assumes the rows/columns of the matrices are ordered as the ChVariable objects used in this modal assembly,
+    /// first all the "boundary" variables then all the "internal" variables (or modal variables if switched to modal
+    /// reduced state). The sparse matrices are saved in COO format in [path]_M.dat [path]_K.dat [path]_R.dat, and
+    /// [path]_Cq.dat. By default, uses 1-based indices (as in Matlab).
     void WriteSubassemblyMatrices(bool save_M,
                                   bool save_K,
                                   bool save_R,
@@ -328,31 +322,31 @@ class ChApiModal ChModalAssembly : public ChAssembly {
                                   const std::string& path,
                                   bool one_indexed = true);
 
-    /// Compute the mass matrix of the subassembly.
-    /// Assumes the rows/columns of the matrix are ordered as the ChVariable objects used in this assembly,
-    /// first the all the "boundary" itvariablesems then all the "inner" variables (or modal variables if switched to
-    /// modal assembly).
+    /// Compute the mass matrix of the modal assembly.
+    /// Assumes the rows/columns of the matrix are ordered as the ChVariable objects used in this modal assembly,
+    /// first the all the "boundary" itvariablesems then all the "internal" variables (or modal variables if switched to
+    /// modal reduced state).
     void GetSubassemblyMassMatrix(ChSparseMatrix* M);  ///< fill this system mass matrix
 
-    /// Compute the stiffness matrix of the subassembly, i.e. the jacobian -dF/dq where F are stiff loads.
-    /// Assumes the rows/columns of the matrix are ordered as the ChVariable objects used in this assembly,
-    /// first the all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal
-    /// assembly). Note that not all loads provide a jacobian, as this is optional in their implementation.
+    /// Compute the stiffness matrix of the modal assembly, i.e. the jacobian -dF/dq where F are stiff loads.
+    /// Assumes the rows/columns of the matrix are ordered as the ChVariable objects used in this modal assembly,
+    /// first the all the "boundary" variables then all the "internal" variables (or modal variables if switched to
+    /// modal reduced state). Note that not all loads provide a jacobian, as this is optional in their implementation.
     void GetSubassemblyStiffnessMatrix(ChSparseMatrix* K);  ///< fill this system stiffness matrix
 
-    /// Compute the stiffness matrix of the subassembly, i.e. the jacobian -dF/dv where F are stiff loads.
-    /// Assumes the rows/columns of the matrix are ordered as the ChVariable objects used in this assembly,
-    /// first the all the "boundary" variables then all the "inner" variables (or modal variables if switched to modal
-    /// assembly). Note that not all loads provide a jacobian, as this is optional in their implementation.
+    /// Compute the stiffness matrix of the modal assembly, i.e. the jacobian -dF/dv where F are stiff loads.
+    /// Assumes the rows/columns of the matrix are ordered as the ChVariable objects used in this modal assembly,
+    /// first the all the "boundary" variables then all the "internal" variables (or modal variables if switched to
+    /// modal reduced state). Note that not all loads provide a jacobian, as this is optional in their implementation.
     void GetSubassemblyDampingMatrix(ChSparseMatrix* R);  ///< fill this system damping matrix
 
-    /// Compute the constraint jacobian matrix of the subassembly, i.e. the jacobian
+    /// Compute the constraint Jacobian matrix of the modal assembly, i.e. the jacobian
     /// Cq=-dC/dq where C are constraints (the lower left part of the KKT matrix).
-    /// Assumes the columns of the matrix are ordered as the ChVariable objects used in this assembly,
-    /// i.e. first the all the "boundary" variables then all the "inner" variables (or modal variables if switched to
-    /// modal assembly), and assumes the rows of the matrix are ordered as the constraints used in this assembly, i.e.
-    /// first the boundary and then the inner.
-    void GetSubassemblyConstraintJacobianMatrix(ChSparseMatrix* Cq);  ///< fill this system damping matrix
+    /// Assumes the columns of the matrix are ordered as the ChVariable objects used in this modal assembly,
+    /// i.e. first the all the "boundary" variables then all the "internal" variables (or modal variables if switched to
+    /// modal reduced state), and assumes the rows of the matrix are ordered as the constraints used in this modal
+    /// assembly, i.e. first the boundary and then the internal.
+    void GetSubassemblyConstraintJacobianMatrix(ChSparseMatrix* Cq);  ///< fill this system constraint Jacobian matrix
 
     // PHYSICS ITEM INTERFACE
 
@@ -442,12 +436,12 @@ class ChApiModal ChModalAssembly : public ChAssembly {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
     virtual void ConstraintsLoadJacobians() override;
 
-    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectKRMmatrices(ChSystemDescriptor& descriptor) override;
     virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
 
     // Old bookkeeping system
@@ -491,26 +485,30 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     friend void swap(ChModalAssembly& first, ChModalAssembly& second);
 
   private:
-
-    /// Set the model as reduced. Cannot go back for now.
+    /// Set the model as reduced. Cannot go back (from reduced to full state) for now.
     void FlagModelAsReduced();
 
     /// Compute the mass property of the assembly.
-    /// Used to initialize the floating frame F
-    void ComputeMassCenter();
+    /// Used to initialize the floating frame F.
+    void ComputeMassCenterFrame();
 
     /// Calculate the projection matrix.
     void ComputeProjectionMatrix();
 
+    /// Update the floating frame of reference F
     void UpdateFloatingFrameOfReference();
 
+    /// Update the transformation matrices used in the modal method.
     void UpdateTransformationMatrix();
 
+    /// Recover the local M,K,Cq matrices, which are requried in the modal analysis.
     void ComputeLocalFullKMCqMatrix(ChSparseMatrix& full_M, ChSparseMatrix& full_K, ChSparseMatrix& full_Cq);
 
     void ComputeInertialKRMmatrix();
     void ComputeStiffnessMatrix();
     void ComputeDampingMatrix();
+
+    /// Compute the modal M,R,K,Cq matrices which are tangent matrices used in the time stepper.
     void ComputeModalKRMmatrix();
 
     /// [INTERNAL USE ONLY]
@@ -519,9 +517,17 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// [INTERNAL USE ONLY]
     void ApplyModalReductionTransformation_CraigBampton(const ChModalDamping& damping_model = ChModalDampingNone());
 
+    /// Computes the increment of the modal assembly (the increment of the current configuration respect
+    /// to the initial "undeformed" configuration), and also gets the current speed.
+    /// u_locred = P_W^T*[\delta qB; \delta eta]: corotated local displacement.
+    /// e_locred = [qB^bar; eta]: local elastic displacement vector.
+    /// edt_locred = [qB^bar_dt; eta_dt]: local elastic velocity vector.
+    /// u_locred, e_locred and edt_locred are all expressed in the local floating frame of reference F.
+    void GetStateLocal(ChStateDelta& u_locred, ChStateDelta& e_locred, ChStateDelta& edt_locred);
+
     virtual void SetupInitial() override;
 
-    /// Resize modal matrices and hook up the variables to the  M K R block for the solver. To be used all times
+    /// Resize modal matrices and hook up the variables to the M K R block for the solver. To be used all times
     /// the n. of modes of modal reduction (m_num_coords_modal) is changed.
     void SetupModalData(int nmodes_reduction);
 
@@ -539,22 +545,28 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChVectorDynamic<> modal_q_dt;
     ChVectorDynamic<> modal_q_dtdt;
 
-    ChVectorDynamic<> full_forces_internal; ///< collect all external forces imposed on the internal nodes. This force will be eventually transformed to the modal forces and applied on the reduced modal assembly.
+    ChVectorDynamic<> full_forces_internal;  ///< collect all external forces imposed on the internal nodes. This force
+                                             ///< will be eventually transformed to the modal forces and applied on the
+                                             ///< reduced modal assembly.
 
     ChKblockGeneric modal_Hblock;
     ChMatrixDynamic<> modal_M;   // corresponding to boundary and modal accelerations
     ChMatrixDynamic<> modal_K;   // corresponding to boundary and modal coordinates
     ChMatrixDynamic<> modal_R;   // corresponding to boundary and modal velocites
     ChMatrixDynamic<> modal_Cq;  // corresponding to boundary and modal lagrange multipliers
-    ChMatrixDynamic<> Psi;       // TODO: maybe prefer sparse Psi matrix, especially for upper blocks...
+    ChMatrixDynamic<>
+        Psi;  // mode transformation matrix. TODO: maybe prefer sparse Psi matrix, especially for upper blocks...
+    ChMatrixDynamic<> Psi_S;  // static mode transformation matrix in the mode acceleration method
+    ChMatrixDynamic<> Psi_D;  // dynamic mode transformation matrix in the mode acceleration method
 
     ChFrameMoving<> floating_frame_F0;  ///< floating frame of reference F at the initial undeformed configuration
     ChFrameMoving<> floating_frame_F;   ///< floating frame of reference F at the deformed configuration
     // ChFrameMoving<> floating_frame_F_old;
     ChFrameMoving<> cog_frame;  ///< center of mass frame of reference
-    bool is_initialized_F = false;
+    bool is_initialized = false;
 
-    ChState m_full_state_x;  // state snapshot of full not reduced assembly at the previous time step
+    ChState m_full_state_x0;  // full state snapshot of assembly in the initial configuration
+    ChState m_full_state_x;   // state snapshot of full not reduced assembly at the previous time step
 
     // Projection matrices
     ChMatrixDynamic<> U_locred;      // rigid body modes of the reduced modal assembly in the deformed configuration
@@ -564,20 +576,19 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChMatrixDynamic<> P_perp_0;      // perpendicular projector, is constant
     bool is_projection_initialized = false;
 
-    ChMatrixDynamic<> Psi_S;  // static mode transformation matrix in the mode acceleration method
-    ChMatrixDynamic<> Psi_D;  // dynamic mode transformation matrix in the mode acceleration method
-
+    // rigid-body modes in local frame F
     ChMatrixDynamic<> Uloc_B;
     ChMatrixDynamic<> Uloc_I;
     ChMatrixDynamic<> Uloc_B_0;
     ChMatrixDynamic<> Uloc_I_0;
 
+    // Corotational transformation matrices
     ChMatrixDynamic<> L_B;
     ChMatrixDynamic<> L_I;
     ChMatrixDynamic<> P_W;  // extended transformation matrix, = diag[L_B,I]
     ChMatrixDynamic<> P_F;  // = diag[R_F, I]
 
-    ChVectorDynamic<> g_quad;  // the quadratic velocity term of the reduced superelement
+    ChVectorDynamic<> g_quad;  // the quadratic velocity term of the reduced modal superelement
 
     // full system matrices in the local floating frame of reference F
     ChSparseMatrix full_M_loc;
@@ -592,7 +603,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChMatrixDynamic<> Cq_red;
 
     ChMatrixDynamic<> Km_sup;  ///< linear material stiffness matrix of the reduced superelement
-    ChMatrixDynamic<> Kg_sup;  ///< nonlinear geometrical stiffness matrix of the reduced superelement due to the internal                                // forces at boundary nodes B
+    ChMatrixDynamic<> Kg_sup;  ///< nonlinear geometrical stiffness matrix of the reduced superelement due to the
+                               ///< internal forces at boundary nodes B
 
     ChMatrixDynamic<> Rm_sup;  ///< linear material damping matrix of the reduced superelement
 
@@ -601,21 +613,19 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChMatrixDynamic<> Ri_sup;  ///< inertial damping (including gyroscopic damping) matrix of the reduced superelement
     ChMatrixDynamic<> Ki_sup;  ///< inertial stiffness matrix of the reduced superelement
 
-    ChVectorDynamic<> res_CF; ///< residual of the constraint equation on floating frame F
-
+    ChVectorDynamic<> res_CF;  ///< residual of the constraint equations on floating frame F
 
     // Results of eigenvalue analysis like ComputeModes() or ComputeModesDamped():
-    ChMatrixDynamic<std::complex<double>> m_modal_eigvect;    // eigenvectors
+    ChMatrixDynamic<std::complex<double>> m_modal_eigvect;  // eigenvectors
     ChVectorDynamic<std::complex<double>> m_modal_eigvals;  // eigenvalues
-    ChVectorDynamic<double> m_modal_freq;               // frequencies
-    ChVectorDynamic<double> m_modal_damping_ratios;      // damping ratio
-    ChState m_full_state_x0;  // full state snapshot of assembly at the time of eigenvector computation
+    ChVectorDynamic<double> m_modal_freq;                   // frequencies
+    ChVectorDynamic<double> m_modal_damping_ratios;         // damping ratios
 
-    bool m_verbose = false; ///< output m_verbose info
+    bool m_verbose = false;  ///< output m_verbose info
 
-    ReductionType m_modal_reduction_type = ReductionType::CRAIG_BAMPTON; ///< methods for modal reduction
-    
-    bool m_use_linear_inertial_term = true;
+    ReductionType m_modal_reduction_type = ReductionType::CRAIG_BAMPTON;  ///< methods for modal reduction
+
+    bool m_use_linear_inertial_term = true;  // for internal test
 
     // Statistics:
 
@@ -646,12 +656,13 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     int m_num_constr_bil_boundary;  ///< number of bilateral scalar constraints (velocity level) at boundary
     int m_num_constr_uni_boundary;  ///< number of unilateral scalar constraints (velocity level) at boundary
 
-    // MODES: represent the motion of the assembly (internal, boundary nodes)
+    // MODES: represent the motion of the modal assembly (internal, boundary nodes)
     int m_num_coords_modal;  // number of scalar coordinates at modal level (position and velocity level are the same)
 
-    bool m_is_model_reduced;
+    bool m_is_model_reduced;  ///< flag to indicate whether in the modal "reduced" state.
 
-    bool internal_nodes_update;
+    bool internal_nodes_update;  ///< flag to indicate whether the internal nodes will update for
+                                 ///< visualization/postprocessing
 
     mutable ChTimer m_timer_matrix_assembly;
     mutable ChTimer m_timer_modal_solver_call;
