@@ -57,7 +57,7 @@ void ChROSAccelerometerHandler::Tick(double time) {
     auto imu_ptr = m_imu->GetMostRecentBuffer<UserAccelBufferPtr>();
     if (!imu_ptr->Buffer) {
         // TODO: Is this supposed to happen?
-        GetLog() << "Accelerometer buffer is not ready. Not ticking. \n";
+        std::cout << "Accelerometer buffer is not ready. Not ticking." << std::endl;
         return;
     }
 

@@ -42,8 +42,8 @@ class ChROSSensorHandlerUtilities {
         auto it = std::find_if(filters.rbegin(), filters.rend(),
                                [](auto filter) { return std::dynamic_pointer_cast<FilterType>(filter) != nullptr; });
         if (it == filters.rend()) {
-            GetLog() << "ERROR: Sensor with name '" << sensor->GetName().c_str() << "' doesn't have a " << FilterName
-                     << " filter.\n";
+            std::cerr << "ERROR: Sensor with name '" << sensor->GetName().c_str() << "' doesn't have a " << FilterName
+                      << " filter." << std::endl;
             return false;
         }
         return true;
@@ -53,7 +53,9 @@ class ChROSSensorHandlerUtilities {
     /// @param data the sensor data
     /// @return the covariance of the sensor data
     template <typename T = double, unsigned long N = 3>
-    static std::array<T, N * N> CalculateCovariance(const std::array<T, N>& data, const std::array<T, N>& mean, unsigned long count) {
+    static std::array<T, N * N> CalculateCovariance(const std::array<T, N>& data,
+                                                    const std::array<T, N>& mean,
+                                                    unsigned long count) {
         std::array<T, N * N> covariance;
         std::fill(covariance.begin(), covariance.end(), T(0));
         for (int i = 0; i < N; i++) {
@@ -63,7 +65,6 @@ class ChROSSensorHandlerUtilities {
         }
         return covariance;
     }
-
 };
 
 /// @} ros_sensor_handlers

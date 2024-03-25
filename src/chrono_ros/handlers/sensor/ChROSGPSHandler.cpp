@@ -54,7 +54,7 @@ void ChROSGPSHandler::Tick(double time) {
     auto gps_ptr = m_gps->GetMostRecentBuffer<UserGPSBufferPtr>();
     if (!gps_ptr->Buffer) {
         // TODO: Is this supposed to happen?
-        GetLog() << "GPS buffer is not ready. Not ticking. \n";
+        std::cout << "GPS buffer is not ready. Not ticking." << std::endl;
         return;
     }
 
@@ -74,7 +74,7 @@ void ChROSGPSHandler::Tick(double time) {
 }
 
 std::array<double, 9> ChROSGPSHandler::CalculateCovariance(const GPSData& gps_data) {
-    auto gps_coord = chrono::ChVector<>(gps_data.Latitude, gps_data.Longitude, gps_data.Altitude);
+    auto gps_coord = chrono::ChVector3d(gps_data.Latitude, gps_data.Longitude, gps_data.Altitude);
     auto gps_reference = m_gps->GetGPSReference();
     chrono::sensor::GPS2Cartesian(gps_coord, gps_reference);
     auto enu_data = gps_coord;

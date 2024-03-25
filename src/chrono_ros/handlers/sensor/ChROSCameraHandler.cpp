@@ -64,7 +64,7 @@ void ChROSCameraHandler::Tick(double time) {
     auto rgba8_ptr = m_camera->GetMostRecentBuffer<UserRGBA8BufferPtr>();
     if (!rgba8_ptr->Buffer) {
         // TODO: Is this supposed to happen?
-        GetLog() << "Camera buffer is not ready. Not ticking. \n";
+        std::cout << "Camera buffer is not ready. Not ticking." << std::endl;
         return;
     }
 

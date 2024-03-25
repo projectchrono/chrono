@@ -1,4 +1,4 @@
-Sensor // =============================================================================
+// =============================================================================
 // PROJECT CHRONO - http://projectchrono.org
 //
 // Copyright (c) 2023 projectchrono.org
@@ -50,12 +50,11 @@ Sensor // ======================================================================
 using namespace chrono;
 using namespace chrono::ros;
 using namespace chrono::sensor;
-using namespace chrono::geometry;
 
 // =============================================================================
 
 int main(int argc, char* argv[]) {
-    GetLog() << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << "\n\n";
+    std::cout << "Copyright (c) 2023 projectchrono.org\nChrono version: " << CHRONO_VERSION << std::endl << std::endl;
 
     // Create the system
     ChSystemNSC sys;

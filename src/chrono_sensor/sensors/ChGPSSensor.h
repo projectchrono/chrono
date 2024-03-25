@@ -58,14 +58,14 @@ class CH_SENSOR_API ChGPSSensor : public ChDynamicSensor {
     virtual void ClearKeyFrames();
 
     /// Get the GPS reference location
-    const ChVector<double> GetGPSReference() const { return m_gps_reference; }
+    const ChVector3d GetGPSReference() const { return m_gps_reference; }
 
   private:
     /// Variable for communicating the sensor's keyframes from the ChSystem into the data generation filter
     std::vector<std::tuple<float, ChVector3d>> m_keyframes;
     friend class ChFilterGPSUpdate;
 
-    const ChVector<double> m_gps_reference;  ///< reference location in GPS coordinates (longitude, latitude, altitude)
+    const ChVector3d m_gps_reference;  ///< reference location in GPS coordinates (longitude, latitude, altitude)
 };
 
 /// @} sensor_sensors

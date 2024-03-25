@@ -83,7 +83,7 @@ class PointCloud2Impl : public ChROSLidarHandlerImpl {
         auto pc_ptr = lidar->GetMostRecentBuffer<UserXYZIBufferPtr>();
         if (!pc_ptr->Buffer) {
             // TODO: Is this supposed to happen?
-            GetLog() << "Lidar buffer is not ready. Not ticking. \n";
+            std::cout << "Lidar buffer is not ready. Not ticking." << std::endl;
             return;
         }
 
@@ -130,7 +130,7 @@ class LaserScanImpl : public ChROSLidarHandlerImpl {
         auto pc_ptr = lidar->GetMostRecentBuffer<UserDIBufferPtr>();
         if (!pc_ptr->Buffer) {
             // TODO: Is this supposed to happen?
-            GetLog() << "Lidar buffer is not ready. Not ticking. \n";
+            std::cout << "Lidar buffer is not ready. Not ticking." << std::endl;
             return;
         }
 

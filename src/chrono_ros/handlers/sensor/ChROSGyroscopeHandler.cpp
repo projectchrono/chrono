@@ -56,7 +56,7 @@ void ChROSGyroscopeHandler::Tick(double time) {
     auto imu_ptr = m_imu->GetMostRecentBuffer<UserGyroBufferPtr>();
     if (!imu_ptr->Buffer) {
         // TODO: Is this supposed to happen?
-        GetLog() << "Gyroscope buffer is not ready. Not ticking. \n";
+        std::cout << "Gyroscope buffer is not ready. Not ticking." << std::endl;
         return;
     }
 
