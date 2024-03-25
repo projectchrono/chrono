@@ -53,8 +53,8 @@ class ChLoaderBeamWrench : public ChLoaderUatomic {
     // This is the function that you have to implement. It should return the
     // load at U. For Euler beams, loads are expected as 6-rows vectors, containing
     // a wrench: forceX, forceY, forceZ, torqueX, torqueY, torqueZ.
-    virtual void ComputeF(const double U,        ///< parametric coordinate in line
-                          ChVectorDynamic<>& F,  ///< Result F vector here, size must be = n.field coords.of loadable
+    virtual void ComputeF(double U,                    ///< parametric coordinate in line
+                          ChVectorDynamic<>& F,        ///< result vector, size = field dim of loadable
                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
     ) {
@@ -77,9 +77,15 @@ class ChLoaderBeamWrench : public ChLoaderUatomic {
 /// An atomic load on the beam is a wrench, i.e. force+load applied at
 /// a certain abscissa U, that is a six-dimensional load.
 /// It is not a distributed load, so inherit it from ChLoaderUatomic:
-class ChLoadBeamWrench : public ChLoad<ChLoaderBeamWrench> {
+class ChLoadBeamWrench : public ChLoad {
   public:
-    ChLoadBeamWrench(std::shared_ptr<ChLoadableU> mloadable) : ChLoad<ChLoaderBeamWrench>(mloadable) {}
+    ChLoadBeamWrench(std::shared_ptr<ChLoadableU> loadable) {
+        SetLoader(chrono_types::make_shared<ChLoaderBeamWrench>(loadable));
+    }
+    virtual ChLoadBeamWrench* Clone() const override { return new ChLoadBeamWrench(*this); }
+    std::shared_ptr<ChLoaderBeamWrench> GetLoader() const {
+        return std::static_pointer_cast<ChLoaderBeamWrench>(loader);
+    }
 };
 
 //-----------------------------------------------------------------------------------------
@@ -104,8 +110,8 @@ class ChLoaderBeamWrenchDistributed : public ChLoaderUdistributed {
     // This is the function that you have to implement. It should return the
     // load at U. For Euler beams, loads are expected as 6-rows vectors, containing
     // a wrench: forceX, forceY, forceZ, torqueX, torqueY, torqueZ.
-    virtual void ComputeF(const double U,        ///< parametric coordinate in line
-                          ChVectorDynamic<>& F,  ///< Result F vector here, size must be = n.field coords.of loadable
+    virtual void ComputeF(double U,                    ///< parametric coordinate in line
+                          ChVectorDynamic<>& F,        ///< result vector, size = field dim of loadable
                           ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
                           ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
     ) {
@@ -130,10 +136,15 @@ class ChLoaderBeamWrenchDistributed : public ChLoaderUdistributed {
 /// An atomic load on the beam is a wrench, i.e. force+load applied at
 /// a certain abscissa U, that is a six-dimensional load.
 /// It is not a distributed load, so inherit it from ChLoaderUatomic:
-class ChLoadBeamWrenchDistributed : public ChLoad<ChLoaderBeamWrenchDistributed> {
+class ChLoadBeamWrenchDistributed : public ChLoad {
   public:
-    ChLoadBeamWrenchDistributed(std::shared_ptr<ChLoadableU> mloadable)
-        : ChLoad<ChLoaderBeamWrenchDistributed>(mloadable) {}
+    ChLoadBeamWrenchDistributed(std::shared_ptr<ChLoadableU> loadable) {
+        SetLoader(chrono_types::make_shared<ChLoaderBeamWrenchDistributed>(loadable));
+    }
+    virtual ChLoadBeamWrenchDistributed* Clone() const override { return new ChLoadBeamWrenchDistributed(*this); }
+    std::shared_ptr<ChLoaderBeamWrenchDistributed> GetLoader() const {
+        return std::static_pointer_cast<ChLoaderBeamWrenchDistributed>(loader);
+    }
 };
 
 /// @} chrono_fea

@@ -200,6 +200,9 @@ class ChApi ChForce : public ChObj {
     ChVector3d relforce;  ///< TOTAL force vect (rel.coord) = fm*vdir +fx+fy+fz
 
     ChVectorN<double, 7> Qf;  ///< Lagrangian force
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 CH_CLASS_VERSION(ChForce, 0)

@@ -144,6 +144,8 @@ Note that this represents a major public API change and we expect most user code
 | ChFunctionRotation_spline.h         | rename: ChFunctionRotationBSpline.h       |
 | ChFunctionRotation_SQUAD.h          | rename: ChFunctionRotationSQUAD.h         |
 | ChFx.h                              | remove                                    |
+| ChKblock.h                          | remove                                    |
+| ChKblockGeneric.h                   | rename: ChKRMBlock.h                      |
 | ChLimit.h                           | rename: ChLinkLimit.h                     |
 | ChLineBspline.h                     | rename: ChLineBSpline.h                   |
 | ChLinkBeamIGAslider.h               | rename: ChLinkBeamIGAFrame.h              |
@@ -333,6 +335,24 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetFamilyMaskDoesCollisionWithFamily | rename: CollidesWith                      |
 |                                   | SetFamilyMaskDoCollisionWithFamily   | rename: AllowCollisionsWith               | 
 |                                   | SetFamilyMaskNoCollisionWithFamily   | rename: DisallowCollisionsWith            |
+| ChConstraint                      |                               |                                                  |
+|                                   | Build_Cq                      | rename: PasteJacobianInto                        |
+|                                   | Build_CqT                     | rename: PasteJacobianTransposedInto              |
+|                                   | Compute_c_i                   | rename: ComputeResidual                          |
+|                                   | Compute_Cq_q                  | rename: ComputeJacobianTimesState                |
+|                                   | Get_b_i                       | rename: GetRightHandSide                         |
+|                                   | Get_c_i                       | rename: GetResidual                              |
+|                                   | Get_cfm_i                     | rename: GetComplianceTerm                        |
+|                                   | Get_g_i                       | rename: GetSchurComplement                       |
+|                                   | Get_l_i                       | rename: GetLagrangeMultiplier                    |
+|                                   | Set_b_i                       | rename: SetRightHandSide                         |
+|                                   | Set_c_i                       | rename: SetResidual                              |
+|                                   | Set_cfm_i                     | rename: SetComplianceTerm                        |
+|                                   | Set_g_i                       | rename: SetSchurComplement                       |
+|                                   | Set_l_i                       | rename: SetLagrangeMultiplier                    |
+|                                   | Increment_q                   | rename: IncrementState                           |
+|                                   | MultiplyAndAdd                | rename: AddJacobianTimesVectorInto               |
+|                                   | MultiplyTandAdd               | rename: AddJacobianTransposedTimesScalarInto     |
 | ChContactable                     |                               |                                                  |
 |                                   | ContactableGet_ndof_x         | rename: GetContactableNumCoordsPosLevel          |
 |                                   | ContactableGet_ndof_w         | rename: GetContactableNumCoordsVelLevel          |
@@ -437,6 +457,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNodeNdofs                  | rename: GetNodeNumCoordsPosLevel                 |
 |                                   | GetNodeNdofs_active           | rename: GetNodeNumCoordsPosLevelActive           |
 |                                   | GetNnodes                     | rename: GetNumNodes                              |
+|                                   | InjectKRMmatrices             | rename: InjectKRMMatrices                        |
+|                                   | KRMmatricesLoad               | rename: LoadKRMMatrices                          |
 | ChElementBeamEuler                |                               |                                                  |
 |                                   | GetField_dt                   | rename: GetFieldDt                               |
 |                                   | GetField_dtdt                 | rename: GetFieldDt2                              |
@@ -657,10 +679,12 @@ Note that this represents a major public API change and we expect most user code
 | ChIntegrable3D                    |                               | rename: ChIntegrand3D                            |
 | ChIterativeSolver                 |                               |                                                  |
 |                                   | SaveMatrix                    | rename: WriteMatrices                            |
-| ChKblock                          |                               |                                                  |
-|                                   | GetNvars                      | rename: GetNumVariables                          |
-| ChKblockGeneric                   |                               |                                                  |
+| ChKblock                          |                               | remove                                           |
+| ChKblockGeneric                   |                               | rename: ChKRMBlock                               |
+|                                   | Build_K                       | rename: PasteMatrixInto (see Notes)              |
+|                                   | Get_K                         | rename: GetMatrix                                |
 |                                   | GetVariableN                  | rename: GetVariable                              |
+|                                   | MultiplyAndAdd                | rename: AddMatrixTimesVectorInto                 |
 | ChLine                            |                               |                                                  |
 |                                   | Get_closed                    | rename: IsClosed                                 |
 |                                   | Get_complexity                | rename: GetComplexity                            |
@@ -937,7 +961,7 @@ Note that this represents a major public API change and we expect most user code
 | ChLinkScrew                       |                               | rename: ChLinkLockScrew                          |
 | ChLinkTrajectory                  |                               | rename: ChLinkLockTrajectory                     |
 | ChList                            |                               | remove                                           |
-| ChLoad                            |                               |                                                  |
+| ChLoad                            |                               | replaced with non-templated class (see Notes)    |
 |                                   | LoadGet_ndof_x                | rename: LoadGetNumCoordsPosLevel                 |
 |                                   | LoadGet_ndof_w                | rename: LoadGetNumCoordsVelLevel                 |
 | ChLoadable                        |                               |                                                  |
@@ -949,7 +973,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | LoadableGetStateBlock_w       | rename: LoadableGetStateBlockVelLevel            |
 | ChLoadBase                        |                               |                                                  |
 |                                   | LoadGet_field_ncoords         | rename: LoadGetNumFieldCoords                    |
-| ChLoaderUW                        |                               |                                                  |
+| ChLoaderGravity                   |                               |                                                  |
 |                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
 | ChLoadsBody                       |                               |                                                  |
@@ -1004,8 +1028,8 @@ Note that this represents a major public API change and we expect most user code
 | ChMinMaxDistribution              |                               | rename: ChUniformDistribution                    |
 | ChModalAssembly                   |                               |                                                  |
 |                                   | refer to ChAssembly           | like ChAssembly with boundary/internal suffixes  |
-|                                   | DoModalReduction_CraigBamption | rename: ApplyModalReductionTransformation_CraigBampton           |
-|                                   | DoModalReduction_HERTING      | rename: ApplyModalReductionTransformation_Herting                  |
+|                                   | DoModalReduction_CraigBamption | rename: ApplyModalReductionTransformation_CraigBampton |
+|                                   | DoModalReduction_HERTING      | rename: ApplyModalReductionTransformation_Herting |
 |                                   | DumpSubassemblyMatrices       | rename: WriteSubassemblyMatrices                 |
 |                                   | Get_full_assembly_x_old       | rename: GetDeformedFullState                     |
 |                                   | Get_modal_K                   | rename: GetModalStiffnessMatrix                  |
@@ -1021,7 +1045,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_modes_frequencies         | rename: GetModalReductionFrequencyUndamped       |
 |                                   | Get_modes_V                   | rename: GetModalReductionEigenVect               |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
-|                                   | SwitchModalReductionON        | rename: DoModalReduction                   |
+|                                   | SwitchModalReductionON        | rename: DoModalReduction                         |
 | ChMotionlawFilter                 |                               | rename: ChMotionFilter                           |
 | ChMotionlawFilter_SecondOrder     |                               | rename: ChMotionFilterSecondOrder                |
 | ChMotionlawFilter_ThirdOrder      |                               | rename: ChMotionFilterThirdOrder                 |
@@ -1086,11 +1110,14 @@ Note that this represents a major public API change and we expect most user code
 | ChParticleCloud                   |                               |                                                  |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 | ChPhysicsItem                     |                               |                                                  |
+|                                   | ConstraintsLoadJacobian       | rename: LoadConstraintJacobians                  |
 |                                   | GetDOC                        | rename: GetNumConstraints                        |
 |                                   | GetDOC_c                      | rename: GetNumConstraintsBilateral               |
 |                                   | GetDOC_d                      | rename: GetNumConstraintsUnilateral              |
 |                                   | GetDOF                        | rename: GetNumCoordsPosLevel                     |
 |                                   | GetDOF_w                      | rename: GetNumCoordsVelLevel                     |
+|                                   | InjectKRMmatrices             | rename: InjectKRMMatrices                        |
+|                                   | KRMmatricesLoad               | rename: LoadKRMMatrices                          |
 |                                   | SetNoSpeedNoAcceleration      | rename: SetZeroVelocityZeroAcceleration          |
 | ChQuaternion                      |                               |                                                  |
 |                                   | free functions                | rename and move to ChRotation.h (see Notes)      |
@@ -1181,6 +1208,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_closed_U                  | rename: IsClosedU                                |
 |                                   | Get_closed_V                  | rename: IsClosedV                                |
 | ChSystem                          |                               |                                                  |
+|                                   | ConstraintsLoadJacobian       | rename: LoadConstraintJacobians                  |
 |                                   | DoEntireDynamics              | remove                                           |
 |                                   | DoEntireKinematics            | remove                                           |
 |                                   | DoEntireUniformDynamics       | remove                                           |
@@ -1190,8 +1218,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
 |                                   | Get_linklist                  | rename: GetLinks                                 |
 |                                   | Get_meshlist                  | rename: GetMeshes                                |
-|                                   | Get_otherphysicslist          | rename: GetShafts                                |
-|                                   | Get_shaftslist                | rename: GetOtherPhysicsItems                     |
+|                                   | Get_otherphysicslist          | rename: GetOtherPhysicsItems                     |
+|                                   | Get_shaftslist                | rename: GetShafts                                |
 |                                   | GetDOC                        | remove                                           |
 |                                   | GetDOC_c                      | remove                                           |
 |                                   | GetDOC_d                      | remove                                           |
@@ -1227,7 +1255,9 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetSolverTolerance            | remove                                           |
 |                                   | GetStepcount                  | rename: GetNumSteps                              |
 |                                   | GetUseSleeping                | rename: IsSleepingAllowed                        |
+|                                   | InjectKRMmatrices             | rename: InjectKRMMatrices                        |
 |                                   | Integrate_Y                   | rename: AdvanceDynamics                          |
+|                                   | KRMmatricesLoad               | rename: LoadKRMMatrices                          |
 |                                   | ResetStepcount                | rename: ResetNumSteps                            |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
 |                                   | SetMaxiter                    | remove                                           |
@@ -1238,9 +1268,11 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetStep                       | remove                                           |
 |                                   | SetUseSleeping                | rename: SetSleepingAllowed                       |
 | ChSystemDescriptor                |                               |                                                  |
+|                                   | ConvertToMatrixForm           | rename: BuildSystemMatrix                        |
 |                                   | GetConstraintsList            | rename: GetConstraints                           |
-|                                   | GetKblocksList                | rename: GetKblocks                               |
+|                                   | GetKblocksList                | rename: GetKRMBlocks                             |
 |                                   | GetVariablesList              | rename: GetVariables                             |
+|                                   | InsertKblock                  | rename: InsertKRMBlock                           |
 | ChSystemFsi                       |                               |                                                  |
 |                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
@@ -1283,6 +1315,17 @@ Note that this represents a major public API change and we expect most user code
 |                                   | getTriangle                   | rename: GetTriangle                              |
 | ChTriangleOfXYZnodes              |                               | rename: ChTriangleNodesXYZ                       |
 | ChTriangleOfXYZROTnodes           |                               | rename: ChTriangleNodesXYZrot                    |
+| ChVariables                       |                               |                                                  |
+|                                   | Build_M                       | rename: PasteMassInto  (see Notes)               |
+|                                   | Compute_fb                    | remove                                           |
+|                                   | Compute_invMb_v               | rename: ComputeMassInverseTimesVector            |
+|                                   | Compute_inc_invMb_v           | remove                                           |
+|                                   | Compute_inc_Mb_v              | rename: AddMassTimesVector                       |
+|                                   | DiagonalAdd                   | rename: AddMassDiagonalInto                      |
+|                                   | Get_ndof                      | rename: GetDOF                                   |
+|                                   | Get_qb                        | rename: State                                    |
+|                                   | Get_fb                        | rename: Force                                    |
+|                                   | MultiplyAndAdd                | rename: AddMassTimesVectorInto                   |
 | ChVector                          |                               |                                                  |
 |                                   | DirToDxDyDz                   | rename: GetDirectionAxesAsX                      |
 | ChVolume                          |                               |                                                  |
@@ -1401,6 +1444,29 @@ Note that this represents a major public API change and we expect most user code
 + The signature of all ChLink `Initialize()` functions were changed to consistently use `ChFrame` objects to specify link position and alignment (where previously some of them used `ChCoordsys`).
   A corresponding change was done for the constructor of `vehicle::ChVehicleJoint`.
 
++ The `ChLoad` class (loads on physics items via `ChLoader` objects) was changed to a non-templated class.  Instead of specifying the ChLoader as a template parameter, a shared pointer to a ChLoader is now passed as a constructor argument. 
+  This streamlines the code and allows proper SWIG wrapping for use in Python or C# codes. 
+  All pre-defined ChLoader classes (e.g., `ChLoaderPressure`, `ChLoaderGravity`, `ChLoaderBeamWrench`, etc.) were updated accordingly.
+  An example of a user-provided loader class (derived from some `ChLoader`) is as follows:
+  ```cpp
+  class MyLoader : public ChLoaderUatomic {
+    public:
+      MyLoader(std::shared_ptr<ChLoadableU> loadable) : ChLoaderUatomic(loadable) {}
+
+      virtual void ComputeF(const double U,              // normalized line position
+                            ChVectorDynamic<>& F,        // load at U (set to zero on entry)
+                            ChVectorDynamic<>* state_x,  // if non-null, first update position to this
+                            ChVectorDynamic<>* state_w   // if non-null, first update velocities to this
+                            ) override {
+          // Compute F = F(U)...
+      }
+  };
+
+  auto loader = chrono_types::make_shared<MyLoader>(object);
+  auto load = chrono_types::make_shared<ChLoad>(loader);
+  load_container->Add(load);
+  ```
+
 + `ChStream` classes were simple wrappers around C++ output streams. The entire code has been now refactored to operate on STL streams directly, in order to simplify the API and to allow the user a more familiar interaction with streams in Chrono.
   - the `operator<<` associated to `ChStreamOutAscii` has been removed: this means that it is not possible to stream custom classes through this operator;
   this option has been replaced by appropriate overloads of STL streams (clearly limited to data members publicly accessible) or by the direct usage of `ChOutputASCII`.
@@ -1412,8 +1478,8 @@ Note that this represents a major public API change and we expect most user code
     + `ChArchiveXML[In/Out]`
     + `ChArchiveBinary[In/Out]`
   - auxiliary classes which, while still leveraging the `ChArchive` features, allow only export but not loading back objects were renamed:
-    + `ChArchiveAsciiDump` --> `ChOutputASCII`
-    + `ChArchiveExplorer` --> `ChObjectExplorer`
+    + `ChArchiveAsciiDump` &#8594; `ChOutputASCII`
+    + `ChArchiveExplorer` &#8594; `ChObjectExplorer`
 
 + Solver access through `ChSystem` was removed. The functions `SetSolverMaxIterations`, `SetSolverTolerance`, and `SetSolverForceTolerance` were controlling only a subset of solver parameters and only for iterative solvers.
   Instead, the user must set solver parameters directly on the solver object. This is straightforward for the case where the user explicitly creates a solver object and attaches it to the system with `ChSystem::SetSolver`.
@@ -1426,14 +1492,17 @@ Note that this represents a major public API change and we expect most user code
   }
   ```
   or
-+ ```cpp
+  ```cpp
   my_system.SetSolverType(ChSolver::Type::BARZILAIBORWEIN);
   my_system.GetSolver()->AsIterative()->SetMaxIterations(20);
   ```
 + We removed the option of setting an integration step size for the types of analyses that require it. Instead, the desired step size value is always explicitly passed as an argument to the `ChSystem` function that initiates that analysis (e.g., `DoStepDynamics`).
   The current value of the step size (which may be adjusted internally in certain situations) is cached and can still be queried with `ChSystem::GetStep`. This is typically needed only internally but can also be used in user code that requires it.
 
-  Similarly, we removed the function `ChSystem::SetMaxiter` which allowed setting the maximum number of iterations for the system assembly analysis. This quantitiy can now be passed through an optional argument to `ChSystem::DoAssembly` (default value: 6).
+  Similarly, we removed the function `ChSystem::SetMaxiter` which allowed setting the maximum number of iterations for the system assembly analysis. This quantity can now be passed through an optional argument to `ChSystem::DoAssembly` (default value: 6).
+
++ `ChKblock::Build_K` (now `ChKRMBlock::PasteInto`) reversed the meaning of the last argument (was `add`, now `overwrite`) in accordance to the signature of `PasteMatrix`;
+  Also `ChVariable::Build_M` (now `PasteMassInto`) is not taking the position in which the mass should be placed but the offset with respect to the `ChVariable::offset`
 
 ## [Changed] Updated Chrono::VSG module
 

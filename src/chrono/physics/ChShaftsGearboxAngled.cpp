@@ -74,7 +74,7 @@ void ChShaftsGearboxAngled::IntLoadResidual_CqL(const unsigned int off_L,    // 
                                                 const ChVectorDynamic<>& L,  // the L vector
                                                 const double c               // a scaling factor
 ) {
-    constraint.MultiplyTandAdd(R, L(off_L) * c);
+    constraint.AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
 }
 
 void ChShaftsGearboxAngled::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
@@ -100,16 +100,16 @@ void ChShaftsGearboxAngled::IntToDescriptor(const unsigned int off_v,  // offset
                                             const unsigned int off_L,  // offset in L, Qc
                                             const ChVectorDynamic<>& L,
                                             const ChVectorDynamic<>& Qc) {
-    constraint.Set_l_i(L(off_L));
+    constraint.SetLagrangeMultiplier(L(off_L));
 
-    constraint.Set_b_i(Qc(off_L));
+    constraint.SetRightHandSide(Qc(off_L));
 }
 
 void ChShaftsGearboxAngled::IntFromDescriptor(const unsigned int off_v,  // offset in v
                                               ChStateDelta& v,
                                               const unsigned int off_L,  // offset in L
                                               ChVectorDynamic<>& L) {
-    L(off_L) = constraint.Get_l_i();
+    L(off_L) = constraint.GetLagrangeMultiplier();
 }
 
 void ChShaftsGearboxAngled::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
@@ -120,15 +120,15 @@ void ChShaftsGearboxAngled::IntStateScatterReactions(const unsigned int off_L, c
     torque_react = L(off_L);
 }
 
-void ChShaftsGearboxAngled::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChShaftsGearboxAngled::InjectConstraints(ChSystemDescriptor& descriptor) {
     // if (!IsActive())
     //	return;
 
-    mdescriptor.InsertConstraint(&constraint);
+    descriptor.InsertConstraint(&constraint);
 }
 
 void ChShaftsGearboxAngled::ConstraintsBiReset() {
-    constraint.Set_b_i(0.);
+    constraint.SetRightHandSide(0.);
 }
 
 void ChShaftsGearboxAngled::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -137,7 +137,7 @@ void ChShaftsGearboxAngled::ConstraintsBiLoad_C(double factor, double recovery_c
 
     double res = 0;  // no residual
 
-    constraint.Set_b_i(constraint.Get_b_i() + factor * res);
+    constraint.SetRightHandSide(constraint.GetRightHandSide() + factor * res);
 }
 
 void ChShaftsGearboxAngled::ConstraintsBiLoad_Ct(double factor) {
@@ -147,7 +147,7 @@ void ChShaftsGearboxAngled::ConstraintsBiLoad_Ct(double factor) {
     // nothing
 }
 
-void ChShaftsGearboxAngled::ConstraintsLoadJacobians() {
+void ChShaftsGearboxAngled::LoadConstraintJacobians() {
     // compute jacobians
     constraint.Get_Cq_a()(0) = t0;
     constraint.Get_Cq_b()(0) = -1.0;
@@ -165,7 +165,7 @@ void ChShaftsGearboxAngled::ConstraintsLoadJacobians() {
 
 void ChShaftsGearboxAngled::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    torque_react = constraint.Get_l_i() * factor;
+    torque_react = constraint.GetLagrangeMultiplier() * factor;
 }
 
 void ChShaftsGearboxAngled::ArchiveOut(ChArchiveOut& archive_out) {

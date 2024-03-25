@@ -21,7 +21,7 @@
 
 namespace chrono {
 
-/// Couples the relative rotation of two bodies (along Z direction of the link frames) with the rotation of a 1D shaft.
+/// Couple for the relative rotation of two bodies (along the link frame Z direction) with the rotation of a 1D shaft.
 ///
 /// This link adds two additional ChShaft rotational objects, one on each body, oriented along the Z axis of the bodies.
 /// The _rotational_ shaft is connected to Body 2 (through a ChShaftBodyRotation) along a direction (default: Z axis)
@@ -37,13 +37,7 @@ namespace chrono {
 ///    GetMotorTorque() = GetInnerTorque1() = - GetInnerTorque2().
 /// This is not true for example, for an unbalanced driveline where one of the
 /// two inner shafts is connected to some external ChShaft.
-
 class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
-    std::shared_ptr<ChShaft> innershaft1;
-    std::shared_ptr<ChShaft> innershaft2;
-    std::shared_ptr<ChShaftBodyRotation> innerconstraint1;
-    std::shared_ptr<ChShaftBodyRotation> innerconstraint2;
-
   public:
     ChLinkMotorRotationDriveline();
     ChLinkMotorRotationDriveline(const ChLinkMotorRotationDriveline& other);
@@ -106,15 +100,24 @@ class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
                             const ChVector3d& mnorm2              ///< X axis of master plane 2 (rel. or abs.)
                             ) override;
 
-    // Compute offsets of sub-objects, offsetting all the contained sub objects (the inner shafts)
+    /// Compute offsets of sub-objects, offsetting all the contained sub objects (the inner shafts)
     virtual void Setup() override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    std::shared_ptr<ChShaft> innershaft1;
+    std::shared_ptr<ChShaft> innershaft2;
+    std::shared_ptr<ChShaftBodyRotation> innerconstraint1;
+    std::shared_ptr<ChShaftBodyRotation> innerconstraint2;
 
     // Update this object. Also relinks the innerconstraints.
     virtual void Update(double mytime, bool update_assets = true) override;
 
-    //
-    // STATE FUNCTIONS
-    //
     virtual unsigned int GetNumCoordsPosLevel() override;
     virtual unsigned int GetNumConstraints() override;
     virtual unsigned int GetNumConstraintsBilateral() override;
@@ -174,29 +177,20 @@ class ChApi ChLinkMotorRotationDriveline : public ChLinkMotorRotation {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    //
-    // SOLVER INTERFACE (old)
-    //
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
+    virtual void LoadConstraintJacobians() override;
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
     virtual void ConstraintsBiReset() override;
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
     virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
-    virtual void ConstraintsLoadJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
     virtual void VariablesFbReset() override;
     virtual void VariablesFbLoadForces(double factor = 1) override;
     virtual void VariablesQbLoadSpeed() override;
     virtual void VariablesFbIncrementMq() override;
     virtual void VariablesQbSetSpeed(double step = 0) override;
     virtual void VariablesQbIncrementPosition(double step) override;
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 CH_CLASS_VERSION(ChLinkMotorRotationDriveline, 0)

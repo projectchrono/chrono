@@ -92,9 +92,9 @@ void ChLinkNodeFace::IntLoadResidual_CqL(const unsigned int off_L,    // offset 
     if (!IsActive())
         return;
 
-    constraint1.MultiplyTandAdd(R, L(off_L + 0) * c);
-    constraint2.MultiplyTandAdd(R, L(off_L + 1) * c);
-    constraint3.MultiplyTandAdd(R, L(off_L + 2) * c);
+    constraint1.AddJacobianTransposedTimesScalarInto(R, L(off_L + 0) * c);
+    constraint2.AddJacobianTransposedTimesScalarInto(R, L(off_L + 1) * c);
+    constraint3.AddJacobianTransposedTimesScalarInto(R, L(off_L + 2) * c);
 }
 
 void ChLinkNodeFace::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
@@ -140,13 +140,13 @@ void ChLinkNodeFace::IntToDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    constraint1.Set_l_i(L(off_L + 0));
-    constraint2.Set_l_i(L(off_L + 1));
-    constraint3.Set_l_i(L(off_L + 2));
+    constraint1.SetLagrangeMultiplier(L(off_L + 0));
+    constraint2.SetLagrangeMultiplier(L(off_L + 1));
+    constraint3.SetLagrangeMultiplier(L(off_L + 2));
 
-    constraint1.Set_b_i(Qc(off_L + 0));
-    constraint2.Set_b_i(Qc(off_L + 1));
-    constraint3.Set_b_i(Qc(off_L + 2));
+    constraint1.SetRightHandSide(Qc(off_L + 0));
+    constraint2.SetRightHandSide(Qc(off_L + 1));
+    constraint3.SetRightHandSide(Qc(off_L + 2));
 }
 
 void ChLinkNodeFace::IntFromDescriptor(const unsigned int off_v,
@@ -156,26 +156,26 @@ void ChLinkNodeFace::IntFromDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    L(off_L + 0) = constraint1.Get_l_i();
-    L(off_L + 1) = constraint2.Get_l_i();
-    L(off_L + 2) = constraint3.Get_l_i();
+    L(off_L + 0) = constraint1.GetLagrangeMultiplier();
+    L(off_L + 1) = constraint2.GetLagrangeMultiplier();
+    L(off_L + 2) = constraint3.GetLagrangeMultiplier();
 }
 
 // SOLVER INTERFACES
 
-void ChLinkNodeFace::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkNodeFace::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!IsActive())
         return;
 
-    mdescriptor.InsertConstraint(&constraint1);
-    mdescriptor.InsertConstraint(&constraint2);
-    mdescriptor.InsertConstraint(&constraint3);
+    descriptor.InsertConstraint(&constraint1);
+    descriptor.InsertConstraint(&constraint2);
+    descriptor.InsertConstraint(&constraint3);
 }
 
 void ChLinkNodeFace::ConstraintsBiReset() {
-    constraint1.Set_b_i(0.);
-    constraint2.Set_b_i(0.);
-    constraint3.Set_b_i(0.);
+    constraint1.SetRightHandSide(0.);
+    constraint2.SetRightHandSide(0.);
+    constraint3.SetRightHandSide(0.);
 }
 
 //// OBSOLETE will be removed in favor of IntLoadConstraint_C
@@ -193,9 +193,9 @@ void ChLinkNodeFace::ConstraintsBiLoad_C(double factor, double recovery_clamp, b
     ChVector3d res =
         m_node->GetPos() - s1 * m_triangle.node1->pos - s2 * m_triangle.node2->pos - s3 * m_triangle.node3->pos - N * d;
 
-    constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
-    constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y());
-    constraint3.Set_b_i(constraint3.Get_b_i() + factor * res.z());
+    constraint1.SetRightHandSide(constraint1.GetRightHandSide() + factor * res.x());
+    constraint2.SetRightHandSide(constraint2.GetRightHandSide() + factor * res.y());
+    constraint3.SetRightHandSide(constraint3.GetRightHandSide() + factor * res.z());
 }
 
 //// OBSOLETE will be removed in favor of Int... functions
@@ -210,7 +210,7 @@ int mysgn(double val) {
     return (0 < val) - (val < 0);
 }
 
-void ChLinkNodeFace::ConstraintsLoadJacobians() {
+void ChLinkNodeFace::LoadConstraintJacobians() {
     double s1 = 1 - s2 - s3;
 
     // compute jacobians
@@ -343,9 +343,9 @@ void ChLinkNodeFace::ConstraintsLoadJacobians() {
 //// OBSOLETE will be removed in favor of Int... functions
 void ChLinkNodeFace::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    react.x() = constraint1.Get_l_i() * factor;
-    react.y() = constraint2.Get_l_i() * factor;
-    react.z() = constraint3.Get_l_i() * factor;
+    react.x() = constraint1.GetLagrangeMultiplier() * factor;
+    react.y() = constraint2.GetLagrangeMultiplier() * factor;
+    react.z() = constraint3.GetLagrangeMultiplier() * factor;
 }
 
 // FILE I/O
@@ -435,9 +435,9 @@ void ChLinkNodeFaceRot::IntLoadResidual_CqL(const unsigned int off_L,    // offs
     if (!IsActive())
         return;
 
-    constraint1.MultiplyTandAdd(R, L(off_L + 0) * c);
-    constraint2.MultiplyTandAdd(R, L(off_L + 1) * c);
-    constraint3.MultiplyTandAdd(R, L(off_L + 2) * c);
+    constraint1.AddJacobianTransposedTimesScalarInto(R, L(off_L + 0) * c);
+    constraint2.AddJacobianTransposedTimesScalarInto(R, L(off_L + 1) * c);
+    constraint3.AddJacobianTransposedTimesScalarInto(R, L(off_L + 2) * c);
 }
 
 void ChLinkNodeFaceRot::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
@@ -484,13 +484,13 @@ void ChLinkNodeFaceRot::IntToDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    constraint1.Set_l_i(L(off_L + 0));
-    constraint2.Set_l_i(L(off_L + 1));
-    constraint3.Set_l_i(L(off_L + 2));
+    constraint1.SetLagrangeMultiplier(L(off_L + 0));
+    constraint2.SetLagrangeMultiplier(L(off_L + 1));
+    constraint3.SetLagrangeMultiplier(L(off_L + 2));
 
-    constraint1.Set_b_i(Qc(off_L + 0));
-    constraint2.Set_b_i(Qc(off_L + 1));
-    constraint3.Set_b_i(Qc(off_L + 2));
+    constraint1.SetRightHandSide(Qc(off_L + 0));
+    constraint2.SetRightHandSide(Qc(off_L + 1));
+    constraint3.SetRightHandSide(Qc(off_L + 2));
 }
 
 void ChLinkNodeFaceRot::IntFromDescriptor(const unsigned int off_v,
@@ -500,26 +500,26 @@ void ChLinkNodeFaceRot::IntFromDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    L(off_L + 0) = constraint1.Get_l_i();
-    L(off_L + 1) = constraint2.Get_l_i();
-    L(off_L + 2) = constraint3.Get_l_i();
+    L(off_L + 0) = constraint1.GetLagrangeMultiplier();
+    L(off_L + 1) = constraint2.GetLagrangeMultiplier();
+    L(off_L + 2) = constraint3.GetLagrangeMultiplier();
 }
 
 // SOLVER INTERFACES
 
-void ChLinkNodeFaceRot::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkNodeFaceRot::InjectConstraints(ChSystemDescriptor& descriptor) {
     // if (!IsActive())
     //	return;
 
-    mdescriptor.InsertConstraint(&constraint1);
-    mdescriptor.InsertConstraint(&constraint2);
-    mdescriptor.InsertConstraint(&constraint3);
+    descriptor.InsertConstraint(&constraint1);
+    descriptor.InsertConstraint(&constraint2);
+    descriptor.InsertConstraint(&constraint3);
 }
 
 void ChLinkNodeFaceRot::ConstraintsBiReset() {
-    constraint1.Set_b_i(0.);
-    constraint2.Set_b_i(0.);
-    constraint3.Set_b_i(0.);
+    constraint1.SetRightHandSide(0.);
+    constraint2.SetRightHandSide(0.);
+    constraint3.SetRightHandSide(0.);
 }
 
 //// OBSOLETE will be removed in favor of IntLoadConstraint_C
@@ -538,9 +538,9 @@ void ChLinkNodeFaceRot::ConstraintsBiLoad_C(double factor, double recovery_clamp
     ChVector3d res = m_node->GetPos() - s1 * m_triangle.node1->GetPos() - s2 * m_triangle.node2->GetPos() -
                      s3 * m_triangle.node3->GetPos() - N * d;
 
-    constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.x());
-    constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.y());
-    constraint3.Set_b_i(constraint3.Get_b_i() + factor * res.z());
+    constraint1.SetRightHandSide(constraint1.GetRightHandSide() + factor * res.x());
+    constraint2.SetRightHandSide(constraint2.GetRightHandSide() + factor * res.y());
+    constraint3.SetRightHandSide(constraint3.GetRightHandSide() + factor * res.z());
 }
 
 //// OBSOLETE will be removed in favor of Int... functions
@@ -551,7 +551,7 @@ void ChLinkNodeFaceRot::ConstraintsBiLoad_Ct(double factor) {
     // nothing
 }
 
-void ChLinkNodeFaceRot::ConstraintsLoadJacobians() {
+void ChLinkNodeFaceRot::LoadConstraintJacobians() {
     double s1 = 1 - s2 - s3;
 
     // compute jacobians
@@ -684,9 +684,9 @@ void ChLinkNodeFaceRot::ConstraintsLoadJacobians() {
 //// OBSOLETE will be removed in favor of Int... functions
 void ChLinkNodeFaceRot::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    react.x() = constraint1.Get_l_i() * factor;
-    react.y() = constraint2.Get_l_i() * factor;
-    react.z() = constraint3.Get_l_i() * factor;
+    react.x() = constraint1.GetLagrangeMultiplier() * factor;
+    react.y() = constraint2.GetLagrangeMultiplier() * factor;
+    react.z() = constraint3.GetLagrangeMultiplier() * factor;
 }
 
 // FILE I/O

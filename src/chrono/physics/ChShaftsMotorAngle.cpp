@@ -66,7 +66,7 @@ void ChShaftsMotorAngle::IntLoadResidual_CqL(const unsigned int off_L,    // off
                                              const ChVectorDynamic<>& L,  // the L vector
                                              const double c               // a scaling factor
 ) {
-    constraint.MultiplyTandAdd(R, L(off_L) * c);
+    constraint.AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
 }
 
 void ChShaftsMotorAngle::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
@@ -97,43 +97,43 @@ void ChShaftsMotorAngle::IntToDescriptor(const unsigned int off_v,  // offset in
                                          const unsigned int off_L,  // offset in L, Qc
                                          const ChVectorDynamic<>& L,
                                          const ChVectorDynamic<>& Qc) {
-    constraint.Set_l_i(L(off_L));
-    constraint.Set_b_i(Qc(off_L));
+    constraint.SetLagrangeMultiplier(L(off_L));
+    constraint.SetRightHandSide(Qc(off_L));
 }
 
 void ChShaftsMotorAngle::IntFromDescriptor(const unsigned int off_v,  // offset in v
                                            ChStateDelta& v,
                                            const unsigned int off_L,  // offset in L
                                            ChVectorDynamic<>& L) {
-    L(off_L) = constraint.Get_l_i();
+    L(off_L) = constraint.GetLagrangeMultiplier();
 }
 
-void ChShaftsMotorAngle::InjectConstraints(ChSystemDescriptor& mdescriptor) {
-    mdescriptor.InsertConstraint(&constraint);
+void ChShaftsMotorAngle::InjectConstraints(ChSystemDescriptor& descriptor) {
+    descriptor.InsertConstraint(&constraint);
 }
 
 void ChShaftsMotorAngle::ConstraintsBiReset() {
-    constraint.Set_b_i(0.);
+    constraint.SetRightHandSide(0.);
 }
 
 void ChShaftsMotorAngle::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
     double res = factor * (GetMotorAngle() - this->f_rot->GetVal(this->GetChTime()) - this->rot_offset);
 
-    constraint.Set_b_i(constraint.Get_b_i() + factor * res);
+    constraint.SetRightHandSide(constraint.GetRightHandSide() + factor * res);
 }
 
 void ChShaftsMotorAngle::ConstraintsBiLoad_Ct(double factor) {
     double ct = -this->f_rot->GetDer(this->GetChTime());
-    constraint.Set_b_i(constraint.Get_b_i() + factor * ct);
+    constraint.SetRightHandSide(constraint.GetRightHandSide() + factor * ct);
 }
 
-void ChShaftsMotorAngle::ConstraintsLoadJacobians() {
+void ChShaftsMotorAngle::LoadConstraintJacobians() {
     constraint.Get_Cq_a()(0) = 1;
     constraint.Get_Cq_b()(0) = -1;
 }
 
 void ChShaftsMotorAngle::ConstraintsFetch_react(double factor) {
-    motor_torque = -constraint.Get_l_i() * factor;
+    motor_torque = -constraint.GetLagrangeMultiplier() * factor;
 }
 
 void ChShaftsMotorAngle::ArchiveOut(ChArchiveOut& archive_out) {

@@ -119,8 +119,8 @@ void ChLinkNodeSlopeFrame::IntLoadResidual_CqL(const unsigned int off_L,    // o
     if (!IsActive())
         return;
 
-    constraint1.MultiplyTandAdd(R, L(off_L + 0) * c);
-    constraint2.MultiplyTandAdd(R, L(off_L + 1) * c);
+    constraint1.AddJacobianTransposedTimesScalarInto(R, L(off_L + 0) * c);
+    constraint2.AddJacobianTransposedTimesScalarInto(R, L(off_L + 1) * c);
 }
 
 void ChLinkNodeSlopeFrame::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
@@ -153,11 +153,11 @@ void ChLinkNodeSlopeFrame::IntToDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    constraint1.Set_l_i(L(off_L + 0));
-    constraint2.Set_l_i(L(off_L + 1));
+    constraint1.SetLagrangeMultiplier(L(off_L + 0));
+    constraint2.SetLagrangeMultiplier(L(off_L + 1));
 
-    constraint1.Set_b_i(Qc(off_L + 0));
-    constraint2.Set_b_i(Qc(off_L + 1));
+    constraint1.SetRightHandSide(Qc(off_L + 0));
+    constraint2.SetRightHandSide(Qc(off_L + 1));
 }
 
 void ChLinkNodeSlopeFrame::IntFromDescriptor(const unsigned int off_v,
@@ -167,23 +167,23 @@ void ChLinkNodeSlopeFrame::IntFromDescriptor(const unsigned int off_v,
     if (!IsActive())
         return;
 
-    L(off_L + 0) = constraint1.Get_l_i();
-    L(off_L + 1) = constraint2.Get_l_i();
+    L(off_L + 0) = constraint1.GetLagrangeMultiplier();
+    L(off_L + 1) = constraint2.GetLagrangeMultiplier();
 }
 
 // SOLVER INTERFACES
 
-void ChLinkNodeSlopeFrame::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkNodeSlopeFrame::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!IsActive())
         return;
 
-    mdescriptor.InsertConstraint(&constraint1);
-    mdescriptor.InsertConstraint(&constraint2);
+    descriptor.InsertConstraint(&constraint1);
+    descriptor.InsertConstraint(&constraint2);
 }
 
 void ChLinkNodeSlopeFrame::ConstraintsBiReset() {
-    constraint1.Set_b_i(0.);
-    constraint2.Set_b_i(0.);
+    constraint1.SetRightHandSide(0.);
+    constraint2.SetRightHandSide(0.);
 }
 
 void ChLinkNodeSlopeFrame::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -193,8 +193,8 @@ void ChLinkNodeSlopeFrame::ConstraintsBiLoad_C(double factor, double recovery_cl
     ChMatrix33<> Arw = m_csys.rot >> m_body->GetRot();
     ChVector3d res = Arw.transpose() * m_node->GetSlope1();
 
-    constraint1.Set_b_i(constraint1.Get_b_i() + factor * res.y());
-    constraint2.Set_b_i(constraint2.Get_b_i() + factor * res.z());
+    constraint1.SetRightHandSide(constraint1.GetRightHandSide() + factor * res.y());
+    constraint2.SetRightHandSide(constraint2.GetRightHandSide() + factor * res.z());
 }
 
 void ChLinkNodeSlopeFrame::ConstraintsBiLoad_Ct(double factor) {
@@ -204,7 +204,7 @@ void ChLinkNodeSlopeFrame::ConstraintsBiLoad_Ct(double factor) {
     // nothing
 }
 
-void ChLinkNodeSlopeFrame::ConstraintsLoadJacobians() {
+void ChLinkNodeSlopeFrame::LoadConstraintJacobians() {
     // compute jacobians
     ChMatrix33<> Aow(m_body->GetRot());
     ChMatrix33<> Aro(m_csys.rot);
@@ -227,8 +227,8 @@ void ChLinkNodeSlopeFrame::ConstraintsLoadJacobians() {
 
 void ChLinkNodeSlopeFrame::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    m_react.y() = constraint1.Get_l_i() * factor;
-    m_react.z() = constraint2.Get_l_i() * factor;
+    m_react.y() = constraint1.GetLagrangeMultiplier() * factor;
+    m_react.z() = constraint2.GetLagrangeMultiplier() * factor;
 }
 
 // FILE I/O

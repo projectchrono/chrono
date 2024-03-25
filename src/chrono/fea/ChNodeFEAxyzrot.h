@@ -149,7 +149,7 @@ class ChApi ChNodeFEAxyzrot : public ChNodeFEAbase,
 
     // Functions for interfacing to the solver
 
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
     virtual void VariablesFbReset() override;
     virtual void VariablesFbLoadForces(double factor = 1) override;
     virtual void VariablesQbLoadSpeed() override;

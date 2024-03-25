@@ -40,15 +40,15 @@ void ChSolverAPGD::SchurBvectorCompute(ChSystemDescriptor& sysd) {
     // Put (M^-1)*k    in  q  sparse vector of each variable..
     for (unsigned int iv = 0; iv < sysd.GetVariables().size(); iv++)
         if (sysd.GetVariables()[iv]->IsActive())
-            sysd.GetVariables()[iv]->Compute_invMb_v(sysd.GetVariables()[iv]->Get_qb(),
-                                                     sysd.GetVariables()[iv]->Get_fb());  // q = [M]'*fb
+            sysd.GetVariables()[iv]->ComputeMassInverseTimesVector(sysd.GetVariables()[iv]->State(),
+                                                     sysd.GetVariables()[iv]->Force());  // q = [M]'*fb
 
     // ...and now do  b_schur = - D'*q = - D'*(M^-1)*k ..
     r.setZero();
     int s_i = 0;
     for (unsigned int ic = 0; ic < sysd.GetConstraints().size(); ic++)
         if (sysd.GetConstraints()[ic]->IsActive()) {
-            r(s_i, 0) = sysd.GetConstraints()[ic]->Compute_Cq_q();
+            r(s_i, 0) = sysd.GetConstraints()[ic]->ComputeJacobianTimesState();
             ++s_i;
         }
 
@@ -122,10 +122,10 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     if (m_warm_start) {
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
             if (mconstraints[ic]->IsActive())
-                mconstraints[ic]->Increment_q(mconstraints[ic]->Get_l_i());
+                mconstraints[ic]->IncrementState(mconstraints[ic]->GetLagrangeMultiplier());
     } else {
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
-            mconstraints[ic]->Set_l_i(0.);
+            mconstraints[ic]->SetLagrangeMultiplier(0.);
     }
     sysd.FromConstraintsToVector(gamma);
 
@@ -243,7 +243,7 @@ double ChSolverAPGD::Solve(ChSystemDescriptor& sysd) {
     // ... + (M^-1)*D*l     (this increment and also stores 'qb' in the ChVariable items)
     for (size_t ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive())
-            mconstraints[ic]->Increment_q(mconstraints[ic]->Get_l_i());
+            mconstraints[ic]->IncrementState(mconstraints[ic]->GetLagrangeMultiplier());
     }
 
     return residual;

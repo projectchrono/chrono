@@ -37,7 +37,7 @@ void ChConstraintBilateral::Build_b() {
     for (int index = 0; index < (signed)data_manager->num_bilaterals; index++) {
         int cntr = data_manager->host_data.bilateral_mapping[index];
         ChConstraintTwoBodies* mbilateral = (ChConstraintTwoBodies*)(mconstraints[cntr]);
-        data_manager->host_data.b[index + data_manager->num_unilaterals] = mbilateral->Get_b_i();
+        data_manager->host_data.b[index + data_manager->num_unilaterals] = mbilateral->GetRightHandSide();
     }
 }
 

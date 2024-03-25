@@ -23,12 +23,8 @@ namespace vehicle {
 
 using namespace chrono::fea;
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 ChFEATire::ChFEATire(const std::string& name) : ChDeformableTire(name) {}
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChFEATire::CreatePressureLoad() {
     // Get the list of internal nodes and create the internal mesh surface.
     auto nodes = GetInternalNodes();
@@ -38,16 +34,15 @@ void ChFEATire::CreatePressureLoad() {
 
     // Create a pressure load for each element in the mesh surface.  Note that we set a
     // positive pressure (i.e. internal pressure, acting opposite to the surface normal)
-    for (unsigned int ie = 0; ie < surface->GetFaces().size(); ie++) {
-        auto load = chrono_types::make_shared<ChLoad<ChLoaderPressure>>(surface->GetFaces()[ie]);
-        load->loader.SetPressure(m_pressure);
-        load->loader.SetStiff(false);
+    for (const auto& face : surface->GetFaces()) {
+        auto loader = chrono_types::make_shared<ChLoaderPressure>(face);
+        loader->SetPressure(m_pressure);
+        loader->SetStiff(false);
+        auto load = chrono_types::make_shared<ChLoad>(loader);
         m_load_container->Add(load);
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChFEATire::CreateContactSurface() {
     switch (m_contact_type) {
         case ContactSurfaceType::NODE_CLOUD: {
@@ -65,8 +60,6 @@ void ChFEATire::CreateContactSurface() {
     }
 }
 
-// -----------------------------------------------------------------------------
-// -----------------------------------------------------------------------------
 void ChFEATire::CreateRimConnections(std::shared_ptr<ChBody> wheel) {
     auto nodes = GetConnectedNodes();
 

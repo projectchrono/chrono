@@ -39,10 +39,10 @@ class ChLoaderXYZnode : public ChLoaderUVWatomic {
 
     /// Compute F=F(u,v,w).
     virtual void ComputeF(
-        const double U,              ///< parametric coordinate -not used
-        const double V,              ///< parametric coordinate -not used
-        const double W,              ///< parametric coordinate -not used
-        ChVectorDynamic<>& F,        ///< Result F vector here, size must be = n.field coords.of loadable
+        double U,                    ///< parametric coordinate -not used
+        double V,                    ///< parametric coordinate -not used
+        double W,                    ///< parametric coordinate -not used
+        ChVectorDynamic<>& F,        ///< result vector, size = field dim of loadable
         ChVectorDynamic<>* state_x,  ///< if not null, update state (pos. part) to this, then evaluate F
         ChVectorDynamic<>* state_w   ///< if not null, update state (speed part) to this, then evaluate F
         ) override {
@@ -60,12 +60,15 @@ class ChLoaderXYZnode : public ChLoaderUVWatomic {
 };
 
 /// Force at XYZ node (ready to use load).
-class ChLoadXYZnode : public ChLoad<ChLoaderXYZnode> {
+class ChLoadXYZnode : public ChLoad {
   public:
-    ChLoadXYZnode(std::shared_ptr<ChNodeXYZ> node) : ChLoad<ChLoaderXYZnode>(node) {}
-    ChLoadXYZnode(std::shared_ptr<ChNodeXYZ> node, const ChVector3d& force) : ChLoad<ChLoaderXYZnode>(node) {
-        this->loader.SetForce(force);
+    ChLoadXYZnode(std::shared_ptr<ChNodeXYZ> node) { SetLoader(chrono_types::make_shared<ChLoaderXYZnode>(node)); }
+    ChLoadXYZnode(std::shared_ptr<ChNodeXYZ> node, const ChVector3d& force) {
+        auto loader = chrono_types::make_shared<ChLoaderXYZnode>(node);
+        loader->SetForce(force);
+        SetLoader(loader);
     }
+    virtual ChLoadXYZnode* Clone() const override { return new ChLoadXYZnode(*this); }
 };
 
 // -----------------------------------------------------------------------------
@@ -87,7 +90,7 @@ class ChApi ChLoadXYZnodeForce : public ChLoadCustom {
     virtual void ComputeForce(const ChVector3d& abs_pos, const ChVector3d& abs_vel, ChVector3d& abs_force) = 0;
 
     // Optional: inherited classes could implement this to avoid the
-    // default numerical computation of jacobians:
+    // default numerical computation of Jacobians:
     //   virtual void ComputeJacobian(...) // see ChLoad
 
     /// Compute Q, the generalized load.
@@ -168,7 +171,7 @@ class ChApi ChLoadXYZnodeXYZnode : public ChLoadCustomMultiple {
     virtual void ComputeForce(const ChVector3d& rel_pos, const ChVector3d& rel_vel, ChVector3d& abs_force) = 0;
 
     // Optional: inherited classes could implement this to avoid the
-    // default numerical computation of jacobians:
+    // default numerical computation of Jacobians:
     //   virtual void ComputeJacobian(...) // see ChLoad
 
     /// Compute Q, the generalized load.
@@ -182,7 +185,7 @@ class ChApi ChLoadXYZnodeXYZnode : public ChLoadCustomMultiple {
     ChVector3d GetForce() const { return computed_abs_force; }
 
   protected:
-    /// Inherited classes could override this and return true, if the load benefits from a jacobian
+    /// Inherited classes could override this and return true, if the load benefits from a Jacobian
     /// when using implicit integrators.
     virtual bool IsStiff() override { return false; }
 
@@ -222,8 +225,8 @@ class ChApi ChLoadXYZnodeXYZnodeSpring : public ChLoadXYZnodeXYZnode {
     double GetRestLength() const { return d0; }
 
     /// Use this to enable the stiff force computation (i.e. it enables the
-    /// automated computation of the jacobian by numerical differentiation to
-    /// elp the convergence of implicit integrators, but adding CPU overhead).
+    /// automated computation of the Jacobian by numerical differentiation to
+    /// help the convergence of implicit integrators, but adding CPU overhead).
     void SetStiff(bool stiff) { is_stiff = stiff; }
 
   protected:
@@ -265,7 +268,7 @@ class ChApi ChLoadXYZnodeXYZnodeBushing : public ChLoadXYZnodeXYZnode {
     ChVector3d GetDamping() const { return R; }
 
     /// Use this to enable the stiff force computation (i.e. it enables the
-    /// automated computation of the jacobian by numerical differentiation to
+    /// automated computation of the Jacobian by numerical differentiation to
     /// elp the convergence of implicit integrators, but adding CPU overhead).
     void SetStiff(bool ms) { is_stiff = ms; }
 
@@ -303,7 +306,7 @@ class ChApi ChLoadXYZnodeBody : public ChLoadCustomMultiple {
     virtual void ComputeForce(const ChFrameMoving<>& rel_AB, ChVector3d& loc_force) = 0;
 
     // Optional: inherited classes could implement this to avoid the
-    // default numerical computation of jacobians:
+    // default numerical computation of Jacobians:
     //   virtual void ComputeJacobian(...) // see ChLoad
 
     /// For diagnosis purposes, this can return the actual last computed value of
@@ -365,7 +368,7 @@ class ChApi ChLoadXYZnodeBodySpring : public ChLoadXYZnodeBody {
     double GetRestLength() const { return d0; }
 
     /// Use this to enable the stiff force computation (i.e. it enables the
-    /// automated computation of the jacobian by numerical differentiation to
+    /// automated computation of the Jacobian by numerical differentiation to
     /// elp the convergence of implicit integrators, but adding CPU overhead).
     void SetStiff(bool ms) { is_stiff = ms; }
 
@@ -409,7 +412,7 @@ class ChApi ChLoadXYZnodeBodyBushing : public ChLoadXYZnodeBody {
     ChVector3d GetDamping() const { return R; }
 
     /// Use this to enable the stiff force computation (i.e. it enables the
-    /// automated computation of the jacobian by numerical differentiation to
+    /// automated computation of the Jacobian by numerical differentiation to
     /// elp the convergence of implicit integrators, but adding CPU overhead).
     void SetStiff(bool ms) { is_stiff = ms; }
 

@@ -51,9 +51,9 @@
 using namespace chrono;
 using namespace chrono::fea;
 
-#define TIP_FORCE 10.0  // N
+#define TIP_FORCE 10.0   // N
 #define TIP_MOMENT 10.0  // Nm
-#define Jac_Error 0.33  // Maximum allowed Jacobian percent error as decimal
+#define Jac_Error 0.33   // Maximum allowed Jacobian percent error as decimal
 
 // =============================================================================
 
@@ -88,7 +88,7 @@ bool load_validation_data(const std::string& filename, ChMatrixDynamic<>& data) 
 
 class ANCFBeamTest {
   public:
-    static const int NSF = 8;  ///< number of shape functions
+    static const int NSF = 8;  // number of shape functions
 
     ANCFBeamTest(bool useContInt);
 
@@ -1307,12 +1307,11 @@ bool ANCFBeamTest::AxialDisplacementCheck(int msglvl) {
 
         // Compute F=F(u), the load at U. The load is a 6-row vector, i.e.
         // a wrench: forceX, forceY, forceZ, torqueX, torqueY, torqueZ.
-        virtual void ComputeF(
-            const double U,              ///< normalized position along the beam axis [-1...1]
-            ChVectorDynamic<>& F,        ///< Load at U
-            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
-            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
-            ) override {
+        virtual void ComputeF(double U,                    // normalized position along the beam axis [-1...1]
+                              ChVectorDynamic<>& F,        // Load at U
+                              ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate F
+                              ChVectorDynamic<>* state_w  // if != 0, update state (speed part) to this, then evaluate F
+                              ) override {
             assert(auxsystem);
 
             F.setZero();
@@ -1332,10 +1331,11 @@ bool ANCFBeamTest::AxialDisplacementCheck(int msglvl) {
     // The ChLoad is a 'manager' for your ChLoader.
     // It is created using templates, that is instancing a ChLoad<my_loader_class>()
 
-    std::shared_ptr<ChLoad<MyLoaderTimeDependentTipLoad>> mload(new ChLoad<MyLoaderTimeDependentTipLoad>(elementlast));
-    mload->loader.auxsystem = system;   // initialize auxiliary data of the loader, if needed
-    mload->loader.SetApplication(1.0);  // specify application point
-    loadcontainer->Add(mload);          // add the load to the load container.
+    auto loader = chrono_types::make_shared<MyLoaderTimeDependentTipLoad>(elementlast);
+    loader->auxsystem = system;   // initialize auxiliary data of the loader, if needed
+    loader->SetApplication(1.0);  // specify application point
+    auto load = chrono_types::make_shared<ChLoad>(loader);
+    loadcontainer->Add(load);  // add the load to the load container.
 
     // Find the static solution for the system (final axial displacement)
     system->DoStaticLinear();
@@ -1477,12 +1477,11 @@ bool ANCFBeamTest::CantileverTipLoadCheck(int msglvl) {
 
         // Compute F=F(u), the load at U. The load is a 6-row vector, i.e.
         // a wrench: forceX, forceY, forceZ, torqueX, torqueY, torqueZ.
-        virtual void ComputeF(
-            const double U,              ///< normalized position along the beam axis [-1...1]
-            ChVectorDynamic<>& F,        ///< Load at U
-            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
-            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
-            ) override {
+        virtual void ComputeF(double U,                    // normalized position along the beam axis [-1...1]
+                              ChVectorDynamic<>& F,        // Load at U
+                              ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate F
+                              ChVectorDynamic<>* state_w  // if != 0, update state (speed part) to this, then evaluate F
+                              ) override {
             assert(auxsystem);
 
             F.setZero();
@@ -1502,10 +1501,11 @@ bool ANCFBeamTest::CantileverTipLoadCheck(int msglvl) {
     // The ChLoad is a 'manager' for your ChLoader.
     // It is created using templates, that is instancing a ChLoad<my_loader_class>()
 
-    std::shared_ptr<ChLoad<MyLoaderTimeDependentTipLoad>> mload(new ChLoad<MyLoaderTimeDependentTipLoad>(elementlast));
-    mload->loader.auxsystem = system;   // initialize auxiliary data of the loader, if needed
-    mload->loader.SetApplication(1.0);  // specify application point
-    loadcontainer->Add(mload);          // add the load to the load container.
+    auto loader = chrono_types::make_shared<MyLoaderTimeDependentTipLoad>(elementlast);
+    loader->auxsystem = system;   // initialize auxiliary data of the loader, if needed
+    loader->SetApplication(1.0);  // specify application point
+    auto load = chrono_types::make_shared<ChLoad>(loader);
+    loadcontainer->Add(load);  // add the load to the load container.
 
     // Find the static solution for the system (final displacement)
     system->DoStaticLinear();
@@ -1785,12 +1785,11 @@ bool ANCFBeamTest::AxialTwistCheck(int msglvl) {
 
         // Compute F=F(u), the load at U. The load is a 6-row vector, i.e.
         // a wrench: forceX, forceY, forceZ, torqueX, torqueY, torqueZ.
-        virtual void ComputeF(
-            const double U,              ///< normalized position along the beam axis [-1...1]
-            ChVectorDynamic<>& F,        ///< Load at U
-            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
-            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
-            ) override {
+        virtual void ComputeF(double U,                    // normalized position along the beam axis [-1...1]
+                              ChVectorDynamic<>& F,        // Load at U
+                              ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate F
+                              ChVectorDynamic<>* state_w  // if != 0, update state (speed part) to this, then evaluate F
+                              ) override {
             assert(auxsystem);
 
             F.setZero();
@@ -1810,10 +1809,11 @@ bool ANCFBeamTest::AxialTwistCheck(int msglvl) {
     // The ChLoad is a 'manager' for your ChLoader.
     // It is created using templates, that is instancing a ChLoad<my_loader_class>()
 
-    std::shared_ptr<ChLoad<MyLoaderTimeDependentTipLoad>> mload(new ChLoad<MyLoaderTimeDependentTipLoad>(elementlast));
-    mload->loader.auxsystem = system;   // initialize auxiliary data of the loader, if needed
-    mload->loader.SetApplication(1.0);  // specify application point
-    loadcontainer->Add(mload);          // add the load to the load container.
+    auto loader = chrono_types::make_shared<MyLoaderTimeDependentTipLoad>(elementlast);
+    loader->auxsystem = system;   // initialize auxiliary data of the loader, if needed
+    loader->SetApplication(1.0);  // specify application point
+    auto load = chrono_types::make_shared<ChLoad>(loader);
+    loadcontainer->Add(load);  // add the load to the load container.
 
     // Find the static solution for the system (final twist angle)
     system->DoStaticLinear();

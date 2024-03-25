@@ -113,14 +113,14 @@ void ChElementGeneric::ComputeGravityForces(ChVectorDynamic<>& Fg, const ChVecto
 
     if (auto loadable = std::dynamic_pointer_cast<ChLoadableUVW>(this_wrapper)) {
         if (G_acc != VNULL) {
-            auto common_gravity_loader = chrono_types::make_shared<ChLoad<ChLoaderGravity>>(loadable);
-            common_gravity_loader->loader.SetGravitationalAcceleration(G_acc);
-            common_gravity_loader->loader.SetNumIntPoints(1);  //// TODO n. gauss points as parameter?
+            auto gravity_loader = chrono_types::make_shared<ChLoaderGravity>(loadable);
+            gravity_loader->SetGravitationalAcceleration(G_acc);
+            gravity_loader->SetNumIntPoints(1);  //// TODO n. gauss points as parameter?
+            auto gravity_load = chrono_types::make_shared<ChLoad>(gravity_loader);
             if (loadable->GetDensity()) {
                 // temporary set loader target and compute generalized forces term
-                common_gravity_loader->loader.loadable = loadable;
-                common_gravity_loader->ComputeQ(nullptr, nullptr);
-                Fg = common_gravity_loader->loader.Q;
+                gravity_load->ComputeQ(nullptr, nullptr);
+                Fg = gravity_loader->Q;
             }
         }
     }
@@ -130,12 +130,12 @@ void ChElementGeneric::ComputeMmatrixGlobal(ChMatrixRef M) {
     ComputeKRMmatricesGlobal(M, 0, 0, 1.0);
 }
 
-void ChElementGeneric::InjectKRMmatrices(ChSystemDescriptor& descriptor) {
-    descriptor.InsertKblock(&Kmatr);
+void ChElementGeneric::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
+    descriptor.InsertKRMBlock(&Kmatr);
 }
 
-void ChElementGeneric::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
-    ComputeKRMmatricesGlobal(Kmatr.Get_K(), Kfactor, Rfactor, Mfactor);
+void ChElementGeneric::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
+    ComputeKRMmatricesGlobal(Kmatr.GetMatrix(), Kfactor, Rfactor, Mfactor);
 }
 
 void ChElementGeneric::VariablesFbLoadInternalForces(double factor) {

@@ -30,7 +30,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
 
     // If stiffness blocks are used, the Schur complement cannot be esily
     // used, so fall back to the Solve_SupportingStiffness method, that operates on KKT.
-    if (sysd.GetKblocks().size() > 0)
+    if (sysd.GetKRMBlocks().size() > 0)
         return this->Solve_SupportingStiffness(sysd);
 
     // Allocate auxiliary vectors;
@@ -64,14 +64,14 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     int j_friction_comp = 0;
     double gi_values[3];
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-        if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) {
-            gi_values[j_friction_comp] = mconstraints[ic]->Get_g_i();
+        if (mconstraints[ic]->GetMode() == ChConstraint::Mode::FRICTION) {
+            gi_values[j_friction_comp] = mconstraints[ic]->GetSchurComplement();
             j_friction_comp++;
             if (j_friction_comp == 3) {
                 double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) / 3.0;
-                mconstraints[ic - 2]->Set_g_i(average_g_i);
-                mconstraints[ic - 1]->Set_g_i(average_g_i);
-                mconstraints[ic - 0]->Set_g_i(average_g_i);
+                mconstraints[ic - 2]->SetSchurComplement(average_g_i);
+                mconstraints[ic - 1]->SetSchurComplement(average_g_i);
+                mconstraints[ic - 0]->SetSchurComplement(average_g_i);
                 j_friction_comp = 0;
             }
         }
@@ -82,7 +82,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     int d_i = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
         if (mconstraints[ic]->IsActive()) {
-            mDi(d_i, 0) = 1.0 / mconstraints[ic]->Get_g_i();
+            mDi(d_i, 0) = 1.0 / mconstraints[ic]->GetSchurComplement();
             ++d_i;
         }
 
@@ -98,14 +98,14 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     // Put (M^-1)*k    in  q  sparse vector of each variable..
     for (unsigned int iv = 0; iv < mvariables.size(); iv++)
         if (mvariables[iv]->IsActive())
-            mvariables[iv]->Compute_invMb_v(mvariables[iv]->Get_qb(), mvariables[iv]->Get_fb());  // q = [M]'*fb
+            mvariables[iv]->ComputeMassInverseTimesVector(mvariables[iv]->State(), mvariables[iv]->Force());  // q = [M]'*fb
 
     // ...and now do  b_schur = - D' * q  ..
     mb.setZero();
     int s_i = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
         if (mconstraints[ic]->IsActive()) {
-            mb(s_i, 0) = -mconstraints[ic]->Compute_Cq_q();
+            mb(s_i, 0) = -mconstraints[ic]->ComputeJacobianTimesState();
             ++s_i;
         }
 
@@ -270,7 +270,7 @@ double ChSolverPMINRES::Solve(ChSystemDescriptor& sysd) {
     // ... + (M^-1)*D*l     (this increment and also stores 'qb' in the ChVariable items)
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive())
-            mconstraints[ic]->Increment_q(mconstraints[ic]->Get_l_i());
+            mconstraints[ic]->IncrementState(mconstraints[ic]->GetLagrangeMultiplier());
     }
 
     if (verbose)

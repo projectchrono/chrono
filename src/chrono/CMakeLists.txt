@@ -276,11 +276,14 @@ source_group(physics\\links FILES
     ${ChronoEngine_physics_links_HEADERS})
 
 set(ChronoEngine_physics_loads_SOURCES
-    physics/ChLoadContainer.cpp
+    physics/ChLoaderU.cpp
+    physics/ChLoaderUV.cpp
+    physics/ChLoaderUVW.cpp
     physics/ChLoad.cpp
     physics/ChLoadsBody.cpp
     physics/ChLoadsXYZnode.cpp
     physics/ChLoadBodyMesh.cpp
+    physics/ChLoadContainer.cpp
 )
 
 set(ChronoEngine_physics_loads_HEADERS
@@ -1149,7 +1152,7 @@ set(ChronoEngine_solver_SOURCES
     solver/ChSolverBB.cpp
     solver/ChSolverAPGD.cpp
     solver/ChSolverADMM.cpp
-    solver/ChKblockGeneric.cpp
+    solver/ChKRMBlock.cpp
     solver/ChNlsolver.cpp
     )
 
@@ -1170,8 +1173,7 @@ set(ChronoEngine_solver_HEADERS
     solver/ChSolverADMM.h
     solver/ChSolverPSOR.h
     solver/ChSolverPSSOR.h
-    solver/ChKblock.h
-    solver/ChKblockGeneric.h
+    solver/ChKRMBlock.h
     solver/ChNlsolver.h
     )
 

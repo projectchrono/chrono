@@ -34,12 +34,19 @@
 #include "chrono/core/ChRealtimeStep.h"
 #include "chrono/functions/ChFunctionSine.h"
 
-#include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
-
-// Use the namespaces of Chrono
-using namespace chrono;
+#include "chrono/assets/ChVisualSystem.h"
+#ifdef CHRONO_IRRLICHT
+    #include "chrono_irrlicht/ChVisualSystemIrrlicht.h"
 using namespace chrono::irrlicht;
+#endif
+#ifdef CHRONO_VSG
+    #include "chrono_vsg/ChVisualSystemVSG.h"
+using namespace chrono::vsg3d;
+#endif
 
+using namespace chrono;
+
+ChVisualSystem::Type vis_type = ChVisualSystem::Type::VSG;
 ChCollisionSystem::Type collision_type = ChCollisionSystem::Type::BULLET;
 
 // Shortcut function that creates two bodies (a slider and a guide) in a given position,
@@ -744,21 +751,62 @@ int main(int argc, char* argv[]) {
     // Let the motor use this motion function:
     motor6->SetMotionFunction(motor6setpoint);
 
-    // Create the Irrlicht visualization system
-    auto vis = chrono_types::make_shared<ChVisualSystemIrrlicht>();
-    vis->AttachSystem(&sys);
-    vis->SetWindowSize(800, 600);
-    vis->SetWindowTitle("Motors");
-    vis->Initialize();
-    vis->AddLogo();
-    vis->AddSkyBox();
-    vis->AddCamera(ChVector3d(1, 3, -7));
-    vis->AddTypicalLights();
-    vis->AddLightWithShadow(ChVector3d(20.0, 35.0, -25.0), ChVector3d(0, 0, 0), 55, 20, 55, 35, 512,
-                            ChColor(0.6f, 0.8f, 1.0f));
-    vis->EnableShadows();
+    // Create the run-time visualization system
+#ifndef CHRONO_IRRLICHT
+    if (vis_type == ChVisualSystem::Type::IRRLICHT)
+        vis_type = ChVisualSystem::Type::VSG;
+#endif
+#ifndef CHRONO_VSG
+    if (vis_type == ChVisualSystem::Type::VSG)
+        vis_type = ChVisualSystem::Type::IRRLICHT;
+#endif
 
-    // Modify some setting of the physical system for the simulation, if you want
+    std::shared_ptr<ChVisualSystem> vis;
+    switch (vis_type) {
+        case ChVisualSystem::Type::IRRLICHT: {
+#ifdef CHRONO_IRRLICHT
+            auto vis_irr = chrono_types::make_shared<ChVisualSystemIrrlicht>();
+            vis_irr->AttachSystem(&sys);
+            vis_irr->SetWindowSize(800, 600);
+            vis_irr->SetWindowTitle("Motors");
+            vis_irr->Initialize();
+            vis_irr->AddLogo();
+            vis_irr->AddSkyBox();
+            vis_irr->AddTypicalLights();
+            vis_irr->AddCamera(ChVector3d(1, 3, -7));
+            vis_irr->AddLightWithShadow(ChVector3d(20.0, 35.0, -25.0), ChVector3d(0, 0, 0), 55, 20, 55, 35, 512,
+                                        ChColor(0.6f, 0.8f, 1.0f));
+            vis_irr->EnableShadows();
+
+            vis = vis_irr;
+#endif
+            break;
+        }
+        default:
+        case ChVisualSystem::Type::VSG: {
+#ifdef CHRONO_VSG
+            auto vis_vsg = chrono_types::make_shared<ChVisualSystemVSG>();
+            vis_vsg->AttachSystem(&sys);
+            vis_vsg->SetWindowTitle("Motors");
+            vis_vsg->AddCamera(ChVector3d(4.5, 4.5, -10.5));
+            vis_vsg->SetWindowSize(ChVector2i(800, 600));
+            vis_vsg->SetClearColor(ChColor(0.8f, 0.85f, 0.9f));
+            vis_vsg->SetUseSkyBox(true);
+            vis_vsg->SetCameraVertical(CameraVerticalDir::Y);
+            vis_vsg->SetCameraAngleDeg(40.0);
+            vis_vsg->SetLightIntensity(1.0f);
+            vis_vsg->SetLightDirection(1.5 * CH_PI_2, CH_PI_4);
+            vis_vsg->SetShadows(true);
+            vis_vsg->SetWireFrameMode(false);
+            vis_vsg->Initialize();
+
+            vis = vis_vsg;
+#endif
+            break;
+        }
+    }
+
+    // Modify some setting of the physical system for the simulation
     sys.SetSolverType(ChSolver::Type::PSOR);
     sys.GetSolver()->AsIterative()->SetMaxIterations(50);
 
@@ -769,8 +817,8 @@ int main(int argc, char* argv[]) {
         vis->Render();
         vis->EndScene();
 
-        // Example B.6 requires the setpoint to be changed in the simulation loop:
-        // for example use a clamped sinusoid, just for fun:
+        // Example B.6 requires the setpoint to be changed in the simulation loop.
+        // For example, use a clamped sinusoidal
         double t = sys.GetChTime();
         double Sp = std::min(std::max(2.6 * sin(t * 1.8), -1.4), 1.4);
         motor6setpoint->SetSetpoint(Sp, t);

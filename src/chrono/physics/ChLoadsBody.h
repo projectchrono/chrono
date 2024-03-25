@@ -79,8 +79,7 @@ class ChApi ChLoadBodyForce : public ChLoadCustom {
     /// By default the modulation is a constant function, always returning a value of 1.
     void SetModulationFunction(std::shared_ptr<ChFunction> modulation) { m_modulation = modulation; }
 
-    /// Compute Q, the generalized load.
-    /// Called automatically at each Update().
+    /// Compute the generalized load(s).
     virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                           ChStateDelta* state_w  ///< state speed to evaluate Q
                           ) override;
@@ -127,8 +126,7 @@ class ChApi ChLoadBodyTorque : public ChLoadCustom {
     /// By default the modulation is a constant function, always returning a value of 1.
     void SetModulationFunction(std::shared_ptr<ChFunction> modulation) { m_modulation = modulation; }
 
-    /// Compute Q, the generalized load.
-    /// Called automatically at each Update().
+    /// Compute the generalized load(s).
     virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                           ChStateDelta* state_w  ///< state speed to evaluate Q
                           ) override;
@@ -156,13 +154,12 @@ class ChApi ChLoadBodyTorque : public ChLoadCustom {
 /// Note that you must use the solvers for finite elements in order to exploit this feature.
 class ChApi ChLoadBodyInertia : public ChLoadCustom {
   public:
-    ChLoadBodyInertia(std::shared_ptr<ChBody> body,     ///< object to apply additional inertia to
-                      const ChVector3d& m_offset,       ///< offset of the center of mass, in body coordinate system
-                      const double m_mass,              ///< added mass [kg]
-                      const ChVector3d& m_IXX = VNULL,  ///< added diag. inertia values Ixx, Iyy, Izz (in body
-                                                        ///< coordinate system, centered in body)
-                      const ChVector3d& m_IXY = VNULL   ///< added off.diag. inertia values Ixy, Ixz, Iyz including the
-                                                        ///< "-"sign (in body coordinate system, centered in body)
+    ChLoadBodyInertia(
+        std::shared_ptr<ChBody> body,   ///< object to apply additional inertia to
+        const ChVector3d& offset,       ///< offset of the center of mass, in body coordinate system
+        const double m,                 ///< added mass [kg]
+        const ChVector3d& IXX = VNULL,  ///< added moments of inertia (in body frame, centered in body)
+        const ChVector3d& IXY = VNULL   ///< added products of inertia values (in body frame, centered in body)
     );
 
     /// "Virtual" copy constructor (covariant return type).
@@ -189,48 +186,47 @@ class ChApi ChLoadBodyInertia : public ChLoadCustom {
 
     /// Set the diagonal part of the inertia tensor (Ixx, Iyy, Izz values).
     /// The vector should contain these moments of inertia, assumed in the body reference basis, with body reference as
-    /// center: <pre> iner = [  int{y^2+z^2}dm   int{x^2+z^2}   int{x^2+y^2}dm ]
+    /// center:
+    /// <pre>
+    ///   iner = [  int{y^2+z^2}dm   int{x^2+z^2}   int{x^2+y^2}dm ]
     /// </pre>
     void SetInertiaXX(const ChVector3d& iner);
 
     /// Get the diagonal part of the inertia tensor (Ixx, Iyy, Izz values).
     /// The vector contains these values, assumed in the body reference basis, with body reference as center:
     /// <pre>
-    /// [  int{y^2+z^2}dm   int{x^2+z^2}   int{x^2+y^2}dm ]
+    ///   [ int{y^2+z^2}dm   int{x^2+z^2}   int{x^2+y^2}dm ]
     /// </pre>
     ChVector3d GetInertiaXX() const;
 
     /// Set the off-diagonal part of the inertia tensor (Ixy, Ixz, Iyz values).
     /// The vector contains these values, assumed in the body reference basis, with body reference as center:
     /// <pre>
-    /// iner = [ -int{xy}dm   -int{xz}dm   -int{yz}dm ]
+    ///   iner = [ -int{xy}dm   -int{xz}dm   -int{yz}dm ]
     /// </pre>
     void SetInertiaXY(const ChVector3d& iner);
 
     /// Get the extra-diagonal part of the inertia tensor (Ixy, Ixz, Iyz values).
     /// The vector contains these values, assumed in the body reference basis, with body reference as center:
     /// <pre>
-    /// [ -int{xy}dm   -int{xz}dm   -int{yz}dm ]
+    ///   [ -int{xy}dm   -int{xz}dm   -int{yz}dm ]
     /// </pre>
     ChVector3d GetInertiaXY() const;
 
-    /// Compute Q, the generalized load.
-    /// In this case, it computes the quadratic (centrifugal, gyroscopic) terms.
+    /// Compute the generalized load(s).
+    /// In this case, computes the quadratic (centrifugal, gyroscopic) terms.
     /// Signs are negative as Q assumed at right hand side, so Q= -Fgyro -Fcentrifugal
-    /// Called automatically at each Update().
     /// The M*a term is not added: to this end one could use LoadIntLoadResidual_Mv afterward.
     virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                           ChStateDelta* state_w  ///< state speed to evaluate Q
                           ) override;
 
-    /// For efficiency reasons, do not let the parent class do automatic differentiation
-    /// to compute the R, K matrices. Use analytic expressions instead. For example, R is
-    /// the well known gyroscopic damping matrix. Also, compute the M matrix.
-    virtual void ComputeJacobian(ChState* state_x,       ///< state position to evaluate jacobians
-                                 ChStateDelta* state_w,  ///< state speed to evaluate jacobians
-                                 ChMatrixRef mK,         ///< result -dQ/dx
-                                 ChMatrixRef mR,         ///< result -dQ/dv
-                                 ChMatrixRef mM          ///< result -dQ/da
+    /// Compute the K=-dQ/dx, R=-dQ/dv, M=-dQ/da Jacobians.
+    /// Implementation in a derived class should load the Jacobian matrices K, R, M in the structure 'm_jacobians'.
+    /// Note the sign that is flipped because we assume equations are written with Q moved to left-hand side.
+    /// This override uses analytic expressions (for example, R is the gyroscopic damping matrix).
+    virtual void ComputeJacobian(ChState* state_x,      ///< state position to evaluate Jacobians
+                                 ChStateDelta* state_w  ///< state speed to evaluate Jacobians
                                  ) override;
 
     /// Just for efficiency, override the default LoadIntLoadResidual_Mv, because we can do this in a simplified way.
@@ -270,8 +266,7 @@ class ChApi ChLoadBodyBody : public ChLoadCustomMultiple {
                                             ChVector3d& loc_force,
                                             ChVector3d& loc_torque) = 0;
 
-    // Optional: inherited classes could implement this to avoid the
-    // default numerical computation of jacobians:
+    // Optional: inherited classes could implement this to avoid the default fineite difference approximation:
     //   virtual void ComputeJacobian(...) // see ChLoad
 
     /// For diagnosis purposes, this can return the actual last computed value of
@@ -307,9 +302,7 @@ class ChApi ChLoadBodyBody : public ChLoadCustomMultiple {
     ChFrameMoving<> frame_Aw;     ///< for results
     ChFrameMoving<> frame_Bw;     ///< for results
 
-    /// Compute Q, the generalized load. It calls ComputeBodyBodyForceTorque, so in
-    /// children classes you do not need to implement it.
-    /// Called automatically at each Update().
+    /// Compute the generalized load(s).
     virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                           ChStateDelta* state_w  ///< state speed to evaluate Q
                           ) override;
@@ -363,11 +356,11 @@ class ChApi ChLoadBodyBodyTorque : public ChLoadBodyBody {
 class ChApi ChLoadBodyBodyBushingSpherical : public ChLoadBodyBody {
   public:
     ChLoadBodyBodyBushingSpherical(
-        std::shared_ptr<ChBody> mbodyA,    ///< body A
-        std::shared_ptr<ChBody> mbodyB,    ///< body B
-        const ChFrame<>& abs_application,  ///< bushing location, in abs. coordinates.
-        const ChVector3d& mstiffness,      ///< stiffness, along x y z axes of the abs_application
-        const ChVector3d& mdamping         ///< damping, along x y z axes of the abs_application
+        std::shared_ptr<ChBody> bodyA,      ///< body A
+        std::shared_ptr<ChBody> bodyB,      ///< body B
+        const ChFrame<>& abs_application,   ///< bushing location, in abs. coordinates.
+        const ChVector3d& stiffness_coefs,  ///< stiffness, along x y z axes of the abs_application
+        const ChVector3d& damping_coefs     ///< damping, along x y z axes of the abs_application
     );
 
     /// "Virtual" copy constructor (covariant return type).
@@ -407,9 +400,9 @@ class ChApi ChLoadBodyBodyBushingPlastic : public ChLoadBodyBodyBushingSpherical
         std::shared_ptr<ChBody> mbodyA,    ///< body A
         std::shared_ptr<ChBody> mbodyB,    ///< body B
         const ChFrame<>& abs_application,  ///< create the bushing here, in abs. coordinates.
-        const ChVector3d& mstiffness,      ///< stiffness, along the x y z axes of the abs_application
-        const ChVector3d& mdamping,        ///< damping, along the x y z axes of the abs_application
-        const ChVector3d& myield           ///< plastic yield, along the x y z axes of the abs_application
+        const ChVector3d& stiffness,       ///< stiffness, along the x y z axes of the abs_application
+        const ChVector3d& damping,         ///< damping, along the x y z axes of the abs_application
+        const ChVector3d& plastic_yield    ///< plastic yield, along the x y z axes of the abs_application
     );
 
     /// Set plastic yield, forces beyond this limit will be capped.
@@ -443,13 +436,13 @@ class ChApi ChLoadBodyBodyBushingPlastic : public ChLoadBodyBodyBushingSpherical
 class ChApi ChLoadBodyBodyBushingMate : public ChLoadBodyBodyBushingSpherical {
   public:
     ChLoadBodyBodyBushingMate(
-        std::shared_ptr<ChBody> mbodyA,    ///< body A
-        std::shared_ptr<ChBody> mbodyB,    ///< body B
+        std::shared_ptr<ChBody> bodyA,     ///< body A
+        std::shared_ptr<ChBody> bodyB,     ///< body B
         const ChFrame<>& abs_application,  ///< create the bushing here, in abs. coordinates.
-        const ChVector3d& mstiffness,      ///< stiffness, along x y z axes of the abs_application
-        const ChVector3d& mdamping,        ///< damping, along x y z axes of the abs_application
-        const ChVector3d& mrotstiffness,   ///< rotational stiffness, about x y z axes of the abs_application
-        const ChVector3d& mrotdamping      ///< rotational damping, about x y z axes of the abs_application
+        const ChVector3d& stiffness,       ///< stiffness, along x y z axes of the abs_application
+        const ChVector3d& damping,         ///< damping, along x y z axes of the abs_application
+        const ChVector3d& rotstiffness,    ///< rotational stiffness, about x y z axes of the abs_application
+        const ChVector3d& rotdamping       ///< rotational damping, about x y z axes of the abs_application
     );
 
     /// Set radial stiffness, along the x y z axes of loc_application_B, es [N/m]
@@ -484,11 +477,11 @@ class ChApi ChLoadBodyBodyBushingMate : public ChLoadBodyBodyBushingSpherical {
 class ChApi ChLoadBodyBodyBushingGeneric : public ChLoadBodyBody {
   public:
     ChLoadBodyBodyBushingGeneric(
-        std::shared_ptr<ChBody> mbodyA,    ///< body A
-        std::shared_ptr<ChBody> mbodyB,    ///< body B
+        std::shared_ptr<ChBody> bodyA,     ///< body A
+        std::shared_ptr<ChBody> bodyB,     ///< body B
         const ChFrame<>& abs_application,  ///< create the bushing here, in abs. coordinates.
-        ChMatrixConstRef mstiffness,       ///< stiffness as a 6x6 matrix, local in the abs_application frame
-        ChMatrixConstRef mdamping          ///< damping as a 6x6 matrix, local in the abs_application frame
+        ChMatrixConstRef stiffness66,      ///< stiffness as a 6x6 matrix, local in the abs_application frame
+        ChMatrixConstRef damping66         ///< damping as a 6x6 matrix, local in the abs_application frame
     );
 
     /// "Virtual" copy constructor (covariant return type).

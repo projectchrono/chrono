@@ -27,17 +27,9 @@ namespace chrono {
 /// Class for conveyor belt.
 /// A conveyor belt is approximated by a box collision shape, where the upper surface
 /// has continuous motion in X direction. No cylindrical rounding is used at the ends.
-
 class ChApi ChConveyor : public ChPhysicsItem {
-  private:
-    double conveyor_speed;                            ///< speed of conveyor, along the X direction of the box.
-    ChLinkLockLock* internal_link;                    ///< link between this body and conveyor plate
-    ChBody* conveyor_truss;                           ///< used for the conveyor truss
-    ChBody* conveyor_plate;                           ///< used for the conveyor plate
-    std::shared_ptr<ChContactMaterial> conveyor_mat;  ///< surface contact material for the conveyor plate
-
   public:
-    /// Build a conveyor belt, with motion along x axis
+    /// Build a conveyor belt, with motion along x axis.
     ChConveyor(double xlength = 1, double ythick = 0.1, double zwidth = 0.5);
     ChConveyor(const ChConveyor& other);
     ~ChConveyor();
@@ -48,19 +40,19 @@ class ChApi ChConveyor : public ChPhysicsItem {
     /// Set the pointer to the parent ChSystem().
     virtual void SetSystem(ChSystem* m_system) override;
 
-    /// Set the speed of the conveyor belt (upper part, X direction)
+    /// Set the speed of the conveyor belt (upper part, X direction).
     void SetConveyorSpeed(double mspeed) { conveyor_speed = mspeed; }
 
-    /// Get the speed of the conveyor belt (upper part, X direction)
+    /// Get the speed of the conveyor belt (upper part, X direction).
     double GetConveyorSpeed() { return conveyor_speed; }
 
-    /// Access the internal body used as the truss of the moving belt
+    /// Access the internal body used as the truss of the moving belt.
     ChBody* GetTruss() const { return conveyor_truss; }
 
-    /// Access the internal body used as the moving belt (a plate with const.vel.)
+    /// Access the internal body used as the moving belt (a plate with const.vel.).
     ChBody* GetPlate() const { return conveyor_plate; }
 
-    // Shortcuts for ChBody-like transformations etc.
+    // Shortcuts for ChBody-like transformations.
     // These, and others, can also be done as my_conveyor->GetTruss()->Ch***(...).
     void SetFixed(bool mev) { GetTruss()->SetFixed(mev); }
     bool IsFixed() { return GetTruss()->IsFixed(); }
@@ -76,21 +68,39 @@ class ChApi ChConveyor : public ChPhysicsItem {
     /// Set the material surface properties by passing a ChContactMaterialNSC or ChContactMaterialSMC object.
     void SetMaterialSurface(std::shared_ptr<ChContactMaterial> mat) { conveyor_mat = mat; }
 
-    /// Access the material surface properties of the conveyor belt (shortcut)
+    /// Access the material surface properties of the conveyor belt (shortcut).
     std::shared_ptr<ChContactMaterial> GetMaterialSurface() const { return conveyor_mat; }
 
-    //
-    // STATE FUNCTIONS
-    //
-
-    /// Number of coordinates: this contains an auxiliary body, so it is 14 (with quaternions for rotations)
+    /// Number of coordinates: this contains an auxiliary body, so it is 14 (with quaternions for rotations).
     virtual unsigned int GetNumCoordsPosLevel() override { return 7 + 7; }
+
     /// Number of coordinates of the particle cluster (for two bodies).
     virtual unsigned int GetNumCoordsVelLevel() override { return 6 + 6; }
+
     /// Get the number of scalar constraints. In this case, a lock constraint is embedded.
     virtual unsigned int GetNumConstraintsBilateral() override { return 6; }
 
-    // Override/implement interfaces for global state vectors (see ChPhysicsItem for details)
+    virtual bool IsCollisionEnabled() const override { return true; }
+    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
+    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
+    virtual void SyncCollisionModels() override;
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    double conveyor_speed;                            ///< speed of conveyor, along the X direction of the box.
+    ChLinkLockLock* internal_link;                    ///< link between this body and conveyor plate
+    ChBody* conveyor_truss;                           ///< used for the conveyor truss
+    ChBody* conveyor_plate;                           ///< used for the conveyor plate
+    std::shared_ptr<ChContactMaterial> conveyor_mat;  ///< surface contact material for the conveyor plate
+
+    // Solver and integrator interface functions
+
+    virtual void Update(double mytime, bool update_assets = true) override;
 
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
@@ -147,10 +157,7 @@ class ChApi ChConveyor : public ChPhysicsItem {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    // Override/implement system functions of ChPhysicsItem
-    // (to assemble/manage data for system solver)
-
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
     virtual void VariablesFbReset() override;
     virtual void VariablesFbLoadForces(double factor = 1) override;
     virtual void VariablesQbLoadSpeed() override;
@@ -158,33 +165,13 @@ class ChApi ChConveyor : public ChPhysicsItem {
     virtual void VariablesQbSetSpeed(double step = 0) override;
     virtual void VariablesQbIncrementPosition(double step) override;
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
     virtual void ConstraintsBiReset() override;
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
     virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
     virtual void ConstraintsBiLoad_Qc(double factor = 1) override;
-    virtual void ConstraintsLoadJacobians() override;
+    virtual void LoadConstraintJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
-
-    // Other functions
-
-    virtual bool IsCollisionEnabled() const override { return true; }
-    virtual void AddCollisionModelsToSystem(ChCollisionSystem* coll_sys) const override;
-    virtual void RemoveCollisionModelsFromSystem(ChCollisionSystem* coll_sys) const override;
-    virtual void SyncCollisionModels() override;
-
-    // UPDATE FUNCTIONS
-
-    /// Update all auxiliary data of the conveyor at given time
-    virtual void Update(double mytime, bool update_assets = true) override;
-
-    // SERIALIZATION
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 };
 
 CH_CLASS_VERSION(ChConveyor, 0)

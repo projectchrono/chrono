@@ -13,6 +13,7 @@ set(DEMOS
   demo_MBS_collisionSMC
   demo_MBS_earthquake
   demo_MBS_friction
+  demo_MBS_motors
   demo_MBS_spring  
   demo_MBS_external_dynamics
   demo_MBS_hydraulic_actuator
@@ -50,7 +51,6 @@ if(ENABLE_MODULE_IRRLICHT)
       demo_MBS_link_bushing
       demo_MBS_prismatic_limits
       demo_MBS_prismatic_force
-      demo_MBS_motors
       demo_MBS_report_collisions
       demo_MBS_imposed_motion
       demo_MBS_custom_contact

@@ -286,24 +286,24 @@ void ChLinkMateGeneric::Initialize(std::shared_ptr<ChBodyFrame> body1,
 
 void ChLinkMateGeneric::SetUseTangentStiffness(bool useKc) {
     if (useKc && this->Kmatr == nullptr) {
-        this->Kmatr = chrono_types::make_unique<ChKblockGeneric>(&m_body1->Variables(), &m_body2->Variables());
-        this->Kmatr->Get_K().resize(12, 12);
-        this->Kmatr->Get_K().setZero();
+        this->Kmatr = chrono_types::make_unique<ChKRMBlock>(&m_body1->Variables(), &m_body2->Variables());
+        this->Kmatr->GetMatrix().resize(12, 12);
+        this->Kmatr->GetMatrix().setZero();
 
     } else if (!useKc && this->Kmatr != nullptr) {
         this->Kmatr.reset();
     }
 }
 
-void ChLinkMateGeneric::InjectKRMmatrices(ChSystemDescriptor& descriptor) {
+void ChLinkMateGeneric::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     if (!this->IsActive())
         return;
 
     if (this->Kmatr)
-        descriptor.InsertKblock(Kmatr.get());
+        descriptor.InsertKRMBlock(Kmatr.get());
 }
 
-void ChLinkMateGeneric::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChLinkMateGeneric::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (!this->IsActive())
         return;
 
@@ -337,37 +337,37 @@ void ChLinkMateGeneric::KRMmatricesLoad(double Kfactor, double Rfactor, double M
         ChMatrix33<> R_F2_W_cross_gamma_f_times_R_B2_F2 = R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W;
 
         // Populate Kc
-        this->Kmatr->Get_K().block<3, 3>(0, 9) = -R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W;
+        this->Kmatr->GetMatrix().block<3, 3>(0, 9) = -R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W;
 
-        this->Kmatr->Get_K().block<3, 3>(3, 3) =
+        this->Kmatr->GetMatrix().block<3, 3>(3, 3) =
             rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W_cross_gamma_f * R_W_F2 * R_B1_W +
             R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(this->P * gamma_m) * R_W_F2 * R_B1_W
             // stabilization part
             + R_B1_W.transpose() * R_F2_W_times_G_times_R_W_F1 * R_B1_W;
 
-        this->Kmatr->Get_K().block<3, 3>(3, 9) =
+        this->Kmatr->GetMatrix().block<3, 3>(3, 9) =
             -rtilde_F1_B1 * R_B1_W.transpose() * R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W -
             R_B1_W.transpose() * R_F2_W * ChStarMatrix33<>(this->P * gamma_m) * R_W_F2 * R_B2_W
             // stabilization part
             - R_B1_W.transpose() * R_F2_W_times_G_times_R_W_F1 * R_B2_W;
 
-        this->Kmatr->Get_K().block<3, 3>(6, 9) = R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W;
+        this->Kmatr->GetMatrix().block<3, 3>(6, 9) = R_F2_W_cross_gamma_f * R_W_F2 * R_B2_W;
 
-        this->Kmatr->Get_K().block<3, 3>(9, 0) = R_F2_W_cross_gamma_f_times_R_B2_F2;
+        this->Kmatr->GetMatrix().block<3, 3>(9, 0) = R_F2_W_cross_gamma_f_times_R_B2_F2;
 
-        this->Kmatr->Get_K().block<3, 3>(9, 3) = -R_F2_W_cross_gamma_f_times_R_B2_F2 * R_B1_W * rtilde_F1_B1
+        this->Kmatr->GetMatrix().block<3, 3>(9, 3) = -R_F2_W_cross_gamma_f_times_R_B2_F2 * R_B1_W * rtilde_F1_B1
                                                  // stabilization part
                                                  - R_B2_W.transpose() * R_F2_W_times_G_times_R_W_F1 * R_B1_W;
 
-        this->Kmatr->Get_K().block<3, 3>(9, 6) = -R_F2_W_cross_gamma_f_times_R_B2_F2;
+        this->Kmatr->GetMatrix().block<3, 3>(9, 6) = -R_F2_W_cross_gamma_f_times_R_B2_F2;
 
-        this->Kmatr->Get_K().block<3, 3>(9, 9) =
+        this->Kmatr->GetMatrix().block<3, 3>(9, 9) =
             R_F2_W_cross_gamma_f_times_R_B2_F2 * R_B2_W * ChStarMatrix33<>(r12_B2 + r_F2_B2)
             // stabilization part
             + R_B2_W.transpose() * R_F2_W_times_G_times_R_W_F1 * R_B2_W;
 
         // The complete tangent stiffness matrix
-        this->Kmatr->Get_K() *= Kfactor;
+        this->Kmatr->GetMatrix() *= Kfactor;
     }
 }
 
@@ -478,7 +478,7 @@ void ChLinkMateGeneric::IntLoadResidual_CqL(const unsigned int off_L,
     int cnt = 0;
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive()) {
-            mask.GetConstraint(i).MultiplyTandAdd(R, L(off_L + cnt) * c);
+            mask.GetConstraint(i).AddJacobianTransposedTimesScalarInto(R, L(off_L + cnt) * c);
             cnt++;
         }
     }
@@ -517,8 +517,8 @@ void ChLinkMateGeneric::IntToDescriptor(const unsigned int off_v,
     int cnt = 0;
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive()) {
-            mask.GetConstraint(i).Set_l_i(L(off_L + cnt));
-            mask.GetConstraint(i).Set_b_i(Qc(off_L + cnt));
+            mask.GetConstraint(i).SetLagrangeMultiplier(L(off_L + cnt));
+            mask.GetConstraint(i).SetRightHandSide(Qc(off_L + cnt));
             cnt++;
         }
     }
@@ -531,7 +531,7 @@ void ChLinkMateGeneric::IntFromDescriptor(const unsigned int off_v,
     int cnt = 0;
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive()) {
-            L(off_L + cnt) = mask.GetConstraint(i).Get_l_i();
+            L(off_L + cnt) = mask.GetConstraint(i).GetLagrangeMultiplier();
             cnt++;
         }
     }
@@ -539,13 +539,13 @@ void ChLinkMateGeneric::IntFromDescriptor(const unsigned int off_v,
 
 // SOLVER INTERFACES
 
-void ChLinkMateGeneric::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChLinkMateGeneric::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!this->IsActive())
         return;
 
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
         if (mask.GetConstraint(i).IsActive())
-            mdescriptor.InsertConstraint(&mask.GetConstraint(i));
+            descriptor.InsertConstraint(&mask.GetConstraint(i));
     }
 }
 
@@ -554,7 +554,7 @@ void ChLinkMateGeneric::ConstraintsBiReset() {
         return;
 
     for (unsigned int i = 0; i < mask.GetNumConstraints(); i++) {
-        mask.GetConstraint(i).Set_b_i(0.);
+        mask.GetConstraint(i).SetRightHandSide(0.);
     }
 }
 
@@ -578,13 +578,13 @@ void ChLinkMateGeneric::ConstraintsBiLoad_C(double factor, double recovery_clamp
         if (mask.GetConstraint(i).IsActive()) {
             if (do_clamp) {
                 if (mask.GetConstraint(i).IsUnilateral())
-                    mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() +
+                    mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() +
                                                   std::max(factor * C(cnt), -recovery_clamp));
                 else
-                    mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() +
+                    mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() +
                                                   std::min(std::max(factor * C(cnt), -recovery_clamp), recovery_clamp));
             } else
-                mask.GetConstraint(i).Set_b_i(mask.GetConstraint(i).Get_b_i() + factor * C(cnt));
+                mask.GetConstraint(i).SetRightHandSide(mask.GetConstraint(i).GetRightHandSide() + factor * C(cnt));
 
             cnt++;
         }
@@ -598,7 +598,7 @@ void ChLinkMateGeneric::ConstraintsBiLoad_Ct(double factor) {
     // NOT NEEDED BECAUSE NO RHEONOMIC TERM
 }
 
-void ChLinkMateGeneric::ConstraintsLoadJacobians() {
+void ChLinkMateGeneric::LoadConstraintJacobians() {
     // already loaded when doing Update (which used the matrices of the scalar constraint objects)
 }
 
@@ -614,32 +614,32 @@ void ChLinkMateGeneric::ConstraintsFetch_react(double factor) {
     int nc = 0;
     if (c_x) {
         if (mask.GetConstraint(nc).IsActive())
-            gamma_f.x() = -mask.GetConstraint(nc).Get_l_i() * factor;
+            gamma_f.x() = -mask.GetConstraint(nc).GetLagrangeMultiplier() * factor;
         nc++;
     }
     if (c_y) {
         if (mask.GetConstraint(nc).IsActive())
-            gamma_f.y() = -mask.GetConstraint(nc).Get_l_i() * factor;
+            gamma_f.y() = -mask.GetConstraint(nc).GetLagrangeMultiplier() * factor;
         nc++;
     }
     if (c_z) {
         if (mask.GetConstraint(nc).IsActive())
-            gamma_f.z() = -mask.GetConstraint(nc).Get_l_i() * factor;
+            gamma_f.z() = -mask.GetConstraint(nc).GetLagrangeMultiplier() * factor;
         nc++;
     }
     if (c_rx) {
         if (mask.GetConstraint(nc).IsActive())
-            gamma_m.x() = -mask.GetConstraint(nc).Get_l_i() * factor;
+            gamma_m.x() = -mask.GetConstraint(nc).GetLagrangeMultiplier() * factor;
         nc++;
     }
     if (c_ry) {
         if (mask.GetConstraint(nc).IsActive())
-            gamma_m.y() = -mask.GetConstraint(nc).Get_l_i() * factor;
+            gamma_m.y() = -mask.GetConstraint(nc).GetLagrangeMultiplier() * factor;
         nc++;
     }
     if (c_rz) {
         if (mask.GetConstraint(nc).IsActive())
-            gamma_m.z() = -mask.GetConstraint(nc).Get_l_i() * factor;
+            gamma_m.z() = -mask.GetConstraint(nc).GetLagrangeMultiplier() * factor;
         nc++;
     }
 

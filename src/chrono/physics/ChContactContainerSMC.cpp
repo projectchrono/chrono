@@ -469,7 +469,7 @@ void _KRMmatricesLoad(std::list<Tcont*> contactlist, double Kfactor, double Rfac
     }
 }
 
-void ChContactContainerSMC::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChContactContainerSMC::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     _KRMmatricesLoad(contactlist_3_3, Kfactor, Rfactor);
     _KRMmatricesLoad(contactlist_6_3, Kfactor, Rfactor);
     _KRMmatricesLoad(contactlist_6_6, Kfactor, Rfactor);
@@ -483,25 +483,25 @@ void ChContactContainerSMC::KRMmatricesLoad(double Kfactor, double Rfactor, doub
 }
 
 template <class Tcont>
-void _InjectKRMmatrices(std::list<Tcont*> contactlist, ChSystemDescriptor& mdescriptor) {
+void _InjectKRMmatrices(std::list<Tcont*> contactlist, ChSystemDescriptor& descriptor) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
-        (*itercontact)->ContInjectKRMmatrices(mdescriptor);
+        (*itercontact)->ContInjectKRMmatrices(descriptor);
         ++itercontact;
     }
 }
 
-void ChContactContainerSMC::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
-    _InjectKRMmatrices(contactlist_3_3, mdescriptor);
-    _InjectKRMmatrices(contactlist_6_3, mdescriptor);
-    _InjectKRMmatrices(contactlist_6_6, mdescriptor);
-    _InjectKRMmatrices(contactlist_333_3, mdescriptor);
-    _InjectKRMmatrices(contactlist_333_6, mdescriptor);
-    _InjectKRMmatrices(contactlist_333_333, mdescriptor);
-    _InjectKRMmatrices(contactlist_666_3, mdescriptor);
-    _InjectKRMmatrices(contactlist_666_6, mdescriptor);
-    _InjectKRMmatrices(contactlist_666_333, mdescriptor);
-    _InjectKRMmatrices(contactlist_666_666, mdescriptor);
+void ChContactContainerSMC::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
+    _InjectKRMmatrices(contactlist_3_3, descriptor);
+    _InjectKRMmatrices(contactlist_6_3, descriptor);
+    _InjectKRMmatrices(contactlist_6_6, descriptor);
+    _InjectKRMmatrices(contactlist_333_3, descriptor);
+    _InjectKRMmatrices(contactlist_333_6, descriptor);
+    _InjectKRMmatrices(contactlist_333_333, descriptor);
+    _InjectKRMmatrices(contactlist_666_3, descriptor);
+    _InjectKRMmatrices(contactlist_666_6, descriptor);
+    _InjectKRMmatrices(contactlist_666_333, descriptor);
+    _InjectKRMmatrices(contactlist_666_666, descriptor);
 }
 
 // OBSOLETE

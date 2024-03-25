@@ -92,6 +92,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// - in Chrono, run this function passing such M and K matrices: a modal analysis will be done on K and M
     /// Note that the size of M (and K) must be at least > m_num_coords_vel_boundary.
     void DoModalReduction(
+    void DoModalReduction(
         ChSparseMatrix& full_M,
         ChSparseMatrix& full_K,
         ChSparseMatrix& full_Cq,
@@ -110,6 +111,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Set verbose output.
     void SetVerbose(bool verbose) { this->m_verbose = verbose; }
 
+    /// A rigorous mathematical manipulation can be employed to derive the inertial forces and the consequent inertial
     /// A rigorous mathematical manipulation can be employed to derive the inertial forces and the consequent inertial
     /// damping matrix, or a linear assumption is applied to obtain quite concise expressions.
     /// True: default option, the linear assumption is used.
@@ -174,6 +176,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     const ChVectorDynamic<double>& GetModalReductionFrequencyUndamped() const { return this->m_modal_freq; }
 
     /// Get a vector of modal damping ratios = damping/critical_damping, if previously computed.
+    /// Use one of the ComputeModes() functions to set it.
+    const ChVectorDynamic<double>& GetModalReductionDampingRatios() const { return this->m_modal_damping_ratios; }
     /// Use one of the ComputeModes() functions to set it.
     const ChVectorDynamic<double>& GetModalReductionDampingRatios() const { return this->m_modal_damping_ratios; }
 
@@ -304,6 +308,9 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Get the number of boundary scalar constraints (only unilaterals).
     unsigned int GetNumConstraintsUnilateralBoundary() const { return m_num_constr_uni_boundary; }
+
+    /// Get the number of modal coordinates. Use DoModalReduction() to change it.
+    int GetNumCoordinatesModal() { return m_num_coords_modal; }
 
     /// Get the number of modal coordinates. Use DoModalReduction() to change it.
     int GetNumCoordinatesModal() { return m_num_coords_modal; }
@@ -549,7 +556,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
                                              ///< will be eventually transformed to the modal forces and applied on the
                                              ///< reduced modal assembly.
 
-    ChKblockGeneric modal_Hblock;
+    ChKRMBlock modal_Hblock;
     ChMatrixDynamic<> modal_M;   // corresponding to boundary and modal accelerations
     ChMatrixDynamic<> modal_K;   // corresponding to boundary and modal coordinates
     ChMatrixDynamic<> modal_R;   // corresponding to boundary and modal velocites
@@ -559,6 +566,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChMatrixDynamic<> Psi_S;  // static mode transformation matrix in the mode acceleration method
     ChMatrixDynamic<> Psi_D;  // dynamic mode transformation matrix in the mode acceleration method
 
+    ChFrameMoving<> floating_frame_F0;  ///< floating frame of reference F at the initial undeformed configuration
+    ChFrameMoving<> floating_frame_F;   ///< floating frame of reference F at the deformed configuration
     ChFrameMoving<> floating_frame_F0;  ///< floating frame of reference F at the initial undeformed configuration
     ChFrameMoving<> floating_frame_F;   ///< floating frame of reference F at the deformed configuration
     // ChFrameMoving<> floating_frame_F_old;
@@ -596,6 +605,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChSparseMatrix full_R_loc;
     ChSparseMatrix full_Cq_loc;
 
+
     // reduced system matrices in the local floating frame of reference F
     ChMatrixDynamic<> M_red;
     ChMatrixDynamic<> K_red;
@@ -606,6 +616,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChMatrixDynamic<> Kg_sup;  ///< nonlinear geometrical stiffness matrix of the reduced superelement due to the
                                ///< internal forces at boundary nodes B
 
+    ChMatrixDynamic<> Rm_sup;  ///< linear material damping matrix of the reduced superelement
     ChMatrixDynamic<> Rm_sup;  ///< linear material damping matrix of the reduced superelement
 
     // linearzed inertial system matrices of the reduced superelement
@@ -631,30 +642,30 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     // INTERNAL bodies, meshes etc. are NOT considered in equations of motion. These are
     // used anyway when computing modal analysis for component mode sysnthesis.
-    int m_num_bodies_internal;             ///< number of internal bodies
-    int m_num_links_internal;              ///< number of internal links
-    int m_num_meshes_internal;             ///< number of internal meshes
-    int m_num_otherphysicsitems_internal;  ///< number of internal other physics items
+    unsigned int m_num_bodies_internal;             ///< number of internal bodies
+    unsigned int m_num_links_internal;              ///< number of internal links
+    unsigned int m_num_meshes_internal;             ///< number of internal meshes
+    unsigned int m_num_otherphysicsitems_internal;  ///< number of internal other physics items
 
-    int m_num_coords_pos_internal;  ///< number of scalar coordinates at position level for all active internal objects
-    int m_num_coords_vel_internal;  ///< number of scalar coordinates at velocity level for all active internal objects
+    unsigned int m_num_coords_pos_internal;  ///< number of scalar coordinates at position level for all active internal objects
+    unsigned int m_num_coords_vel_internal;  ///< number of scalar coordinates at velocity level for all active internal objects
 
-    int m_num_constr_internal;      ///< number of scalar constraints (velocity level), for all active internal objects
-    int m_num_constr_bil_internal;  ///< number of bilateral scalar constraints (velocity level) of internal objects
-    int m_num_constr_uni_internal;  ///< number of unilateral scalar constraints (velocity level) of internal objects
+    unsigned int m_num_constr_internal;      ///< number of scalar constraints (velocity level), for all active internal objects
+    unsigned int m_num_constr_bil_internal;  ///< number of bilateral scalar constraints (velocity level) of internal objects
+    unsigned int m_num_constr_uni_internal;  ///< number of unilateral scalar constraints (velocity level) of internal objects
 
     // BOUNDARY bodies, meshes etc.: those of the parent class ChAssembly.
-    int m_num_bodies_boundary;             ///< number of boundary bodies
-    int m_num_links_boundary;              ///< number of boundary links
-    int m_num_meshes_boundary;             ///< number of boundary meshes
-    int m_num_otherphysicsitems_boundary;  ///< number of boundary other physics items
+    unsigned int m_num_bodies_boundary;             ///< number of boundary bodies
+    unsigned int m_num_links_boundary;              ///< number of boundary links
+    unsigned int m_num_meshes_boundary;             ///< number of boundary meshes
+    unsigned int m_num_otherphysicsitems_boundary;  ///< number of boundary other physics items
 
-    int m_num_coords_pos_boundary;  ///< number of scalar coordinates at position level for all active boundary objects
-    int m_num_coords_vel_boundary;  ///< number of scalar coordinates at velocity level for all active boundary objects
+    unsigned int m_num_coords_pos_boundary;  ///< number of scalar coordinates at position level for all active boundary objects
+    unsigned int m_num_coords_vel_boundary;  ///< number of scalar coordinates at velocity level for all active boundary objects
 
-    int m_num_constr_boundary;      ///< number of scalar constraints (velocity level), for all active boundary objects
-    int m_num_constr_bil_boundary;  ///< number of bilateral scalar constraints (velocity level) at boundary
-    int m_num_constr_uni_boundary;  ///< number of unilateral scalar constraints (velocity level) at boundary
+    unsigned int m_num_constr_boundary;      ///< number of scalar constraints (velocity level), for all active boundary objects
+    unsigned int m_num_constr_bil_boundary;  ///< number of bilateral scalar constraints (velocity level) at boundary
+    unsigned int m_num_constr_uni_boundary;  ///< number of unilateral scalar constraints (velocity level) at boundary
 
     // MODES: represent the motion of the modal assembly (internal, boundary nodes)
     int m_num_coords_modal;  // number of scalar coordinates at modal level (position and velocity level are the same)

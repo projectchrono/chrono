@@ -35,7 +35,7 @@ class ChApi ChShaftsLoad : public ChLoadCustomMultiple {
     virtual void ComputeShaftShaftTorque(const double rel_rot, const double rel_rot_dt, double& result_torque) = 0;
 
     // Optional: inherited classes could implement this to avoid the
-    // default numerical computation of jacobians:
+    // default numerical computation of Jacobians:
     //   virtual void ComputeJacobian(...) // see ChLoad
 
     /// Return the actual last computed value of the applied torque, assumed applied to 2ns shaft.

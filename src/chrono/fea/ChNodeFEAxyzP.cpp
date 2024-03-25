@@ -108,55 +108,55 @@ void ChNodeFEAxyzP::NodeIntLoadLumpedMass_Md(const unsigned int off,
 }
 
 void ChNodeFEAxyzP::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
-    variables.Get_qb()(0) = v(off_v);
-    variables.Get_fb()(0) = R(off_v);
+    variables.State()(0) = v(off_v);
+    variables.Force()(0) = R(off_v);
 }
 
 void ChNodeFEAxyzP::NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {
-    v(off_v) = variables.Get_qb()(0);
+    v(off_v) = variables.State()(0);
 }
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAxyzP::InjectVariables(ChSystemDescriptor& mdescriptor) {
-    mdescriptor.InsertVariables(&variables);
+void ChNodeFEAxyzP::InjectVariables(ChSystemDescriptor& descriptor) {
+    descriptor.InsertVariables(&variables);
 }
 
 void ChNodeFEAxyzP::VariablesFbReset() {
-    variables.Get_fb()(0) = 0;
+    variables.Force()(0) = 0;
 }
 
 void ChNodeFEAxyzP::VariablesFbLoadForces(double factor) {
     if (variables.IsDisabled())
         return;
-    variables.Get_fb()(0) += F * factor;
+    variables.Force()(0) += F * factor;
 }
 
 void ChNodeFEAxyzP::VariablesQbLoadSpeed() {
     if (variables.IsDisabled())
         return;
     // not really a 'speed', just the field derivative (may be used in incremental solver)
-    variables.Get_qb()(0) = P_dt;
+    variables.State()(0) = P_dt;
 }
 
 void ChNodeFEAxyzP::VariablesQbSetSpeed(double step) {
     if (variables.IsDisabled())
         return;
     // not really a 'speed', just the field derivative (may be used in incremental solver)
-    P_dt = variables.Get_qb()(0);
+    P_dt = variables.State()(0);
 }
 
 void ChNodeFEAxyzP::VariablesFbIncrementMq() {
     if (variables.IsDisabled())
         return;
-    variables.Compute_inc_Mb_v(variables.Get_fb(), variables.Get_qb());
+    variables.AddMassTimesVector(variables.Force(), variables.State());
 }
 
 void ChNodeFEAxyzP::VariablesQbIncrementPosition(double step) {
     if (variables.IsDisabled())
         return;
 
-    double pseudospeed = variables.Get_qb()(0);
+    double pseudospeed = variables.State()(0);
 
     // ADVANCE FIELD: pos' = pos + dt * vel
     P = P + pseudospeed * step;

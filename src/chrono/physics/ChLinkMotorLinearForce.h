@@ -20,14 +20,12 @@
 namespace chrono {
 
 /// A linear motor that applies a force between two frames on two bodies along Z axis.
-/// Differently from the ChLinkMotorLinearPosition and ChLinkMotorLinearSpeed,
-/// this does not enforce precise motion via constraint.
-/// Example of application:
+/// Differently from the ChLinkMotorLinearPosition and ChLinkMotorLinearSpeed, this does not enforce precise motion via
+/// constraint. Application examples:
 /// - mimic a PID controlled system with some feedback (user-defined)
 /// - force that is updated by a cosimulation
 /// - force from a human-in-the-loop setpoint
 /// Use SetForceFunction() to change to other force function (default zero force).
-
 class ChApi ChLinkMotorLinearForce : public ChLinkMotorLinear {
   public:
     ChLinkMotorLinearForce();
@@ -46,23 +44,16 @@ class ChApi ChLinkMotorLinearForce : public ChLinkMotorLinear {
     /// Get the current actuator reaction force.
     virtual double GetMotorForce() const override { return m_func->GetVal(GetChTime()); }
 
-    void Update(double mytime, bool update_assets) override;
-
-    //
-    // STATE FUNCTIONS
-    //
-    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
-
-    //
-    // SOLVER INTERFACE (OLD)
-    //
-    virtual void ConstraintsFbLoadForces(double factor = 1) override;
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    virtual void Update(double mytime, bool update_assets) override;
+    virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
+    virtual void ConstraintsFbLoadForces(double factor = 1) override;
 };
 
 CH_CLASS_VERSION(ChLinkMotorLinearForce, 0)

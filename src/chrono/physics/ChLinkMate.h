@@ -17,7 +17,7 @@
 
 #include "chrono/physics/ChLink.h"
 #include "chrono/physics/ChLinkMask.h"
-#include "chrono/solver/ChKblockGeneric.h"
+#include "chrono/solver/ChKRMBlock.h"
 
 namespace chrono {
 
@@ -44,9 +44,8 @@ CH_CLASS_VERSION(ChLinkMate, 0)
 
 // -----------------------------------------------------------------------------
 
-/// Generic mate constraint, where one can select which DOFs must be constrained
-/// between two frames attached to the two bodies.
-
+/// Generic mate constraint.
+/// This class allows selecting the DOFs to be constrained between two frames attached to the two bodies.
 class ChApi ChLinkMateGeneric : public ChLinkMate {
   public:
     using ChConstraintVectorX = Eigen::Matrix<double, Eigen::Dynamic, 1, Eigen::ColMajor, 6, 1>;
@@ -82,7 +81,7 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     bool IsConstrainedRy() const { return c_ry; }
     bool IsConstrainedRz() const { return c_rz; }
 
-    /// Sets which movements (of frame 1 respect to frame 2) are constrained
+    /// Sets which movements (of frame 1 respect to frame 2) are constrained.
     void SetConstrainedCoords(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry, bool mc_rz);
 
     /// Initialize the link given the two bodies to be connected and the absolute position of the link.
@@ -117,22 +116,13 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
                             const ChVector3d& dir2               ///< X axis of master plane 2 (rel. or abs.)
     );
 
-    // UPDATING FUNCTIONS
-
-    /// Update link state. This is called automatically by the solver at each time step.
-    /// Update constraint jacobian and frames.
-    /// Derived classes must call this parent method and then take care of updating their own assets.
-    virtual void Update(double mtime, bool update_assets = true) override;
-
-    /// User can use this to enable/disable all the constraint of
-    /// the link as desired.
+    /// Enable/disable all the constraint of the link as desired.
     virtual void SetDisabled(bool mdis) override;
 
-    /// Ex:3rd party software can set the 'broken' state via this method
+    /// Set this link as 'broken'.
     virtual void SetBroken(bool mon) override;
 
-    /// Set this as true to compute the tangent stiffness matrix (Kc) of this constraint.
-    /// It is false by default to keep consistent as previous code.
+    /// Enable/disable calculation of the tangent stiffness matrix (Kc) of this constraint (default: false).
     void SetUseTangentStiffness(bool useKc);
 
     virtual unsigned int GetNumConstraints() override { return m_num_constr; }
@@ -144,51 +134,6 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
 
     /// Link violation (residuals of the link constraint equations).
     virtual ChVectorDynamic<> GetConstraintViolation() const override { return C; }
-
-    // STATE FUNCTIONS
-
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
-    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
-    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
-    virtual void IntLoadResidual_CqL(const unsigned int off_L,
-                                     ChVectorDynamic<>& R,
-                                     const ChVectorDynamic<>& L,
-                                     const double c) override;
-    virtual void IntLoadConstraint_C(const unsigned int off,
-                                     ChVectorDynamic<>& Qc,
-                                     const double c,
-                                     bool do_clamp,
-                                     double recovery_clamp) override;
-    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
-    virtual void IntToDescriptor(const unsigned int off_v,
-                                 const ChStateDelta& v,
-                                 const ChVectorDynamic<>& R,
-                                 const unsigned int off_L,
-                                 const ChVectorDynamic<>& L,
-                                 const ChVectorDynamic<>& Qc) override;
-    virtual void IntFromDescriptor(const unsigned int off_v,
-                                   ChStateDelta& v,
-                                   const unsigned int off_L,
-                                   ChVectorDynamic<>& L) override;
-
-    // SOLVER INTERFACE
-
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
-    virtual void ConstraintsBiReset() override;
-    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
-    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
-    virtual void ConstraintsLoadJacobians() override;
-    virtual void ConstraintsFetch_react(double factor = 1) override;
-
-    /// Tell to a system descriptor that there are item(s) of type
-    /// ChKblock in this object (for further passing it to a solver)
-    virtual void InjectKRMmatrices(ChSystemDescriptor& descriptor) override;
-
-    /// Add the current stiffness K matrix in encapsulated ChKblock item(s), if any.
-    /// The K matrices are load with scaling values Kfactor.
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
-
-    // SERIALIZATION
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
@@ -223,7 +168,52 @@ class ChApi ChLinkMateGeneric : public ChLinkMate {
     ChVector3d gamma_f;  ///< translational Lagrange multipliers
     ChVector3d gamma_m;  ///< rotational Lagrange multipliers
 
-    std::unique_ptr<ChKblockGeneric> Kmatr = nullptr;  ///< the tangent stiffness matrix of constraint
+    std::unique_ptr<ChKRMBlock> Kmatr = nullptr;  ///< the tangent stiffness matrix of constraint
+
+    /// Update link state, constraint Jacobian, and frames.
+    /// This is called automatically by the solver at each time step.
+    /// Derived classes must call this parent method and then take care of updating their own assets.
+    virtual void Update(double mtime, bool update_assets = true) override;
+
+    virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
+    virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
+    virtual void IntLoadResidual_CqL(const unsigned int off_L,
+                                     ChVectorDynamic<>& R,
+                                     const ChVectorDynamic<>& L,
+                                     const double c) override;
+    virtual void IntLoadConstraint_C(const unsigned int off,
+                                     ChVectorDynamic<>& Qc,
+                                     const double c,
+                                     bool do_clamp,
+                                     double recovery_clamp) override;
+    virtual void IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) override;
+    virtual void IntToDescriptor(const unsigned int off_v,
+                                 const ChStateDelta& v,
+                                 const ChVectorDynamic<>& R,
+                                 const unsigned int off_L,
+                                 const ChVectorDynamic<>& L,
+                                 const ChVectorDynamic<>& Qc) override;
+    virtual void IntFromDescriptor(const unsigned int off_v,
+                                   ChStateDelta& v,
+                                   const unsigned int off_L,
+                                   ChVectorDynamic<>& L) override;
+
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
+    virtual void ConstraintsBiReset() override;
+    virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
+    virtual void ConstraintsBiLoad_Ct(double factor = 1) override;
+    virtual void LoadConstraintJacobians() override;
+    virtual void ConstraintsFetch_react(double factor = 1) override;
+
+    /// Register with the given system descriptor any ChKRMBlock objects associated with this item.
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
+
+    /// Add the current stiffness K matrix in encapsulated ChKRMBlock item(s), if any.
+    /// The K matrix is loaded with scaling value Kfactor.
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 CH_CLASS_VERSION(ChLinkMateGeneric, 0)
@@ -233,12 +223,7 @@ CH_CLASS_VERSION(ChLinkMateGeneric, 0)
 /// Mate constraint of plane-to-plane type.
 /// The planes are defined by the X and Y axes of the two frames i.e. the two Z axes are parallel.
 /// An offset distance can be provided.
-
 class ChApi ChLinkMatePlanar : public ChLinkMateGeneric {
-  protected:
-    bool m_flipped;
-    double m_distance;
-
   public:
     ChLinkMatePlanar() : ChLinkMateGeneric(false, false, true, true, true, false), m_flipped(false), m_distance(0) {}
     ChLinkMatePlanar(const ChLinkMatePlanar& other);
@@ -270,29 +255,29 @@ class ChApi ChLinkMatePlanar : public ChLinkMateGeneric {
                             const ChVector3d& norm2              ///< normal of master plane 2 (rel. or abs.)
                             ) override;
 
-    /// Update link state. This is called automatically by the solver at each time step.
-    /// Update constraint jacobian and frames.
-    virtual void Update(double time, bool update_assets = true) override;
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  protected:
+    bool m_flipped;
+    double m_distance;
+
+    /// Update link state. This is called automatically by the solver at each time step.
+    /// Update constraint jacobian and frames.
+    virtual void Update(double time, bool update_assets = true) override;
 };
 
 CH_CLASS_VERSION(ChLinkMatePlanar, 0)
 
 // -----------------------------------------------------------------------------
 
-/// Mate constraint of coaxial type. This correspond to the
-/// typical cylinder-vs-cylinder mating used in 3D CAD assemblies.
+/// Mate constraint of coaxial type. 
+/// This link corresponds to the typical cylinder-vs-cylinder mating used in 3D CAD assemblies.
 /// The two coaxial axes are the Z axes of the two frames.
-
 class ChApi ChLinkMateCylindrical : public ChLinkMateGeneric {
-  protected:
-    bool m_flipped;
-
   public:
     ChLinkMateCylindrical() : ChLinkMateGeneric(true, true, false, true, true, false), m_flipped(false) {}
     ChLinkMateCylindrical(const ChLinkMateCylindrical& other);
@@ -323,6 +308,9 @@ class ChApi ChLinkMateCylindrical : public ChLinkMateGeneric {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  protected:
+    bool m_flipped;
 };
 
 CH_CLASS_VERSION(ChLinkMateCylindrical, 0)
@@ -331,11 +319,7 @@ CH_CLASS_VERSION(ChLinkMateCylindrical, 0)
 
 /// Mate constraint of revolute type.
 /// The two revolute axes are the Z axes of the two frames.
-
 class ChApi ChLinkMateRevolute : public ChLinkMateGeneric {
-  protected:
-    bool m_flipped;
-
   public:
     ChLinkMateRevolute() : ChLinkMateGeneric(true, true, true, true, true, false), m_flipped(false) {}
     ChLinkMateRevolute(const ChLinkMateRevolute& other);
@@ -376,6 +360,9 @@ class ChApi ChLinkMateRevolute : public ChLinkMateGeneric {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  protected:
+    bool m_flipped;
 };
 
 CH_CLASS_VERSION(ChLinkMateRevolute, 0)
@@ -384,11 +371,7 @@ CH_CLASS_VERSION(ChLinkMateRevolute, 0)
 
 /// Mate constraint of prismatic type.
 /// Allowed relative movements are along the Z axes of the two frames.
-
 class ChApi ChLinkMatePrismatic : public ChLinkMateGeneric {
-  protected:
-    bool m_flipped;
-
   public:
     ChLinkMatePrismatic() : ChLinkMateGeneric(true, true, false, true, true, true), m_flipped(false) {}
     ChLinkMatePrismatic(const ChLinkMatePrismatic& other);
@@ -403,9 +386,9 @@ class ChApi ChLinkMatePrismatic : public ChLinkMateGeneric {
     void SetFlipped(bool doflip);
     bool IsFlipped() const { return m_flipped; }
 
-    /// Specialized initialization for prismatic mate, given the two bodies to be connected, two points, two directions
-    /// (each expressed in body or abs. coordinates). These two directions are the X axes of slave frame F1 and master
-    /// frame F2
+    /// Specialized initialization for prismatic mate, given the two bodies to be connected, two points, two directions.
+    /// These two directions are the X axes of secondary frame F1 and principal frame F2.
+    /// All quantities can be expressed in body or in absolute coordinates. 
     virtual void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> body2,  ///< second body to link
                             bool pos_are_relative,               ///< true: following pos. are relative to bodies
@@ -429,15 +412,17 @@ class ChApi ChLinkMatePrismatic : public ChLinkMateGeneric {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  protected:
+    bool m_flipped;
 };
 
 CH_CLASS_VERSION(ChLinkMatePrismatic, 0)
 
 // -----------------------------------------------------------------------------
 
-/// Mate constraint of spherical type. This correspond to the
-/// typical point-on-point or spherical joint mating used in 3D CAD assemblies.
-
+/// Mate constraint of spherical type.
+/// This link corresponds to the typical point-on-point or spherical joint mating used in 3D CAD assemblies.
 class ChApi ChLinkMateSpherical : public ChLinkMateGeneric {
   public:
     ChLinkMateSpherical() : ChLinkMateGeneric(true, true, true, false, false, false) {}
@@ -464,11 +449,7 @@ CH_CLASS_VERSION(ChLinkMateSpherical, 0)
 // -----------------------------------------------------------------------------
 
 /// Mate constraining distance of origin of frame 2 respect to Z axis of frame 1.
-
 class ChApi ChLinkMateDistanceZ : public ChLinkMateGeneric {
-  protected:
-    double m_distance;
-
   public:
     ChLinkMateDistanceZ() : ChLinkMateGeneric(false, false, true, false, false, false), m_distance(0) {}
     ChLinkMateDistanceZ(const ChLinkMateDistanceZ& other);
@@ -495,30 +476,28 @@ class ChApi ChLinkMateDistanceZ : public ChLinkMateGeneric {
                     ChVector3d dir2                      ///< direction of master axis 2 (rel. or abs.)
     );
 
-    /// Update link state. This is called automatically by the solver at each time step.
-    /// Update constraint jacobian and frames.
-    virtual void Update(double mtime, bool update_assets = true) override;
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  protected:
+    double m_distance;
+
+    /// Update link state, constraint Jacobian, and frames.
+    /// Called automatically by the solver at each time step.
+    virtual void Update(double mtime, bool update_assets = true) override;
 };
 
 CH_CLASS_VERSION(ChLinkMateDistanceZ, 0)
 
 // -----------------------------------------------------------------------------
 
-/// Mate constraint of parallel type. This correspond to the
-/// typical axis-is-parallel-to-axis (or edge to edge, etc.) mating
-/// used in 3D CAD assemblies. The axes to be kept parallel are
-/// the two Z axes of the two frames.
-
+/// Mate constraint of parallel type.
+/// This link corresponds to the typical axis-is-parallel-to-axis (or edge to edge, etc.) mating used in 3D CAD
+/// assemblies. The axes to be kept parallel are the two Z axes of the two frames.
 class ChApi ChLinkMateParallel : public ChLinkMateGeneric {
-  protected:
-    bool m_flipped;
-
   public:
     ChLinkMateParallel() : ChLinkMateGeneric(false, false, false, true, true, false), m_flipped(false) {}
     ChLinkMateParallel(const ChLinkMateParallel& other);
@@ -547,22 +526,19 @@ class ChApi ChLinkMateParallel : public ChLinkMateGeneric {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  protected:
+    bool m_flipped;
 };
 
 CH_CLASS_VERSION(ChLinkMateParallel, 0)
 
 // -----------------------------------------------------------------------------
 
-/// Mate constraint of orthogonal type. This correspond to the
-/// typical axis-is-orthogonal-to-axis (or edge to edge, etc.) mating
-/// used in 3D CAD assemblies. Then the two Z axes of the two frames
-/// are aligned to the cross product of the two directions.
-
+/// Mate constraint of orthogonal type.
+/// This link corresponds to the typical axis-is-orthogonal-to-axis (or edge to edge, etc.) mating used in 3D CAD
+/// assemblies. Then the two Z axes of the two frames are aligned to the cross product of the two directions.
 class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
-  protected:
-    ChVector3d m_reldir1;
-    ChVector3d m_reldir2;
-
   public:
     ChLinkMateOrthogonal()
         : ChLinkMateGeneric(false, false, false, false, false, true), m_reldir1(VNULL), m_reldir2(VNULL) {}
@@ -583,24 +559,26 @@ class ChApi ChLinkMateOrthogonal : public ChLinkMateGeneric {
                             const ChVector3d& dir2               ///< direction of master axis 2 (rel. or abs.)
                             ) override;
 
-    /// Update link state. This is called automatically by the solver at each time step.
-    /// Update constraint jacobian and frames.
-    virtual void Update(double mtime, bool update_assets = true) override;
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  protected:
+    ChVector3d m_reldir1;
+    ChVector3d m_reldir2;
+
+    /// Update link state. This is called automatically by the solver at each time step.
+    /// Update constraint jacobian and frames.
+    virtual void Update(double mtime, bool update_assets = true) override;
 };
 
 CH_CLASS_VERSION(ChLinkMateOrthogonal, 0)
 
 // -----------------------------------------------------------------------------
 
-/// Mate constraint that completely fix one frame's rotation and translation
-/// respect to the other frame.
-
+/// Mate constraint to completely fix relative motion of two frames.
 class ChApi ChLinkMateFix : public ChLinkMateGeneric {
   public:
     ChLinkMateFix() : ChLinkMateGeneric(true, true, true, true, true, true) {}
@@ -625,24 +603,8 @@ CH_CLASS_VERSION(ChLinkMateFix, 0)
 // -----------------------------------------------------------------------------
 
 /// Rack-pinion link between two body frames.
-/// It correctly handles the direction of transmitted force
-/// given the teeth pressure angle.
-
+/// It correctly handles the direction of transmitted force given the teeth pressure angle.
 class ChApi ChLinkMateRackPinion : public ChLinkMateGeneric {
-  protected:
-    double R;         ///< primitive radius of the pinion
-    double alpha;     ///< inclination of action line
-    double beta;      ///< helix angle
-    double phase;     ///< mounting phase angle
-    bool checkphase;  ///< keep gear always on phase
-
-    double a1;  ///< auxiliary
-
-    ChVector3d contact_pt;
-
-    ChFrame<double> local_pinion;  ///< pinion shaft pos & dir (frame Z axis), relative to body1
-    ChFrame<double> local_rack;    ///< rack direction (frame X axis), relative to body2
-
   public:
     ChLinkMateRackPinion();
     ChLinkMateRackPinion(const ChLinkMateRackPinion& other);
@@ -662,38 +624,33 @@ class ChApi ChLinkMateRackPinion : public ChLinkMateGeneric {
     /// Set the primitive radius of the pinion.
     void SetPinionRadius(double mR) { R = mR; }
 
-    /// Get the pressure angle (usually 20 deg for typical gears)
+    /// Get the pressure angle (usually 20 deg for typical gears).
     double GetPressureAngle() const { return alpha; }
 
-    /// Set the pressure angle (usually 20 deg for typical gears)
+    /// Set the pressure angle (usually 20 deg for typical gears).
     void SetPressureAngle(double mset) { alpha = mset; }
 
-    /// Get the angle of teeth in bevel gears (0 deg for spur gears)
+    /// Get the angle of teeth in bevel gears (0 deg for spur gears).
     double GetPitchAngle() const { return beta; }
 
-    /// Set the angle of teeth in bevel gears (0 deg for spur gears)
+    /// Set the angle of teeth in bevel gears (0 deg for spur gears).
     void SetPitchAngle(double mset) { beta = mset; }
 
-    /// Get the initial phase of rotation of pinion respect to rack
+    /// Get the initial phase of rotation of pinion respect to rack.
     double GetPhase() const { return phase; }
 
-    /// Set the initial phase of rotation of pinion respect to rack
+    /// Set the initial phase of rotation of pinion respect to rack.
     void SetPhase(double mset) { phase = mset; }
 
-    /// If true, enforce check on exact phase between gears
-    /// (otherwise after many simulation steps the phasing
-    /// may be affected by numerical error accumulation).
-    /// By default, it is turned off.
-    /// Note that, to ensure the correct phasing during the many
-    /// rotations, an algorithm will update an accumulator with total rotation
-    /// values, which might be affected by loss of numerical precision
-    /// after few thousands of revolutions; keep in mind this if you do
-    /// real-time simulations which must run for many hours.
+    /// Enable/disable enforcement check on exact phase between gears (default: false).
+    /// If false, after many simulation steps the phasing may be affected by numerical error accumulation.
+    /// Note that, to ensure the correct phasing during the many rotations, an algorithm will update an accumulator with
+    /// total rotation values, which might be affected by loss of numerical precision after many revolutions.
     void SetEnforcePhase(bool mset) { checkphase = mset; }
 
     bool GetEnforcePhase() const { return checkphase; }
 
-    /// Get total rotation of 1st gear, respect to interaxis, in radians
+    /// Get total rotation of 1st gear, respect to interaxis, in radians.
     double GetRotation1() const { return a1; }
 
     /// Reset the total rotations of a1 and a2.
@@ -715,16 +672,16 @@ class ChApi ChLinkMateRackPinion : public ChLinkMateGeneric {
     /// The rack direction is the X axis of that frame.
     ChFrame<double> GetRackFrame() const { return local_rack; }
 
-    /// Get pinion shaft direction in absolute reference
+    /// Get pinion shaft direction in absolute reference.
     ChVector3d GetAbsPinionDir();
 
-    /// Get pinion position in absolute reference
+    /// Get pinion position in absolute reference.
     ChVector3d GetAbsPinionPos();
 
-    /// Get rack direction in absolute reference
+    /// Get rack direction in absolute reference.
     ChVector3d GetAbsRackDir();
 
-    /// Get rack position in absolute reference
+    /// Get rack position in absolute reference.
     ChVector3d GetAbsRackPos();
 
     /// Method to allow serialization of transient data to archives.
@@ -732,6 +689,20 @@ class ChApi ChLinkMateRackPinion : public ChLinkMateGeneric {
 
     /// Method to allow deserialization of transient data from archives.
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  protected:
+    double R;         ///< primitive radius of the pinion
+    double alpha;     ///< inclination of action line
+    double beta;      ///< helix angle
+    double phase;     ///< mounting phase angle
+    bool checkphase;  ///< keep gear always on phase
+
+    double a1;  ///< auxiliary
+
+    ChVector3d contact_pt;
+
+    ChFrame<double> local_pinion;  ///< pinion shaft pos & dir (frame Z axis), relative to body1
+    ChFrame<double> local_rack;    ///< rack direction (frame X axis), relative to body2
 };
 
 CH_CLASS_VERSION(ChLinkMateRackPinion, 0)

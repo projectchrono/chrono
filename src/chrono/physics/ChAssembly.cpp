@@ -500,20 +500,20 @@ void ChAssembly::SyncCollisionModels() {
 // UPDATING ROUTINES
 
 void ChAssembly::SetupInitial() {
-    for (int ip = 0; ip < bodylist.size(); ++ip) {
-        bodylist[ip]->SetupInitial();
+    for (auto& body : bodylist) {
+        body->SetupInitial();
     }
-    for (int ip = 0; ip < shaftlist.size(); ++ip) {
-        shaftlist[ip]->SetupInitial();
+    for (auto& shaft : shaftlist) {
+        shaft->SetupInitial();
     }
-    for (int ip = 0; ip < linklist.size(); ++ip) {
-        linklist[ip]->SetupInitial();
+    for (auto& link : linklist) {
+        link->SetupInitial();
     }
-    for (int ip = 0; ip < meshlist.size(); ++ip) {
-        meshlist[ip]->SetupInitial();
+    for (auto& mesh : meshlist) {
+        mesh->SetupInitial();
     }
-    for (int ip = 0; ip < otherphysicslist.size(); ++ip) {
-        otherphysicslist[ip]->SetupInitial();
+    for (auto& otherphysics : otherphysicslist) {
+        otherphysics->SetupInitial();
     }
 }
 
@@ -649,22 +649,22 @@ void ChAssembly::Update(double mytime, bool update_assets) {
 // Updates all markers (automatic, as children of bodies).
 void ChAssembly::Update(bool update_assets) {
     //// NOTE: do not switch these to range for loops (may want to use OMP for)
-    for (int ip = 0; ip < (int)bodylist.size(); ++ip) {
-        bodylist[ip]->Update(ChTime, update_assets);
+    for (auto& body : bodylist) {
+        body->Update(ChTime, update_assets);
     }
-    for (int ip = 0; ip < (int)shaftlist.size(); ++ip) {
-        shaftlist[ip]->Update(ChTime, update_assets);
+    for (auto& shaft : shaftlist) {
+        shaft->Update(ChTime, update_assets);
     }
-    for (int ip = 0; ip < (int)meshlist.size(); ++ip) {
-        meshlist[ip]->Update(ChTime, update_assets);
+    for (auto& mesh : meshlist) {
+        mesh->Update(ChTime, update_assets);
     }
-    for (int ip = 0; ip < (int)otherphysicslist.size(); ++ip) {
-        otherphysicslist[ip]->Update(ChTime, update_assets);
+    for (auto& otherphysics : otherphysicslist) {
+        otherphysics->Update(ChTime, update_assets);
     }
     // The state of links depends on the bodylist,shaftlist,meshlist,otherphysicslist,
     // thus the update of linklist must be at the end.
-    for (int ip = 0; ip < (int)linklist.size(); ++ip) {
-        linklist[ip]->Update(ChTime, update_assets);
+    for (auto& link : linklist) {
+        link->Update(ChTime, update_assets);
     }
 }
 
@@ -1166,21 +1166,21 @@ void ChAssembly::IntFromDescriptor(const unsigned int off_v,
 
 // -----------------------------------------------------------------------------
 
-void ChAssembly::InjectVariables(ChSystemDescriptor& mdescriptor) {
+void ChAssembly::InjectVariables(ChSystemDescriptor& descriptor) {
     for (auto& body : bodylist) {
-        body->InjectVariables(mdescriptor);
+        body->InjectVariables(descriptor);
     }
     for (auto& shaft : shaftlist) {
-        shaft->InjectVariables(mdescriptor);
+        shaft->InjectVariables(descriptor);
     }
     for (auto& link : linklist) {
-        link->InjectVariables(mdescriptor);
+        link->InjectVariables(descriptor);
     }
     for (auto& mesh : meshlist) {
-        mesh->InjectVariables(mdescriptor);
+        mesh->InjectVariables(descriptor);
     }
     for (auto& item : otherphysicslist) {
-        item->InjectVariables(mdescriptor);
+        item->InjectVariables(descriptor);
     }
 }
 
@@ -1292,21 +1292,21 @@ void ChAssembly::VariablesQbIncrementPosition(double dt_step) {
     }
 }
 
-void ChAssembly::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChAssembly::InjectConstraints(ChSystemDescriptor& descriptor) {
     for (auto& body : bodylist) {
-        body->InjectConstraints(mdescriptor);
+        body->InjectConstraints(descriptor);
     }
     for (auto& shaft : shaftlist) {
-        shaft->InjectConstraints(mdescriptor);
+        shaft->InjectConstraints(descriptor);
     }
     for (auto& link : linklist) {
-        link->InjectConstraints(mdescriptor);
+        link->InjectConstraints(descriptor);
     }
     for (auto& mesh : meshlist) {
-        mesh->InjectConstraints(mdescriptor);
+        mesh->InjectConstraints(descriptor);
     }
     for (auto& item : otherphysicslist) {
-        item->InjectConstraints(mdescriptor);
+        item->InjectConstraints(descriptor);
     }
 }
 
@@ -1400,21 +1400,21 @@ void ChAssembly::ConstraintsFbLoadForces(double factor) {
     }
 }
 
-void ChAssembly::ConstraintsLoadJacobians() {
+void ChAssembly::LoadConstraintJacobians() {
     for (auto& body : bodylist) {
-        body->ConstraintsLoadJacobians();
+        body->LoadConstraintJacobians();
     }
     for (auto& shaft : shaftlist) {
-        shaft->ConstraintsLoadJacobians();
+        shaft->LoadConstraintJacobians();
     }
     for (auto& link : linklist) {
-        link->ConstraintsLoadJacobians();
+        link->LoadConstraintJacobians();
     }
     for (auto& mesh : meshlist) {
-        mesh->ConstraintsLoadJacobians();
+        mesh->LoadConstraintJacobians();
     }
     for (auto& item : otherphysicslist) {
-        item->ConstraintsLoadJacobians();
+        item->LoadConstraintJacobians();
     }
 }
 
@@ -1436,39 +1436,39 @@ void ChAssembly::ConstraintsFetch_react(double factor) {
     }
 }
 
-void ChAssembly::InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {
+void ChAssembly::InjectKRMMatrices(ChSystemDescriptor& descriptor) {
     for (auto& body : bodylist) {
-        body->InjectKRMmatrices(mdescriptor);
+        body->InjectKRMMatrices(descriptor);
     }
     for (auto& shaft : shaftlist) {
-        shaft->InjectKRMmatrices(mdescriptor);
+        shaft->InjectKRMMatrices(descriptor);
     }
     for (auto& link : linklist) {
-        link->InjectKRMmatrices(mdescriptor);
+        link->InjectKRMMatrices(descriptor);
     }
     for (auto& mesh : meshlist) {
-        mesh->InjectKRMmatrices(mdescriptor);
+        mesh->InjectKRMMatrices(descriptor);
     }
     for (auto& item : otherphysicslist) {
-        item->InjectKRMmatrices(mdescriptor);
+        item->InjectKRMMatrices(descriptor);
     }
 }
 
-void ChAssembly::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChAssembly::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     for (auto& body : bodylist) {
-        body->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+        body->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
     }
     for (auto& shaft : shaftlist) {
-        shaft->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+        shaft->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
     }
     for (auto& link : linklist) {
-        link->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+        link->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
     }
     for (auto& mesh : meshlist) {
-        mesh->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+        mesh->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
     }
     for (auto& item : otherphysicslist) {
-        item->KRMmatricesLoad(Kfactor, Rfactor, Mfactor);
+        item->LoadKRMMatrices(Kfactor, Rfactor, Mfactor);
     }
 }
 

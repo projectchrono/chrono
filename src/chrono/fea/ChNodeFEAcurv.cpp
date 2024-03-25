@@ -189,22 +189,22 @@ void ChNodeFEAcurv::NodeIntLoadLumpedMass_Md(const unsigned int off,
 }
 
 void ChNodeFEAcurv::NodeIntToDescriptor(const unsigned int off_v, const ChStateDelta& v, const ChVectorDynamic<>& R) {
-    m_variables->Get_qb().segment(0, 9) = v.segment(off_v, 9);
-    m_variables->Get_fb().segment(0, 9) = R.segment(off_v, 9);
+    m_variables->State().segment(0, 9) = v.segment(off_v, 9);
+    m_variables->Force().segment(0, 9) = R.segment(off_v, 9);
 }
 
 void ChNodeFEAcurv::NodeIntFromDescriptor(const unsigned int off_v, ChStateDelta& v) {
-    v.segment(off_v, 9) = m_variables->Get_qb().segment(0, 9);
+    v.segment(off_v, 9) = m_variables->State().segment(0, 9);
 }
 
 // -----------------------------------------------------------------------------
 
-void ChNodeFEAcurv::InjectVariables(ChSystemDescriptor& mdescriptor) {
-    mdescriptor.InsertVariables(m_variables);
+void ChNodeFEAcurv::InjectVariables(ChSystemDescriptor& descriptor) {
+    descriptor.InsertVariables(m_variables);
 }
 
 void ChNodeFEAcurv::VariablesFbReset() {
-    m_variables->Get_fb().setZero();
+    m_variables->Force().setZero();
 }
 
 void ChNodeFEAcurv::VariablesFbLoadForces(double factor) {
@@ -212,9 +212,9 @@ void ChNodeFEAcurv::VariablesFbLoadForces(double factor) {
 }
 
 void ChNodeFEAcurv::VariablesQbLoadSpeed() {
-    m_variables->Get_qb().segment(0, 3) = m_rxx_dt.eigen();
-    m_variables->Get_qb().segment(3, 3) = m_ryy_dt.eigen();
-    m_variables->Get_qb().segment(6, 3) = m_rzz_dt.eigen();
+    m_variables->State().segment(0, 3) = m_rxx_dt.eigen();
+    m_variables->State().segment(3, 3) = m_ryy_dt.eigen();
+    m_variables->State().segment(6, 3) = m_rzz_dt.eigen();
 }
 
 void ChNodeFEAcurv::VariablesQbSetSpeed(double step) {
@@ -222,9 +222,9 @@ void ChNodeFEAcurv::VariablesQbSetSpeed(double step) {
     ChVector3d old_ryy_dt = m_ryy_dt;
     ChVector3d old_rzz_dt = m_rzz_dt;
 
-    m_rxx_dt = m_variables->Get_qb().segment(0, 3);
-    m_ryy_dt = m_variables->Get_qb().segment(3, 3);
-    m_rzz_dt = m_variables->Get_qb().segment(6, 3);
+    m_rxx_dt = m_variables->State().segment(0, 3);
+    m_ryy_dt = m_variables->State().segment(3, 3);
+    m_rzz_dt = m_variables->State().segment(6, 3);
 
     if (step) {
         m_rxx_dtdt = (m_rxx_dt - old_rxx_dt) / step;
@@ -234,13 +234,13 @@ void ChNodeFEAcurv::VariablesQbSetSpeed(double step) {
 }
 
 void ChNodeFEAcurv::VariablesFbIncrementMq() {
-    m_variables->Compute_inc_Mb_v(m_variables->Get_fb(), m_variables->Get_qb());
+    m_variables->AddMassTimesVector(m_variables->Force(), m_variables->State());
 }
 
 void ChNodeFEAcurv::VariablesQbIncrementPosition(double step) {
-    ChVector3d new_rxx_dt(m_variables->Get_qb().segment(0, 3));
-    ChVector3d new_ryy_dt(m_variables->Get_qb().segment(3, 3));
-    ChVector3d new_rzz_dt(m_variables->Get_qb().segment(6, 3));
+    ChVector3d new_rxx_dt(m_variables->State().segment(0, 3));
+    ChVector3d new_ryy_dt(m_variables->State().segment(3, 3));
+    ChVector3d new_rzz_dt(m_variables->State().segment(6, 3));
     m_rxx = m_rxx + new_rxx_dt * step;
     m_ryy = m_ryy + new_ryy_dt * step;
     m_rzz = m_rzz + new_rzz_dt * step;

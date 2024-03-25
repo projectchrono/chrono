@@ -43,7 +43,10 @@ TEST(ChSensor, modifying) {}
 TEST(ChFilterAccess, data_access_safety) {
     ChSystemNSC sys;
 
-    auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, true);
+    auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
+    mat->SetFriction(0.2f);
+
+    auto box = chrono_types::make_shared<ChBodyEasyBox>(1, 1, 1, 1000, true, true, mat);
     box->SetFixed(true);
     sys.Add(box);
 

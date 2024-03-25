@@ -50,7 +50,7 @@ class ChApi ChLoadXYZROTnode : public ChLoadCustom {
                                     ChVector3d& abs_torque) = 0;
 
     // Optional: inherited classes could implement this to avoid the
-    // default numerical computation of jacobians:
+    // default numerical computation of Jacobians:
     //   virtual void ComputeJacobian(...) // see ChLoad
 
     /// Compute Q, the generalized load.
@@ -68,7 +68,7 @@ class ChApi ChLoadXYZROTnode : public ChLoadCustom {
     ChVector3d GetTorque() const { return computed_abs_torque; }
 
   protected:
-    /// Inherited classes could override this and return true, if the load benefits from a jacobian
+    /// Inherited classes could override this and return true, if the load benefits from a Jacobian
     /// when using implicit integrators.
     virtual bool IsStiff() override { return false; }
 
@@ -150,7 +150,7 @@ class ChApi ChLoadXYZROTnodeXYZROTnode : public ChLoadCustomMultiple {
                           ) override;
 
     // Optional: inherited classes could implement this to avoid the
-    // default numerical computation of jacobians:
+    // default numerical computation of Jacobians:
     //   virtual void ComputeJacobian(...) // see ChLoad
 
     /// For diagnosis purposes, this can return the actual last computed value of
@@ -411,7 +411,7 @@ class ChApi ChLoadXYZROTnodeBody : public ChLoadCustomMultiple {
                           ) override;
 
     // Optional: inherited classes could implement this to avoid the
-    // default numerical computation of jacobians:
+    // default numerical computation of Jacobians:
     //   virtual void ComputeJacobian(...) // see ChLoad
 
     /// For diagnosis purposes, this can return the actual last computed value of

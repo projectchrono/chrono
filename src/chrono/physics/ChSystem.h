@@ -159,7 +159,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     void SetChTime(double time) { ch_time = time; }
 
     /// Remove redundant constraints present in ChSystem through QR decomposition of constraints Jacobian matrix.
-    int RemoveRedundantConstraints(
+    unsigned int RemoveRedundantConstraints(
         bool remove_zero_constr = false,  ///< false: DEACTIVATE redundant links; true: REMOVE redundant links
         double qr_tol = 1e-6,             ///< tolerance in QR decomposition to identify linearly dependent constraint
         bool verbose = false              ///< set verbose output from method
@@ -401,13 +401,22 @@ class ChApi ChSystem : public ChIntegrableIIorder {
                          const ChVectorDynamic<>& Qc);
     void IntFromDescriptor(const unsigned int off_v, ChStateDelta& v, const unsigned int off_L, ChVectorDynamic<>& L);
 
-    void InjectVariables(ChSystemDescriptor& mdescriptor);
+    /// Register with the given system descriptor all ChVariable objects associated with items in the system.
+    void InjectVariables(ChSystemDescriptor& sys_descriptor);
 
-    void InjectConstraints(ChSystemDescriptor& mdescriptor);
-    void ConstraintsLoadJacobians();
+    /// Register with the given system descriptor any ChConstraint objects associated with items in the system.
+    void InjectConstraints(ChSystemDescriptor& sys_descriptor);
 
-    void InjectKRMmatrices(ChSystemDescriptor& mdescriptor);
-    void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor);
+    /// Compute and load current Jacobians in encapsulated ChConstraint objects.
+    void LoadConstraintJacobians();
+
+    /// Register with the given system descriptor any ChKRMBlock objects associated with items in the system.
+    void InjectKRMMatrices(ChSystemDescriptor& sys_descriptor);
+    
+    /// Compute and load current stiffnes (K), damping (R), and mass (M) matrices in encapsulated ChKRMBlock objects.
+    /// The resulting KRM blocks represent linear combinations of the K, R, and M matrices, with the specified
+    /// coefficients Kfactor, Rfactor,and Mfactor, respectively.
+    void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor);
 
     // Old bookkeeping system
     void VariablesFbReset();
@@ -733,7 +742,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
 
   protected:
     /// Pushes all ChConstraints and ChVariables contained in links, bodies, etc. into the system descriptor.
-    virtual void DescriptorPrepareInject(ChSystemDescriptor& mdescriptor);
+    virtual void DescriptorPrepareInject(ChSystemDescriptor& sys_descriptor);
 
     /// Initial system setup before analysis.
     /// This function performs an initial system setup, once system construction is completed and before an analysis.
@@ -772,11 +781,11 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     bool is_initialized;  ///< if false, an initial setup is required (i.e. a call to Initialize)
     bool is_updated;      ///< if false, a new update is required (i.e. a call to Update)
 
-    int m_num_coords_pos;  ///< number of scalar coordinates (including quaternions) for all active bodies
-    int m_num_coords_vel;  ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
-    int m_num_constr;      ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
-    int m_num_constr_bil;  ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
-    int m_num_constr_uni;  ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
+    unsigned int m_num_coords_pos;  ///< number of scalar coordinates (including quaternions) for all active bodies
+    unsigned int m_num_coords_vel;  ///< number of scalar coordinates when using 3 rot. dof. per body;  for all active bodies
+    unsigned int m_num_constr;      ///< number of scalar constraints  when using 3 rot. dof. per body;  for all active bodies
+    unsigned int m_num_constr_bil;  ///< number of scalar constraints C, when using 3 rot. dof. per body (excluding unilaterals)
+    unsigned int m_num_constr_uni;  ///< number of scalar constraints D, when using 3 rot. dof. per body (only unilaterals)
 
     double ch_time;  ///< simulation time of the system
     double step;     ///< time step
@@ -796,7 +805,7 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     bool write_matrix;       ///< write current system matrix to file(s); for debugging
     std::string output_dir;  ///< output directory for writing system matrices
 
-    int ncontacts;  ///< total number of contacts
+    unsigned int ncontacts;  ///< total number of contacts
 
     std::shared_ptr<ChCollisionSystem> collision_system;                         ///< collision engine
     std::vector<std::shared_ptr<CustomCollisionCallback>> collision_callbacks;   ///< user-defined collision callbacks

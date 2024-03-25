@@ -19,6 +19,19 @@ namespace chrono {
 // Register into the object factory, to enable run-time dynamic creation and persistence
 // CH_FACTORY_REGISTER(ChConstraint)   // NO! Abstract class
 
+ChConstraint::ChConstraint()
+    : c_i(0),
+      l_i(0),
+      b_i(0),
+      cfm_i(0),
+      valid(false),
+      disabled(false),
+      redundant(false),
+      broken(false),
+      active(true),
+      mode(Mode::LOCK),
+      g_i(0) {}
+
 ChConstraint::ChConstraint(const ChConstraint& other) {
     c_i = other.c_i;
     g_i = other.g_i;
@@ -57,14 +70,14 @@ bool ChConstraint::operator==(const ChConstraint& other) const {
 }
 
 void ChConstraint::Project() {
-    if (mode == CONSTRAINT_UNILATERAL) {
+    if (mode == Mode::UNILATERAL) {
         if (l_i < 0.)
             l_i = 0.;
     }
 }
 
 double ChConstraint::Violation(double mc_i) {
-    if (mode == CONSTRAINT_UNILATERAL) {
+    if (mode == Mode::UNILATERAL) {
         if (mc_i > 0.)
             return 0.;
     }
@@ -72,17 +85,21 @@ double ChConstraint::Violation(double mc_i) {
     return mc_i;
 }
 
-// Trick to avoid putting the following mapper macro inside the class definition in .h file:
-// enclose macros in local 'my_enum_mappers', just to avoid avoiding cluttering of the parent class.
-// class my_enum_mappers : public ChConstraint {
-//  public:
-CH_ENUM_MAPPER_BEGIN(eChConstraintMode);
-CH_ENUM_VAL(eChConstraintMode::CONSTRAINT_FREE);
-CH_ENUM_VAL(eChConstraintMode::CONSTRAINT_FRIC);
-CH_ENUM_VAL(eChConstraintMode::CONSTRAINT_LOCK);
-CH_ENUM_VAL(eChConstraintMode::CONSTRAINT_UNILATERAL);
-CH_ENUM_MAPPER_END(eChConstraintMode);
-//};
+void ChConstraint::UpdateActiveFlag() {
+    this->active = (valid && !disabled && !redundant && !broken && mode != (Mode::FREE));
+}
+
+// To avoid putting the following mapper macro inside the class definition,
+// enclose macros in local 'ChConstraint_Mode_enum_mapper'.
+class ChConstraint_Mode_enum_mapper : public ChConstraint {
+  public:
+    CH_ENUM_MAPPER_BEGIN(Mode);
+    CH_ENUM_VAL(Mode::FREE);
+    CH_ENUM_VAL(Mode::LOCK);
+    CH_ENUM_VAL(Mode::UNILATERAL);
+    CH_ENUM_VAL(Mode::FRICTION);
+    CH_ENUM_MAPPER_END(Mode);
+};
 
 void ChConstraint::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
@@ -94,8 +111,8 @@ void ChConstraint::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(disabled);
     archive_out << CHNVP(redundant);
     archive_out << CHNVP(broken);
-    eChConstraintMode_mapper typemapper;
-    archive_out << CHNVP(typemapper(this->mode), "mode");
+    ChConstraint_Mode_enum_mapper::Mode_mapper modemapper;
+    archive_out << CHNVP(modemapper(mode), "mode");
 }
 
 void ChConstraint::ArchiveIn(ChArchiveIn& archive_in) {
@@ -108,8 +125,10 @@ void ChConstraint::ArchiveIn(ChArchiveIn& archive_in) {
     archive_in >> CHNVP(disabled);
     archive_in >> CHNVP(redundant);
     archive_in >> CHNVP(broken);
-    eChConstraintMode_mapper typemapper;
-    archive_in >> CHNVP(typemapper(this->mode), "mode");
+    ChConstraint_Mode_enum_mapper::Mode_mapper modemapper;
+    archive_in >> CHNVP(modemapper(mode), "mode");
+
+
     UpdateActiveFlag();
 }
 

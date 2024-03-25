@@ -92,7 +92,7 @@ void ChShaftsPlanetary::IntLoadResidual_CqL(const unsigned int off_L,    // offs
     if (!active)
         return;
 
-    constraint.MultiplyTandAdd(R, L(off_L) * c);
+    constraint.AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
 }
 
 void ChShaftsPlanetary::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
@@ -128,8 +128,8 @@ void ChShaftsPlanetary::IntToDescriptor(const unsigned int off_v,  // offset in 
     if (!active)
         return;
 
-    constraint.Set_l_i(L(off_L));
-    constraint.Set_b_i(Qc(off_L));
+    constraint.SetLagrangeMultiplier(L(off_L));
+    constraint.SetRightHandSide(Qc(off_L));
 }
 
 void ChShaftsPlanetary::IntFromDescriptor(const unsigned int off_v,  // offset in v
@@ -139,7 +139,7 @@ void ChShaftsPlanetary::IntFromDescriptor(const unsigned int off_v,  // offset i
     if (!active)
         return;
 
-    L(off_L) = constraint.Get_l_i();
+    L(off_L) = constraint.GetLagrangeMultiplier();
 }
 
 void ChShaftsPlanetary::IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) {
@@ -150,15 +150,15 @@ void ChShaftsPlanetary::IntStateScatterReactions(const unsigned int off_L, const
     torque_react = L(off_L);
 }
 
-void ChShaftsPlanetary::InjectConstraints(ChSystemDescriptor& mdescriptor) {
+void ChShaftsPlanetary::InjectConstraints(ChSystemDescriptor& descriptor) {
     if (!active)
         return;
 
-    mdescriptor.InsertConstraint(&constraint);
+    descriptor.InsertConstraint(&constraint);
 }
 
 void ChShaftsPlanetary::ConstraintsBiReset() {
-    constraint.Set_b_i(0.);
+    constraint.SetRightHandSide(0.);
 }
 
 void ChShaftsPlanetary::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -167,14 +167,14 @@ void ChShaftsPlanetary::ConstraintsBiLoad_C(double factor, double recovery_clamp
 
     double res = 0;  // no residual
 
-    constraint.Set_b_i(constraint.Get_b_i() + factor * res);
+    constraint.SetRightHandSide(constraint.GetRightHandSide() + factor * res);
 }
 
 void ChShaftsPlanetary::ConstraintsBiLoad_Ct(double factor) {
     // nothing
 }
 
-void ChShaftsPlanetary::ConstraintsLoadJacobians() {
+void ChShaftsPlanetary::LoadConstraintJacobians() {
     // compute jacobians
     constraint.Get_Cq_a()(0) = r1;
     constraint.Get_Cq_b()(0) = r2;
@@ -183,7 +183,7 @@ void ChShaftsPlanetary::ConstraintsLoadJacobians() {
 
 void ChShaftsPlanetary::ConstraintsFetch_react(double factor) {
     // From constraints to react vector:
-    torque_react = constraint.Get_l_i() * factor;
+    torque_react = constraint.GetLagrangeMultiplier() * factor;
 }
 
 void ChShaftsPlanetary::ArchiveOut(ChArchiveOut& archive_out) {

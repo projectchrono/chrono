@@ -222,15 +222,13 @@ class ChApi ChMesh : public ChIndexedNodes {
 
     // SYSTEM FUNCTIONS (for interfacing all elements with solver)
 
-    /// Tell to a system descriptor that there are items of type
-    /// ChKblock in this object (for further passing it to a solver)
-    /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
+    /// Register with the given system descriptor any ChKRMBlock objects associated with this item.
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
 
-    /// Adds the current stiffness K and damping R and mass M matrices in encapsulated
-    /// ChKblock item(s), if any. The K, R, M matrices are added with scaling
-    /// values Kfactor, Rfactor, Mfactor.
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+    /// Compute and load current stiffnes (K), damping (R), and mass (M) matrices in encapsulated ChKRMBlock objects.
+    /// The resulting KRM blocks represent linear combinations of the K, R, and M matrices, with the specified
+    /// coefficients Kfactor, Rfactor,and Mfactor, respectively.
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     /// Sets the 'fb' part (the known term) of the encapsulated ChVariables to zero.
     virtual void VariablesFbReset() override;
@@ -265,10 +263,8 @@ class ChApi ChMesh : public ChIndexedNodes {
     /// numerical integration (Euler integration).
     virtual void VariablesQbIncrementPosition(double step) override;
 
-    /// Tell to a system descriptor that there are variables of type
-    /// ChVariables in this object (for further passing it to a solver)
-    /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) override;
+    /// Register with the given system descriptor any ChVariable objects associated with this item.
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
 
   private:
     /// Initial setup (before analysis).

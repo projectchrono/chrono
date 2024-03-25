@@ -189,12 +189,12 @@ int main(int argc, char* argv[]) {
     // Define a custom point load with a time-dependent force
     class MyLoaderTimeDependentTipLoad : public ChLoaderUatomic {
       public:
-        MyLoaderTimeDependentTipLoad(std::shared_ptr<ChLoadableU> mloadable)
-            : ChLoaderUatomic(mloadable), m_sys(nullptr) {}
+        MyLoaderTimeDependentTipLoad(std::shared_ptr<ChLoadableU> loadable)
+            : ChLoaderUatomic(loadable), m_sys(nullptr) {}
 
         // Compute F=F(U). The load is a 6-row vector, i.e. a wrench: forceX, forceY, forceZ, torqueX, torqueY, torqueZ.
-        virtual void ComputeF(const double U,              // normalized position along the beam axis [-1...1]
-                              ChVectorDynamic<>& F,        // load at U
+        virtual void ComputeF(double U,                    // normalized position along the beam axis [-1...1]
+                              ChVectorDynamic<>& F,        // load at U (set to zero on entry)
                               ChVectorDynamic<>* state_x,  // if non-null, first update state (position) to this
                               ChVectorDynamic<>* state_w   // if non-null, fiurst update state (speed) to this
                               ) override {
@@ -206,7 +206,6 @@ int main(int argc, char* argv[]) {
                 Fz = 0.5 * Fmax * (1 - cos(CH_PI * t / tc));
             }
 
-            F.setZero();
             F(2) = Fz;  // Apply the force along the global Z axis
         }
 
@@ -221,10 +220,12 @@ int main(int argc, char* argv[]) {
     sys.Add(loadcontainer);
 
     // Create a custom load that uses the custom loader above.
-    auto load = chrono_types::make_shared<ChLoad<MyLoaderTimeDependentTipLoad>>(last_element);
-    load->loader.SetSystem(&sys);      // set containing system
-    load->loader.SetApplication(1.0);  // specify application point
-    loadcontainer->Add(load);          // add the load to the load container.
+    auto loader = chrono_types::make_shared<MyLoaderTimeDependentTipLoad>(last_element);
+    loader->SetSystem(&sys);      // set containing system
+    loader->SetApplication(1.0);  // specify application point
+
+    auto load = chrono_types::make_shared<ChLoad>(loader);
+    loadcontainer->Add(load);  // add the load to the load container.
 
     // Set up mesh visualization
     auto vis_surf = chrono_types::make_shared<ChVisualShapeFEA>(mesh);

@@ -335,6 +335,26 @@ class ChApi ChPhysicsItem : public ChObj {
     // The children classes, inherited from ChPhysicsItem, can implement them (by default,
     // the base ChPhysicsItem does not introduce any variable nor any constraint).
 
+    /// Register with the given system descriptor any ChVariable objects associated with this item.
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) {}
+
+    /// Register with the given system descriptor any ChConstraint objects associated with this item.
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) {}
+
+    /// Compute and load current Jacobians in encapsulated ChConstraint objects.
+    virtual void LoadConstraintJacobians() {}
+
+    /// Register with the given system descriptor any ChKRMBlock objects associated with this item.
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) {}
+
+    /// Compute and load current stiffnes (K), damping (R), and mass (M) matrices in encapsulated ChKRMBlock objects.
+    /// The resulting KRM blocks represent linear combinations of the K, R, and M matrices, with the specified
+    /// coefficients Kfactor, Rfactor,and Mfactor, respectively.
+    /// Note: signs are flipped from the term dF/dx in the integrator: K = -dF/dq and R = -dF/dv.
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {}
+
+    // OLD BOOKKEEPING MECHANISM (marked for elimination)
+
     /// Sets the 'fb' part (the known term) of the encapsulated ChVariables to zero.
     virtual void VariablesFbReset() {}
 
@@ -366,16 +386,6 @@ class ChApi ChPhysicsItem : public ChObj {
     /// numerical integration (Euler integration).
     virtual void VariablesQbIncrementPosition(double step) {}
 
-    /// Tell to a system descriptor that there are variables of type
-    /// ChVariables in this object (for further passing it to a solver)
-    /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) {}
-
-    /// Tell to a system descriptor that there are constraints of type
-    /// ChConstraint in this object (for further passing it to a solver)
-    /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) {}
-
     /// Sets to zero the known term (b_i) of encapsulated ChConstraints
     virtual void ConstraintsBiReset() {}
 
@@ -395,26 +405,12 @@ class ChApi ChPhysicsItem : public ChObj {
     /// of the ChVariables referenced by encapsulated ChConstraints
     virtual void ConstraintsFbLoadForces(double factor = 1) {}
 
-    /// Adds the current jacobians in encapsulated ChConstraints
-    virtual void ConstraintsLoadJacobians() {}
-
     /// Fetches the reactions from the lagrangian multiplier (l_i)
     /// of encapsulated ChConstraints.
     /// Mostly used after the solver provided the solution in ChConstraints.
     /// Also, should convert the reactions obtained from dynamical simulation,
     /// from link space to intuitive react_force and react_torque.
     virtual void ConstraintsFetch_react(double factor = 1) {}
-
-    /// Tell to a system descriptor that there are items of type
-    /// ChKblock in this object (for further passing it to a solver)
-    /// Basically does nothing, but maybe that inherited classes may specialize this.
-    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) {}
-
-    /// Adds the current stiffness K and damping R and mass M matrices in encapsulated
-    /// ChKblock item(s), if any. The K, R, M matrices are added with scaling
-    /// values Kfactor, Rfactor, Mfactor.
-    /// NOTE: signs are flipped respect to the ChTimestepper dF/dx terms:  K = -dF/dq, R = -dF/dv
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {}
 
     // SERIALIZATION
 

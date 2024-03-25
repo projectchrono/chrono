@@ -76,21 +76,20 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
         m_timer_convert.start();
 
-        // sysd.ConvertToMatrixForm(0, &LS_solver->A(), 0, &LS_solver->b(), 0, 0, 0);
-        // sysd.ConvertToMatrixForm(0, &LS_solver->A(), 0, &LS_solver->b(), 0, 0, 0);
+        // sysd.BuildSystemMatrix(0, &LS_solver->A(), 0, &LS_solver->b(), 0, 0, 0);
+        // sysd.BuildSystemMatrix(0, &LS_solver->A(), 0, &LS_solver->b(), 0, 0, 0);
         // much faster to fill brand new sparse matrices??!!
 
         ChSparsityPatternLearner sparsity_pattern(nv, nv);
-        sysd.ConvertToMatrixForm(&sparsity_pattern, 0);
-        sysd.ConvertToMatrixForm(&sparsity_pattern, 0);
+        sysd.BuildSystemMatrix(&sparsity_pattern, nullptr);
         sparsity_pattern.Apply(H);
-        sysd.ConvertToMatrixForm(&H, &k);
+        sysd.BuildSystemMatrix(&H, &k);
         LS_solver->A() = H;
         LS_solver->b() = k;
 
         m_timer_convert.stop();
         if (verbose)
-            std::cout << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
+            std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
                       << std::endl;
 
         // v = H\k
@@ -104,9 +103,13 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
     }
 
     ChSparseMatrix Cq(nc, nv);
+    Cq.setZeroValues();
     ChSparseMatrix E(nc, nc);
+    E.setZeroValues();
     ChVectorDynamic<> k(nv);
+    k.setZero(nv);
     ChVectorDynamic<> b(nc);
+    b.setZero(nc);
 
     ChSparseMatrix A(nv + nc, nv + nc);
     ChVectorDynamic<> B(nv + nc);
@@ -120,7 +123,10 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
     ChVectorDynamic<> z_old(nc);
     ChVectorDynamic<> y_old(nc);
 
-    sysd.ConvertToMatrixForm(&Cq, 0, &E, &k, &b, 0);
+    sysd.PasteConstraintsJacobianMatrixInto(Cq);
+    sysd.PasteComplianceMatrixInto(E);
+    sysd.BuildFbVector(k);
+    sysd.BuildBiVector(b);
     Cq.makeCompressed();
     E.makeCompressed();
 
@@ -166,14 +172,14 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         int j_friction_comp = 0;
         double gi_values[3];
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-            if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) {
-                gi_values[j_friction_comp] = mconstraints[ic]->Get_g_i();
+            if (mconstraints[ic]->GetMode() == ChConstraint::Mode::FRICTION) {
+                gi_values[j_friction_comp] = mconstraints[ic]->GetSchurComplement();
                 j_friction_comp++;
                 if (j_friction_comp == 3) {
                     double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) / 3.0;
-                    mconstraints[ic - 2]->Set_g_i(average_g_i);
-                    mconstraints[ic - 1]->Set_g_i(average_g_i);
-                    mconstraints[ic - 0]->Set_g_i(average_g_i);
+                    mconstraints[ic - 2]->SetSchurComplement(average_g_i);
+                    mconstraints[ic - 1]->SetSchurComplement(average_g_i);
+                    mconstraints[ic - 0]->SetSchurComplement(average_g_i);
                     j_friction_comp = 0;
                 }
             }
@@ -183,7 +189,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
         int d_i = 0;
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
             if (mconstraints[ic]->IsActive()) {
-                S(d_i, 0) = sqrt(mconstraints[ic]->Get_g_i());  // square root of diagonal of N, just mass matrices
+                S(d_i, 0) = sqrt(mconstraints[ic]->GetSchurComplement());  // square root of diagonal of N, just mass matrices
                                                                 // considered, no stiffness matrices anyway
                 ++d_i;
             }
@@ -218,7 +224,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
     int s_c = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive()) {
-            if (mconstraints[ic]->GetMode() == eChConstraintMode::CONSTRAINT_LOCK)
+            if (mconstraints[ic]->GetMode() == ChConstraint::Mode::LOCK)
                 vrho(s_c) = rho_b;
             s_c++;
         }
@@ -230,15 +236,15 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
     m_timer_convert.start();
 
-    LS_solver->A().resize(nv + nc, nv + nc);  // otherwise conservativeResize in ConvertToMatrixForm() causes error
+    LS_solver->A().resize(nv + nc, nv + nc);  // otherwise conservativeResize in BuildSystemMatrix() causes error
 
-    // sysd.ConvertToMatrixForm(&LS_solver->A(),&LS_solver->b());  // A = [M, Cq'; Cq, E ];
+    // sysd.BuildSystemMatrix(&LS_solver->A(),&LS_solver->b());  // A = [M, Cq'; Cq, E ];
     // much faster to fill brand new sparse matrices??!!
     ChSparsityPatternLearner sparsity_pattern(nv + nc, nv + nc);
-    sysd.ConvertToMatrixForm(&sparsity_pattern, nullptr);
+    sysd.BuildSystemMatrix(&sparsity_pattern, nullptr);
     sparsity_pattern.Apply(A);
 
-    sysd.ConvertToMatrixForm(&A, &B);  // A = [M, Cq'; Cq, E ];
+    sysd.BuildSystemMatrix(&A, &B);  // A = [M, Cq'; Cq, E ];
 
     if (this->precond) {
         // the following is equivalent to having scaled
@@ -258,7 +264,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
 
     m_timer_convert.stop();
     if (verbose)
-        std::cout << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
+        std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
                   << std::endl;
 
     m_timer_factorize.start();
@@ -414,7 +420,7 @@ double ChSolverADMM::_SolveBasic(ChSystemDescriptor& sysd) {
                 s_c = 0;
                 for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
                     if (mconstraints[ic]->IsActive()) {
-                        if (mconstraints[ic]->GetMode() == eChConstraintMode::CONSTRAINT_LOCK)
+                        if (mconstraints[ic]->GetMode() == ChConstraint::Mode::LOCK)
                             vrho(s_c) = rho_b;
                         s_c++;
                     }
@@ -484,15 +490,15 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         m_timer_convert.start();
 
         ChSparsityPatternLearner sparsity_pattern(nv, nv);
-        sysd.ConvertToMatrixForm(&sparsity_pattern, 0);
+        sysd.BuildSystemMatrix(&sparsity_pattern, 0);
         sparsity_pattern.Apply(H);
-        sysd.ConvertToMatrixForm(&H, &k);
+        sysd.BuildSystemMatrix(&H, &k);
         LS_solver->A() = H;
         LS_solver->b() = k;
 
         m_timer_convert.stop();
         if (verbose)
-            std::cout << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
+            std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
                       << std::endl;
 
         // v = H\k
@@ -506,9 +512,13 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
     }
 
     ChSparseMatrix Cq(nc, nv);
+    Cq.setZeroValues();
     ChSparseMatrix E(nc, nc);
+    E.setZeroValues();
     ChVectorDynamic<> k(nv);
+    k.setZero(nv);
     ChVectorDynamic<> b(nc);
+    b.setZero(nc);
 
     ChSparseMatrix A(nv + nc, nv + nc);
     ChVectorDynamic<> B(nv + nc);
@@ -522,7 +532,10 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
     ChVectorDynamic<> y_old(nc);
     ChVectorDynamic<> v_old(nv);
 
-    sysd.ConvertToMatrixForm(&Cq, 0, &E, &k, &b, 0);
+    sysd.PasteConstraintsJacobianMatrixInto(Cq);
+    sysd.PasteComplianceMatrixInto(E);
+    sysd.BuildFbVector(k);
+    sysd.BuildBiVector(b);
     Cq.makeCompressed();
     E.makeCompressed();
 
@@ -570,14 +583,14 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         int j_friction_comp = 0;
         double gi_values[3];
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
-            if (mconstraints[ic]->GetMode() == CONSTRAINT_FRIC) {
-                gi_values[j_friction_comp] = mconstraints[ic]->Get_g_i();
+            if (mconstraints[ic]->GetMode() == ChConstraint::Mode::FRICTION) {
+                gi_values[j_friction_comp] = mconstraints[ic]->GetSchurComplement();
                 j_friction_comp++;
                 if (j_friction_comp == 3) {
                     double average_g_i = (gi_values[0] + gi_values[1] + gi_values[2]) / 3.0;
-                    mconstraints[ic - 2]->Set_g_i(average_g_i);
-                    mconstraints[ic - 1]->Set_g_i(average_g_i);
-                    mconstraints[ic - 0]->Set_g_i(average_g_i);
+                    mconstraints[ic - 2]->SetSchurComplement(average_g_i);
+                    mconstraints[ic - 1]->SetSchurComplement(average_g_i);
+                    mconstraints[ic - 0]->SetSchurComplement(average_g_i);
                     j_friction_comp = 0;
                 }
             }
@@ -587,7 +600,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
         int d_i = 0;
         for (unsigned int ic = 0; ic < mconstraints.size(); ic++)
             if (mconstraints[ic]->IsActive()) {
-                S(d_i, 0) = sqrt(mconstraints[ic]->Get_g_i());  // square root of diagonal of N, just mass matrices
+                S(d_i, 0) = sqrt(mconstraints[ic]->GetSchurComplement());  // square root of diagonal of N, just mass matrices
                                                                 // considered, no stiffness matrices anyway
                 ++d_i;
             }
@@ -622,7 +635,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
     int s_c = 0;
     for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
         if (mconstraints[ic]->IsActive()) {
-            if (mconstraints[ic]->GetMode() == eChConstraintMode::CONSTRAINT_LOCK)
+            if (mconstraints[ic]->GetMode() == ChConstraint::Mode::LOCK)
                 vrho(s_c) = rho_b;
             s_c++;
         }
@@ -634,15 +647,15 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
     m_timer_convert.start();
 
-    LS_solver->A().resize(nv + nc, nv + nc);  // otherwise conservativeResize in ConvertToMatrixForm() causes error
+    LS_solver->A().resize(nv + nc, nv + nc);  // otherwise conservativeResize in BuildSystemMatrix() causes error
 
-    // sysd.ConvertToMatrixForm(&LS_solver->A(),&LS_solver->b());  // A = [M, Cq'; Cq, E ];
+    // sysd.BuildSystemMatrix(&LS_solver->A(),&LS_solver->b());  // A = [M, Cq'; Cq, E ];
     // much faster to fill brand new sparse matrices??!!
     ChSparsityPatternLearner sparsity_pattern(nv + nc, nv + nc);
-    sysd.ConvertToMatrixForm(&sparsity_pattern, nullptr);
+    sysd.BuildSystemMatrix(&sparsity_pattern, nullptr);
     sparsity_pattern.Apply(A);
 
-    sysd.ConvertToMatrixForm(&A, &B);  // A = [M, Cq'; Cq, E ];
+    sysd.BuildSystemMatrix(&A, &B);  // A = [M, Cq'; Cq, E ];
 
     if (this->precond) {
         // the following is equivalent to having scaled
@@ -662,7 +675,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
 
     m_timer_convert.stop();
     if (verbose)
-        std::cout << " Time for ConvertToMatrixForm: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
+        std::cout << " Time for BuildSystemMatrix: << " << m_timer_convert.GetTimeSecondsIntermediate() << "s"
                   << std::endl;
 
     m_timer_factorize.start();
@@ -836,7 +849,7 @@ double ChSolverADMM::_SolveFast(ChSystemDescriptor& sysd) {
                 s_c = 0;
                 for (unsigned int ic = 0; ic < mconstraints.size(); ic++) {
                     if (mconstraints[ic]->IsActive()) {
-                        if (mconstraints[ic]->GetMode() == eChConstraintMode::CONSTRAINT_LOCK)
+                        if (mconstraints[ic]->GetMode() == ChConstraint::Mode::LOCK)
                             vrho(s_c) = rho_b;
                         s_c++;
                     }

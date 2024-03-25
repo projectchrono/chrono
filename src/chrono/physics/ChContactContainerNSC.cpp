@@ -704,26 +704,26 @@ void ChContactContainerNSC::IntFromDescriptor(const unsigned int off_v,
 // SOLVER INTERFACES
 
 template <class Tcont>
-void _InjectConstraints(std::list<Tcont*>& contactlist, ChSystemDescriptor& mdescriptor) {
+void _InjectConstraints(std::list<Tcont*>& contactlist, ChSystemDescriptor& descriptor) {
     typename std::list<Tcont*>::iterator itercontact = contactlist.begin();
     while (itercontact != contactlist.end()) {
-        (*itercontact)->InjectConstraints(mdescriptor);
+        (*itercontact)->InjectConstraints(descriptor);
         ++itercontact;
     }
 }
 
-void ChContactContainerNSC::InjectConstraints(ChSystemDescriptor& mdescriptor) {
-    _InjectConstraints(contactlist_6_6, mdescriptor);
-    _InjectConstraints(contactlist_6_3, mdescriptor);
-    _InjectConstraints(contactlist_3_3, mdescriptor);
-    _InjectConstraints(contactlist_333_3, mdescriptor);
-    _InjectConstraints(contactlist_333_6, mdescriptor);
-    _InjectConstraints(contactlist_333_333, mdescriptor);
-    _InjectConstraints(contactlist_666_3, mdescriptor);
-    _InjectConstraints(contactlist_666_6, mdescriptor);
-    _InjectConstraints(contactlist_666_333, mdescriptor);
-    _InjectConstraints(contactlist_666_666, mdescriptor);
-    _InjectConstraints(contactlist_6_6_rolling, mdescriptor);
+void ChContactContainerNSC::InjectConstraints(ChSystemDescriptor& descriptor) {
+    _InjectConstraints(contactlist_6_6, descriptor);
+    _InjectConstraints(contactlist_6_3, descriptor);
+    _InjectConstraints(contactlist_3_3, descriptor);
+    _InjectConstraints(contactlist_333_3, descriptor);
+    _InjectConstraints(contactlist_333_6, descriptor);
+    _InjectConstraints(contactlist_333_333, descriptor);
+    _InjectConstraints(contactlist_666_3, descriptor);
+    _InjectConstraints(contactlist_666_6, descriptor);
+    _InjectConstraints(contactlist_666_333, descriptor);
+    _InjectConstraints(contactlist_666_666, descriptor);
+    _InjectConstraints(contactlist_6_6_rolling, descriptor);
 }
 
 template <class Tcont>
@@ -772,7 +772,7 @@ void ChContactContainerNSC::ConstraintsBiLoad_C(double factor, double recovery_c
     _ConstraintsBiLoad_C(contactlist_6_6_rolling, factor, recovery_clamp, do_clamp);
 }
 
-void ChContactContainerNSC::ConstraintsLoadJacobians() {
+void ChContactContainerNSC::LoadConstraintJacobians() {
     // already loaded when contact objects are created
 }
 

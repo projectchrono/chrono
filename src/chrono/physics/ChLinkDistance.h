@@ -97,12 +97,28 @@ class ChApi ChLinkDistance : public ChLink {
     /// Get link mode.
     Mode GetMode() const { return this->mode; }
 
-    /// Get the constraint violation
+    /// Get the constraint violation.
     virtual ChVectorDynamic<> GetConstraintViolation() const override { return C; }
 
-    virtual void Update(double mtime, bool update_assets = true) override;
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 
-    // STATE FUNCTIONS
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  private:
+    Mode mode;                 ///< current mode
+    double mode_sign;          ///< current mode
+    double distance;           ///< imposed distance
+    double curr_dist;          ///< current distance
+    ChVector3d m_pos1;         ///< first endpoint, in body rel. coords
+    ChVector3d m_pos2;         ///< second endpoint, in body rel. coords
+    ChConstraintTwoBodies Cx;  ///< the constraint object
+    ChVectorN<double, 1> C;    ///< constraint violation
+
+    // Solver and integrator interface functions
+
+    virtual void Update(double mtime, bool update_assets = true) override;
 
     virtual void IntStateGatherReactions(const unsigned int off_L, ChVectorDynamic<>& L) override;
     virtual void IntStateScatterReactions(const unsigned int off_L, const ChVectorDynamic<>& L) override;
@@ -126,31 +142,14 @@ class ChApi ChLinkDistance : public ChLink {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    // SOLVER INTERFACE
-
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) override;
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) override;
     virtual void ConstraintsBiReset() override;
     virtual void ConstraintsBiLoad_C(double factor = 1, double recovery_clamp = 0.1, bool do_clamp = false) override;
-    virtual void ConstraintsLoadJacobians() override;
+    virtual void LoadConstraintJacobians() override;
     virtual void ConstraintsFetch_react(double factor = 1) override;
 
-    // SERIALIZATION
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
-
-  private:
-    Mode mode;                 ///< current mode
-    double mode_sign;          ///< current mode
-    double distance;           ///< imposed distance
-    double curr_dist;          ///< current distance
-    ChVector3d m_pos1;         ///< first endpoint, in body rel. coords
-    ChVector3d m_pos2;         ///< second endpoint, in body rel. coords
-    ChConstraintTwoBodies Cx;  ///< the constraint object
-    ChVectorN<double, 1> C;    ///< constraint violation
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 CH_CLASS_VERSION(ChLinkDistance, 0)

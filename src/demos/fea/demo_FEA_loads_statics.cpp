@@ -102,21 +102,22 @@ int main(int argc, char* argv[]) {
 
     // Add a vertical load to the end of the beam element:
     auto wrench_load = chrono_types::make_shared<ChLoadBeamWrench>(elementA);
-    wrench_load->loader.SetApplication(1.0);  // in -1..+1 range, -1: end A, 0: mid, +1: end B
-    wrench_load->loader.SetForce(ChVector3d(0, -0.2, 0));
+    wrench_load->GetLoader()->SetApplication(1.0);  // in -1..+1 range, -1: end A, 0: mid, +1: end B
+    wrench_load->GetLoader()->SetForce(ChVector3d(0, -0.2, 0));
     load_container->Add(wrench_load);  // do not forget to add the load to the load container.
 
     // Example 2:
 
     // Add a distributed load along the beam element:
     auto distr_wrench_load = chrono_types::make_shared<ChLoadBeamWrenchDistributed>(elementA);
-    distr_wrench_load->loader.SetForcePerUnit(ChVector3d(0, -0.1, 0));  // load per unit length
+    distr_wrench_load->GetLoader()->SetForcePerUnit(ChVector3d(0, -0.1, 0));  // load per unit length
     load_container->Add(distr_wrench_load);
 
     // Example 3:
 
     // Add gravity (constant volumetric load)
-    auto gravity_load = chrono_types::make_shared<ChLoad<ChLoaderGravity>>(elementA);
+    auto gravity_loader = chrono_types::make_shared<ChLoaderGravity>(elementA);
+    auto gravity_load = chrono_types::make_shared<ChLoad>(gravity_loader);
     load_container->Add(gravity_load);
 
     // note that by default all solid elements in the mesh will already
@@ -142,8 +143,8 @@ int main(int argc, char* argv[]) {
         // This is the function that you have to implement. It should return the
         // load at U. For Euler beams, loads are expected as 6-rows vectors, containing
         // a wrench: forceX, forceY, forceZ, torqueX, torqueY, torqueZ.
-        virtual void ComputeF(const double U,        // parametric coordinate in line
-                              ChVectorDynamic<>& F,  // Result F vector here, size must be = n.field coords.of loadable
+        virtual void ComputeF(double U,                    // parametric coordinate in line
+                              ChVectorDynamic<>& F,        // result vector, size = field dim of loadable
                               ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate F
                               ChVectorDynamic<>* state_w  // if != 0, update state (speed part) to this, then evaluate F
         ) {
@@ -158,9 +159,9 @@ int main(int argc, char* argv[]) {
 
     // Create the load (and handle it with a shared pointer).
     // The ChLoad is a 'container' for your ChLoader.
-    // It is created using templates, that is instancing a ChLoad<a_loader_class>()
 
-    std::shared_ptr<ChLoad<MyLoaderTriangular>> tri_load(new ChLoad<MyLoaderTriangular>(elementA));
+    auto tri_loader = chrono_types::make_shared<MyLoaderTriangular>(elementA);
+    auto tri_load = chrono_types::make_shared<ChLoad>(tri_loader);
     load_container->Add(tri_load);  // do not forget to add the load to the load container.
 
     // Example 5:
@@ -181,12 +182,12 @@ int main(int argc, char* argv[]) {
         // For ChNodeFEAxyz, loads are expected as 3-rows vectors, containing F absolute force.
         // As this is a stiff force field, dependency from state_x and state_y must be considered.
         virtual void ComputeF(
-            const double U,
-            const double V,
-            const double W,
-            ChVectorDynamic<>& F,        ///< Result F vector here, size must be = n.field coords.of loadable
-            ChVectorDynamic<>* state_x,  ///< if != 0, update state (pos. part) to this, then evaluate F
-            ChVectorDynamic<>* state_w   ///< if != 0, update state (speed part) to this, then evaluate F
+             double U,
+             double V,
+             double W,
+            ChVectorDynamic<>& F,        // result vector, size = field dim of loadable
+            ChVectorDynamic<>* state_x,  // if != 0, update state (pos. part) to this, then evaluate F
+            ChVectorDynamic<>* state_w   // if != 0, update state (speed part) to this, then evaluate F
         ) {
             ChVector3d node_pos;
             ChVector3d node_vel;
@@ -220,7 +221,8 @@ int main(int argc, char* argv[]) {
 
     // Instance a ChLoad object, applying to a node, and passing a ChLoader as a template
     // (in this case the ChLoader-inherited class is our MyLoaderPointStiff), and add to container:
-    std::shared_ptr<ChLoad<MyLoaderPointStiff>> stiff_load(new ChLoad<MyLoaderPointStiff>(nodeC));
+    auto stiff_loader = chrono_types::make_shared<MyLoaderPointStiff>(nodeC);
+    auto stiff_load = chrono_types::make_shared<ChLoad>(stiff_loader);
     load_container->Add(stiff_load);
 
     // Example 6:
@@ -238,7 +240,7 @@ int main(int argc, char* argv[]) {
       public:
         MyLoadCustom(std::shared_ptr<ChLoadableUVW> loadable) : ChLoadCustom(loadable) {}
 
-        /// "Virtual" copy constructor (covariant return type).
+        // "Virtual" copy constructor (covariant return type).
         virtual MyLoadCustom* Clone() const override { return new MyLoadCustom(*this); }
 
         // Compute Q=Q(x,v)
@@ -246,8 +248,8 @@ int main(int argc, char* argv[]) {
         // (i.e.the force in generalized lagrangian coordinates).
         // For ChNodeFEAxyz, Q loads are expected as 3-rows vectors, containing absolute force x,y,z.
         // As this is a stiff force field, dependency from state_x and state_y must be considered.
-        virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
-                              ChStateDelta* state_w  ///< state speed to evaluate Q
+        virtual void ComputeQ(ChState* state_x,      // state position to evaluate Q
+                              ChStateDelta* state_w  // state speed to evaluate Q
                               ) override {
             ChVector3d node_pos;
             ChVector3d node_vel;
@@ -277,16 +279,13 @@ int main(int argc, char* argv[]) {
 
         // OPTIONAL: if you want to provide an analytical jacobian, that might avoid the lengthy and approximate
         // default numerical jacobian, just implement the following:
-        virtual void ComputeJacobian(ChState* state_x,       // state position to evaluate jacobians
-                                     ChStateDelta* state_w,  // state speed to evaluate jacobians
-                                     ChMatrixRef K,          // result dQ/dx
-                                     ChMatrixRef R,          // result dQ/dv
-                                     ChMatrixRef M           // result dQ/da
+        virtual void ComputeJacobian(ChState* state_x,      // state position to evaluate jacobians
+                                     ChStateDelta* state_w  // state speed to evaluate jacobians
                                      ) override {
-            K(0, 0) = 100;
-            K(1, 1) = 400;
-            R(0, 0) = 0.6;
-            R(1, 1) = 0.9;
+            m_jacobians->K(0, 0) = 100;
+            m_jacobians->K(1, 1) = 400;
+            m_jacobians->R(0, 0) = 0.6;
+            m_jacobians->R(1, 1) = 0.9;
         }
 
         // Set this as stiff, to enable the Jacobians
@@ -316,7 +315,7 @@ int main(int argc, char* argv[]) {
       public:
         MyLoadCustomMultiple(std::vector<std::shared_ptr<ChLoadable>>& loadables) : ChLoadCustomMultiple(loadables) {}
 
-        /// "Virtual" copy constructor (covariant return type).
+        // "Virtual" copy constructor (covariant return type).
         virtual MyLoadCustomMultiple* Clone() const override { return new MyLoadCustomMultiple(*this); }
 
         // Compute Q=Q(x,v)

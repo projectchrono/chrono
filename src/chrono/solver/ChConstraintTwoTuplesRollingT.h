@@ -33,7 +33,7 @@ class ChApi ChConstraintTwoTuplesRollingT : public ChConstraintTwoTuples<Ta, Tb>
                                             public ChConstraintTwoTuplesRollingTall {
   public:
     /// Default constructor
-    ChConstraintTwoTuplesRollingT() { this->mode = CONSTRAINT_FRIC; }
+    ChConstraintTwoTuplesRollingT() { this->mode = ChConstraint::Mode::FRICTION; }
 
     /// Copy constructor
     ChConstraintTwoTuplesRollingT(const ChConstraintTwoTuplesRollingT& other) : ChConstraintTwoTuples<Ta, Tb>(other) {}

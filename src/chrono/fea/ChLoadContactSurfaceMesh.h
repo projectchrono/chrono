@@ -82,18 +82,15 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     // simple.. field is x y z, hardcoded return val:
     virtual int LoadGetNumFieldCoords() override { return 3; }
 
-    /// Compute Q, the generalized load.
+    /// Compute the generalized load(s).
     virtual void ComputeQ(ChState* state_x,      ///< state position to evaluate Q
                           ChStateDelta* state_w  ///< state speed to evaluate Q
                           ) override;
 
-    /// Compute jacobians.
-    /// Not needed when forces are constant, btw.
-    virtual void ComputeJacobian(ChState* state_x,       ///< state position to evaluate jacobians
-                                 ChStateDelta* state_w,  ///< state speed to evaluate jacobians
-                                 ChMatrixRef mK,         ///< result dQ/dx
-                                 ChMatrixRef mR,         ///< result dQ/dv
-                                 ChMatrixRef mM          ///< result dQ/da
+    /// Compute the K=-dQ/dx, R=-dQ/dv, M=-dQ/da Jacobians.
+    /// Load the Jacobian matrices K, R, M in the structure 'm_jacobians'.
+    virtual void ComputeJacobian(ChState* state_x,      ///< state position to evaluate jacobians
+                                 ChStateDelta* state_w  ///< state speed to evaluate jacobians
                                  ) override;
 
     virtual bool IsStiff() override { return false; }
@@ -102,8 +99,8 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     virtual void LoadIntLoadResidual_F(ChVectorDynamic<>& R, double c) override;
     virtual void LoadIntLoadResidual_Mv(ChVectorDynamic<>& R, const ChVectorDynamic<>& w, double c) override {}
     virtual void LoadIntLoadLumpedMass_Md(ChVectorDynamic<>& Md, double& err, double c) override {}
-    virtual void InjectKRMmatrices(ChSystemDescriptor& mdescriptor) override;
-    virtual void KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) override;
+    virtual void InjectKRMMatrices(ChSystemDescriptor& descriptor) override;
+    virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     std::shared_ptr<ChContactSurfaceMesh> m_contact_mesh;
     std::vector<std::shared_ptr<ChLoadXYZnode>> m_forces;

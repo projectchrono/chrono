@@ -153,7 +153,7 @@ class ChContactTuple {
                                        ChVectorDynamic<>& L       ///< the L vector
     ) {}
 
-    virtual void InjectConstraints(ChSystemDescriptor& mdescriptor) {}
+    virtual void InjectConstraints(ChSystemDescriptor& descriptor) {}
 
     virtual void ConstraintsBiReset() {}
 

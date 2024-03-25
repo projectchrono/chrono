@@ -226,8 +226,8 @@ void ChLinkRSDA::ConstraintsFbLoadForces(double factor) {
     ChVector3d torque = m_torque * m_axis;
 
     // Load torques in 'fb' vector accumulator of body variables (torques in local coords)
-    m_body1->Variables().Get_fb().segment(3, 3) -= factor * m_body1->TransformDirectionParentToLocal(torque).eigen();
-    m_body2->Variables().Get_fb().segment(3, 3) += factor * m_body2->TransformDirectionParentToLocal(torque).eigen();
+    m_body1->Variables().Force().segment(3, 3) -= factor * m_body1->TransformDirectionParentToLocal(torque).eigen();
+    m_body2->Variables().Force().segment(3, 3) += factor * m_body2->TransformDirectionParentToLocal(torque).eigen();
 }
 
 void ChLinkRSDA::ArchiveOut(ChArchiveOut& archive_out) {

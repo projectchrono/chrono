@@ -106,7 +106,7 @@ void ChLinkMotorRotationAngle::Update(double mytime, bool update_assets) {
     }
 }
 
-void ChLinkMotorRotationAngle::KRMmatricesLoad(double Kfactor, double Rfactor, double Mfactor) {
+void ChLinkMotorRotationAngle::LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) {
     if (!this->IsActive())
         return;
 
@@ -170,7 +170,7 @@ void ChLinkMotorRotationAngle::KRMmatricesLoad(double Kfactor, double Rfactor, d
         Ks.block<3, 3>(9, 9) = R_B2_W.transpose() * R_F2_W * G * R_F1M_W.transpose() * R_B2_W;
 
         // The complete tangent stiffness matrix
-        this->Kmatr->Get_K() = (Km + Ks) * Kfactor;
+        this->Kmatr->GetMatrix() = (Km + Ks) * Kfactor;
     }
 }
 
@@ -189,7 +189,7 @@ void ChLinkMotorRotationAngle::ConstraintsBiLoad_Ct(double factor) {
     double mCt = -0.5 * m_func->GetDer(this->GetChTime());
     unsigned int ncrz = mask.GetNumConstraints() - 1;
     if (mask.GetConstraint(ncrz).IsActive()) {
-        mask.GetConstraint(ncrz).Set_b_i(mask.GetConstraint(ncrz).Get_b_i() + factor * mCt);
+        mask.GetConstraint(ncrz).SetRightHandSide(mask.GetConstraint(ncrz).GetRightHandSide() + factor * mCt);
     }
 }
 

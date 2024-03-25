@@ -135,7 +135,7 @@ void ChShaftsMotorSpeed::IntLoadResidual_CqL(const unsigned int off_L,    // off
                                              const ChVectorDynamic<>& L,  // the L vector
                                              const double c               // a scaling factor
 ) {
-    constraint.MultiplyTandAdd(R, L(off_L) * c);
+    constraint.AddJacobianTransposedTimesScalarInto(R, L(off_L) * c);
 }
 
 void ChShaftsMotorSpeed::IntLoadConstraint_C(const unsigned int off_L,  // offset in Qc residual
@@ -175,57 +175,57 @@ void ChShaftsMotorSpeed::IntToDescriptor(const unsigned int off_v,  // offset in
                                          const unsigned int off_L,  // offset in L, Qc
                                          const ChVectorDynamic<>& L,
                                          const ChVectorDynamic<>& Qc) {
-    constraint.Set_l_i(L(off_L));
-    constraint.Set_b_i(Qc(off_L));
+    constraint.SetLagrangeMultiplier(L(off_L));
+    constraint.SetRightHandSide(Qc(off_L));
 
-    this->variable.Get_qb()(0, 0) = v(off_v);
-    this->variable.Get_fb()(0, 0) = R(off_v);
+    this->variable.State()(0, 0) = v(off_v);
+    this->variable.Force()(0, 0) = R(off_v);
 }
 
 void ChShaftsMotorSpeed::IntFromDescriptor(const unsigned int off_v,  // offset in v
                                            ChStateDelta& v,
                                            const unsigned int off_L,  // offset in L
                                            ChVectorDynamic<>& L) {
-    L(off_L) = constraint.Get_l_i();
+    L(off_L) = constraint.GetLagrangeMultiplier();
 
-    v(off_v) = this->variable.Get_qb()(0, 0);
+    v(off_v) = this->variable.State()(0, 0);
 }
 
-void ChShaftsMotorSpeed::InjectConstraints(ChSystemDescriptor& mdescriptor) {
-    mdescriptor.InsertConstraint(&constraint);
+void ChShaftsMotorSpeed::InjectConstraints(ChSystemDescriptor& descriptor) {
+    descriptor.InsertConstraint(&constraint);
 }
 
-void ChShaftsMotorSpeed::InjectVariables(ChSystemDescriptor& mdescriptor) {
-    mdescriptor.InsertVariables(&variable);
+void ChShaftsMotorSpeed::InjectVariables(ChSystemDescriptor& descriptor) {
+    descriptor.InsertVariables(&variable);
 }
 
 void ChShaftsMotorSpeed::VariablesFbReset() {
-    variable.Get_fb().setZero();
+    variable.Force().setZero();
 }
 
 void ChShaftsMotorSpeed::VariablesFbLoadForces(double factor) {
     double imposed_speed = this->f_speed->GetVal(this->GetChTime());
-    variable.Get_fb()(0) += imposed_speed * factor;
+    variable.Force()(0) += imposed_speed * factor;
 }
 
 void ChShaftsMotorSpeed::VariablesFbIncrementMq() {
-    variable.Compute_inc_Mb_v(variable.Get_fb(), variable.Get_qb());
+    variable.AddMassTimesVector(variable.Force(), variable.State());
 }
 
 void ChShaftsMotorSpeed::VariablesQbLoadSpeed() {
     // set current speed in 'qb', it can be used by the solver when working in incremental mode
-    variable.Get_qb()(0) = aux_dt;
+    variable.State()(0) = aux_dt;
 }
 
 void ChShaftsMotorSpeed::VariablesQbSetSpeed(double step) {
     // from 'qb' vector, sets body speed, and updates auxiliary data
-    aux_dt = variable.Get_qb()(0);
+    aux_dt = variable.State()(0);
 
     // Compute accel. by BDF (approximate by differentiation); not needed
 }
 
 void ChShaftsMotorSpeed::ConstraintsBiReset() {
-    constraint.Set_b_i(0.);
+    constraint.SetRightHandSide(0.);
 }
 
 void ChShaftsMotorSpeed::ConstraintsBiLoad_C(double factor, double recovery_clamp, bool do_clamp) {
@@ -241,21 +241,21 @@ void ChShaftsMotorSpeed::ConstraintsBiLoad_C(double factor, double recovery_clam
         res = std::min(std::max(res, -recovery_clamp), recovery_clamp);
     }
 
-    constraint.Set_b_i(constraint.Get_b_i() + res);
+    constraint.SetRightHandSide(constraint.GetRightHandSide() + res);
 }
 
 void ChShaftsMotorSpeed::ConstraintsBiLoad_Ct(double factor) {
     double ct = -this->f_speed->GetVal(this->GetChTime());
-    constraint.Set_b_i(constraint.Get_b_i() + factor * ct);
+    constraint.SetRightHandSide(constraint.GetRightHandSide() + factor * ct);
 }
 
-void ChShaftsMotorSpeed::ConstraintsLoadJacobians() {
+void ChShaftsMotorSpeed::LoadConstraintJacobians() {
     constraint.Get_Cq_a()(0) = 1;
     constraint.Get_Cq_b()(0) = -1;
 }
 
 void ChShaftsMotorSpeed::ConstraintsFetch_react(double factor) {
-    motor_torque = -constraint.Get_l_i() * factor;
+    motor_torque = -constraint.GetLagrangeMultiplier() * factor;
 }
 
 void ChShaftsMotorSpeed::ArchiveOut(ChArchiveOut& archive_out) {

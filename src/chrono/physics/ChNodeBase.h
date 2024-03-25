@@ -101,9 +101,8 @@ class ChApi ChNodeBase {
 
     // Functions for interfacing to the solver
 
-    /// Tell to a system descriptor that there are variables of type
-    /// ChVariables in this object (for further passing it to a solver).
-    virtual void InjectVariables(ChSystemDescriptor& mdescriptor) {}
+    /// Register with the given system descriptor any ChVariable objects associated with this item.
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) {}
 
     /// Set the 'fb' part (the known term) of the encapsulated ChVariables to zero.
     virtual void VariablesFbReset() {}

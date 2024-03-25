@@ -47,7 +47,31 @@ ChFeeder::ChFeeder(const ChFeeder& other) : ChPhysicsItem(other) {
 
 ChFeeder::~ChFeeder() {}
 
-//// STATE BOOKKEEPING FUNCTIONS
+void ChFeeder::SetFeederVibration(ChFrame<> ref, double vx, double vy, double vz, double wx, double wy, double wz) {
+    reference = ref;
+    v_x = vx;
+    v_y = vy;
+    v_z = vz;
+    w_x = wx;
+    w_y = wy;
+    w_z = wz;
+}
+
+void ChFeeder::GetFeederVibration(ChFrame<>& ref,
+                                  double& vx,
+                                  double& vy,
+                                  double& vz,
+                                  double& wx,
+                                  double& wy,
+                                  double& wz) {
+    ref = reference;
+    vx = v_x;
+    vy = v_y;
+    vz = v_z;
+    wx = w_x;
+    wy = w_y;
+    wz = w_z;
+}
 
 void ChFeeder::IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Qc, const double c) {
     // This feeder class works only if the contact container is of NSC type because we are going to modify the Ct =
@@ -64,8 +88,8 @@ void ChFeeder::IntLoadConstraint_Ct(const unsigned int off, ChVectorDynamic<>& Q
 
             virtual ~MyContactCallback() {}
 
-            /// Callback used to report contact points already added to the container.
-            /// If it returns false, the contact scanning will be stopped.
+            // Callback used to report contact points already added to the container.
+            // If it returns false, the contact scanning will be stopped.
             virtual bool OnReportContact(
                 const ChVector3d& pA,             ///< contact pA
                 const ChVector3d& pB,             ///< contact pB
@@ -138,8 +162,6 @@ void ChFeeder::Update(double mytime, bool update_assets) {
     ChPhysicsItem::Update(mytime, update_assets);
 }
 
-// FILE I/O
-
 void ChFeeder::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
     archive_out.VersionWrite<ChFeeder>();
@@ -158,7 +180,6 @@ void ChFeeder::ArchiveOut(ChArchiveOut& archive_out) {
     archive_out << CHNVP(w_z);
 }
 
-/// Method to allow de serialization of transient data from archives.
 void ChFeeder::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
     /*int version =*/archive_in.VersionRead<ChFeeder>();

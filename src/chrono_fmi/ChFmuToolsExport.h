@@ -134,9 +134,9 @@ class FmuChronoComponentBase : public FmuComponentBase {
         FmuVariable::CausalityType causality = FmuVariable::CausalityType::local,
         FmuVariable::VariabilityType variability = FmuVariable::VariabilityType::continuous) {
         AddFmuCsysVariable(s.GetCoordsys(), name, unit_name, description, causality, variability);
-        AddFmuVecVariable(s.GetPosDer(), name + ".pos_dt", unit_name_dt, description + " position derivative",
-                          causality, variability);
-        AddFmuQuatVariable(s.GetRotDer(), name + ".rot_dt", "1", description + " orientation derivative", causality,
+        AddFmuVecVariable(s.GetPosDt(), name + ".pos_dt", unit_name_dt, description + " position derivative", causality,
+                          variability);
+        AddFmuQuatVariable(s.GetRotDt(), name + ".rot_dt", "1", description + " orientation derivative", causality,
                            variability);
     }
 };

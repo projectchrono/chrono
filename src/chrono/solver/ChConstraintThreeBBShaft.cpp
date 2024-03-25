@@ -22,7 +22,7 @@ CH_FACTORY_REGISTER(ChConstraintThreeBBShaft)
 ChConstraintThreeBBShaft::ChConstraintThreeBBShaft(ChVariablesBody* mvariables_a,
                                                    ChVariablesBody* mvariables_b,
                                                    ChVariables* mvariables_c) {
-    assert(mvariables_c->Get_ndof() == 1);
+    assert(mvariables_c->GetDOF() == 1);
     SetVariables(mvariables_a, mvariables_b, mvariables_c);
 }
 
@@ -81,13 +81,13 @@ void ChConstraintThreeBBShaft::Update_auxiliary() {
     // 1- Assuming jacobians are already computed, now compute
     //   the matrices [Eq_a]=[invM_a]*[Cq_a]'  etc
     if (variables_a->IsActive()) {
-        variables_a->Compute_invMb_v(Eq_a, Cq_a.transpose());
+        variables_a->ComputeMassInverseTimesVector(Eq_a, Cq_a.transpose());
     }
     if (variables_b->IsActive()) {
-        variables_b->Compute_invMb_v(Eq_b, Cq_b.transpose());
+        variables_b->ComputeMassInverseTimesVector(Eq_b, Cq_b.transpose());
     }
     if (variables_c->IsActive()) {
-        variables_c->Compute_invMb_v(Eq_c, Cq_c.transpose());
+        variables_c->ComputeMassInverseTimesVector(Eq_c, Cq_c.transpose());
     }
 
     // 2- Compute g_i = [Cq_i]*[invM_i]*[Cq_i]' + cfm_i
@@ -107,39 +107,39 @@ void ChConstraintThreeBBShaft::Update_auxiliary() {
         g_i += cfm_i;
 }
 
-double ChConstraintThreeBBShaft::Compute_Cq_q() {
+double ChConstraintThreeBBShaft::ComputeJacobianTimesState() {
     double ret = 0;
 
     if (variables_a->IsActive()) {
-        ret += Cq_a * variables_a->Get_qb();
+        ret += Cq_a * variables_a->State();
     }
 
     if (variables_b->IsActive()) {
-        ret += Cq_b * variables_b->Get_qb();
+        ret += Cq_b * variables_b->State();
     }
 
     if (variables_c->IsActive()) {
-        ret += Cq_c(0) * variables_c->Get_qb()(0);
+        ret += Cq_c(0) * variables_c->State()(0);
     }
 
     return ret;
 }
 
-void ChConstraintThreeBBShaft::Increment_q(const double deltal) {
+void ChConstraintThreeBBShaft::IncrementState(double deltal) {
     if (variables_a->IsActive()) {
-        variables_a->Get_qb() += Eq_a * deltal;
+        variables_a->State() += Eq_a * deltal;
     }
 
     if (variables_b->IsActive()) {
-        variables_b->Get_qb() += Eq_b * deltal;
+        variables_b->State() += Eq_b * deltal;
     }
 
     if (variables_c->IsActive()) {
-        variables_c->Get_qb()(0) += Eq_c(0) * deltal;
+        variables_c->State()(0) += Eq_c(0) * deltal;
     }
 }
 
-void ChConstraintThreeBBShaft::MultiplyAndAdd(double& result, const ChVectorDynamic<double>& vect) const {
+void ChConstraintThreeBBShaft::AddJacobianTimesVectorInto(double& result, ChVectorConstRef vect) const {
     if (variables_a->IsActive()) {
         result += Cq_a * vect.segment(variables_a->GetOffset(), 6);
     }
@@ -153,7 +153,7 @@ void ChConstraintThreeBBShaft::MultiplyAndAdd(double& result, const ChVectorDyna
     }
 }
 
-void ChConstraintThreeBBShaft::MultiplyTandAdd(ChVectorDynamic<double>& result, double l) {
+void ChConstraintThreeBBShaft::AddJacobianTransposedTimesScalarInto(ChVectorRef result, double l) const {
     if (variables_a->IsActive()) {
         result.segment(variables_a->GetOffset(), 6) += Cq_a.transpose() * l;
     }
@@ -167,22 +167,22 @@ void ChConstraintThreeBBShaft::MultiplyTandAdd(ChVectorDynamic<double>& result, 
     }
 }
 
-void ChConstraintThreeBBShaft::Build_Cq(ChSparseMatrix& storage, int insrow) {
+void ChConstraintThreeBBShaft::PasteJacobianInto(ChSparseMatrix& storage, unsigned int insrow, unsigned int col_offset) const {
     if (variables_a->IsActive())
-        PasteMatrix(storage, Cq_a, insrow, variables_a->GetOffset());
+        PasteMatrix(storage, Cq_a, insrow, variables_a->GetOffset() + col_offset);
     if (variables_b->IsActive())
-        PasteMatrix(storage, Cq_b, insrow, variables_b->GetOffset());
+        PasteMatrix(storage, Cq_b, insrow, variables_b->GetOffset() + col_offset);
     if (variables_c->IsActive())
-        PasteMatrix(storage, Cq_c, insrow, variables_c->GetOffset());
+        PasteMatrix(storage, Cq_c, insrow, variables_c->GetOffset() + col_offset);
 }
 
-void ChConstraintThreeBBShaft::Build_CqT(ChSparseMatrix& storage, int inscol) {
+void ChConstraintThreeBBShaft::PasteJacobianTransposedInto(ChSparseMatrix& storage, unsigned int row_offset, unsigned int inscol) const {
     if (variables_a->IsActive())
-        PasteMatrix(storage, Cq_a.transpose(), variables_a->GetOffset(), inscol);
+        PasteMatrix(storage, Cq_a.transpose(), variables_a->GetOffset() + row_offset, inscol);
     if (variables_b->IsActive())
-        PasteMatrix(storage, Cq_b.transpose(), variables_b->GetOffset(), inscol);
+        PasteMatrix(storage, Cq_b.transpose(), variables_b->GetOffset() + row_offset, inscol);
     if (variables_c->IsActive())
-        PasteMatrix(storage, Cq_c.transpose(), variables_c->GetOffset(), inscol);
+        PasteMatrix(storage, Cq_c.transpose(), variables_c->GetOffset() + row_offset, inscol);
 }
 
 void ChConstraintThreeBBShaft::ArchiveOut(ChArchiveOut& archive_out) {
