@@ -33,7 +33,6 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src/chrono_thirdparty/googlebenchmark/
 option(BUILD_BENCHMARKING_BASE "Build benchmark tests for base Chrono module" TRUE)
 mark_as_advanced(FORCE BUILD_BENCHMARKING_BASE)
 if(BUILD_BENCHMARKING_BASE)
-    ADD_SUBDIRECTORY(core)
     ADD_SUBDIRECTORY(physics)
 endif()
 

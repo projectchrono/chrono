@@ -195,7 +195,9 @@ Note that this represents a major public API change and we expect most user code
 | -                                 | ChSetRandomSeed               | replace with: ChRandom::SetSeed                  |
 | -                                 | ChSignum                      | relocate to utils/ChUtils.h                      |
 | -                                 | ChSineStep                    | implemented in ChFunctionSineStep                |
+| -                                 | GetUniqueIntID                | remove                                           |
 | -                                 | GetLog                        | remove                                           |
+| -                                 | SetFirstIntID                 | remove                                           |
 | -                                 | SetLog                        | remove                                           |
 | -                                 | SetLogDefault                 | remove                                           |
 | -                                 | StreamInDenseMAtlabFormat     | remove                                           |

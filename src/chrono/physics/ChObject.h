@@ -80,10 +80,12 @@ class ChApi ChObj {
     virtual std::string& ArchiveContainerName() { return m_name; }
 
   protected:
-    double ChTime;       ///< the time of simulation for the object
-    std::string m_name;  ///< name of object
-    int m_identifier;    ///< object identifier
+    double ChTime;       ///< object simulation time
+    std::string m_name;  ///< object name
+    int m_identifier;    ///< object unique identifier
     int m_tag;           ///< user-supplied tag
+
+    int GenerateUniqueIdentifier();
 };
 
 CH_CLASS_VERSION(ChObj, 0)
