@@ -162,7 +162,6 @@ void RigidTerrain::AddPatch(std::shared_ptr<Patch> patch,
 
     // Create the rigid body for this patch (fixed)
     patch->m_body = chrono_types::make_shared<ChBody>();
-    patch->m_body->SetIdentifier(-m_num_patches);
     patch->m_body->SetNameString("patch_" + std::to_string(m_num_patches));
     patch->m_body->SetPos(position.pos);
     patch->m_body->SetRot(position.rot);

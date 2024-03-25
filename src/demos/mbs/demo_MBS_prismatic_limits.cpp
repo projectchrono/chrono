@@ -40,7 +40,6 @@ int main(int argc, char* argv[]) {
 
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetIdentifier(-1);
     ground->SetFixed(true);
     ground->EnableCollision(false);
 
@@ -55,7 +54,6 @@ int main(int argc, char* argv[]) {
 
     auto slider1 = chrono_types::make_shared<ChBody>();
     sys.AddBody(slider1);
-    slider1->SetIdentifier(1);
     slider1->SetFixed(false);
     slider1->EnableCollision(false);
     slider1->SetMass(1);
@@ -68,7 +66,6 @@ int main(int argc, char* argv[]) {
 
     auto slider2 = chrono_types::make_shared<ChBody>();
     sys.AddBody(slider2);
-    slider2->SetIdentifier(1);
     slider2->SetFixed(false);
     slider2->EnableCollision(false);
     slider2->SetMass(1);

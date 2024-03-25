@@ -144,7 +144,6 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
     auto box = chrono_types::make_shared<ChBody>();
     box->SetPos(ChVector3d(0.0, 0.0, 0.0));
     box->SetRot(ChQuaternion<>(1, 0, 0, 0));
-    box->SetIdentifier(-1);
     box->SetFixed(true);
     sysMBS.AddBody(box);
 

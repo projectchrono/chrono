@@ -67,7 +67,6 @@ int main(int argc, char* argv[]) {
     // Create ground body
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetIdentifier(-1);
     ground->SetFixed(true);
     ground->EnableCollision(false);
 
@@ -90,7 +89,6 @@ int main(int argc, char* argv[]) {
     body->SetPos(rev_pos + offset);
     body->SetPosDt(lin_vel);
     body->SetAngVelParent(ang_vel);
-    body->SetIdentifier(1);
     body->SetFixed(false);
     body->EnableCollision(false);
     body->SetMass(1);

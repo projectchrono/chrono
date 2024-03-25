@@ -385,7 +385,7 @@ int main(int argc, char* argv[]) {
         vis.AttachSystem(sys);
         vis.SetWindowTitle("HMMWV granular terrain");
         vis.SetWindowSize(1280, 720);
-        vis.SetRenderMode(opengl::WIREFRAME);
+        vis.SetRenderMode(opengl::SOLID);
         vis.Initialize();
         vis.AddCamera(ChVector3d(-horizontal_pos, -5, 0), ChVector3d(-horizontal_pos, 0, 0));
         vis.SetCameraVertical(CameraVerticalDir::Z);

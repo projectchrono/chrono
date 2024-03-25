@@ -262,7 +262,6 @@ ChApi void AddBoxContainer(
 /// The center of the bottom box wall is at the body origin.
 ChApi std::shared_ptr<ChBody> CreateBoxContainer(
     ChSystem* system,                                      ///< containing system
-    int id,                                                ///< body identifier
     ChContactMaterialSharedPtr mat,                        ///< contact material
     const ChVector3d& size,                                ///< interior container dimensions
     double thickness,                                      ///< wall thickness
@@ -278,7 +277,6 @@ ChApi std::shared_ptr<ChBody> CreateBoxContainer(
 /// bottom at the body origin. Optionally, the side boxes in the first quadrant are not visualized.
 ChApi std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(
     ChSystem* system,                                      ///< containing system
-    int id,                                                ///< body identifier
     ChContactMaterialSharedPtr mat,                        ///< contact material
     double radius,                                         ///< container inner radius
     double height,                                         ///< container inner height

@@ -193,14 +193,12 @@ ChronoModel::ChronoModel() {
     // ----------------------
     m_ground = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_ground);
-    m_ground->SetIdentifier(-1);
     m_ground->SetFixed(true);
 
     // Create the first pendulum body
     // ------------------------------
     m_pend1 = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_pend1);
-    m_pend1->SetIdentifier(1);
     m_pend1->SetMass(m1);
     m_pend1->SetInertiaXX(ChVector3d(1, 1, J1));
     m_pend1->SetPos(ChVector3d(l1 / 2, 0, 0));
@@ -209,7 +207,6 @@ ChronoModel::ChronoModel() {
     // -------------------------------
     m_pend2 = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_pend2);
-    m_pend2->SetIdentifier(2);
     m_pend2->SetMass(m2);
     m_pend2->SetInertiaXX(ChVector3d(1, 1, J2));
     m_pend2->SetPos(ChVector3d(l1 + l2 / 2, 0, 0));

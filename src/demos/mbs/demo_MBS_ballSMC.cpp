@@ -43,7 +43,6 @@ int main(int argc, char* argv[]) {
     double out_step = 2000 * time_step;
 
     // Parameters for the falling ball
-    int ballId = 100;
     double radius = 1;
     double mass = 1000;
     ChVector3d pos(0, 2, 0);
@@ -51,7 +50,6 @@ int main(int argc, char* argv[]) {
     ChVector3d init_vel(0, 0, 0);
 
     // Parameters for the containing bin
-    int binId = 200;
     double width = 2;
     double length = 2;
     ////double height = 1;
@@ -79,8 +77,6 @@ int main(int argc, char* argv[]) {
 
     // Create the falling ball
     auto ball = chrono_types::make_shared<ChBody>();
-
-    ball->SetIdentifier(ballId);
     ball->SetMass(mass);
     ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector3d(1, 1, 1));
     ball->SetPos(pos);
@@ -102,8 +98,6 @@ int main(int argc, char* argv[]) {
 
     // Create container
     auto bin = chrono_types::make_shared<ChBody>();
-
-    bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector3d(0, 0, 0));
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));

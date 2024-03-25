@@ -48,17 +48,12 @@ using namespace chrono;
 // to rotate at constant angular velocity.
 // -----------------------------------------------------------------------------
 std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
-    // IDs for the two bodies
-    int binId = -200;
-    int mixerId = -201;
-
     // Create a common material
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.4f);
 
     // Create the containing bin (2 x 2 x 1)
     auto bin = chrono_types::make_shared<ChBody>();
-    bin->SetIdentifier(binId);
     bin->SetMass(100);
     bin->SetPos(ChVector3d(0, 0, 0));
     bin->SetRot(ChQuaternion<>(1, 0, 0, 0));
@@ -76,7 +71,6 @@ std::shared_ptr<ChBody> AddContainer(ChSystemMulticoreNSC* sys) {
 
     // The rotating mixer body (1.6 x 0.2 x 0.4)
     auto mixer = chrono_types::make_shared<ChBody>();
-    mixer->SetIdentifier(mixerId);
     mixer->SetMass(10.0);
     mixer->SetInertiaXX(ChVector3d(50, 50, 50));
     mixer->SetPos(ChVector3d(0, 0, 0.205));

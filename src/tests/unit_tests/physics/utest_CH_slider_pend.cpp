@@ -205,14 +205,12 @@ ChronoModel::ChronoModel() {
     // ----------------------
     m_ground = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_ground);
-    m_ground->SetIdentifier(-1);
     m_ground->SetFixed(true);
 
     // Create the slider body
     // ----------------------
     m_slider = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_slider);
-    m_slider->SetIdentifier(1);
     m_slider->SetMass(m1);
     m_slider->SetInertiaXX(ChVector3d(1, 1, 1));
     m_slider->SetPos(ChVector3d(0, 0, 0));
@@ -221,7 +219,6 @@ ChronoModel::ChronoModel() {
     // ------------------------
     m_pend = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_pend);
-    m_pend->SetIdentifier(2);
     m_pend->SetMass(m2);
     m_pend->SetInertiaXX(ChVector3d(1, 1, J2));
     m_pend->SetPos(ChVector3d(l2 / 2, 0, 0));

@@ -51,8 +51,8 @@ namespace vehicle {
 //// TODO: eliminate when Chrono::Gpu can use a domain that is *not* centered at origin!
 const double EXTRA_HEIGHT = 1.0;
 
-// Obstacle bodies have identifier larger than this value
-static const int body_id_obstacles = 100000;
+// All obstacle bodies have this tag
+static constexpr int tag_obstacles = 100;
 
 // -----------------------------------------------------------------------------
 
@@ -361,7 +361,6 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
     }
 
     // Add all rigid obstacles
-    int id = body_id_obstacles;
     for (auto& b : m_obstacles) {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
         auto trimesh = chrono_types::make_shared<ChTriangleMeshConnected>();
@@ -373,7 +372,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::Construct() {
 
         auto body = chrono_types::make_shared<ChBody>();
         body->SetNameString("obstacle");
-        body->SetIdentifier(id++);
+        body->SetTag(tag_obstacles);
         body->SetPos(b.m_init_pos);
         body->SetRot(b.m_init_rot);
         body->SetMass(mass * b.m_density);
@@ -629,7 +628,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::CreateRigidProxy(unsigned int i) {
     auto proxy = chrono_types::make_shared<ProxyBodySet>();
 
     auto body = chrono_types::make_shared<ChBody>();
-    body->SetIdentifier(0);
+    body->SetTag(0);
     body->SetMass(m_load_mass[i]);
     ////body->SetInertiaXX();   //// TODO
     body->SetFixed(m_fixed_proxies);
@@ -816,7 +815,7 @@ void ChVehicleCosimTerrainNodeGranularGPU::OutputVisualizationData(int frame) {
         filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
         // Include only obstacle bodies
         utils::WriteVisualizationAssets(
-            m_system, filename, [](const ChBody& b) -> bool { return b.GetIdentifier() >= body_id_obstacles; }, true);
+            m_system, filename, [](const ChBody& b) -> bool { return b.GetTag() == tag_obstacles; }, true);
     }
 }
 

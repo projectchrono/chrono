@@ -251,7 +251,6 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_ground_body = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_ground_body);
     m_ground_body->SetName("rig_ground");
-    m_ground_body->SetIdentifier(0);
     m_ground_body->SetFixed(true);
     {
         auto box = chrono_types::make_shared<ChVisualShapeBox>(100, dim / 3, dim / 3);
@@ -261,7 +260,6 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_carrier_body = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_carrier_body);
     m_carrier_body->SetName("rig_carrier");
-    m_carrier_body->SetIdentifier(1);
     m_carrier_body->SetPos(ChVector3d(0, 0, 0));
     m_carrier_body->SetMass(mass);
     m_carrier_body->SetInertiaXX(inertia);
@@ -283,7 +281,6 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_chassis_body = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_chassis_body);
     m_chassis_body->SetName("rig_chassis");
-    m_chassis_body->SetIdentifier(2);
     m_chassis_body->SetPos(ChVector3d(0, 0, 0));
     m_chassis_body->SetMass(mass);
     m_chassis_body->SetInertiaXX(inertia);
@@ -305,7 +302,6 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     m_slip_body = chrono_types::make_shared<ChBody>();
     m_system->AddBody(m_slip_body);
     m_slip_body->SetName("rig_slip");
-    m_slip_body->SetIdentifier(3);
     m_slip_body->SetPos(ChVector3d(0, 0, -4 * dim));
     m_slip_body->SetMass(mass);
     m_slip_body->SetInertiaXX(inertia);
@@ -324,7 +320,6 @@ void ChTireTestRig::CreateMechanism(Mode mode) {
     qc.SetFromAngleX(-m_camber_angle);
     m_system->AddBody(m_spindle_body);
     m_spindle_body->SetName("rig_spindle");
-    m_spindle_body->SetIdentifier(4);
     m_spindle_body->SetMass(0);
     m_spindle_body->SetInertiaXX(ChVector3d(0.01, 0.02, 0.01));
     m_spindle_body->SetPos(ChVector3d(0, 3 * dim, -4 * dim));
@@ -489,7 +484,6 @@ void ChTireTestRig::CreateTerrainGranular() {
         }
     }
 
-    terrain->SetStartIdentifier(1000000);
     ////terrain->EnableVisualization(true);
     terrain->EnableVerbose(true);
     terrain->Initialize(location, m_params_granular.length, m_params_granular.width, m_params_granular.num_layers,

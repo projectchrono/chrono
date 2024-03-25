@@ -128,7 +128,6 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Create a container -- always FIRST body in the system
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetIdentifier(-1);
     ground->SetFixed(true);
     sysMBS.AddBody(ground);
 

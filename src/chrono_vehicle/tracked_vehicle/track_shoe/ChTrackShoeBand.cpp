@@ -96,7 +96,7 @@ void ChTrackShoeBand::Initialize(std::shared_ptr<ChBodyAuxRef> chassis,
     // Create the tread body
     m_shoe = chrono_types::make_shared<ChBody>();
     m_shoe->SetNameString(m_name + "_tread");
-    m_shoe->SetIdentifier(BodyID::SHOE_BODY);
+    m_shoe->SetTag(TrackedVehicleBodyTag::SHOE_BODY);
     m_shoe->SetPos(loc);
     m_shoe->SetRot(rot);
     m_shoe->SetMass(GetTreadMass());

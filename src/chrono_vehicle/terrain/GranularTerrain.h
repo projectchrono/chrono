@@ -86,10 +86,6 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
                            const ChVector3d& init_vel = ChVector3d()  ///< initial particle velocity
     );
 
-    /// Set start value for body identifiers of generated particles (default: 1000000).
-    /// It is assumed that all bodies with a larger identifier are granular material particles.
-    void SetStartIdentifier(int id) { m_start_id = id; }
-
     /// Enable/disable visualization of boundaries (default: false).
     void EnableVisualization(bool val) { m_vis_enabled = val; }
     bool IsVisualizationEnabled() const { return m_vis_enabled; }
@@ -151,7 +147,6 @@ class CH_VEHICLE_API GranularTerrain : public ChTerrain {
   private:
     unsigned int m_min_num_particles;  ///< requested minimum number of particles
     unsigned int m_num_particles;      ///< actual number of particles
-    int m_start_id;                    ///< start body identifier for particles
     double m_radius;                   ///< particle radius
 
     // Patch dimensions

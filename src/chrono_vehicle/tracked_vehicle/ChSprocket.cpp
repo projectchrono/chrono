@@ -58,7 +58,7 @@ void ChSprocket::Initialize(std::shared_ptr<ChChassis> chassis, const ChVector3d
     // Create and initialize the gear body (same orientation as the chassis).
     m_gear = chrono_types::make_shared<ChBody>();
     m_gear->SetNameString(m_name + "_gear");
-    m_gear->SetIdentifier(BodyID::SPROCKET_BODY);
+    m_gear->SetTag(TrackedVehicleBodyTag::SPROCKET_BODY);
     m_gear->SetPos(loc);
     m_gear->SetRot(chassisRot);
     m_gear->SetMass(GetGearMass());

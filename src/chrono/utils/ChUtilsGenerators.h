@@ -154,10 +154,9 @@ class ChApi ChGenerator {
     /// before creating bodies).
     std::shared_ptr<ChMixtureIngredient> AddMixtureIngredient(MixtureType type, double ratio);
 
-    /// Get/Set the identifier that will be assigned to the next body.
-    /// Identifiers are incremented for successively created bodies.
-    int GetBodyIdentifier() const { return m_crtBodyId; }
-    void SetBodyIdentifier(int id) { m_crtBodyId = id; }
+    /// Set the start value for tags assigned to generated bodies (default: 0).
+    /// Tags are incremented for successively created bodies.
+    void SetStartTag(int tag) { m_start_tag = tag; }
 
     /// Create bodies, according to the current mixture setup, with initial positions given by the specified sampler in
     /// the box domain specified by 'pos' and 'hdims'. Optionally, a constant initial linear velocity can be set for all
@@ -264,7 +263,7 @@ class ChApi ChGenerator {
 
     std::shared_ptr<CreateObjectsCallback> m_callback;
 
-    int m_crtBodyId;
+    int m_start_tag;  ///< start value for particle tags
 
     friend class ChMixtureIngredient;
 };

@@ -73,7 +73,6 @@ int main(int argc, char** argv) {
     sys.Add(container);
     container->SetPos(ChVector3d(0, 0, 0));
     container->SetFixed(true);
-    container->SetIdentifier(-1);
     container->EnableCollision(true);
 
     // Set rolling and friction coefficients for the container.
@@ -102,7 +101,6 @@ int main(int argc, char** argv) {
         mat->SetRollingFriction(((float)bi / 10) * 0.05f);
 
         auto ball = chrono_types::make_shared<ChBody>();
-        ball->SetIdentifier(bi);
         ball->SetMass(mass);
         ball->SetInertiaXX(ChVector3d(inertia));
 
@@ -126,7 +124,6 @@ int main(int argc, char** argv) {
         mat->SetSpinningFriction(((float)bi / 10) * 0.02f);
 
         auto ball = chrono_types::make_shared<ChBody>();
-        ball->SetIdentifier(bi);
         ball->SetMass(mass);
         ball->SetInertiaXX(ChVector3d(inertia));
 

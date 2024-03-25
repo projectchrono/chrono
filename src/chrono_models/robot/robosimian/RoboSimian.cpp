@@ -196,6 +196,8 @@ const JointData joints[] = {
 
 };
 
+constexpr int Robosimian_body_tag = 100;
+
 // =============================================================================
 
 // Convert a triplet (roll-pitch-yaw) to a quaternion
@@ -317,8 +319,8 @@ bool ContactManager::OnReportContact(const ChVector3d& pA,
     auto bodyB = dynamic_cast<ChBodyAuxRef*>(modB);
 
     // Filter robot bodies based on their IDs.
-    bool a = (bodyA && bodyA->GetIndex() < 100);
-    bool b = (bodyB && bodyB->GetIndex() < 100);
+    bool a = (bodyA && bodyA->GetTag() == Robosimian_body_tag);
+    bool b = (bodyB && bodyB->GetTag() == Robosimian_body_tag);
 
     if (!a && !b)
         return true;
@@ -967,7 +969,7 @@ RS_Chassis::RS_Chassis(const std::string& name, bool fixed, std::shared_ptr<ChCo
     ChVector3d inertia_xx(1.272134, 2.568776, 3.086984);
     ChVector3d inertia_xy(0.008890, -0.13942, 0.000325);
 
-    m_body->SetIdentifier(0);
+    m_body->SetTag(Robosimian_body_tag);
     m_body->SetMass(mass);
     m_body->SetFrameCOMToRef(ChFrame<>(com, ChQuaternion<>(1, 0, 0, 0)));
     m_body->SetInertiaXX(inertia_xx);
@@ -1040,7 +1042,7 @@ RS_Sled::RS_Sled(const std::string& name, std::shared_ptr<ChContactMaterial> mat
     ChVector3d inertia_xx(0.034856, 0.082427, 0.105853);
     ChVector3d inertia_xy(0.000007, -0.000002, 0);
 
-    m_body->SetIdentifier(1);
+    m_body->SetTag(Robosimian_body_tag);
     m_body->SetMass(mass);
     m_body->SetFrameCOMToRef(ChFrame<>(com, ChQuaternion<>(1, 0, 0, 0)));
     m_body->SetInertiaXX(inertia_xx);
@@ -1095,7 +1097,7 @@ RS_WheelDD::RS_WheelDD(const std::string& name, int id, std::shared_ptr<ChContac
     ChVector3d inertia_xx(0.01, 0.01, 0.02);
     ChVector3d inertia_xy(0, 0, 0);
 
-    m_body->SetIdentifier(id);
+    m_body->SetTag(Robosimian_body_tag);
     m_body->SetMass(mass);
     m_body->SetFrameCOMToRef(ChFrame<>(com, ChQuaternion<>(1, 0, 0, 0)));
     m_body->SetInertiaXX(inertia_xx);
@@ -1154,7 +1156,7 @@ RS_Limb::RS_Limb(const std::string& name,
         ChVector3d inertia_xx = data[i].link.m_inertia_xx;
         ChVector3d inertia_xy = data[i].link.m_inertia_xy;
 
-        link->m_body->SetIdentifier(4 + 4 * id + i);
+        link->m_body->SetTag(Robosimian_body_tag);
         link->m_body->SetMass(mass);
         link->m_body->SetFrameCOMToRef(ChFrame<>(com, ChQuaternion<>(1, 0, 0, 0)));
         link->m_body->SetInertiaXX(inertia_xx);

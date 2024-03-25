@@ -42,8 +42,7 @@ std::string ForceModel_name(ChSystemSMC::ContactForceModel f) {
     }
 }
 
-std::shared_ptr<ChBody> AddSphere(int id,
-                                  ChSystem* sys,
+std::shared_ptr<ChBody> AddSphere(ChSystem* sys,
                                   std::shared_ptr<ChContactMaterialSMC> mat,
                                   double radius,
                                   double mass,
@@ -56,7 +55,6 @@ std::shared_ptr<ChBody> AddSphere(int id,
 
     // Create a spherical body. Set body parameters and sphere collision model
     auto body = chrono_types::make_shared<ChBody>();
-    body->SetIdentifier(id);
     body->SetMass(mass);
     body->SetPos(pos);
     body->SetRot(rot);
@@ -73,8 +71,7 @@ std::shared_ptr<ChBody> AddSphere(int id,
     return body;
 }
 
-std::shared_ptr<ChBody> AddWall(int id,
-                                ChSystem* sys,
+std::shared_ptr<ChBody> AddWall(ChSystem* sys,
                                 std::shared_ptr<ChContactMaterialSMC> mat,
                                 ChVector3d size,
                                 double mass,
@@ -89,7 +86,6 @@ std::shared_ptr<ChBody> AddWall(int id,
 
     // Create container. Set body parameters and container collision model
     auto body = chrono_types::make_shared<ChBody>();
-    body->SetIdentifier(id);
     body->SetMass(mass);
     body->SetPos(pos);
     body->SetRot(rot);

@@ -83,14 +83,12 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
 
         // Create the ground body
         auto ground = chrono_types::make_shared<ChBody>();
-        ground->SetIdentifier(-1);
         ground->SetFixed(true);
         ground->EnableCollision(false);
         sys->AddBody(ground);
 
         // Create the sled body
         auto sled = chrono_types::make_shared<ChBody>();
-        sled->SetIdentifier(1);
         sled->SetMass(550);
         sled->SetInertiaXX(ChVector3d(100, 100, 100));
         sled->SetPos(ChVector3d(0, 0, 0));
@@ -105,7 +103,6 @@ class JointsDVI : public ::testing::TestWithParam<Options> {
 
         // Create the wheel body
         auto wheel = chrono_types::make_shared<ChBody>();
-        wheel->SetIdentifier(2);
         wheel->SetMass(350);
         wheel->SetInertiaXX(ChVector3d(50, 138, 138));
         wheel->SetPos(ChVector3d(2, 0, 0));

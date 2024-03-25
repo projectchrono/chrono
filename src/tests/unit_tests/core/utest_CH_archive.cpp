@@ -101,13 +101,13 @@ void assemble_pendulum(ChSystemNSC& system) {
     auto floor = chrono_types::make_shared<ChBody>();
     floor->SetFixed(true);
     floor->SetName("floor");
-    floor->SetIdentifier(100);
+    floor->SetTag(100);
     system.Add(floor);
 
     auto moving_body = chrono_types::make_shared<ChBody>();
     moving_body->SetPos(ChVector3d(1.0, -1.0, 1.0));
     moving_body->SetName("moving_body");
-    moving_body->SetIdentifier(101);
+    moving_body->SetTag(101);
     system.Add(moving_body);
 
     auto link = chrono_types::make_shared<ChLinkMateRevolute>();
@@ -182,7 +182,7 @@ void assemble_pendulum_visual(ChSystemNSC& system) {
     auto floor = chrono_types::make_shared<ChBody>();
     floor->SetFixed(true);
     floor->SetName("floor");
-    floor->SetIdentifier(100);
+    floor->SetTag(100);
     system.Add(floor);
 
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
@@ -199,7 +199,7 @@ void assemble_pendulum_visual(ChSystemNSC& system) {
     // auto moving_body = chrono_types::make_shared<ChBody>();
     moving_body->SetPos(ChVector3d(1.0, -1.0, 1.0));
     moving_body->SetName("moving_body");
-    moving_body->SetIdentifier(101);
+    moving_body->SetTag(101);
     system.Add(moving_body);
 
     // auto link = chrono_types::make_shared<ChLinkMateRevolute>();
@@ -319,13 +319,13 @@ TEST(ChArchiveJSON, Pendulum) {
         auto floor = chrono_types::make_shared<ChBody>();
         floor->SetFixed(true);
         floor->SetName("floor");
-        floor->SetIdentifier(100);
+        floor->SetTag(100);
         system.Add(floor);
 
         auto moving_body = chrono_types::make_shared<ChBody>();
         moving_body->SetPos(ChVector3d(1.0, -1.0, 1.0));
         moving_body->SetName("moving_body");
-        moving_body->SetIdentifier(101);
+        moving_body->SetTag(101);
         system.Add(moving_body);
 
         std::ofstream mfileo("ChArchiveJSON_Pendulum.json");

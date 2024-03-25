@@ -1107,6 +1107,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | SetP_dt                       | rename: SetFieldValDt                            |
 | ChNodeFEAxyzrot                   |                               |                                                  |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+| ChObj                             |                               |                                                  |
+|                                   | SetIdentifier                 | remove (see Notes)                               |
 | ChParticleCloud                   |                               |                                                  |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 | ChPhysicsItem                     |                               |                                                  |
@@ -1392,6 +1394,14 @@ Note that this represents a major public API change and we expect most user code
 
 
 **Notes**
+
++ Chrono object identifiers were made read-only so that uniquenesss can be guaranteed. 
+  - These integer identifiers are read-only and can be cached by the user (e.g., for searching in a ChAssembly).
+    Identifiers are generated automatically in incremental order based on the order in which objects are created.
+    As transient quantities, object identifiers are not serialized.
+  - Chrono objects can now be tagged (using newly introduced functions `SetTag`/`GetTag`).
+    Unlike object identifiers, object tags are completely under user control and not used anywhere else in Chrono.
+    Tags are serialized and de-serialized.
 
 + Functions that duplicated C++ Standard Library functions were removed and replaced with the corresponding C++ function (e.g., `ChMin` was obosoleted in favor of `std::min`).
 

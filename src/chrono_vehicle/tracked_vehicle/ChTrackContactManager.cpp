@@ -485,9 +485,9 @@ bool ChTrackCollisionManager::OnNarrowphase(ChCollisionInfo& contactinfo) {
         return true;
 
     // Body B is a track shoe body
-    if (bodyB->GetIdentifier() == BodyID::SHOE_BODY) {
+    if (bodyB->GetTag() == TrackedVehicleBodyTag::SHOE_BODY) {
         auto nrm = bodyA->TransformDirectionParentToLocal(contactinfo.vN);  // Express collision normal in body A frame
-        auto id = bodyA->GetIdentifier();                                   // body A identifier
+        auto tag = bodyA->GetTag();                                         // body A tag
 
         // Identify "lateral" contacts (assumed to be with a guiding pin) and let Chrono generate contacts
         if (std::abs(nrm.y()) > nrm_threshold) {
@@ -497,24 +497,24 @@ bool ChTrackCollisionManager::OnNarrowphase(ChCollisionInfo& contactinfo) {
         // Intercept and cache collisions between wheels and shoe or ground and shoe.
         // (note that no collisions with sprocket are generated anyway)
         // Do not generate Chrono contact for such collisions.
-        if (m_idler_shoe && id == BodyID::IDLER_BODY) {
+        if (m_idler_shoe && tag == TrackedVehicleBodyTag::IDLER_BODY) {
             m_collisions_idler.push_back(contactinfo);
             return false;
         }
-        if (m_wheel_shoe && id == BodyID::WHEEL_BODY) {
+        if (m_wheel_shoe && tag == TrackedVehicleBodyTag::WHEEL_BODY) {
             m_collisions_wheel.push_back(contactinfo);
             return false;
         }
-        if (m_ground_shoe && id != BodyID::IDLER_BODY && id != BodyID::WHEEL_BODY) {
+        if (m_ground_shoe && tag != TrackedVehicleBodyTag::IDLER_BODY && tag != TrackedVehicleBodyTag::WHEEL_BODY) {
             m_collisions_ground.push_back(contactinfo);
             return false;
         }
     }
 
     // Body A is a track shoe body
-    if (bodyA->GetIdentifier() == BodyID::SHOE_BODY) {
+    if (bodyA->GetTag() == TrackedVehicleBodyTag::SHOE_BODY) {
         auto nrm = bodyB->TransformDirectionParentToLocal(contactinfo.vN);  // Express collision normal in body B frame
-        auto id = bodyB->GetIdentifier();                                   // body A identifier
+        auto tag = bodyB->GetTag();                                         // body B tag
 
         // Identify "lateral" contacts (assumed to be with a guiding pin) and let Chrono generate contacts
         if (std::abs(nrm.y()) > nrm_threshold) {
@@ -524,19 +524,19 @@ bool ChTrackCollisionManager::OnNarrowphase(ChCollisionInfo& contactinfo) {
         // Intercept and cache collisions between wheels and shoe or ground and shoe.
         // (note that no collisions with sprocket are generated anyway)
         // Do not generate Chrono contact for such collisions.
-        if (m_idler_shoe && id == BodyID::IDLER_BODY) {
+        if (m_idler_shoe && tag == TrackedVehicleBodyTag::IDLER_BODY) {
             auto contactinfoS = contactinfo;
             contactinfoS.SwapModels();
             m_collisions_idler.push_back(contactinfoS);
             return false;
         }
-        if (m_wheel_shoe && id == BodyID::WHEEL_BODY) {
+        if (m_wheel_shoe && tag == TrackedVehicleBodyTag::WHEEL_BODY) {
             auto contactinfoS = contactinfo;
             contactinfoS.SwapModels();
             m_collisions_wheel.push_back(contactinfoS);
             return false;
         }
-        if (m_ground_shoe && id != BodyID::IDLER_BODY && id != BodyID::WHEEL_BODY) {
+        if (m_ground_shoe && tag != TrackedVehicleBodyTag::IDLER_BODY && tag != TrackedVehicleBodyTag::WHEEL_BODY) {
             auto contactinfoS = contactinfo;
             contactinfoS.SwapModels();
             m_collisions_ground.push_back(contactinfoS);

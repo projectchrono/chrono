@@ -26,6 +26,8 @@
 
 using namespace chrono;
 
+static constexpr int tag_particles = 100;
+
 GroundGranular::GroundGranular(ChSystemMulticore* sys) : m_sys(sys), m_num_particles(0), m_radius(0), m_num_layers(0) {}
 
 GroundGranularA::GroundGranularA(ChSystemMulticore* sys) : GroundGranular(sys) {
@@ -34,7 +36,6 @@ GroundGranularA::GroundGranularA(ChSystemMulticore* sys) : GroundGranular(sys) {
 
 GroundGranularB::GroundGranularB(ChSystemMulticore* sys) : GroundGranular(sys) {
     m_ground = chrono_types::make_shared<ChBody>();
-    m_ground->SetIdentifier(-1);
     m_ground->SetFixed(true);
     m_ground->EnableCollision(true);
     sys->AddBody(m_ground);
@@ -131,7 +132,6 @@ void GroundGranularA::Initialize(double x_min, double z_max, double step_size) {
     if (m_sys->GetContactMethod() == ChContactMethod::NSC)
         m_terrain->SetCollisionEnvelope(0.02 * m_radius);
 
-    m_terrain->SetStartIdentifier(m_start_id);
     m_terrain->EnableVisualization(true);
     m_terrain->EnableVerbose(true);
     m_terrain->Initialize(m_center, m_length, m_width, m_num_layers, m_radius, m_density);
@@ -161,7 +161,7 @@ void GroundGranularB::Initialize(double x_min, double z_max, double step_size) {
     m1->SetDefaultSize(m_radius);
 
     // Set starting value for body identifiers
-    gen.SetBodyIdentifier(m_start_id + 1);
+    gen.SetStartTag(tag_particles);
 
     // Create particles in layers separated by an inflated particle diameter, starting at the bottom boundary
     ChVector3d hdims(m_length / 2 - m_radius1, m_width / 2 - m_radius1, 0);
@@ -196,7 +196,7 @@ std::pair<double, double> GroundGranular::GetTopHeight(int num_samples) const {
 
     // Loop over all bodies in system
     for (auto body : m_sys->GetBodies()) {
-        if (body->GetIdentifier() <= m_start_id)
+        if (body->GetTag() < tag_particles)
             continue;
         auto pos = body->GetPos();
         int ix = (int)std::floor((pos.x() - xm) / dx);

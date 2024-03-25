@@ -120,11 +120,9 @@ ContactForceTest::ContactForceTest() {
     ChVector3d init_vel(0, 0, 0);
     ChVector3d init_omg(0, 0, 0);
 
-    int ballId = 1;
     for (unsigned int i = 0; i < num_balls; i++) {
         auto ball = chrono_types::make_shared<ChBody>();
 
-        ball->SetIdentifier(ballId++);
         ball->SetMass(mass);
         ball->SetInertiaXX(0.4 * mass * radius * radius * ChVector3d(1, 1, 1));
         ball->SetPos(pos + ChVector3d(i * 2 * radius, i * 2 * radius, 0));
@@ -146,12 +144,10 @@ ContactForceTest::ContactForceTest() {
     std::cout << "Total weight = " << total_weight << std::endl;
 
     // Create container box
-    int binId = 0;
     double bin_width = 20;
     double bin_length = 20;
     double bin_thickness = 0.1;
-    ground = utils::CreateBoxContainer(system, binId, material, ChVector3d(bin_width, bin_length, 2 * radius),
-                                       bin_thickness);
+    ground = utils::CreateBoxContainer(system, material, ChVector3d(bin_width, bin_length, 2 * radius), bin_thickness);
 
     // -------------------
     // Setup linear solver

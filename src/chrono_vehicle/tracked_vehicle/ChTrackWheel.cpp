@@ -52,7 +52,7 @@ void ChTrackWheel::Initialize(std::shared_ptr<ChChassis> chassis,
     // Create and initialize the wheel body.
     m_wheel = chrono_types::make_shared<ChBody>();
     m_wheel->SetNameString(m_name + "_wheel");
-    m_wheel->SetIdentifier(BodyID::WHEEL_BODY);
+    m_wheel->SetTag(TrackedVehicleBodyTag::WHEEL_BODY);
     m_wheel->SetPos(wheel_to_abs.GetPos());
     m_wheel->SetRot(wheel_to_abs.GetRot());
     m_wheel->SetMass(GetMass());

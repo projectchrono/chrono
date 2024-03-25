@@ -263,7 +263,7 @@ double ChMixtureIngredient::CalcMinSeparation() {
 
 // Constructor: create a generator for the specified system.
 ChGenerator::ChGenerator(ChSystem* system)
-    : m_system(system), m_mixDist(0, 1), m_crtBodyId(0), m_totalNumBodies(0), m_totalMass(0), m_totalVolume(0) {}
+    : m_system(system), m_mixDist(0, 1), m_start_tag(0), m_totalNumBodies(0), m_totalMass(0), m_totalVolume(0) {}
 
 // Destructor
 ChGenerator::~ChGenerator() {}
@@ -492,7 +492,7 @@ void ChGenerator::CreateObjects(const PointVector& points, const ChVector3d& vel
         auto body = chrono_types::make_shared<ChBody>();
 
         // Set identifier
-        body->SetIdentifier(m_crtBodyId++);
+        body->SetTag(m_start_tag++);
 
         // Set position and orientation
         body->SetPos(points[i]);

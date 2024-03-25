@@ -192,7 +192,6 @@ int main(int argc, char* argv[]) {
     // ----------------------
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetIdentifier(-1);
     ground->SetFixed(true);
 
     // Attach visualization assets
@@ -206,7 +205,6 @@ int main(int argc, char* argv[]) {
     // --------------------
     auto cart = chrono_types::make_shared<ChBody>();
     sys.AddBody(cart);
-    cart->SetIdentifier(1);
     cart->SetMass(mass_cart);
     cart->SetInertiaXX(ChVector3d(1, 1, 1));
     cart->SetPos(ChVector3d(0, 0, 0));
@@ -219,7 +217,6 @@ int main(int argc, char* argv[]) {
     // ------------------------
     auto pend = chrono_types::make_shared<ChBody>();
     sys.AddBody(pend);
-    pend->SetIdentifier(2);
     pend->SetMass(mass_pend);
     pend->SetInertiaXX(ChVector3d(1, 1, J_pend));
     pend->SetPos(ChVector3d(0, hlen_pend, 0));

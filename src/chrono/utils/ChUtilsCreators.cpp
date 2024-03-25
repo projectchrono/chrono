@@ -619,7 +619,6 @@ void AddBoxContainer(std::shared_ptr<ChBody> body,
 // walls (no top).
 // -----------------------------------------------------------------------------
 std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
-                                           int id,
                                            ChContactMaterialSharedPtr mat,
                                            const ChVector3d& size,
                                            double thickness,
@@ -635,8 +634,6 @@ std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
     auto body = chrono_types::make_shared<ChBody>();
 
     // Set body properties and geometry.
-    body->SetIdentifier(id);
-    body->SetMass(1);
     body->SetPos(pos);
     body->SetRot(rot);
     body->EnableCollision(collide);
@@ -678,7 +675,6 @@ std::shared_ptr<ChBody> CreateBoxContainer(ChSystem* system,
 // by default, it is z_up
 // -----------------------------------------------------------------------------
 std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
-                                                            int id,
                                                             ChContactMaterialSharedPtr mat,
                                                             double radius,
                                                             double height,
@@ -698,8 +694,6 @@ std::shared_ptr<ChBody> CreateCylindricalContainerFromBoxes(ChSystem* system,
     auto body = chrono_types::make_shared<ChBody>();
 
     // Set body properties and geometry.
-    body->SetIdentifier(id);
-    // body->SetMass(1);
     body->SetPos(pos);
     body->SetRot(rot);
     body->EnableCollision(collide);

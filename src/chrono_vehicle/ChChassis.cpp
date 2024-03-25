@@ -115,7 +115,7 @@ void ChChassis::Initialize(ChSystem* system,
     ChFrame<> chassis_pos(chassisPos.pos, ChMatrix33<>(chassisPos.rot) * ChWorldFrame::Rotation().transpose());
 
     m_body = chrono_types::make_shared<ChBodyAuxRef>();
-    m_body->SetIdentifier(0);
+    m_body->SetTag(0);
     m_body->SetNameString(m_name + " body");
     m_body->SetMass(GetBodyMass());
     m_body->SetFrameCOMToRef(GetBodyCOMFrame());
@@ -272,7 +272,7 @@ void ChChassisRear::Initialize(std::shared_ptr<ChChassis> chassis, int collision
     auto system = chassis->GetBody()->GetSystem();
 
     m_body = chrono_types::make_shared<ChBodyAuxRef>();
-    m_body->SetIdentifier(0);
+    m_body->SetTag(0);
     m_body->SetNameString(m_name + " body");
     m_body->SetMass(GetBodyMass());
     m_body->SetFrameCOMToRef(GetBodyCOMFrame());

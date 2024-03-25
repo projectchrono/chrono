@@ -54,10 +54,9 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
-// Ensure that all bodies other than obstacles or granular particles are created with a smaller identifier.
-// This allows filtering particle bodies or particle+obstacle bodies.
-static const int body_id_obstacles = 100000;  // start identifier for obstacle bodies
-static const int body_id_particles = 110000;  // start identifier for particle bodies
+// Set tags for obstacles and particles.
+static constexpr int tag_obstacles = 100; // all obstacle bodies use this tag
+static constexpr int tag_particles = 200; // all particles have a tag larger than this
 
 // -----------------------------------------------------------------------------
 // Construction of the terrain node:
@@ -366,7 +365,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
 
     auto container = chrono_types::make_shared<ChBody>();
     m_system->AddBody(container);
-    container->SetIdentifier(-1);
+    container->SetTag(-1);
     container->SetMass(1);
     container->SetFixed(true);
     container->EnableCollision(true);
@@ -415,7 +414,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     m1->SetDefaultSize(m_radius_g);
 
     // Set starting value for body identifiers
-    gen.SetBodyIdentifier(body_id_particles);
+    gen.SetStartTag(tag_particles);
 
     // Create particles using the specified volume sampling type
     utils::ChSampler<double>* sampler;
@@ -483,16 +482,16 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
         for (uint ib = particles_start_index; ib < m_system->GetBodies().size(); ++ib) {
             std::getline(ifile, line);
             std::istringstream iss(line);
-            int identifier;
+            int tag;
             ChVector3d pos;
             ChQuaternion<> rot;
             ChVector3d pos_dt;
             ChQuaternion<> rot_dt;
-            iss >> identifier >> pos.x() >> pos.y() >> pos.z() >> rot.e0() >> rot.e1() >> rot.e2() >> rot.e3() >>
+            iss >> tag >> pos.x() >> pos.y() >> pos.z() >> rot.e0() >> rot.e1() >> rot.e2() >> rot.e3() >>
                 pos_dt.x() >> pos_dt.y() >> pos_dt.z() >> rot_dt.e0() >> rot_dt.e1() >> rot_dt.e2() >> rot_dt.e3();
 
             auto body = m_system->GetBodies()[ib];
-            assert(body->GetIdentifier() == identifier);
+            assert(body->GetTag() == tag);
             body->SetPos(ChVector3d(pos.x(), pos.y(), pos.z()));
             body->SetRot(ChQuaternion<>(rot.e0(), rot.e1(), rot.e2(), rot.e3()));
             body->SetPosDt(ChVector3d(pos_dt.x(), pos_dt.y(), pos_dt.z()));
@@ -512,7 +511,6 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
     // Create rigid obstacles
     // ----------------------
 
-    int id = body_id_obstacles;
     for (auto& b : m_obstacles) {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
         auto trimesh =
@@ -524,7 +522,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Construct() {
 
         auto body = chrono_types::make_shared<ChBody>();
         body->SetNameString("obstacle");
-        body->SetIdentifier(id++);
+        body->SetTag(tag_obstacles);
         body->SetPos(b.m_init_pos);
         body->SetRot(b.m_init_rot);
         body->SetMass(mass * b.m_density);
@@ -710,7 +708,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::Settle() {
 double ChVehicleCosimTerrainNodeGranularOMP::CalcTotalKineticEnergy() {
     double KE = 0;
     for (const auto& body : m_system->GetBodies()) {
-        if (body->GetIdentifier() > 0) {
+        if (body->GetTag() > 0) {
             auto omg = body->GetAngVelParent();
             auto J = body->GetInertiaXX();
             KE += body->GetMass() * body->GetPosDt().Length2() + omg.Dot(J * omg);
@@ -722,7 +720,7 @@ double ChVehicleCosimTerrainNodeGranularOMP::CalcTotalKineticEnergy() {
 double ChVehicleCosimTerrainNodeGranularOMP::CalcCurrentHeight() {
     double height = -std::numeric_limits<double>::max();
     for (const auto& body : m_system->GetBodies()) {
-        if (body->GetIdentifier() > 0 && body->GetPos().z() > height)
+        if (body->GetTag() > 0 && body->GetPos().z() > height)
             height = body->GetPos().z();
     }
     return height;
@@ -773,7 +771,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateMeshProxy(unsigned int i) {
 
     for (unsigned int it = 0; it < nt; it++) {
         auto body = chrono_types::make_shared<ChBody>();
-        body->SetIdentifier(it);
+        body->SetTag(it);
         body->SetMass(mass_p);
         body->SetInertiaXX(inertia_p);
         body->SetFixed(m_fixed_proxies);
@@ -806,7 +804,7 @@ void ChVehicleCosimTerrainNodeGranularOMP::CreateRigidProxy(unsigned int i) {
     auto proxy = chrono_types::make_shared<ProxyBodySet>();
 
     auto body = chrono_types::make_shared<ChBody>();
-    body->SetIdentifier(0);
+    body->SetTag(0);
     body->SetMass(m_load_mass[i]);
     ////body->SetInertiaXX();   //// TODO
     body->SetFixed(m_fixed_proxies);
@@ -1073,15 +1071,10 @@ void ChVehicleCosimTerrainNodeGranularOMP::OnOutputData(int frame) {
 // -----------------------------------------------------------------------------
 
 void ChVehicleCosimTerrainNodeGranularOMP::WriteParticleInformation(utils::ChWriterCSV& csv) {
-    // Write current time, number of granular particles and their radius
-    ////csv << m_system->GetChTime() << endl;
-    ////csv << m_num_particles << m_radius_g << endl;
-
     // Write particle positions and linear velocities
     for (auto body : m_system->GetBodies()) {
-        if (body->GetIdentifier() < body_id_particles)
+        if (body->GetTag() < tag_particles)
             continue;
-        ////csv << body->GetIdentifier() << body->GetPos() << body->GetPosDt() << endl;
         csv << body->GetPos() << body->GetPosDt() << endl;
     }
 }
@@ -1094,11 +1087,11 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& fi
     csv << m_num_particles << endl;
 
     // Loop over all bodies in the system and write state for granular material bodies.
-    // Filter granular material using the body identifier.
+    // Filter granular material using the body tag.
     for (auto& body : m_system->GetBodies()) {
-        if (body->GetIdentifier() < body_id_particles)
+        if (body->GetTag() < tag_particles)
             continue;
-        csv << body->GetIdentifier() << body->GetPos() << body->GetRot() << body->GetPosDt() << body->GetRotDt()
+        csv << body->GetTag() << body->GetPos() << body->GetRot() << body->GetPosDt() << body->GetRotDt()
             << endl;
     }
 
@@ -1112,9 +1105,9 @@ void ChVehicleCosimTerrainNodeGranularOMP::WriteCheckpoint(const std::string& fi
 
 void ChVehicleCosimTerrainNodeGranularOMP::OutputVisualizationData(int frame) {
     auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
-    // Include only obstacles and particles
+    // Include only particles
     utils::WriteVisualizationAssets(
-        m_system, filename, [](const ChBody& b) -> bool { return b.GetIdentifier() >= body_id_obstacles; }, true);
+        m_system, filename, [](const ChBody& b) -> bool { return b.GetTag() >= tag_particles; }, true);
 }
 
 void ChVehicleCosimTerrainNodeGranularOMP::PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state) {

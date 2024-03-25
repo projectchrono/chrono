@@ -51,16 +51,12 @@ int count_Y = 2;
 // Create a bin consisting of five boxes attached to the ground.
 // -----------------------------------------------------------------------------
 void AddContainer(ChSystemMulticoreNSC* sys) {
-    // IDs for the two bodies
-    int binId = -200;
-
     // Create a common material
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.4f);
 
     // Create the containing bin (4 x 4 x 1)
     auto bin = chrono_types::make_shared<ChBody>();
-    bin->SetIdentifier(binId);
     bin->SetMass(1);
     bin->SetPos(ChVector3d(0, 0, 0));
     bin->SetRot(QuatFromAngleY(tilt_angle));
@@ -84,7 +80,6 @@ void AddFallingBalls(ChSystemMulticore* sys) {
     ballMat->SetFriction(0.4f);
 
     // Create the falling balls
-    int ballId = 0;
     double mass = 1;
     double radius = 0.15;
     ChVector3d inertia = (2.0 / 5.0) * mass * radius * radius * ChVector3d(1, 1, 1);
@@ -94,7 +89,6 @@ void AddFallingBalls(ChSystemMulticore* sys) {
             ChVector3d pos(0.4 * ix, 0.4 * iy, 1);
 
             auto ball = chrono_types::make_shared<ChBody>();
-            ball->SetIdentifier(ballId++);
             ball->SetMass(mass);
             ball->SetInertiaXX(inertia);
             ball->SetPos(pos);

@@ -336,7 +336,6 @@ void ChVehicleCosimTerrainNodeSCM::CreateRigidProxy(unsigned int i) {
 
     // Create wheel proxy body
     auto body = chrono_types::make_shared<ChBody>();
-    body->SetIdentifier(0);
     body->SetMass(m_load_mass[i_shape]);
     ////body->SetInertiaXX();   //// TODO
     body->SetFixed(false);  // Cannot fix the proxies with SCM

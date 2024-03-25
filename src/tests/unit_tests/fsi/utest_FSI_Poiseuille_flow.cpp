@@ -77,7 +77,6 @@ void CreateSolidPhase(ChSystemSMC& sysMBS, ChSystemFsi& sysFSI) {
 
     // Create a body for the wall
     auto body = chrono_types::make_shared<ChBody>();
-    body->SetIdentifier(-1);
     body->SetFixed(true);
     body->EnableCollision(true);
 

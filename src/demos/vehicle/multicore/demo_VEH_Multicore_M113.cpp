@@ -79,7 +79,7 @@ double hdimZ = 0.5;
 double hthick = 0.25;
 
 // Parameters for granular material
-int Id_g = 100;
+int tag_g = 100;  // all particles will have tag at least this value
 double r_g = 0.02;
 double rho_g = 2500;
 double vol_g = (4.0 / 3) * CH_PI * r_g * r_g * r_g;
@@ -156,7 +156,7 @@ double CreateParticles(ChSystem* sys) {
     m1->SetDefaultSize(r_g);
 
     // Set starting value for body identifiers
-    gen.SetBodyIdentifier(Id_g);
+    gen.SetStartTag(tag_g);
 
     // Create particles in layers until reaching the desired number of particles
     ChVector3d hdims(hdimX - r, hdimY - r, 0);
@@ -271,7 +271,6 @@ int main(int argc, char* argv[]) {
 
     // Ground body
     auto ground = chrono_types::make_shared<ChBody>();
-    ground->SetIdentifier(-1);
     ground->SetFixed(true);
     ground->EnableCollision(true);
 

@@ -68,7 +68,6 @@ int main(int argc, char* argv[]) {
 
     auto ground = chrono_types::make_shared<ChBody>();
     sys.AddBody(ground);
-    ground->SetIdentifier(-1);
     ground->SetFixed(true);
     ground->EnableCollision(false);
 
@@ -85,7 +84,6 @@ int main(int argc, char* argv[]) {
 
     auto pend_1 = chrono_types::make_shared<ChBody>();
     sys.AddBody(pend_1);
-    pend_1->SetIdentifier(1);
     pend_1->SetFixed(false);
     pend_1->EnableCollision(false);
     pend_1->SetMass(1);
@@ -114,7 +112,6 @@ int main(int argc, char* argv[]) {
 
     auto pend_2 = chrono_types::make_shared<ChBodyAuxRef>();
     sys.Add(pend_2);
-    pend_2->SetIdentifier(2);
     pend_2->SetFixed(false);
     pend_2->EnableCollision(false);
     pend_2->SetMass(1);

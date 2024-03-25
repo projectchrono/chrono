@@ -77,7 +77,7 @@ class CH_VEHICLE_API ChTrackShoe : public ChPart {
     /// at the specified location and orientation (expressed in the global frame).
     /// All actual work is deferred to derived classes (subsystem templates) which
     /// must create the bodies, joints, etc.  In addition, a derived class must set
-    /// the track shoe body's identifier to BodyID::SHOES.
+    /// the track shoe body's tag to TrackedVehicleBodyTag::SHOES.
     virtual void Initialize(std::shared_ptr<ChBodyAuxRef> chassis,  ///< [in] handle to the chassis body
                             const ChVector3d& location,             ///< [in] location relative to the chassis frame
                             const ChQuaternion<>& rotation          ///< [in] orientation relative to the chassis frame

@@ -54,10 +54,8 @@ using namespace rapidjson;
 namespace chrono {
 namespace vehicle {
 
-// Ensure that all bodies other than the rigid terrain and obstacles are created with a smaller identifier.
-// This allows filtering terrain+obstacle bodies.
-static const int body_id_terrain = 100000;
-static const int body_id_obstacles = 100001;
+// All obstacle bodies have this tag
+static constexpr int tag_obstacles = 100;
 
 // -----------------------------------------------------------------------------
 // Construction of the terrain node:
@@ -203,7 +201,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     // Create container body
     auto container = chrono_types::make_shared<ChBody>();
     m_system->AddBody(container);
-    container->SetIdentifier(body_id_terrain);
+    container->SetTag(tag_obstacles);
     container->SetNameString("container");
     container->SetMass(1);
     container->SetFixed(true);
@@ -224,7 +222,6 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
 
         auto ground = chrono_types::make_shared<ChBody>();
         ground->SetNameString("ground");
-        ground->SetIdentifier(-2);
         ground->SetFixed(true);
         ground->EnableCollision(false);
         m_system->AddBody(ground);
@@ -235,7 +232,6 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
     }
 
     // Add all rigid obstacles
-    int id = body_id_obstacles;
     for (auto& b : m_obstacles) {
         auto mat = b.m_contact_mat.CreateMaterial(m_system->GetContactMethod());
         auto trimesh =
@@ -247,7 +243,7 @@ void ChVehicleCosimTerrainNodeRigid::Construct() {
 
         auto body = chrono_types::make_shared<ChBody>();
         body->SetNameString("obstacle");
-        body->SetIdentifier(id++);
+        body->SetTag(tag_obstacles);
         body->SetPos(b.m_init_pos);
         body->SetRot(b.m_init_rot);
         body->SetMass(mass * b.m_density);
@@ -326,7 +322,6 @@ void ChVehicleCosimTerrainNodeRigid::CreateMeshProxy(unsigned int i) {
 
     for (unsigned int iv = 0; iv < nv; iv++) {
         auto body = chrono_types::make_shared<ChBody>();
-        body->SetIdentifier(iv);
         body->SetMass(mass_p);
         body->SetInertiaXX(inertia_p);
         body->SetFixed(m_fixed_proxies);
@@ -356,7 +351,6 @@ void ChVehicleCosimTerrainNodeRigid::CreateRigidProxy(unsigned int i) {
     // Create wheel proxy body
     auto body = chrono_types::make_shared<ChBody>();
     body->SetNameString("proxy_" + std::to_string(i));
-    body->SetIdentifier(0);
     body->SetMass(m_load_mass[i]);
     ////body->SetInertiaXX();   //// TODO
     body->SetFixed(m_fixed_proxies);
@@ -509,7 +503,7 @@ void ChVehicleCosimTerrainNodeRigid::OutputVisualizationData(int frame) {
     auto filename = OutputFilename(m_node_out_dir + "/visualization", "vis", "dat", frame, 5);
     // Include only main body and obstacles
     utils::WriteVisualizationAssets(
-        m_system, filename, [](const ChBody& b) -> bool { return b.GetIdentifier() >= body_id_terrain; }, true);
+        m_system, filename, [](const ChBody& b) -> bool { return b.GetTag() >= tag_obstacles; }, true);
 }
 
 void ChVehicleCosimTerrainNodeRigid::PrintMeshProxiesUpdateData(unsigned int i, const MeshState& mesh_state) {

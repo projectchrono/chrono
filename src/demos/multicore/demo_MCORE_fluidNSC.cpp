@@ -54,7 +54,7 @@ void AddContainer(ChSystemMulticoreNSC* sys) {
     auto mat = chrono_types::make_shared<ChContactMaterialNSC>();
     mat->SetFriction(0.4f);
 
-    utils::CreateBoxContainer(sys, 0, mat,                                 //
+    utils::CreateBoxContainer(sys, mat,                                    //
                               ChVector3d(1.1, 1.2, 1.1), 0.1,              //
                               ChVector3d(0, 0, 0.3), QuatFromAngleY(-10),  //
                               true, true, true);
