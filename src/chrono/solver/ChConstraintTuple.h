@@ -252,16 +252,16 @@ class ChConstraintTuple_2vars {
 
     void PasteJacobianInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
         if (variables_1->IsActive())
-            PasteMatrix(storage, Cq_1, start_row, variables_1->GetOffset() + start_col);
+            PasteMatrix(mat, Cq_1, start_row, variables_1->GetOffset() + start_col);
         if (variables_2->IsActive())
-            PasteMatrix(storage, Cq_2, start_row, variables_2->GetOffset() + start_col);
+            PasteMatrix(mat, Cq_2, start_row, variables_2->GetOffset() + start_col);
     }
 
     void PasteJacobianTransposedInto(ChSparseMatrix& mat, unsigned int start_row, unsigned int start_col) const {
         if (variables_1->IsActive())
-            PasteMatrix(storage, Cq_1.transpose(), variables_1->GetOffset() + start_row, start_col);
+            PasteMatrix(mat, Cq_1.transpose(), variables_1->GetOffset() + start_row, start_col);
         if (variables_2->IsActive())
-            PasteMatrix(storage, Cq_2.transpose(), variables_2->GetOffset() + start_row, start_col);
+            PasteMatrix(mat, Cq_2.transpose(), variables_2->GetOffset() + start_row, start_col);
     }
 };
 
