@@ -813,7 +813,7 @@ void ChPovRay::ExportData(const std::string& filename) {
 
                 // Show body COG?
                 if (COGs_show) {
-                    const ChCoordsys<>& cogcsys = body->GetFrame_COG_to_abs().GetCoordsys();
+                    const ChCoordsys<>& cogcsys = body->GetFrameCOMToAbs().GetCoordsys();
                     pov_file << "sh_csysCOG(";
                     pov_file << cogcsys.pos.x() << "," << cogcsys.pos.y() << "," << cogcsys.pos.z() << ",";
                     pov_file << cogcsys.rot.e0() << "," << cogcsys.rot.e1() << "," << cogcsys.rot.e2() << ","

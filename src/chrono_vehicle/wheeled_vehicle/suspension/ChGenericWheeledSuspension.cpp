@@ -551,10 +551,10 @@ void ChGenericWheeledSuspension::UpdateInertiaProperties() {
     utils::CompositeInertia composite;
 
     ChMatrix33<> inertiaSpindle(getSpindleInertia());
-    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
     for (const auto& item : m_bodies)
-        composite.AddComponent(item.second.body->GetFrame_COG_to_abs(), item.second.body->GetMass(),
+        composite.AddComponent(item.second.body->GetFrameCOMToAbs(), item.second.body->GetMass(),
                                item.second.body->GetInertia());
 
     // Express COM and inertia in subsystem reference frame

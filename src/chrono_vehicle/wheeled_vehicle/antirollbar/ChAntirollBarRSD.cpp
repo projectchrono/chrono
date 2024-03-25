@@ -142,8 +142,8 @@ void ChAntirollBarRSD::UpdateInertiaProperties() {
 
     // Calculate COM and inertia expressed in global frame
     utils::CompositeInertia composite;
-    composite.AddComponent(m_arm_left->GetFrame_COG_to_abs(), m_arm_left->GetMass(), m_arm_left->GetInertia());
-    composite.AddComponent(m_arm_right->GetFrame_COG_to_abs(), m_arm_right->GetMass(), m_arm_right->GetInertia());
+    composite.AddComponent(m_arm_left->GetFrameCOMToAbs(), m_arm_left->GetMass(), m_arm_left->GetInertia());
+    composite.AddComponent(m_arm_right->GetFrameCOMToAbs(), m_arm_right->GetMass(), m_arm_right->GetInertia());
 
     // Express COM and inertia in subsystem reference frame
     m_com.GetPos() = m_xform.TransformPointParentToLocal(composite.GetCOM());

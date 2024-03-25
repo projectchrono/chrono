@@ -139,7 +139,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// The mass and inertia tensor are defined with respect to this coordinate system, which is also assumed to be the
     /// default coordinates of the body. By default, a call to body.GetPos() is equivalent to
     /// body.GetFrame_COG_abs().GetPos().
-    virtual const ChFrameMoving<>& GetFrame_COG_to_abs() const { return *this; }
+    virtual const ChFrameMoving<>& GetFrameCOMToAbs() const { return *this; }
 
     /// Get the rigid body coordinate system that is used for defining the collision shapes and the ChMarker objects.
     /// For the base ChBody, this is always the same reference of the COG.

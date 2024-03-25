@@ -318,19 +318,19 @@ void ChMacPhersonStrut::UpdateInertiaProperties() {
     ChMatrix33<> inertiaUpright(getUprightInertia());
 
     utils::CompositeInertia composite;
-    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_strut[LEFT]->GetFrame_COG_to_abs(), getStrutMass(), inertiaStruct);
-    composite.AddComponent(m_strut[RIGHT]->GetFrame_COG_to_abs(), getStrutMass(), inertiaStruct);
-    composite.AddComponent(m_LCA[LEFT]->GetFrame_COG_to_abs(), getLCAMass(), inertiaLCA);
-    composite.AddComponent(m_LCA[RIGHT]->GetFrame_COG_to_abs(), getLCAMass(), inertiaLCA);
-    composite.AddComponent(m_upright[LEFT]->GetFrame_COG_to_abs(), getUprightMass(), inertiaUpright);
-    composite.AddComponent(m_upright[RIGHT]->GetFrame_COG_to_abs(), getUprightMass(), inertiaUpright);
+    composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_strut[LEFT]->GetFrameCOMToAbs(), getStrutMass(), inertiaStruct);
+    composite.AddComponent(m_strut[RIGHT]->GetFrameCOMToAbs(), getStrutMass(), inertiaStruct);
+    composite.AddComponent(m_LCA[LEFT]->GetFrameCOMToAbs(), getLCAMass(), inertiaLCA);
+    composite.AddComponent(m_LCA[RIGHT]->GetFrameCOMToAbs(), getLCAMass(), inertiaLCA);
+    composite.AddComponent(m_upright[LEFT]->GetFrameCOMToAbs(), getUprightMass(), inertiaUpright);
+    composite.AddComponent(m_upright[RIGHT]->GetFrameCOMToAbs(), getUprightMass(), inertiaUpright);
 
     if (UseTierodBodies()) {
         ChMatrix33<> inertiaTierod(getTierodInertia());
-        composite.AddComponent(m_tierod[LEFT]->GetFrame_COG_to_abs(), getTierodMass(), inertiaTierod);
-        composite.AddComponent(m_tierod[RIGHT]->GetFrame_COG_to_abs(), getTierodMass(), inertiaTierod);
+        composite.AddComponent(m_tierod[LEFT]->GetFrameCOMToAbs(), getTierodMass(), inertiaTierod);
+        composite.AddComponent(m_tierod[RIGHT]->GetFrameCOMToAbs(), getTierodMass(), inertiaTierod);
     }
 
     // Express COM and inertia in subsystem reference frame

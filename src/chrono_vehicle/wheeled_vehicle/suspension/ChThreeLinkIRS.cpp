@@ -275,14 +275,14 @@ void ChThreeLinkIRS::UpdateInertiaProperties() {
     ChMatrix33<> inertiaUpper(getUpperLinkInertia());
 
     utils::CompositeInertia composite;
-    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_arm[LEFT]->GetFrame_COG_to_abs(), getArmMass(), inertiaArm);
-    composite.AddComponent(m_arm[RIGHT]->GetFrame_COG_to_abs(), getArmMass(), inertiaArm);
-    composite.AddComponent(m_lower[LEFT]->GetFrame_COG_to_abs(), getLowerLinkMass(), inertiaLower);
-    composite.AddComponent(m_lower[RIGHT]->GetFrame_COG_to_abs(), getLowerLinkMass(), inertiaLower);
-    composite.AddComponent(m_upper[LEFT]->GetFrame_COG_to_abs(), getUpperLinkMass(), inertiaUpper);
-    composite.AddComponent(m_upper[RIGHT]->GetFrame_COG_to_abs(), getUpperLinkMass(), inertiaUpper);
+    composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_arm[LEFT]->GetFrameCOMToAbs(), getArmMass(), inertiaArm);
+    composite.AddComponent(m_arm[RIGHT]->GetFrameCOMToAbs(), getArmMass(), inertiaArm);
+    composite.AddComponent(m_lower[LEFT]->GetFrameCOMToAbs(), getLowerLinkMass(), inertiaLower);
+    composite.AddComponent(m_lower[RIGHT]->GetFrameCOMToAbs(), getLowerLinkMass(), inertiaLower);
+    composite.AddComponent(m_upper[LEFT]->GetFrameCOMToAbs(), getUpperLinkMass(), inertiaUpper);
+    composite.AddComponent(m_upper[RIGHT]->GetFrameCOMToAbs(), getUpperLinkMass(), inertiaUpper);
 
     // Express COM and inertia in subsystem reference frame
     m_com.GetPos() = m_xform.TransformPointParentToLocal(composite.GetCOM());

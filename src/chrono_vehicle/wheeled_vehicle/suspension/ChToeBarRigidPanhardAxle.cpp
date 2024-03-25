@@ -411,15 +411,15 @@ void ChToeBarRigidPanhardAxle::UpdateInertiaProperties() {
     ChMatrix33<> inertiaKnuckle(getKnuckleInertia());
 
     utils::CompositeInertia composite;
-    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_axleTubeBody->GetFrame_COG_to_abs(), getAxleTubeMass(),
+    composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_axleTubeBody->GetFrameCOMToAbs(), getAxleTubeMass(),
                            ChMatrix33<>(getAxleTubeInertia()));
-    composite.AddComponent(m_tierodBody->GetFrame_COG_to_abs(), getTierodMass(), ChMatrix33<>(getTierodInertia()));
-    composite.AddComponent(m_draglinkBody->GetFrame_COG_to_abs(), getDraglinkMass(),
+    composite.AddComponent(m_tierodBody->GetFrameCOMToAbs(), getTierodMass(), ChMatrix33<>(getTierodInertia()));
+    composite.AddComponent(m_draglinkBody->GetFrameCOMToAbs(), getDraglinkMass(),
                            ChMatrix33<>(getDraglinkInertia()));
-    composite.AddComponent(m_knuckleBody[LEFT]->GetFrame_COG_to_abs(), getKnuckleMass(), inertiaKnuckle);
-    composite.AddComponent(m_knuckleBody[RIGHT]->GetFrame_COG_to_abs(), getKnuckleMass(), inertiaKnuckle);
+    composite.AddComponent(m_knuckleBody[LEFT]->GetFrameCOMToAbs(), getKnuckleMass(), inertiaKnuckle);
+    composite.AddComponent(m_knuckleBody[RIGHT]->GetFrameCOMToAbs(), getKnuckleMass(), inertiaKnuckle);
 
     // Express COM and inertia in subsystem reference frame
     m_com.GetPos() = m_xform.TransformPointParentToLocal(composite.GetCOM());

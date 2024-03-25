@@ -298,6 +298,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_accumulated_torque        | rename: GetAccumulatedTorque                     |
 |                                   | GetBodyFixed                  | rename: IsFixed                                  |
 |                                   | GetCollide                    | rename: IsCollisionEnabled                       |
+|                                   | GetFrame_COG_to_abs           | rename: GetFrameCOMToAbs                         |
 |                                   | GetGid                        | remove                                           |
 |                                   | GetId                         | rename: GetIndex (internal use only)             |
 |                                   | GetMaxSpeed                   | rename: GetMaxLinVel                             |

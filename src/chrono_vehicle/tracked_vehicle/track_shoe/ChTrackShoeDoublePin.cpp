@@ -174,16 +174,16 @@ void ChTrackShoeDoublePin::UpdateInertiaProperties() {
 
     // Calculate COM and inertia expressed in global frame
     utils::CompositeInertia composite;
-    composite.AddComponent(m_shoe->GetFrame_COG_to_abs(), m_shoe->GetMass(), m_shoe->GetInertia());
+    composite.AddComponent(m_shoe->GetFrameCOMToAbs(), m_shoe->GetMass(), m_shoe->GetInertia());
     switch (m_topology) {
         case DoublePinTrackShoeType::TWO_CONNECTORS:
-            composite.AddComponent(m_connector_L->GetFrame_COG_to_abs(), m_connector_L->GetMass(),
+            composite.AddComponent(m_connector_L->GetFrameCOMToAbs(), m_connector_L->GetMass(),
                                    m_connector_L->GetInertia());
-            composite.AddComponent(m_connector_R->GetFrame_COG_to_abs(), m_connector_R->GetMass(),
+            composite.AddComponent(m_connector_R->GetFrameCOMToAbs(), m_connector_R->GetMass(),
                                    m_connector_R->GetInertia());
             break;
         case DoublePinTrackShoeType::ONE_CONNECTOR:
-            composite.AddComponent(m_connector_L->GetFrame_COG_to_abs(), m_connector_L->GetMass(),
+            composite.AddComponent(m_connector_L->GetFrameCOMToAbs(), m_connector_L->GetMass(),
                                    m_connector_L->GetInertia());
             break;
     }

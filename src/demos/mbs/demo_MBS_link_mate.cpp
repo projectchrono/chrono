@@ -205,7 +205,7 @@ void test_pendulum() {
     sph->SetColor(ChColor(0.7f, 0.8f, 0.8f));
     my_mass->AddVisualShape(sph);
 
-    ChFrameMoving<> rel_frame = my_mass->TransformParentToLocal(my_root->GetFrame_COG_to_abs());
+    ChFrameMoving<> rel_frame = my_mass->TransformParentToLocal(my_root->GetFrameCOMToAbs());
     ChLineSegment seg(VNULL, rel_frame.GetPos());
     auto cyl = chrono_types::make_shared<ChVisualShapeCylinder>(0.05, seg.GetLength());
     cyl->SetColor(ChColor(0.7f, 0.8f, 0.8f));
@@ -216,7 +216,7 @@ void test_pendulum() {
     // RotY is free
     my_joint->SetConstrainedCoords(true, true, true, true, false, true);
     my_joint->SetNameString("revolute_joint");
-    my_joint->Initialize(my_mass, my_root, my_root->GetFrame_COG_to_abs());
+    my_joint->Initialize(my_mass, my_root, my_root->GetFrameCOMToAbs());
     my_joint->SetUseTangentStiffness(use_Kc);
     sys.Add(my_joint);
 
@@ -357,7 +357,7 @@ void test_anchorchain() {
     sys.AddBody(anchorA);
 
     auto jointA = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, false, true);
-    jointA->Initialize(anchorA, wallA, wallA->GetFrame_COG_to_abs());
+    jointA->Initialize(anchorA, wallA, wallA->GetFrameCOMToAbs());
     jointA->SetUseTangentStiffness(use_Kc);
     sys.AddLink(jointA);
 
@@ -378,7 +378,7 @@ void test_anchorchain() {
     sys.AddBody(anchorB);
 
     auto jointB = chrono_types::make_shared<ChLinkMateGeneric>(true, true, true, true, false, true);
-    jointB->Initialize(anchorB, wallB, wallB->GetFrame_COG_to_abs());
+    jointB->Initialize(anchorB, wallB, wallB->GetFrameCOMToAbs());
     jointB->SetUseTangentStiffness(use_Kc);
     sys.AddLink(jointB);
 

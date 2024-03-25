@@ -367,25 +367,25 @@ void ChSAELeafspringAxle::UpdateInertiaProperties() {
     ChMatrix33<> inertiaShackle(getShackleInertia());
 
     utils::CompositeInertia composite;
-    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
 
-    composite.AddComponent(m_frontleaf[LEFT]->GetFrame_COG_to_abs(), getFrontLeafMass(), inertiaFrontLeaf);
-    composite.AddComponent(m_frontleaf[RIGHT]->GetFrame_COG_to_abs(), getFrontLeafMass(), inertiaFrontLeaf);
+    composite.AddComponent(m_frontleaf[LEFT]->GetFrameCOMToAbs(), getFrontLeafMass(), inertiaFrontLeaf);
+    composite.AddComponent(m_frontleaf[RIGHT]->GetFrameCOMToAbs(), getFrontLeafMass(), inertiaFrontLeaf);
 
-    composite.AddComponent(m_rearleaf[LEFT]->GetFrame_COG_to_abs(), getRearLeafMass(), inertiaRearLeaf);
-    composite.AddComponent(m_rearleaf[RIGHT]->GetFrame_COG_to_abs(), getRearLeafMass(), inertiaRearLeaf);
+    composite.AddComponent(m_rearleaf[LEFT]->GetFrameCOMToAbs(), getRearLeafMass(), inertiaRearLeaf);
+    composite.AddComponent(m_rearleaf[RIGHT]->GetFrameCOMToAbs(), getRearLeafMass(), inertiaRearLeaf);
 
-    composite.AddComponent(m_clampA[LEFT]->GetFrame_COG_to_abs(), getClampMass(), inertiaClamp);
-    composite.AddComponent(m_clampA[RIGHT]->GetFrame_COG_to_abs(), getClampMass(), inertiaClamp);
+    composite.AddComponent(m_clampA[LEFT]->GetFrameCOMToAbs(), getClampMass(), inertiaClamp);
+    composite.AddComponent(m_clampA[RIGHT]->GetFrameCOMToAbs(), getClampMass(), inertiaClamp);
 
-    composite.AddComponent(m_clampB[LEFT]->GetFrame_COG_to_abs(), getClampMass(), inertiaClamp);
-    composite.AddComponent(m_clampB[RIGHT]->GetFrame_COG_to_abs(), getClampMass(), inertiaClamp);
+    composite.AddComponent(m_clampB[LEFT]->GetFrameCOMToAbs(), getClampMass(), inertiaClamp);
+    composite.AddComponent(m_clampB[RIGHT]->GetFrameCOMToAbs(), getClampMass(), inertiaClamp);
 
-    composite.AddComponent(m_shackle[LEFT]->GetFrame_COG_to_abs(), getShackleMass(), inertiaShackle);
-    composite.AddComponent(m_shackle[RIGHT]->GetFrame_COG_to_abs(), getShackleMass(), inertiaShackle);
+    composite.AddComponent(m_shackle[LEFT]->GetFrameCOMToAbs(), getShackleMass(), inertiaShackle);
+    composite.AddComponent(m_shackle[RIGHT]->GetFrameCOMToAbs(), getShackleMass(), inertiaShackle);
 
-    composite.AddComponent(m_axleTube->GetFrame_COG_to_abs(), m_axleTube->GetMass(), m_axleTube->GetInertia());
+    composite.AddComponent(m_axleTube->GetFrameCOMToAbs(), m_axleTube->GetMass(), m_axleTube->GetInertia());
 
     // Express COM and inertia in subsystem reference frame
     m_com.GetPos() = m_xform.TransformPointParentToLocal(composite.GetCOM());

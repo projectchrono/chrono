@@ -358,27 +358,27 @@ void ChHendricksonPRIMAXX::UpdateInertiaProperties() {
     ChMatrix33<> inertiaLowerbeam(getLowerbeamInertia());
 
     utils::CompositeInertia composite;
-    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
 
-    composite.AddComponent(m_knuckle[LEFT]->GetFrame_COG_to_abs(), getKnuckleMass(), inertiaKnuckle);
-    composite.AddComponent(m_knuckle[RIGHT]->GetFrame_COG_to_abs(), getKnuckleMass(), inertiaKnuckle);
+    composite.AddComponent(m_knuckle[LEFT]->GetFrameCOMToAbs(), getKnuckleMass(), inertiaKnuckle);
+    composite.AddComponent(m_knuckle[RIGHT]->GetFrameCOMToAbs(), getKnuckleMass(), inertiaKnuckle);
 
-    composite.AddComponent(m_torquerod[LEFT]->GetFrame_COG_to_abs(), getTorquerodMass(), inertiaTorqueRod);
-    composite.AddComponent(m_torquerod[RIGHT]->GetFrame_COG_to_abs(), getTorquerodMass(), inertiaTorqueRod);
+    composite.AddComponent(m_torquerod[LEFT]->GetFrameCOMToAbs(), getTorquerodMass(), inertiaTorqueRod);
+    composite.AddComponent(m_torquerod[RIGHT]->GetFrameCOMToAbs(), getTorquerodMass(), inertiaTorqueRod);
 
-    composite.AddComponent(m_lowerbeam[LEFT]->GetFrame_COG_to_abs(), getLowerbeamMass(), inertiaLowerbeam);
-    composite.AddComponent(m_lowerbeam[RIGHT]->GetFrame_COG_to_abs(), getLowerbeamMass(), inertiaLowerbeam);
+    composite.AddComponent(m_lowerbeam[LEFT]->GetFrameCOMToAbs(), getLowerbeamMass(), inertiaLowerbeam);
+    composite.AddComponent(m_lowerbeam[RIGHT]->GetFrameCOMToAbs(), getLowerbeamMass(), inertiaLowerbeam);
 
-    composite.AddComponent(m_axlehousing->GetFrame_COG_to_abs(), getAxlehousingMass(),
+    composite.AddComponent(m_axlehousing->GetFrameCOMToAbs(), getAxlehousingMass(),
                            ChMatrix33<>(getAxlehousingInertia()));
-    composite.AddComponent(m_transversebeam->GetFrame_COG_to_abs(), getTransversebeamMass(),
+    composite.AddComponent(m_transversebeam->GetFrameCOMToAbs(), getTransversebeamMass(),
                            ChMatrix33<>(getTransversebeamInertia()));
 
     if (UseTierodBodies()) {
         ChMatrix33<> inertiaTierod(getTierodInertia());
-        composite.AddComponent(m_tierod[LEFT]->GetFrame_COG_to_abs(), getTierodMass(), inertiaTierod);
-        composite.AddComponent(m_tierod[RIGHT]->GetFrame_COG_to_abs(), getTierodMass(), inertiaTierod);
+        composite.AddComponent(m_tierod[LEFT]->GetFrameCOMToAbs(), getTierodMass(), inertiaTierod);
+        composite.AddComponent(m_tierod[RIGHT]->GetFrameCOMToAbs(), getTierodMass(), inertiaTierod);
     }
 
     // Express COM and inertia in subsystem reference frame

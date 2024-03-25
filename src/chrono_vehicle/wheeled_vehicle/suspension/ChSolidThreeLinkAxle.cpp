@@ -273,13 +273,13 @@ void ChSolidThreeLinkAxle::UpdateInertiaProperties() {
     ChMatrix33<> inertiaLink(getLinkInertia());
 
     utils::CompositeInertia composite;
-    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_linkBody[LEFT]->GetFrame_COG_to_abs(), getLinkMass(), inertiaLink);
-    composite.AddComponent(m_linkBody[RIGHT]->GetFrame_COG_to_abs(), getLinkMass(), inertiaLink);
+    composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_linkBody[LEFT]->GetFrameCOMToAbs(), getLinkMass(), inertiaLink);
+    composite.AddComponent(m_linkBody[RIGHT]->GetFrameCOMToAbs(), getLinkMass(), inertiaLink);
 
-    composite.AddComponent(m_axleTube->GetFrame_COG_to_abs(), getAxleTubeMass(), ChMatrix33<>(getAxleTubeInertia()));
-    composite.AddComponent(m_triangleBody->GetFrame_COG_to_abs(), getTriangleMass(),
+    composite.AddComponent(m_axleTube->GetFrameCOMToAbs(), getAxleTubeMass(), ChMatrix33<>(getAxleTubeInertia()));
+    composite.AddComponent(m_triangleBody->GetFrameCOMToAbs(), getTriangleMass(),
                            ChMatrix33<>(getTriangleInertia()));
 
     // Express COM and inertia in subsystem reference frame

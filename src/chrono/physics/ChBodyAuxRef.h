@@ -44,7 +44,7 @@ class ChApi ChBodyAuxRef : public ChBody {
     void SetFrameRefToAbs(const ChFrame<>& frame);
 
     /// Get the auxiliary reference frame with respect to the absolute frame.
-    /// Note that, in general, this is different from GetFrame_COG_to_abs().
+    /// Note that, in general, this is different from GetFrameCOMToAbs().
     virtual const ChFrameMoving<>& GetFrameRefToAbs() const override { return ref_to_abs; }
 
     /// Set the COG frame with respect to the auxiliary reference frame.

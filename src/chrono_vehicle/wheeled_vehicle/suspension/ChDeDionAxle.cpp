@@ -306,13 +306,13 @@ void ChDeDionAxle::UpdateInertiaProperties() {
     ChMatrix33<> inertiaWattSide(getWattSideInertia());
 
     utils::CompositeInertia composite;
-    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_axleTube->GetFrame_COG_to_abs(), getAxleTubeMass(), ChMatrix33<>(getAxleInertia()));
-    composite.AddComponent(m_wattCenterLinkBody->GetFrame_COG_to_abs(), getWattCenterMass(),
+    composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_axleTube->GetFrameCOMToAbs(), getAxleTubeMass(), ChMatrix33<>(getAxleInertia()));
+    composite.AddComponent(m_wattCenterLinkBody->GetFrameCOMToAbs(), getWattCenterMass(),
                            ChMatrix33<>(inertiaWattCenter));
-    composite.AddComponent(m_wattLeftLinkBody->GetFrame_COG_to_abs(), getWattSideMass(), ChMatrix33<>(inertiaWattSide));
-    composite.AddComponent(m_wattRightLinkBody->GetFrame_COG_to_abs(), getWattSideMass(),
+    composite.AddComponent(m_wattLeftLinkBody->GetFrameCOMToAbs(), getWattSideMass(), ChMatrix33<>(inertiaWattSide));
+    composite.AddComponent(m_wattRightLinkBody->GetFrameCOMToAbs(), getWattSideMass(),
                            ChMatrix33<>(inertiaWattSide));
 
     // Express COM and inertia in subsystem reference frame

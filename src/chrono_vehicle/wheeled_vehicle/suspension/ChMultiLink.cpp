@@ -362,25 +362,25 @@ void ChMultiLink::UpdateInertiaProperties() {
     ChMatrix33<> inertiaUpright(getUprightInertia());
 
     utils::CompositeInertia composite;
-    composite.AddComponent(m_spindle[LEFT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
-    composite.AddComponent(m_spindle[RIGHT]->GetFrame_COG_to_abs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[LEFT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
+    composite.AddComponent(m_spindle[RIGHT]->GetFrameCOMToAbs(), getSpindleMass(), inertiaSpindle);
 
-    composite.AddComponent(m_upperArm[LEFT]->GetFrame_COG_to_abs(), getUpperArmMass(), inertiaUpperArm);
-    composite.AddComponent(m_upperArm[RIGHT]->GetFrame_COG_to_abs(), getUpperArmMass(), inertiaUpperArm);
+    composite.AddComponent(m_upperArm[LEFT]->GetFrameCOMToAbs(), getUpperArmMass(), inertiaUpperArm);
+    composite.AddComponent(m_upperArm[RIGHT]->GetFrameCOMToAbs(), getUpperArmMass(), inertiaUpperArm);
 
-    composite.AddComponent(m_lateral[LEFT]->GetFrame_COG_to_abs(), getUpperArmMass(), inertiaLateral);
-    composite.AddComponent(m_lateral[RIGHT]->GetFrame_COG_to_abs(), getUpperArmMass(), inertiaLateral);
+    composite.AddComponent(m_lateral[LEFT]->GetFrameCOMToAbs(), getUpperArmMass(), inertiaLateral);
+    composite.AddComponent(m_lateral[RIGHT]->GetFrameCOMToAbs(), getUpperArmMass(), inertiaLateral);
 
-    composite.AddComponent(m_trailingLink[LEFT]->GetFrame_COG_to_abs(), getTrailingLinkMass(), inertiaTrailingLink);
-    composite.AddComponent(m_trailingLink[RIGHT]->GetFrame_COG_to_abs(), getTrailingLinkMass(), inertiaTrailingLink);
+    composite.AddComponent(m_trailingLink[LEFT]->GetFrameCOMToAbs(), getTrailingLinkMass(), inertiaTrailingLink);
+    composite.AddComponent(m_trailingLink[RIGHT]->GetFrameCOMToAbs(), getTrailingLinkMass(), inertiaTrailingLink);
 
-    composite.AddComponent(m_upright[LEFT]->GetFrame_COG_to_abs(), getUprightMass(), inertiaUpright);
-    composite.AddComponent(m_upright[RIGHT]->GetFrame_COG_to_abs(), getUprightMass(), inertiaUpright);
+    composite.AddComponent(m_upright[LEFT]->GetFrameCOMToAbs(), getUprightMass(), inertiaUpright);
+    composite.AddComponent(m_upright[RIGHT]->GetFrameCOMToAbs(), getUprightMass(), inertiaUpright);
 
     if (UseTierodBodies()) {
         ChMatrix33<> inertiaTierod(getTierodInertia());
-        composite.AddComponent(m_tierod[LEFT]->GetFrame_COG_to_abs(), getTierodMass(), inertiaTierod);
-        composite.AddComponent(m_tierod[RIGHT]->GetFrame_COG_to_abs(), getTierodMass(), inertiaTierod);
+        composite.AddComponent(m_tierod[LEFT]->GetFrameCOMToAbs(), getTierodMass(), inertiaTierod);
+        composite.AddComponent(m_tierod[RIGHT]->GetFrameCOMToAbs(), getTierodMass(), inertiaTierod);
     }
 
     // Express COM and inertia in subsystem reference frame

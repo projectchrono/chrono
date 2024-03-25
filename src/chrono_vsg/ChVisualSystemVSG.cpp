@@ -1512,7 +1512,7 @@ void ChVisualSystemVSG::BindLinkDistance(const std::shared_ptr<ChLinkDistance>& 
 
 void ChVisualSystemVSG::BindBodyFrame(const std::shared_ptr<ChBody>& body) {
     auto cog_transform = vsg::MatrixTransform::create();
-    cog_transform->matrix = vsg::dmat4CH(body->GetFrame_COG_to_abs(), m_cog_frame_scale);
+    cog_transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_cog_frame_scale);
     vsg::Mask mask = m_show_cog_frames;
     auto cog_node = m_shapeBuilder->createFrameSymbol(cog_transform, 1.0f);
     cog_node->setValue("Body", body);
@@ -1614,7 +1614,7 @@ void ChVisualSystemVSG::UpdateFromMBS() {
             if (!child.node->getValue("Transform", transform))
                 continue;
 
-            transform->matrix = vsg::dmat4CH(body->GetFrame_COG_to_abs(), m_cog_frame_scale);
+            transform->matrix = vsg::dmat4CH(body->GetFrameCOMToAbs(), m_cog_frame_scale);
         }
     }
 

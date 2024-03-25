@@ -146,8 +146,8 @@ void ChTranslationalDamperSuspension::UpdateInertiaProperties() {
 
     // Calculate COM and inertia expressed in global frame
     utils::CompositeInertia composite;
-    composite.AddComponent(m_arm->GetFrame_COG_to_abs(), m_arm->GetMass(), m_arm->GetInertia());
-    composite.AddComponent(m_road_wheel->GetBody()->GetFrame_COG_to_abs(), m_road_wheel->GetBody()->GetMass(),
+    composite.AddComponent(m_arm->GetFrameCOMToAbs(), m_arm->GetMass(), m_arm->GetInertia());
+    composite.AddComponent(m_road_wheel->GetBody()->GetFrameCOMToAbs(), m_road_wheel->GetBody()->GetMass(),
                            m_road_wheel->GetBody()->GetInertia());
 
     // Express COM and inertia in subsystem reference frame
