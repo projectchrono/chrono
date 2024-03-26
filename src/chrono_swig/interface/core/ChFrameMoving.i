@@ -14,6 +14,6 @@ using namespace chrono;
 
 
 
-%template(ChFrameMovingD) chrono::ChFrameMoving<double>; 
-// %template(ChFrameMovingF) chrono::ChFrameMoving<float>; 
+%template(ChFrameMovingd) chrono::ChFrameMoving<double>; 
+// %template(ChFrameMovingf) chrono::ChFrameMoving<float>; 
 

@@ -43,7 +43,7 @@ The general consruction of @ref chrono::ChVector3<> "ChVector3"s is through its 
 
 ~~~{.cpp}
 ChVector3d vect1(1, 2, 3); // equivalent to: ChVector3<double> vect1(1, 2, 3);
-ChVector3d vect1(VECT_X); // equivalent to: ChVector3d vect1 = VECT_X;
+ChVector3d vect1(VECT_X); // equivalent to: ChVector3<double> vect1 = VECT_X;
 ~~~
 
 However, Chrono offers also a useful set of constant (double) vectors - `VNULL`, `VECT_X`, `VECT_Y`, `VECT_Z` - that represent the null and the axes unit vectors, respectively.
@@ -150,7 +150,7 @@ The `*` operator can be used to multiply two rotation matrices. For instance, a 
 ChMatrix33d rotmC = rotmB * rotmA; // concatenate two rotations, first rotmA then rotmB
 ~~~
 
-The `*` operator can also be used to multiply a ChVector3<>; this corresponds to rotating the vector:
+The `*` operator can also be used to multiply a ChVector3d; this corresponds to rotating the vector:
 
 ~~~{.cpp}
 ChVector3d vB = rotm * vA;
@@ -253,7 +253,7 @@ On the contrary, by using `ChFrame<>` methods, it is possible to simplify the no
   ~~~{.cpp}
   ChVector3d d_Pa_a; // vector with endpoint P, starting from point a, expressed in frame (a)
   ChVector3d d_Pb_b; // vector with endpoint P, starting from point b, expressed in frame (b)
-  ChFrame<> X_ba; // frame (b) (i.e. position and rotation) expressed with respect to frame (a)
+  ChFramed X_ba; // frame (b) (i.e. position and rotation) expressed with respect to frame (a)
   ...
   d_Pa_a = X_ba * d_Pb_b;
   ~~~
@@ -262,7 +262,7 @@ On the contrary, by using `ChFrame<>` methods, it is possible to simplify the no
 ~~~{.cpp}
 ChVector3d d_Pa_a; // vector with endpoint P, starting from point a, expressed in frame (a)
 ChVector3d d_Pb_b; // vector with endpoint P, starting from point b, expressed in frame (b)
-ChFrame<> X_ba; // frame (b) (i.e. position and rotation) expressed with respect to frame (a)
+ChFramed X_ba; // frame (b) (i.e. position and rotation) expressed with respect to frame (a)
 ...
 d_Pa_a = X_ba * d_Pb_b;
 ~~~
@@ -274,7 +274,7 @@ the overall frame rotation and displacement can be obtained as
 
 
 ~~~{.cpp}
-ChFrame<> X_ba, X_cb, X_ca;
+ChFramed X_ba, X_cb, X_ca;
 ...
 X_ca = X_ba * X_cb;
 ~~~
@@ -295,15 +295,15 @@ The latter has some advantages: <br>
 - it is more 'intuitive' (see how the subscripts cb-ba follow a 'chain') <br>
 - it leverages the default compiler operation precedence rules (from left to right) to improve computational performance <br>
 For example if the first operand is a vector, as in  ```vnew = v >> X_dc >> X_cb >> X_ba```,
-the default behavior of the compiler leads to a sequence of matrix-by-ChFrame operations returning temporary vectors. On the contrary, the * operator would create several ChFrame<> temporary objects, which would be slower.
+the default behavior of the compiler leads to a sequence of matrix-by-ChFrame operations returning temporary vectors. On the contrary, the * operator would create several `ChFrame<>` temporary objects, which would be slower.
 
 One can also use the * or >> operators with other objects, 
 for example using >> between a ChFrame Xa and a ChVector3 vb. The outcome of this 
 operation is a new ChFrame object obtained by translating the old one by a vector vb:
 
 ~~~{.cpp}
-ChVector3<> vb;
-ChFrame<> Xa, Xt; ...
+ChVector3d vb;
+ChFramed Xa, Xt; ...
 Xt = Xa >> vb;    // also  Xt = vb * Xa;
 ~~~
 
@@ -375,18 +375,18 @@ and linear velocity, also linear and angular accelerations are assigned.
 
 ~~~{.cpp}
 ChFrameMoving<> X_ba;
-X_ba.SetPos(ChVector3<>(2,3,5));
+X_ba.SetPos(ChVector3d(2,3,5));
 X_ba.SetRot(myquaternion);
 
 // set velocity 
-X_ba.SetPos_dt(ChVector3<>(100,20,53)); 
-X_ba.SetWvel_loc(ChVector3<>(0,40,0)); // W in local frame, or..
-X_ba.SetWvel_par(ChVector3<>(0,40,0)); // W in parent frame
+X_ba.SetPos_dt(ChVector3d(100,20,53)); 
+X_ba.SetWvel_loc(ChVector3d(0,40,0)); // W in local frame, or..
+X_ba.SetWvel_par(ChVector3d(0,40,0)); // W in parent frame
 
 // set acceleration
-X_ba.SetPos_dtdt(ChVector3<>(13,16,22)); 
-X_ba.SetWacc_loc(ChVector3<>(80,50,0)); // a in local frame, or..
-X_ba.SetWacc_par(ChVector3<>(80,50,0)); // a in parent frame
+X_ba.SetPos_dtdt(ChVector3d(13,16,22)); 
+X_ba.SetWacc_loc(ChVector3d(80,50,0)); // a in local frame, or..
+X_ba.SetWacc_par(ChVector3d(80,50,0)); // a in parent frame
 ~~~
 
 A ChFrameMoving can be used to transform ChVector3 (points in space), a ChFrame, or ChFrameMoving objects. Velocities are also computed and transformed.
@@ -472,11 +472,6 @@ ChMarker are used most often in the @ref chrono::ChLinkLock "ChLinkLock" link fa
 Additional details on the theoretical aspects of coordinate transformations in Chrono:
 - [PDF whitepaper on rotations](http://projectchrono.org/assets/white_papers/rotations.pdf)
 - [PDF whitepaper on coordinates](http://projectchrono.org/assets/white_papers/frame_kinematics.pdf)
-
-
-# Examples
-
-- [demo_coords](\ref tutorial_demo_coords)
 
 
 

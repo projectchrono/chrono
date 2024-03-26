@@ -17,7 +17,7 @@ A typical usage of \ref chrono::irrlicht::ChVisualSystemIrrlicht "irrlicht::ChVi
     vis->Initialize();
     vis->AddLogo();
     vis->AddSkyBox();
-    vis->AddCamera(ChVector<>(0, 8, 6));
+    vis->AddCamera(ChVector3d(0, 8, 6));
     vis->AddTypicalLights();
 ~~~
 

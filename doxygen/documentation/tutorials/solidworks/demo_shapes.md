@@ -275,7 +275,7 @@ if not my_ground :
 	
 my_floor.SetFixed(False)
 link_shaker = chrono.ChLinkLockLock()
-link_shaker.Initialize(my_floor, my_ground, chrono.CSYSNORM)
+link_shaker.Initialize(my_floor, my_ground, chrono.ChFramed)
 my_system.Add(link_shaker)
 ~~~
 
@@ -288,14 +288,14 @@ my_functB.thisown = 0
 my_funct = chrono.ChFunctionOperator()
 my_funct.SetFirstOperandFunction(my_functA)
 my_funct.SetSecondOperandFunction(my_functB)
-my_funct.SetOperationType(chrono.ChOP_MUL)
+my_funct.SetOperationType(chrono.ChFunctionOperator.MUL)
 my_funct.thisown = 0
 link_shaker.SetMotionX(my_funct)
 ~~~
 
 + It is wise to define a better position for the camera and viewpoint, for instance we changed the default position to:
 ~~~{.py}
-pov_exporter.SetCamera(chrono.ChVectorD(3.2,1.3,3.5), chrono.ChVectorD(0.6,0.5,0), 32)
+pov_exporter.SetCamera(chrono.ChVector3d(3.2,1.3,3.5), chrono.ChVector3d(0.6,0.5,0), 32)
 ~~~
 
 + Since we want to use the ```T_Stone8``` procedural texture, whose definition is in POVray header ```stones.inc```, we have to add the include to the POVray scripts. This is done as:

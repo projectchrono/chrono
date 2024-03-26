@@ -56,13 +56,13 @@ namespace ChronoDemo
             ChBody ball = new ChBody();
 
             ball.SetMass(mass);
-            // TODO: cannot use operator between double and ChVectorD
-            //ChVectorD onev = new ChVectorD(1, 1, 1);
+            // TODO: cannot use operator between double and ChVector3d
+            //ChVector3d onev = new ChVector3d(1, 1, 1);
             //ball.SetInertiaXX(0.4 * mass * radius * radius * onev);
             ball.SetPos(pos);
             ball.SetRot(rot);
             ball.SetLinVel(init_vel);
-            // ball.SetWvel_par(new ChVectorD(0,0,3));
+            // ball.SetWvel_par(new ChVector3d(0,0,3));
             ball.SetFixed(false);
 
             ChCollisionShapeSphere sphere_coll = new ChCollisionShapeSphere(material, radius);

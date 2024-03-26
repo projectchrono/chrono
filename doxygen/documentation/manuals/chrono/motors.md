@@ -8,12 +8,12 @@ Since @ref chrono::ChLinkMotorRotation "ChLinkMotorRotation" and @ref chrono::Ch
 
 With some exceptions, the motion is controlled through @ref chrono::ChFunction "ChFunction" objects, discussed [here](@ref ChFunction_objects).
 
-| -                        | 3D Rotational                                                            | 3D Linear                                                            | 1D Linear/Rotational                                    |   
-| :----------------------- | :---------------------------------------------------------------------:  | :------------------------------------------------------------------: | :-----------------------------------------------------: |
-| Impose displacement      | @ref chrono::ChLinkMotorRotationAngle "ChLinkMotorRotationAngle"         | @ref chrono::ChLinkMotorLinearPosition "ChLinkMotorLinearPosition"   | @ref chrono::ChShaftsMotorAngle "ChShaftsMotorAngle"    |   
-| Impose speed             | @ref chrono::ChLinkMotorRotationSpeed "ChLinkMotorRotationSpeed"         | @ref chrono::ChLinkMotorLinearSpeed "ChLinkMotorLinearSpeed"         | @ref chrono::ChShaftsMotorSpeed "ChShaftsMotorSpeed"    |
-| Apply load               | @ref chrono::ChLinkMotorRotationTorque "ChLinkMotorRotationTorque"       | @ref chrono::ChLinkMotorLinearForce "ChLinkMotorLinearForce"         | @ref chrono::ChShaftsMotorTorque "ChShaftsMotorTorque"  |
-| Connect to 1D driveline  | @ref chrono::ChLinkMotorRotationDriveline "ChLinkMotorRotationDriveline" | @ref chrono::ChLinkMotorLinearDriveline "ChLinkMotorLinearDriveline" | -                                                       |
+| -                        | 3D Rotational                                                            | 3D Linear                                                            | 1D Linear/Rotational                                        |   
+| :----------------------- | :---------------------------------------------------------------------:  | :------------------------------------------------------------------: | :--------------------------------------------------------:  |
+| Impose displacement      | @ref chrono::ChLinkMotorRotationAngle "ChLinkMotorRotationAngle"         | @ref chrono::ChLinkMotorLinearPosition "ChLinkMotorLinearPosition"   | @ref chrono::ChShaftsMotorPosition "ChShaftsMotorPosition"  |   
+| Impose speed             | @ref chrono::ChLinkMotorRotationSpeed "ChLinkMotorRotationSpeed"         | @ref chrono::ChLinkMotorLinearSpeed "ChLinkMotorLinearSpeed"         | @ref chrono::ChShaftsMotorSpeed "ChShaftsMotorSpeed"        |
+| Apply load               | @ref chrono::ChLinkMotorRotationTorque "ChLinkMotorRotationTorque"       | @ref chrono::ChLinkMotorLinearForce "ChLinkMotorLinearForce"         | @ref chrono::ChShaftsMotorLoad "ChShaftsMotorLoad"      |
+| Connect to 1D driveline  | @ref chrono::ChLinkMotorRotationDriveline "ChLinkMotorRotationDriveline" | @ref chrono::ChLinkMotorLinearDriveline "ChLinkMotorLinearDriveline" | -                                                           |
 
 
 <div class="ce-warning"> 
@@ -58,10 +58,10 @@ Example:
 auto rotmotor = chrono_types::make_shared<ChLinkMotorRotationSpeed>();
 
 // Connect the rotor and the stator and add the motor to the system:
-rotmotor->Initialize( rotor,                // body A
-                      stator,               // body B
-                      ChFrame<>(ChVector3<>(1,0,0)) // motor frame, in abs. coords
-                      );
+rotmotor->Initialize(rotor,                // body A
+                     stator,               // body B
+                     ChFramed(ChVector3d(1,0,0)) // motor frame, in abs. coords
+                     );
                       
 // Add the motor to the system
 mphysicalSystem.Add(rotmotor);

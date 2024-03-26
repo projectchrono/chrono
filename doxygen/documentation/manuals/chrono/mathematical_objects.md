@@ -141,8 +141,8 @@ Save values of a sine ChFunction  into a file.
 ~~~{.cpp}
 	ChFunctionSine f_sine;
 
-	f_sine.Set_amp(2);		// set amplitude;
-	f_sine.Set_freq(1.5);	// set frequency;
+	f_sine.SetAmplitude(2);		// set amplitude;
+	f_sine.SetFrequency(1.5);	// set frequency;
 
 	std::ofstream file_f_sine ("f_sine_out.dat");
 
@@ -167,12 +167,12 @@ The following class will be used as an example of how you can create
 custom functions based on the ChFunction interface.
 
 There is at least one mandatory member function to implement: 
-__Get_y()__.
+__GetVal__.
 
 Note that the base class implements a default computation of 
-derivatives Get_ydx() and Get_ydxdx() by using a numerical differentiation, 
+derivatives GetDer() and GetDer2() by using a numerical differentiation, 
 however if you know the analytical expression of derivatives, 
-you can override the base Get_ydx() and Get_ydxdx() too, for higher precision.
+you can override the base GetDer() and GetDer2() too, for higher precision.
 
 ~~~{.cpp}
 // First, define a custom class inherited from ChFunction

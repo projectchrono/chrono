@@ -59,7 +59,7 @@ Contrary to @ref chrono::ChForce "ChForce", these other _ChLoad_s requires the i
   auto load_container = chrono_types::make_shared<ChLoadContainer>();
   sys.Add(load_container);
 
-  auto load_bb = chrono_types::make_shared<ChLoadBodyBodyTorque>(bodyA, bodyB, ChVector3<>(0,10.0,0), false);
+  auto load_bb = chrono_types::make_shared<ChLoadBodyBodyTorque>(bodyA, bodyB, ChVector3d(0,10.0,0), false);
   load_container->Add(load_bb);
 ~~~
 

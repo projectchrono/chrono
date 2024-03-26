@@ -276,7 +276,7 @@ CH_CLASS_VERSION(ChVector3<double>, 0)
 /// Instead of writing
 ///    ChVector3<double> v;
 /// or
-///    ChVector3<> v;
+///    ChVector3d v;
 /// you can use:
 ///    ChVector3d v;
 /// </pre>
