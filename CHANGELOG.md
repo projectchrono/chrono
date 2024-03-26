@@ -1351,7 +1351,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | getTotalMass                  | rename: GetTotalMass                             |
 |                                   | getTotalNumBodies             | rename: GetTotalNumBodies                        |
 |                                   | getTotalVolume                | rename: GetTotalVolume                           |
-|                                   | setBodyIdentifier             | rename: SetBodyIdentifier                        |
+|                                   | setBodyIdentifier             | rename: SetStartTag                              |
 | GridSampler                       |                               | rename: ChGridSampler                            |
 | HCPSampler                        |                               | rename: ChHCPSampler                             |
 | MixtureIngredient                 |                               | rename: ChMixtureIngredient                      |
@@ -1402,7 +1402,7 @@ Note that this represents a major public API change and we expect most user code
 
 **Notes**
 
-+ Chrono object identifiers were made read-only so that uniquenesss can be guaranteed. 
++ Chrono object identifiers were made read-only so that uniqueness can be guaranteed. 
   - These integer identifiers are read-only and can be cached by the user (e.g., for searching in a ChAssembly).
     Identifiers are generated automatically in incremental order based on the order in which objects are created.
     As transient quantities, object identifiers are not serialized.
@@ -1410,7 +1410,7 @@ Note that this represents a major public API change and we expect most user code
     Unlike object identifiers, object tags are completely under user control and not used anywhere else in Chrono.
     Tags are serialized and de-serialized.
 
-+ Functions that duplicated C++ Standard Library functions were removed and replaced with the corresponding C++ function (e.g., `ChMin` was obosoleted in favor of `std::min`).
++ Functions that duplicated C++ Standard Library functions were removed and replaced with the corresponding C++ function (e.g., `ChMin` was obsoleted in favor of `std::min`).
 
 + The enum `AngleSet` (previously defined in ChQuaternion.h) was renamed to `RotRepresentation` and moved to a new header named ChRotation.h.
 
@@ -1449,9 +1449,9 @@ Note that this represents a major public API change and we expect most user code
   | Quat_to_Angle            | AngleSetFromQuat              |
 
 + `ChLinkMate` and derived classes have been rewritten so that:
-  - when only 1 dof is left, the relevant axis is Z, in line with `ChLinkLock` formulation (e.g. Prismatic, Coaxial, ...);
-  - when 2 dof are left, the relevant axes are X and Y; the exception is `ChLinkRackpinion` (`ChLinkMateRackPinion` in new naming) that kept Z as pinion and X as rack;
-  - the 'flipped==true' state is now referring to axes that are counter-aligned.
+  - for links with a single DOF, the relevant axis is Z, in line with `ChLinkLock` formulation (e.g., a `ChLinkMatePrismatic` allows translation along the Z axis of the link frame, a ChLinkMateRevolute allows rotation about the Z axis of the link frame, etc.).
+  - for links with 2 DOFs, the relevant axes are X and Y. The exception to this is `ChLinkMateRackPinion` which uses the Z axis of the link frame as axis of rotation for the pinion and the X as direction of translation for the rack.
+  - the 'flipped==true' state now refers to axes that are counter-aligned.
 
 + Link objects used to consider just one frame as 'principal' (usually 'frame 2'), thus returning reaction forces, frame position, as well as any other information with respect to this frame only.
   - For consistency and to remove ambiguity, all links (connections between two physical items) now report two frames, one on each connected object. These frames, expressed in the absolute coordinate frame can be obtained through the functions `GetFrame1Abs` and `GetFrame2Abs`.
@@ -1490,7 +1490,7 @@ Note that this represents a major public API change and we expect most user code
   - `ChStream[In/Out]Binary` features to operate on streams through the `read|write` methods have been incorporated into the one class that was using it, namely `ChArchiveBinary`. 
 
 + `ChArchive` classes have been refactored to adapt to the direct use of STL streams and have been renamed for consistency and clarity.
-  - proper serialization/deserialization classes kept the same name:
+  - proper serialization/de-serialization classes kept the same name:
     + `ChArchiveJSON[In/Out]`
     + `ChArchiveXML[In/Out]`
     + `ChArchiveBinary[In/Out]`
@@ -1523,7 +1523,7 @@ Note that this represents a major public API change and we expect most user code
 
 ## [Changed] Updated Chrono::VSG module
 
-The Chrono::VSG m,odule was updated to use newer version of the VSG libraries.
+The Chrono::VSG module was updated to use newer version of the VSG libraries.
 - Adds shadow support (enabled in several demos).
 - Includes an optional argument to the `ChVisualSystemVSG` constructor to specify the tesselation resolution for round primitive shapes. This is provided as a number of divisions of a full circle, with a default value of 24, corresponding to a 15 degree angular increment. 
 - No other changes to the public API.
@@ -1535,7 +1535,7 @@ The **required** VSG library versions are as follows:
 - vsgImGui - latest
 - assimp 5.3.1
 
-If the above requirements are not met, an error is issued during CMake configuration (if the Chrono::VSG moduile is enabled).  
+If the above requirements are not met, an error is issued during CMake configuration (if the Chrono::VSG module is enabled).  
 The simplest way to satisfy the VSG version requirements is to build and install them using the scripts provided with the Chrono distribution (see the Chrono::VSG installation instructions).
 
 
@@ -1552,7 +1552,7 @@ In addition, the new non-linear filters `utils::ChMotionlawFilter_SecondOrder` a
 Due to some obsoleted methods the ChBlender exported was not compatible with the latest Blender4.0. It is now updated.
 
 ## [Added] Unilateral distance constraint
-The `ChLinkDistance` has been expanded to include also unilateral distance constraints. Through `SetMode`/`GetMode` three different behaviours are now available:
+The `ChLinkDistance` has been expanded to include also unilateral distance constraints. Through `SetMode`/`GetMode` three different behaviors are now available:
 + `BILATERAL` (default): current_distance = imposed_distance;
 + `UNILATERAL_MAXDISTANCE`: current_distance < imposed_distance; (e.g. a rope)
 + `UNILATERAL_MINDISTANCE`: current_distance > imposed_distance;
@@ -2383,7 +2383,7 @@ The new class `ChModalAssembly` offer three main functionalities:
 - **damped (complex) modal analysis** of the subsystem: this is like the previous case, but damping matrix is used too, hence obtaining complex eigenvalues/eigenvectors. Damping factors for the modes are output too, indicating stability or instability. *NOTE: while we wait that Spectra will enable complex eigenvalues in Krylov-Schur, a more conventional solver is used, that is not sparse - hence requiring more time and memory*
 
 - **modal reduction** of the sub-assembly. Example of a scenario where this is useful: you have a tower modeled with thousands of finite elements, but you are just interested in the small oscillations of its tip, because you will mount a windmill on its tip. If you simulate thousands of finite elements just for this purpose, you waste CPU time, hence a modal reduction of the tower will discard all the DOFs of the finite elements and represent the overall behavior of the tower using just few modal shapes (ex. fore aft bending, lateral bending, etc.), with extreme CPU performance at the cost of a small reduction of fidelity.
-  - Bodies and FEA nodes can be added to the subassebly as *internal*  or *boundary* interface nodes. Later one can call `ChModalAssembly::SwitchModalReductionON(int n_modes)` to replace the complexity of the internal nodes with few `n_modes` modal coordinates.
+  - Bodies and FEA nodes can be added to the sub-assembly as *internal*  or *boundary* interface nodes. Later one can call `ChModalAssembly::SwitchModalReductionON(int n_modes)` to replace the complexity of the internal nodes with few `n_modes` modal coordinates.
   - Boundary interface nodes can be connected to the rest of the multibody system as usual, using constraints, forces, etc.
   - Internal constraints can be used between internal nodes. Their effect too will be condensed in the modal reduction.
   - *NOTE*: at the moment only linear dynamics is supported for the sub-assembly, in the sense that the sub-assembly cannot withstand large rotations, ex. in a helicopter blade. Future developments will address this
@@ -2451,7 +2451,7 @@ The new STR will create posts / pushrods for all spindles (left and right) from 
 Like before, one can construct an STR from a given vehicle (from one of the models in the Chrono vehicle models library or else created from a JSON specification file) or else from a JSON specification file for an STR.  However, the latter approach will now construct the entire vehicle (specified though a vehicle JSON file) but include only a user-specified subset of its axles for testing.
 Note that this is not a limitation because Chrono::Vehicle was also modified to allow specification in a JSON file of a stripped-down vehicle model which need not include a driveline nor a steering mechanism and may even define a single axle.
 
-Additional vehicle subsystems (such as steering mechanisms or subchassis components) can be adding to either type of STR (`ChSuspensionTestRigPlatform` or `ChSuspensionTestRigPushrod`) using the functions `IncludeSteeringMechanism` and `IncludeSubchassis`. This simply means that: (i) run-time visualization of the additional subsystem can be enabled and (ii) the additional subsystem is included in the rig output (if that is enabled).
+Additional vehicle subsystems (such as steering mechanisms or sub-chassis components) can be adding to either type of STR (`ChSuspensionTestRigPlatform` or `ChSuspensionTestRigPushrod`) using the functions `IncludeSteeringMechanism` and `IncludeSubchassis`. This simply means that: (i) run-time visualization of the additional subsystem can be enabled and (ii) the additional subsystem is included in the rig output (if that is enabled).
 The associated vehicle is initialized with its chassis fixed and its driveline automatically disconnected. Simulation of the test rig (through the function `ChSuspensionTestRig::Advance`) performs a simulation of the entire vehicle with all its components, but vehicle subsystems not explicitly included in testing are invisible and do not participate in any output.
 
 See `demo_VEH_SuspensionTestRig` for various examples and options, and look at the JSON files used in that demo for changes in their formats.
@@ -2516,7 +2516,7 @@ auto communicator = chrono_types::make_shared<SynDDSCommunicator>(qos);
 
 This new module provides support for co-simulating various Chrono models of ground wheeled vehicles.  This framework implements an explicit co-simulation model (of force-displacement type) and uses an MPI layer for exchanging data between the participant nodes.
 
-The co-simulation framework was architected to support:
+The co-simulation framework was designed to support:
 - any of the terramechanics simulation capabilities in Chrono (rigid terrain; deformable SCM; granular terrain with Chrono::Multicore, Chrono::Gpu, or Chrono::Distributed; continuous granular terrain representation with Chrono::Fsi);
 - external, third-party terramechanics simulation packages (regardless of implementation and/or parallel programing paradigm);
 - terramechanics packages that do not advance themselves the dynamics of the tires (if any) or else treat both tire and terrain simulation;
@@ -2826,7 +2826,7 @@ Moments can be applied at any point within these elements just like forces.  For
 
 ## [Added] New Chrono::Vehicle features
 
-1. A mechanism was added to allow replacing selected kinematic joints with bushings in various Chrono::Vehicle templates.  Several wheeled vehicle suspension templates, the `ChBalancer` subchassis template, as well as the tracked vehicle suspension and track shoe templates were updated to include this option.  
+1. A mechanism was added to allow replacing selected kinematic joints with bushings in various Chrono::Vehicle templates.  Several wheeled vehicle suspension templates, the `ChBalancer` sub-chassis template, as well as the tracked vehicle suspension and track shoe templates were updated to include this option.  
 
    A particular joint connection with this new option will be modeled as a bushing if bushing data is provided and as a kinematic joint otherwise. For example, the connections of the upper control arms to the chassis in the double wishbone suspension will be modeled as revolute joints (as before) if the virtual method `getUCABushingData` return `nullptr` and as bushings otherwise.  Bushing information is passed as a structure which provides stiffness and damping in the "constrained" linear and rotational directions and stiffness and damping in the DOF directions of the corresponding kinematic joint (see `ChVehicleBushingData`).  When instantiating a vehicle subsystem template through a JSON specification file, a joint with this capability will be modeled as a bushing if a JSON key "Bushing Data" is included.
 
