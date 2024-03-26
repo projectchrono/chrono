@@ -145,10 +145,9 @@ class ChApiModal ChModalDampingReductionR : public ChModalDamping {
     ChModalDampingReductionR(ChModalAssembly& massembly);
 
     /// Constructor for the case where you want to pass an R matrix from an external source: R=Rcustom.
-    /// The Rcustom matrix must be of proper size, a square matrix of size (m_num_coords_vel_boundary + m_num_coords_vel_internal)
-    ChModalDampingReductionR(ChSparseMatrix& Rcustom) {
-        full_R = Rcustom;  
-    }
+    /// The Rcustom matrix must be of proper size, a square matrix of size (m_num_coords_vel_boundary +
+    /// m_num_coords_vel_internal)
+    ChModalDampingReductionR(ChSparseMatrix& Rcustom) { full_R = Rcustom; }
 
     virtual void ComputeR(ChModalAssembly& assembly,
                           const ChMatrixDynamic<>& modal_M,
@@ -163,15 +162,14 @@ class ChApiModal ChModalDampingReductionR : public ChModalDamping {
 
 /// Class for damping defined with an user-defined matrix that could be obtained via external
 /// tools such as Matlab or FEA. This is the most generic case.
-///    R^ = Rcustom  
+///    R^ = Rcustom
 /// where Rcustom is a square matrix of size (m_num_coords_vel_boundary + m_num_modes_coords_vel)
 class ChApiModal ChModalDampingCustom : public ChModalDamping {
-public:
-    /// Constructor where you pass a custom damping matrix Rcustom, related to the coordinates of the already reduced assembly. 
-    /// The Rcustom matrix must be of proper size, i.e. a square matrix of size (m_num_coords_vel_boundary + m_num_modes_coords_vel)
-    ChModalDampingCustom(ChSparseMatrix& Rcustom) {
-        reduced_R = Rcustom;
-    }
+  public:
+    /// Constructor where you pass a custom damping matrix Rcustom, related to the coordinates of the already reduced
+    /// assembly. The Rcustom matrix must be of proper size, i.e. a square matrix of size (m_num_coords_vel_boundary +
+    /// m_num_modes_coords_vel)
+    ChModalDampingCustom(ChSparseMatrix& Rcustom) { reduced_R = Rcustom; }
 
     virtual void ComputeR(ChModalAssembly& assembly,
                           const ChMatrixDynamic<>& modal_M,

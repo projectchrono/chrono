@@ -527,7 +527,6 @@ bool ChQuadraticEigenvalueSolverKrylovSchur::Solve(
     int n_vars = M.rows();
     int n_constr = Cq.rows();
 
-
     // Scale constraints matrix
     double scaling = 0;
     if (settings.scaleCq) {

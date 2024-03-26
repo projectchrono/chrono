@@ -1037,10 +1037,10 @@ Note that this represents a major public API change and we expect most user code
 | ChMinMaxDistribution              |                               | rename: ChUniformDistribution                    |
 | ChModalAssembly                   |                               |                                                  |
 |                                   | refer to ChAssembly           | like ChAssembly with boundary/internal suffixes  |
-|                                   | DoModalReduction_CraigBamption | rename: ApplyModalReductionTransformation_CraigBampton |
-|                                   | DoModalReduction_HERTING      | rename: ApplyModalReductionTransformation_Herting |
+|                                   | DoModalReduction_CraigBamption | rename: ApplyCraigBamptonTransformation         |
+|                                   | DoModalReduction_HERTING      | rename: ApplyHertingTransformation               |
 |                                   | DumpSubassemblyMatrices       | rename: WriteSubassemblyMatrices                 |
-|                                   | Get_full_assembly_x_old       | rename: GetDeformedFullState                     |
+|                                   | Get_full_assembly_x_old       | rename: GetDeformedState                         |
 |                                   | Get_modal_K                   | rename: GetModalStiffnessMatrix                  |
 |                                   | Get_modal_M                   | rename: GetModalMassMatrix                       |
 |                                   | Get_modal_Psi                 | rename: GetModalReductionMatrix                  |
@@ -1048,11 +1048,11 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_modal_q_dt                | rename: GetModalCoordinatesVelLevel              |
 |                                   | Get_modal_q_dtdt              | rename: GetModalCoordinatesAccLevel              |
 |                                   | Get_modal_R                   | rename: GetModalDampingMatrix                    |
-|                                   | Get_modes_assembly_x0         | rename: GetInitialFullState                      |
-|                                   | Get_modes_damping_ratios      | rename: GetModalReductionDampingRatios           |
-|                                   | Get_modes_eig                 | rename: GetModalReductionEigenVals               |
-|                                   | Get_modes_frequencies         | rename: GetModalReductionFrequencyUndamped       |
-|                                   | Get_modes_V                   | rename: GetModalReductionEigenVect               |
+|                                   | Get_modes_assembly_x0         | rename: GetInitialState                          |
+|                                   | Get_modes_damping_ratios      | rename: GetDampingRatios                         |
+|                                   | Get_modes_eig                 | rename: GetEigenValues                           |
+|                                   | Get_modes_frequencies         | rename: GetUndampedFrequencies                   |
+|                                   | Get_modes_V                   | rename: GetEigenVectors                          |
 |                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
 |                                   | SwitchModalReductionON        | rename: DoModalReduction                         |
 | ChMotionlawFilter                 |                               | rename: ChMotionFilter                           |

@@ -141,7 +141,7 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
     //   i.e. there is no part that is fixed to ground) it will give six modes with 0 frequency,
     //   the so called rigid body modes.
     // - After computing the modes, you can access the eigenmodes, eigenvalues (also scaled as frequencies)
-    //   from the ChModalAssembly member data, ex. via assembly->GetModalReductionFrequencyUndamped
+    //   from the ChModalAssembly member data, ex. via assembly->GetUndampedFrequencies
     // - For an interactive display of the modes, in Irrlicht view, use application.SetModalShow(true);
     //   this will pause the dynamic simulation and plot the modes of any ChModalAssembly present in the system
     //   as an oscillating animation. Use the GUI of Irrlicht 3D view to change the ID and amplitude of the plotted
@@ -151,11 +151,11 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
     // Just for logging the frequencies:
     std::cout << " The undamped modal frequencies of the modal assembly (not the whole system) in full state are: "
               << std::endl;
-    for (int i = 0; i < assembly->GetModalReductionFrequencyUndamped().rows(); ++i) {
-        std::cout << "Mode n." << i << "  frequency [Hz]: " << assembly->GetModalReductionFrequencyUndamped()(i)
-                 << "  damping ratio:" << assembly->GetModalReductionDampingRatios()(i)
-                 << "    Re=" << assembly->GetModalReductionEigenVals()(i).real() << "  Im=" << assembly->GetModalReductionEigenVals()(i).imag()
-                 << std::endl;
+    for (int i = 0; i < assembly->GetUndampedFrequencies().rows(); ++i) {
+        std::cout << "Mode n." << i << "  frequency [Hz]: " << assembly->GetUndampedFrequencies()(i)
+                  << "  damping ratio:" << assembly->GetDampingRatios()(i)
+                  << "    Re=" << assembly->GetEigenValues()(i).real()
+                  << "  Im=" << assembly->GetEigenValues()(i).imag() << std::endl;
     }
 
     // Here we perform the complex-modal analysis (damped modes) on the ChModalAssembly.
@@ -184,11 +184,11 @@ void MakeAndRunDemoCantilever(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool b
     // Just for logging the frequencies:
     std::cout << " The damped modal results of the modal assembly (not the whole system) in full state are: "
               << std::endl;
-    for (int i = 0; i < assembly->GetModalReductionFrequencyUndamped().rows(); ++i) {
-        std::cout << "Damped mode n." << i << "  frequency [Hz]: " << assembly->GetModalReductionFrequencyUndamped()(i)
-                 << "  damping ratio:" << assembly->GetModalReductionDampingRatios()(i)
-                 << "    Re=" << assembly->GetModalReductionEigenVals()(i).real() << "  Im=" << assembly->GetModalReductionEigenVals()(i).imag()
-                 << std::endl;
+    for (int i = 0; i < assembly->GetUndampedFrequencies().rows(); ++i) {
+        std::cout << "Damped mode n." << i << "  frequency [Hz]: " << assembly->GetUndampedFrequencies()(i)
+                  << "  damping ratio:" << assembly->GetDampingRatios()(i)
+                  << "    Re=" << assembly->GetEigenValues()(i).real()
+                  << "  Im=" << assembly->GetEigenValues()(i).imag() << std::endl;
     }
 
     // This is needed if you want to see things in Irrlicht
@@ -309,7 +309,7 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
     //   i.e. there is no part that is fixed to ground) it will give six modes with 0 frequency,
     //   the so called rigid body modes.
     // - After computing the modes, you can access the eigenmodes, eigenvalues (also scaled as frequencies)
-    //   from the ChModalAssembly member data, ex. via assembly->GetModalReductionFrequencyUndamped
+    //   from the ChModalAssembly member data, ex. via assembly->GetUndampedFrequencies
     // - For an interactive display of the modes, in Irrlicht view, use application.SetModalShow(true);
     //   this will pause the dynamic simulation and plot the modes of any ChModalAssembly present in the system
     //   as an oscillating animation. Use the GUI of Irrlicht 3D view to change the ID and amplitude of the plotted
@@ -330,8 +330,8 @@ void MakeAndRunDemoLbeam(ChSystem& sys, ChVisualSystemIrrlicht& vis, bool body1f
 
     // Just for logging the frequencies:
     std::cout << " The modal frequencies of the modal assembly (not the whole system) in full state are: " << std::endl;
-    for (int i = 0; i < assembly->GetModalReductionFrequencyUndamped().rows(); ++i)
-        std::cout << "Mode n." << i << "  frequency [Hz]: " << assembly->GetModalReductionFrequencyUndamped()(i) << std::endl;
+    for (int i = 0; i < assembly->GetUndampedFrequencies().rows(); ++i)
+        std::cout << "Mode n." << i << "  frequency [Hz]: " << assembly->GetUndampedFrequencies()(i) << std::endl;
 
     // This is needed if you want to see things in Irrlicht 3D view.
     vis.BindAll();

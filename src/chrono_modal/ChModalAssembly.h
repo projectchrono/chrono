@@ -56,11 +56,11 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ReductionType GetReductionType() const { return this->m_modal_reduction_type; }
 
     /// Compute the undamped modes for the current assembly.
-    /// Later you can fetch results via GetModalReductionEigenVect(), GetModalReductionFrequencyUndamped() etc.
+    /// Later you can fetch results via GetEigenVectors(), GetUndampedFrequencies() etc.
     /// Usually done for the assembly in full state, not available in reduced state.
     bool ComputeModes(const ChModalSolveUndamped& n_modes_settings);
 
-    /// Compute the undamped modes from M and K matrices. Later you can fetch results via GetModalReductionEigenVect()
+    /// Compute the undamped modes from M and K matrices. Later you can fetch results via GetEigenVectors()
     /// etc.
     bool ComputeModesExternalData(ChSparseMatrix& full_M,
                                   ChSparseMatrix& full_K,
@@ -69,8 +69,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     /// Compute the damped modes for the entire modal assembly.
     /// Expect complex eigenvalues/eigenvectors if damping is used.
-    /// Later you can fetch results via GetModalReductionEigenVect(), GetModalReductionFrequencyUndamped(),
-    /// GetModalReductionDampingRatios() etc. Usually done for the assembly in full state, not available in reduced
+    /// Later you can fetch results via GetEigenVectors(), GetUndampedFrequencies(),
+    /// GetDampingRatios() etc. Usually done for the assembly in full state, not available in reduced
     /// state.
     bool ComputeModesDamped(const ChModalSolveDamped& n_modes_settings);
 
@@ -163,27 +163,27 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Get the modal eigenvectors, if previously computed.
     /// These are the eigenvectors of the original assembly with applied boundary conditions, depending on reduction
     /// type. Use one of the ComputeModes() functions to set it.
-    const ChMatrixDynamic<std::complex<double>>& GetModalReductionEigenVect() const { return this->m_modal_eigvect; }
+    const ChMatrixDynamic<std::complex<double>>& GetEigenVectors() const { return this->m_modal_eigvect; }
 
     /// Get the modal eigenvalues, if previously computed.
     /// These are the eigenvalues of the original assembly with applied boundary conditions, depending on reduction
     /// type. Use one of the ComputeModes() functions to set it.
-    const ChVectorDynamic<std::complex<double>>& GetModalReductionEigenVals() const { return this->m_modal_eigvals; }
+    const ChVectorDynamic<std::complex<double>>& GetEigenValues() const { return this->m_modal_eigvals; }
 
     /// Get a vector of (undamped) modal natural frequencies [Hz], if previously computed.
     /// These are the frequencies of the original assembly with applied boundary conditions, depending on reduction
     /// type. Use one of the ComputeModes() functions to set it.
-    const ChVectorDynamic<double>& GetModalReductionFrequencyUndamped() const { return this->m_modal_freq; }
+    const ChVectorDynamic<double>& GetUndampedFrequencies() const { return this->m_modal_freq; }
 
     /// Get a vector of modal damping ratios = damping/critical_damping, if previously computed.
     /// Use one of the ComputeModes() functions to set it.
-    const ChVectorDynamic<double>& GetModalReductionDampingRatios() const { return this->m_modal_damping_ratios; }
+    const ChVectorDynamic<double>& GetDampingRatios() const { return this->m_modal_damping_ratios; }
 
     /// Get the deformed configuration of the full modal assembly.
-    const ChVectorDynamic<>& GetDeformedFullState() const { return this->m_full_state_x; }
+    const ChVectorDynamic<>& GetDeformedState() const { return this->m_full_state_x; }
 
     /// Get the initial full state of the modal assembly before the modal reduction.
-    const ChVectorDynamic<>& GetInitialFullState() const { return this->m_full_state_x0; }
+    const ChVectorDynamic<>& GetInitialState() const { return this->m_full_state_x0; }
 
     /// Get the vector of modal coordinates (positions).
     ChVectorDynamic<>& GetModalCoordinatesPosLevel() { return this->modal_q; }
@@ -514,10 +514,10 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     void ComputeModalKRMmatrix();
 
     /// [INTERNAL USE ONLY]
-    void ApplyModalReductionTransformation_Herting(const ChModalDamping& damping_model = ChModalDampingNone());
+    void ApplyHertingTransformation(const ChModalDamping& damping_model = ChModalDampingNone());
 
     /// [INTERNAL USE ONLY]
-    void ApplyModalReductionTransformation_CraigBampton(const ChModalDamping& damping_model = ChModalDampingNone());
+    void ApplyCraigBamptonTransformation(const ChModalDamping& damping_model = ChModalDampingNone());
 
     /// Computes the increment of the modal assembly (the increment of the current configuration respect
     /// to the initial "undeformed" configuration), and also gets the current speed.
@@ -525,7 +525,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// e_locred = [qB^bar; eta]: local elastic displacement vector.
     /// edt_locred = [qB^bar_dt; eta_dt]: local elastic velocity vector.
     /// u_locred, e_locred and edt_locred are all expressed in the local floating frame of reference F.
-    void GetStateLocal(ChStateDelta& u_locred, ChStateDelta& e_locred, ChStateDelta& edt_locred);
+    void GetLocalDeformations(ChStateDelta& u_locred, ChStateDelta& e_locred, ChStateDelta& edt_locred);
 
     virtual void SetupInitial() override;
 

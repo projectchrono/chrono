@@ -283,9 +283,9 @@ void MakeAndRunDemoCantilever(ChSystem& sys,
 
         std::cout << " The undamped modal frequencies of the modal assembly (not the whole system) in full state are: "
                   << std::endl;
-        for (int i = 0; i < modal_assembly->GetModalReductionFrequencyUndamped().rows(); ++i)
-            std::cout << " Mode n." << i
-                      << "  frequency [Hz]: " << modal_assembly->GetModalReductionFrequencyUndamped()(i) << std::endl;
+        for (int i = 0; i < modal_assembly->GetUndampedFrequencies().rows(); ++i)
+            std::cout << " Mode n." << i << "  frequency [Hz]: " << modal_assembly->GetUndampedFrequencies()(i)
+                      << std::endl;
     }
 
     // VISUALIZATION ASSETS:

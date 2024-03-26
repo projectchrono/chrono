@@ -172,7 +172,7 @@ void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
         this->UpdateTransformationMatrix();
 
         // 4) do the HERTING reduction as in Sonneville2021
-        this->ApplyModalReductionTransformation_Herting(damping_model);
+        this->ApplyHertingTransformation(damping_model);
 
     } else if (this->m_modal_reduction_type == ReductionType::CRAIG_BAMPTON) {
         // 1) retrieve the local M,K,Cq matrices sliced for internal nodes, and then compute eigenvalue and eigenvectors
@@ -199,7 +199,7 @@ void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
         this->UpdateTransformationMatrix();
 
         // 4) do the Craig-Bampton reduction
-        this->ApplyModalReductionTransformation_CraigBampton(damping_model);
+        this->ApplyCraigBamptonTransformation(damping_model);
 
     } else {
         std::cout << "*** The modal reduction type is specified incorrectly..." << std::endl;
@@ -382,16 +382,16 @@ void ChModalAssembly::UpdateFloatingFrameOfReference() {
         ChStateDelta u_locred(num_coords_vel_bou_mod, nullptr);
         ChStateDelta e_locred(num_coords_vel_bou_mod, nullptr);
         ChStateDelta edt_locred(num_coords_vel_bou_mod, nullptr);
-        this->GetStateLocal(u_locred, e_locred, edt_locred);
+        this->GetLocalDeformations(u_locred, e_locred, edt_locred);
 
         // the constraint vector C_F to eliminate the redundant DOFs of the floating frame F
         mConstr_F = this->U_locred_0.transpose() * this->M_red * e_locred;  // of size 6*1, expected to be zero
     };
 
-        unsigned int ite_count = 0;
-        unsigned int NR_limit = 10;
-        double tol = 1.e-6 * this->M_red.norm();
-        bool converged_flag_F = false;
+    unsigned int ite_count = 0;
+    unsigned int NR_limit = 10;
+    double tol = 1.e-6 * this->M_red.norm();
+    bool converged_flag_F = false;
 
     while (!converged_flag_F && ite_count < NR_limit) {
         ChVectorDynamic<> constr_F(6);
@@ -578,13 +578,7 @@ void ChModalAssembly::ComputeLocalFullKMCqMatrix(ChSparseMatrix& full_M,
     full_R_loc.makeCompressed();
 }
 
-void ChModalAssembly::ApplyModalReductionTransformation_Herting(const ChModalDamping& damping_model) {
-    // 1) compute eigenvalue and eigenvectors of the full modal assembly.
-    // It is calculated in the local floating frame of reference F, thus there must be six rigid-body modes.
-    // It is expected that the eigenvalues of the six rigid-body modes are zero, but
-    // maybe nonzero if the geometrical stiffness matrix Kg is involved, we also have the opportunity
-    // to consider the inertial damping and inertial stiffness matrices Ri,Ki respectively.
-
+void ChModalAssembly::ApplyHertingTransformation(const ChModalDamping& damping_model) {
     assert(this->m_modal_eigvect.cols() >= 6);  // at least six rigid-body modes are required.
 
     // K_IIc = [  K_II   Cq_II' ]
@@ -764,13 +758,7 @@ void ChModalAssembly::ApplyModalReductionTransformation_Herting(const ChModalDam
     this->m_modal_eigvect.resize(0, 0);
 }
 
-void ChModalAssembly::ApplyModalReductionTransformation_CraigBampton(const ChModalDamping& damping_model) {
-    // 1) compute eigenvalue and eigenvectors of the full modal assembly.
-    // It is calculated in the local floating frame of reference F, thus there must be six rigid-body modes.
-    // It is expected that the eigenvalues of the six rigid-body modes are zero, but
-    // maybe nonzero if the geometrical stiffness matrix Kg is involved, we also have the opportunity
-    // to consider the inertial damping and inertial stiffness matrices Ri,Ki respectively.
-
+void ChModalAssembly::ApplyCraigBamptonTransformation(const ChModalDamping& damping_model) {
     // K_IIc = [  K_II   Cq_II' ]
     //         [ Cq_II     0    ]
     ChSparseMatrix K_II_loc = full_K_loc.block(m_num_coords_vel_boundary, m_num_coords_vel_boundary,
@@ -956,7 +944,7 @@ void ChModalAssembly::ComputeInertialKRMmatrix() {
     // Inertial stiffness matrix, is zero
     this->Ki_sup.setZero();
 
-    if (!m_use_linear_inertial_term) {// The below block of code might cause numerical instabilities in current test
+    if (!m_use_linear_inertial_term) {  // The below block of code might cause numerical instabilities in current test
         unsigned int num_coords_pos_bou_mod = this->m_num_coords_pos_boundary + this->m_num_coords_modal;
 
         // fetch the state snapshot (modal reduced)
@@ -1063,7 +1051,7 @@ void ChModalAssembly::ComputeStiffnessMatrix() {
         ChStateDelta u_locred(num_coords_vel_bou_mod, nullptr);
         ChStateDelta e_locred(num_coords_vel_bou_mod, nullptr);
         ChStateDelta edt_locred(num_coords_vel_bou_mod, nullptr);
-        this->GetStateLocal(u_locred, e_locred, edt_locred);
+        this->GetLocalDeformations(u_locred, e_locred, edt_locred);
 
         ChVectorDynamic<> g_loc_alpha(num_coords_vel_bou_mod);
         g_loc_alpha = P_perp_0.transpose() * (K_red * e_locred);
@@ -1214,7 +1202,6 @@ bool ChModalAssembly::ComputeModesExternalData(ChSparseMatrix& full_M,
                                                ChSparseMatrix& full_K,
                                                ChSparseMatrix& full_Cq,
                                                const ChModalSolveUndamped& n_modes_settings) {
-
     // SOLVE EIGENVALUE
     // for undamped system (use generalized constrained eigen solver)
     // - Must work with large dimension and sparse matrices only
@@ -1288,7 +1275,6 @@ void ChModalAssembly::SetFullStateWithModeOverlay(unsigned int n_mode, double ph
         Update();
         return;  // TODO: why returning? what the Update would do?
     }
-    
 
     double fooT = 0;
     ChState assembly_x_new;
@@ -1319,7 +1305,6 @@ void ChModalAssembly::SetFullStateWithModeOverlay(unsigned int n_mode, double ph
     this->IntStateScatter(0, assembly_x_new, 0, assembly_v, fooT, true);
 
     this->Update();
-
 }
 
 void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
@@ -1346,7 +1331,7 @@ void ChModalAssembly::SetInternalStateWithModes(bool full_update) {
     ChStateDelta u_locred(num_coords_vel_bou_mod, nullptr);
     ChStateDelta e_locred(num_coords_vel_bou_mod, nullptr);
     ChStateDelta edt_locred(num_coords_vel_bou_mod, nullptr);
-    this->GetStateLocal(u_locred, e_locred, edt_locred);
+    this->GetLocalDeformations(u_locred, e_locred, edt_locred);
 
     ChStateDelta Dx_internal_loc;  // =[delta_qI^bar]
     Dx_internal_loc.setZero(m_num_coords_vel_internal, nullptr);
@@ -2019,7 +2004,7 @@ void ChModalAssembly::ForceToRest() {
     }
 }
 
-void ChModalAssembly::GetStateLocal(ChStateDelta& u_locred, ChStateDelta& e_locred, ChStateDelta& edt_locred) {
+void ChModalAssembly::GetLocalDeformations(ChStateDelta& u_locred, ChStateDelta& e_locred, ChStateDelta& edt_locred) {
     if (m_is_model_reduced == false) {
         // to do? not useful for the moment.
         return;
@@ -2089,7 +2074,7 @@ void ChModalAssembly::GetStateLocal(ChStateDelta& u_locred, ChStateDelta& e_locr
             ChVector3d r_BF_loc = floating_frame_F.GetRot().RotateBack(r_B - floating_frame_F.GetPos());
             edt_locred.segment(6 * i_bou, 3) =
                 (floating_frame_F.GetRot().RotateBack(v_B - floating_frame_F.GetPosDt()) +
-                    ChStarMatrix33(r_BF_loc) * floating_frame_F.GetAngVelLocal())
+                 ChStarMatrix33(r_BF_loc) * floating_frame_F.GetAngVelLocal())
                     .eigen();
 
             ChVector3d wloc_B = v_mod.segment(6 * i_bou + 3, 3);
@@ -2403,15 +2388,15 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
         ChStateDelta u_locred(num_coords_vel_bou_mod, nullptr);
         ChStateDelta e_locred(num_coords_vel_bou_mod, nullptr);
         ChStateDelta edt_locred(num_coords_vel_bou_mod, nullptr);
-        this->GetStateLocal(u_locred, e_locred, edt_locred);
+        this->GetLocalDeformations(u_locred, e_locred, edt_locred);
 
         // note: - sign
         R.segment(off, this->m_num_coords_vel_boundary + this->m_num_coords_modal) -=
             c * (P_W * P_perp_0.transpose() * (this->K_red * e_locred + this->R_red * edt_locred));
 
-        // 2- 
+        // 2-
         // Add quadratic velocity term
-        {  
+        {
             double fooT;
             ChState x_mod;       // =[qB; eta]
             ChStateDelta v_mod;  // =[qB_dt; eta_dt]
@@ -2454,7 +2439,7 @@ void ChModalAssembly::IntLoadResidual_F(const unsigned int off,  ///< offset in 
         }
 
         // 3-
-        // Add external imposed forces on internal items (bodies, nodes)        
+        // Add external imposed forces on internal items (bodies, nodes)
         if (!this->full_forces_internal.isZero()) {
             ChVectorDynamic<> F_reduced;
             F_reduced.setZero(m_num_coords_vel_boundary + this->m_num_coords_modal);
