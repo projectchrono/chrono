@@ -20,6 +20,7 @@ endif()
 if(ENABLE_MODULE_VEHICLE AND ENABLE_MODULE_VEHICLE_MODELS)
   if (CH_ROS_HAS_INTERFACES)
     list(APPEND DEMOS demo_ROS_vehicle)
+    list(APPEND DEMOS demo_ROS_two_managers)
   endif()
 endif()
 
