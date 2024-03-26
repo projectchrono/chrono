@@ -4,9 +4,13 @@
 Change Log
 ==========
 
-- [Change Log](#change-log)
 - [Unreleased (development branch)](#unreleased-development-branch)
   - [\[Changed\] Refactoring of class and function names](#changed-refactoring-of-class-and-function-names)
+  - [\[Changed\] Updated Chrono::VSG module](#changed-updated-chronovsg-module)
+  - [\[Added\] New motion functions and filters](#added-new-motion-functions-and-filters)
+  - [\[Changed\] Updated ChBlender exporter to Blender4.0](#changed-updated-chblender-exporter-to-blender4.0)
+  - [\[Added\] Unilateral distance constraint](#added-unilateral-distance-constraint)
+  - [\[Changed\] Collision detection refactoring](#changed-collision-detection-refactoring)
   - [\[Changed\] Application of terrain forces to vehicle systems](#changed-application-of-terrain-forces-to-vehicle-systems)
   - [\[Changed\] Modifications to the HHT integrator](#changed-modifications-to-the-hht-integrator)
   - [\[Added\] Modeling hydraulic circuit elements and hydraulic actuators](#added-modeling-hydraulic-circuit-elements-and-hydraulic-actuators)
