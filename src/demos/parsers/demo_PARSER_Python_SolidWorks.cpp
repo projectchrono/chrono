@@ -132,10 +132,10 @@ int main(int argc, char* argv[]) {
     vis->AddSkyBox();
     vis->AddCamera(ChVector3d(0, 0.25, 0.25), ChVector3d(0, 0, -0.1));
     vis->AddTypicalLights();
-    vis->AddLightWithShadow(ChVector3d(-0.5, 0.5, 0.0), ChVector3d(0, 0, 0), 1, 0.2, 1.2, 30, 512,
-                            ChColor(1.0f, 0.9f, 0.9f));
-    vis->AddLightWithShadow(ChVector3d(+0.5, 0.5, 0.5), ChVector3d(0, 0, 0), 1, 0.2, 1.2, 30, 512,
-                            ChColor(0.6f, 0.8f, 1.0f));
+    //vis->AddLightWithShadow(ChVector3d(-0.5, 0.5, 0.0), ChVector3d(0, 0, 0), 1, 0.2, 1.2, 30, 512,
+    //                        ChColor(1.0f, 0.9f, 0.9f));
+    //vis->AddLightWithShadow(ChVector3d(+0.5, 0.5, 0.5), ChVector3d(0, 0, 0), 1, 0.2, 1.2, 30, 512,
+    //                        ChColor(0.6f, 0.8f, 1.0f));
     vis->EnableShadows();
 
     // Simulation loop

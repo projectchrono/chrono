@@ -25,7 +25,7 @@ body_1.SetRot(chrono.ChQuaterniond(-0.330122510765304,-2.45537571233379e-16,0.94
 body_1.SetMass(0.27555084229585)
 body_1.SetInertiaXX(chrono.ChVector3d(0.000519165190203935,0.000668606289866648,0.000157486745954595))
 body_1.SetInertiaXY(chrono.ChVector3d(-1.52558132324693e-06,-4.37709719642171e-05,2.64531455782147e-07))
-body_1.SetFrame_COG_to_REF(chrono.ChFramed(chrono.ChVector3d(-0.00959089760382167,0.0486210957135911,-0.109837837967947),chrono.ChQuaterniond(1,0,0,0)))
+body_1.SetFrameCOMToRef(chrono.ChFramed(chrono.ChVector3d(-0.00959089760382167,0.0486210957135911,-0.109837837967947),chrono.ChQuaterniond(1,0,0,0)))
 
 # Visualization shape 
 body_1_1_shape = chrono.ChVisualShapeModelFile() 
@@ -101,7 +101,7 @@ body_2.SetRot(chrono.ChQuaterniond(0,0,0.707106781186548,0.707106781186547))
 body_2.SetMass(1.02644190893078)
 body_2.SetInertiaXX(chrono.ChVector3d(0.00421426808616481,0.00449296635132803,0.000334399259807225))
 body_2.SetInertiaXY(chrono.ChVector3d(-1.30221244046362e-20,-1.60463939204644e-19,0.000147522492869351))
-body_2.SetFrame_COG_to_REF(chrono.ChFramed(chrono.ChVector3d(5.96881493747061e-20,-0.120998995444052,-0.0214658323718929),chrono.ChQuaterniond(1,0,0,0)))
+body_2.SetFrameCOMToRef(chrono.ChFramed(chrono.ChVector3d(5.96881493747061e-20,-0.120998995444052,-0.0214658323718929),chrono.ChQuaterniond(1,0,0,0)))
 body_2.SetFixed(True)
 
 # Visualization shape 
@@ -132,7 +132,7 @@ body_3.SetRot(chrono.ChQuaterniond(0.714973388107422,0,0.699151667593086,0))
 body_3.SetMass(1.81117045126479)
 body_3.SetInertiaXX(chrono.ChVector3d(0.0202820042137968,0.0412119638526683,0.0212249765673293))
 body_3.SetInertiaXY(chrono.ChVector3d(-6.70222328430828e-08,8.32022499599561e-05,5.4837968152323e-07))
-body_3.SetFrame_COG_to_REF(chrono.ChFramed(chrono.ChVector3d(0.21901864850551,0.0330968348592532,9.59245261293635e-07),chrono.ChQuaterniond(1,0,0,0)))
+body_3.SetFrameCOMToRef(chrono.ChFramed(chrono.ChVector3d(0.21901864850551,0.0330968348592532,9.59245261293635e-07),chrono.ChQuaterniond(1,0,0,0)))
 
 # Visualization shape 
 body_3_1_shape = chrono.ChVisualShapeModelFile() 
@@ -164,7 +164,7 @@ body_4.SetRot(chrono.ChQuaterniond(0.580317762346015,-0.580317762346015,0.404018
 body_4.SetMass(0.384487702285899)
 body_4.SetInertiaXX(chrono.ChVector3d(0.0010834203298181,0.000678649729047534,0.000614415177644497))
 body_4.SetInertiaXY(chrono.ChVector3d(0.000173569396944232,-3.15578528386675e-19,-8.08426348941013e-19))
-body_4.SetFrame_COG_to_REF(chrono.ChFramed(chrono.ChVector3d(-1.55722279465587e-17,3.80579019057423e-17,0.00631453892912046),chrono.ChQuaterniond(1,0,0,0)))
+body_4.SetFrameCOMToRef(chrono.ChFramed(chrono.ChVector3d(-1.55722279465587e-17,3.80579019057423e-17,0.00631453892912046),chrono.ChQuaterniond(1,0,0,0)))
 
 # Visualization shape 
 body_4_1_shape = chrono.ChVisualShapeModelFile() 
@@ -288,7 +288,7 @@ link_1.SetName("Concentrico1")
 exported_items.append(link_1)
 
 link_2 = chrono.ChLinkMateGeneric()
-link_2.SetConstrainedCoords(False, True, True, False, False, False)
+link_2.SetConstrainedCoords(True, True, False, False, False, False)
 cA = chrono.ChVector3d(0,-0.03,0)
 cB = chrono.ChVector3d(0,-0.03,0)
 dA = chrono.ChVector3d(0,-1,0)
@@ -313,7 +313,7 @@ link_3.SetName("Concentrico2")
 exported_items.append(link_3)
 
 link_4 = chrono.ChLinkMateGeneric()
-link_4.SetConstrainedCoords(False, True, True, False, False, False)
+link_4.SetConstrainedCoords(True, True, False, False, False, False)
 cA = chrono.ChVector3d(-1.47451495458029e-16,3.57779056074965e-05,-0.219053185080869)
 cB = chrono.ChVector3d(0,-0.03,-0.21905318508087)
 dA = chrono.ChVector3d(0,-1,0)
@@ -337,7 +337,7 @@ link_5.SetName("Concentrico3")
 exported_items.append(link_5)
 
 link_6 = chrono.ChLinkMateGeneric()
-link_6.SetConstrainedCoords(False, True, True, False, False, False)
+link_6.SetConstrainedCoords(True, True, False, False, False, False)
 cA = chrono.ChVector3d(-5.82867087928207e-18,-5.63785129692462e-18,-0.105)
 cB = chrono.ChVector3d(0,-0.0256181804404151,-0.105)
 dA = chrono.ChVector3d(2.8134962801131e-17,-1,2.10255524402378e-15)
