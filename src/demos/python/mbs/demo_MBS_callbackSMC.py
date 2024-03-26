@@ -115,7 +115,6 @@ container = chrono.ChBody()
 sys.Add(container)
 container.SetPos(chrono.ChVector3d(0, 0, 0))
 container.SetFixed(True)
-container.SetIdentifier(-1)
 
 container.EnableCollision(True)
 chrono.AddBoxGeometry(container, material, chrono.ChVector3d(8, 1, 8), chrono.ChVector3d(0, -0.5, 0))

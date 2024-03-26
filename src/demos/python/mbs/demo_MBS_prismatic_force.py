@@ -38,7 +38,6 @@ sys.SetGravitationalAcceleration(chrono.ChVector3d(0, 0, 0))
 # Create the ground body
 ground = chrono.ChBody()
 sys.AddBody(ground)
-ground.SetIdentifier(-1)
 ground.SetFixed(True)
 ground.EnableCollision(False)
 
@@ -53,7 +52,6 @@ ground.AddVisualShape(rail2, chrono.ChFramed(chrono.ChVector3d(0, 0, 1)))
 # Create the slider bodies
 slider1 = chrono.ChBody()
 sys.AddBody(slider1)
-slider1.SetIdentifier(1)
 slider1.SetFixed(False)
 slider1.EnableCollision(False)
 slider1.SetMass(1)
@@ -66,7 +64,6 @@ slider1.AddVisualShape(cyl1, chrono.ChFramed(chrono.VNULL, chrono.QuatFromAngleY
 
 slider2 = chrono.ChBody()
 sys.AddBody(slider2)
-slider2.SetIdentifier(1)
 slider2.SetFixed(False)
 slider2.EnableCollision(False)
 slider2.SetMass(1)
