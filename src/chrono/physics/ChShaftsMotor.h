@@ -27,31 +27,35 @@ class ChApi ChShaftsMotor : public ChShaftsCouple {
     ChShaftsMotor(const ChShaftsMotor& other) {}
     virtual ~ChShaftsMotor() {}
 
-    /// Get the actual angle rotation [rad] of the motor, in terms of phase of shaft 1 respect to 2.
-    virtual double GetMotorAngle() const { return (shaft1->GetPos() - shaft2->GetPos()); }
+    /// Get the position of the motor, as position of shaft 1 with respect to 2.
+    /// This is an angle for rotational motors or a displacement for linear motors.
+    virtual double GetMotorPos() const { return (shaft1->GetPos() - shaft2->GetPos()); }
 
-    /// Get the actual speed [rad/s] of the motor, in terms of speed of shaft 1 respect to 2.
-    virtual double GetMotorAngleDt() const { return (shaft1->GetPosDt() - shaft2->GetPosDt()); }
+    /// Get the motor speed, as speed of shaft 1 with respect to 2.
+    virtual double GetMotorPosDt() const { return (shaft1->GetPosDt() - shaft2->GetPosDt()); }
 
-    /// Get the actual acceleration [rad/s^2] of the motor, in terms of accel. of shaft 1 respect to 2.
-    virtual double GetMotorAngleDt2() const { return (shaft1->GetPosDt2() - shaft2->GetPosDt2()); }
+    /// Get the motor acceleration, as accelerations of shaft 1 with respect to 2.
+    virtual double GetMotorPosDt2() const { return (shaft1->GetPosDt2() - shaft2->GetPosDt2()); }
 
-    /// In case of multi-turns, gets the current actuator number of (integer) rotations:
-    virtual int GetMotorNumTurns() const { return int(GetMotorAngle() / CH_2PI); }
+    /// Get number of full rotations for this shafts rotational motor.
+    /// This function is meaningful only for a motor connecting two rotational shafts.
+    virtual int GetMotorNumTurns() const { return int(GetMotorPos() / CH_2PI); }
 
-    /// In case of multi-turns, gets the current actuator rotation angle [rad], in periodic -PI..+PI.
-    virtual double GetMotorAngleWrapped() const { return fmod(GetMotorAngle(), CH_2PI); }
+    /// Get the motor angle in the range [-pi, +pi].
+    /// This function is meaningful only for a motor connecting two rotational shafts.
+    virtual double GetMotorAngleWrapped() const { return fmod(GetMotorPos(), CH_2PI); }
 
-    /// Get the current motor torque between shaft2 and shaft1, expressed as applied to shaft1
-    virtual double GetMotorTorque() const = 0;
+    /// Get the current motor load between shaft2 and shaft1, expressed as applied to shaft1.
+    /// This represetns a torque for a rotational motor and a force for a linear motor.
+    virtual double GetMotorLoad() const = 0;
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 1st axis.
-    virtual double GetReaction1() const override { return (GetMotorTorque()); }
+    virtual double GetReaction1() const override { return (GetMotorLoad()); }
 
     /// Get the reaction torque exchanged between the two shafts,
     /// considered as applied to the 2nd axis.
-    virtual double GetReaction2() const override { return -(GetMotorTorque()); }
+    virtual double GetReaction2() const override { return -(GetMotorLoad()); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;

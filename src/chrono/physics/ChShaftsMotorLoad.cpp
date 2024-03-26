@@ -9,71 +9,71 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#include "chrono/physics/ChShaftsMotorTorque.h"
+#include "chrono/physics/ChShaftsMotorLoad.h"
 
 namespace chrono {
 
 // Register into the object factory, to enable run-time dynamic creation and persistence
-CH_FACTORY_REGISTER(ChShaftsMotorTorque)
+CH_FACTORY_REGISTER(ChShaftsMotorLoad)
 
-ChShaftsMotorTorque::ChShaftsMotorTorque() {
-    this->f_torque = chrono_types::make_shared<ChFunctionConst>(0.0);
+ChShaftsMotorLoad::ChShaftsMotorLoad() {
+    motor_function = chrono_types::make_shared<ChFunctionConst>(0.0);
 }
 
-ChShaftsMotorTorque::ChShaftsMotorTorque(const ChShaftsMotorTorque& other) : ChShaftsMotor(other) {
-    this->f_torque = other.f_torque;
+ChShaftsMotorLoad::ChShaftsMotorLoad(const ChShaftsMotorLoad& other) : ChShaftsMotor(other) {
+    motor_function = other.motor_function;
 }
 
-void ChShaftsMotorTorque::Update(double mytime, bool update_assets) {
+void ChShaftsMotorLoad::Update(double mytime, bool update_assets) {
     // Inherit time changes of parent class
     ChShaftsMotor::Update(mytime, update_assets);
 
     // update class data
 
-    this->f_torque->Update(mytime);  // call callbacks if any
+    motor_function->Update(mytime);  // call callbacks if any
 }
 
-void ChShaftsMotorTorque::IntLoadResidual_F(const unsigned int off,  // offset in R residual
-                                            ChVectorDynamic<>& R,    // result: the R residual, R += c*F
-                                            const double c           // a scaling factor
+void ChShaftsMotorLoad::IntLoadResidual_F(const unsigned int off,  // offset in R residual
+                                          ChVectorDynamic<>& R,    // result: the R residual, R += c*F
+                                          const double c           // a scaling factor
 ) {
-    double imposed_torque = this->f_torque->GetVal(this->GetChTime());
+    double imposed_torque = motor_function->GetVal(GetChTime());
     if (shaft1->IsActive())
         R(shaft1->GetOffset_w()) += imposed_torque * c;
     if (shaft2->IsActive())
         R(shaft2->GetOffset_w()) += -imposed_torque * c;
 }
 
-void ChShaftsMotorTorque::VariablesFbLoadForces(double factor) {
-    double imposed_torque = this->f_torque->GetVal(this->GetChTime());
+void ChShaftsMotorLoad::VariablesFbLoadForces(double factor) {
+    double imposed_torque = motor_function->GetVal(GetChTime());
     shaft1->Variables().Force()(0) += imposed_torque * factor;
     shaft2->Variables().Force()(0) += -imposed_torque * factor;
 }
 
-void ChShaftsMotorTorque::ArchiveOut(ChArchiveOut& archive_out) {
+void ChShaftsMotorLoad::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    archive_out.VersionWrite<ChShaftsMotorTorque>();
+    archive_out.VersionWrite<ChShaftsMotorLoad>();
 
     // serialize parent class
     ChShaftsMotor::ArchiveOut(archive_out);
 
     // serialize all member data:
-    archive_out << CHNVP(f_torque);
+    archive_out << CHNVP(motor_function);
 }
 
 /// Method to allow de serialization of transient data from archives.
-void ChShaftsMotorTorque::ArchiveIn(ChArchiveIn& archive_in) {
+void ChShaftsMotorLoad::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/archive_in.VersionRead<ChShaftsMotorTorque>();
+    /*int version =*/archive_in.VersionRead<ChShaftsMotorLoad>();
 
     // deserialize parent class:
     ChShaftsMotor::ArchiveIn(archive_in);
 
     // deserialize all member data:
-    archive_in >> CHNVP(f_torque);
+    archive_in >> CHNVP(motor_function);
 }
 
 }  // end namespace chrono

@@ -30,7 +30,7 @@
 #include "chrono/physics/ChShaftsAppliedTorque.h"
 #include "chrono/physics/ChShaftsThermalEngine.h"
 #include "chrono/physics/ChShaftsFreewheel.h"
-#include "chrono/physics/ChShaftsMotorAngle.h"
+#include "chrono/physics/ChShaftsMotorPosition.h"
 
 #include "chrono_thirdparty/filesystem/path.h"
 
@@ -545,11 +545,11 @@ int main(int argc, char* argv[]) {
         sys.AddShaft(my_shaftD);
 
         // Make the motor imposing a test sinusoidal rotation
-        auto my_motor = chrono_types::make_shared<ChShaftsMotorAngle>();
+        auto my_motor = chrono_types::make_shared<ChShaftsMotorPosition>();
         my_motor->Initialize(my_shaftA, my_shaftB);
         sys.Add(my_motor);
         auto my_sinefunction = chrono_types::make_shared<ChFunctionSine>(0.001 + 0.5 * CH_2PI / 20, 1.2);
-        my_motor->SetAngleFunction(my_sinefunction);
+        my_motor->SetPositionFunction(my_sinefunction);
 
         // Make the freewheel:
         auto my_freewheel = chrono_types::make_shared<ChShaftsFreewheel>();

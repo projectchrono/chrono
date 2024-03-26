@@ -27,7 +27,7 @@
 #include "chrono/physics/ChLinkMotorLinearForce.h"
 #include "chrono/physics/ChLinkMotorLinearDriveline.h"
 #include "chrono/physics/ChShaftsMotorSpeed.h"
-#include "chrono/physics/ChShaftsMotorAngle.h"
+#include "chrono/physics/ChShaftsMotorPosition.h"
 #include "chrono/physics/ChShaftsPlanetary.h"
 #include "chrono/physics/ChShaftsGear.h"
 
@@ -665,7 +665,7 @@ int main(int argc, char* argv[]) {
     my_shaftB->SetInertia(0.33);  // [kg/m^2]
     sys.AddShaft(my_shaftB);
 
-    auto my_driveli = chrono_types::make_shared<ChShaftsMotorAngle>();
+    auto my_driveli = chrono_types::make_shared<ChShaftsMotorPosition>();
     my_driveli->Initialize(my_shaftB,                   // B    , the rotor of the drive
                            motor5->GetInnerShaft2Rot()  // S2rot, the stator of the drive
     );
@@ -686,7 +686,7 @@ int main(int argc, char* argv[]) {
     my_functsequence->InsertFunct(my_funcpause2, 0.2, 1.0, true);  // fx, duration, weight, enforce C0 continuity
     auto my_functangle = chrono_types::make_shared<ChFunctionRepeat>(my_functsequence);
     my_functangle->SetSliceWidth(0.5 + 0.2 + 0.3 + 0.2);
-    my_driveli->SetAngleFunction(my_functangle);
+    my_driveli->SetPositionFunction(my_functangle);
 
     auto my_rackpinion = chrono_types::make_shared<ChShaftsPlanetary>();
     my_rackpinion->Initialize(motor5->GetInnerShaft2Lin(),  // S2lin, the carrier (truss)

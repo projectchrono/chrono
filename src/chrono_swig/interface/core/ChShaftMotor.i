@@ -2,9 +2,9 @@
 
 /* Includes the header in the wrapper code */
 
-#include "chrono/physics/ChShaftsMotorAngle.h"
+#include "chrono/physics/ChShaftsMotorPosition.h"
 #include "chrono/physics/ChShaftsMotorSpeed.h"
-#include "chrono/physics/ChShaftsMotorTorque.h"
+#include "chrono/physics/ChShaftsMotorLoad.h"
 
 %}
  
@@ -14,13 +14,13 @@
 %import "ChShaft.i"
 
 
-%shared_ptr(chrono::ChShaftsMotorAngle)
+%shared_ptr(chrono::ChShaftsMotorPosition)
 %shared_ptr(chrono::ChShaftsMotorSpeed)
-%shared_ptr(chrono::ChShaftsMotorTorque)
+%shared_ptr(chrono::ChShaftsMotorLoad)
 
 
 /* Parse the header file to generate wrappers */
 
-%include "../../../chrono/physics/ChShaftsMotorAngle.h"
+%include "../../../chrono/physics/ChShaftsMotorPosition.h"
 %include "../../../chrono/physics/ChShaftsMotorSpeed.h"
-%include "../../../chrono/physics/ChShaftsMotorTorque.h"
+%include "../../../chrono/physics/ChShaftsMotorLoad.h"

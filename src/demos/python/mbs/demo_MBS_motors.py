@@ -627,7 +627,7 @@ sys.Add(my_shaftB)
 # Create 'DRIVE', the hispeed motor - as a simple example use a 'imposed speed' motor: this
 # is the equivalent of the ChLinkMotorRotationAngle, but for 1D elements:
 
-my_driveli = chrono.ChShaftsMotorAngle()
+my_driveli = chrono.ChShaftsMotorPosition()
 my_driveli.Initialize(my_shaftB,                   # B    , the rotor of the drive
                        motor5.GetInnerShaft2Rot() ) # S2rot, the stator of the drive
 
@@ -648,7 +648,7 @@ my_functsequence.InsertFunct(my_funcsigma2, 0.3, 1.0, True)  # fx, duration, wei
 my_functsequence.InsertFunct(my_funcpause2, 0.2, 1.0, True)  # fx, duration, weight, enforce C0 continuity
 my_functangle = chrono.ChFunctionRepeat(my_functsequence)
 my_functangle.SetSliceWidth(0.5 + 0.2 + 0.3 + 0.2)
-my_driveli.SetAngleFunction(my_functangle)
+my_driveli.SetPositionFunction(my_functangle)
 
 # Create the RACKPINION.
 # It will connect three parts:

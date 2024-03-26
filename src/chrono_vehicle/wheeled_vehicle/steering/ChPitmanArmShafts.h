@@ -28,7 +28,7 @@
 
 #include "chrono/physics/ChShaftBodyConstraint.h"
 #include "chrono/physics/ChShaftsGear.h"
-#include "chrono/physics/ChShaftsMotorAngle.h"
+#include "chrono/physics/ChShaftsMotorPosition.h"
 #include "chrono/physics/ChShaftsTorsionSpring.h"
 
 #include "chrono_vehicle/ChApiVehicle.h"
@@ -181,7 +181,7 @@ class CH_VEHICLE_API ChPitmanArmShafts : public ChSteering {
     std::shared_ptr<ChShaftBodyRotation> m_shaft_arm;      ///< connection of shaft_A to arm body
     std::shared_ptr<ChShaftBodyRotation> m_shaft_chassis;  ///< connection of shaft_C to chassis body
     std::shared_ptr<ChShaftsGear> m_shaft_gear;            ///< reduction gear between shaft_A and shaft_A1
-    std::shared_ptr<ChShaftsMotorAngle> m_shaft_motor;     ///< steering input motor between shaft_C and shaft_C1
+    std::shared_ptr<ChShaftsMotorPosition> m_shaft_motor;  ///< steering input motor between shaft_C and shaft_C1
 
     std::shared_ptr<ChShaftsGear> m_rigid_connection;            ///< rigid connection between shaft_A1 and shaft_C1
     std::shared_ptr<ChShaftsTorsionSpring> m_spring_connection;  ///< compliant connection between shaft_A1 and shaft_C1

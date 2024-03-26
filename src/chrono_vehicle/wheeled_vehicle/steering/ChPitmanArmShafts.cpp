@@ -218,11 +218,11 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 
     // A motor (for steering input) between shaftC and shaftC1
     // The setpoint for the motor angle function is set in Synchronize()
-    m_shaft_motor = chrono_types::make_shared<ChShaftsMotorAngle>();
+    m_shaft_motor = chrono_types::make_shared<ChShaftsMotorPosition>();
     m_shaft_motor->SetName(m_name + "_motor");
     m_shaft_motor->Initialize(m_shaft_C, m_shaft_C1);
     auto motor_fun = chrono_types::make_shared<ChFunctionSetpoint>();
-    m_shaft_motor->SetAngleFunction(motor_fun);
+    m_shaft_motor->SetPositionFunction(motor_fun);
     sys->Add(m_shaft_motor);
 
     // A reduction gear between shaftA and shaftA1
@@ -254,7 +254,7 @@ void ChPitmanArmShafts::Initialize(std::shared_ptr<ChChassis> chassis,
 
 // -----------------------------------------------------------------------------
 void ChPitmanArmShafts::Synchronize(double time, const DriverInputs& driver_inputs) {
-    auto fun = std::static_pointer_cast<ChFunctionSetpoint>(m_shaft_motor->GetAngleFunction());
+    auto fun = std::static_pointer_cast<ChFunctionSetpoint>(m_shaft_motor->GetPositionFunction());
     fun->SetSetpoint(getMaxAngle() * driver_inputs.m_steering, time);
 }
 
@@ -342,7 +342,7 @@ void ChPitmanArmShafts::GetShaftInformation(double time,
                                             std::vector<double>& shaft_velocities,
                                             std::vector<double>& constraint_violations,
                                             ChVector3d& arm_angular_vel) const {
-    auto fun = std::static_pointer_cast<ChFunctionSetpoint>(m_shaft_motor->GetAngleFunction());
+    auto fun = std::static_pointer_cast<ChFunctionSetpoint>(m_shaft_motor->GetPositionFunction());
     motor_input = fun->GetVal(time);
     motor_input_der = fun->GetDer(time);
 

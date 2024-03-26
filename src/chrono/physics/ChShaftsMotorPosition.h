@@ -9,11 +9,11 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHSHAFTSMOTORANGLE_H
-#define CHSHAFTSMOTORANGLE_H
+#ifndef CH_SHAFTS_MOTOR_POSITION_H
+#define CH_SHAFTS_MOTOR_POSITION_H
 
 #include "chrono/physics/ChShaftsMotor.h"
 #include "chrono/solver/ChConstraintTwoGeneric.h"
@@ -21,47 +21,49 @@
 
 namespace chrono {
 
-/// Motor to enforce the rotation angle r(t) between two shafts, using a rheonomic constraint.
-/// The angle of shaft A with respect to shaft B is set trhough a function of time f(t) and an optional angle offset:
+/// Motor to enforce the relative position r(t) between two shafts, using a rheonomic constraint.
+/// The position of shaft A with respect to shaft B is set trhough a function of time f(t) and an optional offset:
 ///    r(t) = f(t) + offset
+/// The relative position represents an angle for rotational motor and a displacement for linear motors.
 /// Note: no compliance is allowed, so if the actuator hits an undeformable obstacle it hits a pathological situation
 /// and the solver result can be unstable/unpredictable. Think at it as a servo drive with "infinitely stiff" control.
 /// This type of motor is very easy to use, stable and efficient and should be used if the 'infinitely stiff' control
 /// assumption  is a good approximation of what you simulate (e.g., very good and reactive controllers). By default it
-/// is initialized with linear ramp: df/dt = 1. Use SetAngleFunction() to change to other motion functions.
-class ChApi ChShaftsMotorAngle : public ChShaftsMotor {
+/// is initialized with linear ramp: df/dt = 1. Use SetPositionFunction() to change to other motion functions.
+class ChApi ChShaftsMotorPosition : public ChShaftsMotor {
   public:
-    ChShaftsMotorAngle();
-    ChShaftsMotorAngle(const ChShaftsMotorAngle& other);
-    ~ChShaftsMotorAngle() {}
+    ChShaftsMotorPosition();
+    ChShaftsMotorPosition(const ChShaftsMotorPosition& other);
+    ~ChShaftsMotorPosition() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChShaftsMotorAngle* Clone() const override { return new ChShaftsMotorAngle(*this); }
+    virtual ChShaftsMotorPosition* Clone() const override { return new ChShaftsMotorPosition(*this); }
 
-    /// Set the rotation angle function f(t), in rad.
+    /// Set the motor function, f(t).
+    /// This function outputs an angle for a rotational motor and a displacement for a linear motor.
     /// Note that is must be at least C0 continuous. Ideally, f is C1, otherwise it produces spikes in accelerations.
-    void SetAngleFunction(const std::shared_ptr<ChFunction> function) { f_rot = function; }
+    void SetPositionFunction(const std::shared_ptr<ChFunction> function) { motor_function = function; }
 
-    /// Gets the rotation angle function f(t).
-    std::shared_ptr<ChFunction> GetAngleFunction() const { return f_rot; }
+    /// Gets the motor function f(t).
+    std::shared_ptr<ChFunction> GetPositionFunction() const { return motor_function; }
 
-    /// Get the initial angle offset for f(t)=0, in rad (default: 0).
-    /// Rotation of the two axes will be r(t) = f(t) + offset.
-    void SetAngleOffset(double mo) { rot_offset = mo; }
+    /// Set the initial offset for f(t)=0 (default: 0).
+    /// Relative position of the two shafts will be r(t) = f(t) + offset.
+    void SetOffset(double offset) { rot_offset = offset; }
 
-    /// Get initial offset for f(t)=0, in rad.
-    double GetAngleOffset() const { return rot_offset; }
+    /// Get the initial offset for f(t) = 0.
+    double GetOffset() const { return rot_offset; }
 
     /// Initialize the motor, given two shafts to join.
-    /// The first shaft is the 'output' shaft of the motor, the second is the 'truss', often fixed and not rotating.
-    /// The torque is applied to the output shaft, while the truss shafts gets the same torque but with opposite sign.
+    /// The first shaft is the 'output' shaft of the motor, the second is the 'truss', often fixed and not moving.
+    /// The load is applied to the output shaft, while the truss shafts gets the same load but with opposite sign.
     /// Both shafts must belong to the same ChSystem.
     bool Initialize(std::shared_ptr<ChShaft> shaft_1,  ///< first shaft to join (motor output shaft)
                     std::shared_ptr<ChShaft> shaft_2   ///< second shaft to join (motor truss)
                     ) override;
 
-    /// Get the current motor torque between shaft2 and shaft1, expressed as applied to shaft1.
-    virtual double GetMotorTorque() const override { return motor_torque; }
+    /// Get the current motor load between shaft2 and shaft1, expressed as applied to shaft1.
+    virtual double GetMotorLoad() const override { return motor_load; }
 
     /// Return current constraint violation.
     double GetConstraintViolation() const { return violation; }
@@ -73,11 +75,11 @@ class ChApi ChShaftsMotorAngle : public ChShaftsMotor {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    std::shared_ptr<ChFunction> f_rot;
+    std::shared_ptr<ChFunction> motor_function;
     double rot_offset;
 
     double violation;                   ///< constraint violation
-    double motor_torque;                ///< motor torque
+    double motor_load;                  ///< motor torque
     ChConstraintTwoGeneric constraint;  ///< used as an interface to the solver
 
     virtual unsigned int GetNumConstraintsBilateral() override { return 1; }
@@ -116,7 +118,7 @@ class ChApi ChShaftsMotorAngle : public ChShaftsMotor {
     virtual void ConstraintsFetch_react(double factor = 1) override;
 };
 
-CH_CLASS_VERSION(ChShaftsMotorAngle, 0)
+CH_CLASS_VERSION(ChShaftsMotorPosition, 0)
 
 }  // end namespace chrono
 

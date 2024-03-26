@@ -172,6 +172,8 @@ Note that this represents a major public API change and we expect most user code
 |                                     |         ChConstants.h                     |
 |                                     |         ChUtils.h                         |
 | ChShaftsBody.h                      | rename: ChShaftBodyConstraint.h           |
+| ChShaftsMotorAngle.h                | rename: ChShaftsMotorPosition.h           |
+| ChShaftsMotorTorque.h               | rename: ChShaftsMotorLoad.h               |
 | ChSolvmin.h                         | remove                                    |
 | ChStream.h                          | remove                                    |
 | ChUpdateFlags.h                     | remove                                    |
@@ -1194,9 +1196,27 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetShaftB                     | rename: GetShaft2                                |
 | ChShaftsMotor                     |                               | remove                                           |
 | ChShaftsMotorBase                 |                               | rename: ChShaftsMotor                            |
+|                                   | GetMotorRot                   | rename: GetMotorPos                              |
+|                                   | GetMotorRot_dt                | rename: GetMotorPosDt                            |
+|                                   | GetMotorRot_dtdt              | rename: GetMotorPosDt2                           |
+|                                   | GetMotorRotPeriodic           | rename: GetMotorAngleWrapped                     |
+|                                   | GetMotorRotTurns              | rename: GetMotorNumTurns                         |
+|                                   | GetMotorTorque                | rename: GetMotorLoad                             |
+|                                   | GetTorqueReactionOn1          | rename: GetReaction1                             |
+|                                   | GetTorqueReactionOn2          | rename: GetReaction2                             |
+| ChShaftsMotorAngle                |                               | rename: ChShaftsMotorPosition                    |
+|                                   | GetAngleFunction              | rename: GetPositionFunction                      |
+|                                   | GetAngleOffset                | rename: GetOffset                                |
+|                                   | SetAngleFunction              | rename: SetPositionFunction                      |
+|                                   | SetAngleOffset                | rename: SetOffset                                |
 | ChShaftsMotorSpeed                |                               |                                                  |
 |                                   | GetAvoidAngleDrift            | remove                                           |
-|                                   | SetAvoidAngleDrift            | rename: AvoidAngleDrift                          |
+|                                   | GetAngleOffset                | rename: GetOffset                                |
+|                                   | SetAvoidAngleDrift            | rename: AvoidDrift                               |
+|                                   | SetAngleOffset                | rename: SetOffset                                |
+| ChShaftsMotorTorque               |                               | rename: ChShaftsMotorLoad                        |
+|                                   | GetTorqueFunction             | rename: GetLoadFunction                          |
+|                                   | SetTorqueFunction             | rename: SetLoadFunction                          |
 | ChShaftsPlanetary                 |                               |                                                  |
 |                                   | GetAvoidPhaseDrift            | remove                                           |
 |                                   | SetAvoidPhaseDrift            | rename: AvoidPhaseDrift                          |

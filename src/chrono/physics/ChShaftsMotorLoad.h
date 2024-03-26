@@ -9,41 +9,42 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Alessandro Tasora
+// Authors: Alessandro Tasora, Radu Serban
 // =============================================================================
 
-#ifndef CHSHAFTSMOTORTORQUE_H
-#define CHSHAFTSMOTORTORQUE_H
+#ifndef CH_SHAFTS_MOTOR_LOAD_H
+#define CH_SHAFTS_MOTOR_LOAD_H
 
 #include "chrono/functions/ChFunction.h"
 #include "chrono/physics/ChShaftsMotor.h"
 
 namespace chrono {
 
-/// Motor to apply a torque between two shafts.
-/// Similar to the simplier ChShaftsAppliedTorque, this class specifies the torque through a function of time.
-/// Differently from the ChShaftsMotorAngle and ChShaftsMotorSpeed, this does not enforce precise motion via constraint.
-/// Application examples:
+/// Motor to apply a load between two shafts.
+/// Similar to the simplier ChShaftsAppliedTorque, this class specifies the load through a function of time.
+/// Differently from the ChShaftsMotorPosition and ChShaftsMotorSpeed, this does not enforce precise motion via
+/// constraint. Application examples:
 /// - mimic a PID controlled system with some feedback
 /// - force that is updated by a cosimulation
 /// - force from a human-in-the-loop setpoint
-class ChApi ChShaftsMotorTorque : public ChShaftsMotor {
+class ChApi ChShaftsMotorLoad : public ChShaftsMotor {
   public:
-    ChShaftsMotorTorque();
-    ChShaftsMotorTorque(const ChShaftsMotorTorque& other);
-    ~ChShaftsMotorTorque() {}
+    ChShaftsMotorLoad();
+    ChShaftsMotorLoad(const ChShaftsMotorLoad& other);
+    ~ChShaftsMotorLoad() {}
 
     /// "Virtual" copy constructor (covariant return type).
-    virtual ChShaftsMotorTorque* Clone() const override { return new ChShaftsMotorTorque(*this); }
+    virtual ChShaftsMotorLoad* Clone() const override { return new ChShaftsMotorLoad(*this); }
 
-    /// Set the torque function T(t), in Nm.
-    void SetTorqueFunction(const std::shared_ptr<ChFunction> mf) { f_torque = mf; }
+    /// Set the load function L(t).
+    /// This function outputs a torque for a rotational motor and a force for a linear motor.
+    void SetLoadFunction(const std::shared_ptr<ChFunction> mf) { motor_function = mf; }
 
-    /// Get the torque function F(t).
-    std::shared_ptr<ChFunction> GetTorqueFunction() const { return f_torque; }
+    /// Get the load function L(t).
+    std::shared_ptr<ChFunction> GetLoadFunction() const { return motor_function; }
 
     /// Get the current actuator reaction torque in Nm.
-    virtual double GetMotorTorque() const override { return this->f_torque->GetVal(this->GetChTime()); }
+    virtual double GetMotorLoad() const override { return this->motor_function->GetVal(this->GetChTime()); }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
@@ -52,14 +53,14 @@ class ChApi ChShaftsMotorTorque : public ChShaftsMotor {
     virtual void ArchiveIn(ChArchiveIn& archive_in) override;
 
   private:
-    std::shared_ptr<ChFunction> f_torque;
+    std::shared_ptr<ChFunction> motor_function;
 
     virtual void Update(double mytime, bool update_assets = true) override;
     virtual void IntLoadResidual_F(const unsigned int off, ChVectorDynamic<>& R, const double c) override;
     virtual void VariablesFbLoadForces(double factor) override;
 };
 
-CH_CLASS_VERSION(ChShaftsMotorTorque, 0)
+CH_CLASS_VERSION(ChShaftsMotorLoad, 0)
 
 }  // end namespace chrono
 
