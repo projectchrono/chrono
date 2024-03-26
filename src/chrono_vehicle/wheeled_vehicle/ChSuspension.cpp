@@ -45,7 +45,7 @@ ChQuaternion<> ChSuspension::GetSpindleRot(VehicleSide side) const {
 }
 
 void ChSuspension::ApplyAxleTorque(VehicleSide side, double torque) {
-    m_axle[side]->SetAppliedTorque(torque);
+    m_axle[side]->SetAppliedLoad(torque);
 }
 
 void ChSuspension::Synchronize() {

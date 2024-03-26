@@ -321,7 +321,7 @@ void ChTrackTestRig::Advance(double step) {
     m_driver->Synchronize(time);
 
     // Apply a torque to the sprocket's shaft
-    m_track->GetSprocket()->GetAxle()->SetAppliedTorque(-m_max_torque * m_throttle_input);
+    m_track->GetSprocket()->GetAxle()->SetAppliedLoad(-m_max_torque * m_throttle_input);
 
     // Update post displacements
     for (int i = 0; i < m_post.size(); i++) {

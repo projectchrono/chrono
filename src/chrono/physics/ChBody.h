@@ -67,14 +67,8 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Return true if collision is enabled for this body.
     virtual bool IsCollisionEnabled() const override;
 
-    /// Enable the maximum linear speed limit (beyond this limit it will be clamped).
-    /// This is useful in virtual reality and real-time simulations, because
-    /// it reduces the risk of bad collision detection.
-    /// The realism is limited, but the simulation is more stable.
+    /// Enable the maximum linear speed limit (default: false).
     void SetLimitSpeed(bool state);
-
-    /// Return true if maximum linear speed is limited.
-    bool GetLimitSpeed() const;
 
     /// Enable/disable the gyroscopic torque (quadratic term).
     /// This is useful in virtual reality and real-time simulations, where objects that spin too fast with non-uniform
@@ -255,15 +249,11 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     ChVector3d GetInertiaXY() const;
 
     /// Set the maximum linear speed (beyond this limit it will be clamped).
-    /// This is useful in virtual reality and real-time simulations, because
-    /// it reduces the risk of bad collision detection.
     /// This speed limit is active only if you set  SetLimitSpeed(true);
     void SetMaxLinVel(float m_max_speed) { max_speed = m_max_speed; }
     float GetMaxLinVel() const { return max_speed; }
 
     /// Set the maximum angular speed (beyond this limit it will be clamped).
-    /// This is useful in virtual reality and real-time simulations, because
-    /// it reduces the risk of bad collision detection.
     /// This speed limit is active only if you set  SetLimitSpeed(true);
     void SetMaxAngVel(float m_max_wvel) { max_wvel = m_max_wvel; }
     float GetMaxAngVel() const { return max_wvel; }

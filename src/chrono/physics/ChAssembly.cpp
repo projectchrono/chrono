@@ -563,7 +563,7 @@ void ChAssembly::Setup() {
     }
 
     for (auto& shaft : shaftlist) {
-        if (shaft->GetShaftFixed())
+        if (shaft->IsFixed())
             m_num_shafts_fixed++;
         else if (shaft->IsSleeping())
             m_num_shafts_sleep++;

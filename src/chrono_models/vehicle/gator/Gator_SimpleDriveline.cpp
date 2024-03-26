@@ -81,8 +81,8 @@ void Gator_SimpleDriveline::Synchronize(double time, const DriverInputs& driver_
     }
 
     // Apply torques to left and right shafts
-    m_left->SetAppliedTorque(-torque_left);
-    m_right->SetAppliedTorque(-torque_right);
+    m_left->SetAppliedLoad(-torque_left);
+    m_right->SetAppliedLoad(-torque_right);
 }
 
 // -----------------------------------------------------------------------------
@@ -94,9 +94,9 @@ double Gator_SimpleDriveline::GetSpindleTorque(int axle, VehicleSide side) const
         return 0;
 
     if (side == VehicleSide::LEFT)
-        return -m_left->GetAppliedTorque();
+        return -m_left->GetAppliedLoad();
 
-    return -m_right->GetAppliedTorque();
+    return -m_right->GetAppliedLoad();
 }
 
 // -----------------------------------------------------------------------------

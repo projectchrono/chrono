@@ -224,7 +224,7 @@ void ChTrackAssembly::SetWheelCollisionType(bool roadwheel_as_cylinder,
 // -----------------------------------------------------------------------------
 void ChTrackAssembly::Synchronize(double time, double braking) {
     // Zero out applied torque on sprocket axle
-    GetSprocket()->m_axle->SetAppliedTorque(0.0);
+    GetSprocket()->m_axle->SetAppliedLoad(0.0);
 
     // Apply braking input
     m_brake->Synchronize(braking);

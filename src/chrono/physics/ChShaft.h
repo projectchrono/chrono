@@ -24,7 +24,7 @@ namespace chrono {
 // Forward references (for parent hierarchy pointer)
 class ChSystem;
 
-/// Class for one-degree-of-freedom mechanical parts with associated  inertia (mass, or moment of rotatoinal inertia).
+/// Class for one-degree-of-freedom mechanical parts with associated  inertia (mass or moment of rotational inertia).
 /// In most cases these represent shafts that can be used to build 1D models of power trains. This is more efficient
 /// than simulating power trains  modeled with full 3D ChBody objects.
 class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
@@ -39,85 +39,86 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     /// Set no speed and no accelerations (but does not change the position)
     void ForceToRest() override;
 
-    /// Set the torque applied to the shaft
-    void SetAppliedTorque(double mtorque) { torque = mtorque; }
+    /// Set the load applied to the shaft.
+    /// For shafts with a rotational degree of freedom, this represents the applied torque.
+    /// For shafts with a translational degree of freedom, this is the applied force.
+    void SetAppliedLoad(double applied_load) { load = applied_load; }
 
-    /// Get the torque applied to the shaft
-    double GetAppliedTorque() const { return torque; }
+    /// Get the load applied to the shaft.
+    /// For shafts with a rotational degree of freedom, this represents the applied torque.
+    /// For shafts with a translational degree of freedom, this is the applied force.
+    double GetAppliedLoad() const { return load; }
 
-    /// Set the angular position
+    /// Set the shaft position.
+    /// For shafts with a rotational degree of freedom, this represents an angle.
+    /// For shafts with a translational degree of freedom, this represents a displacement.
     void SetPos(double mp) { pos = mp; }
 
-    /// Get the angular position
+    /// Get the shaft position.
+    /// For shafts with a rotational degree of freedom, this represents an angle.
+    /// For shafts with a translational degree of freedom, this represents a displacement.
     double GetPos() const { return pos; }
 
-    /// Set the angular velocity
+    /// Set the shaft velocity.
+    /// For shafts with a rotational degree of freedom, this represents an angular velocity.
+    /// For shafts with a translational degree of freedom, this represents a linear velocity.
     void SetPosDt(double mp) { pos_dt = mp; }
 
-    /// Get the angular velocity
+    /// Get the shaft velocity.
+    /// For shafts with a rotational degree of freedom, this represents an angular velocity.
+    /// For shafts with a translational degree of freedom, this represents a linear velocity.
     double GetPosDt() const { return pos_dt; }
 
-    /// Set the angular acceleration
+    /// Set the shaft acceleration.
+    /// For shafts with a rotational degree of freedom, this represents an angular acceleration.
+    /// For shafts with a translational degree of freedom, this represents a linear acceleration.
     void SetPosDt2(double mp) { pos_dtdt = mp; }
 
-    /// Get the angular acceleration
+    /// Get the shaft acceleration.
+    /// For shafts with a rotational degree of freedom, this represents an angular acceleration.
+    /// For shafts with a translational degree of freedom, this represents a linear acceleration.
     double GetPosDt2() const { return pos_dtdt; }
 
-    /// Inertia of the shaft. Must be positive.
-    /// Try not to mix bodies with too high/too low values of mass, for numerical stability.
+    /// Inertia property of the shaft (must be a positive value).
+    /// For rotational shafts, this is a moment of inertia. For translational shafts, this is a mass.
+    /// Try not to mix physics items with too widely different inertia values, for numerical stability.
     void SetInertia(double newJ);
 
+    /// Get the shaft inertia property.
     double GetInertia() const { return inertia; }
 
-    /// Trick. Set the maximum velocity (beyond this limit it will
-    /// be clamped). This is useful in virtual reality and real-time
-    /// simulations, to increase robustness at the cost of realism.
-    /// This limit is active only if you set  SetLimitSpeed(true);
+    /// Set the maximum shaft speed (beyond this limit, the speed it will be clamped).
     void SetMaxSpeed(float m_max_speed) { max_speed = m_max_speed; }
 
-    float GetMaxSpeed() const { return max_speed; }
-
-    /// When this function is called, the speed of the shaft is clamped
-    /// into limits posed by max_speed and max_wvel  - but remember to
-    /// put the shaft in the SetLimitSpeed(true) mode.
+    /// Clamp the shaft speed shaft is clamped to the range specified by SetMaxSpeed.
+    /// The speed limit must be enabled (i.e., call first SetLimitSpeed(true)).
     void ClampSpeed();
 
-    /// Set the amount of time which must pass before going automatically in
-    /// sleep mode when the shaft has very small movements.
-    void SetSleepTime(float m_t) { sleep_time = m_t; }
-
-    float GetSleepTime() const { return sleep_time; }
+    /// Set the duration before automatically placing the shaft in sleep mode when shaft movement is small.
+    void SetSleepTime(float time) { sleep_time = time; }
 
     /// Set the max linear speed to be kept for 'sleep_time' before freezing.
-    void SetSleepMinSpeed(float m_t) { sleep_minspeed = m_t; }
+    void SetSleepMinSpeed(float speed) { sleep_minspeed = speed; }
 
-    float GetSleepMinSpeed() const { return sleep_minspeed; }
+    /// Fix or release this shaft.
+    /// If set to true, the shaft does not move, regardless of applied loads.
+    void SetFixed(bool fixed);
 
-    /// Set the max linear speed to be kept for 'sleep_time' before freezing.
-    void SetSleepMinWvel(float m_t) { sleep_minwvel = m_t; }
+    /// Return true if the shaft is set to fixed.
+    bool IsFixed() const { return fixed; }
 
-    float GetSleepMinWvel() const { return sleep_minwvel; }
-
-    /// Sets the 'fixed' state of the shaft. If true, it does not rotate
-    /// despite constraints, forces, etc.
-    void SetShaftFixed(bool mev) {
-        fixed = mev;
-        variables.SetDisabled(mev);
-    }
-
-    bool GetShaftFixed() const { return fixed; }
-
-    /// Set the maximum shaft velocity (beyond this limit it will be clamped).
-    void SetLimitSpeed(bool mlimit) { limitspeed = mlimit; }
-    bool GetLimitSpeed() const { return limitspeed; }
+    /// Enable limit on shaft speed (default: false).
+    void SetLimitSpeed(bool limit) { limitspeed = limit; }
 
     /// If use sleeping= true, shafts which do not rotate for too long time will be deactivated, for optimization.
     /// The realism is limited, but the simulation is faster.
-    void SetSleepingAllowed(bool ms) { use_sleeping = ms; }
+    void SetSleepingAllowed(bool sleeping) { use_sleeping = sleeping; }
+
+    ///  Return true if this shaft is allowed to go to sleep.
     bool IsSleepingAllowed() const { return use_sleeping; }
 
-    /// Force the shaft in sleeping mode or not (usually this state change is not
-    /// handled by users, anyway, because it is mostly automatic).
+    /// Force the shaft in sleeping mode or not.
+    /// Note: Usually this state change is not handled by users, because it is mostly automatic.
     void SetSleeping(bool ms) { sleeping = ms; }
 
     /// Tell if the shaft is actually in sleeping state.
@@ -130,16 +131,28 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     /// A shaft is inactive if it is fixed to ground or is in sleep mode.
     virtual bool IsActive() const override { return !(sleeping || fixed); }
 
+    /// Returns reference to the encapsulated ChVariables,
+    ChVariablesShaft& Variables() { return variables; }
+
+    /// Method to allow serialization of transient data to archives.
+    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
+
+    /// Method to allow deserialization of transient data from archives.
+    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+
+  public:
     /// Get the unique sequential shaft index (internal use only).
     unsigned int GetIndex() const { return index; }
 
     /// Number of coordinates of the shaft
     virtual unsigned int GetNumCoordsPosLevel() override { return 1; }
 
-    /// Returns reference to the encapsulated ChVariables,
-    ChVariablesShaft& Variables() { return variables; }
+    // Solver, integrator, and loadable interfaces
 
-    // (override/implement interfaces for global state vectors, see ChPhysicsItem for comments.)
+    virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
+
+    virtual void Update(double mytime, bool update_assets = true) override;
+
     virtual void IntStateGather(const unsigned int off_x,
                                 ChState& x,
                                 const unsigned int off_v,
@@ -173,45 +186,18 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
                                    const unsigned int off_L,
                                    ChVectorDynamic<>& L) override;
 
-    /// Sets the 'fb' part of the encapsulated ChVariables to zero.
     virtual void VariablesFbReset() override;
-
-    /// Adds the current torques in the 'fb' part: qf+=torques*factor
     virtual void VariablesFbLoadForces(double factor = 1) override;
-
-    /// Initialize the 'qb' part of the ChVariables with the
-    /// current value of shaft speed. Note: since 'qb' is the unknown , this
-    /// function seems unnecessary, unless used before VariablesFbIncrementMq()
     virtual void VariablesQbLoadSpeed() override;
-
-    /// Adds M*q (masses multiplied current 'qb') to Fb, ex. if qb is initialized
-    /// with v_old using VariablesQbLoadSpeed, this method can be used in
-    /// timestepping schemes that do: M*v_new = M*v_old + forces*dt
     virtual void VariablesFbIncrementMq() override;
-
-    /// Fetches the shaft speed from the 'qb' part of the ChVariables (does not
-    /// updates the full shaft state) and sets it as the current shaft speed.
-    /// If 'step' is not 0, also computes the approximate acceleration of
-    /// the shaft using backward differences, that is  accel=(new_speed-old_speed)/step.
     virtual void VariablesQbSetSpeed(double step = 0) override;
-
-    /// Increment shaft position by the 'qb' part of the ChVariables,
-    /// multiplied by a 'step' factor.
-    ///     pos+=qb*step
     virtual void VariablesQbIncrementPosition(double step) override;
-
-    /// Register with the given system descriptor any ChVariable objects associated with this item.
-    virtual void InjectVariables(ChSystemDescriptor& descriptor) override;
-
-    // INTERFACE to ChLoadable
 
     virtual unsigned int GetLoadableNumCoordsPosLevel() override { return 1; }
     virtual unsigned int GetLoadableNumCoordsVelLevel() override { return 1; }
-    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override {
-        mD(block_offset) = this->GetPos();
-    }
+    virtual void LoadableGetStateBlockPosLevel(int block_offset, ChState& mD) override { mD(block_offset) = GetPos(); }
     virtual void LoadableGetStateBlockVelLevel(int block_offset, ChStateDelta& mD) override {
-        mD(block_offset) = this->GetPosDt();
+        mD(block_offset) = GetPosDt();
     }
     virtual void LoadableStateIncrement(const unsigned int off_x,
                                         ChState& x_new,
@@ -222,42 +208,26 @@ class ChApi ChShaft : public ChPhysicsItem, public ChLoadable {
     }
     virtual unsigned int GetNumFieldCoords() override { return 1; }
     virtual unsigned int GetNumSubBlocks() override { return 1; }
-    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return this->GetOffset_w(); }
+    virtual unsigned int GetSubBlockOffset(unsigned int nblock) override { return GetOffset_w(); }
     virtual unsigned int GetSubBlockSize(unsigned int nblock) override { return 1; }
     virtual bool IsSubBlockActive(unsigned int nblock) const override { return true; }
-    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override {
-        mvars.push_back(&this->Variables());
-    };
-
-    // UPDATE FUNCTIONS
-
-    /// Update all auxiliary data of the shaft at given time
-    virtual void Update(double mytime, bool update_assets = true) override;
-
-    // SERIALIZATION
-
-    /// Method to allow serialization of transient data to archives.
-    virtual void ArchiveOut(ChArchiveOut& archive_out) override;
-
-    /// Method to allow deserialization of transient data from archives.
-    virtual void ArchiveIn(ChArchiveIn& archive_in) override;
+    virtual void LoadableGetVariables(std::vector<ChVariables*>& mvars) override { mvars.push_back(&Variables()); };
 
   private:
-    double torque;  ///< The torque acting on shaft (force, if used as linear DOF)
+    double load;  ///< load acting on shaft (torque for rotational DOF, force for linear DOF)
 
-    double pos;       //< shaft angle
-    double pos_dt;    //< shaft angular velocity
-    double pos_dtdt;  //< shaft angular acceleration
+    double pos;       //< shaft position (angle or displacement)
+    double pos_dt;    //< shaft velocity (angular velocity or linear velocity)
+    double pos_dtdt;  //< shaft acceleration (angular acceleration or linear acceleration)
 
-    double inertia;  ///< shaft J moment of inertia (or mass, if used as linear DOF)
+    double inertia;  ///< shaft inertia property (moment of inertia for rotational DOF, mass for linear DOF)
 
     ChVariablesShaft variables;  ///< used as an interface to the solver
 
-    float max_speed;  ///< limit on linear speed
+    float max_speed;  ///< limit on shaft speed
 
     float sleep_time;
     float sleep_minspeed;
-    float sleep_minwvel;
     float sleep_starttime;
 
     bool fixed;

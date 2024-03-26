@@ -23,7 +23,7 @@ namespace chrono {
 /// Two shafts are needed, because one gets the torque, and the other is the 'reference' that gets the negative torque
 /// as a reaction. For instance, a thermal engine applies a torque T to a crankshaft, but also applies -T to the engine
 /// block. Note that another way of imposing a torque is to do just
-///       my_shaftA->SetAppliedTorque(6);
+///       my_shaftA->SetAppliedLoad(6);
 /// but in such case, this is an 'absolute' torque does not create a reaction.
 class ChApi ChShaftsAppliedTorque : public ChShaftsTorque {
   public:

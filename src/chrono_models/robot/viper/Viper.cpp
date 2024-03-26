@@ -713,7 +713,7 @@ void ViperDCMotorControl::Update(double time) {
             target_torque = m_stall_torque[i] * ((m_no_load_speed[i] - speed_reading) / m_no_load_speed[i]);
         }
 
-        viper->m_drive_shafts[i]->SetAppliedTorque(-target_torque);
+        viper->m_drive_shafts[i]->SetAppliedLoad(-target_torque);
     }
 }
 

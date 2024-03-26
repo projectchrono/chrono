@@ -88,7 +88,7 @@ void ChVehicleOutputASCII::WriteShafts(const std::vector<std::shared_ptr<ChShaft
     for (auto shaft : shafts) {
         m_stream << "    shaft: " << shaft->GetIdentifier() << " \"" << shaft->GetName() << "\" ";
         m_stream << shaft->GetPos() << " " << shaft->GetPosDt() << " " << shaft->GetPosDt2() << " ";
-        m_stream << shaft->GetAppliedTorque() << " ";
+        m_stream << shaft->GetAppliedLoad() << " ";
         m_stream << std::endl;
         //// TODO
     }

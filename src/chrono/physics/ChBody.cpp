@@ -315,7 +315,7 @@ void ChBody::ForceToRest() {
 
 ////
 void ChBody::ClampSpeed() {
-    if (GetLimitSpeed()) {
+    if (limit_speed) {
         double w = 2.0 * GetRotDt().Length();
         if (w > max_wvel)
             GetRotDt() *= max_wvel / w;
@@ -595,10 +595,6 @@ bool ChBody::IsFixed() const {
 
 void ChBody::SetLimitSpeed(bool state) {
     limit_speed = state;
-}
-
-bool ChBody::GetLimitSpeed() const {
-    return limit_speed;
 }
 
 void ChBody::SetUseGyroTorque(bool state) {

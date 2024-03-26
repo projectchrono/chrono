@@ -721,7 +721,7 @@ void CuriosityDCMotorControl::Update(double time) {
         } else {
             target_torque = m_stall_torque[i] * ((m_no_load_speed[i] - speed_reading) / m_no_load_speed[i]);
         }
-        curiosity->m_drive_shafts[i]->SetAppliedTorque(-target_torque);
+        curiosity->m_drive_shafts[i]->SetAppliedLoad(-target_torque);
     }
 }
 

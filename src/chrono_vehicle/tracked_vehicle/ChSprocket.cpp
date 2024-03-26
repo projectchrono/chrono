@@ -296,7 +296,7 @@ std::shared_ptr<ChTriangleMeshConnected> ChSprocket::CreateVisualizationMesh(dou
 void ChSprocket::ApplyAxleTorque(double torque) {
     // Make sure this is added to any already applied torque. Change sign of provided torque (given the configuration of
     // the ChShaft) so that a positive torque corresponds to "forward" motion.
-    m_axle->SetAppliedTorque(m_axle->GetAppliedTorque() - torque);
+    m_axle->SetAppliedLoad(m_axle->GetAppliedLoad() - torque);
 }
 
 // -----------------------------------------------------------------------------

@@ -422,7 +422,7 @@ void ChVehicleOutputHDF5::WriteShafts(const std::vector<std::shared_ptr<ChShaft>
     std::vector<shaft_info> info(nshafts);
     for (auto i = 0; i < nshafts; i++) {
         info[i] = {shafts[i]->GetIdentifier(), shafts[i]->GetPos(), shafts[i]->GetPosDt(), shafts[i]->GetPosDt2(),
-                   shafts[i]->GetAppliedTorque()};
+                   shafts[i]->GetAppliedLoad()};
     }
 
     H5::DataSet set = m_section_group->createDataSet("Shafts", getShaftType(), dataspace);

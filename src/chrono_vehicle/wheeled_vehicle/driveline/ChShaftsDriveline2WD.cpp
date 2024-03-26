@@ -103,7 +103,7 @@ void ChShaftsDriveline2WD::Initialize(std::shared_ptr<ChChassis> chassis,
 
 // -----------------------------------------------------------------------------
 void ChShaftsDriveline2WD::Synchronize(double time, const DriverInputs& driver_inputs, double driveshaft_torque) {
-    m_driveshaft->SetAppliedTorque(driveshaft_torque);
+    m_driveshaft->SetAppliedLoad(driveshaft_torque);
 }
 
 // -----------------------------------------------------------------------------

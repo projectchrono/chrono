@@ -1157,11 +1157,20 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Qdtdt_from_Arel               | rename: SetDt2FromAngAccRel                      |
 |                                   | Qdtdt_from_AngAxis            | rename: SetDt2FromAngleAxis                      |
 | ChShaft                           |                               |                                                  |
+|                                   | GetAppliedTorque              | rename: GetAppliedLoad                           |
 |                                   | GetId                         | rename: GetIndex (internal use only)             |
 |                                   | GetGid                        | remove                                           |
+|                                   | GetLimitSpeed                 | remove                                           |
+|                                   | GetShaftFixed                 | rename: IsFixed                                  |
 |                                   | GetSleeping                   | rename: IsSleeping                               |
-|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+|                                   | GetSleepMinSpeed              | remove                                           |
+|                                   | GetSleepMinWvel               | remove                                           |
+|                                   | GetSleepTime                  | remove                                           |
 |                                   | GetUseSleeping                | rename: IsSleepingAllowed                        |
+|                                   | SetAppliedTorque              | rename: SetAppliedLoad                           |
+|                                   | SetNoSpeedNoAcceleration      | rename: ForceToRest                              |
+|                                   | SetSleepMinWvel               | remove                                           |
+|                                   | SetShaftFixed                 | rename: SetFixed                                 |
 |                                   | SetUseSleeping                | rename: SetSleepingAllowed                       |
 | ChShaftsBody                      |                               | rename: ChShaftBodyRotation                      |
 | ChShaftsBodyTranslation           |                               | rename: ChShaftBodyTranslation                   |

@@ -109,8 +109,8 @@ void ChSimpleTrackDriveline::Synchronize(double time, const DriverInputs& driver
         factor_right = m_gyration_mode ? (1 + 2 * steering) : (1 + steering);
 
     // Apply torques to the sprocket shafts.
-    m_shaft_left->SetAppliedTorque(-torque_left * factor_left);
-    m_shaft_right->SetAppliedTorque(-torque_right * factor_right);
+    m_shaft_left->SetAppliedLoad(-torque_left * factor_left);
+    m_shaft_right->SetAppliedLoad(-torque_right * factor_right);
 }
 
 // -----------------------------------------------------------------------------
@@ -120,9 +120,9 @@ double ChSimpleTrackDriveline::GetSprocketTorque(VehicleSide side) const {
 
     switch (side) {
         case LEFT:
-            return -m_shaft_left->GetAppliedTorque();
+            return -m_shaft_left->GetAppliedLoad();
         case RIGHT:
-            return -m_shaft_right->GetAppliedTorque();
+            return -m_shaft_right->GetAppliedLoad();
     }
 
     return 0;

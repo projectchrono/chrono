@@ -172,15 +172,12 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     /// If true, the particles do not move.
     void SetFixed(bool state) { fixed = state; }
 
-    /// Return true if the particle cluster is currently active and thereofre included into the system solver.
+    /// Return true if the particle cluster is currently active and therefore included into the system solver.
     /// A cluster is inactive if it is fixed to ground.
     virtual bool IsActive() const override { return !fixed; }
 
-    /// Set the maximum linear speed (beyond this limit it will be clamped).
-    /// This is useful in virtual reality and real-time simulations, because it reduces the risk of bad collision
-    /// detection. The realism is limited, but the simulation is more stable.
-    void SetLimitSpeed(bool state) { limit_speed = state; };
-    bool GetLimitSpeed() const { return limit_speed; };
+    /// Enable limiting the linear speed (default: false).
+    void SetLimitSpeed(bool state) { limit_speed = state; }
 
     /// Get the number of particles.
     size_t GetNumParticles() const override { return particles.size(); }
@@ -330,17 +327,13 @@ class ChApi ChParticleCloud : public ChIndexedParticles {
     /// (xy, yz, zx values, the rest is symmetric)
     ChVector3d GetInertiaXY() const;
 
-    /// Trick. Set the maximum linear speed (beyond this limit it will
-    /// be clamped). This is useful in virtual reality and real-time
-    /// simulations, because it reduces the risk of bad collision detection.
-    /// This speed limit is active only if you set  SetLimitSpeed(true);
+    /// Set the maximum linear speed (beyond this limit it willbe clamped).
+    /// This speed limit is active only if SetLimitSpeed(true) was called.
     void SetMaxLinVel(float m_max_speed) { max_speed = m_max_speed; }
     float GetMaxLinVel() const { return max_speed; }
 
-    /// Trick. Set the maximum angular speed (beyond this limit it will
-    /// be clamped). This is useful in virtual reality and real-time
-    /// simulations, because it reduces the risk of bad collision detection.
-    /// This speed limit is active only if you set  SetLimitSpeed(true);
+    /// Set the maximum angular speed (beyond this limit it willbe clamped). 
+    /// This speed limit is active only if  SetLimitSpeed(true) was called.
     void SetMaxAngVel(float m_max_wvel) { max_wvel = m_max_wvel; }
     float GetMaxAngVel() const { return max_wvel; }
 
