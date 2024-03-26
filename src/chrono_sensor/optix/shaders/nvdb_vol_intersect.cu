@@ -19,7 +19,6 @@ inline __hostdev__ bool ZeroCrossingPoint(RayT& ray, AccT& acc, nanovdb::Coord& 
     if (!ray.clip(acc.root().bbox()) || ray.t1() > 1e20)
         return false;  // clip ray to bbox
     static const float Delta = 1.0001f;
-    //printf("OK1\n");
     ijk = nanovdb::RoundDown<nanovdb::Coord>(ray.start());  // first hit of bbox
     nanovdb::HDDA<RayT, nanovdb::Coord> hdda(ray, acc.getDim(ijk, ray));
     const auto v0 = acc.getValue(ijk);
@@ -76,12 +75,11 @@ extern "C" __global__ void __intersection__nvdb_vol_intersect() {
     //nanovdb::DefaultReadAccessor<BuildT>::ValueType v1;
 
     
-    //printf("OK1\n");
     // Get ray origin in grid space
     const Vec3T eye = grid->worldToIndex(ray_orig_v);
     const Vec3T dir = grid->worldToIndex(ray_dir_v);
 
-   // printf("OK12\n");
+   
     // check if ray intersects grid
     nanovdb::Ray<float> iRay(eye, dir, ray_tmin, ray_tmax);
     float t0;

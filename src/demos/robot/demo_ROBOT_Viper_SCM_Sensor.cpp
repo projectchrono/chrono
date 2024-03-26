@@ -448,12 +448,12 @@ int main(int argc, char* argv[]) {
     manager->scene->AddPointLight({-10, 0, 50}, {1.f,1.f,1.f}, 1000);
     manager->SetVerbose(false);
     Background b;
-    b.mode = BackgroundMode::SOLID_COLOR;
-    b.color_horizon = ChVector3f(0.f, 0.f, 0.f);
-    b.color_zenith = ChVector3f(0.f, 0.f, 0.f);
-    //b.mode = BackgroundMode::ENVIRONMENT_MAP;
-    //b.env_tex = GetChronoDataFile("sensor/textures/starmap_2020_4k.hdr");
-    //manager->scene->SetBackground(b);
+    // b.mode = BackgroundMode::SOLID_COLOR;
+    // b.color_horizon = ChVector3f(0.f, 0.f, 0.f);
+    // b.color_zenith = ChVector3f(0.f, 0.f, 0.f);
+    b.mode = BackgroundMode::ENVIRONMENT_MAP;
+    b.env_tex = GetChronoDataFile("sensor/textures/starmap_2020_4k.hdr");
+    manager->scene->SetBackground(b);
 
     // Create a lidar and add it to the sensor manager
     auto offset_pose = chrono::ChFrame<double>({1.5, 0, 0.4}, QuatFromAngleZ(0));

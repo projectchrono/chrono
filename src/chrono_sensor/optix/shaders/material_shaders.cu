@@ -23,7 +23,6 @@
 #endif
 
 #include "chrono_sensor/optix/shaders/device_utils.h"
-#include <iostream>
 
 static __device__ __inline__ float3 CrossProduct(const float3& a, const float3& b){
 

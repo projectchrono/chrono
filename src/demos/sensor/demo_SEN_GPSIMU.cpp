@@ -259,26 +259,15 @@ int main(int argc, char* argv[]) {
     // -----------------
     // Initialize output
     // -----------------
-
-    std::string imu_file = out_dir + "imu/";
-    std::string gps_file = out_dir + "gps/";
-
-    if (!filesystem::create_directory(filesystem::path(imu_file))) {
-        std::cout << "Error creating directory " << imu_file << std::endl;
-        return 1;
-    }
-
-    if (!filesystem::create_directory(filesystem::path(gps_file))) {
-        std::cout << "Error creating directory " << gps_file << std::endl;
+    if (!filesystem::create_directory(filesystem::path(out_dir))) {
+        std::cout << "Error creating directory " << out_dir << std::endl;
         return 1;
     }
 
     // Create a CSV writer to record the IMU data
-    imu_file += "pendulum_leg_1.csv";
     utils::ChWriterCSV imu_csv(" ");
 
     // Create a CSV writer to record the GPS data
-    gps_file += "pendulum_leg_2.csv";
     utils::ChWriterCSV gps_csv(" ");
 
     // ---------------
@@ -357,6 +346,8 @@ int main(int argc, char* argv[]) {
     std::chrono::duration<double> wall_time = std::chrono::duration_cast<std::chrono::duration<double>>(t2 - t1);
     std::cout << "Simulation time: " << ch_time << "s, wall time: " << wall_time.count() << "s.\n";
 
+    std::string imu_file = out_dir + "/imu_pendulum_leg_1.csv";
+    std::string gps_file = out_dir + "/gps_pendulum_leg_2.csv";
     imu_csv.WriteToFile(imu_file);
     gps_csv.WriteToFile(gps_file);
 
