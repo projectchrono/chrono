@@ -140,6 +140,8 @@ void ChModalAssembly::DoModalReduction(ChSparseMatrix& full_M,
     this->Setup();
     this->Update();
 
+    this->Initialize();
+
     // recover the local M,K,Cq (full_M_loc, full_K_loc, full_Cq_loc) matrices
     // through rotating back to the local frame of F
     this->ComputeLocalFullKMCqMatrix(full_M, full_K, full_Cq);
@@ -347,24 +349,13 @@ void ChModalAssembly::ComputeMassCenterFrame() {
 
         ChQuaternion q_axis = this->m_full_state_x0.segment(3, 4);
         this->cog_frame.SetRot(q_axis);
+
+        std::cout << "Info: the center of mass is specified at the first boundary body/node of the modal assembly. "
+                  << std::endl;
     }
 }
 
 void ChModalAssembly::UpdateFloatingFrameOfReference() {
-    if (!this->is_initialized) {
-        // the floating frame F is initialized at COG in the initial configuration
-        this->ComputeMassCenterFrame();
-
-        this->floating_frame_F = this->cog_frame;
-
-        // this->floating_frame_F_old = this->floating_frame_F;
-
-        // store the initial floating frame of reference F0 in the initial configuration
-        this->floating_frame_F0 = this->floating_frame_F;
-
-        res_CF.setZero(6);
-    }
-
     // If it is in full state, do nothing.
     if (!m_is_model_reduced)
         return;
@@ -1180,6 +1171,13 @@ bool ChModalAssembly::ComputeModes(const ChModalSolveUndamped& n_modes_settings)
         throw std::runtime_error(
             "Error: it is not supported to compute modes when the modal assembly is already in the reduced state.");
 
+    m_timer_setup.start();
+    this->SetupInitial();
+    this->Setup();
+    this->Update();
+    this->Initialize();
+    m_timer_setup.stop();
+
     m_timer_matrix_assembly.start();
     ChSparseMatrix full_M;
     ChSparseMatrix full_K;
@@ -1225,11 +1223,10 @@ bool ChModalAssembly::ComputeModesDamped(const ChModalSolveDamped& n_modes_setti
             "Error: it is not supported to compute modes when the modal assembly is already in the reduced state.");
 
     m_timer_setup.start();
-
     this->SetupInitial();
     this->Setup();
     this->Update();
-
+    this->Initialize();
     m_timer_setup.stop();
 
     m_timer_matrix_assembly.start();
@@ -1908,23 +1905,36 @@ void ChModalAssembly::Setup() {
         m_num_constr_bil = m_num_constr_bil_boundary;
         m_num_constr_uni = m_num_constr_uni_boundary;
     }
+}
 
-    if (!this->is_initialized) {
-        // fetch the initial state of assembly, full not reduced, as an initialization
-        double fooT;
-        this->m_full_state_x0.setZero(m_num_coords_pos, nullptr);
-        ChStateDelta full_assembly_v;
-        full_assembly_v.setZero(m_num_coords_vel, nullptr);
-        this->IntStateGather(0, this->m_full_state_x0, 0, full_assembly_v, fooT);
+void ChModalAssembly::Initialize() {
+    if (this->is_initialized)
+        return;
 
-        // also initialize m_full_state_x
-        this->m_full_state_x = this->m_full_state_x0;
+    // fetch the initial state of assembly, full not reduced, as an initialization
+    double fooT;
+    this->m_full_state_x0.setZero(m_num_coords_pos, nullptr);
+    ChStateDelta full_assembly_v;
+    full_assembly_v.setZero(m_num_coords_vel, nullptr);
+    this->IntStateGather(0, this->m_full_state_x0, 0, full_assembly_v, fooT);
 
-        // initialize the floating frame of reference F to be placed at COG
-        this->UpdateFloatingFrameOfReference();
+    // also initialize m_full_state_x
+    this->m_full_state_x = this->m_full_state_x0;
 
-        this->is_initialized = true;
-    }
+    // initialize the floating frame of reference F to be placed at COG
+    // the floating frame F is initialized at COG in the initial configuration
+    this->ComputeMassCenterFrame();
+
+    this->floating_frame_F = this->cog_frame;
+
+    // this->floating_frame_F_old = this->floating_frame_F;
+
+    // store the initial floating frame of reference F0 in the initial configuration
+    this->floating_frame_F0 = this->floating_frame_F;
+
+    this->res_CF.setZero(6);
+
+    this->is_initialized = true;
 }
 
 // Update all physical items (bodies, links, meshes, etc), including their auxiliary variables.

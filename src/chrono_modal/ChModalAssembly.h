@@ -490,6 +490,9 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// Set the model as reduced. Cannot go back (from reduced to full state) for now.
     void FlagModelAsReduced();
 
+    /// Initialize the modal assembly: 1.the initial undeformed configuration; 2.the floating frame F;
+    void Initialize();
+
     /// Compute the mass property of the assembly.
     /// Used to initialize the floating frame F.
     void ComputeMassCenterFrame();
