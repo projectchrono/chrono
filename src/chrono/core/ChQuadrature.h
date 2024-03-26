@@ -85,7 +85,7 @@ class ChIntegrand2D {
     virtual void Evaluate(T& result, const double x, const double y) = 0;
 };
 
-/// Base class for #D integrand T = f(x,y,z) to be used in ChQuadrature.
+/// Base class for 3D integrand T = f(x,y,z) to be used in ChQuadrature.
 template <class T = double>
 class ChIntegrand3D {
   public:

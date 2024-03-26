@@ -35,12 +35,12 @@ namespace modal {
 // CALLABACK ready-to-use:
 
 callback_Ax_sparse_shiftinvert::callback_Ax_sparse_shiftinvert(
-    const chrono::ChSparseMatrix& mA,
-    const chrono::ChSparseMatrix& mB,
+    const chrono::ChSparseMatrix& As,
+    const chrono::ChSparseMatrix& Bs,
     double shift,
     ChDirectSolverLS* mlinear_solver  ///< optional direct solver/factorization. Default is ChSolverSparseQR
     )
-    : Bd(mB), sigma(shift), linear_solver(mlinear_solver) {
+    : Bd(Bs), sigma(shift), linear_solver(mlinear_solver) {
     if (!linear_solver) {
         linear_solver = new ChSolverSparseQR();  // NOTE! QR, not ChSolverSparseLU, as Eigen Sparse LU does not work
                                                  // well with RowMajor ordering!
@@ -49,7 +49,7 @@ callback_Ax_sparse_shiftinvert::callback_Ax_sparse_shiftinvert(
         default_solver = false;
     }
 
-    linear_solver->A() = (mA - shift * mB);
+    linear_solver->A() = (As - shift * Bs);
     linear_solver->SetupCurrent();  // factorize
 }
 
@@ -74,12 +74,12 @@ void callback_Ax_sparse_shiftinvert::compute(
 //----------------
 
 callback_Ax_sparse_complexshiftinvert::callback_Ax_sparse_complexshiftinvert(
-    const chrono::ChSparseMatrix& mA,
-    const chrono::ChSparseMatrix& mB,
+    const chrono::ChSparseMatrix& As,
+    const chrono::ChSparseMatrix& Bs,
     std::complex<double> shift,
     ChDirectSolverLScomplex* mlinear_solver  // optional direct solver/factorization. Default is ChSolverSparseComplexQR
     )
-    : Bd(mB.cast<std::complex<double>>()), sigma(shift), linear_solver(mlinear_solver) {
+    : Bd(Bs.cast<std::complex<double>>()), sigma(shift), linear_solver(mlinear_solver) {
     if (!linear_solver) {
         linear_solver = new ChSolverSparseComplexQR();
         default_solver = true;
@@ -87,7 +87,7 @@ callback_Ax_sparse_complexshiftinvert::callback_Ax_sparse_complexshiftinvert(
         default_solver = false;
     }
 
-    linear_solver->A() = (mA.cast<std::complex<double>>() - (shift * mB.cast<std::complex<double>>()));
+    linear_solver->A() = (As.cast<std::complex<double>>() - (shift * Bs.cast<std::complex<double>>()));
     linear_solver->Setup();  // factorize
 }
 

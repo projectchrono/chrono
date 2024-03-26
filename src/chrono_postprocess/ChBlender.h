@@ -139,7 +139,7 @@ class ChApiPostProcess ChBlender : public ChPostProcessBase {
     /// If setting true, you can also set the size of the symbol, in meters.
     void SetShowCOGs(bool show, double msize = 0.04);
 
-    /// Turn on/off the display of the reference coordsystems of rigid bodies, particle in particle clouds, etc..
+    /// Turn on/off the display of the reference coordsystems of rigid bodies, particle in particle clouds, etc.
     /// If setting true, you can also set the size of the symbol, in meters.
     void SetShowItemsFrames(bool show, double msize = 0.05);
 

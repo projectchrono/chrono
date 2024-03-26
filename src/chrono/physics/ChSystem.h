@@ -516,8 +516,8 @@ class ChApi ChSystem : public ChIntegrableIIorder {
     /// Enable/disable debug output of system matrices.
     /// Set this to "true" to enable automatic saving of solver matrices at each time step, for debugging purposes.
     /// Matrices will be saved in 'out_dir' (default to the the working directory of the executable).
-    /// The name pattern is solve_<numstep>_<numsubstep>_<objectname>.dat
-    /// where <objectname> can be either:
+    /// The name pattern is solve_numstep_numsubstep_objectname.dat
+    /// where 'objectname' can be either:
     /// - Z: the assembled optimization matrix [H, -Cq'; Cq, -E]
     /// - rhs: the assembled right-hand side vector [f; -b]
     /// - x_pre: the position vector before the integration step

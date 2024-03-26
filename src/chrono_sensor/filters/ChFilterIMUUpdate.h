@@ -46,8 +46,6 @@ class CH_SENSOR_API ChFilterAccelerometerUpdate : public ChFilter {
     ChFilterAccelerometerUpdate(std::shared_ptr<ChNoiseModel> noise_model);
 
     /// Apply function. Generates IMU data.
-    /// @param pSensor A pointer to the sensor on which the filter is attached.
-    /// @param bufferInOut A buffer that is passed into the filter.
     virtual void Apply();
 
     /// Initializes all data needed by the filter access apply function.
@@ -69,8 +67,6 @@ class CH_SENSOR_API ChFilterGyroscopeUpdate : public ChFilter {
     ChFilterGyroscopeUpdate(std::shared_ptr<ChNoiseModel> noise_model);
 
     /// Apply function. Generates IMU data.
-    /// @param pSensor A pointer to the sensor on which the filter is attached.
-    /// @param bufferInOut A buffer that is passed into the filter.
     virtual void Apply();
 
     /// Initializes all data needed by the filter access apply function.
@@ -93,8 +89,6 @@ class CH_SENSOR_API ChFilterMagnetometerUpdate : public ChFilter {
     ChFilterMagnetometerUpdate(std::shared_ptr<ChNoiseModel> noise_model, ChVector3d gps_reference);
 
     /// Apply function. Generates IMU data.
-    /// @param pSensor A pointer to the sensor on which the filter is attached.
-    /// @param bufferInOut A buffer that is passed into the filter.
     virtual void Apply();
 
     /// Initializes all data needed by the filter access apply function.

@@ -51,9 +51,6 @@ class CH_SENSOR_API ChFilterAccess : public ChFilter {
 
     /// Apply function. Moves data from the device into the lag buffer and presents data to the user if the data is
     /// ready based on the time.
-    /// @param pSensor A pointer to the sensor on which the filter is attached.
-    /// @param bufferInOut A buffer that is passed into the filter. This data is what will be made available for the
-    /// user.
     virtual void Apply();
 
     /// Initializes all data needed by the filter access apply function.

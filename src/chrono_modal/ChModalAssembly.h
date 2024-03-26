@@ -92,12 +92,13 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// - in Chrono, run this function passing such M and K matrices: a modal analysis will be done on K and M
     /// Note that the size of M (and K) must be at least > m_num_coords_vel_boundary.
     void DoModalReduction(
-        ChSparseMatrix& full_M,
-        ChSparseMatrix& full_K,
-        ChSparseMatrix& full_Cq,
+        ChSparseMatrix& full_M,   ///< mass matrix of the full assembly (boundary+internal)
+        ChSparseMatrix& full_K,   ///< stiffness matrix of the full assembly (boundary+internal)
+        ChSparseMatrix& full_Cq,  ///< constraint jacobian matrix of the full assembly (boundary+internal)
         const ChModalSolveUndamped&
-            n_modes_settings,  ///< int as the n. of lower modes to keep, or a full ChModalSolveUndamped
-        const ChModalDamping& damping_model = ChModalDampingNone());  ///< a damping model to use for the reduced model
+            n_modes_settings,  ///< settings for the modal analysis, such as the number of modes to extract
+        const ChModalDamping& damping_model = ChModalDampingNone()  ///< damping model
+    );
 
     /// Get the floating frame F of the reduced modal assembly.
     ChFrameMoving<> GetFloatingFrameOfReference() { return this->floating_frame_F; }
@@ -597,7 +598,6 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ChSparseMatrix full_R_loc;
     ChSparseMatrix full_Cq_loc;
 
-
     // reduced system matrices in the local floating frame of reference F
     ChMatrixDynamic<> M_red;
     ChMatrixDynamic<> K_red;
@@ -638,12 +638,17 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     unsigned int m_num_meshes_internal;             ///< number of internal meshes
     unsigned int m_num_otherphysicsitems_internal;  ///< number of internal other physics items
 
-    unsigned int m_num_coords_pos_internal;  ///< number of scalar coordinates at position level for all active internal objects
-    unsigned int m_num_coords_vel_internal;  ///< number of scalar coordinates at velocity level for all active internal objects
+    unsigned int
+        m_num_coords_pos_internal;  ///< number of scalar coordinates at position level for all active internal objects
+    unsigned int
+        m_num_coords_vel_internal;  ///< number of scalar coordinates at velocity level for all active internal objects
 
-    unsigned int m_num_constr_internal;      ///< number of scalar constraints (velocity level), for all active internal objects
-    unsigned int m_num_constr_bil_internal;  ///< number of bilateral scalar constraints (velocity level) of internal objects
-    unsigned int m_num_constr_uni_internal;  ///< number of unilateral scalar constraints (velocity level) of internal objects
+    unsigned int
+        m_num_constr_internal;  ///< number of scalar constraints (velocity level), for all active internal objects
+    unsigned int
+        m_num_constr_bil_internal;  ///< number of bilateral scalar constraints (velocity level) of internal objects
+    unsigned int
+        m_num_constr_uni_internal;  ///< number of unilateral scalar constraints (velocity level) of internal objects
 
     // BOUNDARY bodies, meshes etc.: those of the parent class ChAssembly.
     unsigned int m_num_bodies_boundary;             ///< number of boundary bodies
@@ -651,15 +656,19 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     unsigned int m_num_meshes_boundary;             ///< number of boundary meshes
     unsigned int m_num_otherphysicsitems_boundary;  ///< number of boundary other physics items
 
-    unsigned int m_num_coords_pos_boundary;  ///< number of scalar coordinates at position level for all active boundary objects
-    unsigned int m_num_coords_vel_boundary;  ///< number of scalar coordinates at velocity level for all active boundary objects
+    unsigned int
+        m_num_coords_pos_boundary;  ///< number of scalar coordinates at position level for all active boundary objects
+    unsigned int
+        m_num_coords_vel_boundary;  ///< number of scalar coordinates at velocity level for all active boundary objects
 
-    unsigned int m_num_constr_boundary;      ///< number of scalar constraints (velocity level), for all active boundary objects
+    unsigned int
+        m_num_constr_boundary;  ///< number of scalar constraints (velocity level), for all active boundary objects
     unsigned int m_num_constr_bil_boundary;  ///< number of bilateral scalar constraints (velocity level) at boundary
     unsigned int m_num_constr_uni_boundary;  ///< number of unilateral scalar constraints (velocity level) at boundary
 
     // MODES: represent the motion of the modal assembly (internal, boundary nodes)
-    unsigned int m_num_coords_modal;  // number of scalar coordinates at modal level (position and velocity level are the same)
+    unsigned int
+        m_num_coords_modal;  // number of scalar coordinates at modal level (position and velocity level are the same)
 
     bool m_is_model_reduced;  ///< flag to indicate whether in the modal "reduced" state.
 

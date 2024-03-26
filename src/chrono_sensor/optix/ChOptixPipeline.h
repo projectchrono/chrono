@@ -77,17 +77,17 @@ class CH_SENSOR_API ChOptixPipeline {
     void SpawnPipeline(PipelineType type);
 
     /// Creates a new box material
-    /// @param mat the chrono material from which to create an optix material
+    /// @param mat_list the chrono material from which to create an optix material
     /// @returns an id pointing to the material that was created
     unsigned int GetBoxMaterial(std::vector<std::shared_ptr<ChVisualMaterial>> mat_list = {});
 
     /// Creates a new sphere material
-    /// @param mat the chrono material from which to create an optix material
+    /// @param mat_list the chrono material from which to create an optix material
     /// @returns an id pointing to the material that was created
     unsigned int GetSphereMaterial(std::vector<std::shared_ptr<ChVisualMaterial>> mat_list = {});
 
     /// Creates a new cylinder material
-    /// @param mat the chrono material from which to create an optix material
+    /// @param mat_list the chrono material from which to create an optix material
     /// @returns an id pointing to the material that was created
     unsigned int GetCylinderMaterial(std::vector<std::shared_ptr<ChVisualMaterial>> mat_list = {});
 

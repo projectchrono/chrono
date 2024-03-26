@@ -48,9 +48,9 @@ public:
 class ChApiModal callback_Ax_sparse_shiftinvert : public callback_Ax {
     public:
     callback_Ax_sparse_shiftinvert(
-            const chrono::ChSparseMatrix& mA,
-            const chrono::ChSparseMatrix& mB,
-            double shift,
+            const chrono::ChSparseMatrix& As,   ///< unshifted matrix A
+            const chrono::ChSparseMatrix& Bs,   ///< unshifted matrix B
+            double shift,                       ///< shift (sigma in the equation)
             ChDirectSolverLS* mlinear_solver = 0   ///< optional direct solver/factorization. Default is ChSolverSparseQR
         );
 
@@ -73,9 +73,9 @@ class ChApiModal callback_Ax_sparse_shiftinvert : public callback_Ax {
 class ChApiModal callback_Ax_sparse_complexshiftinvert : public callback_Ax {
     public:
     callback_Ax_sparse_complexshiftinvert(
-            const chrono::ChSparseMatrix& mA,
-            const chrono::ChSparseMatrix& mB,
-            std::complex<double> shift,
+            const chrono::ChSparseMatrix& As,   ///< unshifted matrix A
+            const chrono::ChSparseMatrix& Bs,   ///< unshifted matrix B
+            std::complex<double> shift,         ///< shift (sigma in the equation)
             ChDirectSolverLScomplex* mlinear_solver = 0  ///< optional direct solver/factorization. Default is ChSolverSparseComplexQR
         );
 

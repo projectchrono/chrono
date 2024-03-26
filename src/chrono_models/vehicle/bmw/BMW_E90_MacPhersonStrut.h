@@ -38,7 +38,6 @@ namespace bmw {
 /// @{
 
 /// MacPherson Strut suspension model for a bmw e90 vehicle (can be used in front or rear).
-/// @} vehicle_models_bmw
 class CH_MODELS_API BMW_E90_MacPhersonStrut : public ChMacPhersonStrut {
   public:
     // Constructor takes as argument the name of the subsystem instance.
@@ -111,7 +110,7 @@ class CH_MODELS_API BMW_E90_MacPhersonStrut : public ChMacPhersonStrut {
     static const double m_kinematicFactor;
 };
 
-/// @} vehicle_models_sedan
+/// @} vehicle_models_bmw
 
 }  // end namespace bmw
 }  // end namespace vehicle
