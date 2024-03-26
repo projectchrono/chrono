@@ -143,6 +143,23 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     /// to false.
     void SetInternalNodesUpdate(bool flag);
 
+    /// If true, as by default, this modal assembly will add automatically a gravity load
+    /// to all contained boundary and internal bodies/nodes (that support gravity) in the modal reduced state using the
+    /// G value from the ChSystem.
+    /// In modal reduced state, this flag will overwrite mesh->SetAutomaticGravity() for both boundary and internal
+    /// meshes. In full state, this flap does NOT affect, and mesh->SetAutomaticGravity() is used for both boundary and
+    /// internal meshes.
+    /// It is recommended to use the same boolean value to set the gravity to ensure a consistent setting in both full
+    /// and reduced state, for example:
+    /// modal_assembly->SetModalAutomaticGravity(USE_GRAVITY);
+    /// mesh_internal->SetAutomaticGravity(USE_GRAVITY);
+    /// mesh_boundary->SetAutomaticGravity(USE_GRAVITY);
+    void SetModalAutomaticGravity(bool gravity) { m_modal_automatic_gravity = gravity; }
+
+    /// Tell if this modal assembly will add automatically a gravity load to all contained boundary and internal
+    /// bodies/nodes.
+    bool GetModalAutomaticGravity() { return m_modal_automatic_gravity; }
+
     /// Get the modal mass matrix.
     const ChMatrixDynamic<>& GetModalMassMatrix() const { return this->modal_M; }
 
@@ -631,6 +648,8 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     ReductionType m_modal_reduction_type = ReductionType::CRAIG_BAMPTON;  ///< methods for modal reduction
 
     bool m_use_linear_inertial_term = true;  // for internal test
+
+    bool m_modal_automatic_gravity = true;  ///< switch of the gravity load in modal reduced state
 
     // Statistics:
 
