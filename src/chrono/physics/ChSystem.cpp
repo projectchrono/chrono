@@ -1409,7 +1409,7 @@ void ChSystem::WriteSystemMatrices(bool save_M,
 }
 
 /// Remove redundant constraints present in ChSystem through QR decomposition of constraints Jacobian matrix.
-unsigned int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, double qr_tol, bool verbose) {
+unsigned int ChSystem::RemoveRedundantConstraints(bool remove_links, double qr_tol, bool verbose) {
     // Setup system descriptor
     Setup();
     Update();
@@ -1532,7 +1532,7 @@ unsigned int ChSystem::RemoveRedundantConstraints(bool remove_zero_constr, doubl
     }
 
     // Actually REMOVE links now having DoC = 0 from system link list
-    if (remove_zero_constr) {
+    if (remove_links) {
         unsigned int i = 0;
         while (i < GetLinks().size()) {
             if (GetLinks()[i]->GetNumConstraints() == 0)
@@ -1725,6 +1725,7 @@ bool ChSystem::DoStepKinematics(double step_size) {
     Initialize();
 
     applied_forces_current = false;
+    step = step_size;
     ch_time += step_size;
 
     Update();

@@ -21,12 +21,10 @@
 
 namespace chrono {
 
-/// Base class for all 'simple' constraints between two frames attached to two bodies.
-/// These constraints can correspond to the typical 'mating' conditions that are created in assemblies of 3D CAD tools
-/// (parallel axis, or face-to-face, etc.).
-/// Note that most of the ChLinkMate constraints can be done also with the constraints inherited from ChLinkLock but in
-/// case of links of the ChLinkLock class they reference two ChMarker objects, that can also move, but this could be an
-/// unnecessary complication in most cases.
+/// Base class for constraints between two frames attached to two bodies.
+/// Contrary to links of the ChLinkLock type, these links do not allow the constrained frame to move with respect to the
+/// constrained body. Since this assumpion is often verified, these constraints might be a better choice for the most
+/// common cases.
 class ChApi ChLinkMate : public ChLink {
   public:
     ChLinkMate() {}
@@ -45,7 +43,7 @@ CH_CLASS_VERSION(ChLinkMate, 0)
 // -----------------------------------------------------------------------------
 
 /// Generic mate constraint.
-/// This class allows selecting the DOFs to be constrained between two frames attached to the two bodies.
+/// This class allows selecting the DOFs to be constrained.
 class ChApi ChLinkMateGeneric : public ChLinkMate {
   public:
     using ChConstraintVectorX = Eigen::Matrix<double, Eigen::Dynamic, 1, Eigen::ColMajor, 6, 1>;
@@ -274,7 +272,7 @@ CH_CLASS_VERSION(ChLinkMatePlanar, 0)
 
 // -----------------------------------------------------------------------------
 
-/// Mate constraint of coaxial type. 
+/// Mate constraint of coaxial type.
 /// This link corresponds to the typical cylinder-vs-cylinder mating used in 3D CAD assemblies.
 /// The two coaxial axes are the Z axes of the two frames.
 class ChApi ChLinkMateCylindrical : public ChLinkMateGeneric {
@@ -388,7 +386,7 @@ class ChApi ChLinkMatePrismatic : public ChLinkMateGeneric {
 
     /// Specialized initialization for prismatic mate, given the two bodies to be connected, two points, two directions.
     /// These two directions are the X axes of secondary frame F1 and principal frame F2.
-    /// All quantities can be expressed in body or in absolute coordinates. 
+    /// All quantities can be expressed in body or in absolute coordinates.
     virtual void Initialize(std::shared_ptr<ChBodyFrame> body1,  ///< first body to link
                             std::shared_ptr<ChBodyFrame> body2,  ///< second body to link
                             bool pos_are_relative,               ///< true: following pos. are relative to bodies

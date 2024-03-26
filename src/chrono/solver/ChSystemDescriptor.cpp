@@ -522,9 +522,9 @@ void ChSystemDescriptor::WriteMatrixBlocks(const std::string& path, const std::s
     BuildFbVector(f);
     BuildBiVector(b);
 
-    std::ofstream file_M(path + "/" + prefix + "_M.dat");
-    file_M << std::setprecision(12) << std::scientific;
-    StreamOut(mass_matrix, file_M, one_indexed);
+    std::ofstream file_H(path + "/" + prefix + "_H.dat");
+    file_H << std::setprecision(12) << std::scientific;
+    StreamOut(mass_matrix, file_H, one_indexed);
 
     std::ofstream file_Cq(path + "/" + prefix + "_Cq.dat");
     file_Cq << std::setprecision(12) << std::scientific;

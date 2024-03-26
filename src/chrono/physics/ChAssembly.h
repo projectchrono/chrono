@@ -23,9 +23,10 @@
 
 namespace chrono {
 
-/// Class for assemblies of items, for example ChBody, ChLink, ChMesh, etc.
-/// Note that an assembly can be added to another assembly, to create a tree-like hierarchy.
-/// All positions of rigid bodies, FEA nodes, etc. are assumed to be with respect to the absolute frame.
+/// Class for assemblies of physical items.
+/// This class is a container of ChPhysicsItems items i.e. rigid bodies, shafts, links, etc.
+/// ChAssembly objects can also contain other ChAssembly objects. Location and rotation of the
+/// contained ChPhysicsItems are assumed to be expressed with respect to the absolute frame.
 class ChApi ChAssembly : public ChPhysicsItem {
   public:
     ChAssembly();

@@ -33,14 +33,21 @@ namespace chrono {
 
 class ChSystem;
 
-/// Class for rigid bodies. A rigid body is an entity which
-/// can move in 3D space, and can be constrained to other rigid
-/// bodies using ChLink objects. Rigid bodies can contain auxiliary
-/// references (the ChMarker objects) and forces (the ChForce objects).
-/// These objects have mass and inertia properties. A shape can also
-/// be associated to the body, for collision detection.
+/// Class for Rigid Bodies
 ///
-/// Further info at the @ref rigid_bodies  manual page.
+/// A rigid body is an entity with mass and inertia properties moving in the 3D space.
+/// Optionally, an object of the ChBody class (or derived) can:
+/// - be involved in collision, if a collision model is provided (@ref collisions) and the collision is enabled;
+/// - be visualized, if a visual model is provided and a proper visualization system is available (@ref visualization_system);
+/// - be constrained by means of ChLink objects (@ref links);
+/// - be loaded by ChLoad objects (@ref loads);
+/// - be used in coordinate transformation, being itself inherited from ChFrameMoving;
+/// 
+/// Location and orientation of the ChBody refer to its Center of Mass (CoM).
+/// Since no additional frame is available, also visual and collision shapes refer to the same frame.
+/// Derived classes might offer additional frames (e.g. @ref ChBodyAuxRef).
+/// 
+/// Further info at the @ref rigid_bodies manual page.
 
 class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContactable_1vars<6>, public ChLoadableUVW {
   public:
@@ -80,7 +87,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Return true if gyroscopic torque is used (default=true).
     bool IsUsingGyroTorque() const;
 
-    /// Enable/disable option for setting bodies to "sleep".
+    /// Enable/disable option for setting bodies to 'sleep'.
     /// If the sleeping is allowed, bodies which stay in same place for long enough time will be deactivated, for
     /// optimization.
     /// By default the sleeping is enabled.
@@ -90,7 +97,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     bool IsSleepingAllowed() const;
 
     /// Force the body in sleeping mode or not.
-    /// Usually, this state change is handled internally.
+    /// Usually this state change is handled internally.
     void SetSleeping(bool state);
 
     /// Return true if this body is currently in 'sleep' mode.
@@ -100,7 +107,7 @@ class ChApi ChBody : public ChPhysicsItem, public ChBodyFrame, public ChContacta
     /// Return true if state could be changed from no sleep to sleep.
     bool TrySleeping();
 
-    /// Return true if the body is currently active and thereofre included into the system solver.
+    /// Return true if the body is currently active and therefore included into the system solver.
     /// A body is inactive if it is fixed to ground or in sleep mode.
     virtual bool IsActive() const override;
 

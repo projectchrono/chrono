@@ -28,7 +28,7 @@ namespace chrono {
 /// matrix implements, which permits some optimizations, especially when a large number of vectors must be transformed
 /// by the same frame.
 ///
-/// See @ref coordinate_transformations manual page.
+/// See @ref coordinate_systems manual page.
 template <class Real = double>
 class ChFrame {
   public:

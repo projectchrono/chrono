@@ -23,7 +23,7 @@ namespace chrono {
 /// unit quaternion which represent the special-orthogonal transformation matrix). Basic features for point-coordinate
 /// transformations are provided.
 ///
-/// See @ref coordinate_transformations manual page.
+/// See @ref coordinate_systems manual page.
 template <class Real = double>
 class ChCoordsys {
   public:

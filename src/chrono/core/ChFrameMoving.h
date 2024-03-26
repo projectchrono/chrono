@@ -22,7 +22,7 @@ namespace chrono {
 /// Representation of a moving 3D.
 /// A ChFrameMoving is a ChFrame that also keeps track of the frame velocity and acceleration.
 ///
-/// See @ref coordinate_transformations manual page.
+/// See @ref coordinate_systems manual page.
 template <class Real = double>
 class ChFrameMoving : public ChFrame<Real> {
   public:

@@ -22,11 +22,11 @@
 
 namespace chrono {
 
-/// Base class for joints implemented using the "lock formulation".
-/// Derived classes provide models for revolute, prismatic, spherical, etc.
-/// Note that certain kinematic joints (e.g., Universal) cannot be modeled using the lock formulation.
-/// Joints of this type can optionally specify 'limits' over upper-lower motions of their respective
-/// degrees of freedom, using the ChLinkLimit objects.
+/// Base class for joints implemented using the "lock" formulation.
+/// This implementation of joints allow the constrained frame (ChMarker) to move with respect to the constrained body.
+/// Moreover, a ChLinkLock joint can:
+/// - limit the range of motion of those unconstrained degrees of freedom by means of ChLinkLimit objects.
+/// - impose a relative force or a torque on the constrained marker by means of ChLinkForce objects.
 class ChApi ChLinkLock : public ChLinkMarkers {
   public:
     using ChConstraintVectorX = Eigen::Matrix<double, Eigen::Dynamic, 1, Eigen::ColMajor, 7, 1>;

@@ -36,13 +36,13 @@ class ChApi ChLinkMotorRotation : public ChLinkMotor {
 
     /// Sets which movements (of frame 1 respect to frame 2) are constrained.
     /// By default, acts as bearing, like a revolute joint.
-    /// Note that the Z direction is the motorized one, and is never affected by
+    /// Note that the Z direction is the actuated one, and is never affected by
     /// this option.
     void SetSpindleConstraint(const SpindleConstraint mconstraint);
 
     /// Sets which movements (of frame 1 respect to frame 2) are constrained.
     /// By default, acts as bearing, like a revolute joint.
-    /// Note that the Z direction is the motorized one, and is never affected by
+    /// Note that the Z direction is the actuated one, and is never affected by
     /// this option.
     void SetSpindleConstraint(bool mc_x, bool mc_y, bool mc_z, bool mc_rx, bool mc_ry);
 
