@@ -412,7 +412,7 @@ int main(int argc, char* argv[]) {
 
         depth->SetOffsetPose(chrono::ChFrame<double>(
             {orbit_radius * cos(ch_time * orbit_rate), orbit_radius * sin(ch_time * orbit_rate), 2},
-            QuatFromAngleAxis(ch_time * orbit_rate + CH_C_PI, {0, 0, 1})));
+            QuatFromAngleAxis(ch_time * orbit_rate + CH_PI, {0, 0, 1})));
             
 
         // Access the depth buffer from depth camera

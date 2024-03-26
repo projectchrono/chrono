@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
     rock_vis_mat->SetUseSpecularWorkflow(true);
     rock_vis_mat->SetRoughness(1.0f);
     rock_vis_mat->SetUseHapke(true);
-    rock_vis_mat->SetHapkeParameters(0.32357f, 0.23955f, 0.30452f, 1.80238f, 0.07145f, 0.3f,23.4f*(CH_C_PI/180));
+    rock_vis_mat->SetHapkeParameters(0.32357f, 0.23955f, 0.30452f, 1.80238f, 0.07145f, 0.3f,23.4f*(CH_PI/180));
 
     // Add pre-defined 20 rocks
     for (int i = 0; i < 20; i++) {
@@ -330,7 +330,7 @@ int main(int argc, char* argv[]) {
     lunar_material->SetRoughness(0.8f);
     lunar_material->SetAnisotropy(1.f);
     lunar_material->SetUseHapke(true);
-    lunar_material->SetHapkeParameters(0.32357f, 0.23955f, 0.30452f, 1.80238f, 0.07145f, 0.3f,23.4f*(CH_C_PI/180));
+    lunar_material->SetHapkeParameters(0.32357f, 0.23955f, 0.30452f, 1.80238f, 0.07145f, 0.3f,23.4f*(CH_PI/180));
     lunar_material->SetClassID(30000);
     lunar_material->SetInstanceID(20000);
     auto mesh = terrain.GetMesh();
@@ -503,7 +503,7 @@ int main(int argc, char* argv[]) {
                                                          offset_pose,                    // offset pose
                                                          960,                            // image width
                                                          480,                            // image height
-                                                         CH_C_PI / 3                   // FOV
+                                                         CH_PI / 3                   // FOV
                                                         );
     cam->SetName("Camera Sensor");
     cam->SetLag(0.f);
