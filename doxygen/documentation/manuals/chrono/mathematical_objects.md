@@ -61,11 +61,11 @@ The limitation of using fixed sizes, of course, is that this is only possible wh
 
 <br>
 **3x3 fixed size matrices.**
-Use [ChMatrix33](@ref chrono::ChMatrix33) to create 3x3 matrices, which are mostly used to represent rotation matrices and 3D inertia tensors.  ChMatrix33 is templated by the scalar type (with `double` as the default).
-This matrix type is derived from a 3x3 fixed-size Eigen matrix with row-major storage and offers several dedicated constructors and methods for coordinate and rotation operations.
+Use @ref chrono::ChMatrix33 "ChMatrix33" to create 3x3 matrices, which are mostly used to represent rotation matrices and 3D inertia tensors.  
+ChMatrix33 is templated by the scalar type (with `double` as the default). This matrix type is derived from a 3x3 fixed-size Eigen matrix with row-major storage and offers several dedicated constructors and methods for coordinate and rotation operations.
 
 ~~~{.cpp}
-	chrono::ChMatrix33<> R;
+	chrono::ChMatrix33d R;
 ~~~
 
 <br>
@@ -78,7 +78,7 @@ chrono::ChVectorDynamic<double> v(12);
 
 <br>
 **Fixed size column vectors.**
-Use [ChVectorN](@ref chrono::ChVectorN) to create a column vector with fixed length (known at compile time).
+Use @ref chrono::ChVectorN "ChVectorN" to create a column vector with fixed length (known at compile time).
 
 ~~~{.cpp}
 chrono::ChVectorN<double,6> w;
@@ -86,25 +86,21 @@ chrono::ChVectorN<double,6> w;
 
 <br>
 **Row vectors.**
-Use [ChRowVectorDynamic](@ref chrono::ChRowVectorDynamic) and [ChRowVectorN](@ref chrono::ChRowVectorN) to create row vectors (one-row matrices) with dynamic size and fixed size, respectively.
+Use @ref chrono::ChRowVectorDynamic "ChRowVectorDynamic" and @ref chrono::ChRowVectorN "ChRowVectorN" to create row vectors (one-row matrices) with dynamic size and fixed size, respectively.
 
 <br>
-In addition to the above types, specialized 3x4, 4x3, and 4x4 matrices used in multibody formalism are defined in ChMatrixMBD.h.
+In addition to the above types, specialized 3x4, 4x3, and 4x4 matrices used in multibody formalism are defined in [ChMatrixMBD.h](https://github.com/projectchrono/chrono/blob/main/src/chrono/core/ChMatrixMBD.h).
 
 ##Basic operations with matrices##
 
 Consult the Eigen API for all matrix and vector [arithmetic operations](https://eigen.tuxfamily.org/dox/group__TutorialMatrixArithmetic.html), [block operations](https://eigen.tuxfamily.org/dox/group__TutorialBlockOperations.html), and [linear system solution](https://eigen.tuxfamily.org/dox/group__TutorialLinearAlgebra.html). 
 
-The following code (see demo_CH_linalg.cpp) illustrates basic operations with matrices.
-
-\snippet "../../src/demos/core/demo_CH_linalg.cpp" Basic operations with matrices
+[demo_CH_linalg.cpp](https://github.com/projectchrono/chrono/blob/main/src/demos/core/demo_CH_linalg.cpp) illustrates basic operations with matrices.
 
 
 
 
 # Function objects  {#ChFunction_objects}
-
-
 
 These ChFunction objects are used in many places in Chrono::Engine, 
 and are used to represent y=f(x) functions, 
@@ -118,7 +114,7 @@ and there are a predefined number of them that are ready to use,
 such as sine, cosine, constant, etc. If the predefined ones are not enough, 
 the user can implement his custom function by inheriting from the base ChFunction class.
 
-See @ref chrono::ChFunction for API details and a list of subclasses.
+See @ref chrono::ChFunction "ChFunction" for API details and a list of subclasses.
 
 
 ### Example 1
@@ -127,7 +123,7 @@ See @ref chrono::ChFunction for API details and a list of subclasses.
 	ChFunctionRamp f_ramp;
 
 	f_ramp.SetAngularCoeff(0.1);	// set angular coefficient;
-	f_ramp.Set_y0(0.4);		// set y value for x=0;
+	f_ramp.SetStartVal(0.4);		// set y value for x=0;
 
 	// Evaluate y=f(x) function at a given x value, using GetVal() :
 	double y	= f_ramp.GetVal(10);

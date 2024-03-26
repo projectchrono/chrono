@@ -72,16 +72,16 @@ In general, the process involves the following steps:
    ~~~
 2. Use ```mylink->Initialize(…)``` to connect two bodies; different links may accept different arguments. Refer to the documentation of the specific link for further information.
    ~~~{.cpp}
-   mylink->Initialize(pendulumBody,        // the 1st body to connect
+   mylink->Initialize(pendulumBody,   // the 1st body to connect
                       floorBody,      // the 2nd body to connect
-                      ChCoordsys<>(ChVector3<>(1, 0, 0),
-                                   Q_from_AngAxis(-CH_PI / 2, ChVector3<>(1, 0, 0))
-                                   )   // master reference
+                      ChFramed(ChVector3d(1, 0, 0),
+                               QuatFromAngleAxis(-CH_PI / 2, VECT_X)
+                               )
                       );
    ~~~
 3. Add the link to a ChSystem
    ~~~{.cpp}
-   mphysicalSystem.Add(mylink);
+   my_system.Add(mylink);
    ~~~
 4. Optional: set link properties
 
@@ -89,7 +89,7 @@ In general, the process involves the following steps:
 
 See also:
 
-- [demo_fourbar](@ref tutorial_demo_fourbar)
-- [demo_suspension](@ref tutorial_demo_suspension)
+- [demo_MBS_fourbar](https://github.com/projectchrono/chrono/blob/main/src/demos/mbs/demo_MBS_fourbar.cpp)
+- [demo_MBS_suspension](https://github.com/projectchrono/chrono/blob/main/src/demos/mbs/demo_MBS_suspension.cpp)
 
 

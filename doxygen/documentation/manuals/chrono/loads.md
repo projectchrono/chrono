@@ -10,13 +10,12 @@ Loads can be applied to these objects through different approaches:
 + @ref chrono::ChForce "ChForce":
   - available only for @ref chrono::ChBody "ChBody"
   - applies either a force or a torque with respect to some pre-defined frame (body or world);
-+ @ref chrono::ChLoad<Tloader> "ChLoad<Tloader>" + @ref chrono::ChLoader "ChLoader":
++ @ref chrono::ChLoad "ChLoad" + @ref chrono::ChLoader "ChLoader":
   - available for any @ref chrono::ChLoadable "ChLoadable" inherited object;
   - the specific implementation must be provided through a @ref chrono::ChLoader "ChLoader" object;
   - it is more tightly coupled with the Chrono system;
   - requires the computation of the generalized loads;
 + loads inheriting from @ref chrono::ChLoadCustom "ChLoadCustom"|@ref chrono::ChLoadCustomMultiple "ChLoadCustomMultiple":
-  - similar to the previous one, but they extended by inheritance rather than template;
   - they are applied to either one or multiple @ref chrono::ChLoadable "ChLoadable" objects;
   - it is the preferred choice for loads applied to pair of objects;
   - multiple pre-defined classes are available, simplifying the writing of the generalized loads.
@@ -64,8 +63,8 @@ Contrary to @ref chrono::ChForce "ChForce", these other _ChLoad_s requires the i
   load_container->Add(load_bb);
 ~~~
 
-For the case of the @ref chrono::ChLoad<Tloader> "ChLoad<Tloader>", the user is asked to either provide one of the pre-defined @ref chrono::ChLoader "ChLoader" objects or to write its own. Please refer to the documentation of each single _ChLoader_ to understand their use. This method considers the load applied to a single object.
+For the case of the @ref chrono::ChLoad "ChLoad", the user is asked to either provide one of the pre-defined @ref chrono::ChLoader "ChLoader" objects or to write its own. Please refer to the documentation of each single _ChLoader_ to understand their use. This method considers the load applied to a single object.
 
-A similar set of loads includes those inheriting from @ref chrono::ChLoadCustom "ChLoadCustom"|@ref chrono::ChLoadCustomMultiple "ChLoadCustomMultiple": while the features are similar compared to @ref chrono::ChLoad<Tloader> "ChLoad<Tloader>" type and also their usage might have big overlaps, they usually offere a wider set of pre-defined classes that might match the user needs.
+A similar set of loads includes those inheriting from @ref chrono::ChLoadCustom "ChLoadCustom"|@ref chrono::ChLoadCustomMultiple "ChLoadCustomMultiple": while the features are similar compared to @ref chrono::ChLoad "ChLoad" type and also their usage might have big overlaps, they usually offere a wider set of pre-defined classes that might match the user needs.
 
 These more advanced approaches allow for a tighter coupling with the Chrono system, allowing to introduce also entire stiffness matrix blocks (see @ref chrono::ChLoadBodyBodyBushingGeneric "ChLoadBodyBodyBushingGeneric" and others), providing Jacobians and much more. This come with the added price of having to implement some additional code.
