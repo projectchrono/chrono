@@ -18,6 +18,7 @@
 
 #include "chrono_sensor/sensors/ChDepthCamera.h"
 #include "chrono_sensor/filters/ChFilterImageOps.h"
+#include "chrono_sensor/filters/ChFilterAccess.h"
 
 namespace chrono {
 namespace sensor {
@@ -39,7 +40,9 @@ CH_SENSOR_API ChDepthCamera::ChDepthCamera(std::shared_ptr<chrono::ChBody> paren
     // set the pipeline for this
     m_pipeline_type = PipelineType::DEPTH_CAMERA;
 
-
+    // Push the access filters before converting to RGBA8 to visualize
+    m_filters.push_back(chrono_types::make_shared<ChFilterDepthAccess>());
+    
     m_filters.push_back(chrono_types::make_shared<ChFilterDepthToRGBA8>());
 
     SetCollectionWindow(0.f);
@@ -51,7 +54,7 @@ CH_SENSOR_API ChDepthCamera::ChDepthCamera(std::shared_ptr<chrono::ChBody> paren
 // -----------------------------------------------------------------------------
 CH_SENSOR_API ChDepthCamera::~ChDepthCamera() {}
 
-void ChDepthCamera::SetRadialLensParameters(ChVector<float> params) {
+void ChDepthCamera::SetRadialLensParameters(ChVector3f params) {
     // Drap, P., & Lefèvre, J. (2016). 
     // An Exact Formula for Calculating Inverse Radial Lens Distortions. 
     // Sensors (Basel, Switzerland), 16(6), 807. https://doi.org/10.3390/s16060807

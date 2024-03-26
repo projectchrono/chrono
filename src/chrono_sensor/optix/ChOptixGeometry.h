@@ -61,7 +61,7 @@ class CH_SENSOR_API ChOptixGeometry {
     /// @param asset_frame the Chrono frame that specifies how the asset is attached to the body
     /// @param scale the scale of the NVDB volume
     /// @param mat_id the material id associated with the NVDB volume
-    void AddNVDBVolume(std::shared_ptr<ChBody> body, ChFrame<double> asset_frame,ChVector<double> scale,unsigned int mat_id);
+    void AddNVDBVolume(std::shared_ptr<ChBody> body, ChFrame<double> asset_frame,ChVector3d scale,unsigned int mat_id);
     #endif
 
 

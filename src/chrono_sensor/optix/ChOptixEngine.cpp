@@ -514,7 +514,7 @@ void ChOptixEngine::deformableMeshVisualization(std::shared_ptr<ChBody> body,
 void ChOptixEngine::nvdbVisualization(std::shared_ptr<ChBody> body,
                                       std::shared_ptr<ChNVDBShape> box_shape,
                                       ChFrame<> asset_frame) {
-    ChVector<double> size = box_shape->GetBoxGeometry().GetLengths();
+    ChVector3d size = box_shape->GetBoxGeometry().GetLengths();
 
     unsigned int mat_id;
     if (box_shape->GetNumMaterials() == 0) {
@@ -773,89 +773,53 @@ void ChOptixEngine::UpdateSceneDescription(std::shared_ptr<ChScene> scene) {
     }
 
     #ifdef USE_SENSOR_NVDB
-    float* d_pts = scene->GetFSIParticles();
-    int n = scene->GetNumFSIParticles();
+    if (float* d_pts = scene->GetFSIParticles()) {
+        int n = scene->GetNumFSIParticles();
+        
+        printf("Creatinng NanoVDB Handle...\n");
+        using buildType = nanovdb::Point;
+        nanovdb::GridHandle<nanovdb::CudaDeviceBuffer> handle = createNanoVDBGridHandle(d_pts, n);
+        nanovdb::NanoGrid<buildType>* grid = handle.deviceGrid<buildType>();
+        handle.deviceDownload();
+        auto* grid_h = handle.grid<buildType>();
+        auto* tree = grid_h->treePtr();
 
-    printf("Creatinng NanoVDB Handle...\n");
-    using buildType = nanovdb::Point;
-    nanovdb::GridHandle<nanovdb::CudaDeviceBuffer> handle = createNanoVDBGridHandle(d_pts, n);
-    nanovdb::NanoGrid<buildType>* grid = handle.deviceGrid<buildType>();
-    handle.deviceDownload();
-    auto* grid_h = handle.grid<buildType>();
-    auto* tree = grid_h->treePtr();
-  
- 
+        // printf("Grid Size: %d\n", grid_h->gridSize());
+        ////printf("Point Count: %d", (int)grid_h->pointCount());
+        // printf("Upper Internal Nodes: %d\n", grid_h->tree().nodeCount(2));
+        // printf("Lower Internal Nodes: %d\n", grid_h->tree().nodeCount(1));
+        // printf("Leaf Nodes: %d\n", grid_h->tree().nodeCount(0));
 
-    //printf("Grid Size: %d\n", grid_h->gridSize());
-    ////printf("Point Count: %d", (int)grid_h->pointCount());
-    //printf("Upper Internal Nodes: %d\n", grid_h->tree().nodeCount(2));
-    //printf("Lower Internal Nodes: %d\n", grid_h->tree().nodeCount(1));
-    //printf("Leaf Nodes: %d\n", grid_h->tree().nodeCount(0));
+        // float wBBoxDimZ = (float)grid_h->worldBBox().dim()[2] * 2;
+        // nanovdb::Vec3<float> wBBoxCenter = nanovdb::Vec3<float>(grid_h->worldBBox().min() + grid_h->worldBBox().dim()
+        // * 0.5f); nanovdb::CoordBBox treeIndexBbox = grid_h->tree().bbox(); std::cout << "Bounds: "
+        //          << "[" << treeIndexBbox.min()[0] << "," << treeIndexBbox.min()[1] << "," << treeIndexBbox.min()[2]
+        //          << "] -> [" << treeIndexBbox.max()[0] << "," << treeIndexBbox.max()[1] << "," <<
+        //          treeIndexBbox.max()[2]
+        //          << "]" << std::endl;
 
-    //float wBBoxDimZ = (float)grid_h->worldBBox().dim()[2] * 2;
-    //nanovdb::Vec3<float> wBBoxCenter = nanovdb::Vec3<float>(grid_h->worldBBox().min() + grid_h->worldBBox().dim() * 0.5f);
-    //nanovdb::CoordBBox treeIndexBbox = grid_h->tree().bbox();
-    //std::cout << "Bounds: "
-    //          << "[" << treeIndexBbox.min()[0] << "," << treeIndexBbox.min()[1] << "," << treeIndexBbox.min()[2]
-    //          << "] -> [" << treeIndexBbox.max()[0] << "," << treeIndexBbox.max()[1] << "," << treeIndexBbox.max()[2]
-    //          << "]" << std::endl;
+        /* printf("size of handle_ptr: %d | size of grid*: %d\n", sizeof(m_params.handle_ptr), sizeof(grid));
+         printf("Grid ptr: %p | Grid Size: %d | Grid Type: %d | Grid Empty: %d\n ", grid, handle.gridSize(),
+         handle.gridType(), handle.empty()); printf("size of ContextParameters: %d\n", sizeof(ContextParameters));*/
 
-   /* printf("size of handle_ptr: %d | size of grid*: %d\n", sizeof(m_params.handle_ptr), sizeof(grid));
-    printf("Grid ptr: %p | Grid Size: %d | Grid Type: %d | Grid Empty: %d\n ", grid, handle.gridSize(), handle.gridType(), handle.empty());
-    printf("size of ContextParameters: %d\n", sizeof(ContextParameters));*/
-    
+        cudaMalloc((void**)&m_params.handle_ptr, handle.gridSize());
+        cudaMemcpy((void*)m_params.handle_ptr, grid, handle.gridSize(), cudaMemcpyDeviceToDevice);
+        /* cudaError_t status = cudaMalloc((void**)&md_params->handle_ptr, handle.gridSize());
+         if (status != cudaSuccess) {
+            printf("cudaMalloc failed: %s\n",cudaGetErrorString(status));
+          }
+         printf("md grid ptr: %p\n", md_params->handle_ptr);
 
+         cudaMemcpy(md_params->handle_ptr, grid, handle.gridSize(), cudaMemcpyDeviceToDevice);*/
+        /*printf("Done!\n");
+        size_t sz = handle.gridSize();
+        cudaMalloc(reinterpret_cast<void**>(&m_params.handle_ptr), sz);he
+        printf("handle: %p\n", &handle);
+        cudaMemcpy(reinterpret_cast<void*>(m_params.handle_ptr), &handle, sz, cudaMemcpyHostToDevice);*/
 
-    cudaMalloc((void**)&m_params.handle_ptr, handle.gridSize());
-    cudaMemcpy((void*)m_params.handle_ptr, grid, handle.gridSize(), cudaMemcpyDeviceToDevice);
-   /* cudaError_t status = cudaMalloc((void**)&md_params->handle_ptr, handle.gridSize());
-    if (status != cudaSuccess) {
-       printf("cudaMalloc failed: %s\n",cudaGetErrorString(status));
-     }
-    printf("md grid ptr: %p\n", md_params->handle_ptr);
-   
-    cudaMemcpy(md_params->handle_ptr, grid, handle.gridSize(), cudaMemcpyDeviceToDevice);*/
-    /*printf("Done!\n");
-    size_t sz = handle.gridSize();
-    cudaMalloc(reinterpret_cast<void**>(&m_params.handle_ptr), sz);he
-    printf("handle: %p\n", &handle);
-    cudaMemcpy(reinterpret_cast<void*>(m_params.handle_ptr), &handle, sz, cudaMemcpyHostToDevice);*/
-
-    cudaMemcpy(reinterpret_cast<void*>(md_params), &m_params, sizeof(ContextParameters), cudaMemcpyHostToDevice);
-   
+        cudaMemcpy(reinterpret_cast<void*>(md_params), &m_params, sizeof(ContextParameters), cudaMemcpyHostToDevice);
+    }
     #endif
-    // Update NVBD volume
-//     VolumeGVDB* gvdb = scene->GetGVDBVolume();
-//     if (gvdb != nullptr) {
-//         gvdb->PrepareVDB();
-//         size_t sz = gvdb->getVDBSize();
-//         nvdb::VDBInfo* vdbinfo = (nvdb::VDBInfo*)gvdb->getVDBInfo();
-
-//         cudaMalloc(reinterpret_cast<void**>(&m_params.gvdbObj), sz);
-//         cudaMemcpy(reinterpret_cast<void*>(m_params.gvdbObj), vdbinfo, sz, cudaMemcpyHostToDevice);
-
-//         m_params.gvdbChan = scene->GetGVDBChan();
-
-//         // Update scene info
-//         gvdb->PrepareRender(1, 1, SHADE_LEVELSET);
-//         size_t sz_scninfo = gvdb->getScnSize();
-//         ScnInfo* scninfo = (ScnInfo*)gvdb->getScnInfo();
-//         /*
-//         scninfo->extinct = gvdb->getScene()->getExtinct();
-//         scninfo->steps = gvdb->getScene()->getSteps();
-//         scninfo->cutoff = gvdb->getScene()->getCutoff();
-//         scninfo->thresh = gvdb->getScene()->mVThreshold;
-//         */
-//         cudaMalloc(reinterpret_cast<void**>(&m_params.scn), sz_scninfo);
-//         cudaMemcpy(reinterpret_cast<void*>(m_params.scn), scninfo, sz_scninfo, cudaMemcpyHostToDevice);
-
-//         // std::cout << "Scn Steps: (" << scninfo->steps.x << ", " << scninfo->steps.y << ", " << scninfo->steps.z <<
-//         // ")" << std::endl;
-//         // cudaMemcpyToSymbol(&scn, m_params.scn, sizeof(m_params.scn), 0, cudaMemcpyDeviceToDevice);
-
-//         cudaMemcpy(reinterpret_cast<void*>(md_params), &m_params, sizeof(ContextParameters), cudaMemcpyHostToDevice);
-//     }
-
     }
 
 }  // namespace sensor

@@ -247,7 +247,16 @@ struct MaterialParameters {      // pad to align 16 (swig doesn't support explic
    
     int use_hapke;                      // toggle between disney and hapke shader // size 4
     float emissive_power;               // size 4
-    float3 pad;                      // padding to ensure 16 byte alignment
+
+    // hapke parameters
+    float w; // average single scattering albedo
+    float b; // shape controlling parameter for the amplitude of backward and forward scatter of particles
+    float c; // weighting factor that controls the contribution of backward and forward scatter.
+    float B_s0;
+    float h_s;
+    float phi; 
+    float theta_p;
+    float3 pad; // padding to ensure 16 byte alignment
     
 };
 

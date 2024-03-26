@@ -213,7 +213,7 @@ void ChOptixGeometry::AddBox(std::shared_ptr<ChBody> body,
 #ifdef USE_SENSOR_NVDB
 void ChOptixGeometry::AddNVDBVolume(std::shared_ptr<ChBody> body,
                                     ChFrame<double> asset_frame,
-                                    ChVector<double> scale,
+                                    ChVector3d scale,
                                     unsigned int mat_id) {
     if (!m_nvdb_inst) {
         // create first box instance

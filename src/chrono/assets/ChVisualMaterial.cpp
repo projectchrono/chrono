@@ -158,8 +158,14 @@ void ChVisualMaterial::SetAnisotropy(float a){
     anisotropy = std::max(0.f, std::min(a, 1.f));
 }
 
-void ChVisualMaterial::SetAnisotropy(float a){
-    anisotropy = std::max(0.f, std::min(a, 1.f));
+void ChVisualMaterial::SetHapkeParameters(float w, float b, float c, float B_s0, float h_s, float phi, float theta_p) {
+    hapke_w = w;
+    hapke_b = b;
+    hapke_c = c;
+    hapke_B_s0 = B_s0;
+    hapke_h_s = h_s;
+    hapke_phi = phi;
+    hapke_theta_p = theta_p;
 }
 
 void ChVisualMaterial::ArchiveOut(ChArchiveOut& archive_out) {

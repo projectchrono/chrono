@@ -880,20 +880,33 @@ static __device__ inline void CameraHapkeShader(PerRayData_camera* prd_camera,
                                                const float3& ray_orig,
                                                const float3& ray_dir){
         //printf("Hapke Shader!\n");
-        float w = 0.32357f; // average single scattering albedo
-        float b = 0.23955f; // shape controlling parameter for the amplitude of backward and forward scatter of particles
-        float c = 0.30452f; // weighting factor that controls the contribution of backward and forward scatter.
-        float B_s0 = 1.80238f;
-        float h_s = 0.07145f;
-        float B_c0 = 0.0f;
-        float h_c = 1.0f;
-        float phi = 0.3f;
-        //float K = 1.0f;
-        float theta_p = 23.4f*(CUDART_PI_F/180);
+        // float w = 0.32357f; // average single scattering albedo
+        // float b = 0.23955f; // shape controlling parameter for the amplitude of backward and forward scatter of particles
+        // float c = 0.30452f; // weighting factor that controls the contribution of backward and forward scatter.
+        // float B_s0 = 1.80238f;
+        // float h_s = 0.07145f;
+        // float B_c0 = 0.0f;
+        // float h_c = 1.0f;
+        // float phi = 0.3f;
+        // //float K = 1.0f;
+        // float theta_p = 23.4f*(CUDART_PI_F/180);
 
         const MaterialParameters& mat = params.material_pool[material_id]; // Assume no blended materials for now
         float3 subsarface_albedo = mat.Kd;
         float3 specular = mat.Ks;
+
+        // Get Hapke material parameters
+        float w = mat.w;
+        float b = mat.b;
+        float c = mat.c;
+        float B_s0 = mat.B_s0;
+        float h_s = mat.h_s;
+        float B_c0 = 0.0f;
+        float h_c = 1.0f;
+        float phi = mat.phi;
+        float theta_p = mat.theta_p;
+
+        
 
         float3 hit_point = ray_orig + ray_dir * ray_dist;
 

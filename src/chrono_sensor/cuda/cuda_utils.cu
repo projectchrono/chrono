@@ -20,16 +20,17 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-//#include <nanovdb/NanoVDB.h>
+#include <nanovdb/NanoVDB.h>
 //#include <openvdb/openvdb.h>
 
-//#include <nanovdb/util/GridHandle.h>
+#include <nanovdb/util/GridHandle.h>
+#include <nanovdb/util/cuda/CudaPointsToGrid.cuh>
 
 //#include <openvdb/tools/LevelSetUtil.h>
 //#include <openvdb/tools/ParticlesToLevelSet.h>
 //#include <openvdb/tools/LevelSetSphere.h> // replace with your own dependencies for generating the OpenVDB grid
 //#include <nanovdb/util/CreateNanoGrid.h> // converter from OpenVDB to NanoVDB (includes NanoVDB.h and GridManager.h)
-//#include <nanovdb/util/cuda/CudaDeviceBuffer.h>
+#include <nanovdb/util/cuda/CudaDeviceBuffer.h>
 
 #include <vector>
 

@@ -711,6 +711,14 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
         material.instance_id = mat->GetInstanceID();
 
         material.use_hapke = mat->GetUseHapke();
+        material.w = mat->GetHapkeW();
+        material.b = mat->GetHapkeB();
+        material.c = mat->GetHapkeC();
+        material.B_s0 = mat->GetHapkeBs0();
+        material.h_s = mat->GetHapkeHs();
+        material.phi = mat->GetHapkePhi();
+        material.theta_p = mat->GetHapkeRoughness();
+
         material.tex_scale = {mat->GetTextureScale().x(), mat->GetTextureScale().y()};
         material.emissive_power = mat->GetEmissivePower();
 
@@ -780,6 +788,12 @@ unsigned int ChOptixPipeline::GetMaterial(std::shared_ptr<ChVisualMaterial> mat)
             material.weight_tex = 0;
             material.use_specular_workflow = 0;
             material.use_hapke = 0;
+            material.w = 0.0f;
+            material.b = 0.0f;
+            material.c = 0.0f;
+            material.B_s0 = 0.0f;
+            material.h_s = 0.0f;
+            material.phi = 0.0f;
             material.class_id = 0;
             material.instance_id = 0;
             material.tex_scale = {1.f, 1.f};

@@ -39,12 +39,12 @@ namespace sensor {
 class CH_SENSOR_API ChNVDBShape : public ChVisualShape {
   public:
     ChNVDBShape();
-    ChNVDBShape(const geometry::ChBox& box);
+    ChNVDBShape(const ChBox& box);
 
     ~ChNVDBShape(){};
 
     /// Access the box geometry.
-    geometry::ChBox& GetBoxGeometry() { return gbox; }
+    ChBox& GetBoxGeometry() { return gbox; }
 
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& marchive) override;
@@ -53,7 +53,7 @@ class CH_SENSOR_API ChNVDBShape : public ChVisualShape {
     virtual void ArchiveIn(ChArchiveIn& marchive) override;
 
   private:
-    geometry::ChBox gbox;
+    ChBox gbox;
 };
 
 class CH_SENSOR_API ChNVDBVolume : public ChBody {

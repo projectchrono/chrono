@@ -59,7 +59,7 @@ CH_SENSOR_API unsigned int ChScene::AddPointLight(ChVector3f pos, ChColor color,
     return static_cast<unsigned int>(m_pointlights.size() - 1);
 }
 
-CH_SENSOR_API unsigned int ChScene::AddAreaLight(ChVector<float> pos, ChColor color, float max_range, ChVector<float> du, ChVector<float> dv) {
+CH_SENSOR_API unsigned int ChScene::AddAreaLight(ChVector3f pos, ChColor color, float max_range, ChVector3f du, ChVector3f dv) {
     AreaLight a;
 
     a.pos = {pos.x(), pos.y(), pos.z()};

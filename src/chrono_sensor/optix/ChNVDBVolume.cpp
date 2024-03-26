@@ -27,26 +27,26 @@ ChNVDBShape::ChNVDBShape() {
     SetMutable(false);
 }
 
-ChNVDBShape::ChNVDBShape(const geometry::ChBox& box) : gbox(box) {
+ChNVDBShape::ChNVDBShape(const ChBox& box) : gbox(box) {
     SetMutable(false);
 }
 
-void ChNVDBShape::ArchiveOut(ChArchiveOut& marchive) {
+void ChNVDBShape::ArchiveOut(ChArchiveOut& archive_out) {
     // version number
-    marchive.VersionWrite<ChNVDBShape>();
+    archive_out.VersionWrite<ChNVDBShape>();
     // serialize parent class
-    ChVisualShape::ArchiveOut(marchive);
+    ChVisualShape::ArchiveOut(archive_out);
     // serialize all member data:
-    marchive << CHNVP(gbox);
+    archive_out << CHNVP(gbox);
 }
 
-void ChNVDBShape::ArchiveIn(ChArchiveIn& marchive) {
+void ChNVDBShape::ArchiveIn(ChArchiveIn& archive_in) {
     // version number
-    /*int version =*/marchive.VersionRead<ChNVDBShape>();
+    /*int version =*/archive_in.VersionRead<ChNVDBShape>();
     // deserialize parent class
-    ChVisualShape::ArchiveIn(marchive);
+    ChVisualShape::ArchiveIn(archive_in);
     // stream in all member data:
-    marchive >> CHNVP(gbox);
+    archive_in >> CHNVP(gbox);
 }
 
 ChNVDBVolume::ChNVDBVolume(double Xsize,
@@ -66,14 +66,13 @@ void ChNVDBVolume::SetupBody(double Xsize,
                                  ) {
     double mmass = density * (Xsize * Ysize * Zsize);
 
-    //this->SetDensity((float)density);
-    this->SetMass(mmass);
-    this->SetInertiaXX(ChVector<>((1.0 / 12.0) * mmass * (pow(Ysize, 2) + pow(Zsize, 2)),
+    SetMass(mmass);
+    SetInertiaXX(ChVector3d((1.0 / 12.0) * mmass * (pow(Ysize, 2) + pow(Zsize, 2)),
                                   (1.0 / 12.0) * mmass * (pow(Xsize, 2) + pow(Zsize, 2)),
                                   (1.0 / 12.0) * mmass * (pow(Xsize, 2) + pow(Ysize, 2))));
     if (visualize) {
         auto vshape = chrono_types::make_shared<ChNVDBShape>();
-        vshape->GetBoxGeometry().SetLengths(ChVector<>(Xsize, Ysize, Zsize));
+        vshape->GetBoxGeometry().SetLengths(ChVector3d(Xsize, Ysize, Zsize));
         auto vmodel = chrono_types::make_shared<ChVisualModel>();
         vmodel->AddShape(vshape);
         this->AddVisualModel(vmodel);

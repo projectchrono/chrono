@@ -78,9 +78,9 @@ class CH_SENSOR_API ChScene {
     /// @param color The golor of the light source
     /// @param max_range the range at which the light intensity is equal to 1% of its maximum intensity
     /// @param du the x vector of the area light
-    /// @param dv the y vector of 
+    /// @param dv the y vector of the ara light
     /// @return the index of the light that has been added
-    unsigned int AddAreaLight(ChVector<float> pos, ChColor color, float max_range, ChVector<float> du, ChVector<float> dv);
+    unsigned int AddAreaLight(ChVector3f pos, ChColor color, float max_range, ChVector3f du, ChVector3f dv);
 
     /// Function for gaining access to the vector of point lights and can be used to modify lighting dynamically.
     /// @return m_pointlights A vector of point lights in the scene currently
@@ -154,7 +154,7 @@ class CH_SENSOR_API ChScene {
     float GetSceneEpsilon() { return m_scene_epsilon; }
 
     #ifdef USE_SENSOR_NVDB
-    /// @brief  Allows to pass in Chrono::FSI SPH markers to the scene, to be used for rendering SPH simulations. Note: Must also add a ChNVDBVolume body to the scene as well.
+    /// @brief  Allows passing in Chrono::FSI SPH markers to the scene, to be used for rendering SPH simulations. Note: Must also add a ChNVDBVolume body to the scene as well.
     /// @param fsi_points_d pointer to the FSI markers in host memory
     void SetFSIParticles(float* fsi_points) { m_fsi_points = fsi_points; }
 
@@ -162,7 +162,12 @@ class CH_SENSOR_API ChScene {
     /// @param n the number of FSI markers
     void SetFSINumFSIParticles(int n) { m_num_fsi_points = n; }
 
-    float* GetFSIParticles() { return m_fsi_points_d; }
+    /// @brief Returns a host pointer to the Chrono::FSI, SPH markers being rendered
+    /// @return float* to Chrono::FSI, SPH markers in the scene
+    float* GetFSIParticles() { return m_fsi_points; }
+
+    /// @brief Returns the number of Chrono::FSI, SPH markers in the scene
+    /// @return the number of Chrono::FSI, SPH markers in the scene (int)
     int GetNumFSIParticles() { return m_num_fsi_points;}
     #endif
 

@@ -31,7 +31,7 @@ void ChNoiseNormal::AddNoise(ChVector3d& data) {
     data += ChVector3d(dist_x(m_generator), dist_y(m_generator), dist_z(m_generator));
 }
 
-void ChNoiseNormal::AddNoise(ChVector<double>& data, float last_ch_time, float ch_time) {
+void ChNoiseNormal::AddNoise(ChVector3d& data, float last_ch_time, float ch_time) {
     AddNoise(data);
 }
 
@@ -66,7 +66,7 @@ void ChNoiseNormalDrift::AddNoise(ChVector3d& data) {
     data += eta_a + m_bias_prev;
 }
 
-void ChNoiseNormalDrift::AddNoise(ChVector<double>& data, float last_ch_time, float ch_time) {
+void ChNoiseNormalDrift::AddNoise(ChVector3d& data, float last_ch_time, float ch_time) {
     AddNoise(data);
 }
 
@@ -74,7 +74,7 @@ void ChNoiseNormalDrift::AddNoise(ChVector<double>& data, float last_ch_time, fl
 ChNoiseRandomWalks::ChNoiseRandomWalks(float mean,
                                        float sigma,
                                        float noise_model_update_rate,
-                                       ChVector<double> gps_reference)
+                                       ChVector3d gps_reference)
     : m_mean(mean),
       m_sigma(sigma),
       m_step_size((float)1 /
@@ -94,7 +94,7 @@ ChNoiseRandomWalks::ChNoiseRandomWalks(float mean,
                                        float noise_model_update_rate,
                                        double max_velocity,
                                        double max_acceleration,
-                                       ChVector<double> gps_reference)
+                                       ChVector3d gps_reference)
     : m_mean(mean),
       m_sigma(sigma),
       m_step_size((float)1 /
@@ -106,11 +106,11 @@ ChNoiseRandomWalks::ChNoiseRandomWalks(float mean,
       ChNoiseModel() {
     m_generator =
         std::minstd_rand((unsigned int)(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
-    m_prev_error_v = ChVector<double>(0, 0, 0);
-    m_prev_error_p = ChVector<double>(0, 0, 0);
+    m_prev_error_v = ChVector3d(0, 0, 0);
+    m_prev_error_p = ChVector3d(0, 0, 0);
 }
 
-void ChNoiseRandomWalks::AddNoise(ChVector<double>& data, float last_ch_time, float next_ch_time) {
+void ChNoiseRandomWalks::AddNoise(ChVector3d& data, float last_ch_time, float next_ch_time) {
 
     double curr_time = m_last_updated_ch_time;
 
@@ -139,7 +139,7 @@ void ChNoiseRandomWalks::AddNoise(ChVector<double>& data, float last_ch_time, fl
         std::normal_distribution<double> dist_y(c_y, m_sigma);
         std::normal_distribution<double> dist_z(c_z, m_sigma);
 
-        ChVector<double> white_noise = {dist_x(m_generator), dist_y(m_generator), dist_z(m_generator)};
+        ChVector3d white_noise = {dist_x(m_generator), dist_y(m_generator), dist_z(m_generator)};
 
         // Limit all axis of white noise to m_max_acceleration
         white_noise.x() = (white_noise.x() > m_max_acceleration) ? m_max_acceleration : white_noise.x();

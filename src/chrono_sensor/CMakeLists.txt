@@ -253,7 +253,7 @@ set(ChronoEngine_sensor_RT_SOURCES
 
 if(USE_NVDB)
   list(APPEND ChronoEngine_sensor_RT_SOURCES
-    optix/shaders/nvdb.cu
+    optix/shaders/nvdb_vol_intersect.cu
   )
 endif()
 

@@ -102,8 +102,8 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     ChMatrix33<float> GetCameraIntrinsicMatrix();
 
     /// returns the camera distortion coefficients k1, k2, k3
-    /// @return ChVector<float> of the camera distortion coefficients k1, k2, k3
-    ChVector<float> GetCameraDistortionCoefficients() { return m_distortion_params; }
+    /// @return ChVector3f of the camera distortion coefficients k1, k2, k3
+    ChVector3f GetCameraDistortionCoefficients() { return m_distortion_params; }
 
 
     /// calculate the parameters for the inverse polynomial model
@@ -122,7 +122,7 @@ class CH_SENSOR_API ChCameraSensor : public ChOptixSensor {
     LensParams m_lens_parameters;           ///< lens parameters when applicable
     float m_width; // width of the image formed
     float m_height; // height of the image formed
-    ChVector<float> m_distortion_params = {0.f, 0.f, 0.f};
+    ChVector3f m_distortion_params = {0.f, 0.f, 0.f};
 };
 
 /// @} sensor_sensors
