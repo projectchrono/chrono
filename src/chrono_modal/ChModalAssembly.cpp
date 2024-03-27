@@ -29,7 +29,7 @@ namespace modal {
 CH_FACTORY_REGISTER(ChModalAssembly)
 
 ChModalAssembly::ChModalAssembly()
-    : modal_variables(nullptr), m_num_coords_modal(0), m_is_model_reduced(false), internal_nodes_update(true) {}
+    : modal_variables(nullptr), m_num_coords_modal(0), m_is_model_reduced(false), m_internal_nodes_update(true) {}
 
 ChModalAssembly::ChModalAssembly(const ChModalAssembly& other) : ChAssembly(other) {
     m_modal_reduction_type = other.m_modal_reduction_type;
@@ -491,7 +491,7 @@ void ChModalAssembly::UpdateTransformationMatrix() {
         Uloc_B.block(6 * i_bou + 3, 3, 3, 3) = ChMatrix33<>(quat_bou.GetConjugate() * floating_frame_F.GetRot());
     }
     //  rigid body modes of internal bodies and nodes
-    if (internal_nodes_update) {
+    if (m_internal_nodes_update) {
         Uloc_I.setZero(m_num_coords_vel_internal, 6);
         for (unsigned int i_int = 0; i_int < m_num_coords_vel_internal / 6; i_int++) {
             Uloc_I.block(6 * i_int, 0, 3, 3) = ChMatrix33<>(1.0);
@@ -523,7 +523,7 @@ void ChModalAssembly::ComputeProjectionMatrix() {
 
         this->U_locred_0 = this->U_locred;
         this->Uloc_B_0 = this->Uloc_B;
-        if (this->internal_nodes_update) {
+        if (this->m_internal_nodes_update) {
             this->Uloc_I_0 = this->Uloc_I;
         }
 
@@ -1434,7 +1434,7 @@ void ChModalAssembly::SetFullStateReset() {
 }
 
 void ChModalAssembly::SetInternalNodesUpdate(bool flag) {
-    this->internal_nodes_update = flag;
+    this->m_internal_nodes_update = flag;
 }
 
 //---------------------------------------------------------------------------------------
@@ -1975,7 +1975,7 @@ void ChModalAssembly::Update(bool update_assets) {
     } else {
         // If in modal reduced state, the internal parts would not be updated (actually, these could even be
         // removed) However one still might want to see the internal nodes "moving" during animations,
-        if (this->internal_nodes_update)
+        if (this->m_internal_nodes_update)
             this->SetInternalStateWithModes(update_assets);
 
         // always update the floating frame F if possible, to improve the numerical accuracy and stability

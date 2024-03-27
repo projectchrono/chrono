@@ -694,7 +694,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
 
     bool m_is_model_reduced;  ///< flag to indicate whether in the modal "reduced" state.
 
-    bool internal_nodes_update;  ///< flag to indicate whether the internal nodes will update for
+    bool m_internal_nodes_update;  ///< flag to indicate whether the internal nodes will update for
                                  ///< visualization/postprocessing
 
     mutable ChTimer m_timer_matrix_assembly;
