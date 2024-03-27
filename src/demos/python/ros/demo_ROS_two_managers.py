@@ -20,8 +20,9 @@ import pychrono as chrono
 import pychrono.vehicle as veh
 import pychrono.ros as chros
 
+
 def main():
-    #print("Copyright (c) 2017 projectchrono.org\nChrono version: ", CHRONO_VERSION , "\n\n")
+    # print("Copyright (c) 2017 projectchrono.org\nChrono version: ", CHRONO_VERSION , "\n\n")
 
     step_size = 0.005
 
@@ -44,7 +45,11 @@ def main():
 
     # Create and initialize the first vehicle
     hmmwv_1 = veh.HMMWV_Reduced(sys)
-    hmmwv_1.SetInitPosition(chrono.ChCoordsysd(chrono.ChVector3d(0, -1.5, 1.0), chrono.ChQuaterniond(1, 0, 0, 0)))
+    hmmwv_1.SetInitPosition(
+        chrono.ChCoordsysd(
+            chrono.ChVector3d(0, -1.5, 1.0), chrono.ChQuaterniond(1, 0, 0, 0)
+        )
+    )
     hmmwv_1.SetEngineType(veh.EngineModelType_SIMPLE)
     hmmwv_1.SetTransmissionType(veh.TransmissionModelType_AUTOMATIC_SIMPLE_MAP)
     hmmwv_1.SetDriveType(veh.DrivelineTypeWV_RWD)
@@ -59,17 +64,25 @@ def main():
     # Create the driver system for vehicle 1
     driver_1 = veh.ChDriver(hmmwv_1.GetVehicle())
     driver_1.Initialize()
-    
+
     # Create ROS manager for vehicle 1
     ros_manager_1 = chros.ChROSPythonManager("hmmwv_1")
     ros_manager_1.RegisterHandler(chros.ChROSClockHandler())
-    ros_manager_1.RegisterHandler(chros.ChROSDriverInputsHandler(25, driver_1, "~/input/driver_inputs"))
-    ros_manager_1.RegisterHandler(chros.ChROSBodyHandler(25, hmmwv_1.GetChassisBody(), "~/output/hmmwv/state"))
+    ros_manager_1.RegisterHandler(
+        chros.ChROSDriverInputsHandler(25, driver_1, "~/input/driver_inputs")
+    )
+    ros_manager_1.RegisterHandler(
+        chros.ChROSBodyHandler(25, hmmwv_1.GetChassisBody(), "~/output/hmmwv/state")
+    )
     ros_manager_1.Initialize()
 
     # Create and initialize the second vehicle
     hmmwv_2 = veh.HMMWV_Reduced(sys)
-    hmmwv_2.SetInitPosition(chrono.ChCoordsysd(chrono.ChVector3d(7, 1.5, 1.0), chrono.ChQuaterniond(1, 0, 0, 0)))
+    hmmwv_2.SetInitPosition(
+        chrono.ChCoordsysd(
+            chrono.ChVector3d(7, 1.5, 1.0), chrono.ChQuaterniond(1, 0, 0, 0)
+        )
+    )
     hmmwv_2.SetEngineType(veh.EngineModelType_SIMPLE)
     hmmwv_2.SetTransmissionType(veh.TransmissionModelType_AUTOMATIC_SIMPLE_MAP)
     hmmwv_2.SetDriveType(veh.DrivelineTypeWV_RWD)
@@ -84,14 +97,16 @@ def main():
     # Create the driver system for vehicle 2
     driver_2 = veh.ChDriver(hmmwv_2.GetVehicle())
     driver_2.Initialize()
-    
+
     # Create ROS manager for vehicle 2
     ros_manager_2 = chros.ChROSPythonManager("hmmwv_2")
-    ros_manager_2.RegisterHandler(chros.ChROSDriverInputsHandler(25, driver_2, "~/input/driver_inputs"))
-    ros_manager_2.RegisterHandler(chros.ChROSBodyHandler(25, hmmwv_2.GetChassisBody(), "~/output/hmmwv/state"))
+    ros_manager_2.RegisterHandler(
+        chros.ChROSDriverInputsHandler(25, driver_2, "~/input/driver_inputs")
+    )
+    ros_manager_2.RegisterHandler(
+        chros.ChROSBodyHandler(25, hmmwv_2.GetChassisBody(), "~/output/hmmwv/state")
+    )
     ros_manager_2.Initialize()
-
-
 
     # Simulation loop
     hmmwv_1.GetVehicle().EnableRealtime(True)
@@ -99,7 +114,7 @@ def main():
 
     time = 0
     time_end = 300
-    
+
     while time < time_end:
         time = hmmwv_1.GetSystem().GetChTime()
 
@@ -123,8 +138,10 @@ def main():
 
         # Advance state of entire system (containing both vehicles)
         sys.DoStepDynamics(step_size)
-        
-        if not ros_manager_1.Update(time, step_size) or not ros_manager_2.Update(time, step_size):
+
+        if not ros_manager_1.Update(time, step_size) or not ros_manager_2.Update(
+            time, step_size
+        ):
             break
 
     return 0
