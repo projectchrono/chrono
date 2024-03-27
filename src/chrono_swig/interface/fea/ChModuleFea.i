@@ -122,8 +122,8 @@ using namespace chrono::fea;
 // workaround for trouble
 %ignore chrono::fea::ChContactNodeXYZ::ComputeJacobianForContactPart;
 %ignore chrono::fea::ChContactTriangleXYZ::ComputeJacobianForContactPart;
-%ignore chrono::fea::ChContactNodeXYZROT::ComputeJacobianForContactPart;
-%ignore chrono::fea::ChContactTriangleXYZROT::ComputeJacobianForContactPart;
+%ignore chrono::fea::ChContactNodeXYZRot::ComputeJacobianForContactPart;
+%ignore chrono::fea::ChContactTriangleXYZRot::ComputeJacobianForContactPart;
 %ignore chrono::fea::ChElementShellBST::ComputeInternalJacobians;
 
 // Include other .i configuration files for SWIG. 
@@ -268,7 +268,7 @@ using namespace chrono::fea;
 %shared_ptr(chrono::ChContactable_3vars<3,3,3>)
 %shared_ptr(chrono::ChContactable_3vars<6,6,6>)
 %shared_ptr(chrono::fea::ChContactTriangleXYZ)
-%shared_ptr(chrono::fea::ChContactTriangleXYZROT)
+%shared_ptr(chrono::fea::ChContactTriangleXYZRot)
 %shared_ptr(chrono::fea::ChContactSurface)
 %shared_ptr(chrono::fea::ChContactSurfaceMesh)
 %shared_ptr(chrono::fea::ChContactSurfaceNodeCloud)
@@ -517,9 +517,9 @@ using namespace chrono::fea;
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzDDD)
 %DefSharedPtrDynamicDowncast(chrono::fea,ChNodeFEAbase,ChNodeFEAxyzrot)
 %DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactTriangleXYZ)
-%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactTriangleXYZROT)
+%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactTriangleXYZRot)
 %DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactNodeXYZ)
-%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactNodeXYZROT)
+%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChContactNodeXYZRot)
 //%DefSharedPtrDynamicDowncast2NS(chrono,chrono::fea,ChContactable,ChNodeMeshless)
 
 //
@@ -527,8 +527,8 @@ using namespace chrono::fea;
 //
 
 %inline %{
-  chrono::fea::ChContactNodeXYZROT* CastContactableToChContactNodeXYZROT(chrono::ChContactable* base) {
-    chrono::fea::ChContactNodeXYZROT* ptr_out = dynamic_cast<chrono::fea::ChContactNodeXYZROT*>(base);
+  chrono::fea::ChContactNodeXYZRot* CastContactableToChContactNodeXYZRot(chrono::ChContactable* base) {
+    chrono::fea::ChContactNodeXYZRot* ptr_out = dynamic_cast<chrono::fea::ChContactNodeXYZRot*>(base);
 	if (ptr_out == NULL) {
         throw std::invalid_argument( "Wrong Upcast Choice" );
     }
@@ -545,8 +545,8 @@ using namespace chrono::fea;
   }
 %}
 %inline %{
-  chrono::fea::ChContactTriangleXYZROT* CastContactableToChContactTriangleXYZROT(chrono::ChContactable* base) {
-    chrono::fea::ChContactTriangleXYZROT* ptr_out = dynamic_cast<chrono::fea::ChContactTriangleXYZROT*>(base);
+  chrono::fea::ChContactTriangleXYZRot* CastContactableToChContactTriangleXYZRot(chrono::ChContactable* base) {
+    chrono::fea::ChContactTriangleXYZRot* ptr_out = dynamic_cast<chrono::fea::ChContactTriangleXYZRot*>(base);
 	if (ptr_out == NULL) {
         throw std::invalid_argument( "Wrong Upcast Choice" );
     }

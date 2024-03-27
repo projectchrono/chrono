@@ -378,6 +378,8 @@ In some instances, the reader is directed to the "Notes" section for more detail
 |                                   | ContactableGetStateBlock_x    | rename: ContactableGetStateBlockPosLevel         |
 |                                   | ContactableGetStateBlock_w    | rename: ContactableGetStateBlockVelLevel         |
 |                                   | GetCsysForCollisionModel      | rename: GetCollisionModelFrame                   |
+| ChContactNodeXYZROT               |                               | rename: ChContactNodeXYZRot                      |
+| ChContactNodeXYZROTsphere         |                               | rename: ChContactNodeXYZRotSphere                |
 | ChContactSurfaceMesh              |                               |                                                  |
 |                                   | GetTriangleList               | rename: GetTrianglesXYZ                          |
 |                                   | GetTriangleListRot            | rename: GetTrianglesXYZROT                       |
@@ -385,6 +387,8 @@ In some instances, the reader is directed to the "Notes" section for more detail
 |                                   | GetNnodesRot                  | rename: GetNumNodesRot                           |
 |                                   | GetNodeList                   | rename: GetNodes                                 |
 |                                   | GetNodeListRot                | rename: GetNodesRot                              |
+| ChContactTriangleXYZROT           |                               | rename: ChContactTriangleXYZRot                  |
+|                                   | GetTrianglesXYZROT            | rename: GetTrianglesXYZRot                       |
 | ChContinuumElastic                |                               |                                                  |
 |                                   | Get_BulkModulus               | rename: GetBulkModulus                           |
 |                                   | Get_density                   | rename: GetDensity                               |
