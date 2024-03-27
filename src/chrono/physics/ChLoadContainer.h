@@ -70,10 +70,6 @@ class ChApi ChLoadContainer : public ChPhysicsItem {
     /// Note: signs are flipped from the term dF/dx in the integrator: K = -dF/dq and R = -dF/dv.
     virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
-    //
-    // SERIALIZATION
-    //
-
     /// Method to allow serialization of transient data to archives.
     virtual void ArchiveOut(ChArchiveOut& archive_out) override;
 

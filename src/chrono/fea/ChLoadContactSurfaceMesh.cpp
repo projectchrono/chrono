@@ -63,7 +63,7 @@ void ChLoadContactSurfaceMesh::InputSimpleForces(const std::vector<ChVector3d>& 
         for (size_t i = 0; i < vert_forces.size(); ++i) {
             auto node = ind_ptr_map.find(vert_ind[i]);
             if (node != ind_ptr_map.end()) {
-                auto frc = chrono_types::make_shared<ChLoadXYZnode>(node->second, vert_forces[i]);
+                auto frc = chrono_types::make_shared<ChLoadNodeXYZ>(node->second, vert_forces[i]);
                 m_forces.push_back(frc);
             }
         }
@@ -92,7 +92,7 @@ void ChLoadContactSurfaceMesh::InputSimpleForces(const std::vector<ChVector3d>& 
         for (size_t i = 0; i < vert_forces.size(); ++i) {
             auto node = ind_ptr_map.find(vert_ind[i]);
             if (node != ind_ptr_map.end()) {
-                auto frc = chrono_types::make_shared<ChLoadXYZROTnodeForceAbsolute>(node->second, vert_forces[i]);
+                auto frc = chrono_types::make_shared<ChLoadNodeXYZRotForceAbs>(node->second, vert_forces[i]);
                 m_forces_rot.push_back(frc);
             }
         }

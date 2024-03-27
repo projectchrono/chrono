@@ -15,8 +15,8 @@
 #ifndef CHLOADCONTACTSURFACEMESH_H
 #define CHLOADCONTACTSURFACEMESH_H
 
-#include "chrono/physics/ChLoadsXYZnode.h"
-#include "chrono/fea/ChLoadsXYZROTnode.h"
+#include "chrono/physics/ChLoadsNodeXYZ.h"
+#include "chrono/fea/ChLoadsNodeXYZRot.h"
 #include "chrono/fea/ChContactSurfaceMesh.h"
 
 namespace chrono {
@@ -28,8 +28,8 @@ namespace fea {
 /// Class for applying loads to a contact mesh as a cluster of forces on the nodes of the underlying finite elements.
 /// Useful for cosimulation: one can pass this object's vertex & faces to an external software (e.g., CFD) that in turn
 /// will perform collision detection with its entities, compute forces, send forces back to Chrono via this object.
-/// Note that this is based on a cluster of ChLoadXYZnode, but the class itself could bypass all methods of
-/// ChLoadXYZnode and directly implement a more efficient LoadIntLoadResidual_F.
+/// Note that this is based on a cluster of ChLoadNodeXYZ, but the class itself could bypass all methods of
+/// ChLoadNodeXYZ and directly implement a more efficient LoadIntLoadResidual_F.
 class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
   public:
     ChLoadContactSurfaceMesh(std::shared_ptr<ChContactSurfaceMesh> contact_mesh);
@@ -68,7 +68,7 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     /// Access the list of applied forces, so you can add new ones by using push_back(),
     /// remove them, count them, etc.
     /// Note that if you add nodes, these should belong to the referenced mesh.
-    std::vector<std::shared_ptr<ChLoadXYZnode>>& GetForces() { return m_forces; }
+    std::vector<std::shared_ptr<ChLoadNodeXYZ>>& GetForces() { return m_forces; }
 
   private:
     // ChLoadBase interface
@@ -103,8 +103,8 @@ class ChApi ChLoadContactSurfaceMesh : public ChLoadBase {
     virtual void LoadKRMMatrices(double Kfactor, double Rfactor, double Mfactor) override;
 
     std::shared_ptr<ChContactSurfaceMesh> m_contact_mesh;
-    std::vector<std::shared_ptr<ChLoadXYZnode>> m_forces;
-    std::vector<std::shared_ptr<ChLoadXYZROTnodeForceAbsolute>> m_forces_rot;
+    std::vector<std::shared_ptr<ChLoadNodeXYZ>> m_forces;
+    std::vector<std::shared_ptr<ChLoadNodeXYZRotForceAbs>> m_forces_rot;
 };
 
 /// @} chrono_fea

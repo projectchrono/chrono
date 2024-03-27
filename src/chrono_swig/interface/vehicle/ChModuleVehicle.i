@@ -51,7 +51,7 @@
 #include "chrono/physics/ChLinkTSDA.h"
 #include "chrono/physics/ChLinkRSDA.h"
 #include "chrono/physics/ChLoadsBody.h"
-#include "chrono/physics/ChLoadsXYZnode.h"
+#include "chrono/physics/ChLoadsNodeXYZ.h"
 #include "chrono/physics/ChPhysicsItem.h"
 
 #include "chrono/geometry/ChTriangleMeshConnected.h"

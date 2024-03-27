@@ -245,6 +245,9 @@ class ChApi ChLoadBodyInertia : public ChLoadCustom {
     static bool use_inertial_damping_matrix_R;    // default true. Can be disabled globally, for testing or optimization
     static bool use_inertial_stiffness_matrix_K;  // default true. Can be disabled globally, for testing or optimization
     static bool use_gyroscopic_torque;            // default true. Can be disabled globally, for testing or optimization
+
+  public:
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 //------------------------------------------------------------------------------------------------
