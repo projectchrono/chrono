@@ -50,10 +50,12 @@ enum class PipelineType {
     CAMERA,  ///< camera rendering pipeline
     // CAMERA_FOV_LENS,        ///< FOV lens model
     SEGMENTATION,  ///< segmentation camera pipeline
+    DEPTH_CAMERA, /// < depth camera pipeline>   
     // SEGMENTATION_FOV_LENS,  ///< FOV lens segmentation camera
     LIDAR_SINGLE,  ///< single sample lidar
     LIDAR_MULTI,   ///< multi sample lidar
     RADAR          ///< radar model
+
 };
 // TODO: how do we allow custom ray gen programs? (Is that ever going to be a thing?)
 
@@ -112,6 +114,9 @@ class CH_SENSOR_API ChOptixPipeline {
                                            CUdeviceptr& d_indices,
                                            std::shared_ptr<ChVisualShapeTriangleMesh> sphere_shape,
                                            std::vector<std::shared_ptr<ChVisualMaterial>> mat_list);
+
+    unsigned int GetNVDBMaterial(std::vector<std::shared_ptr<ChVisualMaterial>> mat_list = {});
+
 
     /// Function to update all the deformable meshes in the optix scene based on their chrono meshes
     void UpdateDeformableMeshes();
@@ -201,10 +206,17 @@ class CH_SENSOR_API ChOptixPipeline {
     OptixModule m_material_shading_module = 0;     // material shader file
     OptixModule m_miss_module = 0;                 // miss.cu
 
+    #ifdef USE_SENSOR_NVDB
+      OptixModule m_nvdb_vol_intersection_module = 0;  // nvdb_vol_intersect.cu
+    #endif
+
     // program groups - we only make one of each - do not clear when rebuilding root
     OptixProgramGroup m_camera_raygen_group = 0;
     // OptixProgramGroup m_camera_fov_lens_raygen_group = 0;
     OptixProgramGroup m_segmentation_raygen_group = 0;
+
+    OptixProgramGroup m_depthCamera_raygen_group = 0;
+    
     // OptixProgramGroup m_segmentation_fov_lens_raygen_group = 0;
     OptixProgramGroup m_lidar_single_raygen_group = 0;
     OptixProgramGroup m_lidar_multi_raygen_group = 0;
@@ -215,6 +227,7 @@ class CH_SENSOR_API ChOptixPipeline {
     OptixProgramGroup m_hit_cyl_group = 0;
     OptixProgramGroup m_hit_mesh_group = 0;
     OptixProgramGroup m_miss_group = 0;
+    OptixProgramGroup m_nvdb_vol_group = 0;
 
     // compile options - TODO: should probably depend on the pipeline - do not clear for now
     OptixPipelineCompileOptions m_pipeline_compile_options;

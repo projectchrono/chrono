@@ -42,6 +42,10 @@
 #include "chrono/assets/ChVisualShapeSphere.h"
 #include "chrono/assets/ChVisualShapeCylinder.h"
 #include "chrono/assets/ChVisualShapeTriangleMesh.h"
+#include "chrono_sensor/optix/ChNVDBVolume.h"
+
+#ifdef USE_SENSOR_NVDB
+#endif
 
 namespace chrono {
 namespace sensor {
@@ -144,6 +148,10 @@ class CH_SENSOR_API ChOptixEngine {
     void deformableMeshVisualization(std::shared_ptr<ChBody> body,
                                      std::shared_ptr<ChVisualShapeTriangleMesh> sphere_shape,
                                      ChFrame<> asset_frame);
+
+    #ifdef USE_SENSOR_NVDB
+    void nvdbVisualization(std::shared_ptr<ChBody> body, std::shared_ptr<ChNVDBShape> box_shape, ChFrame<> asset_frame);
+    #endif
 
     std::vector<unsigned int> m_renderQueue;  ///< list of sensor indices that need to be updated
 

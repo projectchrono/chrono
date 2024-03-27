@@ -91,6 +91,16 @@ CH_SENSOR_API UserRGBA8BufferPtr ChSensor::GetMostRecentBuffer() {
     return GetMostRecentBufferHelper<UserRGBA8BufferPtr, ChFilterRGBA8Access, ChFilterRGBA8AccessName>();
 }
 
+
+// -----------------------------------------------------------------------------
+// retriever function for image depth data as float values
+// -----------------------------------------------------------------------------
+template <>
+CH_SENSOR_API UserDepthBufferPtr ChSensor::GetMostRecentBuffer() {
+    // call the templated helper function
+    return GetMostRecentBufferHelper<UserDepthBufferPtr, ChFilterDepthAccess, ChFilterDepthAccessName>();
+}
+
 // -----------------------------------------------------------------------------
 // retriever function for lidar data in range/depth,intensity format
 // -----------------------------------------------------------------------------

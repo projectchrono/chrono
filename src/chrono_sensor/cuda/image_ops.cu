@@ -18,6 +18,9 @@
 #include "image_ops.cuh"
 #include "chrono_sensor/optix/shaders/device_utils.h"
 #include <iostream>
+#include <thrust/device_vector.h>
+#include <thrust/extrema.h>
+#include <thrust/execution_policy.h>
 
 namespace chrono {
 namespace sensor {
@@ -154,6 +157,63 @@ __global__ void image_half4_to_uchar4_kernel(__half* bufIn, unsigned char* bufOu
     }
 }
 
+
+//__global__ void minmax_kernel_2d(float* input,
+//                                 float* min_output,
+//                                 float* max_output,
+//                                 const int width,
+//                                 const int height) {
+//    extern __shared__ float sdata[];
+//
+//     int tid = threadIdx.x;
+//    int i = blockIdx.x * blockDim.x * 2 + threadIdx.x;
+//
+//    float min_val = (i < width * height) ? input[i] : FLT_MAX;
+//    float max_val = (i < width * height) ? input[i] : -FLT_MAX;
+//
+//    if (i + blockDim.x < width * height) {
+//        float val = input[i + blockDim.x];
+//        min_val = fminf(min_val, val);
+//        max_val = fmaxf(max_val, val);
+//    }
+//
+//    sdata[tid * 2] = min_val;
+//    sdata[tid * 2 + 1] = max_val;
+//    __syncthreads();
+//
+//    for (int s = blockDim.x / 2; s > 0; s >>= 1) {
+//        if (tid < s) {
+//            sdata[tid * 2] = min_val = fminf(min_val, sdata[(tid + s) * 2]);
+//            sdata[tid * 2 + 1] = max_val = fmaxf(max_val, sdata[(tid + s) * 2 + 1]);
+//        }
+//        __syncthreads();
+//    }
+//
+//    if (tid == 0) {
+//        atomicMin(min_output, min_val);
+//        atomicMax(max_output, max_val);
+//    }
+//}
+
+
+__global__ void depth_to_uchar4_kernel(float* bufIn, unsigned char* bufOut, float d_min, float d_max, int N) {
+    int idx = (blockDim.x * blockIdx.x + threadIdx.x);  // index into output buffer
+    if (idx < N) {
+        float normalized_depth = clamp((bufIn[idx] - d_min) / (d_max - d_min), 0.f, 1.f);
+        unsigned char intensity = (unsigned char)(normalized_depth * 255.f);
+
+        // Gray scale colormap
+        bufOut[idx * 4 + 0] = intensity;
+        bufOut[idx * 4 + 1] = intensity;
+        bufOut[idx * 4 + 2] = intensity;
+        bufOut[idx * 4 + 3] = (unsigned char)255;
+
+    }
+       
+}
+
+
+
 void cuda_image_gauss_blur_char(void* buf, int w, int h, int c, int factor, CUstream& stream) {
     const int nThreads = 512;
     int nBlocks = (w * h * c + nThreads - 1) / nThreads;
@@ -205,6 +265,42 @@ void cuda_image_half4_to_uchar4(void* bufIn, void* bufOut, int w, int h, CUstrea
     const int nThreads = 512;
     int nBlocks = (w * h * 4 + nThreads - 1) / nThreads;
     image_half4_to_uchar4_kernel<<<nBlocks, nThreads, 0, stream>>>((__half*)bufIn, (unsigned char*)bufOut, w * h * 4);
+}
+
+void cuda_depth_to_uchar4(void* bufIn, void* bufOut, int w, int h, CUstream& stream) {
+
+
+    // Set up kernel launch configuration
+    int blockSize = 256;
+    int gridSize = (w * h + blockSize * 2 - 1) / (blockSize * 2);
+
+    /*float *d_min, *d_max;
+    cudaMalloc(&d_min, sizeof(float));
+    cudaMalloc(&d_max, sizeof(float));
+
+    cudaMemcpy(d_min, &MIN, sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_max, &MAX, sizeof(float), cudaMemcpyHostToDevice);*/
+
+
+    thrust::device_vector<float> bufIn_thrust((float*)bufIn, (float*)bufIn + w * h);
+    thrust::device_ptr<float> buffIn_ptr = thrust::device_pointer_cast((float*)bufIn);
+    //thrust::pair<float*, float*> result = thrust::minmax_element(thrust::device, (float*)bufIn, (float*)bufIn + w * h);
+
+    thrust::pair<thrust::device_vector<float>::iterator, thrust::device_vector<float>::iterator> result =
+        thrust::minmax_element(bufIn_thrust.begin(), bufIn_thrust.end());
+   
+  
+    
+    // Launch the kernel
+   // minmax_kernel_2d<<<gridSize, blockSize, blockSize * 2 * sizeof(float)>>>((float*)bufIn, d_min, d_max, w, h);
+
+    //cudaDeviceSynchronize();
+
+    const int nThreads = 512;
+    int nBlocks = (w * h + nThreads - 1) / nThreads;
+  
+    depth_to_uchar4_kernel<<<nBlocks, nThreads, 0, stream>>>((float*)bufIn, (unsigned char*)bufOut, *(result.first), *(result.second), w * h);
+
 }
 
 }  // namespace sensor

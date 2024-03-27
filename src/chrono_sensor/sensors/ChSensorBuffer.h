@@ -160,6 +160,19 @@ using SensorDeviceSemanticBuffer = SensorBufferT<DeviceSemanticBufferPtr>;
 /// pointer to an semantic image on the host that has been moved for safety and can be given to the user
 using UserSemanticBufferPtr = std::shared_ptr<SensorHostSemanticBuffer>;
 
+
+struct PixelDepth {
+    float depth;  // depth value
+};
+
+using SensorHostDepthBuffer = SensorBufferT<std::shared_ptr<PixelDepth[]>>;
+
+using DeviceDepthBufferPtr = std::shared_ptr<PixelDepth[]>;
+
+using SensorDeviceDepthBuffer = SensorBufferT<DeviceDepthBufferPtr>;
+
+using UserDepthBufferPtr = std::shared_ptr<SensorHostDepthBuffer>;
+
 //=====================================
 // Range Radar Data Formats and Buffers
 //=====================================
