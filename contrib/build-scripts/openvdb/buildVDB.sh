@@ -5,8 +5,8 @@
 
 DOWNLOAD=ON
 
-OPENVDB_INSTALL_DIR="/Packages/openvdb"
-OPENVDB_DEPENDENCIES_DIR="/Packages/openvdb/openvdb-deps"
+OPENVDB_INSTALL_DIR="$HOME/Packages/openvdb"
+OPENVDB_DEPENDENCIES_DIR="$HOME/Packages/openvdb/openvdb-deps"
 
 BUILDSHARED=ON
 BUILDDEBUG=OFF
@@ -132,23 +132,31 @@ cmake -G "${BUILDSYSTEM}" -B build_openvdb -S ${OPENVDB_SOURCE_DIR} -DCMAKE_INST
 -DNANOVDB_BUILD_EXAMPLES=ON \
 -DBlosc_INCLUDE_DIR="${OPENVDB_DEPENDENCIES_DIR}/blosc/include" \
 -DBlosc_LIBRARY_RELEASE="${OPENVDB_DEPENDENCIES_DIR}/blosc/lib/libblosc.so" \
+-DBlosc_LIBRARY_DEBUG="${OPENVDB_DEPENDENCIES_DIR}/blosc/lib/libblosc.so" \
 -DBoost_INCLUDE_DIR="${OPENVDB_DEPENDENCIES_DIR}/boost_1_80_0/" \
 -DBoost_IOSTREAMS_LIBRARY_RELEASE="${OPENVDB_DEPENDENCIES_DIR}/boost_1_80_0/stage/lib/libboost_iostreams.so" \
+-DBoost_IOSTREAMS_LIBRARY_DEBUG="${OPENVDB_DEPENDENCIES_DIR}/boost_1_80_0/stage/lib/libboost_iostreams.so" \
 -DBoost_LIBRARY_DIR_RELEASE="${OPENVDB_DEPENDENCIES_DIR}/boost_1_80_0/stage/lib" \
+-DBoost_LIBRARY_DIR_DEBUG="${OPENVDB_DEPENDENCIES_DIR}/boost_1_80_0/stage/lib" \
 -DBoost_REGEX_LIBRARY_RELEASE="${OPENVDB_DEPENDENCIES_DIR}/boost_1_80_0/stage/lib/libboost_regex.so" \
+-DBoost_REGEX_LIBRARY_DEBUG="${OPENVDB_DEPENDENCIES_DIR}/boost_1_80_0/stage/lib/libboost_regex.so" \
 -DTbb_INCLUDE_DIR="${OPENVDB_DEPENDENCIES_DIR}/TBB/include" \
 -DTbb_tbb_LIBRARY_RELEASE="${OPENVDB_DEPENDENCIES_DIR}/TBB/lib/libtbb.so.12" \
+-DTbb_tbb_LIBRARY_DEBUG="${OPENVDB_DEPENDENCIES_DIR}/TBB/lib/libtbb_debug.so.12" \
 -DTbb_tbbmalloc_LIBRARY_RELEASE="${OPENVDB_DEPENDENCIES_DIR}/TBB/lib/libtbbmalloc.so" \
+-DTbb_tbbmalloc_LIBRARY_DEBUG="${OPENVDB_DEPENDENCIES_DIR}/TBB/lib/libtbbmalloc_debug.so" \
 -DTbb_tbbmalloc_proxy_LIBRARY_RELEASE="${OPENVDB_DEPENDENCIES_DIR}/TBB/lib/libtbbmalloc_proxy.so" \
+-DTbb_tbbmalloc_proxy_LIBRARY_DEBUG="${OPENVDB_DEPENDENCIES_DIR}/TBB/lib/libtbbmalloc_proxy_debug.so" \
 -DZLIB_INCLUDE_DIR="${OPENVDB_DEPENDENCIES_DIR}/zlib/include" \
 -DZLIB_LIBRARY_RELEASE="${OPENVDB_DEPENDENCIES_DIR}/zlib/lib/libz.so" \
+-DZLIB_LIBRARY_DEBUG="${OPENVDB_DEPENDENCIES_DIR}/zlib/lib/libz.so" \
 
 cmake --build build_openvdb --config Release
 cmake --install build_openvdb --config Release
 
 # Move NanoVDB Cuda header files to utils/cuda directory
-UTIL_DIR="/Packages/openvdb/OpenVDB/include/nanovdb/util"
-DEST_DIR="/Packages/openvdb/OpenVDB/include/nanovdb/util/cuda"
+UTIL_DIR="$HOME/Packages/openvdb/OpenVDB/include/nanovdb/util"
+DEST_DIR="$HOME/Packages/openvdb/OpenVDB/include/nanovdb/util/cuda"
 
 mv ${UTIL_DIR}/*.cuh ${DEST_DIR}
 mv ${UTIL_DIR}/GpuTimer.h ${DEST_DIR}
