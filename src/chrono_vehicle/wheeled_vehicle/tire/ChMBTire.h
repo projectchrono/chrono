@@ -72,9 +72,6 @@ class CH_VEHICLE_API ChMBTire : public ChDeformableTire {
     /// If stiff, Jacobian information will be generated.
     void IsStiff(bool val);
 
-    /// Include the applied wheel forces in Jacobian calculation (default: false).
-    void UseFullJacobian(bool val);
-
     /// Set contact material properties.
     void SetTireContactMaterial(const ChContactMaterialData& mat_data);
 
@@ -258,6 +255,7 @@ class MBTireModel : public ChPhysicsItem {
     std::shared_ptr<ChVisualShapeTriangleMesh> m_trimesh_shape;   // mesh visualization asset
 
     // Linear spring between two FEA nodes.
+    // Spring forces include both stiffness and damping.
     struct Spring2 {
         int inode1;  // index of first node
         int inode2;  // index of second node
@@ -275,13 +273,18 @@ class MBTireModel : public ChPhysicsItem {
         ChVector3d force2;
 
         ChKRMBlock KRM;
+        ChMatrixDynamic<double> J_fd;
 
         void Initialize();
-        void CalculateForce();
+        virtual void CalculateForce();
+        virtual void CalculateJacobian(double Kfactor, double Rfactor) = 0;
+        virtual void CalculateJacobianFD(double Kfactor, double Rfactor) = 0;
+
         ChMatrix33<> CalculateJacobianBlock(double Kfactor, double Rfactor);
     };
 
     // Rotational spring between three FEA nodes.
+    // Spring forces include only stiffness (no velocity-dependence).
     struct Spring3 {
         int inode_p;  // index of previous node
         int inode_c;  // index of central node
@@ -303,33 +306,55 @@ class MBTireModel : public ChPhysicsItem {
         ChVector3d force_n;
 
         ChKRMBlock KRM;
+        ChMatrixDynamic<double> J_fd;
 
         void Initialize();
-        void CalculateForce();
-        ChMatrixNM<double, 6, 9> CalculateJacobianBlockJ1(double Kfactor, double Rfactor);
-        ChMatrixNM<double, 6, 9> CalculateJacobianBlockJ2(double Kfactor, double Rfactor);
+        virtual void CalculateForce();
+        virtual void CalculateJacobian(double Kfactor) = 0;
+        virtual void CalculateJacobianFD(double Kfactor) = 0;
+
+        ChMatrixNM<double, 6, 9> CalculateJacobianBlockJ1(double Kfactor);
+        ChMatrixNM<double, 6, 9> CalculateJacobianBlockJ2(double Kfactor);
     };
 
+    // Linear spring between two grid nodes.
+    // F = [ force1 ; force2 ]
     struct GridSpring2 : public Spring2 {
         void Initialize(bool stiff);
-        void CalculateJacobian(double Kfactor, double Rfactor);
-        ChMatrixNM<double, 6, 6> CalculateJacobianFD(double Kfactor, double Rfactor);
+        virtual void CalculateJacobian(double Kfactor, double Rfactor) override;
+        virtual void CalculateJacobianFD(double Kfactor, double Rfactor) override;
     };
 
+    // Linear spring between a wheel node and a grid node.
+    // F = [ force_wheel ; torque_wheel ; force2]
     struct EdgeSpring2 : public Spring2 {
-        void Initialize(bool stiff, bool full_jac);
-        void CalculateJacobian(bool full_jac, double Kfactor, double Rfactor);
+        void Initialize(bool stiff);
+        virtual void CalculateForce() override;
+        virtual void CalculateJacobian(double Kfactor, double Rfactor) override;
+        virtual void CalculateJacobianFD(double Kfactor, double Rfactor) override;
+
+        ChVector3d force_wheel;
+        ChVector3d torque_wheel;
     };
 
+    // Rotational spring between three grid nodes.
+    // F = [ force_p ; force_c ; force_n ]
     struct GridSpring3 : public Spring3 {
         void Initialize(bool stiff);
-        void CalculateJacobian(double Kfactor, double Rfactor);
-        ChMatrixNM<double, 9, 9> CalculateJacobianFD(double Kfactor, double Rfactor);
+        virtual void CalculateJacobian(double Kfactor) override;
+        virtual void CalculateJacobianFD(double Kfactor) override;
     };
 
+    // Rotational spring between a wheel node and two grid nodes.
+    // F = [ force_wheel ; torque_wheel ; force_c ; force_n ]
     struct EdgeSpring3 : public Spring3 {
-        void Initialize(bool stiff, bool full_jac);
-        void CalculateJacobian(bool full_jac, double Kfactor, double Rfactor);
+        void Initialize(bool stiff);
+        virtual void CalculateForce() override;
+        virtual void CalculateJacobian(double Kfactor) override;
+        virtual void CalculateJacobianFD(double Kfactor) override;
+
+        ChVector3d force_wheel;
+        ChVector3d torque_wheel;
     };
 
     std::vector<GridSpring2> m_grid_lin_springs;  // node-node translational springs
@@ -341,8 +366,7 @@ class MBTireModel : public ChPhysicsItem {
     ChVector3d m_wheel_force;         // applied wheel spindle force (in global frame)
     ChVector3d m_wheel_torque;        // applied wheel spindle torque (in body frame)
 
-    bool m_stiff;     // true if loads are stiff (triggers Jacobian calculation)
-    bool m_full_jac;  // true if calculating if including whel states and forces in Jacobian
+    bool m_stiff;  // true if loads are stiff (triggers Jacobian calculation)
 
     ChMBTire* m_tire;  // owner ChMBTire object
 
