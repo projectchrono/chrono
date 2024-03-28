@@ -9,7 +9,7 @@
 // http://projectchrono.org/license-chrono.txt.
 //
 // =============================================================================
-// Authors: Chao Peng
+// Authors: Chao Peng, Alessandro Tasora
 // =============================================================================
 //
 // Unit test for modal assembly using the "slewing beam" model.
@@ -354,7 +354,7 @@ int main(int argc, char* argv[]) {
     bool check_Herting = CompareResults(res_corot, res_modal_Herting);
 
     bool is_passed = check_CraigBampton && check_Herting;
-    std::cout << "\nUNIT TEST of modal assembly: " << (is_passed ? "PASSED" : "FAILED") << std::endl;
+    std::cout << "\nUNIT TEST of modal assembly with reduction beam: " << (is_passed ? "PASSED" : "FAILED") << std::endl;
 
     return !is_passed;
 }
