@@ -22,7 +22,7 @@
 %feature("director") chrono::ChLoaderUVWdistributed;
 %feature("director") chrono::ChLoaderUVWatomic;
 %feature("director") chrono::ChLoaderGravity;
-%feature("director") chrono::ChLoaderXYZnode;
+%feature("director") chrono::ChLoaderNodeXYZ;
 
 //TODO: remove ignore once ref is wrapped 
 %shared_ptr(chrono::ChLoader)
@@ -38,7 +38,7 @@
 %shared_ptr(chrono::ChLoaderUVWdistributed)
 %shared_ptr(chrono::ChLoaderUVWatomic)
 %shared_ptr(chrono::ChLoaderGravity)
-%shared_ptr(chrono::ChLoaderXYZnode)
+%shared_ptr(chrono::ChLoaderNodeXYZ)
 
 
 

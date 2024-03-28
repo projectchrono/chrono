@@ -77,6 +77,7 @@ class CH_SENSOR_API ChFilterAccess : public ChFilter {
         m_max_lag_buffers = 1 + (unsigned int)std::ceil((pSensor->GetLag() + pSensor->GetCollectionWindow()) *
                                                         pSensor->GetUpdateRate());
         m_user_buffer = chrono_types::make_shared<BufferType>();
+
     }
 
     /// User calls this to get access and ownership of the buffer memory on the host.
@@ -157,6 +158,8 @@ using ChFilterRadarXYZAccess = ChFilterAccess<SensorHostRadarXYZBuffer, UserRada
 using ChFilterTachometerAccess = ChFilterAccess<SensorHostTachometerBuffer, UserTachometerBufferPtr>;
 /// Access to Encoder data
 // using ChFilterEncoderAccess = ChFilterAccess<SensorHostEncoderBuffer, UserEncoderBufferPtr>;
+/// Access to depth camera data
+using ChFilterDepthAccess = ChFilterAccess<SensorHostDepthBuffer, UserDepthBufferPtr>;
 
 /// @}
 

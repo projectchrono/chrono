@@ -63,7 +63,7 @@ void ChLoadContactSurfaceMesh::InputSimpleForces(const std::vector<ChVector3d>& 
         for (size_t i = 0; i < vert_forces.size(); ++i) {
             auto node = ind_ptr_map.find(vert_ind[i]);
             if (node != ind_ptr_map.end()) {
-                auto frc = chrono_types::make_shared<ChLoadXYZnode>(node->second, vert_forces[i]);
+                auto frc = chrono_types::make_shared<ChLoadNodeXYZ>(node->second, vert_forces[i]);
                 m_forces.push_back(frc);
             }
         }
@@ -74,7 +74,7 @@ void ChLoadContactSurfaceMesh::InputSimpleForces(const std::vector<ChVector3d>& 
         std::map<ChNodeFEAxyzrot*, int> ptr_ind_map;                  // map from pointer-based mesh to index-based mesh
         std::map<int, std::shared_ptr<ChNodeFEAxyzrot>> ind_ptr_map;  // map from index-based mesh to pointer-based mesh
 
-        for (const auto& tri : m_contact_mesh->GetTrianglesXYZROT()) {
+        for (const auto& tri : m_contact_mesh->GetTrianglesXYZRot()) {
             if (ptr_ind_map.insert({tri->GetNode(0).get(), vertex_index}).second) {
                 ind_ptr_map.insert({vertex_index, tri->GetNode(0)});
                 ++vertex_index;
@@ -92,7 +92,7 @@ void ChLoadContactSurfaceMesh::InputSimpleForces(const std::vector<ChVector3d>& 
         for (size_t i = 0; i < vert_forces.size(); ++i) {
             auto node = ind_ptr_map.find(vert_ind[i]);
             if (node != ind_ptr_map.end()) {
-                auto frc = chrono_types::make_shared<ChLoadXYZROTnodeForceAbsolute>(node->second, vert_forces[i]);
+                auto frc = chrono_types::make_shared<ChLoadNodeXYZRotForceAbs>(node->second, vert_forces[i]);
                 m_forces_rot.push_back(frc);
             }
         }

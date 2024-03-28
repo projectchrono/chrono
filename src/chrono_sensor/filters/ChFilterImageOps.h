@@ -51,6 +51,22 @@ class CH_SENSOR_API ChFilterImageHalf4ToRGBA8 : public ChFilter {
     CUstream m_cuda_stream;                                 ///< reference to the cuda stream
 };
 
+
+/// A filter that converts Depth values to RGBA8
+class CH_SENSOR_API ChFilterDepthToRGBA8 : public ChFilter {
+  
+ public:
+    ChFilterDepthToRGBA8(std::string name = {});
+    virtual void Apply();
+
+    virtual void Initialize(std::shared_ptr<ChSensor> pSensor, std::shared_ptr<SensorBuffer>& bufferInOut);
+
+  private:
+    std::shared_ptr<SensorDeviceDepthBuffer> m_buffer_in;   ///<
+    std::shared_ptr<SensorDeviceRGBA8Buffer> m_buffer_out;  ///<
+    CUstream m_cuda_stream;
+};
+
 /// A filter that, when applied to a sensor, resizes the image to the specified dimensions.
 class CH_SENSOR_API ChFilterImageResize : public ChFilter {
   public:

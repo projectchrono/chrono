@@ -29,6 +29,7 @@
 #include "chrono/assets/ChVisualShapeModelFile.h"
 
 #include "chrono_sensor/sensors/ChSegmentationCamera.h"
+#include "chrono_sensor/sensors/ChDepthCamera.h"
 #include "chrono_sensor/ChSensorManager.h"
 #include "chrono_sensor/filters/ChFilterAccess.h"
 #include "chrono_sensor/filters/ChFilterGrayscale.h"
@@ -322,6 +323,28 @@ int main(int argc, char* argv[]) {
     manager->AddSensor(cam2);
 
     // -------------------------------------------------------
+    // Create a depth camera that shadows camera2
+    // -------------------------------------------------------
+    auto depth = chrono_types::make_shared<ChDepthCamera>(ground_body,   // body camera is attached to
+                                                          update_rate,   // update rate in Hz
+                                                          offset_pose2,  // offset pose
+                                                          image_width,   // image width
+                                                          image_height,  // image height
+                                                          fov,           // camera's horizontal field of view
+                                                          lens_model);   // FOV
+    depth->SetName("Depth Camera");
+    depth->SetLag(lag);
+    depth->SetCollectionWindow(exposure_time);
+
+    // Render the semantic mask
+    if (vis)
+        depth->PushFilter(chrono_types::make_shared<ChFilterVisualize>(640, 360, "Depth Camera"));
+
+    // Note: With Depth camera, an access filter is already added to the filter graph internally. DO NOT add another.
+    // Add the depth camera to the sensor manager
+    manager->AddSensor(depth);
+
+    // -------------------------------------------------------
     // Create a semantic segmentation camera that shadows camera2
     // -------------------------------------------------------
     auto seg = chrono_types::make_shared<ChSegmentationCamera>(ground_body,   // body camera is attached to
@@ -371,6 +394,7 @@ int main(int argc, char* argv[]) {
 
     UserRGBA8BufferPtr rgba8_ptr;
     UserR8BufferPtr r8_ptr;
+    UserDepthBufferPtr depth_ptr;
 
     while (ch_time < end_time) {
         // Rotate the cameras around the mesh at a fixed rate
@@ -385,6 +409,26 @@ int main(int argc, char* argv[]) {
         seg->SetOffsetPose(chrono::ChFrame<double>(
             {orbit_radius * cos(ch_time * orbit_rate), orbit_radius * sin(ch_time * orbit_rate), 2},
             QuatFromAngleAxis(ch_time * orbit_rate + CH_PI, {0, 0, 1})));
+
+        depth->SetOffsetPose(chrono::ChFrame<double>(
+            {orbit_radius * cos(ch_time * orbit_rate), orbit_radius * sin(ch_time * orbit_rate), 2},
+            QuatFromAngleAxis(ch_time * orbit_rate + CH_PI, {0, 0, 1})));
+            
+
+        // Access the depth buffer from depth camera
+        depth_ptr = depth->GetMostRecentBuffer<UserDepthBufferPtr>();
+        if (depth_ptr->Buffer) {
+            // Print max depth values
+            float min_depth = depth_ptr->Buffer[0].depth;
+            float max_depth = depth_ptr->Buffer[0].depth;
+            for (int i = 0; i < depth_ptr->Height * depth_ptr->Width; i++) {
+                max_depth = std::max(max_depth, depth_ptr->Buffer[i].depth);
+            }
+            std::cout << "Depth buffer recieved from depth camera. Camera resolution: " << depth_ptr->Width << "x"
+                      << depth_ptr->Height << ", frame= " << depth_ptr->LaunchedCount << ", t=" << depth_ptr->TimeStamp
+                      << ", max depth=" << max_depth << "m" << std::endl
+                      << std::endl;
+        }
 
         // Access the RGBA8 buffer from the first camera
         // rgba8_ptr = cam->GetMostRecentBuffer<UserRGBA8BufferPtr>();

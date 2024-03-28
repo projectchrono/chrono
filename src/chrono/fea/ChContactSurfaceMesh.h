@@ -221,10 +221,10 @@ class ChApi ChContactTriangleXYZ : public ChContactable_3vars<3, 3, 3>, public C
 
 /// Contact element of triangular type - version for triangles where the nodes are of ChNodeFEAxyzrot type.
 /// Used to 'tessellate' a generic surface like the outer of tetrahedral meshes.
-class ChApi ChContactTriangleXYZROT : public ChContactable_3vars<6, 6, 6>, public ChLoadableUV {
+class ChApi ChContactTriangleXYZRot : public ChContactable_3vars<6, 6, 6>, public ChLoadableUV {
   public:
-    ChContactTriangleXYZROT();
-    ChContactTriangleXYZROT(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>& nodes,
+    ChContactTriangleXYZRot();
+    ChContactTriangleXYZRot(const std::array<std::shared_ptr<ChNodeFEAxyzrot>, 3>& nodes,
                             ChContactSurface* container = nullptr);
 
     /// Set the FEA nodes for which this is a proxy.
@@ -462,7 +462,7 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
                  double sphere_swept = 0.0                  ///< thickness (radius of sweeping sphere)
     );
 
-    /// Add the face specified by the three specified XYZROT nodes to this collision mesh.
+    /// Add the face specified by the three given XYZROT nodes to this collision mesh.
     void AddFace(std::shared_ptr<ChNodeFEAxyzrot> node1,       ///< face node1
                  std::shared_ptr<ChNodeFEAxyzrot> node2,       ///< face node2
                  std::shared_ptr<ChNodeFEAxyzrot> node3,       ///< face node3
@@ -508,7 +508,7 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     std::vector<std::shared_ptr<ChContactTriangleXYZ>>& GetTrianglesXYZ() { return m_faces; }
 
     /// Get the list of triangles for nodes with rotational dofs.
-    std::vector<std::shared_ptr<ChContactTriangleXYZROT>>& GetTrianglesXYZROT() { return m_faces_rot; }
+    std::vector<std::shared_ptr<ChContactTriangleXYZRot>>& GetTrianglesXYZRot() { return m_faces_rot; }
 
     /// Get the number of triangles.
     unsigned int GetNumTriangles() const { return (unsigned int)(m_faces.size() + m_faces_rot.size()); }
@@ -538,8 +538,8 @@ class ChApi ChContactSurfaceMesh : public ChContactSurface {
     void AddFacesFromTripletsXYZ(const std::vector<NodeTripletXYZ>& triangle_ptrs, double sphere_swept);
     void AddFacesFromTripletsXYZrot(const std::vector<NodeTripletXYZrot>& triangle_ptrs, double sphere_swept);
 
-    std::vector<std::shared_ptr<ChContactTriangleXYZ>> m_faces;         ///< XYZ-node collision faces
-    std::vector<std::shared_ptr<ChContactTriangleXYZROT>> m_faces_rot;  ///< XYWROT-node collision faces
+    std::vector<std::shared_ptr<ChContactTriangleXYZ>> m_faces;         ///< collision faces with XYZ nodes
+    std::vector<std::shared_ptr<ChContactTriangleXYZRot>> m_faces_rot;  ///< collision faces with XYZRot nodes
 };
 
 /// @} fea_contact

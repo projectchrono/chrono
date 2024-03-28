@@ -184,10 +184,12 @@ int main(int argc, char* argv[]) {
     // --------------------------------------------------
 
     // Disable contact for the FEA track meshes
-    std::static_pointer_cast<ChTrackAssemblyBandANCF>(vehicle.GetTrackAssembly(LEFT))
-        ->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
-    std::static_pointer_cast<ChTrackAssemblyBandANCF>(vehicle.GetTrackAssembly(RIGHT))
-        ->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
+    if (shoe_type == TrackShoeType::BAND_ANCF) {
+        std::static_pointer_cast<ChTrackAssemblyBandANCF>(vehicle.GetTrackAssembly(LEFT))
+            ->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
+        std::static_pointer_cast<ChTrackAssemblyBandANCF>(vehicle.GetTrackAssembly(RIGHT))
+            ->SetContactSurfaceType(ChTrackAssemblyBandANCF::ContactSurfaceType::NONE);
+    }
 
     // Enable contact on all tracked vehicle parts, except the left sprocket
     ////vehicle.EnableCollision(TrackedCollisionFlag::ALL & (~TrackedCollisionFlag::SPROCKET_LEFT));

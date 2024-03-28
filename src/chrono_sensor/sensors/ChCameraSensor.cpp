@@ -20,6 +20,7 @@
 #include "chrono_sensor/optix/ChFilterOptixRender.h"
 #include "chrono_sensor/filters/ChFilterImageOps.h"
 
+
 namespace chrono {
 namespace sensor {
 
@@ -45,6 +46,8 @@ CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> par
       m_gamma(gamma),
       m_use_fog(use_fog),
       m_lens_parameters({}),
+      m_width(w),
+      m_height(h),
       ChOptixSensor(parent, updateRate, offsetPose, w * supersample_factor, h * supersample_factor) {
     // set the program to match the model requested
     // switch (lens_model) {
@@ -74,12 +77,28 @@ CH_SENSOR_API ChCameraSensor::ChCameraSensor(std::shared_ptr<chrono::ChBody> par
 CH_SENSOR_API ChCameraSensor::~ChCameraSensor() {}
 
 void ChCameraSensor::SetRadialLensParameters(ChVector3f params) {
+    m_distortion_params = params;
     m_lens_parameters = CalcInvRadialModel(params);
 }
 
+ ChMatrix33<float> ChCameraSensor::GetCameraIntrinsicMatrix() {
+    ChMatrix33<float> I;
+    float focal_length = (m_width / 2) * tanf(m_hFOV / 2);
+    I(0, 0) = focal_length;
+    I(0, 1) = 0.f;
+    I(0, 2) = m_width / 2;
+    I(1, 0) = 0.f;
+    I(1, 1) = focal_length;
+    I(1, 2) = m_height / 2;
+    I(2, 0) = 0.f;
+    I(2, 1) = 0.f;
+    I(2, 2) = 1.f;
+
+    return I;
+};
 LensParams ChCameraSensor::CalcInvRadialModel(ChVector3f params) {
     // coefficients directory without algorithm from
-    // Drap, P., & Lefèvre, J. (2016).
+    // Drap, P., & Lefevre, J. (2016).
     // An Exact Formula for Calculating Inverse Radial Lens Distortions.
     // Sensors (Basel, Switzerland), 16(6), 807. https://doi.org/10.3390/s16060807
 
@@ -123,6 +142,11 @@ LensParams ChCameraSensor::CalcInvRadialModel(ChVector3f params) {
 
     return p;
 }
+
+
+/*ChMatrix33<float> GetCameraIntrinsciMatrix() {
+    
+}*/
 
 }  // namespace sensor
 }  // namespace chrono

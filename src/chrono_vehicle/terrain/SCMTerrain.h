@@ -29,7 +29,7 @@
 #include "chrono/fea/ChNodeFEAxyz.h"
 #include "chrono/physics/ChLoadContainer.h"
 #include "chrono/physics/ChLoadsBody.h"
-#include "chrono/physics/ChLoadsXYZnode.h"
+#include "chrono/physics/ChLoadsNodeXYZ.h"
 #include "chrono/physics/ChSystem.h"
 #include "chrono/core/ChTimer.h"
 

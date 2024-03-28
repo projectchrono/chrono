@@ -50,7 +50,7 @@
 #include "chrono/physics/ChLoadsBody.h"
 #include "chrono/physics/ChNodeBase.h"
 #include "chrono/physics/ChNodeXYZ.h"
-#include "chrono/physics/ChLoadsXYZnode.h"
+#include "chrono/physics/ChLoadsNodeXYZ.h"
 #include "chrono/physics/ChIndexedNodes.h"
 
 #include "chrono/assets/ChVisualMaterial.h"

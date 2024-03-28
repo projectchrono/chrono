@@ -10,7 +10,7 @@
 /* Includes the header in the wrapper code */
 #include "chrono/physics/ChLoad.h"
 #include "chrono/physics/ChLoadsBody.h"
-#include "chrono/physics/ChLoadsXYZnode.h"
+#include "chrono/physics/ChLoadsNodeXYZ.h"
 
 %}
 
@@ -29,15 +29,15 @@
 %shared_ptr(chrono::ChLoadBodyBodyBushingMate)
 %shared_ptr(chrono::ChLoadBodyBodyBushingPlastic)
 %shared_ptr(chrono::ChLoadBodyBodyBushingGeneric)
-%shared_ptr(chrono::ChLoadXYZnode)
-%shared_ptr(chrono::ChLoadXYZnodeForce)
-%shared_ptr(chrono::ChLoadXYZnodeForceAbsolute)
-%shared_ptr(chrono::ChLoadXYZnodeXYZnode)
-%shared_ptr(chrono::ChLoadXYZnodeXYZnodeSpring)
-%shared_ptr(chrono::ChLoadXYZnodeXYZnodeBushing)
-%shared_ptr(chrono::ChLoadXYZnodeBody)
-%shared_ptr(chrono::ChLoadXYZnodeBodySpring)
-%shared_ptr(chrono::ChLoadXYZnodeBodyBushing)
+%shared_ptr(chrono::ChLoadNodeXYZ)
+%shared_ptr(chrono::ChLoadNodeXYZForce)
+%shared_ptr(chrono::ChLoadNodeXYZForceAbs)
+%shared_ptr(chrono::ChLoadNodeXYZNodeXYZ)
+%shared_ptr(chrono::ChLoadNodeXYZNodeXYZSpring)
+%shared_ptr(chrono::ChLoadNodeXYZNodeXYZBushing)
+%shared_ptr(chrono::ChLoadNodeXYZBody)
+%shared_ptr(chrono::ChLoadNodeXYZBodySpring)
+%shared_ptr(chrono::ChLoadNodeXYZBodyBushing)
 
 // Tell SWIG about parent class in Python
 %import "chrono_swig/interface/core/ChPhysicsItem.i"
@@ -59,4 +59,4 @@
 
 %include "../../../chrono/physics/ChLoad.h"
 %include "../../../chrono/physics/ChLoadsBody.h"
-%include "../../../chrono/physics/ChLoadsXYZnode.h"
+%include "../../../chrono/physics/ChLoadsNodeXYZ.h"

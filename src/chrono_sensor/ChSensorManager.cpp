@@ -101,6 +101,7 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
             if (!found_group && engine->GetSensor().size() > 0 &&
                 abs(engine->GetSensor()[0]->GetUpdateRate() - sensor->GetUpdateRate()) < 0.001) {
                 found_group = true;
+                
                 engine->AssignSensor(pOptixSensor);
                 if (m_verbose)
                     std::cout << "Sensor added to existing engine\n";
@@ -116,8 +117,8 @@ CH_SENSOR_API void ChSensorManager::AddSensor(std::shared_ptr<ChSensor> sensor) 
                         m_verbose);  // limits to 2 gpus, TODO: check if device supports cuda
 
                     // engine->ConstructScene();
-                    engine->AssignSensor(pOptixSensor);
 
+                    engine->AssignSensor(pOptixSensor);
                     m_engines.push_back(engine);
                     if (m_verbose)
                         std::cout << "Created another OptiX engine. Now at: " << m_engines.size() << "\n";

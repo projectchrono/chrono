@@ -6,6 +6,7 @@ Change Log
 
 - [Unreleased (development branch)](#unreleased-development-branch)
   - [\[Changed\] Refactoring of class and function names](#changed-refactoring-of-class-and-function-names)
+  - [\[Added\] Chrono::Sensor features and updates](#added-chronosensor-features-and-updates)
   - [\[Changed\] Updated Chrono::VSG module](#changed-updated-chronovsg-module)
   - [\[Added\] New motion functions and filters](#added-new-motion-functions-and-filters)
   - [\[Changed\] Updated ChBlender exporter to Blender4.0](#changed-updated-chblender-exporter-to-blender4.0)
@@ -105,8 +106,11 @@ Change Log
 
 ## [Changed] Refactoring of class and function names
 
-For consistency and uniformity, many class and functions were renamed and some classes obsoleted.
+For consistency and uniformity, many classes and functions were renamed, modified, or even obsoleted.
 Note that this represents a major public API change and we expect most user code will need to be updated to reflect these changes.
+
+The main changes are collected in the following tables. These can serve as a "dictionary" for converting existing user codes to the new Chrono API.
+Please make sure to also read the notes at the end of this log entry where we provide more details on changes that went beyond simple class or function renaming.
 
 **Header files**
 
@@ -167,6 +171,8 @@ Note that this represents a major public API change and we expect most user code
 | ChLinkScrew.h                       | rename: ChLinkLockScrew.h                 |
 | ChLinkTrajectory.h                  | rename: ChLinkLockTrajectory.h            |
 | ChLists.h                           | remove                                    |
+| ChLoadsXYZnode.h                    | rename: ChLoadsNodeXYZ.h                  |
+| ChLoadsZYZROTnode.h                 | rename: ChLoadsNodeXYZRot.h               |
 | ChLog.h                             | remove                                    |
 | ChMaterialSurface.h                 | rename: ChContactMaterial.h               |
 | ChMaterialSurfaceNSC.h              | rename: ChContactMaterialNSC.h            |
@@ -185,6 +191,11 @@ Note that this represents a major public API change and we expect most user code
 
 
 **Classes and functions**
+
+The following table summarizes all changes in class and member function names.
+The table is sorted in alphabetical order of the old class name (in the 1st column) and then in alphabetical order of the old member function name (in the 2nd column).
+The 3rd column specifies the action taken on that class or function: remove (indicating obsoleted functionality) or renamed (in which case the new class or function name is provided).
+In some instances, the reader is directed to the "Notes" section for more details.
 
 | Class                             | Function                      | Action                                           |
 | :-------------------------------- | :--------------------------   | :----------------------------------------------- |
@@ -368,6 +379,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | ContactableGetStateBlock_x    | rename: ContactableGetStateBlockPosLevel         |
 |                                   | ContactableGetStateBlock_w    | rename: ContactableGetStateBlockVelLevel         |
 |                                   | GetCsysForCollisionModel      | rename: GetCollisionModelFrame                   |
+| ChContactNodeXYZROT               |                               | rename: ChContactNodeXYZRot                      |
+| ChContactNodeXYZROTsphere         |                               | rename: ChContactNodeXYZRotSphere                |
 | ChContactSurfaceMesh              |                               |                                                  |
 |                                   | GetTriangleList               | rename: GetTrianglesXYZ                          |
 |                                   | GetTriangleListRot            | rename: GetTrianglesXYZROT                       |
@@ -375,6 +388,8 @@ Note that this represents a major public API change and we expect most user code
 |                                   | GetNnodesRot                  | rename: GetNumNodesRot                           |
 |                                   | GetNodeList                   | rename: GetNodes                                 |
 |                                   | GetNodeListRot                | rename: GetNodesRot                              |
+| ChContactTriangleXYZROT           |                               | rename: ChContactTriangleXYZRot                  |
+|                                   | GetTrianglesXYZROT            | rename: GetTrianglesXYZRot                       |
 | ChContinuumElastic                |                               |                                                  |
 |                                   | Get_BulkModulus               | rename: GetBulkModulus                           |
 |                                   | Get_density                   | rename: GetDensity                               |
@@ -982,12 +997,38 @@ Note that this represents a major public API change and we expect most user code
 |                                   | LoadableGetStateBlock_w       | rename: LoadableGetStateBlockVelLevel            |
 | ChLoadBase                        |                               |                                                  |
 |                                   | LoadGet_field_ncoords         | rename: LoadGetNumFieldCoords                    |
+| ChLoadBodyBodyBushingPlastic      |                               |                                                  |
+|                                   | GetYeld                       | rename: GetYield                                 |
+|                                   | SetYeld                       | rename: SetYield                                 |
 | ChLoaderGravity                   |                               |                                                  |
 |                                   | Get_G_acc                     | rename: GetGravitationalAcceleration             |
 |                                   | Set_G_acc                     | rename: SetGravitationalAcceleration             |
-| ChLoadsBody                       |                               |                                                  |
-|                                   | GetYeld                       | rename: GetYield                                 |
-|                                   | SetYeld                       | rename: SetYield                                 |
+| ChLoaderXYZnode                   |                               | rename: ChLoaderNodeXYZ                          |
+| ChLoadXYZnode                     |                               | rename: ChLoadNodeXYZ                            |
+| ChLoadXYZnodeBody                 |                               | rename: ChLoadNodeXYZBody                        |
+|                                   | GetBodyB                      | rename: GetBody                                  |
+|                                   | GetNodeA                      | rename: GetNode                                  |
+| ChLoadXYZnodeBodyBushing          |                               | rename: ChLoadNodeXYZBodyBushing                 |
+| ChLoadXYZnodeBodySpring           |                               | rename: ChLoadNodeXYZBodySpring                  |
+| ChLoadXYZnodeForce                |                               | rename: ChLoadNodeXYZForce                       |
+| ChLoadXYZnodeForceAbsolute        |                               | rename: ChLoadNodeXYZForceAbs                    |
+| ChLoadXYZnodeXYZnode              |                               | rename: ChLoadNodeXYZNodeXYZ                     |
+| ChLoadXYZnodeXYZnodeBushing       |                               | rename: ChLoadNodeXYZNodeXYZBushing              |
+| ChLoadXYZnodeXYZnodeSpring        |                               | rename: ChLoadNodeXYZNodeXYZSpring               |
+| ChLoadXYZROTnodeBody              |                               | rename: ChLoadNodeXYZRotBody                     |
+|                                   | GetBodyB                      | rename: GetBody                                  |
+|                                   | GetNodeA                      | rename: GetNode                                  |
+| ChLoadXYZROTnodeBodyBushingGeneric   |                            | rename: ChLoadNodeXYZRotBodyBushingGeneric       |
+| ChLoadXYZROTnodeBodyBushingMate      |                            | rename: ChLoadNodeXYZRotBodyBushingMate          |
+| ChLoadXYZROTnodeBodyBushingPlastic   |                            | rename: ChLoadNodeXYZRotBodyBushingPlastic       |
+| ChLoadXYZROTnodeBodyBushingSpherical |                            | rename: ChLoadNodeXYZRotBodyBushingSpherical     |
+| ChLoadXYZROTnode                  |                               | rename: ChLoadNodeXYZRot                         |
+| ChLoadXYZROTnodeForceAbsolute     |                               | rename: ChLoadNodeXYZRotForceAbs                 |
+| ChLoadXYZROTnodeXYZROTnode        |                               | rename: ChLoadNodeXYZRotNodeXYZRot               |
+| ChLoadXYZROTnodeXYZROTnodeBushingGeneric   |                      | rename: ChLoadNodeXYZRotNodeXYZRotBushingGeneric   |
+| ChLoadXYZROTnodeXYZROTnodeBushingMate      |                      | rename: ChLoadNodeXYZRotNodeXYZRotBushingMate      |
+| ChLoadXYZROTnodeXYZROTnodeBushingPlastic   |                      | rename: ChLoadNodeXYZRotNodeXYZRotBushingPlastic   |
+| ChLoadXYZROTnodeXYZROTnodeBushingSpherical |                      | rename: ChLoadNodeXYZRotNodeXYZRotBushingSpherical |
 | ChLog                             |                               | remove                                           |
 | ChLogConsole                      |                               | remove                                           |
 | ChMarker                          |                               |                                                  |
@@ -1368,7 +1409,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | Get_qb                        | rename: State                                    |
 |                                   | Get_fb                        | rename: Force                                    |
 |                                   | MultiplyAndAdd                | rename: AddMassTimesVectorInto                   |
-| ChVector                          |                               |                                                  |
+| ChVector                          |                               | rename: ChVector3                                |
 |                                   | DirToDxDyDz                   | rename: GetDirectionAxesAsX                      |
 | ChVolume                          |                               |                                                  |
 |                                   | Get_closed_U                  | rename: IsClosedU                                |
@@ -1414,6 +1455,7 @@ Note that this represents a major public API change and we expect most user code
 |                                   | VectorF             | rename: ChVector3f                               |
 
 **Constants**
+
 | Name                              | Action                                           |
 | :-------------------------------- | :----------------------------------------------- |
 | CH_C_1_PI                         | remove                                           |
@@ -1553,6 +1595,20 @@ Note that this represents a major public API change and we expect most user code
 
 + `ChKblock::Build_K` (now `ChKRMBlock::PasteInto`) reversed the meaning of the last argument (was `add`, now `overwrite`) in accordance to the signature of `PasteMatrix`;
   Also `ChVariable::Build_M` (now `PasteMassInto`) is not taking the position in which the mass should be placed but the offset with respect to the `ChVariable::offset`
+
+## [Added] Chrono::Sensor features and updates
+
+**Updates and Bug Fixes**
+  - Upgraded to Optix 7.7, requiring NVIDIA drive 530.41 or newer
+  - Fixed issues with CUDA NVRTC runtime compilation of Optix shaders
+
+**New Features**
+  - Added supprt for Area Lights (rectangular shaped). Can be added to a scene using `ChScene::AddAreaLights(ChVector3f position, ChColor color, float max_range, ChVector3f du, ChVector3f dv)`.
+  - Added support for rendering emissive surfaces. When defining a visual material, set `ChVisualMaterial::SetEmissiveColor(ChColor color)` and set `ChVisualMaterial:SetEmissivePower(float power)`.
+  - Added a Depth Camera sensor (`ChDepthCamera`). The Depth Camera is initialized in the same manner as `ChCameraSensor` , with each pixel containing depth information of the scene in meters (m).
+  - Added support for the Hapke BRDF model to render celestial bodies (ex: Lunar regolith). To enable, when defining a material set `ChVisualMaterial:SetUseHapke(bool enableHapke)` and set the model parameters using `ChVisualMaterial:SetHapkeParameters(float w,...)`. More information regarding the Hapke model and its parametrization can be found in <https://doi.org/10.1002/2013JE004580>.
+  - Added a Random Walk based noise model for GPS sensor. To enable this noise model, when adding a `ChGPSSensor`, set a pointer to a `ChNoiseRandomWalks`object as the noise model parameter.
+
 
 ## [Changed] Updated Chrono::VSG module
 
