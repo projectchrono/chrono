@@ -30,6 +30,12 @@ namespace modal {
 /// where many "internal" DOFs of finite elements will be reduced to few modal modes that are superimposed
 /// to the motion of a floating frame (for small deflections). Some nodes can be selected as "boundary nodes"
 /// to allow connecting this modal assembly to external joints and forces.
+///
+/// =============================================================================
+/// The modal reduction procedure has been inspired by the research paper:
+/// Sonneville, V., Scapolan, M., Shan, M. et al. Modal reduction procedures for flexible multibody dynamics. Multibody
+/// Syst Dyn 51, 377–418 (2021).
+
 class ChApiModal ChModalAssembly : public ChAssembly {
   public:
     ChModalAssembly();
@@ -695,7 +701,7 @@ class ChApiModal ChModalAssembly : public ChAssembly {
     bool m_is_model_reduced;  ///< flag to indicate whether in the modal "reduced" state.
 
     bool m_internal_nodes_update;  ///< flag to indicate whether the internal nodes will update for
-                                 ///< visualization/postprocessing
+                                   ///< visualization/postprocessing
 
     mutable ChTimer m_timer_matrix_assembly;
     mutable ChTimer m_timer_modal_solver_call;
